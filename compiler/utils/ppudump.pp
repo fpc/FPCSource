@@ -234,7 +234,7 @@ var
 begin
   l1:=ppufile.getlongint;
   l2:=ppufile.getlongint;
-  getint64:=(int64(l2) shl 32) or l1;
+  getint64:=(int64(l2) shl 32) or qword(l1);
 end;
 
 Procedure ReadLinkContainer(const prefix:string);
@@ -1774,7 +1774,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-04-23 13:12:58  peter
+  Revision 1.22  2002-05-12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.21  2002/04/23 13:12:58  peter
     * updated for posinfo change
     * updated for mangledname change
     * include i386 registers, removed reference to cpubase unit that would

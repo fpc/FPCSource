@@ -47,21 +47,20 @@ interface
        tstoredsymtable = class(tsymtable)
        private
           b_needs_init_final : boolean;
-          procedure _needs_init_final(p : tnamedindexitem);
-          procedure check_forward(sym : TNamedIndexItem);
-          procedure labeldefined(p : TNamedIndexItem);
-          procedure unitsymbolused(p : TNamedIndexItem);
-          procedure varsymbolused(p : TNamedIndexItem);
-          procedure TestPrivate(p : TNamedIndexItem);
-          procedure objectprivatesymbolused(p : TNamedIndexItem);
+          procedure _needs_init_final(p : tnamedindexitem;arg:pointer);
+          procedure check_forward(sym : TNamedIndexItem;arg:pointer);
+          procedure labeldefined(p : TNamedIndexItem;arg:pointer);
+          procedure unitsymbolused(p : TNamedIndexItem;arg:pointer);
+          procedure varsymbolused(p : TNamedIndexItem;arg:pointer);
+          procedure TestPrivate(p : TNamedIndexItem;arg:pointer);
+          procedure objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
 {$ifdef GDB}
        private
-          asmoutput : taasmoutput;
-          procedure concatstab(p : TNamedIndexItem);
-          procedure resetstab(p : TNamedIndexItem);
-          procedure concattypestab(p : TNamedIndexItem);
+          procedure concatstab(p : TNamedIndexItem;arg:pointer);
+          procedure resetstab(p : TNamedIndexItem;arg:pointer);
+          procedure concattypestab(p : TNamedIndexItem;arg:pointer);
 {$endif}
-          procedure unchain_overloads(p : TNamedIndexItem);
+          procedure unchain_overloads(p : TNamedIndexItem;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
           procedure writedefs(ppufile:tcompilerppufile);
@@ -88,7 +87,7 @@ interface
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  getnewtypecount : word; override;
 {$endif GDB}
-          procedure testfordefaultproperty(p : TNamedIndexItem);
+          procedure testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
        end;
 
        tabstractrecordsymtable = class(tstoredsymtable)
@@ -451,14 +450,14 @@ implementation
              ibsymref :
                begin
                  sym:=tstoredsym(ppufile.getderef);
-                 resolvesym(tsym(sym));
+                 resolvesym(pointer(sym));
                  if assigned(sym) then
                    sym.load_references(ppufile,locals);
                end;
              ibdefref :
                begin
                  prdef:=tstoreddef(ppufile.getderef);
-                 resolvedef(tdef(prdef));
+                 resolvedef(pointer(prdef));
                  if assigned(prdef) then
                    begin
                      if prdef.deftype<>procdef then
@@ -669,7 +668,7 @@ implementation
              Callbacks
 **************************************}
 
-    procedure TStoredSymtable.check_forward(sym : TNamedIndexItem);
+    procedure TStoredSymtable.check_forward(sym : TNamedIndexItem;arg:pointer);
       begin
          if tsym(sym).typ=procsym then
            tprocsym(sym).check_forward
@@ -684,7 +683,7 @@ implementation
       end;
 
 
-    procedure TStoredSymtable.labeldefined(p : TNamedIndexItem);
+    procedure TStoredSymtable.labeldefined(p : TNamedIndexItem;arg:pointer);
       begin
         if (tsym(p).typ=labelsym) and
            not(tlabelsym(p).defined) then
@@ -697,18 +696,18 @@ implementation
       end;
 
 
-    procedure TStoredSymtable.unitsymbolused(p : TNamedIndexItem);
+    procedure TStoredSymtable.unitsymbolused(p : TNamedIndexItem;arg:pointer);
       begin
          if (tsym(p).typ=unitsym) and
             (tunitsym(p).refs=0) and
             { do not claim for unit name itself !! }
+            assigned(tunitsym(p).unitsymtable) and
             (tunitsym(p).unitsymtable.symtabletype=globalsymtable) then
-           MessagePos2(tsym(p).fileinfo,sym_n_unit_not_used,
-             p.name,current_module.modulename^);
+           MessagePos2(tsym(p).fileinfo,sym_n_unit_not_used,p.name,current_module.modulename^);
       end;
 
 
-    procedure TStoredSymtable.varsymbolused(p : TNamedIndexItem);
+    procedure TStoredSymtable.varsymbolused(p : TNamedIndexItem;arg:pointer);
       begin
          if (tsym(p).typ=varsym) and
             ((tsym(p).owner.symtabletype in
@@ -773,14 +772,14 @@ implementation
       end;
 
 
-    procedure TStoredSymtable.TestPrivate(p : TNamedIndexItem);
+    procedure TStoredSymtable.TestPrivate(p : TNamedIndexItem;arg:pointer);
       begin
         if sp_private in tsym(p).symoptions then
-          varsymbolused(p);
+          varsymbolused(p,arg);
       end;
 
 
-    procedure TStoredSymtable.objectprivatesymbolused(p : TNamedIndexItem);
+    procedure TStoredSymtable.objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
       begin
          {
            Don't test simple object aliases PM
@@ -788,11 +787,11 @@ implementation
          if (tsym(p).typ=typesym) and
             (ttypesym(p).restype.def.deftype=objectdef) and
             (ttypesym(p).restype.def.typesym=tsym(p)) then
-           tobjectdef(ttypesym(p).restype.def).symtable.foreach({$ifdef FPCPROCVAR}@{$endif}TestPrivate);
+           tobjectdef(ttypesym(p).restype.def).symtable.foreach({$ifdef FPCPROCVAR}@{$endif}TestPrivate,nil);
       end;
 
 
-    procedure tstoredsymtable.unchain_overloads(p : TNamedIndexItem);
+    procedure tstoredsymtable.unchain_overloads(p : TNamedIndexItem;arg:pointer);
       begin
          if tsym(p).typ=procsym then
            tprocsym(p).unchain_overload;
@@ -800,24 +799,24 @@ implementation
 
 {$ifdef GDB}
 
-    procedure TStoredSymtable.concatstab(p : TNamedIndexItem);
+    procedure TStoredSymtable.concatstab(p : TNamedIndexItem;arg:pointer);
       begin
         if tsym(p).typ <> procsym then
-          tstoredsym(p).concatstabto(asmoutput);
+          tstoredsym(p).concatstabto(TAAsmOutput(arg));
       end;
 
-    procedure TStoredSymtable.resetstab(p : TNamedIndexItem);
+    procedure TStoredSymtable.resetstab(p : TNamedIndexItem;arg:pointer);
       begin
         if tsym(p).typ <> procsym then
           tstoredsym(p).isstabwritten:=false;
       end;
 
-    procedure TStoredSymtable.concattypestab(p : TNamedIndexItem);
+    procedure TStoredSymtable.concattypestab(p : TNamedIndexItem;arg:pointer);
       begin
         if tsym(p).typ = typesym then
          begin
            tstoredsym(p).isstabwritten:=false;
-           tstoredsym(p).concatstabto(asmoutput);
+           tstoredsym(p).concatstabto(TAAsmOutput(arg));
          end;
       end;
 
@@ -894,48 +893,47 @@ implementation
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}check_forward);
+         foreach({$ifdef FPCPROCVAR}@{$endif}check_forward,nil);
       end;
 
 
     procedure tstoredsymtable.checklabels;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined);
+         foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined,nil);
       end;
 
 
     procedure tstoredsymtable.allunitsused;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.allsymbolsused;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}varsymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}varsymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.allprivatesused;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}objectprivatesymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}objectprivatesymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.unchain_overloaded;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}unchain_overloads);
+         foreach({$ifdef FPCPROCVAR}@{$endif}unchain_overloads,nil);
       end;
 
 
 {$ifdef GDB}
     procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
       begin
-        asmoutput:=asmlist;
         if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
-          foreach({$ifdef FPCPROCVAR}@{$endif}resetstab);
+          foreach({$ifdef FPCPROCVAR}@{$endif}resetstab,nil);
 
-        foreach({$ifdef FPCPROCVAR}@{$endif}concatstab);
+        foreach({$ifdef FPCPROCVAR}@{$endif}concatstab,asmlist);
       end;
 {$endif}
 
@@ -944,7 +942,7 @@ implementation
     function tstoredsymtable.needs_init_final : boolean;
       begin
          b_needs_init_final:=false;
-         foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final);
+         foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final,nil);
          needs_init_final:=b_needs_init_final;
       end;
 
@@ -1009,7 +1007,7 @@ implementation
       end;
 
 
-    procedure TStoredSymtable._needs_init_final(p : tnamedindexitem);
+    procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
       begin
          if (not b_needs_init_final) and
             (tsym(p).typ=varsym) and
@@ -1363,8 +1361,7 @@ implementation
                     do_count_dbx:=assigned(dbx_counter);
                   end;
              end;
-           asmoutput:=asmlist;
-           foreach({$ifdef FPCPROCVAR}@{$endif}concattypestab);
+           foreach({$ifdef FPCPROCVAR}@{$endif}concattypestab,asmlist);
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if (current_module.globalsymtable<>self) then
@@ -1886,7 +1883,7 @@ implementation
    var
       _defaultprop : tpropertysym;
 
-   procedure tstoredsymtable.testfordefaultproperty(p : TNamedIndexItem);
+   procedure tstoredsymtable.testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
      begin
         if (tsym(p).typ=propertysym) and
            (ppo_defaultproperty in tpropertysym(p).propoptions) then
@@ -1900,7 +1897,7 @@ implementation
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}tstoredsymtable(pd.symtable).testfordefaultproperty);
+             pd.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}tstoredsymtable(pd.symtable).testfordefaultproperty,nil);
              if assigned(_defaultprop) then
                break;
              pd:=pd.childof;
@@ -2063,7 +2060,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-04-04 19:06:05  peter
+  Revision 1.58  2002-05-12 16:53:15  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.57  2002/04/04 19:06:05  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

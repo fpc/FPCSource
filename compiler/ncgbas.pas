@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2000 by Florian Klaempfl
 
     This unit implements some basic nodes
 
@@ -22,7 +22,7 @@
 }
 unit ncgbas;
 
-{$i fpcdefs.inc}
+{$i defines.inc}
 
 interface
 
@@ -63,10 +63,10 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      aasmbase,aasmtai,aasmcpu,symsym,
-      cpubase,
+      aasm,symsym,
+      cpubase,cpuasm,
       nflw,pass_2,
-      cgbase,cginfo,cgobj,tgobj,rgobj
+      cgbase,cgobj,tgobj,rgobj
       ;
 
 {*****************************************************************************
@@ -75,8 +75,6 @@ interface
 
     procedure tcgnothingnode.pass_2;
       begin
-         location_reset(location,LOC_VOID,OS_NO);
-
          { avoid an abstract rte }
       end;
 
@@ -87,23 +85,19 @@ interface
 
     procedure tcgstatementnode.pass_2;
       var
-         hp : tstatementnode;
+         hp : tnode;
       begin
-         location_reset(location,LOC_VOID,OS_NO);
-
          hp:=self;
          while assigned(hp) do
           begin
-            if assigned(hp.left) then
+            if assigned(tstatementnode(hp).right) then
              begin
-             {$ifndef newra}
                rg.cleartempgen;
-             {$endif newra}
-               secondpass(hp.left);
+               secondpass(tstatementnode(hp).right);
                { Compiler inserted blocks can return values }
-               location_copy(hp.location,hp.left.location);
+               location_copy(location,tstatementnode(hp).right.location);
              end;
-            hp:=tstatementnode(hp.right);
+            hp:=tstatementnode(hp).left;
           end;
       end;
 
@@ -116,14 +110,21 @@ interface
 
       procedure ReLabel(var p:tasmsymbol);
         begin
-          { Only relabel local tasmlabels }
-          if (p.defbind = AB_LOCAL) and
-             (p is tasmlabel) then
+          if p.proclocal then
            begin
              if not assigned(p.altsymbol) then
-               objectlibrary.GenerateAltSymbol(p);
+              begin
+                { generatealtsymbol will also increase the refs }
+                p.GenerateAltSymbol;
+                UsedAsmSymbolListInsert(p);
+              end
+             else
+              begin
+                { increase the refs, they will be decreased when the
+                  asmnode is destroyed }
+                inc(p.refs);
+              end;
              p:=p.altsymbol;
-             p.increfs;
            end;
         end;
 
@@ -133,11 +134,9 @@ interface
         i : longint;
         skipnode : boolean;
       begin
-         location_reset(location,LOC_VOID,OS_NO);
-
          if inlining_procedure then
            begin
-             objectlibrary.CreateUsedAsmSymbolList;
+             CreateUsedAsmSymbolList;
              localfixup:=aktprocdef.localst.address_fixup;
              parafixup:=aktprocdef.parast.address_fixup;
              hp:=tai(p_asm.first);
@@ -160,11 +159,7 @@ interface
                      begin
                        { remove cached insentry, because the new code can
                          require an other less optimized instruction }
-{$ifdef i386}
-{$ifndef NOAG386BIN}
                        taicpu(hp2).ResetPass1;
-{$endif}
-{$endif}
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
@@ -205,8 +200,8 @@ interface
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             objectlibrary.UsedAsmSymbolListResetAltSym;
-             objectlibrary.DestroyUsedAsmSymbolList;
+             UsedAsmSymbolListResetAltSym;
+             DestroyUsedAsmSymbolList;
            end
          else
            begin
@@ -217,6 +212,8 @@ interface
              else
                exprasmList.concatlist(p_asm);
            end;
+         if not (nf_object_preserved in flags) then
+           cg.g_maybe_loadself(exprasmlist);
        end;
 
 
@@ -225,29 +222,13 @@ interface
 *****************************************************************************}
 
     procedure tcgblocknode.pass_2;
-      var
-        hp : tstatementnode;
       begin
-        location_reset(location,LOC_VOID,OS_NO);
-
         { do second pass on left node }
         if assigned(left) then
          begin
-           hp:=tstatementnode(left);
-           while assigned(hp) do
-            begin
-              if assigned(hp.left) then
-               begin
-               {$ifndef newra}
-                 if nf_releasetemps in flags then
-                   rg.cleartempgen;
-               {$endif newra}
-                 secondpass(hp.left);
-                 location_copy(hp.location,hp.left.location);
-               end;
-              location_copy(location,hp.location);
-              hp:=tstatementnode(hp.right);
-            end;
+           secondpass(left);
+           { Compiler inserted blocks can return values }
+           location_copy(location,left.location);
          end;
       end;
 
@@ -256,21 +237,16 @@ interface
 *****************************************************************************}
 
     procedure tcgtempcreatenode.pass_2;
-      var
-        temptype : ttemptype;
       begin
-        location_reset(location,LOC_VOID,OS_NO);
-
         { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
         if tempinfo^.valid then
           internalerror(200108222);
 
         { get a (persistent) temp }
         if persistent then
-          temptype:=tt_persistant
+          tg.gettempofsizereferencepersistant(exprasmlist,size,tempinfo^.ref)
         else
-          temptype:=tt_normal;
-        tg.GetTemp(exprasmlist,size,temptype,tempinfo^.ref);
+          tg.gettempofsizereference(exprasmlist,size,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -296,12 +272,10 @@ interface
 
     procedure tcgtempdeletenode.pass_2;
       begin
-        location_reset(location,LOC_VOID,OS_NO);
-
         if release_to_normal then
-          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal)
+          tg.persistanttemptonormal(tempinfo^.ref.offset)
         else
-          tg.UnGetTemp(exprasmlist,tempinfo^.ref);
+          tg.ungetpersistanttempreference(exprasmlist,tempinfo^.ref);
       end;
 
 
@@ -316,85 +290,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-04-25 20:15:39  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
-
-  Revision 1.31  2003/04/22 23:50:22  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.30  2003/04/17 07:50:24  daniel
-    * Some work on interference graph construction
-
-  Revision 1.29  2003/03/28 19:16:56  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.28  2002/11/27 15:33:19  peter
-    * fixed relabeling to relabel only tasmlabel (formerly proclocal)
-
-  Revision 1.27  2002/11/27 02:37:13  peter
-    * case statement inlining added
-    * fixed inlining of write()
-    * switched statementnode left and right parts so the statements are
-      processed in the correct order when getcopy is used. This is
-      required for tempnodes
-
-  Revision 1.26  2002/11/17 16:31:56  carl
-    * memory optimization (3-4%) : cleanup of tai fields,
-       cleanup of tdef and tsym fields.
-    * make it work for m68k
-
-  Revision 1.25  2002/11/15 16:29:30  peter
-    * made tasmsymbol.refs private (merged)
-
-  Revision 1.24  2002/11/15 01:58:51  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.23  2002/08/23 16:14:48  peter
-    * tempgen cleanup
-    * tt_noreuse temp type added that will be used in genentrycode
-
-  Revision 1.22  2002/08/11 14:32:26  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.21  2002/08/11 13:24:11  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.20  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.19  2002/05/18 13:34:09  peter
-    * readded missing revisions
-
-  Revision 1.18  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.16  2002/05/13 19:54:37  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.15  2002/05/12 16:53:07  peter
+  Revision 1.15  2002-05-12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -443,5 +339,53 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
+
+  Revision 1.10  2001/12/31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.9  2001/11/02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.8  2001/10/25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.7  2001/08/26 13:36:39  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.6  2001/08/24 13:47:27  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.5  2001/08/23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.4  2001/06/02 19:22:15  peter
+    * refs count for relabeled asmsymbols fixed
+
+  Revision 1.3  2001/05/18 22:31:06  peter
+    * tasmnode.pass_2 is independent of cpu, moved to ncgbas
+    * include ncgbas for independent nodes
+
+  Revision 1.2  2001/04/13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2000/10/14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
 
 }

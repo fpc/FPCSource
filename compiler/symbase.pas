@@ -113,8 +113,8 @@ interface
           destructor  destroy;override;
           procedure clear;virtual;
           function  rename(const olds,news : stringid):tsymentry;
-          procedure foreach(proc2call : tnamedindexcallback);
-          procedure foreach_static(proc2call : tnamedindexstaticcallback);
+          procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
+          procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
           procedure insert(sym : tsymentry);virtual;
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
@@ -208,15 +208,15 @@ implementation
       end;
 
 
-    procedure tsymtable.foreach(proc2call : tnamedindexcallback);
+    procedure tsymtable.foreach(proc2call : tnamedindexcallback;arg:pointer);
       begin
-        symindex.foreach(proc2call);
+        symindex.foreach(proc2call,arg);
       end;
 
 
-    procedure tsymtable.foreach_static(proc2call : tnamedindexstaticcallback);
+    procedure tsymtable.foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
       begin
-        symindex.foreach_static(proc2call);
+        symindex.foreach_static(proc2call,arg);
       end;
 
 
@@ -311,7 +311,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-04-13 01:22:15  peter
+  Revision 1.3  2002-05-12 16:53:10  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.2  2001/04/13 01:22:15  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

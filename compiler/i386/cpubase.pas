@@ -465,10 +465,10 @@ type
 
 const
   general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
-  
-  {# Table of registers which can be allocated by the code generator       
-     internally, when generating the code.                             
-  }   
+
+  {# Table of registers which can be allocated by the code generator
+     internally, when generating the code.
+  }
   { legend:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
@@ -504,7 +504,7 @@ const
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
 
 {*****************************************************************************
-                          Default generic sizes 
+                          Default generic sizes
 *****************************************************************************}
    {# Defines the default address size for a processor, }
    OS_ADDR = OS_32;
@@ -523,10 +523,10 @@ const
   stack_pointer_reg = R_ESP;
   {# Frame pointer register }
   frame_pointer_reg = R_EBP;
-  {# Self pointer register : contains the instance address of an 
+  {# Self pointer register : contains the instance address of an
      object or class. }
   self_pointer_reg  = R_ESI;
-  {# Register for addressing absolute data in a position independant way, 
+  {# Register for addressing absolute data in a position independant way,
      such as in PIC code. The exact meaning is ABI specific }
   pic_offset_reg = R_EBX;
   {# Results are returned in this register (32-bit values) }
@@ -538,12 +538,12 @@ const
   fpuresultreg = R_ST;
   mmresultreg = R_MM0;
 
-  {# Registers which are defined as scratch and no need to save across 
+  {# Registers which are defined as scratch and no need to save across
      routine calls or in assembler blocks.
   }
   scratch_regs : array[1..1] of tregister = (R_EDI);
 
-  
+
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -552,20 +552,20 @@ const
   {# Registers which must be saved when calling a routine declared as
      cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
      saved should be the ones as defined in the target ABI and / or GCC.
-     
+
      This value can be deduced from the CALLED_USED_REGISTERS array in the
      GCC source.
   }
   std_saved_registers = [R_ESI,R_EDI,R_EBX];
   {# Required parameter alignment when calling a routine declared as
      stdcall and cdecl. The alignment value should be the one defined
-     by GCC or the target ABI. 
-     
-     The value of this constant is equal to the constant 
+     by GCC or the target ABI.
+
+     The value of this constant is equal to the constant
      PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
-  }     
+  }
   std_param_align = 4;
-  
+
 
 
 
@@ -593,11 +593,10 @@ const
 
 implementation
 
-  uses
 {$ifdef heaptrc}
-      ppheap,
+  uses
+      ppheap;
 {$endif heaptrc}
-      verbose;
 
 
 {*****************************************************************************
@@ -640,7 +639,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-04-21 15:31:40  carl
+  Revision 1.19  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.18  2002/04/21 15:31:40  carl
   - removed some other stuff to their units
 
   Revision 1.17  2002/04/20 21:37:07  carl

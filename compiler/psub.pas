@@ -54,17 +54,17 @@ implementation
        { pass 1 }
        node,
        nbas,
+       pass_1,
        { pass 2 }
 {$ifndef NOPASS2}
-       pass_1,pass_2,
+       pass_2,
 {$endif}
        { parser }
        scanner,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgobj,cgbase,rgobj,
-       rgcpu,
-       cga
+       tgobj,cgbase,rgobj,rgcpu,
+       ncgutil
        {$ifndef NOOPT}
          {$ifdef i386}
            ,aopt386
@@ -328,11 +328,7 @@ implementation
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
-{$ifdef newcg}
-                cg^.g_entrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
-{$else newcg}
                 genentrycode(procinfo^.aktentrycode,make_global,stackframe,parasize,nostackframe,false);
-{$endif newcg}
 
                 { FPC_POPADDRSTACK destroys all registers (JM) }
                 if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
@@ -343,11 +339,7 @@ implementation
                 { now generate exit code with the correct position and switches }
                 aktfilepos:=exitpos;
                 aktlocalswitches:=exitswitches;
-{$ifdef newcg}
-                cg^.g_exitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
-{$else newcg}
                 genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
-{$endif newcg}
 
                 { now all the registers used are known }
                 aktprocdef.usedregisters:=rg.usedinproc;
@@ -462,11 +454,13 @@ implementation
                         PROCEDURE/FUNCTION PARSING
 ****************************************************************************}
 
-    procedure checkvaluepara(p:tnamedindexitem);
+    procedure checkvaluepara(p:tnamedindexitem;arg:pointer);
       var
         vs : tvarsym;
         s  : string;
       begin
+        if tsym(p).typ<>varsym then
+         exit;
         with tvarsym(p) do
          begin
            if copy(name,1,3)='val' then
@@ -648,7 +642,7 @@ implementation
            the parameter and insert a copy in the localst. This is not done
            for assembler procedures }
          if (not parse_only) and (not aktprocdef.forwarddef) then
-           aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara);
+           aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
 
          { restore file pos }
          aktfilepos:=oldfilepos;
@@ -700,7 +694,7 @@ implementation
 ****************************************************************************}
 
     { search in symtablestack for not complete classes }
-    procedure check_forward_class(p : tnamedindexitem);
+    procedure check_forward_class(p : tnamedindexitem;arg:pointer);
       begin
         if (tsym(p).typ=typesym) and
            (ttypesym(p).restype.def.deftype=objectdef) and
@@ -772,7 +766,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class);
+          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
       end;
 
 
@@ -805,13 +799,30 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class);
+          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
       end;
 
 end.
 {
   $Log$
-  Revision 1.49  2002-04-20 21:32:24  carl
+  Revision 1.50  2002-05-12 16:53:09  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.49  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

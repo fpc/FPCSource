@@ -300,6 +300,9 @@ const
   type_w_mixed_signed_unsigned2=04036;
   type_e_typecast_wrong_size_for_assignment=04037;
   type_e_array_index_enums_with_assign_not_possible=04038;
+  type_e_classes_not_related=04039;
+  type_w_classes_not_related=04040;
+  type_e_class_or_interface_type_expected=04041;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -604,9 +607,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 33931;
+  MsgTxtSize = 34086;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,184,39,41,41,98,17,35,42,
+    17,62,184,42,41,41,98,17,35,42,
     30,1,1,1,1,1,1,1,1,1
   );

@@ -43,7 +43,7 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasm,cpuasm,types,verbose,cpubase,
+       symconst,symbase,symdef,aasm,cpuasm,types,verbose,
        { pass 1 }
        node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -347,7 +347,7 @@ implementation
                      hpstart:=taddrnode(p).left;
                     hp:=hpstart;
                     while assigned(hp) and (hp.nodetype in [subscriptn,vecn]) do
-                      hp:=tbinarynode(hp).left;
+                      hp:=tunarynode(hp).left;
                     if (hp.nodetype=loadn) then
                       begin
                         hp:=hpstart;
@@ -971,7 +971,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-04-23 19:16:35  peter
+  Revision 1.46  2002-05-12 16:53:09  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.45  2002/04/23 19:16:35  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

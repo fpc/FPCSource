@@ -742,7 +742,7 @@ implementation
       var
          hp,procs,hp2 : pprocdefcoll;
          pd : pprocdeflist;
-         oldcallprocdef : tprocdef;
+         oldcallprocdef : tabstractprocdef;
          def_from,def_to,conv_to : tdef;
          hpt : tnode;
          pt : tcallparanode;
@@ -1543,7 +1543,7 @@ implementation
          { insert type conversions }
          if assigned(left) then
           begin
-            aktcallprocdef:=tprocdef(procdefinition);
+            aktcallprocdef:=procdefinition;
             tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
           end;
 
@@ -1725,7 +1725,12 @@ implementation
                      { but for R^.Assign, R must be valid !! }
                      if (procdefinition.proctypeoption=potype_constructor) or
                         ((methodpointer.nodetype=loadn) and
-                        (not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions))) then
+                         ((methodpointer.resulttype.def.deftype=classrefdef) or
+                          ((methodpointer.resulttype.def.deftype=objectdef) and
+                           not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions)
+                          )
+                         )
+                        ) then
                        method_must_be_valid:=false
                      else
                        method_must_be_valid:=true;
@@ -1865,7 +1870,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2002-04-25 20:16:38  peter
+  Revision 1.73  2002-05-12 16:53:06  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.72  2002/04/25 20:16:38  peter
     * moved more routines from cga/n386util
 
   Revision 1.71  2002/04/20 21:32:23  carl

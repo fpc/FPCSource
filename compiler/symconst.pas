@@ -269,6 +269,10 @@ type
     vs_set_but_first_not_passed,vs_assigned,vs_used
   );
 
+  tvarspez = (vs_value,vs_const,vs_var,vs_out);
+
+  targconvtyp = (act_convertable,act_equal,act_exact);
+
   absolutetyp = (tovar,toasm,toaddr);
 
   tconsttyp = (constnone,
@@ -326,7 +330,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-01-06 12:08:15  peter
+  Revision 1.29  2002-05-12 16:53:10  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.28  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 

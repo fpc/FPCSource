@@ -41,8 +41,13 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, cginfo, cgbase, cpubase, cga,
-     tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj, cgobj;
+uses
+  pass_1, types, htypechk,
+  symdef,
+  aasm,
+  ncnv, ncon, pass_2,
+  cginfo, cgbase, cpubase,
+  tgobj, rgobj, cgobj, n386util;
 
 
 {*****************************************************************************
@@ -86,6 +91,7 @@ var
   href,href2 :  treference;
   hreg, lengthreg: tregister;
   checklength: boolean;
+  len : integer;
 begin
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_2                                     }
@@ -118,15 +124,15 @@ begin
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
         hreg := rg.makeregsize(rg.getregisterint(exprasmlist),OS_8);
-        emit_ref_reg(A_MOV,S_B,right.location.reference,hreg);
-       { I don't think a temp char exists, but it won't hurt (JM) }
-       tg.ungetiftemp(exprasmlist,right.location.reference);
+        cg.a_load_ref_reg(exprasmlist,OS_8,right.location.reference,hreg);
+        { I don't think a temp char exists, but it won't hurt (JM) }
+        tg.ungetiftemp(exprasmlist,right.location.reference);
       end
     else hreg := right.location.register;
 
   { load the current string length }
   lengthreg := rg.getregisterint(exprasmlist);
-  emit_ref_reg(A_MOVZX,S_BL,left.location.reference,lengthreg);
+  cg.a_load_ref_reg(exprasmlist,OS_8,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
   if tg.istemp(left.location.reference) then
@@ -138,10 +144,10 @@ begin
       { is it already maximal? }
       getlabel(l);
       if tg.istemp(left.location.reference) then
-        emit_const_reg(A_CMP,S_L,255,lengthreg)
+        len:=255
       else
-        emit_const_reg(A_CMP,S_L,tstringdef(left.resulttype.def).len,lengthreg);
-      emitjmp(C_E,l);
+        len:=tstringdef(left.resulttype.def).len;
+      cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,len,lengthreg,l)
     end;
 
   { no, so increase the length and add the new character }
@@ -156,7 +162,7 @@ begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
       { have a scalefactor) and use lengthreg as base  }
-      emit_reg_reg(A_ADD,S_L,href2.base,lengthreg);
+      cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,href2.base,lengthreg);
       href2.base := lengthreg;
     end
   else
@@ -175,17 +181,17 @@ begin
     begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
-      emit_reg_ref(A_MOV,S_B,hreg,href2);
+      cg.a_load_reg_ref(exprasmlist,OS_8,hreg,href2);
       rg.ungetregister(exprasmlist,hreg);
     end
   else
-    emit_const_ref(A_MOV,S_B,tordconstnode(right).value,href2);
+    cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
   { increase the string length }
-  emit_reg(A_INC,S_B,rg.makeregsize(lengthreg,OS_8));
-  emit_reg_ref(A_MOV,S_B,rg.makeregsize(lengthreg,OS_8),left.location.reference);
+  cg.a_op_const_reg(exprasmlist,OP_ADD,1,rg.makeregsize(lengthreg,OS_8));
+  cg.a_load_reg_ref(exprasmlist,OS_8,rg.makeregsize(lengthreg,OS_8),left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
-    emitlab(l);
+    cg.a_label(exprasmlist,l);
   location_copy(location,left.location);
 end;
 
@@ -220,17 +226,17 @@ begin
   remove_non_regvars_from_loc(right.location,regstopush);
   rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
   { push the maximum possible length of the result }
-  emitpushreferenceaddr(left.location.reference);
+  cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
   { the optimizer can more easily put the          }
   { deallocations in the right place if it happens }
   { too early than when it happens too late (if    }
   { the pushref needs a "lea (..),edi; push edi")  }
   reference_release(exprasmlist,right.location.reference);
-  emitpushreferenceaddr(right.location.reference);
+  cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
   rg.saveregvars(exprasmlist,regstopush);
-  emitcall('FPC_SHORTSTR_CONCAT');
+  cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
   tg.ungetiftemp(exprasmlist,right.location.reference);
-  maybe_loadself;
+  cg.g_maybe_loadself(exprasmlist);
   rg.restoreusedregisters(exprasmlist,pushedregs);
   location_copy(location,left.location);
 end;
@@ -242,7 +248,24 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-04-25 20:16:40  peter
+  Revision 1.13  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.12  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.11  2002/04/21 15:36:40  carl

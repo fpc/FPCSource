@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  tainst,cpubase,optbase,cpuasm,DAOpt386,cginfo,rgobj;
+  tainst,cpuinfo,cpubase,cpuasm,DAOpt386,cginfo,rgobj;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -102,7 +102,7 @@ end;
 Procedure PrePeepHoleOpts(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
 var
   p,hp1: Tai;
-  l: longint;
+  l: Aword;
   tmpRef: treference;
 Begin
   P := BlockStart;
@@ -344,7 +344,7 @@ Begin
                             Taicpu(hp1).opcode := A_AND;
                             l := (1 shl (Taicpu(hp1).oper[0].val)) - 1;
                             Case Taicpu(p).opsize Of
-                              S_L: Taicpu(hp1).LoadConst(0,l Xor longint(-1));
+                              S_L: Taicpu(hp1).LoadConst(0,l Xor aword($ffffffff));
                               S_B: Taicpu(hp1).LoadConst(0,l Xor $ff);
                               S_W: Taicpu(hp1).LoadConst(0,l Xor $ffff);
                             End;
@@ -361,7 +361,7 @@ Begin
                                 Taicpu(p).opcode := A_AND;
                                 l := (1 shl (Taicpu(p).oper[0].val))-1;
                                 Case Taicpu(p).opsize Of
-                                  S_L: Taicpu(p).LoadConst(0,l Xor longint($ffffffff));
+                                  S_L: Taicpu(p).LoadConst(0,l Xor aword($ffffffff));
                                   S_B: Taicpu(p).LoadConst(0,l Xor $ff);
                                   S_W: Taicpu(p).LoadConst(0,l Xor $ffff);
                                 End;
@@ -377,7 +377,7 @@ Begin
                                   Case Taicpu(p).opsize Of
                                     S_B: Taicpu(p).LoadConst(0,l Xor $ff);
                                     S_W: Taicpu(p).LoadConst(0,l Xor $ffff);
-                                    S_L: Taicpu(p).LoadConst(0,l Xor longint($ffffffff));
+                                    S_L: Taicpu(p).LoadConst(0,l Xor aword($ffffffff));
                                   End;
                                   asml.remove(hp1);
                                   hp1.free;
@@ -563,7 +563,7 @@ Var
               (Taicpu(hp1).oper[1].typ = top_reg) And
               (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) Then
              Begin
-               Taicpu(p).LoadConst(0,Taicpu(p).oper[0].val-Taicpu(hp1).oper[0].val);
+               Taicpu(p).LoadConst(0,AWord(int64(Taicpu(p).oper[0].val)-int64(Taicpu(hp1).oper[0].val)));
                asml.Remove(hp1);
                hp1.free;
                If (Taicpu(p).oper[0].val = 0) Then
@@ -870,21 +870,24 @@ Begin
                           if (Base = Taicpu(p).oper[1].reg) then
                             begin
                               l := offset+offsetfixup;
-                              case l of
-                                1,-1:
-                                  begin
-                                    if l = 1 then
-                                      Taicpu(p).opcode := A_INC
-                                    else Taicpu(p).opcode := A_DEC;
-                                    Taicpu(p).loadreg(0,Taicpu(p).oper[1].reg);
-                                    Taicpu(p).ops := 1;
-                                  end;
-                                else
-                                  begin
-                                    Taicpu(p).opcode := A_ADD;
-                                    Taicpu(p).loadconst(0,offset+offsetfixup);
-                                  end;
-                              end;
+                              if (l=1) then
+                               begin
+                                 Taicpu(p).opcode := A_INC;
+                                 Taicpu(p).loadreg(0,Taicpu(p).oper[1].reg);
+                                 Taicpu(p).ops := 1
+                               end
+                              else
+                               if (l=-1) then
+                                begin
+                                  Taicpu(p).opcode := A_DEC;
+                                  Taicpu(p).loadreg(0,Taicpu(p).oper[1].reg);
+                                  Taicpu(p).ops := 1;
+                                end
+                              else
+                               begin
+                                 Taicpu(p).opcode := A_ADD;
+                                 Taicpu(p).loadconst(0,aword(l));
+                               end;
                             end;
                 End;
               A_MOV:
@@ -1213,7 +1216,7 @@ Begin
                       Case Taicpu(p).opsize of
                         S_BW:
                           Begin
-                            If (Taicpu(p).oper[0].reg = rg.makeregsize(Taicpu(p).oper[1].reg,OS_8)) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_16)=Taicpu(p).oper[1].reg) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                 {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
@@ -1241,7 +1244,7 @@ Begin
                           End;
                         S_BL:
                           Begin
-                            If (Taicpu(p).oper[0].reg = rg.makeregsize(Taicpu(p).oper[1].reg,OS_8)) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32)=Taicpu(p).oper[1].reg) And
                                Not(CS_LittleSize in aktglobalswitches)
                               Then
                                 {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
@@ -1269,7 +1272,7 @@ Begin
                           End;
                         S_WL:
                           Begin
-                            If (Taicpu(p).oper[0].reg = rg.makeregsize(Taicpu(p).oper[1].reg,OS_16)) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32)=Taicpu(p).oper[1].reg) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
@@ -2040,7 +2043,24 @@ End.
 
 {
   $Log$
-  Revision 1.23  2002-04-21 15:40:49  carl
+  Revision 1.24  2002-05-12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.23  2002/04/21 15:40:49  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.22  2002/04/20 21:37:07  carl

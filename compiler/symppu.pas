@@ -35,7 +35,7 @@ interface
          procedure checkerror;
          procedure getguid(var g: tguid);
          procedure getposinfo(var p:tfileposinfo);
-         function  getderef : tsymtableentry;
+         function  getderef : pointer;
          function  getsymlist:tsymlist;
          procedure gettype(var t:ttype);
          procedure putguid(const g: tguid);
@@ -101,7 +101,7 @@ implementation
       end;
 
 
-    function tcompilerppufile.getderef : tsymtableentry;
+    function tcompilerppufile.getderef : pointer;
       var
         hp,p : tderef;
         b : tdereftype;
@@ -132,7 +132,7 @@ implementation
               end;
           end;
         until false;
-        getderef:=tsymtableentry(p);
+        getderef:=p;
       end;
 
 
@@ -388,7 +388,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-04-19 15:40:40  peter
+  Revision 1.9  2002-05-12 16:53:15  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.8  2002/04/19 15:40:40  peter
     * optimize tfileposinfo writing, this reduces the ppu size with 20%
 
   Revision 1.7  2001/10/21 12:33:07  peter

@@ -44,7 +44,7 @@ interface
 implementation
 
     uses
-      globtype,systems,cpuinfo,
+      globtype,systems,
       verbose,globals,
       symconst,symdef,aasm,types,
       cginfo,cgbase,pass_2,
@@ -66,7 +66,7 @@ implementation
        { load first value in 32bit register }
          secondpass(left);
          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-           location_force_reg(left.location,OS_32,false);
+           location_force_reg(exprasmlist,left.location,OS_32,false);
 
        { also a second value ? }
          if assigned(right) then
@@ -78,7 +78,7 @@ implementation
              if pushed then
                restore(left,false);
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              location_force_reg(right.location,OS_32,false);
+              location_force_reg(exprasmlist,right.location,OS_32,false);
            end;
 
          { we doesn't modify the left side, we check only the type }
@@ -313,7 +313,7 @@ implementation
                   { it's always true since "in" is only allowed for bytes }
                   begin
                     emit_none(A_STC,S_NO);
-                    emitjmp(C_NONE,l);
+                    cg.a_jmp_always(exprasmlist,l);
                   end;
               end
              else
@@ -335,7 +335,7 @@ implementation
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
              { Now place the end label }
-             emitlab(l);
+             cg.a_label(exprasmlist,l);
              case left.location.loc of
                LOC_REGISTER,
                LOC_CREGISTER :
@@ -457,8 +457,8 @@ implementation
                           emitjmp(C_NA,l);
                         { reset carry flag }
                           emit_none(A_CLC,S_NO);
-                          emitjmp(C_NONE,l2);
-                          emitlab(l);
+                          cg.a_jmp_always(exprasmlist,l2);
+                          cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=rg.getregisterint(exprasmlist);
@@ -483,8 +483,8 @@ implementation
                        emitjmp(C_NA,l);
                      { reset carry flag }
                        emit_none(A_CLC,S_NO);
-                       emitjmp(C_NONE,l2);
-                       emitlab(l);
+                       cg.a_jmp_always(exprasmlist,l2);
+                       cg.a_label(exprasmlist,l);
                        location_release(exprasmlist,left.location);
                        hr:=rg.getregisterint(exprasmlist);
                        emit_ref_reg(A_MOV,S_L,left.location.reference,hr);
@@ -497,7 +497,7 @@ implementation
                        rg.ungetregisterint(exprasmlist,hr2);
                     end;
                   end;
-                  emitlab(l2);
+                  cg.a_label(exprasmlist,l2);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -555,7 +555,7 @@ implementation
            lesslabel,greaterlabel : tasmlabel;
 
        begin
-         emitlab(p^._at);
+         cg.a_label(exprasmlist,p^._at);
          { calculate labels for left and right }
          if (p^.less=nil) then
            lesslabel:=elselabel
@@ -577,7 +577,7 @@ implementation
                    emitjmp(jmp_le,lesslabel);
                    emitjmp(jmp_gt,greaterlabel);
                 end;
-              emitjmp(C_None,p^.statement);
+              cg.a_jmp_always(exprasmlist,p^.statement);
            end
          else
            begin
@@ -585,7 +585,7 @@ implementation
               emitjmp(jmp_le,lesslabel);
               emit_const_reg(A_CMP,opsize,p^._high,hregister);
               emitjmp(jmp_gt,greaterlabel);
-              emitjmp(C_None,p^.statement);
+              cg.a_jmp_always(exprasmlist,p^.statement);
            end;
           if assigned(p^.less) then
            gentreejmp(p^.less);
@@ -616,7 +616,7 @@ implementation
                        emitjmp(C_NZ,l1);
                        emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
                        emitjmp(C_Z,t^.statement);
-                       emitlab(l1);
+                       cg.a_label(exprasmlist,l1);
                     end
                   else
                     begin
@@ -641,7 +641,7 @@ implementation
                             emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
                             { the comparisation of the low dword must be always unsigned! }
                             emitjmp(C_B,elselabel);
-                            emitlab(l1);
+                            cg.a_label(exprasmlist,l1);
                          end
                        else
                          begin
@@ -659,7 +659,7 @@ implementation
                        emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._high))),hregister);
                        { the comparisation of the low dword must be always unsigned! }
                        emitjmp(C_BE,t^.statement);
-                       emitlab(l1);
+                       cg.a_label(exprasmlist,l1);
                     end
                   else
                     begin
@@ -678,7 +678,7 @@ implementation
            last:=0;
            first:=true;
            genitem(hp);
-           emitjmp(C_None,elselabel);
+           cg.a_jmp_always(exprasmlist,elselabel);
         end;
 
       procedure genlinearlist(hp : pcaserecord);
@@ -725,7 +725,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         gensub(t^._low);
+                         gensub(longint(t^._low));
                     end
                   else
                     begin
@@ -756,7 +756,7 @@ implementation
                 last:=0;
                 first:=true;
                 genitem(hp);
-                emitjmp(C_None,elselabel);
+                cg.a_jmp_always(exprasmlist,elselabel);
              end;
         end;
 
@@ -881,7 +881,7 @@ implementation
          { determines the size of the operand }
          opsize:=bytes2Sxx[left.resulttype.def.size];
          { copy the case expression to a register }
-         location_force_reg(left.location,def_cgsize(left.resulttype.def),false);
+         location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
          if opsize=S_Q then
           begin
             hregister:=left.location.registerlow;
@@ -997,10 +997,10 @@ implementation
               { don't come back to case line }
               aktfilepos:=exprasmList.getlasttaifilepos^;
               load_all_regvars(exprasmlist);
-              emitjmp(C_None,endlabel);
+              cg.a_jmp_always(exprasmlist,endlabel);
               hp:=tbinarynode(hp).left;
            end;
-         emitlab(elselabel);
+         cg.a_label(exprasmlist,elselabel);
          { ...and the else block }
          if assigned(elseblock) then
            begin
@@ -1008,7 +1008,7 @@ implementation
               secondpass(elseblock);
               load_all_regvars(exprasmlist);
            end;
-         emitlab(endlabel);
+         cg.a_label(exprasmlist,endlabel);
       end;
 
 
@@ -1019,7 +1019,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-04-25 20:16:40  peter
+  Revision 1.27  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.26  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.25  2002/04/21 19:02:07  peter

@@ -715,12 +715,12 @@ implementation
                      subscriptn. If no tree is found (with block), then
                      generate a loadn }
                    if assigned(p1) then
-                    p1:=csubscriptnode.create(tvarsym(plist^.sym),p1)
+                    p1:=csubscriptnode.create(plist^.sym,p1)
                    else
-                    p1:=cloadnode.create(tvarsym(plist^.sym),st);
+                    p1:=cloadnode.create(plist^.sym,st);
                  end;
                sl_subscript :
-                 p1:=csubscriptnode.create(tvarsym(plist^.sym),p1);
+                 p1:=csubscriptnode.create(plist^.sym,p1);
                sl_vec :
                  p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype));
                else
@@ -903,10 +903,10 @@ implementation
                            static_name:=lower(sym.owner.name^)+'_'+sym.name;
                            searchsym(static_name,sym,srsymtable);
                            p1.free;
-                           p1:=cloadnode.create(tvarsym(sym),srsymtable);
+                           p1:=cloadnode.create(sym,srsymtable);
                         end
                       else
-                        p1:=csubscriptnode.create(tvarsym(sym),p1);
+                        p1:=csubscriptnode.create(sym,p1);
                    end;
                  propertysym:
                    begin
@@ -948,17 +948,17 @@ implementation
                { is this an access to a function result? Accessing _RESULT is
                  always allowed and funcretn is generated }
                if assigned(p^.procdef.funcretsym) and
-                  ((tfuncretsym(sym)=p^.procdef.resultfuncretsym) or
-                   ((tfuncretsym(sym)=p^.procdef.funcretsym) or
-                    ((tvarsym(sym)=otsym) and ((p^.flags and pi_operator)<>0))) and
+                  ((sym=tsym(p^.procdef.resultfuncretsym)) or
+                   ((sym=tsym(p^.procdef.funcretsym)) or
+                    ((sym=tsym(otsym)) and ((p^.flags and pi_operator)<>0))) and
                    (not is_void(p^.procdef.rettype.def)) and
                    (token<>_LKLAMMER) and
                    (not (not(m_fpc in aktmodeswitches) and (afterassignment or in_args)))
                   ) then
                  begin
-                    if ((tvarsym(sym)=otsym) and
+                    if ((sym=tsym(otsym)) and
                        ((p^.flags and pi_operator)<>0)) then
-                       inc(otsym.refs);
+                      inc(otsym.refs);
                     p1:=cfuncretnode.create(p^.procdef.funcretsym);
                     is_func_ret:=true;
                     if tfuncretsym(p^.procdef.funcretsym).funcretstate=vs_declared then
@@ -1016,7 +1016,7 @@ implementation
               case srsym.typ of
                 absolutesym :
                   begin
-                    p1:=cloadnode.create(tvarsym(srsym),srsymtable);
+                    p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
                 varsym :
@@ -1031,7 +1031,7 @@ implementation
                        static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
                        searchsym(static_name,srsym,srsymtable);
                      end;
-                    p1:=cloadnode.create(tvarsym(srsym),srsymtable);
+                    p1:=cloadnode.create(srsym,srsymtable);
                     if tvarsym(srsym).varstate=vs_declared then
                      begin
                        include(p1.flags,nf_first);
@@ -1097,7 +1097,7 @@ implementation
                               p1:=ctypenode.create(htype);
                               { TP allows also @TMenu.Load if Load is only }
                               { defined in an anchestor class              }
-                              srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
+                              srsym:=search_class_member(tobjectdef(htype.def),pattern);
                               if not assigned(srsym) then
                                Message1(sym_e_id_no_member,pattern)
                               else if not(getaddr) and not(sp_static in srsym.symoptions) then
@@ -1122,7 +1122,7 @@ implementation
                                 p1:=ctypenode.create(htype);
                                 { TP allows also @TMenu.Load if Load is only }
                                 { defined in an anchestor class              }
-                                srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
+                                srsym:=search_class_member(tobjectdef(htype.def),pattern);
                                 if not assigned(srsym) then
                                  Message1(sym_e_id_no_member,pattern)
                                 else
@@ -1193,7 +1193,7 @@ implementation
                         p1:=cnilnode.create;
                       constresourcestring:
                         begin
-                          p1:=cloadnode.create(tvarsym(srsym),srsymtable);
+                          p1:=cloadnode.create(srsym,srsymtable);
                           do_resulttypepass(p1);
                           p1.resulttype:=cansistringtype;
                         end;
@@ -1499,7 +1499,7 @@ implementation
                             hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
                             if assigned(hsym) and
                                (hsym.typ=varsym) then
-                              p1:=csubscriptnode.create(tvarsym(hsym),p1)
+                              p1:=csubscriptnode.create(hsym,p1)
                             else
                               begin
                                 Message1(sym_e_illegal_field,pattern);
@@ -1687,7 +1687,7 @@ implementation
                    begin
                      { self in class methods is a class reference type }
                      htype.setdef(procinfo^._class);
-                     p1:=cselfnode.create(tobjectdef(tclassrefdef.create(htype)));
+                     p1:=cselfnode.create(tclassrefdef.create(htype));
                    end
                   else
                    p1:=cselfnode.create(procinfo^._class);
@@ -2224,7 +2224,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-04-23 19:16:34  peter
+  Revision 1.65  2002-05-12 16:53:09  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.64  2002/04/23 19:16:34  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

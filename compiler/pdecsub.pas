@@ -85,7 +85,7 @@ implementation
        ;
 
 
-    procedure resetvaluepara(p:tnamedindexitem);
+    procedure resetvaluepara(p:tnamedindexitem;arg:pointer);
       begin
         if tsym(p).typ=varsym then
          with tvarsym(p) do
@@ -1464,7 +1464,8 @@ const
     procedure handle_calling_convention(sym:tprocsym;def:tabstractprocdef);
       var
         st,parast : tsymtable;
-        lastps,ps : tsym;
+        lastps,
+        highps,ps : tsym;
       begin
       { set the default calling convention }
         if def.proccalloption=pocall_none then
@@ -1483,7 +1484,7 @@ const
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
                  { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { Adjust positions of args for cdecl or stdcall }
                  tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
@@ -1503,7 +1504,7 @@ const
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110235);
                  { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { Adjust positions of args for cdecl or stdcall }
                  tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
@@ -1532,25 +1533,43 @@ const
           pocall_pascal :
             begin
               include(def.procoptions,po_leftright);
-              st:=tparasymtable.create;
               if def.deftype=procdef then
                begin
+                 st:=tparasymtable.create;
+                 st.symindex.noclear:=true;
                  parast:=tprocdef(def).parast;
+                 highps:=nil;
                  lastps:=nil;
                  while assigned(parast.symindex.first) and (lastps<>tsym(parast.symindex.first)) do
                   begin
                     ps:=tsym(parast.symindex.first);
                     while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
                       ps:=tsym(ps.indexnext);
-                    ps.owner:=st;
-                    { recalculate the corrected offset }
-                    { the really_insert_in_data procedure
-                      for parasymtable should only calculateoffset PM }
-                    tstoredsym(ps).insert_in_data;
-                    { reset the owner correctly }
-                    ps.owner:=parast;
+                    { Wait with inserting the high value, it needs to be inserted
+                      after the corresponding parameter }
+                    if Copy(ps.name,1,4)='high' then
+                     highps:=ps
+                    else
+                     begin
+                       { recalculate the corrected offset by inserting it into
+                         the new symtable and then reset the owner back }
+                       ps.owner:=st;
+                       tstoredsym(ps).insert_in_data;
+                       ps.owner:=parast;
+                       { add also the high tree if it was saved }
+                       if assigned(highps) then
+                        begin
+                          highps.owner:=st;
+                          tstoredsym(highps).insert_in_data;
+                          highps.owner:=parast;
+                          highps:=nil;
+                        end;
+                     end;
                     lastps:=ps;
                   end;
+                 st.free;
+                 if assigned(highps) then
+                  internalerror(200205111);
                end;
             end;
           pocall_register :
@@ -1581,7 +1600,7 @@ const
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110236);
                  { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { Adjust positions of args for cdecl or stdcall }
                  tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
@@ -1938,7 +1957,24 @@ const
 end.
 {
   $Log$
-  Revision 1.53  2002-04-21 19:02:04  peter
+  Revision 1.54  2002-05-12 16:53:08  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.53  2002/04/21 19:02:04  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

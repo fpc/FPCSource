@@ -47,10 +47,10 @@ unit rgcpu;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
 
           procedure ungetreference(list: taasmoutput; const ref : treference); override;
-          
-          {# Returns a subset register of the register r with the specified size. 
+
+          {# Returns a subset register of the register r with the specified size.
              WARNING: There is no clearing of the upper parts of the register,
-             if a 8-bit / 16-bit register is converted to a 32-bit register. 
+             if a 8-bit / 16-bit register is converted to a 32-bit register.
              It is up to the code generator to correctly zero fill the register
           }
           function makeregsize(reg: tregister; size: tcgsize): tregister; override;
@@ -80,7 +80,7 @@ unit rgcpu;
     uses
        systems,
        globals,verbose,
-       tgobj,cga;
+       tgobj;
 
 {************************************************************************}
 {                         routine helpers                                }
@@ -399,7 +399,7 @@ unit rgcpu;
 
 
     function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
-  
+
       var
         _result : topsize;
       begin
@@ -430,7 +430,24 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-04-21 15:43:32  carl
+  Revision 1.6  2002-05-12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.5  2002/04/21 15:43:32  carl
   * changeregsize -> rg.makeregsize
   * changeregsize moved from cpubase to here
 

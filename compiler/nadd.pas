@@ -58,7 +58,6 @@ implementation
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,symtable,types,
-      cpuinfo,
       cgbase,
       htypechk,pass_1,
       nmat,ncnv,nld,ncon,nset,nopt,ncal,ninl,
@@ -112,12 +111,12 @@ implementation
            possible for array constructors }
          if is_array_constructor(left.resulttype.def) then
           begin
-            arrayconstructor_to_set(tarrayconstructornode(left));
+            arrayconstructor_to_set(left);
             resulttypepass(left);
           end;
          if is_array_constructor(right.resulttype.def) then
           begin
-            arrayconstructor_to_set(tarrayconstructornode(right));
+            arrayconstructor_to_set(right);
             resulttypepass(right);
           end;
 
@@ -210,9 +209,12 @@ implementation
                 end
               else if (lt=ordconstn) and (rt=ordconstn) then
                 begin
-                  { make left const type the biggest, this type will be used
-                    for orn,andn,xorn }
-                  if rd.size>ld.size then
+                  { make left const type the biggest (u32bit is bigger than
+                    s32bit for or,and,xor) }
+                  if (rd.size>ld.size) or
+                     ((torddef(rd).typ=u32bit) and
+                      (torddef(ld).typ=s32bit) and
+                      (nodetype in [orn,andn,xorn])) then
                     inserttypeconv(left,right.resulttype);
                 end;
 
@@ -671,12 +673,19 @@ implementation
                    end
                  else
                    begin
-                     if is_signed(ld) and
-                        not(is_constintnode(left) and
-                            (tordconstnode(left).value >= 0)) and
-                        (cs_check_range in aktlocalswitches) then
-                       CGMessage(type_w_mixed_signed_unsigned2);
-                     inserttypeconv(left,u32bittype);
+                     { and,or,xor work on bit patterns and don't care
+                       about the sign }
+                     if nodetype in [andn,orn,xorn] then
+                      inserttypeconv_explicit(left,u32bittype)
+                     else
+                      begin
+                        if is_signed(ld) and
+                           not(is_constintnode(left) and
+                               (tordconstnode(left).value >= 0)) and
+                           (cs_check_range in aktlocalswitches) then
+                          CGMessage(type_w_mixed_signed_unsigned2);
+                        inserttypeconv(left,u32bittype);
+                      end;
 
                      if is_signed(rd) and
                         { then ld = u32bit }
@@ -693,12 +702,19 @@ implementation
                        end
                      else
                        begin
-                         if is_signed(rd) and
-                            not(is_constintnode(right) and
-                                (tordconstnode(right).value >= 0)) and
-                            (cs_check_range in aktlocalswitches) then
-                           CGMessage(type_w_mixed_signed_unsigned2);
-                         inserttypeconv(right,u32bittype);
+                         { and,or,xor work on bit patterns and don't care
+                           about the sign }
+                         if nodetype in [andn,orn,xorn] then
+                          inserttypeconv_explicit(left,u32bittype)
+                         else
+                          begin
+                            if is_signed(rd) and
+                               not(is_constintnode(right) and
+                                   (tordconstnode(right).value >= 0)) and
+                               (cs_check_range in aktlocalswitches) then
+                              CGMessage(type_w_mixed_signed_unsigned2);
+                            inserttypeconv(right,u32bittype);
+                          end;
                        end;
                    end;
                end
@@ -1601,7 +1617,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-04-23 19:16:34  peter
+  Revision 1.47  2002-05-12 16:53:06  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.46  2002/04/23 19:16:34  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

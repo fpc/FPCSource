@@ -38,9 +38,9 @@ implementation
        globtype,version,systems,tokens,
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
-       symconst,symbase,symdef,symsym,symtable,aasm,
+       symconst,symbase,symtype,symdef,symsym,symtable,aasm,
        cgbase,
-       cga,
+       ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,cpuasm,
 {$ifdef GDB}
@@ -682,29 +682,18 @@ implementation
       end;
 
 
-
-    var ltvTable : taasmoutput;
-
-    procedure addToLocalThreadvarTab(p:tnamedindexitem);
+    procedure addToLocalThreadvarTab(p:tnamedindexitem;arg:pointer);
       var
-        asym : tasmsymbol;
+        ltvTable : taasmoutput;
       begin
-        with tvarsym(p) do
+        ltvTable:=taasmoutput(arg);
+        if (tsym(p).typ=varsym) and
+           (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
-           if (typ=varsym) and (vo_is_thread_var IN varoptions) then
-           begin
-             if ltvTable = nil then
-             begin   { first threadvar }
-               ltvTable := TAAsmOutput.Create;
-               ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
-             end;
-                 asym := getasmsymbol(mangledname);
-             if asym <> nil then
-             begin
-               ltvTable.concat(tai_const_symbol.create(asym));    { address of threadvar }
-               ltvTable.concat(tai_const.create_32bit(getsize));  { size of threadvar }
-             end;
-           end;
+           { address of threadvar }
+           ltvTable.concat(tai_const_symbol.create(newasmsymbol(tvarsym(p).mangledname)));
+           { size of threadvar }
+           ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
          end;
       end;
 
@@ -735,7 +724,7 @@ implementation
          store_crc,store_interface_crc : cardinal;
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
-
+         ltvTable : taasmoutput;
       begin
          consume(_UNIT);
          if compile_level=1 then
@@ -980,18 +969,20 @@ implementation
            end;
 
          { generate a list of local threadvars }
-         ltvTable := nil;
-         st.foreach_static (@addToLocalThreadvarTab);
-         if ltvTable <> nil then
-         begin
-           ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
-           ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
-           if (cs_create_smart in aktmoduleswitches) then
-            dataSegment.concat(Tai_cut.Create);
-           dataSegment.concatlist(ltvTable);
-           ltvTable.Free;
-           current_module.flags:=current_module.flags or uf_local_threadvars;
-         end;
+         ltvTable:=TAAsmoutput.create;
+         st.foreach_static({$ifdef FPCPROCVAR}@{$endif}addToLocalThreadvarTab,ltvTable);
+         if ltvTable.first<>nil then
+          begin
+            { add begin and end of the list }
+            ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
+            ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
+            ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
+            if (cs_create_smart in aktmoduleswitches) then
+             dataSegment.concat(Tai_cut.Create);
+            dataSegment.concatlist(ltvTable);
+            current_module.flags:=current_module.flags or uf_local_threadvars;
+          end;
+         ltvTable.Free;
 
          { the last char should always be a point }
          consume(_POINT);
@@ -1236,7 +1227,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           st.insert(tunitsym.create(current_module.realmodulename^,tglobalsymtable(st)));
+           st.insert(tunitsym.create(current_module.realmodulename^,st));
 
          { ...is also constsymtable, this is the symtable where }
          { the elements of enumeration types are inserted       }
@@ -1392,7 +1383,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-05-06 19:54:50  carl
+  Revision 1.64  2002-05-12 16:53:09  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.63  2002/05/06 19:54:50  carl
   + added more patches from Mazen for SPARC port
 
   Revision 1.62  2002/04/20 21:32:24  carl

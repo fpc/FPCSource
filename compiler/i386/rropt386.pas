@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpuinfo,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
+  verbose,globals,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
 
 function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -350,7 +350,24 @@ End.
 
 {
   $Log$
-  Revision 1.13  2002-04-21 15:42:17  carl
+  Revision 1.14  2002-05-12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.13  2002/04/21 15:42:17  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.12  2002/04/20 21:37:08  carl

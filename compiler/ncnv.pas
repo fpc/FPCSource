@@ -110,7 +110,6 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-          procedure pass_2;override;
        end;
        tasnodeclass = class of tasnode;
 
@@ -128,7 +127,9 @@ interface
        cisnode : tisnodeclass;
 
     procedure inserttypeconv(var p:tnode;const t:ttype);
-    procedure arrayconstructor_to_set(var p : tarrayconstructornode);
+    procedure inserttypeconv_explicit(var p:tnode;const t:ttype);
+    procedure arrayconstructor_to_set(var p : tnode);
+
 
 implementation
 
@@ -171,11 +172,36 @@ implementation
       end;
 
 
+    procedure inserttypeconv_explicit(var p:tnode;const t:ttype);
+
+      begin
+        if not assigned(p.resulttype.def) then
+         begin
+           resulttypepass(p);
+           if codegenerror then
+            exit;
+         end;
+
+        { don't insert obsolete type conversions }
+        if is_equal(p.resulttype.def,t.def) and
+           not ((p.resulttype.def.deftype=setdef) and
+                (tsetdef(p.resulttype.def).settype <>
+                 tsetdef(t.def).settype)) then
+         begin
+           p.resulttype:=t;
+         end
+        else
+         begin
+           p:=ctypeconvnode.create_explicit(p,t);
+           resulttypepass(p);
+         end;
+      end;
+
 {*****************************************************************************
                     Array constructor to Set Conversion
 *****************************************************************************}
 
-    procedure arrayconstructor_to_set(var p : tarrayconstructornode);
+    procedure arrayconstructor_to_set(var p : tnode);
 
       var
         constp      : tsetconstnode;
@@ -234,8 +260,10 @@ implementation
       var
         l : Longint;
         lr,hr : TConstExprInt;
-
+        hp : tarrayconstructornode;
       begin
+        if p.nodetype<>arrayconstructorn then
+         internalerror(200205105);
         new(constset);
         FillChar(constset^,sizeof(constset^),0);
         htype.reset;
@@ -244,23 +272,24 @@ implementation
         constp:=csetconstnode.create(nil,htype);
         constp.value_set:=constset;
         buildp:=constp;
-        if assigned(p.left) then
+        hp:=tarrayconstructornode(p);
+        if assigned(hp.left) then
          begin
-           while assigned(p) do
+           while assigned(hp) do
             begin
               p4:=nil; { will contain the tree to create the set }
             {split a range into p2 and p3 }
-              if p.left.nodetype=arrayconstructorrangen then
+              if hp.left.nodetype=arrayconstructorrangen then
                begin
-                 p2:=tarrayconstructorrangenode(p.left).left;
-                 p3:=tarrayconstructorrangenode(p.left).right;
-                 tarrayconstructorrangenode(p.left).left:=nil;
-                 tarrayconstructorrangenode(p.left).right:=nil;
+                 p2:=tarrayconstructorrangenode(hp.left).left;
+                 p3:=tarrayconstructorrangenode(hp.left).right;
+                 tarrayconstructorrangenode(hp.left).left:=nil;
+                 tarrayconstructorrangenode(hp.left).right:=nil;
                end
               else
                begin
-                 p2:=p.left;
-                 p.left:=nil;
+                 p2:=hp.left;
+                 hp.left:=nil;
                  p3:=nil;
                end;
               resulttypepass(p2);
@@ -368,12 +397,12 @@ implementation
                     else
                       CGMessage(type_e_ordinal_expr_expected);
               end;
-            { insert the set creation tree }
+              { insert the set creation tree }
               if assigned(p4) then
                buildp:=caddnode.create(addn,buildp,p4);
-            { load next and dispose current node }
-              p2:=p;
-              p:=tarrayconstructornode(tarrayconstructornode(p2).right);
+              { load next and dispose current node }
+              p2:=hp;
+              hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
               p2.free;
             end;
@@ -382,15 +411,15 @@ implementation
          end
         else
          begin
-         { empty set [], only remove node }
+           { empty set [], only remove node }
            p.free;
          end;
-      { set the initial set type }
+        { set the initial set type }
         constp.resulttype.setdef(tsetdef.create(htype,constsethi));
-      { determine the resulttype for the tree }
+        { determine the resulttype for the tree }
         resulttypepass(buildp);
-      { set the new tree }
-        p:=tarrayconstructornode(buildp);
+        { set the new tree }
+        p:=buildp;
       end;
 
 
@@ -727,11 +756,11 @@ implementation
         result:=nil;
         if left.nodetype<>arrayconstructorn then
          internalerror(5546);
-      { remove typeconv node }
+        { remove typeconv node }
         hp:=left;
         left:=nil;
-      { create a set constructor tree }
-        arrayconstructor_to_set(tarrayconstructornode(hp));
+        { create a set constructor tree }
+        arrayconstructor_to_set(hp);
         result:=hp;
       end;
 
@@ -993,11 +1022,36 @@ implementation
 
               { constant pointer to ordinal }
               else if is_ordinal(resulttype.def) and
-                (left.nodetype=pointerconstn) then
+                      (left.nodetype=pointerconstn) then
                 begin
                    hp:=cordconstnode.create(tpointerconstnode(left).value,resulttype);
                    result:=hp;
                    exit;
+                end
+
+              { class to class or object to object, with checkobject support }
+              else if (resulttype.def.deftype=objectdef) and
+                      (left.resulttype.def.deftype=objectdef) then
+                begin
+                  if (cs_check_object in aktlocalswitches) then
+                   begin
+                     if is_class_or_interface(resulttype.def) then
+                      begin
+                        { we can translate the typeconvnode to 'as' when
+                          typecasting to a class or interface }
+                        hp:=casnode.create(left,cloadvmtnode.create(ctypenode.create(resulttype)));
+                        left:=nil;
+                        result:=hp;
+                        exit;
+                      end;
+                   end
+                  else
+                   begin
+                     { check if the types are related }
+                     if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
+                        (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                       CGMessage2(type_w_classes_not_related,left.resulttype.def.typename,resulttype.def.typename);
+                   end;
                 end
 
               {Are we typecasting an ordconst to a char?}
@@ -1216,7 +1270,6 @@ implementation
     function ttypeconvnode.first_nothing : tnode;
       begin
          first_nothing:=nil;
-         location.loc:=LOC_CREFERENCE;
       end;
 
 
@@ -1475,9 +1528,9 @@ implementation
         { load the value_str from the left part }
         registers32:=left.registers32;
         registersfpu:=left.registersfpu;
- {$ifdef SUPPORT_MMX}
+{$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
- {$endif}
+{$endif}
         location.loc:=left.location.loc;
 
         if nf_explizit in flags then
@@ -1488,25 +1541,7 @@ implementation
             make_not_regable(left);
          end;
 
-        if convtype=tc_equal then
-         begin
-           { remove typeconv node if left is a const. For other nodes we can't
-             remove it because the secondpass can still depend on the old type (PFV)
-             Conversions to float should also be left in the tree, because a float
-             is not possible in LOC_CONSTANT. The second_nothing routine will take
-             care of the conversion to LOC_REFERENCE }
-           if is_constnode(left) and
-              (resulttype.def.deftype<>floatdef) then
-            begin
-              left.resulttype:=resulttype;
-              result:=left;
-              left:=nil;
-            end;
-         end
-        else
-         begin
-           result:=first_call_helper(convtype);
-         end;
+        result:=first_call_helper(convtype);
       end;
 
 
@@ -1553,10 +1588,11 @@ implementation
                   tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def)))) and
                   (not(tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def).is_related(
                   tobjectdef(left.resulttype.def)))) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,
+                            tclassrefdef(right.resulttype.def).pointertype.def.typename);
              end
             else
-             CGMessage(type_e_mismatch);
+             CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
 
             { call fpc_do_is helper }
             paras := ccallparanode.create(
@@ -1575,7 +1611,7 @@ implementation
                { the operands must be related }
                if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
                       (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
              end
             { left is an interface }
             else if is_interface(left.resulttype.def) then
@@ -1586,7 +1622,7 @@ implementation
                  CGMessage(type_e_mismatch);
              end
             else
-             CGMessage(type_e_mismatch);
+             CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
 
             { call fpc_do_is helper }
             paras := ccallparanode.create(
@@ -1598,7 +1634,7 @@ implementation
             right := nil;
           end
          else
-          CGMessage(type_e_mismatch);
+          CGMessage1(type_e_class_or_interface_type_expected,right.resulttype.def.typename);
 
          resulttype:=booltype;
       end;
@@ -1629,8 +1665,6 @@ implementation
 
 
     function tasnode.det_resulttype:tnode;
-      var
-        paras : tcallparanode;
       begin
          result:=nil;
          resulttypepass(right);
@@ -1652,19 +1686,12 @@ implementation
                   tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def)))) and
                   (not(tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def).is_related(
                   tobjectdef(left.resulttype.def)))) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,
+                            tclassrefdef(right.resulttype.def).pointertype.def.typename);
              end
             else
-             CGMessage(type_e_mismatch);
-
-            { call fpc_do_as helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createinternres('fpc_do_as',paras,tclassrefdef(right.resulttype.def).pointertype);
-            left := nil;
-            right := nil;
+             CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
+            resulttype:=tclassrefdef(right.resulttype.def).pointertype;
           end
          else if is_interface(right.resulttype.def) then
           begin
@@ -1674,7 +1701,7 @@ implementation
                { the operands must be related }
                if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
                       (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
              end
             { left is an interface }
             else if is_interface(left.resulttype.def) then
@@ -1682,36 +1709,26 @@ implementation
                { the operands must be related }
                if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
                   (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
              end
             else
-             CGMessage(type_e_mismatch);
-
-            { call fpc_do_as helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createinternres('fpc_do_as',paras,right.resulttype);
-            left := nil;
-            right := nil;
+             CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
+            resulttype:=right.resulttype;
           end
          else
-          CGMessage(type_e_mismatch);
+          CGMessage1(type_e_class_or_interface_type_expected,right.resulttype.def.typename);
       end;
 
 
     function tasnode.pass_1 : tnode;
       begin
-        internalerror(200204252);
+        firstpass(left);
+        firstpass(right);
+        if codegenerror then
+         exit;
+        left_right_max;
+        location.loc:=left.location.loc;
         result:=nil;
-      end;
-
-
-    { dummy pass_2, it will never be called, but we need one since }
-    { you can't instantiate an abstract class                      }
-    procedure tasnode.pass_2;
-      begin
       end;
 
 
@@ -1722,7 +1739,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-04-25 20:16:38  peter
+  Revision 1.55  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.54  2002/04/25 20:16:38  peter
     * moved more routines from cga/n386util
 
   Revision 1.53  2002/04/23 19:16:34  peter

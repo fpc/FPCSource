@@ -54,6 +54,10 @@ interface
          procedure pass_2;override;
        end;
 
+       tcgasnode = class(tasnode)
+         procedure pass_2;override;
+       end;
+
   implementation
 
     uses
@@ -63,7 +67,7 @@ interface
       cpubase,cpuinfo,
       pass_2,
       cginfo,cgbase,
-      cga,cgobj,cgcpu,
+      cgobj,cgcpu,
       ncgutil,
       tgobj,rgobj
       ;
@@ -84,7 +88,7 @@ interface
           begin
             { reuse the left location by default }
             location_copy(location,left.location);
-            location_force_reg(location,newsize,false);
+            location_force_reg(exprasmlist,location,newsize,false);
           end
         else
           begin
@@ -267,7 +271,7 @@ interface
 
       begin
         { method pointer ? }
-        if assigned(tcallnode(left).left) then
+        if assigned(tunarynode(left).left) then
           begin
              location_copy(location,left.location);
           end
@@ -296,7 +300,7 @@ interface
          if not((nf_explizit in flags) and
                 (left.resulttype.def.size=resulttype.def.size) and
                 (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])) then
-           location_force_reg(location,def_cgsize(resulttype.def),false);
+           location_force_reg(exprasmlist,location,def_cgsize(resulttype.def),false);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
       end;
@@ -395,7 +399,7 @@ interface
           moving to memory before the new size is set }
         if (resulttype.def.deftype=floatdef) and
            (location.loc=LOC_CONSTANT) then
-         location_force_mem(location);
+         location_force_mem(exprasmlist,location);
 
         { but use the new size, but we don't know the size of all arrays }
         location.size:=def_cgsize(resulttype.def);
@@ -435,13 +439,53 @@ interface
 {$endif TESTOBJEXT2}
       end;
 
+
+    procedure tcgasnode.pass_2;
+      var
+        pushed : tpushedsaved;
+      begin
+        { instance to check }
+        secondpass(left);
+        rg.saveusedregisters(exprasmlist,pushed,all_registers);
+        cg.a_param_loc(exprasmlist,left.location,2);
+        { type information }
+        secondpass(right);
+        cg.a_param_loc(exprasmlist,right.location,1);
+        location_release(exprasmlist,right.location);
+        { call helper }
+        cg.a_call_name(exprasmlist,'FPC_DO_AS');
+        cg.g_maybe_loadself(exprasmlist);
+        rg.restoreusedregisters(exprasmlist,pushed);
+
+        location_copy(location,left.location);
+      end;
+
+
 begin
   ctypeconvnode := tcgtypeconvnode;
+  casnode := tcgasnode;
 end.
 
 {
   $Log$
-  Revision 1.11  2002-04-21 19:02:03  peter
+  Revision 1.12  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.11  2002/04/21 19:02:03  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

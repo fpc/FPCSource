@@ -530,11 +530,10 @@ implementation
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
          begin
-           hp:=ccallparanode.create
-                   (right,
-               ccallparanode.create(caddrnode.create
-                   (left),nil));
-           hp:=ccallparanode.create(right,nil);
+           hp:=ccallparanode.create(ctypeconvnode.create_explicit
+                   (right,voidpointertype),
+               ccallparanode.create(ctypeconvnode.create_explicit
+                   (left,voidpointertype),nil));
            result:=ccallnode.createintern('fpc_intf_assign',hp);
            left:=nil;
            right:=nil;
@@ -956,7 +955,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-04-25 20:16:39  peter
+  Revision 1.39  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.38  2002/04/25 20:16:39  peter
     * moved more routines from cga/n386util
 
   Revision 1.37  2002/04/23 19:16:34  peter

@@ -58,6 +58,9 @@ unit cgobj;
           {                 basic routines                 }
           constructor create;
 
+          { returns the tcgsize corresponding with the size of reg }
+          class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
+
           {# Emit a label to the instruction stream. }
           procedure a_label(list : taasmoutput;l : tasmlabel);virtual;
 
@@ -81,23 +84,6 @@ unit cgobj;
              was previously allocated using @link(get_scratch_reg).
           }
           procedure free_scratch_reg(list : taasmoutput;r : tregister);
-
-          {************************************************}
-          { code generation for subroutine entry/exit code }
-
-          { helper routines }
-          procedure g_initialize_data(list : taasmoutput;p : tsym);
-          procedure g_incr_data(list : taasmoutput;p : tsym);
-          procedure g_finalize_data(list : taasmoutput;p : tnamedindexitem);
-          procedure g_copyvalueparas(list : taasmoutput;p : tnamedindexitem);
-
-          procedure g_entrycode(alist : TAAsmoutput;make_global:boolean;
-                           stackframe:longint;
-                           var parasize:longint;var nostackframe:boolean;
-                           inlined : boolean);
-
-          procedure g_exitcode(list : taasmoutput;parasize : longint;
-            nostackframe,inlined : boolean);
 
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
@@ -172,11 +158,11 @@ unit cgobj;
               second the destination
           }
 
-          {# Emits instruction to call the method specified by symbol name @var(s) with offset
-             to symbol in @var(offset). This routine must be overriden for each new target cpu.
+          {# Emits instruction to call the method specified by symbol name.
+             This routine must be overriden for each new target cpu.
           }
-          procedure a_call_name(list : taasmoutput;const s : string;
-            offset : longint);virtual; abstract;
+          procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
+          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual; abstract;
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
@@ -190,6 +176,7 @@ unit cgobj;
           procedure a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
           procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
+          procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
 
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
@@ -244,42 +231,13 @@ unit cgobj;
 
           procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
 
-          procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
-          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
-          { restores the frame pointer at procedure exit, for the }
-          { i386 it generates a simple leave                      }
-          procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
-
           { some processors like the PPC doesn't allow to change the stack in }
           { a procedure, so we need to maintain an extra stack for the        }
           { result values of setjmp in exception code                         }
           { this two procedures are for pushing an exception value,           }
           { they can use the scratch registers                                }
-          procedure g_push_exception_value_reg(list : taasmoutput;reg : tregister);virtual; abstract;
-          procedure g_push_exception_value_const(list : taasmoutput;reg : tregister);virtual; abstract;
-          { that procedure pops a exception value                             }
-          procedure g_pop_exception_value_reg(list : taasmoutput;reg : tregister);virtual; abstract;
-          procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
-          {********************************************************}
-          { these methods can be overriden for extra functionality }
-
-          {# Emits instructions which should be emitted when entering
-             a routine declared as @var(interrupt). The default
-             behavior does nothing, should be overriden as required.
-          }
-          procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
-
-          {# Emits instructions which should be emitted when exiting
-             a routine declared as @var(interrupt). The default
-             behavior does nothing, should be overriden as required.
-          }
-          procedure g_interrupt_stackframe_exit(list : taasmoutput);virtual;
-
-          {# Emits instructions when compilation is done in profile
-             mode (this is set as a command line option). The default
-             behavior does nothing, should be overriden as required.
-          }
-          procedure g_profilecode(list : taasmoutput);virtual;
+          procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);virtual;abstract;
+          procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);virtual;abstract;
 
           procedure g_maybe_loadself(list : taasmoutput);virtual; abstract;
           {# This should emit the opcode to copy len bytes from the source
@@ -334,10 +292,38 @@ unit cgobj;
           { generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
 
+          {**********************************}
+          {    entry/exit code helpers       }
 
-          { returns the tcgsize corresponding with the size of reg }
-          class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer); virtual; abstract;
+          {# Emits instructions which should be emitted when entering
+             a routine declared as @var(interrupt). The default
+             behavior does nothing, should be overriden as required.
+          }
+          procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
 
+          {# Emits instructions which should be emitted when exiting
+             a routine declared as @var(interrupt). The default
+             behavior does nothing, should be overriden as required.
+          }
+          procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;
+
+          {# Emits instructions when compilation is done in profile
+             mode (this is set as a command line option). The default
+             behavior does nothing, should be overriden as required.
+          }
+          procedure g_profilecode(list : taasmoutput);virtual;
+          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
+          { restores the frame pointer at procedure exit }
+          procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
+          procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
+          procedure g_call_constructor_helper(list : taasmoutput);virtual;abstract;
+          procedure g_call_destructor_helper(list : taasmoutput);virtual;abstract;
+          procedure g_call_fail_helper(list : taasmoutput);virtual;abstract;
+          procedure g_save_standard_registers(list : taasmoutput);virtual;abstract;
+          procedure g_restore_standard_registers(list : taasmoutput);virtual;abstract;
+          procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
+          procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
        end;
 
     var
@@ -347,7 +333,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,types,tgobj,symdef,cga,tainst,rgobj;
+       verbose,types,tgobj,symdef,tainst,rgobj;
 
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
@@ -418,25 +404,6 @@ unit cgobj;
       end;
 
 {*****************************************************************************
-            this methods must be overridden for extra functionality
-******************************************************************************}
-
-    procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
-
-      begin
-      end;
-
-    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput);
-
-      begin
-      end;
-
-    procedure tcg.g_profilecode(list : taasmoutput);
-
-      begin
-      end;
-
-{*****************************************************************************
           for better code generation these methods should be overridden
 ******************************************************************************}
 
@@ -495,554 +462,10 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-{*****************************************************************************
-                  Code generation for subroutine entry- and exit code
- *****************************************************************************}
 
-    { generates the code for initialisation of local data }
-    procedure tcg.g_initialize_data(list : taasmoutput;p : tsym);
-
-{      var
-         hr : treference; }
-
-      begin
-(*
-         if (tsym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.vartype.def) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable then
-           begin
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              if tsym(p)^.owner^.symtabletype=localsymtable then
-                begin
-                   hr.base:=procinfo^.framepointer;
-                   hr.offset:=-pvarsym(p)^.address;
-                end
-              else
-                begin
-                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
-                end;
-              g_initialize(list,pvarsym(p)^.vartype.def,hr,false);
-           end;
-*)
-        runerror(211);
-      end;
-
-
-    { generates the code for incrementing the reference count of parameters }
-    procedure tcg.g_incr_data(list : taasmoutput;p : tsym);
-
-{      var
-         hr : treference; }
-
-      begin
-(*
-         if (tsym(p)^.typ=varsym) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable and
-            ((pvarsym(p)^.varspez=vs_value)) then
-           begin
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              hr.symbol:=pvarsym(p)^.vartype.def^.get_inittable_label;
-              a_param_ref_addr(list,hr,2);
-              reset_reference(hr);
-              hr.base:=procinfo^.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-              a_param_ref_addr(list,hr,1);
-              reset_reference(hr);
-              a_call_name(list,'FPC_ADDREF',0);
-           end;
-*)
-        runerror(211);
-      end;
-
-
-    { generates the code for finalisation of local data }
-    procedure tcg.g_finalize_data(list : taasmoutput;p : tnamedindexitem);
-
- {     var
-         hr : treference; }
-
-      begin
-(*
-         if (tsym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.vartype.def) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable then
-           begin
-              { not all kind of parameters need to be finalized  }
-              if (tsym(p)^.owner^.symtabletype=parasymtable) and
-                ((pvarsym(p)^.varspez=vs_var)  or
-                 (pvarsym(p)^.varspez=vs_const) { and
-                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
-                exit;
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              case tsym(p)^.owner^.symtabletype of
-                 localsymtable:
-                   begin
-                      hr.base:=procinfo^.framepointer;
-                      hr.offset:=-pvarsym(p)^.address;
-                   end;
-                 parasymtable:
-                   begin
-                      hr.base:=procinfo^.framepointer;
-                      hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-                   end;
-                 else
-                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
-              end;
-              g_finalize(list,pvarsym(p)^.vartype.def,hr,false);
-           end;
-*)
-        runerror(211);
-      end;
-
-
-    { generates the code to make local copies of the value parameters }
-    procedure tcg.g_copyvalueparas(list : taasmoutput;p : tnamedindexitem);
-      begin
-         runerror(255);
-      end;
-
-(*
-    var
-       _list : taasmoutput;
-
-    { wrappers for the methods, because TP doesn't know procedures }
-    { of objects                                                   }
-
-    procedure _copyvalueparas(s : tnamedindexitem);{$ifndef FPC}far;{$endif}
-
-      begin
-         cg^.g_copyvalueparas(_list,s);
-      end;
-
-    procedure _finalize_data(s : tnamedindexitem);{$ifndef FPC}far;{$endif}
-
-      begin
-         cg^.g_finalize_data(_list,s);
-      end;
-
-    procedure _incr_data(s : tnamedindexitem);{$ifndef FPC}far;{$endif}
-
-      begin
-         cg^.g_incr_data(_list,tsym(s));
-      end;
-
-    procedure _initialize_data(s : tnamedindexitem);{$ifndef FPC}far;{$endif}
-
-      begin
-         cg^.g_initialize_data(_list,tsym(s));
-      end;
-*)
-
-    { generates the entry code for a procedure }
-    procedure tcg.g_entrycode(alist : TAAsmoutput;make_global:boolean;
-                     stackframe:longint;
-                     var parasize:longint;var nostackframe:boolean;
-                     inlined : boolean);
-
-
-(*
-      var
-         hs : string;
-         hp : pused_unit;
-         initcode : taasmoutput;
-{$ifdef GDB}
-         stab_function_name : Pai_stab_function_name;
-{$endif GDB}
-         hr : treference;
-         r : tregister;
-*)
-
-      begin
-(*
-         { Align }
-         if (not inlined) then
-           begin
-              { gprof uses 16 byte granularity !! }
-              if (cs_profile in aktmoduleswitches) then
-                list^.insert(new(pai_align,init(16)))
-              else
-                if not(cs_littlesize in aktglobalswitches) then
-                  list^.insert(new(pai_align,init(4)));
-          end;
-         { save registers on cdecl }
-         if (po_savestdregs in aktprocsym^.definition^.procoptions) then
-           begin
-              for r:=firstreg to lastreg do
-                begin
-                   if (r in registers_saved_on_cdecl) then
-                     if (r in (tg.availabletempregsint+
-                               tg.availabletempregsfpu+
-                               tg.availabletempregsmm)) then
-                       begin
-                          if not(r in tg.usedinproc) then
-                            {!!!!!!!!!!!! a_push_reg(list,r) }
-                       end
-                     else
-                       {!!!!!!!! a_push_reg(list,r) };
-                end;
-           end;
-        { omit stack frame ? }
-        if not inlined then
-          if procinfo^.framepointer=STACK_POINTER_REG then
-            begin
-               CGMessage(cg_d_stackframe_omited);
-               nostackframe:=true;
-               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                 parasize:=0
-               else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize;
-            end
-          else
-            begin
-               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                 parasize:=0
-               else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize*2;
-               nostackframe:=false;
-               if (po_interrupt in aktprocsym^.definition^.procoptions) then
-                 g_interrupt_stackframe_entry(list);
-
-               g_stackframe_entry(list,stackframe);
-
-               if (cs_check_stack in aktlocalswitches) and
-                 (tf_supports_stack_checking in target_info.flags) then
-                 g_stackcheck(@initcode,stackframe);
-            end;
-
-         if cs_profile in aktmoduleswitches then
-           g_profilecode(@initcode);
-          if (not inlined) and (aktprocsym^.definition^.proctypeoption in [potype_unitinit]) then
-            begin
-
-              { needs the target a console flags ? }
-              if tf_needs_isconsole in target_info.flags then
-                begin
-                   hr.symbol:=newasmsymbol('U_'+target_info.system_unit+'_ISCONSOLE');
-                   if apptype=at_cui then
-                     a_load_const_ref(list,OS_8,1,hr)
-                   else
-                     a_load_const_ref(list,OS_8,0,hr);
-                   dispose(hr.symbol,done);
-                end;
-
-              hp:=pused_unit(usedunits.first);
-              while assigned(hp) do
-                begin
-                   { call the unit init code and make it external }
-                   if (hp^.u^.flags and uf_init)<>0 then
-                     a_call_name(list,
-                       'INIT$$'+hp^.u^.modulename^,0);
-                    hp:=Pused_unit(hp^.next);
-                end;
-           end;
-
-{$ifdef dummy}
-         { a constructor needs a help procedure }
-         if (aktprocsym^.definition^.options and poconstructor)<>0 then
-           begin
-             if procinfo^._class^.isclass then
-               begin
-                 list^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
-                 list^.concat(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
-               end
-             else
-               begin
-                 {
-                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
-                 list^.insert(new(paicpu,op_csymbol(A_CALL,S_NO,
-                   newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-                 list^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
-                 concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
-                 }
-               end;
-           end;
-{$endif dummy}
-  {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) then
-           list^.insert(new(pai_force_line,init));
-  {$endif GDB}
-
-         { initialize return value }
-         if assigned(procinfo^.returntype.def) and
-           is_ansistring(procinfo^.returntype.def) or
-           is_widestring(procinfo^.returntype.def) then
-           begin
-              reset_reference(hr);
-              hr.offset:=procinfo^.return_offset;
-              hr.base:=procinfo^.framepointer;
-              a_load_const_ref(list,OS_32,0,hr);
-           end;
-
-         _list:=list;
-         { generate copies of call by value parameters }
-         if (po_assembler in aktprocsym^.definition^.procoptions) then
-            aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}_copyvalueparas);
-
-         { initialisizes local data }
-         aktprocsym^.definition^.localst^.foreach({$ifdef FPCPROCVAR}@{$endif}_initialize_data);
-         { add a reference to all call by value/const parameters }
-         aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}_incr_data);
-
-         if (cs_profile in aktmoduleswitches) or
-           (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-           (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
-           make_global:=true;
-         if not inlined then
-           begin
-              hs:=proc_names.get;
-
-  {$ifdef GDB}
-              if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
-                stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
-  {$endif GDB}
-
-              { insert the names for the procedure }
-              while hs<>'' do
-                begin
-                   if make_global then
-                     exprasmlist^.insert(new(pai_symbol,initname_global(hs,0)))
-                   else
-                     exprasmlist^.insert(new(pai_symbol,initname(hs,0)));
-
-  {$ifdef GDB}
-                   if (cs_debuginfo in aktmoduleswitches) then
-                     begin
-                       if target_os.use_function_relative_addresses then
-                         list^.insert(new(pai_stab_function_name,init(strpnew(hs))));
-                    end;
-  {$endif GDB}
-
-                  hs:=proc_names.get;
-               end;
-          end;
-
-  {$ifdef GDB}
-         if (not inlined) and (cs_debuginfo in aktmoduleswitches) then
-           begin
-              if target_os.use_function_relative_addresses then
-                  list^.insert(stab_function_name);
-              if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
-                  aktprocsym^.is_global := True;
-              list^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
-              aktprocsym^.isstabwritten:=true;
-            end;
-  {$endif GDB}
-*)
-      runerror(211);
-    end;
-
-    procedure tcg.g_exitcode(list : taasmoutput;parasize:longint;nostackframe,inlined:boolean);
-(*
-      var
-  {$ifdef GDB}
-         mangled_length : longint;
-         p : pchar;
-  {$endif GDB}
-         nofinal,noreraiselabel : tasmlabel;
-         hr : treference;
-         r : tregister;
-*)
-      begin
-(*
-         if aktexitlabel^.is_used then
-           list^.insert(new(pai_label,init(aktexitlabel)));
-
-         { call the destructor help procedure }
-         if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
-           begin
-             if procinfo^._class^.is_class then
-               a_call_name(list,'FPC_DISPOSE_CLASS',0)
-             else
-               begin
-                  if procinfo^._class^.needs_inittable then
-                    begin
-                       getlabel(nofinal);
-                       {!!!!!!!!!!
-                       reset_reference(hr);
-                       hr.base:=R_EBP;
-                       hr.offset:=8;
-                       a_cmp_reg_const_label(list,OS_ADDR,OZ_EQ,
-                       }
-                       reset_reference(hr);
-                       hr.symbol:=procinfo^._class^.get_inittable_label;
-                       a_paramaddr_ref(list,hr,2);
-                       a_param_reg(list,OS_ADDR,self_pointer_reg,1);
-                       a_call_name(list,'FPC_FINALIZE',0);
-                       a_label(list,nofinal);
-                    end;
-                  { vmt_offset_reg can be a scratch register, }
-                  { but it must be always the same            }
-                  a_reg_alloc(list,vmt_offset_reg);
-                  a_load_const_reg(list,OS_32,procinfo^._class^.vmt_offset,vmt_offset_reg);
-                  a_call_name(list,'FPC_HELP_DESTRUCTOR',0);
-                  a_reg_dealloc(list,vmt_offset_reg);
-               end;
-           end;
-
-         { finalize temporary data }
-         g_finalizetempansistrings(list);
-
-         _list:=list;
-
-         { finalize local data }
-         aktprocsym^.definition^.localst^.foreach({$ifdef FPCPROCVAR}@{$endif}_finalize_data);
-
-         { finalize paras data }
-         if assigned(aktprocsym^.definition^.parast) then
-           aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}_finalize_data);
-
-         { do we need to handle exceptions because of ansi/widestrings ? }
-         if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
-           begin
-              getlabel(noreraiselabel);
-
-              a_call_name(list,'FPC_POPADDRSTACK',0);
-              a_reg_alloc(list,accumulator);
-              g_pop_exception_value_reg(list,accumulator);
-              a_cmp_const_reg_label(list,OS_32,OC_EQ,0,accumulator,noreraiselabel);
-              a_reg_dealloc(list,accumulator);
-
-              { must be the return value finalized before reraising the exception? }
-              if (procinfo^.returntype.def<>tdef(voiddef)) and
-                (procinfo^.returntype.def^.needs_inittable) and
-                ((procinfo^.returntype.def^.deftype<>objectdef) or
-                not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
-                begin
-                   reset_reference(hr);
-                   hr.offset:=procinfo^.return_offset;
-                   hr.base:=procinfo^.framepointer;
-                   g_finalize(list,procinfo^.returntype.def,hr,ret_in_param(procinfo^.returntype.def));
-                end;
-
-              a_call_name(list,'FPC_RERAISE',0);
-              a_label(list,noreraiselabel);
-           end;
-
-         { call __EXIT for main program }
-         if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
-           a_call_name(list,'FPC_DO_EXIT',0);
-
-         { handle return value }
-         if not(po_assembler in aktprocsym^.definition^.procoptions) then
-             if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
-               { handle_return_value(inlined) }
-             else
-               begin
-                  { return self in EAX }
-                  a_label(list,quickexitlabel);
-                  a_reg_alloc(list,accumulator);
-                  a_load_reg_reg(list,OS_ADDR,self_pointer_reg,accumulator);
-                  a_reg_dealloc(list,self_pointer_reg);
-                  a_label(list,quickexitlabel);
-                  { we can't clear the zero flag because the Alpha     }
-                  { for example doesn't have flags, we have to compare }
-                  { the accu. in the caller                            }
-               end;
-
-         { stabs uses the label also ! }
-         if aktexit2label^.is_used or
-            ((cs_debuginfo in aktmoduleswitches) and not inlined) then
-           a_label(list,aktexit2label);
-
-{$ifdef dummy}
-         { should we restore edi ? }
-         { for all i386 gcc implementations }
-         {!!!!!!!!!!! I don't know how to handle register saving yet }
-         if (po_savestdregs in aktprocsym^.definition^.procoptions) then
-           begin
-             if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-              exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
-             exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
-             exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
-             { here we could reset R_EBX
-               but that is risky because it only works
-               if genexitcode is called after genentrycode
-               so lets skip this for the moment PM
-             aktprocsym^.definition^.usedregisters:=
-               aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
-             }
-           end;
-{$endif dummy}
-         if not(nostackframe) and not inlined then
-           g_restore_frame_pointer(list);
-         { at last, the return is generated }
-
-         if not inlined then
-           if po_interrupt in aktprocsym^.definition^.procoptions then
-             g_interrupt_stackframe_exit(list)
-         else
-           g_return_from_proc(list,parasize);
-         list^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
-
-    {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and not inlined  then
-             begin
-                aktprocsym^.concatstabto(list);
-                if assigned(procinfo^._class) then
-                  if (not assigned(procinfo^.parent) or
-                     not assigned(procinfo^.parent^._class)) then
-                    list^.concat(new(pai_stabs,init(strpnew(
-                     '"$t:v'+procinfo^._class^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
-                  {!!!!!!!!!!!!
-                  else
-                    list^.concat(new(pai_stabs,init(strpnew(
-                     '"$t:r'+procinfo^._class^.numberstring+'",'+
-                     tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
-                  }
-                if (tdef(aktprocsym^.definition^.rettype.def) <> tdef(voiddef)) then
-                  begin
-                    if ret_in_param(aktprocsym^.definition^.rettype.def) then
-                      list^.concat(new(pai_stabs,init(strpnew(
-                       '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
-                    else
-                      list^.concat(new(pai_stabs,init(strpnew(
-                       '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
-                    if (m_result in aktmodeswitches) then
-                      if ret_in_param(aktprocsym^.definition^.rettype.def) then
-                        list^.concat(new(pai_stabs,init(strpnew(
-                         '"RESULT:X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
-                      else
-                        list^.concat(new(pai_stabs,init(strpnew(
-                         '"RESULT:X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
-                  end;
-                mangled_length:=length(aktprocsym^.definition^.mangledname);
-                getmem(p,mangled_length+50);
-                strpcopy(p,'192,0,0,');
-                strpcopy(strend(p),aktprocsym^.definition^.mangledname);
-                list^.concat(new(pai_stabn,init(strnew(p))));
-                {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
-                 +aktprocsym^.definition^.mangledname))));
-                p[0]:='2';p[1]:='2';p[2]:='4';
-                strpcopy(strend(p),'_end');}
-                freemem(p,mangled_length+50);
-                list^.concat(new(pai_stabn,init(
-                  strpnew('224,0,0,'+aktexit2label^.name))));
-                 { strpnew('224,0,0,'
-                 +aktprocsym^.definition^.mangledname+'_end'))));}
-             end;
-    {$endif GDB}
-*)
-        runerror(211);
-      end;
-
-{*****************************************************************************
+{****************************************************************************
                        some generic implementations
- ****************************************************************************}
-
+****************************************************************************}
 
     procedure tcg.a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);
 
@@ -1397,7 +820,7 @@ unit cgobj;
         if delsource then
          reference_release(list,source);
         a_param_const(list,OS_INT,len,1);
-        a_call_name(list,'FPC_SHORTSTR_COPY',0);
+        a_call_name(list,'FPC_SHORTSTR_COPY');
         g_maybe_loadself(list);
       end;
 
@@ -1423,14 +846,14 @@ unit cgobj;
          if incrfunc<>'' then
           begin
             a_param_ref(list,OS_ADDR,ref,1);
-            a_call_name(list,incrfunc,0);
+            a_call_name(list,incrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,2);
             a_paramaddr_ref(list,ref,1);
-            a_call_name(list,'FPC_ADDREF',0);
+            a_call_name(list,'FPC_ADDREF');
          end;
       end;
 
@@ -1454,14 +877,14 @@ unit cgobj;
          if decrfunc<>'' then
           begin
             a_paramaddr_ref(list,ref,1);
-            a_call_name(list,decrfunc,0);
+            a_call_name(list,decrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,2);
             a_paramaddr_ref(list,ref,1);
-            a_call_name(list,'FPC_DECREF',0);
+            a_call_name(list,'FPC_DECREF');
          end;
       end;
 
@@ -1482,7 +905,7 @@ unit cgobj;
                 a_param_ref(list,OS_ADDR,ref,1)
               else
                 a_paramaddr_ref(list,ref,1);
-              a_call_name(list,'FPC_INITIALIZE',0);
+              a_call_name(list,'FPC_INITIALIZE');
            end;
       end;
 
@@ -1503,7 +926,7 @@ unit cgobj;
                 a_param_ref(list,OS_ADDR,ref,1)
               else
                 a_paramaddr_ref(list,ref,1);
-              a_call_name(list,'FPC_FINALIZE',0);
+              a_call_name(list,'FPC_FINALIZE');
            end;
       end;
 
@@ -1542,7 +965,7 @@ unit cgobj;
         { Note that these checks are mostly processor independent, they only }
         { have to be changed once we introduce 64bit subrange types          }
         if (fromdef = todef) and
-          { then fromdef and todef can only be orddefs }
+           (fromdef.deftype=orddef) and
            (((sizeof(aword) = 4) and
              (((torddef(fromdef).typ = s32bit) and
                (lfrom = low(longint)) and
@@ -1580,7 +1003,7 @@ unit cgobj;
                  { if low(to) > maxlongint also range error }
                  (lto > awordsignedmax) then
                 begin
-                  a_call_name(list,'FPC_RANGEERROR',0);
+                  a_call_name(list,'FPC_RANGEERROR');
                   exit
                 end;
               { from is signed and to is unsigned -> when looking at from }
@@ -1595,7 +1018,7 @@ unit cgobj;
               if (lfrom > awordsignedmax) or
                  (hto < 0) then
                 begin
-                  a_call_name(list,'FPC_RANGEERROR',0);
+                  a_call_name(list,'FPC_RANGEERROR');
                   exit
                 end;
               { from is unsigned and to is signed -> when looking at to }
@@ -1619,7 +1042,7 @@ unit cgobj;
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(longint((hto-lto) and $ffffffff)),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
         free_scratch_reg(list,hreg);
-        a_call_name(list,'FPC_RANGEERROR',0);
+        a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;
 
@@ -1628,9 +1051,27 @@ unit cgobj;
 
       begin
          a_param_const(list,OS_32,stackframesize,1);
-         a_call_name(list,'FPC_STACKCHECK',0);
+         a_call_name(list,'FPC_STACKCHECK');
       end;
 
+
+{*****************************************************************************
+                            Entry/Exit Code Functions
+*****************************************************************************}
+
+    procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
+      begin
+      end;
+
+
+    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);
+      begin
+      end;
+
+
+    procedure tcg.g_profilecode(list : taasmoutput);
+      begin
+      end;
 
 
 finalization
@@ -1638,7 +1079,24 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2002-04-26 15:19:04  peter
+  Revision 1.20  2002-05-12 16:53:04  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.19  2002/04/26 15:19:04  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 
@@ -1766,5 +1224,4 @@ end.
 
   Revision 1.1  2000/07/13 06:30:07  michael
     + Initial import
-
 }

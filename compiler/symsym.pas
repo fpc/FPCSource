@@ -325,9 +325,9 @@ interface
                                      currently be parsed procedure }
        aktprocdef : tprocdef;
 
-       aktcallprocdef : tprocdef;  { pointer to the definition of the
-                                     currently called procedure,
-                                     only set/unset in ncal }
+       aktcallprocdef : tabstractprocdef;  { pointer to the definition of the
+                                             currently called procedure,
+                                             only set/unset in ncal }
 
        aktvarsym : tvarsym;     { pointer to the symbol for the
                                      currently read var, only used
@@ -686,9 +686,12 @@ implementation
          make_ref:=old_make_ref;
          typ:=unitsym;
          unitsymtable:=ref;
-         prevsym:=tglobalsymtable(ref).unitsym;
-         tglobalsymtable(ref).unitsym:=self;
-         refs:=0;
+         if assigned(ref) and
+            (ref.symtabletype=globalsymtable) then
+          begin
+            prevsym:=tglobalsymtable(ref).unitsym;
+            tglobalsymtable(ref).unitsym:=self;
+          end;
       end;
 
     constructor tunitsym.load(ppufile:tcompilerppufile);
@@ -706,7 +709,8 @@ implementation
     procedure tunitsym.restoreunitsym;
       var pus,ppus : tunitsym;
       begin
-         if assigned(unitsymtable) then
+         if assigned(unitsymtable) and
+            (unitsymtable.symtabletype=globalsymtable) then
            begin
              ppus:=nil;
              pus:=tglobalsymtable(unitsymtable).unitsym;
@@ -840,7 +844,7 @@ implementation
          p:=defs;
          while assigned(p) do
            begin
-             resolvedef(tdef(p^.def));
+             resolvedef(pointer(p^.def));
              p:=p^.next;
            end;
       end;
@@ -1018,7 +1022,7 @@ implementation
       begin
         if (ppo_is_override in propoptions) then
          begin
-           resolvesym(tsym(propoverriden));
+           resolvesym(pointer(propoverriden));
            dooverride(propoverriden);
          end
         else
@@ -2181,7 +2185,7 @@ implementation
 
     procedure tenumsym.deref;
       begin
-         resolvedef(tdef(definition));
+         resolvedef(pointer(definition));
          order;
       end;
 
@@ -2513,7 +2517,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-04-19 15:46:03  peter
+  Revision 1.36  2002-05-12 16:53:15  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.35  2002/04/19 15:46:03  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

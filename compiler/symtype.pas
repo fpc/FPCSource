@@ -137,8 +137,8 @@ interface
 
 
     { resolving }
-    procedure resolvesym(var sym:tsym);
-    procedure resolvedef(var def:tdef);
+    procedure resolvesym(var sym:pointer);
+    procedure resolvedef(var def:pointer);
 
 
 implementation
@@ -299,11 +299,11 @@ implementation
       begin
         if assigned(sym) then
          begin
-           resolvesym(sym);
+           resolvesym(pointer(sym));
            setsym(sym);
          end
         else
-         resolvedef(def);
+         resolvedef(pointer(def));
       end;
 
 {****************************************************************************
@@ -417,12 +417,12 @@ implementation
       var
         hp : psymlistitem;
       begin
-        resolvedef(def);
+        resolvedef(pointer(def));
         hp:=firstsym;
         while assigned(hp) do
          begin
            if assigned(hp^.sym) then
-            resolvesym(hp^.sym);
+            resolvesym(pointer(hp^.sym));
            hp:=hp^.next;
          end;
       end;
@@ -500,12 +500,12 @@ implementation
       end;
 
 
-    procedure resolvedef(var def:tdef);
+    procedure resolvedef(var def:pointer);
       var
         st   : tsymtable;
         idx  : word;
       begin
-        resolvederef(tderef(def),st,idx);
+        resolvederef(tderef(pointer(def)),st,idx);
         if assigned(st) then
          def:=tdef(st.getdefnr(idx))
         else
@@ -513,12 +513,12 @@ implementation
       end;
 
 
-    procedure resolvesym(var sym:tsym);
+    procedure resolvesym(var sym:pointer);
       var
         st   : tsymtable;
         idx  : word;
       begin
-        resolvederef(tderef(sym),st,idx);
+        resolvederef(tderef(pointer(sym)),st,idx);
         if assigned(st) then
          sym:=tsym(st.getsymnr(idx))
         else
@@ -528,7 +528,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-04-19 15:46:04  peter
+  Revision 1.15  2002-05-12 16:53:15  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.14  2002/04/19 15:46:04  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

@@ -177,8 +177,8 @@ interface
        Pdictionaryhasharray=^Tdictionaryhasharray;
        Tdictionaryhasharray=array[0..hasharraysize-1] of TNamedIndexItem;
 
-       TnamedIndexCallback = procedure(p:TNamedIndexItem) of object;
-       TnamedIndexStaticCallback = procedure(p:TNamedIndexItem);
+       TnamedIndexCallback = procedure(p:TNamedIndexItem;arg:pointer) of object;
+       TnamedIndexStaticCallback = procedure(p:TNamedIndexItem;arg:pointer);
 
        Tdictionary=class
        private
@@ -197,8 +197,8 @@ interface
          procedure clear;
          function  delete(const s:string):TNamedIndexItem;
          function  empty:boolean;
-         procedure foreach(proc2call:TNamedIndexcallback);
-         procedure foreach_static(proc2call:TNamedIndexStaticCallback);
+         procedure foreach(proc2call:TNamedIndexcallback;arg:pointer);
+         procedure foreach_static(proc2call:TNamedIndexStaticCallback;arg:pointer);
          function  insert(obj:TNamedIndexItem):TNamedIndexItem;
          function  rename(const olds,News : string):TNamedIndexItem;
          function  search(const s:string):TNamedIndexItem;
@@ -225,8 +225,8 @@ interface
         constructor Create(Agrowsize:integer);
         destructor  destroy;override;
         procedure clear;
-        procedure foreach(proc2call : Tnamedindexcallback);
-        procedure foreach_static(proc2call : Tnamedindexstaticcallback);
+        procedure foreach(proc2call : Tnamedindexcallback;arg:pointer);
+        procedure foreach_static(proc2call : Tnamedindexstaticcallback;arg:pointer);
         procedure deleteindex(p:TNamedIndexItem);
         procedure delete(var p:TNamedIndexItem);
         procedure insert(p:TNamedIndexItem);
@@ -851,7 +851,7 @@ end;
 {$ifdef hashdebug}
       var
         i, unused, slots_with_col, collissions, treecount, maxcol: longint;
-{$endif hashdebug}        
+{$endif hashdebug}
       begin
         if not noclear then
          clear;
@@ -1046,15 +1046,15 @@ end;
       end;
 
 
-    procedure Tdictionary.foreach(proc2call:TNamedIndexcallback);
+    procedure Tdictionary.foreach(proc2call:TNamedIndexcallback;arg:pointer);
 
-        procedure a(p:TNamedIndexItem);
+        procedure a(p:TNamedIndexItem;arg:pointer);
         begin
-          proc2call(p);
+          proc2call(p,arg);
           if assigned(p.FLeft) then
-           a(p.FLeft);
+           a(p.FLeft,arg);
           if assigned(p.FRight) then
-           a(p.FRight);
+           a(p.FRight,arg);
         end;
 
       var
@@ -1064,23 +1064,23 @@ end;
          begin
            for i:=low(FHashArray^) to high(FHashArray^) do
             if assigned(FHashArray^[i]) then
-             a(FHashArray^[i]);
+             a(FHashArray^[i],arg);
          end
         else
          if assigned(FRoot) then
-          a(FRoot);
+          a(FRoot,arg);
       end;
 
 
-    procedure Tdictionary.foreach_static(proc2call:TNamedIndexStaticCallback);
+    procedure Tdictionary.foreach_static(proc2call:TNamedIndexStaticCallback;arg:pointer);
 
-        procedure a(p:TNamedIndexItem);
+        procedure a(p:TNamedIndexItem;arg:pointer);
         begin
-          proc2call(p);
+          proc2call(p,arg);
           if assigned(p.FLeft) then
-           a(p.FLeft);
+           a(p.FLeft,arg);
           if assigned(p.FRight) then
-           a(p.FRight);
+           a(p.FRight,arg);
         end;
 
       var
@@ -1090,11 +1090,11 @@ end;
          begin
            for i:=low(FHashArray^) to high(FHashArray^) do
             if assigned(FHashArray^[i]) then
-             a(FHashArray^[i]);
+             a(FHashArray^[i],arg);
          end
         else
          if assigned(FRoot) then
-          a(FRoot);
+          a(FRoot,arg);
       end;
 
 
@@ -1382,23 +1382,23 @@ end;
       end;
 
 
-    procedure tindexarray.foreach(proc2call : Tnamedindexcallback);
+    procedure tindexarray.foreach(proc2call : Tnamedindexcallback;arg:pointer);
       var
         i : integer;
       begin
         for i:=1 to count do
          if assigned(data^[i]) then
-          proc2call(data^[i]);
+          proc2call(data^[i],arg);
       end;
 
 
-    procedure tindexarray.foreach_static(proc2call : Tnamedindexstaticcallback);
+    procedure tindexarray.foreach_static(proc2call : Tnamedindexstaticcallback;arg:pointer);
       var
         i : integer;
       begin
         for i:=1 to count do
          if assigned(data^[i]) then
-          proc2call(data^[i]);
+          proc2call(data^[i],arg);
       end;
 
 
@@ -1728,7 +1728,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-11-18 18:43:13  peter
+  Revision 1.10  2002-05-12 16:53:04  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.9  2001/11/18 18:43:13  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

@@ -39,7 +39,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symtype,symdef,aasm,types,
+      symconst,symdef,aasm,types,
       cginfo,cgbase,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
@@ -88,26 +88,26 @@ implementation
                  getlabel(truelabel);
                  getlabel(falselabel);
                  secondpass(tcallparanode(left).left);
-                 maketojumpbool(tcallparanode(left).left,lr_load_regvars);
-                 emitlab(falselabel);
+                 maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
+                 cg.a_label(exprasmlist,falselabel);
                  { erroraddr }
-                 emit_reg(A_PUSH,S_L,R_EBP);
+                 cg.a_param_reg(exprasmlist,OS_ADDR,R_EBP,4);
                  { lineno }
-                 emit_const(A_PUSH,S_L,aktfilepos.line);
+                 cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,3);
                  { filename string }
                  hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
                  firstpass(hp2);
                  secondpass(hp2);
                  if codegenerror then
                   exit;
-                 emitpushreferenceaddr(hp2.location.reference);
+                 cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,2);
                  hp2.free;
                  { push msg }
                  secondpass(tcallparanode(tcallparanode(left).right).left);
-                 emitpushreferenceaddr(tcallparanode(tcallparanode(left).right).left.location.reference);
+                 cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,1);
                  { call }
-                 emitcall('FPC_ASSERT');
-                 emitlab(truelabel);
+                 cg.a_call_name(exprasmlist,'FPC_ASSERT');
+                 cg.a_label(exprasmlist,truelabel);
                  truelabel:=otlabel;
                  falselabel:=oflabel;
               end;
@@ -118,27 +118,28 @@ implementation
                  { for both cases load vmt }
                  if left.nodetype=typen then
                    begin
-                      location.register:=rg.getregisterint(exprasmlist);
-                      emit_sym_ofs_reg(A_MOV,
-                        S_L,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,
-                        location.register);
+                      hregister:=rg.getaddressregister(exprasmlist);
+                      reference_reset_symbol(href,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+                      cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                    end
                  else
                    begin
                       secondpass(left);
                       location_release(exprasmlist,left.location);
-                      location.register:=rg.getregisterint(exprasmlist);
+                      hregister:=rg.getaddressregister(exprasmlist);
                       { load VMT pointer }
-                      inc(left.location.reference.offset,
-                        tobjectdef(left.resulttype.def).vmt_offset);
-                      emit_ref_reg(A_MOV,S_L,left.location.reference,location.register);
+                      inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
+                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
                    end;
                  { in sizeof load size }
                  if inlinenumber=in_sizeof_x then
                    begin
-                      reference_reset_base(href,location.register,0);
-                      emit_ref_reg(A_MOV,S_L,href,location.register);
+                      reference_reset_base(href,hregister,0);
+                      rg.ungetaddressregister(exprasmlist,hregister);
+                      hregister:=rg.getregisterint(exprasmlist);
+                      cg.a_load_ref_reg(exprasmlist,OS_INT,href,hregister);
                    end;
+                 location.register:=hregister;
               end;
             in_length_x :
               begin
@@ -155,12 +156,11 @@ implementation
                      end
                     else
                      hregister:=left.location.register;
-                    reference_reset_base(href,hregister,-8);
                     getlabel(lengthlab);
-                    emit_reg_reg(A_OR,S_L,hregister,hregister);
-                    emitjmp(C_Z,lengthlab);
-                    emit_ref_reg(A_MOV,S_L,href,hregister);
-                    emitlab(lengthlab);
+                    cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
+                    reference_reset_base(href,hregister,-8);
+                    cg.a_load_ref_reg(exprasmlist,OS_INT,href,hregister);
+                    cg.a_label(exprasmlist,lengthlab);
                     location_reset(location,LOC_REGISTER,OS_INT);
                     location.register:=hregister;
                   end
@@ -182,7 +182,7 @@ implementation
 
                  { we need a value in a register }
                  location_copy(location,left.location);
-                 location_force_reg(location,cgsize,false);
+                 location_force_reg(exprasmlist,location,cgsize,false);
 
                  if cgsize in [OS_64,OS_S64] then
                   tcg64f32(cg).a_op64_const_reg(exprasmlist,cgop,1,0,
@@ -229,7 +229,7 @@ implementation
                     addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
                    else
                     begin
-                      location_force_reg(tcallparanode(tcallparanode(left).right).left.location,cgsize,false);
+                      location_force_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,cgsize,false);
                       hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
                       hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
                       { insert multiply with addvalue if its >1 }
@@ -411,7 +411,7 @@ implementation
                          emitjmp(C_NP,l1);
                          emit_reg(A_FSTP,S_NO,R_ST0);
                          emit_none(A_FLDZ,S_NO);
-                         emitlab(l1);
+                         cg.a_label(exprasmlist,l1);
                          }
                       end;
                     in_arctan_extended:
@@ -468,7 +468,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-04-23 19:16:35  peter
+  Revision 1.40  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.39  2002/04/23 19:16:35  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

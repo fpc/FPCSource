@@ -46,7 +46,7 @@ uses
 
 const
   MaxPrefixes=4;
-  
+
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
@@ -147,7 +147,7 @@ type
      procedure Swatoperands;
 {$endif NOAG386BIN}
   end;
-  
+
   procedure InitAsm;
   procedure DoneAsm;
 
@@ -158,23 +158,6 @@ uses
   cutils,
   ogbase,
   ag386att;
-
-const  
-{ Convert reg to operand type }
-  reg_2_type:array[firstreg..lastreg] of longint = (OT_NONE,
-    OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-    OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-    OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
-    OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
-    OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
-    OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
-    OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
-    OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
-    OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
-  );
-  
-
 
 {****************************************************************************
                               TAI_ALIGN
@@ -1680,7 +1663,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-04-15 19:44:20  peter
+  Revision 1.21  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.20  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

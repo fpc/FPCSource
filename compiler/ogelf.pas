@@ -425,41 +425,6 @@ implementation
     procedure telf32data.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
       var
         stab : telf32stab;
-        s : tsection;
-      begin
-        s:=section;
-        if reloc then
-         begin
-           if (offset=-1) then
-            begin
-              if s=sec_none then
-               offset:=0
-              else
-               offset:=sects[s].datasize;
-            end;
-         end;
-        fillchar(stab,sizeof(telf32stab),0);
-        if assigned(p) and (p[0]<>#0) then
-         begin
-           stab.strpos:=sects[sec_stabstr].datasize;
-           sects[sec_stabstr].write(p^,strlen(p)+1);
-         end;
-        stab.ntype:=nidx;
-        stab.ndesc:=line;
-        stab.nother:=nother;
-        stab.nvalue:=offset;
-        sects[sec_stab].write(stab,sizeof(stab));
-        { when the offset is not 0 then write a relocation, take also the
-          hdrstab into account with the offset }
-        if reloc then
-         sects[sec_stab].addsectionreloc(sects[sec_stab].datasize-4,s,relative_false);
-      end;
-
-
-    procedure telf32data.writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;
-                                                 nidx,nother,line:longint;reloc:boolean);
-      var
-        stab : telf32stab;
       begin
         if reloc then
          begin
@@ -481,6 +446,29 @@ implementation
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
+        sects[sec_stab].write(stab,sizeof(stab));
+        { when the offset is not 0 then write a relocation, take also the
+          hdrstab into account with the offset }
+        if reloc then
+         sects[sec_stab].addsectionreloc(sects[sec_stab].datasize-4,section,relative_false);
+      end;
+
+
+    procedure telf32data.writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;
+                                                 nidx,nother,line:longint;reloc:boolean);
+      var
+        stab : telf32stab;
+      begin
+        fillchar(stab,sizeof(telf32stab),0);
+        if assigned(p) and (p[0]<>#0) then
+         begin
+           stab.strpos:=sects[sec_stabstr].datasize;
+           sects[sec_stabstr].write(p^,strlen(p)+1);
+         end;
+        stab.ntype:=nidx;
+        stab.ndesc:=line;
+        stab.nother:=nother;
+        stab.nvalue:=0;
         sects[sec_stab].write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
@@ -886,7 +874,24 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2002-04-04 19:05:58  peter
+  Revision 1.12  2002-05-12 16:53:08  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.11  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

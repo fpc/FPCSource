@@ -49,16 +49,15 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      tainst,cgbase,cpuasm,cgobj, cgcpu,cga,rgcpu;
-
-    var
-      parasym : boolean;
+      tainst,cgbase,cpuasm,cgobj,cgcpu,rgcpu;
 
 
-    procedure searchregvars(p : tnamedindexitem);
+    procedure searchregvars(p : tnamedindexitem;arg:pointer);
       var
          i,j,k : longint;
+         parasym : boolean;
       begin
+         parasym:=pboolean(arg)^;
          if (tsym(p).typ=varsym) and (vo_regable in tvarsym(p).varoptions) then
            begin
               j:=tvarsym(p).refs;
@@ -94,10 +93,12 @@ implementation
       end;
 
 
-    procedure searchfpuregvars(p : tnamedindexitem);
+    procedure searchfpuregvars(p : tnamedindexitem;arg:pointer);
       var
          i,j,k : longint;
+         parasym : boolean;
       begin
+         parasym:=pboolean(arg)^;
          if (tsym(p).typ=varsym) and (vo_fpuregable in tvarsym(p).varoptions) then
            begin
               j:=tvarsym(p).refs;
@@ -137,6 +138,7 @@ implementation
     var
       regvarinfo: pregvarinfo;
       i: longint;
+      parasym : boolean;
     begin
       { max. optimizations     }
       { only if no asm is used }
@@ -150,10 +152,10 @@ implementation
           if (p.registers32<4) then
             begin
               parasym:=false;
-              symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars);
+              symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { copy parameter into a register ? }
               parasym:=true;
-              symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars);
+              symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { hold needed registers free }
               for i:=maxvarregs downto maxvarregs-p.registers32+1 do
                 begin
@@ -209,7 +211,7 @@ implementation
             if ((p.registersfpu+1)<maxfpuvarregs) then
               begin
                 parasym:=false;
-                symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchfpuregvars);
+                symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchfpuregvars,@parasym);
 {$ifdef dummy}
                 { copy parameter into a register ? }
                 parasym:=true;
@@ -462,7 +464,24 @@ end.
 
 {
   $Log$
-  Revision 1.29  2002-04-21 15:23:34  carl
+  Revision 1.30  2002-05-12 16:53:10  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.29  2002/04/21 15:23:34  carl
   + changeregsize -> makeregsize
 
   Revision 1.28  2002/04/19 15:46:03  peter

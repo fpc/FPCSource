@@ -71,7 +71,7 @@ implementation
       cginfo,cgbase,pass_2,
       cpubase,cpuasm,cpuinfo,
       nld,ncon,
-      cga,tgobj,rgobj,
+      tgobj,rgobj,
       ncgutil,
       regvars,cgobj,cgcpu,cg64f32;
 
@@ -128,7 +128,7 @@ implementation
          rg.cleartempgen;
          secondpass(left);
 
-         maketojumpbool(left,lr_load_regvars);
+         maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -171,7 +171,7 @@ implementation
              org_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
-         maketojumpbool(left,lr_dont_load_regvars);
+         maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
          if cs_regalloc in aktglobalswitches then
            org_regvar_loaded := rg.regvar_loaded;
@@ -330,7 +330,7 @@ implementation
          { produce start assignment }
          rg.cleartempgen;
          secondpass(left);
-         count_var_is_signed:=is_signed(torddef(t2.resulttype.def));
+         count_var_is_signed:=is_signed(t2.resulttype.def);
 
          if nf_backward in flags then
            if count_var_is_signed then
@@ -611,7 +611,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-04-21 15:24:38  carl
+  Revision 1.14  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.13  2002/04/21 15:24:38  carl
   + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
   + changeregsize -> rg.makeregsize
 

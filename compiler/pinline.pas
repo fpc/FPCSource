@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Generates nodes for routines that need compiler support
 
@@ -22,7 +22,7 @@
 }
 unit pinline;
 
-{$i fpcdefs.inc}
+{$i defines.inc}
 
 interface
 
@@ -37,7 +37,6 @@ interface
 
     function inline_setlength : tnode;
     function inline_finalize : tnode;
-    function inline_copy : tnode;
 
 
 implementation
@@ -52,7 +51,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { symtable }
-       symconst,symdef,symsym,symtable,defutil,
+       symconst,symdef,symsym,symtable,types,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -170,15 +169,6 @@ implementation
                 { we need the real called method }
                 { rg.cleartempgen;}
                 do_resulttypepass(p2);
-
-                if p2.nodetype<>calln then
-                  begin
-                    if is_new then
-                      CGMessage(parser_e_expr_have_to_be_constructor_call)
-                    else
-                      CGMessage(parser_e_expr_have_to_be_destructor_call);
-                  end;
-
                 if not codegenerror then
                  begin
                    if is_new then
@@ -221,7 +211,7 @@ implementation
 
                   { create statements with call to getmem+initialize or
                     finalize+freemem }
-                  new_dispose_statement:=internalstatements(newstatement,true);
+                  new_dispose_statement:=internalstatements(newstatement);
 
                   if is_new then
                    begin
@@ -231,7 +221,7 @@ implementation
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype,true),nil);
+                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));
@@ -307,7 +297,7 @@ implementation
               Message(parser_w_use_extended_syntax_for_objects);
 
             { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement,true);
+            newblock:=internalstatements(newstatement);
 
             { create temp for result }
             temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,true);
@@ -315,7 +305,7 @@ implementation
 
             { create call to fpc_getmem }
             para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype,true),nil);
+                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype),nil);
             addstatement(newstatement,cassignmentnode.create(
                 ctemprefnode.create(temp),
                 ccallnode.createintern('fpc_getmem',para)));
@@ -465,7 +455,7 @@ implementation
          begin
             { create statements with call initialize the arguments and
               call fpc_dynarr_setlength }
-            newblock:=internalstatements(newstatement,true);
+            newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
             temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,true);
@@ -490,7 +480,7 @@ implementation
             npara:=ccallparanode.create(caddrnode.create
                       (ctemprefnode.create(temp)),
                    ccallparanode.create(cordconstnode.create
-                      (counter,s32bittype,true),
+                      (counter,s32bittype),
                    ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
                    ccallparanode.create(ctypeconvnode.create_explicit(destppn,voidpointertype),nil))));
@@ -546,7 +536,7 @@ implementation
             end;
            { create call to fpc_finalize_array }
            npara:=ccallparanode.create(cordconstnode.create
-                     (destppn.left.resulttype.def.size,s32bittype,true),
+                     (destppn.left.resulttype.def.size,s32bittype),
                   ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32bittype),
                   ccallparanode.create(caddrnode.create
@@ -572,151 +562,10 @@ implementation
         result:=newblock;
       end;
 
-
-    function inline_copy : tnode;
-      var
-        copynode,
-        lowppn,
-        highppn,
-        npara,
-        paras   : tnode;
-        temp    : ttempcreatenode;
-        ppn     : tcallparanode;
-        paradef : tdef;
-        counter : integer;
-        newstatement : tstatementnode;
-      begin
-        { for easy exiting if something goes wrong }
-        result := cerrornode.create;
-
-        consume(_LKLAMMER);
-        paras:=parse_paras(false,false);
-        consume(_RKLAMMER);
-        if not assigned(paras) then
-         begin
-           CGMessage(parser_e_wrong_parameter_size);
-           exit;
-         end;
-
-        { determine copy function to use based on the first argument,
-          also count the number of arguments in this loop }
-        counter:=1;
-        ppn:=tcallparanode(paras);
-        while assigned(ppn.right) do
-         begin
-           inc(counter);
-           ppn:=tcallparanode(ppn.right);
-         end;
-        paradef:=ppn.left.resulttype.def;
-        if is_ansistring(paradef) then
-          copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
-        else
-         if is_widestring(paradef) then
-           copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
-        else
-         if is_char(paradef) then
-           copynode:=ccallnode.createintern('fpc_char_copy',paras)
-        else
-         if is_dynamic_array(paradef) then
-          begin
-            { Only allow 1 or 3 arguments }
-            if (counter<>1) and (counter<>3) then
-             begin
-               CGMessage(parser_e_wrong_parameter_size);
-               exit;
-             end;
-
-            { create statements with call }
-            copynode:=internalstatements(newstatement,true);
-
-            if (counter=3) then
-             begin
-               highppn:=tcallparanode(paras).left.getcopy;
-               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
-             end
-            else
-             begin
-               { use special -1,-1 argument to copy the whole array }
-               highppn:=cordconstnode.create(-1,s32bittype,false);
-               lowppn:=cordconstnode.create(-1,s32bittype,false);
-             end;
-
-            { create temp for result, we've to use a temp because a dynarray
-              type is handled differently from a pointer so we can't
-              use createinternres() and a function }
-            temp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
-            addstatement(newstatement,temp);
-
-            { create call to fpc_dynarray_copy }
-            npara:=ccallparanode.create(highppn,
-                   ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create
-                      (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
-                   ccallparanode.create
-                      (ctypeconvnode.create_explicit(ppn.left,voidpointertype),
-                   ccallparanode.create
-                      (ctemprefnode.create(temp),nil)))));
-            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
-
-            { convert the temp to normal and return the reference to the
-              created temp, and convert the type of the temp to the dynarray type }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctypeconvnode.create_explicit(ctemprefnode.create(temp),ppn.left.resulttype));
-
-            ppn.left:=nil;
-            paras.free;
-          end
-        else
-         begin
-           { generic fallback that will give an error if a wrong
-             type is passed }
-           copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
-         end;
-
-        result.free;
-        result:=copynode;
-      end;
-
 end.
 {
   $Log$
-  Revision 1.12  2002-04-25 20:15:40  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
-
-  Revision 1.11  2002/11/26 22:59:09  peter
-    * fix Copy(array,x,y)
-
-  Revision 1.10  2002/11/25 17:43:22  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.9  2002/10/29 10:01:22  pierre
-   * fix crash report as webbug 2174
-
-  Revision 1.8  2002/10/02 18:20:52  peter
-    * Copy() is now internal syssym that calls compilerprocs
-
-  Revision 1.7  2002/09/07 12:16:03  carl
-    * second part bug report 1996 fix, testrange in cordconstnode
-      only called if option is set (also make parsing a tiny faster)
-
-  Revision 1.6  2002/07/20 11:57:56  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.5  2002/05/18 13:34:12  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:43  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.2  2002/05/12 16:53:09  peter
+  Revision 1.2  2002-05-12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

@@ -53,7 +53,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,aasm,types,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
-      cpuinfo,cpubase,
+      cpubase,
       cgobj,cga,tgobj,rgobj,ncgutil,n386util;
 
 {*****************************************************************************
@@ -75,18 +75,21 @@ implementation
 *****************************************************************************}
 
     procedure ti386derefnode.pass_2;
-
+      var
+        oldglobalswitches : tglobalswitches;
       begin
+         oldglobalswitches:=aktglobalswitches;
+         exclude(aktglobalswitches,cs_checkpointer);
          inherited pass_2;
+         aktglobalswitches:=oldglobalswitches;
          if tpointerdef(left.resulttype.def).is_far then
           location.reference.segment:=R_FS;
          if not tpointerdef(left.resulttype.def).is_far and
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
           begin
-             emit_reg(
-               A_PUSH,S_L,location.reference.base);
-             emitcall('FPC_CHECKPOINTER');
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
+            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
           end;
       end;
 
@@ -162,13 +165,10 @@ implementation
                         exit;
                      end;
                    rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                   emitpushreferenceaddr(left.location.reference);
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
                    rg.saveregvars(exprasmlist,all_registers);
-                   if is_ansistring(left.resulttype.def) then
-                     emitcall('FPC_ANSISTR_UNIQUE')
-                   else
-                     emitcall('FPC_WIDESTR_UNIQUE');
-                   maybe_loadself;
+                   cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
+                   cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
@@ -181,8 +181,7 @@ implementation
                   begin
                     location_release(exprasmlist,left.location);
                     location.reference.base:=rg.getregisterint(exprasmlist);
-                    emit_ref_reg(A_MOV,S_L,
-                      left.location.reference,location.reference.base);
+                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.reference.base);
                   end;
                 else
                   internalerror(2002032218);
@@ -193,10 +192,10 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                   emit_reg(A_PUSH,S_L,location.reference.base);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,1);
                    rg.saveregvars(exprasmlist,all_registers);
-                   emitcall('FPC_ANSISTR_CHECKZERO');
-                   maybe_loadself;
+                   cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                   cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
@@ -237,8 +236,8 @@ implementation
                    rg.saveusedregisters(exprasmlist,pushed,all_registers);
                    emit_reg(A_PUSH,S_L,location.reference.base);
                    rg.saveregvars(exprasmlist,all_registers);
-                   emitcall('FPC_ANSISTR_CHECKZERO');
-                   maybe_loadself;
+                   cg.a_call_name(exprasmlist,'FPC_ANSISTR_CHECKZERO');
+                   cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
@@ -283,24 +282,26 @@ implementation
                 end
               else if (left.resulttype.def.deftype=stringdef) then
                 begin
-                   if (tordconstnode(right).value=0) and not(is_shortstring(left.resulttype.def)) then
+                   if (tordconstnode(right).value=0) and
+                      not(is_shortstring(left.resulttype.def)) then
                      CGMessage(cg_e_can_access_element_zero);
 
                    if (cs_check_range in aktlocalswitches) then
-                     case tstringdef(left.resulttype.def).string_typ of
+                    begin
+                      case tstringdef(left.resulttype.def).string_typ of
                         { it's the same for ansi- and wide strings }
                         st_widestring,
                         st_ansistring:
                           begin
                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                             push_int(tordconstnode(right).value);
+                             cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,2);
                              href:=location.reference;
                              dec(href.offset,7);
-                             emit_ref(A_PUSH,S_L,href);
+                             cg.a_param_ref(exprasmlist,OS_INT,href,1);
                              rg.saveregvars(exprasmlist,all_registers);
-                             emitcall('FPC_ANSISTR_RANGECHECK');
+                             cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                              rg.restoreusedregisters(exprasmlist,pushed);
-                             maybe_loadself;
+                             cg.g_maybe_loadself(exprasmlist);
                           end;
 
                         st_shortstring:
@@ -312,30 +313,25 @@ implementation
                           begin
                              {!!!!!!!!!!!!!!!!!}
                           end;
-                     end;
+                      end;
+                    end;
                 end;
               inc(left.location.reference.offset,
                   get_mul_size*tordconstnode(right).value);
               if nf_memseg in flags then
                 left.location.reference.segment:=R_FS;
-              {
-              left.resulttype:=resulttype.def;
-              disposetree(right);
-              _p:=left;
-              putnode(p);
-              p:=_p;
-              }
+
               location_copy(location,left.location);
            end
          else
          { not nodetype=ordconstn }
            begin
               if (cs_regalloc in aktglobalswitches) and
-              { if we do range checking, we don't }
-              { need that fancy code (it would be }
-              { buggy)                            }
-                not(cs_check_range in aktlocalswitches) and
-                (left.resulttype.def.deftype=arraydef) then
+                 { if we do range checking, we don't }
+                 { need that fancy code (it would be }
+                 { buggy)                            }
+                 not(cs_check_range in aktlocalswitches) and
+                 (left.resulttype.def.deftype=arraydef) then
                 begin
                    extraoffset:=0;
                    if (right.nodetype=addn) then
@@ -433,7 +429,7 @@ implementation
                    end;
                end;
 
-              location_force_reg(right.location,OS_32,false);
+              location_force_reg(exprasmlist,right.location,OS_32,false);
 
               if isjump then
                begin
@@ -456,14 +452,14 @@ implementation
                          st_ansistring:
                            begin
                               rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                              emit_reg(A_PUSH,S_L,right.location.register);
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,1);
                               href:=location.reference;
                               dec(href.offset,7);
-                              emit_ref(A_PUSH,S_L,href);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,1);
                               rg.saveregvars(exprasmlist,all_registers);
-                              emitcall('FPC_ANSISTR_RANGECHECK');
+                              cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               rg.restoreusedregisters(exprasmlist,pushed);
-                              maybe_loadself;
+                              cg.g_maybe_loadself(exprasmlist);
                            end;
                          st_shortstring:
                            begin
@@ -525,7 +521,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-04-21 19:02:07  peter
+  Revision 1.29  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.28  2002/04/21 19:02:07  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

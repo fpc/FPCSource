@@ -56,8 +56,8 @@ implementation
     uses
       verbose,systems,
       symsym,aasm,
-      cginfo,cgbase,pass_2,
-      cpubase,cpuasm,
+      cgbase,pass_2,
+      cpuinfo,cpubase,cpuasm,
       nld,ncon,
       tainst,cga,cgobj,tgobj,rgobj;
 
@@ -94,7 +94,7 @@ implementation
               else
                 begin
                    getaddrlabel(a);
-                   emitlab(a);
+                   cg.a_label(exprasmlist,a);
                    cg.a_param_reg(exprasmlist,OS_INT,R_EBP,2);
                    emit_sym(A_PUSH,S_L,a);
                 end;
@@ -103,12 +103,12 @@ implementation
               if codegenerror then
                 exit;
               cg.a_param_loc(exprasmlist,left.location,1);
-              emitcall('FPC_RAISEEXCEPTION');
+              cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
            end
          else
            begin
-              emitcall('FPC_POPADDRSTACK');
-              emitcall('FPC_RERAISE');
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
            end;
        end;
 
@@ -125,12 +125,12 @@ implementation
     procedure cleanupobjectstack;
 
       begin
-         emitcall('FPC_POPOBJECTSTACK');
+         cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
-         emitcall('FPC_DESTROYEXCEPTION');
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-         maybe_loadself;
+         cg.g_maybe_loadself(exprasmlist);
       end;
 
     { pops one element from the exception address stack }
@@ -138,7 +138,7 @@ implementation
     procedure cleanupaddrstack;
 
       begin
-         emitcall('FPC_POPADDRSTACK');
+         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
@@ -205,15 +205,16 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         emitpushreferenceaddr(tempaddr);
-         emitpushreferenceaddr(tempbuf);
-         push_int (1); { push type of exceptionframe }
-         emitcall('FPC_PUSHEXCEPTADDR');
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+         { push type of exceptionframe }
+         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
-         emitcall('FPC_SETJMP');
+         cg.a_call_name(exprasmlist,'FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
@@ -236,8 +237,8 @@ implementation
          if codegenerror then
            goto errorexit;
 
-         emitlab(exceptlabel);
-         emitcall('FPC_POPADDRSTACK');
+         cg.a_label(exprasmlist,exceptlabel);
+         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
          tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
@@ -247,7 +248,7 @@ implementation
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
 
          emitjmp(C_E,endexceptlabel);
-         emitlab(doexceptlabel);
+         cg.a_label(exprasmlist,doexceptlabel);
 
          { set control flow labels for the except block }
          { and the on statements                        }
@@ -264,46 +265,47 @@ implementation
          if assigned(right) then
            secondpass(right);
 
-         emitlab(lastonlabel);
+         cg.a_label(exprasmlist,lastonlabel);
          { default handling except handling }
          if assigned(t1) then
            begin
               { FPC_CATCHES must be called with
                 'default handler' flag (=-1)
               }
-              push_int (-1);
-              emitcall('FPC_CATCHES');
-              maybe_loadself;
+              cg.a_param_const(exprasmlist,OS_INT,aword(-1),1);
+              cg.a_call_name(exprasmlist,'FPC_CATCHES');
+              cg.g_maybe_loadself(exprasmlist);
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
               getlabel(doobjectdestroy);
               getlabel(doobjectdestroyandreraise);
 
-              tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
               tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
-              emitpushreferenceaddr(tempaddr);
-              emitpushreferenceaddr(tempbuf);
-              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
-              emitcall('FPC_PUSHEXCEPTADDR');
+              tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+              cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
+              cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+              { push type of exceptionframe }
+              cg.a_param_const(exprasmlist,OS_INT,1,1);
+              cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
+              { allocate eax }
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+              emit_reg(A_PUSH,S_L,R_EAX);
+              cg.a_call_name(exprasmlist,'FPC_SETJMP');
+              emit_reg(A_PUSH,S_L,R_EAX);
+              emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
+              { deallocate eax }
               exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-              emitcall('FPC_SETJMP');
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
-              exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
-              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-              emitjmp(C_NE,doobjectdestroyandreraise);
+              emitjmp(C_NE,exceptlabel);
 
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
               secondpass(t1);
               exceptflowcontrol:=flowcontrol;
 
-              emitlab(doobjectdestroyandreraise);
-              emitcall('FPC_POPADDRSTACK');
+              cg.a_label(exprasmlist,doobjectdestroyandreraise);
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               tg.ungetpersistanttempreference(exprasmlist,tempaddr);
               tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
@@ -312,79 +314,79 @@ implementation
               exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
               exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               emitjmp(C_E,doobjectdestroy);
-              emitcall('FPC_POPSECONDOBJECTSTACK');
+              cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_PUSH,S_L,R_EAX);
-              emitcall('FPC_DESTROYEXCEPTION');
+              cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
-              emitcall('FPC_RERAISE');
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
 
-              emitlab(doobjectdestroy);
+              cg.a_label(exprasmlist,doobjectdestroy);
               cleanupobjectstack;
-              emitjmp(C_None,endexceptlabel);
+              cg.a_jmp_always(exprasmlist,endexceptlabel);
            end
          else
            begin
-              emitcall('FPC_RERAISE');
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
               exceptflowcontrol:=flowcontrol;
            end;
 
          if fc_exit in exceptflowcontrol then
            begin
               { do some magic for exit in the try block }
-              emitlab(exitexceptlabel);
+              cg.a_label(exprasmlist,exitexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
               cleanupaddrstack;
               cleanupobjectstack;
-              emitjmp(C_None,oldaktexitlabel);
+              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
 
          if fc_break in exceptflowcontrol then
            begin
-              emitlab(breakexceptlabel);
+              cg.a_label(exprasmlist,breakexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
               cleanupaddrstack;
               cleanupobjectstack;
-              emitjmp(C_None,oldaktbreaklabel);
+              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
 
          if fc_continue in exceptflowcontrol then
            begin
-              emitlab(continueexceptlabel);
+              cg.a_label(exprasmlist,continueexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
               cleanupaddrstack;
               cleanupobjectstack;
-              emitjmp(C_None,oldaktcontinuelabel);
+              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
 
          if fc_exit in tryflowcontrol then
            begin
               { do some magic for exit in the try block }
-              emitlab(exittrylabel);
+              cg.a_label(exprasmlist,exittrylabel);
               cleanupaddrstack;
-              emitjmp(C_None,oldaktexitlabel);
+              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
 
          if fc_break in tryflowcontrol then
            begin
-              emitlab(breaktrylabel);
+              cg.a_label(exprasmlist,breaktrylabel);
               cleanupaddrstack;
-              emitjmp(C_None,oldaktbreaklabel);
+              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
 
          if fc_continue in tryflowcontrol then
            begin
-              emitlab(continuetrylabel);
+              cg.a_label(exprasmlist,continuetrylabel);
               cleanupaddrstack;
-              emitjmp(C_None,oldaktcontinuelabel);
+              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
 
-         emitlab(endexceptlabel);
+         cg.a_label(exprasmlist,endexceptlabel);
 
        errorexit:
          { restore all saved labels }
@@ -428,7 +430,7 @@ implementation
          { push the vmt }
          emit_sym(A_PUSH,S_L,
            newasmsymbol(excepttype.vmt_mangledname));
-         emitcall('FPC_CATCHES');
+         cg.a_call_name(exprasmlist,'FPC_CATCHES');
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
@@ -450,15 +452,15 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
-         emitpushreferenceaddr(tempaddr);
-         emitpushreferenceaddr(tempbuf);
-         exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
-         emitcall('FPC_PUSHEXCEPTADDR');
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-         emitcall('FPC_SETJMP');
+         cg.a_call_name(exprasmlist,'FPC_SETJMP');
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
          exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
@@ -483,12 +485,12 @@ implementation
                end;
 
               { esi is destroyed by FPC_CATCHES }
-              maybe_loadself;
+              cg.g_maybe_loadself(exprasmlist);
               secondpass(right);
            end;
          getlabel(doobjectdestroy);
-         emitlab(doobjectdestroyandreraise);
-         emitcall('FPC_POPADDRSTACK');
+         cg.a_label(exprasmlist,doobjectdestroyandreraise);
+         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
          tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
@@ -497,20 +499,20 @@ implementation
          exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitjmp(C_E,doobjectdestroy);
-         emitcall('FPC_POPSECONDOBJECTSTACK');
+         cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
-         emitcall('FPC_DESTROYEXCEPTION');
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
-         emitcall('FPC_RERAISE');
+         cg.a_call_name(exprasmlist,'FPC_RERAISE');
 
-         emitlab(doobjectdestroy);
+         cg.a_label(exprasmlist,doobjectdestroy);
          cleanupobjectstack;
          { clear some stuff }
          tg.ungetiftemp(exprasmlist,ref);
-         emitjmp(C_None,endexceptlabel);
+         cg.a_jmp_always(exprasmlist,endexceptlabel);
 
          if assigned(right) then
            begin
@@ -518,22 +520,22 @@ implementation
               if fc_exit in flowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   emitlab(exitonlabel);
-                   emitjmp(C_None,oldaktexitlabel);
+                   cg.a_label(exprasmlist,exitonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktexitlabel);
                 end;
 
               if fc_break in flowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   emitlab(breakonlabel);
-                   emitjmp(C_None,oldaktbreaklabel);
+                   cg.a_label(exprasmlist,breakonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
                 end;
 
               if fc_continue in flowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   emitlab(continueonlabel);
-                   emitjmp(C_None,oldaktcontinuelabel);
+                   cg.a_label(exprasmlist,continueonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
                 end;
 
               aktexitlabel:=oldaktexitlabel;
@@ -545,7 +547,7 @@ implementation
                end;
            end;
 
-         emitlab(nextonlabel);
+         cg.a_label(exprasmlist,nextonlabel);
          flowcontrol:=oldflowcontrol+flowcontrol;
          { next on node }
          if assigned(left) then
@@ -604,15 +606,16 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
-         emitpushreferenceaddr(tempaddr);
-         emitpushreferenceaddr(tempbuf);
-         push_int(1); { Type of stack-frame must be pushed}
-         emitcall('FPC_PUSHEXCEPTADDR');
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+         { Type of stack-frame must be pushed}
+         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
-         emitcall('FPC_SETJMP');
+         cg.a_call_name(exprasmlist,'FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
@@ -628,8 +631,8 @@ implementation
                 exit;
            end;
 
-         emitlab(finallylabel);
-         emitcall('FPC_POPADDRSTACK');
+         cg.a_label(exprasmlist,finallylabel);
+         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
          tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
@@ -670,41 +673,41 @@ implementation
            end;
          { deallocate eax }
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-         emitlab(reraiselabel);
-         emitcall('FPC_RERAISE');
+         cg.a_label(exprasmlist,reraiselabel);
+         cg.a_call_name(exprasmlist,'FPC_RERAISE');
          { do some magic for exit,break,continue in the try block }
          if fc_exit in tryflowcontrol then
            begin
-              emitlab(exitfinallylabel);
+              cg.a_label(exprasmlist,exitfinallylabel);
               { allocate eax }
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,2);
-              emitjmp(C_NONE,finallylabel);
+              cg.a_jmp_always(exprasmlist,finallylabel);
            end;
          if fc_break in tryflowcontrol then
           begin
-             emitlab(breakfinallylabel);
+             cg.a_label(exprasmlist,breakfinallylabel);
              { allocate eax }
              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
              emit_reg(A_POP,S_L,R_EAX);
              { deallocate eax }
              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
              emit_const(A_PUSH,S_L,3);
-             emitjmp(C_NONE,finallylabel);
+             cg.a_jmp_always(exprasmlist,finallylabel);
            end;
          if fc_continue in tryflowcontrol then
            begin
-              emitlab(continuefinallylabel);
+              cg.a_label(exprasmlist,continuefinallylabel);
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,4);
-              emitjmp(C_NONE,finallylabel);
+              cg.a_jmp_always(exprasmlist,finallylabel);
            end;
 
-         emitlab(endfinallylabel);
+         cg.a_label(exprasmlist,endfinallylabel);
 
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
@@ -723,7 +726,7 @@ implementation
 
     procedure ti386failnode.pass_2;
       begin
-        emitjmp(C_None,faillabel);
+        cg.a_jmp_always(exprasmlist,faillabel);
       end;
 
 
@@ -736,7 +739,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-04-04 19:06:11  peter
+  Revision 1.23  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.22  2002/04/04 19:06:11  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

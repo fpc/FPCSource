@@ -48,11 +48,11 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,aasm,types,
+      symconst,symdef,symsym,symtable,aasm,types,
       cginfo,cgbase,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cga,tgobj,n386util,ncgutil,regvars,cgobj,cg64f32,rgobj,rgcpu;
+      cga,tgobj,n386util,regvars,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
                              SecondLoad
@@ -127,7 +127,7 @@ implementation
                          emit_ref(A_PUSH,S_L,href);
                          { the called procedure isn't allowed to change }
                          { any register except EAX                    }
-                         emitcall('FPC_RELOCATE_THREADVAR');
+                         cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
 
                          location.reference.base:=rg.getregisterint(exprasmlist);
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.reference.base);
@@ -567,8 +567,8 @@ implementation
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        concatcopy(right.location.reference,
-                                   left.location.reference,left.resulttype.def.size,true,false);
+                        cg.g_concatcopy(exprasmlist,right.location.reference,
+                                        left.location.reference,left.resulttype.def.size,true,false);
                         { right.location is already released by concatcopy }
                         releaseright:=false;
                       end;
@@ -619,7 +619,7 @@ implementation
                   getlabel(hlabel);
                   { generate the leftnode for the true case, and
                     release the location }
-                  emitlab(truelabel);
+                  cg.a_label(exprasmlist,truelabel);
                   pushed:=maybe_push(left.registers32,right,false);
                   secondpass(left);
                   if pushed then
@@ -628,9 +628,9 @@ implementation
                     exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
                   location_release(exprasmlist,left.location);
-                  emitjmp(C_None,hlabel);
+                  cg.a_jmp_always(exprasmlist,hlabel);
                   { generate the leftnode for the false case }
-                  emitlab(falselabel);
+                  cg.a_label(exprasmlist,falselabel);
                   pushed:=maybe_push(left.registers32,right,false);
                   secondpass(left);
                   if pushed then
@@ -638,7 +638,7 @@ implementation
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,0,left.location);
-                  emitlab(hlabel);
+                  cg.a_label(exprasmlist,hlabel);
                 end;
               LOC_FLAGS :
                 begin
@@ -723,7 +723,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-04-26 15:19:05  peter
+  Revision 1.41  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.40  2002/04/26 15:19:05  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 

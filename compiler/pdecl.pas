@@ -268,7 +268,7 @@ implementation
 
 
     { search in symtablestack used, but not defined type }
-    procedure resolve_type_forward(p : tnamedindexitem);
+    procedure resolve_type_forward(p : tnamedindexitem;arg:pointer);
       var
         hpd,pd : tdef;
         stpos  : tfileposinfo;
@@ -347,7 +347,7 @@ implementation
                   end;
                end;
              recorddef :
-               trecorddef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+               trecorddef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
              objectdef :
                begin
                  if not(m_fpc in aktmodeswitches) and
@@ -363,7 +363,7 @@ implementation
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
                     if not(tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
-                     tobjectdef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+                     tobjectdef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
                   end;
                end;
           end;
@@ -524,7 +524,7 @@ implementation
             end;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
          block_type:=old_block_type;
       end;
 
@@ -608,7 +608,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-04-19 15:46:02  peter
+  Revision 1.43  2002-05-12 16:53:08  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.42  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

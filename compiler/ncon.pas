@@ -297,11 +297,8 @@ implementation
             p1:=cpointerconstnode.create(p.valueordptr,p.consttype);
           constnil :
             p1:=cnilnode.create;
-          constresourcestring:
-            begin
-              p1:=cloadnode.create(tvarsym(p),tvarsym(p).owner);
-              p1.resulttype:=cansistringtype;
-            end;
+          else
+            internalerror(200205103);
         end;
         genconstsymtree:=p1;
       end;
@@ -724,7 +721,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-04-07 13:25:20  carl
+  Revision 1.29  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.28  2002/04/07 13:25:20  carl
   + change unit use
 
   Revision 1.27  2002/04/04 19:05:58  peter

@@ -44,8 +44,8 @@ unit cgcpu;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);override;
 
 
-        procedure a_call_name(list : taasmoutput;const s : string;
-          offset : longint);override;
+        procedure a_call_name(list : taasmoutput;const s : string);override;
+        procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
@@ -66,6 +66,7 @@ unit cgcpu;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
+        procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
@@ -91,16 +92,6 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
 
-
-        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-        procedure g_restore_frame_pointer(list : taasmoutput);override;
-        procedure g_push_exception_value_reg(list : taasmoutput;reg : tregister);override;
-        procedure g_push_exception_value_const(list : taasmoutput;reg : tregister);override;
-        procedure g_pop_exception_value_reg(list : taasmoutput;reg : tregister);override;
-        procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
-
-        procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
-
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reghi : tregister);override;
         procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;reglosrc,reghisrc,reglodst,reghidst : tregister);override;
         procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);override;
@@ -109,8 +100,26 @@ unit cgcpu;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
         procedure g_maybe_loadself(list : taasmoutput); override;
 
+        procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
+        procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);override;
 
         class function reg_cgsize(const reg: tregister): tcgsize; override;
+
+        { entry/exit code helpers }
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
+        procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
+        procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+        procedure g_profilecode(list : taasmoutput);override;
+        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
+        procedure g_restore_frame_pointer(list : taasmoutput);override;
+        procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
+        procedure g_call_constructor_helper(list : taasmoutput);override;
+        procedure g_call_destructor_helper(list : taasmoutput);override;
+        procedure g_call_fail_helper(list : taasmoutput);override;
+        procedure g_save_standard_registers(list : taasmoutput);override;
+        procedure g_restore_standard_registers(list : taasmoutput);override;
+        procedure g_save_all_registers(list : taasmoutput);override;
+        procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
        private
 
@@ -138,26 +147,159 @@ unit cgcpu;
         (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
-{
-      TReg2CGSize: Array[tregister] of tcgsize = (OS_NO,
-         S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
-         S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-         S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-         S_W,S_W,S_W,S_W,S_W,S_W,
-         S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
-         S_L,S_L,S_L,S_L,S_L,S_L,
-         S_L,S_L,S_L,S_L,
-         S_L,S_L,S_L,S_L,S_L,
-         OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,
-         OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO
-      );
- }
 
 
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,cga,rgobj,rgcpu;
+       globtype,globals,verbose,systems,cutils,
+       symtable,symdef,symsym,types,
+       rgobj,tgobj,rgcpu,tainst;
+
+{$ifndef NOTARGETWIN32}
+    const
+      winstackpagesize = 4096;
+{$endif NOTARGETWIN32}
+
+
+{****************************************************************************
+                       This is private property, keep out! :)
+****************************************************************************}
+
+    procedure tcg386.sizes2load(s1 : tcgsize;s2: topsize; var op: tasmop; var s3: topsize);
+
+       begin
+         case s2 of
+           S_B:
+             if S1 in [OS_8,OS_S8] then
+               s3 := S_B
+             else internalerror(200109221);
+           S_W:
+             case s1 of
+               OS_8,OS_S8:
+                 s3 := S_BW;
+               OS_16,OS_S16:
+                 s3 := S_W;
+               else internalerror(200109222);
+             end;
+           S_L:
+             case s1 of
+               OS_8,OS_S8:
+                 s3 := S_BL;
+               OS_16,OS_S16:
+                 s3 := S_WL;
+               OS_32,OS_S32:
+                 s3 := S_L;
+               else internalerror(200109223);
+             end;
+           else internalerror(200109227);
+         end;
+         if s3 in [S_B,S_W,S_L] then
+           op := A_MOV
+         else if s1 in [OS_8,OS_16,OS_32] then
+           op := A_MOVZX
+         else
+           op := A_MOVSX;
+       end;
+
+
+    procedure tcg386.floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
+
+      begin
+         case t of
+            OS_F32 :
+              begin
+                 op:=A_FLD;
+                 s:=S_FS;
+              end;
+            OS_F64 :
+              begin
+                 op:=A_FLD;
+                 { ???? }
+                 s:=S_FL;
+              end;
+            OS_F80 :
+              begin
+                 op:=A_FLD;
+                 s:=S_FX;
+              end;
+            OS_C64 :
+              begin
+                 op:=A_FILD;
+                 s:=S_IQ;
+              end;
+            else
+              internalerror(200204041);
+         end;
+      end;
+
+
+    procedure tcg386.floatload(list: taasmoutput; t : tcgsize;const ref : treference);
+
+      var
+         op : tasmop;
+         s : topsize;
+
+      begin
+         floatloadops(t,op,s);
+         list.concat(Taicpu.Op_ref(op,s,ref));
+         inc(trgcpu(rg).fpuvaroffset);
+      end;
+
+
+    procedure tcg386.floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
+
+      begin
+         case t of
+            OS_F32 :
+              begin
+                 op:=A_FSTP;
+                 s:=S_FS;
+              end;
+            OS_F64 :
+              begin
+                 op:=A_FSTP;
+                 s:=S_FL;
+              end;
+            OS_F80 :
+              begin
+                  op:=A_FSTP;
+                  s:=S_FX;
+               end;
+            OS_C64 :
+               begin
+                  op:=A_FISTP;
+                  s:=S_IQ;
+               end;
+            else
+               internalerror(200204042);
+         end;
+      end;
+
+
+    procedure tcg386.floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
+
+      var
+         op : tasmop;
+         s : topsize;
+
+      begin
+         floatstoreops(t,op,s);
+         list.concat(Taicpu.Op_ref(op,s,ref));
+         dec(trgcpu(rg).fpuvaroffset);
+      end;
+
+
+{****************************************************************************
+                              Assembler code
+****************************************************************************}
+
+    function tcg386.reg_cgsize(const reg: tregister): tcgsize;
+      const
+        regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
+      begin
+        result := regsize_2_cgsize[reg2opsize[reg]];
+      end;
 
 
     { currently does nothing }
@@ -258,10 +400,16 @@ unit cgcpu;
           end;
       end;
 
-    procedure tcg386.a_call_name(list : taasmoutput;const s : string; offset : longint);
+    procedure tcg386.a_call_name(list : taasmoutput;const s : string);
 
       begin
-        list.concat(taicpu.op_sym_ofs(A_CALL,S_NO,newasmsymbol(s),offset));
+        list.concat(taicpu.op_sym(A_CALL,S_NO,newasmsymbol(s)));
+      end;
+
+    procedure tcg386.a_call_ref(list : taasmoutput;const ref : treference);
+
+      begin
+        list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
 
@@ -352,6 +500,18 @@ unit cgcpu;
 
       begin
         list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,sym,ofs,reg));
+      end;
+
+
+    procedure tcg386.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
+
+      begin
+        if assigned(ref.symbol) and
+           (ref.base=R_NO) and
+           (ref.index=R_NO) then
+         list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,ref.symbol,ref.offset,r))
+        else
+         list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
       end;
 
 
@@ -675,10 +835,6 @@ unit cgcpu;
 
 
      procedure tcg386.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
-
-       var
-         opsize: topsize;
-
        begin
           case op of
             OP_NEG,OP_NOT,OP_IMUL:
@@ -820,6 +976,7 @@ unit cgcpu;
           a_jmp_cond(list,cmp_op,l);
         end;
 
+
       procedure tcg386.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
         l : tasmlabel);
 
@@ -838,16 +995,14 @@ unit cgcpu;
           a_jmp_cond(list,cmp_op,l);
         end;
 
+
      procedure tcg386.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister;l : tasmlabel);
-
-        var
-          opsize: topsize;
-
         begin
           reg := rg.makeregsize(reg,size);
           list.concat(taicpu.op_ref_reg(A_CMP,tcgsize2opsize[size],ref,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
+
 
      procedure tcg386.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -866,6 +1021,7 @@ unit cgcpu;
          list.concat(ai);
        end;
 
+
      procedure tcg386.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
        var
          ai : taicpu;
@@ -875,6 +1031,7 @@ unit cgcpu;
          ai.is_jmp := true;
          list.concat(ai);
        end;
+
 
      procedure tcg386.g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister);
 
@@ -887,57 +1044,7 @@ unit cgcpu;
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
           if hreg<>reg then
-           a_load_reg_reg(exprasmlist,OS_8,hreg,reg);
-       end;
-
-
-{ *********** entry/exit code and address loading ************ }
-
-    procedure tcg386.g_stackframe_entry(list : taasmoutput;localsize : longint);
-
-      begin
-        runerror(211);
-      end;
-
-
-    procedure tcg386.g_restore_frame_pointer(list : taasmoutput);
-
-      begin
-        runerror(211);
-      end;
-
-
-    procedure tcg386.g_push_exception_value_reg(list : taasmoutput;reg : tregister);
-
-      begin
-        runerror(211);
-      end;
-
-
-    procedure tcg386.g_push_exception_value_const(list : taasmoutput;reg : tregister);
-
-      begin
-        runerror(211);
-      end;
-
-
-    procedure tcg386.g_pop_exception_value_reg(list : taasmoutput;reg : tregister);
-
-      begin
-        runerror(211);
-      end;
-
-
-    procedure tcg386.g_return_from_proc(list : taasmoutput;parasize : aword);
-
-      begin
-        runerror(211);
-      end;
-
-     procedure tcg386.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
-
-       begin
-         list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
+           a_load_reg_reg(list,OS_8,hreg,reg);
        end;
 
 
@@ -1054,172 +1161,609 @@ unit cgcpu;
 { ************* concatcopy ************ }
 
     procedure tcg386.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
-
-      { temp implementation, until it's permanenty moved here from cga.pas }
-
       var
-        oldlist: taasmoutput;
+         ecxpushed : boolean;
+         helpsize : longint;
+         i : byte;
+         reg8,reg32 : tregister;
+         srcref,dstref : treference;
+         swap : boolean;
+
+         procedure maybepushecx;
+         begin
+           if not(R_ECX in rg.unusedregsint) then
+             begin
+               list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ECX));
+               ecxpushed:=true;
+             end
+           else rg.getexplicitregisterint(list,R_ECX);
+         end;
 
       begin
-        if list <> exprasmlist then
-          begin
-            oldlist := exprasmlist;
-            exprasmlist := list;
-          end;
-        cga.concatcopy(source,dest,len,delsource,loadref);
-        if list <> exprasmlist then
-          list := oldlist;
+         if (not loadref) and
+            ((len<=8) or
+             (not(cs_littlesize in aktglobalswitches ) and (len<=12))) then
+           begin
+              helpsize:=len shr 2;
+              rg.getexplicitregisterint(list,R_EDI);
+              dstref:=dest;
+              srcref:=source;
+              for i:=1 to helpsize do
+                begin
+                   a_load_ref_reg(list,OS_32,srcref,R_EDI);
+                   If (len = 4) and delsource then
+                     reference_release(list,source);
+                   a_load_reg_ref(list,OS_32,R_EDI,dstref);
+                   inc(srcref.offset,4);
+                   inc(dstref.offset,4);
+                   dec(len,4);
+                end;
+              if len>1 then
+                begin
+                   a_load_ref_reg(list,OS_16,srcref,R_DI);
+                   If (len = 2) and delsource then
+                     reference_release(list,source);
+                   a_load_reg_ref(list,OS_16,R_DI,dstref);
+                   inc(srcref.offset,2);
+                   inc(dstref.offset,2);
+                   dec(len,2);
+                end;
+              rg.ungetregisterint(list,R_EDI);
+              if len>0 then
+                begin
+                   { and now look for an 8 bit register }
+                   swap:=false;
+                   if R_EAX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EAX),OS_8)
+                   else if R_EDX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EDX),OS_8)
+                   else if R_EBX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EBX),OS_8)
+                   else if R_ECX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_ECX),OS_8)
+                   else
+                      begin
+                         swap:=true;
+                         { we need only to check 3 registers, because }
+                         { one is always not index or base          }
+                         if (dest.base<>R_EAX) and (dest.index<>R_EAX) then
+                           begin
+                              reg8:=R_AL;
+                              reg32:=R_EAX;
+                           end
+                         else if (dest.base<>R_EBX) and (dest.index<>R_EBX) then
+                           begin
+                              reg8:=R_BL;
+                              reg32:=R_EBX;
+                           end
+                         else if (dest.base<>R_ECX) and (dest.index<>R_ECX) then
+                           begin
+                              reg8:=R_CL;
+                              reg32:=R_ECX;
+                           end;
+                      end;
+                   if swap then
+                     { was earlier XCHG, of course nonsense }
+                     begin
+                       rg.getexplicitregisterint(list,R_EDI);
+                       a_load_reg_reg(list,OS_32,reg32,R_EDI);
+                     end;
+                   a_load_ref_reg(list,OS_8,srcref,reg8);
+                   If delsource and (len=1) then
+                     reference_release(list,source);
+                   a_load_reg_ref(list,OS_8,reg8,dstref);
+                   if swap then
+                     begin
+                       a_load_reg_reg(list,OS_32,R_EDI,reg32);
+                       rg.ungetregisterint(list,R_EDI);
+                     end
+                   else
+                     rg.ungetregister(list,reg8);
+                end;
+           end
+         else
+           begin
+              rg.getexplicitregisterint(list,R_EDI);
+              a_loadaddr_ref_reg(list,dest,R_EDI);
+              list.concat(Tairegalloc.Alloc(R_ESI));
+              if loadref then
+                a_load_ref_reg(list,OS_ADDR,source,R_ESI)
+              else
+                begin
+                  a_loadaddr_ref_reg(list,source,R_ESI);
+                  if delsource then
+                    reference_release(list,source);
+                end;
+
+              list.concat(Taicpu.Op_none(A_CLD,S_NO));
+              ecxpushed:=false;
+              if cs_littlesize in aktglobalswitches  then
+                begin
+                   maybepushecx;
+                   a_load_const_reg(list,OS_INT,len,R_ECX);
+                   list.concat(Taicpu.Op_none(A_REP,S_NO));
+                   list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+                end
+              else
+                begin
+                   helpsize:=len shr 2;
+                   len:=len and 3;
+                   if helpsize>1 then
+                    begin
+                      maybepushecx;
+                      a_load_const_reg(list,OS_INT,helpsize,R_ECX);
+                      list.concat(Taicpu.Op_none(A_REP,S_NO));
+                    end;
+                   if helpsize>0 then
+                    list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+                   if len>1 then
+                     begin
+                        dec(len,2);
+                        list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+                     end;
+                   if len=1 then
+                     list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+                end;
+              rg.ungetregisterint(list,R_EDI);
+              list.concat(Tairegalloc.DeAlloc(R_ESI));
+              if ecxpushed then
+                list.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX))
+              else
+                rg.ungetregisterint(list,R_ECX);
+
+              { loading SELF-reference again }
+              g_maybe_loadself(list);
+           end;
+         if delsource then
+          tg.ungetiftemp(list,source);
       end;
 
 
     procedure tcg386.g_maybe_loadself(list : taasmoutput);
       var
-        oldlist: taasmoutput;
-
+         hp : treference;
+         p : pprocinfo;
+         i : longint;
       begin
-        if list <> exprasmlist then
+         if assigned(procinfo^._class) then
+           begin
+              list.concat(Tairegalloc.Alloc(R_ESI));
+              if lexlevel>normal_function_level then
+                begin
+                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.framepointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
+                   p:=procinfo^.parent;
+                   for i:=3 to lexlevel-1 do
+                     begin
+                        reference_reset_base(hp,R_ESI,p^.framepointer_offset);
+                        a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
+                        p:=p^.parent;
+                     end;
+                   reference_reset_base(hp,R_ESI,p^.selfpointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
+                end
+              else
+                begin
+                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.selfpointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
+                end;
+           end;
+      end;
+
+
+    procedure tcg386.g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);
+      var
+        tempaddr,tempbuf : treference;
+      begin
+         tempaddr:=exceptbuf;
+         tempbuf:=exceptbuf;
+         inc(tempbuf.offset,12);
+         a_paramaddr_ref(list,tempaddr,3);
+         a_paramaddr_ref(list,tempbuf,2);
+         a_param_const(list,OS_INT,l,1);
+         a_call_name(list,'FPC_PUSHEXCEPTADDR');
+
+         a_reg_alloc(list,accumulator);
+         a_param_reg(list,OS_ADDR,accumulator,1);
+         a_reg_dealloc(list,accumulator);
+         a_call_name(list,'FPC_SETJMP');
+         list.concat(Tairegalloc.Alloc(accumulator));
+         list.concat(Taicpu.op_reg(A_PUSH,S_L,accumulator));
+         list.concat(Tairegalloc.DeAlloc(accumulator));
+         a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,accumulator,exceptlabel);
+      end;
+
+
+    procedure tcg386.g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);
+      begin
+        a_call_name(list,'FPC_POPADDRSTACK');
+        a_reg_alloc(list,accumulator);
+        list.concat(Taicpu.op_reg(A_POP,S_L,accumulator));
+        a_reg_dealloc(list,accumulator);
+        a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,endexceptlabel);
+      end;
+
+
+{****************************************************************************
+                              Entry/Exit Code Helpers
+****************************************************************************}
+
+    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
+      var
+        lenref : treference;
+        power,len  : longint;
+        opsize : topsize;
+{$ifndef __NOWINPECOFF__}
+        again,ok : tasmlabel;
+{$endif}
+      begin
+        lenref:=ref;
+        inc(lenref.offset,4);
+        { get stack space }
+        rg.getexplicitregisterint(list,R_EDI);
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,R_EDI));
+        list.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
+        if (elesize<>1) then
+         begin
+           if ispowerof2(elesize, power) then
+             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
+           else
+             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,R_EDI));
+         end;
+{$ifndef __NOWINPECOFF__}
+        { windows guards only a few pages for stack growing, }
+        { so we have to access every page first              }
+        if target_info.target=target_i386_win32 then
           begin
-            oldlist := exprasmlist;
-            exprasmlist := list;
+             getlabel(again);
+             getlabel(ok);
+             a_label(list,again);
+             list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI));
+             a_jmp_cond(list,OC_B,ok);
+             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
+             list.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI));
+             a_jmp_always(list,again);
+
+             a_label(list,ok);
+             list.concat(Taicpu.op_reg_reg(A_SUB,S_L,R_EDI,R_ESP));
+             rg.ungetregisterint(list,R_EDI);
+             { now reload EDI }
+             rg.getexplicitregisterint(list,R_EDI);
+             list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,R_EDI));
+             list.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
+
+             if (elesize<>1) then
+              begin
+                if ispowerof2(elesize, power) then
+                  list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
+                else
+                  list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,R_EDI));
+              end;
+          end
+        else
+{$endif __NOWINPECOFF__}
+          list.concat(Taicpu.op_reg_reg(A_SUB,S_L,R_EDI,R_ESP));
+        { load destination }
+        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,R_ESP,R_EDI));
+
+        { don't destroy the registers! }
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,R_ECX));
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,R_ESI));
+
+        { load count }
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,R_ECX));
+
+        { load source }
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,ref,R_ESI));
+
+        { scheduled .... }
+        list.concat(Taicpu.op_reg(A_INC,S_L,R_ECX));
+
+        { calculate size }
+        len:=elesize;
+        opsize:=S_B;
+        if (len and 3)=0 then
+         begin
+           opsize:=S_L;
+           len:=len shr 2;
+         end
+        else
+         if (len and 1)=0 then
+          begin
+            opsize:=S_W;
+            len:=len shr 1;
           end;
-        cga.maybe_loadself;
-        if list <> exprasmlist then
-          list := oldlist;
+
+        if ispowerof2(len, power) then
+          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_ECX))
+        else
+          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,R_ECX));
+        list.concat(Taicpu.op_none(A_REP,S_NO));
+        case opsize of
+          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+        end;
+        rg.ungetregisterint(list,R_EDI);
+        list.concat(Taicpu.op_reg(A_POP,S_L,R_ESI));
+        list.concat(Taicpu.op_reg(A_POP,S_L,R_ECX));
+
+        { patch the new address }
+        list.concat(Taicpu.op_reg_ref(A_MOV,S_L,R_ESP,ref));
       end;
 
 
-    function tcg386.reg_cgsize(const reg: tregister): tcgsize;
-      const
-        regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
+    procedure tcg386.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
-        result := regsize_2_cgsize[reg2opsize[reg]];
+        { .... also the segment registers }
+        list.concat(Taicpu.Op_reg(A_PUSH,S_W,R_GS));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_W,R_FS));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_W,R_ES));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_W,R_DS));
+        { save the registers of an interrupt procedure }
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDX));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ECX));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EAX));
       end;
 
 
-{***************** This is private property, keep out! :) *****************}
-
-    procedure tcg386.sizes2load(s1 : tcgsize;s2: topsize; var op: tasmop; var s3: topsize);
-
-       begin
-         case s2 of
-           S_B:
-             if S1 in [OS_8,OS_S8] then
-               s3 := S_B
-             else internalerror(200109221);
-           S_W:
-             case s1 of
-               OS_8,OS_S8:
-                 s3 := S_BW;
-               OS_16,OS_S16:
-                 s3 := S_W;
-               else internalerror(200109222);
-             end;
-           S_L:
-             case s1 of
-               OS_8,OS_S8:
-                 s3 := S_BL;
-               OS_16,OS_S16:
-                 s3 := S_WL;
-               OS_32,OS_S32:
-                 s3 := S_L;
-               else internalerror(200109223);
-             end;
-           else internalerror(200109227);
-         end;
-         if s3 in [S_B,S_W,S_L] then
-           op := A_MOV
-         else if s1 in [OS_8,OS_16,OS_32] then
-           op := A_MOVZX
-         else
-           op := A_MOVSX;
-       end;
-
-
-    procedure tcg386.floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
-
+    procedure tcg386.g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);
       begin
-         case t of
-            OS_F32 :
-              begin
-                 op:=A_FLD;
-                 s:=S_FS;
-              end;
-            OS_F64 :
-              begin
-                 op:=A_FLD;
-                 { ???? }
-                 s:=S_FL;
-              end;
-            OS_F80 :
-              begin
-                 op:=A_FLD;
-                 s:=S_FX;
-              end;
-            OS_C64 :
-              begin
-                 op:=A_FILD;
-                 s:=S_IQ;
-              end;
-            else
-              internalerror(200204041);
-         end;
+        if accused then
+         list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,R_ESP))
+        else
+         list.concat(Taicpu.Op_reg(A_POP,S_L,R_EAX));
+        list.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
+        list.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX));
+        if acchiused then
+         list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,R_ESP))
+        else
+         list.concat(Taicpu.Op_reg(A_POP,S_L,R_EDX));
+        if selfused then
+         list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,R_ESP))
+        else
+         list.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
+        list.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
+        { .... also the segment registers }
+        list.concat(Taicpu.Op_reg(A_POP,S_W,R_DS));
+        list.concat(Taicpu.Op_reg(A_POP,S_W,R_ES));
+        list.concat(Taicpu.Op_reg(A_POP,S_W,R_FS));
+        list.concat(Taicpu.Op_reg(A_POP,S_W,R_GS));
+        { this restores the flags }
+        list.concat(Taicpu.Op_none(A_IRET,S_NO));
       end;
 
 
-    procedure tcg386.floatload(list: taasmoutput; t : tcgsize;const ref : treference);
-
+    procedure tcg386.g_profilecode(list : taasmoutput);
       var
-         op : tasmop;
-         s : topsize;
-
+        pl : tasmlabel;
       begin
-         floatloadops(t,op,s);
-         list.concat(Taicpu.Op_ref(op,s,ref));
-         inc(trgcpu(rg).fpuvaroffset);
+        case target_info.target of
+           target_i386_win32,
+           target_i386_freebsd,
+           target_i386_wdosx,
+           target_i386_linux:
+             begin
+                getaddrlabel(pl);
+                list.concat(Tai_section.Create(sec_data));
+                list.concat(Tai_align.Create(4));
+                list.concat(Tai_label.Create(pl));
+                list.concat(Tai_const.Create_32bit(0));
+                list.concat(Tai_section.Create(sec_code));
+                list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX));
+                a_call_name(list,target_info.Cprefix+'mcount');
+                include(rg.usedinproc,R_EDX);
+             end;
+
+           target_i386_go32v2:
+             begin
+               a_call_name(list,'MCOUNT');
+             end;
+        end;
       end;
 
 
-    procedure tcg386.floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
-
+    procedure tcg386.g_stackframe_entry(list : taasmoutput;localsize : longint);
+      var
+        href : treference;
+        i : integer;
+        again : tasmlabel;
       begin
-         case t of
-            OS_F32 :
-              begin
-                 op:=A_FSTP;
-                 s:=S_FS;
-              end;
-            OS_F64 :
-              begin
-                 op:=A_FSTP;
-                 s:=S_FL;
-              end;
-            OS_F80 :
-              begin
-                  op:=A_FSTP;
-                  s:=S_FX;
-               end;
-            OS_C64 :
-               begin
-                  op:=A_FISTP;
-                  s:=S_IQ;
-               end;
-            else
-               internalerror(200204042);
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+        if localsize>0 then
+         begin
+{$ifndef NOTARGETWIN32}
+           { windows guards only a few pages for stack growing, }
+           { so we have to access every page first              }
+           if (target_info.target=target_i386_win32) and
+              (localsize>=winstackpagesize) then
+             begin
+               if localsize div winstackpagesize<=5 then
+                 begin
+                    list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize-4,R_ESP));
+                    for i:=1 to localsize div winstackpagesize do
+                      begin
+                         reference_reset_base(href,R_ESP,localsize-i*winstackpagesize);
+                         list.concat(Taicpu.op_const_ref(A_MOV,S_L,0,href));
+                      end;
+                    list.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                 end
+               else
+                 begin
+                    getlabel(again);
+                    rg.getexplicitregisterint(list,R_EDI);
+                    list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,R_EDI));
+                    a_label(list,again);
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
+                    list.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                    list.concat(Taicpu.op_reg(A_DEC,S_L,R_EDI));
+                    a_jmp_cond(list,OC_NE,again);
+                    rg.ungetregisterint(list,R_EDI);
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize,R_ESP));
+                 end
+             end
+           else
+{$endif NOTARGETWIN32}
+            list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize,R_ESP));
          end;
       end;
 
 
-    procedure tcg386.floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
-
-      var
-         op : tasmop;
-         s : topsize;
-
+    procedure tcg386.g_restore_frame_pointer(list : taasmoutput);
       begin
-         floatstoreops(t,op,s);
-         list.concat(Taicpu.Op_ref(op,s,ref));
-         dec(trgcpu(rg).fpuvaroffset);
+        list.concat(Taicpu.Op_none(A_LEAVE,S_NO));
       end;
+
+
+    procedure tcg386.g_return_from_proc(list : taasmoutput;parasize : aword);
+      begin
+        { Routines with the poclearstack flag set use only a ret }
+        { also routines with parasize=0     }
+        if (po_clearstack in aktprocdef.procoptions) then
+         begin
+           { complex return values are removed from stack in C code PM }
+           if ret_in_param(aktprocdef.rettype.def) then
+             list.concat(Taicpu.Op_const(A_RET,S_NO,4))
+           else
+             list.concat(Taicpu.Op_none(A_RET,S_NO));
+         end
+        else if (parasize=0) then
+         list.concat(Taicpu.Op_none(A_RET,S_NO))
+        else
+         begin
+           { parameters are limited to 65535 bytes because }
+           { ret allows only imm16                    }
+           if (parasize>65535) then
+             CGMessage(cg_e_parasize_too_big);
+           list.concat(Taicpu.Op_const(A_RET,S_NO,parasize));
+         end;
+      end;
+
+
+    procedure tcg386.g_call_constructor_helper(list : taasmoutput);
+      begin
+        if is_class(procinfo^._class) then
+          begin
+            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            a_call_name(list,'FPC_NEW_CLASS');
+            list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
+          end
+        else if is_object(procinfo^._class) then
+          begin
+            rg.getexplicitregisterint(list,R_EDI);
+            a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+            a_call_name(list,'FPC_HELP_CONSTRUCTOR');
+            list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
+          end
+        else
+          internalerror(200006161);
+      end;
+
+
+    procedure tcg386.g_call_destructor_helper(list : taasmoutput);
+      var
+        nofinal : tasmlabel;
+        href : treference;
+      begin
+        if is_class(procinfo^._class) then
+         begin
+           a_call_name(list,'FPC_DISPOSE_CLASS')
+         end
+        else if is_object(procinfo^._class) then
+         begin
+           { must the object be finalized ? }
+           if procinfo^._class.needs_inittable then
+            begin
+              getlabel(nofinal);
+              reference_reset_base(href,R_EBP,8);
+              a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
+              reference_reset_base(href,R_ESI,0);
+              g_finalize(list,procinfo^._class,href,false);
+              a_label(list,nofinal);
+            end;
+           rg.getexplicitregisterint(list,R_EDI);
+           a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+           rg.ungetregisterint(list,R_EDI);
+           a_call_name(list,'FPC_HELP_DESTRUCTOR')
+         end
+        else
+         internalerror(200006162);
+      end;
+
+
+    procedure tcg386.g_call_fail_helper(list : taasmoutput);
+      var
+        href : treference;
+      begin
+        if is_class(procinfo^._class) then
+          begin
+            reference_reset_base(href,procinfo^.framepointer,8);
+            a_load_ref_reg(list,OS_ADDR,href,R_ESI);
+            a_call_name(list,'FPC_HELP_FAIL_CLASS');
+          end
+        else if is_object(procinfo^._class) then
+          begin
+            reference_reset_base(href,procinfo^.framepointer,12);
+            a_load_ref_reg(list,OS_ADDR,href,R_ESI);
+            rg.getexplicitregisterint(list,R_EDI);
+            a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+            a_call_name(list,'FPC_HELP_FAIL');
+            rg.ungetregisterint(list,R_EDI);
+          end
+        else
+          internalerror(200006163);
+      end;
+
+
+    procedure tcg386.g_save_standard_registers(list : taasmoutput);
+      begin
+        if (R_EBX in aktprocdef.usedregisters) then
+          list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
+      end;
+
+
+    procedure tcg386.g_restore_standard_registers(list : taasmoutput);
+      begin
+        list.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
+        list.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
+        if (R_EBX in aktprocdef.usedregisters) then
+         list.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
+      end;
+
+
+    procedure tcg386.g_save_all_registers(list : taasmoutput);
+      begin
+        list.concat(Taicpu.Op_none(A_PUSHA,S_L));
+      end;
+
+
+    procedure tcg386.g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);
+      var
+        href : treference;
+      begin
+        if selfused then
+         begin
+           reference_reset_base(href,R_ESP,4);
+           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,href));
+         end;
+        if acchiused then
+         begin
+           reference_reset_base(href,R_ESP,20);
+           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDX,href));
+         end;
+        if accused then
+         begin
+           reference_reset_base(href,R_ESP,28);
+           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EAX,href));
+         end;
+        list.concat(Taicpu.Op_none(A_POPA,S_L));
+        { We add a NOP because of the 386DX CPU bugs with POPAD }
+        list.concat(taicpu.op_none(A_NOP,S_L));
+      end;
+
 
 
 begin
@@ -1227,7 +1771,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-04-25 20:16:40  peter
+  Revision 1.15  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.14  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.13  2002/04/21 15:31:05  carl
@@ -1244,7 +1805,7 @@ end.
 
   Revision 1.11  2002/04/04 19:06:10  peter
     * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
+    * use tlocation.size in a_*loc*() routines
 
   Revision 1.10  2002/04/02 20:29:02  jonas
     * optimized the code generated by the a_op_const_* and a_op64_const

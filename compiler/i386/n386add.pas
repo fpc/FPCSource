@@ -154,7 +154,7 @@ interface
               { maybe we can reuse a constant register when the
                 operation is a comparison that doesn't change the
                 value of the register }
-              location_force_reg(left.location,opsize_2_cgsize[opsize],(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
+              location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
             end;
           end;
        end;
@@ -294,8 +294,8 @@ interface
                emitjmp(C_NB,hl4)
               else
                emitjmp(C_NO,hl4);
-              emitcall('FPC_OVERFLOW');
-              emitlab(hl4);
+              cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+              cg.a_label(exprasmlist,hl4);
             end;
          end;
       end;
@@ -380,17 +380,17 @@ interface
                         remove_non_regvars_from_loc(right.location,regstopush);
                         rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
                         { push the maximum possible length of the result }
-                        emitpushreferenceaddr(left.location.reference);
+                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
                         { the optimizer can more easily put the          }
                         { deallocations in the right place if it happens }
                         { too early than when it happens too late (if    }
                         { the pushref needs a "lea (..),edi; push edi")  }
                         location_release(exprasmlist,right.location);
-                        emitpushreferenceaddr(right.location.reference);
+                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
                         rg.saveregvars(exprasmlist,regstopush);
-                        emitcall('FPC_SHORTSTR_CONCAT');
+                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
-                        maybe_loadself;
+                        cg.g_maybe_loadself(exprasmlist);
                         rg.restoreusedregisters(exprasmlist,pushedregs);
                         location_copy(location,left.location);
                      end;
@@ -400,13 +400,13 @@ interface
                        rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       emitpushreferenceaddr(left.location.reference);
+                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       emitpushreferenceaddr(right.location.reference);
+                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
                        rg.saveregvars(exprasmlist,all_registers);
-                       emitcall('FPC_SHORTSTR_COMPARE');
-                       maybe_loadself;
+                       cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
+                       cg.g_maybe_loadself(exprasmlist);
                        rg.restoreusedregisters(exprasmlist,pushedregs);
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
@@ -463,7 +463,7 @@ interface
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(left.location,opsize_2_cgsize[opsize],false);
+             location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
             if isjump then
              begin
                truelabel:=otl;
@@ -483,7 +483,7 @@ interface
             if pushed then
              restore(left,false);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(right.location,opsize_2_cgsize[opsize],false);
+             location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
             if isjump then
              begin
                truelabel:=otl;
@@ -532,8 +532,8 @@ interface
                         otl:=truelabel;
                         getlabel(truelabel);
                         secondpass(left);
-                        maketojumpbool(left,lr_load_regvars);
-                        emitlab(truelabel);
+                        maketojumpbool(exprasmlist,left,lr_load_regvars);
+                        cg.a_label(exprasmlist,truelabel);
                         truelabel:=otl;
                      end;
                    orn :
@@ -541,15 +541,15 @@ interface
                         ofl:=falselabel;
                         getlabel(falselabel);
                         secondpass(left);
-                        maketojumpbool(left,lr_load_regvars);
-                        emitlab(falselabel);
+                        maketojumpbool(exprasmlist,left,lr_load_regvars);
+                        cg.a_label(exprasmlist,falselabel);
                         falselabel:=ofl;
                      end;
                    else
                      CGMessage(type_e_mismatch);
                  end;
                  secondpass(right);
-                 maketojumpbool(right,lr_load_regvars);
+                 maketojumpbool(exprasmlist,right,lr_load_regvars);
                end;
              else
                CGMessage(type_e_mismatch);
@@ -642,7 +642,7 @@ interface
           end;
         { to avoid the pentium bug
         if (op=FDIVP) and (opt_processors=pentium) then
-          emitcall('EMUL_FDIVP')
+          cg.a_call_name(exprasmlist,'EMUL_FDIVP')
         else
         }
         { the Intel assemblers want operands }
@@ -748,8 +748,8 @@ interface
                  if assigned(tsetelementnode(right).right) then
                   internalerror(43244);
                  { bts requires both elements to be registers }
-                 location_force_reg(left.location,opsize_2_cgsize[opsize],false);
-                 location_force_reg(right.location,opsize_2_cgsize[opsize],true);
+                 location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
+                 location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],true);
                  op:=A_BTS;
                  noswap:=true;
                end
@@ -785,7 +785,7 @@ interface
                  ((nf_swaped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
-              location_force_reg(left.location,opsize_2_cgsize[opsize],true);
+              location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],true);
               emit_op_right_left(A_AND,opsize);
               op:=A_CMP;
               cmpop:=true;
@@ -886,17 +886,17 @@ interface
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
                    emitjmp(flags_to_cond(getresflags(true)),truelabel);
-                   emitjmp(C_None,falselabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
                 end;
               equaln:
                 begin
                    emitjmp(C_NE,falselabel);
-                   emitjmp(C_None,truelabel);
+                   cg.a_jmp_always(exprasmlist,truelabel);
                 end;
               unequaln:
                 begin
                    emitjmp(C_NE,truelabel);
-                   emitjmp(C_None,falselabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
                 end;
            end;
         end;
@@ -1045,7 +1045,7 @@ interface
                     firstjmp64bitcmp;
                     emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.registerlow);
                     secondjmp64bitcmp;
-                    emitjmp(C_None,falselabel);
+                    cg.a_jmp_always(exprasmlist,falselabel);
                     location_freetemp(exprasmlist,right.location);
                     location_release(exprasmlist,right.location);
                   end;
@@ -1092,8 +1092,8 @@ interface
                emitjmp(C_NB,hl4)
               else
                emitjmp(C_NO,hl4);
-              emitcall('FPC_OVERFLOW');
-              emitlab(hl4);
+              cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+              cg.a_label(exprasmlist,hl4);
             end;
          end;
 
@@ -1457,8 +1457,8 @@ interface
                    { constant (JM)                             }
                    location_release(exprasmlist,right.location);
                    location.register:=rg.getregisterint(exprasmlist);
-                   emitloadord2reg(right.location,torddef(u32bittype.def),location.register,false);
-                   emit_const_reg(A_SHL,S_L,power,location.register)
+                   cg.a_load_loc_reg(exprasmlist,right.location,location.register);
+                   cg.a_op_const_reg(exprasmlist,OP_SHL,power,location.register);
                  End
                Else
                 Begin
@@ -1485,13 +1485,13 @@ interface
                   { left.location can be R_EAX !!! }
                   rg.getexplicitregisterint(exprasmlist,R_EDI);
                   { load the left value }
-                  emitloadord2reg(left.location,torddef(u32bittype.def),R_EDI,true);
+                  cg.a_load_loc_reg(exprasmlist,left.location,R_EDI);
                   location_release(exprasmlist,left.location);
                   { allocate EAX }
                   if R_EAX in rg.unusedregsint then
                     exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                   { load he right value }
-                  emitloadord2reg(right.location,torddef(u32bittype.def),R_EAX,true);
+                  cg.a_load_loc_reg(exprasmlist,right.location,R_EAX);
                   location_release(exprasmlist,right.location);
                   { allocate EAX if it isn't yet allocated (JM) }
                   if (R_EAX in rg.unusedregsint) then
@@ -1522,9 +1522,9 @@ interface
 
             { Convert flags to register first }
             if (left.location.loc=LOC_FLAGS) then
-             location_force_reg(left.location,opsize_2_cgsize[opsize],false);
+             location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
             if (right.location.loc=LOC_FLAGS) then
-             location_force_reg(right.location,opsize_2_cgsize[opsize],false);
+             location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
 
             left_must_be_reg(opsize,false);
             emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
@@ -1574,7 +1574,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-04-25 20:16:40  peter
+  Revision 1.35  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.34  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.33  2002/04/05 15:09:13  jonas

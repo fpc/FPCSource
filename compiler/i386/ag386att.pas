@@ -39,10 +39,10 @@ interface
 
     TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
 
-    const      
+    const
       gas_op2str:op2strtable={$i i386att.inc}
       gas_needsuffix:array[tasmop] of TAttSuffix={$i i386atts.inc}
-      
+
       gas_reg2str : reg2strtable = ('',
         '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
         '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
@@ -55,7 +55,7 @@ interface
         '%mm0','%mm1','%mm2','%mm3','%mm4','%mm5','%mm6','%mm7',
         '%xmm0','%xmm1','%xmm2','%xmm3','%xmm4','%xmm5','%xmm6','%xmm7'
        );
-      
+
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','bw','bl','wl',
        's','l','q',
@@ -66,22 +66,8 @@ interface
   implementation
 
     uses
-{$ifdef Delphi}
-      dmisc,
-{$else Delphi}
-      dos,
-{$endif Delphi}
-      cutils,globtype,systems,
-      fmodule,finput,verbose,cpuasm,tainst
-{$ifdef GDB}
-  {$ifdef delphi}
-      ,sysutils
-  {$else}
-      ,strings
-  {$endif}
-      ,gdb
-{$endif GDB}
-      ;
+      cutils,systems,
+      verbose,cpuasm;
 
 
 
@@ -352,7 +338,24 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-04-15 19:12:10  carl
+  Revision 1.19  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.18  2002/04/15 19:12:10  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

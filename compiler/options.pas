@@ -466,9 +466,15 @@ begin
                                 include(initlocalswitches,cs_check_range);
                             'R' :
                               If UnsetBool(More, j) then
-                                exclude(initlocalswitches,cs_check_object_ext)
+                                begin
+                                  exclude(initlocalswitches,cs_check_range);
+                                  exclude(initlocalswitches,cs_check_object);
+                                end
                               Else
-                                include(initlocalswitches,cs_check_object_ext);
+                                begin
+                                  include(initlocalswitches,cs_check_range);
+                                  include(initlocalswitches,cs_check_object);
+                                end;
                             's' :
                               begin
                                  val(copy(more,j+1,length(more)-j),stacksize,code);
@@ -1658,7 +1664,24 @@ finalization
 end.
 {
   $Log$
-  Revision 1.69  2002-04-21 19:02:04  peter
+  Revision 1.70  2002-05-12 16:53:08  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.69  2002/04/21 19:02:04  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

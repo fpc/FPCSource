@@ -35,8 +35,8 @@ interface
         procedure WriteAsmList;override;
         procedure WriteExternals;
       end;
-      
-      
+
+
 
   implementation
 
@@ -727,7 +727,7 @@ interface
     var
       currentasmlist : TExternalAssembler;
 
-    procedure writeexternal(p:tnamedindexitem);
+    procedure writeexternal(p:tnamedindexitem;arg:pointer);
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
          currentasmlist.AsmWriteln('EXTERN'#9+p.name);
@@ -736,7 +736,7 @@ interface
     procedure T386NasmAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        AsmSymbolList.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal);
+        AsmSymbolList.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
       end;
 
 
@@ -846,7 +846,7 @@ interface
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
           );
-          
+
        as_i386_nasmwdosx_info : tasminfo =
           (
             id           : as_i386_nasmwdosx;
@@ -866,7 +866,7 @@ interface
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
           );
-          
+
 
        as_i386_nasmelf_info : tasminfo =
           (
@@ -892,13 +892,30 @@ interface
 initialization
   RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler); 
+  RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
 {
   $Log$
-  Revision 1.16  2002-04-15 19:12:09  carl
+  Revision 1.17  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.16  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

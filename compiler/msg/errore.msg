@@ -1110,6 +1110,9 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
+type_e_classes_not_related=04039_E_Class types "$1" and "$2" are not related
+type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
+type_e_class_or_interface_type_expected=04041_E_class or interface type expected, but got "$1"
 % \end{description}
 #
 # Symtable

@@ -226,7 +226,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, cgobj, 
+  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, cgobj,
    rgobj;
 
 Type
@@ -776,9 +776,9 @@ var p: Taicpu;
 begin
   RegReadByInstruction := false;
   reg := reg32(reg);
-  p := Taicpu(hp);
   if hp.typ <> ait_instruction then
     exit;
+  p := Taicpu(hp);
   case p.opcode of
     A_IMUL:
       case p.ops of
@@ -844,9 +844,9 @@ var p: Taicpu;
 begin
   reg := reg32(reg);
   regInInstruction := false;
-  p := Taicpu(p1);
   if p1.typ <> ait_instruction then
     exit;
+  p := Taicpu(p1);
   case p.opcode of
     A_IMUL:
       case p.ops of
@@ -1112,10 +1112,14 @@ function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
 { assumes reg is a 32bit register }
 var p: Taicpu;
 begin
+  if not assigned(hp) or
+     (hp.typ <> ait_instruction) then
+   begin
+     regLoadedWithNewValue := false;
+     exit;
+   end;
   p := Taicpu(hp);
   regLoadedWithNewValue :=
-    assigned(hp) and
-    (hp.typ = ait_instruction) and
     (((p.opcode = A_MOV) or
       (p.opcode = A_MOVZX) or
       (p.opcode = A_MOVSX) or
@@ -2587,7 +2591,24 @@ End.
 
 {
   $Log$
-  Revision 1.33  2002-04-21 15:32:59  carl
+  Revision 1.34  2002-05-12 16:53:16  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.33  2002/04/21 15:32:59  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.32  2002/04/20 21:37:07  carl

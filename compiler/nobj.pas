@@ -61,8 +61,8 @@ interface
         { message tables }
         root : pprocdeftree;
         procedure disposeprocdeftree(p : pprocdeftree);
-        procedure insertmsgint(p : tnamedindexitem);
-        procedure insertmsgstr(p : tnamedindexitem);
+        procedure insertmsgint(p : tnamedindexitem;arg:pointer);
+        procedure insertmsgstr(p : tnamedindexitem;arg:pointer);
         procedure insertint(p : pprocdeftree;var at : pprocdeftree);
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree);
         procedure writenames(p : pprocdeftree);
@@ -71,21 +71,21 @@ interface
 {$ifdef WITHDMT}
       private
         { dmt }
-        procedure insertdmtentry(p : tnamedindexitem);
+        procedure insertdmtentry(p : tnamedindexitem;arg:pointer);
         procedure writedmtindexentry(p : pprocdeftree);
         procedure writedmtaddressentry(p : pprocdeftree);
 {$endif}
       private
         { published methods }
-        procedure do_count(p : tnamedindexitem);
-        procedure genpubmethodtableentry(p : tnamedindexitem);
+        procedure do_count(p : tnamedindexitem;arg:pointer);
+        procedure genpubmethodtableentry(p : tnamedindexitem;arg:pointer);
       private
         { vmt }
         wurzel : psymcoll;
         nextvirtnumber : integer;
         has_constructor,
         has_virtual_method : boolean;
-        procedure eachsym(sym : tnamedindexitem);
+        procedure eachsym(sym : tnamedindexitem;arg:pointer);
         procedure disposevmttree;
         procedure writevirtualmethods(List:TAAsmoutput);
       private
@@ -136,11 +136,10 @@ implementation
 {$endif}
        globtype,globals,verbose,
        symtable,symconst,symtype,symsym,types,
-       fmodule,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       cpuinfo,cpubase
+       cpuinfo
        ;
 
 
@@ -217,7 +216,7 @@ implementation
            end;
       end;
 
-    procedure tclassheader.insertmsgint(p : tnamedindexitem);
+    procedure tclassheader.insertmsgint(p : tnamedindexitem;arg:pointer);
 
       var
          hp : pprocdeflist;
@@ -241,7 +240,7 @@ implementation
            end;
       end;
 
-    procedure tclassheader.insertmsgstr(p : tnamedindexitem);
+    procedure tclassheader.insertmsgstr(p : tnamedindexitem;arg:pointer);
 
       var
          hp : pprocdeflist;
@@ -301,7 +300,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgstr);
+         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgstr,nil);
 
          { write all names }
          if assigned(root) then
@@ -341,7 +340,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgint);
+         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgint,nil);
 
          { now start writing of the message string table }
          getdatalabel(r);
@@ -361,7 +360,7 @@ implementation
               DMT
 **************************************}
 
-    procedure tclassheader.insertdmtentry(p : tnamedindexitem);
+    procedure tclassheader.insertdmtentry(p : tnamedindexitem;arg:pointer);
 
       var
          hp : tprocdef;
@@ -443,14 +442,14 @@ implementation
         Published Methods
 **************************************}
 
-    procedure tclassheader.do_count(p : tnamedindexitem);
+    procedure tclassheader.do_count(p : tnamedindexitem;arg:pointer);
 
       begin
          if (tsym(p).typ=procsym) and (sp_published in tsym(p).symoptions) then
            inc(count);
       end;
 
-    procedure tclassheader.genpubmethodtableentry(p : tnamedindexitem);
+    procedure tclassheader.genpubmethodtableentry(p : tnamedindexitem;arg:pointer);
 
       var
          hp : tprocdef;
@@ -480,13 +479,13 @@ implementation
 
       begin
          count:=0;
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}do_count);
+         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}do_count,nil);
          if count>0 then
            begin
               getdatalabel(l);
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
-              _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry);
+              _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry,nil);
               genpublishedmethodstable:=l;
            end
          else
@@ -498,7 +497,7 @@ implementation
                VMT
 **************************************}
 
-    procedure tclassheader.eachsym(sym : tnamedindexitem);
+    procedure tclassheader.eachsym(sym : tnamedindexitem;arg:pointer);
 
       var
          procdefcoll : pprocdefcoll;
@@ -746,7 +745,7 @@ implementation
              do_genvmt(p.childof);
 
            { walk through all public syms }
-           p.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}eachsym);
+           p.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}eachsym,nil);
         end;
 
       begin
@@ -1270,7 +1269,24 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-04-20 21:32:24  carl
+  Revision 1.17  2002-05-12 16:53:08  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.16  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

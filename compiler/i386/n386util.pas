@@ -38,11 +38,13 @@ interface
 {$ifdef TEMPS_NOT_PUSH}
     procedure restorefromtemp(p : tnode;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
                               para_offset:longint;alignment : longint);
 
     procedure emitoverflowcheck(p:tnode);
     procedure firstcomplex(p : tbinarynode);
+
 
 implementation
 
@@ -50,13 +52,12 @@ implementation
        globtype,globals,systems,verbose,
        cutils,
        aasm,cpuasm,
-       symconst,symdef,symsym,symtable,
+       symconst,symdef,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
        types,
        ncgutil,ncon,nld,
-       pass_1,pass_2,
        cgbase,tgobj,
        cga,regvars,cgobj,cg64f32,rgobj,rgcpu,cgcpu;
 
@@ -142,7 +143,7 @@ implementation
            begin
              if p.location.loc = LOC_FPUREGISTER then
                begin
-                 location_force_mem(p.location);
+                 location_force_mem(exprasmlist,p.location);
                  maybe_pushfpu:=true;
                end
              else
@@ -295,6 +296,29 @@ implementation
       end;
 {$endif TEMPS_NOT_PUSH}
 
+    { only usefull in startup code }
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
+      begin
+        case t.loc of
+          LOC_REGISTER:
+            begin
+              { can't be a regvar, since it would be LOC_CREGISTER then }
+              exclude(regs,t.register);
+              if t.registerhigh <> R_NO then
+                exclude(regs,t.registerhigh);
+            end;
+          LOC_CREFERENCE,LOC_REFERENCE:
+            begin
+              if not(cs_regalloc in aktglobalswitches) or
+                 (t.reference.base in rg.usableregsint) then
+                exclude(regs,t.reference.base);
+              if not(cs_regalloc in aktglobalswitches) or
+                 (t.reference.index in rg.usableregsint) then
+              exclude(regs,t.reference.index);
+            end;
+        end;
+      end;
+
 
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
                                 para_offset:longint;alignment : longint);
@@ -308,7 +332,7 @@ implementation
       begin
         { Move flags and jump in register to make it less complex }
         if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
-         location_force_reg(p.location,def_cgsize(p.resulttype.def),false);
+         location_force_reg(exprasmlist,p.location,def_cgsize(p.resulttype.def),false);
 
         { Handle Floating point types differently }
         if p.resulttype.def.deftype=floatdef then
@@ -483,8 +507,8 @@ implementation
            emitjmp(C_NO,hl)
          else
            emitjmp(C_NB,hl);
-         emitcall('FPC_OVERFLOW');
-         emitlab(hl);
+         cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+         cg.a_label(exprasmlist,hl);
       end;
 
    { DO NOT RELY on the fact that the tnode is not yet swaped
@@ -530,7 +554,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-04-25 20:16:40  peter
+  Revision 1.36  2002-05-12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.35  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.34  2002/04/21 15:39:41  carl

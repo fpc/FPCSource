@@ -40,10 +40,10 @@ implementation
     uses
       systems,
       verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,aasm,types,
+      symconst,symtype,symdef,aasm,types,
       cginfo,cgbase,pass_2,
-      cpubase,cpuasm,
-      cga,tgobj,ncgutil,regvars,cgobj,cg64f32,rgobj,rgcpu;
+      cpubase,
+      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
                            SecondArrayConstruct
@@ -186,7 +186,7 @@ implementation
                   begin
                     if vaddr then
                      begin
-                       location_force_mem(hp.left.location);
+                       location_force_mem(exprasmlist,hp.left.location);
                        cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,-1);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
@@ -202,7 +202,7 @@ implementation
                     inc(href.offset,4);
                     if vaddr then
                      begin
-                       location_force_mem(hp.left.location);
+                       location_force_mem(exprasmlist,hp.left.location);
                        tmpreg:=cg.get_scratch_reg(exprasmlist);
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
                        cg.a_load_reg_ref(exprasmlist,cg.reg_cgsize(tmpreg),tmpreg,href);
@@ -260,7 +260,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-04-21 15:24:38  carl
+  Revision 1.3  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.2  2002/04/21 15:24:38  carl
   + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
   + changeregsize -> rg.makeregsize
 

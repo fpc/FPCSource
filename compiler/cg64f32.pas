@@ -475,7 +475,7 @@ unit cg64f32;
              if got_scratch then
                free_scratch_reg(list,hreg);
              { For all other values we have a range check error }
-             a_call_name(list,'FPC_RANGEERROR',0);
+             a_call_name(list,'FPC_RANGEERROR');
 
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
@@ -515,7 +515,7 @@ unit cg64f32;
                  if got_scratch then
                    free_scratch_reg(list,hreg);
 
-                 a_call_name(list,'FPC_RANGEERROR',0);
+                 a_call_name(list,'FPC_RANGEERROR');
 
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
@@ -573,7 +573,7 @@ unit cg64f32;
                { !!! freeing of register should happen directly after compare! (JM) }
                if got_scratch then
                  free_scratch_reg(list,hreg);
-               a_call_name(list,'FPC_RANGEERROR',0);
+               a_call_name(list,'FPC_RANGEERROR');
                a_label(list,poslabel);
              end;
       end;
@@ -591,7 +591,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-04-25 20:16:38  peter
+  Revision 1.10  2002-05-12 16:53:04  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.9  2002/04/25 20:16:38  peter
     * moved more routines from cga/n386util
 
   Revision 1.8  2002/04/21 15:28:51  carl

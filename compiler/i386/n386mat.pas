@@ -90,7 +90,7 @@ implementation
          else
            begin
               { put numerator in register }
-              location_force_reg(left.location,OS_INT,false);
+              location_force_reg(exprasmlist,left.location,OS_INT,false);
               hreg1:=left.location.register;
 
               if (nodetype=divn) and
@@ -144,7 +144,7 @@ implementation
                             emit_reg(A_INC,S_L,hreg1)
                           else
                             emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
-                          emitlab(hl);
+                          cg.a_label(exprasmlist,hl);
                           emit_const_reg(A_SAR,S_L,power,hreg1);
                         end
                     End
@@ -294,7 +294,7 @@ implementation
               location_reset(location,LOC_REGISTER,OS_64);
 
               { load left operator in a register }
-              location_force_reg(left.location,OS_64,false);
+              location_force_reg(exprasmlist,left.location,OS_64,false);
               hregisterhigh:=left.location.registerhigh;
               hregisterlow:=left.location.registerlow;
 
@@ -404,8 +404,8 @@ implementation
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
                         emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        emitjmp(C_None,l3);
-                        emitlab(l1);
+                        cg.a_jmp_always(exprasmlist,l3);
+                        cg.a_label(exprasmlist,l1);
                         emit_const_reg(A_CMP,S_L,32,R_ECX);
                         emitjmp(C_L,l2);
                         emit_const_reg(A_SUB,S_L,32,R_ECX);
@@ -413,13 +413,13 @@ implementation
                           hregisterlow);
                         emit_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-                        emitjmp(C_None,l3);
-                        emitlab(l2);
+                        cg.a_jmp_always(exprasmlist,l3);
+                        cg.a_label(exprasmlist,l2);
                         emit_reg_reg_reg(A_SHLD,S_L,R_CL,
                           hregisterlow,hregisterhigh);
                         emit_reg_reg(A_SHL,S_L,R_CL,
                           hregisterlow);
-                        emitlab(l3);
+                        cg.a_label(exprasmlist,l3);
                      end
                    else
                      begin
@@ -430,8 +430,8 @@ implementation
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
                         emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        emitjmp(C_None,l3);
-                        emitlab(l1);
+                        cg.a_jmp_always(exprasmlist,l3);
+                        cg.a_label(exprasmlist,l1);
                         emit_const_reg(A_CMP,S_L,32,R_ECX);
                         emitjmp(C_L,l2);
                         emit_const_reg(A_SUB,S_L,32,R_ECX);
@@ -439,13 +439,13 @@ implementation
                           hregisterhigh);
                         emit_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow);
                         emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        emitjmp(C_None,l3);
-                        emitlab(l2);
+                        cg.a_jmp_always(exprasmlist,l3);
+                        cg.a_label(exprasmlist,l2);
                         emit_reg_reg_reg(A_SHRD,S_L,R_CL,
                           hregisterhigh,hregisterlow);
                         emit_reg_reg(A_SHR,S_L,R_CL,
                           hregisterhigh);
-                        emitlab(l3);
+                        cg.a_label(exprasmlist,l3);
 
                      end;
 
@@ -463,7 +463,7 @@ implementation
            begin
               { load left operators in a register }
               location_copy(location,left.location);
-              location_force_reg(location,OS_INT,false);
+              location_force_reg(exprasmlist,location,OS_INT,false);
 
               { shifting by a constant directly coded: }
               if (right.nodetype=ordconstn) then
@@ -618,7 +618,7 @@ implementation
 
               { load left operator in a register }
               location_copy(location,left.location);
-              location_force_reg(location,OS_64,false);
+              location_force_reg(exprasmlist,location,OS_64,false);
 
               emit_reg(A_NOT,S_L,location.registerhigh);
               emit_reg(A_NEG,S_L,location.registerlow);
@@ -738,7 +738,7 @@ implementation
                   truelabel:=falselabel;
                   falselabel:=hl;
                   secondpass(left);
-                  maketojumpbool(left,lr_load_regvars);
+                  maketojumpbool(exprasmlist,left,lr_load_regvars);
                   hl:=truelabel;
                   truelabel:=falselabel;
                   falselabel:=hl;
@@ -755,7 +755,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-                  location_force_reg(left.location,def_cgsize(resulttype.def),true);
+                  location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
                   location_release(exprasmlist,left.location);
                   emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -806,7 +806,7 @@ implementation
            begin
               secondpass(left);
               location_copy(location,left.location);
-              location_force_reg(location,OS_64,false);
+              location_force_reg(exprasmlist,location,OS_64,false);
 
               emit_reg(A_NOT,S_L,location.registerlow);
               emit_reg(A_NOT,S_L,location.registerhigh);
@@ -815,7 +815,7 @@ implementation
           begin
             secondpass(left);
             location_copy(location,left.location);
-            location_force_reg(location,def_cgsize(resulttype.def),false);
+            location_force_reg(exprasmlist,location,def_cgsize(resulttype.def),false);
 
             opsize:=def_opsize(resulttype.def);
             emit_reg(A_NOT,opsize,location.register);
@@ -831,7 +831,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-04-04 19:06:12  peter
+  Revision 1.27  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.26  2002/04/04 19:06:12  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

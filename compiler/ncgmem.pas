@@ -73,7 +73,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,symsym,aasm,
-      cginfo,cgbase,pass_2,
+      cgbase,pass_2,
       nld,ncon,nadd,
       cpuinfo,cpubase,cgobj,cgcpu,
       tgobj,rgobj
@@ -83,7 +83,6 @@ implementation
   {$else}
       ,strings
   {$endif}
-      ,cga
       ,symbase
       ,gdb
 {$endif GDB}
@@ -239,10 +238,10 @@ implementation
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
-              begin
-                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
-                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER',0);
-              end;
+          begin
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
+            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+          end;
       end;
 
 
@@ -393,7 +392,7 @@ implementation
                       inc(withlevel);
                       getaddrlabel(withstartlabel);
                       getaddrlabel(withendlabel);
-                      emitlab(withstartlabel);
+                      cg.a_label(exprasmlist,withstartlabel);
                       withdebugList.concat(Tai_stabs.Create(strpnew(
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                          '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
@@ -421,7 +420,7 @@ implementation
 {$ifdef GDB}
                    if (cs_debuginfo in aktmoduleswitches) then
                      begin
-                       emitlab(withendlabel);
+                       cg.a_label(exprasmlist,withendlabel);
                        strpcopy(pp,'224,0,0,'+withendlabel.name);
                       if (target_info.use_function_relative_addresses) then
                         begin
@@ -455,7 +454,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-04-20 21:32:23  carl
+  Revision 1.9  2002-05-12 16:53:07  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.8  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

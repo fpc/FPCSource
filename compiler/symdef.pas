@@ -93,10 +93,6 @@ interface
           savesize  : longint;
        end;
 
-       targconvtyp = (act_convertable,act_equal,act_exact);
-
-       tvarspez = (vs_value,vs_const,vs_var,vs_out);
-
        tparaitem = class(tlinkedlistitem)
           paratype     : ttype;
           parasym      : tsym;
@@ -199,11 +195,11 @@ interface
           StabRecString : pchar;
           StabRecSize   : Integer;
           RecOffset     : Integer;
-          procedure addname(p : tnamedindexitem);
+          procedure addname(p : tnamedindexitem;arg:pointer);
 {$endif}
-          procedure count_field_rtti(sym : tnamedindexitem);
-          procedure write_field_rtti(sym : tnamedindexitem);
-          procedure generate_field_rtti(sym : tnamedindexitem);
+          procedure count_field_rtti(sym : tnamedindexitem;arg:pointer);
+          procedure write_field_rtti(sym : tnamedindexitem;arg:pointer);
+          procedure generate_field_rtti(sym : tnamedindexitem;arg:pointer);
        public
           symtable : tsymtable;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
@@ -237,15 +233,15 @@ interface
        tobjectdef = class(tabstractrecorddef)
        private
           sd : tprocdef;
-          procedure _searchdestructor(sym : tnamedindexitem);
+          procedure _searchdestructor(sym : tnamedindexitem;arg:pointer);
 {$ifdef GDB}
-          procedure addprocname(p :tnamedindexitem);
+          procedure addprocname(p :tnamedindexitem;arg:pointer);
 {$endif GDB}
-          procedure count_published_properties(sym:tnamedindexitem);
-          procedure write_property_info(sym : tnamedindexitem);
-          procedure generate_published_child_rtti(sym : tnamedindexitem);
-          procedure count_published_fields(sym:tnamedindexitem);
-          procedure writefields(sym:tnamedindexitem);
+          procedure count_published_properties(sym:tnamedindexitem;arg:pointer);
+          procedure write_property_info(sym : tnamedindexitem;arg:pointer);
+          procedure generate_published_child_rtti(sym : tnamedindexitem;arg:pointer);
+          procedure count_published_fields(sym:tnamedindexitem;arg:pointer);
+          procedure writefields(sym:tnamedindexitem;arg:pointer);
        public
           childof  : tobjectdef;
           objname,
@@ -307,7 +303,8 @@ interface
           procedure addintf(def: tdef);
 
           procedure deref;
-          procedure addintfref(def: tdef);
+          { add interface reference loaded from ppu }
+          procedure addintfref(def: pointer);
 
           procedure clearmappings;
           procedure addmappings(intfindex: longint; const name, newname: string);
@@ -848,7 +845,7 @@ implementation
          fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
          indexnr:=ppufile.getword;
-         typesym:=ttypesym(ppufile.getderef);
+         typesym:=ttypesym(pointer(ppufile.getderef));
          ppufile.getsmallset(defoptions);
          if df_has_rttitable in defoptions then
           rttitablesym:=tsym(ppufile.getderef);
@@ -911,9 +908,9 @@ implementation
 
     procedure tstoreddef.deref;
       begin
-        resolvesym(typesym);
-        resolvesym(rttitablesym);
-        resolvesym(inittablesym);
+        resolvesym(pointer(typesym));
+        resolvesym(pointer(rttitablesym));
+        resolvesym(pointer(inittablesym));
       end;
 
 
@@ -1323,8 +1320,8 @@ implementation
              end;
            st_widestring:
              begin
-               { an ansi string looks like a pchar easy !! }
-               stabstring:=strpnew('*'+typeglobalnumber('char'));
+               { an ansi string looks like a pwidechar easy !! }
+               stabstring:=strpnew('*'+typeglobalnumber('widechar'));
              end;
       end;
     end;
@@ -1481,7 +1478,7 @@ implementation
     procedure tenumdef.deref;
       begin
         inherited deref;
-        resolvedef(tdef(basedef));
+        resolvedef(pointer(basedef));
       end;
 
 
@@ -2810,7 +2807,7 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tabstractrecorddef.addname(p : tnamedindexitem);
+    procedure tabstractrecorddef.addname(p : tnamedindexitem;arg:pointer);
       var
         news, newrec : pchar;
         spec : string[3];
@@ -2857,7 +2854,7 @@ implementation
 {$endif GDB}
 
 
-    procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem);
+    procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=varsym) and
@@ -2866,7 +2863,7 @@ implementation
       end;
 
 
-    procedure tabstractrecorddef.generate_field_rtti(sym:tnamedindexitem);
+    procedure tabstractrecorddef.generate_field_rtti(sym:tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=varsym) and
@@ -2875,7 +2872,7 @@ implementation
       end;
 
 
-    procedure tabstractrecorddef.write_field_rtti(sym : tnamedindexitem);
+    procedure tabstractrecorddef.write_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=varsym) and
@@ -3017,7 +3014,7 @@ implementation
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(size));
         RecOffset := 0;
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
+        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
         strpcopy(strend(StabRecString),';');
         stabstring := strnew(StabRecString);
         Freemem(stabrecstring,stabrecsize);
@@ -3036,7 +3033,7 @@ implementation
     procedure trecorddef.write_child_rtti_data(rt:trttitype);
       begin
          FRTTIType:=rt;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti,nil);
       end;
 
 
@@ -3047,9 +3044,9 @@ implementation
          rttiList.concat(Tai_const.Create_32bit(size));
          Count:=0;
          FRTTIType:=rt;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti,nil);
          rttiList.concat(Tai_const.Create_32bit(Count));
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti,nil);
       end;
 
 
@@ -3128,8 +3125,8 @@ implementation
          while assigned(hp) do
           begin
             hp.paratype.resolve;
-            resolvesym(tsym(hp.defaultvalue));
-            resolvesym(tsym(hp.parasym));
+            resolvesym(pointer(hp.defaultvalue));
+            resolvesym(pointer(hp.parasym));
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -3747,7 +3744,7 @@ implementation
         oldlocalsymtable : tsymtable;
       begin
          inherited deref;
-         resolvedef(tdef(_class));
+         resolvedef(pointer(_class));
          { parast }
          oldlocalsymtable:=aktlocalsymtable;
          aktlocalsymtable:=parast;
@@ -3755,7 +3752,7 @@ implementation
          aktlocalsymtable:=oldlocalsymtable;
          { procsym that originaly defined this definition, should be in the
            same symtable }
-         resolvesym(procsym);
+         resolvesym(pointer(procsym));
       end;
 
 
@@ -3774,7 +3771,7 @@ implementation
             tlocalsymtable(localst).derefimpl;
             aktlocalsymtable:=oldlocalsymtable;
             { funcretsym, this is always located in the localst }
-            resolvesym(funcretsym);
+            resolvesym(pointer(funcretsym));
           end
          else
           begin
@@ -4143,7 +4140,7 @@ implementation
              implintfcount:=ppufile.getlongint;
              for i:=1 to implintfcount do
                begin
-                  implementedinterfaces.addintfref(tdef(ppufile.getderef));
+                  implementedinterfaces.addintfref(ppufile.getderef);
                   implementedinterfaces.ioffsets(i)^:=ppufile.getlongint;
                end;
            end
@@ -4234,7 +4231,7 @@ implementation
          oldrecsyms : tsymtable;
       begin
          inherited deref;
-         resolvedef(tdef(childof));
+         resolvedef(pointer(childof));
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          tstoredsymtable(symtable).deref;
@@ -4327,7 +4324,7 @@ implementation
      end;
 
 
-   procedure tobjectdef._searchdestructor(sym : tnamedindexitem);
+   procedure tobjectdef._searchdestructor(sym : tnamedindexitem;arg:pointer);
 
      var
         p : pprocdeflist;
@@ -4362,7 +4359,7 @@ implementation
         sd:=nil;
         while assigned(o) do
           begin
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor);
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor,nil);
              if assigned(sd) then
                begin
                   searchdestructor:=sd;
@@ -4420,7 +4417,7 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tobjectdef.addprocname(p :tnamedindexitem);
+    procedure tobjectdef.addprocname(p :tnamedindexitem;arg:pointer);
       var virtualind,argnames : string;
           news, newrec : pchar;
           pd,ipd : tprocdef;
@@ -4538,7 +4535,7 @@ implementation
             {virtual table to implement yet}
             OldRecOffset:=RecOffset;
             RecOffset := 0;
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
             RecOffset:=OldRecOffset;
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof.objectoptions) then
@@ -4546,7 +4543,7 @@ implementation
                     strpcopy(strend(stabrecstring),'$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')
                       +','+tostr(vmt_offset*8)+';');
                  end;
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname,nil);
             if (oo_has_vmt in objectoptions) then
               begin
                  anc := self;
@@ -4680,7 +4677,7 @@ implementation
       end;
 
 
-    procedure tobjectdef.count_published_properties(sym:tnamedindexitem);
+    procedure tobjectdef.count_published_properties(sym:tnamedindexitem;arg:pointer);
       begin
          if needs_prop_entry(tsym(sym)) and
           (tsym(sym).typ<>varsym) then
@@ -4688,7 +4685,7 @@ implementation
       end;
 
 
-    procedure tobjectdef.write_property_info(sym : tnamedindexitem);
+    procedure tobjectdef.write_property_info(sym : tnamedindexitem;arg:pointer);
       var
          proctypesinfo : byte;
 
@@ -4792,7 +4789,7 @@ implementation
       end;
 
 
-    procedure tobjectdef.generate_published_child_rtti(sym : tnamedindexitem);
+    procedure tobjectdef.generate_published_child_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if needs_prop_entry(tsym(sym)) then
           begin
@@ -4813,9 +4810,9 @@ implementation
          FRTTIType:=rt;
          case rt of
            initrtti :
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti);
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti,nil);
            fullrtti :
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti,nil);
            else
              internalerror(200108301);
          end;
@@ -4851,7 +4848,7 @@ implementation
       end;
 
 
-    procedure tobjectdef.count_published_fields(sym:tnamedindexitem);
+    procedure tobjectdef.count_published_fields(sym:tnamedindexitem;arg:pointer);
       var
          hp : tclasslistitem;
       begin
@@ -4874,7 +4871,7 @@ implementation
       end;
 
 
-    procedure tobjectdef.writefields(sym:tnamedindexitem);
+    procedure tobjectdef.writefields(sym:tnamedindexitem;arg:pointer);
       var
          hp : tclasslistitem;
       begin
@@ -4904,13 +4901,13 @@ implementation
          getdatalabel(classtable);
          count:=0;
          tablecount:=0;
-         symtable.foreach({$ifdef FPC}@{$endif}count_published_fields);
+         symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
          if (cs_create_smart in aktmoduleswitches) then
           rttiList.concat(Tai_cut.Create);
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
          rttiList.concat(Tai_const_symbol.Create(classtable));
-         symtable.foreach({$ifdef FPC}@{$endif}writefields);
+         symtable.foreach({$ifdef FPC}@{$endif}writefields,nil);
 
          { generate the class table }
          rttiList.concat(Tai_label.Create(classtable));
@@ -4936,7 +4933,7 @@ implementation
          else
            i:=0;
          count:=0;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
          next_free_name_index:=i+count;
       end;
 
@@ -4968,9 +4965,9 @@ implementation
                 begin
                   count:=0;
                   FRTTIType:=rt;
-                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti);
+                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti,nil);
                   rttiList.concat(Tai_const.Create_32bit(count));
-                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
+                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti,nil);
                 end;
              end;
            fullrtti :
@@ -4993,7 +4990,7 @@ implementation
                  count:=0;
 
                { write it }
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
                rttiList.concat(Tai_const.Create_16bit(count));
 
                { write unit name }
@@ -5002,7 +4999,7 @@ implementation
 
                { write published properties count }
                count:=0;
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
                rttiList.concat(Tai_const.Create_16bit(count));
 
                { count is used to write nameindex   }
@@ -5014,7 +5011,7 @@ implementation
                else
                  count:=0;
 
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info,nil);
              end;
          end;
       end;
@@ -5142,10 +5139,10 @@ implementation
       begin
         for i:=1 to count do
           with timplintfentry(finterfaces.search(i)) do
-            resolvedef(tdef(intf));
+            resolvedef(pointer(intf));
       end;
 
-    procedure timplementedinterfaces.addintfref(def: tdef);
+    procedure timplementedinterfaces.addintfref(def: pointer);
       begin
         finterfaces.insert(timplintfentry.create(tobjectdef(def)));
       end;
@@ -5479,7 +5476,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-04-25 20:16:39  peter
+  Revision 1.76  2002-05-12 16:53:10  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.75  2002/04/25 20:16:39  peter
     * moved more routines from cga/n386util
 
   Revision 1.74  2002/04/23 19:16:35  peter

@@ -65,7 +65,7 @@ implementation
       symconst,symdef,aasm,
       cginfo,cgbase,pass_2,
       ncon,ncal,ncnv,
-      cpubase,
+      cpubase,cpuasm,
       cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
 
 
@@ -76,63 +76,56 @@ implementation
     procedure ti386typeconvnode.second_int_to_real;
 
       var
-         r : treference;
+         href : treference;
          hregister : tregister;
          l1,l2 : tasmlabel;
+         freereg : boolean;
 
       begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+         hregister:=R_NO;
+         freereg:=false;
+
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
-         hregister:=R_EDI;
          if torddef(left.resulttype.def).typ=u32bit then
-            push_int(0);
+          exprasmlist.concat(taicpu.op_const(A_PUSH,S_L,0));
 
          case left.location.loc of
            LOC_REGISTER,
            LOC_CREGISTER :
              begin
-                if not (torddef(left.resulttype.def).typ in [u32bit,s32bit,u64bit,s64bit]) then
-                  rg.getexplicitregisterint(exprasmlist,R_EDI);
-                case torddef(left.resulttype.def).typ of
-                   s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
-                   u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
-                   s16bit : emit_reg_reg(A_MOVSX,S_WL,left.location.register,R_EDI);
-                   u16bit : emit_reg_reg(A_MOVZX,S_WL,left.location.register,R_EDI);
-                   u32bit,s32bit:
-                     hregister:=left.location.register;
-                   u64bit,s64bit:
-                     begin
-                        emit_reg(A_PUSH,S_L,left.location.registerhigh);
-                        hregister:=left.location.registerlow;
-                     end;
-                end;
-              end;
-            LOC_REFERENCE,
-            LOC_CREFERENCE :
-              begin
-                r:=left.location.reference;
-                rg.getexplicitregisterint(exprasmlist,R_EDI);
-                case torddef(left.resulttype.def).typ of
-                   s8bit:
-                     emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
-                   u8bit:
-                     emit_ref_reg(A_MOVZX,S_BL,r,R_EDI);
-                   s16bit:
-                     emit_ref_reg(A_MOVSX,S_WL,r,R_EDI);
-                   u16bit:
-                     emit_ref_reg(A_MOVZX,S_WL,r,R_EDI);
-                   u32bit,s32bit:
-                     emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                   u64bit,s64bit:
-                     begin
-                        inc(r.offset,4);
-                        emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                        emit_reg(A_PUSH,S_L,R_EDI);
-                        r:=left.location.reference;
-                        emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                     end;
-                end;
+               case left.location.size of
+                 OS_64,OS_S64 :
+                   begin
+                     exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,left.location.registerhigh));
+                     hregister:=left.location.registerlow;
+                   end;
+                 OS_32,OS_S32 :
+                   hregister:=left.location.register;
+                 else
+                   begin
+                     hregister:=cg.get_scratch_reg(exprasmlist);
+                     freereg:=true;
+                     cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hregister);
+                   end;
+               end;
+             end;
+           LOC_REFERENCE,
+           LOC_CREFERENCE :
+             begin
+               hregister:=cg.get_scratch_reg(exprasmlist);
+               freereg:=true;
+               if left.location.size in [OS_64,OS_S64] then
+                begin
+                  href:=left.location.reference;
+                  inc(href.offset,4);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
+                  exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
+                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hregister);
+                end
+               else
+                cg.a_load_ref_reg(exprasmlist,left.location.size,left.location.reference,hregister);
              end;
            else
              internalerror(2002032218);
@@ -141,19 +134,19 @@ implementation
          location_freetemp(exprasmlist,left.location);
 
          { for 64 bit integers, the high dword is already pushed }
-         emit_reg(A_PUSH,S_L,hregister);
-         if hregister = R_EDI then
-           rg.ungetregisterint(exprasmlist,R_EDI);
-         reference_reset_base(r,R_ESP,0);
+         exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
+         if freereg then
+           cg.free_scratch_reg(exprasmlist,hregister);
+         reference_reset_base(href,R_ESP,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
              begin
-                emit_ref(A_FILD,S_IQ,r);
+                emit_ref(A_FILD,S_IQ,href);
                 emit_const_reg(A_ADD,S_L,8,R_ESP);
              end;
            s64bit:
              begin
-                emit_ref(A_FILD,S_IQ,r);
+                emit_ref(A_FILD,S_IQ,href);
                 emit_const_reg(A_ADD,S_L,8,R_ESP);
              end;
            u64bit:
@@ -162,15 +155,15 @@ implementation
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
-                inc(r.offset,4);
+                inc(href.offset,4);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                reference_reset_base(r,R_ESP,4);
-                emit_const_ref(A_AND,S_L,$7fffffff,r);
+                emit_ref_reg(A_MOV,S_L,href,R_EDI);
+                reference_reset_base(href,R_ESP,4);
+                emit_const_ref(A_AND,S_L,$7fffffff,href);
                 emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
                 rg.ungetregisterint(exprasmlist,R_EDI);
-                reference_reset_base(r,R_ESP,0);
-                emit_ref(A_FILD,S_IQ,r);
+                reference_reset_base(href,R_ESP,0);
+                emit_ref(A_FILD,S_IQ,href);
                 getdatalabel(l1);
                 getlabel(l2);
                 emitjmp(C_Z,l2);
@@ -178,14 +171,14 @@ implementation
                 { I got this constant from a test progtram (FK) }
                 Consts.concat(Tai_const.Create_32bit(0));
                 Consts.concat(Tai_const.Create_32bit(1138753536));
-                reference_reset_symbol(r,l1,0);
-                emit_ref(A_FADD,S_FL,r);
-                emitlab(l2);
+                reference_reset_symbol(href,l1,0);
+                emit_ref(A_FADD,S_FL,href);
+                cg.a_label(exprasmlist,l2);
                 emit_const_reg(A_ADD,S_L,8,R_ESP);
              end
            else
              begin
-                emit_ref(A_FILD,S_IL,r);
+                emit_ref(A_FILD,S_IL,href);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                 emit_reg(A_POP,S_L,R_EDI);
                 rg.ungetregisterint(exprasmlist,R_EDI);
@@ -239,7 +232,7 @@ implementation
                  end
                 else
                  begin
-                   location_force_reg(left.location,left.location.size,true);
+                   location_force_reg(exprasmlist,left.location,left.location.size,true);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
@@ -372,7 +365,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-04-21 19:02:07  peter
+  Revision 1.38  2002-05-12 16:53:17  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.37  2002/04/21 19:02:07  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this
