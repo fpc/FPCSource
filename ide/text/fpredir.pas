@@ -570,12 +570,25 @@ end;
                                   Initialize
 *****************************************************************************}
 
+var oldexit : pointer;
+
+procedure RedirExit;
+begin
+  exitproc:=oldexit;
+  Dispose(FIn); Dispose(FOut); Dispose(FErr);
+end;
+
 Begin
+  oldexit:=exitproc;
+  exitproc:=@RedirExit;
   New(FIn); New(FOut); New(FErr);
 End.
 {
   $Log$
-  Revision 1.16  1999-04-29 22:57:09  pierre
+  Revision 1.17  1999-05-01 23:45:07  pierre
+   * FIn FOut FErr dispsoed at exit
+
+  Revision 1.16  1999/04/29 22:57:09  pierre
    + added code for temporary disabling of redirection
 
   Revision 1.15  1999/04/07 21:55:52  peter
