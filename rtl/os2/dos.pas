@@ -43,6 +43,8 @@ unit dos;
 
 {$I os.inc}
 
+{$I386_DIRECT}
+
   interface
 
     uses
@@ -312,7 +314,7 @@ unit dos;
             movw (%ebx),%bx
             { get date }
             movw $0x5700,%ax
-            call ___syscall
+            call ___SYSCALL
             shll $16,%edx
             movw %cx,%dx
             movl time,%ebx
@@ -348,7 +350,7 @@ unit dos;
             shldl $16,%ecx,%edx
             { set date }
             movw $0x5701,%ax
-            call ___syscall
+            call ___SYSCALL
             xorb %ah,%ah
             movw %ax,U_DOS_DOSERROR
          end;
@@ -381,7 +383,7 @@ unit dos;
             movb        %al,int86_vec
 
             movl        10(%ebp),%eax
-            ; do not use first int
+            {do not use first int}
             addl        $2,%eax
 
             movl        4(%eax),%ebx
@@ -398,25 +400,25 @@ unit dos;
             pushl   %ebp
             pushl       %eax
             movl        %esp,%ebp
-            ; calc EBP new
+            {calc EBP new}
             addl        $12,%ebp
             movl        10(%ebp),%eax
-            ; do not use first int
+            {do not use first int}
             addl        $2,%eax
 
             popl        (%eax)
             movl        %ebx,4(%eax)
             movl        %ecx,8(%eax)
             movl        %edx,12(%eax)
-            ; restore EBP
+            {restore EBP}
             popl    %edx
             movl    %edx,16(%eax)
             movl        %esi,20(%eax)
             movl        %edi,24(%eax)
-            ; ignore ES and DS
+            {ignore ES and DS}
             popl        %ebx        /* flags */
             movl        %ebx,32(%eax)
-            ; FS and GS too
+            {FS and GS too}
          end;
       end;
 
@@ -566,7 +568,7 @@ unit dos;
         asm
             movl esadr,%edx
             mov $0x7f06,%ax
-            call ___syscall
+            call ___SYSCALL
             jnc exprg1
             movl %eax,U_DOS_DOSERROR
             xorl %eax,%eax
@@ -605,7 +607,7 @@ unit dos;
          {Returns DOS version in DOS and OS/2 version in OS/2}
          asm
             movb $0x30,%ah
-            call ___syscall
+            call ___SYSCALL
             leave
             ret
          end;
@@ -637,7 +639,7 @@ unit dos;
         {$ELSE}
          asm
             movb $0x2a,%ah
-            call ___syscall
+            call ___SYSCALL
             xorb %ah,%ah
             movl 20(%ebp),%edi
             stosw
@@ -676,7 +678,7 @@ unit dos;
             movb 10(%ebp),%dh
             movb 12(%ebp),%dl
             movb $0x2b,%ah
-            call ___syscall
+            call ___SYSCALL
             xorb %ah,%ah
             movw %ax,U_DOS_DOSERROR
          end;
@@ -709,7 +711,7 @@ unit dos;
         {$ELSE}
          asm
             movb $0x2c,%ah
-            call ___syscall
+            call ___SYSCALL
             xorb %ah,%ah
             movl 20(%ebp),%edi
             movb %dl,%al
@@ -750,7 +752,7 @@ unit dos;
             movb 12(%ebp),%dh
             movb 14(%ebp),%dl
             movb $0x2d,%ah
-            call ___syscall
+            call ___SYSCALL
             xorb %ah,%ah
             movw %ax,U_DOS_DOSERROR
          end;
@@ -774,7 +776,7 @@ unit dos;
             signal handling instead.}
          asm
             movw $0x3300,%ax
-            call ___syscall
+            call ___SYSCALL
             movl 8(%ebp),%eax
             movb %dl,(%eax)
          end;
@@ -798,7 +800,7 @@ unit dos;
          asm
             movb 8(%ebp),%dl
             movl $0x3301,%ax
-            call ___syscall
+            call ___SYSCALL
          end;
         {$ENDIF}
       end;
@@ -819,7 +821,7 @@ unit dos;
          {! Do not use in OS/2.}
          asm
             movb $0x54,%ah
-            call ___syscall
+            call ___SYSCALL
             movl 8(%ebp),%edi
             stosb
          end;
@@ -842,7 +844,7 @@ unit dos;
          asm
             movb 8(%ebp),%al
             movl $0x2e,%ah
-            call ___syscall
+            call ___SYSCALL
          end;
         {$ENDIF}
       end;
@@ -879,7 +881,7 @@ unit dos;
             asm
                 movb 8(%ebp),%dl
                 movb $0x36,%ah
-                call ___syscall
+                call ___SYSCALL
                 cmpw $-1,%ax
                 je LDISKFREE1
                 mulw %cx
@@ -937,7 +939,7 @@ unit dos;
             asm
                 movb 8(%ebp),%dl
                 movb $0x36,%ah
-                call ___syscall
+                call ___SYSCALL
                 movw %dx,%bx
                 cmpw $-1,%ax
                 je LDISKSIZE1
@@ -1031,7 +1033,7 @@ unit dos;
               {No need to set DTA in EMX. Just give a pointer in ESI.}
               movl 18(%ebp),%esi
               movb $0x4e,%ah
-              call ___syscall
+              call ___SYSCALL
               jnc LFF
               movw %ax,U_DOS_DOSERROR
            LFF:
@@ -1070,7 +1072,7 @@ unit dos;
            asm
               movl 12(%ebp),%esi
               movb $0x4f,%ah
-              call ___syscall
+              call ___SYSCALL
               jnc LFN
               movw %ax,U_DOS_DOSERROR
            LFN:
@@ -1306,7 +1308,7 @@ unit dos;
          asm
             movw $0x4300,%ax
             leal n,%edx
-            call ___syscall
+            call ___SYSCALL
             movl attr,%ebx
             movw %cx,(%ebx)
          end;
@@ -1335,7 +1337,7 @@ unit dos;
             movw $0x4301,%ax
             leal n,%edx
             movw attr,%cx
-            call ___syscall
+            call ___SYSCALL
          end;
         {$ENDIF}
       end;

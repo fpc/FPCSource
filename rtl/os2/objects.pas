@@ -66,7 +66,7 @@ UNIT Objects;
 {$IFDEF OS2}                                          { OS2 platform }
    {$DEFINE ADV_OS}                                   { Set as advanced }
    {$IFNDEF FPK}
-	{$DEFINE BPOS2}                                    { Define BPOS2 }
+    {$DEFINE BPOS2}                                    { Define BPOS2 }
    {$ENDIF FPK}
    {$UNDEF NotOS2}                                    { This is OS2 compiler }
    {$UNDEF USE_BGI}                                   { Can't use BGI }
@@ -1750,7 +1750,7 @@ BEGIN
      XOR %CX, %CX;
      MOVW Mode, %AX;                               { Mode to open file }
      PUSHL %EBP;
-	 INT $0x21;                                         { Open/create the file }
+     INT $0x21;                                         { Open/create the file }
      POPL %EBP;
      JNC EXIT1;
      MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { Hold error }
@@ -1766,10 +1766,10 @@ ASSEMBLER;
    ASM
      XOR AX, AX;                                      { Dos error cleared }
      MOV DosStreamError, AX;
-	 MOV AX, Mode;                                    { Mode to open file }
+     MOV AX, Mode;                                    { Mode to open file }
      PUSH DS;
      LDS DX, FileName;                                { Filename to open }
-	 XOR CX, CX;
+     XOR CX, CX;
      INT $21;                                         { Open/create file }
      POP DS;
      JNC @@Exit1;                                     { Check for error }
@@ -1795,7 +1795,7 @@ BEGIN
        End;
      stOpenWrite: Begin                               { Open file for write }
          Attr := $0;                                  { Any attributes }
-		 OpenFlags := 1;                              { Open flags }
+         OpenFlags := 1;                              { Open flags }
          OpenMode := FmOutput;                        { Output file }
        End;
      stOpen: Begin                                    { Open file read/write }
@@ -1809,24 +1809,24 @@ BEGIN
    {$ELSE}                                            { Other OS2 compilers }
    DosStreamError := DosOpen(@FileName[0], Handle,
    {$ENDIF}
-	 ActionTaken, 0, Attr, OpenFlags, OpenMode, Nil); { Open the file }
+     ActionTaken, 0, Attr, OpenFlags, OpenMode, Nil); { Open the file }
    If (DosStreamError=0) Then DosFileOpen := Handle   { Successful open }
-	 Else DosFileOpen := 0;                           { Fail so return zero }
+     Else DosFileOpen := 0;                           { Fail so return zero }
 END;
 {$ELSE FPK}
 BEGIN
    ASM
-	 XOR %AX, %AX;                                    { Clear error }
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;
-	 MOVL Filename, %EDX;                             { Filename to open }
-	 XOR %CX, %CX;
-	 MOVW Mode, %AX;                                  { Mode to open file }
-	 CALL ___syscall;                                 { Open/create the file }
-	 JNC EXIT1;
-	 MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { Hold error }
-	 XOR %AX, %AX;                                    { Open failed }
+     XOR %AX, %AX;                                    { Clear error }
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;
+     MOVL Filename, %EDX;                             { Filename to open }
+     XOR %CX, %CX;
+     MOVW Mode, %AX;                                  { Mode to open file }
+     CALL ___SYSCALL;                                 { Open/create the file }
+     JNC EXIT1;
+     MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { Hold error }
+     XOR %AX, %AX;                                    { Open failed }
    EXIT1:
-	 MOV %AX, U_OBJECTS_TRANSFERHANDLE;               { Hold opened handle }
+     MOV %AX, U_OBJECTS_TRANSFERHANDLE;               { Hold opened handle }
    END;
    DosFileOpen := TransferHandle;                     { Return handle }
 END;
@@ -1848,38 +1848,38 @@ End;
 {$IFNDEF OS2}
 BEGIN
    ASM
-	 MOVL BufferArea, %EDX;                             { Buffer for data }
-	 MOVL BufferLength, %CX;                              { Bytes to read }
-	 MOVB $0x3F, %AH;
-	 MOVW Handle, %BX;                              { Load file handle }
-	 PUSHL %EBP;
-	 INT $0x21;                                         { Read from file }
-	 POPL %EBP;
-	 JC EXIT2;                                        { Check for error }
-	 MOVL BytesMoved, %EDI;
-	 MOVZWL %AX, %EAX;
-	 MOVL %EAX, (%EDI);                               { Update bytes moved }
-	 XOR %EAX, %EAX;                                  { Clear register }
+     MOVL BufferArea, %EDX;                             { Buffer for data }
+     MOVL BufferLength, %CX;                              { Bytes to read }
+     MOVB $0x3F, %AH;
+     MOVW Handle, %BX;                              { Load file handle }
+     PUSHL %EBP;
+     INT $0x21;                                         { Read from file }
+     POPL %EBP;
+     JC EXIT2;                                        { Check for error }
+     MOVL BytesMoved, %EDI;
+     MOVZWL %AX, %EAX;
+     MOVL %EAX, (%EDI);                               { Update bytes moved }
+     XOR %EAX, %EAX;                                  { Clear register }
    EXIT2:
-	 MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
+     MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
    END;
    DosRead := DosStreamError;                         { Return any error }
 END;
 {$ELSE OS2}
 BEGIN
    ASM
-	 MOVL BufferArea, %EDX;                             { Buffer for data }
-	 MOVL BufferLength, %CX;                              { Bytes to read }
-	 MOVB $0x3F, %AH;
-	 MOVW Handle, %BX;                                { Load file handle }
-	 CALL ___syscall;                                 { Read from file }
-	 JC EXIT2;                                        { Check for error }
-	 MOVL BytesMoved, %EDI;
-	 MOVZWL %AX, %EAX;
-	 MOVL %EAX, (%EDI);                               { Update bytes moved }
-	 XOR %EAX, %EAX;                                  { Clear register }
+     MOVL BufferArea, %EDX;                             { Buffer for data }
+     MOVL BufferLength, %CX;                              { Bytes to read }
+     MOVB $0x3F, %AH;
+     MOVW Handle, %BX;                                { Load file handle }
+     CALL ___SYSCALL;                                 { Read from file }
+     JC EXIT2;                                        { Check for error }
+     MOVL BytesMoved, %EDI;
+     MOVZWL %AX, %EAX;
+     MOVL %EAX, (%EDI);                               { Update bytes moved }
+     XOR %EAX, %EAX;                                  { Clear register }
    EXIT2:
-	 MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
+     MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
    END;
    DosRead := DosStreamError;                         { Return any error }
 END;
@@ -1888,19 +1888,19 @@ END;
 {$ELSE}                                               { Other compilers }
 ASSEMBLER;
    ASM
-	 PUSH DS;
-	 LDS DX, BufferArea;                              { Data dest buffer }
-	 MOV CX, BufferLength;
-	 MOV BX, Handle;                                  { Load file handle }
-	 MOV AH, $0x3F;
-	 INT $0x21;                                         { Read from file }
-	 POP DS;
-	 JC @@Exit2;                                      { Check for error }
-	 LES DI, BytesMoved;
-	 MOV ES:[DI], AX;                                 { Update bytes moved }
-	 XOR AX, AX;
+     PUSH DS;
+     LDS DX, BufferArea;                              { Data dest buffer }
+     MOV CX, BufferLength;
+     MOV BX, Handle;                                  { Load file handle }
+     MOV AH, $0x3F;
+     INT $0x21;                                         { Read from file }
+     POP DS;
+     JC @@Exit2;                                      { Check for error }
+     LES DI, BytesMoved;
+     MOV ES:[DI], AX;                                 { Update bytes moved }
+     XOR AX, AX;
    @@Exit2:
-	 MOV DosStreamError, AX;                          { DOS error returned }
+     MOV DosStreamError, AX;                          { DOS error returned }
    END;
 {$ENDIF}
 
@@ -1919,20 +1919,20 @@ End;
 {$ELSE not GO32V2}
 BEGIN
    ASM
-	 MOVL BufferArea, %EDX;                             { Buffer with data }
-	 MOVL BufferLength, %CX;                              { Bytes to write }
-	 MOVB $0x40, %AH;
-	 MOVW Handle, %BX;                              { Load file handle }
-	 PUSHL %EBP;
-	 INT $0x21;                                         { Write to file }
-	 POPL %EBP;
-	 JC EXIT3;                                        { Check for error }
-	 MOVL BytesMoved, %EDI;
-	 MOVZWL %AX, %EAX;
-	 MOVL %EAX, (%EDI);                               { Update bytes moved }
-	 XOR %EAX, %EAX;
+     MOVL BufferArea, %EDX;                             { Buffer with data }
+     MOVL BufferLength, %CX;                              { Bytes to write }
+     MOVB $0x40, %AH;
+     MOVW Handle, %BX;                              { Load file handle }
+     PUSHL %EBP;
+     INT $0x21;                                         { Write to file }
+     POPL %EBP;
+     JC EXIT3;                                        { Check for error }
+     MOVL BytesMoved, %EDI;
+     MOVZWL %AX, %EAX;
+     MOVL %EAX, (%EDI);                               { Update bytes moved }
+     XOR %EAX, %EAX;
    EXIT3:
-	 MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
+     MOV %AX, U_OBJECTS_DOSSTREAMERROR;               { DOS error returned }
    END;
    DosWrite := DosStreamError;                        { Return any error }
 END;
@@ -1940,15 +1940,15 @@ END;
 {$ELSE}                                               { Other compilers }
 ASSEMBLER;
    ASM
-	 PUSH DS;
-	 LDS DX, BufferArea;                              { Data source buffer }
-	 MOV CX, BufferLength;
-	 MOV BX, Handle;                                  { Load file handle }
-	 MOV AH, $40;
-	 INT $21;                                         { Write to file }
-	 POP DS;
-	 JC @@Exit3;                                      { Check for error }
-	 LES DI, BytesMoved;
+     PUSH DS;
+     LDS DX, BufferArea;                              { Data source buffer }
+     MOV CX, BufferLength;
+     MOV BX, Handle;                                  { Load file handle }
+     MOV AH, $40;
+     INT $21;                                         { Write to file }
+     POP DS;
+     JC @@Exit3;                                      { Check for error }
+     LES DI, BytesMoved;
      MOV ES:[DI], AX;                                 { Update bytes moved }
      XOR AX, AX;
    @@Exit3:
@@ -1965,48 +1965,48 @@ VAR NewPos: LongInt): Word;
 {$IFNDEF OS2}
 BEGIN
    ASM
-	 MOVW MoveType, %AX;                              { Load move type }
-	 MOVB $0x42, %AH;
-	 MOVW POS, %DX;                              { Load file position }
-	 MOVL POS, %ECX;
-	 SHRL $16,%ECX;
-	 MOVW Handle, %BX;                              { Load file handle }
-	 PUSHL %EBP;
-	 INT $0x21;                                         { Position the file }
-	 POPL %EBP;
-	 JC EXIT4;
-	 MOVL NewPos, %EDI;                              { New position address }
-	 MOVW %AX, %BX;
-	 MOVW %DX, %AX;
-	 SHLL $0x10, %EAX;                                   { Roll to high part }
-	 MOVW %BX, %AX;
-	 MOVL %EAX, (%EDI);                               { Update new position }
-	 XOR %EAX, %EAX;
+     MOVW MoveType, %AX;                              { Load move type }
+     MOVB $0x42, %AH;
+     MOVW POS, %DX;                              { Load file position }
+     MOVL POS, %ECX;
+     SHRL $16,%ECX;
+     MOVW Handle, %BX;                              { Load file handle }
+     PUSHL %EBP;
+     INT $0x21;                                         { Position the file }
+     POPL %EBP;
+     JC EXIT4;
+     MOVL NewPos, %EDI;                              { New position address }
+     MOVW %AX, %BX;
+     MOVW %DX, %AX;
+     SHLL $0x10, %EAX;                                   { Roll to high part }
+     MOVW %BX, %AX;
+     MOVL %EAX, (%EDI);                               { Update new position }
+     XOR %EAX, %EAX;
    EXIT4:
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
    END;
    DosSetFilePtr := DosStreamError;                   { Return any error }
 END;
 {$ELSE OS2}
 BEGIN
    ASM
-	 MOVW MoveType, %AX;                              { Load move type }
-	 MOVB $0x42, %AH;
-	 MOVW POS, %DX;                                  { Load file position }
-	 MOVL POS, %ECX;
-	 SHRL $16,%ECX;
-	 MOVW Handle, %BX;                               { Load file handle }
-	 CALL ___syscall;                                { Position the file }
-	 JC EXIT4;
-	 MOVL NewPos, %EDI;                              { New position address }
-	 MOVW %AX, %BX;
-	 MOVW %DX, %AX;
-	 SHLL $0x10, %EAX;                                   { Roll to high part }
-	 MOVW %BX, %AX;
-	 MOVL %EAX, (%EDI);                               { Update new position }
-	 XOR %EAX, %EAX;
+     MOVW MoveType, %AX;                              { Load move type }
+     MOVB $0x42, %AH;
+     MOVW POS, %DX;                                  { Load file position }
+     MOVL POS, %ECX;
+     SHRL $16,%ECX;
+     MOVW Handle, %BX;                               { Load file handle }
+     CALL ___SYSCALL;                                { Position the file }
+     JC EXIT4;
+     MOVL NewPos, %EDI;                              { New position address }
+     MOVW %AX, %BX;
+     MOVW %DX, %AX;
+     SHLL $0x10, %EAX;                                   { Roll to high part }
+     MOVW %BX, %AX;
+     MOVL %EAX, (%EDI);                               { Update new position }
+     XOR %EAX, %EAX;
    EXIT4:
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
    END;
    DosSetFilePtr := DosStreamError;                   { Return any error }
 END;
@@ -2014,16 +2014,16 @@ END;
 {$ELSE}                                               { Other compilers }
 ASSEMBLER;
    ASM
-	 MOV AX, MoveType;                                { Load move type }
-	 MOV AH, $42;
-	 MOV DX, Pos.Word[0];                             { Load file position }
-	 MOV CX, Pos.Word[2];
-	 MOV BX, Handle;                                  { Load file handle }
-	 INT $21;                                         { Position the file }
-	 JC @@Exit4;
-	 LES DI, NewPos;                                  { New position address }
-	 MOV ES:[DI], AX;
-	 MOV ES:[DI+2], DX;                               { Update new position }
+     MOV AX, MoveType;                                { Load move type }
+     MOV AH, $42;
+     MOV DX, Pos.Word[0];                             { Load file position }
+     MOV CX, Pos.Word[2];
+     MOV BX, Handle;                                  { Load file handle }
+     INT $21;                                         { Position the file }
+     JC @@Exit4;
+     LES DI, NewPos;                                  { New position address }
+     MOV ES:[DI], AX;
+     MOV ES:[DI+2], DX;                               { Update new position }
      XOR AX, AX;
    @@Exit4:
      MOV DosStreamError, AX;                          { DOS error returned }
@@ -2038,28 +2038,28 @@ PROCEDURE DosClose (Handle: Word);
 {$IFNDEF OS2}
 BEGIN
    ASM
-	 XOR %AX, %AX;
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error cleared }
-	 MOVB $0x3E, %AH;
-	 MOVW Handle, %BX;                               { DOS file handle }
-	 PUSHL %EBP;
-	 INT $0x21;                                         { Close the file }
-	 POPL %EBP;
-	 JNC EXIT5;
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
+     XOR %AX, %AX;
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error cleared }
+     MOVB $0x3E, %AH;
+     MOVW Handle, %BX;                               { DOS file handle }
+     PUSHL %EBP;
+     INT $0x21;                                         { Close the file }
+     POPL %EBP;
+     JNC EXIT5;
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
    EXIT5:
    END;
 END;
 {$ELSE OS2}
 BEGIN
    ASM
-	 XOR %AX, %AX;
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error cleared }
-	 MOVB $0x3E, %AH;
-	 MOVW Handle, %BX;                                { DOS file handle }
-	 CALL ___syscall;                                 { Close the file }
-	 JNC EXIT5;
-	 MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
+     XOR %AX, %AX;
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error cleared }
+     MOVB $0x3E, %AH;
+     MOVW Handle, %BX;                                { DOS file handle }
+     CALL ___SYSCALL;                                 { Close the file }
+     JNC EXIT5;
+     MOVW %AX, U_OBJECTS_DOSSTREAMERROR;              { DOS error returned }
    EXIT5:
    END;
 END;
@@ -2067,13 +2067,13 @@ END;
 {$ELSE}                                               { Other compilers }
 ASSEMBLER;
    ASM
-	 XOR AX, AX;                                      { DOS error cleared }
-	 MOV DosStreamError, AX;
-	 MOV BX, Handle;                                  { DOS file handle }
-	 MOV AH, $3E;
-	 INT $21;                                         { Close the file }
-	 JNC @@Exit5;
-	 MOV DosStreamError, AX;                          { DOS error returned }
+     XOR AX, AX;                                      { DOS error cleared }
+     MOV DosStreamError, AX;
+     MOV BX, Handle;                                  { DOS file handle }
+     MOV AH, $3E;
+     INT $21;                                         { Close the file }
+     JNC @@Exit5;
+     MOV DosStreamError, AX;                          { DOS error returned }
    @@Exit5:
    END;
 {$ENDIF}
