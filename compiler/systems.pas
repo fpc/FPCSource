@@ -336,11 +336,48 @@ interface
 
     procedure InitSystems;
 
+    {$ifdef FreeBSD}
+	function GetOSRelDate:Longint;
+    {$endif}
 
 implementation
 
     uses
-      cutils;
+      cutils{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
+
+{****************************************************************************
+           OS runtime version detection utility routine
+****************************************************************************}
+
+{$ifdef FreeBSD}
+function GetOSRelDate:Longint;
+
+var
+        mib  : array[0..1] of cint;
+        rval : cint;
+        len  : size_t;
+        i    : longint;
+        v    : longint;
+        oerrno : cint;
+        S    : AnsiString;
+
+Begin
+        s:='ab';
+        SetLength(S,50);
+        mib[0] := CTL_KERN;
+        mib[1] := KERN_OSRELDATE;
+        len    := 4;
+        oerrno:= fpgeterrno;
+        if (FPsysctl(@mib, 2, pchar(@v), @len, NIL, 0) = -1) Then
+           Begin
+                if (fpgeterrno = ESysENOMEM) Then
+                        fpseterrno(oerrno);
+                GetOSRelDate:=0;
+           End
+        else
+         GetOSRelDate:=v;
+End;
+{$endif}
 
 
 {****************************************************************************
@@ -651,7 +688,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.83  2004-02-13 05:42:16  karoly
+  Revision 1.84  2004-02-13 15:56:11  marco
+   * getosreldate
+
+  Revision 1.83  2004/02/13 05:42:16  karoly
    * added powerpc-morphos target
 
   Revision 1.82  2004/01/30 13:42:03  florian
