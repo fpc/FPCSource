@@ -587,12 +587,6 @@ VAR
   RestoreVideoState: RestoreStateProc;
   ExitSave: pointer;
 
-{$ifdef win32}
-  { this procedure allows to hook keyboard message of the graph unit window }
-  charmessagehandler : function(Window: hwnd; AMessage, WParam,
-                    LParam: Longint): Longint;
-{$endif win32}
-
 
 Procedure Closegraph;
 procedure SetLineStyle(LineStyle: word; Pattern: word; Thickness: word);
@@ -3009,7 +3003,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.43  1999-11-28 16:13:55  jonas
+  Revision 1.44  1999-11-30 08:57:46  michael
+  + Removed charmessagehandler declaration, it is in graphh.inc
+
+  Revision 1.43  1999/11/28 16:13:55  jonas
     * corrected misplacement of call to initvars in initgraph
     + some extra debugging commands (for -dlogging) in the mode functions
 
