@@ -225,6 +225,22 @@ function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
                         Options:longint):longint; cdecl;
     external 'DOSCALLS' index 219;
 
+type
+  TDT=packed record
+    Hour,
+    Minute,
+    Second,
+    Sec100,
+    Day,
+    Month: byte;
+    Year: word;
+    TimeZone: smallint;
+    WeekDay: byte;
+  end;
+
+function DosGetDateTime(var Buf: TDT):longint; cdecl;
+    external 'DOSCALLS' index 230;
+
 
 {****************************************************************************
                               File Functions
@@ -640,36 +656,23 @@ end {['eax', 'ecx', 'edx']};
                               Time Functions
 ****************************************************************************}
 
-procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
-asm
-(* Expects the default record alignment (word)!!! *)
- push edi
- mov ah, 2Ah
- call syscall
- mov edi, SystemTime
- mov ax, cx
- stosw
- xor eax, eax
- mov al, 10
- mul dl
- shl eax, 16
- mov al, dh
- stosd
- push edi
- mov ah, 2Ch
- call syscall
- pop edi
- xor eax, eax
- mov al, cl
- shl eax, 16
- mov al, ch
- stosd
- mov al, dl
- shl eax, 16
- mov al, dh
- stosd
- pop edi
-end {['eax', 'ecx', 'edx', 'edi']};
+procedure GetLocalTime (var SystemTime: TSystemTime);
+var
+  DT: TDT;
+begin
+  DosGetDateTime(DT);
+  with SystemTime do
+  begin
+    Year:=DT.Year;
+    Month:=DT.Month;
+    Day:=DT.Day;
+    Hour:=DT.Hour;
+    Minute:=DT.Minute;
+    Second:=DT.Second;
+    MilliSecond:=DT.Sec100;
+  end;
+end;
+
 {$asmmode default}
 
 {****************************************************************************
@@ -767,7 +770,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  2003-10-27 11:43:40  yuri
+  Revision 1.36  2003-10-27 12:19:20  yuri
+  * GetLocatTime now also native
+
+  Revision 1.35  2003/10/27 11:43:40  yuri
   * New set of native functions
 
   Revision 1.34  2003/10/18 16:58:39  hajny
