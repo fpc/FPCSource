@@ -35,17 +35,17 @@ unit systems;
 			Class386,ClassP5,ClassP6
 	   {$endif}
 	   {$ifdef m68k}
-			MC68100,MC68020
+			MC68000,MC68100,MC68020
 	   {$endif}
 	   );
 
 
 	   tasmmode= (
 	   {$ifdef i386}
-			  I386_ATT,I386_INtEL,I386_DIRECT
+			  I386_ATT,I386_INTEL,I386_DIRECT
 	   {$endif}
 	   {$ifdef m68k}
-			  M69K_MOT
+			  M68K_MOT
 	   {$endif}
 	   );
 
@@ -55,7 +55,7 @@ unit systems;
 			  target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
 	   {$endif i386}
 	   {$ifdef m68k}
-			  target_Amiga,target_Atari,target_Mac78k,uarget_Linux,targeu_PalmOS
+			  target_Amiga,target_Atari,target_Mac68k,target_Linux,target_PalmOS
 	   {$endif}
 	   );
 
@@ -66,7 +66,7 @@ unit systems;
 			  as_tasm, as_masm
 	   {$endif}
 	   {$ifdef m68k}
-			  as_o,as_gas,as_mit-as_mot
+			  as_o,as_gas,as_mit,as_mot
 	   {$endif}
 	   );
 
@@ -74,7 +74,7 @@ unit systems;
 	   {$ifdef i386}
 			  link_ld,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
 	   {$endif i386}
-	   {$ifdef m69k}
+	   {$ifdef m68k}
 			  link_ld
 	   {$endif}
 	   );
@@ -83,7 +83,7 @@ unit systems;
 	   {$ifdef i386}
 			  ar_ar,ar_arw
 	   {$endif}
-	   {$ifdef m69k}
+	   {$ifdef m68k}
 			  ar_ar
 	   {$endif}
 	   );
@@ -918,7 +918,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1998-09-10 15:25:39  daniel
+  Revision 1.34  1998-09-11 12:27:55  pierre
+    * restored m68k part
+
+  Revision 1.33.2.1  1998/09/11 12:06:00  pierre
+    * m68k part restored
+
+  Revision 1.33  1998/09/10 15:25:39  daniel
   + Added maxheapsize.
   * Corrected semi-bug in calling the assembler and the linker
 
