@@ -1,4 +1,3 @@
-
  \section{General compiler messages}
  This section gives the compiler messages which are not fatal, but which
  display useful information. The number of such messages can be
@@ -7,7 +6,7 @@
 \item [Compiler: arg1]
  When the \var{-vt} switch is used, this line tells you what compiler
  is used.
-\item [Source OS: arg1]
+\item [Compiler OS: arg1]
  When the \var{-vd} switch is used, this line tells you what the source
  operating system is.
 \item [Info: Target OS: arg1]
@@ -18,8 +17,7 @@
  looks for it's binaries.
 \item [Using unit path: arg1]
  When the \var{-vt} switch is used, this line tells you where the compiler
- looks for compiled units. You can set this path with the \var{-Fu} or
- \var{-Up} options.
+ looks for compiled units. You can set this path with the \var{-Fu}
 \item [Using include path: arg1]
  When the \var{-vt} switch is used, this line tells you where the compiler
  looks for it's include files (files used in \var{\{\$I xxx\}} statements).
@@ -67,7 +65,7 @@
  multiple lines.
 \item [Fatal: illegal character]
  An illegal character was encountered in the input file.
-\item [Fatal: Syntax error arg1 expected but arg2 found]
+\item [Fatal: Syntax error, arg1 expected but arg2 found]
  This indicates that the compiler expected a different token than
  the one you typed. It can occur almost everywhere where you make a
  mistake against the pascal language.
@@ -81,7 +79,7 @@
 \item [Note: argF directive (FAR) ignored]
  The \var{FAR} directive is a 16-bit construction which is recorgnised
  but ignored by the compiler, since it produces 32 bit code.
-\item [Note: Stack check is global under linux]
+\item [Note: Stack check is global under Linux]
  Stack checking with the \var{-Cs} switch is ignored under \linux, since
  \linux does this for you. Only displayed when \var{-vn} is used.
 \item [Note: Ignored compiler switch arg1]
@@ -186,13 +184,13 @@
  reading an include file.
 \item [Warning: Unsupported application type: arg1]
  You get this warning, ff you specify an unknown application type
- with the directive \{\$APPTYPE\}
+ with the directive \var{\{\$APPTYPE\}}
 \item [Warning: argAPPTYPE isn't support by the target OS]
- The \{\$APPTYPE\} directive is supported by win32 applications only
+ The \var{\{\$APPTYPE\}} directive is supported by win32 applications only
 \item [Warning: Unsupported assembler style specified arg1]
  When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
  the compiler didn't recognize the mode you specified.
-\item [Warning: ASM reader switch is not possible inside asm statement arg1 will be effective only for next]
+\item [Warning: ASM reader switch is not possible inside asm statement, arg1 will be effective only for next]
  It is not possible to switch from one assembler reader to another
  inside an assmebler block. The new reader will be used for next
  assembler statement only.
@@ -222,12 +220,12 @@
  This is introduced first for Delphi compatibility.
 \item [Error: No DLL File specified]
  No longer in use.
-\item [Error: DLL exported function names cannot be double arg1]
+\item [Error: Duplicate exported function name arg1]
  Exported function names inside a specific DLL must all be different
-\item [Error: DLL exported function indexes cannot be double arg1]
+\item [Error: Duplicate exported function index arg1]
  Exported function names inside a specific DLL must all be different
-\item [Error: Invalid index for DLL exported function]
- DLL function index must be in the range 1..\$FFFF
+\item [Error: Invalid index for exported function]
+ DLL function index must be in the range \var{1..\$FFFF}
 \item [Error: Constructor name must be INIT]
  You are declaring a constructor with a name which isn't \var{init}, and the
  \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
@@ -267,7 +265,7 @@
 \item [Error: Illegal parameter list]
  You are calling a function with parameters that are of a different type than
  the declared parameters of the function.
-\item [Error: Wrong parameter type specified for arg NN]
+\item [Error: Wrong parameter type specified for arg 1]
  There is an error in the parameter list of the function or procedure.
  The compiler cannot determine the error more accurate than this.
 \item [Error: Wrong amount of parameters specified]
@@ -286,7 +284,7 @@
 \item [Error: function header arg1 doesn't match forward : var name changes arg2 => arg3]
  You declared the function in the \var{interface} part, or with the
  \var{forward} directive, but define it with a different parameter list.
-\item [Note: only values can be jumped over in enumeration types]
+\item [Note: Values in enumeration types have to be ascending]
  \fpc allows enumeration constructions as in C. Given the following
  declaration two declarations:
  \begin{verbatim}
@@ -295,7 +293,7 @@
  \end{verbatim}
  The second declaration would produce an error. \var{A\_UAS} needs to have a
  value higher than \var{A\_E}, i.e. at least 7.
-\item [Note: Interface and implementation names are different !]
+\item [Note: Interface and implementation names are different arg1 => arg2]
  This note warns you if the implementation and interface names of a
  functions are different, but they have the same mangled name. This
  is important when using overloaded functions (but should produce no error).
@@ -322,12 +320,17 @@
  The length of a string in Pascal is limited to 255 characters. You are
  trying to declare a string with length lower than 1 or greater than 255
  (This is not true for \var{Longstrings} and \var{AnsiStrings}.
-\item [Warning: use extended syntax of DISPOSE and NEW to generate instances of objects]
+\item [Warning: use extended syntax of NEW and DISPOSE for instances of objects]
  If you have a pointer \var{a} to a class type, then the statement
  \var{new(a)} will not initialize the class (i.e. the constructor isn't
  called), although space will be allocated. you should issue the
  \var{new(a,init)} statement. This will allocate space, and call the
  constructor of the class.
+\item [Warning: use of NEW or DISPOSE for untyped pointers is meaningless]
+\item [Error: use of NEW or DISPOSE is not possible for untyped pointers]
+ You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
+ because no size is associated to an untyped pointer.
+ Accepted for compatibility in \var{tp} and \var{delphi} modes.
 \item [Error: class identifier expected]
  This happens when the compiler scans a procedure declaration that contains
  a dot,
@@ -385,7 +388,7 @@
 \item [Error: The symbol can't be exported from a library]
  You can only export procedures and functions when you write a library. You
  cannot export variables or constants.
-\item [Warning: A inherited method is hidden by arg1]
+\item [Warning: An inherited method is hidden by arg1]
  A method that is declared \var{virtual} in a parent class, should be
  overridden in the descendent class with the \var{override} directive. If you
  don't specify the \var{override} directive, you will hide the parent method;
@@ -467,7 +470,7 @@
  A \var{with} statement needs an argument that is of the type \var{record}
  or \var{class}. You are using \var{with} on an expression that is not of
  this type.
-\item [Error: Functions with void return value can't return any value]
+\item [Error: Procedures can't return a value]
  In \fpc, you can specify a return value for a function when using
  the \var{exit} statement. This error occurs when you try to do this with a
  procedure. Procedures  cannot return a value.
@@ -485,7 +488,7 @@
  \var{new}. The constructor must be used for that. For the same reason, you
  cannot call \var{Dispose} to de-allocate an instance of a class, the
  destructor must be used for that.
-\item [Error: Assembler incompatible with function return value]
+\item [Error: Assembler incompatible with function return type]
  You're trying to implement a \var{assembler} function, but the return type
  of the function doesn't allow that.
 \item [Error: Procedure overloading is switched off]
@@ -537,7 +540,10 @@
   var p : longint absolute x;
  \end{verbatim}
 
-\item [Error: Abtract methods shouldn't have any definition (with function body)]
+\item [Error: Only ONE variable can be initialized]
+ You cannot specify more than one variable with a initial value
+ in Delphi syntax.
+\item [Error: Abstract methods shouldn't have any definition (with function body)]
  Abstract methods can only be declared, you cannot implement them. They
  should be overridden by a descendant class.
 \item [Error: This overloaded function can't be local (must be exported)]
@@ -672,6 +678,26 @@
  Parameters are declared as call by reference using the \var{var}-directive
 \item [Error: Duplicate message label: arg1]
  A label for a message is used twice in one object/class
+\item [Error: Self can be only an explicit parameter in message handlers]
+ The self parameter can be passed only explicit if it is a method which
+ is declared as message method handler
+\item [Error: Threadvars can be only static or global]
+ Threadvars must be static or global, you can't declare a thread
+ local to a procedure. Local variables are always local to a thread,
+ because every thread has it's own stack and local variables
+ are stored on the stack
+\item [Fatal: Direct assembler not supported for binary output format]
+ You can't use direct assembler when using a binary writer, choose an
+ other outputformat or use an other assembler reader
+\item [Warning: Don't load OBJPAS unit manual, use \var{\{\$mode objfpc\}} or
+\\var{\{\$mode delphi\}} instead]
+ You're trying to load the ObjPas unit manual from a uses clause. This is
+ not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or 
+\var{\{\$mode delphi\}}
+ directives which load the unit automaticly
+\item [Error: OVERRIDE can't be used in objects]
+ Override isn't support for objects, use VIRTUAL instead to override
+ a method of an anchestor object
  \end{description}
  \section{Type checking errors}
  This section lists all errors that can occur when type checking is
@@ -685,6 +711,21 @@
  \item You are calling a function or procedure with parameters that are
  incompatible with the parameters in the function or procedure definition.
  \end{itemize}
+\item [Error: Incompatible types: got "arg1" expected "arg2"]
+ There is no conversion possible between the two types
+ Another possiblity is that they are declared in different
+ declarations:
+ \begin{verbatim}
+ Var
+    A1 : Array[1..10] Of Integer;
+    A2 : Array[1..10] Of Integer;
+
+ Begin
+    A1:=A2; { This statement gives also this error, it
+              is due the strict type checking of pascal }
+ End.
+\item [Error: Type mismatch between arg1 and arg2]
+ The types are not equal
 \item [Error: Integer expression expected]
  The compiler expects an expression of type integer, but gets a different
  type.
@@ -696,7 +737,7 @@
  The identifier is not a type, or you forgot to supply a type identifier.
 \item [Error: Variable identifier expected]
  This happens when you pass a constant to a \var{Inc} var or \var{Dec}
- proceure. You can only pass variables as arguments to these functions.
+ procedure. You can only pass variables as arguments to these functions.
 \item [Error: pointer type expected]
  The variable or expression isn't of the type \var{pointer}. This
  happens when you pass a variable that isn't a pointer to \var{New}
@@ -754,6 +795,13 @@
 \item [Error: Integer or real expression expected]
  The first argument to \var{str} must a real or integer type.
 \item [Error: Wrong type in array constructor]
+ You are trying to use a type in an array constructor which is not
+ allowed.
+\item [Error: Incompatible type for arg arg1: Got arg2, expected arg3]
+ You are trying to pass an invalid type for the specified parameter.
+\item [Error: Method (variable) and Procedure (variable) are not compatible]
+ You can't assign a method to a procedure variable or a procedure to a
+ method pointer.
  \end{description}
  \section{Symbol handling}
  This section lists all the messages that concern the handling of symbols.
@@ -769,6 +817,8 @@
  the circumstances in which the error occurs.
 \item [Error: Duplicate identifier arg1]
  The identifier was already declared in the current scope.
+\item [Hint: Identifier already defined in arg1 at line arg2]
+ The identifier was already declared in a previous scope.
 \item [Error: Unknown identifier arg1]
  The identifier encountered hasn't been declared, or is used outside the
  scope where it's defined.
@@ -798,13 +848,13 @@
  the circumstances in which the error occurs.
 \item [Fatal: record or class type expected]
  The variable or expression isn't of the type \var{record} or \var{class}.
-\item [Error: Instances of classes or objects with an abtsract method are not allowed]
+\item [Error: Instances of classes or objects with an abstract method are not allowed]
  You are trying to generate an instance of a class which has an abstract
  method that wasn't overridden.
 \item [Warning: Label not defined arg1]
  A label was declared, but not defined.
 \item [Error: Illegal label declaration]
-\item [Error: GOTO und LABEL are not supported (use command line switch -Sg)]
+\item [Error: GOTO und LABEL are not supported (use switch -Sg)]
  You must compile a program which has \var{label}s and \var{goto} statements
  with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
  supported.
@@ -834,9 +884,10 @@
 \item [Error: Unknown record field identifier arg1]
  The field doesn't exist in the record definition.
 \item [Warning: Local variable arg1 does not seem to be initialized]
- This message is displayed if the compiler thinks that a variable will
+\item [Warning: Variable arg1 does not seem to be initialized]
+ These messages are displayed if the compiler thinks that a variable will
  be used (i.e. appears in the right-hand-side of an expression) when it
- wasn't initialized first (i.e. appeared in the right-hand side of an
+ wasn't initialized first (i.e. appeared in the left-hand side of an
  assigment)
 \item [Error: identifier idents no member arg1]
  When using the extended syntax of \var{new}, you must specify the constructor
@@ -861,8 +912,8 @@
 \item [Error: Illegal expression]
  This can occur under many circumstances. Mostly when trying to evaluate
  constant expressions.
-\item [Error: Invalid integer]
- You made an exression which isn't an integer, and the compiler expects the
+\item [Error: Invalid integer expression]
+ You made an expression which isn't an integer, and the compiler expects the
  result to be an integer.
 \item [Error: Illegal qualifier]
  One of the following is happening :
@@ -888,6 +939,9 @@
 \item [Error: Illegal type conversion]
  When doing a type-cast, you must take care that the sizes of the variable and
  the destination type are the same.
+\item [Conversion between ordinals and pointers is not portable across platforms]
+ If you typecast a pointer to a longint, this code will not compile
+ on a machine using 64bit for pointer storage.
 \item [Error: File types must be var parameters]
  You cannot specify files as value parameters, i.e. they must always be
  declared \var{var} parameters.
@@ -920,7 +974,7 @@
    end;
  \end{verbatim}
 \item [Error: procedure call with stackframe ESP/SP]
- The compiler enocountered a procedure  or function call inside a
+ The compiler encountered a procedure  or function call inside a
  procedure that uses a \var{ESP/SP} stackframe. Normally, when a call is
  done the procedure needs a \var{EBP} stackframe.
 \item [Error: Abstract methods can't be called directly]
@@ -951,23 +1005,32 @@
  Your code requires a too big stack. Some operating systems pose limits
  on the stack size. You should use less variables or try ro put large
  variables on the heap.
-\item [Stack frame is omited]
+\item [Stack frame is omitted]
  Some procedure/functions do not need a complete stack-frame, so it is omitted.
  This message will be displayed when the {-vd} switch is used.
-\item [Error: Unable to inline object methods]
+\item [Error: Object or class methods can't be inline.]
  You cannot have inlined object methods.
-\item [Error: Unable to inline procvar calls]
+\item [Error: Procvar calls can't be inline.]
  A procedure with a procedural variable call cannot be inlined.
 \item [Error: No code for inline procedure stored]
  The compiler couldn't store code for the inline procedure.
 \item [Error: Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead]
  You should use \var{setlength} to set the length of an ansi/wide/longstring
  and \var{length} to get the length of such kinf of string
-\item [Error: Include or exclude not implemented in this case]
+\item [Error: Include and exclude not implemented in this case]
  \var{include} and \var{exclude} are only partially
  implemented for \var{i386} processors
  and not at all for \var{m68k} processors.
-\item [Constructors or destructors can not be called inside with here]
+\item [Warning: Probably illegal constant passed to internal math function]
+ The constant argument passed to a ln or sqrt function is out of
+ the definition range of these functions, you may get unexpected
+ results when running the program
+\item [Error: Constructors or destructors can not be called inside a 'with' clause]
+ Inside a \var{With} clause you cannot call a constructor or destructor for the
+ object you have in the \var{with} clause.
+\item [Error: Cannot call message handler method directly]
+ A message method handler method can't be called directly if it contains an
+ explicit self argument
  \end{description}
  \section{Unit loading messages.}
  This section lists all messages that can occur when the compiler is
@@ -1069,7 +1132,7 @@
 \item [PPU Check file arg1 time arg2]
  When you use the \var{-vu} flag, the compiler show the filename and
  date and time of the file which a recompile depends on
-\end{description}
+ \end{description}
 
  \section{Command-line handling errors}
  This section lists errors that occur when the compiler is processing the
@@ -1118,8 +1181,16 @@
  It is possible to have a compiler executable that doesn't support
  the generation of debugging info. If you use such an executable with the
  \var{-g} switch, this warning will be displayed.
-\item [Warning: You are using the obsolete switch arg1]
+\item [Error: You are using the obsolete switch arg1]
  this warns you when you use a switch that is not needed/supported anymore.
  It is recommended that you remove the switch to overcome problems in the
  future, when the switch meaning may change.
+\item [Error: You are using the obsolete switch arg1, please use arg2]
+ this warns you when you use a switch that is not supported anymore. You
+ must now use the second switch instead.
+ It is recommended that you change the switch to overcome problems in the
+ future, when the switch meaning may change.
+\item [Note: Switching assembler to default source writing assembler]
+ this notifies you that the assembler has been changed because you used the
+ -a switch which can't be used with a binary assembler writer.
 \end{description}
