@@ -942,7 +942,8 @@ begin
      FillChar (SD, SizeOf (SD), 0);
      SD.Length := 24;
      SD.Related := ssf_Related_Child;
-     SD.PgmName := PChar (Path);
+     CommandLine := FExpand (Path);    (* Needed for other session types... *)
+     SD.PgmName := PChar (CommandLine);
      if ComLine <> '' then
       SD.PgmInputs := PChar (ComLine);
      SD.InheritOpt := ssf_InhertOpt_Parent;
@@ -1017,7 +1018,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2004-12-06 18:50:21  hajny
+  Revision 1.46  2004-12-06 22:11:47  hajny
+    * one more fix for ExecuteProcess
+
+  Revision 1.45  2004/12/06 18:50:21  hajny
     * fix for ExecuteProcess
 
   Revision 1.44  2004/12/05 19:33:08  hajny
