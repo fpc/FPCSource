@@ -33,4 +33,5 @@ Changes in the syntax or semantic of FPC:
              switch
   02/04/99   rtl/cfg/ directory has been removed, it's not used anymore
   15/04/99   FINALIZATION is supported
+  21/04/99   Default assembler for i386 changed to AT&T instead of direct
 

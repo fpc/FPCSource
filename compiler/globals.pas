@@ -1129,11 +1129,7 @@ unit globals;
         initpackenum:=4;
         initpackrecords:=2;
         initoutputformat:=target_asm.id;
-{$ifdef AG386BIN}
         initasmmode:=asmmode_i386_att;
-{$else}
-        initasmmode:=asmmode_i386_direct;
-{$endif}
         initdefines.init;
 {$else not i386}
   {$ifdef m68k}
@@ -1169,7 +1165,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-04-16 09:56:05  pierre
+  Revision 1.3  1999-04-21 14:12:55  peter
+    * default asm changed to att
+
+  Revision 1.2  1999/04/16 09:56:05  pierre
    * unused local var commented
 
   Revision 1.1  1999/04/08 09:14:46  michael
