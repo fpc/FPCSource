@@ -141,6 +141,9 @@ interface
           procedure setsize;
           function needs_inittable : boolean;override;
           procedure write_rtti_data(rt:trttitype);override;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : taasmoutput);override;
+{$endif GDB}
        end;
 
        tformaldef = class(tstoreddef)
@@ -169,6 +172,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -2128,6 +2132,13 @@ implementation
          needs_inittable:=true;
       end;
 
+{$ifdef GDB}
+   procedure tvariantdef.concatstabto(asmlist : taasmoutput);
+      begin
+        { don't know how to handle this }
+      end;
+{$endif GDB}
+
 {****************************************************************************
                                TPOINTERDEF
 ****************************************************************************}
@@ -2200,7 +2211,10 @@ implementation
         if assigned(pointertype.def) and
            (pointertype.def.deftype in [recorddef,objectdef]) then
           begin
-            nb:=tstoreddef(pointertype.def).numberstring;
+            if pointertype.def.deftype=objectdef then
+              nb:=tobjectdef(pointertype.def).classnumberstring
+            else
+              nb:=tstoreddef(pointertype.def).numberstring;
             {to avoid infinite recursion in record with next-like fields }
             if tstoreddef(pointertype.def).is_def_stab_written = being_written then
               begin
@@ -5360,6 +5374,11 @@ implementation
       begin
          stabstring:=strpnew('error'+numberstring);
       end;
+
+    procedure terrordef.concatstabto(asmlist : taasmoutput);
+      begin
+        internalerror(20021119);
+      end;
 {$endif GDB}
 
     function terrordef.gettypename:string;
@@ -5518,7 +5537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2002-11-18 17:31:59  peter
+  Revision 1.107  2002-11-19 16:21:29  pierre
+   * correct several stabs generation problems
+
+  Revision 1.106  2002/11/18 17:31:59  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.105  2002/11/17 16:31:57  carl
