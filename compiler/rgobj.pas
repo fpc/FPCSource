@@ -17,7 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
  ****************************************************************************
 }
 
@@ -2456,7 +2455,11 @@ end.
 
 {
   $Log$
-  Revision 1.56  2003-06-17 16:34:44  jonas
+  Revision 1.57  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.56  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

@@ -7,8 +7,7 @@
           'and','andcc','andn','addncc',
           'jmpl',
           'call',
-          'bn','bne','be','bg','ble','bge','bl','bgu','bleu','bcc',
-          'bcs','bpos','neg','bvc','bvs','ba',
+          'ba','b',
           'fbn','fbu','fbg','fbug','fbl','fbul','fblg','fbne',
           'fbe','fbue','fbge','fbuge','fble','fbule','fbo','fba',
           'cbccc',
@@ -61,13 +60,18 @@
           'dec','deccc',
           'inc','inccc',
           'mov',
+          'neg',
           'not',
           'set',
           'skipz','skipnz',
           'tst'
 {
         $Log$
-        Revision 1.7  2003-06-01 21:38:07  peter
+        Revision 1.8  2003-07-02 22:18:04  peter
+          * paraloc splitted in callerparaloc,calleeparaloc
+          * sparc calling convention updates
+
+        Revision 1.7  2003/06/01 21:38:07  peter
           * getregisterfpu size parameter added
           * op_const_reg size parameter added
           * sparc updates

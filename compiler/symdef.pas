@@ -106,11 +106,12 @@ interface
           parasymderef : tderef;
           defaultvalue : tsym; { tconstsym }
           defaultvaluederef : tderef;
-          paratyp      : tvarspez; { required for procvar }
-          paraloc      : tparalocation;
-          is_hidden    : boolean; { is this a hidden (implicit) parameter }
+          paratyp       : tvarspez; { required for procvar }
+          calleeparaloc,
+          callerparaloc : tparalocation;
+          is_hidden     : boolean; { is this a hidden (implicit) parameter }
 {$ifdef EXTDEBUG}
-          eqval        : tequaltype;
+          eqval         : tequaltype;
 {$endif EXTDEBUG}
        end;
 
@@ -428,6 +429,7 @@ interface
           maxparacount,
           minparacount    : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
+          has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -3072,6 +3074,7 @@ implementation
          rettype:=voidtype;
          fpu_used:=0;
          savesize:=POINTER_SIZE;
+         has_paraloc_info:=false;
       end;
 
 
@@ -3201,7 +3204,6 @@ implementation
       var
          hp : TParaItem;
          count,i : word;
-         paraloclen : byte;
       begin
          inherited ppuloaddef(ppufile);
          parast:=nil;
@@ -3216,6 +3218,7 @@ implementation
          { get the number of parameters }
          count:=ppufile.getbyte;
          savesize:=POINTER_SIZE;
+         has_paraloc_info:=false;
          for i:=1 to count do
           begin
             hp:=TParaItem.Create;
@@ -3226,11 +3229,6 @@ implementation
             ppufile.getderef(hp.parasymderef);
             hp.parasym:=nil;
             hp.is_hidden:=boolean(ppufile.getbyte);
-            { later, we'll gerate this on the fly (FK) }
-            paraloclen:=ppufile.getbyte;
-            if paraloclen<>sizeof(tparalocation) then
-              internalerror(200304261);
-            ppufile.getdata(hp.paraloc,sizeof(tparalocation));
             { Don't count hidden parameters }
             if (not hp.is_hidden) then
              begin
@@ -3270,10 +3268,6 @@ implementation
             ppufile.putderef(hp.defaultvalue,hp.defaultvaluederef);
             ppufile.putderef(hp.parasym,hp.parasymderef);
             ppufile.putbyte(byte(hp.is_hidden));
-            { write the length of tparalocation so ppudump can
-              parse the .ppu without knowing the tparalocation size }
-            ppufile.putbyte(sizeof(tparalocation));
-            ppufile.putdata(hp.paraloc,sizeof(tparalocation));
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -5844,7 +5838,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2003-06-25 18:31:23  peter
+  Revision 1.154  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.153  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 

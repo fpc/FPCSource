@@ -183,15 +183,15 @@ implementation
                   hp:=tparaitem(current_procinfo.procdef.para.first);
                   while assigned(hp) do
                     begin
-                      if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
+                      if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
                             LOC_CREGISTER,LOC_CFPUREGISTER]) and
-                         (TCGSize2Size[hp.paraloc.size] <= sizeof(aword)) then
+                         (TCGSize2Size[hp.calleeparaloc.size] <= sizeof(aword)) then
                         begin
-                          tvarsym(hp.parasym).reg := hp.paraloc.register;
-                          if (hp.paraloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                            rg.makeregvarint(hp.paraloc.register.number shr 8)
+                          tvarsym(hp.parasym).reg := hp.calleeparaloc.register;
+                          if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                            rg.makeregvarint(hp.calleeparaloc.register.number shr 8)
                           else
-                            rg.makeregvarother(hp.paraloc.register);
+                            rg.makeregvarother(hp.calleeparaloc.register);
                         end
                       else
                         begin
@@ -616,7 +616,11 @@ end.
 
 {
   $Log$
-  Revision 1.57  2003-06-13 21:19:31  peter
+  Revision 1.58  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.57  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.56  2003/06/07 18:57:04  jonas

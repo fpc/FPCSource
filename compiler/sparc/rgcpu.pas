@@ -54,8 +54,7 @@ implementation
 
     function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
       begin
-        if ((reg shr 8) in [RS_O0..RS_O7,RS_I7]) and
-           not((reg shr 8) in is_reg_var_int) then
+        if ((reg shr 8) in [RS_O0..RS_O7,RS_I0..RS_I7]) then
           begin
             if (reg shr 8) in UsedParaRegs then
               InternalError(2003060701)
@@ -74,8 +73,7 @@ implementation
       begin
         if reg.enum<>R_INTREGISTER then
           internalerror(200302191);
-        if ((reg.number shr 8) in [RS_O0..RS_O7,RS_I7]) and
-           not((reg.number shr 8) in is_reg_var_int) then
+        if ((reg.number shr 8) in [RS_O0..RS_O7,RS_I0..RS_I7]) then
           begin
             if not((reg.number shr 8) in usedpararegs) then
               internalerror(2003060702)
@@ -154,7 +152,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-06-17 16:36:11  peter
+  Revision 1.15  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.14  2003/06/17 16:36:11  peter
     * freeintparaloc added
 
   Revision 1.13  2003/06/12 22:47:52  mazen

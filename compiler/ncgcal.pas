@@ -128,18 +128,18 @@ implementation
          objectlibrary.getlabel(falselabel);
          secondpass(left);
          { allocate paraloc }
-         paramanager.allocparaloc(exprasmlist,paraitem.paraloc);
+         paramanager.allocparaloc(exprasmlist,paraitem.callerparaloc);
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
              if paramanager.push_addr_param(left.resulttype.def,calloption) then
                begin
                  inc(pushedparasize,POINTER_SIZE);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.paraloc);
+               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.callerparaloc);
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -171,13 +171,13 @@ implementation
                     {$endif}
                     end
                   else
-                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
                   location_release(exprasmlist,left.location);
                end
              else
                begin
                   push_value_para(exprasmlist,left,calloption,
-                    para_offset,para_alignment,paraitem.paraloc);
+                    para_offset,para_alignment,paraitem.callerparaloc);
                end;
            end
          { filter array of const c styled args }
@@ -205,7 +205,7 @@ implementation
                        cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,href);
                     end
                   else
-                    cg.a_param_loc(exprasmlist,left.location,paraitem.paraloc);
+                    cg.a_param_loc(exprasmlist,left.location,paraitem.callerparaloc);
                   location_release(exprasmlist,left.location);
                 end
               else
@@ -230,7 +230,7 @@ implementation
                      {$endif}
                      end
                    else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
                    location_release(exprasmlist,left.location);
                 end;
            end
@@ -268,7 +268,7 @@ implementation
                 {$endif}
                 end
               else
-                cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
               location_release(exprasmlist,left.location);
            end
          else
@@ -318,13 +318,13 @@ implementation
                      {$endif}
                      end
                    else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
                    location_release(exprasmlist,left.location);
                 end
               else
                 begin
                    push_value_para(exprasmlist,left,calloption,
-                     para_offset,para_alignment,paraitem.paraloc);
+                     para_offset,para_alignment,paraitem.callerparaloc);
                 end;
            end;
          truelabel:=otlabel;
@@ -485,7 +485,7 @@ implementation
                 inc(trgcpu(rg).fpuvaroffset);
 {$else x86}
                 hregister := rg.getregisterfpu(exprasmlist,location.size);
-                cg.a_loadfpu_reg_reg(exprasmlist,location.register,hregister);
+                cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                 location.register := hregister;
 {$endif x86}
               end
@@ -584,7 +584,7 @@ implementation
             if cgsize<>OS_NO then
 {$ifndef cpu64bit}
               if cgsize in [OS_64,OS_S64] then
-                begin 
+                begin
                   r.enum:=R_INTREGISTER;
                   r.number:=NR_FUNCTION_RESULT64_LOW_REG;
                   hregister.enum:=R_INTREGISTER;
@@ -593,9 +593,9 @@ implementation
                   rg.ungetregisterint(exprasmlist,hregister);
                 end
               else
-{$endif cpu64bit}  
+{$endif cpu64bit}
                 begin
-                  r.enum:=R_INTREGISTER;      
+                  r.enum:=R_INTREGISTER;
                   r.number:=NR_FUNCTION_RESULT_REG;
                   rg.ungetregisterint(exprasmlist,r);
                 end;
@@ -663,6 +663,7 @@ implementation
       {$endif}
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
+         paraitem : tparaitem;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
          { help reference pointer }
@@ -678,6 +679,13 @@ implementation
       begin
          if not assigned(procdefinition) then
            internalerror(200305264);
+
+         { calculate the parameter info for the procdef }
+         if not procdefinition.has_paraloc_info then
+           begin
+             paramanager.create_paraloc_info(procdefinition);
+             procdefinition.has_paraloc_info:=true;
+           end;
 
          iolabel:=nil;
          rg.saveunusedstate(unusedstate);
@@ -806,7 +814,7 @@ implementation
 {$ifdef i386}
               regs_to_push_other := all_registers;
 {$else i386}
-              regs_to_push_other := [];                
+              regs_to_push_other := [];
 {$endif i386}
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 {$ifdef i386}
@@ -923,7 +931,12 @@ implementation
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
 {$endif newra}
                    { free the resources allocated for the parameters }
-                   paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+                   paraitem:=tparaitem(procdefinition.para.first);
+                   while assigned(paraitem) do
+                     begin
+                       paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
+                       paraitem:=tparaitem(paraitem.next);
+                     end;
 
 {$ifdef newra}
                    for i:=first_supreg to last_supreg do
@@ -945,7 +958,12 @@ implementation
               else
                 begin
                  { free the resources allocated for the parameters }
-                  paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+                  paraitem:=tparaitem(procdefinition.para.first);
+                  while assigned(paraitem) do
+                    begin
+                      paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
+                      paraitem:=tparaitem(paraitem.next);
+                    end;
 
 {$ifdef newra}
                   for i:=first_supreg to last_supreg do
@@ -995,7 +1013,12 @@ implementation
 {$endif newra}
 
               { free the resources allocated for the parameters }
-              paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+              paraitem:=tparaitem(procdefinition.para.first);
+              while assigned(paraitem) do
+                begin
+                  paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
+                  paraitem:=tparaitem(paraitem.next);
+                end;
 
 {$ifdef newra}
               for i:=first_supreg to last_supreg do
@@ -1179,6 +1202,13 @@ implementation
          oldprocinfo:=current_procinfo;
          { we're inlining a procedure }
          inlining_procedure:=true;
+
+         { calculate the parameter info for the procdef }
+         if not procdefinition.has_paraloc_info then
+           begin
+             paramanager.create_paraloc_info(procdefinition);
+             procdefinition.has_paraloc_info:=true;
+           end;
 
          { deallocate the registers used for the current procedure's regvars }
          if assigned(current_procinfo.procdef.regvarinfo) then
@@ -1531,7 +1561,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-06-17 16:34:44  jonas
+  Revision 1.96  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.95  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

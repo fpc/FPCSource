@@ -80,7 +80,7 @@ unit paramgr;
           procedure freeintparaloc(list: taasmoutput; nr : longint); virtual; abstract;
 
 
-          {# allocate a parameter location created with create_param_loc_info
+          {# allocate a parameter location created with create_paraloc_info
 
             @param(list Current assembler list)
             @param(loc Parameter location)
@@ -94,19 +94,10 @@ unit paramgr;
           }
           procedure freeparaloc(list: taasmoutput; const loc: tparalocation); virtual;
 
-          {# free all parameters allocated with allocparaloc for a procedure
-
-            @param(list Current assembler list)
-            @param(paraitem First paraitem of the procedure)
-          }
-          procedure freeparalocs(list: taasmoutput; paraitem: tparaitem);
-
-
-
           {# This is used to populate the location information on all parameters
              for the routine. This is used for normal call resolution.
           }
-          procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
+          procedure create_paraloc_info(p : tabstractprocdef);virtual;abstract;
 
           {
             Returns the location where the invisible parameter for structured
@@ -133,7 +124,8 @@ unit paramgr;
 
             @param(def The definition of the result type of the function)
           }
-          function getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation; virtual;
+          function getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation;virtual;
+          procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
        end;
 
 
@@ -275,7 +267,7 @@ implementation
           LOC_REGISTER, LOC_CREGISTER:
             begin
 {$ifndef cpu64bit}
-              if (loc.size in [OS_64,OS_S64]) then
+              if (loc.size in [OS_64,OS_S64,OS_F64]) then
                 begin
                   rg.getexplicitregisterint(list,loc.registerhigh.number);
                   rg.getexplicitregisterint(list,loc.registerlow.number);
@@ -300,7 +292,7 @@ implementation
           LOC_REGISTER, LOC_CREGISTER:
             begin
 {$ifndef cpu64bit}
-              if (loc.size in [OS_64,OS_S64]) then
+              if (loc.size in [OS_64,OS_S64,OS_F64]) then
                 begin
                   rg.ungetregisterint(list,loc.registerhigh);
                   rg.ungetregisterint(list,loc.registerlow);
@@ -316,16 +308,6 @@ implementation
           else
             internalerror(200306091);
         end;
-      end;
-
-
-    procedure tparamanager.freeparalocs(list: taasmoutput; paraitem: tparaitem);
-      begin
-        while assigned(paraitem) do
-          begin
-            freeparaloc(list,paraitem.paraloc);
-            paraitem := tparaitem(paraitem.next);
-          end;
       end;
 
 
@@ -420,6 +402,37 @@ implementation
       end;
 
 
+    procedure tparamanager.splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);
+      begin
+        if not(locpara.size in [OS_64,OS_S64]) then
+          internalerror(200307023);
+        lochipara:=locpara;
+        loclopara:=locpara;
+        if locpara.size=OS_S64 then
+          lochipara.size:=OS_S32
+        else
+          lochipara.size:=OS_32;
+        loclopara.size:=OS_32;
+        case locpara.loc of
+           LOC_REGISTER,LOC_CREGISTER:
+             begin
+               loclopara.register:=locpara.registerlow;
+               lochipara.register:=locpara.registerhigh;
+             end;
+           LOC_REFERENCE:
+             begin
+               if target_info.endian=endian_big then
+                 inc(loclopara.reference.offset,4)
+               else
+                 inc(lochipara.reference.offset,4);
+             end;
+           else
+             internalerror(200307024);
+        end;
+      end;
+
+
+
 
 initialization
   ;
@@ -429,7 +442,11 @@ end.
 
 {
    $Log$
-   Revision 1.46  2003-06-17 16:32:03  peter
+   Revision 1.47  2003-07-02 22:18:04  peter
+     * paraloc splitted in callerparaloc,calleeparaloc
+     * sparc calling convention updates
+
+   Revision 1.46  2003/06/17 16:32:03  peter
      * allocpara/freepara 64bit support
 
    Revision 1.45  2003/06/13 21:19:30  peter

@@ -180,6 +180,11 @@ unit cgobj;
               second the destination
           }
 
+          { Copy a parameter to a (temporary) reference }
+          procedure a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);virtual;
+          { Copy a parameter to a register }
+          procedure a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);virtual;
+
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
           }
@@ -203,7 +208,7 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
 
           { fpu move instructions }
-          procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
+          procedure a_loadfpu_reg_reg(list: taasmoutput; size:tcgsize; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
           procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
           procedure a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
@@ -699,10 +704,56 @@ unit cgobj;
            internalerror(2003010901);
          if locpara.sp_fixup<>0 then
            cg.g_stackpointer_alloc(list,locpara.sp_fixup);
-         reference_reset(ref);
-         ref.base:=locpara.reference.index;
-         ref.offset:=locpara.reference.offset;
+         reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
          cg.g_concatcopy(list,r,ref,size,false,false);
+      end;
+
+
+    procedure tcg.a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);
+      begin
+        case locpara.loc of
+          LOC_CREGISTER,
+          LOC_REGISTER:
+            begin
+              if (locpara.size in [OS_S64,OS_64]) then
+                cg64.a_load64_reg_ref(list,locpara.register64,ref)
+              else
+                cg.a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
+            end;
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER:
+            cg.a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
+          else
+            internalerror(2002081302);
+        end;
+      end;
+
+
+    procedure tcg.a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);
+      var
+        href : treference;
+      begin
+        case locpara.loc of
+          LOC_CREGISTER,
+          LOC_REGISTER:
+            begin
+              if not(locpara.size in [OS_S64,OS_64]) then
+                cg.a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
+              else
+                internalerror(2003053011);
+            end;
+          LOC_CFPUREGISTER,
+          LOC_FPUREGISTER:
+            cg.a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
+          LOC_REFERENCE,
+          LOC_CREFERENCE:
+            begin
+              reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
+              cg.a_load_ref_reg(list,locpara.size,locpara.size,href,reg);
+            end;
+          else
+            internalerror(2003053010);
+        end
       end;
 
 
@@ -952,7 +1003,7 @@ unit cgobj;
           LOC_REFERENCE, LOC_CREFERENCE:
             a_loadfpu_ref_reg(list,loc.size,loc.reference,reg);
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            a_loadfpu_reg_reg(list,loc.register,reg);
+            a_loadfpu_reg_reg(list,loc.size,loc.register,reg);
           else
             internalerror(200203301);
         end;
@@ -966,7 +1017,7 @@ unit cgobj;
           LOC_REFERENCE, LOC_CREFERENCE:
             a_loadfpu_reg_ref(list,size,reg,loc.reference);
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            a_loadfpu_reg_reg(list,reg,loc.register);
+            a_loadfpu_reg_reg(list,size,reg,loc.register);
           else
             internalerror(48991);
          end;
@@ -982,7 +1033,7 @@ unit cgobj;
       begin
          case locpara.loc of
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
-              a_loadfpu_reg_reg(list,r,locpara.register);
+              a_loadfpu_reg_reg(list,size,r,locpara.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  if locpara.sp_fixup<>0 then
@@ -1716,7 +1767,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.112  2003-06-13 21:19:30  peter
+  Revision 1.113  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.112  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.111  2003/06/12 21:11:10  peter

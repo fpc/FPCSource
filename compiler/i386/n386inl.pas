@@ -179,7 +179,7 @@ implementation
                       ;
              LOC_CFPUREGISTER:
                begin
-                 cg.a_loadfpu_reg_reg(exprasmlist,
+                 cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,
                    left.location.register,location.register);
                end;
              LOC_REFERENCE,LOC_CREFERENCE:
@@ -347,7 +347,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-06-03 13:01:59  daniel
+  Revision 1.64  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.63  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.62  2003/06/01 21:38:06  peter

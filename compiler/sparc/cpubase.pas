@@ -530,9 +530,9 @@ uses
 
     const
       cond2str:array[TAsmCond] of string[3]=('',
-        'a','ae','b','be','c','e','g','ge','l','le','na','nae',
-        'nb','nbe','nc','ne','ng','nge','nl','nle','no','np',
-        'ns','nz','o','p','pe','po','s','z'
+        'gu','cc','cs','leu','cs','e','g','ge','l','le','leu','cs',
+        'cc','gu','cc','ne','le','l','ge','g','vc','XX',
+        'pos','ne','vs','XX','XX','XX','vs','e'
       );
 
       inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
@@ -542,12 +542,12 @@ uses
       );
 
     const
-      CondAsmOps=3;
+      CondAsmOps=1;
       CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(
-        A_FCMPd, A_JMPL, A_FCMPs
+        A_Bxx
       );
       CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
-        'FCMPd','JMPL','FCMPs'
+        'B'
       );
 
 {*****************************************************************************
@@ -676,7 +676,7 @@ type
          }
          sp_fixup : longint;
          case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference);
+            LOC_REFERENCE : (reference : tparareference; low_in_reg: boolean; lowreg : tregister);
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
               case longint of
@@ -767,8 +767,8 @@ type
 
       maxintregs = 8;
       intregs = [R_G0..R_I7];
-      usableregsint = [RS_O0..RS_I7];
-      c_countusableregsint = 24;
+      usableregsint = [RS_L0..RS_L7];
+      c_countusableregsint = 8;
 
       maxfpuregs = 8;
       fpuregs=[R_F0..R_F31];
@@ -785,8 +785,8 @@ type
       usableregsaddr = [];
       c_countusableregsaddr = 0;
 
-      firstsaveintreg = RS_O0;
-      lastsaveintreg = RS_I7;
+      firstsaveintreg = RS_G0; { L0..L7 are already saved, I0..O7 are parameter }
+      lastsaveintreg = RS_G7;
       firstsavefpureg = R_F0;
       lastsavefpureg = R_F31;
       firstsavemmreg = R_NO;
@@ -1051,7 +1051,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-06-17 16:34:44  jonas
+  Revision 1.44  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.43  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

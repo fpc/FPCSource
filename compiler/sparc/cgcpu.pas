@@ -44,6 +44,10 @@ interface
         procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;const LocPara:TParaLocation);override;
         procedure a_param_ref(list:TAasmOutput;sz:tcgsize;const r:TReference;const LocPara:TParaLocation);override;
         procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);override;
+        procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);override;
+        procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);override;
+        procedure a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);override;
+        procedure a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);override;
         procedure a_call_name(list:TAasmOutput;const s:string);override;
         procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
         { General purpose instructions }
@@ -59,7 +63,7 @@ interface
         procedure a_load_reg_reg(list:TAasmOutput;FromSize,ToSize:TCgSize;reg1,reg2:tregister);override;
         procedure a_loadaddr_ref_reg(list:TAasmOutput;const ref:TReference;r:tregister);override;
         { fpu move instructions }
-        procedure a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);override;
+        procedure a_loadfpu_reg_reg(list:TAasmOutput;size:tcgsize;reg1, reg2:tregister);override;
         procedure a_loadfpu_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);override;
         procedure a_loadfpu_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;const ref:TReference);override;
         { comparison operations }
@@ -253,16 +257,15 @@ implementation
             a_load_const_reg(list,size,a,locpara.register);
           LOC_REFERENCE:
             begin
-              reference_reset(ref);
-              ref.base:=locpara.reference.index;
-              ref.offset:=locpara.reference.offset;
+              { Code conventions need the parameters being allocated in %o6+92 }
+              if locpara.reference.offset<92 then
+                InternalError(2002081104);
+              reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
               a_load_const_ref(list,size,a,ref);
             end;
           else
             InternalError(2002122200);
         end;
-        if locpara.sp_fixup<>0 then
-          InternalError(2002122201);
       end;
 
 
@@ -273,17 +276,14 @@ implementation
       begin
         with LocPara do
           case loc of
-            LOC_REGISTER,LOC_CREGISTER:
+            LOC_REGISTER,LOC_CREGISTER :
               a_load_ref_reg(list,sz,sz,r,Register);
             LOC_REFERENCE:
               begin
-                { Code conventions need the parameters being allocated in %o6+92. See
-                  comment on g_stack_frame }
-                if locpara.sp_fixup<92 then
+                { Code conventions need the parameters being allocated in %o6+92 }
+                if locpara.reference.offset<92 then
                   InternalError(2002081104);
-                reference_reset(ref);
-                ref.base:=locpara.reference.index;
-                ref.offset:=locpara.reference.offset;
+                reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
 {$ifdef newra}
                 tmpreg:=rg.getregisterint(list,OS_INT);
 {$else}
@@ -296,17 +296,6 @@ implementation
 {$else}
                 free_scratch_reg(list,tmpreg);
 {$endif}
-              end;
-            LOC_FPUREGISTER,LOC_CFPUREGISTER:
-              begin
-                case sz of
-                  OS_32:
-                    a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
-                  OS_64:
-                    a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
-                else
-                  internalerror(2002072801);
-                end;
               end;
             else
               internalerror(2002081103);
@@ -343,6 +332,89 @@ implementation
           else
             internalerror(2002080701);
         end;
+      end;
+
+
+    procedure tcgsparc.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);
+      var
+        href : treference;
+      begin
+        tg.GetTemp(list,TCGSize2Size[size],tt_normal,href);
+        a_loadfpu_reg_ref(list,size,r,href);
+        a_paramfpu_ref(list,size,href,locpara);
+        tg.Ungettemp(list,href);
+      end;
+
+
+    procedure tcgsparc.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);
+      var
+        templocpara : tparalocation;
+      begin
+        { floats are pushed in the int registers }
+        templocpara:=locpara;
+        case locpara.size of
+          OS_F32 :
+            begin
+              templocpara.size:=OS_32;
+              a_param_ref(list,OS_32,ref,templocpara);
+            end;
+          OS_F64 :
+            begin
+              templocpara.size:=OS_64;
+              cg64.a_param64_ref(list,ref,templocpara);
+            end;
+          else
+            internalerror(200307021);
+        end;
+      end;
+
+
+    procedure tcgsparc.a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);
+      var
+        href,
+        tempref : treference;
+        templocpara : tparalocation;
+      begin
+        { Load floats like ints }
+        templocpara:=locpara;
+        case locpara.size of
+          OS_F32 :
+            templocpara.size:=OS_32;
+          OS_F64 :
+            templocpara.size:=OS_64;
+        end;
+        { Word 0 is in register, word 1 is in reference }
+        if (templocpara.loc=LOC_REFERENCE) and (templocpara.low_in_reg) then
+          begin
+            tempref:=ref;
+            cg.a_load_reg_ref(list,OS_INT,OS_INT,templocpara.register,tempref);
+            inc(tempref.offset,4);
+            reference_reset_base(href,templocpara.reference.index,templocpara.reference.offset);
+            cg.a_load_ref_ref(list,OS_INT,OS_INT,href,tempref);
+          end
+        else
+          inherited a_load_param_ref(list,templocpara,ref);
+      end;
+
+
+    procedure tcgsparc.a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);
+      var
+        href : treference;
+      begin
+        { Word 0 is in register, word 1 is in reference, not
+          possible to load it in 1 register }
+        if (locpara.loc=LOC_REFERENCE) and (locpara.low_in_reg) then
+          internalerror(200307011);
+        { Float load use a temp reference }
+        if locpara.size in [OS_F32,OS_F64] then
+          begin
+            tg.GetTemp(list,TCGSize2Size[locpara.size],tt_normal,href);
+            a_load_param_ref(list,locpara,href);
+            a_loadfpu_ref_reg(list,locpara.size,href,reg);
+            tg.Ungettemp(list,href);
+          end
+        else
+          inherited a_load_param_reg(list,locpara,reg);
       end;
 
 
@@ -559,9 +631,18 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);
+    procedure TCgSparc.a_loadfpu_reg_reg(list:TAasmOutput;size:tcgsize;reg1, reg2:tregister);
       begin
-        list.concat(taicpu.op_reg_reg(A_FMOVs,reg1,reg2));
+        if reg1.enum<>reg2.enum then
+          begin
+            list.concat(taicpu.op_reg_reg(A_FMOVs,reg1,reg2));
+            if size=OS_F64 then
+              begin
+                reg1.enum:=succ(reg1.enum);
+                reg2.enum:=succ(reg2.enum);
+                list.concat(taicpu.op_reg_reg(A_FMOVs,reg1,reg2));
+              end;
+          end;
       end;
 
 
@@ -702,7 +783,7 @@ implementation
       var
         ai:TAiCpu;
       begin
-        ai:=TAiCpu.Op_sym(A_BA,l);
+        ai:=TAiCpu.Op_sym(A_Bxx,l);
         ai.SetCondition(TOpCmp2AsmCond[cond]);
         list.Concat(ai);
         list.Concat(TAiCpu.Op_none(A_NOP));
@@ -713,7 +794,7 @@ implementation
       var
         ai:taicpu;
       begin
-        ai := Taicpu.op_sym(A_BA,l);
+        ai := Taicpu.op_sym(A_Bxx,l);
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         list.Concat(TAiCpu.Op_none(A_NOP));
@@ -727,7 +808,8 @@ implementation
       begin
         r.enum:=R_PSR;
         ai:=Taicpu.Op_reg_reg(A_RDPSR,r,reg);
-        ai.SetCondition(flags_to_cond(f));
+{$warning Need to retrieve the correct flag setting in reg}
+//        ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -746,7 +828,7 @@ implementation
           begin
             //r.enum:=R_CR7;
             //list.concat(taicpu.op_reg(A_MCRXR,r));
-            //a_jmp_cond(list,A_BA,C_OV,hl)
+            //a_jmp_cond(list,A_Bxx,C_OV,hl)
             a_jmp_always(list,hl)
           end
         else
@@ -1130,7 +1212,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-06-17 16:35:56  peter
+  Revision 1.61  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.60  2003/06/17 16:35:56  peter
     * a_loadaddr_ref_reg fixed
 
   Revision 1.59  2003/06/13 21:19:32  peter
@@ -1301,7 +1387,7 @@ end.
   word alignement modified in g_stack_frame
 
   Revision 1.10  2002/10/04 21:57:42  mazen
-  * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
+  * register allocation for parameters now done in cpupara
 
   Revision 1.9  2002/10/02 22:20:28  mazen
   + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5

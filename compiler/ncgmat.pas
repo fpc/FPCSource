@@ -208,7 +208,7 @@ implementation
           LOC_CFPUREGISTER:
             begin
                location.register:=rg.getregisterfpu(exprasmlist,location.size);
-               cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,location.register);
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,left.location.register,location.register);
                emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
             end;
           else
@@ -514,7 +514,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-06-07 18:57:04  jonas
+  Revision 1.15  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.14  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

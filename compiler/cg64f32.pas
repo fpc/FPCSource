@@ -33,7 +33,7 @@ unit cg64f32;
 
     uses
        aasmbase,aasmtai,aasmcpu,
-       cpuinfo, cpubase,
+       cpuinfo, cpubase,cpupara,
        cginfo, cgobj,
        node,symtype
 {$ifdef delphi}
@@ -96,8 +96,11 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,defutil,rgobj,tgobj;
+       symbase,symconst,symdef,defutil,rgobj,tgobj,paramgr;
 
+{****************************************************************************
+                                     Helpers
+****************************************************************************}
 
     function joinreg64(reglo,reghi : tregister) : tregister64;
       begin
@@ -105,19 +108,24 @@ unit cg64f32;
          result.reghi:=reghi;
       end;
 
-    procedure tcg64f32.a_reg_alloc(list : taasmoutput;r : tregister64);
 
+{****************************************************************************
+                                   TCG64F32
+****************************************************************************}
+
+    procedure tcg64f32.a_reg_alloc(list : taasmoutput;r : tregister64);
       begin
          list.concat(tai_regalloc.alloc(r.reglo));
          list.concat(tai_regalloc.alloc(r.reghi));
       end;
 
-    procedure tcg64f32.a_reg_dealloc(list : taasmoutput;r : tregister64);
 
+    procedure tcg64f32.a_reg_dealloc(list : taasmoutput;r : tregister64);
       begin
          list.concat(tai_regalloc.dealloc(r.reglo));
          list.concat(tai_regalloc.dealloc(r.reghi));
       end;
+
 
     procedure tcg64f32.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
       var
@@ -135,6 +143,7 @@ unit cg64f32;
         inc(tmpref.offset,4);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
+
 
     procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);
       var
@@ -224,12 +233,14 @@ unit cg64f32;
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reghi,regdst.reghi);
       end;
 
+
     procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
 
       begin
         cg.a_load_const_reg(list,OS_32,lo(value),reg.reglo);
         cg.a_load_const_reg(list,OS_32,hi(value),reg.reghi);
       end;
+
 
     procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64{$ifdef newra};delete :boolean{$endif});
 
@@ -288,7 +299,6 @@ unit cg64f32;
       end;
 
 
-
     procedure tcg64f32.a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
       var
         tmpref: treference;
@@ -317,6 +327,7 @@ unit cg64f32;
           end;
       end;
 
+
     procedure tcg64f32.a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
       var
         tmpref: treference;
@@ -331,6 +342,7 @@ unit cg64f32;
           end;
       end;
 
+
     procedure tcg64f32.a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
       var
         tmpref: treference;
@@ -344,6 +356,7 @@ unit cg64f32;
             cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg)
           end;
       end;
+
 
     procedure tcg64f32.a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
       begin
@@ -488,37 +501,14 @@ unit cg64f32;
       {$endif}
       end;
 
+
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       var
         tmplochi,tmploclo: tparalocation;
       begin
-        tmplochi:=locpara;
-        tmploclo:=locpara;
-        if locpara.size=OS_S64 then
-          tmplochi.size:=OS_S32
-        else
-          tmplochi.size:=OS_32;
-        tmploclo.size:=OS_32;
-        case locpara.loc of
-           LOC_REGISTER:
-             tmplochi.register:=tmplochi.registerhigh;
-           { !!! i386 doesn't pass proper locations here
-            so always take a loc_reference, since that's what it uses (JM)
-           LOC_REFERENCE:
-           }
-           else
-             if target_info.endian=endian_big then
-               inc(tmploclo.reference.offset,4)
-             else
-               inc(tmplochi.reference.offset,4);
-           {
-           else
-             internalerror(2003042702);
-           }
-        end;
-
-         cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
-         cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
+        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
+        cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
+        cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
       end;
 
 
@@ -526,30 +516,7 @@ unit cg64f32;
       var
         tmplochi,tmploclo: tparalocation;
       begin
-        tmplochi:=locpara;
-        tmploclo:=locpara;
-        if locpara.size=OS_S64 then
-          tmplochi.size:=OS_S32
-        else
-          tmplochi.size:=OS_32;
-        tmploclo.size:=OS_32;
-        case locpara.loc of
-           LOC_REGISTER:
-             tmplochi.register:=tmplochi.registerhigh;
-           { !!! i386 doesn't pass proper locations here
-            so always take a loc_reference, since that's what it uses (JM)
-           LOC_REFERENCE:
-           }
-           else
-             if target_info.endian=endian_big then
-               inc(tmploclo.reference.offset,4)
-             else
-               inc(tmplochi.reference.offset,4);
-           {
-           else
-             internalerror(2003042702);
-           }
-        end;
+        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
         cg.a_param_const(list,OS_32,hi(value),tmplochi);
         cg.a_param_const(list,OS_32,lo(value),tmploclo);
       end;
@@ -560,46 +527,13 @@ unit cg64f32;
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tparalocation;
       begin
+        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;
-        tmplochi:=locpara;
-        tmploclo:=locpara;
-        if locpara.size=OS_S64 then
-          tmplochi.size:=OS_S32
+        if target_info.endian=endian_big then
+          inc(tmpreflo.offset,4)
         else
-          tmplochi.size:=OS_32;
-        tmploclo.size:=OS_32;
-        case locpara.loc of
-           LOC_REGISTER:
-             begin
-                if target_info.endian=endian_big then
-                  inc(tmpreflo.offset,4)
-                else
-                  inc(tmprefhi.offset,4);
-                tmplochi.register:=tmplochi.registerhigh;
-             end;
-           { !!! i386 doesn't pass proper locations here
-            so always take a loc_reference, since that's what it uses (JM)
-           LOC_REFERENCE:
-           }
-           else
-             begin
-                if target_info.endian=endian_big then
-                  begin
-                    inc(tmpreflo.offset,4);
-                    inc(tmploclo.reference.offset,4);
-                  end
-                else
-                  begin
-                    inc(tmprefhi.offset,4);
-                    inc(tmplochi.reference.offset,4);
-                  end;
-             end
-           {
-           else
-             internalerror(2003042701);
-           }
-        end;
+          inc(tmprefhi.offset,4);
         cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
         cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
       end;
@@ -616,8 +550,8 @@ unit cg64f32;
           LOC_CREFERENCE,
           LOC_REFERENCE :
             a_param64_ref(list,l.reference,locpara);
-        else
-          internalerror(200203287);
+          else
+            internalerror(200203287);
         end;
       end;
 
@@ -904,7 +838,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-06-03 21:11:09  peter
+  Revision 1.48  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.47  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

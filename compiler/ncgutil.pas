@@ -820,12 +820,12 @@ implementation
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
       var
-        tempreference : treference;
         href : treference;
 {$ifdef i386}
+        tempreference : treference;
         hreg : tregister;
+        sizetopush : longint;
 {$endif i386}
-        sizetopush,
         size : longint;
         cgsize : tcgsize;
       begin
@@ -840,43 +840,40 @@ implementation
         { Handle Floating point types differently }
         if p.resulttype.def.deftype=floatdef then
          begin
-           case p.location.loc of
-             LOC_FPUREGISTER,
-             LOC_CFPUREGISTER:
-               begin
-{$ifdef i386}
-                  size:=align(tfloatdef(p.resulttype.def).size,alignment);
-                  inc(pushedparasize,size);
-
-                  if calloption<>pocall_inline then
-                   cg.g_stackpointer_alloc(list,size);
-{$ifdef GDB}
-                  if (cs_debuginfo in aktmoduleswitches) and
-                     (list.first=list.last) then
-                    list.concat(Tai_force_line.Create);
-{$endif GDB}
-
-                  { this is the easiest case for inlined !! }
-                  hreg.enum:=R_INTREGISTER;
-                  hreg.number:=NR_STACK_POINTER_REG;
-                  if calloption=pocall_inline then
-                   reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize)
-                  else
-                   reference_reset_base(href,hreg,0);
-
-                  cg.a_loadfpu_reg_ref(list,
-                    def_cgsize(p.resulttype.def),p.location.register,href);
-{$else i386}
-                  cg.a_paramfpu_reg(list,def_cgsize(p.resulttype.def),p.location.register,locpara);
-{$endif i386}
-
-               end;
-             LOC_REFERENCE,
-             LOC_CREFERENCE :
-               begin
-                 if locpara.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-                   cg.a_paramfpu_ref(list,def_cgsize(p.resulttype.def),p.location.reference,locpara)
+           if calloption=pocall_inline then
+             begin
+               size:=align(tfloatdef(p.resulttype.def).size,alignment);
+               inc(pushedparasize,size);
+               reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+               case p.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   cg.a_loadfpu_reg_ref(list,def_cgsize(p.resulttype.def),p.location.register,href);
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   cg.g_concatcopy(list,p.location.reference,href,size,false,false);
                  else
+                   internalerror(200204243);
+               end;
+             end
+           else
+             begin
+{$ifdef i386}
+               case p.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   begin
+                      size:=align(tfloatdef(p.resulttype.def).size,alignment);
+                      inc(pushedparasize,size);
+                      cg.g_stackpointer_alloc(list,size);
+                      hreg.enum:=R_INTREGISTER;
+                      hreg.number:=NR_STACK_POINTER_REG;
+                      reference_reset_base(href,hreg,0);
+                      cg.a_loadfpu_reg_ref(list,def_cgsize(p.resulttype.def),p.location.register,href);
+
+                   end;
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
                    begin
                      sizetopush:=align(p.resulttype.def.size,alignment);
                      tempreference:=p.location.reference;
@@ -897,19 +894,25 @@ implementation
                            dec(tempreference.offset,2);
                            dec(sizetopush,2);
                          end;
-                        if calloption=pocall_inline then
-                         begin
-                           reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                           cg.a_load_ref_ref(list,cgsize,cgsize,tempreference,href);
-                         end
-                        else
-                         cg.a_param_ref(list,cgsize,tempreference,locpara);
-                     end;
-                  end;
+                        cg.a_param_ref(list,cgsize,tempreference,locpara);
+                      end;
+                   end;
+                 else
+                   internalerror(200204243);
                end;
-             else
-               internalerror(200204243);
-           end;
+{$else i386}
+               case p.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   cg.a_paramfpu_reg(list,def_cgsize(p.resulttype.def),p.location.register,locpara);
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   cg.a_paramfpu_ref(list,def_cgsize(p.resulttype.def),p.location.reference,locpara)
+                 else
+                   internalerror(200204243);
+               end;
+{$endif i386}
+             end;
            location_release(list,p.location);
          end
         else
@@ -1565,44 +1568,15 @@ implementation
                      if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
                        internalerror(200301081);
                      if (tvarsym(hp.parasym).reg.enum<>R_NO) then
-                       case hp.paraloc.loc of
-                         LOC_CREGISTER,
-                         LOC_REGISTER:
-                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                           cg.a_load_reg_reg(list,hp.paraloc.size,hp.paraloc.size,hp.paraloc.register,tvarsym(hp.parasym).reg)
-                         else
-                           internalerror(2003053011);
-//                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
-                         LOC_CFPUREGISTER,
-                         LOC_FPUREGISTER:
-                           cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
-                         LOC_REFERENCE,
-                         LOC_CREFERENCE:
-                           begin
-                             reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                             cg.a_load_ref_reg(list,hp.paraloc.size,hp.paraloc.size,href,tvarsym(hp.parasym).reg);
-                           end;
-                         else
-                           internalerror(2003053010);
+                       begin
+                         cg.a_load_param_reg(list,hp.calleeparaloc,tvarsym(hp.parasym).reg);
                        end
-                     else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                     else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
                                                  LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
                              (tvarsym(hp.parasym).reg.enum=R_NO) then
                        begin
                          reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                         case hp.paraloc.loc of
-                           LOC_CREGISTER,
-                           LOC_REGISTER:
-                            if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.size,hp.paraloc.register,href)
-                            else
-                               cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
-                           LOC_FPUREGISTER,
-                           LOC_CFPUREGISTER:
-                             cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
-                           else
-                             internalerror(2002081302);
-                         end;
+                         cg.a_load_param_ref(list,hp.calleeparaloc,href);
                        end;
                      hp:=tparaitem(hp.next);
                    end;
@@ -2002,7 +1976,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2003-06-17 18:13:51  jonas
+  Revision 1.128  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.127  2003/06/17 18:13:51  jonas
     * fixed -dnewra compilation problems
 
   Revision 1.126  2003/06/17 16:32:44  peter

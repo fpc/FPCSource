@@ -980,7 +980,7 @@ implementation
             begin
                { "load st,st" is ignored by the code generator }
                r.enum:=R_ST;
-               cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,r);
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,left.location.register,r);
                location.register.enum:=R_ST;
                emit_none(A_FCHS,S_NO);
             end;
@@ -1094,7 +1094,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-06-13 21:19:31  peter
+  Revision 1.59  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.58  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.57  2003/06/03 21:11:09  peter

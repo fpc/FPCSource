@@ -161,10 +161,7 @@ unit cpugas;
         op:=taicpu(hp).opcode;
         { call maybe not translated to call }
         s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
-        { process operands }
-        s:=#9+std_op2str[op];
-        if taicpu(hp).ops>0
-        then
+        if taicpu(hp).ops>0 then
           begin
             s:=s+#9+getopstr(taicpu(hp).oper[0]);
             for i:=1 to taicpu(hp).ops-1 do
@@ -207,7 +204,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.19  2003-06-01 21:38:06  peter
+    Revision 1.20  2003-07-02 22:18:04  peter
+      * paraloc splitted in callerparaloc,calleeparaloc
+      * sparc calling convention updates
+
+    Revision 1.19  2003/06/01 21:38:06  peter
       * getregisterfpu size parameter added
       * op_const_reg size parameter added
       * sparc updates

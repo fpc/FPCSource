@@ -219,7 +219,6 @@ implementation
                        end;
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(tt.def));
-                      paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                     end;
                    if not skipequal then
                     begin
@@ -492,7 +491,6 @@ implementation
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
                      end;
-                    paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                   end;
                 objectdef,
                 recorddef :
@@ -633,7 +631,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-04-27 11:21:33  peter
+  Revision 1.68  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.67  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

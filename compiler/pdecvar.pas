@@ -346,7 +346,6 @@ implementation
                begin
                   newtype:=ttypesym.create('unnamed',tt);
                   parse_var_proc_directives(tsym(newtype));
-                  paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                   newtype.restype.def:=nil;
                   tt.def.typesym:=nil;
                   newtype.free;
@@ -602,7 +601,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-05-09 17:47:03  peter
+  Revision 1.48  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.47  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

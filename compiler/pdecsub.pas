@@ -2161,17 +2161,17 @@ const
            inc(aprocsym.overloadcount);
          end;
 
-        { recalculate the parameter info as the procdef
-          can be updated }
-        paramanager.create_param_loc_info(pd);
-
         proc_add_definition:=forwardfound;
       end;
 
 end.
 {
   $Log$
-  Revision 1.128  2003-06-13 21:19:31  peter
+  Revision 1.129  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.128  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.127  2003/06/05 20:04:43  peter

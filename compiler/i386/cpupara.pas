@@ -47,7 +47,7 @@ unit cpupara;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           function getparaloc(p : tdef) : tcgloc;
-          procedure create_param_loc_info(p : tabstractprocdef);override;
+          procedure create_paraloc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
        end;
 
@@ -132,26 +132,30 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_param_loc_info(p : tabstractprocdef);
+    procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef);
       var
         hp : tparaitem;
+        paraloc : tparalocation;
       begin
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
             if hp.paratyp in [vs_var,vs_out] then
-              hp.paraloc.size:=OS_ADDR
+              paraloc.size:=OS_ADDR
             else
-              hp.paraloc.size:=def_cgsize(hp.paratype.def);
-            hp.paraloc.loc:=LOC_REFERENCE;
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.loc:=LOC_REFERENCE;
             if assigned(current_procinfo) then
-              hp.paraloc.reference.index:=current_procinfo.framepointer
+              paraloc.reference.index:=current_procinfo.framepointer
             else
               begin
-                hp.paraloc.reference.index.enum:=R_INTREGISTER;
-                hp.paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
+                paraloc.reference.index.enum:=R_INTREGISTER;
+                paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
               end;
-            hp.paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+            paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+            hp.calleeparaloc:=paraloc;
+{$warning callerparaloc shall not be the same as calleeparaloc}
+            hp.callerparaloc:=paraloc;
             hp:=tparaitem(hp.next);
           end;
       end;
@@ -176,7 +180,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-06-17 16:34:19  peter
+  Revision 1.20  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.19  2003/06/17 16:34:19  peter
     * freeintparaloc added
 
   Revision 1.18  2003/06/07 18:57:04  jonas

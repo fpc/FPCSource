@@ -8,8 +8,7 @@ A_AND,A_ANDcc,A_ANDN,A_ADDNcc,
 {Branching instructions}
 A_JMPL,
 A_CALL,
-A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BL,A_BGU,A_BLEU,A_BCC,
-A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,
+A_BA,A_Bxx,
 A_FBN,A_FBU,A_FBG,A_FBUG,A_FBL,A_FBUL,A_FBLG,A_FBNE,
 A_FBE,A_FBUE,A_FBGE,A_FBUGE,A_FBLE,A_FBULE,A_FBO,A_FBA,
 A_CBccc,
@@ -63,13 +62,18 @@ A_cmp,
 A_dec,A_deccc,
 A_inc,A_inccc,
 A_MOV,
+A_NEG,
 A_not,
 A_set,
 A_skipz,A_skipnz,
 A_tst
 {
         $Log$
-        Revision 1.8  2003-06-01 21:38:07  peter
+        Revision 1.9  2003-07-02 22:18:04  peter
+          * paraloc splitted in callerparaloc,calleeparaloc
+          * sparc calling convention updates
+
+        Revision 1.8  2003/06/01 21:38:07  peter
           * getregisterfpu size parameter added
           * op_const_reg size parameter added
           * sparc updates

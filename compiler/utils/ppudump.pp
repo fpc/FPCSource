@@ -741,8 +741,6 @@ var
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
-  paraloclen : byte;
-  paraloc  : array[0..127] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -795,10 +793,6 @@ begin
      write  (space,'     Symbol : ');
      readderef;
      writeln(space,'  Is Hidden : ',(ppufile.getbyte<>0));
-     write  (space,'   Location : ');
-     writeln('<not yet implemented>');
-     paraloclen:=ppufile.getbyte;
-     ppufile.getdata(paraloc,paraloclen);
    end;
 end;
 
@@ -1951,7 +1945,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-06-25 18:31:23  peter
+  Revision 1.46  2003-07-02 22:18:04  peter
+    * paraloc splitted in callerparaloc,calleeparaloc
+    * sparc calling convention updates
+
+  Revision 1.45  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 
