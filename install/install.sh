@@ -103,6 +103,7 @@ echo Unpacking ...
 tar xf binary.tar
 echo Installing compiler and RTL ...
 unztar baselinux.tar.gz $PREFIX
+rm -f $EXECDIR/ppc386
 ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 if yesno "Install FCL"; then
     unztar unitsfcllinux.tar.gz $PREFIX
@@ -132,7 +133,7 @@ echo
 # Install the sources. Optional.
 if yesno "Install sources"; then
   echo Unpacking ...
-  tar xf source.tar
+  tar xf sources.tar
   echo Installing sources in $SRCDIR ...
   unztar basesrc.tar.gz $PREFIX
   if yesno "Install compiler source"; then
