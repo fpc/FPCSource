@@ -314,6 +314,14 @@ implementation
          end;
          if ppointerdef(p^.left^.resulttype)^.is_far then
           p^.location.reference.segment:=R_FS;
+         if not ppointerdef(p^.left^.resulttype)^.is_far and
+            (cs_gdb_heaptrc in aktglobalswitches) and
+            (cs_checkpointer in aktglobalswitches) then
+              begin
+                 exprasmlist^.concat(new(pai386,op_ref(
+                   A_PUSH,S_L,newreference(p^.location.reference))));
+                 emitcall('FPC_CHECKPOINTER',true);
+              end;
       end;
 
 
@@ -882,7 +890,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-05-12 00:19:44  peter
+  Revision 1.37  1999-05-17 14:14:14  pierre
+   + -gc for check pointer with heaptrc
+
+  Revision 1.36  1999/05/12 00:19:44  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
