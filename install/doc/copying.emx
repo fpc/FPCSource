@@ -1,0 +1,305 @@
+===============================================================================
+copying.emx       emx 0.9d     LICENSE                              19-Dec-1998
+===============================================================================
+                                     Copyright (c) 1990-1998 by Eberhard Mattes
+
+
+GNU General Public License (GPL)
+--------------------------------
+
+emx is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+emx is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with emx; see the file COPYING.  If not, write to
+the Free Software Foundation, 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+
+See \emx\doc\COPYING for details.
+
+
+Exceptions
+----------
+
+As a special exception, some parts of emx can be distributed without
+source code if and only if the code has not been modified and a notice
+is included where the source code can be obtained.  This special
+exception applies to the following files:
+
+  \emx\bin\emx.exe
+  \emx\bin\emxd.exe
+  \emx\dll\emx.dll
+  \emx\dll\emxio.dll
+
+When distributing modified copies of those files, the GPL applies
+without exceptions and you have to remove all references to this
+exception from the source code and the documentation.  You must not
+change the existing Copyright notice.  If you modify a source file, a
+notice to that effect must be added to the source file.
+
+As a special exception, if you bind emxl.exe or emx.exe to an
+executable file (using emxbind), this does not cause the resulting
+executable file to be covered by the GNU General Public License.  This
+exception does not however invalidate any other reasons why the
+executable file might be covered by the GNU General Public License.
+However, if you bind a modified copy of emxl.exe or emx.exe to
+an executable file (using emxbind), you have to include source code
+for emxl.exe or emx.exe, respectively.
+
+The emx libraries are not distributed under the GPL.  Linking an
+application with the emx libraries does not cause the executable to be
+covered by the GNU General Public License.  You are allowed to change
+and copy the emx library sources if you keep the copyright message
+intact.  If you improve the emx libraries, please send your
+enhancements to the emx author (you should copyright your enhancements
+similar to the existing emx libraries).  Of course, all this does not
+apply to the libraries which are distributed under the GPL or the GNU
+Library General Public License (LGPL, see \emx\doc\COPYING.LIB) or the
+BSD license (see \emx\doc\COPYING.BSD), such as termcap.a, gpp.a and
+curses.a.
+
+Code derived from code released by the University of California,
+Berkeley, is released under the terms of \emx\doc\COPYING.BSD.  This
+applies to the libraries `bsd', `btermcap', `curses', and `db'.
+
+There is also a special exception for the GNU standard C++ library,
+libstdc++, see \emx\doc\COPYING.SCP.  This applies to stdcpp.a and
+stdcpp.lib.
+
+You are allowed to use, copy, and change the programs in \emx\sample
+if you keep the copyright message intact.  The test programs in
+\emx\test are in the public domain.
+
+Permission is granted to make and distribute verbatim copies of the
+manuals written by Eberhard Mattes provided the copyright notice is
+preserved on all copies.  If you modify those manuals, a notice to
+that effect must be added to the manual.
+
+
+Summary
+-------
+
+1. Redistributing emx and GNU programs
+
+  If you redistribute emx and the GNU programs, you also have to
+  redistribute the source code:
+
+    emxdev1.zip, emxdev2.zip  ->  emxsrcd1.zip, emxsrcd2.zip
+    emxrt.zip                 ->  emxsrcr.zip
+    gnudev1.zip, gnudev2.zip  ->  gccsrc1.zip, gccsrc2.zip, gccsrc3.zip,
+                                  gdbsrc1.zip, gdbsrc2.zip, gnusrc.zip,
+                                  gbinusrc.zip
+    gnuinfo.zip               ->  gnusrc.zip
+    gppdev.zip                ->  gppsrc.zip, gccsrc1.zip, gccsrc2.zip,
+                                  gccsrc3.zip
+    gobjcdev.zip              ->  gccsrc1.zip, gccsrc2.zip, gccsrc3.zip
+
+2. Distributing applications
+
+  There are no copyright restrictions on applications created with the
+  emx tools and the GNU C compiler and linked with the emx libraries.
+  However, there are restrictions for applications linked with GNU or
+  BSD libraries.
+
+3. Distributing the emx runtime package
+
+  If you distribute emxrt.zip, you also have to redistribute
+  emxsrcr.zip.  If you electronically distribute an application which
+  requires the emx runtime package, I recommend putting a pointer to
+  emxrt.zip into the documentation instead of distributing emxrt.zip.
+  That way, users usually get the latest version of emxrt.zip.
+
+4. Distributing applications and emx.dll, emxio.dll and emx.exe
+
+  For small programs, redistributing emxrt.zip may be inconvenient.
+  You are allowed to distribute emx.dll, emxio.dll, and emx.exe with
+  your application as long as emx.dll, emxio.dll, and emx.exe have not
+  been modified.  You should include a notice in the documentation
+  which tells users where they can get the complete emx package.
+
+  Note that you can create stand-alone OS/2 applications (using the
+  -Zomf -Zsys options of GCC) which do not need emx.dll.
+
+5. Distributing modified copies
+
+  If you modify an emx tool, the GPL will apply without exception,
+  that is, you have to include full source code.  See COPYING for
+  details.  If you distribute a modified emx.dll, please choose
+  another name for the DLL to avoid compatibility problems.  For
+  instance, if someone adds feature A to emx.dll, and someone else
+  adds feature B to emx.dll, programs using feature A cannot be run
+  simultaneously with programs using feature B because only one
+  instance of any DLL can be active (either feature A or feature B
+  will be present, but not both).  If the DLLs are named emx_a.dll and
+  emx_b.dll, that problem does not arise.  The -E option of emxbind
+  selects the name of the emx DLL to use.
+
+
+Copyright
+---------
+
+The emx runtime and the emx development tools are
+
+    Copyright (c) 1990-1996 by Eberhard Mattes.
+
+emxfpemu (originally known as wm-FPU-emu) is
+
+    Copyright (c) 1992-1994 by W. Metzenthen.
+
+The emx C library is
+
+    Copyright (c) 1990-1996 by Eberhard Mattes
+    Copyright (c) 1991-1993 by Kolja Elsaesser
+    Copyright (c) 1992-1993 by Steffen Haecker
+    Copyright (c) 1992-1996 by Kai Uwe Rommel
+    [...this place is reserved for your name...]
+
+The emx graphics library, the emx video library and the emx OMFLIB
+library are
+
+    Copyright (c) 1987-1996 by Eberhard Mattes
+
+DUEL has been written by Michael Golan and is in the public domain.
+
+The GNU programs and libraries, including GCC, GAS, GDB, and libg++,
+are
+
+    Copyright (c) by Free Software Foundation, Inc.
+
+The curses library (curses.a), the BSD C library (bsd.a), the BSD
+database library (db.a), and the BSD termcap library (btermcap.a) are
+
+    Copyright (c) by University of California, Berkeley
+
+
+Files
+-----
+
+This is an incomplete overview over the executables and libraries.  It
+is provided for your convenience only.  If the information in the
+source code contradicts this table, the information in the source code
+takes precedence.
+
+For .lib and .obj files, see the corresponding .a and .o file,
+respectively.
+
+File                    | License       | Copyright owner     | Source ZIP
+------------------------+---------------+---------------------+------------
+\emx\bin\ar.exe         | GPL           | FSF                 | gbinusrc
+\emx\bin\as.exe         | GPL           | FSF                 | gbinusrc
+\emx\bin\cc1.exe        | GPL           | FSF                 | gccsrc[123]
+\emx\bin\cc1obj.exe     | GPL           | FSF                 | gccsrc[123]
+\emx\bin\cc1plus.exe    | GPL           | FSF                 | gccsrc[123]
+\emx\bin\cpp.exe        | GPL           | FSF                 | gccsrc[123]
+\emx\bin\emx.exe        | GPL+          | em                  | emxsrcr
+\emx\bin\emxbind.exe    | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxcat.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxd.exe       | GPL+          | em                  | emxsrcr
+\emx\bin\emxdoc.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxexp.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxfpemu       | GPL           | W. Metzenthen       | emxsrcr
+\emx\bin\emxaout.exe    | GPL           | em                  | emxsrcd[12]
+\emx\bin\emximp.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxinst.cmd    | GPL           | em                  | emxdev[12]
+\emx\bin\emxl.exe       | GPL+          | em                  | emxsrcr
+\emx\bin\emxload.exe    | GPL           | em                  | emxsrcr
+\emx\bin\emxomf.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxomfar.exe   | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxomfld.exe   | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxrev.cmd     | GPL           | em                  | emxrt
+\emx\bin\emxstack.exe   | GPL           | em                  | emxsrcr
+\emx\bin\emxtsf.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\emxupd.exe     | GPL           | em                  | emxsrcd[12]
+\emx\bin\gasp.exe       | GPL           | FSF                 | gbinusrc
+\emx\bin\gcc.exe        | GPL           | FSF                 | gccsrc[123]
+\emx\bin\gdb.exe        | GPL           | FSF                 | gdbsrc[12]
+\emx\bin\gprof.exe      | BSD           | UCB                 | gbinusrc
+\emx\bin\info.exe       | GPL           | FSF                 | gnusrc
+\emx\bin\ld.exe         | GPL           | FSF                 | gbinusrc
+\emx\bin\listomf.exe    | GPL           | em                  | emxsrcd[12]
+\emx\bin\makeinfo.exe   | GPL           | FSF                 | gnusrc
+\emx\bin\nm.exe         | GPL           | FSF                 | gbinusrc
+\emx\bin\objdump.exe    | GPL           | FSF                 | gbinusrc
+\emx\bin\pmgdb.exe      | GPL           | em                  | emxsrcd[12]
+\emx\bin\size.exe       | GPL           | FSF                 | gbinusrc
+\emx\bin\strip.exe      | GPL           | FSF                 | gbinusrc
+\emx\bin\texi2dvi.cmd   | GPL           | em                  | gnuinfo
+\emx\bin\texindex.exe   | GPL           | FSF                 | gnusrc
+\emx\bin\touch.exe      | GPL           | em                  | emxsrcd[12]
+\emx\bin\updt.exe       | GPL           | em                  | emxsrcd[12]
+\emx\dll\emx.dll        | GPL+          | em                  | emxsrcr
+\emx\dll\emxio.dll      | GPL+          | em                  | emxsrcr
+\emx\dll\emxlibc.dll    | emx-lib       | em                  | emxsrcd[12]
+\emx\dll\emxlibcm.dll   | emx-lib       | em and contributors | emxsrcd[12]
+\emx\dll\emxlibcs.dll   | emx-lib       | em and contributors | emxsrcd[12]
+\emx\dll\emxwrap.dll    | emx-lib       | em and contributors | emxsrcd[12]
+\emx\dll\gppdemid.dll   | GPL           | FSF, em             | gnusrc
+\emx\lib\bsd.a          | BSD           | UCB                 | bsdsrc
+\emx\lib\btermcap.a     | BSD           | UCB                 | bsdsrc
+\emx\lib\c_alias.a      | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\c_static.a     | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\curses.a       | BSD           | UCB                 | bsdsrc
+\emx\lib\db.a           | BSD           | UCB                 | bsdsrc
+\emx\lib\emx2.a         | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\emxio.a        | emx-lib       | em                  | emxsrcr
+\emx\lib\g.a            | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\gcc.a          | emx-lib, GPL+ | em, FSF             | emxsrcd[12]
+\emx\lib\gcc_p.a        | emx-lib, GPL+ | em, FSF             | emxsrcd[12]
+\emx\lib\gpp.a          | LGPL          | FSF                 | gppsrc
+\emx\lib\graph.a        | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\m.a            | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\moddef.a       | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\omflib.a       | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\os2.a          | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\os2_p.a        | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\regexp.a       | regexp        | Henry Spencer       | emxsrcd[12]
+\emx\lib\socket.a       | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\stdpp.a        | GPL+          | FSF                 | gppsrc
+\emx\lib\termcap.a      | GPL           | FSF                 | gnusrc
+\emx\lib\tmalloc.a      | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\video.a        | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\wrap.a         | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\c.a         | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\c_app.a     | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\c_dllrt.a   | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\c_dllso.lib | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\c_import.a  | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\mt\emx.a       | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\mt\malloc1.a   | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\mt\objc.a      | GPL+          | FSF                 | gccsrc[123]
+\emx\lib\mt\sys.lib     | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\st\c.a         | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\check.a     | GPL           | Richard W.M. Jones  | gccsrc[123]
+\emx\lib\st\c_app.a     | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\c_app_p.a   | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\c_dllrt.a   | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\c_dllso.lib | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\c_import.a  | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\c_p.a       | emx-lib       | em and contributors | emxsrcd[12]
+\emx\lib\st\emx.a       | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\st\malloc1.a   | emx-lib       | em                  | emxsrcd[12]
+\emx\lib\st\objc.a      | GPL+          | FSF                 | gccsrc[123]
+\emx\lib\st\sys.lib     | emx-lib       | em                  | emxsrcd[12]
+
+
+Legend:
+
+BSD     BSD license (see \emx\doc\COPYING.BSD)
+em      Eberhard Mattes
+emx-lib emx library, see above
+FSF     Free Software Foundation, Inc
+GPL     GNU General Public License (\emx\doc\COPYING)
+GPL+    GPL with special exceptions
+LGPL    GNU Library General Public License (\emx\doc\COPYING.LIB)
+regexp  see \emx\src\regexp\COPYRIGH
+UCB     University of California, Berkeley
+
+
+------------------------- END OF COPYING.EMX -------------------------------
