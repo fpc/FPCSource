@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="emu387">
+<short>Load coprocessor emulation support</short>
+<descr>
+<p>
+The <file>emu387</file> unit was written by Pierre Mueller for dos. It
+sets up the coprocessor emulation for FPC under dos. It is not necessary to
+use this unit on other OS platforms because they either simply do not run on 
+a machine without coprocessor, or they provide the coprocessor emulation 
+themselves.
+</p>
+<p>
+It shouldn't be necessary to use the function in this unit, it should be
+enough to place this unit in the <var>uses</var> clause of your program to
+enable the coprocessor emulation under dos. The unit initialization
+code will try and load the coprocessor emulation code and initialize it.
+</p>
+</descr>
+
+<element name="npxsetup">
+<short>Set up coprocessor emulation.</short>
+<descr>
+<p>
+<var>npxsetup</var> checks whether a coprocessor is found. If not, it loads the 
+file <file>wmemu387.dxe</file> into memory and initializes the code in it.
+</p>
+<p>
+If the environment variable <var>387</var> is set to <var>N</var>, then the emulation
+will be loaded, even if there is a coprocessor present. If the variable
+doesn't exist, or is set to any other value, the unit will try to detect 
+the presence of a coprocessor unit.
+</p>
+<p>
+The function searches the file <file>wmemu387.dxe</file> in the following way:
+</p>
+<ol>
+<li> If the environment variable <var>EMU387</var> is set, then it is assumed
+to point at the <file>wmemu387.dxe</file> file.
+</li>
+<li> if the environment variable <var>EMU387</var> does not exist, then the 
+function will take the path part of  <var>prog_name</var> and look in that
+directory for the file <file>wmemu387.dxe</file>.
+</li>
+</ol>
+<p>
+It should never be necessary to call this function, because the
+initialization code of the unit contains a call to the function with
+as an argument <var>paramstr(0)</var>. This means that you should deliver the
+file <var>wmemu387.dxe</var> together with your program.
+</p>
+</descr>
+<errors>
+If there is an error, an error message is printed to standard error, and
+the program is halted, since any floating-point code is bound to fail anyhow.
+</errors>
+</element>
+</module>
+</package>
+</fpdoc-descriptions>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="dxeload">
+<short>Load DXE file in to memory</short>
+<descr>
+<p>
+The <file>dxeload</file> unit was implemented by Pierre M\"uller for dos,
+it allows to load a DXE file (an object file with 1 entry point)
+into memory and return a pointer to the entry point.
+</p>
+<p>
+It exists only for dos.
+</p>
+</descr>
+
+<element name="DXE_MAGIC">
+<short> Magic number, found in the header of a DXE file.</short>>
+</element>
+
+<element name="dxe_header">
+<short>Record with header of DXE file</short>
+<descr>
+The <var>dxe_header</var> record describes the header of a DXE file. It is used to
+determine the magic number of the DXE file and number of relocations that 
+must be done when the object file is loaded in memory.
+</descr>
+</element>
+
+<element name="dxe_load">
+<short>Load DXE file in memory</short>
+<descr>
+<p>
+<var>dxe_load</var> loads the contents of the file <var>filename</var> into memory.
+It performs the necessary relocations in the object code, and returns then
+a pointer to the entry point of the code.
+</p>
+<p>
+For an example, see the <link id="#rtl.emu387">emu387</link> unit in the RTL.
+</p>
+</descr>
+<errors>
+If an error occurs during the load or relocations, <var>Nil</var> is returned.
+</errors>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
