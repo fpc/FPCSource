@@ -1664,7 +1664,7 @@ begin
   def_symbol('HASWIDECHAR');
   def_symbol('HASWIDESTRING');
   def_symbol('HASOUT');
-  { for now, the PowerPC doesn't support variants and interfaces }
+  def_symbol('HASGLOBALPROPERTY');
 {$ifdef i386}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -1989,7 +1989,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.116  2003-12-10 01:54:44  florian
+  Revision 1.117  2003-12-11 18:15:06  florian
+    * HASGLOBALPROPERTY define introduce
+
+  Revision 1.116  2003/12/10 01:54:44  florian
     * variants and interfaces on powerpc released
 
   Revision 1.115  2003/11/11 21:10:34  peter
