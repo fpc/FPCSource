@@ -3469,12 +3469,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
   end;
 
 
-  procedure handle_return_value(inlined : boolean);
+  procedure handle_return_value(inlined : boolean;var uses_eax,uses_edx : boolean);
     var
        hr : preference;
        op : Tasmop;
        s : Topsize;
   begin
+      uses_eax:=false;
+      uses_edx:=false;
       if procinfo^.returntype.def<>pdef(voiddef) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
@@ -3487,12 +3489,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
               if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
                 begin
+                  uses_eax:=true;
                   case procinfo^.returntype.def^.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                         hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset+4);
                         emit_ref_reg(A_MOV,S_L,hr,R_EDX);
+                        uses_edx:=true;
                      end;
 
                    4:
@@ -3507,7 +3511,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 end
               else
                 if ret_in_acc(procinfo^.returntype.def) then
-                  emit_ref_reg(A_MOV,S_L,hr,R_EAX)
+                  begin
+                    uses_eax:=true;
+                    emit_ref_reg(A_MOV,S_L,hr,R_EAX);
+                  end
               else
                  if (procinfo^.returntype.def^.deftype=floatdef) then
                    begin
@@ -3529,6 +3536,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif GDB}
        nofinal,okexitlabel,noreraiselabel,nodestroycall : pasmlabel;
        hr : treference;
+       uses_eax,uses_edx,uses_esi : boolean;
        oldexprasmlist : paasmoutput;
        ai : paicpu;
        pd : pprocdef;
@@ -3675,9 +3683,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        end;
 
       { handle return value }
+      uses_eax:=false;
+      uses_edx:=false;
+      uses_esi:=false;
       if not(po_assembler in aktprocsym^.definition^.procoptions) then
           if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
-            handle_return_value(inlined)
+            handle_return_value(inlined,uses_eax,uses_edx)
           else
               begin
                   { successful constructor deletes the zero flag }
@@ -3707,6 +3718,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
                   emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
                   emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
+                  uses_eax:=true;
+                  uses_esi:=true;
               end;
 
       { stabs uses the label also ! }
@@ -3737,7 +3750,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
       if (po_saveregisters in aktprocsym^.definition^.procoptions) then
         begin
-          exprasmlist^.concat(new(paicpu,op_none(A_POPA,S_L)));
+          if uses_esi then
+            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,4))));
+          if uses_edx then
+            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,20))));
+          if uses_eax then
+            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,28))));
+          exprasmlist^.concat(new(paicpu,op_none(A_POPA,S_L)))
         end;
       if not(nostackframe) then
         begin
@@ -3919,7 +3938,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.99  2000-04-28 08:53:47  pierre
+  Revision 1.100  2000-05-04 09:29:31  pierre
+   * saveregisters now does not overwrite registers used as return value for functions
+
+  Revision 1.99  2000/04/28 08:53:47  pierre
    * fix my last fix for other targets then win32
 
   Revision 1.98  2000/04/26 10:03:45  pierre
