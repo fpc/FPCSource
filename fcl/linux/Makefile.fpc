@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets html
+units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets http
 rst=ssockets cachecls
 
 [defaults]
