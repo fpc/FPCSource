@@ -83,7 +83,7 @@ unit aasm;
 {$ifdef GDB}
                    ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
-                   ,ait_regalloc, ait_tempalloc
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end
   ];
 
 
@@ -1050,7 +1050,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.80  2000-02-29 23:55:53  pierre
+  Revision 1.81  2000-04-10 12:21:33  jonas
+    * added ait_symbol_end to SkipInstr
+
+  Revision 1.80  2000/02/29 23:55:53  pierre
    + InlineStat and InlineEnd amrker added
 
   Revision 1.79  2000/02/28 17:23:56  daniel
