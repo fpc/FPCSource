@@ -115,7 +115,7 @@ var
   Errno : longint;
 
 { Include syscall itself }
-{$i syscall.inc}
+{$i syscallo.inc}
 
 Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint;
 type
@@ -382,7 +382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2002-10-31 13:45:21  carl
+  Revision 1.6  2002-11-11 21:41:06  marco
+   * syscall.inc -> syscallo.inc
+
+  Revision 1.5  2002/10/31 13:45:21  carl
     * threadvar.inc -> threadvr.inc
 
   Revision 1.4  2002/10/26 18:27:52  marco
