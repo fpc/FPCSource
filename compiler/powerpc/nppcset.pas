@@ -78,7 +78,7 @@ implementation
             else
               begin
                 tmpreg := cg.getintregister(exprasmlist,OS_INT);
-                 cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
+                 cg.a_load_const_reg(exprasmlist,OS_INT,value,tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
               end;
@@ -156,7 +156,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-09-25 14:23:55  peter
+  Revision 1.16  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.15  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

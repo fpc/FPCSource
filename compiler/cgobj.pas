@@ -409,14 +409,14 @@ unit cgobj;
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_save_standard_registers(list:Taasmoutput);virtual;abstract;
+          procedure g_save_standard_registers(list:Taasmoutput);virtual;
           {# This routine is called when generating the code for the exit point
              of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_restore_standard_registers(list:Taasmoutput);virtual;abstract;
+          procedure g_restore_standard_registers(list:Taasmoutput);virtual;
        end;
 
 {$ifndef cpu64bit}
@@ -500,7 +500,7 @@ implementation
     uses
        globals,options,systems,
        verbose,defutil,paramgr,
-       tgobj,cutils,
+       tgobj,cutils,procinfo,
        cgutils;
 
     const
@@ -1916,6 +1916,57 @@ implementation
       end;
 
 
+    procedure tcg.g_save_standard_registers(list:Taasmoutput);
+      var
+        href : treference;
+        size : longint;
+        r : integer;
+      begin
+        { Get temp }
+        size:=0;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            inc(size,sizeof(aint));
+        if size>0 then
+          begin
+            tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            { Copy registers to temp }
+            href:=current_procinfo.save_regs_ref;
+
+            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+              begin
+                if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+                  begin
+                    a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),href);
+                    inc(href.offset,sizeof(aint));
+                  end;
+                include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
+              end;
+          end;
+      end;
+
+
+    procedure tcg.g_restore_standard_registers(list:Taasmoutput);
+      var
+        href : treference;
+        r : integer;
+        hreg : tregister;
+      begin
+        { Copy registers from temp }
+        href:=current_procinfo.save_regs_ref;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              { Allocate register so the optimizer does remove the load }
+              a_reg_alloc(list,hreg);
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
+              inc(href.offset,sizeof(aint));
+            end;
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+      end;
+
+
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
@@ -2027,7 +2078,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.181  2004-10-24 20:01:08  peter
+  Revision 1.182  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.181  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.180  2004/10/24 11:44:28  peter

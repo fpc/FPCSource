@@ -309,22 +309,12 @@ uses
                 1 : (register,registerhigh : tregister);
                 { overlay a registerlow }
                 2 : (registerlow : tregister);
+{$ifndef cpu64bit}
                 { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
+                3 : (register64 : tregister64);
+{$endif cpu64bit}
             );
       end;
-
-      treglocation = packed record
-        case longint of
-          1 : (register,registerhigh : tregister);
-          { overlay a registerlow }
-          2 : (registerlow : tregister);
-          { overlay a 64 Bit register type }
-          3 : (reg64 : tregister64);
-          4 : (register64 : tregister64);
-       end;
-
 
       tlocation = packed record
          size : TCGSize;
@@ -333,19 +323,21 @@ uses
             LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
             LOC_CONSTANT : (
               case longint of
-{$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : AWord);
-{$else FPC_BIG_ENDIAN}
-                1 : (value : AWord);
-{$endif FPC_BIG_ENDIAN}
-                2 : (value64 : int64);
+                1 : (value : AInt);
+                { can't do this, this layout depends on the host cpu. Use }
+                { lo(valueqword)/hi(valueqword) instead (JM)              }
+                { overlay a complete 64 Bit value }
+                2 : (value64 : Int64);
               );
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
                 case longint of
                   1 : (registerlow,registerhigh : tregister);
                   2 : (register : tregister);
-                  4 : (register64 : tregister64);
+{$ifndef cpu64bit}
+                  { overlay a 64 Bit register type }
+                  3 : (register64 : tregister64);
+{$endif cpu64bit}
                 );
             LOC_FLAGS : (resflags : tresflags);
       end;
@@ -444,7 +436,11 @@ uses
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [RS_R13..RS_R29];
+      saved_standard_registers : array[0..16] of tsuperregister = (
+        RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+        RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29
+      );
+
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -641,7 +637,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2004-06-20 08:55:32  florian
+  Revision 1.90  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.89  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.88  2004/06/17 16:55:46  peter

@@ -310,8 +310,7 @@ uses
                 { overlay a registerlow }
                 2 : (registerlow : tregister);
                 { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
+                3 : (register64 : tregister64);
               );
             { it's only for better handling }
             LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
@@ -540,7 +539,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2004-10-15 09:22:23  mazen
+  Revision 1.48  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.47  2004/10/15 09:22:23  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

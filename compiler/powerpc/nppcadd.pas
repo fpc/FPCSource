@@ -215,7 +215,7 @@ interface
                 useconst := false;
                 tmpreg := cg.getintregister(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,
-                  aword(right.location.value),tmpreg);
+                    right.location.value,tmpreg);
                end
           end
         else
@@ -361,7 +361,7 @@ interface
                       location.register)
                   else
                     cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                      aword(right.location.value),left.location.register,
+                      right.location.value,left.location.register,
                       location.register);
                 end;
             end;
@@ -524,7 +524,7 @@ interface
                    internalerror(43244);
                   if (right.location.loc = LOC_CONSTANT) then
                     cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
-                      aword(1 shl aword(right.location.value)),
+                      1 shl right.location.value,
                       left.location.register,location.register)
                   else
                     begin
@@ -537,7 +537,7 @@ interface
                           left.location.register,location.register)
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
-                          aword(left.location.value),tmpreg,location.register);
+                          left.location.value,tmpreg,location.register);
                     end;
                   opdone := true;
                 end
@@ -569,7 +569,7 @@ interface
                     begin
                       tmpreg := cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
-                        aword(left.location.value),tmpreg);
+                        left.location.value,tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
                     end
@@ -607,7 +607,7 @@ interface
                   if right.location.loc = LOC_CONSTANT then
                     begin
                       cg.a_load_const_reg(exprasmlist,OS_INT,
-                        aword(right.location.value),tmpreg);
+                        right.location.value,tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                         tmpreg,left.location.register));
                     end
@@ -630,7 +630,7 @@ interface
               swapleftright;
             if (right.location.loc = LOC_CONSTANT) then
               cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                aword(right.location.value),left.location.register,
+                right.location.value,left.location.register,
                 location.register)
             else
               cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,
@@ -839,7 +839,7 @@ interface
                         end
                       else
                         begin
-                          if (aword(right.location.value64) <> 0) then
+                          if (aint(right.location.value64) <> 0) then
                             tempreg64.reglo := cg.getintregister(exprasmlist,OS_32)
                           else
                             tempreg64.reglo := left.location.registerlow;
@@ -849,28 +849,28 @@ interface
                             tempreg64.reghi := left.location.registerhigh;
                         end;
 
-                      if (aword(right.location.value64) <> 0) then
+                      if (aint(right.location.value64) <> 0) then
                         { negative values can be handled using SUB, }
                         { positive values < 65535 using XOR.        }
                         if (longint(right.location.value64) >= -32767) and
                            (longint(right.location.value64) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.value64),
+                            aint(right.location.value64),
                             left.location.registerlow,tempreg64.reglo)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.value64),
+                            aint(right.location.value64),
                             left.location.registerlow,tempreg64.reglo);
 
                       if ((right.location.value64 shr 32) <> 0) then
                         if (longint(right.location.value64 shr 32) >= -32767) and
                            (longint(right.location.value64 shr 32) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.value64 shr 32),
+                            aint(right.location.value64 shr 32),
                             left.location.registerhigh,tempreg64.reghi)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.value64 shr 32),
+                            aint(right.location.value64 shr 32),
                             left.location.registerhigh,tempreg64.reghi);
                     end
                   else
@@ -943,7 +943,7 @@ interface
                           // consts16 - reg64
                           exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                             location.registerlow,right.location.registerlow,
-                            aword(left.location.value)));
+                            left.location.value));
                         end
                       else
                         begin
@@ -957,7 +957,7 @@ interface
                       exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
                         location.registerhigh,right.location.registerhigh));
                     end
-                  else if (aword(left.location.value64) = 0) then
+                  else if (aint(left.location.value64) = 0) then
                     begin
                       // (const32 shl 32) - reg64
                       if (location.registerlow = NR_NO) then
@@ -1359,7 +1359,7 @@ interface
                        location.register)
                    else
                      cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                       aword(right.location.value),left.location.register,
+                       right.location.value,left.location.register,
                      location.register);
                  end;
                subn:
@@ -1373,7 +1373,7 @@ interface
                          location.register)
                      else
                        cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                         aword(right.location.value),left.location.register,
+                         right.location.value,left.location.register,
                          location.register)
                    else
                      if (longint(left.location.value) >= low(smallint)) and
@@ -1387,7 +1387,7 @@ interface
                        begin
                          tmpreg := cg.getintregister(exprasmlist,OS_INT);
                          cg.a_load_const_reg(exprasmlist,OS_INT,
-                           aword(left.location.value),tmpreg);
+                           left.location.value,tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
                        end;
@@ -1458,7 +1458,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2004-09-25 14:23:54  peter
+  Revision 1.50  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.49  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -126,7 +126,7 @@ implementation
              { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
              { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
              { the addze instruction, q = -3, the correct quotient.          }
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,aword(power),
+             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,power,
                numerator,resultreg);
              exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE,resultreg,resultreg));
            end
@@ -187,7 +187,7 @@ implementation
          hregisterhigh,hregisterlow : tregister;
          op : topcg;
          asmop1, asmop2: tasmop;
-         shiftval: aword;
+         shiftval: aint;
          r : Tregister;
 
       begin
@@ -521,7 +521,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-09-25 14:23:55  peter
+  Revision 1.41  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.40  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

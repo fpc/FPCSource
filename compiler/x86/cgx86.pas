@@ -109,8 +109,6 @@ unit cgx86;
         procedure g_profilecode(list : taasmoutput);override;
         procedure g_stackpointer_alloc(list : taasmoutput;localsize : longint);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
-        procedure g_save_standard_registers(list:Taasmoutput);override;
-        procedure g_restore_standard_registers(list:Taasmoutput);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);override;
 
@@ -1599,57 +1597,6 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.g_save_standard_registers(list:Taasmoutput);
-      var
-        href : treference;
-        size : longint;
-        r : integer;
-      begin
-        { Get temp }
-        size:=0;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
-            inc(size,sizeof(aint));
-        if size>0 then
-          begin
-            tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
-            { Copy registers to temp }
-            href:=current_procinfo.save_regs_ref;
-
-            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-              begin
-                if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
-                  begin
-                    a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),href);
-                    inc(href.offset,sizeof(aint));
-                  end;
-                include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
-              end;
-          end;
-      end;
-
-
-    procedure tcgx86.g_restore_standard_registers(list:Taasmoutput);
-      var
-        href : treference;
-        r : integer;
-        hreg : tregister;
-      begin
-        { Copy registers from temp }
-        href:=current_procinfo.save_regs_ref;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
-            begin
-              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
-              { Allocate register so the optimizer does remove the load }
-              a_reg_alloc(list,hreg);
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
-              inc(href.offset,sizeof(aint));
-            end;
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
-      end;
-
-
     { produces if necessary overflowcode }
     procedure tcgx86.g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);
       var
@@ -1680,7 +1627,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.131  2004-10-24 20:10:08  peter
+  Revision 1.132  2004-10-25 15:36:47  peter
+    * save standard registers moved to tcgobj
+
+  Revision 1.131  2004/10/24 20:10:08  peter
     * -Or fixes
 
   Revision 1.130  2004/10/24 11:44:28  peter
