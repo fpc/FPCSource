@@ -274,12 +274,27 @@ begin
     end;
 end;
 
-procedure setftime(var f;time : longint);
+procedure SetFTime (var F; Time: longint);
+
+var FStat: PFileStatus0;
+    RC: longint;
 
 begin
     if os_mode = osOS2 then
         begin
-{TODO!!! Must be done differently for OS/2 !!!}
+            New (FStat);
+            RC := DosQueryFileInfo (TextRec (F).Handle, ilStandard, FStat,
+                                                              SizeOf (FStat^));
+            if RC = 0 then
+                begin
+                    FStat^.DateLastAccess := Hi (Time);
+                    FStat^.DateLastWrite := Hi (Time);
+                    FStat^.TimeLastAccess := Lo (Time);
+                    FStat^.TimeLastWrite := Lo (Time);
+                    RC := DosSetFileInfo (TextRec (F).Handle, ilStandard,
+                                                       FStat, SizeOf (FStat^));
+                end;
+            Dispose (FStat);
         end
     else
         asm
@@ -473,7 +488,7 @@ begin
 
     {$ASMMODE ATT}
 
-    {Environtment ready, now set-up exec structure.}
+    {Environment ready, now set-up exec structure.}
     es.argofs:=args;
     es.envofs:=env;
     asm
@@ -524,23 +539,23 @@ asm
     call syscall
 end;
 
-procedure getdate(var year,month,day,dayofweek:word);
+procedure GetDate (var Year, Month, Day, DayOfWeek: word);
 
 begin
     asm
-        movb $0x2a,%ah
+        movb $0x2a, %ah
         call syscall
-        xorb %ah,%ah
-        movl 20(%ebp),%edi
+        xorb %ah, %ah
+        movl DayOfWeek, %edi
         stosw
-        movl 16(%ebp),%edi
-        movb %dl,%al
+        movl Day, %edi
+        movb %dl, %al
         stosw
-        movl 12(%ebp),%edi
-        movb %dh,%al
+        movl Month, %edi
+        movb %dh, %al
         stosw
-        movl 8(%ebp),%edi
-        xchgw %ecx,%eax
+        movl Year, %edi
+        xchgw %ecx, %eax
         stosw
     end;
 end;
@@ -1194,7 +1209,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2000-06-05 18:50:55  hajny
+  Revision 1.28  2000-07-06 18:57:40  hajny
+    * SetFTime for OS/2 mode corrected
+
+  Revision 1.27  2000/06/05 18:50:55  hajny
     * SetDate, SetTime corrected
 
   Revision 1.26  2000/06/01 18:38:46  hajny
