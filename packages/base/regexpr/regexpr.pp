@@ -435,6 +435,7 @@ unit regexpr;
           if (ref_singleline in flags) and (ref_multiline in flags) then
             exit;
           currentpos:=regexpr;
+	  error:=false;
           new(endp);
           doregister(endp);
           endp^.typ:=ret_illegalend;
@@ -593,7 +594,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:53  peter
+  Revision 1.3  2004-11-14 15:55:25  marco
+   * initialise error to false. Why was this not found yet? :-)
+
+  Revision 1.2  2002/09/07 15:42:53  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:54:56  peter
