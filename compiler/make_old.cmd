@@ -63,4 +63,3 @@ goto eind
 $log: make.cmd,v$
 
 :eind
-
