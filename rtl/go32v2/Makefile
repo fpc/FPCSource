@@ -245,6 +245,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 #
 # Other system-dependent RTL Units
@@ -254,7 +255,10 @@ msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.14  1999-05-04 23:23:53  pierre
+# Revision 1.15  1999-05-13 22:38:02  peter
+#   * -Sg for heaptrc
+#
+# Revision 1.14  1999/05/04 23:23:53  pierre
 #  * uses FPC_VERSION to get it to work undder v09910
 #
 # Revision 1.13  1999/05/04 11:59:42  peter

@@ -240,6 +240,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 #
 # Other system-dependent RTL Units
@@ -378,7 +379,10 @@ endif
 
 #
 # $Log$
-# Revision 1.30  1999-05-10 19:34:06  florian
+# Revision 1.31  1999-05-13 22:38:03  peter
+#   * -Sg for heaptrc
+#
+# Revision 1.30  1999/05/10 19:34:06  florian
 #   * moved all opengl32.dll stuff to a newly created opengl32 unit, so
 #     win32 programs should also run on Windows without opengl32.dll
 #
