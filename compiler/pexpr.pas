@@ -1575,6 +1575,7 @@ implementation
            begin
              { we need the resulttype }
              do_resulttypepass(p1);
+
              if codegenerror then
               begin
                 recoverconsume_postfixops;
@@ -2535,7 +2536,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2005-03-04 09:56:35  jonas
+  Revision 1.185  2005-03-05 16:37:42  florian
+    * fixed copy(dyn. array,...);
+
+  Revision 1.184  2005/03/04 09:56:35  jonas
     * fixed Lazarus compilation
 
   Revision 1.183  2005/03/04 07:46:36  jonas

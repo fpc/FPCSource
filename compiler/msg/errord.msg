@@ -1120,7 +1120,7 @@ type_e_wrong_math_argument=04027_E_Unzul„ssige Konstante an interne Algebrafunkt
 type_e_no_addr_of_constant=04028_E_Von Konstanten kann keine Adresse bestimmt werden
 % It's not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
-type_e_argument_cant_be_assigned=04029_E_Auf das Argument kann nichts zugewiesen werden
+type_e_argument_cant_be_assigned=04029_E_An das Argument kann nichts zugewiesen werden
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only

@@ -297,12 +297,20 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   end;
 
 
+{$ifdef HASFUNCTIONCOPYDYNARR}
 { provide local access to dynarr_copy }
+function int_dynarray_copy(psrc : pointer;ti : pointer;
+    lowidx,count:tdynarrayindex) : pointer;[external name 'FPC_DYNARR_COPY'];
+
+function fpc_dynarray_copy(psrc : pointer;ti : pointer;
+    lowidx,count:tdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
+{$else HASFUNCTIONCOPYDYNARR}
 procedure int_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex);[external name 'FPC_DYNARR_COPY'];
 
 procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex);[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
+{$endif HASFUNCTIONCOPYDYNARR}
   var
     realpdest,
     realpsrc : pdynarray;
@@ -311,9 +319,15 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     highidx : tdynarrayindex;
     elesize : sizeint;
     eletype : pdynarraytypeinfo;
+{$ifdef HASFUNCTIONCOPYDYNARR}
+    pdest : pointer;
+{$endif HASFUNCTIONCOPYDYNARR}
   begin
      highidx:=lowidx+count-1;
      pdest:=nil;
+{$ifdef HASFUNCTIONCOPYDYNARR}
+     result:=pdest;
+{$endif HASFUNCTIONCOPYDYNARR}
      if psrc=nil then
        exit;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
@@ -350,12 +364,18 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      { increment ref. count of members }
      for i:= 0 to cnt-1 do
        int_addref(pointer(pdest+elesize*i),eletype);
+{$ifdef HASFUNCTIONCOPYDYNARR}
+     result:=pdest;
+{$endif HASFUNCTIONCOPYDYNARR}
   end;
 
 
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:22  peter
+  Revision 1.37  2005-03-05 16:37:28  florian
+    * fixed copy(dyn. array,...);
+
+  Revision 1.36  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.35  2005/01/24 21:32:48  florian

@@ -704,7 +704,6 @@ implementation
              end;
 
             { create statements with call }
-            copynode:=internalstatements(newstatement);
 
             if (counter=3) then
              begin
@@ -718,25 +717,14 @@ implementation
                lowppn:=cordconstnode.create(-1,s32inttype,false);
              end;
 
-            { create typed temp for result so the temp is finalized }
-            temp := ctempcreatenode.create(ppn.left.resulttype,ppn.left.resulttype.def.size,tt_persistent,false);
-            addstatement(newstatement,temp);
-
             { create call to fpc_dynarray_copy }
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
                    ccallparanode.create(caddrnode.create_internal
                       (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
                    ccallparanode.create
-                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),
-                   ccallparanode.create
-                      (ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype),nil)))));
-            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
-
-            { convert the temp to normal and return the reference to the
-              created temp, and convert the type of the temp to the dynarray type }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctemprefnode.create(temp));
+                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
+            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resulttype);
 
             ppn.left:=nil;
             paras.free;
@@ -755,7 +743,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2005-03-03 19:36:42  jonas
+  Revision 1.41  2005-03-05 16:37:42  florian
+    * fixed copy(dyn. array,...);
+
+  Revision 1.40  2005/03/03 19:36:42  jonas
     * fixed web bug 3740
 
   Revision 1.39  2005/02/14 17:13:07  peter

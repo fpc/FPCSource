@@ -1782,6 +1782,7 @@ begin
   def_system_macro('SHORTSTRCOMPAREINREG');
   def_system_macro('HASGETHEAPSTATUS');
   def_system_macro('HASGETFPCHEAPSTATUS');
+  def_system_macro('HASFUNCTIONCOPYDYNARR');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2102,7 +2103,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.169  2005-03-04 16:49:22  peter
+  Revision 1.170  2005-03-05 16:37:42  florian
+    * fixed copy(dyn. array,...);
+
+  Revision 1.169  2005/03/04 16:49:22  peter
     * getheapstatus fixes
 
   Revision 1.168  2005/02/26 15:43:09  florian
