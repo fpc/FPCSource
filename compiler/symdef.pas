@@ -1832,8 +1832,9 @@ implementation
 
     function torddef.is_publishable : boolean;
       begin
-         is_publishable:=typ in [uchar..bool8bit,u64bit,s64bit,uwidechar];
+         is_publishable:=(typ<>uvoid);
       end;
+
 
     function torddef.gettypename : string;
 
@@ -5473,7 +5474,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-01-06 12:08:15  peter
+  Revision 1.63  2002-01-06 21:52:30  peter
+
+    * fixed previous commit
+
+  Revision 1.62  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 
