@@ -680,13 +680,12 @@ procedure testtypecastqword;
      // a constant which can't be loaded with fild
      q1:=$80000000;
      q1:=q1 shl 32;
-     d1:=q1;
      d2:=$80000000;
-     if d1<>d2*d2*2.0 then
+     if q1<>d2*d2*2.0 then
        do_error(20);
      // register location
-     d1:=q1+1;
-     if d1<>d2*d2*2.0+1 then
+     q1:=q1+1;
+     if q1<>d2*d2*2.0+1 then
        do_error(2014);
   end;
 

@@ -14,18 +14,18 @@ const
 
 procedure test_one_longint(args : array of const);cdecl;
 var
-  p : plongint;
+  p : pptrint;
 begin
- p:=plongint(@args);
+ p:=pptrint(@args);
  l:=p^;
 end;
 
 procedure test_two_longints(args : array of const);cdecl;
 var
-  p : plongint;
+  p : pptrint;
 begin
- p:=plongint(@args);
- cardinal(p):=cardinal(p)+sizeof(longint);
+ p:=pptrint(@args);
+ inc(pointer(p),sizeof(ptrint));
  l:=p^;
 end;
 

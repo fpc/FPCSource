@@ -10,8 +10,17 @@ Program ansitest;
   {$define COMP_IS_INT64}
 {$endif FPC_COMP_IS_INT64}
 
+{$ifdef ver1_0}
+type
+  ptrint=longint;
+  sizeint=longint;
+{$endif}
+
 {$ifndef fpc}
-Function Memavail : Longint;
+type
+  ptrint=longint;
+  sizeint=longint;
+Function Memavail : ptrint;
 begin
  Result:=0;
 end;
@@ -21,7 +30,7 @@ end;
     General stuff
   ------------------------------------------------------------------- }
 
-Procedure DoMem (Var StartMem : Longint);
+Procedure DoMem (Var StartMem : sizeint);
 
 begin
   Writeln ('Lost ',StartMem-Memavail,' Bytes.');
@@ -30,16 +39,16 @@ end;
 
 Procedure DoRef (P : Pointer);
 
-Type PLongint = ^Longint;
+Type Psizeint = ^sizeint;
 
 begin
   If P=Nil then
     Writeln ('(Ref : Empty string)')
   else
 {$ifdef fpc}
-    Writeln (' (Ref: ',Plongint(Longint(P)-4)^,',Len: ',PLongint(Longint(P)-8)^,')');
+    Writeln (' (Ref: ',Psizeint(sizeint(P)-sizeof(sizeint))^,',Len: ',Psizeint(sizeint(P)-sizeof(sizeint)*2)^,')');
 {$else}
-    Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^,')');
+    Writeln (' (Ref: ',Psizeint(sizeint(P)-8)^,',Len: ',Psizeint(sizeint(P)-4)^,')');
 {$endif}
 end;
 
@@ -60,7 +69,7 @@ Var
     S   : AnsiString;
     AR  : Arec;
     AAR : AnArray;
-    I   : longint;
+    I   : sizeint;
 
 Begin
   S:='This is an ansistring!';
@@ -130,7 +139,7 @@ end;
 Procedure TestParams;
 
 Var S : AnsiString;
-    Mem : Longint;
+    Mem : sizeint;
 
 begin
   Mem:=MemAvail;
@@ -290,7 +299,7 @@ end;
 Procedure testIndex;
 
 Var S,T : AnsiString;
-    I,Len : longint;
+    I,Len : sizeint;
 
 begin
   S:='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -326,7 +335,7 @@ Const S1 : AnsiString = 'ABC';
 
 Var I : Integer;
     S3 : AnsiString;
-    mem : Longint;
+    mem : sizeint;
 
 begin
  mem:=memavail;
@@ -361,7 +370,7 @@ Var S,T : AnsiString;
     SS : ShortString;
     C : Char;
     Ca : Cardinal;
-    L : longint;
+    L : sizeint;
     I : Integer;
     W : Word;
     B : Byte;
@@ -370,7 +379,7 @@ Var S,T : AnsiString;
     E : Extended;
     Si : Single;
     Co : Comp;
-    TempMem:Longint;
+    TempMem:sizeint;
 begin
   TempMem:=Memavail;
   S:='ABCDEF';
@@ -456,7 +465,7 @@ begin
   Writeln (S);
 end;
 
-Var GlobalStartMem,StartMem : Longint;
+Var GlobalStartMem,StartMem : PtrInt;
 
 begin
   GlobalStartMem:=MemAvail;

@@ -27,7 +27,7 @@ var
   p : pdouble;
 begin
  p:=pdouble(@args);
- cardinal(p):=cardinal(p)+sizeof(double);
+ inc(pointer(p),sizeof(double));
  l:=p^;
 end;
 

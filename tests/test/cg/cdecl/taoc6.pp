@@ -30,7 +30,7 @@ var
   p : pint64;
 begin
  p:=pint64(@args);
- cardinal(p):=cardinal(p)+sizeof(int64);
+ inc(pointer(p),sizeof(int64));
  l:=p^;
 end;
 
