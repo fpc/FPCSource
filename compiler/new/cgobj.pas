@@ -155,6 +155,11 @@ unit cgobj;
 
           procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
           procedure g_maybe_loadself(list : paasmoutput);virtual;
+          { copies len bytes from the source to destination, if }
+          { loadref is true, it assumes that it first must load }
+          { the source address from the memory location where   }
+          { source points to					}
+          procedure g_concatcopy(const source,dest : treference;len : aword;loadref : boolean);virtual;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
           procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
@@ -977,7 +982,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.18  1999-08-06 16:37:45  jonas
+  Revision 1.19  1999-08-06 17:00:54  florian
+    + definition of concatcopy
+
+  Revision 1.18  1999/08/06 16:37:45  jonas
     * completed bugfix done by Florian o I wouldn't get conflicts :)
 
   Revision 1.17  1999/08/06 16:27:26  florian
