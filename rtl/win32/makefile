@@ -69,95 +69,38 @@ endif
 # Do not edit after this line.
 #####################################################################
 
-# Where are the include files
+#####################################################################
+# System independent
+#####################################################################
+
+# Where are the include files ?
 INC=../inc
 PROCINC=../$(CPU)
+CFG=../cfg
 OBJPASDIR=../objpas
 
-# To copy pograms
-ifndef COPY
-ifeq ($(DOS),YES)
-COPY=copy
-else
-COPY=cp -p
-endif
-endif
+# Get some defaults for Programs and OSes.
+# This will set the following variables :
+# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
+# It will also set OPT for cross-compilation, and add required options.
+# also checks for config file.
+# it expects INC PROCINC to be set !!
+include $(CFG)/makefile.cfg
 
-# Check delete program
-ifndef DEL
-ifeq ($(DOS),YES)
-DEL=del
-else
-DEL=rm -f
-endif
-endif
+# Get the system independent include file names.
+# This will set the following variables : 
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
-# To install files
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=copy
-else
-INSTALL=install -m 644
-endif
-endif
+# Get the processor dependent include file names.
+# This will set the following variables : 
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
-# To install programs
-ifndef INSTALLEXE
-ifeq ($(DOS),YES)
-INSTALLEXE=copy
-else
-INSTALLEXE=install -m 755
-endif
-endif
-
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
-endif
-
-# diff program
-ifndef REFPATH
-REFPATH=/usr/local/fpk/work/new/rtl
-endif
-ifndef DIFF
-DIFF=diff
-endif
-ifndef DIFFOPTS
-DIFFOPTS=-b -c
-endif
-
-#
-# System independent Commandline Options
-#
-
-# Cross compiling ?
-ifeq ($(OS_TARGET),$(OS_SRC))
-CROSSCOMPILE=NO
-else
-CROSSCOMPILE=YES
-endif
-
-# add required options... (-dFPC is required for older versions)
-override OPT:= $(OPT) -dFPC -d$(CPU)
-
-# Was a config file specified ?
-ifdef CFGFILE
-override OPT:=$(OPT) @$(CFGFILE)
-endif
-
-# Check for crosscompile
-ifeq ($(CROSSCOMPILE),YES)
-override OPT:= $(OPT) -dCROSSCOMPILE -T$(OS_TARGET)
-endif
-
-#
-# System dependent Commandline Options
-#
-
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 #####################################################################
 # System dependent
@@ -170,7 +113,7 @@ OEXT=.obj
 ASMEXT=.s
 LIBEXT=.a
 
-# Define Linux Units
+# Define Windows Units
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings objpas \
 	base \
@@ -181,25 +124,10 @@ OBJECTS=strings objpas \
 # No loaders needed
 LOADERS=
 
-#####################################################################
-# System independent Makefile
-#####################################################################
-
-# OS Independent Depends
-SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
-	heaph.inc innr.inc sstrings.inc file.inc \
-	text.inc typefile.inc version.inc filerec.inc \
-	textrec.inc
-
-# Processor Dependent Depends
-SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
 
 # Add Prefix and Suffixes
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
-DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
-
 
 .PHONY : all install clean \
 	 libs libsclean \
@@ -226,12 +154,8 @@ clean :
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : syswin32.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS) win32.inc
-	$(COPY) $(DSYSTEMDEPS) .
-	$(COPY) $(DSYSPROCDEPS) .
+$(SYSTEMPPU) : syswin32.pp $(SYSDEPS) win32.inc
 	$(PP) $(OPT) -Us -Sg syswin32.pp $(REDIR)
-	$(DEL) $(SYSTEMDEPS)
-	$(DEL) $(SYSPROCDEPS)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
@@ -260,14 +184,10 @@ base$(PPUEXT) : base.pp $(SYSTEMPPU)
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	strings$(PPUEXT) $(SYSTEMPPU) win32.inc
-	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
 	$(PP) $(OPT) dos $(REDIR)
-	$(DEL) filerec.inc textrec.inc
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
-#	 $(COPY) $(INC)/textrec.inc .
 #	 $(PP) $(OPT) crt $(REDIR)
-#	 $(DEL) textrec.inc
 
 #objects$(PPUEXT) : objects.pp $(SYSTEMPPU)
 #	 $(PP) $(OPT) objects.pp $(REDIR)

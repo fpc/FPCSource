@@ -70,95 +70,41 @@ endif
 #####################################################################
 
 # Where are the include files
+CFG=../../cfg
 INC=../../inc
 PROCINC=../../$(CPU)
 OBJPASDIR=../../objpas
 # Where are the .ppi files.
 PPI=../ppi
 
-# To copy pograms
-ifndef COPY
-ifeq ($(DOS),YES)
-COPY=copy
-else
-COPY=cp -p
-endif
-endif
+# Get some defaults for Programs and OSes.
+# This will set the following variables :
+# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
+# It will also set OPT for cross-compilation, and add required options.
+# also checks for config file.
+# it expects INC PROCINC to be set !!
+include $(CFG)/makefile.cfg
 
-# Check delete program
-ifndef DEL
-ifeq ($(DOS),YES)
-DEL=del
-else
-DEL=rm -f
-endif
-endif
+# Get the system independent include file names.
+# This will set the following variables : 
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
-# To install files
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=copy
-else
-INSTALL=install -m 644
-endif
-endif
+# Get the processor dependent include file names.
+# This will set the following variables : 
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
-# To install programs
-ifndef INSTALLEXE
-ifeq ($(DOS),YES)
-INSTALLEXE=copy
-else
-INSTALLEXE=install -m 755
-endif
-endif
+# Get the PPI file names
+# This sets the variable name PPIINCNAMES
+include $(PPI)/makefile.ppi
+PPIDEPS=$(addprefix $(PPI)/,$(PPIINCNAMES))
 
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
-endif
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-# diff program
-ifndef REFPATH
-REFPATH=/usr/local/fpk/work/new/rtl
-endif
-ifndef DIFF
-DIFF=diff
-endif
-ifndef DIFFOPTS
-DIFFOPTS=-b -c
-endif
-
-#
-# System independent Commandline Options
-#
-
-# Cross compiling ?
-ifeq ($(OS_TARGET),$(OS_SRC))
-CROSSCOMPILE=NO
-else
-CROSSCOMPILE=YES
-endif
-
-# add required options... (-dFPC is required for older versions)
-override OPT:= $(OPT) -dFPC -d$(CPU)
-
-# Was a config file specified ?
-ifdef CFGFILE
-override OPT:=$(OPT) @$(CFGFILE)
-endif
-
-# Check for crosscompile
-ifeq ($(CROSSCOMPILE),YES)
-override OPT:= $(OPT) -dCROSSCOMPILE -T$(OS_TARGET)
-endif
-
-#
-# System dependent Commandline Options
-#
 
 
 #####################################################################
@@ -184,21 +130,9 @@ LOADERS=prt0
 # System independent Makefile
 #####################################################################
 
-# OS Independent Depends
-SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
-	heaph.inc innr.inc sstrings.inc file.inc 
-SYSTEMDEPS2=text.inc typefile.inc version.inc filerec.inc \
-	textrec.inc
-
-# Processor Dependent Depends
-SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
-
 # Add Prefix and Suffixes
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
-DSYSTEMDEPS2=$(addprefix $(INC)/, $(SYSTEMDEPS2))
-DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
 
 
 .PHONY : all install clean \
@@ -229,14 +163,8 @@ prt0$(OEXT) : prt0.as
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : system.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS)
-	$(COPY) $(DSYSTEMDEPS) .
-	$(COPY) $(DSYSTEMDEPS2) .
-	$(COPY) $(DSYSPROCDEPS) .
+$(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
-	$(DEL) $(SYSTEMDEPS)
-	$(DEL) $(SYSTEMDEPS2)
-	$(DEL) $(SYSPROCDEPS)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
@@ -268,14 +196,14 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 
 dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
-	$(COPY) ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(COPY) ../dos.pp .
 	$(PP) $(OPT) dos $(REDIR)
-	$(DEL) dos.pp filerec.inc textrec.inc
+	$(DEL) dos.pp 
 
 crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
-	$(COPY) ../crt.pp $(INC)/textrec.inc .
+	$(COPY) ../crt.pp .
 	$(PP) $(OPT) crt $(REDIR)
-	$(DEL) crt.pp textrec.inc
+	$(DEL) crt.pp
 
 objects$(PPUEXT) : ../objects.pp $(SYSTEMPPU)
 	$(COPY) ../objects.pp .
@@ -312,14 +240,10 @@ getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
 	$(DEL) getopts.pp
 
 graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
-	$(PPI)/arc.ppi $(PPI)/colors.ppi $(PPI)/dpmi2raw.ppi $(PPI)/ellipse.ppi \
-	$(PPI)/fill.ppi $(PPI)/font.ppi $(PPI)/global.ppi $(PPI)/ibm.ppi \
-	$(PPI)/image.ppi $(PPI)/line.ppi $(PPI)/modes.ppi $(PPI)/move.ppi \
-	$(PPI)/palette.ppi $(PPI)/pixel.ppi $(PPI)/stdcolor.ppi $(PPI)/text.ppi \
-	$(PPI)/triangle.ppi $(PPI)/vesadeb.ppi
-	$(COPY) ../graph.pp $(PPI)/*.ppi .
-	$(PP) $(OPT) graph $(REDIR)
-	$(DEL) graph.pp *.ppi
+	$(PPIDEPS)
+	$(COPY) ../graph.pp .
+	$(PP) $(OPT) -Up$(PPI) graph $(REDIR)
+	$(DEL) graph.pp
 
 
 #####################################################################

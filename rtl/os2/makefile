@@ -48,69 +48,35 @@ endif
 # Where are the include files
 INC=../inc
 PROCINC=../$(CPU)
+CFG=../cfg
 
-ifeq ($(OS_TARGET),$(OS_SRC))
-CROSSCOMPILE=NO
-else
-CROSSCOMPILE=YES
-endif 
+# Get some defaults for Programs and OSes.
+# This will set the following variables :
+# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
+# It will also set OPT for cross-compilation, and add required options.
+# also checks for config file.
+# it expects INC PROCINC to be set !!
+include $(CFG)/makefile.cfg
 
-# To copy pograms
-ifndef COPY 
-ifeq ($(DOS),YES)
-COPY=copy
-else
-COPY=cp -f -p
-endif
-endif
+# Get the system independent include file names.
+# This will set the following variables : 
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
-# To delete programs
-ifndef DEL 
-ifeq ($(DOS),YES)
-DEL=del
-else
-DEL=rm
-endif
-endif
+# Get the processor dependent include file names.
+# This will set the following variables : 
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
-# To install programs
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=copy
-else
-INSTALL=install -m 644
-endif
-endif
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
-endif
+#####################################################################
+# System dependent
+#####################################################################
 
-
-#diff program
-ifndef REFPATH
-REFPATH=/usr/local/fpk/work/new/rtl
-endif
-ifndef DIFF
-DIFF=diff
-endif
-ifndef DIFFOPTS
-DIFFOPTS=-b -c
-endif
-
-ifeq ($(CROSSCOMPILE),YES)
-OPT:=$(OPT) -dCROSSCOMPILE -TOS2
-endif
-
-# Was a config file specified ?
-ifdef CFGFILE
-OPT:=$(OPT) @$(CFGFILE)
-endif
 
 PPUEXT = .ppu
 
@@ -136,39 +102,13 @@ strings$(PPUEXT) : $(PROCINC)/strings.pp sysos2$(PPUEXT)
 dos$(PPUEXT) : dos.pas strings$(PPUEXT) sysos2$(PPUEXT)
 	$(PP) $(OPT) dos.pas $(REDIR)
 
-sysos2$(PPUEXT) : sysos2.pas $(INC)/systemh.inc $(INC)/system.inc $(INC)/real2str.inc \
-	$(INC)/mathh.inc $(PROCINC)/math.inc $(PROCINC)/set.inc $(INC)/innr.inc $(PROCINC)/heap.inc  \
-	$(INC)/heaph.inc $(INC)/textrec.inc $(INC)/filerec.inc $(PROCINC)/$(CPU).inc
-	$(COPY) $(INC)/systemh.inc .
-	$(COPY) $(INC)/system.inc .
-	$(COPY) $(PROCINC)/$(CPU).inc .
-	$(COPY) $(INC)/real2str.inc .
-	$(COPY) $(INC)/mathh.inc .
-	$(COPY) $(PROCINC)/math.inc .
-	$(COPY) $(PROCINC)/set.inc .
-	$(COPY) $(INC)/innr.inc .
-	$(COPY) $(PROCINC)/heap.inc .
-	$(COPY) $(INC)/heaph.inc .
-	$(COPY) $(INC)/textrec.inc .
-	$(COPY) $(INC)/filerec.inc .
+sysos2$(PPUEXT) : sysos2.pas $(SYSDEPS)
 	$(PP) $(OPT) -Us sysos2.pas $(REDIR)
-	$(DEL) systemh.inc
-	$(DEL) system.inc
-	$(DEL) real2str.inc
-	$(DEL) mathh.inc
-	$(DEL) math.inc
-	$(DEL) set.inc
-	$(DEL) innr.inc
-	$(DEL) heap.inc
-	$(DEL) heaph.inc
-	$(DEL) $(CPU).inc
-	$(DEL) textrec.inc
-	$(DEL) filerec.inc
 
-prt0$(OEXT) : prt0.as
+prt0$(OEXT) : prt0.so2
 	as -D -o prt0$(OEXT) prt0.as
 
-prt1$(OEXT) : prt1.as
+prt1$(OEXT) : prt1.so2
 	as -D -o prt1$(OEXT) prt1.as
 
 dosinit$(OEXT) : dosinit.as
