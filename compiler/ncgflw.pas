@@ -66,7 +66,7 @@ interface
 implementation
 
     uses
-      verbose,globals,systems,
+      verbose,globals,systems,globtype,
       symconst,symdef,symsym,aasm,types,
       cgbase,temp_gen,pass_2,
       cpubase,cpuasm,cpuinfo,
@@ -130,9 +130,7 @@ implementation
          cleartempgen;
          secondpass(left);
 
-         load_all_regvars(exprasmlist);
-
-         maketojumpbool(left);
+         maketojumpbool(left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -152,6 +150,13 @@ implementation
 
       var
          hl,otlabel,oflabel : tasmlabel;
+         org_regvar_loaded,
+         then_regvar_loaded,
+         else_regvar_loaded : regvar_booleanarray;
+         org_list,
+         then_list,
+         else_list : taasmoutput;
+         regcounter: tregister;
 
       begin
          otlabel:=truelabel;
@@ -160,39 +165,103 @@ implementation
          getlabel(falselabel);
          cleartempgen;
          secondpass(left);
-         load_all_regvars(exprasmlist);
-         maketojumpbool(left);
+
+
+         { save regvars loaded in the beginning so that we can restore them }
+         { when processing the else-block                                   }
+         if cs_regalloc in aktglobalswitches then
+           begin
+             org_list := exprasmlist;
+             exprasmlist := taasmoutput.create;
+           end;
+         maketojumpbool(left,lr_dont_load_regvars);
+
+         if cs_regalloc in aktglobalswitches then
+           org_regvar_loaded := regvar_loaded;
+
          if assigned(right) then
            begin
               cg.a_label(exprasmlist,truelabel);
               cleartempgen;
               secondpass(right);
-              { automatically done for blocks, but not for statements (JM) }
-              load_all_regvars(exprasmlist);
            end;
+
+         { save current asmlist (previous instructions + then-block) and }
+         { loaded regvar state and create new clean ones                 }
+         if cs_regalloc in aktglobalswitches then
+           begin
+             then_regvar_loaded := regvar_loaded;
+             regvar_loaded := org_regvar_loaded;
+             then_list := exprasmlist;
+             exprasmlist := taasmoutput.create;
+           end;
+
          if assigned(t1) then
            begin
               if assigned(right) then
                 begin
                    getlabel(hl);
                    { do go back to if line !! }
-                   aktfilepos:=exprasmList.getlasttaifilepos^;
+                   if not(cs_regalloc in aktglobalswitches) then
+                     aktfilepos:=exprasmList.getlasttaifilepos^
+                   else
+                     aktfilepos:=then_list.getlasttaifilepos^;
                    cg.a_jmp_cond(exprasmlist,OC_None,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
               cleartempgen;
               secondpass(t1);
-              load_all_regvars(exprasmlist);
+              { save current asmlist (previous instructions + else-block) }
+              { and loaded regvar state and create a new clean list       }
+              if cs_regalloc in aktglobalswitches then
+                begin
+                  else_regvar_loaded := regvar_loaded;
+                  else_list := exprasmlist;
+                  exprasmlist := taasmoutput.create;
+                end;
               if assigned(right) then
                 cg.a_label(exprasmlist,hl);
            end
          else
            begin
+              if cs_regalloc in aktglobalswitches then
+                begin
+                  else_regvar_loaded := regvar_loaded;
+                  else_list := exprasmlist;
+                  exprasmlist := taasmoutput.create;
+                end;
               cg.a_label(exprasmlist,falselabel);
            end;
          if not(assigned(right)) then
            begin
               cg.a_label(exprasmlist,truelabel);
+           end;
+
+         if cs_regalloc in aktglobalswitches then
+           begin
+             { add loads of regvars at the end of the then- and else-blocks  }
+             { so that at the end of both blocks the same regvars are loaded }
+
+             { no else block? }
+             if not assigned(t1) then
+               sync_regvars(org_list,then_list,org_regvar_loaded,
+                 then_regvar_loaded)
+             { no then block? }
+             else if not assigned(right) then
+               sync_regvars(org_list,else_list,org_regvar_loaded,
+                 else_regvar_loaded)
+             { both else and then blocks }
+             else
+               sync_regvars(then_list,else_list,then_regvar_loaded,
+                 else_regvar_loaded);
+             { add all lists together }
+             org_list.concatlist(then_list);
+             then_list.free;
+             org_list.concatlist(else_list);
+             else_list.free;
+             org_list.concatlist(exprasmlist);
+             exprasmlist.free;
+             exprasmlist := org_list;
            end;
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -390,7 +459,7 @@ implementation
       label
          do_jmp;
       begin
-         load_all_regvars(exprasmlist);
+{         load_all_regvars(exprasmlist); }
          include(flowcontrol,fc_exit);
          if assigned(left) then
          if left.nodetype=assignn then
@@ -582,7 +651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-11-02 22:58:01  peter
+  Revision 1.5  2001-12-02 16:19:17  jonas
+    * less unnecessary regvar loading with if-statements
+
+  Revision 1.4  2001/11/02 22:58:01  peter
     * procsym definition rewrite
 
   Revision 1.3  2001/10/04 14:33:28  jonas

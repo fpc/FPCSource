@@ -97,7 +97,7 @@ implementation
                  getlabel(truelabel);
                  getlabel(falselabel);
                  secondpass(tcallparanode(left).left);
-                 maketojumpbool(tcallparanode(left).left);
+                 maketojumpbool(tcallparanode(left).left,lr_load_regvars);
                  emitlab(falselabel);
                  { erroraddr }
                  emit_reg(A_PUSH,S_L,R_EBP);
@@ -843,8 +843,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-09-30 16:16:28  jonas
-    - removed unused units form uses-clause and unused local vars
+  Revision 1.28  2001-12-02 16:19:17  jonas
+    * less unnecessary regvar loading with if-statements
 
   Revision 1.26  2001/09/28 20:38:51  jonas
     * fixed big bug in my previous changes (the arguent for bts/btr is always

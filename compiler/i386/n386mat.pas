@@ -860,7 +860,7 @@ implementation
                   truelabel:=falselabel;
                   falselabel:=hl;
                   secondpass(left);
-                  maketojumpbool(left);
+                  maketojumpbool(left,lr_load_regvars);
                   hl:=truelabel;
                   truelabel:=falselabel;
                   falselabel:=hl;
@@ -1016,7 +1016,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-09-05 15:22:10  jonas
+  Revision 1.17  2001-12-02 16:19:17  jonas
+    * less unnecessary regvar loading with if-statements
+
+  Revision 1.16  2001/09/05 15:22:10  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)

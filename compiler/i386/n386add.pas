@@ -128,16 +128,15 @@ interface
     { ti386addnode.first_string and implement the shortstring concat    }
     { manually! The generic routine is different from the i386 one (JM) }
     function ti386addnode.first_addstring : tnode;
+
       begin
         { special cases for shortstrings, handled in pass_2 (JM) }
         { can't handle fpc_shortstr_compare with compilerproc either because it }
         { returns its results in the flags instead of in eax                    }
-        if ((nodetype = addn) and
-           is_shortstring(resulttype.def)) or
-           ((nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
-            not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
-                ((right.nodetype=stringconstn) and (str_length(right)=0))) and
-            is_shortstring(left.resulttype.def)) then
+        if (((nodetype = addn) and
+             is_shortstring(resulttype.def)) or
+            ((nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
+             is_shortstring(left.resulttype.def))) then
           begin
             if nodetype = addn then
               location.loc := LOC_MEM
@@ -463,7 +462,7 @@ interface
                                   otl:=truelabel;
                                   getlabel(truelabel);
                                   secondpass(left);
-                                  maketojumpbool(left);
+                                  maketojumpbool(left,lr_load_regvars);
                                   emitlab(truelabel);
                                   truelabel:=otl;
                                end;
@@ -471,7 +470,7 @@ interface
                                  ofl:=falselabel;
                                  getlabel(falselabel);
                                  secondpass(left);
-                                 maketojumpbool(left);
+                                 maketojumpbool(left,lr_load_regvars);
                                  emitlab(falselabel);
                                  falselabel:=ofl;
                               end;
@@ -479,7 +478,7 @@ interface
                          CGMessage(type_e_mismatch);
                        end;
                        secondpass(right);
-                       maketojumpbool(right);
+                       maketojumpbool(right,lr_load_regvars);
                      end;
              else
                CGMessage(type_e_mismatch);
@@ -1864,7 +1863,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-10-12 13:51:51  jonas
+  Revision 1.26  2001-12-02 16:19:17  jonas
+    * less unnecessary regvar loading with if-statements
+
+  Revision 1.25  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes

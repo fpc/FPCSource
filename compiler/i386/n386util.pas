@@ -29,6 +29,9 @@ interface
     uses
       symtype,node;
 
+    type
+      tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
+
     function maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
     function maybe_pushfpu(needed : byte;p : tnode) : boolean;
 {$ifdef TEMPS_NOT_PUSH}
@@ -47,7 +50,7 @@ interface
     procedure loadwide2short(source,dest : tnode);
     procedure loadinterfacecom(p: tbinarynode);
 
-    procedure maketojumpbool(p : tnode);
+    procedure maketojumpbool(p : tnode; loadregvars: tloadregvars);
     procedure emitoverflowcheck(p:tnode);
     procedure emitrangecheck(p:tnode;todef:tdef);
     procedure firstcomplex(p : tbinarynode);
@@ -869,9 +872,14 @@ implementation
                            Emit Functions
 *****************************************************************************}
 
-    procedure maketojumpbool(p : tnode);
+    procedure maketojumpbool(p : tnode; loadregvars: tloadregvars);
     {
       produces jumps to true respectively false labels using boolean expressions
+
+      depending on whether the loading of regvars is currently being
+      synchronized manually (such as in an if-node) or automatically (most of
+      the other cases where this procedure is called), loadregvars can be
+      "lr_load_regvars" or "lr_dont_load_regvars"
     }
       var
         opsize : topsize;
@@ -883,7 +891,8 @@ implementation
          aktfilepos:=p.fileinfo;
          if is_boolean(p.resulttype.def) then
            begin
-              load_all_regvars(exprasmlist);
+              if loadregvars = lr_load_regvars then
+                load_all_regvars(exprasmlist);
               if is_constboolnode(p) then
                 begin
                    if tordconstnode(p).value<>0 then
@@ -896,6 +905,8 @@ implementation
                    opsize:=def_opsize(p.resulttype.def);
                    case p.location.loc of
                       LOC_CREGISTER,LOC_REGISTER : begin
+                                        if (p.location.loc = LOC_CREGISTER) then
+                                          load_regvar_reg(exprasmlist,p.location.register);
                                         emit_reg_reg(A_OR,opsize,p.location.register,
                                           p.location.register);
                                         ungetregister(p.location.register);
@@ -1155,8 +1166,6 @@ implementation
          else
           op:=A_MOVZX;
         is_reg:=(p.location.loc in [LOC_REGISTER,LOC_CREGISTER]);
-        getexplicitregister32(R_EDI);
-
         { use the trick that                                                 }
         { a <= x <= b <=> 0 <= x-a <= b-a <=> cardinal(x-a) <= cardinal(b-a) }
 
@@ -1199,6 +1208,7 @@ implementation
                 lto := 0;
             end;
 
+        getexplicitregister32(R_EDI);
         if is_reg and
            (opsize = S_L) then
           emit_ref_reg(A_LEA,opsize,new_reference(p.location.register,-lto),
@@ -1534,7 +1544,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-10-12 13:51:52  jonas
+  Revision 1.23  2001-12-02 16:19:17  jonas
+    * less unnecessary regvar loading with if-statements
+
+  Revision 1.22  2001/10/12 13:51:52  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes
