@@ -1,0 +1,61 @@
+#
+#   Makefile.fpc for shedit
+#
+
+[targets]
+units=
+programs=ppudump ppumove ppdep ptop rstconv fpcmake
+
+[clean]
+units=ppu ptopu
+
+[dirs]
+fpcdir=..
+unitdir=$(FPCDIR)/fcl/$(OS_TARGET)
+targetdir=.
+
+[rules]
+.PHONY: h2pas_all h2pas_clean h2pas_install
+
+all: fpc_all h2pas_all
+
+clean: fpc_clean h2pas_clean
+
+install: fpc_install h2pas_install
+
+#
+# PPU Tools
+#
+ppu$(PPUEXT): ppu.pas
+
+ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
+
+ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+
+#
+# Pascal beautifier
+#
+ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
+
+ptopu$(PPUEXT): ptopu.pp
+
+#
+# Other
+#
+
+fpcmake$(EXEEXT): fpcmake.pp
+
+ppdep$(EXEEXT): ppdep.pp
+
+#
+# H2Pas
+#
+h2pas_all:
+        $(MAKE) -C h2pas all
+
+h2pas_clean:
+        $(MAKE) -C h2pas clean
+
+h2pas_install:
+        $(MAKE) -C h2pas install
+

@@ -1,0 +1,57 @@
+#
+#   Makefile.fpc for shedit
+#
+
+[targets]
+units=
+programs=h2pas
+
+[clean]
+units=options lexlib scan yacclib converu
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultoptions=-Sg
+
+
+[rules]
+# do we have pyacc?
+ifndef PYACC
+PYACC=$(strip $(wildcard $(addsuffix /pyacc$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PYACC),)
+PYACC=
+else
+export PYACC:=$(firstword $(PYACC))
+endif
+endif
+
+# do we have plex?
+ifndef PLEX
+PLEX=$(strip $(wildcard $(addsuffix /plex$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PLEX),)
+PLEX=
+else
+export PLEX:=$(firstword $(PLEX))
+endif
+endif
+
+h2pas$(EXEEXT): h2pas$(PASEXT)
+
+#
+# Lex and Yacc (only if pyacc is found)
+#
+ifdef  PYACC
+h2pas$(PASEXT): h2pas.y
+        $(PYACC) h2pas.y
+
+yacclex: yacc lex
+
+yacc:
+        $(PYACC) h2pas.y
+
+lex :
+        $(PLEX) scan.l
+endif
+

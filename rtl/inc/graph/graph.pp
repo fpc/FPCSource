@@ -346,9 +346,6 @@ Interface
        { Hercules mono card }
        HercMonoHi = 0;
 
-
-       {$i graphmod.inc}
-
        MaxColors   = 255;   { Maximum possible colors using a palette }
                             { otherwise, direct color encoding        }
 
@@ -681,6 +678,9 @@ Function GetDriverName: string;
 
  procedure OutTextXY(x,y : integer;const TextString : string);
  procedure OutText(const TextString : string);
+
+{ Load extra graph additions per system like mode constants }
+{$i graphh.inc}
 
 
 Implementation
@@ -2961,7 +2961,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.35  1999-11-08 11:15:22  peter
+  Revision 1.36  1999-11-08 15:01:38  peter
+    * fpcmake support
+
+  Revision 1.35  1999/11/08 11:15:22  peter
     * move graph.inc to the target dir
 
   Revision 1.34  1999/11/03 20:23:01  florian

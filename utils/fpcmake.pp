@@ -35,6 +35,8 @@ const
   );
 
 { Sections in Makefile.fpc }
+  sec_install='install';
+  sec_clean='clean';
   sec_dirs='dirs';
   sec_libs='libs';
   sec_targets='targets';
@@ -43,9 +45,15 @@ const
   sec_tools='tools';
 
 type
+  TTargetsString=array[0..targets] of string;
   TFpcMake=record
+    TargetLoaders,
     TargetUnits,
-    TargetPrograms : array[0..targets] of string;
+    TargetPrograms,
+    InstallUnits,
+    InstallFiles,
+    CleanUnits,
+    CleanFiles     : TTargetsString;
     DefaultUnits   : boolean;
     DefaultRule,
     DefaultTarget,
@@ -57,9 +65,7 @@ type
     DirObj,
     DirTarget,
     DirUnitTarget,
-    DirInc,
-    DirProcInc,
-    DirOSInc       : string;
+    DirInc         : string;
     LibGCC,
     LibOther       : boolean;
     InfoCfg,
@@ -108,7 +114,16 @@ function ReadMakefilefpc:boolean;
 var
   fn  : string;
   ini : TIniFile;
-  i   : integer;
+
+  procedure ReadTargetsString(var t:Ttargetsstring;const sec,name,def:string);
+  var
+    i : integer;
+  begin
+    t[0]:=ini.ReadString(sec,name,def);
+    for i:=1 to targets do
+     t[i]:=ini.ReadString(sec,name+'_'+targetstr[i],'');
+  end;
+
 begin
   ReadMakefilefpc:=false;
   if FileExists('Makefile.fpc') then
@@ -125,13 +140,15 @@ begin
   with userini,ini do
    begin
    { targets }
-     TargetUnits[0]:=ReadString(sec_targets,'units','');
-     TargetPrograms[0]:=ReadString(sec_targets,'programs','');
-     for i:=1 to targets do
-      begin
-        TargetUnits[i]:=ReadString(sec_targets,'units_'+targetstr[i],'');
-        TargetPrograms[i]:=ReadString(sec_targets,'programs_'+targetstr[i],'');
-      end;
+     ReadTargetsString(TargetLoaders,sec_targets,'loaders','');
+     ReadTargetsString(TargetUnits,sec_targets,'units','');
+     ReadTargetsString(TargetPrograms,sec_targets,'programs','');
+   { clean }
+     ReadTargetsString(CleanUnits,sec_clean,'units','');
+     ReadTargetsString(CleanFiles,sec_clean,'files','');
+   { install }
+     ReadTargetsString(InstallUnits,sec_install,'units','');
+     ReadTargetsString(InstallFiles,sec_install,'files','');
    { defaults }
      DefaultUnits:=ReadBool(sec_defaults,'defaultunits',false);
      DefaultRule:=ReadString(sec_defaults,'defaultrule','all');
@@ -146,8 +163,6 @@ begin
      DirTarget:=ReadString(sec_dirs,'targetdir','');
      DirUnitTarget:=ReadString(sec_dirs,'unittargetdir','');
      DirInc:=ReadString(sec_dirs,'incdir','');
-     DirProcInc:=ReadString(sec_dirs,'procincdir','');
-     DirOSInc:=ReadString(sec_dirs,'osincdir','');
    { libs }
      LibGcc:=ReadBool(sec_libs,'libgcc',false);
      LibOther:=ReadBool(sec_libs,'libother',false);
@@ -293,9 +308,31 @@ var
     mf.Add('');
   end;
 
+  procedure AddTargets(const pre:string;var t:TTargetsString);
+  var
+    i : integer;
+  begin
+    if t[0]<>'' then
+     mf.Add(pre+'='+t[0]);
+    for i:=1to targets do
+     if (t[i]<>'') then
+      begin
+        mf.Add('ifeq ($(OS_TARGET),'+targetstr[i]+')');
+        if t[i]<>'' then
+         mf.Add(pre+'+='+t[i]);
+        mf.Add('endif');
+      end;
+  end;
+
+  procedure AddHead(const s:string);
+  begin
+    mf.Add('');
+    mf.Add('# '+s);
+    mf.Add('');
+  end;
+
 var
   hs : string;
-  i  : integer;
 begin
 { Open the Makefile }
   Verbose('Creating Makefile');
@@ -335,33 +372,36 @@ begin
 
    { Pre Settings }
      if userini.PreSettings.count>0 then
-      AddStrings(userini.PreSettings);
-
-   { Targets }
-     Add('');
-     Add('UNITOBJECTS='+userini.targetunits[0]);
-     Add('EXEOBJECTS='+userini.targetprograms[0]);
-     for i:=1to targets do
-      if (userini.targetunits[i]<>'') or
-         (userini.targetprograms[i]<>'') then
       begin
-        Add('ifeq ($(OS_TARGET),'+targetstr[i]+')');
-        if userini.targetunits[i]<>'' then
-         Add('UNITOBJECTS+='+userini.targetunits[i]);
-        if userini.targetprograms[i]<>'' then
-         Add('EXEOBJECTS+='+userini.targetprograms[i]);
-        Add('endif');
+        AddHead('Pre Settings');
+        AddStrings(userini.PreSettings);
       end;
 
+   { Targets }
+     AddHead('Targets');
+     AddTargets('LOADEROBJECTS',userini.targetloaders);
+     AddTargets('UNITOBJECTS',userini.targetunits);
+     AddTargets('EXEOBJECTS',userini.targetprograms);
+
+   { Clean }
+     AddHead('Clean');
+     AddTargets('EXTRACLEANUNITS',userini.cleanunits);
+     AddTargets('EXTRACLEANFILES',userini.cleanfiles);
+
+   { Install }
+     AddHead('Install');
+     AddTargets('EXTRAINSTALLUNITS',userini.installunits);
+     AddTargets('EXTRAINSTALLFILES',userini.installfiles);
+
    { Defaults }
-     Add('');
+     AddHead('Defaults');
      if userini.defaultunits then
       Add('DEFAULTUNITS=1');
      if userini.defaultoptions<>'' then
       Add('override NEEDOPT='+userini.defaultoptions);
 
    { Dirs }
-     Add('');
+     AddHead('Directories');
      if userini.dirfpc<>'' then
       begin
         { this dir can be set in the environment, it's more a default }
@@ -391,14 +431,14 @@ begin
       end;
 
    { Libs }
-     Add('');
+     AddHead('Libraries');
      if userini.libgcc then
       Add('override NEEDGCCLIB=1');
      if userini.libother then
       Add('override NEEDOTHERLIB=1');
 
    { Info }
-     Add('');
+     AddHead('Info');
      hs:='';
      if userini.infocfg then
       hs:=hs+'fpc_infocfg ';
@@ -416,7 +456,10 @@ begin
 
    { Post Settings }
      if userini.PostSettings.count>0 then
-      AddStrings(userini.PostSettings);
+      begin
+        AddHead('Post Settings');
+        AddStrings(userini.PostSettings);
+      end;
 
    { commandline }
      Add('');
@@ -431,8 +474,6 @@ begin
      AddSection(userini.libgcc,'command_gcclib');
      AddSection(userini.libother,'command_otherlib');
      AddSection((userini.dirinc<>''),'command_inc');
-     AddSection((userini.dirprocinc<>''),'command_procinc');
-     AddSection((userini.dirosinc<>''),'command_osinc');
      AddSection((userini.dirtarget<>''),'command_target');
      AddSection((userini.dirunittarget<>''),'command_unittarget');
      AddSection(true,'command_smartlink');
@@ -527,7 +568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-11-04 12:07:13  michael
+  Revision 1.4  1999-11-08 15:01:39  peter
+    * fpcmake support
+
+  Revision 1.3  1999/11/04 12:07:13  michael
   + Now envvar is used
 
   Revision 1.2  1999/11/03 23:39:53  peter

@@ -233,10 +233,21 @@ begin
          begin
             if GetName(FFileBuffer[index]) = ident then
             begin
-               value := GetValue(FFileBuffer[index], ident);
-               if value <> '' then
-                  result := value;
-               break;
+              value := GetValue(FFileBuffer[index], ident);
+              if value <> '' then
+               begin
+                 result := value;
+                 if (result[length(result)]='\') then
+                  begin
+                    inc(index);
+                    while (index < FFileBuffer.Count) and (result[length(result)]='\') do
+                     begin
+                       result:=Copy(result,1,length(result)-1)+Trim(FFileBuffer[index]);
+                       inc(index);
+                     end;
+                  end;
+               end;
+              break;
             end;
             Inc(index);
          end;
@@ -428,7 +439,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-11-02 23:58:37  peter
+  Revision 1.4  1999-11-08 15:01:38  peter
+    * fpcmake support
+
+  Revision 1.3  1999/11/02 23:58:37  peter
     * comment support
     * readsectionraw method
 
