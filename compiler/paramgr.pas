@@ -77,7 +77,7 @@ unit paramgr;
             @param(list Current assembler list)
             @param(nr Parameter number of routine, starting from 1)
           }
-          procedure freeintparaloc(list: taasmoutput; nr : longint); virtual;
+          procedure freeintparaloc(list: taasmoutput; nr : longint); virtual; abstract;
 
 
           {# allocate a parameter location created with create_param_loc_info
@@ -269,16 +269,21 @@ implementation
       end;
 
 
-    procedure tparamanager.freeintparaloc(list: taasmoutput; nr : longint);
-      begin
-      end;
-
-
     procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
-            rg.getexplicitregisterint(list,loc.register.number);
+            begin
+{$ifndef cpu64bit}
+              if (loc.size in [OS_64,OS_S64]) then
+                begin
+                  rg.getexplicitregisterint(list,loc.registerhigh.number);
+                  rg.getexplicitregisterint(list,loc.registerlow.number);
+                end
+              else
+{$endif cpu64bit}
+                rg.getexplicitregisterint(list,loc.register.number);
+            end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             rg.getexplicitregisterfpu(list,loc.register.enum);
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -293,7 +298,17 @@ implementation
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
-            rg.ungetregisterint(list,loc.register);
+            begin
+{$ifndef cpu64bit}
+              if (loc.size in [OS_64,OS_S64]) then
+                begin
+                  rg.ungetregisterint(list,loc.registerhigh);
+                  rg.ungetregisterint(list,loc.registerlow);
+                end
+              else
+{$endif cpu64bit}
+                rg.ungetregisterint(list,loc.register);
+            end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             rg.ungetregisterfpu(list,loc.register,loc.size);
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -414,7 +429,10 @@ end.
 
 {
    $Log$
-   Revision 1.45  2003-06-13 21:19:30  peter
+   Revision 1.46  2003-06-17 16:32:03  peter
+     * allocpara/freepara 64bit support
+
+   Revision 1.45  2003/06/13 21:19:30  peter
      * current_procdef removed, use current_procinfo.procdef instead
 
    Revision 1.44  2003/06/12 21:11:10  peter
