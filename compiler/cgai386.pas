@@ -2951,11 +2951,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           op_const_reg(A_IMUL,S_L,
                           parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
                     end;
-                end;
-{$else not NOTARGETWIN32}
-              exprasmlist^.concat(new(paicpu,
-                op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                end
+              else
 {$endif NOTARGETWIN32}
+                exprasmlist^.concat(new(paicpu,
+                  op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
               { load destination }
               exprasmlist^.concat(new(paicpu,
                 op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
@@ -3919,7 +3919,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.98  2000-04-26 10:03:45  pierre
+  Revision 1.99  2000-04-28 08:53:47  pierre
+   * fix my last fix for other targets then win32
+
+  Revision 1.98  2000/04/26 10:03:45  pierre
     * correct bugs for ts010026 and ts010029 in win32 mode
       in copyvaluparas
     + use SHL instead of IMUL if constant is a power of 2 in copyvalueparas
