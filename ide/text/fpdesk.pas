@@ -18,7 +18,7 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0003; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0004; { <- if you change any Load&Store methods,
                                       then you should also change this }
 
      ResDesktopFlags    = 'FLAGS';
@@ -414,7 +414,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-09-20 15:37:59  pierre
+  Revision 1.14  1999-11-25 00:25:43  pierre
+   * add Status when loading/saving files
+
+  Revision 1.13  1999/09/20 15:37:59  pierre
    * ReadOpenWindows and ReadSymobls was missing, still does not work correctly :(
 
   Revision 1.12  1999/09/17 16:41:10  pierre

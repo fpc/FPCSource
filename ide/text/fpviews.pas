@@ -1187,18 +1187,23 @@ end;
 
 constructor TSourceWindow.Load(var S: TStream);
 begin
+  Title:=S.ReadStr;
+  PushStatus('Loading '+GetStr(Title));
   inherited Load(S);
-
   GetSubViewPtr(S,Indicator);
   GetSubViewPtr(S,Editor);
+  PopStatus;
 end;
 
 procedure TSourceWindow.Store(var S: TStream);
 begin
+  S.WriteStr(Title);
+  PushStatus('Storing '+GetStr(Title));
   inherited Store(S);
 
   PutSubViewPtr(S,Indicator);
   PutSubViewPtr(S,Editor);
+  PopStatus;
 end;
 
 destructor TSourceWindow.Done;
@@ -2850,7 +2855,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.48  1999-11-22 16:02:12  pierre
+  Revision 1.49  1999-11-25 00:25:43  pierre
+   * add Status when loading/saving files
+
+  Revision 1.48  1999/11/22 16:02:12  pierre
    * TryToOpenFile failed tofind a sourcewindow if it has no number
 
   Revision 1.47  1999/11/18 13:39:24  pierre
