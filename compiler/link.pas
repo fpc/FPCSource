@@ -149,17 +149,23 @@ end;
 function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
 var
   found : boolean;
+  paths : string;
 begin
   findlibraryfile:=false;
   foundfile:=s;
   if s='' then
    exit;
+  { split path from filename }
+  paths:=SplitPath(s);
+  s:=SplitFileName(s);
   { add prefix 'lib' }
   if (prefix<>'') and (Copy(s,1,length(prefix))<>prefix) then
    s:=prefix+s;
   { add extension }
   if (ext<>'') and (Copy(s,length(s)-length(ext)+1,length(ext))<>ext) then
    s:=s+ext;
+  { readd the split path }
+  s:=paths+s;
   if FileExists(s) then
    begin
      foundfile:=ScriptFixFileName(s);
@@ -533,7 +539,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2001-09-18 11:30:48  michael
+  Revision 1.25  2002-01-19 11:57:05  peter
+    * fixed path appending for lib
+
+  Revision 1.24  2001/09/18 11:30:48  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix

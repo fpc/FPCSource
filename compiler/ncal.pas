@@ -852,14 +852,12 @@ implementation
               if not(assigned(procdefinition)) then
                 begin
                    { when the definition has overload directive set, we search for
-                      overloaded definitions }
+                     overloaded definitions in the class, this only needs to be done once
+                     for class entries as the tree keeps always the same }
                    if (not symtableprocentry.overloadchecked) and
-                      (po_overload in symtableprocentry.defs^.def.procoptions) then
-                    begin
-                      { for methods search in the class tree }
-                      if (symtableprocentry.owner.symtabletype=objectsymtable) then
-                        search_class_overloads(symtableprocentry);
-                    end;
+                      (po_overload in symtableprocentry.defs^.def.procoptions) and
+                      (symtableprocentry.owner.symtabletype=objectsymtable) then
+                    search_class_overloads(symtableprocentry);
 
                    { link all procedures which have the same # of parameters }
                    pd:=symtableprocentry.defs;
@@ -887,6 +885,37 @@ implementation
                           end;
                         pd:=pd^.next;
                      end;
+
+{$ifdef CROSSUNIT}
+                   { when the definition has overload directive set, we search for
+                     overloaded definitions in the other used units unitsymtable. The found
+                     entries are only added to the procs list and not the procsym }
+                   if (po_overload in symtableprocentry.defs^.def.procoptions) and
+                      (symtableprocentry.owner.symtabletype<>objectsymtable) then
+                     begin
+
+
+                 srpdl:=srsym.defs;
+                 while assigned(srpdl) do
+                  begin
+                    found:=false;
+                    pdl:=aprocsym.defs;
+                    while assigned(pdl) do
+                     begin
+                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_value_equal_const) then
+                        begin
+                          found:=true;
+                          break;
+                        end;
+                       pdl:=pdl^.next;
+                     end;
+                    if not found then
+                     aprocsym.addprocdef(srpdl^.def);
+                    srpdl:=srpdl^.next;
+                  end;
+
+                     end;
+{$endif CROSSUNIT}
 
                    { no procedures found? then there is something wrong
                      with the parameter size }
@@ -1753,7 +1782,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2001-12-31 16:59:41  peter
+  Revision 1.62  2002-01-19 11:57:05  peter
+    * fixed path appending for lib
+
+  Revision 1.61  2001/12/31 16:59:41  peter
     * protected/private symbols parsing fixed
 
   Revision 1.60  2001/12/11 13:21:36  jonas
