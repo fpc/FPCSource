@@ -3,9 +3,9 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 by the Free Pascal development team
 
-    Processor dependent part of strings.pp, not shared with 
+    Processor dependent part of strings.pp, not shared with
     sysutils unit.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -15,12 +15,11 @@
 
  **********************************************************************}
 
-{$ASMMODE DIRECT}
     function strpas(p : pchar) : string;
     begin
       asm
         cld
-        movl    12(%ebp),%edi
+        movl    p,%edi
         movl    $0xff,%ecx
         xorl    %eax,%eax
         movl    %edi,%esi
@@ -28,7 +27,11 @@
         scasb
         movl    %ecx,%eax
 
+{$ifdef NEWATT1}
+        movl    __RESULT,%edi
+{$else}
         movl    8(%ebp),%edi
+{$endif}
         notb    %al
         decl    %eax
         stosb
@@ -51,7 +54,7 @@
         movsb
       end ['ECX','EAX','ESI','EDI'];
     end;
-{$ASMMODE ATT}
+
 
     function strpcopy(d : pchar;const s : string) : pchar;
 
@@ -77,7 +80,11 @@
 
 {
   $Log$
-  Revision 1.2  1999-02-25 10:07:02  michael
+  Revision 1.3  1999-03-01 15:41:01  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.2  1999/02/25 10:07:02  michael
   + Added header and log
 
 }

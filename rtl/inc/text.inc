@@ -913,7 +913,7 @@ var
   maxlen,spos,len : longint;
 Begin
 { Delete the string }
-  Decr_ansi_ref (Pointer(S));
+  AnsiStr_Decr_ref (Pointer(S));
   { We assign room for 1024 characters totally at random.... }
   Pointer(s):=Pointer(NewAnsiString(1024));
   MaxLen:=1024;
@@ -1201,7 +1201,11 @@ end;
 
 {
   $Log$
-  Revision 1.39  1999-02-17 10:13:29  peter
+  Revision 1.40  1999-03-01 15:41:04  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.39  1999/02/17 10:13:29  peter
     * when error when opening a file, then reset the mode to fmclosed
 
   Revision 1.38  1999/01/28 19:38:19  peter

@@ -630,7 +630,12 @@ begin
 end;
 
 
-{$ASMMODE DIRECT}
+var
+  _swap_in  : pointer;external name '_swap_in';
+  _swap_out : pointer;external name '_swap_out';
+  _exception_exit : pointer;external name '_exception_exit';
+  _v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
+
 procedure swapvectors;
 begin
   DosError:=0;
@@ -644,15 +649,14 @@ begin
             orl  %eax,%eax
             je   .Lexceptions_off
             movl _swap_out,%eax
-            call *%eax
+            call  %eax
             jmp  .Lno_excep
          .Lexceptions_off:
             movl _swap_in,%eax
-            call *%eax
+            call %eax
          .Lno_excep:
   end;
 end;
-{$ASMMODE ATT}
 
 
 {******************************************************************************
@@ -986,7 +990,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-22 15:44:59  pierre
+  Revision 1.4  1999-03-01 15:40:48  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.3  1999/01/22 15:44:59  pierre
    Daniel change removed : broke make cycle !!
 
   Revision 1.2  1999/01/22 10:07:03  daniel

@@ -14,94 +14,93 @@
  **********************************************************************}
 
 { Run-Time type information routines - processor dependent part }
-{$ASMMODE DIRECT}
 
 Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE'];assembler;
 asm
-# Save registers
+// Save registers
         push    %eax
         push    %ebx
         push    %ecx
         push    %edx
-# decide what type it is
+// decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
-# This is MANIFESTLY wrong
+// This is MANIFESTLY wrong
         subb    $9,%al
-        jz      .DoAnsiStringInit
+        jz      .LDoAnsiStringInit
         decb    %al
-        jz      .DoAnsiStringInit
+        jz      .LDoAnsiStringInit
         subb    $3,%al
-        jz      .DoArrayInit
+        jz      .LDoArrayInit
         decb    %al
-        jz      .DoRecordInit
+        jz      .LDoRecordInit
         decb    %al
         decb    %al
-        jz      .DoObjectInit
+        jz      .LDoObjectInit
         decb    %al
-        jz      .DoClassInit
-        jmp     .ExitInitialize
-.DoObjectInit:
-.DoClassInit:
-.DoRecordInit:
+        jz      .LDoClassInit
+        jmp     .LExitInitialize
+.LDoObjectInit:
+.LDoClassInit:
+.LDoRecordInit:
         incl    %ebx
         movzbl  (%ebx),%eax
-# Skip also recordsize.
+// Skip also recordsize.
         addl    $5,%eax
         addl    %eax,%ebx
-# %ebx points to element count. Set in %edx
+// %ebx points to element count. Set in %edx
         movl    (%ebx),%edx
         addl    $4,%ebx
-# %ebx points to First element in record
-.MyRecordInitLoop:
+// %ebx points to First element in record
+.LMyRecordInitLoop:
         decl    %edx
-        jl      .ExitInitialize
-# %ebx points to typeinfo pointer
-# Push type
+        jl      .LExitInitialize
+// %ebx points to typeinfo pointer
+// Push type
         pushl    (%ebx)
         addl     $4,%ebx
-# %ebx points to offset in record.
-# Us it to calculate data
+// %ebx points to offset in record.
+// Us it to calculate data
         movl    8(%ebp),%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
-# push data
+// push data
         pushl    %eax
-        call    FPC_INITIALIZE
-        jmp     .MyRecordInitLoop
-# Array handling
-.DoArrayInit:
-# Skip array name !!
+        call    INITIALIZE
+        jmp     .LMyRecordInitLoop
+// Array handling
+.LDoArrayInit:
+// Skip array name !!
         incl    %ebx
         movzbl  (%ebx),%eax
         incl    %eax
         addl    %eax,%ebx
-# %ebx points to size. Put size in ecx
+// %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
-# %ebx points to count. Put count in %edx
+// %ebx points to count. Put count in %edx
         movl    (%ebx),%edx
         addl    $4, %ebx
-# %ebx points to type. Put into ebx.
-# Start treating elements.
-.MyArrayInitLoop:
+// %ebx points to type. Put into ebx.
+// Start treating elements.
+.LMyArrayInitLoop:
         decl    %edx
-        jl      .ExitInitialize
-# push type
+        jl      .LExitInitialize
+// push type
         pushl   (%ebx)
-# calculate data
+// calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
         addl    8(%ebp),%eax
-# push data
+// push data
         pushl   %eax
-        call    FPC_INITIALIZE
-        jmp     .MyArrayInitLoop
-# AnsiString handling :
-.DoAnsiStringInit:
+        call    INITIALIZE
+        jmp     .LMyArrayInitLoop
+// AnsiString handling :
+.LDoAnsiStringInit:
         movl 8(%ebp), %eax
         movl $0,(%eax)
-.ExitInitialize:
+.LExitInitialize:
         pop     %edx
         pop     %ecx
         pop     %ebx
@@ -115,84 +114,84 @@ asm
         push    %ebx
         push    %ecx
         push    %edx
-# decide what type it is
+// decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
         subb    $9,%al
-        jz      .DoAnsiStringFinal
+        jz      .LDoAnsiStringFinal
         decb    %al
-        jz      .DoAnsiStringFinal
+        jz      .LDoAnsiStringFinal
         subb    $3,%al
-        jz      .DoArrayFinal
+        jz      .LDoArrayFinal
         decb    %al
-        jz      .DoRecordFinal
+        jz      .LDoRecordFinal
         decb    %al
         decb    %al
-        jz      .DoObjectFinal
+        jz      .LDoObjectFinal
         decb    %al
-        jz      .DoClassFinal
-        jmp     .ExitFinalize
-.DoClassFinal:
-.DoObjectFinal:
-.DoRecordFinal:
+        jz      .LDoClassFinal
+        jmp     .LExitFinalize
+.LDoClassFinal:
+.LDoObjectFinal:
+.LDoRecordFinal:
         incl    %ebx
         movzbl  (%ebx),%eax
-# Skip also recordsize.
+// Skip also recordsize.
         addl    $5,%eax
         addl    %eax,%ebx
-# %ebx points to element count. Set in %edx
+// %ebx points to element count. Set in %edx
         movl    (%ebx),%edx
         addl    $4,%ebx
-# %ebx points to First element in record
-.MyRecordFinalLoop:
+// %ebx points to First element in record
+.LMyRecordFinalLoop:
         decl    %edx
-        jl      .ExitFinalize
-# %ebx points to typeinfo pointer
-# Push type
+        jl      .LExitFinalize
+// %ebx points to typeinfo pointer
+// Push type
         pushl    (%ebx)
         addl     $4,%ebx
-# %ebx points to offset.
-# Use to calculate data
+// %ebx points to offset.
+// Use to calculate data
         movl    8(%ebp),%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
-# push data
+// push data
         pushl    %eax
-        call    FPC_FINALIZE
-        jmp     .MyRecordFinalLoop
-# Array handling
-.DoArrayFinal:
-# Skip array name !!
+        call    FINALIZE
+        jmp     .LMyRecordFinalLoop
+// Array handling
+.LDoArrayFinal:
+// Skip array name !!
         incl    %ebx
         movzbl  (%ebx),%eax
         incl    %eax
         addl    %eax,%ebx
-# %ebx points to size. Put size in ecx
+// %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
-# %ebx points to count. Put count in %edx
+// %ebx points to count. Put count in %edx
         movl    (%ebx),%edx
         addl    $4, %ebx
-# %ebx points to type. Put into ebx.
-# Start treating elements.
-.MyArrayFinalLoop:
+// %ebx points to type. Put into ebx.
+// Start treating elements.
+.LMyArrayFinalLoop:
         decl    %edx
-        jl      .ExitFinalize
-# push type
+        jl      .LExitFinalize
+// push type
         pushl   (%ebx)
-# calculate data
+// calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
         addl    8(%ebp),%eax
-# push data
+// push data
         pushl   %eax
-        call    FPC_FINALIZE
-        jmp     .MyArrayFinalLoop
-# AnsiString handling :
-.DoAnsiStringFinal:
+        call    FINALIZE
+        jmp     .LMyArrayFinalLoop
+// AnsiString handling :
+.LDoAnsiStringFinal:
         pushl   8(%ebp)
-        call    FPC_ANSISTR_DECR_REF
-.ExitFinalize:
+        call    ANSISTR_DECR_REF
+.LExitFinalize:
         pop     %edx
         pop     %ecx
         pop     %ebx
@@ -202,82 +201,82 @@ end;
 
 Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];Assembler;
 asm
-# Save registers
+// Save registers
         push    %eax
         push    %ebx
         push    %ecx
         push    %edx
-# decide what type it is
+// decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
         subb    $9,%al
-        jz      .DoAnsiStringAddRef
+        jz      .LDoAnsiStringAddRef
         decb    %al
-        jz      .DoAnsiStringAddRef
+        jz      .LDoAnsiStringAddRef
         subb    $2,%al
-        jz      .DoArrayAddRef
+        jz      .LDoArrayAddRef
         decb    %al
-        jz      .DoRecordAddRef
+        jz      .LDoRecordAddRef
         decb    %al
         decb    %al
-        jz      .DoObjectAddRef
+        jz      .LDoObjectAddRef
         decb    %al
-        jz      .DoClassAddRef
-        jmp     .ExitAddRef
-.DoClassAddRef:
-.DoObjectAddRef:
-.DoRecordAddRef:
+        jz      .LDoClassAddRef
+        jmp     .LExitAddRef
+.LDoClassAddRef:
+.LDoObjectAddRef:
+.LDoRecordAddRef:
         incl    %ebx
         movzbl  (%ebx),%eax
-# Skip also recordsize.
+// Skip also recordsize.
         addl    $5,%eax
         addl    %eax,%ebx
-# %ebx points to element count. Set in %edx
+// %ebx points to element count. Set in %edx
         movl    (%ebx),%edx
         addl    $4,%ebx
-# %ebx points to First element in record
-.MyRecordAddRefLoop:
+// %ebx points to First element in record
+.LMyRecordAddRefLoop:
         decl    %edx
-        jl      .ExitAddRef
-# Calculate data
+        jl      .LExitAddRef
+// Calculate data
         movl    8(%ebp),%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
-# Push type
+// Push type
         pushl    (%ebx)
         addl     $4,%ebx
-# push data
+// push data
         pushl    %eax
-        call    FPC_ADDREF
-        jmp     .MyRecordAddRefLoop
-# Array handling
-.DoArrayAddRef:
-# %ebx points to size. Put size in ecx
+        call    ADDREF
+        jmp     .LMyRecordAddRefLoop
+// Array handling
+.LDoArrayAddRef:
+// %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
-# %ebx points to count. Put count in %edx
+// %ebx points to count. Put count in %edx
         movl    (%ebx),%edx
         addl    $4, %ebx
-# %ebx points to type. Put into ebx.
-# Start treating elements.
-.MyArrayAddRefLoop:
+// %ebx points to type. Put into ebx.
+// Start treating elements.
+.LMyArrayAddRefLoop:
         decl    %edx
-        jl      .ExitAddRef
-# push type
+        jl      .LExitAddRef
+// push type
         pushl   (%ebx)
-# calculate data
+// calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
         addl    8(%ebp),%eax
-# push data
+// push data
         pushl   %eax
-        call    FPC_ADDREF
-        jmp     .MyArrayAddRefLoop
-# AnsiString handling :
-.DoAnsiStringAddRef:
+        call    ADDREF
+        jmp     .LMyArrayAddRefLoop
+// AnsiString handling :
+.LDoAnsiStringAddRef:
         pushl   8(%ebp)
-        call    FPC_ANSISTR_INCR_REF
-.ExitAddRef:
+        call    ANSISTR_INCR_REF
+.LExitAddRef:
         pop     %edx
         pop     %ecx
         pop     %ebx
@@ -287,94 +286,96 @@ end;
 
 Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF'];Assembler;
 asm
-# Save registers
+// Save registers
         push    %eax
         push    %ebx
         push    %ecx
         push    %edx
-# decide what type it is
+// decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
         subb    $9,%al
-        jz      .DoAnsiStringDecRef
+        jz      .LDoAnsiStringDecRef
         decb    %al
-        jz      .DoAnsiStringDecRef
+        jz      .LDoAnsiStringDecRef
         subb    $2,%al
-        jz      .DoArrayDecRef
+        jz      .LDoArrayDecRef
         decb    %al
-        jz      .DoRecordDecRef
+        jz      .LDoRecordDecRef
         decb    %al
         decb    %al
-        jz      .DoObjectDecRef
+        jz      .LDoObjectDecRef
         decb    %al
-        jz      .DoClassDecRef
-        jmp     .ExitDecRef
-.DoClassDecRef:
-.DoObjectDecRef:
-.DoRecordDecRef:
+        jz      .LDoClassDecRef
+        jmp     .LExitDecRef
+.LDoClassDecRef:
+.LDoObjectDecRef:
+.LDoRecordDecRef:
         incl    %ebx
         movzbl  (%ebx),%eax
-# Skip also recordsize.
+// Skip also recordsize.
         addl    $5,%eax
         addl    %eax,%ebx
-# %ebx points to element count. Set in %edx
+// %ebx points to element count. Set in %edx
         movl    (%ebx),%edx
         addl    $4,%ebx
-# %ebx points to First element in record
-.MyRecordDecRefLoop:
+// %ebx points to First element in record
+.LMyRecordDecRefLoop:
         decl    %edx
-        jl      .ExitDecRef
-# Calculate data
+        jl      .LExitDecRef
+// Calculate data
         movl    8(%ebp),%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
-# Push type
+// Push type
         pushl    (%ebx)
         addl     $4,%ebx
-# push data
+// push data
         pushl    %eax
-        call    FPC_DECREF
-        jmp     .MyRecordDecRefLoop
-# Array handling
-.DoArrayDecRef:
-# %ebx points to size. Put size in ecx
+        call    DECREF
+        jmp     .LMyRecordDecRefLoop
+// Array handling
+.LDoArrayDecRef:
+// %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
-# %ebx points to count. Put count in %edx
+// %ebx points to count. Put count in %edx
         movl    (%ebx),%edx
         addl    $4, %ebx
-# %ebx points to type. Put into ebx.
-# Start treating elements.
-.MyArrayDecRefLoop:
+// %ebx points to type. Put into ebx.
+// Start treating elements.
+.LMyArrayDecRefLoop:
         decl    %edx
-        jl      .ExitDecRef
-# push type
+        jl      .LExitDecRef
+// push type
         pushl   (%ebx)
-# calculate data
+// calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
         addl    8(%ebp),%eax
-# push data
+// push data
         pushl   %eax
-        call    FPC_DECREF
-        jmp     .MyArrayDecRefLoop
-# AnsiString handling :
-.DoAnsiStringDecRef:
+        call    DECREF
+        jmp     .LMyArrayDecRefLoop
+// AnsiString handling :
+.LDoAnsiStringDecRef:
         movl    8(%ebp),%eax
         pushl   %eax
-        call    FPC_ANSISTR_DECR_REF
-.ExitDecRef:
+        call    ANSISTR_DECR_REF
+.LExitDecRef:
         pop     %edx
         pop     %ecx
         pop     %ebx
         pop     %eax
 end;
 
-{$ASMMODE DEFAULT}
-
 {
   $Log$
-  Revision 1.15  1998-12-20 14:08:06  michael
+  Revision 1.16  1999-03-01 15:40:58  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.15  1998/12/20 14:08:06  michael
   + Finalize fixed after florians fix :)
 
   Revision 1.14  1998/12/19 00:22:09  florian

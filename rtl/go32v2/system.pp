@@ -138,7 +138,7 @@ var
   old_int75 : tseginfo;cvar;
 
 
-{$ASMMODE DIRECT}
+{$ASMMODE ATT}
 
 {*****************************************************************************
                               Go32 Helpers
@@ -162,8 +162,6 @@ asm
         movl %eax,__RESULT
 end;
 end;
-
-{$ASMMODE ATT}
 
 
 function tb : longint;
@@ -294,14 +292,14 @@ begin
   atohex:=rv;
 end;
 
-
+var
+  _args : ppchar;external name '_args';
 procedure setup_arguments;
 type  arrayword = array [0..0] of word;
 var psp : word;
     i,j : byte;
     quote : char;
     proxy_s : string[7];
-    tempargv : ppchar;
     al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
     largs : array[0..127] of pchar;
     rm_argv : ^arrayword;
@@ -382,13 +380,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
 getmem(argv,argc shl 2);
 for i := 0 to argc-1  do
    argv[i] := largs[i];
-  tempargv:=argv;
-{$ASMMODE DIRECT}
-  asm
-     movl tempargv,%eax
-     movl %eax,_args
-  end;
-{$ASMMODE ATT}
+  _args:=argv;
 end;
 
 
@@ -419,19 +411,15 @@ begin
 end;
 
 
+var
+  __stubinfo : p_stub_info;external name '__stubinfo';
+  ___dos_argv0 : pchar;external name '___dos_argv0';
 procedure setup_environment;
 var env_selector : word;
     env_count : longint;
     dos_env,cp : pchar;
-    stubaddr : p_stub_info;
 begin
-{$ASMMODE DIRECT}
-   asm
-   movl __stubinfo,%eax
-   movl %eax,stubaddr
-   end;
-{$ASMMODE ATT}
-   stub_info:=stubaddr;
+   stub_info:=__stubinfo;
    getmem(dos_env,stub_info^.env_size);
    env_count:=0;
    sysseg_move(stub_info^.psp_selector,$2c, get_ds, longint(@env_selector), 2);
@@ -465,12 +453,7 @@ begin
   if (dos_argv0 = nil) then halt;
   strcopy(dos_argv0, cp);
   { update ___dos_argv0 also }
-{$ASMMODE DIRECT}
-  asm
-     movl U_SYSTEM_DOS_ARGV0,%eax
-     movl %eax,___dos_argv0
-  end;
-{$ASMMODE ATT}
+  ___dos_argv0:=dos_argv0
 end;
 
 
@@ -545,12 +528,14 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-Procedure system_exit;
-{$ASMMODE DIRECT}
-{$ifdef SYSTEMDEBUG}
-  var h : byte;
-{$endif SYSTEMDEBUG}
 
+procedure ___exit(exitcode:byte);cdecl;external name '___exit';
+
+Procedure system_exit;
+{$ifdef SYSTEMDEBUG}
+var
+  h : byte;
+{$endif SYSTEMDEBUG}
 begin
 {$ifdef SYSTEMDEBUG}
   for h:=0 to max_files do
@@ -561,15 +546,11 @@ begin
   { not on normal exit !! PM }
   set_pm_interrupt($00,old_int00);
   set_pm_interrupt($75,old_int75);
-  asm
-        movzbw  exitcode,%ax
-        pushw   %ax
-        call    ___exit         {frees all dpmi memory !!}
-  end;
+  ___exit(exitcode);
 end;
 
-procedure halt(errnum : byte);
 
+procedure halt(errnum : byte);
 begin
   exitcode:=errnum;
   do_exit;
@@ -595,6 +576,9 @@ begin
 end;
 
 
+var
+  __stkbottom : longint;external name '__stkbottom';
+
 procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
@@ -613,10 +597,10 @@ begin
         movl    %esp,%eax
         subl    %ebx,%eax
 {$ifdef SYSTEMDEBUG}
-        movl    U_SYSTEM_LOWESTSTACK,%ebx
+        movl    loweststack,%ebx
         cmpl    %eax,%ebx
         jb      .L_is_not_lowest
-        movl    %eax,U_SYSTEM_LOWESTSTACK
+        movl    %eax,loweststack
 .L_is_not_lowest:
 {$endif SYSTEMDEBUG}
         movl    __stkbottom,%ebx
@@ -633,8 +617,6 @@ begin
   end['EAX','EBX'];
   HandleError(202);
 end;
-{$ASMMODE ATT}
-
 
 
 {*****************************************************************************
@@ -671,19 +653,23 @@ end;
                               Heap Management
 *****************************************************************************}
 
-{$ASMMODE DIRECT}
+var
+  int_heap : longint;external name 'HEAP';
+  int_heapsize : longint;external name 'HEAPSIZE';
 
-function getheapstart:pointer;assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];
+function getheapstart:pointer;
+begin
+  getheapstart:=@int_heap;
+end;
 
 
-function getheapsize:longint;assembler;
-asm
-        movl    HEAPSIZE,%eax
-end ['EAX'];
+function getheapsize:longint;
+begin
+  getheapsize:=int_heapsize;
+end;
 
+
+function ___sbrk(size:longint):longint;cdecl;external name '___sbrk';
 
 function Sbrk(size : longint):longint;assembler;
 asm
@@ -693,7 +679,6 @@ asm
         addl    $4,%esp
 end;
 
-{$ASMMODE ATT}
 
 { include standard heap management }
 {$I heap.inc}
@@ -1237,7 +1222,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  1999-01-18 10:05:50  pierre
+  Revision 1.6  1999-03-01 15:40:52  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.5  1999/01/18 10:05:50  pierre
    + system_exit procedure added
 
   Revision 1.4  1998/12/30 22:17:59  peter

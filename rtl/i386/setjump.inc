@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$ASMMODE DIRECT}
-
 Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
 asm
   movl 8(%ebp),%eax
@@ -45,14 +43,16 @@ asm
   movl 8(%ecx),%edi
   movl 12(%ecx),%ebp
   movl 16(%ecx),%esp
-  jmp *20(%ecx)
+  jmp 20(%ecx)
 end;
-
-{$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.4  1998-09-14 10:48:13  peter
+  Revision 1.5  1999-03-01 15:41:00  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.4  1998/09/14 10:48:13  peter
     * FPC_ names
     * Heap manager is now system independent
 

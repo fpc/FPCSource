@@ -37,8 +37,8 @@
 
 Function  NewAnsiString (Len : Longint) : Pointer; forward;
 Procedure DisposeAnsiString (Var S : Pointer); forward;
-Procedure Decr_Ansi_Ref (Var S : Pointer); forward;
-Procedure Incr_Ansi_Ref (Var S : Pointer); forward;
+Procedure AnsiStr_Decr_Ref (Var S : Pointer); forward;
+Procedure AnsiStr_Incr_Ref (Var S : Pointer); forward;
 Procedure AssignAnsiString (Var S1 : Pointer; S2 : Pointer); forward;
 Function  Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
@@ -114,7 +114,7 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_DECR_REF'];
+Procedure AnsiStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_DECR_REF'];
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -136,7 +136,7 @@ Begin
 end;
 
 
-Procedure Incr_Ansi_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];
+Procedure AnsiStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];
 Begin
   If S=Nil then
     exit;
@@ -161,7 +161,7 @@ begin
     SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
     Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
     PAnsiRec(SNew-FirstOff)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
-    Decr_Ansi_Ref (Pointer(S));  { Thread safe }
+    ansistr_decr_ref (Pointer(S));  { Thread safe }
     Pointer(S):=SNew;
     end;
 end;
@@ -176,7 +176,7 @@ begin
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
       Inc(PAnsiRec(S2-FirstOff)^.ref);
   { Decrease the reference count on the old S1 }
-  Decr_Ansi_Ref (S1);
+  ansistr_decr_ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
   S1:=S2;
 end;
@@ -309,16 +309,6 @@ begin
 end;
 }
 
-{ stupid solution, could be done with public,name in later versions }
-{$ASMMODE DIRECT}
-procedure dummy;assembler;
-  asm
-     .globl FPC_EMPTYCHAR
-     FPC_EMPTYCHAR:
-     .byte 0
-  end;
-{$ASMMODE ATT}
-
 
 Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSISTR_COMPARE'];
 {
@@ -439,7 +429,7 @@ begin
       Temp:=Pointer(NewAnsiString(L));
       if Length(S)>0 then
         Move (Pointer(S)^,Temp^,Length(S)+1);
-      Decr_Ansi_ref (Pointer(S));
+      ansistr_decr_ref (Pointer(S));
       Pointer(S):=Temp;
       end
     else
@@ -450,7 +440,7 @@ begin
   else
     { Length=0 }
     begin
-    Decr_Ansi_Ref (Pointer(S));
+    ansistr_decr_ref (Pointer(S));
     Pointer(S):=Nil;
     end;
 end;
@@ -741,7 +731,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-04 14:55:42  michael
+  Revision 1.12  1999-03-01 15:41:02  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.11  1999/02/04 14:55:42  michael
   * Fixed pos
 
   Revision 1.10  1999/02/04 10:49:21  florian

@@ -14,208 +14,14 @@
 
  **********************************************************************}
 
-{$ASMMODE DIRECT}
-
-{$ifndef DEFAULT_EXTENDED}
-
-{****************************************************************************
-                       Real/Double data type routines
- ****************************************************************************}
-
-    function pi : real;assembler;
-      asm
-            fldpi
-            leave
-            ret
-      end [];
-
-
-    function abs(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fabs
-      end [];
-
-
-    function sqr(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fldl 8(%ebp)
-            fmulp
-      end [];
-
-
-    function sqrt(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fsqrt
-            leave
-            ret $8
-      end [];
-
-
-    function arctan(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fld1
-            fpatan
-      end [];
-
-
-    function cos(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fcos
-            fstsw
-            sahf
-            jnp .LCOS1
-            fstp %st(0)
-            fldl .LCOS0
-            jmp .LCOS1
-         .LCOS0:
-            .quad       0xffffffffffffffff
-         .LCOS1:
-      end ['EAX'];
-
-
-    function exp(d : real) : real;assembler;
-      asm
-            // comes from DJ GPP
-            fldl        8(%ebp)
-            fldl2e
-            fmulp
-            fstcw      .LCW1
-            fstcw      .LCW2
-            fwait
-            andw        $0xf3ff,.LCW2
-            orw $0x0400,.LCW2
-            fldcw      .LCW2
-            fldl        %st(0)
-            frndint
-            fldcw      .LCW1
-            fxch        %st(1)
-            fsub        %st(1),%st
-            f2xm1
-            fld1
-            faddp
-            fscale
-            fstp        %st(1)
-            jmp         .LCW3
-
-            // store some help data in the data segment
-            .data
-    .LCW1:
-            .word       0
-    .LCW2:
-            .word       0
-            .text
-    .LCW3:
-      end;
-
-
-    function frac(d : real) : real;assembler;
-         asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw -4(%ebp),%cx
-            orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldl 8(%ebp)
-            frndint
-            fldl 8(%ebp)
-            fsub %st(1)
-            fstp %st(1)
-            fclex
-            fldcw -4(%ebp)
-       end ['ECX'];
-
-
-    function int(d : real) : real;assembler;
-       asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw -4(%ebp),%cx
-            orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldl 8(%ebp)
-            frndint
-            fclex
-            fldcw -4(%ebp)
-      end ['ECX'];
-
-
-    function trunc(d : real) : longint;assembler;
-      asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw -4(%ebp),%cx
-            orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldl 8(%ebp)
-            fistpl -8(%ebp)
-            movl -8(%ebp),%eax
-            fldcw -4(%ebp)
-      end ['EAX','ECX'];
-
-
-    function round(d : real) : longint;assembler;
-      asm
-            subl $8,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw $0x1372,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldl 8(%ebp)
-            fistpl -8(%ebp)
-            movl -8(%ebp),%eax
-            fldcw -4(%ebp)
-      end ['EAX','ECX'];
-
-
-    function ln(d : real) : real;assembler;
-      asm
-            fldln2
-            fldl 8(%ebp)
-            fyl2x
-      end [];
-
-
-    function sin(d : real) : real;assembler;
-      asm
-            fldl 8(%ebp)
-            fsin
-            fstsw
-            sahf
-            jnp .LSIN1
-            fstp %st(0)
-            fldl .LSIN0
-            jmp .LSIN1
-         .LSIN0:
-            .quad       0xffffffffffffffff
-         .LSIN1:
-      end ['EAX'];
-
-
-   function power(bas,expo : real) : real;
-     begin
-        power:=exp(ln(bas)*expo);
-     end;
-
-{$else DEFAULT_EXTENDED}
 
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
+
+{$ifndef NEWATT}
+  {$asmmode DIRECT}
+{$endif}
 
     function pi : extended;assembler;[internconst:in_const_pi];
       asm
@@ -409,8 +215,6 @@
         power:=exp(ln(bas)*expo);
      end;
 
-{$endif DEFAULT_EXTENDED}
-
 
 {****************************************************************************
                        Longint data type routines
@@ -539,11 +343,17 @@
 
 {$endif SUPPORT_FIXED}
 
-{$ASMMODE ATT}
+{$ifndef NEWATT}
+  {$asmmode ATT}
+{$endif}
 
 {
   $Log$
-  Revision 1.13  1998-12-15 22:42:56  peter
+  Revision 1.14  1999-03-01 15:40:57  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.13  1998/12/15 22:42:56  peter
     * removed temp symbols
 
   Revision 1.12  1998/11/24 12:54:57  peter

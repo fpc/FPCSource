@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$ASMMODE ATT}
-
 procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL'];
 {
   load a normal set p from a smallset l
@@ -430,7 +428,11 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-01-20 17:48:02  jonas
+  Revision 1.10  1999-03-01 15:40:59  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.9  1999/01/20 17:48:02  jonas
     + fixed bug0163 (set1 <= set2 support)
 
   Revision 1.8  1998/12/15 22:43:00  peter

@@ -21,6 +21,8 @@ procedure npxsetup(prog_name : string);
 
 implementation
 
+{$asmmode ATT}
+
 uses
   dxeload,dpmiexcp,strings;
 
@@ -46,12 +48,12 @@ begin
 
         movl    mask2, %ecx
         notl    %ecx
-        andl    %eax, %ecx      /* the bits we want to keep */
+        andl    %eax, %ecx      { the bits we want to keep }
 
         movl    mask2, %edx
-        andl    mask1, %edx      /* the bits we want to change */
+        andl    mask1, %edx      { the bits we want to change }
 
-        orl     %ecx, %edx      /* the new value */
+        orl     %ecx, %edx      { the new value }
         pushl   %edx
         fldcw   (%esp)
         popl    %edx
@@ -137,6 +139,8 @@ begin
 end;
 
 
+function __detect_80387:byte;external name '__detect_80387';
+
 procedure npxsetup(prog_name : string);
 var
   cp : string;
@@ -212,7 +216,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-03-01 15:40:50  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.9  1998/10/26 14:49:45  pierre

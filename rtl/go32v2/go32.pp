@@ -210,6 +210,8 @@ var
 
   implementation
 
+{$asmmode ATT}
+
 
     { the following procedures copy from and to DOS memory using DPMI }
     procedure dpmi_dosmemput(seg : word;ofs : word;var data;count : longint);
@@ -538,20 +540,20 @@ end ['EAX','EDX'];
       end;
 
 
-    procedure test_int31(flag : longint);[alias : 'test_int31'];
+    procedure test_int31(flag : longint);
       begin
          asm
             pushl %ebx
-            movw  $0,U_GO32_INT31ERROR
+            movw  $0,INT31ERROR
             movl  flag,%ebx
             testb $1,%bl
-            jz    1f
-            movw  %ax,U_GO32_INT31ERROR
+            jz    .Lti31_1
+            movw  %ax,INT31ERROR
             xorl  %eax,%eax
-            jmp   2f
-            1:
+            jmp   .Lti31_2
+            .Lti31_1:
             movl  $1,%eax
-            2:
+            .Lti31_2:
             popl  %ebx
          end;
       end;
@@ -702,6 +704,8 @@ end ['EAX','EDX'];
     { here we must use ___v2prt0_ds_alias instead of from v2prt0.s
     because the exception processor sets the ds limit to $fff
     at hardware exceptions }
+    var
+       ___v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
 
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
@@ -1072,6 +1076,10 @@ end ['EAX','EDX'];
          sti
       end;
 
+
+    var
+      _run_mode : word;external name '_run_mode';
+
     function get_run_mode : word;
 
       begin
@@ -1096,6 +1104,9 @@ end ['EAX','EDX'];
            call test_int31
          end;
       end;
+
+    var
+      _core_selector : word;external name '_core_selector';
 
     function get_core_selector : word;
 
@@ -1159,7 +1170,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1999-03-01 15:40:51  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.12  1998/08/27 10:30:50  pierre

@@ -106,7 +106,7 @@ function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 
 implementation
 
-{$ASMMODE DIRECT}
+{$asmmode ATT}
 
 {$L exceptn.o}
 
@@ -123,8 +123,8 @@ var
   djgpp_dos_sel : word;external name '___djgpp_dos_sel';
   djgpp_exception_table : array[0..0] of pointer;external name '___djgpp_exception_table';
 
-procedure djgpp_i24;external name ' ___djgpp_i24';
-procedure djgpp_iret;external name ' ___djgpp_iret';
+procedure djgpp_i24;external name '___djgpp_i24';
+procedure djgpp_iret;external name '___djgpp_iret';
 procedure djgpp_npx_hdlr;external name '___djgpp_npx_hdlr';
 procedure djgpp_kbd_hdlr;external name '___djgpp_kbd_hdlr';
 procedure djgpp_kbd_hdlr_pc98;external name '___djgpp_kbd_hdlr_pc98';
@@ -133,8 +133,8 @@ procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
 
 var
   exceptions_on : boolean;
-  old_int00 : tseginfo;cvar;external;
-  old_int75 : tseginfo;cvar;external;
+{  old_int00 : tseginfo;cvar;external;
+  old_int75 : tseginfo;cvar;external; }
 
 const
   cbrk_vect : byte = $1b;
@@ -188,12 +188,12 @@ end;
         movl    12(%esp),%eax
         movl    %eax,8(%esp)
         popl    %eax
-        jmp     FPC_setjmp
+        jmp     dpmi_setjmp
      end;
   end;
-  
-  
-function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;[alias : 'FPC_setjmp'];
+
+
+function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 begin
   asm
         pushl   %edi
@@ -229,7 +229,7 @@ begin
         movw    %fs,46(%edi)
         movw    %gs,48(%edi)
         movw    %ss,50(%edi)
-        movl    ___djgpp_exception_state_ptr, %eax
+        movl    djgpp_exception_state_ptr, %eax
         movl    %eax, 60(%edi)
         { restore EDI }
         pop     %edi
@@ -275,31 +275,24 @@ begin
         movl    28(%edi),%esi
         subl    $28,%esi        { We need 7 working longwords on stack }
         movl    60(%edi),%eax
-        es
-        movl    %eax,(%esi)     { Exception pointer }
+        movl    %eax,%es:(%esi)     { Exception pointer }
         movzwl  42(%edi),%eax
-        es
-        movl    %eax,4(%esi)    { DS }
+        movl    %eax,%es:4(%esi)    { DS }
         movl    20(%edi),%eax
-        es
-        movl    %eax,8(%esi)    { EDI }
+        movl    %eax,%es:8(%esi)    { EDI }
         movl    16(%edi),%eax
-        es
-        movl    %eax,12(%esi)   { ESI }
+        movl    %eax,%es:12(%esi)   { ESI }
         movl    32(%edi),%eax
-        es
-        movl    %eax,16(%esi)   { EIP - start of IRET frame }
+        movl    %eax,%es:16(%esi)   { EIP - start of IRET frame }
         movl    40(%edi),%eax
-        es
-        movl    %eax,20(%esi)   { CS }
+        movl    %eax,%es:20(%esi)   { CS }
         movl    36(%edi),%eax
-        es
-        movl    %eax,24(%esi)   { EFLAGS }
+        movl    %eax,%es:24(%esi)   { EFLAGS }
         movl    0(%edi),%eax
         movw    44(%edi),%es
         movw    50(%edi),%ss
         movl    %esi,%esp
-        popl    ___djgpp_exception_state_ptr
+        popl    djgpp_exception_state_ptr
         popl    %ds
         popl    %edi
         popl    %esi
@@ -501,6 +494,8 @@ end;
 
 const message_level : byte = 0;
 
+procedure ___exit(c:byte);cdecl;external name '___exit';
+
 function do_faulting_finish_message : integer;
 var
   en : pchar;
@@ -615,16 +610,13 @@ begin
 simple_exit:
   if exceptions_on then
     djgpp_exception_toggle;
-  asm
-     pushw $1
-     call  ___exit
-  end;
+  ___exit(1);
 end;
 
 
 function djgpp_exception_state:pexception_state;assembler;
 asm
-        movl    ___djgpp_exception_state_ptr,%eax
+        movl    djgpp_exception_state_ptr,%eax
 end;
 
 
@@ -636,9 +628,9 @@ begin
     exception_level:=1
   else
     inc(exception_level);
-    
+
   sig:=djgpp_exception_state_ptr^.__signum;
-  
+
   if (exception_level=1) or (sig=$78) then
     begin
        sig := except_to_sig(sig);
@@ -684,14 +676,13 @@ var
   cbrk_ori,
   cbrk_rmcb  : trealseginfo;
   cbrk_regs  : registers;
-
+  v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
 
 
 procedure djgpp_exception_toggle;[alias : '___djgpp_exception_toggle'];
 var
   _except : tseginfo;
   i : longint;
-  local_ex : boolean;
 begin
 {$ifdef DPMIEXCP_DEBUG}
   if exceptions_on then
@@ -702,11 +693,7 @@ begin
   { toggle here to avoid infinite recursion }
   { if a subfunction calls runerror !!      }
   exceptions_on:=not exceptions_on;
-  local_ex:=exceptions_on;
-  asm
-        movzbl  local_ex,%eax
-        movl    %eax,_v2prt0_exceptions_on
-  end;
+  v2prt0_exceptions_on:=exceptions_on;
   for i:=0 to EXCEPTIONCOUNT-1 do
    begin
      if get_pm_exception_handler(i,_except) then
@@ -779,6 +766,11 @@ begin
 end;
 
 
+var
+  _swap_in  : pointer;external name '_swap_in';
+  _swap_out : pointer;external name '_swap_out';
+  _exception_exit : pointer;external name '_exception_exit';
+
 procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
@@ -787,12 +779,9 @@ procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 begin
   if (exceptions_on) then
     djgpp_exception_toggle;
-  asm
-        xorl    %eax,%eax
-        movl    %eax,_exception_exit
-        movl    %eax,_swap_in
-        movl    %eax,_swap_out
-  end;
+  _exception_exit:=nil;
+  _swap_in:=nil;
+  _swap_out:=nil;
   { restore the FPU state }
   dpmi_set_coprocessor_emulation(1);
 end;
@@ -815,6 +804,9 @@ begin
 end;
 
 
+var
+  ___djgpp_app_DS : word;external name '___djgpp_app_DS';
+  ___djgpp_our_DS : word;external name '___djgpp_our_DS';
 
 procedure djgpp_exception_setup;[alias : '___djgpp_exception_setup'];
 var
@@ -825,17 +817,11 @@ var
   locksize    : longint;
   i           : longint;
 begin
-  asm
-        movl    _exception_exit,%eax
-        xorl    %eax,%eax
-        jne     .L_already
-        leal    excep_exit,%eax
-        movl    %eax,_exception_exit
-        leal    swap_in,%eax
-        movl    %eax,_swap_in
-        leal    swap_out,%eax
-        movl    %eax,_swap_out
-  end;
+  if assigned(_exception_exit) then
+   exit;
+  _exception_exit:=@dpmiexcp_exit;
+  _swap_in:=@dpmi_swap_in;
+  _swap_out:=@dpmi_swap_out;
 { reset signals }
   for i := 0 to  SIGMAX-1 do
    signal_list[i] := SignalHandler(@SIG_DFL);
@@ -872,9 +858,6 @@ begin
   djgpp_exception_toggle;    { Set new values & save old values }
 { get original video mode and save }
   old_video_mode := farpeekb(dosmemselector, $449);
-  asm
-        .L_already:
-  end;
 end;
 
 
@@ -907,7 +890,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-02-05 12:49:25  pierre
+  Revision 1.7  1999-03-01 15:40:49  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.6  1999/02/05 12:49:25  pierre
    <> debug conditionnal renamed DPMIEXCP_DEBUG
 
   Revision 1.5  1999/01/22 15:46:33  pierre

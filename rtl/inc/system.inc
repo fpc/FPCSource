@@ -42,6 +42,11 @@ const
 { For Error Handling.}
   ErrorBase : Longint = 0;
 
+{ Used by the ansistrings and maybe also other things in the future }
+var
+  emptychar : char;public name 'FPC_EMPTYCHAR';
+
+
 {****************************************************************************
                      Routines which have compiler magic
 ****************************************************************************}
@@ -480,7 +485,11 @@ end;
 
 {
   $Log$
-  Revision 1.54  1999-02-01 00:05:14  florian
+  Revision 1.55  1999-03-01 15:41:03  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.54  1999/02/01 00:05:14  florian
     + functions lo/hi for DWord type implemented
 
   Revision 1.53  1999/01/29 09:23:09  pierre

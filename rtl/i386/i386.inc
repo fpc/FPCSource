@@ -15,7 +15,8 @@
 
  **********************************************************************}
 
-{$ASMMODE ATT}
+{$asmmode ATT}
+
 
 {****************************************************************************
                                 Move / Fill
@@ -150,8 +151,6 @@ end;
                               Object Helpers
 ****************************************************************************}
 
-{$ASMMODE DIRECT}
-
 procedure int_help_constructor;assembler; [public,alias:'FPC_HELP_CONSTRUCTOR'];
 asm
 { Entry without preamble, since we need the ESP of the constructor
@@ -175,7 +174,7 @@ asm
       { Memory size }
         pushl   (%eax)
         pushl   %esi
-        call    FPC_GETMEM
+        call    GetMem
         popal
       { Memory position to %esi }
         movl    (%esi),%esi
@@ -249,12 +248,15 @@ asm
       { SELF }
         movl    %eax,(%edi)
         pushl   %edi
-        call    FPC_FREEMEM
+        call    FreeMem
         addl    $4,%esp
 .LHD_3:
         popal
 end;
 
+{$ifndef NEWATT}
+  {$asmmode DIRECT}
+{$endif}
 
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
@@ -291,7 +293,9 @@ asm
 .LDISPOSE_CLASS1:
 end;
 
-{$ASMMODE ATT}
+{$ifndef NEWATT}
+  {$asmmode att}
+{$endif}
 
 
 { checks for a correct vmt pointer }
@@ -495,12 +499,11 @@ begin
 end;
 
 
-{$ASMMODE DIRECT}
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
   asm
         cld
-        movl    12(%ebp),%edi
+        movl    p,%edi
         movl    $0xff,%ecx
         xorl    %eax,%eax
         movl    %edi,%esi
@@ -508,7 +511,11 @@ begin
         scasb
         movl    %ecx,%eax
 
+{$ifdef NEWATT1}
+        movl    __RESULT,%edi
+{$else}
         movl    8(%ebp),%edi
+{$endif}
         notb    %al
         decl    %eax
         stosb
@@ -531,7 +538,6 @@ begin
         movsb
   end ['ECX','EAX','ESI','EDI'];
 end;
-{$ASMMODE ATT}
 
 
 function strlen(p:pchar):longint;assembler;
@@ -643,7 +649,7 @@ begin
         incl    %ecx
 .LM2:
         cltd
-        idivl   %esi,%eax
+        idivl   %esi
         addb    $0x30,%dl       // convert Rest to ASCII.
         movb    %dl,-12(%ebp,%ebx)
         incl    %ebx
@@ -673,7 +679,7 @@ begin
         movl    $0x0a,%esi      // load 10 as dividing constant.
 .LM4:
         xorl    %edx,%edx
-        divl    %esi,%eax
+        divl    %esi
         addb    $0x30,%dl       // convert Rest to ASCII.
         movb    %dl,-12(%ebp,%ebx)
         incl    %ebx
@@ -739,7 +745,11 @@ end;
 
 {
   $Log$
-  Revision 1.40  1999-02-22 13:23:22  pierre
+  Revision 1.41  1999-03-01 15:40:55  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.40  1999/02/22 13:23:22  pierre
    * VMT field zeroed at destructor forgot offset !!
 
   Revision 1.39  1999/02/05 12:26:25  pierre
