@@ -14,6 +14,7 @@ packages=paszlib
 
 [install]
 unitsubdir=fcl
+packagename=fcl
 
 [libs]
 libname=fpfcl
@@ -46,4 +47,4 @@ inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
 
 shedit$(PPUEXT): $(SHEDIT)/shedit$(PASEXT)
-	$(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)
+        $(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)

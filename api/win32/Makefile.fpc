@@ -11,6 +11,7 @@ examples=$(TESTOBJECTS)
 
 [install]
 unitsubdir=api
+packagename=api
 
 [libs]
 libname=fpapi
