@@ -592,15 +592,55 @@ implementation
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
          pto^.location.register:=getregister32;
-         inc(pfrom^.location.reference.offset);
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
-             pto^.location.register)));
+         case pstringdef(pfrom^.resulttype)^.string_typ of
+           st_shortstring :
+             begin
+               inc(pfrom^.location.reference.offset);
+               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
+                 pto^.location.register)));
+             end;
+           st_ansistring :
+             begin
+               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
+                 pto^.location.register)));
+             end;
+           st_longstring:
+             begin
+               {!!!!!!!}
+               internalerror(8888);
+             end;
+           st_widestring:
+             begin
+               {!!!!!!!}
+               internalerror(8888);
+             end;
+         end;
       end;
 
 
     procedure second_string_to_chararray(pto,pfrom : ptree;convtyp : tconverttype);
       begin
-         inc(pto^.location.reference.offset);
+         case pstringdef(pfrom^.resulttype)^.string_typ of
+           st_shortstring :
+             begin
+               inc(pto^.location.reference.offset);
+             end;
+           st_ansistring :
+             begin
+               {!!!!!!!}
+               internalerror(8888);
+             end;
+           st_longstring:
+             begin
+               {!!!!!!!}
+               internalerror(8888);
+             end;
+           st_widestring:
+             begin
+               {!!!!!!!}
+               internalerror(8888);
+             end;
+         end;
       end;
 
 
@@ -1214,6 +1254,7 @@ implementation
          end;
       end;
 
+
     procedure second_nothing(pto,pfrom : ptree;convtyp : tconverttype);
       begin
       end;
@@ -1408,7 +1449,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1998-11-26 13:10:39  peter
+  Revision 1.36  1998-11-26 14:39:11  peter
+    * ansistring -> pchar fixed
+    * ansistring constants fixed
+    * ansistring constants are now written once
+
+  Revision 1.35  1998/11/26 13:10:39  peter
     * new int - int conversion -dNEWCNV
     * some function renamings
 

@@ -55,6 +55,19 @@ implementation
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right,inlined : boolean;para_offset : longint);
 
+      function push_addr(p:ptree):boolean;
+        begin
+          push_addr:=(
+{$ifndef VALUEPARA}
+                      dont_copy_const_param(p^.resulttype) or
+{$else}
+                      push_addr_param(p^.resulttype) or
+{$endif}
+                      ((p^.treetype=stringconstn) and is_ansistring(p^.resulttype))
+                     );
+        end;
+
+
       procedure maybe_push_open_array_high;
         var
            r    : preference;
@@ -223,12 +236,8 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
-{$ifndef VALUEPARA}
               if (defcoll^.paratyp=vs_const) and
-                 dont_copy_const_param(p^.resulttype) then
-{$else}
-              if push_addr_param(p^.resulttype) then
-{$endif}
+                 push_addr(p^.left) then
                 begin
                    maybe_push_open_array_high;
                    inc(pushedparasize,4);
@@ -1563,7 +1572,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1998-11-18 15:44:07  peter
+  Revision 1.46  1998-11-26 14:39:10  peter
+    * ansistring -> pchar fixed
+    * ansistring constants fixed
+    * ansistring constants are now written once
+
+  Revision 1.45  1998/11/18 15:44:07  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.44  1998/11/16 15:35:36  peter

@@ -141,12 +141,16 @@ implementation
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
-         i           : longint;
+         i,mylength  : longint;
       begin
          lastlabel:=nil;
          { const already used ? }
          if not assigned(p^.lab_str) then
            begin
+              if is_shortstring(p^.resulttype) then
+               mylength:=p^.length+2
+              else
+               mylength:=p^.length+1;
               { tries to found an old entry }
               hp1:=pai(consts^.first);
               while assigned(hp1) do
@@ -162,7 +166,7 @@ implementation
                         { typed consts have no leading length or   }
                         { they have no trailing zero               }
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                          (pai_string(hp1)^.len=p^.length+2) then
+                           (pai_string(hp1)^.len=mylength) then
                           begin
                              same_string:=true;
                              for i:=0 to p^.length do
@@ -211,6 +215,8 @@ implementation
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                                { return the offset of the real string }
+                                p^.lab_str:=l1;
                              end;
                         end;
                       st_shortstring:
@@ -257,7 +263,7 @@ implementation
            p^.location.loc:=LOC_MEM;
            p^.location.reference.isintvalue:=true;
            p^.location.reference.offset:=plongint(p^.value_set)^;
-	   exit;
+           exit;
          end;
 {$endif}
         if psetdef(p^.resulttype)^.settype=smallset then
@@ -356,7 +362,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-11-24 13:40:59  peter
+  Revision 1.23  1998-11-26 14:39:12  peter
+    * ansistring -> pchar fixed
+    * ansistring constants fixed
+    * ansistring constants are now written once
+
+  Revision 1.22  1998/11/24 13:40:59  peter
     * release smallsetord, so small sets constant are handled like longints
 
   Revision 1.21  1998/11/24 12:52:41  peter
