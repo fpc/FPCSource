@@ -268,7 +268,7 @@ graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 #####################################################################
 
 staticlib:
-	make libclean
+	make libsclean
 	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
 sharedlib:
@@ -295,7 +295,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.15  1998-09-10 10:16:52  florian
+# Revision 1.16  1998-09-10 10:20:41  florian
+#   * fixed typo of previous commit
+#
+# Revision 1.15  1998/09/10 10:16:52  florian
 #   * make staticlib does now a make libclean instead of make clean
 #
 # Revision 1.14  1998/08/20 08:08:37  pierre
