@@ -300,6 +300,7 @@ procedure TPQConnection.FreeStatement(cursor : TSQLHandle);
 
 begin
   with cursor as TPQCursor do
+   if (PQresultStatus(res) <> PGRES_FATAL_ERROR) then //Don't try to do anything if the transaction has already encountered an error.
     begin
     if StatementType = stselect then
       begin
@@ -307,7 +308,7 @@ begin
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
         pqclear(res);
-        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
         end
       end;
     pqclear(baseres);
@@ -335,7 +336,7 @@ begin
     if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
       begin
       pqclear(res);
-      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
+      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
       end;
     end;
 end;

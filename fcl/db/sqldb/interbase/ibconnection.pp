@@ -17,9 +17,10 @@ type
 
   TIBCursor = Class(TSQLHandle)
     protected
-    Status    : array [0..19] of ISC_STATUS;
-    Statement : pointer;
-    SQLDA     : PXSQLDA;
+    Status               : array [0..19] of ISC_STATUS;
+    Statement            : pointer;
+    FSQLDAAllocated      : integer;
+    SQLDA                : PXSQLDA;
   end;
 
   TIBTrans = Class(TSQLHandle)
@@ -35,7 +36,6 @@ type
 
   TIBConnection = class (TSQLConnection)
   private
-    FSQLDAAllocated      : integer;
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
     FFieldFlag           : array [0..1023] of shortint;

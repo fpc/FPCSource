@@ -111,26 +111,20 @@ type
   private
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
-    FActive              : boolean;
-    FOpenAfterRead : boolean;
-
-    procedure SetActive(Value : boolean);
   protected
     function GetHandle : Pointer; virtual;
-    procedure Loaded; override;
   public
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
     procedure Rollback; virtual;
     procedure RollbackRetaining; virtual;
-    procedure StartTransaction; virtual;
+    procedure StartTransaction; override;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     property Handle: Pointer read GetHandle;
     procedure EndTransaction; override;
   published
     property Action : TCommitRollbackAction read FAction write FAction;
-    property Active : boolean read FActive write setactive;
     property Database;
   end;
 
@@ -275,28 +269,6 @@ begin
 end;
 
 { TSQLTransaction }
-
-procedure TSQLTransaction.SetActive(Value : boolean);
-begin
-  if FActive and (not Value) then
-    EndTransaction
-  else if (not FActive) and Value then
-    if csLoading in ComponentState then
-      begin
-      FOpenAfterRead := true;
-      exit;
-      end
-    else
-      StartTransaction;
-end;
-
-procedure TSQLTransaction.Loaded;
-
-begin
-  inherited;
-  if FOpenAfterRead then SetActive(true);
-end;
-
 procedure TSQLTransaction.EndTransaction;
 
 begin
@@ -310,35 +282,35 @@ end;
 
 procedure TSQLTransaction.Commit;
 begin
-  if not FActive then Exit;
+  checkactive;
   closedatasets;
   if (Database as tsqlconnection).commit(FTrans) then
     begin
-    FActive := false;
-    FTrans.free;
+    closeTrans;
+    FreeAndNil(FTrans);
     end;
 end;
 
 procedure TSQLTransaction.CommitRetaining;
 begin
-  if not FActive then Exit;
+  CheckActive;
   (Database as tsqlconnection).commitRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.Rollback;
 begin
-  if not FActive then Exit;
+  CheckActive;
   closedatasets;
   if (Database as tsqlconnection).RollBack(FTrans) then
     begin
-    FActive := false;
-    FTrans.free;
+    CloseTrans;
+    FreeAndNil(FTrans);
     end;
 end;
 
 procedure TSQLTransaction.RollbackRetaining;
 begin
-  if not FActive then Exit;
+  CheckActive;
   (Database as tsqlconnection).RollBackRetaining(FTrans);
 end;
 
@@ -359,7 +331,7 @@ begin
     Db.Open;
   if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
 
-  if Db.StartdbTransaction(FTrans) then FActive := true;
+  if Db.StartdbTransaction(FTrans) then OpenTrans;
 end;
 
 constructor TSQLTransaction.Create(AOwner : TComponent);
@@ -393,7 +365,7 @@ begin
   if assigned(FCursor) then
     begin
     (Database as tsqlconnection).FreeStatement(FCursor);
-    FCursor.free;
+    FreeAndNil(FCursor);
     end;
 end;
 
@@ -415,7 +387,7 @@ begin
   sqltr := (transaction as tsqltransaction);
   if not sqltr.Active then sqltr.StartTransaction;
 
-  if assigned(fcursor) then FCursor.free;
+  if assigned(fcursor) then FreeAndNil(fcursor);
   FCursor := Db.AllocateCursorHandle;
 
   for x := 0 to FSQL.Count - 1 do
@@ -501,7 +473,7 @@ begin
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
-  FRecordSize := 0;
+//  FRecordSize := 0;
   FOpen:=False;
   inherited internalclose;
 end;
@@ -595,7 +567,7 @@ destructor TSQLQuery.Destroy;
 begin
   if Active then Close;
 //  if assigned(FCursor) then FCursor.destroy;
-  FSQL.Free;
+  FreeAndNil(FSQL);
   inherited Destroy;
 end;
 
@@ -658,7 +630,36 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-10-27 07:23:13  michael
+  Revision 1.7  2004-11-05 08:32:02  michael
+  TBufDataset.inc:
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  Database.inc:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Gives an error if the database of an active transaction is changed
+
+  Dataset.inc
+    - Don't distribute events if FDisableControlsCount > 0
+    - Replaced FActive by FState<>dsInactive
+    - Set EOF after append
+
+  db.pp:
+    - Removed duplicate definition of TAlignment
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Replaced FActive by FState<>dsInactive
+    - Gives an error if the database of an active transaction is changed
+
+  sqldb:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  IBConnection:
+    - Moved FSQLDAAllocated to the cursor
+
+  PQConnection:
+    - Don't try to free the statement if a fatal error occured
+
+  Revision 1.6  2004/10/27 07:23:13  michael
   + Patch from Joost Van der Sluis to fix transactions
 
   Revision 1.5  2004/10/10 14:45:52  michael

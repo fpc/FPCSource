@@ -171,8 +171,6 @@ type
   TFieldSetTextEvent = procedure(Sender: TField; const Text: string) of object;
   TFieldRef = ^TField;
   TFieldChars = set of Char;
-  { TAlignment may need to come from somewhere else }
-  TAlignMent = (taLeftjustify,taCenter,taRightJustify);
 
   TField = class(TComponent)
   Private
@@ -773,7 +771,6 @@ type
 
   TDataSet = class(TComponent)
   Private
-    FActive: Boolean;
     FOpenAfterRead : boolean;
     FActiveRecord: Longint;
     FAfterCancel: TDataSetNotifyEvent;
@@ -841,6 +838,7 @@ type
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
     Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
+    Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
   protected
@@ -1023,7 +1021,7 @@ type
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
-    property Active: Boolean read FActive write SetActive default False;
+    property Active: Boolean read GetActive write SetActive default False;
     property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields;
     property BeforeOpen: TDataSetNotifyEvent read FBeforeOpen write FBeforeOpen;
     property AfterOpen: TDataSetNotifyEvent read FAfterOpen write FAfterOpen;
@@ -1201,22 +1199,33 @@ type
   TDBTransactionClass = Class of TDBTransaction;
   TDBTransaction = Class(TComponent)
   Private
-    FDatabase : TDatabase;
-    FDataSets : TList;
+    FActive        : boolean;
+    FDatabase      : TDatabase;
+    FDataSets      : TList;
+    FOpenAfterRead : boolean;
     Procedure SetDatabase (Value : TDatabase);
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
     procedure RegisterDataset (DS : TDBDataset);
     procedure UnRegisterDataset (DS : TDBDataset);
     procedure RemoveDataSets;
+    procedure SetActive(Value : boolean);
   Protected
+    procedure CloseTrans;
+    procedure openTrans;
     Procedure CheckDatabase;
+    Procedure CheckActive;
+    Procedure CheckInactive;
     procedure EndTransaction; virtual; abstract;
+    procedure StartTransaction; virtual; abstract;
+    procedure Loaded; override;
   Public
     constructor Create(AOwner: TComponent); override;
     Destructor destroy; override;
     procedure CloseDataSets;
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
+  published
+    property Active : boolean read FActive write setactive;
   end;
 
   { TDatabase }
@@ -1583,7 +1592,36 @@ end.
 
 {
   $Log$
-  Revision 1.27  2004-10-27 07:23:13  michael
+  Revision 1.28  2004-11-05 08:32:02  michael
+  TBufDataset.inc:
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  Database.inc:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Gives an error if the database of an active transaction is changed
+
+  Dataset.inc
+    - Don't distribute events if FDisableControlsCount > 0
+    - Replaced FActive by FState<>dsInactive
+    - Set EOF after append
+
+  db.pp:
+    - Removed duplicate definition of TAlignment
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Replaced FActive by FState<>dsInactive
+    - Gives an error if the database of an active transaction is changed
+
+  sqldb:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  IBConnection:
+    - Moved FSQLDAAllocated to the cursor
+
+  PQConnection:
+    - Don't try to free the statement if a fatal error occured
+
+  Revision 1.27  2004/10/27 07:23:13  michael
   + Patch from Joost Van der Sluis to fix transactions
 
   Revision 1.26  2004/10/10 14:45:51  michael

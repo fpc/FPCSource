@@ -287,10 +287,58 @@ end;
 { ---------------------------------------------------------------------
     TDBTransaction
   ---------------------------------------------------------------------}
+procedure TDBTransaction.SetActive(Value : boolean);
+begin
+  if FActive and (not Value) then
+    EndTransaction
+  else if (not FActive) and Value then
+    if csLoading in ComponentState then
+      begin
+      FOpenAfterRead := true;
+      exit;
+      end
+    else
+      StartTransaction;
+end;
+
+procedure TDBTransaction.Loaded;
+
+begin
+  inherited;
+  if FOpenAfterRead then SetActive(true);
+end;
+
+
+Procedure TDBTransaction.CheckActive;
+
+begin
+  If not FActive Then
+    DatabaseError(STransNotActive,Self);
+end;
+
+Procedure TDBTransaction.CheckInActive;
+
+begin
+  If FActive Then
+    DatabaseError(STransActive,Self);
+end;
+
+Procedure TDBTransaction.CloseTrans;
+
+begin
+  FActive := false;
+end;
+
+Procedure TDBTransaction.OpenTrans;
+
+begin
+  FActive := true;
+end;
+
 Procedure TDBTransaction.SetDatabase (Value : TDatabase);
 
 begin
-//  CheckInactive;
+  CheckInactive;
   If Value<>FDatabase then
     begin
     If Assigned(FDatabase) then
@@ -390,7 +438,36 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-10-27 07:23:13  michael
+  Revision 1.8  2004-11-05 08:32:02  michael
+  TBufDataset.inc:
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  Database.inc:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Gives an error if the database of an active transaction is changed
+
+  Dataset.inc
+    - Don't distribute events if FDisableControlsCount > 0
+    - Replaced FActive by FState<>dsInactive
+    - Set EOF after append
+
+  db.pp:
+    - Removed duplicate definition of TAlignment
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Replaced FActive by FState<>dsInactive
+    - Gives an error if the database of an active transaction is changed
+
+  sqldb:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  IBConnection:
+    - Moved FSQLDAAllocated to the cursor
+
+  PQConnection:
+    - Don't try to free the statement if a fatal error occured
+
+  Revision 1.7  2004/10/27 07:23:13  michael
   + Patch from Joost Van der Sluis to fix transactions
 
   Revision 1.6  2004/09/26 16:55:24  michael

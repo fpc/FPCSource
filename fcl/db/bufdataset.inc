@@ -46,7 +46,7 @@ end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
 begin
-  FreeMem(Buffer);
+  ReAllocMem(Buffer,0);
 end;
 
 procedure TBufDataset.InternalOpen;
@@ -65,7 +65,7 @@ var i : integer;
 
 begin
   for i := 0 to FBRecordCount-1 do FreeRecord(FBBuffers[i]);
-  If FBRecordCount > 0 then freemem(FBBuffers);
+  If FBRecordCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;

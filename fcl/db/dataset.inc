@@ -187,8 +187,9 @@ begin
       end;
   end;
   // Distribute event to datasets;
-  for I := 0 to FDataSources.Count - 1 do
-    TDataSource(FDataSources[I]).ProcessEvent(Event, Info);
+  if FDisableControlsCount = 0 then
+    for I := 0 to FDataSources.Count - 1 do
+      TDataSource(FDataSources[I]).ProcessEvent(Event, Info);
 end;
 
 Procedure TDataset.DestroyFields;
@@ -652,21 +653,27 @@ begin
   dec(FDisableControlsCount);
 end;
 
+function TDataset.GetActive : boolean;
+
+begin
+  result := FState <> dsInactive;
+end;
+
 Procedure TDataset.SetActive (Value : Boolean);
 
 begin
-  If Value<>Factive then
-    If Value then
-      if csLoading in ComponentState then
-        begin
-        FOpenAfterRead := true;
-        exit;
-        end
-      else
-        DoInternalOpen
+  if value and (Fstate = dsInactive) then
+    begin
+    if csLoading in ComponentState then
+      begin
+      FOpenAfterRead := true;
+      exit;
+      end
     else
-      DoInternalClose(True);
-  FActive:=Value;
+      DoInternalOpen;
+    end
+  else if not value and (Fstate <> dsinactive) then
+    DoInternalClose(True);
 end;
 
 procedure TDataset.Loaded;
@@ -1126,7 +1133,8 @@ begin
     GetPriorRecords;
     FActiveRecord:=FRecordCount-1;
     DoInsert;
-    SetBookmarkFlag(ActiveBuffer,bfEOF)
+    SetBookmarkFlag(ActiveBuffer,bfEOF);
+    FEOF := true;
     end;
   SetState(dsInsert);
   try
@@ -1733,7 +1741,36 @@ end;
 
 {
   $Log$
-  Revision 1.27  2004-10-27 07:23:13  michael
+  Revision 1.28  2004-11-05 08:32:02  michael
+  TBufDataset.inc:
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  Database.inc:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Gives an error if the database of an active transaction is changed
+
+  Dataset.inc
+    - Don't distribute events if FDisableControlsCount > 0
+    - Replaced FActive by FState<>dsInactive
+    - Set EOF after append
+
+  db.pp:
+    - Removed duplicate definition of TAlignment
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Replaced FActive by FState<>dsInactive
+    - Gives an error if the database of an active transaction is changed
+
+  sqldb:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  IBConnection:
+    - Moved FSQLDAAllocated to the cursor
+
+  PQConnection:
+    - Don't try to free the statement if a fatal error occured
+
+  Revision 1.27  2004/10/27 07:23:13  michael
   + Patch from Joost Van der Sluis to fix transactions
 
   Revision 1.26  2004/10/16 09:27:23  michael

@@ -34,6 +34,8 @@ Const
   SErrNoStatement          = 'SQL statement not set';
   SErrTransAlreadyActive   = 'Transaction already active';
   SErrTransactionnSet      = 'Transaction not set';
+  STransNotActive          = 'Operation cannot be performed on an inactive transaction';
+  STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
   SInvalidDisplayValues    = '"%s" are not valid boolean displayvalues';
@@ -66,7 +68,36 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-10-27 07:23:13  michael
+  Revision 1.4  2004-11-05 08:32:02  michael
+  TBufDataset.inc:
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  Database.inc:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Gives an error if the database of an active transaction is changed
+
+  Dataset.inc
+    - Don't distribute events if FDisableControlsCount > 0
+    - Replaced FActive by FState<>dsInactive
+    - Set EOF after append
+
+  db.pp:
+    - Removed duplicate definition of TAlignment
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - Replaced FActive by FState<>dsInactive
+    - Gives an error if the database of an active transaction is changed
+
+  sqldb:
+    - Moved Active property from TSQLTransaction to TDBTransaction
+    - replaced Freemem by Reallocmem, Free by FreeAndNil
+
+  IBConnection:
+    - Moved FSQLDAAllocated to the cursor
+
+  PQConnection:
+    - Don't try to free the statement if a fatal error occured
+
+  Revision 1.3  2004/10/27 07:23:13  michael
   + Patch from Joost Van der Sluis to fix transactions
 
   Revision 1.2  2004/10/16 09:20:25  michael
