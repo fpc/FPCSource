@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$i globdir.inc}
+
 unit FPVars;
 
 interface
@@ -77,6 +79,10 @@ const ClipboardWindow  : PClipboardWindow = nil;
       EditorModified   : boolean = false;
       IniCenterDebuggerRow : boolean = true;
       SleepTimeOut     : longint = trunc(10*18.2);
+{$ifdef USE_EXTERNAL_COMPILER}
+      UseExternalCompiler : boolean = true;
+      ExternalCompilerExe : string = 'ppc386'+ExeExt;
+{$endif USE_EXTERNAL_COMPILER}
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -91,7 +97,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.27  2000-02-07 11:53:11  pierre
+  Revision 1.28  2000-03-02 22:34:38  pierre
+   + external compiler support
+
+  Revision 1.27  2000/02/07 11:53:11  pierre
    Gabor changes
 
   Revision 1.26  2000/02/04 00:08:35  pierre
