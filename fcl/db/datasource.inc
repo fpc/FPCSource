@@ -86,6 +86,7 @@ begin
         RecordChanged(TField(Info));
     deDataSetChange: 
       begin
+      SetActive(DataSource.DataSet.Active);
       CalcFirstRecord(Info);
       DatasetChanged;
       end;
@@ -214,6 +215,16 @@ begin
     FBufferCount:=Value;
     Dataset.SetBufListSize(Value);
     end;
+end;
+
+procedure TDataLink.SetActive(AActive: Boolean);
+begin
+  if Active <> AActive then
+  begin
+    FActive := AActive;
+    // !!!: Set internal state
+    ActiveChanged;
+  end;
 end;
 
 Procedure TDataLink.SetDataSource(Value : TDatasource);
@@ -397,8 +408,8 @@ procedure TDatasource.RegisterDataLink(DataLink: TDataLink);
 
 begin
   FDatalinks.Add(DataLink);
-  If DataSet<>Nil then 
-    Dataset.SetBufListSize(Datalink.BufferCount);
+  if Assigned(DataSet) then
+    DataSet.RecalcBufListSize;
 end;
 
 
@@ -409,7 +420,7 @@ begin
     FDataset.UnRegisterDataSource(Self);
   If ADataset<>Nil Then
     ADataset.RegisterDatasource(Self);
-  FDataSet:=ADAtaset;  
+  FDataSet:=ADataset;  
   ProcessEvent(deUpdateState,0);
 end;
 

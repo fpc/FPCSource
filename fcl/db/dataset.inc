@@ -72,9 +72,10 @@ begin
      Here some magic will be needed later; for now just simply set
      Just set fieldno from listindex...
      Later we should take it from the fielddefs.
-  }
+     // ATM Set by CreateField ...
   For I:=0 to FFieldList.Count-1 do
     FFieldList[i].FFieldNo:=I;
+  }  
 end;
 
 Function TDataset.BookmarkAvailable: Boolean;
@@ -141,11 +142,17 @@ Var I : longint;
 begin
 {$ifdef DSDebug}
   Writeln ('Creating fields');
+  Writeln ('Count : ',fielddefs.Count);
+  For I:=0 to FieldDefs.Count-1 do
+    Writeln('Def ',I,' : ',Fielddefs.items[i].Name,'(',Fielddefs.items[i].FieldNo,')');
 {$endif}
   For I:=0 to fielddefs.Count-1 do
     With Fielddefs.Items[I] do
       If DataType<>ftUnknown then
+        begin
+        Writeln('About to create field',FieldDefs.Items[i].Name);
         CreateField(self);
+        end;
 end;
 
 Procedure TDataset.DataEvent(Event: TDataEvent; Info: Longint);
@@ -1375,10 +1382,27 @@ begin
   Resync([]);
 end;
 
+procedure TDataSet.RecalcBufListSize;
+var
+  i, j, MaxValue: Integer;
+  DataLink: TDataLink;
+begin
+  MaxValue := 0;
+  for i := 0 to FDataSources.Count - 1 do
+    for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
+    begin
+      DataLink := TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
+      if DataLink.BufferCount > MaxValue then
+        MaxValue := DataLink.BufferCount;
+    end;
+  SetBufListSize(MaxValue);
+end;
+
 Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
 
 begin
   FDatasources.Add(ADataSource);
+  RecalcBufListSize;
 end;
 
 
@@ -1569,7 +1593,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-12-24 12:45:19  peter
+  Revision 1.4  2001-01-18 22:10:07  michael
+  + Fixes to make dbase working merged from fixbranch
+
+  Revision 1.3  2000/12/24 12:45:19  peter
     * merges from 1.0.x branch
 
   Revision 1.2  2000/07/13 11:32:56  michael
