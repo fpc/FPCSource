@@ -294,9 +294,11 @@ Code Facility's status code.
 
 Exceptions that are specific to OS/2 Version 2.X (for example, XCPT_SIGNAL) have a facility code of 1.
 
-System exceptions include both synchronous and asynchronous exceptions. Synchronous exceptions are caused by events that are internal to a thread's execution. For example, synchronous exceptions could be caused by invalid parameters, or by a thread's request to end its own execution.
+System exceptions include both synchronous and asynchronous exceptions. Synchronous exceptions are caused by events that are internal to a thread's execution. For example, synchronous exceptions could be caused by invalid parameters, or by a thread's requ
+est to end its own execution.
 
-Asynchronous exceptions are caused by events that are external to a thread's execution. For example, an asynchronous exception can be caused by a user's entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing DosKillProcess to end the execution of another process.
+Asynchronous exceptions are caused by events that are external to a thread's execution. For example, an asynchronous exception can be caused by a user's entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing DosKillProcess to end the execu
+tion of another process.
 
 The Ctrl+Break and Ctrl+C exceptions are also known as signals, or as signal exceptions.
 
@@ -1441,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-01-20 23:11:20  hajny
+  Revision 1.63  2004-01-21 14:15:42  florian
+    * fixed win32 compilation
+
+  Revision 1.62  2004/01/20 23:11:20  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.61  2003/12/04 21:22:38  peter

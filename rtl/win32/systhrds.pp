@@ -40,6 +40,8 @@ interface
 
 implementation
 
+function  SysGetCurrentThreadId : dword;forward;
+
 {*****************************************************************************
                              Generic overloaded
 *****************************************************************************}
@@ -264,7 +266,6 @@ function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCu
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
     end;
 
-
     function  SysGetCurrentThreadId : dword;
     begin
       SysGetCurrentThreadId:=WinGetCurrentThreadId;
@@ -390,7 +391,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-11-29 17:34:53  michael
+  Revision 1.10  2004-01-21 14:15:42  florian
+    * fixed win32 compilation
+
+  Revision 1.9  2003/11/29 17:34:53  michael
   + Removed dummy variable from SetCthreadManager
 
   Revision 1.8  2003/11/27 10:28:41  michael
