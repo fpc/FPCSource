@@ -181,10 +181,7 @@ end;
       begin
         list := ModeList;
         { go to the end of the list }
-        while assigned(list^.next) and
-              ((list^.drivernumber < mode.drivernumber) or
-               ((list^.drivernumber = mode.drivernumber) and
-                (list^.modenumber < mode.modenumber))) do
+        while assigned(list^.next) do
           list:=list^.next;
         new(NewLst);
         list^.next := NewLst;
@@ -591,7 +588,11 @@ end;
 
 {
 $Log$
-Revision 1.32  2000-07-08 06:24:21  jonas
+Revision 1.33  2000-07-08 13:00:08  jonas
+  * forgot to remove some non-working experimental code from last
+    commit :(
+
+Revision 1.32  2000/07/08 06:24:21  jonas
   * fixed problem that occurred if the graphmode was initialized with
     a new graphdriver, but then setgraphmode was called with as
     parameter the result of getGraphMode (since that one returns an
