@@ -1193,7 +1193,7 @@ type
            if UseNoSelector then
              col:=pbyte(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col xor byte(CurrentColor);
          End;
        AndPut:
@@ -1201,7 +1201,7 @@ type
            if UseNoSelector then
              col:=pbyte(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col and byte(CurrentColor);
          End;
        OrPut:
@@ -1209,7 +1209,7 @@ type
            if UseNoSelector then
              col:=pbyte(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col or byte(CurrentColor);
          End
        else
@@ -1240,8 +1240,12 @@ type
          exit;
      end;
      offs := longint(y) * BytesPerLine + x;
+     {$ifdef logging}
+     logln('putpix offset: '+hexstr(offs,8)+', color: '+strf(color)+', lpo: $'+
+       hexstr(LinearPageOfs,8));
+     {$endif logging}
      if UseNoSelector then
-       pbyte(LFBPointer+offs+LinearPageOfs)^:=color
+       pbyte(LFBPointer+offs+LinearPageOfs)^:=byte(color)
      else
        seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,1);
   end;
@@ -1254,10 +1258,14 @@ type
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + x;
+     {$ifdef logging}
+     logln('getpix offset: '+hexstr(offs,8)+', lpo: $'+
+       hexstr(LinearPageOfs,8));
+     {$endif logging}
      if UseNoSelector then
        col:=pbyte(LFBPointer+offs+LinearPageOfs)^
      else
-       seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+       seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
      GetPixVESA256Linear:=col;
   end;
 (*
@@ -1300,6 +1308,9 @@ end;
   var
      offs : longint;
   begin
+{$ifdef logging}
+     logln('putpixvesa32kor64k('+strf(x)+','+strf(y)+')');
+{$endif logging}
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
      { convert to absolute coordinates and then verify clipping...}
@@ -1313,6 +1324,9 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer(offs shr 16));
+{$ifdef logging}
+     logln('putpixvesa32kor64k offset: '+strf(word(offs)));
+{$endif logging}
      memW[WinWriteSeg : word(offs)] := color;
   end;
 
@@ -1332,6 +1346,9 @@ end;
      offs : longint;
      col : word;
   begin
+{$ifdef logging}
+     logln('directputpixvesa32kor64k('+strf(x)+','+strf(y)+')');
+{$endif logging}
      y:= Y + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer((offs shr 16) and $ff));
@@ -1356,6 +1373,9 @@ end;
            If CurrentWriteMode <> NotPut Then
              col := CurrentColor
            Else col := Not(CurrentColor);
+{$ifdef logging}
+           logln('directputpixvesa32kor64k offset: '+strf(word(offs)));
+{$endif logging}
            memW[WinWriteSeg : word(offs)] := Col;
          End
      End;
@@ -1398,7 +1418,7 @@ end;
      if UseNoSelector then
        color:=pword(LFBPointer+offs+LinearPageOfs)^
      else
-       seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@color),2);
+       seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@color),2);
      GetPixVESA32kor64kLinear:=color;
   end;
 
@@ -1414,7 +1434,7 @@ end;
            if UseNoSelector then
              col:=pword(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col xor currentcolor;
          End;
        AndPut:
@@ -1422,7 +1442,7 @@ end;
            if UseNoSelector then
              col:=pword(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col and currentcolor;
          End;
        OrPut:
@@ -1430,7 +1450,7 @@ end;
            if UseNoSelector then
              col:=pword(LFBPointer+offs+LinearPageOfs)^
            else
-             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+             seg_move(WinWriteSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col or currentcolor;
          End
        else
@@ -1578,6 +1598,9 @@ end;
     begin
       if DirectColor then
         Begin
+{$ifdef logging}
+          logln('setvesargbpalette called with directcolor = true');
+{$endif logging}
           _GraphResult := grError;
           exit;
         end;
@@ -1633,6 +1656,9 @@ end;
 
             if word(regs.eax) <> $004F then
               begin
+{$ifdef logging}
+                logln('setvesargbpalette failed while directcolor = false!');
+{$endif logging}
                 _GraphResult := grError;
                 exit;
               end;
@@ -1658,6 +1684,9 @@ end;
    begin
       if DirectColor then
         Begin
+{$ifdef logging}
+         logln('getvesargbpalette called with directcolor = true');
+{$endif logging}
           _GraphResult := grError;
           exit;
         end;
@@ -1703,6 +1732,9 @@ end;
 
             if word(regs.eax) <> $004F then
               begin
+{$ifdef logging}
+                logln('getvesargbpalette failed while directcolor = false!');
+{$endif logging}
                 _GraphResult := grError;
                 exit;
               end
@@ -1909,8 +1941,15 @@ Const
      end;
      FrameBufferLinearAddress:=Get_linear_addr(VESAModeInfo.PhysAddress and $FFFF0000,
        VESAInfo.TotalMem shl 16);
+{$ifdef logging}
+     logln('framebuffer linear address: '+hexstr(FrameBufferLinearAddress div (1024*1024),8));
+     logln('total mem shl 16: '+strf(vesainfo.totalmem shl 16));
+{$endif logging}
      if int31error<>0 then
        begin
+{$ifdef logging}
+         logln('Unable to get linear address for '+hexstr(VESAModeInfo.PhysAddress,8));
+{$endif logging}
          writeln(stderr,'Unable to get linear address for ',hexstr(VESAModeInfo.PhysAddress,8));
          exit;
        end;
@@ -1924,17 +1963,22 @@ Const
      else
        begin
          WinWriteSeg:=allocate_ldt_descriptors(1);
-         WinReadSeg:=allocate_ldt_descriptors(1);
+{$ifdef logging}
+         logln('writeseg1: '+hexstr(winwriteseg,8));
+{$endif logging}
          set_segment_base_address(WinWriteSeg,FrameBufferLinearAddress);
          set_segment_limit(WinWriteSeg,(VESAInfo.TotalMem shl 16)-1);
-         set_segment_base_address(WinReadSeg,FrameBufferLinearAddress);
-         set_segment_limit(WinReadSeg,(VESAInfo.TotalMem shl 16)-1);
+         lock_linear_region(FrameBufferLinearAddress,(VESAInfo.TotalMem shl 16));
          if int31error<>0 then
            begin
+{$ifdef logging}
+             logln('Error in linear memory selectors creation');
+{$endif logging}
              writeln(stderr,'Error in linear memory selectors creation');
              exit;
            end;
        end;
+     LinearPageOfs := 0;
      InLinear:=true;
      SetUpLinear:=true;
      { WinSize:=(VGAInfo.TotalMem shl 16);
@@ -2086,6 +2130,9 @@ Const
      if (VESAModeInfo.attr and modeAvail) = 0 then
        begin
          SetVESAmode := FALSE;
+{$ifdef logging}
+         logln('  vesa mode '+strf(mode)+' not supported!!!');
+{$endif logging}
          _GraphResult := grError;
          exit;
        end;
@@ -2125,6 +2172,9 @@ Const
   LogLn('Window size: '+strf(VESAModeInfo.winSize)+'kb');
   LogLn('Bytes per line: '+strf(bytesperline));
 {$endif logging}
+   { Select the correct mode number if we're going to use linear access! }
+   if InLinear then
+     inc(mode,$4000);
 
    asm
     mov ax,4F02h
@@ -2353,6 +2403,7 @@ Const
 {$endif fpc}
       mov  [VideoMode], al
     end;
+(*
 {$ifdef logging}
         LogLn('Prepare to save VESA video state');
 {$endif logging}
@@ -2422,6 +2473,7 @@ Const
         regs.ebx := 0;
         RealIntr($10,regs);
       end;
+*)
   end;
 
  procedure RestoreStateVESA; {$ifndef fpc}far;{$endif fpc}
@@ -2595,7 +2647,11 @@ Const
 
 (*
 $Log$
-Revision 1.24  2000-06-07 07:41:44  jonas
+Revision 1.25  2000-07-08 07:48:38  jonas
+  * LFB modes finally work! You have to add $4000 to the mode number
+    if you use LFB access!
+
+Revision 1.24  2000/06/07 07:41:44  jonas
   * always set SetupLinear to false at the start of the routine (there
     were some "exit" statements which returned without the function
     result being set otherwise)
