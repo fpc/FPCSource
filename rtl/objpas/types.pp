@@ -17,6 +17,7 @@ unit types;
 
   interface
 
+{$ifndef ver1_0}
     const
        RT_RCDATA = PChar(10);
 
@@ -208,8 +209,11 @@ unit types;
     function IsRectEmpty(const Rect : TRect) : Boolean;
     function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 
+{$endif ver1_0}
+
   implementation
 
+{$ifndef ver1_0}
     function EqualRect(const r1,r2 : TRect) : Boolean;
       begin
          EqualRect:=(r1.left=r2.left) and (r1.right=r2.right) and (r1.top=r2.top) and (r1.bottom=r2.bottom);
@@ -310,10 +314,14 @@ unit types;
            OffsetRect:=false;
       end;
 
+{$endif ver1_0}
+
 end.
 {
   $Log$
-  Revision 1.1  2002-07-23 20:39:54  florian
-    + types unit added
+  Revision 1.2  2002-07-27 07:28:10  florian
+    * fixed errror on non win32 targets with 1.0.x when doing a make cycle
 
+  Revision 1.1  2002/07/23 20:39:54  florian
+    + types unit added
 }
