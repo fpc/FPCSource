@@ -13,6 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening of
+    the library.
+    14 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 unit iffparse;
 
@@ -256,6 +271,8 @@ FUNCTION WriteChunkBytes(iff : pIFFHandle; buf : POINTER; numBytes : LONGINT) : 
 FUNCTION WriteChunkRecords(iff : pIFFHandle; buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AllocIFF : pIFFHandle;
 BEGIN
@@ -784,12 +801,59 @@ BEGIN
   END;
 END;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of iffparse.library}
+
+var
+    iffparse_exit : Pointer;
+
+procedure CloseiffparseLibrary;
+begin
+    ExitProc := iffparse_exit;
+    if IFFParseBase <> nil then begin
+        CloseLibrary(IFFParseBase);
+        IFFParseBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    IFFParseBase := nil;
+    IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
+    if IFFParseBase <> nil then begin
+        iffparse_exit := ExitProc;
+        ExitProc := @CloseiffparseLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open iffparse.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of iffparse.library compiled}
+   {$Info Make sure you open iffparse.library yourself}
+{$endif use_auto_openlib}
+
+
 END. (* UNIT IFFPARSE *)
 
 
 {
   $Log$
-  Revision 1.2  2002-11-18 20:54:56  nils
+  Revision 1.3  2003-01-14 18:46:04  nils
+  * added defines use_amia_smartlink and use_auto_openlib
+
+  * implemented autoopening of library
+
+  Revision 1.2  2002/11/18 20:54:56  nils
     * missing semicolon
 
 }

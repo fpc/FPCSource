@@ -24,6 +24,11 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
+
 unit datatypes;
 
 INTERFACE
@@ -1061,6 +1066,9 @@ Type
 
 VAR DataTypesBase : pLibrary;
 
+const
+    DATATYPESNAME : PChar = 'datatypes.library';
+
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
 PROCEDURE DisposeDTObject(o : pObject_);
 FUNCTION DoAsyncLayout(o : pObject_; gpl : pgpLayout) : ULONG;
@@ -1079,6 +1087,8 @@ FUNCTION SetDTAttrsA(o : pObject_; win : pWindow; req : pRequester; attrs : pTag
 
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
 BEGIN
@@ -1278,12 +1288,58 @@ BEGIN
   END;
 END;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of datatypes.library}
+
+var
+    datatypes_exit : Pointer;
+
+procedure ClosedatatypesLibrary;
+begin
+    ExitProc := datatypes_exit;
+    if DataTypesBase <> nil then begin
+        CloseLibrary(DataTypesBase);
+        DataTypesBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    DataTypesBase := nil;
+    DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
+    if DataTypesBase <> nil then begin
+        datatypes_exit := ExitProc;
+        ExitProc := @ClosedatatypesLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open datatypes.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of datatypes.library compiled}
+   {$Info Make sure you open datatypes.library yourself}
+{$endif use_auto_openlib}
+
 END. (* UNIT DATATYPES *)
 
 
 {
   $Log$
-  Revision 1.2  2002-11-18 20:52:28  nils
+  Revision 1.3  2003-01-14 18:46:04  nils
+  * added defines use_amia_smartlink and use_auto_openlib
+
+  * implemented autoopening of library
+
+  Revision 1.2  2002/11/18 20:52:28  nils
     * update check internal log
 
 }

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening of
+    the library.
+    14 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT expansion;
 
@@ -52,6 +67,8 @@ PROCEDURE SetCurrentBinding(currentBinding : pCurrentBinding; bindingSize : ULON
 PROCEDURE WriteExpansionByte(board : POINTER; offset : ULONG; byte : ULONG);
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AddBootNode(bootPri : LONGINT; flags : ULONG; deviceNode : pDeviceNode; configDev : pConfigDev) : BOOLEAN;
 BEGIN
@@ -311,6 +328,48 @@ BEGIN
     MOVEA.L (A7)+,A6
   END;
 END;
+
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of expansion.library}
+
+var
+    expansion_exit : Pointer;
+
+procedure CloseexpansionLibrary;
+begin
+    ExitProc := expansion_exit;
+    if ExpansionBase <> nil then begin
+        CloseLibrary(ExpansionBase);
+        ExpansionBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    ExpansionBase := nil;
+    ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
+    if ExpansionBase <> nil then begin
+        expansion_exit := ExitProc;
+        ExitProc := @CloseexpansionLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open expansion.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of expansion.library compiled}
+   {$Info Make sure you open expansion.library yourself}
+{$endif use_auto_openlib}
+
 
 END. (* UNIT EXPANSION *)
 

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening
+    of the library.
+    14 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se
+}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT layers;
 
@@ -101,6 +116,8 @@ FUNCTION UpfrontLayer(dummy : LONGINT; layer : pLayer) : LONGINT;
 FUNCTION WhichLayer(li : pLayer_Info; x : LONGINT; y : LONGINT) : pLayer;
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION BeginUpdate(l : pLayer) : LONGINT;
 BEGIN
@@ -530,11 +547,57 @@ BEGIN
   END;
 END;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of layers.library}
+
+var
+    layers_exit : Pointer;
+
+procedure CloselayersLibrary;
+begin
+    ExitProc := layers_exit;
+    if LayersBase <> nil then begin
+        CloseLibrary(LayersBase);
+        LayersBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    LayersBase := nil;
+    LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
+    if LayersBase <> nil then begin
+        layers_exit := ExitProc;
+        ExitProc := @CloselayersLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open layers.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of layers.library compiled}
+   {$Info Make sure you open layers.library yourself}
+{$endif use_auto_openlib}
+
 END. (* UNIT LAYERS *)
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:47:46  nils
+  Revision 1.3  2003-01-14 18:46:04  nils
+  * added defines use_amia_smartlink and use_auto_openlib
+
+  * implemented autoopening of library
+
+  Revision 1.2  2002/11/19 18:47:46  nils
     * update check internal log
 
 }

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -17,6 +17,22 @@
 {
         keymap.resource definitions and console.device key map definitions
 }
+
+{
+    History:
+    
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening
+    of the library.
+    14 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 unit keymap;
 
@@ -91,12 +107,17 @@ Const
 
 VAR KeymapBase : pLibrary;
 
+const
+    KEYMAPNAME : PChar = 'keymap.library';
+
 FUNCTION AskKeyMapDefault : pKeyMap;
 FUNCTION MapANSI(thestring : pCHAR; count : LONGINT; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : LONGINT;
 FUNCTION MapRawKey(event : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : INTEGER;
 PROCEDURE SetKeyMapDefault(keyMap : pKeyMap);
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AskKeyMapDefault : pKeyMap;
 BEGIN
@@ -150,6 +171,48 @@ BEGIN
     MOVEA.L (A7)+,A6
   END;
 END;
+
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of keymap.library}
+
+var
+    keymap_exit : Pointer;
+
+procedure ClosekeymapLibrary;
+begin
+    ExitProc := keymap_exit;
+    if KeymapBase <> nil then begin
+        CloseLibrary(KeymapBase);
+        KeymapBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    KeymapBase := nil;
+    KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+    if KeymapBase <> nil then begin
+        keymap_exit := ExitProc;
+        ExitProc := @ClosekeymapLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open keymap.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of keymap.library compiled}
+   {$Info Make sure you open keymap.library yourself}
+{$endif use_auto_openlib}
+
 
 END. (* UNIT KEYMAP *)
 

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening
+    of the library.
+    14 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT nonvolatile;
 
@@ -64,6 +79,9 @@ const
 
 VAR NVBase : pLibrary;
 
+const
+    NONVOLATILENAME : PChar = 'nonvolatile.library';
+
 FUNCTION DeleteNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
 PROCEDURE FreeNVData(data : POINTER);
 FUNCTION GetCopyNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : POINTER;
@@ -73,6 +91,8 @@ FUNCTION SetNVProtection(appName : pCHAR; itemName : pCHAR; mask : LONGINT; kill
 FUNCTION StoreNV(appName : pCHAR; itemName : pCHAR; data : POINTER; length : ULONG; killRequesters : LONGINT) : WORD;
 
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION DeleteNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
 BEGIN
@@ -174,5 +194,47 @@ BEGIN
     MOVE.L  D0,@RESULT
   END;
 END;
+
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of nonvolatile.library}
+
+var
+    nonvolatile_exit : Pointer;
+
+procedure ClosenonvolatileLibrary;
+begin
+    ExitProc := nonvolatile_exit;
+    if NVBase <> nil then begin
+        CloseLibrary(NVBase);
+        NVBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    NVBase := nil;
+    NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
+    if NVBase <> nil then begin
+        nonvolatile_exit := ExitProc;
+        ExitProc := @ClosenonvolatileLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open nonvolatile.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of nonvolatile.library compiled}
+   {$Info Make sure you open nonvolatile.library yourself}
+{$endif use_auto_openlib}
+
 
 END. (* UNIT NONVOLATILE *)

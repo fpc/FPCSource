@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -22,8 +22,18 @@
     Removed amigaoverlays, use smartlink instead.
     05 Nov 2002.
 
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening of
+    the library.
+    14 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT rexx;
 
@@ -470,6 +480,9 @@ Const
 
 VAR RexxSysBase : pLibrary;
 
+const
+    REXXSYSLIBNAME : PChar = 'rexxsyslib.library';
+
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
 FUNCTION CreateArgstring(argstring : pCHAR; length : ULONG) : pCHAR;
 FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : pCHAR) : pRexxMsg;
@@ -490,7 +503,7 @@ FUNCTION LengthArgstring(argstring : string) : ULONG;
 
 IMPLEMENTATION
 
-uses pastoc;
+uses pastoc,msgbox;
 
 
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
@@ -651,12 +664,58 @@ begin
        LengthArgstring := LengthArgstring(pas2c(argstring));
 end;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of rexxsyslib.library}
+
+var
+    rexxsyslib_exit : Pointer;
+
+procedure CloserexxsyslibLibrary;
+begin
+    ExitProc := rexxsyslib_exit;
+    if RexxSysBase <> nil then begin
+        CloseLibrary(RexxSysBase);
+        RexxSysBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    RexxSysBase := nil;
+    RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
+    if RexxSysBase <> nil then begin
+        rexxsyslib_exit := ExitProc;
+        ExitProc := @CloserexxsyslibLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open rexxsyslib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of rexxsyslib.library compiled}
+   {$Info Make sure you open rexxsyslib.library yourself}
+{$endif use_auto_openlib}
+
 
 END. (* UNIT REXXSYSLIB *)
 
 {
   $Log$
-  Revision 1.3  2002-11-19 18:47:47  nils
+  Revision 1.4  2003-01-14 18:46:04  nils
+  * added defines use_amia_smartlink and use_auto_openlib
+
+  * implemented autoopening of library
+
+  Revision 1.3  2002/11/19 18:47:47  nils
     * update check internal log
 
 }

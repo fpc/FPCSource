@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -21,9 +21,18 @@
     For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2002.
     
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib. Implemented autoopening
+    of the library.
+    14 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT locale;
 
@@ -253,6 +262,9 @@ Type
 
 VAR LocaleBase : pLocaleBase;
 
+const
+    LOCALENAME : PChar = 'locale.library';
+
 PROCEDURE CloseCatalog(catalog : pCatalog);
 PROCEDURE CloseLocale(locale : pLocale);
 FUNCTION ConvToLower(locale : pLocale; character : ULONG) : ULONG;
@@ -280,6 +292,8 @@ FUNCTION StrnCmp(locale : pLocale; string1 : pCHAR; string2 : pCHAR; length : LO
 
 
 IMPLEMENTATION
+
+uses msgbox;
 
 PROCEDURE CloseCatalog(catalog : pCatalog);
 BEGIN
@@ -637,11 +651,58 @@ BEGIN
   END;
 END;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of locale.library}
+
+var
+    locale_exit : Pointer;
+
+procedure CloselocaleLibrary;
+begin
+    ExitProc := locale_exit;
+    if LocaleBase <> nil then begin
+        CloseLibrary(plibrary(LocaleBase));
+        LocaleBase := nil;
+    end;
+end;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+begin
+    LocaleBase := nil;
+    LocaleBase := pLocaleBase(OpenLibrary(LOCALENAME,LIBVERSION));
+    if LocaleBase <> nil then begin
+        locale_exit := ExitProc;
+        ExitProc := @CloselocaleLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open locale.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of locale.library compiled}
+   {$Info Make sure you open locale.library yourself}
+{$endif use_auto_openlib}
+
+
 END. (* UNIT LOCALE *)
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:47:46  nils
+  Revision 1.3  2003-01-14 18:46:04  nils
+  * added defines use_amia_smartlink and use_auto_openlib
+
+  * implemented autoopening of library
+
+  Revision 1.2  2002/11/19 18:47:46  nils
     * update check internal log
 
 }
