@@ -25,13 +25,25 @@ unit typinfo;
        sysutils;
 
     type
-      // FPC uses a Byte because a enumeration type takes always
-      // 4 bytes which is too much 
-      TTypeKind = Byte;
-      TOrdType = Byte;
+{$MINENUMSIZE 1   this saves a lot of memory }
+       // if you change one of the following enumeration types
+       // you have also to change the compiler in an appropriate way !
+       TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,
+                   tkFloat,tkSet,tkMethod,tkSString,tkLString,tkAString,
+                   tkWString,tkVariant,tkArray,tkRecord,tkInterface,
+                   tkClass,tkObject,tkWChar);
+
+       TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
+
+       TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,
+                     ftFixed16,ftFixed32);
+{$MINENUMSIZE DEFAULT}
+
+   const
+      tkString        = tkSString;
+
+   type
       TMethodKind = Byte;
-      TFloatType = Byte;
-      TParamFlags;
 
       TTypeKinds = set of TTypeKind;
 
@@ -39,6 +51,7 @@ unit typinfo;
          Kind : TTypeKind;
          Name : ShortString;
       end;
+
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
@@ -54,52 +67,43 @@ unit typinfo;
             tkSString:
               (MaxLength : Byte);
             tkClass:
-              (ClassType : TClass);
-              (ParentInfo : PPTypeInfo);
-              (PropCount : SmallInt);
-              (UnitName : ShortString);
+              (ClassType : TClass;
+               ParentInfo : PTypeInfo;
+               PropCount : SmallInt;
+               UnitName : ShortString;
       end;
 
+      PPropInfo = ^TPropInfo;
+      TPropInfo = packed record
+        PropType : PTypeInfo;
+        GetProc : Pointer;
+        SetProc : Pointer;
+        StoredProc : Pointer;
+        Index : Integer;
+        Default : Longint;
+        NameIndex : SmallInt;
+        Name : ShortString;
+      end;
+
+      TProcInfoProc = procedure(PropInfo : PPropInfo) of object;
+
+      PPropList = ^TPropList;
+      TPropList = array[0..65535] of PPropInfo;
+
    const
-      // if you change one of the following constants,
-      // you have also to change the compiler in an appropriate way !
-      tkUnknown       = 0;
-      tkInteger       = 1;
-      tkChar          = 2;
-      tkEnumeration   = 3;
-      tkFloat         = 4;
-      tkSet           = 6;
-      tkMethod        = 7;
-      tkSString       = 8;
-      tkString        = tkSString;
-      tkLString       = 9;
-      tkAString       = 10;
-      tkWString       = 11;
-      tkVariant       = 12;
-      tkArray         = 13;
-      tkRecord        = 14;
-      tkInterface     = 15;
-      tkClass         = 16;
-      tkObject        = 17;
-      tkWChar         = 18;
-
-      otSByte         = 0;
-      otUByte         = 1;
-      otSWord         = 2;
-      otUWord         = 3;
-      otSLong         = 4;
-      otULong         = 5;
-
-      ftSingle        = 0;
-      ftDouble        = 1;
-      ftExtended      = 2;
-      ftComp          = 3;
-      ftCurr          = 4;
-      ftFixed16       = 5;
-      ftFixed32       = 6;
+      tkAny = [Low(TTypeKind)..High(TTypeKind)];
+      tkMethods = [tkMethod];
+      tkProperties = tkAny-tkMethods-[tkUnknown];
 
     // just skips the id and the name
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+
+    // searches in the property PropName
+    function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
+
+    procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+    function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
+      PropList : PPropList) : Integer;
 
   implementation
 
@@ -109,13 +113,43 @@ unit typinfo;
          GetTypeData:=PTypeData(TypeInfo)+2+PByte(TypeInfo+1)^;
       end;
 
+    function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
+
+      var
+         hp : PTypeData;
+
+      begin
+         Result:=Nil;
+         while Assigned(hp) do
+           begin
+              // skip the name
+              hp:=GetTypeData;
+
+              // the class info rtti the property rtti follows
+              // immediatly
+              Result:=PPropInfo(@hp^.UnitName)+byte(hp^.UnitName[0])+1;
+              for i:=1 to hp^.PropCount do
+                begin
+                   // found a property of that name ?
+                   if Result^.Name=PropName then
+                     exit;
+
+                   // skip to next property
+                   Result:=PPropInfo(@Result^.Name)+byte(Result^.Name[0])+1;
+                end;
+              // parent class
+              hp:=hp^.ParentInfo;
+           end;
+      end;
 end.
 
 {
   $Log$
-  Revision 1.1  1998-08-25 22:30:00  florian
+  Revision 1.2  1998-09-06 21:27:05  florian
+    + some methods and declarations added
+
+  Revision 1.1  1998/08/25 22:30:00  florian
     + initial revision:
        o constants
        o basic type data record
-
 }
