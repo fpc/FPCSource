@@ -3274,7 +3274,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-4;
               if stackframe<>0 then
                 exprasmlist^.insert(new(paicpu,
-                  op_const_reg(A_SUB,S_L,gettempsize,R_ESP)));
+                  op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
           end
       else
           begin
@@ -3968,7 +3968,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.104  2000-05-18 17:05:15  peter
+  Revision 1.105  2000-05-23 14:20:49  pierre
+   * Use stacksize param instead of gettempsize
+
+  Revision 1.104  2000/05/18 17:05:15  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.103  2000/05/17 11:06:11  pierre
