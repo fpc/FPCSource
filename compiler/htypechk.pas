@@ -442,18 +442,21 @@ implementation
      var
          rd,ld   : tdef;
          optoken : ttoken;
+         operpd  : tprocdef;
          ht      : tnode;
       begin
         isbinaryoverloaded:=false;
-        { overloaded operator ? }
+        operpd:=nil;
         { load easier access variables }
         rd:=tbinarynode(t).right.resulttype.def;
         ld:=tbinarynode(t).left.resulttype.def;
         if isbinaryoperatoroverloadable(ld,rd,voidtype.def,t.nodetype) then
           begin
              isbinaryoverloaded:=true;
-             {!!!!!!!!! handle paras }
              case t.nodetype of
+                equaln,
+                unequaln :
+                  optoken:=_EQUAL;
                 addn:
                   optoken:=_PLUS;
                 subn:
@@ -472,8 +475,6 @@ implementation
                   optoken:=_lte;
                 gten:
                   optoken:=_gte;
-                equaln,unequaln :
-                  optoken:=_EQUAL;
                 symdifn :
                   optoken:=_SYMDIF;
                 modn :
@@ -493,19 +494,35 @@ implementation
                 else
                   exit;
              end;
-             { the nil as symtable signs firstcalln that this is
-               an overloaded operator }
-             ht:=ccallnode.create(nil,overloaded_operators[optoken],nil,nil);
-             { we have to convert p^.left and p^.right into
-              callparanodes }
-             if tcallnode(ht).symtableprocentry=nil then
+             { check if the operator contains overloaded procdefs }
+             if overloaded_operators[optoken]=nil then
                begin
                   CGMessage(parser_e_operator_not_overloaded);
-                  ht.free;
                   isbinaryoverloaded:=false;
                   exit;
                end;
+
+             { Check if the assignment is available, if not then
+               give a message that the types are not compatible }
+             if optoken in [_EQUAL] then
+              begin
+                operpd:=overloaded_operators[optoken].search_procdef_binary_operator(ld,rd);
+                if not assigned(operpd) then
+                 begin
+                   CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                   isbinaryoverloaded:=false;
+                   exit;
+                 end;
+               end;
+
+             { the nil as symtable signs firstcalln that this is
+               an overloaded operator }
+             ht:=ccallnode.create(nil,overloaded_operators[optoken],nil,nil);
              inc(tcallnode(ht).symtableprocentry.refs);
+             { we already know the procdef to use for equal, so it can
+               skip the overload choosing in callnode.det_resulttype }
+             if assigned(operpd) then
+               tcallnode(ht).procdefinition:=operpd;
              { we need copies, because the originals will be destroyed when we give a }
              { changed node back to firstpass! (JM)                                   }
              if assigned(tbinarynode(t).left) then
@@ -1111,7 +1128,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-11-27 22:11:59  peter
+  Revision 1.53  2002-12-11 22:39:24  peter
+    * better error message when no operator is found for equal
+
+  Revision 1.52  2002/11/27 22:11:59  peter
     * rewrote isbinaryoverloadable to use a case. it's now much easier
       to understand what is happening
 

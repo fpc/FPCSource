@@ -144,6 +144,7 @@ interface
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
+          function search_procdef_binary_operator(def1,def2:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -1120,6 +1121,49 @@ implementation
             pd:=pd^.next;
           end;
         search_procdef_assignment_operator:=bestpd;
+      end;
+
+
+    function Tprocsym.search_procdef_binary_operator(def1,def2:tdef):Tprocdef;
+      var
+        convtyp : tconverttype;
+        pd : pprocdeflist;
+        bestpd : tprocdef;
+        eq1,eq2 : tequaltype;
+        eqlev,
+        bestlev : byte;
+        hpd : tprocdef;
+      begin
+        search_procdef_binary_operator:=nil;
+        bestpd:=nil;
+        bestlev:=0;
+        pd:=defs;
+        while assigned(pd) do
+          begin
+            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
+                                 nothingn,false,false,convtyp,hpd);
+            if eq1<>te_incompatible then
+             begin
+               eq2:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
+                                    nothingn,false,false,convtyp,hpd);
+               if eq2<>te_incompatible then
+                begin
+                  eqlev:=byte(eq1)+byte(eq2);
+                  if eqlev=(byte(te_exact)+byte(te_exact)) then
+                   begin
+                     search_procdef_binary_operator:=pd^.def;
+                     exit;
+                   end;
+                  if eqlev>bestlev then
+                   begin
+                     bestpd:=pd^.def;
+                     bestlev:=eqlev;
+                   end;
+                end;
+             end;
+            pd:=pd^.next;
+          end;
+        search_procdef_binary_operator:=bestpd;
       end;
 
 
@@ -2460,7 +2504,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-12-07 14:27:10  carl
+  Revision 1.82  2002-12-11 22:39:23  peter
+    * better error message when no operator is found for equal
+
+  Revision 1.81  2002/12/07 14:27:10  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for
