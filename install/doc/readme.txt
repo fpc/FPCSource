@@ -303,10 +303,10 @@ not be willing/able to fix it.
 ****************************************************************************
 
 The compiler and most utilities and executables distributed in this package
-fall under the GPL, for more information read the file COPYING.GPL. 
+fall under the GPL, for more information read the file COPYING.
 
-Some specific utilities and programs come under the license described in 
-COPYING.DJ or COPYING.EMX.
+Some specific utilities and programs come under the license described in
+COPYING.DJ, COPYING.EMX and COPYING.RSX.
 
 The documentation, unless otherwise noted, is distributed as free 
 text, and is distributed under the GNU Library General Public
@@ -315,7 +315,7 @@ License.
 The runtime library, package libraries, free component library, and 
 other libraries which are used to create executables by the compiler 
 come under a modified GNU Library General Public license. Additional 
-informations about the library licenses are found in COPYING.FPC. 
+information about the library license is found in COPYING.FPC. 
 
 NOTE: OS/2 version of the installer uses the library UNZIP32.DLL from
       Info-ZIP. Info-ZIP's software (Zip, UnZip and related utilities)
