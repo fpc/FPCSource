@@ -1016,8 +1016,6 @@ begin
        begin
          consume(_NAME);
          import_name:=get_stringconst;
-         aktprocdef.setmangledname(import_name);
-         aktprocdef.has_mangledname:=true;
        end;
       if (idtoken=_INDEX) then
        begin
@@ -2016,7 +2014,10 @@ const
 end.
 {
   $Log$
-  Revision 1.44  2002-01-06 21:54:07  peter
+  Revision 1.45  2002-01-09 07:38:03  michael
+  + Patch from peter for library imports
+
+  Revision 1.44  2002/01/06 21:54:07  peter
     * fixed external <dll> name <c-name> manglednames
 
   Revision 1.43  2001/12/31 16:59:42  peter
