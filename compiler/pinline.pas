@@ -251,7 +251,7 @@ implementation
 
                      { create call to fpc_initialize }
                      if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
-                       addstatement(newstatement,initialize_data_node(ctemprefnode.create(temp)));
+                       addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -693,7 +693,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-10-17 14:38:32  peter
+  Revision 1.23  2003-11-04 19:05:03  peter
+    * fixed initialize call after getmem
+
+  Revision 1.22  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
