@@ -6,7 +6,7 @@
 loaders=prt0 prt1 code2 code3
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
-      pmbitmap pmwin pmgpi dive pmerr \
+      pmbitmap pmwin pmgpi dive \
       dos crt objects printer \
       sysutils math typinfo varutils \
       ucomplex cpu mmx getopts heaptrc lineinfo dynlibs
@@ -107,8 +107,6 @@ os2def$(PPUEXT) : os2def.pas $(SYSTEMPPU)
 pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMPPU)
 
 pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMPPU)
-
-pmerr$(PPUEXT) : pmerr.pas $(SYSTEMPPU)
 
 pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMPPU)
 
