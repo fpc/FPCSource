@@ -569,14 +569,11 @@
 
 
     procedure tenumdef.calcsavesize;
-      var
-        len : longint;
       begin
-        len:=max-min;
-        if (aktpackenum=4) or (len>65535) then
+        if (aktpackenum=4) or (max>65535) then
          savesize:=4
         else
-         if (aktpackenum=2) or (len>255) then
+         if (aktpackenum=2) or (max>255) then
           savesize:=2
         else
          savesize:=1;
@@ -2628,7 +2625,10 @@
 
 {
   $Log$
-  Revision 1.30  1998-09-01 17:37:29  peter
+  Revision 1.31  1998-09-02 15:14:28  peter
+    * enum packing changed from len to max
+
+  Revision 1.30  1998/09/01 17:37:29  peter
     * removed debug writeln :(
 
   Revision 1.29  1998/09/01 12:53:25  peter
