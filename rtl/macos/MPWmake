@@ -8,12 +8,13 @@ REDIR = -FE::units:powerpc-macos:
 SYSDEPS = 
 DOSDEPS =
 
+
 all Ä
   Set Exit 0
   NewFolder "::units:" ³ Dev:Null
   NewFolder "::units:powerpc-macos:" ³ Dev:Null
   Set Exit 1
-  "{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp
+	"{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:macpas.pp
@@ -27,6 +28,7 @@ all Ä
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:matrix.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macostp.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:ctypes.pp
 
 clean Ä
   Set Exit 0
@@ -97,3 +99,13 @@ install Ä
 #all Ä system.ppu strings.ppu objpas.ppu macpas.ppu dos.ppu ¶
 #      objects.ppu getopts.ppu heaptrc.ppu unixutil.ppu charset.ppu ¶
 #      cmem.ppu matrix.ppu macostp.ppu macutils.ppu
+
+
+UPINTERFACES = {Boot}Developer:Pascal:UPInterfaces
+
+fpcmacos Ä
+  Set Exit 0
+  NewFolder "::units:" ³ Dev:Null
+  NewFolder "::units:powerpc-macos:" ³ Dev:Null
+  Set Exit 1
+  "{FPC}" {OPT} {REDIR} -Fi"{UPINTERFACES}" fpcmacos.pp
