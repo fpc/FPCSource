@@ -92,6 +92,7 @@ const
   bufsize=8192;
 var
   f       : text;
+  msgsread,
   line,i  : longint;
   ptxt    : pchar;
   s,s1    : string;
@@ -106,13 +107,14 @@ begin
   if ioresult<>0 then
    begin
      WriteLn('*** message file '+fn+' not found ***');
-     exit;
+     fail;
    end;
   settextbuf(f,buf^,bufsize);
 { First parse the file and count bytes needed }
   line:=0;
   msgs:=n;
   msgsize:=0;
+  msgsread:=0;
   while not eof(f) do
    begin
      readln(f,s);
@@ -121,10 +123,21 @@ begin
       begin
         i:=pos('=',s);
         if i>0 then
-         inc(msgsize,length(s)-i+1)
+         begin
+           inc(msgsize,length(s)-i+1);
+           inc(msgsread);
+         end
         else
          writeln('error in line: ',line,' skipping');
       end;
+   end;
+{ check amount of messages }
+  if msgsread<>msgs then
+   begin
+     WriteLn('*** message file '+fn+' is corrupt: read ',msgsread,' of ',msgs,' msgs ***');
+     close(f);
+     freemem(buf,bufsize);
+     fail;
    end;
 { now read the buffer in mem }
   msgallocsize:=msgsize;
@@ -274,7 +287,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-02-09 13:22:54  peter
+  Revision 1.12  2000-03-01 22:29:18  peter
+    * message files are check for amount of msgs found. If not correct a
+      line is written to stdout and switched to internal messages
+
+  Revision 1.11  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.10  2000/01/23 16:32:08  peter

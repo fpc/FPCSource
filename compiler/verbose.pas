@@ -243,6 +243,8 @@ begin
   if not(msg=nil) then
    dispose(msg,Done);
   msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
+  if msg=nil then
+   msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
 end;
 
 
@@ -506,7 +508,11 @@ end.
 
 {
   $Log$
-  Revision 1.47  2000-03-01 21:45:42  peter
+  Revision 1.48  2000-03-01 22:29:18  peter
+    * message files are check for amount of msgs found. If not correct a
+      line is written to stdout and switched to internal messages
+
+  Revision 1.47  2000/03/01 21:45:42  peter
     * lowercase .INC -> .inc
 
   Revision 1.46  2000/02/28 17:23:57  daniel
