@@ -81,6 +81,7 @@ function AnsiLowerCase(const s: string): string;
 function AnsiCompareStr(const S1, S2: string): integer;
 function AnsiCompareText(const S1, S2: string): integer;
 function AnsiSameText(const s1,s2:String):Boolean;
+function AnsiSameStr(const s1,s2:String):Boolean;
 function AnsiStrComp(S1, S2: PChar): integer;
 function AnsiStrIComp(S1, S2: PChar): integer;
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
@@ -177,7 +178,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.3  2003-11-26 22:17:42  michael
+  Revision 1.4  2004-02-26 08:46:21  michael
+  + Added AnsiSameStr
+
+  Revision 1.3  2003/11/26 22:17:42  michael
   + Merged fixbranch fixes, missing in main branch
 
   Revision 1.2  2003/10/07 12:02:47  marco

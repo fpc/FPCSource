@@ -263,6 +263,12 @@ begin
  AnsiSameText:=AnsiCompareText(S1,S2)=0;
 end;
 
+function AnsiSameStr(const s1,s2:String):Boolean;
+
+begin
+  AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
+end;
+
 function AnsiStrComp(S1, S2: PChar): integer;
 
 begin
@@ -2138,7 +2144,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2003-11-26 22:17:42  michael
+  Revision 1.9  2004-02-26 08:46:21  michael
+  + Added AnsiSameStr
+
+  Revision 1.8  2003/11/26 22:17:42  michael
   + Merged fixbranch fixes, missing in main branch
 
   Revision 1.7  2003/11/22 17:18:53  marco
