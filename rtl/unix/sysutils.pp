@@ -21,6 +21,8 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE HAS_EXEC_ANSI} 
+
 uses
   Unix,errors,sysconst;
 
@@ -476,6 +478,38 @@ begin
   Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
 end;
 
+function Exec (Const Path: AnsiString; Const ComLine: AnsiString):integer;
+var
+  pid    : longint;
+  err    : longint;
+  // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7
+Begin
+  pid:=fpFork; 
+  if pid=0 then
+   begin
+   {The child does the actual exec, and then exits}
+     if ComLine='' then  
+      Execl(Path)
+     else
+      Execl(Path+' '+ComLine);
+   {If the execve fails, we return an exitvalue of 127, to let it be known}
+     fpExit(127);
+   end
+  else
+   if pid=-1 then         {Fork failed}
+    begin
+      result:=8;
+      exit
+    end;
+{We're in the parent, let's wait.}
+  result:=WaitProcess(pid); // WaitPid and result-convert
+
+  if (result>=0) and (result<>127) then
+   result:=0
+  else
+   result:=8; // perhaps one time give an better error
+End;
+
 
 {****************************************************************************
                               Initialization code
@@ -490,7 +524,10 @@ end.
 {
 
   $Log$
-  Revision 1.26  2003-11-26 20:35:14  michael
+  Revision 1.27  2004-01-03 09:09:11  marco
+   * Unix exec(ansistring)
+
+  Revision 1.26  2003/11/26 20:35:14  michael
   + Some fixes to have everything compile again
 
   Revision 1.25  2003/11/17 10:05:51  marco
