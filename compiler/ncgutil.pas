@@ -1234,6 +1234,20 @@ function returns in a register and the caller receives it in an other one}
           code, since temp. allocation might occur before - carl
         }
 
+
+        { for the save all registers we can simply use a pusha,popa which
+          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+        if (po_saveregisters in aktprocdef.procoptions) then
+          cg.g_save_all_registers(list)
+        else
+         { should we save edi,esi,ebx like C ? }
+         if (po_savestdregs in aktprocdef.procoptions) then
+           cg.g_save_standard_registers(list,aktprocdef.usedregisters);
+
+        { the actual profile code can clobber some registers,
+          therefore if the context must be saved, do it before
+          the actual call to the profile code
+        }
         if (cs_profile in aktmoduleswitches) 
          and not(po_assembler in aktprocdef.procoptions) 
          and not(inlined) then
@@ -1247,14 +1261,6 @@ function returns in a register and the caller receives it in an other one}
               cg.g_profilecode(list);
           end;
 
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in aktprocdef.procoptions) then
-          cg.g_save_all_registers(list)
-        else
-         { should we save edi,esi,ebx like C ? }
-         if (po_savestdregs in aktprocdef.procoptions) then
-           cg.g_save_standard_registers(list,aktprocdef.usedregisters);
 
         { a constructor needs a help procedure }
         if (aktprocdef.proctypeoption=potype_constructor) then
@@ -1896,7 +1902,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.68  2002-12-01 22:06:59  carl
+  Revision 1.69  2002-12-03 22:13:39  carl
+     * bugfix of problems with profile code which clobbers some registers
+
+  Revision 1.68  2002/12/01 22:06:59  carl
     * warning of portabilitiy problems with parasize / localsize
 
   Revision 1.67  2002/11/30 18:44:57  carl
