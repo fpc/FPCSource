@@ -81,10 +81,6 @@ implementation
        ,ra68kmot
   {$endif NoRa68kMot}
 {$endif m68k}
-       { codegen }
-{$ifdef newcg}
-       ,cgbase
-{$endif newcg}
        ;
 
 
@@ -728,7 +724,7 @@ implementation
       var
         asmstat : tasmnode;
         Marker : tai;
-        r : tregister;
+        r,r2 : tregister;
         found : boolean;
       begin
          Inside_asm_statement:=true;
@@ -810,101 +806,29 @@ implementation
          { END is read }
          if try_to_consume(_LECKKLAMMER) then
            begin
+              if token<>_RECKKLAMMER then
+              repeat
               { it's possible to specify the modified registers }
               include(asmstat.flags,nf_object_preserved);
-              if token<>_RECKKLAMMER then
-                repeat
-                { uppercase, because it's a CSTRING }
-                  uppervar(pattern);
-{$ifdef i386}
-                  if pattern='EAX' then
-                    include(rg.usedinproc,R_EAX)
-                  else if pattern='EBX' then
-                    include(rg.usedinproc,R_EBX)
-                  else if pattern='ECX' then
-                    include(rg.usedinproc,R_ECX)
-                  else if pattern='EDX' then
-                    include(rg.usedinproc,R_EDX)
-                  else if pattern='ESI' then
-                    begin
-                       include(rg.usedinproc,R_ESI);
-                       exclude(asmstat.flags,nf_object_preserved);
-                    end
-                  else if pattern='EDI' then
-                    include(rg.usedinproc,R_EDI)
-                  else consume(_RECKKLAMMER);
-{$endif i386}
-{$ifdef x86_64}
-                  if pattern='RAX' then
-                    include(usedinproc,R_RAX)
-                  else if pattern='RBX' then
-                    include(usedinproc,R_RBX)
-                  else if pattern='RCX' then
-                    include(usedinproc,R_RCX)
-                  else if pattern='RDX' then
-                    include(usedinproc,R_RDX)
-                  else if pattern='RSI' then
-                    begin
-                       include(usedinproc,R_RSI);
-                       exclude(asmstat.flags,nf_object_preserved);
-                    end
-                  else if pattern='RDI' then
-                    include(usedinproc,R_RDI)
-                  else consume(_RECKKLAMMER);
-{$endif x86_64}
-{$ifdef m68k}
-                  if pattern='D0' then
-                    include(rg.usedinproc,R_D0)
-                  else if pattern='D1' then
-                    include(rg.usedinproc,R_D1)
-                  else if pattern='D2' then
-                    include(rg.usedinproc,R_D2)
-                  else if pattern='D3' then
-                    include(rg.usedinproc,R_D3)
-                  else if pattern='D4' then
-                    include(rg.usedinproc,R_D4)
-                  else if pattern='D5' then
-                    include(rg.usedinproc,R_D5)
-                  else if pattern='D6' then
-                    include(rg.usedinproc,R_D6)
-                  else if pattern='D7' then
-                    include(rg.usedinproc,R_D7)
-                  else if pattern='A0' then
-                    include(rg.usedinproc,R_A0)
-                  else if pattern='A1' then
-                    include(rg.usedinproc,R_A1)
-                  else if pattern='A2' then
-                    include(rg.usedinproc,R_A2)
-                  else if pattern='A3' then
-                    include(rg.usedinproc,R_A3)
-                  else if pattern='A4' then
-                    include(rg.usedinproc,R_A4)
-                  else if pattern='A5' then
-                    include(rg.usedinproc,R_A5)
-                  else consume(_RECKKLAMMER);
-{$endif m68k}
-{$ifdef powerpc}
-                  found:=false;
-                  for r:=low(tregister) to high(tregister) do
-                    if pattern=upper(std_reg2str[r]) then
-                      begin
-                         include(rg.usedinproc,r);
-                         include(rg.usedbyproc,r);
-                         found:=true;
-                         break;
-                      end;
-                  if not(found) then
+              found:=false;
+              for r:=low(tregister) to high(tregister) do
+                if pattern=upper(std_reg2str[r]) then
+                  begin
+                    if r = SELF_POINTER_REG then
+                       begin
+                         exclude(asmstat.flags,nf_object_preserved);
+                       end;
+                     include(rg.usedinproc,r);
+                     include(rg.usedbyproc,r);
+                     found:=true;
+                     break;
+                  end;
+                 if not(found) then
                     consume(_RECKKLAMMER);
-{$endif powerpc}
-{$IFDEF SPARC}
-                  if pattern<>'' then
-                    internalerror(200108251)
-                  else consume(_RECKKLAMMER);
-{$ENDIF SPARC}
-                  consume(_CSTRING);
-                  if not try_to_consume(_COMMA) then
+                 consume(_CSTRING);
+                 if not try_to_consume(_COMMA) then
                     break;
-                until false;
+              until false;
               consume(_RECKKLAMMER);
            end
          else
@@ -1271,7 +1195,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-08-06 20:55:22  florian
+  Revision 1.67  2002-08-09 19:11:44  carl
+    + reading of used registers in assembler routines is now
+      cpu-independent
+
+  Revision 1.66  2002/08/06 20:55:22  florian
     * first part of ppc calling conventions fix
 
   Revision 1.65  2002/07/28 20:45:22  florian
