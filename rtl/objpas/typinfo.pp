@@ -42,7 +42,7 @@ unit typinfo;
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
                    tkDynArray,tkInterfaceRaw);
 
-       TTOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
+       TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
@@ -86,7 +86,7 @@ unit typinfo;
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
               ();
             tkInteger,tkChar,tkEnumeration,tkWChar:
-              (OrdType : TTOrdType;
+              (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
                     MinValue,MaxValue : Longint;
@@ -641,7 +641,7 @@ var
   TypeInfo: PTypeInfo;
   AMethod : TMethod;
   DataSize: Integer;
-  OrdType: TTOrdType;
+  OrdType: TOrdType;
   Signed: Boolean;
 begin
   Result:=0;
@@ -1496,7 +1496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2004-12-30 18:11:43  michael
+  Revision 1.35  2005-02-08 16:10:29  florian
+    * TTOrdType -> TOrdType
+
+  Revision 1.34  2004/12/30 18:11:43  michael
   + Fix for WideString props
 
   Revision 1.33  2004/12/28 15:30:04  florian
