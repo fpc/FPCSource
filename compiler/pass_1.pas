@@ -1826,7 +1826,7 @@ unit pass_1;
          if (p^.left^.resulttype^.deftype=stringdef) and (assigned(p^.right^.resulttype)) then
           begin
             if not ((p^.right^.resulttype^.deftype=stringdef) or
-                    ((p^.right^.resulttype^.deftype=orddef) {and (porddef(p^.right^.resulttype)^.typ=uchar)})) then
+                    ((p^.right^.resulttype^.deftype=orddef) and (porddef(p^.right^.resulttype)^.typ=uchar))) then
              begin
                p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
                firstpass(p^.right);
@@ -4967,7 +4967,6 @@ unit pass_1;
       var
          oldcodegenerror : boolean;
          oldswitches : Tcswitches;
-         { there some calls of do_firstpass in the parser }
          oldpos : tfileposinfo;
 {$ifdef extdebug}
          str1,str2 : string;
@@ -5002,7 +5001,6 @@ unit pass_1;
            not_first:=false;
 {$endif extdebug}
 
-         codegenerror:=false;
 {$ifdef NEWINPUT}
          aktfilepos:=p^.fileinfo;
 {$else}
@@ -5010,13 +5008,15 @@ unit pass_1;
 {$endif NEWINPUT}
          aktswitches:=p^.pragmas;
 
-         if not(p^.error) then
+         if not p^.error then
            begin
+              codegenerror:=false;
               procedures[p^.treetype](p);
               p^.error:=codegenerror;
               codegenerror:=codegenerror or oldcodegenerror;
            end
-         else codegenerror:=true;
+         else
+           codegenerror:=true;
 {$ifdef extdebug}
          if not_first then
            begin
@@ -5064,7 +5064,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.36  1998-07-07 11:20:00  peter
+  Revision 1.37  1998-07-07 12:31:44  peter
+    * fixed string:= which allowed almost any type
+
+  Revision 1.36  1998/07/07 11:20:00  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.35  1998/06/25 14:04:19  peter
