@@ -21,9 +21,10 @@ type
 
 const
     InitVideoCalled: boolean = false;
-    OrigEmpty: boolean = true;
     LastCursorType: word = crUnderline;
     EmptyCell: cardinal = $0720;
+    OrigScreen: PVideoBuf = nil;
+    OrigScreenSize: cardinal = 0;
 
 {$IFDEF PPC_VIRTUAL}
 type
@@ -40,10 +41,53 @@ var OrigCurType: TVioCursorInfo;
     CellHeight: byte;
 
 procedure TargetEntry;
+
+var P: PVideoModeList;
+    PScr: pointer;
+
 begin
+{Remember original video mode, cursor type and high bit behaviour setting}
+    OrigVioMode.cb := SizeOf (OrigVioMode);
+    VioGetMode (OrigVioMode, 0);
+    VioGetCurType (OrigCurType, 0);
+    VioGetCurPos (OrigCurRow, OrigCurCol, 0);
+    with OrigHighBit do
+        begin
+            cb := 6;
+            rType := 2;
+        end;
+    VioGetState (OrigHighBit, 0);
+{Register the curent video mode in Modes if not there yet}
+    with OrigVioMode do
+        begin
+            P := Modes;
+            while (P <> nil) and ((P^.Row <> Row) or (P^.Col <> Col)
+                                      or (P^.Color <> (Color >= Colors_16))) do
+                P := P^.Next;
+            if P = nil then
+{Assume we have at least 16 colours available in "colour" modes}
+                RegisterVideoMode (Col, Row, Color >= Colors_16,
+{$IFDEF FPC}
+                                                 @DefaultVideoModeSelector, 0);
+{$ELSE}
+                                                  DefaultVideoModeSelector, 0);
+{$ENDIF}
+        end;
+{Get the address of the original videobuffer and size.}
+    if VioGetBuf (PScr, PWord (@OrigScreenSize)^, 0) = 0 then
+        begin
+{$IFDEF PPC_VIRTUAL}
+            SelToFlat (PScr);
+{$ELSE}
+            PScr := SelToFlat (TFarPtr (PScr));
+{$ENDIF}
+            GetMem (OrigScreen, OrigScreenSize);
+            Move (PScr^, OrigScreen^, OrigScreenSize);
+        end;
 end;
 
 procedure TargetExit;
+
 begin
 end;
 
@@ -118,44 +162,13 @@ end;
 
 procedure InitVideo;
 
-var P: PVideoModeList;
-    MI: TVioModeInfo;
+var MI: TVioModeInfo;
 
 begin
     InitVideoCalled := true;
     VideoBufSize := 0;
     MI.cb := SizeOf (MI);
     VioGetMode (MI, 0);
-    if OrigEmpty then
-        begin
-{Remember original video mode, cursor type and high bit behaviour setting}
-            Move (MI, OrigVioMode, SizeOf (OrigVioMode));
-            VioGetCurType (OrigCurType, 0);
-            VioGetCurPos (OrigCurRow, OrigCurCol, 0);
-            with OrigHighBit do
-                begin
-                    cb := 6;
-                    rType := 2;
-                end;
-            VioGetState (OrigHighBit, 0);
-{Register the curent video mode in Modes if not there yet}
-            with OrigVioMode do
-                begin
-                    P := Modes;
-                    while (P <> nil) and ((P^.Row <> Row) or (P^.Col <> Col)
-                                      or (P^.Color <> (Color >= Colors_16))) do
-                        P := P^.Next;
-                    if P = nil then
-{Assume we have at least 16 colours available in "colour" modes}
-                        RegisterVideoMode (Col, Row, Color >= Colors_16,
-{$IFDEF FPC}
-                                                 @DefaultVideoModeSelector, 0);
-{$ELSE}
-                                                  DefaultVideoModeSelector, 0);
-{$ENDIF}
-                end;
-            OrigEmpty := false;
-        end;
     with MI do
         begin
             ScreenWidth := Col;
@@ -260,6 +273,9 @@ end;
 
 procedure DoneVideo;
 
+var PScr: pointer;
+    ScrSize: cardinal;
+
 begin
     if InitVideoCalled then
         begin
@@ -275,6 +291,21 @@ begin
             VioSetCurPos (OrigCurRow, OrigCurCol, 0);
             VideoBufSize := 0;
             InitVideoCalled := false;
+            if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
+                begin
+                    ScrSize := 0;
+                    if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0)
+                                            and (ScrSize = OrigScreenSize) then
+                        begin
+{$IFDEF PPC_VIRTUAL}
+                            SelToFlat (PScr);
+{$ELSE}
+                            PScr := SelToFlat (TFarPtr (PScr));
+{$ENDIF}
+                            Move (OrigScreen^, PScr^, OrigScreenSize);
+                            VioShowBuf (0, ScrSize, 0);
+                        end;
+                end;
         end;
 end;
 
@@ -361,7 +392,7 @@ end;
 procedure ClearScreen;
 
 begin
-    VioScrollDn (0, 0, word (-1), word (-1), 0, PWord (@EmptyCell)^, 0);
+    VioScrollDn (0, 0, word (-1), word (-1), word (-1), PWord (@EmptyCell)^, 0);
 end;
 
 
@@ -374,11 +405,14 @@ end;
 {
 
   $Log$
-  Revision 1.5  2000-10-04 11:53:31  pierre
+  Revision 1.6  2000-10-08 14:13:19  hajny
+    * ClearScreen correction, screen restored on exit
+
+  Revision 1.5  2000/10/04 11:53:31  pierre
    Add TargetEntry and TargetExit (merged)
 
   Revision 1.4  2000/09/26 18:15:29  hajny
-    + working with VP/2 already (not FPC yet)!video.inc
+    + working with VP/2 already (not FPC yet)!
 
   Revision 1.3  2000/09/24 19:53:03  hajny
     * OS/2 implementation almost finished, not debugged yet
