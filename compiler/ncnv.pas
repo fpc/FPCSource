@@ -51,6 +51,7 @@ interface
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
        private
+          function resulttype_int_to_int : tnode;
           function resulttype_cord_to_pointer : tnode;
           function resulttype_chararray_to_string : tnode;
           function resulttype_string_to_chararray : tnode;
@@ -59,6 +60,7 @@ interface
           function resulttype_char_to_chararray : tnode;
           function resulttype_int_to_real : tnode;
           function resulttype_real_to_real : tnode;
+          function resulttype_real_to_currency : tnode;
           function resulttype_cchar_to_pchar : tnode;
           function resulttype_cstring_to_pchar : tnode;
           function resulttype_char_to_char : tnode;
@@ -103,7 +105,7 @@ interface
           function _first_nothing : tnode;
           function _first_array_to_pointer : tnode;
           function _first_int_to_real : tnode;
-          function _first_real_to_real : tnode;
+          function _first_real_to_real: tnode;
           function _first_pointer_to_array : tnode;
           function _first_cchar_to_pchar : tnode;
           function _first_bool_to_int : tnode;
@@ -767,10 +769,42 @@ implementation
       end;
 
 
-    function ttypeconvnode.resulttype_int_to_real : tnode;
-
+    function ttypeconvnode.resulttype_int_to_int : tnode;
       var
-        t : trealconstnode;
+        v : TConstExprInt;
+      begin
+        result:=nil;
+        if left.nodetype=ordconstn then
+         begin
+           v:=tordconstnode(left).value;
+           if is_currency(resulttype.def) then
+             v:=v*10000
+           else if is_currency(left.resulttype.def) then
+             v:=v div 10000;
+           result:=cordconstnode.create(v,resulttype,false);
+         end
+        else
+         begin
+           { multiply by 10000 for currency. We need to use getcopy to pass
+             the argument because the current node is always disposed. Only
+             inserting the multiply in the left node is not possible because
+             it'll get in an infinite loop to convert int->currency }
+           if is_currency(resulttype.def) then
+            begin
+              result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resulttype,false));
+              include(result.flags,nf_is_currency);
+            end
+           else if is_currency(left.resulttype.def) then
+            begin
+              result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resulttype,false));
+              include(result.flags,nf_is_currency);
+            end;
+         end;
+      end;
+
+
+    function ttypeconvnode.resulttype_int_to_real : tnode;
+      var
         rv : bestreal;
       begin
         result:=nil;
@@ -778,9 +812,10 @@ implementation
          begin
            rv:=tordconstnode(left).value;
            if is_currency(resulttype.def) then
-             rv:=rv*10000.0;
-           t:=crealconstnode.create(rv,resulttype);
-           result:=t;
+             rv:=rv*10000.0
+           else if is_currency(left.resulttype.def) then
+             rv:=rv/10000.0;
+           result:=crealconstnode.create(rv,resulttype);
          end
         else
          begin
@@ -792,16 +827,35 @@ implementation
             begin
               result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resulttype));
               include(result.flags,nf_is_currency);
+            end
+           else if is_currency(left.resulttype.def) then
+            begin
+              result:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resulttype));
+              include(result.flags,nf_is_currency);
             end;
          end;
       end;
 
 
+    function ttypeconvnode.resulttype_real_to_currency : tnode;
+      begin
+        if not is_currency(resulttype.def) then
+          internalerror(200304221);
+        result:=nil;
+        left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resulttype));
+        include(left.flags,nf_is_currency);
+        resulttypepass(left);
+        { Convert constants directly, else call Round() }
+        if left.nodetype=realconstn then
+          result:=cordconstnode.create(round(trealconstnode(left).value_real),resulttype,false)
+        else
+          result:=ccallnode.createinternres('fpc_round',
+                      ccallparanode.create(left,nil),resulttype);
+        left:=nil;
+      end;
+
+
     function ttypeconvnode.resulttype_real_to_real : tnode;
-
-      var
-        t : tnode;
-
       begin
          result:=nil;
          if is_currency(left.resulttype.def) and not(is_currency(resulttype.def)) then
@@ -818,10 +872,7 @@ implementation
                resulttypepass(left);
              end;
          if left.nodetype=realconstn then
-           begin
-             t:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
-             result:=t;
-           end;
+           result:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
       end;
 
 
@@ -944,12 +995,13 @@ implementation
           { chararray_2_string } @ttypeconvnode.resulttype_chararray_to_string,
           { array_2_pointer } nil,
           { pointer_2_array } nil,
-          { int_2_int } nil,
+          { int_2_int } @ttypeconvnode.resulttype_int_to_int,
           { int_2_bool } nil,
           { bool_2_bool } nil,
           { bool_2_int } nil,
           { real_2_real } @ttypeconvnode.resulttype_real_to_real,
           { int_2_real } @ttypeconvnode.resulttype_int_to_real,
+          { real_2_currency } @ttypeconvnode.resulttype_real_to_currency,
           { proc_2_procvar } nil,
           { arrayconstructor_2_set } @ttypeconvnode.resulttype_arrayconstructor_to_set,
           { load_smallset } nil,
@@ -978,7 +1030,7 @@ implementation
          r.proc:=resulttypeconvert[c];
          r.obj:=self;
          if assigned(r.proc) then
-          result:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+          result:=tprocedureofobject(r)();
       end;
 {$else}
       begin
@@ -993,6 +1045,7 @@ implementation
           tc_chararray_2_string : resulttype_chararray_to_string;
           tc_real_2_real : resulttype_real_to_real;
           tc_int_2_real : resulttype_int_to_real;
+          tc_real_2_currency : resulttype_real_to_currency;
           tc_arrayconstructor_2_set : resulttype_arrayconstructor_to_set;
           tc_cord_2_pointer : resulttype_cord_to_pointer;
           tc_intf_2_guid : resulttype_interface_to_guid;
@@ -1328,7 +1381,7 @@ implementation
            expectloc:=LOC_REGISTER
         else
            expectloc:=left.expectloc;
-        if is_64bitint(resulttype.def) then
+        if is_64bit(resulttype.def) then
           registers32:=max(registers32,2)
         else
           registers32:=max(registers32,1);
@@ -1387,7 +1440,7 @@ implementation
         }
         typname := lower(pbestrealtype^.def.gettypename);
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bit(left.resulttype.def) then
           begin
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_'+typname
@@ -1705,6 +1758,7 @@ implementation
            @ttypeconvnode._first_bool_to_int,
            @ttypeconvnode._first_real_to_real,
            @ttypeconvnode._first_int_to_real,
+           nil, { removed in resulttype_real_to_currency }
            @ttypeconvnode._first_proc_to_procvar,
            @ttypeconvnode._first_arrayconstructor_to_set,
            @ttypeconvnode._first_load_smallset,
@@ -1733,7 +1787,7 @@ implementation
          { and should be quite portable too        }
          r.proc:=firstconvert[c];
          r.obj:=self;
-         first_call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+         first_call_helper:=tprocedureofobject(r){$ifdef FPC}(){$endif FPC}
       end;
 
 
@@ -2037,7 +2091,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2003-04-23 13:13:08  peter
+  Revision 1.108  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.107  2003/04/23 13:13:08  peter
     * fix checking of procdef type which was broken since loadn returned
       pointertype for tp procvar
 

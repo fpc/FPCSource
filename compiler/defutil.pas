@@ -161,6 +161,9 @@ interface
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
+    {# Returns true, if def is a 64 bit type }
+    function is_64bit(def : tdef) : boolean;
+
     {# If @var(l) isn't in the range of def a range check error (if not explicit) is generated and
       the value is placed within the range
     }
@@ -194,11 +197,20 @@ implementation
     { returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
       begin
-         is_currency:=(def.deftype=floatdef) and (tfloatdef(def).typ=s64currency);
+         case s64currencytype.def.deftype of
+           orddef :
+             result:=(def.deftype=orddef) and
+                     (torddef(s64currencytype.def).typ=torddef(def).typ);
+           floatdef :
+             result:=(def.deftype=floatdef) and
+                     (tfloatdef(s64currencytype.def).typ=tfloatdef(def).typ);
+           else
+             internalerror(200304222);
+         end;
       end;
 
 
-      function range_to_basetype(low,high:TConstExprInt):tbasetype;
+    function range_to_basetype(low,high:TConstExprInt):tbasetype;
       begin
         { generate a unsigned range if high<0 and low>=0 }
         if (low>=0) and (high<0) then
@@ -302,7 +314,7 @@ implementation
            orddef :
              begin
                dt:=torddef(def).typ;
-               is_signed:=(dt in [s8bit,s16bit,s32bit,s64bit]);
+               is_signed:=(dt in [s8bit,s16bit,s32bit,s64bit,scurrency]);
              end;
            enumdef :
              is_signed:=tenumdef(def).min < 0;
@@ -516,6 +528,13 @@ implementation
     function is_64bitint(def : tdef) : boolean;
       begin
          is_64bitint:=(def.deftype=orddef) and (torddef(def).typ in [u64bit,s64bit])
+      end;
+
+
+    { true, if def is a 64 bit type }
+    function is_64bit(def : tdef) : boolean;
+      begin
+         is_64bit:=(def.deftype=orddef) and (torddef(def).typ in [u64bit,s64bit,scurrency])
       end;
 
 
@@ -739,7 +758,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-03-17 19:05:08  peter
+  Revision 1.4  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.3  2003/03/17 19:05:08  peter
     * dynamic array is also a special array
 
   Revision 1.2  2002/12/23 20:58:03  peter

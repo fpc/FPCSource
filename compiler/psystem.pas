@@ -304,26 +304,30 @@ implementation
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(tfloatdef.create(s64currency));
 {$endif x86}
 {$ifdef powerpc}
         ordpointertype:=u32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(s64currency));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif powerpc}
 {$ifdef sparc}
         ordpointertype:=u32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif sparc}
 {$ifdef m68k}
         ordpointertype:=u32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif}
-        s64currencytype.setdef(tfloatdef.create(s64currency));
         { some other definitions }
         voidpointertype.setdef(tpointerdef.create(voidtype));
         charpointertype.setdef(tpointerdef.create(cchartype));
@@ -479,7 +483,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-12-06 16:56:59  peter
+  Revision 1.45  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.44  2002/12/06 16:56:59  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 

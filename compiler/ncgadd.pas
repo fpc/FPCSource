@@ -116,7 +116,7 @@ interface
               if not cmpop then
                 begin
                   location.register := n.location.register;
-                  if is_64bitint(n.resulttype.def) then
+                  if is_64bit(n.resulttype.def) then
                     location.registerhigh := n.location.registerhigh;
                 end;
             LOC_REFERENCE,LOC_CREFERENCE:
@@ -125,7 +125,7 @@ interface
                 if not cmpop then
                   begin
                     location.register := n.location.register;
-                    if is_64bitint(n.resulttype.def) then
+                    if is_64bit(n.resulttype.def) then
                       location.registerhigh := n.location.registerhigh;
                   end;
               end;
@@ -136,7 +136,7 @@ interface
                     location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
                     if not cmpop then
                       location.register := n.location.register;
-                      if is_64bitint(n.resulttype.def) then
+                      if is_64bit(n.resulttype.def) then
                         location.registerhigh := n.location.registerhigh;
                   end;
               end;
@@ -156,7 +156,7 @@ interface
             (location.register.enum <> right.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,right.location.register);
-            if is_64bitint(right.resulttype.def) then
+            if is_64bit(right.resulttype.def) then
               rg.ungetregister(exprasmlist,right.location.registerhigh);
           end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
@@ -164,7 +164,7 @@ interface
             (location.register.enum <> left.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,left.location.register);
-            if is_64bitint(left.resulttype.def) then
+            if is_64bit(left.resulttype.def) then
               rg.ungetregister(exprasmlist,left.location.registerhigh);
           end;
       end;
@@ -753,7 +753,7 @@ interface
                    exit;
                  end
                { 64bit operations }
-               else if is_64bitint(left.resulttype.def) then
+               else if is_64bit(left.resulttype.def) then
                  begin
                    second_op64bit;
                    exit;
@@ -816,7 +816,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-04-22 23:50:22  peter
+  Revision 1.8  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.7  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

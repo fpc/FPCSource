@@ -246,6 +246,7 @@ implementation
               procname := procname + 'longword';
             u64bit:
               procname := procname + 'qword';
+            scurrency,
             s64bit:
               procname := procname + 'int64';
             else
@@ -580,6 +581,10 @@ implementation
                     resulttypepass(p1);
                     para.left:=p1;
                   end;
+
+                { Currency will be written using the bestreal }
+                if is_currency(para.left.resulttype.def) then
+                  inserttypeconv(para.left,pbestrealtype^);
 
                 case para.left.resulttype.def.deftype of
                   stringdef :
@@ -957,8 +962,11 @@ implementation
                   end;
                 u8bit,u16bit,u32bit:
                    suffix := 'uint_';
+                scurrency,
                 s64bit: suffix := 'int64_';
                 u64bit: suffix := 'qword_';
+                else
+                  internalerror(200304225);
               end;
             end;
           floatdef:
@@ -1039,25 +1047,30 @@ implementation
                   { 1.0.x doesn't support int64($ffffffff) correct, it'll expand
                     to -1 instead of staying $ffffffff. Therefor we use $ffff with
                     shl twice (PFV) }
-                  if is_signed(t.def) and
-                     is_64bitint(t.def) then
-                    if (inlinenumber=in_low_x) then
-                      v := int64($80000000) shl 32
+                  case torddef(t.def).typ of
+                    s64bit,scurrency :
+                      begin
+                        if (inlinenumber=in_low_x) then
+                          v := int64($80000000) shl 32
+                        else
+                          v := (int64($7fffffff) shl 32) or int64($ffff) shl 16 or int64($ffff)
+                      end;
+                    u64bit :
+                      begin
+                        { we have to use a dirty trick for high(qword),     }
+                        { because it's bigger than high(tconstexprint) (JM) }
+                        v := 0
+                      end
                     else
-                      v := (int64($7fffffff) shl 32) or int64($ffff) shl 16 or int64($ffff)
-                  else
-                    if is_64bitint(t.def) then
-                      { we have to use a dirty trick for high(qword),     }
-                      { because it's bigger than high(tconstexprint) (JM) }
-                      v := 0
-                    else
-                      if not is_signed(t.def) then
-                        v := cardinal(v);
+                      begin
+                        if not is_signed(t.def) then
+                          v := cardinal(v);
+                      end;
+                  end;
                   hp:=cordconstnode.create(v,t,true);
                   resulttypepass(hp);
                   { fix high(qword) }
-                  if not is_signed(t.def) and
-                     is_64bitint(t.def) and
+                  if (torddef(t.def).typ=u64bit) and
                      (inlinenumber = in_high_x) then
                     tordconstnode(hp).value := -1; { is the same as qword($ffffffffffffffff) }
                   do_lowhigh:=hp;
@@ -1654,12 +1667,12 @@ implementation
                        valid_for_var(tcallparanode(left).left);
 
                        if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
-                          is_ordinal(left.resulttype.def) then
+                          is_ordinal(left.resulttype.def) or
+                          is_currency(left.resulttype.def) then
                         begin
-                           { value of left gets changed -> must be unique }
-                           { (bug 1735) (JM)                              }
-                           set_unique(tcallparanode(left).left);
-                           { two paras ? }
+                          { value of left gets changed -> must be unique }
+                          set_unique(tcallparanode(left).left);
+                          { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
                              if (aktlocalswitches *
@@ -1667,7 +1680,10 @@ implementation
                                begin
                                  { insert a type conversion       }
                                  { the second param is always longint }
-                                 if is_64bitint(left.resulttype.def) then
+                                 if is_currency(left.resulttype.def) then
+                                   inserttypeconv(tcallparanode(tcallparanode(left).right).left,s64currencytype)
+                                 else
+                                  if is_64bitint(left.resulttype.def) then
                                    if is_signed(left.resulttype.def) then
                                      inserttypeconv(tcallparanode(tcallparanode(left).right).left,cs64bittype)
                                    else
@@ -2061,7 +2077,7 @@ implementation
           in_pred_x,
           in_succ_x:
             begin
-              if is_64bitint(resulttype.def) then
+              if is_64bit(resulttype.def) then
                begin
                  if (registers32<2) then
                   registers32:=2
@@ -2090,7 +2106,7 @@ implementation
                expectloc:=LOC_VOID;
 
                { check type }
-               if is_64bitint(left.resulttype.def) or
+               if is_64bit(left.resulttype.def) or
                   { range/overflow checking doesn't work properly }
                   { with the inc/dec code that's generated (JM)   }
                   ((left.resulttype.def.deftype = orddef) and
@@ -2335,7 +2351,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2003-04-22 23:50:23  peter
+  Revision 1.107  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.106  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

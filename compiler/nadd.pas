@@ -190,6 +190,17 @@ implementation
                (left.resulttype.def.deftype=floatdef) and
                (tfloatdef(left.resulttype.def).typ=tfloatdef(right.resulttype.def).typ) then
               resultrealtype:=left.resulttype
+            { when there is a currency type then use currency, but
+              only when currency is defined as float }
+            else
+             if (s64currencytype.def.deftype=floatdef) and
+                (is_currency(right.resulttype.def) or
+                 is_currency(left.resulttype.def)) then
+              begin
+                resultrealtype:=s64currencytype;
+                inserttypeconv(right,resultrealtype);
+                inserttypeconv(left,resultrealtype);
+              end
             else
              begin
                inserttypeconv(right,resultrealtype);
@@ -765,6 +776,14 @@ implementation
                      end;
                   end;
                end
+             { is there a currency type ? }
+             else if ((torddef(rd).typ=scurrency) or (torddef(ld).typ=scurrency)) then
+               begin
+                  if (torddef(ld).typ<>scurrency) then
+                   inserttypeconv(left,s64currencytype);
+                  if (torddef(rd).typ<>scurrency) then
+                   inserttypeconv(right,s64currencytype);
+               end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
                begin
@@ -1240,13 +1259,17 @@ implementation
             case nodetype of
               slashn :
                 begin
-                  hp:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultrealtype));
+                  { slashn will only work with floats }
+                  hp:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,s64currencytype));
                   include(hp.flags,nf_is_currency);
                   result:=hp;
                 end;
               muln :
                 begin
-                  hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultrealtype));
+                  if s64currencytype.def.deftype=floatdef then
+                    hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype))
+                  else
+                    hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,s64currencytype,false));
                   include(hp.flags,nf_is_currency);
                   result:=hp
                 end;
@@ -1497,12 +1520,22 @@ implementation
             exit;
           end;
 
+        { when currency is used set the result of the
+          parameters to s64bit, so they are not converted }
+        if is_currency(resulttype.def) then
+          begin
+            left.resulttype:=cs64bittype;
+            right.resulttype:=cs64bittype;
+          end;
+
         { otherwise, create the parameters for the helper }
         right := ccallparanode.create(
           cordconstnode.create(ord(cs_check_overflow in aktlocalswitches),booltype,true),
           ccallparanode.create(right,ccallparanode.create(left,nil)));
         left := nil;
-        if torddef(resulttype.def).typ = s64bit then
+        { only qword needs the unsigned code, the
+          signed code is also used for currency }
+        if is_signed(resulttype.def) then
           procname := 'fpc_mul_int64'
         else
           procname := 'fpc_mul_qword';
@@ -1647,7 +1680,7 @@ implementation
                  calcregisters(self,1,0,0);
                end
               { is there a 64 bit type ? }
-             else if (torddef(ld).typ in [s64bit,u64bit]) then
+             else if (torddef(ld).typ in [s64bit,u64bit,scurrency]) then
                begin
                  result := first_add64bitint;
                  if assigned(result) then
@@ -1917,7 +1950,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-04-23 10:10:07  peter
+  Revision 1.84  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.83  2003/04/23 10:10:07  peter
     * expectloc fixes
 
   Revision 1.82  2003/04/22 23:50:22  peter

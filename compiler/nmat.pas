@@ -94,8 +94,8 @@ implementation
 
     function tmoddivnode.det_resulttype:tnode;
       var
-         t : tnode;
-         rd,ld : tdef;
+         hp,t : tnode;
+         rd,ld : torddef;
          rv,lv : tconstexprint;
       begin
          result:=nil;
@@ -103,6 +103,14 @@ implementation
          resulttypepass(right);
          set_varstate(left,true);
          set_varstate(right,true);
+         if codegenerror then
+           exit;
+
+         { we need 2 orddefs always }
+         if (left.resulttype.def.deftype<>orddef) then
+           inserttypeconv(right,s32bittype);
+         if (right.resulttype.def.deftype<>orddef) then
+           inserttypeconv(right,s32bittype);
          if codegenerror then
            exit;
 
@@ -120,7 +128,7 @@ implementation
                begin
                  lv:=tordconstnode(left).value;
 
-                  case nodetype of
+                 case nodetype of
                    modn:
                      t:=genintconstnode(lv mod rv);
                    divn:
@@ -139,65 +147,92 @@ implementation
               exit;
            end;
 
+         rd:=torddef(right.resulttype.def);
+         ld:=torddef(left.resulttype.def);
+
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
-
          { Do the same for qwords and positive constants as well, otherwise things like   }
          { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
          { "qword" was > high(int64) (JM)                                                 }
-         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) then
-           if (torddef(right.resulttype.def).typ in [u32bit,u64bit]) and
-              is_constintnode(left) and
-              (tordconstnode(left).value >= 0) then
-             inserttypeconv(left,right.resulttype)
-           else if (torddef(left.resulttype.def).typ in [u32bit,u64bit]) and
-              is_constintnode(right) and
-              (tordconstnode(right).value >= 0) then
-             inserttypeconv(right,left.resulttype);
+         if (rd.typ in [u32bit,u64bit]) and
+            is_constintnode(left) and
+            (tordconstnode(left).value >= 0) then
+           inserttypeconv(left,right.resulttype)
+         else
+          if (ld.typ in [u32bit,u64bit]) and
+             is_constintnode(right) and
+             (tordconstnode(right).value >= 0) then
+           inserttypeconv(right,left.resulttype);
 
-         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
-            (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def) or
-             { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
-             ((torddef(right.resulttype.def).typ = u32bit) and
-              is_signed(left.resulttype.def)) or
-             ((torddef(left.resulttype.def).typ = u32bit) and
-              is_signed(right.resulttype.def))) then
+         { when there is one currency value, everything is done
+           using currency }
+         if (ld.typ=scurrency) or
+            (rd.typ=scurrency) then
            begin
-              rd:=right.resulttype.def;
-              ld:=left.resulttype.def;
-              { issue warning if necessary }
-              if not (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
-                CGMessage(type_w_mixed_signed_unsigned);
-              if is_signed(rd) or is_signed(ld) then
-                begin
-                   if (torddef(ld).typ<>s64bit) then
-                     inserttypeconv(left,cs64bittype);
-                   if (torddef(rd).typ<>s64bit) then
-                     inserttypeconv(right,cs64bittype);
-                end
-              else
-                begin
-                   if (torddef(ld).typ<>u64bit) then
-                     inserttypeconv(left,cu64bittype);
-                   if (torddef(rd).typ<>u64bit) then
-                     inserttypeconv(right,cu64bittype);
-                end;
+             if (ld.typ<>scurrency) then
+              inserttypeconv(left,s64currencytype);
+             if (rd.typ<>scurrency) then
+              inserttypeconv(right,s64currencytype);
+             resulttype:=left.resulttype;
+           end
+         else
+          { when there is one 64bit value, everything is done
+            in 64bit }
+          if (is_64bitint(left.resulttype.def) or
+              is_64bitint(right.resulttype.def)) then
+           begin
+             if is_signed(rd) or is_signed(ld) then
+               begin
+                  if (torddef(ld).typ<>s64bit) then
+                    inserttypeconv(left,cs64bittype);
+                  if (torddef(rd).typ<>s64bit) then
+                    inserttypeconv(right,cs64bittype);
+               end
+             else
+               begin
+                  if (torddef(ld).typ<>u64bit) then
+                    inserttypeconv(left,cu64bittype);
+                  if (torddef(rd).typ<>u64bit) then
+                    inserttypeconv(right,cu64bittype);
+               end;
+             resulttype:=left.resulttype;
+           end
+         else
+          { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
+          if ((rd.typ = u32bit) and
+              is_signed(left.resulttype.def)) or
+             ((ld.typ = u32bit) and
+              is_signed(right.resulttype.def)) then
+           begin
+              CGMessage(type_w_mixed_signed_unsigned);
+              if (torddef(ld).typ<>s64bit) then
+                inserttypeconv(left,cs64bittype);
+              if (torddef(rd).typ<>s64bit) then
+                inserttypeconv(right,cs64bittype);
               resulttype:=left.resulttype;
            end
          else
            begin
-              if not(right.resulttype.def.deftype=orddef) or
-                 not(torddef(right.resulttype.def).typ in [s32bit,u32bit]) then
+              { Make everything always 32bit }
+              if not(torddef(right.resulttype.def).typ in [s32bit,u32bit]) then
                 inserttypeconv(right,s32bittype);
-
-              if not(left.resulttype.def.deftype=orddef) or
-                 not(torddef(left.resulttype.def).typ in [s32bit,u32bit]) then
+              if not(torddef(left.resulttype.def).typ in [s32bit,u32bit]) then
                 inserttypeconv(left,s32bittype);
-
-              { the resulttype.def depends on the right side, because the left becomes }
-              { always 64 bit                                                      }
               resulttype:=right.resulttype;
            end;
+
+         { when the result is currency we need some extra code for
+           division. this should not be done when the divn node is
+           created internally }
+         if (nodetype=divn) and
+            not(nf_is_currency in flags) and
+            is_currency(resulttype.def) then
+          begin
+            hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false));
+            include(hp.flags,nf_is_currency);
+            result:=hp;
+          end;
       end;
 
 
@@ -207,11 +242,21 @@ implementation
       begin
         result := nil;
 
+        { when currency is used set the result of the
+          parameters to s64bit, so they are not converted }
+        if is_currency(resulttype.def) then
+          begin
+            left.resulttype:=cs64bittype;
+            right.resulttype:=cs64bittype;
+          end;
+
         { otherwise create a call to a helper }
         if nodetype = divn then
           procname := 'fpc_div_'
         else
           procname := 'fpc_mod_';
+        { only qword needs the unsigned code, the
+          signed code is also used for currency }
         if is_signed(resulttype.def) then
           procname := procname + 'int64'
         else
@@ -400,7 +445,7 @@ implementation
            exit;
 
          { 64 bit ints have their own shift handling }
-         if not(is_64bitint(left.resulttype.def)) then
+         if not(is_64bit(left.resulttype.def)) then
            begin
             regs:=1
            end
@@ -529,7 +574,7 @@ implementation
                  registersmmx:=1;
              end
 {$endif SUPPORT_MMX}
-         else if is_64bitint(left.resulttype.def) then
+         else if is_64bit(left.resulttype.def) then
            begin
               if (left.expectloc<>LOC_REGISTER) and
                  (registers32<2) then
@@ -709,7 +754,7 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
-           if is_64bitint(left.resulttype.def) then
+           if is_64bit(left.resulttype.def) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                  begin
@@ -748,7 +793,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-04-22 23:50:23  peter
+  Revision 1.46  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.45  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

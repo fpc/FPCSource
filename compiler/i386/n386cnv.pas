@@ -171,6 +171,7 @@ implementation
                 emit_ref(A_FILD,S_IQ,href);
                 emit_const_reg(A_ADD,S_L,8,r);
              end;
+           scurrency,
            s64bit:
              begin
                 emit_ref(A_FILD,S_IQ,href);
@@ -359,38 +360,39 @@ implementation
 {$ifdef fpc}
       const
          secondconvert : array[tconverttype] of pointer = (
-           {$ifdef fpc}@{$endif}second_nothing, {equal}
-           {$ifdef fpc}@{$endif}second_nothing, {not_possible}
-           {$ifdef fpc}@{$endif}second_nothing, {second_string_to_string, handled in resulttype pass }
-           {$ifdef fpc}@{$endif}second_char_to_string,
-           {$ifdef fpc}@{$endif}second_nothing, {char_to_charray}
-           {$ifdef fpc}@{$endif}second_nothing, { pchar_to_string, handled in resulttype pass }
-           {$ifdef fpc}@{$endif}second_nothing, {cchar_to_pchar}
-           {$ifdef fpc}@{$endif}second_cstring_to_pchar,
-           {$ifdef fpc}@{$endif}second_ansistring_to_pchar,
-           {$ifdef fpc}@{$endif}second_string_to_chararray,
-           {$ifdef fpc}@{$endif}second_nothing, { chararray_to_string, handled in resulttype pass }
-           {$ifdef fpc}@{$endif}second_array_to_pointer,
-           {$ifdef fpc}@{$endif}second_pointer_to_array,
-           {$ifdef fpc}@{$endif}second_int_to_int,
-           {$ifdef fpc}@{$endif}second_int_to_bool,
-           {$ifdef fpc}@{$endif}second_bool_to_bool,
-           {$ifdef fpc}@{$endif}second_bool_to_int,
-           {$ifdef fpc}@{$endif}second_real_to_real,
-           {$ifdef fpc}@{$endif}second_int_to_real,
-           {$ifdef fpc}@{$endif}second_proc_to_procvar,
-           {$ifdef fpc}@{$endif}second_nothing, { arrayconstructor_to_set }
-           {$ifdef fpc}@{$endif}second_nothing, { second_load_smallset, handled in first pass }
-           {$ifdef fpc}@{$endif}second_cord_to_pointer,
-           {$ifdef fpc}@{$endif}second_nothing, { interface 2 string }
-           {$ifdef fpc}@{$endif}second_nothing, { interface 2 guid   }
-           {$ifdef fpc}@{$endif}second_class_to_intf,
-           {$ifdef fpc}@{$endif}second_char_to_char,
-           {$ifdef fpc}@{$endif}second_nothing,  { normal_2_smallset }
-           {$ifdef fpc}@{$endif}second_nothing,  { dynarray_2_openarray }
-           {$ifdef fpc}@{$endif}second_nothing,  { pwchar_2_string }
-           {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
-           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
+           @second_nothing, {equal}
+           @second_nothing, {not_possible}
+           @second_nothing, {second_string_to_string, handled in resulttype pass }
+           @second_char_to_string,
+           @second_nothing, {char_to_charray}
+           @second_nothing, { pchar_to_string, handled in resulttype pass }
+           @second_nothing, {cchar_to_pchar}
+           @second_cstring_to_pchar,
+           @second_ansistring_to_pchar,
+           @second_string_to_chararray,
+           @second_nothing, { chararray_to_string, handled in resulttype pass }
+           @second_array_to_pointer,
+           @second_pointer_to_array,
+           @second_int_to_int,
+           @second_int_to_bool,
+           @second_bool_to_bool,
+           @second_bool_to_int,
+           @second_real_to_real,
+           @second_int_to_real,
+           @second_nothing, { real_to_currency, handled in resulttype pass }
+           @second_proc_to_procvar,
+           @second_nothing, { arrayconstructor_to_set }
+           @second_nothing, { second_load_smallset, handled in first pass }
+           @second_cord_to_pointer,
+           @second_nothing, { interface 2 string }
+           @second_nothing, { interface 2 guid   }
+           @second_class_to_intf,
+           @second_char_to_char,
+           @second_nothing,  { normal_2_smallset }
+           @second_nothing,  { dynarray_2_openarray }
+           @second_nothing,  { pwchar_2_string }
+           @second_nothing,  { variant_2_dynarray }
+           @second_nothing   { dynarray_2_variant}
          );
       type
          tprocedureofobject = procedure of object;
@@ -406,9 +408,9 @@ implementation
          { and should be quite portable too        }
          r.proc:=secondconvert[c];
          r.obj:=self;
-         tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+         tprocedureofobject(r)();
       end;
-{$else}
+{$else fpc}
      begin
         case c of
           tc_equal,
@@ -430,6 +432,7 @@ implementation
           tc_bool_2_int : second_bool_to_int;
           tc_real_2_real : second_real_to_real;
           tc_int_2_real : second_int_to_real;
+          tc_real_2_currency : second_nothing;
           tc_proc_2_procvar : second_proc_to_procvar;
           tc_arrayconstructor_2_set : second_nothing;
           tc_load_smallset : second_nothing;
@@ -446,14 +449,19 @@ implementation
           else internalerror(2002101101);
         end;
      end;
-{$endif}
+{$endif fpc}
 
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.59  2003-04-22 23:50:23  peter
+  Revision 1.60  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.59  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

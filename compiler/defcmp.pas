@@ -57,6 +57,7 @@ interface
           tc_bool_2_int,
           tc_real_2_real,
           tc_int_2_real,
+          tc_real_2_currency,
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
           tc_load_smallset,
@@ -150,7 +151,7 @@ implementation
            bint,bint,bint,bint,
            bint,bint,bint,bint,
            bbool,bbool,bbool,
-           bchar,bchar);
+           bchar,bchar,bint);
 
         basedefconvertsimplicit : array[tbasedef,tbasedef] of tconverttype =
           { void, char, int, bool }
@@ -239,6 +240,14 @@ implementation
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
+                      end;
+                   end;
+                 floatdef :
+                   begin
+                     if is_currency(def_to) then
+                      begin
+                        doconv:=tc_real_2_currency;
+                        eq:=te_convert_l2;
                       end;
                    end;
                  classrefdef,
@@ -370,7 +379,8 @@ implementation
                case def_from.deftype of
                  orddef :
                    begin { ordinal to real }
-                     if is_integer(def_from) then
+                     if is_integer(def_from) or
+                        is_currency(def_from) then
                        begin
                          doconv:=tc_int_2_real;
                          eq:=te_convert_l1;
@@ -1183,7 +1193,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-04-23 11:37:33  peter
+  Revision 1.23  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.22  2003/04/23 11:37:33  peter
     * po_comp for proc to procvar fixed
 
   Revision 1.21  2003/04/10 17:57:52  peter

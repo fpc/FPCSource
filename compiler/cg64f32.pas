@@ -569,7 +569,7 @@ unit cg64f32;
          from_signed := is_signed(fromdef);
          to_signed := is_signed(todef);
 
-         if not is_64bitint(todef) then
+         if not is_64bit(todef) then
            begin
              oldregisterdef := registerdef;
              registerdef := false;
@@ -688,7 +688,7 @@ unit cg64f32;
                { in all cases, there is only a problem if the higest bit is set }
                if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                  begin
-                   if is_64bitint(fromdef) then
+                   if is_64bit(fromdef) then
                      begin
                        hreg := p.location.registerhigh;
                        opsize := OS_32;
@@ -836,7 +836,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-04-22 10:09:34  daniel
+  Revision 1.40  2003-04-23 20:16:03  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.39  2003/04/22 10:09:34  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -2145,7 +2145,7 @@ type
                        else
                         begin
                           expectloc:=LOC_REGISTER;
-                          if is_64bitint(resulttype.def) then
+                          if is_64bit(resulttype.def) then
                             registers32:=2
                           else
                             registers32:=1;
@@ -2250,7 +2250,7 @@ type
              newcall := self.getcopy;
              tcallnode(newcall).left := paras;
              tcallnode(newcall).right := oldright;
-             
+
              newblock := internalstatements(statement);
              addstatement(statement,callparatemps);
              { add the copy of the call node after the callparatemps block    }
@@ -2483,7 +2483,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2003-04-23 13:21:06  peter
+  Revision 1.142  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.141  2003/04/23 13:21:06  peter
     * fix warning for calling constructor inside constructor
 
   Revision 1.140  2003/04/23 12:35:34  florian

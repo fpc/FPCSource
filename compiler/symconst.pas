@@ -146,7 +146,7 @@ type
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
     bool8bit,bool16bit,bool32bit,
-    uchar,uwidechar
+    uchar,uwidechar,scurrency
   );
 
   { float types }
@@ -354,7 +354,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-04-23 11:37:33  peter
+  Revision 1.48  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.47  2003/04/23 11:37:33  peter
     * po_comp for proc to procvar fixed
 
   Revision 1.46  2003/01/16 22:13:52  peter

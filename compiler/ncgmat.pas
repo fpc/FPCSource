@@ -158,7 +158,7 @@ implementation
 
 
       begin
-         if is_64bitint(left.resulttype.def) then
+         if is_64bit(left.resulttype.def) then
            begin
               secondpass(left);
 
@@ -268,7 +268,7 @@ implementation
           exit;
          location_copy(location,left.location);
 
-         if is_64bitint(resulttype.def) then
+         if is_64bit(resulttype.def) then
            begin
              { this code valid for 64-bit cpu's only ,
                otherwise helpers are called in pass_1
@@ -367,7 +367,7 @@ implementation
            shrn: op:=OP_SHR;
          end;
 
-         if is_64bitint(left.resulttype.def) then
+         if is_64bit(left.resulttype.def) then
            begin
               { already hanled in 1st pass }
               internalerror(2002081501);
@@ -467,7 +467,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-04-22 10:09:35  daniel
+  Revision 1.9  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.8  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -1423,7 +1423,7 @@ unit cgobj;
         if not(cs_check_range in aktlocalswitches) or
            not(todef.deftype in [orddef,enumdef,arraydef]) then
           exit;
-        if is_64bitint(p.resulttype.def) or is_64bitint(todef) then
+        if is_64bit(p.resulttype.def) or is_64bit(todef) then
           begin
              cg64.g_rangecheck64(list,p,todef);
              exit;
@@ -1842,7 +1842,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.87  2003-04-23 14:42:07  daniel
+  Revision 1.88  2003-04-23 20:16:03  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.87  2003/04/23 14:42:07  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number

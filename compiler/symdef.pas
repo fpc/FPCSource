@@ -1720,22 +1720,16 @@ implementation
 
 
     procedure torddef.setsize;
+      const
+        sizetbl : array[tbasetype] of longint = (
+          0,
+          1,2,4,8,
+          1,2,4,8,
+          1,2,4,
+          1,2,8
+        );
       begin
-         case typ of
-            u8bit,s8bit,
-            uchar,bool8bit:
-              savesize:=1;
-            u16bit,s16bit,
-            bool16bit,uwidechar:
-              savesize:=2;
-            s32bit,u32bit,
-            bool32bit:
-              savesize:=4;
-            u64bit,s64bit:
-              savesize:=8;
-            else
-              savesize:=0;
-         end;
+        savesize:=sizetbl[typ];
       end;
 
 
@@ -1797,7 +1791,7 @@ implementation
              otUByte,otUWord,otULong,otUByte{otNone},
              otSByte,otSWord,otSLong,otUByte{otNone},
              otUByte,otUWord,otULong,
-             otUByte,otUWord);
+             otUByte,otUWord,otUByte);
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
@@ -1879,7 +1873,7 @@ implementation
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
           'Boolean','WordBool','LongBool',
-          'Char','WideChar');
+          'Char','WideChar','Currency');
 
       begin
          gettypename:=names[typ];
@@ -4010,7 +4004,7 @@ implementation
              'Uc','Us','Ui','Us',
              'Sc','s','i','x',
              'b','b','b',
-             'c','w');
+             'c','w','x');
 
         var
            s : string;
@@ -5719,7 +5713,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2003-04-23 12:35:34  florian
+  Revision 1.135  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.134  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

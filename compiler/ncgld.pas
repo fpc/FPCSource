@@ -831,7 +831,7 @@ implementation
                    enumdef,
                    orddef :
                      begin
-                       if is_64bitint(lt) then
+                       if is_64bit(lt) then
                          begin
                             case torddef(lt).typ of
                                s64bit:
@@ -1009,7 +1009,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-04-23 10:12:14  peter
+  Revision 1.51  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.50  2003/04/23 10:12:14  peter
     * allow multi pass2 changed to global boolean instead of node flag
 
   Revision 1.49  2003/04/22 23:50:22  peter

@@ -45,6 +45,9 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
+       {$ifdef extdebug}
+          procedure _dowrite;override;
+       {$endif}
        end;
        trealconstnodeclass = class of trealconstnode;
 
@@ -410,6 +413,15 @@ implementation
           (value_real = trealconstnode(p).value_real);
       end;
 
+{$ifdef extdebug}
+    procedure Trealconstnode._dowrite;
+
+    begin
+        inherited _dowrite;
+        writeln(',');
+        system.write(writenodeindention,'value = ',value_real);
+    end;
+{$endif}
 
 {*****************************************************************************
                               TORDCONSTNODE
@@ -491,7 +503,8 @@ implementation
 
     begin
         inherited _dowrite;
-        system.write(',value = ',value);
+        writeln(',');
+        system.write(writenodeindention,'value = ',value);
     end;
 {$endif}
 
@@ -925,7 +938,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-04-22 23:50:23  peter
+  Revision 1.47  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.46  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

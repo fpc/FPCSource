@@ -706,7 +706,6 @@ implementation
            inserttypeconv(right,left.resulttype);
           end;
 
-
         { check if the assignment may cause a range check error }
         { if its not explicit, and only if the values are       }
         { ordinals, enumdef and floatdef                        }
@@ -726,7 +725,6 @@ implementation
               end;
          end;
 
-
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
          begin
@@ -745,9 +743,8 @@ implementation
           test_local_to_procvar(tprocvardef(right.resulttype.def),left.resulttype.def);
       end;
 
+
     function tassignmentnode.pass_1 : tnode;
-
-
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -757,14 +754,13 @@ implementation
          if codegenerror then
            exit;
 
-
-
          registers32:=left.registers32+right.registers32;
          registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
 {$endif SUPPORT_MMX}
       end;
+
 
     function tassignmentnode.docompare(p: tnode): boolean;
       begin
@@ -1025,7 +1021,7 @@ implementation
                    orddef :
                      begin
                        if is_integer(hp.left.resulttype.def) and
-                         not(is_64bitint(hp.left.resulttype.def)) then
+                          not(is_64bitint(hp.left.resulttype.def)) then
                         begin
                           hp.left:=ctypeconvnode.create(hp.left,s32bittype);
                           firstpass(hp.left);
@@ -1264,7 +1260,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-04-23 10:10:54  peter
+  Revision 1.86  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.85  2003/04/23 10:10:54  peter
     * procvar is not compared in addrn
 
   Revision 1.84  2003/04/22 23:50:23  peter

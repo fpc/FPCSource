@@ -570,13 +570,13 @@ interface
                         falselabel:=ofl;
                      end;
                    else
-                     CGMessage(type_e_mismatch);
+                     internalerror(2003042212);
                  end;
                  secondpass(right);
                  maketojumpbool(exprasmlist,right,lr_load_regvars);
                end;
              else
-               CGMessage(type_e_mismatch);
+               internalerror(2003042213);
            end;
          end;
       end;
@@ -613,7 +613,7 @@ interface
               cmpop:=true;
             end;
           else
-            CGMessage(type_e_mismatch);
+            internalerror(2003042214);
         end;
 
         if (right.location.loc<>LOC_FPUREGISTER) then
@@ -845,10 +845,7 @@ interface
           andn :
             op:=A_AND;
           else
-            begin
-              { no < or > support for sets }
-              CGMessage(type_e_mismatch);
-            end;
+            internalerror(2003042215);
         end;
         { left must be a register }
         left_must_be_reg(opsize,noswap);
@@ -988,13 +985,11 @@ interface
             op:=OP_OR;
           andn:
             op:=OP_AND;
-          muln:
+          else
             begin
-              { should be handled in pass_1 (JM) }
+              { everything should be handled in pass_1 (JM) }
               internalerror(200109051);
             end;
-          else
-            CGMessage(type_e_mismatch);
         end;
 
         { left and right no register?  }
@@ -1246,7 +1241,7 @@ interface
           andn:
             op:=A_PAND;
           else
-            CGMessage(type_e_mismatch);
+            internalerror(2003042214);
         end;
 
         { left and right no register?  }
@@ -1508,7 +1503,7 @@ interface
                    exit;
                  end
                { 64bit operations }
-               else if is_64bitint(left.resulttype.def) then
+               else if is_64bit(left.resulttype.def) then
                  begin
                    second_add64bit;
                    exit;
@@ -1605,7 +1600,7 @@ interface
               andn :
                 op:=A_AND;
               else
-                CGMessage(type_e_mismatch);
+                internalerror(200304229);
             end;
 
             { filter MUL, which requires special handling }
@@ -1647,7 +1642,7 @@ interface
                equaln,unequaln :
                  cmpop:=true;
                else
-                 CGMessage(type_e_mismatch);
+                 internalerror(2003042210);
              end;
              left_must_be_reg(opsize,false);
              emit_op_right_left(A_CMP,opsize);
@@ -1661,7 +1656,7 @@ interface
              set_result_location(true,true);
            end
          else
-           CGMessage(type_e_mismatch);
+           internalerror(2003042211);
       end;
 
 begin
@@ -1669,7 +1664,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-04-23 09:51:16  daniel
+  Revision 1.65  2003-04-23 20:16:04  peter
+    + added currency support based on int64
+    + is_64bit for use in cg units instead of is_64bitint
+    * removed cgmessage from n386add, replace with internalerrors
+
+  Revision 1.64  2003/04/23 09:51:16  daniel
     * Removed usage of edi in a lot of places when new register allocator used
     + Added newra versions of g_concatcopy and secondadd_float
 
