@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for SunOS
+    This unit implements support information structures for solaris
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for SunOS. }
+{ This unit implements support information structures for solaris. }
 unit i_sunos;
 
   interface
@@ -28,15 +28,15 @@ unit i_sunos;
        systems;
 
     const
-       system_i386_sunos_info : tsysteminfo =
+       system_i386_solaris_info : tsysteminfo =
           (
-            system       : system_i386_sunos;
-            name         : 'SunOS/ELF for i386';
-            shortname    : 'SunOS';
+            system       : system_i386_solaris;
+            name         : 'Solaris for i386';
+            shortname    : 'solaris';
             flags        : [tf_under_development];
             cpu          : cpu_i386;
-            unit_env     : 'SUNOSUNITS';
-            extradefines : 'UNIX;SOLARIS;LIBC';
+            unit_env     : 'SOLARISUNITS';
+            extradefines : 'UNIX;LIBC';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -90,15 +90,15 @@ unit i_sunos;
             use_function_relative_addresses : true
           );
 
-       system_sparc_sunos_info : tsysteminfo =
+       system_sparc_solaris_info : tsysteminfo =
           (
-            system       : system_sparc_sunos;
-            name         : 'SunOS for SPARC';
-            shortname    : 'SunOS';
+            system       : system_sparc_solaris;
+            name         : 'Solaris for SPARC';
+            shortname    : 'solaris';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_SPARC;
-            unit_env     : 'SUNOSUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            unit_env     : 'SOLARISUNITS';
+            extradefines : 'UNIX;LIBC;';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -156,25 +156,28 @@ unit i_sunos;
 
 initialization
 {$ifdef CPU86}
-  {$ifdef sunos}
-    set_source_info(system_i386_sunos_info);
-  {$endif sunos}
+  {$ifdef solaris}
+    set_source_info(system_i386_solaris_info);
+  {$endif solaris}
 {$endif CPU86}
 {$ifdef CPUSparc}
-  {$ifdef sunos}
-    set_source_info(system_sparc_sunos_info);
-  {$endif sunos}
+  {$ifdef solaris}
+    set_source_info(system_sparc_solaris_info);
+  {$endif solaris}
 {$endif CPUSparc}
 
 end.
 {
   $Log$
-  Revision 1.5  2004-10-25 15:38:41  peter
+  Revision 1.6  2005-02-13 20:11:16  peter
+    * sunos to solaris
+
+  Revision 1.5  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 
   Revision 1.4  2004/10/01 17:41:21  marco
-   * small updates to make playing with sparc/sunos easier
+   * small updates to make playing with sparc/solaris easier
 
   Revision 1.3  2004/06/20 08:55:32  florian
     * logs truncated

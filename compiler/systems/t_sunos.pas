@@ -3,7 +3,7 @@
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
-    for the (i386) sunos target
+    for the (i386) solaris target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,24 +39,25 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
+    cgobj,
     import,export,link,i_sunos;
 
   type
-    timportlibsunos=class(timportlib)
+    timportlibsolaris=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
-    texportlibsunos=class(texportlib)
+    texportlibsolaris=class(texportlib)
       procedure preparelib(const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib;override;
     end;
 
-    tlinkersunos=class(texternallinker)
+    tlinkersolaris=class(texternallinker)
     private
       Glibc2,
       Glibc21 : boolean;
@@ -70,10 +71,10 @@ implementation
 
 
 {*****************************************************************************
-                               TIMPORTLIBsunos
+                               TIMPORTLIBsolaris
 *****************************************************************************}
 
-procedure timportlibsunos.preparelib(const s : string);
+procedure timportlibsolaris.preparelib(const s : string);
 begin
 {$ifDef LinkTest}
   WriteLN('Prepare import: ',s);
@@ -81,7 +82,7 @@ begin
 end;
 
 
-procedure timportlibsunos.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
+procedure timportlibsolaris.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
 {$ifDef LinkTest}
@@ -91,7 +92,7 @@ begin
 end;
 
 
-procedure timportlibsunos.importvariable(vs:tglobalvarsym;const name,module:string);
+procedure timportlibsolaris.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -101,28 +102,28 @@ begin
 end;
 
 
-procedure timportlibsunos.generatelib;
+procedure timportlibsolaris.generatelib;
 begin
 end;
 
 
 {*****************************************************************************
-                               TEXPORTLIBsunos
+                               TEXPORTLIBsolaris
 *****************************************************************************}
 
-procedure texportlibsunos.preparelib(const s:string);
+procedure texportlibsolaris.preparelib(const s:string);
 begin
 end;
 
 
-procedure texportlibsunos.exportprocedure(hp : texported_item);
+procedure texportlibsolaris.exportprocedure(hp : texported_item);
 var
   hp2 : texported_item;
 begin
   { first test the index value }
   if (hp.options and eo_index)<>0 then
    begin
-     Message1(parser_e_no_export_with_index_for_target,'SunOS');
+     Message1(parser_e_no_export_with_index_for_target,'solaris');
      exit;
    end;
   { use pascal name is none specified }
@@ -158,17 +159,18 @@ begin
 end;
 
 
-procedure texportlibsunos.exportvar(hp : texported_item);
+procedure texportlibsolaris.exportvar(hp : texported_item);
 begin
   hp.is_var:=true;
   exportprocedure(hp);
 end;
 
 
-procedure texportlibsunos.generatelib;
+procedure texportlibsolaris.generatelib;
 var
   hp2 : texported_item;
 begin
+  new_section(codesegment,sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -179,27 +181,25 @@ begin
           is declared with cdecl }
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
-{$ifdef i386}
            { place jump in codesegment }
-           codesegment.concat(Tai_align.Create_op(4,$90));
+           codesegment.concat(tai_align.create(target_info.alignment.procalign));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           cg.a_jmp_name(codesegment,tprocsym(hp2.sym).first_procdef.mangledname);
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
-{$endif i386}
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'SunOS');
+      Message1(parser_e_no_export_of_variables_for_target,'linux');
      hp2:=texported_item(hp2.next);
    end;
 end;
 
 
 {*****************************************************************************
-                                  TLINKERSUNOS
+                                  TLINKERsolaris
 *****************************************************************************}
 
-Constructor TLinkersunos.Create;
+Constructor TLinkersolaris.Create;
 begin
   Inherited Create;
   if NOT Dontlinkstdlibpath Then
@@ -212,7 +212,7 @@ begin
 end;
 
 
-procedure TLinkersunos.SetDefaultInfo;
+procedure TLinkersolaris.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
@@ -249,7 +249,7 @@ begin
 end;
 
 
-Function TLinkersunos.WriteResponseFile(isdll:boolean) : Boolean;
+Function TLinkersolaris.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -282,7 +282,7 @@ begin
      if linklibc then
        prtobj:=cprtobj
       else
-       AddSharedLibrary('c'); { quick hack: this sunos implementation needs alwys libc }
+       AddSharedLibrary('c'); { quick hack: this solaris implementation needs alwys libc }
    end;
 
   { Open link.res file }
@@ -307,7 +307,7 @@ begin
   if prtobj<>'' then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
-  if linklibc then { Needed in sunos? }
+  if linklibc then { Needed in solaris? }
    begin
 {     if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);}
@@ -353,7 +353,7 @@ begin
         else
          begin
            linklibc:=true;
-           linkdynamic:=false; { libc will include the ld-sunos (war ld-linux) for us }
+           linkdynamic:=false; { libc will include the ld-solaris (war ld-linux) for us }
          end;
       end;
      { be sure that libc is the last lib }
@@ -363,12 +363,12 @@ begin
      if (cs_link_staticflag in aktglobalswitches) then begin
       LinkRes.Add('-lgcc');
      end;
-     if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in sunos }
+     if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in solaris }
        LinkRes.AddFileName(Info.DynamicLinker);
      LinkRes.Add(')');
    end;
   { objects which must be at the end }
-  if linklibc then {needed in sunos ? }
+  if linklibc then {needed in solaris ? }
    begin
      if {librarysearchpath.FindFile('crtend.o',s1) or}
         librarysearchpath.FindFile('crtn.o',s2) then
@@ -387,7 +387,7 @@ begin
 end;
 
 
-function TLinkersunos.MakeExecutable:boolean;
+function TLinkersolaris.MakeExecutable:boolean;
 var
   binstr : String;
   cmdstr  : TCmdStr;
@@ -410,7 +410,7 @@ begin
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
-  { sunos sets DynamicLinker, but gld will (hopefully) defaults to -Bdynamic and add the default-linker }
+  { solaris sets DynamicLinker, but gld will (hopefully) defaults to -Bdynamic and add the default-linker }
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -433,7 +433,7 @@ begin
 end;
 
 
-Function TLinkersunos.MakeSharedLibrary:boolean;
+Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
   binstr : String;
   cmdstr  : TCmdStr;
@@ -476,22 +476,25 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_sunos_info,TLinkerSunos);
-  RegisterImport(system_i386_sunos,TImportLibSunos);
-  RegisterExport(system_i386_sunos,TExportLibSunos);
-  RegisterTarget(system_i386_sunos_info);
+  RegisterExternalLinker(system_i386_solaris_info,TLinkersolaris);
+  RegisterImport(system_i386_solaris,TImportLibsolaris);
+  RegisterExport(system_i386_solaris,TExportLibsolaris);
+  RegisterTarget(system_i386_solaris_info);
 {$endif i386}
 
 {$ifdef sparc}
-  RegisterExternalLinker(system_sparc_sunos_info,TLinkerSunos);
-  RegisterImport(system_sparc_sunos,TImportLibSunos);
-  RegisterExport(system_sparc_sunos,TExportLibSunos);
-  RegisterTarget(system_sparc_sunos_info);
+  RegisterExternalLinker(system_sparc_solaris_info,TLinkersolaris);
+  RegisterImport(system_sparc_solaris,TImportLibsolaris);
+  RegisterExport(system_sparc_solaris,TExportLibsolaris);
+  RegisterTarget(system_sparc_solaris_info);
 {$endif sparc}
 end.
 {
   $Log$
-  Revision 1.16  2004-12-22 16:32:46  peter
+  Revision 1.17  2005-02-13 20:11:16  peter
+    * sunos to solaris
+
+  Revision 1.16  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.15  2004/11/19 16:30:24  peter
@@ -508,7 +511,7 @@ end.
   * Need to be optimized in performance
 
   Revision 1.11  2004/10/01 17:41:21  marco
-   * small updates to make playing with sparc/sunos easier
+   * small updates to make playing with sparc/solaris easier
 
   Revision 1.10  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS

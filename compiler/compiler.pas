@@ -196,9 +196,9 @@ uses
 {$ifdef palmos}
   ,i_palmos
 {$endif palmos}
-{$ifdef sunos}
+{$ifdef solaris}
   ,i_sunos
-{$endif sunos}
+{$endif solaris}
 {$ifdef wdosx}
   ,i_wdosx
 {$endif wdosx}
@@ -435,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2005-02-13 18:55:19  florian
+  Revision 1.55  2005-02-13 20:11:16  peter
+    * sunos to solaris
+
+  Revision 1.54  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.53  2005/01/31 21:30:56  olle
