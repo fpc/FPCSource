@@ -55,7 +55,7 @@ const
  FileNameCaseSensitive = false;
 
 const
-  UnusedHandle    = -1;
+  UnusedHandle    = 0;
   StdInputHandle  = 0;
   StdOutputHandle = 0;
   StdErrorHandle  = 0;
@@ -72,16 +72,90 @@ var
 
 implementation
 
-{Some MacOS API routines needed for internal use.
-Note, because the System unit is the most low level, it should not 
-depend on any other units, and in particcular not the MacOS unit.}
+{TODO: Perhaps the System unit should check the MacOS version to
+ensure it is a supported version. }
 
-function NewPtr(logicalSize: Longint): pointer ;
+{Below is some MacOS API routines needed for internal use.
+Note, because the System unit is the most low level, it should not 
+depend on any other units, and in particcular not the MacOS unit.
+
+Note: Types like Mac_XXX corresponds to the type XXX defined
+in MacOS Universal Headers. The prefix is to avoid name clashes
+with FPC types.}
+
+type
+  SignedByte = shortint;
+  OSErr = Integer;
+  OSType = Longint;
+  Mac_Ptr = pointer;
+  Mac_Handle = ^Mac_Ptr;
+  Str31 = string[31];
+  Str32 = string[32];
+  Str63 = string[63];
+  FSSpec = record
+      vRefNum: Integer;
+      parID: Longint;
+      name: Str63;
+    end;
+  FSSpecPtr = ^FSSpec;
+  AliasHandle = Mac_Handle;
+  ScriptCode = Integer;
+
+const
+  noErr = 0;
+  fnfErr = -43;   //File not found error
+  fsFromStart = 1;
+  fsFromLEOF = 2;
+
+function NewPtr(logicalSize: Longint): Mac_Ptr ;
+external 'InterfaceLib';
+
+procedure DisposeHandle(hdl: Mac_Handle);
 external 'InterfaceLib';
 
 procedure Debugger;
 external 'InterfaceLib';
 
+procedure ExitToShell;
+external 'InterfaceLib';
+
+function FSpOpenDF(spec: FSSpec; permission: SignedByte;
+  var refNum: Integer): OSErr;
+external 'InterfaceLib';
+
+function FSpCreate(spec: FSSpec; creator, fileType: OSType;
+  scriptTag: ScriptCode): OSErr;
+external 'InterfaceLib';
+
+function FSClose(refNum: Integer): OSErr;
+external 'InterfaceLib';
+
+function FSRead(refNum: Integer; var count: Longint; buffPtr: Mac_Ptr): OSErr;
+external 'InterfaceLib';
+
+function FSWrite(refNum: Integer; var count: Longint; buffPtr: Mac_Ptr): OSErr;
+external 'InterfaceLib';
+
+function GetFPos(refNum: Integer; var filePos: Longint): OSErr;
+external 'InterfaceLib';
+
+function SetFPos(refNum: Integer; posMode: Integer; posOff: Longint): OSErr;
+external 'InterfaceLib';
+
+function GetEOF(refNum: Integer; var logEOF: Longint): OSErr;
+external 'InterfaceLib';
+
+function SetEOF(refNum: Integer; logEOF: Longint): OSErr;
+external 'InterfaceLib';
+
+function NewAliasMinimalFromFullPath(fullPathLength: Integer;
+  fullPath: Mac_Ptr; zoneName: Str32; serverName: Str31;
+  var alias: AliasHandle):OSErr;
+external 'InterfaceLib';
+
+function ResolveAlias(fromFile: FSSpecPtr; alias: AliasHandle;
+  var target: FSSpec; var wasChanged: Boolean):OSErr;
+external 'InterfaceLib';
 
 {$ifdef MAC_SYS_RUNABLE}
 
@@ -120,6 +194,7 @@ end;
 *****************************************************************************}
 Procedure system_exit;
 begin
+  ExitToShell;
 end;
 
 
@@ -162,7 +237,7 @@ const
 var
   { Pointer to a block allocated with the MacOS Memory Manager, which 
     is used as the FPC heap }
-  theHeap: pointer;
+  theHeap: Mac_Ptr;
 
 { first address of heap }
 function getheapstart:pointer;
@@ -194,6 +269,9 @@ end;
 procedure do_close(handle : longint);
 begin
   InOutRes:=1;
+  if handle = UnusedHandle then exit;
+  if FSClose(handle) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
 end;
 
 procedure do_erase(p : pchar);
@@ -208,38 +286,88 @@ end;
 
 function do_write(h,addr,len : longint) : longint;
 begin
-  InOutRes:=1;
+  InOutRes:=1;	
+  if h = UnusedHandle then exit;
+  if FSWrite(h, len, Mac_Ptr(addr)) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
+  do_write:= len;
 end;
 
 function do_read(h,addr,len : longint) : longint;
 begin
   InOutRes:=1;
+  if h = UnusedHandle then exit;
+  if FSread(h, len, Mac_Ptr(addr)) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
+  do_read:= len;
 end;
 
 function do_filepos(handle : longint) : longint;
+var
+  pos: Longint;
 begin
   InOutRes:=1;
+  if handle = UnusedHandle then exit;
+  if GetFPos(handle, pos) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
+  do_filepos:= pos;
 end;
 
 procedure do_seek(handle,pos : longint);
 begin
   InOutRes:=1;
+  if handle = UnusedHandle then exit;
+  if SetFPos(handle, fsFromStart, pos) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
 end;
 
 function do_seekend(handle:longint):longint;
 begin
   InOutRes:=1;
+  if handle = UnusedHandle then exit;
+  if SetFPos(handle, fsFromLEOF, 0) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?	
 end;
 
 function do_filesize(handle : longint) : longint;
+var
+  pos: Longint;
 begin
   InOutRes:=1;
+  if handle = UnusedHandle then exit;
+  if GetEOF(handle, pos) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?
+  do_filesize:= pos;
 end;
 
 { truncate at a given position }
 procedure do_truncate (handle,pos:longint);
 begin
   InOutRes:=1;
+  do_seek(handle,pos);	//TODO: Is this needed (Does the user anticipate the filemarker is at the end?) 
+  if SetEOF(handle, pos) = noErr then
+    InOutRes:=0;	//TODO: Is this right ?
+end;
+
+function FSpLocationFromFullPath(fullPathLength: Integer;
+  fullPath: Mac_Ptr; var spec: FSSpec ):OSErr;
+
+var
+  alias: AliasHandle;
+  res: OSErr;
+  wasChanged: Boolean;
+  nullString: Str32;
+
+begin
+  nullString:= '';
+  res:= NewAliasMinimalFromFullPath(fullPathLength,
+             fullPath, nullString, nullString, alias);
+  if res = noErr then
+    begin
+      res:= ResolveAlias(nil, alias, spec, wasChanged);    
+      DisposeHandle(Mac_Handle(alias));
+    end;
+  FSpLocationFromFullPath:= res;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -250,8 +378,46 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $100)  the file will be truncate/rewritten
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
+
+var
+  spec: FSSpec;
+  creator, fileType: OSType;
+  scriptTag: ScriptCode;
+  refNum: Integer;
+  res: OSErr;
+
+const
+  fsCurPerm = 0;
+  smSystemScript = -1;
+
 begin
   InOutRes:=1;
+  //creator:= $522A6368;	{'MPS ' -- MPW}
+  //creator:= $74747874;	{'ttxt'}
+  creator:= $522A6368;	{'R*ch' -- BBEdit}
+  fileType:= $54455854;	{'TEXT'}
+
+  { reset file handle }
+  filerec(f).handle:=UnusedHandle;
+
+  res:= FSpLocationFromFullPath(StrLen(p), p, spec);
+  if (res = noErr) or (res = fnfErr) then
+    begin
+      if FSpCreate(spec, creator, fileType, smSystemScript) = noErr then
+        ;
+
+      if FSpOpenDF(spec, fsCurPerm, refNum) = noErr then
+        begin
+          filerec(f).handle:= refNum;
+          InOutRes:=0;
+        end;
+    end;
+
+  if (filerec(f).handle=UnusedHandle) then
+    begin
+      //errno:=GetLastError;
+      //Errno2InoutRes;
+    end;
 end;
 
 function do_isdevice(handle:longint):boolean;
@@ -323,10 +489,10 @@ Begin
   theHeap:= NewPtr(theHeapSize);
   InitHeap;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
+(*  OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);*)
 { Setup environment and arguments }
   Setup_Environment;
   Setup_Arguments;
@@ -340,7 +506,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-11-28 10:58:02  olle
+  Revision 1.5  2003-01-13 17:18:55  olle
+    + added support for rudimentary file handling
+
+  Revision 1.4  2002/11/28 10:58:02  olle
     + added support for rudimentary heap
 
   Revision 1.3  2002/10/23 15:29:09  olle
