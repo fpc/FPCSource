@@ -974,7 +974,7 @@ implementation
 
     procedure tabstractrecordsymtable.insertfield(sym : tvarsym;addsym:boolean);
       var
-        l,
+        l      : aint;
         varalignrecord,
         varalignfield,
         varalign : longint;
@@ -1020,7 +1020,13 @@ implementation
           varalign:=size_2_align(l);
         varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
         tvarsym(sym).fieldoffset:=align(datasize,varalignfield);
-        datasize:=tvarsym(sym).fieldoffset+l;
+        if (aword(l)+tvarsym(sym).fieldoffset)>high(aint) then
+          begin
+            Message(sym_e_segment_too_large);
+            datasize:=high(aint);
+          end
+        else
+          datasize:=tvarsym(sym).fieldoffset+l;
         { Calc alignment needed for this record }
         if (usefieldalignment=-1) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
@@ -2307,7 +2313,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-05-23 20:56:14  peter
+  Revision 1.148  2004-05-25 18:50:50  peter
+    * check for 2gb limit when inserting record fields
+
+  Revision 1.147  2004/05/23 20:56:14  peter
     * don't generate incompatible types when there is an errordef
 
   Revision 1.146  2004/05/22 23:34:28  peter
