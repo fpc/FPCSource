@@ -20,7 +20,7 @@ procedure TMyThread.Execute;
 begin
   repeat
     write(ch);
-  until false;
+  until Terminated;
 end;
 
 
@@ -43,8 +43,12 @@ begin
   t2.Destroy;
   t1.Destroy;
 end.
+{
   $Log$
-  Revision 1.3  2002-09-07 15:15:28  peter
+  Revision 1.4  2002-09-07 21:03:37  carl
+    * correct termination of thread
+
+  Revision 1.3  2002/09/07 15:15:28  peter
     * old logs removed and tabs fixed
 
 }
