@@ -77,12 +77,12 @@ type
     last_breakpoint_line : longint;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
-    constructor Init;
-    destructor  Done;
-    procedure clear_frames;
     { Highlevel }
     user_screen_shown,
     switch_to_user     : boolean;
+    constructor Init;
+    destructor  Done;
+    procedure clear_frames;
     { functions }
     function  error:boolean;
     function  error_num:longint;
@@ -298,7 +298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-02-07 13:19:43  pierre
+  Revision 1.8  2000-02-13 00:01:18  carl
+    * Private variables were wrongly placed.
+
+  Revision 1.7  2000/02/07 13:19:43  pierre
    + Set_current_frame/Get_current_frame dummies
 
   Revision 1.6  1999/11/25 20:22:59  peter
