@@ -148,12 +148,12 @@ implementation
        strings,
 {$endif}
        globals,verbose,
-       symtable,symconst,symtype,symsym,defutil,defcmp,paramgr,
+       symtable,symconst,symtype,symsym,defcmp,paramgr,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
        aasmcpu,
-       cpubase,procinfo,cgbase,
+       cpubase,cgbase,
        cgobj,rgobj
        ;
 
@@ -674,6 +674,15 @@ implementation
                                            if (po_overload in procdefcoll^.data.procoptions) then
                                             include(pd.procoptions,po_overload);
 
+                                           { inherite calling convention when it was force and the
+                                             current definition has none force }
+                                           if (po_hascallingconvention in procdefcoll^.data.procoptions) and
+                                              not(po_hascallingconvention in pd.procoptions) then
+                                             begin
+                                               pd.proccalloption:=procdefcoll^.data.proccalloption;
+                                               include(pd.procoptions,po_hascallingconvention);
+                                             end;
+
                                            { the flags have to match except abstract and override }
                                            { only if both are virtual !!  }
                                            if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
@@ -681,7 +690,10 @@ implementation
                                                ((procdefcoll^.data.procoptions-
                                                    [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])<>
                                                 (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])) then
-                                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                                              begin
+                                                MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                                                tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
+                                              end;
 
                                            { error, if the return types aren't equal }
                                            if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
@@ -1344,7 +1356,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.49  2003-10-01 20:34:49  peter
+  Revision 1.50  2003-10-07 20:44:22  peter
+    * inherited forced calling convention
+    * show hints when forward doesn't match
+
+  Revision 1.49  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
