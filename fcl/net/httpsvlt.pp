@@ -514,6 +514,7 @@ begin
   DataAvailableNotifyHandle := EventLoop.SetDataAvailableNotify(
     InetServer.Socket, @InetServerDataAvailable, nil);
   InetServer.OnConnect := @InetServerConnect;
+  InetServer.SetNonBlocking;
   InetServer.Listen;
 end;
 
@@ -621,7 +622,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-25 19:30:29  sg
+  Revision 1.2  2003-06-25 08:53:51  sg
+  * Inform the server socket object that it runs non-blocking
+
+  Revision 1.1  2002/04/25 19:30:29  sg
   * First version (with exception of the HTTP unit: This is an improved version
     of the old asyncio HTTP unit, now adapted to fpAsync)
 
