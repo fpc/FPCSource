@@ -32,3 +32,7 @@ case .................. testcase.pp    tests case statements with byte and word
 Arrays ................ testarr1.pp    small test for open arrays with classes
 Enumerations .......... testenm1.pp    tests assignments of subrange
                                        enumerations
+Inline ................ inline01.pp    tests recursive inlining, inlining
+                                       a procedure multiple times and
+                                       inlining procedures in other
+                                       inline procedures.
