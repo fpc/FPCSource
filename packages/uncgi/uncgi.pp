@@ -201,7 +201,11 @@ begin
   writeln('<ul><br>');
   writeln('<li> procedure: ',pname,'<br>');
   writeln('<li> error: ',perr,'<br><hr>'); 
-  writeln('<h5><p><i>uncgi (c) ',uncgi_year,' ',maintainer_name,'<a href="mailto:',maintainer_email,'>',maintainer_email,'</a></i></p></h5>');
+  writeln(
+   '<h5><p><i>uncgi (c) ',uncgi_year,' ',maintainer_name,
+{ skelet fix }
+   '<a href="mailto:',maintainer_email,'">',
+   maintainer_email,'</a></i></p></h5>');
   writeln('</body></html>');
   halt;
 end;
@@ -240,7 +244,8 @@ begin
     end
   else
     get_nodata :=false;
-  getmem(qunescaped,qslen);
+{ skelet fix }
+  getmem(qunescaped,qslen+1);
   if qunescaped=nil then
     begin
     writeln ('Oh-oh');
@@ -260,6 +265,8 @@ begin
       qunescaped[sptr] := querystring[cnt];
     end;
     inc(sptr);
+{ skelet fix }
+    qunescaped[sptr]:=#0;
     end;
   UnEscape:=qunescaped;
 end;
