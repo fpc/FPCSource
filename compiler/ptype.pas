@@ -469,7 +469,7 @@ implementation
                             same type }
                           if is_integer(p.resulttype.def) or
                              is_equal(p.resulttype.def,aktenumdef) then
-                           l:=v
+                           l:=tordconstnode(p).value
                           else
                            Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
                         end
@@ -599,7 +599,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-06-04 11:51:59  peter
+  Revision 1.26  2001-06-04 18:06:38  peter
+    * fix for enum with assignment
+
+  Revision 1.25  2001/06/04 11:51:59  peter
     * enum type declarations assignments can also be of the same enum
       type
 
