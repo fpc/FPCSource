@@ -1,0 +1,19 @@
+#
+#   $Id$
+#
+#   Makefile.fpc for shedit
+#
+
+[targets]
+units=doc_text shedit sh_pas sh_xml
+programs_win32=gtkdemo
+programs_linux=gtkdemo
+
+[dirs]
+fpcdir=../..
+unitdir=$(FPCDIR)/gtk ../$(OS_TARGET)
+targetdir=.
+
+[defaults]
+defaultunits=1
+
