@@ -1003,7 +1003,8 @@ end;
         if assigned(aktprocsym^.definition) then
          Begin
          { Check the local constants }
-           if assigned(aktprocsym^.definition^.localst) then
+           if assigned(aktprocsym^.definition^.localst) and
+              (lexlevel >= normal_function_level) then
             sym := aktprocsym^.definition^.localst^.search(s)
            else
             sym := nil;
@@ -1803,7 +1804,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-01-10 15:38:00  peter
+  Revision 1.2  1999-01-27 13:04:11  pierre
+   * bug with static vars in assembler readers
+
+  Revision 1.1  1999/01/10 15:38:00  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils

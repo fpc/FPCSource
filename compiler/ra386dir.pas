@@ -144,7 +144,8 @@ unit Ra386dir;
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
-                                      if assigned(aktprocsym^.definition^.localst) then
+                                      if assigned(aktprocsym^.definition^.localst) and
+                                         (lexlevel >= normal_function_level) then
                                         sym:=aktprocsym^.definition^.localst^.search(upper(hs))
                                       else
                                         sym:=nil;
@@ -288,7 +289,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.12  1999-01-10 15:37:57  peter
+  Revision 1.13  1999-01-27 13:04:12  pierre
+   * bug with static vars in assembler readers
+
+  Revision 1.12  1999/01/10 15:37:57  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils
