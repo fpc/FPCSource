@@ -1,3 +1,5 @@
+{$MODE objfpc}	// get integer sizes right
+
 Unit XUtil;
 
 interface
@@ -301,6 +303,14 @@ type TXContext = Integer;
  XUniqueContext()       ((XContext) XrmUniqueQuark())
  XStringToContext(string)   ((XContext) XrmStringToQuark(string))
 }
+
+const _xlib = 'X11';
+
+function XGetVisualInfo(display: PDisplay; vinfo_mask: LongInt;
+  vinfo_template: PXVisualInfo; var nitems_return: Integer): PXVisualInfo;
+  cdecl; external _xlib;
+
+
 
 Implementation
 
