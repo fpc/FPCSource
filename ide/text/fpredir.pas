@@ -66,7 +66,7 @@ Uses
   dos;
 
 {*****************************************************************************
-				     Dos
+                                     Dos
 *****************************************************************************}
 
 {$ifdef implemented}
@@ -81,8 +81,8 @@ const
 
 Type
   PtrRec = packed record
-	     Ofs, Seg : Word;
-	   end;
+             Ofs, Seg : Word;
+           end;
 
   PHandles = ^THandles;
   THandles = Array [Byte] of Byte;
@@ -98,7 +98,7 @@ Var
 {$endif TP}
 
 Var
-  F,FE	            : File;
+  F,FE              : File;
   RedirChanged      : Boolean;
   RedirErrorChanged : Boolean;
   TempH, TempErrorH : longint;
@@ -285,7 +285,12 @@ end;
     SmallHeap;
 {$EndIf MsDos}
     SwapVectors;
+    { Must use shell() for linux for the wildcard expansion (PFV) }
+{$ifdef linux}
+    Shell(Progname+' '+Comline);
+{$else}
     Dos.Exec (ProgName, ComLine);
+{$endif}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
     SwapVectors;
@@ -316,7 +321,7 @@ End;
 
 
 {*****************************************************************************
-				 Linux
+                                 Linux
 *****************************************************************************}
 
 
@@ -351,13 +356,16 @@ end;
 
 
 {*****************************************************************************
-				  Initialize
+                                  Initialize
 *****************************************************************************}
 
 End.
 {
   $Log$
-  Revision 1.9  1999-02-22 11:12:33  pierre
+  Revision 1.10  1999-02-22 12:46:58  peter
+    * small fixes for linux and grep
+
+  Revision 1.9  1999/02/22 11:12:33  pierre
     * dup and dup2 work for go32v2
     + also should work for linux (after linux.pp patch)
 

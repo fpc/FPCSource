@@ -52,23 +52,21 @@ begin
 end;
 
 procedure TIDEApp.Grep;
-
-  var PGrepDialog : PCenterDialog;
-      R,R2 : TRect;
-      IL1,IL2 : PInputLine;
-      p,lineNb : longint;
-      error : word;
-      searchword,
-      GrepExe,GrepArgs,Line,ModuleName : String;
-      GrepOut : text;
-      Params : Array[0..4] of longint;
-
-  Const GrepOutName = 'grep$$.out';
-{$ifdef linux}
-   GrepExeName = 'grep';
-{$else linux}
-   GrepExeName = 'grep.exe';
-{$endif linux}
+Const
+  GrepOutName = 'grep$$.out';
+  GrepErrName = 'grep$$.err';
+  GrepExeName = 'grep'+ExeExt;
+var
+  PGrepDialog : PCenterDialog;
+  R,R2 : TRect;
+  IL1,IL2 : PInputLine;
+  s : string;
+  p,lineNb : longint;
+  error : word;
+  searchword,
+  GrepExe,GrepArgs,Line,ModuleName : String;
+  GrepOut : text;
+  Params : Array[0..4] of longint;
 begin
 { Find grep.exe }
   GrepExe:=GrepExeName;
@@ -83,9 +81,13 @@ begin
     Searchword:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
   else
     Searchword:='';
+  { Don't use the listseparator in the file list else it's seen as 1 file
+    (at least under linux }
+  s:=highlightexts;
+  ReplaceStr(s,';',' ');
   { add "" for args with spaces }
   { WARNING : text must still be entered in usual grep syntax }
-  GrepArgs:='-n -i "$TEXT" '+HighlightExts;
+  GrepArgs:='-n -i "$TEXT" '+s;
 { Dialog }
   R.Assign(0,0,45,8);
   new(PGrepDialog,Init(R,'Grep arguments'));
@@ -120,7 +122,7 @@ begin
          GrepArgs:=IL2^.Data^;
          ReplaceStr(GrepArgs,'$TEXT',SearchWord);
          { Linux ? }
-         if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,'grep$$.err') then
+         if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,GrepErrName) then
            Begin
               { 2 as exit code just means that
                 some file vwere not found ! }
@@ -153,6 +155,9 @@ begin
            end;
          Close(GrepOut);
          Erase(GrepOut);
+       { Delete also grep$$.err }
+         Assign(GrepOut,GrepErrName);
+         Erase(GrepOut);
          {$I+}
          EatIO;
        end;
@@ -161,7 +166,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.9  1999-02-22 11:29:37  pierre
+  Revision 1.10  1999-02-22 12:46:57  peter
+    * small fixes for linux and grep
+
+  Revision 1.9  1999/02/22 11:29:37  pierre
     + added col info in MessageItem
     + grep uses HighLightExts and should work for linux
 

@@ -42,9 +42,7 @@ uses
   Dos,Video,
   Objects,Drivers,Views,App,Commands,
   CompHook,
-{$ifdef go32v2}
   FPRedir,
-{$endif def go32v2}
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 constructor TCompileStatusDialog.Init;
@@ -274,7 +272,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-02-22 11:51:33  peter
+  Revision 1.14  1999-02-22 12:46:56  peter
+    * small fixes for linux and grep
+
+  Revision 1.13  1999/02/22 11:51:33  peter
     * browser updates from gabor
 
   Revision 1.12  1999/02/22 11:29:36  pierre
