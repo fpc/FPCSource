@@ -19,7 +19,7 @@
 {                          Internal routines                            }
 {-----------------------------------------------------------------------}
 
-{$ifdef newmodes}
+{$ifndef nonewmodes}
  procedure res2Mode(x, y, maxColor: longint; var driver,mode: smallInt);
  var
    l: longint;
@@ -67,7 +67,7 @@ begin
   x := resolutions[modeNr].x;
   y := resolutions[modeNr].y;
 end;
-{$endif newmodes}
+{$endif nonewmodes}
 
 
  procedure addmode(const mode: TModeInfo);
@@ -78,14 +78,14 @@ end;
   { modes. Duplicates are allowed.                         }
   {********************************************************}
   var
-{$ifdef newmodes}
+{$ifndef nonewmodes}
     driverNr, modeNr: smallint;
     prev: PModeInfo;
-{$endif newmodes}
+{$endif nonewmodes}
     list: PModeInfo;
     newlst : PModeInfo;
   begin
-{$ifdef newmodes}
+{$ifndef nonewmodes}
     res2Mode(mode.maxx+1,mode.maxy+1,mode.maxColor,driverNr,ModeNr);
     { bitdepth supported? }
     if (driverNr <> maxsmallint) then
@@ -171,7 +171,7 @@ end;
                 end;
             end;
         end;
-{$endif newmodes}
+{$endif nonewmodes}
     { TP-like mode stuff }
     if not assigned(ModeList) then
       begin
@@ -217,14 +217,14 @@ end;
   {********************************************************}
     var
      list, lastModeInfo: PModeInfo;
-{$ifdef newmodes}
+{$ifndef nonewmodes}
      x,y: longint;
 {$endif}
     begin
 {$ifdef logging}
       LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
 {$endif logging}
-{$ifdef newmodes}
+{$ifndef nonewmodes}
       if (reqDriver >= lowNewDriver) and
          (reqDriver <= highNewDriver) then
         begin
@@ -280,7 +280,7 @@ end;
           end;
           exit;
         end;
-{$endif newmodes}
+{$endif nonewmodes}
        searchmode := nil;
        list := ModeList;
        If assigned(list) then
@@ -571,7 +571,10 @@ end;
 
 {
 $Log$
-Revision 1.27  2000-06-23 19:56:38  jonas
+Revision 1.28  2000-06-27 13:37:04  jonas
+  * released -dnewmodes
+
+Revision 1.27  2000/06/23 19:56:38  jonas
   * setviewport was sometimes called with parameters from the previous
     active mode, either directly from setgraphmode or from
     setbkcolor

@@ -329,7 +329,7 @@ type
        VGA           = 9;
        VESA          = 10;
 
-{$ifdef newmodes}
+{$ifndef nonewmodes}
 
        D1bit = 11;
        D2bit = 12;
@@ -345,7 +345,7 @@ type
 
        lowNewDriver = 11;
        highNewDriver = 21;
-{$endif newmodes}
+{$endif nonewmodes}
 
 
        { graph modes }
@@ -356,7 +356,7 @@ type
        VGAMed  = 1;
        VGAHi   = 2;
 
-{$ifdef newmodes}
+{$ifndef nonewmodes}
        { They start at such a high number to make sure they don't clash     }
        { with the mode numbers returned by getmoderange (those mode numbers }
        { are about the same modes, but all supported modes must have a      }
@@ -399,7 +399,7 @@ type
         (x:1280;y:1024),
         (x:1600;y:1200),
         (x:2048;y:1536));
-{$endif newmodes}
+{$endif nonewmodes}
 
 
        { Hercules mono card }
@@ -624,14 +624,14 @@ TYPE
       next: PModeInfo;
     end;
 
-{$ifdef newmodes}
+{$ifndef nonewmodes}
     TNewModeInfo = record
       modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
       loHiModeNr: array[lowNewDriver..highNewDriver] of record
         lo,hi: smallint;
       end;
     end;
-{$endif newmodes}
+{$endif nonewmodes}
 
 
 
@@ -804,7 +804,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.9  2000-06-19 08:57:52  jonas
+  Revision 1.10  2000-06-27 13:37:04  jonas
+    * released -dnewmodes
+
+  Revision 1.9  2000/06/19 08:57:52  jonas
     * fixed newHighMode constant
 
   Revision 1.8  2000/06/19 01:18:19  carl

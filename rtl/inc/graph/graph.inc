@@ -126,9 +126,9 @@ var
   DriverName: String;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
-{$ifdef newmodes}
+{$ifndef nonewmodes}
   newModeList: TNewModeInfo;
-{$endif newmodes}
+{$endif nonewmodes}
   DirectVideo : Boolean;  { Direct access to video memory? }
 
 
@@ -2174,7 +2174,7 @@ end;
   begin
     HiMode := -1;
     LoMode := -1;
-{$ifdef newmodes}
+{$ifndef nonewmodes}
     if not calledFromInitGraph or
        (graphDriver < lowNewDriver) or
        (graphDriver > highNewDriver) then
@@ -2225,7 +2225,7 @@ end;
         _GraphResult := grNotDetected;
         exit;
       end;
-{$else newmodes}
+{$else nonewmodes}
     { We start at VGA }
     GraphDriver := VGA;
     CpyMode := 0;
@@ -2251,7 +2251,7 @@ end;
         _GraphResult := grNotDetected;
         exit;
       end;
-{$endif newmodes}
+{$endif nonewmodes}
     _GraphResult := grOK;
     GraphDriver := CpyDriver;
     GraphMode := CpyMode;
@@ -2282,7 +2282,7 @@ end;
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
     if (Graphdriver=Detect)
-{$ifdef newmodes}
+{$ifndef nonewmodes}
        or (GraphMode = detectMode)
 {$endif}
        then
@@ -2356,7 +2356,7 @@ end;
        list:=list^.next;
        dispose(tmp);
      end;
-{$ifdef newmodes}
+{$ifndef nonewmodes}
    for c := lowNewDriver to highNewDriver do
      begin
        list := newModeList.modeinfo[c];
@@ -2367,7 +2367,7 @@ end;
            dispose(tmp);
          end;
      end;
-{$endif newmodes}
+{$endif nonewmodes}
 {$IFDEF DPMI}
   { We had copied the buffer of mode information }
   { and allocated it dynamically... now free it  }
@@ -2387,11 +2387,11 @@ begin
 {$endif logging}
  isgraphmode := false;
  ModeList := nil;
-{$ifdef newmodes}
+{$ifndef nonewmodes}
  fillChar(newModeList.modeinfo,sizeof(newModeList.modeinfo),#0);
  { lo and hi modenumber are -1 currently (no modes supported) }
  fillChar(newModeList.loHiModeNr,sizeof(newModeList.loHiModeNr),#255);
-{$endif newmodes}
+{$endif nonewmodes}
  SaveVideoState := nil;
  RestoreVideoState := nil;
 {$ifdef oldfont}
@@ -2430,7 +2430,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.37  2000-06-23 19:56:37  jonas
+  Revision 1.38  2000-06-27 13:37:04  jonas
+    * released -dnewmodes
+
+  Revision 1.37  2000/06/23 19:56:37  jonas
     * setviewport was sometimes called with parameters from the previous
       active mode, either directly from setgraphmode or from
       setbkcolor
