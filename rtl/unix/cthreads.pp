@@ -208,7 +208,7 @@ Uses
         end;
         CBeginThread:=threadid;
 {$ifdef DEBUG_MT}
-        writeln('BeginThread returning ',BeginThread);
+        writeln('BeginThread returning ',CBeginThread);
 {$endif DEBUG_MT}
       end;
 
@@ -353,14 +353,18 @@ Uses
 Function CInitThreads : Boolean;
 
 begin
+{$ifdef DEBUG_MT}
   Writeln('Entering InitThreads.');
+{$endif}  
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
   Result:=LoadPthreads;
 {$endif}
   ThreadID := SizeUInt (pthread_self);
+{$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
+{$endif DEBUG_MT}
 end;
 
 Function CDoneThreads : Boolean;
@@ -414,7 +418,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-02-22 16:48:39  florian
+  Revision 1.10  2004-03-03 22:00:28  peter
+    * $ifdef debug code
+
+  Revision 1.9  2004/02/22 16:48:39  florian
     * several 64 bit issues fixed
 
   Revision 1.8  2004/02/15 16:33:32  marco
