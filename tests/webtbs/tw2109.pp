@@ -3,6 +3,8 @@
 { e-mail: layton@brandom.com }
 unit tw2109;
 
+{$mode fpc}
+
 interface
 
 { warning!!! -- pascal re-generates every result in an operator statement }

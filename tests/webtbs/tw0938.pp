@@ -1,4 +1,7 @@
 Program test_operator;
+
+{$mode fpc}
+
 type
     Vector = record
         X,Y,Z : extended;

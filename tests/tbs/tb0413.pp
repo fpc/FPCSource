@@ -1,3 +1,5 @@
+{$mode fpc}
+
 var
    s : ansistring;
    ss : shortstring;

@@ -1,3 +1,5 @@
+{$mode fpc}
+
 var
   err : boolean;
 
