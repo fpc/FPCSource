@@ -1465,6 +1465,7 @@ systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(WININC) netware.pp
 winsock$(PPUEXT) : winsock.pp ../netware/winsock.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sockets$(PPUEXT) : sockets.pp winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		   $(INC)/sockets.inc $(INC)/socketsh.inc
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

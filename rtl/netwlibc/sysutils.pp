@@ -453,7 +453,7 @@ Begin
   else
    DiskSize:=-1;}
   DiskSize := -1;
-  __ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10);
+  ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10);
   {$warning DiskSize not implemented (does it make sense ?) }
 End;
 
@@ -699,7 +699,10 @@ end.
 {
 
   $Log$
-  Revision 1.7  2004-12-16 12:42:55  armin
+  Revision 1.8  2005-01-04 11:25:34  armin
+  * rtl code cleanup, compat fixes between clib and libc
+
+  Revision 1.7  2004/12/16 12:42:55  armin
   * added NetWare Alert
   * added sysutils.sleep
 
@@ -731,4 +734,3 @@ end.
   * first rtl version for netwlibc
 
 }
-

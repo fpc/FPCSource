@@ -149,7 +149,7 @@ initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT)
 
@@ -249,6 +249,8 @@ cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
+
+nwsnut$(PPUEXT) : nwsnut.pp nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Netware-.imp files need to be installed in the unit-dir

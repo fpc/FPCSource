@@ -97,12 +97,12 @@ procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
                                    stdata:TSysSetThreadDataAreaPtr);
 
 
-procedure ConsolePrintf (s :shortstring);
-procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
-procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar);
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
-procedure ConsolePrintf (FormatStr : PCHAR);
+procedure _ConsolePrintf (s :shortstring);
+procedure _ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR; Param : pchar);
+procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR);
 procedure __EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
 
 function NWGetCodeStart : pointer;  // needed for Lineinfo
@@ -165,7 +165,7 @@ begin
       if TerminatingThreadID <> dword(pthread_self) then
       begin
         {$ifdef DEBUG_MT}
-        ConsolePrintf ('Terminating Thread %x because halt was called while Thread %x terminates nlm'#13#10,dword(pthread_self),TerminatingThreadId);
+        _ConsolePrintf ('Terminating Thread %x because halt was called while Thread %x terminates nlm'#13#10,dword(pthread_self),TerminatingThreadId);
         {$endif}
         pthread_exit (nil);
         // only for the case ExitThread fails
@@ -269,7 +269,7 @@ var P2 : POINTER;
 begin
   if HeapSbrkReleased then
   begin
-    ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
+    _ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
     exit(nil);
   end;
   SysOSAlloc := _Alloc (size,HeapAllocResourceTag);
@@ -341,7 +341,7 @@ var i : longint;
 begin
   if HeapSbrkReleased then
   begin
-    ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
+    _ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
   end else
   if (HeapSbrkLastUsed > 0) then
     for i := 1 to HeapSbrkLastUsed do
@@ -867,7 +867,7 @@ procedure InitFPU;assembler;
 function CheckFunction : longint; CDECL; [public,alias: '_NonAppCheckUnload'];
 var oldPtr : pointer;
 begin
-  //ConsolePrintf ('CheckFunction'#13#10);
+  //_ConsolePrintf ('CheckFunction'#13#10);
   if assigned (NetwareCheckFunction) then
   begin
     if assigned (SetThreadDataAreaPtr) then
@@ -884,15 +884,15 @@ begin
 end;
 
 
-procedure ConsolePrintf (s : shortstring);
+procedure _ConsolePrintf (s : shortstring);
 begin
   if length(s) > 254 then
     byte(s[0]) := 254;
   s := s + #0;
-  ConsolePrintf (@s[1]);
+  _ConsolePrintf (@s[1]);
 end;
 
-procedure ConsolePrintf (FormatStr : PCHAR);
+procedure _ConsolePrintf (FormatStr : PCHAR);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -900,7 +900,7 @@ begin
     screenprintf (NWLoggerScreen,FormatStr);
 end;
 
-procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -908,12 +908,12 @@ begin
     screenprintf (NWLoggerScreen,FormatStr,Param);
 end;
 
-procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar);
+procedure _ConsolePrintf (FormatStr : PCHAR; Param : pchar);
 begin
-  ConsolePrintf (FormatStr,longint(Param));
+  _ConsolePrintf (FormatStr,longint(Param));
 end;
 
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -921,7 +921,7 @@ begin
     screenprintf (NWLoggerScreen,FormatStr,P1,P2);
 end;
 
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -1098,14 +1098,14 @@ function _DLLMain (hInstDLL:pointer; fdwReason:dword; DLLParam:longint):longbool
 var res : longbool;
 begin
   {$ifdef DEBUG_MT}
-  ConsolePrintf ('_FPC_DLL_Entry called');
+  _ConsolePrintf ('_FPC_DLL_Entry called');
   {$endif}
   _DLLMain := false;
   isLibrary := true;
   case fdwReason of
     DLL_ACTUAL_DLLMAIN  : _DLLMain := true;
     DLL_NLM_STARTUP     : begin
-                            //__ConsolePrintf ('DLL_NLM_STARTUP');
+                            //_ConsolePrintf ('DLL_NLM_STARTUP');
                             if assigned(Dll_Process_Attach_Hook) then
                             begin
                               res:=Dll_Process_Attach_Hook(DllParam);
@@ -1116,7 +1116,7 @@ begin
                             _DLLMain := true;
                           end;
     DLL_NLM_SHUTDOWN    : begin
-                            //__ConsolePrintf ('DLL_NLM_SHUTDOWN');
+                            //_ConsolePrintf ('DLL_NLM_SHUTDOWN');
                             TermSigHandler(0);
                             _DLLMain := true;
                           end;
@@ -1190,7 +1190,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  2004-12-07 11:40:43  armin
+  Revision 1.11  2005-01-04 11:25:34  armin
+  * rtl code cleanup, compat fixes between clib and libc
+
+  Revision 1.10  2004/12/07 11:40:43  armin
   * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
 
   Revision 1.9  2004/12/05 14:36:38  hajny

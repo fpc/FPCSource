@@ -57,15 +57,15 @@ type
    Pint8_t = ^int8_t;
    int8_t = char;
 
-   Pint16_t = ^int16_t;
-   int16_t = smallint;
+   Pint16 = ^Tint16;
+   Tint16 = smallint;
 
-   Pint64_t = ^int64_t;
-   int64_t = int64;
+   Pint64_t = ^Tint64;
+   Tint64 = int64;
 { exact-width unsigned types...  }
 
-   Puint64_t = ^uint64_t;
-   uint64_t = qword;
+   Puint64 = ^Tuint64;
+   Tuint64 = qword;
 { lower and upper bound of exact width integer types...  }
 { macros for minimum-width integer constants...  }
 { minimum-width signed integer types...  }
@@ -133,10 +133,10 @@ type
 { maximum-width integer types...  }
 
    Pintmax_t = ^intmax_t;
-   intmax_t = int64_t;
+   intmax_t = int64;
 
    Puintmax_t = ^uintmax_t;
-   uintmax_t = uint64_t;
+   uintmax_t = Tuint64;
 { macros for maximum-width integer constants...  }
 { limits for other integer types...  }
 
@@ -149,7 +149,7 @@ type
 { signed byte counts for file I/O  }
 
    Psize64_t = ^size64_t;
-   size64_t = uint64_t;
+   size64_t = Tuint64;
 { used for 64-bit (long) file I/O  }
 
    Pmode_t = ^mode_t;
@@ -161,140 +161,127 @@ type
 { file offset value  }
 
    Poff64_t = ^off64_t;
-   off64_t = int64_t;
+   off64_t = int64;
 { 64-bit (long) file offset value  }
 
    Pino_t = ^ino_t;
-   ino_t = uint64_t;
+   ino_t = Tuint64;
 
    Ppid_t = ^pid_t;
    pid_t = longint;
 { capable of holding a pointer or -1  }
 
    Puid_t = ^uid_t;
-   uid_t = uint64_t;
+   uid_t = Tuint64;
 
    Pgid_t = ^gid_t;
-   gid_t = uint64_t;
+   gid_t = Tuint64;
 
    Pblksize_t = ^blksize_t;
-   blksize_t = uint64_t;
+   blksize_t = Tuint64;
 
    Pblkcnt_t = ^blkcnt_t;
-   blkcnt_t = uint64_t;
+   blkcnt_t = Tuint64;
 
    Pdev_t = ^dev_t;
-   dev_t = uint64_t;
+   dev_t = Tuint64;
 
    Pnlink_t = ^nlink_t;
    nlink_t = dword;
 
    Pptrdiff_t = ^ptrdiff_t;
    ptrdiff_t = longint;
-{ difference of two pointers  }
-{ everybody else until we hear differently...  }
-{ everybody else until we hear differently...  }
 
    Pwchar_t = ^wchar_t;
-   wchar_t = word;
+   wchar_t = WideChar;
    PPwchar_t = ^Pwchar_t;
-{-----------------------------------------------------------------------------
-** Definitions for the 'restrict' keyword which not all platforms support.
- }
-{ consume the 'restrict' keyword as '__restrict'  }
-{-----------------------------------------------------------------------------
- }
+
+
 { prototypes for functions standard and nonstandard...  }
 
-
 function memchr(_para1:pointer; _para2:longint; _para3:size_t):pointer;cdecl;external libc_nlm name 'memchr';
-
-
-function memcmp(_para1:pointer; _para2:pointer; _para3:size_t):longint;cdecl;external libc_nlm name 'memcmp';
-
-function memcpy(__restrict:pointer; __restrict1:pointer; _para3:size_t):pointer;cdecl;external libc_nlm name 'memcpy';
-
-function memmove(_para1:pointer; _para2:pointer; _para3:size_t):pointer;cdecl;external libc_nlm name 'memmove';
+function memcmp(_para1, _para2:pointer; _para3:size_t):longint;cdecl;external libc_nlm name 'memcmp';
+function memcpy(__restrict, __restrict1:pointer; _para3:size_t):pointer;cdecl;external libc_nlm name 'memcpy';
+function memmove(_para1, _para2:pointer; _para3:size_t):pointer;cdecl;external libc_nlm name 'memmove';
 function memset(_para1:pointer; _para2:longint; _para3:size_t):pointer;cdecl;external libc_nlm name 'memset';
-
-function strcasecmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcasecmp';
+function strcasecmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'strcasecmp';
 function strcat(dst,src:Pchar):Pchar;cdecl;external libc_nlm name 'strcat';
 function strchr(_para1:Pchar; _para2:longint):Pchar;cdecl;external libc_nlm name 'strchr';
-function strcmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcmp';
-function strcoll(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcoll';
-function strcpy(__restrict:Pchar; __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strcpy';
-function strcspn(_para1:Pchar; _para2:Pchar):size_t;cdecl;external libc_nlm name 'strcspn';
+function strcmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'strcmp';
+function strcoll(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'strcoll';
+function strcpy(__restrict, __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strcpy';
+function strcspn(_para1, _para2:Pchar):size_t;cdecl;external libc_nlm name 'strcspn';
 function strerror(_para1:longint):Pchar;cdecl;external libc_nlm name 'strerror';
-function strlcat(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcat';
-function strlcpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcpy';
+function strlcat(__restrict, __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcat';
+function strlcpy(__restrict, __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcpy';
 function {$ifdef INCLUDED_FROM_SYSTEM}libc_strlen{$else}strlen{$endif}(_para1:Pchar):size_t;cdecl;external libc_nlm name 'strlen';
-function strncasecmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncasecmp';
-function strncat(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncat';
-function strncmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncmp';
-function strncoll(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncoll';
-function strncpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncpy';
-function strnicmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strnicmp';
-function strnset(_para1:Pchar; _para2:longint; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strnset';
-function strpbrk(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strpbrk';
-function strrchr(_para1:Pchar; _para2:longint):Pchar;cdecl;external libc_nlm name 'strrchr';
+function strncasecmp(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncasecmp';
+function strncat(__restrict, __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncat';
+function strncmp(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncmp';
+function strncoll(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncoll';
+function strncpy(__restrict, __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncpy';
+function strnicmp(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strnicmp';
+function strnset(_para1, _para2:longint; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strnset';
+function strpbrk(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strpbrk';
+function strrchr(_para1, _para2:longint):Pchar;cdecl;external libc_nlm name 'strrchr';
 function strrev(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'strrev';
 function strset(_para1:Pchar; _para2:longint):Pchar;cdecl;external libc_nlm name 'strset';
-function strspn(_para1:Pchar; _para2:Pchar):size_t;cdecl;external libc_nlm name 'strspn';
-function strstr(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strstr';
-function strtok(__restrict:Pchar; __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strtok';
-function strxfrm(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strxfrm';
+function strspn(_para1, _para2:Pchar):size_t;cdecl;external libc_nlm name 'strspn';
+function strstr(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strstr';
+function strtok(__restrict, __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strtok';
+function strxfrm(__restrict, __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strxfrm';
 { POSIX and other functions...  }
 
-function strtok_r(__restrict:Pchar; __restrict1:Pchar; __restrict2:PPchar):Pchar;cdecl;external libc_nlm name 'strtok_r';
-function memicmp(_para1:pointer; _para2:pointer; _para3:size_t):longint;cdecl;external libc_nlm name 'memicmp';
-function stpcpy(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'stpcpy';
-function stricmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'stricmp';
+function strtok_r(__restrict, __restrict1, __restrict2:PPchar):Pchar;cdecl;external libc_nlm name 'strtok_r';
+function memicmp(_para1, _para2:pointer; _para3:size_t):longint;cdecl;external libc_nlm name 'memicmp';
+function stpcpy(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'stpcpy';
+function stricmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'stricmp';
 function strdup(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'strdup';
-function strecpy(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strecpy';
+function strecpy(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strecpy';
 function strerror_r(_para1:longint; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strerror_r';
 
 {$ifndef DisableArrayOfConst}
-function strlist(_para1:Pchar; _para2:Pchar; args:array of const):Pchar;cdecl;external libc_nlm name 'strlist';
+function strlist(_para1, _para2:Pchar; args:array of const):Pchar;cdecl;external libc_nlm name 'strlist';
 {$endif}
-function strlist(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strlist';
+function strlist(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strlist';
 function strlwr(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'strlwr';
 function strrindex(_para1:Pchar; _para2:size_t; _para3:longint):Pchar;cdecl;external libc_nlm name 'strrindex';
 function strwhich(_para1:Pchar; _para2:longint; _para3:Pchar):Pchar;cdecl;external libc_nlm name 'strwhich';
 function strupr(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'strupr';
-procedure swab(_para1:pointer; _para2:pointer; _para3:size_t);cdecl;external libc_nlm name 'swab';
-procedure swaw(_para1:pointer; _para2:pointer; _para3:size_t);cdecl;external libc_nlm name 'swaw';
-procedure ungettok(__restrict:Pchar; __restrict1:Pchar);cdecl;external libc_nlm name 'ungettok';
-procedure ungettok_r(__restrict:Pchar; __restrict1:Pchar; __restrict2:PPchar);cdecl;external libc_nlm name 'ungettok_r';
+procedure swab(_para1, _para2:pointer; _para3:size_t);cdecl;external libc_nlm name 'swab';
+procedure swaw(_para1, _para2:pointer; _para3:size_t);cdecl;external libc_nlm name 'swaw';
+procedure ungettok(__restrict, __restrict1:Pchar);cdecl;external libc_nlm name 'ungettok';
+procedure ungettok_r(__restrict, __restrict1:Pchar; __restrict2:PPchar);cdecl;external libc_nlm name 'ungettok_r';
 { multibyte (double) interfaces for locale code page work...  }
-function Lstrbcpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'Lstrbcpy';
-function Lstrchr(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrchr';
-function Lstrcmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstrcmp';
-function Lstrcoll(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstrcoll';
-function Lstrcspn(_para1:Pchar; _para2:Pchar):size_t;cdecl;external libc_nlm name 'Lstrcspn';
-function Lstricmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstricmp';
+function Lstrbcpy(__restrict, __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'Lstrbcpy';
+function Lstrchr(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrchr';
+function Lstrcmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstrcmp';
+function Lstrcoll(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstrcoll';
+function Lstrcspn(_para1, _para2:Pchar):size_t;cdecl;external libc_nlm name 'Lstrcspn';
+function Lstricmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'Lstricmp';
 function Lstrlen(_para1:Pchar):size_t;cdecl;external libc_nlm name 'Lstrlen';
 function Lstrlwr(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrlwr';
 function Lstrncat(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'Lstrncat';
-function Lstrncmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrncmp';
-function Lstrncoll(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrncoll';
-function Lstrncpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'Lstrncpy';
-function Lstrnicmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrnicmp';
-function Lstrpbrk(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrpbrk';
-function Lstrrchr(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrrchr';
+function Lstrncmp(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrncmp';
+function Lstrncoll(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrncoll';
+function Lstrncpy(__restrict, __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'Lstrncpy';
+function Lstrnicmp(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'Lstrnicmp';
+function Lstrpbrk(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrpbrk';
+function Lstrrchr(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrrchr';
 function Lstrrev(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrrev';
-function Lstrspn(_para1:Pchar; _para2:Pchar):size_t;cdecl;external libc_nlm name 'Lstrspn';
-function Lstrstr(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrstr';
+function Lstrspn(_para1, _para2:Pchar):size_t;cdecl;external libc_nlm name 'Lstrspn';
+function Lstrstr(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrstr';
 function Lstrtok_r(__restrict:Pchar; __restrict1:Pchar; __restrict2:PPchar):Pchar;cdecl;external libc_nlm name 'Lstrtok_r';
 function Lstrupr(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'Lstrupr';
 function Lstrxfrm(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'Lstrxfrm';
 { length-preceeded string manipulation...  }
-function ASCIIZToLenStr(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'ASCIIZToLenStr';
-function ASCIIZToMaxLenStr(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'ASCIIZToMaxLenStr';
-function LenStrCat(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'LenStrCat';
-function LenStrCmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'LenStrCmp';
-function LenStrCpy(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'LenStrCpy';
-function LenToASCIIZStr(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'LenToASCIIZStr';
-function strindex(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strindex';
+function ASCIIZToLenStr(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'ASCIIZToLenStr';
+function ASCIIZToMaxLenStr(_para1, _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'ASCIIZToMaxLenStr';
+function LenStrCat(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'LenStrCat';
+function LenStrCmp(_para1, _para2:Pchar):longint;cdecl;external libc_nlm name 'LenStrCmp';
+function LenStrCpy(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'LenStrCpy';
+function LenToASCIIZStr(_para1,_para2:Pchar):longint;cdecl;external libc_nlm name 'LenToASCIIZStr';
+function strindex(_para1, _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strindex';
 
 
 // stdarg.h
@@ -496,8 +483,8 @@ type
 
    Plldiv_t = ^lldiv_t;
    lldiv_t = record
-        quot : int64_t;
-        rem : int64_t;
+        quot : Tint64;
+        rem : Tint64;
      end;
 
 (** unsupported pragma#pragma pack()*)
@@ -510,7 +497,7 @@ function atexit(_para1:TCDeclProcedure ):longint;cdecl;external libc_nlm name 'a
 function atof(_para1:Pchar):double;cdecl;external libc_nlm name 'atof';
 function atoi(_para1:Pchar):longint;cdecl;external libc_nlm name 'atoi';
 function atol(_para1:Pchar):longint;cdecl;external libc_nlm name 'atol';
-function atoll(_para1:Pchar):int64_t;cdecl;external libc_nlm name 'atoll';
+function atoll(_para1:Pchar):Tint64;cdecl;external libc_nlm name 'atoll';
 
 //!! function bsearch(_para1:pointer; _para2:pointer; _para3:size_t; _para4:size_t; _para5:function (_para1:pointer; _para2:pointer):longint):pointer;cdecl;external libc_nlm name 'bsearch';
 function calloc(_para1:size_t; _para2:size_t):pointer;cdecl;external libc_nlm name 'calloc';
@@ -520,8 +507,8 @@ procedure free(_para1:pointer);cdecl;external libc_nlm name 'free';
 function getenv(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'getenv';
 function labs(_para1:longint):longint;cdecl;external libc_nlm name 'labs';
 function __CW_ldiv(_para1:longint; _para2:longint):ldiv_t;cdecl;external libc_nlm name '__CW_ldiv';
-function llabs(_para1:int64_t):int64_t;cdecl;external libc_nlm name 'llabs';
-function __CW_lldiv(_para1:int64_t; _para2:int64_t):lldiv_t;cdecl;external libc_nlm name '__CW_lldiv';
+function llabs(_para1:Tint64):Tint64;cdecl;external libc_nlm name 'llabs';
+function __CW_lldiv(_para1:Tint64; _para2:Tint64):lldiv_t;cdecl;external libc_nlm name '__CW_lldiv';
 function malloc(_para1:size_t):pointer;cdecl;external libc_nlm name 'malloc';
 function mblen(_para1:Pchar; _para2:size_t):longint;cdecl;external libc_nlm name 'mblen';
 function mbstowcs(_para1:Pwchar_t; _para2:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'mbstowcs';
@@ -534,9 +521,9 @@ function realloc(_para1:pointer; _para2:size_t):pointer;cdecl;external libc_nlm 
 procedure srand(_para1:dword);cdecl;external libc_nlm name 'srand';
 function strtod(__restrict:Pchar; __restrict1:PPchar):double;cdecl;external libc_nlm name 'strtod';
 function strtol(__restrict:Pchar; __restrict1:PPchar; _para3:longint):longint;cdecl;external libc_nlm name 'strtol';
-function strtoll(__restrict:Pchar; __restrict1:PPchar; _para3:longint):int64_t;cdecl;external libc_nlm name 'strtoll';
+function strtoll(__restrict:Pchar; __restrict1:PPchar; _para3:longint):Tint64;cdecl;external libc_nlm name 'strtoll';
 function strtoul(__restrict:Pchar; __restrict1:PPchar; _para3:longint):dword;cdecl;external libc_nlm name 'strtoul';
-function strtoull(__restrict:Pchar; __restrict1:PPchar; _para3:longint):uint64_t;cdecl;external libc_nlm name 'strtoull';
+function strtoull(__restrict:Pchar; __restrict1:PPchar; _para3:longint):Tuint64;cdecl;external libc_nlm name 'strtoull';
 function system(_para1:Pchar):longint;cdecl;external libc_nlm name 'system';
 function wcstombs(__restrict:Pchar; __restrict1:Pwchar_t; _para3:size_t):size_t;cdecl;external libc_nlm name 'wcstombs';
 function wctomb(_para1:Pchar; _para2:wchar_t):longint;cdecl;external libc_nlm name 'wctomb';
@@ -549,7 +536,7 @@ function htol(_para1:Pchar):dword;cdecl;external libc_nlm name 'htol';
 function itoa(_para1:longint; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'itoa';
 function itoab(_para1:dword; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'itoab';
 function ltoa(_para1:longint; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'ltoa';
-function lltoa(_para1:int64_t; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'lltoa';
+function lltoa(_para1:Tint64; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'lltoa';
 function _lrotr(_para1:dword; _para2:dword):dword;cdecl;external libc_nlm name '_lrotr';
 function _lrotl(_para1:dword; _para2:dword):dword;cdecl;external libc_nlm name '_lrotl';
 function mkdtemp(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'mkdtemp';
@@ -567,11 +554,11 @@ function _rotl(_para1:dword; _para2:dword):dword;cdecl;external libc_nlm name '_
 function rotl8(_para1:byte; _para2:longint):byte;cdecl;external libc_nlm name 'rotl8';
 function rotl16(_para1:word; _para2:longint):word;cdecl;external libc_nlm name 'rotl16';
 function rotl32(_para1:dword; _para2:longint):dword;cdecl;external libc_nlm name 'rotl32';
-function rotl64(_para1:uint64_t; _para2:longint):uint64_t;cdecl;external libc_nlm name 'rotl64';
+function rotl64(_para1:Tuint64; _para2:longint):Tuint64;cdecl;external libc_nlm name 'rotl64';
 function rotr8(_para1:byte; _para2:longint):byte;cdecl;external libc_nlm name 'rotr8';
 function rotr16(_para1:word; _para2:longint):word;cdecl;external libc_nlm name 'rotr16';
 function rotr32(_para1:dword; _para2:longint):dword;cdecl;external libc_nlm name 'rotr32';
-function rotr64(_para1:uint64_t; _para2:longint):uint64_t;cdecl;external libc_nlm name 'rotr64';
+function rotr64(_para1:Tuint64; _para2:longint):Tuint64;cdecl;external libc_nlm name 'rotr64';
 function setenv(_para1:Pchar; _para2:Pchar; _para3:longint):longint;cdecl;external libc_nlm name 'setenv';
 procedure setkey(_para1:Pchar);cdecl;external libc_nlm name 'setkey';
 function stackavail:size_t;cdecl;external libc_nlm name 'stackavail';
@@ -580,7 +567,7 @@ function stackwatermark:size_t;cdecl;external libc_nlm name 'stackwatermark';
 function strtoi(_para1:Pchar; _para2:longint):longint;cdecl;external libc_nlm name 'strtoi';
 function truncmb(_para1:Pchar; _para2:size_t):Pchar;cdecl;external libc_nlm name 'truncmb';
 function ultoa(_para1:dword; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'ultoa';
-function ulltoa(_para1:uint64_t; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'ulltoa';
+function ulltoa(_para1:Tuint64; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'ulltoa';
 function unsetenv(name:Pchar):longint;cdecl;external libc_nlm name 'unsetenv';
 function utoa(_para1:dword; _para2:Pchar; _para3:longint):Pchar;cdecl;external libc_nlm name 'utoa';
 function valuemb(_para1:Pchar):longint;cdecl;external libc_nlm name 'valuemb';
@@ -597,13 +584,13 @@ procedure atomic_xor(addr:Pdword; value:dword);cdecl;external libc_nlm name 'ato
 procedure atomic_and(addr:Pdword; value:dword);cdecl;external libc_nlm name 'atomic_and';
 function atomic_xchgadd(addr:Pdword; value:dword):dword;cdecl;external libc_nlm name 'atomic_xchgadd';
 function atomic_cmpxchg(addr:Pdword; cmpvalue:dword; newvalue:dword):dword;cdecl;external libc_nlm name 'atomic_cmpxchg';
-procedure atomic64_inc(addr:Puint64_t);cdecl;external libc_nlm name 'atomic64_inc';
-procedure atomic64_dec(addr:Puint64_t);cdecl;external libc_nlm name 'atomic64_dec';
-procedure atomic64_add(addr:Puint64_t; value:uint64_t);cdecl;external libc_nlm name 'atomic64_add';
-procedure atomic64_sub(addr:Puint64_t; value:uint64_t);cdecl;external libc_nlm name 'atomic64_sub';
-function atomic64_xchg(addr:Puint64_t; value:uint64_t):uint64_t;cdecl;external libc_nlm name 'atomic64_xchg';
-function atomic64_xchgadd(addr:Puint64_t; value:uint64_t):uint64_t;cdecl;external libc_nlm name 'atomic64_xchgadd';
-function atomic64_cmpxchg(addr:Puint64_t; cmpvalue:uint64_t; newvalue:uint64_t):uint64_t;cdecl;external libc_nlm name 'atomic64_cmpxchg';
+procedure atomic64_inc(addr:Puint64);cdecl;external libc_nlm name 'atomic64_inc';
+procedure atomic64_dec(addr:Puint64);cdecl;external libc_nlm name 'atomic64_dec';
+procedure atomic64_add(addr:Puint64; value:tuint64);cdecl;external libc_nlm name 'atomic64_add';
+procedure atomic64_sub(addr:Puint64; value:tuint64);cdecl;external libc_nlm name 'atomic64_sub';
+function atomic64_xchg(addr:Puint64; value:tuint64):Tuint64;cdecl;external libc_nlm name 'atomic64_xchg';
+function atomic64_xchgadd(addr:Puint64; value:Tuint64):Tuint64;cdecl;external libc_nlm name 'atomic64_xchgadd';
+function atomic64_cmpxchg(addr:Puint64; cmpvalue:Tuint64; newvalue:Tuint64):Tuint64;cdecl;external libc_nlm name 'atomic64_cmpxchg';
 { compiler-specific implementations of alloca()...  }
 function max(a:longint; b:longint):longint;cdecl;external libc_nlm name 'max';
 function min(a:longint; b:longint):longint;cdecl;external libc_nlm name 'min';
@@ -643,10 +630,10 @@ type
    caddr_t = char;
 
    Puseconds_t = ^useconds_t;
-   useconds_t = uint64_t;
+   useconds_t = Tuint64;
 
    Psuseconds_t = ^suseconds_t;
-   suseconds_t = int64_t;
+   suseconds_t = Tint64;
 
    Pu_int8_t = ^u_int8_t;
    u_int8_t = byte;
@@ -658,7 +645,7 @@ type
    u_int32_t = dword;
 
    Pu_int64_t = ^u_int64_t;
-   u_int64_t = uint64_t;
+   u_int64_t = Tuint64;
 
 function getpid:pid_t;cdecl;external libc_nlm name 'getpid';
 function getppid:pid_t;cdecl;external libc_nlm name 'getppid';
@@ -1323,12 +1310,12 @@ type
         st_flags   : dword;                         // flags for this entry
         st_mode    : mode_t;                        // emulated file mode
         st_spare1  : dword;
-        st_gen     : uint64_t;                      // generation number of inode
+        st_gen     : Tuint64;                       // generation number of inode
         st_ino     : ino_t;                         // directory entry number
         st_dev     : dev_t;                         // volume number
         st_rdev    : dev_t;                         // device type (always 0)
         st_size    : off64_t;                       // total file size
-        st_spare2  : uint64_t;
+        st_spare2  : Tuint64;
         st_blocks  : blkcnt_t;                      // count of blocks allocated to file
         st_blksize : blksize_t;                     // block size for allocation--files only
         st_nlink   : nlink_t;                       // count of hard links (always 1)
@@ -1552,13 +1539,13 @@ type
    sig_atomic_t = longint;
 
    Psigset_t = ^sigset_t;
-   sigset_t = uint64_t;
+   sigset_t = Tuint64;
 { flags for sa_flags in struct sigaction  }
    Psigaction = ^sigaction;
    sigaction = record
         sa_handler : procedure (_para1:longint);cdecl;
-        sa_mask : sigset_t;
-        sa_flags : longint;
+        sa_mask    : sigset_t;
+        sa_flags   : longint;
      end;
 
 type TCDeclProc1LIntPara = procedure (_para1:longint); cdecl;
@@ -1733,10 +1720,10 @@ type
         f_frsize : size_t;
         f_bsize  : blksize_t;
         f_blocks : blkcnt_t;
-        f_bfree  : uint64_t;
-        f_files  : uint64_t;
-        f_ffree  : uint64_t;
-        f_fspare : array[0..1] of uint64_t;
+        f_bfree,
+        f_files,
+        f_ffree  : Tuint64;
+        f_fspare : array[0..1] of Tuint64;
         f_fserver: array[0..(48 + 4)-1] of char;
         f_fname  : array[0..(16 + 4)-1] of char;
         f_fpack  : array[0..19] of char;
@@ -2378,7 +2365,7 @@ function unidup(s1:Punicode_t):Punicode_t;cdecl;external libc_nlm name 'unidup';
 type
 
    PNXTime_t = ^NXTime_t;
-   NXTime_t = uint64_t;
+   NXTime_t = Tuint64;
 
    PNXTimerVal_t = ^NXTimerVal_t;
    NXTimerVal_t = record
@@ -2444,7 +2431,7 @@ type
    NXInterruptId_t = longint;
 
    PNXInterruptSet_t = ^NXInterruptSet_t;
-   NXInterruptSet_t = uint64_t;
+   NXInterruptSet_t = Tuint64;
 
    PNXContextState_t = ^NXContextState_t;
    NXContextState_t =  Longint;
@@ -2621,14 +2608,14 @@ type
    NXShareMode_t = dword;
 
    PNXOffset_t = ^NXOffset_t;
-   NXOffset_t = uint64_t;
+   NXOffset_t = Tuint64;
 { (file offsets and lengths)  }
 
    PNXSOffset_t = ^NXSOffset_t;
-   NXSOffset_t = int64_t;
+   NXSOffset_t = Tint64;
 
    PNXLockToken_t = ^NXLockToken_t;
-   NXLockToken_t = uint64_t;
+   NXLockToken_t = Tuint64;
 
    PNXHandle_t = ^NXHandle_t;
    NXHandle_t = longint;
@@ -2660,13 +2647,13 @@ type
    PNXGuid_t = ^NXGuid_t;
    NXGuid_t = record
        case longint of
-          0 : ( guid_field : array[0..1] of uint64_t );
+          0 : ( guid_field : array[0..1] of Tuint64 );
        end;
 
    PNXFid_t = ^NXFid_t;
    NXFid_t = record
         fidFsId : NXGuid_t;
-        fidFileId : array[0..1] of uint64_t;
+        fidFileId : array[0..1] of Tuint64;
      end;
 
    PNXUpCallReason_t = ^NXUpCallReason_t;
@@ -2926,7 +2913,9 @@ function NXLinkCreateSymbolic(srcPathCtx:NXPathCtx_t; linkname:pointer; target:p
 type
 
    PNXChangeBits_t = ^NXChangeBits_t;
-   NXChangeBits_t = uint64_t;
+   NXChangeBits_t = Tuint64;
+   TNXChangeBits = NXChangeBits_t;
+   PNXChangeBits = PNXChangeBits_t;
 { pathname format (PNF) enumeration         }
 { use PNF in effect at open                 }
 { generic NKS pathname format               }
@@ -3000,7 +2989,7 @@ type
         deFid : NXFid_t;
         deEffectiveRights : dword;
         deFileSize : NXOffset_t;
-        deFlags : uint64_t;
+        deFlags : Tuint64;
         deAttrChangeTime : NXTime_t;
         deAccessTime : NXTime_t;
         deModifyTime : NXTime_t;
@@ -3030,7 +3019,7 @@ type
         xdeFid : NXFid_t;
         xdeEffectiveRights : dword;
         xdeFileSize : NXOffset_t;
-        xdeFlags : uint64_t;
+        xdeFlags : Tuint64;
         xdeChangeTime : NXTime_t;
         xdeAccessTime : NXTime_t;
         xdeModifyTime : NXTime_t;
@@ -3154,9 +3143,9 @@ function wcstol(__restrict:Pwchar_t; __restrict1:PPwchar_t; xx:longint):longint;
 // long double wcstold(const wchar_t * __restrict1, wchar_t ** __restrict);
 // long double wcstold(const wchar_t * __restrict1, wchar_t ** __restrict);
 
-function wcstoll(__restrict:Pwchar_t; __restrict1:PPwchar_t; xx:longint):int64_t;cdecl;external libc_nlm name 'wcstoll';
+function wcstoll(__restrict:Pwchar_t; __restrict1:PPwchar_t; xx:longint):Tint64;cdecl;external libc_nlm name 'wcstoll';
 function wcstoul(__restrict:Pwchar_t; __restrict1:PPwchar_t; _para3:longint):dword;cdecl;external libc_nlm name 'wcstoul';
-function wcstoull(__restrict:Pwchar_t; __restrict1:PPwchar_t; _para3:longint):uint64_t;cdecl;external libc_nlm name 'wcstoull';
+function wcstoull(__restrict:Pwchar_t; __restrict1:PPwchar_t; _para3:longint):Tuint64;cdecl;external libc_nlm name 'wcstoull';
 function wcsxfrm(__restrict:Pwchar_t; __restrict1:Pwchar_t; _para3:size_t):size_t;cdecl;external libc_nlm name 'wcsxfrm';
 function wctob(_para1:wint_t):longint;cdecl;external libc_nlm name 'wctob';
 function wmemchr(ws:Pwchar_t; wc:wchar_t; n:size_t):Pwchar_t;cdecl;external libc_nlm name 'wmemchr';
@@ -3417,9 +3406,9 @@ type
 procedure clearscreen;cdecl;external libc_nlm name 'clearscreen';
 
 {$ifndef DisableArrayOfConst}
-function __consoleprintf(_para1:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'consoleprintf';
+function consoleprintf(txt:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'consoleprintf';
+function consoleprintf(txt:Pchar):longint;cdecl;external libc_nlm name 'consoleprintf';
 {$endif}
-function __consoleprintf(txt:Pchar):longint;cdecl;external libc_nlm name 'consoleprintf';
 function __consoleprintfl1(txt:Pchar;p1:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
 function __consoleprintfl2(txt:Pchar;p1,p2:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
 function __consoleprintfl3(txt:Pchar;p1,p2,p3:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
@@ -4945,8 +4934,8 @@ function salvageerasedfile(pathName:Pchar; sequence:longint; newFileName:Pchar):
 function scanerasedfiles(path:Pchar; nextEntryNumber:Plongint; deletedFileInfo:PNWDIR):longint;cdecl;external libc_nlm name 'scanerasedfiles';
 function _fs_type(fildes:longint):longint;cdecl;external libc_nlm name '_fs_type';
 function _fildes_type(fildes:longint):longint;cdecl;external libc_nlm name '_fildes_type';
-function _fildes_from_nsskey(key:uint64_t; oflag:longint):longint;cdecl;external libc_nlm name '_fildes_from_nsskey';
-function _key_from_fildes(fildes:longint; _type:Plongint; err:Plongint):uint64_t;cdecl;external libc_nlm name '_key_from_fildes';
+function _fildes_from_nsskey(key:Tuint64; oflag:longint):longint;cdecl;external libc_nlm name '_fildes_from_nsskey';
+function _key_from_fildes(fildes:longint; _type:Plongint; err:Plongint):Tuint64;cdecl;external libc_nlm name '_key_from_fildes';
 { fast type of a file descriptor--st_mode in fstat()...  }
 { equates to move between NKS file handles and POSIX descriptors...  }
 { derivation of POSIX descriptor from NSS open file key...  }
@@ -5029,11 +5018,11 @@ type
         xdeFid : NXFid_t;
         xdeEffectiveRights : dword;
         xdeFileAttributes : dword;
-        xdeCreateTime : uint64_t;
-        xdeLastAccessTime : uint64_t;
-        xdeLastWriteTime : uint64_t;
-        xdeLastChangeTime : uint64_t;
-        xdeFileSize : uint64_t;
+        xdeCreateTime : Tuint64;
+        xdeLastAccessTime : Tuint64;
+        xdeLastWriteTime : Tuint64;
+        xdeLastChangeTime : Tuint64;
+        xdeFileSize : Tuint64;
         Reserved0 : dword;
         Reserved1 : dword;
         Reserved2 : dword;
@@ -5042,18 +5031,18 @@ type
         xdeVolumeSerialNumber : dword;
         Reserved4 : dword;
         Reserved5 : dword;
-        xdeFileIndex : uint64_t;
-        Reserved6 : uint64_t;
+        xdeFileIndex : Tuint64;
+        Reserved6 : Tuint64;
         xdeAllocationSize : dword;
         xdeAccessFlags : dword;
         xdeMiscFlags : dword;
         Reserved7 : dword;
-        xdeEaSize : uint64_t;
-        xdeCompressedFileSize : uint64_t;
+        xdeEaSize : Tuint64;
+        xdeCompressedFileSize : Tuint64;
         xdeCompressionFormat : word;
         Reserved8 : word;
         Reserved9 : dword;
-        Reserved10 : uint64_t;
+        Reserved10 : Tuint64;
      end;
 { Win32 (NX_PNF_WIN) information...    }
 { ...including name                    }
@@ -5396,25 +5385,25 @@ type
 
    PNXMutex_t = ^NXMutex_t;
    NXMutex_t = record
-        reserved1 : uint64_t;
+        reserved1 : Tuint64;
         reserved2 : array[0..9] of pointer;
      end;
 
    PNXRwLock_t = ^NXRwLock_t;
    NXRwLock_t = record
-        reserved1 : uint64_t;
+        reserved1 : Tuint64;
         reserved2 : array[0..9] of pointer;
      end;
 
    PNXSema_t = ^NXSema_t;
    NXSema_t = record
-        reserved1 : uint64_t;
+        reserved1 : Tuint64;
         reserved2 : array[0..4] of pointer;
      end;
 
    PNXCond_t = ^NXCond_t;
    NXCond_t = record
-        reserved1 : uint64_t;
+        reserved1 : Tuint64;
         reserved2 : array[0..4] of pointer;
      end;
 
@@ -5524,22 +5513,22 @@ type
         xde_mtime : time_t;
         xde_btime : time_t;
         xde_ctime : time_t;
-        xde_change : uint64_t;
-        xde_ino : uint64_t;
-        xde_dev : array[0..1] of uint64_t;
-        xde_rdev : array[0..1] of uint64_t;
-        xde_uid : uint64_t;
-        xde_gid : uint64_t;
-        xde_size : uint64_t;
-        xde_blocks : uint64_t;
+        xde_change : Tuint64;
+        xde_ino : Tuint64;
+        xde_dev : array[0..1] of Tuint64;
+        xde_rdev : array[0..1] of Tuint64;
+        xde_uid : Tuint64;
+        xde_gid : Tuint64;
+        xde_size : Tuint64;
+        xde_blocks : Tuint64;
         xde_blksize : dword;
         spare2 : dword;
-        spare3 : uint64_t;
-        spare4 : uint64_t;
-        spare5 : uint64_t;
-        spare6 : uint64_t;
-        spare7 : uint64_t;
-        spare8 : uint64_t;
+        spare3 : Tuint64;
+        spare4 : Tuint64;
+        spare5 : Tuint64;
+        spare6 : Tuint64;
+        spare7 : Tuint64;
+        spare8 : Tuint64;
      end;
 { UNIX (NX_PNF_UNIX) information...       }
 { ...including name                       }
@@ -6034,7 +6023,7 @@ function ___lastFileSysErrno:Plongint;cdecl;external libc_nlm name '___lastFileS
 
 type
    Paddr64_t = ^addr64_t;
-   addr64_t = uint64_t;
+   addr64_t = Tuint64;
 
    PESMQueryInfo_t = ^ESMQueryInfo_t;
    ESMQueryInfo_t = record
@@ -6170,6 +6159,31 @@ function fnmatch(pattern, _string:Pchar; flags:longint):longint;cdecl;external l
      FSHOOK_NESL_SHIM_BIT        = $00000080;
      FSHOOK_DATA_FILTERED_BIT    = $80000000;
 
+     FSHOOK_TYPE_DELETE_WARN               = 0;
+     FSHOOK_TYPE_DELETE_REPORT             = 1;
+     FSHOOK_TYPE_CREATE_WARN               = 2;
+     FSHOOK_TYPE_CREATE_REPORT             = 3;
+     FSHOOK_TYPE_OPEN_WARN                 = 4;
+     FSHOOK_TYPE_OPEN_REPORT               = 5;
+     FSHOOK_TYPE_CLOSE_WARN                = 6;
+     FSHOOK_TYPE_CLOSE_REPORT              = 7;
+     FSHOOK_TYPE_RENAME_WARN               = 8;
+     FSHOOK_TYPE_RENAME_REPORT             = 9;
+     FSHOOK_TYPE_MODIFYINFO_WARN           = 10;
+     FSHOOK_TYPE_MODIFYINFO_REPORT         = 11;
+     FSHOOK_TYPE_SETDATASIZE_WARN          = 12;
+     FSHOOK_TYPE_SETDATASIZE_REPORT        = 13;
+     FSHOOK_TYPE_ADDTRUSTEE_WARN           = 14;
+     FSHOOK_TYPE_ADDTRUSTEE_REPORT         = 15;
+     FSHOOK_TYPE_REMOVETRUSTEE_WARN        = 16;
+     FSHOOK_TYPE_REMOVETRUSTEE_REPORT      = 17;
+     FSHOOK_TYPE_SETINHERITEDRIGHTS_WARN   = 18;
+     FSHOOK_TYPE_SETINHERITEDRIGHTS_REPORT = 19;
+     FSHOOK_TYPE_CHANGEVOLSTATE_WARN       = 20;
+     FSHOOK_TYPE_CHANGEVOLSTATE_REPORT     = 21;
+     FSHOOK_TYPE_CHANGEPOOLSTATE_WARN      = 22;
+     FSHOOK_TYPE_CHANGEPOOLSTATE_REPORT    = 23;
+
 
 {==========================================================
   NSS file system hooks
@@ -6178,31 +6192,33 @@ function fnmatch(pattern, _string:Pchar; flags:longint):longint;cdecl;external l
 type
    Pfse_info = ^fse_info;
    fse_info = record
-        version   : longint;
-        reserved1 : longint;
-        reserved2 : pointer;
-        rtag      : rtag_t;
-        link      : Pfse_info;
-        regID     : pointer;
-        regSpace  : pointer;
-        consID    : pointer;
-        length    : size_t;
-        data      : pointer;
-        reserved3 : array[0..3] of pointer;
-        _type     : longint;
-        userParm  : pointer;
-        parm0     : pointer;
-        parm1     : pointer;
-        flags     : dword;
+        version   : longint;                  // event block version
+        reserved1 : longint;                  // do not modify
+        reserved2 : pointer;                  // do not modify
+        rtag      : rtag_t;                   // registerer's resource tag
+        link      : Pfse_info;                // used by registerer to link blocks
+        regID     : pointer;                  // registerer of the event
+        regSpace  : pointer;                  // scratch space for registerer's use
+        consID    : pointer;                  // consumer of event if relevant
+        length    : size_t;                   // in bytes of event data
+        data      : pointer;                  // pointer to data
+        reserved3 : array[0..3] of pointer;   // do not modify
+        _type     : longint;                  // one of NSS_FSTYPE_-...
+        userParm  : pointer;                  // specified at time of registration
+        parm0     : pointer;                  // value depends on event type
+        parm1     : pointer;                  // ibid
+        flags     : dword;                    // as noted above
      end;
    fsevent_info_t = fse_info;
    Pfsevent_info_t = ^fsevent_info_t;
+   Pfsevent_info = Pfsevent_info_t;
+   Tfsevent_info = fsevent_info_t;
 
    Pzkey_t = ^zkey_t;
-   zkey_t = uint64_t;
+   zkey_t = Tuint64;
 
    Pzid_t = ^zid_t;
-   zid_t = uint64_t;
+   zid_t = Tuint64;
 
    Pvolid_t = ^volid_t;
    volid_t = record
@@ -6215,6 +6231,10 @@ type
      end;
    userid_t = volid_t;
    Puserid_t = ^userid_t;
+   TVolId = volid_t;
+   PVolId = pvolid_t;
+   TUserId = userid_t;
+   PUserId = puserid_t;
 
    Ptimeinfo_t = ^timeinfo_t;
    timeinfo_t = record
@@ -6223,6 +6243,9 @@ type
         modifiedTime,                    // last time data was changed
         metaDataModifiedTime : time_t;   // last time metadata was changed
      end;
+   Ttimeinfo = timeinfo_t;
+   Ptimeinfo = Ptimeinfo_t;
+
 { commonlity in call-back structures...  }
 { NSS (NetWare 6) filesystem hooks events and call-back data structures...  }
 
@@ -6234,6 +6257,9 @@ type
         zid    : zid_t;
         volID  : volid_t;
      end;
+   Tdel_warn = del_warn_t;
+   Pdel_warn = Pdel_warn_t;
+
 
    Pdel_report_t = ^del_report_t;
    del_report_t = record
@@ -6241,6 +6267,8 @@ type
         enterRetStatus,
         opRetCode      : longint;
      end;
+   Tdel_report = del_report_t;
+   Pdel_report = Pdel_report_t;
 
    Pcreate_warn_t = ^create_warn_t;
    create_warn_t = record
@@ -6257,6 +6285,8 @@ type
         requestedRights,
         createAndOpen   : dword;
      end;
+   Tcreate_warn = create_warn_t;
+   Pcreate_warn = Pcreate_warn_t;
 
    Pcreate_report_t = ^create_report_t;
    create_report_t = record
@@ -6269,6 +6299,8 @@ type
         retVolID : volid_t;
         times : timeinfo_t;
      end;
+   Tcreate_report = create_report_t;
+   Pcreate_report = Pcreate_report_t;
 
    Popen_warn_t = ^open_warn_t;
    open_warn_t = record
@@ -6280,6 +6312,8 @@ type
         requestedRights : dword;
         openParms : pointer;
      end;
+   Topen_warn = open_warn_t;
+   Popen_warn = Popen_warn_t;
 
    Popen_report_t = ^open_report_t;
    open_report_t = record
@@ -6291,6 +6325,8 @@ type
         retVolID : volid_t;
         times : timeinfo_t;
      end;
+   Topen_report = open_report_t;
+   Popen_report = Popen_report_t;
 
    Pclose_warn_t = ^close_warn_t;
    close_warn_t = record
@@ -6300,6 +6336,8 @@ type
         fhState : dword;
         times : timeinfo_t;
      end;
+   Tclose_warn = close_warn_t;
+   Pclose_warn = Pclose_warn_t;
 
    Pclose_report_t = ^close_report_t;
    close_report_t = record
@@ -6308,6 +6346,8 @@ type
         opRetCode : longint;
         fileDeleted : dword;
      end;
+   Tclose_report = close_report_t;
+   Pclose_report = Pclose_report_t;
 
    Pren_warn_t = ^ren_warn_t;
    ren_warn_t = record
@@ -6320,6 +6360,8 @@ type
         destName : Punicode_t;
         renameFlags : dword;
      end;
+   Tren_warn = ren_warn_t;
+   Pren_warn = Pren_warn_t;
 
    Pren_report_t = ^ren_report_t;
    ren_report_t = record
@@ -6327,25 +6369,9 @@ type
         enterRetStatus : longint;
         opRetCode : longint;
      end;
-{ the simple way   }
-{ --on the Mac...  }
-{ OSType           }
-{ OSType           }
-{ Integer          }
-{ Point            }
-{ Integer          }
-{ Integer          }
-{ (6 bytes)        }
-{ SignedByte       }
-{ SignedByte       }
-{ Integer          }
-{ LongInt          }
-{ Point            }
-{ LongInt          }
-{ SignedByte       }
-{ SignedByte       }
-{ Integer          }
-{ LongInt          }
+   Tren_report = ren_report_t;
+   Pren_report = Pren_report_t;
+
 
    Pzinfo_t = ^zinfo_t;
    zinfo_t = record
@@ -6353,7 +6379,7 @@ type
         totalBytes : size_t;
         nextByte : size_t;
         padding : dword;
-        retMask : uint64_t;
+        retMask : Tuint64;
         std : record
              zid : zid_t;
              dataStreamZid : zid_t;
@@ -6377,11 +6403,11 @@ type
              fileNameArray : off_t;
           end;
         time : record
-             created : uint64_t;
-             archived : uint64_t;
-             modified : uint64_t;
-             accessed : uint64_t;
-             metaDataModified : uint64_t;
+             created : Tuint64;
+             archived : Tuint64;
+             modified : Tuint64;
+             accessed : Tuint64;
+             metaDataModified : Tuint64;
           end;
         id : record
              owner : userid_t;
@@ -6408,7 +6434,7 @@ type
              totalDataSize : size64_t;
           end;
         deleted : record
-             time : uint64_t;
+             time : Tuint64;
              id : userid_t;
           end;
         macNS : record
@@ -6419,32 +6445,32 @@ type
                          FInfo : record
                               fdType : longint;
                               fdCreator : longint;
-                              fdFlags : int16_t;
+                              fdFlags : Tint16;
                               fdLocation : record
-                                   v : int16_t;
-                                   h : int16_t;
+                                   v : Tint16;
+                                   h : Tint16;
                                 end;
-                              fdFldr : int16_t;
+                              fdFldr : Tint16;
                            end;
                          extended : record
                              case longint of
                                 0 : ( FXInfo : record
-                                     fdIconID : int16_t;
-                                     fdUnused : int16_t;
+                                     fdIconID : Tint16;
+                                     fdUnused : Tint16;
                                      fdScript : int8_t;
                                      fdFlags : int8_t;
-                                     fdComment : int16_t;
+                                     fdComment : Tint16;
                                      fdPutAway : longint;
                                   end );
                                 1 : ( DXInfo : record
                                      frScroll : record
-                                          v : int16_t;
-                                          h : int16_t;
+                                          v : Tint16;
+                                          h : Tint16;
                                        end;
                                      frOpenChain : longint;
                                      fdScript : int8_t;
                                      fdFlags : int8_t;
-                                     fdComment : int16_t;
+                                     fdComment : Tint16;
                                      fdPutAway : longint;
                                   end );
                              end;
@@ -6476,9 +6502,9 @@ type
         volumeState : dword;
         nameSpaceMask : dword;
         features : record
-             enabled : uint64_t;
-             enableModMask : uint64_t;
-             supported : uint64_t;
+             enabled : Tuint64;
+             enableModMask : Tuint64;
+             supported : Tuint64;
           end;
         maximumFileSize : size64_t;
         totalSpaceQuota : size64_t;
@@ -6491,7 +6517,7 @@ type
              purgeableBytes : size64_t;
              nonPurgeableBytes : size64_t;
              numDeletedFiles : size64_t;
-             oldestDeletedTime : uint64_t;
+             oldestDeletedTime : Tuint64;
              minKeepSeconds : size_t;
              maxKeepSeconds : size_t;
              lowWaterMark : size_t;
@@ -6510,9 +6536,9 @@ type
              poolState : dword;
              nameSpaceMask : dword;
              features : record
-                  enabled : uint64_t;
-                  enableModMask : uint64_t;
-                  supported : uint64_t;
+                  enabled : Tuint64;
+                  enableModMask : Tuint64;
+                  supported : Tuint64;
                end;
              totalSpace : size64_t;
              numUsedBytes : size64_t;
@@ -6522,6 +6548,8 @@ type
         extAttrUserFlags : dword;
         variableData : array[0..0] of byte;
      end;
+   Tzinfo = zinfo_t;
+   Pzinfo = Pzinfo_t;
 
    Pmod_warn_t = ^mod_warn_t;
    mod_warn_t = record
@@ -6535,6 +6563,8 @@ type
         modifyInfo : Pzinfo_t;
         modifyTypeInfo : pointer;
      end;
+   Tmod_warn = mod_warn_t;
+   Pmod_warn = Pmod_warn_t;
 
    Pmod_report_t = ^mod_report_t;
    mod_report_t = record
@@ -6542,24 +6572,30 @@ type
         enterRetStatus : longint;
         opRetCode : longint;
      end;
+   Tmod_report = mod_report_t;
+   Pmod_report = Pmod_report_t;
 
    Psetsize_warn_t = ^setsize_warn_t;
    setsize_warn_t = record
         enterExitID : dword;
         slotID : dword;
         key : zkey_t;
-        curEOF : uint64_t;
-        newEOF : uint64_t;
+        curEOF : Tuint64;
+        newEOF : Tuint64;
         setSizeFlags : dword;
      end;
+   Tsetsize_warn = setsize_warn_t;
+   Psetsize_warn = Psetsize_warn_t;
 
    Psetsize_report_t = ^setsize_report_t;
    setsize_report_t = record
         enterExitID : dword;
         enterRetStatus : longint;
         opRetCode : longint;
-        newEOF : uint64_t;
+        newEOF : Tuint64;
      end;
+   Tsetsize_report = setsize_report_t;
+   Psetsize_report = Psetsize_report_t;
 
    Paddtrustee_warn_t = ^addtrustee_warn_t;
    addtrustee_warn_t = record
@@ -6572,6 +6608,8 @@ type
         rights : dword;
         attributes : dword;
      end;
+   Taddtrustee_warn = addtrustee_warn_t;
+   Paddtrustee_warn = Paddtrustee_warn_t;
 
    Paddtrustee_report_t = ^addtrustee_report_t;
    addtrustee_report_t = record
@@ -6579,6 +6617,9 @@ type
         enterRetStatus : longint;
         opRetCode : longint;
      end;
+
+   Taddtrustee_report = addtrustee_report_t;
+   Paddtrustee_report = Paddtrustee_report_t;
 
    Premtrustee_warn_t = ^remtrustee_warn_t;
    remtrustee_warn_t = record
@@ -6590,6 +6631,8 @@ type
         trusteeID : userid_t;
         purgedFileFlag : dword;
      end;
+   Tremtrustee_warn = remtrustee_warn_t;
+   Premtrustee_warn = Premtrustee_warn_t;
 
    Premtrustee_report_t = ^remtrustee_report_t;
    remtrustee_report_t = record
@@ -6597,7 +6640,8 @@ type
         enterRetStatus : longint;
         opRetCode : longint;
      end;
-{ (Boolean)  }
+   Tremtrustee_report = remtrustee_report_t;
+   Premtrustee_report = Premtrustee_report_t;
 
    Psetrights_warn_t = ^setrights_warn_t;
    setrights_warn_t = record
@@ -6609,6 +6653,8 @@ type
         inheritedRights : dword;
         authorizeFlag : longint;
      end;
+   Tsetrights_warn = setrights_warn_t;
+   Psetrights_warn = Psetrights_warn_t;
 
    Psetrights_report_t = ^setrights_report_t;
    setrights_report_t = record
@@ -6616,6 +6662,8 @@ type
         enterRetStatus : longint;
         opRetCode : longint;
      end;
+   Tsetrights_report = setrights_report_t;
+   Psetrights_report = Psetrights_report_t;
 
    Pxvolstate_warn_t = ^xvolstate_warn_t;
    xvolstate_warn_t = record
@@ -6626,6 +6674,8 @@ type
         volID : volid_t;
         poolID : volid_t;
      end;
+   Txvolstate_warn = xvolstate_warn_t;
+   Pxvolstate_warn = Pxvolstate_warn_t;
 
    Pxvolstate_report_t = ^xvolstate_report_t;
    xvolstate_report_t = record
@@ -6638,6 +6688,8 @@ type
         volID : volid_t;
         poolID : volid_t;
      end;
+   Txvolstate_report = xvolstate_report_t;
+   Pxvolstate_report = Pxvolstate_report_t;
 
    Pxpoolstate_warn_t = ^xpoolstate_warn_t;
    xpoolstate_warn_t = record
@@ -6647,6 +6699,9 @@ type
         mode : dword;
         poolID : volid_t;
      end;
+   Txpoolstate_warn = xpoolstate_warn_t;
+   Pxpoolstate_warn = Pxpoolstate_warn_t;
+
 
    Pxpoolstate_report_t = ^xpoolstate_report_t;
    xpoolstate_report_t = record
@@ -6658,117 +6713,133 @@ type
         mode : dword;
         poolID : volid_t;
      end;
+   Txpoolstate_report = xpoolstate_report_t;
+   Pxpoolstate_report = Pxpoolstate_report_t;
+
 {============================================================
  Traditional file system hooks
  These were interfaced by CLib in its NDK header, nwfshook.h.
 ============================================================}
-{ values for 'requestedAccessRights'...  }
-{ values for 'dataStreamNumber'...  }
-{ values for 'flags' in fst_info_t...  }
 
-   PEraseFileCallBackStruct = ^EraseFileCallBackStruct;
-   EraseFileCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        attributeMatchBits : dword;
+   PEraseFileCallBackStruct = ^TEraseFileCallBackStruct;
+   TEraseFileCallBackStruct = record
+     case longint of
+      0: (slot : longint);
+      1: (connection : longint;
+          task : longint;
+          volume : longint;
+          dirBase : longint;
+          pathString : Pchar;
+          pathComponentCount : longint;
+          nameSpace : longint;
+          attributeMatchBits : dword);
      end;
 { (see fsio.h)  }
 
-   POpenFileCallBackStruct = ^OpenFileCallBackStruct;
-   OpenFileCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        attributeMatchBits : dword;
-        requestedAccessRights : dword;
-        dataStreamNumber : longint;
-        fileHandle : Plongint;
+   POpenFileCallBackStruct = ^TOpenFileCallBackStruct;
+   TOpenFileCallBackStruct = record
+        case longint of
+          0: (slot : longint);
+          1: (connection : longint;
+              task : longint;
+              volume : longint;
+              dirBase : longint;
+              pathString : Pchar;
+              pathComponentCount : longint;
+              nameSpace : longint;
+              attributeMatchBits : dword;
+              requestedAccessRights : dword;
+              dataStreamNumber : longint;
+              fileHandle : Plongint);
      end;
 
-   PCreateFileCallBackStruct = ^CreateFileCallBackStruct;
-   CreateFileCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        createAttributeBits : dword;
-        createFlagBits : dword;
-        dataStreamNumber : longint;
-        fileHandle : Plongint;
+   PCreateFileCallBackStruct = ^TCreateFileCallBackStruct;
+   TCreateFileCallBackStruct = record
+      case integer of
+        0: (connection : longint);
+        1: (slot : longint;
+            task : longint;
+            volume : longint;
+            dirBase : longint;
+            pathString : Pchar;
+            pathComponentCount : longint;
+            nameSpace : longint;
+            createAttributeBits : dword;
+            createFlagBits : dword;
+            dataStreamNumber : longint;
+            fileHandle : Plongint);
      end;
 
-   PCreateAndOpenCallBackStruct = ^CreateAndOpenCallBackStruct;
-   CreateAndOpenCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        createAttributeBits : dword;
-        requestedAccessRights : dword;
-        createFlagBits : dword;
-        dataStreamNumber : longint;
-        fileHandle : Plongint;
+   PCreateAndOpenCallBackStruct = ^TCreateAndOpenCallBackStruct;
+   TCreateAndOpenCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint;
+           createAttributeBits : dword;
+           requestedAccessRights : dword;
+           createFlagBits : dword;
+           dataStreamNumber : longint;
+           fileHandle : Plongint);
      end;
 
-   PRenameMoveEntryCallBackStruct = ^RenameMoveEntryCallBackStruct;
-   RenameMoveEntryCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        attributeMatchBits : dword;
-        subDirsOnlyFlag : longint;
-        newDirBase : longint;
-        newPathString : Pchar;
-        originalNewCount : longint;
-        compatibilityFlag : dword;
-        allowRenamesToMyselfFlag : longint;
+   PRenameMoveEntryCallBackStruct = ^TRenameMoveEntryCallBackStruct;
+   TRenameMoveEntryCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint;
+           attributeMatchBits : dword;
+           subDirsOnlyFlag : longint;
+           newDirBase : longint;
+           newPathString : Pchar;
+           originalNewCount : longint;
+           compatibilityFlag : dword;
+           allowRenamesToMyselfFlag : longint);
      end;
 
-   PCloseFileCallBackStruct = ^CloseFileCallBackStruct;
-   CloseFileCallBackStruct = record
-        slot : longint;
-        task : longint;
-        fileHandle : longint;
+   PCloseFileCallBackStruct = ^TCloseFileCallBackStruct;
+   TCloseFileCallBackStruct = record
+     case integer of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           fileHandle : longint);
      end;
 
-   PCreateDirCallBackStruct = ^CreateDirCallBackStruct;
-   CreateDirCallBackStruct = record
-        slot : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        directoryAccessMask : dword;
+   PCreateDirCallBackStruct = ^TCreateDirCallBackStruct;
+   TCreateDirCallBackStruct = record
+     case integer of
+       0: (connection : longint);
+       1: (slot : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint;
+           directoryAccessMask : dword);
      end;
 
-   PDeleteDirCallBackStruct = ^DeleteDirCallBackStruct;
-   DeleteDirCallBackStruct = record
-        slot : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
+   PDeleteDirCallBackStruct = ^TDeleteDirCallBackStruct;
+   TDeleteDirCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint);
      end;
 
    Tmodifyvector = record
@@ -6792,166 +6863,223 @@ type
           end;
    Pmodifyvector = ^Tmodifyvector;
 
-   PModifyDirEntryCallBackStruct = ^ModifyDirEntryCallBackStruct;
-   ModifyDirEntryCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        attributeMatchBits : dword;
-        targetNameSpace : longint;
-        modifyVector : Pmodifyvector;
-        modifyBits : dword;
-        allowWildCardsFlag : longint;
+   PModifyDirEntryCallBackStruct = ^TModifyDirEntryCallBackStruct;
+   TModifyDirEntryCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint;
+           attributeMatchBits : dword;
+           targetNameSpace : longint;
+           modifyVector : Pmodifyvector;
+           modifyBits : dword;
+           allowWildCardsFlag : longint);
      end;
 
-   PSalvageDeletedCallBackStruct = ^SalvageDeletedCallBackStruct;
-   SalvageDeletedCallBackStruct = record
-        slot : longint;
-        volume : longint;
-        dirBase : longint;
-        toBeSalvagedDirBase : longint;
-        nameSpace : longint;
-        newName : Pchar;
+   PSalvageDeletedCallBackStruct = ^TSalvageDeletedCallBackStruct;
+   TSalvageDeletedCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           volume : longint;
+           dirBase : longint;
+           toBeSalvagedDirBase : longint;
+           nameSpace : longint;
+           newName : Pchar);
      end;
 
-   PPurgeDeletedCallBackStruct = ^PurgeDeletedCallBackStruct;
-   PurgeDeletedCallBackStruct = record
-        slot : longint;
-        volume : longint;
-        dirBase : longint;
-        toBePurgedDirBase : longint;
-        nameSpace : longint;
+   PPurgeDeletedCallBackStruct = ^TPurgeDeletedCallBackStruct;
+   TPurgeDeletedCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           volume : longint;
+           dirBase : longint;
+           toBePurgedDirBase : longint;
+           nameSpace : longint);
      end;
 
-   PRenameNSEntryCallBackStruct = ^RenameNSEntryCallBackStruct;
-   RenameNSEntryCallBackStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        pathComponentCount : longint;
-        nameSpace : longint;
-        matchBits : dword;
-        newName : Pchar;
+   PRenameNSEntryCallBackStruct = ^TRenameNSEntryCallBackStruct;
+   TRenameNSEntryCallBackStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           pathComponentCount : longint;
+           nameSpace : longint;
+           matchBits : dword;
+           newName : Pchar);
      end;
 
-   PGenericSalvageDeletedCBStruct = ^GenericSalvageDeletedCBStruct;
-   GenericSalvageDeletedCBStruct = record
-        slot : longint;
-        nameSpace : longint;
-        sequence : longint;
-        volume : longint;
-        dirBase : longint;
-        newName : Pchar;
+   PGenericSalvageDeletedCBStruct = ^TGenericSalvageDeletedCBStruct;
+   TGenericSalvageDeletedCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           nameSpace : longint;
+           sequence : longint;
+           volume : longint;
+           dirBase : longint;
+           newName : Pchar);
      end;
 
-   PGenericPurgeDeletedCBStruct = ^GenericPurgeDeletedCBStruct;
-   GenericPurgeDeletedCBStruct = record
-        slot : longint;
-        nameSpace : longint;
-        sequence : longint;
-        volume : longint;
-        dirBase : longint;
+   PGenericPurgeDeletedCBStruct = ^TGenericPurgeDeletedCBStruct;
+   TGenericPurgeDeletedCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           nameSpace : longint;
+           sequence : longint;
+           volume : longint;
+           dirBase : longint);
      end;
 
-   PGenericOpenCreateCBStruct = ^GenericOpenCreateCBStruct;
-   GenericOpenCreateCBStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        pathComponentCount : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        nameSpace : longint;
-        dataStreamNumber : longint;
-        openCreateFlags : dword;
-        searchAttributes : dword;
-        createAttributes : dword;
-        requestedAccessRights : dword;
-        returnInfoMask : dword;
-        fileHandle : Plongint;
-        openCreateAction : Pchar;
+   PGenericOpenCreateCBStruct = ^TGenericOpenCreateCBStruct;
+   TGenericOpenCreateCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           pathComponentCount : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           nameSpace : longint;
+           dataStreamNumber : longint;
+           openCreateFlags : dword;
+           searchAttributes : dword;
+           createAttributes : dword;
+           requestedAccessRights : dword;
+           returnInfoMask : dword;
+           fileHandle : Plongint;
+           openCreateAction : Pchar);
      end;
 
-   PGenericRenameCBStruct = ^GenericRenameCBStruct;
-   GenericRenameCBStruct = record
-        slot : longint;
-        task : longint;
-        nameSpace : longint;
-        renameFlag : longint;
-        searchAttributes : dword;
-        srcVolume : longint;
-        srcPathComponentCount : longint;
-        srcDirBase : longint;
-        srcPathString : Pchar;
-        dstVolume : longint;
-        dstPathComponentCount : longint;
-        dstDirBase : longint;
-        dstPathString : Pchar;
+   PGenericRenameCBStruct = ^TGenericRenameCBStruct;
+   TGenericRenameCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           nameSpace : longint;
+           renameFlag : longint;
+           searchAttributes : dword;
+           srcVolume : longint;
+           srcPathComponentCount : longint;
+           srcDirBase : longint;
+           srcPathString : Pchar;
+           dstVolume : longint;
+           dstPathComponentCount : longint;
+           dstDirBase : longint;
+           dstPathString : Pchar);
      end;
 
-   PGenericEraseFileCBStruct = ^GenericEraseFileCBStruct;
-   GenericEraseFileCBStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        pathComponentCount : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        nameSpace : longint;
-        searchAttributes : dword;
+   PGenericEraseFileCBStruct = ^TGenericEraseFileCBStruct;
+   TGenericEraseFileCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           pathComponentCount : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           nameSpace : longint;
+           searchAttributes : dword);
      end;
 
-   PGenericModifyDOSInfoCBStruct = ^GenericModifyDOSInfoCBStruct;
-   GenericModifyDOSInfoCBStruct = record
-        slot : longint;
-        task : longint;
-        volume : longint;
-        pathComponentCount : longint;
-        dirBase : longint;
-        pathString : Pchar;
-        nameSpace : longint;
-        searchAttributes : dword;
-        modifyMask : dword;
-        modifyInfo : pointer;
+   PGenericModifyDOSInfoCBStruct = ^TGenericModifyDOSInfoCBStruct;
+   TGenericModifyDOSInfoCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           volume : longint;
+           pathComponentCount : longint;
+           dirBase : longint;
+           pathString : Pchar;
+           nameSpace : longint;
+           searchAttributes : dword;
+           modifyMask : dword;
+           modifyInfo : pointer);
      end;
 
-   PGenericModifyNSInfoCBStruct = ^GenericModifyNSInfoCBStruct;
-   GenericModifyNSInfoCBStruct = record
-        slot : longint;
-        task : longint;
-        dataLength : size_t;
-        srcNameSpace : longint;
-        dstNameSpace : longint;
-        volume : longint;
-        dirBase : longint;
-        modifyMask : dword;
-        modifyInfo : pointer;
+   PGenericModifyNSInfoCBStruct = ^TGenericModifyNSInfoCBStruct;
+   TGenericModifyNSInfoCBStruct = record
+     case longint of
+       0: (connection : longint);
+       1: (slot : longint;
+           task : longint;
+           dataLength : size_t;
+           srcNameSpace : longint;
+           dstNameSpace : longint;
+           volume : longint;
+           dirBase : longint;
+           modifyMask : dword;
+           modifyInfo : pointer);
      end;
 {============================================================================
 ** NSS file system hook prototypes...
  }
 
-type TCdeclPfsEventFunc = function (info:Pfsevent_info_t):longint; cdecl;
+//type TCdeclPfsEventFunc = function (info:Pfsevent_info_t):longint; cdecl;
+type TCdeclPfsEventFunc = function (var info:Tfsevent_info):longint; cdecl;
+
 function fs_register(_type:longint; cbFunc:TCdeclPfsEventFunc; userParm:pointer):longint;cdecl;external libc_nlm name 'fs_register';
 function fs_unregister(_type:longint; cbFunc:TCdeclPfsEventFunc):longint;cdecl;external libc_nlm name 'fs_unregister';
+
 function fs_mapkeytopath(key:zkey_t; path:Punicode_t; maxpathlen:Psize_t; want_volume:longint):longint;cdecl;external libc_nlm name 'fs_mapkeytopath';
+function fs_mapkeytopath(key:zkey_t; path:Punicode_t; maxpathlen:Psize_t; want_volume:longbool):longint;cdecl;external libc_nlm name 'fs_mapkeytopath';
+function fs_mapkeytopath(key:zkey_t; path:Punicode_t; var maxpathlen:longint; want_volume:longint):longint;cdecl;external libc_nlm name 'fs_mapkeytopath';
+function fs_mapkeytopath(key:zkey_t; path:Punicode_t; var maxpathlen:longint; want_volume:longbool):longint;cdecl;external libc_nlm name 'fs_mapkeytopath';
+
 function fs_mapzidtopath(zid:zid_t; volId:Pvolid_t; path:Punicode_t; maxpathlen:Psize_t; want_volume:longint):longint;cdecl;external libc_nlm name 'fs_mapzidtopath';
+function fs_mapzidtopath(zid:zid_t; volId:Pvolid_t; path:Punicode_t; maxpathlen:Psize_t; want_volume:longbool):longint;cdecl;external libc_nlm name 'fs_mapzidtopath';
+function fs_mapzidtopath(zid:zid_t; var volId:volid_t; path:Punicode_t; var maxpathlen:longint; want_volume:longint):longint;cdecl;external libc_nlm name 'fs_mapzidtopath';
+function fs_mapzidtopath(zid:zid_t; var volId:volid_t; path:Punicode_t; var maxpathlen:longint; want_volume:longbool):longint;cdecl;external libc_nlm name 'fs_mapzidtopath';
+
 function fs_read(key:zkey_t; buf:pointer; off:off64_t; len:size_t; bytes:Pssize_t):longint;cdecl;external libc_nlm name 'fs_read';
+function fs_read(key:zkey_t; var buf; off:off64_t; len:size_t; var bytes:ssize_t):longint;cdecl;external libc_nlm name 'fs_read';
+
 function fs_write(key:zkey_t; buf:pointer; off:off64_t; len:size_t; bytes:Pssize_t):longint;cdecl;external libc_nlm name 'fs_write';
+function fs_write(key:zkey_t; var buf; off:off64_t; len:size_t; var bytes:ssize_t):longint;cdecl;external libc_nlm name 'fs_write';
 
 
 {============================================================================
  Generic information (NEB and traditional) based on connection slot. This
  has little to do with file system hooks, but in LibC, there is no way to
  get a hold of a connection slot except through file system hook interfaces.}
-function fs_getslotinfo(slot:longint; name:Pchar; objectType:Pword; objectId:Pdword; loginTime:Pchar):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
-function fs_getslotinfo(slot:longint; name:Pchar; var objectType:word; var objectId:dword; loginTime:Pchar):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
+function fs_getslotinfo(slot:longint;
+                        name:Pchar;
+                        objectType:PWord;
+                        objectId:Pdword;
+                        loginTime:Pointer):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
+function fs_getslotinfo(slot:longint;
+                        name:Pchar;
+                        var objectType:word;
+                        var objectId:dword;
+                        var loginTime):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
+
+// Clib compatible function name:
+function GetConnectionInformation (connectionNumber:longint;
+                                   objectName      :Pchar;
+                                   objectType      :PWORD;
+                                   objectID        :Plongint;
+                                   loginTime       :pointer):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
+function GetConnectionInformation (connectionNumber:longint;
+                                   objectName      :Pchar;
+                               var objectType      :word;
+                               var objectID        :longint;
+                               var loginTime):longint;cdecl;external libc_nlm name 'fs_getslotinfo';
+
 
 
 {==========================================
@@ -6959,31 +7087,41 @@ function fs_getslotinfo(slot:longint; name:Pchar; var objectType:word; var objec
 
 type TCDeclFunc1PtrArgLongint = function (info:pointer):longint; cdecl;
 
-function fst_register(_type:longint; cbFunc:TCDeclFunc1PtrArgLongint):longint;cdecl;external libc_nlm name 'fst_register';
-function fst_unregister(_type:longint; cbFunc:TCDeclFunc1PtrArgLongint):longint;cdecl;external libc_nlm name 'fst_unregister';
+function fst_register(_type:longint; cbFunc:pointer):longint;cdecl;external libc_nlm name 'fst_register';
+function fst_unregister(_type:longint; cbFunc:pointer):longint;cdecl;external libc_nlm name 'fst_unregister';
 function fst_getvoldir(slot:longint; fileHandle:longint; namespace:longint; volNum:Plongint; dirBase:Plongint):longint;cdecl;external libc_nlm name 'fst_getvoldir';
-function fst_getorignamespace(volNum:longint; dirBase:longint; namespace:Plongint):longint;cdecl;external libc_nlm name 'fst_getorignamespace';
-function fst_mapvoldirtopath(volNum:longint; dirBase:longint; namespace:longint; path:Pchar; maxPathLen:size_t):longint;cdecl;external libc_nlm name 'fst_mapvoldirtopath';
+function fst_getvoldir(slot, fileHandle, namespace:longint; var volNum, dirBase:longint):longint;cdecl;external libc_nlm name 'fst_getvoldir';
+function fst_getorignamespace(volNum, dirBase:longint; namespace:Plongint):longint;cdecl;external libc_nlm name 'fst_getorignamespace';
+function fst_getorignamespace(volNum, dirBase:longint; var namespace:longint):longint;cdecl;external libc_nlm name 'fst_getorignamespace';
+function fst_mapvoldirtopath(volNum,dirBase,namespace:longint; path:Pchar; maxPathLen:longint):longint;cdecl;external libc_nlm name 'fst_mapvoldirtopath';
 function fst_mapvoltoname(volNum:longint; name:Pchar):longint;cdecl;external libc_nlm name 'fst_mapvoltoname';
-function fst_read(slot:longint; fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
-           bytes:Pssize_t):longint;cdecl;external libc_nlm name 'fst_read';
-function fst_write(slot:longint; fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
-           bytes:Pssize_t):longint;cdecl;external libc_nlm name 'fst_write';
-function fst_size(slot:longint; fileHandle:longint; length:Poff64_t):longint;cdecl;external libc_nlm name 'fst_size';
-function fst_flush(slot:longint; fileHandle:longint):longint;cdecl;external libc_nlm name 'fst_flush';
+function fst_read(slot,fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
+           bytes:Plongint):longint;cdecl;external libc_nlm name 'fst_read';
+function fst_read(slot,fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
+           var bytes:longint):longint;cdecl;external libc_nlm name 'fst_read';
+function fst_write(slot, fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
+           bytes:Plongint):longint;cdecl;external libc_nlm name 'fst_write';
+function fst_write(slot, fileHandle:longint; buffer:pointer; offset:off64_t; length:size_t;
+           var bytes:longint):longint;cdecl;external libc_nlm name 'fst_write';
+function fst_size(slot, fileHandle:longint; length:Poff64_t):longint;cdecl;external libc_nlm name 'fst_size';
+function fst_flush(slot, fileHandle:longint):longint;cdecl;external libc_nlm name 'fst_flush';
+
 
 type
    Pfst_info_t = ^fst_info_t;
    fst_info_t = record
-        volNum : longint;
-        DosBase : longint;
-        dirBase : longint;
-        namespace : longint;
+        volNum,
+        DosBase,
+        dirBase,
+        namespace,
         datastream : longint;
         flags : dword;
      end;
+    Tfst_info = fst_info_t;
+    Pfst_info = Pfst_info_t;
 
-function fst_getinfo(slot:longint; fileHandle:longint; info:Pfst_info_t):longint;cdecl;external libc_nlm name 'fst_getinfo';
+function fst_getinfo(slot,fileHandle:longint; info:Pfst_info_t):longint;cdecl;external libc_nlm name 'fst_getinfo';
+function fst_getinfo(slot,fileHandle:longint; var info:fst_info_t):longint;cdecl;external libc_nlm name 'fst_getinfo';
 
 
 // getopt.h
@@ -7107,88 +7245,61 @@ function catopen(name:Pchar; oflag:longint):nl_catd;cdecl;external libc_nlm name
 
 // langinfo.h
 
-{ Sunday                                           }
-
   const
-     DAY_1 = 1;
-  { Monday                                           }
-     DAY_2 = 2;
-  { Tuesday                                          }
-     DAY_3 = 3;
-  { Wednesday                                        }
-     DAY_4 = 4;
-  { Thursday                                         }
-     DAY_5 = 5;
-  { Friday                                           }
-     DAY_6 = 6;
-  { Saturday                                         }
-     DAY_7 = 7;
-  { Sun                                              }
-     ABDAY_1 = 8;
-  { Mon                                              }
-     ABDAY_2 = 9;
-  { Tue                                              }
-     ABDAY_3 = 10;
-  { Wed                                              }
-     ABDAY_4 = 11;
-  { Thu                                              }
-     ABDAY_5 = 12;
-  { Fri                                              }
-     ABDAY_6 = 13;
-  { Sat                                              }
-     ABDAY_7 = 14;
-  { January                                          }
-     MON_1 = 15;
-  { February                                         }
-     MON_2 = 16;
-  { March                                            }
-     MON_3 = 17;
-  { April                                            }
-     MON_4 = 18;
-  { May                                              }
-     MON_5 = 19;
-  { June                                             }
-     MON_6 = 20;
-  { July                                             }
-     MON_7 = 21;
-  { August                                           }
-     MON_8 = 22;
-  { September                                        }
-     MON_9 = 23;
-  { October                                          }
-     MON_10 = 24;
-  { November                                         }
-     MON_11 = 25;
-  { December                                         }
-     MON_12 = 26;
-     ABMON_1 = 27;
-     ABMON_2 = 28;
-     ABMON_3 = 29;
-     ABMON_4 = 30;            { Apr }
-     ABMON_5 = 31;            { May }
-     ABMON_6 = 32;            { Jun }
-     ABMON_7 = 33;            { Jul }
-     ABMON_8 = 34;            { Aug }
-     ABMON_9 = 35;            { Sep }
-     ABMON_10 = 36;           { Oct }
-     ABMON_11 = 37;           { Nov }
-     ABMON_12 = 38;           { Dec }
-     RADIXCHAR = 39;          { radix character                 (not supported)  }
-     THOUSEP = 40;            { separator for thousand                           }
-     CRNCYSTR = 43;           { currency symbol                                  }
-     D_T_FMT = 44;            { string for formatting date and time              }
-     D_FMT = 45;              { date format                                      }
-     T_FMT = 46;              { time format                                      }
-     AM_STR = 47;             { am string                                        }
-     PM_STR = 48;             { pm string                                        }
-     CODESET = 49;            { code set name                                    }
-     T_FMT_AMPM = 50;         { a.m. or p.m. time format string (not supported)  }
-     ERA = 51;                { era description segments        (not supported)  }
-     ERA_D_FMT = 52;          { era date format string          (not supported)  }
-     ERA_D_T_FMT = 53;        { era date and time format string (not supported)  }
-     ERA_T_FMT = 54;          { era time format string          (not supported)  }
-     ALT_DIGITS = 55;         { alternative symbols for digits  (not supported)  }
-     _MAXSTRMSG = 57;         { maximum number of strings in langinfo            }
+     DAY_1 = 1;    // Sunday
+     DAY_2 = 2;    // Monday
+     DAY_3 = 3;    // Tuesday
+     DAY_4 = 4;    // Wednesday
+     DAY_5 = 5;    // Thursday
+     DAY_6 = 6;    // Friday
+     DAY_7 = 7;    // Saturday
+     ABDAY_1 = 8;  // Sun
+     ABDAY_2 = 9;  // Mon
+     ABDAY_3 = 10; // Tue
+     ABDAY_4 = 11; // Wed
+     ABDAY_5 = 12; // Thu
+     ABDAY_6 = 13; // Fri
+     ABDAY_7 = 14; // Sat
+     MON_1 = 15;   // January
+     MON_2 = 16;   // February
+     MON_3 = 17;   // March
+     MON_4 = 18;   // April
+     MON_5 = 19;   // May
+     MON_6 = 20;   // June
+     MON_7 = 21;   // July
+     MON_8 = 22;   // August
+     MON_9 = 23;   // September
+     MON_10 = 24;  // October
+     MON_11 = 25;  // November
+     MON_12 = 26;  // December
+     ABMON_1 = 27; // Jan
+     ABMON_2 = 28; // Feb
+     ABMON_3 = 29;     // Mar
+     ABMON_4 = 30;     // Apr
+     ABMON_5 = 31;     // May
+     ABMON_6 = 32;     // Jun
+     ABMON_7 = 33;     // Jul
+     ABMON_8 = 34;     // Aug
+     ABMON_9 = 35;     // Sep
+     ABMON_10 = 36;    // Oct
+     ABMON_11 = 37;    // Nov
+     ABMON_12 = 38;    // Dec
+     RADIXCHAR = 39;   // radix character (not supported)
+     THOUSEP = 40;     // separator for thousand
+     CRNCYSTR = 43;    // currency symbol
+     D_T_FMT = 44;     // string for formatting date and time
+     D_FMT = 45;       // date format
+     T_FMT = 46;       // time format
+     AM_STR = 47;      // am string
+     PM_STR = 48;      // pm string
+     CODESET = 49;     // code set name
+     T_FMT_AMPM = 50;  // a.m. or p.m. time format string (not supported)
+     ERA = 51;         //era description segments (not supported)
+     ERA_D_FMT = 52;   // era date format string (not supported)
+     ERA_D_T_FMT = 53; // era date and time format string (not supported)
+     ERA_T_FMT = 54;   // era time format string (not supported)
+     ALT_DIGITS = 55;  // alternative symbols for digits  (not supported)
+     _MAXSTRMSG = 57;  // maximum number of strings in langinfo
 
 
 function nl_langinfo(item:nl_item):Pchar;cdecl;external libc_nlm name 'nl_langinfo';
@@ -7503,7 +7614,7 @@ type
         Stepping : dword;
         Revision : dword;
         FeatureFlags : dword;
-        SerialNumber : uint64_t;
+        SerialNumber : Tuint64;
         Speed : dword;
         L1CacheSize : dword;
         L2CacheSize : dword;
@@ -7512,8 +7623,8 @@ type
         RunningThreads : dword;
         SuspendedThreads : dword;
         reserved2 : dword;
-        ThreadCPUTime : uint64_t;
-        reserved3 : uint64_t;
+        ThreadCPUTime : Tuint64;
+        reserved3 : Tuint64;
         reserved4 : array[0..7] of dword;
      end;
 
@@ -7561,16 +7672,16 @@ type
 
    Pvmemory_info = ^Tvmemory_info;
    Tvmemory_info = record
-        PageInCount : uint64_t;
-        PageOutCount : uint64_t;
-        SwapResvCount : uint64_t;
-        SwapPageCount : uint64_t;
-        SwapFreeCount : uint64_t;
-        PageFaultCount : uint64_t;
-        freeCachePages : uint64_t;
-        freeCleanPages : uint64_t;
-        freeDirtyPages : uint64_t;
-        VMPhysicalPageCount : uint64_t;
+        PageInCount : Tuint64;
+        PageOutCount : Tuint64;
+        SwapResvCount : Tuint64;
+        SwapPageCount : Tuint64;
+        SwapFreeCount : Tuint64;
+        PageFaultCount : Tuint64;
+        freeCachePages : Tuint64;
+        freeCleanPages : Tuint64;
+        freeDirtyPages : Tuint64;
+        VMPhysicalPageCount : Tuint64;
         reserved : array[0..19] of dword;
      end;
 
@@ -7631,8 +7742,8 @@ type
         DirectoryServicesObjectID : dword;
         VolumeLastModifiedDateAndTime : dword;
         mounted : longint;
-        BlockCount : uint64_t;
-        BlocksFree : uint64_t;
+        BlockCount : Tuint64;
+        BlocksFree : Tuint64;
         BlockSize : dword;
         reserved : array[0..57] of dword;
      end;
@@ -7688,7 +7799,7 @@ type
    ncpx_id_t = dword;
 
    Pncpx_client_t = ^ncpx_client_t;
-   ncpx_client_t = uint64_t;
+   ncpx_client_t = Tuint64;
 
    Pncpx_frag_element_t = ^ncpx_frag_element_t;
    ncpx_frag_element_t = record
@@ -9117,7 +9228,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-12-29 13:01:43  armin
+  Revision 1.9  2005-01-04 11:25:33  armin
+  * rtl code cleanup, compat fixes between clib and libc
+
+  Revision 1.8  2004/12/29 13:01:43  armin
   * made commandParser more compatible between clib and libc
 
   Revision 1.7  2004/12/16 12:42:55  armin

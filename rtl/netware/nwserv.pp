@@ -996,12 +996,14 @@ type  // libc compatible
    scr_t = pointer;
    TScr = scr_t;
    PScr = Pscr_t;
+   PScreenStruct = PScr;
 
 function getch:longint; cdecl; external 'clib' name 'getch';
 function getche:longint; cdecl; external 'clib' name 'getche';
 function kbhit:longint; cdecl; external 'clib' name 'kbhit';
 function putch(c:longint):longint; cdecl; external 'clib' name 'putch';
 function ungetch(c:longint):longint; cdecl; external 'clib' name 'ungetch';
+function ungetcharacter(c:longint):longint; cdecl; external 'clib' name 'ungetch';
 function cgets(buf:Pchar):Pchar; cdecl; external 'clib' name 'cgets';
 function CheckIfScreenDisplayed(screenHandle,waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
 function CheckIfScreenDisplayed(screenHandle:TScr;waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
@@ -1118,12 +1120,12 @@ function GetConnectionInformation (connectionNumber:word;
                                    objectName      :Pchar;
                                    objectType      :PWORD;
                                    objectID        :Plongint;
-                                   loginTime       :PBYTE):longint;cdecl;external 'clib' name 'GetConnectionInformation';
+                                   loginTime       :pointer):longint;cdecl;external 'clib' name 'GetConnectionInformation';
 function GetConnectionInformation (connectionNumber:word;
                                    objectName      :Pchar;
                                var objectType      :word;
                                var objectID        :longint;
-                               var loginTime       :byte):longint;cdecl;external 'clib' name 'GetConnectionInformation';
+                               var loginTime):longint;cdecl;external 'clib' name 'GetConnectionInformation';
 
 function GetConnectionList(objectID,lastConnection:longint;
                            numberOfConnections:Plongint;
@@ -1965,6 +1967,10 @@ const
    NOTMYCOMMAND    = 1;
 {$include npackoff.inc}
 
+type
+  TRtag = longint;
+  PRtag = ^TRtag;
+
 function AllocateResourceTag (NLMHandle:TNlmHandle;
                               descriptionString:PChar;
                               resourceType:longint):longint;cdecl;external 'clib' name 'AllocateResourceTag';
@@ -2139,6 +2145,7 @@ type
                            var directoryNumber:longint;
                                outPathStringP:PChar;
                            var outPathCount:longint):longint;cdecl;
+  TVolumeNameString = String [17];
 
 function FEConvertDirectoryNumber(sourceNameSpace:longint;
                                   volumeNumber:longint;
@@ -2192,6 +2199,7 @@ function FEMapVolumeAndDirectoryToPath(volumeNumber,directoryNumber:longint; pat
 
 function FEMapVolumeAndDirectoryToPathForNS(volumeNumber,directoryNumber:longint; nameSpace:longint; pathString:PBYTE; pathCount:Plongint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPathForNS';
 function FEMapVolumeNumberToName(volumeNumber:longint; volumeName:PChar):longint;cdecl;external 'clib' name 'FEMapVolumeNumberToName';
+function FEMapVolumeNumberToName(volumeNumber:longint; var volumeName:TVolumeNameString):longint;cdecl;external 'clib' name 'FEMapVolumeNumberToName';
 function FEQuickClose(connection,task,fileHandle:longint):longint;cdecl;external 'clib' name 'FEQuickClose';
 function FEQuickFileLength(connection,handle:longint; fileSize:Plongint):longint;cdecl;external 'clib' name 'FEQuickFileLength';
 function FEQuickFileLength(connection,handle:longint; var fileSize:longint):longint;cdecl;external 'clib' name 'FEQuickFileLength';
@@ -5377,7 +5385,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-12-29 13:01:42  armin
+  Revision 1.7  2005-01-04 11:25:33  armin
+  * rtl code cleanup, compat fixes between clib and libc
+
+  Revision 1.6  2004/12/29 13:01:42  armin
   * made commandParser more compatible between clib and libc
 
   Revision 1.5  2004/12/16 12:42:55  armin
