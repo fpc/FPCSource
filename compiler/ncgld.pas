@@ -54,6 +54,7 @@ implementation
       ncnv,ncon,nmem,nbas,
       aasmbase,aasmtai,
       cgbase,pass_2,
+      procinfo,
       cpubase,cpuinfo,
       tgobj,ncgutil,cgobj,ncgbas;
 
@@ -227,7 +228,13 @@ implementation
                               globalsymtable,
                               staticsymtable :
                                 begin
-                                  location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
+                                  if cs_create_pic in aktmoduleswitches then
+                                    begin
+                                      location.reference.base:=current_procinfo.got;
+                                      location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname+'@GOT');
+                                    end
+                                  else
+                                    location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
                                 end;
                               stt_exceptsymtable:
                                 begin
@@ -884,7 +891,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-10-11 16:06:42  florian
+  Revision 1.95  2003-10-14 00:30:48  florian
+    + some code for PIC support added
+
+  Revision 1.94  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

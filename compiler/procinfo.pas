@@ -83,6 +83,9 @@ unit procinfo;
           { register used as frame pointer }
           framepointer : tregister;
 
+          { register containing currently the got }
+          got : tregister;
+
           { Holds the reference used to store alll saved registers. }
           save_regs_ref : treference;
 
@@ -214,7 +217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-10-10 17:48:13  peter
+  Revision 1.6  2003-10-14 00:30:48  florian
+    + some code for PIC support added
+
+  Revision 1.5  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -1118,11 +1118,13 @@ begin
                         include(initglobalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
+                    'd' : Dontlinkstdlibpath:=TRUE;
                     'P' : Begin
                              utilsprefix:=Copy(more,2,length(More)-1);
                              More:='';
                           End;
-                    'd' : Dontlinkstdlibpath:=TRUE;
+                    'p' :
+                      include(initmoduleswitches,cs_create_pic);
                     'S' :
                       begin
                         def_symbol('FPC_LINK_STATIC');
@@ -1981,7 +1983,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.109  2003-10-11 19:32:04  marco
+  Revision 1.110  2003-10-14 00:30:48  florian
+    + some code for PIC support added
+
+  Revision 1.109  2003/10/11 19:32:04  marco
    * -Xd
 
   Revision 1.108  2003/10/08 19:17:43  peter

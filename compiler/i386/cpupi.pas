@@ -29,10 +29,11 @@ unit cpupi;
   interface
 
     uses
-       psub;
+       psub,procinfo;
 
     type
        ti386procinfo = class(tcgprocinfo)
+         constructor create(aparent:tprocinfo);override;
          function calc_stackframe_size:longint;override;
        end;
 
@@ -43,7 +44,14 @@ unit cpupi;
       cutils,
       globals,
       tgobj,
-      procinfo;
+      cpubase;
+
+    constructor ti386procinfo.create(aparent:tprocinfo);
+      begin
+        inherited create(aparent);
+        got:=NR_EBX;
+      end;
+
 
     function ti386procinfo.calc_stackframe_size:longint;
       begin
@@ -59,7 +67,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-10-03 22:00:33  peter
+  Revision 1.16  2003-10-14 00:30:48  florian
+    + some code for PIC support added
+
+  Revision 1.15  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.14  2003/10/01 20:34:49  peter

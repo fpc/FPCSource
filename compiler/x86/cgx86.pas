@@ -176,7 +176,10 @@ unit cgx86;
 
     procedure Tcgx86.init_register_allocators;
       begin
-        rgint:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_int_imreg,[RS_EBP]);
+        if cs_create_pic in aktmoduleswitches then
+          rgint:=trgcpu.create(5,R_INTREGISTER,R_SUBWHOLE,#0#1#2#4#5,first_int_imreg,[RS_EBP,RS_EBX])
+        else
+          rgint:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_int_imreg,[RS_EBP]);
         rgmm:=trgcpu.create(8,R_MMREGISTER,R_SUBNONE,#0#1#2#3#4#5#6#7,first_sse_imreg,[]);
         rgfpu:=Trgx86fpu.create;
       end;
@@ -1559,12 +1562,21 @@ unit cgx86;
       list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_ESP,NR_EBP));
       if localsize>0 then
         g_stackpointer_alloc(list,localsize);
+
+      if cs_create_pic in aktmoduleswitches then
+        begin
+          a_call_name(list,'FPC_GETEIPINEBX');
+          list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,objectlibrary.newasmsymboldata('_GLOBAL_OFFSET_TABLE_'),0,NR_EBX));
+          list.concat(tai_regalloc.alloc(NR_EBX));
+        end;
     end;
 
 
     procedure tcgx86.g_restore_frame_pointer(list : taasmoutput);
 
     begin
+      if cs_create_pic in aktmoduleswitches then
+        list.concat(tai_regalloc.dealloc(NR_EBX));
       list.concat(tai_regalloc.dealloc(NR_EBP));
       list.concat(Taicpu.op_none(A_LEAVE,S_NO));
     end;
@@ -1721,7 +1733,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.78  2003-10-13 01:23:13  florian
+  Revision 1.79  2003-10-14 00:30:48  florian
+    + some code for PIC support added
+
+  Revision 1.78  2003/10/13 01:23:13  florian
     * some ideas for mm support implemented
 
   Revision 1.77  2003/10/11 16:06:42  florian
