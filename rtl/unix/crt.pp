@@ -460,8 +460,6 @@ procedure LineWrite(const temp:String);
 }
 begin
   CurrX:=WinMaxX+1;
-  if (CurrX>=ScreenWidth) then
-   CurrX:=WinMaxX;
   ttySendStr(Temp);
 end;
 
@@ -1628,7 +1626,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.23  2005-03-15 09:20:11  jonas
+  Revision 1.24  2005-03-16 18:17:23  jonas
+    * fix from mischi to fix extra spaces under some terminals
+
+  Revision 1.23  2005/03/15 09:20:11  jonas
     * endianess fixes from mischi
 
   Revision 1.22  2005/02/14 17:13:31  peter
