@@ -1,5 +1,5 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-09 16:13
+# Makefile generated from Makefile.fpc on 1999-11-09 16:29
 #
 
 defaultrule: Makefile all
@@ -122,9 +122,11 @@ endif
 
 # Targets
 
+EXEOBJECTS=alphasim
 
 # Clean
 
+EXTRACLEANUNITS=mm64 fastmm64 simlib simbase
 
 # Install
 
@@ -134,9 +136,16 @@ endif
 
 # Directories
 
+ifndef FPCDIR
+FPCDIR=../..
+endif
 
 # Libraries
 
+
+# Info
+
+FPCINFO=fpc_infocfg fpc_infoobjects fpc_infoinstall 
 
 #####################################################################
 # Compiler Command Line
@@ -153,6 +162,14 @@ endif
 
 ifdef NEEDOPT
 override FPCOPT+=$(NEEDOPT)
+endif
+
+# RTL first and then Unit dir (a unit can override RTLunit). Don't add the
+# dirs if fpcdir=. which can be used for the rtl makefiles
+ifdef FPCDIR
+ifneq ($(FPCDIR),.)
+override FPCOPT+=-Fu$(FPCDIR)/rtl/$(OS_TARGET) -Fu$(FPCDIR)/units/$(OS_TARGET)
+endif
 endif
 
 # Smartlinking
@@ -188,6 +205,172 @@ override FPCOPT+=@$(CFGFILE)
 endif
 
 override COMPILER=$(FPC) $(FPCOPT)
+
+#####################################################################
+# Shell tools
+#####################################################################
+
+# To copy pograms
+ifndef COPY
+export COPY:=cp -fp
+endif
+
+# To move pograms
+ifndef MOVE
+export MOVE:=mv -f
+endif
+
+# Check delete program
+ifndef DEL
+export DEL:=rm -f
+endif
+
+# Check deltree program
+ifndef DELTREE
+export DELTREE:=rm -rf
+endif
+
+# To install files
+ifndef INSTALL
+ifdef inlinux
+export INSTALL:=install -m 644
+else
+export INSTALL:=$(COPY)
+endif
+endif
+
+# To install programs
+ifndef INSTALLEXE
+ifdef inlinux
+export INSTALLEXE:=install -m 755
+else
+export INSTALLEXE:=$(COPY)
+endif
+endif
+
+# To make a directory.
+ifndef MKDIR
+ifdef inlinux
+export MKDIR:=install -m 755 -d
+else
+export MKDIR:=ginstall -m 755 -d
+endif
+endif
+
+#####################################################################
+# Default Tools
+#####################################################################
+
+# assembler, redefine it if cross compiling
+ifndef AS
+AS=as
+endif
+
+# linker, but probably not used
+ifndef LD
+LD=ld
+endif
+
+# Where is the ppumove program ?
+ifndef PPUMOVE
+PPUMOVE=ppumove
+endif
+
+# Where is the ppdep program ?
+ifndef PPDEP
+PPDEP=ppdep
+endif
+
+# ppas.bat / ppas.sh
+ifdef inlinux
+PPAS=ppas.sh
+else
+ifdef inOS2
+PPAS=ppas.cmd
+else
+PPAS=ppas.bat
+endif
+endif
+
+# also call ppas if with command option -s
+ifeq (,$(findstring -s ,$(COMPILER)))
+EXECPPAS=
+else
+EXECPPAS=@$(PPAS)
+endif
+
+# ldconfig to rebuild .so cache
+ifdef inlinux
+LDCONFIG=ldconfig
+else
+LDCONFIG=
+endif
+
+# echo
+ifndef ECHO
+ECHO:=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ECHO),)
+export ECHO:=echo
+else
+export ECHO:=$(firstword $(ECHO))
+endif
+endif
+
+# Look if UPX is found for go32v2 and win32. We can't use $UPX becuase
+# upx uses that one itself (PFV)
+ifndef UPXPROG
+ifeq ($(OS_TARGET),go32v2)
+UPXPROG:=1
+endif
+ifeq ($(OS_TARGET),win32)
+UPXPROG:=1
+endif
+ifdef UPXPROG
+UPXPROG:=$(strip $(wildcard $(addsuffix /upx$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(UPX),)
+UPXPROG=
+else
+export UPXPROG:=$(firstword $(UPX))
+endif
+else
+UPXPROG=
+endif
+endif
+
+# gdate/date
+ifndef DATE
+DATE:=$(strip $(wildcard $(addsuffix /date$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(DATE),)
+DATE:=$(strip $(wildcard $(addsuffix /gdate$(EXEEXT),$(SEACHPATH))))
+ifeq ($(DATE),)
+DATE=
+else
+export DATE:=$(firstword $(DATE))
+endif
+else
+export DATE:=$(firstword $(DATE))
+endif
+endif
+
+ifdef DATE
+DATESTR:=$(shell $(DATE) +%Y%m%d)
+else
+DATESTR=
+endif
+
+# ZipProg, you can't use Zip as the var name (PFV)
+ifndef ZIPPROG
+ZIPPROG:=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ZIPPROG),)
+ZIPPROG=
+else
+export ZIPPROG:=$(firstword $(ZIPPROG)) -D9 -r
+endif
+endif
+
+ifndef ZIPEXT
+ZIPEXT=.zip
+endif
 
 #####################################################################
 # Default Directories
@@ -422,11 +605,27 @@ endif
 	staticinstall sharedinstall libinstall zipinstall zipinstalladd \
 	clean cleanall depend info
 
+all: fpc_all
+
+staticlib: fpc_staticlib
+
+sharedlib: fpc_sharedlib
+
 showinstall: fpc_showinstall
+
+install: fpc_install
+
+staticinstall: fpc_staticinstall
+
+sharedinstall: fpc_sharedinstall
+
+libinstall: fpc_libinstall
 
 zipinstall: fpc_zipinstall
 
 zipinstalladd: fpc_zipinstalladd
+
+clean: fpc_clean
 
 clean_all: fpc_clean_all
 
@@ -675,68 +874,44 @@ fpc_depend:
 	$(PPDEP) $(UNITOBJECTS)
 
 #####################################################################
-# Users rules
+# Info rules
 #####################################################################
 
+.PHONY: fpc_info fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installinfo \
+	fpc_dirinfo
 
-all:
-	$(MAKE) -C $(OS_TARGET) all
+fpc_info: $(FPCINFO)
 
-clean:
-	$(MAKE) -C go32v2 clean
-	$(MAKE) -C linux clean
-	$(MAKE) -C win32 clean
-	$(MAKE) -C os2 clean
-	$(MAKE) -C tests clean
-
-install:
-	$(MAKE) -C $(OS_TARGET) install
-
-staticlib:
-	$(MAKE) -C $(OS_TARGET) staticlib
-
-sharedlib:
-	$(MAKE) -C $(OS_TARGET) sharedlib
-
-libsclean:
-	$(MAKE) -C $(OS_TARGET) libsclean
-
-staticinstall:
-	$(MAKE) -C $(OS_TARGET) staticinstall
-
-sharedinstall:
-	$(MAKE) -C $(OS_TARGET) sharedinstall
-
-libinstall:
-	$(MAKE) -C $(OS_TARGET) libinstall
+fpc_infocfg:
+	@$(ECHO)
+	@$(ECHO)  == Configuration info ==
+	@$(ECHO)
+	@$(ECHO)  FPC....... $(FPC)
+	@$(ECHO)  Version... $(FPC_VERSION)
+	@$(ECHO)  CPU....... $(CPU_TARGET)
+	@$(ECHO)  Source.... $(OS_SOURCE)
+	@$(ECHO)  Target.... $(OS_TARGET)
+	@$(ECHO)
 
 
-#####################################################################
-# Dependencies
-#####################################################################
+fpc_infoinstall:
+	@$(ECHO)
+	@$(ECHO)  == Install info ==
+	@$(ECHO)
+ifdef DATE
+	@$(ECHO)  DateStr.............. $(DATESTR)
+endif
+	@$(ECHO)  PackageSuffix........ $(PACKAGESUFFIX)
+	@$(ECHO)
+	@$(ECHO)  BaseInstallDir....... $(BASEINSTALLDIR)
+	@$(ECHO)  BinInstallDir........ $(BININSTALLDIR)
+	@$(ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)
+	@$(ECHO)  StaticUnitInstallDir. $(STATIC_UNITINSTALLDIR)
+	@$(ECHO)  SharedUnitInstallDir. $(SHARED_UNITINSTALLDIR)
+	@$(ECHO)  LibInstallDir........ $(LIBINSTALLDIR)
+	@$(ECHO)  StaticLibInstallDir.. $(STATIC_LIBINSTALLDIR)
+	@$(ECHO)  SharedLibInstallDir.. $(SHARED_LIBINSTALLDIR)
+	@$(ECHO)  MsgInstallDir........ $(MSGINSTALLDIR)
+	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
+	@$(ECHO)
 
-.PHONY: tests examples go32v2 linux os win32
-
-#
-# Examples
-#
-examples: tests
-
-tests: all
-	$(MAKE) -C tests all
-
-
-#
-# Specific OS
-#
-go32v2:
-	$(MAKE) -C go32v2
-
-linux:
-	$(MAKE) -C linux
-
-os2:
-	$(MAKE) -C os2
-
-win32:
-	$(MAKE) -C win32

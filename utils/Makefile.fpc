@@ -4,7 +4,7 @@
 
 [targets]
 units=
-programs=ppudump ppumove ppdep ptop rstconv fpcmake
+programs=ppudump ppumove ppdep ptop rstconv fpcmake data2inc
 
 [clean]
 units=ppu ptopu

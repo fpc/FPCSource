@@ -1,12 +1,12 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-08 15:25
+# Makefile generated from Makefile.fpc on 1999-11-09 16:25
 #
 
 defaultrule: Makefile all
 
 Makefile: Makefile.fpc
 	fpcmake
-	$(MAKE)
+	
 
 #####################################################################
 # Autodetect OS (Linux or Dos or Windows NT)
@@ -122,7 +122,7 @@ endif
 
 # Targets
 
-EXEOBJECTS=ppudump ppumove ppdep ptop rstconv fpcmake
+EXEOBJECTS=ppudump ppumove ppdep ptop rstconv fpcmake data2inc
 
 # Clean
 

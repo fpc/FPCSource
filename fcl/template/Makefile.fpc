@@ -4,7 +4,7 @@
 
 [defaults]
 defaultunits=1
-defaulttarget=go32v2
+defaulttarget=<template>
 defaultcpu=i386
 defaultoptions=-S2
 

@@ -1,10 +1,10 @@
 #
-#   Makefile.fpc for Free Component Library for Go32v2
+#   Makefile.fpc for Free Component Library for Win32
 #
 
 [defaults]
 defaultunits=1
-defaulttarget=go32v2
+defaulttarget=win32
 defaultcpu=i386
 defaultoptions=-S2
 
@@ -14,7 +14,7 @@ targetdir=.
 incdir=$(INC)
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS)
+units=classes $(INCUNITS) $(XMLUNITS) zlib zstream
 
 
 [presettings]

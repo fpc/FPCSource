@@ -1,7 +1,7 @@
 // $Id$
 
 {
-  This program takes an W3 IDL XML file with interface definitions and 
+  This program takes an W3 IDL XML file with interface definitions and
   dumps a interface definition.
 }
 
@@ -22,25 +22,25 @@ var N,NN : TDOMNode;
     rettype : DOMString;
     firstparam : boolean;
     i : longint;
-        
+
 begin
-   
+
    N:=Node.FindNode('returns');
    If N<>Nil then
       rettype:=TDomElement(N).GetAttribute('type');
-   If Not DoImplementation then 
+   If Not DoImplementation then
      Write (spc);
    If RetType='void' then
      Write ('Procedure ')
    else
      Write ('Function ');
-   If DoImplementation then 
+   If DoImplementation then
      Write(TDomElement(Node.ParentNode).GetAttribute('name'),'.');
    Write (Node.GetAttribute('name'));
    N:=Node.FindNode('params');
    If N<>Nil then
      begin
-     FirstParam:=True;  
+     FirstParam:=True;
      for I:=1 to N.ChildNodes.Count-1 do
        begin
        NN:=N.ChildNodes.Item[i];
@@ -55,8 +55,8 @@ begin
            Write(';');
          writeln (spc,NN.NodeName,' : ',TDOMElement(NN).GetAttribute('type'));
          end;
-       end; 
-     If Not FirstParam then 
+       end;
+     If Not FirstParam then
      Write (')');
      end;
    If RetType <>'void' then
@@ -97,9 +97,9 @@ Procedure DumpInterfaceNode (node : TDomElement; spc : String);
 Var N : TDOMNode;
     C : TDOMNodeList;
     I : longint;
-    
+
 begin
-  If not DoImplementation then 
+  If not DoImplementation then
     begin
     Write(spc,Node.GetAttribute('name'),' = Class');
     N:=Node.Attributes.GetNamedItem('inherits');
@@ -146,7 +146,7 @@ begin
   If Node.NodeName='interface' then
     DumpInterfaceNode(TDOMElement(Node),Spc)
   else if Node.NodeName='method' then
-    DumpMethodNode(TDOMELEMENt(Node),Spc)  
+    DumpMethodNode(TDOMELEMENt(Node),Spc)
   else if Node.NodeName='attribute' then
     DumpAttributeNode(True,TDomelement(node),spc)
   else
@@ -159,19 +159,19 @@ end;
 var
   i : longint;
   xml: TXMLDocument;
-  
+
 begin
   if (ParamCount <1) or (paramcount>2) then begin
     WriteLn('htdump -m <xml>');
     exit;
   end;
   I:=1;
-  If paramstr(1)='-m' then 
+  If paramstr(1)='-m' then
     begin
     I:=2;
     DoImplementation:=True;
     end;
-  xml := ReadXMLFile(ParamStr(i));
+  ReadXMLFile(xml, ParamStr(i));
   WriteLn ('// Created From file ',paramstr(I));
   DumpNode(xml, '');
 end.
@@ -179,7 +179,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-11 22:43:22  michael
+  Revision 1.2  1999-11-09 14:39:56  peter
+    * fpcmake updates
+
+  Revision 1.1  1999/07/11 22:43:22  michael
   + Added htdump
 
   Revision 1.1  1999/07/09 21:06:59  michael

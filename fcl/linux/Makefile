@@ -1,12 +1,12 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-06 18:16
+# Makefile generated from Makefile.fpc on 1999-11-09 16:00
 #
 
 defaultrule: Makefile all
 
 Makefile: Makefile.fpc
 	fpcmake
-	$(MAKE)
+	
 
 #####################################################################
 # Autodetect OS (Linux or Dos or Windows NT)
@@ -126,6 +126,9 @@ endif
 # User Settings
 #####################################################################
 
+
+# Pre Settings
+
 # Include files
 INC=../inc
 XML=../xml
@@ -135,11 +138,22 @@ XML=../xml
 include $(INC)/Makefile.inc
 include $(XML)/Makefile.inc
 
+# Targets
+
 UNITOBJECTS=classes $(INCUNITS) $(XMLUNITS)
-EXEOBJECTS=
+
+# Clean
+
+
+# Install
+
+
+# Defaults
 
 DEFAULTUNITS=1
 override NEEDOPT=-S2
+
+# Directories
 
 ifndef FPCDIR
 FPCDIR=../..
@@ -149,6 +163,10 @@ ifndef TARGETDIR
 TARGETDIR=.
 endif
 
+# Libraries
+
+
+# Info
 
 FPCINFO=fpc_infocfg fpc_infoobjects fpc_infoinstall 
 
@@ -157,7 +175,7 @@ FPCINFO=fpc_infocfg fpc_infoobjects fpc_infoinstall
 #####################################################################
 
 # Load commandline OPTDEF and add FPC_CPU define
-override FPCOPTDEF:=-d$(FPC_CPU)
+override FPCOPTDEF:=-d$(CPU_TARGET)
 
 # Load commandline OPT and add target and unit dir to be sure
 ifneq ($(OS_TARGET),$(OS_SOURCE))
@@ -728,11 +746,11 @@ endif
 
 .PHONY: fpc_showinstallfiles fpc_install
 
-ifdef EXTRAINSTALLUNITS
-override EXTRAINSTALLFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
-endif
 ifdef UNITOBJECTS
 override UNITINSTALLFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+endif
+ifdef EXTRAINSTALLUNITS
+override EXTRAINSTALLFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
 endif
 
 fpc_showinstallfiles : all
@@ -851,7 +869,7 @@ ifdef UNITOBJECTS
 override UNITCLEANFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
 endif
 ifdef EXTRACLEANUNITS
-override EXTRACLEANFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
+override EXTRACLEANFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
 endif
 
 fpc_clean:
@@ -908,23 +926,6 @@ fpc_infocfg:
 	@$(ECHO)  Target.... $(OS_TARGET)
 	@$(ECHO)
 
-fpc_infoobjects:
-	@$(ECHO)
-	@$(ECHO)  == Object info ==
-	@$(ECHO)
-	@$(ECHO)  LoaderObjects..... $(LOADEROBJECTS)
-	@$(ECHO)  UnitObjects....... $(UNITOBJECTS)
-	@$(ECHO)  ExeObjects........ $(EXEOBJECTS)
-	@$(ECHO)
-	@$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)
-	@$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)
-	@$(ECHO)  ExtraInstallFiles. $(EXTRAINSTALLFILES)
-	@$(ECHO)
-	@$(ECHO)  == Unit info ==
-	@$(ECHO)
-	@$(ECHO)  UnitInstallFiles. $(UNITINSTALLFILES)
-	@$(ECHO)  UnitCleanFiles... $(UNITCLEANFILES)
-	@$(ECHO)
 
 fpc_infoinstall:
 	@$(ECHO)
