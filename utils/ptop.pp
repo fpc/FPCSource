@@ -22,7 +22,7 @@ Uses PtoPu,Objects,getopts;
 Var 
   Infilename,OutFileName,ConfigFile : String;
   BeVerbose : Boolean;
-  TheIndent,TheBufSize : Integer;
+  TheIndent,TheBufSize,TheLineSize : Integer;
   
 Function StrToInt(Const S : String) : Integer;
 
@@ -37,10 +37,11 @@ Procedure Usage;
 
 begin
   Writeln ('ptop : Usage : ');
-  Writeln ('ptop [-v] [-i indent] [-b bufsize ][-c optsfile] infile outfile');
+  Writeln ('ptop [-v] [-i indent] [-b bufsize ][-c optsfile][-l linesize] infile outfile');
   Writeln ('     converts infile to outfile.');
   Writeln ('     -c : read options from optsfile');
   Writeln ('     -i : Set number of indent spaces.');
+  Writeln ('     -l : Set maximum output linesize.');
   Writeln ('     -b : Use buffers of size bufsize');
   Writeln ('     -v : be verbose');
   writeln ('ptop -g ofile');
@@ -71,6 +72,7 @@ begin
   ConfigFile:=''; 
   TheIndent:=2;
   TheBufSize:=255;
+  TheLineSize:=MaxLineSize;
   BeVerbose:=False;
   Repeat
     c:=getopt('i:c:g:b:hv');
@@ -84,6 +86,10 @@ begin
             If TheBufSize=0 then TheBufSize:=255;
             end;
       'c' : ConfigFile:=OptArg;
+      'l' : begin
+            TheLineSize:=StrToInt(OptArg);
+            If TheLineSIze=0 Then TheLineSize:=MaxLineSize;
+            end;
       'g' : begin
             ConfigFIle:=OptArg;
             GenOpts;
@@ -125,6 +131,7 @@ begin
     CfgS:=Nil;
   PPrinter.Create;
   PPrinter.Indent:=TheIndent;
+  PPrinter.LineSize:=TheLineSize;
   PPrinter.Ins:=Ins;
   PPrinter.outS:=OutS;
   PPrinter.cfgS:=CfgS;
@@ -149,7 +156,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
+  Revision 1.2  1999-07-08 21:17:10  michael
+  + Made output linesize variable
+
+  Revision 1.1  1999/05/12 16:11:39  peter
     * moved
 
   Revision 1.3  1999/03/25 16:52:29  michael

@@ -173,6 +173,7 @@ Type
       Procedure RShift(currmsym: keysymbol);
       Function ReadConfigFile: Boolean;
     Public
+      LineSize : longint;
       Indent : Integer;    { How many characters to indent ? }
       InS,
       OutS,
@@ -848,7 +849,7 @@ Procedure TprettyPrinter.LShift;
 Procedure TPrettyPrinter.InsertSpace(VAR symbol: symbolinfo);
   { Insert space if room on line }
   BEGIN
-    IF currlinepos < MAXLINESIZE THEN BEGIN
+    IF currlinepos < LineSize THEN BEGIN
       WriteString(OutS, Blank);
       Inc(currlinepos);
       IF (symbol^.crsbefore = 0) AND (symbol^.spacesbefore > 0)
@@ -1168,6 +1169,7 @@ end;
 Constructor TPrettyPrinter.Create;
 
 Begin
+  LineSize:=MaxLineSize;
   CreateOptions (Option);
   SetTerminators(Option);
   DiagS:=Nil;
@@ -1188,7 +1190,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-05-31 10:08:36  michael
+  Revision 1.3  1999-07-08 21:17:11  michael
+  + Made output linesize variable
+
+  Revision 1.2  1999/05/31 10:08:36  michael
   * Fix by Marco van de Voort to enable #13#10
 
   Revision 1.1  1999/05/12 16:11:39  peter
