@@ -177,12 +177,16 @@ Type
   StrLenInt = Int64;
   SizeInt = Int64;
   SizeUInt = QWord;
+  PtrInt = Int64;
+  PtrUInt = QWord;
 {$endif CPU64}
 
 {$ifdef CPU32}
   StrLenInt = Longint;
   SizeInt = Longint;
   SizeUInt = DWord;
+  PtrInt = Longint;
+  PtrUInt = DWord;
 {$endif CPU32}
 
 { Zero - terminated strings }
@@ -531,12 +535,12 @@ procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 Type
   TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:longint);
   TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:longint);
-    
-  TWideStringManager = record   
+
+  TWideStringManager = record
     Wide2AnsiMove : TWide2AnsiMove;
     Ansi2WideMove : TAnsi2WideMove;
   end;
-  
+
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
@@ -713,7 +717,11 @@ const
 
 {
   $Log$
-  Revision 1.80  2003-11-29 17:27:05  michael
+  Revision 1.81  2003-12-29 19:24:12  florian
+    + introduced PtrInt and PtrUInt
+    * made strscan 64 bit safe
+
+  Revision 1.80  2003/11/29 17:27:05  michael
   + Added overloaded version of SetWideStringManager without old parameter
 
   Revision 1.79  2003/11/28 20:36:13  michael

@@ -43,11 +43,9 @@
 
 
     function strpos(str1,str2 : pchar) : pchar;
-
       var
          p : pchar;
-         lstr2 : longint;
-
+         lstr2 : SizeInt;
       begin
          strpos:=nil;
          p:=strscan(str1,str2^);
@@ -61,14 +59,18 @@
                    strpos:=p;
                    exit;
                 end;
-              inc(longint(p));
+              inc(p);
               p:=strscan(p,str2^);
            end;
       end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:07:46  peter
+  Revision 1.4  2003-12-29 19:24:12  florian
+    + introduced PtrInt and PtrUInt
+    * made strscan 64 bit safe
+
+  Revision 1.3  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }
