@@ -43,23 +43,23 @@ uses
 
     TIntRegs = record
 {$ifndef test_generic_cpu}
-{$ifdef I386}
+{$ifdef cpui386}
 {$define cpu_known}
        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
        cs,ds,es,ss,fs,gs : word;
        eflags : dword;
-{$endif I386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
 {$define cpu_known}
        d0,d1,d2,d3,d4,d5,d6,d7 : dword;
        a0,a1,a2,a3,a4,a5,fp,sp : dword;
        ps,pc : dword;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
 {$define cpu_known}
        r : array [0..31] of dword;
        pc,ps,cr,lr,ctr,xer : dword;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        reg : array [0..MaxRegs-1] of string;
@@ -88,18 +88,18 @@ uses
 
     TFPURegs = record
 {$ifndef test_generic_cpu}
-{$ifdef I386}
+{$ifdef cpui386}
       st0,st1,st2,st3,st4,st5,st6,st7 :string;
       ftag,fop,fctrl,fstat,fiseg,foseg : word;
       fioff,fooff : cardinal;
-{$endif I386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
       fp0,fp1,fp2,fp3,fp4,fp5,fp6,fp7 : string;
       fpcontrol,fpstatus,fpiaddr : dword;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
        f : array [0..31] of string;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        freg : array [0..MaxRegs-1] of string;
@@ -151,11 +151,14 @@ uses
 
     TVectorRegs = record
 {$ifndef test_generic_cpu}
-{$ifdef I386}
+{$ifdef cpui386}
       xmm : array[0..7] of string;
       mmx : array[0..7] of string;
       mxcsr : string;
-{$endif I386}
+{$endif cpui386}
+{$ifdef cpupowerpc}
+      m : array[0..31] of string;
+{$endif cpupowerpc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        vreg : array [0..MaxRegs-1] of string;
@@ -300,7 +303,7 @@ Const
                       strlcopy(buffer,p,p1-p);
                       value:=strpas(buffer);
                       val(value,v,code);
-{$ifdef i386}
+{$ifdef cpui386}
                       if reg='eax' then
                         rs.eax:=v
                       else if reg='ebx' then
@@ -334,8 +337,8 @@ Const
                         rs.gs:=v
                       else if reg='ss' then
                         rs.ss:=v;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
                       if reg='d0' then
                         rs.d0:=v
                       else if reg='d1' then
@@ -372,8 +375,8 @@ Const
                         rs.ps:=v
                       else if reg='pc' then
                         rs.pc:=v;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
                       if (reg[1]='r') then
                         begin
                           for i:=0 to 31 do
@@ -392,7 +395,7 @@ Const
                         rs.ctr:=v
                       else if (reg='xer') then
                         rs.xer:=v;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$endif not cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -477,7 +480,7 @@ Const
        if  OK then
          begin
 {$ifdef cpu_known}
-{$ifdef i386}
+{$ifdef cpui386}
             SetColor(rs.eax,OldReg.eax);
             WriteStr(1,0,'EAX '+HexStr(longint(rs.eax),8),color);
             SetColor(rs.ebx,OldReg.ebx);
@@ -524,8 +527,8 @@ Const
             WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
             SetColor(rs.eflags and $400,OldReg.eflags and $400);
             WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
             SetColor(rs.d0,OldReg.d0);
             WriteStr(1,0,'d0 '+HexStr(longint(rs.d0),8),color);
             SetColor(rs.d1,OldReg.d1);
@@ -568,8 +571,8 @@ Const
             WriteStr(16,8,' z'+chr(byte((rs.ps and $4)<>0)+48),color);
             SetColor(rs.ps and $8,OldReg.ps and $8);
             WriteStr(14,8, 'x'+chr(byte((rs.ps and $8)<>0)+48),color);
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
             for i:=0 to 15 do
               begin
                 SetColor(rs.r[i],OldReg.r[i]);
@@ -594,7 +597,7 @@ Const
             WriteStr(15,17,'ctr '+HexStr(longint(rs.ctr),8),color);
             SetColor(rs.xer,OldReg.xer);
             WriteStr(15,18,'xer '+HexStr(longint(rs.xer),8),color);
-{$endif powerpc}
+{$endif cpupowerpc}
 {$else cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -626,18 +629,18 @@ Const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef i386}
+{$ifdef cpui386}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
@@ -766,7 +769,7 @@ Const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef i386}
+{$ifdef cpui386}
                       if reg='st0' then
                         rs.st0:=v
                       else if reg='st1' then
@@ -799,8 +802,8 @@ Const
                         rs.fooff:=res
                       else if reg='fop' then
                         rs.fop:=res;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
                       if reg='fp0' then
                         rs.fp0:=v
                       else if reg='fp1' then
@@ -823,13 +826,13 @@ Const
                         rs.fpstatus:=res
                       else if reg='fpiaddr' then
                         rs.fpiaddr:=res;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
                       if reg[1]='f' then
                         for i:=0 to 31 do
                           if reg='f'+inttostr(i) then
                             rs.f[i]:=v;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -926,7 +929,7 @@ Const
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef i386}
+{$ifdef cpui386}
             top:=(rs.fstat shr 11) and 7;
             SetColor(rs.st0,OldReg.st0);
             WriteStr(1,0,'ST0 '+TypeStr[(rs.ftag shr (2*((0+top) and 7))) and 3]+rs.st0,color);
@@ -964,8 +967,8 @@ Const
             else
               color:=7;
             WriteStr(1,11,'FO    '+hexstr(rs.foseg,4)+':'+hexstr(rs.fooff,8),color);
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
             SetColor(rs.fp0,OldReg.fp0);
             WriteStr(1,0,'fp0 '+rs.fp0,color);
             SetColor(rs.fp1,OldReg.fp1);
@@ -988,8 +991,8 @@ Const
             WriteStr(1,9,'fpstatus    '+hexstr(rs.fpstatus,8),color);
             SetIColor(rs.fpiaddr,OldReg.fpiaddr);
             WriteStr(1,10,'fpiaddr    '+hexstr(rs.fpiaddr,8),color);
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
             for i:=0 to 31 do
               begin
                 SetColor(rs.f[i],OldReg.f[i]);
@@ -998,7 +1001,7 @@ Const
                 else
                   WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
               end;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1030,18 +1033,18 @@ Const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef i386}
+{$ifdef cpui386}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
@@ -1168,7 +1171,7 @@ Const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef i386}
+{$ifdef cpui386}
                       if reg[1]='x' then
                         for i:=0 to 7 do
                           begin
@@ -1183,14 +1186,14 @@ Const
                             if reg='mm'+inttostr(i) then
                               rs.mmx[i]:=v;
                           end;
-{$endif i386}
-{$ifdef powerpc}
+{$endif cpui386}
+{$ifdef cpupowerpc}
                       { !!!! fixme }
                       if reg[1]='v' then
                         for i:=0 to 31 do
                           if reg='v'+inttostr(i) then
-                            rs.f[i]:=v;
-{$endif powerpc}
+                            rs.m[i]:=v;
+{$endif cpupowerpc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -1287,7 +1290,7 @@ Const
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef i386}
+{$ifdef cpui386}
             for i:=0 to 7 do
               begin
                 SetColor(rs.xmm[i],OldReg.xmm[i]);
@@ -1302,17 +1305,17 @@ Const
                 SetColor(rs.mmx[i],OldReg.mmx[i]);
                 WriteStr(1,i+8,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
               end;
-{$endif i386}
-{$ifdef powerpc}
+{$endif cpui386}
+{$ifdef cpupowerpc}
             for i:=0 to 31 do
               begin
-                SetColor(rs.f[i],OldReg.f[i]);
+                SetColor(rs.m[i],OldReg.m[i]);
                 if i<10 then
-                  WriteStr(1,i,'f'+IntToStr(i)+'  '+rs.f[i],color)
+                  WriteStr(1,i,'m'+IntToStr(i)+'  '+rs.m[i],color)
                 else
-                  WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
+                  WriteStr(1,i,'m'+IntToStr(i)+' '+rs.m[i],color);
               end;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1344,18 +1347,18 @@ Const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef i386}
+{$ifdef cpui386}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+19;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+14;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
@@ -1478,7 +1481,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-01-08 11:43:18  florian
+  Revision 1.7  2005-01-10 20:52:11  florian
+    * compilation fixed
+
+  Revision 1.6  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.5  2004/12/22 15:24:07  peter
