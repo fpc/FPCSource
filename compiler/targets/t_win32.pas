@@ -117,6 +117,9 @@ implementation
          hp2 : timported_item;
          hs  : string;
       begin
+         { force the current mangledname }
+         aktprocdef.has_mangledname:=true;
+         { append extension if required }
          hs:=DllName(module);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
@@ -1603,7 +1606,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2001-11-02 22:58:12  peter
+  Revision 1.22  2002-01-19 11:53:07  peter
+    * fixed managledname
+
+  Revision 1.21  2001/11/02 22:58:12  peter
     * procsym definition rewrite
 
   Revision 1.20  2001/10/12 16:06:27  peter
