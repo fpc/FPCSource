@@ -61,7 +61,7 @@ uses
 {$else}
   Commands,
 {$endif}
-  Drivers,Views,App,Dialogs,
+  Drivers,Views,App,Dialogs,HistList,
   Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
 {$ifndef FVISION}
@@ -302,6 +302,7 @@ BEGIN
 {$ifdef DEV}
   HeapLimit:=4096;
 {$endif}
+  HistorySize:=16384;
   writeln('þ Free Pascal IDE  Version '+VersionStr);
 {$ifdef win32}
   Win32ShowMouse;
@@ -500,7 +501,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.21  2003-01-29 00:30:53  pierre
+  Revision 1.22  2003-06-04 15:06:14  peter
+    * histsize increased
+
+  Revision 1.21  2003/01/29 00:30:53  pierre
    * load CheckMem as first if EXTDEBUG is defined
 
   Revision 1.20  2003/01/28 16:53:47  pierre
