@@ -49,7 +49,7 @@ uses
   scanner,aasm,tree,types,
   import,gendef,
   convtree,
-  hcodegen,temp_gen,pass_1,pass_2,cgobj
+  hcodegen,tgobj,pass_1,pass_2,cgobj
 {$ifdef GDB}
   ,gdb
 {$endif GDB}
@@ -1426,7 +1426,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-08-01 18:22:38  florian
+  Revision 1.4  1999-08-02 17:14:11  florian
+    + changed the temp. generator to an object
+
+  Revision 1.3  1999/08/01 18:22:38  florian
    * made it again compilable
 
   Revision 1.2  1999/01/13 22:52:39  florian

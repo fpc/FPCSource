@@ -110,10 +110,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,files,gdb,systems,
-       ppu,cgbase,temp_gen,verbose,types
-{$ifdef i386}
-       ,tgeni386
-{$endif i386}
+       ppu,cgbase,verbose,types,tgobj,tgcpu
        ;
 
     constructor tcg.init;
@@ -204,17 +201,17 @@ unit cgobj;
          hp:=ptemptodestroy(p^.first);
          if not(assigned(hp)) then
            exit;
-         pushusedregisters(pushedregs,$ff);
+         tg.pushusedregisters(pushedregs,$ff);
          while assigned(hp) do
            begin
               if is_ansistring(hp^.typ) then
                 begin
                    g_decransiref(hp^.address);
-                   ungetiftemp(hp^.address);
+                   tg.ungetiftemp(hp^.address);
                 end;
               hp:=ptemptodestroy(hp^.next);
            end;
-         popusedregisters(pushedregs);
+         tg.popusedregisters(pushedregs);
       end;
 
     procedure tcg.g_decransiref(const ref : treference);
@@ -573,7 +570,7 @@ unit cgobj;
                    if (r in registers_saved_on_cdecl) then
                      if (r in general_registers) then
                        begin
-                          if not(r in unused) then
+                          if not(r in tg.unusedregsint) then
                             a_push_reg(list,r)
                        end
                      else
@@ -931,7 +928,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-01 23:05:55  florian
+  Revision 1.8  1999-08-02 17:14:07  florian
+    + changed the temp. generator to an object
+
+  Revision 1.7  1999/08/01 23:05:55  florian
     * changes to compile with FPC
 
   Revision 1.6  1999/08/01 18:22:33  florian

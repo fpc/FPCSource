@@ -44,7 +44,7 @@ unit nstatmnt;
   implementation
 
     uses
-       temp_gen,tgeni386,globtype,globals,symtable,verbose,cgbase;
+       tgobj,globtype,globals,symtable,verbose,cgbase,tgcpu;
 
 {****************************************************************************
                                  TSTAMENTNODE
@@ -79,7 +79,7 @@ unit nstatmnt;
            begin
               if assigned(pstatementnode(hp)^.right) then
                 begin
-                   cleartempgen;
+                   tg.cleartempgen;
                    hp^.right^.det_resulttype;
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp^.right^.resulttype) and
@@ -103,7 +103,7 @@ unit nstatmnt;
            begin
               if assigned(hp^.right) then
                 begin
-                   cleartempgen;
+                   tg.cleartempgen;
                    hp^.right^.det_temp;
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp^.right^.resulttype) and
@@ -146,7 +146,10 @@ unit nstatmnt;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-01 23:36:43  florian
+  Revision 1.3  1999-08-02 17:14:09  florian
+    + changed the temp. generator to an object
+
+  Revision 1.2  1999/08/01 23:36:43  florian
     * some changes to compile the new code generator
 
   Revision 1.1  1999/01/23 23:35:02  florian

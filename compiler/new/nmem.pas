@@ -46,7 +46,7 @@ unit nmem;
   implementation
 
     uses
-       cobjects,aasm,cgbase,cgobj,types,verbose
+       cobjects,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu
 {$I cpuunit.inc}
 {$I tempgen.inc}
        ;
@@ -122,7 +122,7 @@ unit nmem;
                     { maybe we've to add this later for the alpha WinNT                  }
                     else if (pvarsym(symtableentry)^.var_options and vo_is_dll_var)<>0 then
                       begin
-                         hregister:=getregister32;
+                         hregister:=tg.getregisterint;
                          location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(location.reference),hregister)));
                          location.reference.symbol:=nil;
@@ -137,7 +137,7 @@ unit nmem;
                            begin
                               location.loc:=LOC_CREGISTER;
                               location.register:=pvarsym(symtableentry)^.reg;
-                              unused:=unused-[pvarsym(symtableentry)^.reg];
+                              tg.unusedregsint:=tg.unusedregsint-[pvarsym(symtableentry)^.reg];
                            end
                          else
                            begin
@@ -151,7 +151,7 @@ unit nmem;
                                      location.reference.offset:=-location.reference.offset;
                                    if (lexlevel>(symtable^.symtablelevel)) then
                                      begin
-                                        hregister:=getregister32;
+                                        hregister:=tg.getregisterint;
 
                                         { make a reference }
                                         hp:=new_reference(procinfo.framepointer,
@@ -197,7 +197,7 @@ unit nmem;
                                      end;
                                    withsymtable:
                                      begin
-                                        hregister:=getregister32;
+                                        hregister:=tg.getregisterint;
                                         location.reference.base:=hregister;
                                         { make a reference }
                                         { symtable datasize field
@@ -222,7 +222,7 @@ unit nmem;
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
-                                hregister:=getregister32;
+                                hregister:=tg.getregisterint;
                               if is_open_array(pvarsym(symtableentry)^.definition) or
                                  is_open_string(pvarsym(symtableentry)^.definition) then
                                 begin
@@ -271,7 +271,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-01 18:22:35  florian
+  Revision 1.3  1999-08-02 17:14:08  florian
+    + changed the temp. generator to an object
+
+  Revision 1.2  1999/08/01 18:22:35  florian
    * made it again compilable
 
   Revision 1.1  1999/01/24 22:32:36  florian

@@ -369,6 +369,7 @@ unit tree;
     function getnode : ptree;
     procedure set_file_line(from,_to : ptree);
     procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
+    procedure set_location(var destloc,sourceloc : tlocation);
 {$ifdef EXTDEBUG}
     procedure compare_trees(oldp,p : ptree);
     const
@@ -1511,6 +1512,12 @@ unit tree;
          gensetconstnode:=p;
       end;
 
+    procedure set_location(var destloc,sourceloc : tlocation);
+
+      begin
+        destloc:= sourceloc;
+      end;
+
 {$ifdef extdebug}
     procedure compare_trees(oldp,p : ptree);
 
@@ -1895,7 +1902,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-01 23:19:58  florian
+  Revision 1.10  1999-08-02 17:14:12  florian
+    + changed the temp. generator to an object
+
+  Revision 1.9  1999/08/01 23:19:58  florian
     + make a new makefile using the old compiler makefile
 
   Revision 1.8  1999/08/01 23:04:52  michael

@@ -143,7 +143,6 @@ uses
   {$O ptconst}
   {$O script}
   {$O switches}
-  {$O temp_gen}
   {$O comphook}
   {$O dos}
   {$O scanner}
@@ -255,7 +254,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-08-01 18:22:37  florian
+  Revision 1.3  1999-08-02 17:14:10  florian
+    + changed the temp. generator to an object
+
+  Revision 1.2  1999/08/01 18:22:37  florian
    * made it again compilable
 
   Revision 1.1  1998/12/26 15:20:31  florian
