@@ -26,27 +26,39 @@
 function FpISDIR(m : TMode): boolean;
 
 begin
-  FpISDIR:=((m and _S_IFMT) = _S_IFDIR);
+  FpISDIR:=((m and S_IFMT) = S_IFDIR);
 end;
 
 function FpISCHR(m : TMode): boolean;
 begin
-  FpISCHR:=((m and _S_IFMT) = _S_IFCHR);
+  FpISCHR:=((m and S_IFMT) = S_IFCHR);
 end;
 
 function FpISBLK(m : TMode): boolean;
 begin
- FpISBLK:=((m and _S_IFMT) = _S_IFBLK);
+ FpISBLK:=((m and S_IFMT) = S_IFBLK);
 end;
 
 function FpISREG(m : TMode): boolean;
 begin
- FpISREG:=((m and _S_IFMT) = _S_IFREG);
+ FpISREG:=((m and S_IFMT) = S_IFREG);
 end;
 
 function FpISFIFO(m : TMode): boolean;
 begin
- FpISFIFO:=((m and _S_IFMT) = _S_IFIFO);
+ FpISFIFO:=((m and S_IFMT) = S_IFIFO);
+end;
+
+Function FPISLNK(m:TMode):boolean;
+
+begin
+ FPISLNK:=((m and S_IFMT) = S_IFLNK);
+end;
+
+Function FPISSOCK(m:TMode):boolean;
+
+begin
+ FPISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
 function wifexited(status : cint): cint;
@@ -79,7 +91,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-12-18 16:43:26  marco
+  Revision 1.2  2003-09-17 11:24:46  marco
+   * fixes for new macro's
+
+  Revision 1.1  2002/12/18 16:43:26  marco
    * new unix rtl, linux part.....
 
   Revision 1.2  2002/11/12 15:31:33  marco

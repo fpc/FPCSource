@@ -110,7 +110,7 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 // The following two are very common, but not POSIX.
     Function FPISLNK       (m:TMode) : Boolean;
-    Function FPISSOCK      (m:TMode : Boolean;
+    Function FPISSOCK      (m:TMode) : Boolean;
 
     Function  wifexited    (Status : cInt): cInt;
     Function  wexitStatus  (Status : cInt): cInt;
@@ -122,7 +122,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.6  2003-09-17 11:14:25  marco
+  Revision 1.7  2003-09-17 11:24:46  marco
+   * fixes for new macro's
+
+  Revision 1.6  2003/09/17 11:14:25  marco
    * two extra FPIS added
 
   Revision 1.5  2003/09/16 16:13:56  marco
