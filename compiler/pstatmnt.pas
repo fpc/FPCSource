@@ -488,7 +488,7 @@ unit pstatmnt;
          if token<>SEMICOLON then
            begin
               p1:=comp_expr(true);
-              if (token=ID) and (pattern='AT') then
+              if (idtoken=_AT) then
                 begin
                    consume(ID);
                    p2:=comp_expr(true);
@@ -1076,9 +1076,7 @@ unit pstatmnt;
          else
            begin
               if (token=INTCONST) or
-                ((token=ID) and
-                not((m_result in aktmodeswitches) and
-                (pattern='RESULT'))) then
+                 ((token=ID) and not((m_result in aktmodeswitches) and (idtoken=_RESULT))) then
                 begin
                    getsym(pattern,true);
                    lastsymknown:=true;
@@ -1286,7 +1284,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.72  1999-03-31 13:55:15  peter
+  Revision 1.73  1999-04-06 11:21:57  peter
+    * more use of ttoken
+
+  Revision 1.72  1999/03/31 13:55:15  peter
     * assembler inlining working for ag386bin
 
   Revision 1.71  1999/03/10 11:23:29  pierre

@@ -818,7 +818,7 @@ unit pexpr;
            { allow post fix operators }
            again:=true;
            if (m_result in aktmodeswitches) and
-              (pattern='RESULT') and
+              (idtoken=_RESULT) and
               assigned(aktprocsym) and
               (procinfo.retdef<>pdef(voiddef)) then
             begin
@@ -1976,7 +1976,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.90  1999-03-31 13:55:12  peter
+  Revision 1.91  1999-04-06 11:21:56  peter
+    * more use of ttoken
+
+  Revision 1.90  1999/03/31 13:55:12  peter
     * assembler inlining working for ag386bin
 
   Revision 1.89  1999/03/26 00:05:36  peter
