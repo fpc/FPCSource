@@ -140,11 +140,12 @@ Function  GetEnv (envvar: string): string;
 {$ifdef i386}
 Procedure Intr(intno: byte; var regs: registers);
 Procedure MSDos(var regs: registers);
+{$endif i386}
 Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: Word);
-{$endif i386}
+
 
 Procedure SetFAttr(var f; attr: word);
 Procedure SetFTime(var f; time: longint);
@@ -805,6 +806,7 @@ Procedure msdos(var regs : registers);
 Begin
   {! No Linux equivalent !}
 End;
+{$endif i386}
 
 
 
@@ -833,7 +835,6 @@ Procedure keep(exitcode : word);
 Begin
   {! No Linux equivalent !}
 End;
-{$endif i386}
 
 
 Procedure setftime(var f; time : longint);
@@ -909,7 +910,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2003-05-14 13:51:03  florian
+  Revision 1.15  2003-05-16 20:56:06  florian
+  no message
+
+  Revision 1.14  2003/05/14 13:51:03  florian
     * ifdef'd code which i386 specific
 
   Revision 1.13  2002/12/08 16:05:34  peter
