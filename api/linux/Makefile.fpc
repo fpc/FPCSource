@@ -7,7 +7,6 @@ defaulttarget=linux
 
 [targets]
 units=terminfo $(APIOBJECTS)
-examples=$(TESTOBJECTS)
 
 [install]
 unitsubdir=api
@@ -20,7 +19,7 @@ libversion=1.0
 [dirs]
 fpcdir=../..
 targetdir=.
-sourcesdir=$(INC) ../test
+sourcesdir=$(INC)
 incdir=$(INC)
 
 [presettings]
@@ -29,7 +28,6 @@ INC=../inc
 # Override defaults
 override PASEXT=.pas
 
-include ../test/Makefile.api
 include $(INC)/Makefile.api
 
 

@@ -6,9 +6,11 @@
 units=ncurses panel ncrt ocrt
 examples=firework testn ocrt_demo edit_demo
 
+[install]
+examplesubdir=ncurses
+
 [dirs]
 fpcdir=../..
-
 
 [rules]
 testn$(EXEEXT): testn$(PASEXT) ncurses$(PPUEXT)

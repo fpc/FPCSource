@@ -45,6 +45,10 @@ INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr"
 	make packages_install ${INSTALLOPTS}
 	make utils_install ${INSTALLOPTS}
 
+	make fcl_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make api_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make packages_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+
 	make demo_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
 	make doc_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
 	make man_install ${INSTALLOPTS}
@@ -71,20 +75,21 @@ $FPCDIR/samplecfg $FPCDIR
 
 
 %files
-/usr/bin/ppufiles 
-/usr/bin/ppudump 
-/usr/bin/ppumove 
-/usr/bin/ppdep 
-/usr/bin/ptop 
-/usr/bin/rstconv 
-/usr/bin/data2inc 
+/usr/bin/ppufiles
+/usr/bin/ppudump
+/usr/bin/ppumove
+/usr/bin/ppdep
+/usr/bin/ptop
+/usr/bin/rstconv
+/usr/bin/data2inc
 /usr/bin/bin2obj
 /usr/bin/delp
-/usr/bin/plex 
+/usr/bin/plex
 /usr/bin/pyacc
 /usr/bin/h2pas
-/usr/bin/fprcp
 /usr/bin/postw32
+/usr/bin/fpcmake
+/usr/bin/fprcp
 %{fpcdir}
 /usr/lib/fpc/lexyacc/yylex.cod 
 /usr/lib/fpc/lexyacc/yyparse.cod

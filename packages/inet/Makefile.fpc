@@ -9,7 +9,6 @@ examples=testinet pfinger
 [dirs]
 fpcdir=../..
 
-
 [rules]
 testinet$(EXEEXT): testinet$(PASEXT) inet$(PPUEXT)
 

@@ -7,7 +7,6 @@ defaulttarget=win32
 
 [targets]
 units=event $(APIOBJECTS)
-examples=$(TESTOBJECTS)
 
 [install]
 unitsubdir=api
@@ -19,7 +18,7 @@ libname=fpapi
 [dirs]
 fpcdir=../..
 targetdir=.
-sourcesdir=$(INC) ../test
+sourcesdir=$(INC)
 incdir=$(INC)
 
 [presettings]
@@ -28,7 +27,6 @@ INC=../inc
 # Override defaults
 override PASEXT=.pas
 
-include ../test/Makefile.api
 include $(INC)/Makefile.api
 
 

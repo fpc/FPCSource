@@ -1,13 +1,10 @@
 #
-#   Makefile.fpc for CGI Units
+#   Makefile.fpc for SysLog Units
 #
 
 [targets]
 units=systemlog
 examples=testlog
-
-[install]
-sourcesubdir=packages
 
 [dirs]
 fpcdir=../..

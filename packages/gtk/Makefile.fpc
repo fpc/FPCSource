@@ -4,6 +4,10 @@
 
 [targets]
 units=glib gmodule gdk gtk
+exampledirs=examples
+
+[install]
+examplesubdir=gtk
 
 [dirs]
 fpcdir=../..
@@ -14,12 +18,7 @@ targetdir=.
 libname=libfpgtk.so
 libversion=1.0
 
-
 [rules]
-clean: fpc_clean
-        $(MAKE) -C examples clean
-        $(MAKE) -C tutorial clean
-
 glib$(PPUEXT): $(wildcard glib/glib*$(PASEXT))
 
 gmodule$(PPUEXT): $(wildcard glib/gmodule*$(PASEXT)) glib$(PPUEXT)
@@ -27,27 +26,3 @@ gmodule$(PPUEXT): $(wildcard glib/gmodule*$(PASEXT)) glib$(PPUEXT)
 gdk$(PPUEXT): $(wildcard gdk/gdk*$(PASEXT)) glib$(PPUEXT)
 
 gtk$(PPUEXT): $(wildcard gtk/gtk*$(PASEXT)) gdk$(PPUEXT)
-
-
-# Examples, tutorial
-
-.PHONY: examples tutorial installexamples
-
-examples: all
-        $(MAKE) -C examples
-
-tutorial: all
-        $(MAKE) -C tutorial
-
-ifndef EXAMPLESINSTALLDIR
-EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
-endif
-ifndef TUTORIALINSTALLDIR
-TUTORIALINSTALLDIR=$(DOCINSTALLDIR)/tutorial
-endif
-
-installexamples:
-        $(MKDIR) $(EXAMPLESINSTALLDIR)
-        $(COPYTREE) examples/* $(EXAMPLESINSTALLDIR)
-        $(MKDIR) $(TUTORIALINSTALLDIR)
-        $(COPYTREE) tutorial/* $(TUTORIALINSTALLDIR)

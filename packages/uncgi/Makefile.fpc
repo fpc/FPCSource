@@ -6,8 +6,5 @@
 units=uncgi
 examples=testcgi
 
-[install]
-sourcesubdir=packages
-
 [dirs]
 fpcdir=../..

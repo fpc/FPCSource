@@ -3,8 +3,6 @@
   it will be deleted ! }
 program TestFS;
 
-{$I platform.inc}
-
 uses
   ApiComm,
   Filesys;
@@ -117,10 +115,10 @@ begin
         end;
      11 :
         begin
-          {$ifdef OS_DOS}
-          n := 'c:\sub1\sub3.ext.ext\name.gz';
-          {$ELSE}
+          {$ifdef linux}
           n := '/sub1/sub3.ext.ext/name.gz';
+          {$ELSE}
+          n := 'c:\sub1\sub3.ext.ext\name.gz';
           {$endif}
           SplitName (n, p, rn, e);
           Write ('"', n, '" => ',

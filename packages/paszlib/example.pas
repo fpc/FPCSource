@@ -27,7 +27,7 @@ uses
   SysUtils,
 {$endif}
   zutil,
-  zLib,
+  zbase,
   gzIo,
   zInflate,
   zDeflate,
@@ -548,10 +548,10 @@ begin
       if (d_stream.adler <> dictId) then
       begin
         WriteLn('unexpected dictionary');
-	Stop;
+        Stop;
       end;
       err := inflateSetDictionary(d_stream, pBytef(dictionary),
-				     StrLen(dictionary));
+                                     StrLen(dictionary));
     end;
     CHECK_ERR(err, 'inflate with dict');
   end;

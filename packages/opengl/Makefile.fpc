@@ -3,18 +3,13 @@
 #
 
 [targets]
-dirs=linux examples build
+dirs=linux build
+exampledirs=examples
 
-[sections]
-none=1
+[install]
+packagename=opengl
+examplesubdir=opengl
 
 [defaults]
 defaultbuilddir=$(OS_TARGET)
 defaultinstalldir=$(OS_TARGET)
-
-[rules]
-.PHONY: examples
-
-examples:
-        $(MAKE) examples_all
-

@@ -10,7 +10,6 @@ dirs_linux=linux
 
 [install]
 packagename=demo
-sourcesubdirs=0
 
 [defaults]
 defaultrule=all
@@ -41,9 +40,5 @@ info:
 
 .PHONY: installexamples
 
-ifndef EXAMPLESINSTALLDIR
-EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
-endif
-
 installexamples:
-        $(MAKE) sourceinstall SOURCEINSTALLDIR=$(EXAMPLESINSTALLDIR)
+        $(MAKE) sourceinstall SOURCEINSTALLDIR=$(EXAMPLEINSTALLDIR)

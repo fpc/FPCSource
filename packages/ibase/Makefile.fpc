@@ -9,7 +9,6 @@ examples=testib40 testib60
 [dirs]
 fpcdir=../..
 
-
 [rules]
 testib40$(EXEEXT): testib40.pp ibase40$(PPUEXT)
 

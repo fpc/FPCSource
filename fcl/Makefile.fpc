@@ -3,15 +3,17 @@
 #
 
 [targets]
-dirs=go32v2 linux win32 os2 tests
+dirs=go32v2 linux win32 os2
+exampledirs=tests shedit/gtk
 
 [install]
+examplesubdir=fcl
 packagename=fcl
-sourcesubdirs=0
 
 [sections]
 none=1
 zipsourceinstall=1
+zipexampleinstall=1
 
 [defaults]
 defaultdir=$(OS_TARGET)

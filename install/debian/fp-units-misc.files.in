@@ -1,3 +1,9 @@
+/usr/share/doc/fp-units-misc
+
+/usr/lib/fpc/%{fpcversion}/units/linux/cmem.ppu
+
+/usr/lib/fpc/%{fpcversion}/units/linux/libcmem.a 
+/usr/lib/fpc/%{fpcversion}/units/linux/cmem.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/utmp.ppu
 

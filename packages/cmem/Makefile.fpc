@@ -4,11 +4,10 @@
 
 [targets]
 units=cmem
-examples=testmem
+examples=testcmem
 
 [dirs]
 fpcdir=../..
 
-
 [rules]
-testmem$(EXEEXT): testmem.pp cmem$(PPUEXT)
+testcmem$(EXEEXT): testcmem.pp cmem$(PPUEXT)

@@ -8,7 +8,7 @@ examples=example minigzip
 
 [install]
 unitsubdir=paszlib
-sourcesubdir=packages
+examplesubdir=paszlib
 
 [dirs]
 fpcdir=../..

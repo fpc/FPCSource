@@ -3,15 +3,17 @@
 #
 
 [targets]
-dirs=go32v2 linux win32 os2 test
+dirs=go32v2 linux win32 os2
+exampledirs=test
 
 [defaults]
 defaultdir=$(OS_TARGET)
 
 [install]
 packagename=api
-sourcesubdirs=0
+examplesubdir=api
 
 [sections]
 none=1
 zipsourceinstall=1
+zipexampleinstall=1

@@ -30,6 +30,7 @@ pkgs_go32v2=bas{paszlib,regexpr} \
 [install]
 packagename=packages
 sourcesubdirs=0
+examplesubdirs=1
 
 [sections]
 none=1

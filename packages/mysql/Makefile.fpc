@@ -9,7 +9,6 @@ examples=testdb
 [dirs]
 fpcdir=../..
 
-
 [rules]
 mysql$(PPUEXT): mysql$(PASEXT) mysql_com$(PPUEXT)
 

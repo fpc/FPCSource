@@ -4,7 +4,7 @@
 
 [targets]
 units=dllist postgres
-examples=testpg testemail
+examples=testpg1 testpg2
 
 [dirs]
 fpcdir=../..

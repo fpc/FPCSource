@@ -1,3 +1,4 @@
+/usr/share/doc/fp-units-db
 
 /usr/lib/fpc/%{fpcversion}/units/linux/mysql_com.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/mysql_version.ppu 

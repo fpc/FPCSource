@@ -9,14 +9,15 @@ DOCTYPE=pdf
 # Get Package version and FPC version out of changelog file
 PACKAGEVERSION:=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
 FPCVERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
-
 # Get directories	
 PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
+DOC_DIR=$(INSTALL_DIR)/usr/share/doc
+# Get utils
 NEWPP=$(PWD)/compiler/ppc386
 NEWPPUFILES=$(PWD)/utils/ppufiles
-
+# Create default options
 BUILDOPTS=PP=$(NEWPP)
 INSTALLOPTS=PP=$(NEWPP) PPUFILES=$(NEWPPUFILES) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
@@ -99,10 +100,18 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) utils_install $(INSTALLOPTS)
 	$(MAKE) packages_install $(INSTALLOPTS)
 
+	$(MAKE) fcl_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-fcl
+	$(MAKE) api_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-api
+	$(MAKE) -C packages pkggtk_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-gtk
+	$(MAKE) -C packages pkggfx_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-gfx
+	$(MAKE) -C packages pkgmisc_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-misc
+	$(MAKE) -C packages pkgbase_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-base
+	$(MAKE) -C packages pkgnet_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-net
+	$(MAKE) -C packages pkgdb_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-db
+
 	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
 	$(MAKE) demo_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
 	$(MAKE) doc_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
-	$(MAKE) -C packages/gtk installexamples $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-units-gtk
 
 	touch install-arch-stamp
 
@@ -186,7 +195,6 @@ binary-arch: build-arch arrange-arch debian-files
 	dh_installchangelogs -pfp-utils logs/Changes.utils
 	dh_installchangelogs -pfp-units-fcl logs/Changes.fcl
 	dh_installchangelogs -pfp-units-api logs/Changes.api
-#	dh_installchangelogs -pfp-units-fv logs/Changes.fv
 
 	dh_undocumented -a
 	dh_installexamples -a

@@ -6,6 +6,9 @@
 units=gdbint gdbcon
 examples=testgdb symify
 
+[install]
+examplesubdir=gdbint
+
 [dirs]
 fpcdir=../..
 targetdir=.

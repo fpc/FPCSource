@@ -10,7 +10,6 @@ units_os2=unzipdll
 fpcdir=../..
 
 [rules]
-
 unzip$(PPUEXT): unzip$(PASEXT) ziptypes$(PPUEXT)
 
 unzipdll$(PPUEXT):  unzipdll$(PASEXT) ziptypes$(PPUEXT)

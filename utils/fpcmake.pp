@@ -33,7 +33,8 @@ const
 type
   tsections=(sec_none,
     sec_units,sec_exes,sec_loaders,sec_examples,sec_package,
-    sec_compile,sec_require,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipsourceinstall,
+    sec_compile,sec_require,sec_install,sec_sourceinstall,sec_exampleinstall,
+    sec_zipinstall,sec_zipsourceinstall,sec_zipexampleinstall,
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
@@ -49,13 +50,15 @@ const
 
   sectionstr : array[tsections] of string=('none',
     'units','exes','loaders','examples','package',
-    'compile','require','install','sourceinstall','zipinstall','zipsourceinstall',
+    'compile','require','install','sourceinstall','exampleinstall',
+    'zipinstall','zipsourceinstall','zipexampleinstall',
     'clean','libs','command','exts','dirs','tools','info'
   );
 
   sectiondef : array[tsections] of boolean=(false,
     true,true,false,false,false,
-    true,false,true,true,true,true,
+    true,false,true,true,true,
+    true,true,true,
     true,true,true,true,true,true,true
   );
 
@@ -64,12 +67,13 @@ const
     'linux','go32v2','win32','os2'
   );
 
-  rules=16;
+  rules=18;
   rulestr : array[1..rules] of string=(
     'all','debug',
     'examples','test',
     'smart','shared',
-    'showinstall','install','sourceinstall','zipinstall','zipsourceinstall',
+    'showinstall','install','sourceinstall','exampleinstall',
+    'zipinstall','zipsourceinstall','zipexampleinstall',
     'clean','distclean','cleanall',
     'require','info'
   );
@@ -78,7 +82,8 @@ const
     sec_compile,sec_compile,
     sec_examples,sec_examples,
     sec_libs,sec_libs,
-    sec_install,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipinstall,
+    sec_install,sec_install,sec_sourceinstall,sec_exampleinstall,
+    sec_zipinstall,sec_zipsourceinstall,sec_zipexampleinstall,
     sec_clean,sec_clean,sec_clean,
     sec_require,sec_info
   );
@@ -87,7 +92,7 @@ const
     bic_build,bic_build,
     bic_build,bic_build,
     bic_build,bic_build,
-    bic_install,bic_install,bic_install,bic_zipinstall,bic_zipinstall,
+    bic_install,bic_install,bic_install,bic_install,bic_zipinstall,bic_zipinstall,bic_zipinstall,
     bic_clean,bic_clean,bic_clean,
     bic_none,bic_none
   );
@@ -96,7 +101,8 @@ const
     true,true,
     true,true,
     true,true,
-    true,true,true,false,false,
+    true,true,true,true,
+    false,false,false,
     true,true,true,
     true,false
   );
@@ -130,11 +136,14 @@ type
     TargetUnits,
     TargetPrograms,
     TargetExamples,
+    TargetExampleDirs,
     TargetPkgs,
     TargetRST      : TTargetsString;
+    Installexamplesubdirs,
     InstallSourceSubdirs : boolean;
     InstallPackageName,
     InstallUnitSubDir,
+    InstallExampleSubDir,
     InstallPrefixDir,
     InstallDataDir,
     InstallBaseDir : string;
@@ -343,6 +352,7 @@ begin
      ReadTargetsString(TargetUnits,ini_targets,'units','');
      ReadTargetsString(TargetPrograms,ini_targets,'programs','');
      ReadTargetsString(TargetExamples,ini_targets,'examples','');
+     ReadTargetsString(TargetExampleDirs,ini_targets,'exampledirs','');
      ReadTargetsString(TargetRST,ini_targets,'rst','');
      ReadTargetsString(TargetPkgs,ini_targets,'pkgs','');
      if not TargetStringEmpty(TargetPkgs) then
@@ -356,7 +366,9 @@ begin
      InstallBaseDir:=ReadString(ini_install,'basedir','');
      InstallDataDir:=ReadString(ini_install,'datadir','');
      InstallUnitSubDir:=ReadString(ini_install,'unitsubdir','');
-     InstallSourceSubdirs:=ReadBool(ini_install,'sourcesubdirs',true);
+     Installexamplesubdir:=ReadString(ini_install,'examplesubdir','');
+     InstallSourceSubdirs:=ReadBool(ini_install,'sourcesubdirs',false);
+     Installexamplesubdirs:=ReadBool(ini_install,'examplesubdirs',false);
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
    { zip }
@@ -400,7 +412,7 @@ begin
       section[sec_units]:=true;
      if not TargetStringEmpty(TargetPrograms) then
       section[sec_exes]:=true;
-     if not TargetStringEmpty(TargetExamples) then
+     if not(TargetStringEmpty(TargetExamples) and TargetStringEmpty(TargetExampleDirs)) then
       section[sec_examples]:=true;
      { dependencies }
      if section[sec_zipsourceinstall] then
@@ -408,7 +420,13 @@ begin
         section[sec_zipinstall]:=true;
         section[sec_sourceinstall]:=true;
       end;
-     if section[sec_sourceinstall] then
+     if section[sec_zipexampleinstall] then
+      begin
+        section[sec_zipinstall]:=true;
+        section[sec_exampleinstall]:=true;
+      end;
+     if section[sec_sourceinstall] or
+        section[sec_exampleinstall] then
       begin
         section[sec_tools]:=true;
         section[sec_dirs]:=true;
@@ -629,9 +647,11 @@ var
        inc(i);
      end;
     hs:='';
-    { zipinstall is special, it allows packages }
-    if (not userini.installsourcesubdirs) and
-       ((rulestr[rule]='zipsourceinstall') or (rulestr[rule]='sourceinstall')) then
+    { zipinstall,exampleinstall are special, it allows packages }
+    if ((not userini.installsourcesubdirs) and
+        ((rulestr[rule]='zipsourceinstall') or (rulestr[rule]='sourceinstall'))) or
+       ((not userini.installexamplesubdirs) and
+        ((rulestr[rule]='examples') or (rulestr[rule]='test') or (rulestr[rule]='zipexampleinstall') or (rulestr[rule]='exampleinstall'))) then
      begin
        if userini.section[rule2sec[rule]] then
         hs:=hs+' fpc_'+rulestr[rule];
@@ -665,6 +685,10 @@ var
            if (not TargetStringEmpty(userini.targetdirs)) then
             hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
         end;
+       { include cleaning of example dirs }
+       if (rulestr[rule]='clean') and
+          (not TargetStringEmpty(userini.targetexampledirs)) then
+        hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(EXAMPLEDIROBJECTS))';
      end;
     if hs<>'' then
      begin
@@ -695,13 +719,13 @@ var
       end;
   end;
 
-  procedure AddTargetDir(const s:string);
+  procedure AddTargetDir(const s,defpref:string);
   var
     j  : integer;
     hs : string;
   begin
     AddHead('Dir '+s);
-    mf.Add('ifdef OBJECTDIR'+VarName(s));
+    mf.Add('ifdef '+defpref+VarName(s));
     hs:='.PHONY: ';
     for j:=1to rules do
      hs:=hs+' '+s+'_'+rulestr[j];
@@ -1007,6 +1031,7 @@ begin
      AddTargets('UNITOBJECTS',userini.targetunits,false);
      AddTargets('EXEOBJECTS',userini.targetprograms,false);
      AddTargets('EXAMPLEOBJECTS',userini.targetexamples,false);
+     AddTargets('EXAMPLEDIROBJECTS',userini.targetexampledirs,false);
      AddTargets('RSTOBJECTS',userini.targetrst,false);
 
    { Clean }
@@ -1026,6 +1051,8 @@ begin
       Add('DATAINSTALLDIR='+userini.installdatadir);
      if userini.InstallUnitSubDir<>'' then
       Add('UNITSUBDIR='+userini.InstallUnitSubDir);
+     if userini.InstallExampleSubDir<>'' then
+      Add('EXAMPLESUBDIR='+userini.InstallExampleSubDir);
      if userini.installpackagename<>'' then
       Add('PACKAGENAME='+userini.installpackagename);
 
@@ -1201,7 +1228,8 @@ begin
      AddSection(not TargetStringEmpty(userini.targetloaders),'loaderrules');
      AddSection(not TargetStringEmpty(userini.targetunits),'unitrules');
      AddSection(not TargetStringEmpty(userini.targetprograms),'exerules');
-     AddSection(not TargetStringEmpty(userini.targetexamples),'examplerules');
+     AddSection(not(TargetStringEmpty(userini.targetexamples) and
+                    TargetStringEmpty(userini.targetexampledirs)),'examplerules');
      AddSection(not TargetStringEmpty(userini.targetrst),'rstrules');
 
    { default fpc_ rules }
@@ -1209,8 +1237,10 @@ begin
      AddSection(userini.Section[sec_Libs],'libraryrules');
      AddSection(userini.Section[sec_Install],'installrules');
      AddSection(userini.Section[sec_SourceInstall],'sourceinstallrules');
+     AddSection(userini.Section[sec_ExampleInstall],'exampleinstallrules');
      AddSection(userini.Section[sec_ZipInstall],'zipinstallrules');
      AddSection(userini.Section[sec_ZipSourceInstall],'zipsourceinstallrules');
+     AddSection(userini.Section[sec_ZipExampleInstall],'zipexampleinstallrules');
      AddSection(userini.Section[sec_Clean],'cleanrules');
      AddSection(userini.Section[sec_require],'requirerules');
      if userini.Section[sec_Info] then
@@ -1224,17 +1254,28 @@ begin
       end;
 
    { Target dirs }
-     if not TargetStringEmpty(userini.targetdirs) then
+     if not(TargetStringEmpty(userini.targetdirs) and
+            TargetStringEmpty(userini.targetexampledirs)) then
       begin
         AddSection(true,'directorytargets');
         hs:=AddTargetDefines(userini.targetdirs,'OBJECTDIR');
-        repeat
-          i:=pos(' ',hs);
-          if i=0 then
-           i:=length(hs)+1;
-          AddTargetDir(Copy(hs,1,i-1));
-          system.delete(hs,1,i);
-        until hs='';
+        while hs<>'' do
+         begin
+           i:=pos(' ',hs);
+           if i=0 then
+            i:=length(hs)+1;
+           AddTargetDir(Copy(hs,1,i-1),'OBJECTDIR');
+           system.delete(hs,1,i);
+         end;
+        hs:=AddTargetDefines(userini.targetexampledirs,'EXAMPLEDIR');
+        while hs<>'' do
+         begin
+           i:=pos(' ',hs);
+           if i=0 then
+            i:=length(hs)+1;
+           AddTargetDir(Copy(hs,1,i-1),'EXAMPLEDIR');
+           system.delete(hs,1,i);
+         end;
         Add('');
       end;
 
@@ -1309,7 +1350,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2000-06-01 12:35:04  peter
+  Revision 1.37  2000-07-01 23:03:32  peter
+    * exampleinstall target added
+
+  Revision 1.36  2000/06/01 12:35:04  peter
     * library support including symlink of .so to .so.1.0
 
   Revision 1.35  2000/05/11 17:59:12  peter

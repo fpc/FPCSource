@@ -4,11 +4,10 @@
 
 [targets]
 units=utmp
-examples=testu
+examples=testutmp
 
 [dirs]
 fpcdir=../..
 
-
 [rules]
-testu$(EXEEXT): testu$(PASEXT) utmp$(PPUEXT)
+testutmp$(EXEEXT): testutmp$(PASEXT) utmp$(PPUEXT)

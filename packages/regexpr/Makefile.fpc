@@ -4,10 +4,7 @@
 
 [targets]
 units=regexpr
-examples=test1
-
-[install]
-sourcesubdir=packages
+examples=testreg1
 
 [dirs]
 fpcdir=../..

@@ -1,3 +1,5 @@
+/usr/share/doc/fp-units-net
+
 /usr/lib/fpc/%{fpcversion}/units/linux/inet.ppu
 
 /usr/lib/fpc/%{fpcversion}/units/linux/libinet.a 

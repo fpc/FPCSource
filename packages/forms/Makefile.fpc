@@ -5,13 +5,13 @@
 [targets]
 units=forms
 programs=fd2pascal
+exampledirs=demo
+
+[install]
+examplesubdir=forms
 
 [require]
 packages=x11
 
 [dirs]
 fpcdir=../..
-
-[rules]
-examples: all
-        $(MAKE) -C demo all
