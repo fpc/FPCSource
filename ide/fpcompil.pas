@@ -89,6 +89,7 @@ type
       function fileread(var databuf; maxsize: longint): longint; override;
       function fileeof: boolean; override;
       function fileclose: boolean; override;
+      procedure filegettime; override;
     private
       Editor: PFileEditor;
       S: PStream;
@@ -1253,6 +1254,17 @@ begin
   fileclose:=OK;
 end;
 
+procedure tfpinputfile.filegettime;
+var
+  dt : datetime;
+  hsec,wday : word;
+begin
+  { current time }
+  dos.getdate(dt.year,dt.month,dt.day,wday);
+  dos.gettime(dt.hour,dt.min,dt.sec,hsec);
+  packtime(dt,filetime);
+end;
+
 procedure RegisterFPCompile;
 begin
 {$ifndef NOOBJREG}
@@ -1265,7 +1277,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2005-01-08 12:05:13  florian
+  Revision 1.35  2005-02-10 20:57:02  peter
+    * implement tinputfile.getfiletime
+
+  Revision 1.34  2005/01/08 12:05:13  florian
     * user screen parsing fixed
 
   Revision 1.33  2004/11/22 19:34:58  peter
