@@ -206,9 +206,12 @@ var
 begin
   DosError := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
                                                                SizeOf (FStat));
-  If DosError=0 then
-    Time := FStat.TimeLastWrite + FStat.DateLastWrite * 256
-  else
+  if DosError=0 then
+  begin
+    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) * 256;
+    if Time = 0 then
+      Time := FStat.TimeCreation + longint (FStat.DateCreation) * 256;
+  end else
     Time:=0;
 end;
 
@@ -699,7 +702,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2003-10-25 23:55:22  hajny
+  Revision 1.31  2003-11-01 18:35:12  hajny
+    * GetFTime correction for case of no previous write access
+
+  Revision 1.30  2003/10/25 23:55:22  hajny
     * Exec fix
 
   Revision 1.29  2003/10/25 22:45:37  hajny
