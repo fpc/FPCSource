@@ -27,7 +27,7 @@ uses
 
 const
       cmFileNameChanged      = 51234;
-      cmASCIIChar            = 51235;
+      cmASCIIChar     = 51235;
       cmClearLineHighlights  = 51236;
 
 {$ifdef FPC}
@@ -40,9 +40,9 @@ const
       MaxLineCount  = 16380;
 {$endif}
 
-      efBackupFiles         = $00000001;
-      efInsertMode          = $00000002;
-      efAutoIndent          = $00000004;
+      efBackupFiles   = $00000001;
+      efInsertMode     = $00000002;
+      efAutoIndent     = $00000004;
       efUseTabCharacters    = $00000008;
       efBackSpaceUnindents  = $00000010;
       efPersistentBlocks    = $00000020;
@@ -50,8 +50,8 @@ const
       efBlockInsCursor      = $00000080;
       efVerticalBlocks      = $00000100;
       efHighlightColumn     = $00000200;
-      efHighlightRow        = $00000400;
-      efAutoBrackets        = $00000800;
+      efHighlightRow = $00000400;
+      efAutoBrackets = $00000800;
 
       attrAsm       = 1;
       attrComment   = 2;
@@ -64,8 +64,8 @@ const
       edCreateError   = 3;
       edSaveModify    = 4;
       edSaveUntitled  = 5;
-      edSaveAs        = 6;
-      edFind          = 7;
+      edSaveAs = 6;
+      edFind     = 7;
       edSearchFailed  = 8;
       edReplace       = 9;
       edReplacePrompt = 10;
@@ -73,11 +73,11 @@ const
       edGotoLine      = 12;
       edReplaceFile   = 13;
 
-      ffmOptions         = $0007; ffsOptions     = 0;
+      ffmOptions   = $0007; ffsOptions     = 0;
       ffmDirection       = $0008; ffsDirection   = 3;
-      ffmScope           = $0010; ffsScope       = 4;
-      ffmOrigin          = $0020; ffsOrigin      = 5;
-      ffDoReplace        = $0040;
+      ffmScope    = $0010; ffsScope       = 4;
+      ffmOrigin     = $0020; ffsOrigin      = 5;
+      ffDoReplace = $0040;
       ffReplaceAll       = $0080;
 
 
@@ -85,16 +85,16 @@ const
       ffWholeWordsOnly   = $0002;
       ffPromptOnReplace  = $0004;
 
-      ffForward          = $0000;
-      ffBackward         = $0008;
+      ffForward     = $0000;
+      ffBackward   = $0008;
 
-      ffGlobal           = $0000;
+      ffGlobal    = $0000;
       ffSelectedText     = $0010;
 
       ffFromCursor       = $0000;
       ffEntireScope      = $0020;
 
-      coTextColor         = 0;
+      coTextColor  = 0;
       coWhiteSpaceColor   = 1;
       coCommentColor      = 2;
       coReservedWordColor = 3;
@@ -105,23 +105,24 @@ const
       coSymbolColor       = 8;
       coDirectiveColor    = 9;
       coHexNumberColor    = 10;
-      coTabColor          = 11;
+      coTabColor    = 11;
+      coBreakColor   = 12;
+      coFirstColor   = 0;
+      coLastColor  = coTabColor;
 
-      coFirstColor        = 0;
-      coLastColor         = coTabColor;
+      CIndicator    = #2#3#1;
+      CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
 
-      CIndicator          = #2#3#1;
-      CEditor             = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
-
-      TAB           = #9;
+      TAB      = #9;
 
 type
     PLine = ^TLine;
     TLine = record
-      Text          : PString;
-      Format        : PString;
+      Text    : PString;
+      Format   : PString;
       BeginsWithAsm,
       EndsWithAsm   : boolean;
+      IsBreakpoint : boolean;
       BeginsWithComment,
       EndsWithComment : boolean;
       BeginsWithDirective,
@@ -165,7 +166,7 @@ type
       TabSize    : integer;
       HighlightRow: integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-                    PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+          PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
       procedure   ConvertEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -198,6 +199,7 @@ type
       procedure   SetDisplayText(I: integer;const S: string); virtual;
       function    GetDisplayText(I: integer): string; virtual;
       procedure   SetLineText(I: integer;const S: string); virtual;
+      procedure   SetLineBreakState(I : integer;b : boolean);
       procedure   GetDisplayTextFormat(I: integer;var DT,DF:string); virtual;
       function    GetLineFormat(I: integer): string; virtual;
       procedure   SetLineFormat(I: integer;const S: string); virtual;
@@ -254,6 +256,7 @@ type
       function  ClipCopy: Boolean; virtual;
       procedure ClipCut; virtual;
       procedure ClipPaste; virtual;
+      function  GetCurrentWord : string;
       procedure Undo; virtual;
       procedure Find; virtual;
       procedure Replace; virtual;
@@ -265,7 +268,7 @@ type
     TFileEditor = object(TCodeEditor)
       FileName: string;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-                    PScrollBar; AIndicator: PIndicator;const AFileName: string);
+          PScrollBar; AIndicator: PIndicator;const AFileName: string);
       function    Save: Boolean; virtual;
       function    SaveAs: Boolean; virtual;
       function    SaveAsk: Boolean; virtual;
@@ -279,6 +282,7 @@ type
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
 function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
+function DefUseTabsPattern(Editor: PFileEditor): boolean;
 
 const
      DefaultCodeEditorFlags : longint =
@@ -286,24 +290,25 @@ const
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight;
      DefaultTabSize     : integer = 8;
 
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmClear]);
+     ToClipCmds    : TCommandSet = ([cmCut,cmCopy,cmClear]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
-     UndoCmds           : TCommandSet = ([cmUndo,cmRedo]);
+     UndoCmds     : TCommandSet = ([cmUndo,cmRedo]);
 
 function StdEditorDialog(Dialog: Integer; Info: Pointer): word;
 
 const
      EditorDialog       : TCodeEditorDialog = StdEditorDialog;
-     Clipboard          : PCodeEditor = nil;
-     FindStr            : String[80] = '';
-     ReplaceStr         : String[80] = '';
-     FindFlags          : word = ffPromptOnReplace;
+     Clipboard   : PCodeEditor = nil;
+     FindStr       : String[80] = '';
+     ReplaceStr    : String[80] = '';
+     FindFlags   : word = ffPromptOnReplace;
      WhiteSpaceChars    : set of char = [#0,#32,#255];
-     TabChars           : set of char = [#9];
-     AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
-     NumberChars        : set of char = ['0'..'9'];
+     TabChars     : set of char = [#9];
+     AlphaChars    : set of char = ['A'..'Z','a'..'z','_'];
+     NumberChars  : set of char = ['0'..'9'];
 
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
+     UseTabsPattern     : function(Editor: PFileEditor): boolean = DefUseTabsPattern;
 
 implementation
 
@@ -384,11 +389,11 @@ begin
   while (count>0) do
    begin
      if (lo(p^)=lo(keycode)) and
-        ((hi(p^)=0) or (hi(p^)=hi(keycode))) then
+   ((hi(p^)=0) or (hi(p^)=hi(keycode))) then
       begin
-        inc(p);
-        scankeymap:=p^;
-        exit;
+   inc(p);
+   scankeymap:=p^;
+   exit;
       end;
      inc(p,2);
      dec(count);
@@ -513,9 +518,9 @@ begin
      inc(p);
      if s[p]=#9 then
       begin
-        PAdd:=TabSize-((p-1) mod TabSize);
-        s:=copy(S,1,P-1)+CharStr(' ',PAdd)+copy(S,P+1,255);
-        inc(P,PAdd-1);
+   PAdd:=TabSize-((p-1) mod TabSize);
+   s:=copy(S,1,P-1)+CharStr(' ',PAdd)+copy(S,P+1,255);
+   inc(P,PAdd-1);
       end;
    end;
   ExtractTabs:=S;
@@ -538,251 +543,251 @@ end;
 
 function Scan_F(var Block; Size: Word; Str: String): Word; near; assembler;
 asm
-        PUSH    DS
-        LES     DI,Block
-        LDS     SI,Str
-        MOV     CX,Size
-        JCXZ    @@3
-        CLD
-        LODSB
-        CMP     AL,1
-        JB      @@5
-        JA      @@1
-        LODSB
-        REPNE   SCASB
-        JNE     @@3
-        JMP     @@5
+   PUSH    DS
+   LES     DI,Block
+   LDS     SI,Str
+   MOV     CX,Size
+   JCXZ    @@3
+   CLD
+   LODSB
+   CMP     AL,1
+   JB      @@5
+   JA      @@1
+   LODSB
+   REPNE   SCASB
+   JNE     @@3
+   JMP     @@5
 @@1:    XOR     AH,AH
-        MOV     BX,AX
-        DEC     BX
-        MOV     DX,CX
-        SUB     DX,AX
-        JB      @@3
-        LODSB
-        INC     DX
-        INC     DX
+   MOV     BX,AX
+   DEC     BX
+   MOV     DX,CX
+   SUB     DX,AX
+   JB      @@3
+   LODSB
+   INC     DX
+   INC     DX
 @@2:    DEC     DX
-        MOV     CX,DX
-        REPNE   SCASB
-        JNE     @@3
-        MOV     DX,CX
-        MOV     CX,BX
-        REP     CMPSB
-        JE      @@4
-        SUB     CX,BX
-        ADD     SI,CX
-        ADD     DI,CX
-        INC     DI
-        OR      DX,DX
-        JNE     @@2
+   MOV     CX,DX
+   REPNE   SCASB
+   JNE     @@3
+   MOV     DX,CX
+   MOV     CX,BX
+   REP     CMPSB
+   JE      @@4
+   SUB     CX,BX
+   ADD     SI,CX
+   ADD     DI,CX
+   INC     DI
+   OR      DX,DX
+   JNE     @@2
 @@3:    XOR     AX,AX
-        JMP     @@6
+   JMP     @@6
 @@4:    SUB     DI,BX
 @@5:    MOV     AX,DI
-        SUB     AX,WORD PTR Block
+   SUB     AX,WORD PTR Block
 @@6:    DEC     AX
-        POP     DS
+   POP     DS
 end;
 
 function IScan_F(var Block; Size: Word; Str: String): Word; near; assembler;
 var
   S: String;
 asm
-        PUSH    DS
-        MOV     AX,SS
-        MOV     ES,AX
-        LEA     DI,S
-        LDS     SI,Str
-        XOR     AH,AH
-        LODSB
-        STOSB
-        MOV     CX,AX
-        MOV     BX,AX
-        JCXZ    @@9
+   PUSH    DS
+   MOV     AX,SS
+   MOV     ES,AX
+   LEA     DI,S
+   LDS     SI,Str
+   XOR     AH,AH
+   LODSB
+   STOSB
+   MOV     CX,AX
+   MOV     BX,AX
+   JCXZ    @@9
 @@1:    LODSB
-        CMP     AL,'a'
-        JB      @@2
-        CMP     AL,'z'
-        JA      @@2
-        SUB     AL,20H
+   CMP     AL,'a'
+   JB      @@2
+   CMP     AL,'z'
+   JA      @@2
+   SUB     AL,20H
 @@2:    STOSB
-        LOOP    @@1
-        SUB     DI,BX
-        LDS     SI,Block
-        MOV     CX,Size
-        JCXZ    @@8
-        CLD
-        SUB     CX,BX
-        JB      @@8
-        INC     CX
+   LOOP    @@1
+   SUB     DI,BX
+   LDS     SI,Block
+   MOV     CX,Size
+   JCXZ    @@8
+   CLD
+   SUB     CX,BX
+   JB      @@8
+   INC     CX
 @@4:    MOV     AH,ES:[DI]
-        AND     AH,$DF
+   AND     AH,$DF
 @@5:    LODSB
-        AND     AL,$DF
-        CMP     AL,AH
-        LOOPNE  @@5
-        JNE     @@8
-        DEC     SI
-        MOV     DX,CX
-        MOV     CX,BX
+   AND     AL,$DF
+   CMP     AL,AH
+   LOOPNE  @@5
+   JNE     @@8
+   DEC     SI
+   MOV     DX,CX
+   MOV     CX,BX
 @@6:    REPE    CMPSB
-        JE      @@10
-        MOV     AL,DS:[SI-1]
-        CMP     AL,'a'
-        JB      @@7
-        CMP     AL,'z'
-        JA      @@7
-        SUB     AL,20H
+   JE      @@10
+   MOV     AL,DS:[SI-1]
+   CMP     AL,'a'
+   JB      @@7
+   CMP     AL,'z'
+   JA      @@7
+   SUB     AL,20H
 @@7:    CMP     AL,ES:[DI-1]
-        JE      @@6
-        SUB     CX,BX
-        ADD     SI,CX
-        ADD     DI,CX
-        INC     SI
-        MOV     CX,DX
-        OR      CX,CX
-        JNE     @@4
+   JE      @@6
+   SUB     CX,BX
+   ADD     SI,CX
+   ADD     DI,CX
+   INC     SI
+   MOV     CX,DX
+   OR      CX,CX
+   JNE     @@4
 @@8:    XOR     AX,AX
-        JMP     @@11
+   JMP     @@11
 @@9:    MOV     AX, 1
-        JMP     @@11
+   JMP     @@11
 @@10:   SUB     SI,BX
-        MOV     AX,SI
-        SUB     AX,WORD PTR Block
-        INC     AX
+   MOV     AX,SI
+   SUB     AX,WORD PTR Block
+   INC     AX
 @@11:   DEC     AX
-        POP     DS
+   POP     DS
 end;
 
 function Scan_B(var Block; Size: Word; Str: String): Word; near; assembler;
 asm
-        PUSH    DS
-        LES     DI,Block
-        LDS     SI,Str
-        MOV     CX,Size
-        JCXZ    @@3
-        CLD
-        LODSB
-        CMP     AL,1
-        JB      @@5
-        JA      @@1
-        LODSB
-        STD
-        REPNE   SCASB
-        JNE     @@3
-        JMP     @@5
+   PUSH    DS
+   LES     DI,Block
+   LDS     SI,Str
+   MOV     CX,Size
+   JCXZ    @@3
+   CLD
+   LODSB
+   CMP     AL,1
+   JB      @@5
+   JA      @@1
+   LODSB
+   STD
+   REPNE   SCASB
+   JNE     @@3
+   JMP     @@5
 @@1:    XOR     AH,AH
-        ADD     SI, AX    { !! }
-        DEC     SI
-        ADD     DI, CX    { !! }
-        DEC     DI
-        SUB     DI, AX
-        STD
-        MOV     BX,AX
-        DEC     BX
-        MOV     DX,CX
-{        SUB     DX,AX}
-        JB      @@3
-        LODSB
-        INC     DX
-        INC     DX
+   ADD     SI, AX    { !! }
+   DEC     SI
+   ADD     DI, CX    { !! }
+   DEC     DI
+   SUB     DI, AX
+   STD
+   MOV     BX,AX
+   DEC     BX
+   MOV     DX,CX
+{  SUB     DX,AX}
+   JB      @@3
+   LODSB
+   INC     DX
+   INC     DX
 @@2:    DEC     DX
-        MOV     CX,DX
-        REPNE   SCASB
-        JNE     @@3
-        MOV     DX,CX
-        MOV     CX,BX
-        REP     CMPSB
-        JE      @@4
-        SUB     CX,BX
-        SUB     SI,CX { ADD }
-        SUB     DI,CX { ADD }
-        DEC     DI    { INC DI }
-        OR      DX,DX
-        JNE     @@2
+   MOV     CX,DX
+   REPNE   SCASB
+   JNE     @@3
+   MOV     DX,CX
+   MOV     CX,BX
+   REP     CMPSB
+   JE      @@4
+   SUB     CX,BX
+   SUB     SI,CX { ADD }
+   SUB     DI,CX { ADD }
+   DEC     DI    { INC DI }
+   OR      DX,DX
+   JNE     @@2
 @@3:    XOR     AX,AX
-        JMP     @@6
+   JMP     @@6
 @@4:    ADD     DI,BX
 @@5:    MOV     AX,DI
-        SUB     AX,WORD PTR Block
+   SUB     AX,WORD PTR Block
 @@6:    DEC     AX
-        POP     DS
+   POP     DS
 end;
 
 function IScan_B(var Block; Size: Word; Str: String): Word; near; assembler;
 var
   S: String;
 asm
-        PUSH    DS
-        MOV     AX,SS
-        MOV     ES,AX
-        LEA     DI,S
-        LDS     SI,Str
-        XOR     AH,AH
-        LODSB
-        STOSB
-        MOV     CX,AX
-        MOV     BX,AX
-        JCXZ    @@9
+   PUSH    DS
+   MOV     AX,SS
+   MOV     ES,AX
+   LEA     DI,S
+   LDS     SI,Str
+   XOR     AH,AH
+   LODSB
+   STOSB
+   MOV     CX,AX
+   MOV     BX,AX
+   JCXZ    @@9
 @@1:    LODSB
-        CMP     AL,'a'
-        JB      @@2
-        CMP     AL,'z'
-        JA      @@2
-        SUB     AL,20H
+   CMP     AL,'a'
+   JB      @@2
+   CMP     AL,'z'
+   JA      @@2
+   SUB     AL,20H
 @@2:    STOSB
-        LOOP    @@1
-        SUB     DI,BX
-        LDS     SI,Block
-        ADD     SI,Size
-        SUB     SI, BX
-        MOV     CX,Size
-        JCXZ    @@8
-        CLD
-        SUB     CX,BX
-        JB      @@8
-        INC     CX
-        ADD     SI, 2
+   LOOP    @@1
+   SUB     DI,BX
+   LDS     SI,Block
+   ADD     SI,Size
+   SUB     SI, BX
+   MOV     CX,Size
+   JCXZ    @@8
+   CLD
+   SUB     CX,BX
+   JB      @@8
+   INC     CX
+   ADD     SI, 2
 @@4:    SUB     SI, 2
-        MOV     AH,ES:[DI]
-        AND     AH,$DF
-        ADD     SI,2
+   MOV     AH,ES:[DI]
+   AND     AH,$DF
+   ADD     SI,2
 @@5:    SUB     SI,2
-        LODSB
-        AND     AL,$DF
-        CMP     AL,AH
-        LOOPNE  @@5
-        JNE     @@8
-        DEC     SI
-        MOV     DX,CX
-        MOV     CX,BX
+   LODSB
+   AND     AL,$DF
+   CMP     AL,AH
+   LOOPNE  @@5
+   JNE     @@8
+   DEC     SI
+   MOV     DX,CX
+   MOV     CX,BX
 @@6:    REPE    CMPSB
-        JE      @@10
-        MOV     AL,DS:[SI-1]
-        CMP     AL,'a'
-        JB      @@7
-        CMP     AL,'z'
-        JA      @@7
-        SUB     AL,20H
+   JE      @@10
+   MOV     AL,DS:[SI-1]
+   CMP     AL,'a'
+   JB      @@7
+   CMP     AL,'z'
+   JA      @@7
+   SUB     AL,20H
 @@7:    CMP     AL,ES:[DI-1]
-        JE      @@6
-        SUB     CX,BX
-        ADD     SI,CX
-        ADD     DI,CX
-        INC     SI
-        MOV     CX,DX
-        OR      CX,CX
-        JNE     @@4
+   JE      @@6
+   SUB     CX,BX
+   ADD     SI,CX
+   ADD     DI,CX
+   INC     SI
+   MOV     CX,DX
+   OR      CX,CX
+   JNE     @@4
 @@8:    XOR     AX,AX
-        JMP     @@11
+   JMP     @@11
 @@9:    MOV     AX, 1
-        JMP     @@11
+   JMP     @@11
 @@10:   SUB     SI,BX
-        MOV     AX,SI
-        SUB     AX,WORD PTR Block
-        INC     AX
+   MOV     AX,SI
+   SUB     AX,WORD PTR Block
+   INC     AX
 @@11:   DEC     AX
-        POP     DS
+   POP     DS
 end;
 
 
@@ -790,7 +795,7 @@ function PosB(SubS, InS: string; CaseSensitive: boolean): byte;
 var W: word;
 begin
   if CaseSensitive then W:=Scan_B(InS[1],length(Ins),SubS)
-                   else W:=IScan_B(InS[1],length(Ins),SubS);
+         else W:=IScan_B(InS[1],length(Ins),SubS);
   if W=$ffff then W:=0 else W:=W+1;
   PosB:=W;
 end;
@@ -799,7 +804,7 @@ function PosF(SubS, InS: string; CaseSensitive: boolean): byte;
 var W: word;
 begin
   if CaseSensitive then W:=Scan_F(InS[1],length(Ins),SubS)
-                   else W:=IScan_F(InS[1],length(Ins),SubS);
+         else W:=IScan_F(InS[1],length(Ins),SubS);
   if W=$ffff then W:=0 else W:=W+1;
   PosF:=W;
 end;
@@ -850,17 +855,17 @@ begin
      { partial match }
      if buffer[numb] = ord(str[len]) then
       begin
-        { less partial! }
-        if buffer[numb-pred(len)] = ord(str[1]) then
-         begin
-           move(buffer[numb-pred(len)],s2[1],len);
-           if (str=s2) then
-            begin
-              found:=true;
-              break;
-            end;
-         end;
-        inc(numb);
+   { less partial! }
+   if buffer[numb-pred(len)] = ord(str[1]) then
+    begin
+      move(buffer[numb-pred(len)],s2[1],len);
+      if (str=s2) then
+       begin
+         found:=true;
+         break;
+       end;
+    end;
+   inc(numb);
      end
     else
      inc(numb,Bt[buffer[numb]]);
@@ -898,23 +903,23 @@ begin
       c:=chr(ord(c)-32);
      if (c=str[len]) then
       begin
-        { less partial! }
-        p:=@buffer[numb-pred(len)];
-        x:=1;
-        while (x<=len) do
-         begin
-           if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
-                  (p^=str[x])) then
-            break;
-           inc(p);
-           inc(x);
-         end;
-        if (x>len) then
-         begin
-           found:=true;
-           break;
-         end;
-        inc(numb);
+   { less partial! }
+   p:=@buffer[numb-pred(len)];
+   x:=1;
+   while (x<=len) do
+    begin
+      if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
+        (p^=str[x])) then
+       break;
+      inc(p);
+      inc(x);
+    end;
+   if (x>len) then
+    begin
+      found:=true;
+      break;
+    end;
+   inc(numb);
      end
     else
      inc(numb,Bt[ord(c)]);
@@ -1024,11 +1029,11 @@ end;
 
 
 {*****************************************************************************
-                               TCodeEditor
+                TCodeEditor
 *****************************************************************************}
 
 constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-                    PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+          PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
   New(Lines, Init(500,1000));
@@ -1128,12 +1133,12 @@ begin
     if Key <> 0 then
       if Hi(Key) = $FF then
       begin
-        KeyState := Lo(Key);
-        ClearEvent(Event);
+   KeyState := Lo(Key);
+   ClearEvent(Event);
       end else
       begin
-        Event.What := evCommand;
-        Event.Command := Key;
+   Event.What := evCommand;
+   Event.Command := Key;
       end;
   end;
 end;
@@ -1166,102 +1171,102 @@ begin
       if MouseInView(Event.Where) then
       if Event.Buttons=mbLeftButton then
       begin
-        GetMousePos(P);
-        StartP:=P;
-        SetCurPtr(P.X,P.Y);
-        repeat
-          GetMousePos(P);
-          if PointOfs(P)<PointOfs(StartP)
-             then SetSelection(P,StartP)
-             else SetSelection(StartP,P);
-          SetCurPtr(P.X,P.Y);
-          DrawView;
-        until not MouseEvent(Event, evMouseMove+evMouseAuto);
-        DrawView;
+   GetMousePos(P);
+   StartP:=P;
+   SetCurPtr(P.X,P.Y);
+   repeat
+     GetMousePos(P);
+     if PointOfs(P)<PointOfs(StartP)
+        then SetSelection(P,StartP)
+        else SetSelection(StartP,P);
+     SetCurPtr(P.X,P.Y);
+     DrawView;
+   until not MouseEvent(Event, evMouseMove+evMouseAuto);
+   DrawView;
       end;
     evKeyDown :
       begin
-        if InASCIIMode and (Event.ScanCode=0) then
-          AddChar(Event.CharCode) else
+   if InASCIIMode and (Event.ScanCode=0) then
+     AddChar(Event.CharCode) else
+   begin
+     DontClear:=false;
+     case Event.CharCode of
+      #9,#32..#255 :
         begin
-          DontClear:=false;
-          case Event.CharCode of
-           #9,#32..#255 :
-             begin
-               NoSelect:=true;
-               AddChar(Event.CharCode);
-               NoSelect:=false;
-             end;
-          else
-            DontClear:=true;
-          end;
-          if not DontClear then
-           ClearEvent(Event);
+          NoSelect:=true;
+          AddChar(Event.CharCode);
+          NoSelect:=false;
         end;
-        InASCIIMode:=false;
+     else
+       DontClear:=true;
+     end;
+     if not DontClear then
+      ClearEvent(Event);
+   end;
+   InASCIIMode:=false;
       end;
     evCommand :
       begin
-        DontClear:=false;
-        case Event.Command of
-          cmASCIIChar   : InASCIIMode:=not InASCIIMode;
-          cmCharLeft    : CharLeft;
-          cmCharRight   : CharRight;
-          cmWordLeft    : WordLeft;
-          cmWordRight   : WordRight;
-          cmLineStart   : LineStart;
-          cmLineEnd     : LineEnd;
-          cmLineUp      : LineUp;
-          cmLineDown    : LineDown;
-          cmPageUp      : PageUp;
-          cmPageDown    : PageDown;
-          cmTextStart   : TextStart;
-          cmTextEnd     : TextEnd;
-          cmNewLine     : InsertLine;
-          cmBackSpace   : BackSpace;
-          cmDelChar     : DelChar;
-          cmDelWord     : DelWord;
-          cmDelStart    : DelStart;
-          cmDelEnd      : DelEnd;
-          cmDelLine     : DelLine;
-          cmInsMode     : InsMode;
-          cmStartSelect : StartSelect;
-          cmHideSelect  : HideSelect;
-          cmUpdateTitle : ;
-          cmEndSelect   : EndSelect;
-          cmDelSelect   : DelSelect;
-          cmCopyBlock   : CopyBlock;
-          cmMoveBlock   : MoveBlock;
-        { ------ }
-          cmFind        : Find;
-          cmReplace     : Replace;
-          cmSearchAgain : DoSearchReplace;
-          cmJumpLine    : GotoLine;
-        { ------ }
-          cmCut         : ClipCut;
-          cmCopy        : ClipCopy;
-          cmPaste       : ClipPaste;
-          cmUndo        : Undo;
-          cmClear       : DelSelect;
-        else DontClear:=true;
-        end;
-        if DontClear=false then ClearEvent(Event);
+   DontClear:=false;
+   case Event.Command of
+     cmASCIIChar   : InASCIIMode:=not InASCIIMode;
+     cmCharLeft    : CharLeft;
+     cmCharRight   : CharRight;
+     cmWordLeft    : WordLeft;
+     cmWordRight   : WordRight;
+     cmLineStart   : LineStart;
+     cmLineEnd     : LineEnd;
+     cmLineUp      : LineUp;
+     cmLineDown    : LineDown;
+     cmPageUp      : PageUp;
+     cmPageDown    : PageDown;
+     cmTextStart   : TextStart;
+     cmTextEnd     : TextEnd;
+     cmNewLine     : InsertLine;
+     cmBackSpace   : BackSpace;
+     cmDelChar     : DelChar;
+     cmDelWord     : DelWord;
+     cmDelStart    : DelStart;
+     cmDelEnd      : DelEnd;
+     cmDelLine     : DelLine;
+     cmInsMode     : InsMode;
+     cmStartSelect : StartSelect;
+     cmHideSelect  : HideSelect;
+     cmUpdateTitle : ;
+     cmEndSelect   : EndSelect;
+     cmDelSelect   : DelSelect;
+     cmCopyBlock   : CopyBlock;
+     cmMoveBlock   : MoveBlock;
+   { ------ }
+     cmFind        : Find;
+     cmReplace     : Replace;
+     cmSearchAgain : DoSearchReplace;
+     cmJumpLine    : GotoLine;
+   { ------ }
+     cmCut   : ClipCut;
+     cmCopy : ClipCopy;
+     cmPaste       : ClipPaste;
+     cmUndo : Undo;
+     cmClear       : DelSelect;
+   else DontClear:=true;
+   end;
+   if DontClear=false then ClearEvent(Event);
       end;
     evBroadcast :
       case Event.Command of
-        cmClearLineHighlights :
-          SetHighlightRow(-1);
-        cmScrollBarChanged:
-          if (Event.InfoPtr = HScrollBar) or
-            (Event.InfoPtr = VScrollBar) then
-          begin
-            CheckScrollBar(HScrollBar, Delta.X);
-            CheckScrollBar(VScrollBar, Delta.Y);
-          end
-          else
-            Exit;
+   cmClearLineHighlights :
+     SetHighlightRow(-1);
+   cmScrollBarChanged:
+     if (Event.InfoPtr = HScrollBar) or
+       (Event.InfoPtr = VScrollBar) then
+     begin
+       CheckScrollBar(HScrollBar, Delta.X);
+       CheckScrollBar(VScrollBar, Delta.Y);
+     end
+     else
+       Exit;
       else
-        Exit;
+   Exit;
       end;
   end;
 end;
@@ -1277,6 +1282,7 @@ var SelectColor,
     LineCount: integer;
     Line: PLine;
     LineText,Format: string;
+    isBreak : boolean;
     C: char;
     FreeFormat: array[0..255] of boolean;
     Color: word;
@@ -1311,6 +1317,8 @@ begin
   ColorTab[coDirectiveColor]:=GetColor(13);
   ColorTab[coHexNumberColor]:=GetColor(14);
   ColorTab[coTabColor]:=GetColor(15);
+  { break same as error }
+  ColorTab[coBreakColor]:=GetColor(16);
   SelectColor:=GetColor(10);
   HighlightColColor:=GetColor(11);
   HighlightRowColor:=GetColor(12);
@@ -1328,7 +1336,8 @@ begin
     FillChar(FreeFormat,SizeOf(FreeFormat),1);
     MoveChar(B,' ',Color,Size.X);
     if AY<LineCount then Line:=GetLine(AY) else Line:=@NulLine;
-    GetDisplayTextFormat(AY,LineText,Format);
+     GetDisplayTextFormat(AY,LineText,Format);
+    IsBreak:=Lines^.at(AY)^.isBreakpoint;
 
 {    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
        else }MaxX:=Size.X+Delta.X;
@@ -1340,36 +1349,51 @@ begin
       PX.X:=AX-Delta.X; PX.Y:=AY;
       if (Highlight.A.X<>Highlight.B.X) or (Highlight.A.Y<>Highlight.B.Y) then
       begin
-         if (PointOfs(Highlight.A)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(Highlight.B)) then
-         begin
-            Color:=SelectColor;
-            FreeFormat[X]:=false;
-         end;
+    if (PointOfs(Highlight.A)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(Highlight.B)) then
+    begin
+       Color:=SelectColor;
+       FreeFormat[X]:=false;
+    end;
       end else
       { no highlight }
       begin
-        if (Flags and efVerticalBlocks<>0) then
-           begin
-             if (SelStart.X<=AX) and (AX<=SelEnd.X) and
-                (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
-                begin Color:=SelectColor; FreeFormat[X]:=false; end;
-           end else
-         if PointOfs(SelStart)<>PointOfs(SelEnd) then
-          if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
-             begin Color:=SelectColor; FreeFormat[X]:=false; end;
+   if (Flags and efVerticalBlocks<>0) then
+      begin
+        if (SelStart.X<=AX) and (AX<=SelEnd.X) and
+      (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
+      begin Color:=SelectColor; FreeFormat[X]:=false; end;
+      end else
+    if PointOfs(SelStart)<>PointOfs(SelEnd) then
+     if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
+        begin Color:=SelectColor; FreeFormat[X]:=false; end;
       end;
       if FreeFormat[X] then
-         if X<=length(Format) then
-            Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+    if X<=length(Format) then
+       Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
 
-      if ( ((Flags and efHighlightRow)   <>0) and (PX.Y=CurPos.Y) ) and (HighlightRow=-1) then
-         begin Color:=CombineColors(Color,HighlightRowColor); FreeFormat[X]:=false; end;
-      if ( ((Flags and efHighlightColumn)<>0) and (PX.X=CurPos.X) ) then
-         begin Color:=CombineColors(Color,HighlightColColor); FreeFormat[X]:=false; end;
+    if ( ((Flags and efHighlightRow)   <>0) and
+       (PX.Y=CurPos.Y) ) and (HighlightRow=-1) then
+      begin
+        Color:=CombineColors(Color,HighlightRowColor);
+        FreeFormat[X]:=false;
+      end;
+    if ( ((Flags and efHighlightColumn)<>0) and (PX.X=CurPos.X) ) then
+      begin
+        Color:=CombineColors(Color,HighlightColColor);
+        FreeFormat[X]:=false;
+      end;
 
-      if HighlightRow=AY then
-         begin Color:=CombineColors(Color,HighlightRowColor); FreeFormat[X]:=false; end;
-
+    if HighlightRow=AY then
+      begin
+        Color:=CombineColors(Color,HighlightRowColor);
+        FreeFormat[X]:=false;
+      end;
+    if isbreak then
+      begin
+        Color:=ColorTab[coBreakColor];
+        FreeFormat[X]:=false;
+      end;
+      
       if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
       MoveChar(B[X-1-Delta.X],C,Color,1);
     end;
@@ -1475,6 +1499,15 @@ begin
   L^.Text:=NewStr(S);
 end;
 
+procedure TCodeEditor.SetLineBreakState(I : integer;b : boolean);
+var PL : PLine;
+begin
+   PL:=Lines^.At(i);
+   if assigned(PL) then
+     PL^.isbreakpoint:=b;
+   DrawView;
+end;
+
 function TCodeEditor.GetDisplayText(I: integer): string;
 begin
   GetDisplayText:=ExtractTabs(GetLineText(I),TabSize);
@@ -1492,21 +1525,21 @@ begin
      L:=Lines^.At(I);
      if assigned(L^.Text) then
       begin
-        if assigned(L^.Format)=false then DF:='' else
-          DF:=L^.Format^;
-        DT:=L^.Text^;
-        p:=0;
-        while p<length(DT) do
-         begin
-           inc(p);
-           if DT[p]=#9 then
-            begin
-              PAdd:=TabSize-((p-1) mod TabSize);
-              DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,255);
-              DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,255);
-              inc(P,PAdd-1);
-            end;
-         end;
+   if assigned(L^.Format)=false then DF:='' else
+     DF:=L^.Format^;
+   DT:=L^.Text^;
+   p:=0;
+   while p<length(DT) do
+    begin
+      inc(p);
+      if DT[p]=#9 then
+       begin
+         PAdd:=TabSize-((p-1) mod TabSize);
+         DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,255);
+         DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,255);
+         inc(P,PAdd-1);
+       end;
+    end;
       end;
    end;
 end;
@@ -1616,11 +1649,11 @@ begin
    begin
      if (Flags and efUseTabCharacters)<>0 then
       begin
-        X:=GetDisplayTextPos(CurPos.Y,GetLineTextPos(CurPos.Y,CurPos.X)+1);
-        if X>CurPos.X then
-         SetCurPtr(X,CurPos.Y)
-        else
-         SetCurPtr(CurPos.X+1,CurPos.Y);
+   X:=GetDisplayTextPos(CurPos.Y,GetLineTextPos(CurPos.Y,CurPos.X)+1);
+   if X>CurPos.X then
+    SetCurPtr(X,CurPos.Y)
+   else
+    SetCurPtr(CurPos.X+1,CurPos.Y);
       end
      else
       SetCurPtr(CurPos.X+1,CurPos.Y);
@@ -1640,40 +1673,40 @@ begin
    begin
      if Y=CurPos.Y then
       begin
+   X:=length(GetDisplayText(Y));
+   if CurPos.X<X then
+     X:=CurPos.X; Dec(X);
+   if (X=-1) then
+     begin
+       Dec(Y);
+       if Y>=0 then
         X:=length(GetDisplayText(Y));
-        if CurPos.X<X then
-          X:=CurPos.X; Dec(X);
-        if (X=-1) then
-          begin
-            Dec(Y);
-            if Y>=0 then
-             X:=length(GetDisplayText(Y));
-            Break;
-          end;
+       Break;
+     end;
       end
      else
       X:=length(GetDisplayText(Y))-1;
      Line:=GetDisplayText(Y);
      while (X>=0) and (GotIt=false) do
       begin
-        if FoundNonSeparator then
-         begin
-           if IsWordSeparator(Line[X+1]) then
-            begin
-              Inc(X);
-              GotIt:=true;
-              Break;
-            end;
-         end
-        else
-         if not IsWordSeparator(Line[X+1]) then
-          FoundNonSeparator:=true;
-        Dec(X);
-        if (X=0) and (IsWordSeparator(Line[1])=false) then
-         begin
-           GotIt:=true;
-           Break;
-         end;
+   if FoundNonSeparator then
+    begin
+      if IsWordSeparator(Line[X+1]) then
+       begin
+         Inc(X);
+         GotIt:=true;
+         Break;
+       end;
+    end
+   else
+    if not IsWordSeparator(Line[X+1]) then
+     FoundNonSeparator:=true;
+   Dec(X);
+   if (X=0) and (IsWordSeparator(Line[1])=false) then
+    begin
+      GotIt:=true;
+      Break;
+    end;
       end;
      if GotIt then
       Break;
@@ -1681,8 +1714,8 @@ begin
      Dec(Y);
      if Y>=0 then
       begin
-        X:=length(GetDisplayText(Y));
-        Break;
+   X:=length(GetDisplayText(Y));
+   Break;
       end;
    end;
   if Y<0 then Y:=0; if X<0 then X:=0;
@@ -1699,30 +1732,30 @@ begin
   begin
     if Y=CurPos.Y then
        begin
-         X:=CurPos.X; Inc(X);
-         if (X>length(GetDisplayText(Y))-1) then
-            begin Inc(Y); X:=0; end;
+    X:=CurPos.X; Inc(X);
+    if (X>length(GetDisplayText(Y))-1) then
+       begin Inc(Y); X:=0; end;
        end else X:=0;
     Line:=GetDisplayText(Y);
     while (X<=length(Line)+1) and (GotIt=false) and (Line<>'') do
     begin
       if X=length(Line)+1 then begin GotIt:=true; Dec(X); Break end;
       if IsWordSeparator(Line[X]) then
-         begin
-           while (Y<GetLineCount) and
-                 (X<=length(Line)) and (IsWordSeparator(Line[X])) do
-                 begin
-                   Inc(X);
-                   if X>=length(Line) then
-                      begin GotIt:=true; Dec(X); Break; end;
-                 end;
-           if (GotIt=false) and (X<length(Line)) then
-           begin
-             Dec(X);
-             GotIt:=true;
-             Break;
-           end;
-         end;
+    begin
+      while (Y<GetLineCount) and
+       (X<=length(Line)) and (IsWordSeparator(Line[X])) do
+       begin
+         Inc(X);
+         if X>=length(Line) then
+            begin GotIt:=true; Dec(X); Break; end;
+       end;
+      if (GotIt=false) and (X<length(Line)) then
+      begin
+        Dec(X);
+        GotIt:=true;
+        Break;
+      end;
+    end;
       Inc(X);
     end;
     if GotIt then Break;
@@ -1795,7 +1828,7 @@ begin
     IndentStr:=GetLineText(LineOver);
     Ind:=0;
     while (Ind<length(IndentStr)) and (IndentStr[Ind+1]=' ') do
-          Inc(Ind);
+     Inc(Ind);
   end;
   IndentStr:=CharStr(' ',Ind);
 end;
@@ -1842,11 +1875,11 @@ begin
    begin
      if CurPos.Y>0 then
       begin
-        S:=GetLineText(CurPos.Y-1);
-        SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
-        Lines^.AtDelete(CurPos.Y);
-        LimitsChanged;
-        SetCurPtr(length(S),CurPos.Y-1);
+   S:=GetLineText(CurPos.Y-1);
+   SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
+   Lines^.AtDelete(CurPos.Y);
+   LimitsChanged;
+   SetCurPtr(length(S),CurPos.Y-1);
       end;
    end
   else
@@ -1856,13 +1889,13 @@ begin
      CP:=RX-1;
      if (Flags and efBackspaceUnindents)<>0 then
       begin
-        if CurPos.Y>0 then
-         PreS:=GetLineText(CurPos.Y)
-        else
-         PreS:='';
-        PreS:=RExpand(PreS,255);
-        while (CP>0) and (S[CP]=' ') and (PreS[CP]<>' ') do
-         Dec(CP);
+   if CurPos.Y>0 then
+    PreS:=GetLineText(CurPos.Y)
+   else
+    PreS:='';
+   PreS:=RExpand(PreS,255);
+   while (CP>0) and (S[CP]=' ') and (PreS[CP]<>' ') do
+    Dec(CP);
       end;
      SetLineText(CurPos.Y,copy(S,1,CP)+copy(S,RX+1,255));
      SetCurPtr(GetDisplayTextPos(CurPos.Y,CP),CurPos.Y);
@@ -1882,9 +1915,9 @@ begin
    begin
      if CurPos.Y<GetLineCount-1 then
       begin
-        SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
-        DeleteLine(CurPos.Y+1);
-        LimitsChanged;
+   SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
+   DeleteLine(CurPos.Y+1);
+   LimitsChanged;
       end;
    end
   else
@@ -1958,6 +1991,28 @@ begin
   DrawView;
 end;
 
+function  TCodeEditor.GetCurrentWord : string;
+const WordChars = ['A'..'Z','a'..'z','0'..'9','_'];
+var P : TPoint;
+    S : String;
+    StartPos,EndPos : byte;
+begin
+  P:=CurPos;
+  S:=GetLineText(P.Y);
+  StartPos:=P.X+1;
+  EndPos:=StartPos;
+  if not (S[StartPos] in WordChars) then
+    GetCurrentWord:=''
+  else
+    begin
+       While (StartPos>0) and (S[StartPos-1] in WordChars) do
+    Dec(StartPos);
+       While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
+    Inc(EndPos);
+       GetCurrentWord:=Copy(S,StartPos,EndPos-StartPos+1);
+    end;
+end;
+
 procedure TCodeEditor.EndSelect;
 var P: TPoint;
 begin
@@ -1984,23 +2039,23 @@ begin
     if (LineDelta<LineCount-1) and
        ( (StartX=0) and (EndX>=length(S)) )
        then begin
-              DeleteLine(CurLine);
-              if CurLine>0 then LastX:=length(GetDisplayText(CurLine-1))
-                           else LastX:=0;
-            end
+         DeleteLine(CurLine);
+         if CurLine>0 then LastX:=length(GetDisplayText(CurLine-1))
+            else LastX:=0;
+       end
        else begin
-              SetDisplayText(CurLine,copy(S,1,StartX)+copy(S,EndX+1,255));
-              LastX:=StartX;
-              if (StartX=0) and (0<LineDelta) and
-                 not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
-              begin
-                S:=GetDisplayText(CurLine-1);
-                SetDisplayText(CurLine-1,S+GetLineText(CurLine));
-                DeleteLine(CurLine);
-                LastX:=length(S);
-              end else
-              Inc(CurLine);
-            end;
+         SetDisplayText(CurLine,copy(S,1,StartX)+copy(S,EndX+1,255));
+         LastX:=StartX;
+         if (StartX=0) and (0<LineDelta) and
+       not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
+         begin
+      S:=GetDisplayText(CurLine-1);
+      SetDisplayText(CurLine-1,S+GetLineText(CurLine));
+      DeleteLine(CurLine);
+      LastX:=length(S);
+         end else
+         Inc(CurLine);
+       end;
     Inc(LineDelta);
   end;
   SetCurPtr(LastX,CurLine-1);
@@ -2091,9 +2146,9 @@ begin
   if Clipboard<>nil then
      if Clipboard^.InsertFrom(@Self) then
      begin
-        DelSelect;
-        Modified:=true;
-        UpdateIndicator;
+   DelSelect;
+   Modified:=true;
+   UpdateIndicator;
      end;
 end;
 
@@ -2136,6 +2191,8 @@ begin
   with FindRec do
   begin
     Find := FindStr;
+    if GetCurrentWord<>'' then
+      Find:=GetCurrentWord;
     Options := (FindFlags and ffmOptions) shr ffsOptions;
     Direction := (FindFlags and ffmDirection) shr ffsDirection;
     Scope := (FindFlags and ffmScope) shr ffsScope;
@@ -2145,10 +2202,10 @@ begin
     begin
       FindStr := Find;
       FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
-                   (Scope shl ffsScope) or (Origin shl ffsOrigin);
+         (Scope shl ffsScope) or (Origin shl ffsOrigin);
       FindFlags := FindFlags and not ffDoReplace;
       if DoConf then
-        FindFlags := (FindFlags or ffPromptOnReplace);
+   FindFlags := (FindFlags or ffPromptOnReplace);
       SearchRunCount:=0;
       DoSearchReplace;
     end;
@@ -2164,6 +2221,8 @@ begin
   with ReplaceRec do
   begin
     Find := FindStr;
+    if GetCurrentWord<>'' then
+      Find:=GetCurrentWord;
     Replace := ReplaceStr;
     Options := (FindFlags and ffmOptions) shr ffsOptions;
     Direction := (FindFlags and ffmDirection) shr ffsDirection;
@@ -2175,7 +2234,7 @@ begin
       FindStr := Find;
       ReplaceStr := Replace;
       FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
-                   (Scope shl ffsScope) or (Origin shl ffsOrigin);
+         (Scope shl ffsScope) or (Origin shl ffsOrigin);
       FindFlags := FindFlags or ffDoReplace;
       if Re = cmYes then
         FindFlags := FindFlags or ffReplaceAll;
@@ -2212,27 +2271,27 @@ var S: string;
      begin
 {$ifdef ASMSCAN}
        if SForward then
-        begin
-          P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
-        end
+   begin
+     P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
+   end
        else
-        begin
-          P:=PosB(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
-        end;
+   begin
+     P:=PosB(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
+   end;
 {$else}
        if SForward then
-        begin
-          if FindFlags and ffCaseSensitive<>0 then
-           P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
-          else
-           P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
-        end
+   begin
+     if FindFlags and ffCaseSensitive<>0 then
+      P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
+     else
+      P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
+   end
        else
-        begin
-        end;
+   begin
+   end;
 {$endif}
        if P>0 then
-        Inc(P,Start-1);
+   Inc(P,Start-1);
      end;
     ContainsText:=P;
   end;
@@ -2240,8 +2299,8 @@ var S: string;
   function InArea(X,Y: integer): boolean;
   begin
     InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
-            ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
-            ((AreaEnd.Y=Y) and (X<AreaEnd.X));
+       ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
+       ((AreaEnd.Y=Y) and (X<AreaEnd.X));
   end;
 
 begin
@@ -2263,7 +2322,7 @@ begin
   if SearchRunCount=1 then
     if (FindFlags and ffmOrigin)=ffEntireScope then
        if SForward then begin X:=AreaStart.X-1; Y:=AreaStart.Y; end
-                   else begin X:=AreaEnd.X+1; Y:=AreaEnd.Y; end;
+         else begin X:=AreaEnd.X+1; Y:=AreaEnd.Y; end;
 
 {$ifndef ASMSCAN}
   if FindFlags and ffCaseSensitive<>0 then
@@ -2298,37 +2357,37 @@ begin
 
     if Found then
       begin
-        SetCurPtr(B.X,B.Y);
-        TrackCursor(true);
-        SetHighlight(A,B);
-        if (DoReplace=false) then CanExit:=true else
-          begin
-            if Confirm=false then CanReplace:=true else
-              begin
-                Re:=EditorDialog(edReplacePrompt,@CurPos);
-                case Re of
-                  cmYes    : CanReplace:=true;
-                  cmNo     : CanReplace:=false;
-                else {cmCancel} begin CanReplace:=false; CanExit:=true; end;
-                end;
-              end;
-            if CanReplace then
-              begin
-                if Owner<>nil then Owner^.Lock;
-                SetSelection(A,B);
-                DelSelect;
-                InsertText(ReplaceStr);
-                if Owner<>nil then Owner^.UnLock;
-              end;
-            if (DoReplaceAll=false) then CanExit:=true;
-          end;
+   SetCurPtr(B.X,B.Y);
+   TrackCursor(true);
+   SetHighlight(A,B);
+   if (DoReplace=false) then CanExit:=true else
+     begin
+       if Confirm=false then CanReplace:=true else
+         begin
+      Re:=EditorDialog(edReplacePrompt,@CurPos);
+      case Re of
+        cmYes    : CanReplace:=true;
+        cmNo     : CanReplace:=false;
+      else {cmCancel} begin CanReplace:=false; CanExit:=true; end;
+      end;
+         end;
+       if CanReplace then
+         begin
+      if Owner<>nil then Owner^.Lock;
+      SetSelection(A,B);
+      DelSelect;
+      InsertText(ReplaceStr);
+      if Owner<>nil then Owner^.UnLock;
+         end;
+       if (DoReplaceAll=false) then CanExit:=true;
+     end;
       end;
 
     if CanExit=false then
       begin
-        Y:=Y+DY;
-        if SForward then X:=0 else X:=255;
-        CanExit:=(Y>=Count) or (Y<0);
+   Y:=Y+DY;
+   if SForward then X:=0 else X:=255;
+   CanExit:=(Y>=Count) or (Y<0);
       end;
     if CanExit=false then
        CanExit:=InArea(X,Y)=false;
@@ -2343,7 +2402,7 @@ end;
 procedure TCodeEditor.SetInsertMode(InsertMode: boolean);
 begin
   if InsertMode then Flags:=Flags or efInsertMode
-                else Flags:=Flags and (not efInsertMode);
+      else Flags:=Flags and (not efInsertMode);
   DrawCursor;
 end;
 
@@ -2368,12 +2427,12 @@ begin
     CheckSels;
     if Extended=false then
      if PointOfs(OldPos)=PointOfs(SelEnd) then
-        begin SetSelection(SelStart,CurPos); Extended:=true; end;
+   begin SetSelection(SelStart,CurPos); Extended:=true; end;
     CheckSels;
     if (Extended=false) then
        if PointOfs(OldPos)<=PointOfs(CurPos)
-          then begin SetSelection(OldPos,CurPos); Extended:=true; end
-          else begin SetSelection(CurPos,OldPos); Extended:=true; end;
+     then begin SetSelection(OldPos,CurPos); Extended:=true; end
+     else begin SetSelection(CurPos,OldPos); Extended:=true; end;
     DrawView;
   end else
    if (Flags and efPersistentBlocks)=0 then
@@ -2416,7 +2475,7 @@ var
     Match:=false;
     if length(What)>=length(S) then
       if copy(What,1+length(What)-length(S),length(S))=S then
-         Match:=true;
+    Match:=true;
     MatchSymbol:=Match;
   end;
 
@@ -2433,9 +2492,9 @@ var
     begin
       S:=GetSpecSymbol(SClass,I-1);
       if PartialMatch then Match:=MatchSymbol(What,S)
-                      else Match:=What=S;
+            else Match:=What=S;
       if Match then
-         begin MatchingSymbol:=S; Found:=true; Break; end;
+    begin MatchingSymbol:=S; Found:=true; Break; end;
     end;
     MatchedSymbol:=MatchedSymbol or Found;
     MatchesAnySpecSymbol:=Found;
@@ -2485,7 +2544,7 @@ var
   var CC: TCharClass;
   begin
     if C in WhiteSpaceChars then CC:=ccWhiteSpace else
-    if C in TabChars        then CC:=ccTab else
+    if C in TabChars then CC:=ccTab else
     if C in AlphaChars      then CC:=ccAlpha else
     if C in NumberChars     then CC:=ccNumber else
     CC:=ccSymbol;
@@ -2507,19 +2566,19 @@ var
     if InAsm then C:=coAssemblerColor else
     case SClass of
       ccWhiteSpace : C:=coWhiteSpaceColor;
-      ccTab        : C:=coTabColor;
+      ccTab : C:=coTabColor;
       ccNumber     : if copy(WordS,1,1)='$' then
-                       C:=coHexNumberColor
-                     else
-                       C:=coNumberColor;
+             C:=coHexNumberColor
+           else
+             C:=coNumberColor;
       ccSymbol     : C:=coSymbolColor;
       ccAlpha      :
-        begin
-          if IsReservedWord(WordS) then
-            C:=coReservedWordColor
-          else
-            C:=coIdentifierColor;
-        end;
+   begin
+     if IsReservedWord(WordS) then
+       C:=coReservedWordColor
+     else
+       C:=coIdentifierColor;
+   end;
     end;
     if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
@@ -2534,8 +2593,8 @@ var
   begin
     CC:=GetCharClass(C);
     if ( (CC<>LastCC) and
-         ( (CC<>ccAlpha) or (LastCC<>ccNumber) ) and
-         ( (CC<>ccNumber) or (LastCC<>ccAlpha) )
+    ( (CC<>ccAlpha) or (LastCC<>ccNumber) ) and
+    ( (CC<>ccNumber) or (LastCC<>ccAlpha) )
        ) or
        (X>length(LineText)) or (CC=ccSymbol) then
     begin
@@ -2543,44 +2602,44 @@ var
       EX:=X-1;
       if (CC=ccSymbol) then
        begin
-         if length(SymbolConcat)>=High(SymbolConcat) then
-            Delete(SymbolConcat,1,1);
-         SymbolConcat:=SymbolConcat+C;
+    if length(SymbolConcat)>=High(SymbolConcat) then
+       Delete(SymbolConcat,1,1);
+    SymbolConcat:=SymbolConcat+C;
        end;
       case CC of
-        ccSymbol :
-          if IsCommentSuffix and (InComment) then
-             Inc(EX) else
-          if IsStringSuffix and (InString) then
-             Inc(EX) else
-          if IsDirectiveSuffix and (InDirective) then
-             Inc(EX);
+   ccSymbol :
+     if IsCommentSuffix and (InComment) then
+        Inc(EX) else
+     if IsStringSuffix and (InString) then
+        Inc(EX) else
+     if IsDirectiveSuffix and (InDirective) then
+        Inc(EX);
       end;
       if (C='$') and (MatchedSymbol=false) and (IsDirectivePrefix=false) then
-         CC:=ccNumber;
+    CC:=ccNumber;
       if CC<>ccSymbol then SymbolConcat:='';
       FormatWord(LastCC,ClassStart,EX);
       ClassStart:=EX+1;
       case CC of
-        ccAlpha  : ;
-        ccNumber :
-          if (LastCC<>ccAlpha) then;
-        ccSymbol :
-            if IsDirectivePrefix {and (InComment=false)} and (InDirective=false) then
-               begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
-            if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
-               InDirective:=false else
-            if IsCommentPrefix and (InString=false) then
-                begin InComment:=true; {InString:=false; }Dec(ClassStart,length(MatchingSymbol)-1); end else
-            if IsCommentSuffix and (InComment) then
-                begin InComment:=false; InString:=false; end else
-            if IsStringPrefix and (InComment=false) and (InString=false) then
-               begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
-            if IsStringSuffix and (InComment=false) and (InString=true) then
-               InString:=false;
+   ccAlpha  : ;
+   ccNumber :
+     if (LastCC<>ccAlpha) then;
+   ccSymbol :
+       if IsDirectivePrefix {and (InComment=false)} and (InDirective=false) then
+          begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
+       if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
+          InDirective:=false else
+       if IsCommentPrefix and (InString=false) then
+      begin InComment:=true; {InString:=false; }Dec(ClassStart,length(MatchingSymbol)-1); end else
+       if IsCommentSuffix and (InComment) then
+      begin InComment:=false; InString:=false; end else
+       if IsStringPrefix and (InComment=false) and (InString=false) then
+          begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
+       if IsStringSuffix and (InComment=false) and (InString=true) then
+          InString:=false;
       end;
       if MatchedSymbol and (InComment=false) then
-        SymbolConcat:='';
+   SymbolConcat:='';
       LastCC:=CC;
     end;
   end;
@@ -2623,7 +2682,7 @@ begin
     if LineText<>'' then
      begin
        for X:=1 to length(LineText) do
-        ProcessChar(LineText[X]);
+   ProcessChar(LineText[X]);
        inc(X);
        ProcessChar(' ');
      end;
@@ -2637,16 +2696,16 @@ begin
     NextLine:=Lines^.At(CurLine);
     if (Attrs and attrForceFull)=0 then
       if (InAsm=false) and (NextLine^.BeginsWithAsm=false) and
-         (InComment=false) and (NextLine^.BeginsWithComment=false) and
-         (InDirective=false) and (NextLine^.BeginsWithDirective=false) and
-         (OldLine^.EndsWithComment=Line^.EndsWithComment) and
-         (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
-         (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and
-         (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
-         (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
-         (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
-         (NextLine^.Format<>nil)
-         then Break;
+    (InComment=false) and (NextLine^.BeginsWithComment=false) and
+    (InDirective=false) and (NextLine^.BeginsWithDirective=false) and
+    (OldLine^.EndsWithComment=Line^.EndsWithComment) and
+    (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
+    (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and
+    (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
+    (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
+    (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
+    (NextLine^.Format<>nil)
+    then Break;
     PrevLine:=Line;
   until false;
   UpdateAttrs:=CurLine;
@@ -2685,26 +2744,26 @@ begin
     begin
       if (LineDelta<LineCount-1) and (VerticalBlock=false) then
       if (LineDelta<>0) or (Editor^.SelEnd.X=0) then
-         begin Lines^.AtInsert(DestPos.Y,NewLine('')); LimitsChanged; end;
+    begin Lines^.AtInsert(DestPos.Y,NewLine('')); LimitsChanged; end;
       if (LineDelta=0) or VerticalBlock
-         then LineStartX:=Editor^.SelStart.X else LineStartX:=0;
+    then LineStartX:=Editor^.SelStart.X else LineStartX:=0;
       if (LineDelta=LineCount-1) or VerticalBlock
-         then LineEndX:=Editor^.SelEnd.X-1 else LineEndX:=255;
+    then LineEndX:=Editor^.SelEnd.X-1 else LineEndX:=255;
       if LineEndX<=LineStartX then S:='' else
       S:=RExpand(
-            copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
-          Min(LineEndX-LineStartX+1,255));
+       copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
+     Min(LineEndX-LineStartX+1,255));
       if VerticalBlock=false then
-         begin
-           OrigS:=GetDisplayText(DestPos.Y);
-           SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+copy(OrigS,DestPos.X+1,255));
-           if LineDelta=LineCount-1 then
-              begin SEnd.Y:=DestPos.Y; SEnd.X:=DestPos.X+length(S); end else
-              begin Inc(DestPos.Y); DestPos.X:=0; end;
-         end else
-         begin
-           S:=RExpand(S,LineEndX-LineStartX+1);
-         end;
+    begin
+      OrigS:=GetDisplayText(DestPos.Y);
+      SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+copy(OrigS,DestPos.X+1,255));
+      if LineDelta=LineCount-1 then
+         begin SEnd.Y:=DestPos.Y; SEnd.X:=DestPos.X+length(S); end else
+         begin Inc(DestPos.Y); DestPos.X:=0; end;
+    end else
+    begin
+      S:=RExpand(S,LineEndX-LineStartX+1);
+    end;
       Inc(LineDelta);
       OK:=GetLineCount<MaxLineCount;
     end;
@@ -2763,7 +2822,7 @@ begin
   Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
   SetCmdState(ToClipCmds,Enable);
   CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
-            (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+       (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
   SetCmdState(FromClipCmds,CanPaste);
 end;
 
@@ -2792,7 +2851,7 @@ begin
 end;
 
 constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-            PScrollBar; AIndicator: PIndicator;const AFileName: string);
+       PScrollBar; AIndicator: PIndicator;const AFileName: string);
 begin
   inherited Init(Bounds,AHScrollBAr,AVScrollBAr,AIndicator,0);
   FileName:=AFileName;
@@ -2817,10 +2876,10 @@ function TFileEditor.LoadFile: boolean;
      begin
        read(t,c);
        if c<>#10 then
-        begin
-          inc(i);
-          s[i]:=c;
-        end;
+   begin
+     inc(i);
+     s[i]:=c;
+   end;
      end;
     if (i>0) and (s[i]=#13) then
      begin
@@ -2955,17 +3014,19 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-        cmFileNameChanged :
-          if (Event.InfoPtr=nil) or (Event.InfoPtr=@Self) then
-          begin
-            B:=(Flags and efSyntaxHighlight)<>0;
-            SH:=UseSyntaxHighlight(@Self);
-            if SH<>B then
-              if SH then
-                SetFlags(Flags or efSyntaxHighlight)
-              else
-                SetFlags(Flags and not efSyntaxHighlight);
-          end;
+   cmFileNameChanged :
+     if (Event.InfoPtr=nil) or (Event.InfoPtr=@Self) then
+     begin
+       B:=(Flags and efSyntaxHighlight)<>0;
+       SH:=UseSyntaxHighlight(@Self);
+       if SH<>B then
+         if SH then
+      SetFlags(Flags or efSyntaxHighlight)
+         else
+      SetFlags(Flags and not efSyntaxHighlight);
+       if UseTabsPattern(@Self) then
+         SetFlags(Flags or efUseTabCharacters);
+     end;
       end;
   end;
   inherited HandleEvent(Event);
@@ -2977,7 +3038,7 @@ begin
   OK:=inherited Valid(Command);
   if OK and ((Command=cmClose) or (Command=cmQuit)) then
      if IsClipboard=false then
-         OK:=SaveAsk;
+    OK:=SaveAsk;
   Valid:=OK;
 end;
 
@@ -3156,63 +3217,63 @@ begin
   case Dialog of
     edOutOfMemory:
       StdEditorDialog := MessageBox('Not enough memory for this operation.',
-        nil, mfInsertInApp+ mfError + mfOkButton);
+   nil, mfInsertInApp+ mfError + mfOkButton);
     edReadError:
       StdEditorDialog := MessageBox('Error reading file %s.',
-        @Info, mfInsertInApp+ mfError + mfOkButton);
+   @Info, mfInsertInApp+ mfError + mfOkButton);
     edWriteError:
       StdEditorDialog := MessageBox('Error writing file %s.',
-        @Info, mfInsertInApp+ mfError + mfOkButton);
+   @Info, mfInsertInApp+ mfError + mfOkButton);
     edCreateError:
       StdEditorDialog := MessageBox('Error creating file %s.',
-        @Info, mfInsertInApp+ mfError + mfOkButton);
+   @Info, mfInsertInApp+ mfError + mfOkButton);
     edSaveModify:
       StdEditorDialog := MessageBox('%s has been modified. Save?',
-        @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
+   @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveUntitled:
       StdEditorDialog := MessageBox('Save untitled file?',
-        nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
+   nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs:
       begin
-        Name:=PString(Info)^;
-        Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
-        'Save file as', '~N~ame', fdOkButton, 101)), @Name);
-        if (Re<>cmCancel) and (Name<>PString(Info)^) then
-          if ExistsFile(Name) then
-            if EditorDialog(edReplaceFile,@Name)<>cmYes then
-              Re:=cmCancel;
-        if Re<>cmCancel then
-          PString(Info)^:=Name;
-        StdEditorDialog := Re;
+   Name:=PString(Info)^;
+   Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
+   'Save file as', '~N~ame', fdOkButton, 101)), @Name);
+   if (Re<>cmCancel) and (Name<>PString(Info)^) then
+     if ExistsFile(Name) then
+       if EditorDialog(edReplaceFile,@Name)<>cmYes then
+         Re:=cmCancel;
+   if Re<>cmCancel then
+     PString(Info)^:=Name;
+   StdEditorDialog := Re;
       end;
     edGotoLine:
       StdEditorDialog :=
-        Application^.ExecuteDialog(CreateGotoLineDialog(Info), Info);
+   Application^.ExecuteDialog(CreateGotoLineDialog(Info), Info);
     edFind:
       StdEditorDialog :=
-        Application^.ExecuteDialog(CreateFindDialog, Info);
+   Application^.ExecuteDialog(CreateFindDialog, Info);
     edSearchFailed:
       StdEditorDialog := MessageBox('Search string not found.',
-        nil, mfInsertInApp+ mfError + mfOkButton);
+   nil, mfInsertInApp+ mfError + mfOkButton);
     edReplace:
       StdEditorDialog :=
-        Application^.ExecuteDialog(CreateReplaceDialog, Info);
+   Application^.ExecuteDialog(CreateReplaceDialog, Info);
     edReplacePrompt:
       begin
-        { Avoid placing the dialog on the same line as the cursor }
-        R.Assign(0, 1, 40, 8);
-        R.Move((Desktop^.Size.X - R.B.X) div 2, 0);
-        Desktop^.MakeGlobal(R.B, T);
-        Inc(T.Y);
-        if PPoint(Info)^.Y <= T.Y then
-          R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
-        StdEditorDialog := MessageBoxRect(R, 'Replace this occurence?',
-          nil, mfInsertInApp+ mfYesNoCancel + mfInformation);
+   { Avoid placing the dialog on the same line as the cursor }
+   R.Assign(0, 1, 40, 8);
+   R.Move((Desktop^.Size.X - R.B.X) div 2, 0);
+   Desktop^.MakeGlobal(R.B, T);
+   Inc(T.Y);
+   if PPoint(Info)^.Y <= T.Y then
+     R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
+   StdEditorDialog := MessageBoxRect(R, 'Replace this occurence?',
+     nil, mfInsertInApp+ mfYesNoCancel + mfInformation);
       end;
     edReplaceFile :
       StdEditorDialog :=
-        MessageBox('File %s already exists. Overwrite?',@Info,mfInsertInApp+mfConfirmation+
-          mfYesButton+mfNoButton);
+   MessageBox('File %s already exists. Overwrite?',@Info,mfInsertInApp+mfConfirmation+
+     mfYesButton+mfNoButton);
   end;
 end;
 
@@ -3221,10 +3282,20 @@ begin
   DefUseSyntaxHighlight:=(Editor^.Flags and efSyntaxHighlight)<>0;
 end;
 
+function DefUseTabsPattern(Editor: PFileEditor): boolean;
+begin
+  DefUseTabsPattern:=(Editor^.Flags and efUseTabCharacters)<>0;
+end;
+
 END.
 {
   $Log$
-  Revision 1.9  1999-01-29 10:34:33  peter
+  Revision 1.10  1999-02-04 10:13:00  pierre
+    + GetCurrentWord (used in Find/Replace)
+    + DefUseTabsPattern (pattern forcing tabs to be kept)
+      used for all makefiles !!
+
+  Revision 1.9  1999/01/29 10:34:33  peter
     + needobjdir,needlibdir
 
   Revision 1.8  1999/01/21 11:54:31  peter
