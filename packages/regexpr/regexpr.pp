@@ -78,9 +78,6 @@ unit regexpr;
 
   implementation
 
-     uses
-        strings;
-
 {$ifdef DEBUG}
      procedure writecharset(c : tcharset);
 
@@ -314,7 +311,7 @@ unit regexpr;
                           doregister(hp);
                           hp^.typ:=ret_backtrace;
                           // hp^.elsepath:=parseregexpr(elsepath);
-                          hp^.next:=parseregexpr;
+                          hp^.next:=@parseregexpr;
                           parseregexpr:=hp;
                           exit;
                        end;
@@ -442,7 +439,7 @@ unit regexpr;
           GenerateRegExprEngine.Data:=parseregexpr(nil,endp);
           GenerateRegExprEngine.DestroyList:=first;
           if error or (currentpos^<>#0) then
-            DestroyRegExprEngine(GenerateRegExprEngine);
+            DestroyRegExprEngine(Result);
        end;
 
     procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
@@ -473,7 +470,9 @@ unit regexpr;
             dosearch:=false;
             while true do
               begin
+	         {$IFDEF Debug}
                  writeln(byte(regexpr^.typ));
+		 {$ENDIF Debug}
                  case regexpr^.typ of
                     ret_endline:
                       begin
@@ -591,7 +590,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:31  michael
+  Revision 1.3  2000-07-30 14:58:04  sg
+  * Added modifications by Markus Kaemmerer:
+    - Unit now compiles with Delphi
+    - Removed debug output when not compiled with -dDEBUG
+
+  Revision 1.2  2000/07/13 11:33:31  michael
   + removed logs
  
 }
