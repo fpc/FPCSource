@@ -187,11 +187,12 @@ begin
       end;
     rt_s80real :
       begin
-         maxlen:=23;
+         { Different in TP help, but this way the output is the same (JM) }
+         maxlen:=25;
          minlen:=10;
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((23-6-3)*ln(10)));
+         roundCorr := (1/exp((25-6-3)*ln(10)));
       end;
     rt_c64bit  :
       begin
@@ -288,7 +289,8 @@ begin
       correct := 0;
       GetIntPart(d);
       { now process the fractional part }
-      d := frac(d);
+      if d > 1.0- roundCorr then
+        d := frac(d);
       { if we have to round earlier than the amount of available precision, }
       { only calculate digits up to that point                              }
       if (f >= 0) and (currPrec > f) then
@@ -329,7 +331,9 @@ begin
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
             begin
-              d := frac(d) * 10.0;
+              if d > 1.0- roundCorr then
+                d := frac(d) * 10.0
+              else d := d * 10.0;
               inc(spos);
               temp[spos] := chr(trunc(d)+ord('0'));
               if temp[spos] > '9' then
@@ -399,7 +403,11 @@ end;
 
 {
   $Log$
-  Revision 1.31  2000-07-06 21:09:45  florian
+  Revision 1.32  2000-07-07 18:03:08  jonas
+    * changed precision for extended back (otherwise strreal2.pp in
+      tests/test failed)
+
+  Revision 1.31  2000/07/06 21:09:45  florian
     * fixed writing of comp and extended: the precision of comp was to little
       while it was too high for extended
 
