@@ -462,7 +462,7 @@ implementation
             call other targets with a only extra settings, if the
             section was not included, then still process the targets }
           if CheckTargetVariable('target_dirs') and
-             (not(rule in [r_info,r_shared,r_smart,r_debug,r_release,r_distinstall]) or
+             (not(rule in [r_info,r_shared,r_smart,r_debug,r_release,r_zipdistinstall,r_distinstall]) or
               not FHasSection[Rule2Sec[rule]]) then
            begin
              if CheckVariable('default_dir') then
@@ -867,7 +867,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-09-27 06:54:54  pierre
+  Revision 1.26  2003-03-24 10:56:02  marco
+   * fix recursive zip making that corrupted utilsxxx.zip
+
+  Revision 1.25  2002/09/27 06:54:54  pierre
    * translate default_cpu/os into CPU/OS_TARGET_DEFAULT
 
   Revision 1.24  2002/09/07 15:40:32  peter
