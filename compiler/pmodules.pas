@@ -1362,6 +1362,7 @@ unit pmodules;
               consume(_PROGRAM);
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
+              exportlib^.preparelib(pattern);
               consume(_ID);
               if token=_LKLAMMER then
                 begin
@@ -1370,7 +1371,9 @@ unit pmodules;
                    consume(_RKLAMMER);
                 end;
               consume(_SEMICOLON);
-            end;
+            end
+         else
+           exportlib^.preparelib(current_module^.modulename^);
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
@@ -1496,7 +1499,7 @@ unit pmodules;
          if current_module^.uses_imports then
           importlib^.generatelib;
 
-         if islibrary then
+         if islibrary or (target_info.target=target_i386_WIN32) then
            exportlib^.generatelib;
 
 
@@ -1552,7 +1555,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.172  1999-11-24 11:41:05  pierre
+  Revision 1.173  1999-11-29 15:18:27  pierre
+   + allow exports in win32 executables
+
+  Revision 1.172  1999/11/24 11:41:05  pierre
    * defaultsymtablestack is now restored after parser.compile
 
   Revision 1.171  1999/11/22 22:21:46  pierre

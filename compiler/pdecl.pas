@@ -1160,12 +1160,12 @@ unit pdecl;
                    Not_supported_for_inline(token);
                    { here we should be at lexlevel 1, no ? PM }
                    if (lexlevel<>main_program_level) or
-                      (not islibrary and not DLLsource) then
+                      (current_module^.is_unit) then
                      begin
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
-                   else if islibrary then
+                   else if islibrary or (target_info.target=target_i386_WIN32) then
                      read_exports;
                 end
               else break;
@@ -1200,7 +1200,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.171  1999-11-09 23:43:08  pierre
+  Revision 1.172  1999-11-29 15:18:27  pierre
+   + allow exports in win32 executables
+
+  Revision 1.171  1999/11/09 23:43:08  pierre
    * better browser info
 
   Revision 1.170  1999/11/09 23:06:45  peter
