@@ -993,6 +993,8 @@ sym_b_param_list=B_Found declaration: $1
 % You get this when you use the \var{-vb} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
+sym_segment_too_large=E_Data segment too large (max. 2GB)
+% You get this when you declare an array whose size exceeds the 2GB limit.
 % \end{description}
 #
 # Codegenerator
