@@ -496,6 +496,17 @@ implementation
                      eq:=te_convert_l1;
                      doconv:=tc_variant_2_enum;
                    end;
+                 pointerdef :
+                   begin
+                     { ugly, but delphi allows it }
+                     if (cdo_explicit in cdoptions) and
+                       (m_delphi in aktmodeswitches) and
+                       (eq=te_incompatible) then
+                       begin
+                         doconv:=tc_int_2_int;
+                         eq:=te_convert_l1;
+                       end;
+                   end;
                end;
              end;
 
@@ -662,6 +673,7 @@ implementation
                   end;
                 end;
              end;
+
            variantdef :
              begin
                if (cdo_allow_variant in cdoptions) then
@@ -1375,7 +1387,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2005-02-02 19:04:31  florian
+  Revision 1.68  2005-02-03 19:24:33  florian
+    + support for another explicit ugly delphi type cast added
+
+  Revision 1.67  2005/02/02 19:04:31  florian
     * <class/interface>(<any ord. type>) in delphi mode allowed
 
   Revision 1.66  2005/01/10 22:10:26  peter
