@@ -337,6 +337,7 @@ implementation
         pushed : boolean;
         href   : treference;
         pushedregs : tpushed;
+        regstopush: longint;
       begin
         cmpop:=false;
 
@@ -369,13 +370,6 @@ implementation
 
         { handle operations }
 
-{$IfDef regallocfix}
-        pushusedregisters(pushedregs,$ff
-          xor ($80 shr byte(p^.left^.location.reference.base))
-          xor ($80 shr byte(p^.left^.location.reference.index))
-          xor ($80 shr byte(p^.right^.location.reference.base))
-          xor ($80 shr byte(p^.right^.location.reference.index)));
-{$EndIf regallocfix}
         case p^.treetype of
           equaln,
         unequaln
@@ -420,22 +414,47 @@ implementation
                    end;
             addn : begin
                    { add can be an other SET or Range or Element ! }
-{$IfNDef regallocfix}
-                     del_location(p^.left^.location);
                      { del_location(p^.right^.location);
-                       done in pushsetelement below PM }
+                       done in pushsetelement below PM
+
+                     And someone added it again because those registers must
+                     not be pushed by the pushusedregisters, however this
+                     breaks the optimizer (JM)
+
                      del_location(p^.right^.location);
-                     pushusedregisters(pushedregs,$ff);
-{$EndIf regallocfix}
+                     pushusedregisters(pushedregs,$ff);}
+
+                     regstopush := $ff;
+                     case p^.right^.location.loc of
+                       LOC_REGISTER:
+                         regstopush := regstopush and
+                           not($80 shr byte(p^.right^.location.register));
+                       LOC_MEM,LOC_REFERENCE:
+                         regstopush := regstopush and
+                           not($80 shr byte(p^.right^.location.reference.base)) and
+                           not($80 shr byte(p^.right^.location.reference.index));
+                     end;
+                     case p^.left^.location.loc of
+                       LOC_REGISTER:
+                         regstopush := regstopush and
+                           not($80 shr byte(p^.left^.location.register));
+                       LOC_MEM,LOC_REFERENCE:
+                         regstopush := regstopush and
+                           not($80 shr byte(p^.left^.location.reference.base)) and
+                           not($80 shr byte(p^.left^.location.reference.index));
+                     end;
+                     pushusedregisters(pushedregs,regstopush);
+                     { this is still right before the instruction that uses }
+                     { p^.left^.location, but that can be fixed by the      }
+                     { optimizer. There must never be an additional         }
+                     { between the release and the use, because that is not }
+                     { detected/fixed. As Pierre said above, p^.right^.loc  }
+                     { will be released in pushsetelement (JM)              }
+                     del_location(p^.left^.location);
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
                      if createset then
                       begin
-{$IfDef regallocfix}
-                        del_location(p^.left^.location);
-                        { del_location(p^.right^.location);
-                          done in pushsetelement below PM }
-{$EndIf regallocfix}
                         pushsetelement(p^.right^.left);
                         emitpushreferenceaddr(href);
                         emitcall('FPC_SET_CREATE_ELEMENT');
@@ -1024,14 +1043,13 @@ implementation
                        popeax:=false;
                        popedx:=false;
                        { here you need to free the symbol first }
-  { This is VERY bad!!!! Now the optimizer assumes the current values of }
-  { those registers are NOT needed anymore, which causes bugs! The       }
-  { optimizer now contains a workaround which tries to fix all wrong     }
-  { deallocations, but this kind of things should NOT be done (JM)       }
+                       { p^.left^.location and p^.right^.location must }
+                       { only be freed when they are really released,  }
+                       { because the optimizer NEEDS correct regalloc  }
+                       { info!!! (JM)                                  }
                        clear_location(p^.location);
-                       release_loc(p^.right^.location);
-                       release_loc(p^.left^.location);
-                       p^.location.register:=getregister32;
+
+                 { the p^.location.register will be filled in later (JM) }
                        p^.location.loc:=LOC_REGISTER;
 {$IfNDef NoShlMul}
                        if p^.right^.treetype=ordconstn then
@@ -1040,18 +1058,26 @@ implementation
                           ispowerof2(p^.left^.value, power) and
                           not(cs_check_overflow in aktlocalswitches) then
                          Begin
+                           { This release will be moved after the next }
+                           { instruction by the optimizer. No need to  }
+                           { release p^.left^.location, since it's a   }
+                           { constant (JM)                             }
+                           release_loc(p^.right^.location);
+                           p^.location.register := getregister32;
                            emitloadord2reg(p^.right^.location,u32bitdef,p^.location.register,true);
                            emit_const_reg(A_SHL,S_L,power,p^.location.register)
                          End
                        Else
                         Begin
 {$EndIf NoShlMul}
-                         if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
+                         if not(R_EAX in unused) and not(reg_in_loc(R_EAX,p^.right^.location)) and
+                            not(reg_in_loc(R_EAX,p^.left^.location)) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EAX);
                            popeax:=true;
                           end;
-                         if not(R_EDX in unused) and (p^.location.register<>R_EDX)  then
+                         if not(R_EDX in unused) and not(reg_in_loc(R_EDX,p^.right^.location)) and
+                            not(reg_in_loc(R_EDX,p^.left^.location)) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EDX);
                            popedx:=true;
@@ -1060,9 +1086,24 @@ implementation
 {$ifndef noAllocEdi}
                          getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
+                         { load the left value }
                          emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
+                         release_loc(p^.left^.location);
+                         { allocate EAX }
+                         if R_EAX in unused then
+                           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                         { load he right value }
                          emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
+                         release_loc(p^.right^.location);
+                         { a hack, I know :( Necessary for when EAX is in }
+                         { p^.right^.location, since it can't be released }
+                         { yet (JM)                                       }
+                         if reg_in_loc(R_EAX,p^.right^.location) and
+                            (R_EAX in unused) then
+                           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
 {$ifndef noAllocEdi}
+                         { also allocate EDX, since it is also modified by }
+                         { a mul (JM)                                      }
                          if R_EDX in unused then
                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
 {$endif noAllocEdi}
@@ -1072,6 +1113,9 @@ implementation
                          if R_EDX in unused then
                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EDX)));
 {$endif noAllocEdi}
+                         if R_EAX in unused then
+                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+                         p^.location.register := getregister32;
                          emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
                          if popedx then
                           emit_reg(A_POP,S_L,R_EDX);
@@ -2205,7 +2249,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2000-01-13 16:52:47  jonas
+  Revision 1.90  2000-01-22 16:02:38  jonas
+    * fixed more regalloc bugs (for set adding and unsigned
+      multiplication)
+
+  Revision 1.89  2000/01/13 16:52:47  jonas
     * moved deallocation of registers used in reference that points to string after
       copyshortstring (this routine doesn't require extra regs)
 

@@ -76,6 +76,8 @@ unit cgai386;
     procedure emit_pushq_loc(const t : tlocation);
     procedure release_qword_loc(const t : tlocation);
 
+    { is a register used in a location? }
+    function reg_in_loc(reg: tregister; const t: tlocation): boolean;
     { releases the registers of a location }
     procedure release_loc(const t : tlocation);
 
@@ -608,6 +610,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             else internalerror(331);
          end;
       end;
+
+    function reg_in_loc(reg: tregister; const t: tlocation): boolean;
+    begin
+      reg_in_loc := false;
+      case t.loc of
+        LOC_REGISTER: reg_in_loc := t.register = reg;
+        LOC_MEM, LOC_REFERENCE:
+          reg_in_loc := (t.reference.base = reg) or (t.reference.index = reg);
+      end;
+    end;
 
     procedure release_loc(const t : tlocation);
 
@@ -3660,7 +3672,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.70  2000-01-16 22:17:11  peter
+  Revision 1.71  2000-01-22 16:02:37  jonas
+    * fixed more regalloc bugs (for set adding and unsigned
+      multiplication)
+
+  Revision 1.70  2000/01/16 22:17:11  peter
     * renamed call_offset to para_offset
 
   Revision 1.69  2000/01/12 10:38:17  peter
