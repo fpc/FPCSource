@@ -156,6 +156,7 @@ begin
      readln(t,s);
      if s<>'' then
       begin
+        TrimB(s);
         if s[1]='{' then
          begin
            delete(s,1,1);
