@@ -480,13 +480,19 @@ begin
 {Update MemCopy}
   idx:=(CurrY-1)*ScreenWidth-1;
   for i:=1to length(s) do
-   begin
-     ConsoleBuf^[idx+CurrX].ch:=s[i];
-     ConsoleBuf^[idx+CurrX].attr:=TextAttr;
-     inc(CurrX);
-     if CurrX>ScreenWidth then
-      CurrX:=ScreenWidth;
-   end;
+   if s[i]=#8 then
+    begin
+      if CurrX>1 then
+       dec(CurrX);
+    end
+   else
+    begin
+      ConsoleBuf^[idx+CurrX].ch:=s[i];
+      ConsoleBuf^[idx+CurrX].attr:=TextAttr;
+      inc(CurrX);
+      if CurrX>ScreenWidth then
+       CurrX:=ScreenWidth;
+    end;
 end;
 
 
@@ -1203,7 +1209,6 @@ begin
           #8 : begin {BackSpace}
                  SendText;
                  ttyWrite(#8);
-                 dec(CurrX);
                end;
         else
          inc(SendBytes);
@@ -1486,7 +1491,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  1998-10-15 08:31:53  peter
+  Revision 1.10  1998-10-27 11:13:27  peter
+    * fixed ttyWrite() with #8
+
+  Revision 1.9  1998/10/15 08:31:53  peter
     + get winsize at startup
     + ConsoleBuf to interface
 
