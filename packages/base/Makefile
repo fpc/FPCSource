@@ -205,13 +205,13 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override TARGET_DIRS+=paszlib regexpr netdb
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc pthreads
+override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=gdbint
 endif
 ifeq ($(OS_TARGET),win32)
-override TARGET_DIRS+=inet gdbint mysql ibase odbc
+override TARGET_DIRS+=inet gdbint mysql ibase odbc sqlite
 endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc
@@ -1320,6 +1320,7 @@ TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
+TARGET_DIRS_SQLITE=1
 endif
 ifeq ($(OS_TARGET),go32v2)
 TARGET_DIRS_GDBINT=1
@@ -1330,6 +1331,7 @@ TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_ODBC=1
+TARGET_DIRS_SQLITE=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 TARGET_DIRS_INET=1
@@ -1876,6 +1878,49 @@ pthreads_makefiles:
 pthreads:
 	$(MAKE) -C pthreads all
 .PHONY: pthreads_all pthreads_debug pthreads_smart pthreads_release pthreads_examples pthreads_shared pthreads_install pthreads_sourceinstall pthreads_exampleinstall pthreads_distinstall pthreads_zipinstall pthreads_zipsourceinstall pthreads_zipexampleinstall pthreads_zipdistinstall pthreads_clean pthreads_distclean pthreads_cleanall pthreads_info pthreads_makefiles pthreads
+endif
+ifdef TARGET_DIRS_SQLITE
+sqlite_all:
+	$(MAKE) -C sqlite all
+sqlite_debug:
+	$(MAKE) -C sqlite debug
+sqlite_smart:
+	$(MAKE) -C sqlite smart
+sqlite_release:
+	$(MAKE) -C sqlite release
+sqlite_examples:
+	$(MAKE) -C sqlite examples
+sqlite_shared:
+	$(MAKE) -C sqlite shared
+sqlite_install:
+	$(MAKE) -C sqlite install
+sqlite_sourceinstall:
+	$(MAKE) -C sqlite sourceinstall
+sqlite_exampleinstall:
+	$(MAKE) -C sqlite exampleinstall
+sqlite_distinstall:
+	$(MAKE) -C sqlite distinstall
+sqlite_zipinstall:
+	$(MAKE) -C sqlite zipinstall
+sqlite_zipsourceinstall:
+	$(MAKE) -C sqlite zipsourceinstall
+sqlite_zipexampleinstall:
+	$(MAKE) -C sqlite zipexampleinstall
+sqlite_zipdistinstall:
+	$(MAKE) -C sqlite zipdistinstall
+sqlite_clean:
+	$(MAKE) -C sqlite clean
+sqlite_distclean:
+	$(MAKE) -C sqlite distclean
+sqlite_cleanall:
+	$(MAKE) -C sqlite cleanall
+sqlite_info:
+	$(MAKE) -C sqlite info
+sqlite_makefiles:
+	$(MAKE) -C sqlite makefiles
+sqlite:
+	$(MAKE) -C sqlite all
+.PHONY: sqlite_all sqlite_debug sqlite_smart sqlite_release sqlite_examples sqlite_shared sqlite_install sqlite_sourceinstall sqlite_exampleinstall sqlite_distinstall sqlite_zipinstall sqlite_zipsourceinstall sqlite_zipexampleinstall sqlite_zipdistinstall sqlite_clean sqlite_distclean sqlite_cleanall sqlite_info sqlite_makefiles sqlite
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
