@@ -3,7 +3,7 @@
 # Add a 2 letter code when adding a language to DEMOLANGUAGES
 #
 
-DEMOLANGUAGES=fr nl
+DEMOLANGUAGES=fr nl de
 
 #
 # No need to add after this line.
