@@ -21,7 +21,7 @@
 {$define REUSEBIGGER}
 
 { Allocate small blocks at heapptr instead of walking the freelist }
-{$define SMALLATHEAPPTR}
+{ define SMALLATHEAPPTR}
 
 { Try to find the best matching block in general freelist }
 {$define BESTMATCH}
@@ -32,9 +32,9 @@
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
+{ DEBUG: Test the FreeList on correctness }
 {$ifdef SYSTEMDEBUG}
 {$define TestFreeLists}
-{ define withbug this leads to crashes below }
 {$endif SYSTEMDEBUG}
 
 
@@ -269,8 +269,9 @@ begin
 end;
 {$endif}
 
+
 {$ifdef TestFreeLists}
-  procedure TestFreeLists;
+procedure TestFreeLists;
 var
   i,j : longint;
   hp  : pfreerecord;
@@ -291,6 +292,7 @@ begin
     end;
 end;
 {$endif TestFreeLists}
+
 
 {*****************************************************************************
                                  SysGetMem
@@ -342,8 +344,8 @@ begin
         if assigned(freelists[s]) then
          freelists[s]^.prev:=nil;
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+        if test_each then
+         TestFreeLists;
 {$endif TestFreeLists}
         exit;
       end;
@@ -360,8 +362,8 @@ begin
         inc(sysgetmem,sizeof(theaprecord));
         inc(heapptr,size);
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+        if test_each then
+         TestFreeLists;
 {$endif TestFreeLists}
         exit;
       end;
@@ -464,8 +466,8 @@ begin
 
      inc(sysgetmem,sizeof(theaprecord));
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+     if test_each then
+      TestFreeLists;
 {$endif TestFreeLists}
      exit;
    end;
@@ -483,8 +485,8 @@ begin
        inc(sysgetmem,sizeof(theaprecord));
        inc(heapptr,size);
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+       if test_each then
+        TestFreeLists;
 {$endif TestFreeLists}
        exit;
      end;
@@ -726,8 +728,8 @@ begin
    begin
      SysTryResizeMem:=true;
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+     if test_each then
+      TestFreeLists;
 {$endif TestFreeLists}
      exit;
    end;
@@ -788,7 +790,7 @@ begin
           else
            freelists[s]:=hp^.next;
 {$ifdef SYSTEMDEBUG}
-          dec(freecount[s]);
+           dec(freecount[s]);
 {$endif SYSTEMDEBUG}
         until (foundsize>=size);
         if wasbeforeheapend then
@@ -801,8 +803,8 @@ begin
         { we need to call getmem/move/freemem }
         SysTryResizeMem:=false;
 {$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
+        if test_each then
+         TestFreeLists;
 {$endif TestFreeLists}
         exit;
       end;
@@ -958,18 +960,6 @@ begin
       begin
         pcurr:=pfreerecord(heapptr);
         pcurr^.size:=sizeleft or beforeheapendmask;
-{$ifdef Withbug}
-      { this code was wrong because
-        in TryConcat an freerecord sets freelists[s] where s is size shr blockshr PM }
-        pcurr^.next:=freelists[0];
-        pcurr^.prev:=nil;
-        if assigned(freelists[0]) then
-         freelists[0]^.prev:=pcurr;
-        freelists[0]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-        inc(freecount[0]);
-{$endif SYSTEMDEBUG}
-{$else not Withbug}
         { insert the block in the freelist }
         s1:=sizeleft shr blockshr;
         if s1>maxblock then
@@ -982,7 +972,6 @@ begin
 {$ifdef SYSTEMDEBUG}
         inc(freecount[s1]);
 {$endif SYSTEMDEBUG}
-{$endif Withbug}
       end;
      { now set the new heapptr,heapend to the new block }
      heapptr:=pointer(newpos);
@@ -1021,10 +1010,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-08-08 19:22:46  peter
+    * smallatheapptr undef and other cleanup (merged)
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
- 
+
 }
