@@ -404,6 +404,8 @@ begin
       novalid:=false;
    end;
  until (l<>nil) or novalid;
+ If novalid then
+  l:=nil;
  Sys_ReadDir:=l;
 end;
 
@@ -455,7 +457,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-09-19 09:57:35  marco
+  Revision 1.5  2001-04-23 11:38:30  marco
+   * Small readdir fix from fixes branch.
+
+  Revision 1.4  2000/09/19 09:57:35  marco
    * Fixed mkdir
 
   Revision 1.3  2000/09/19 09:25:17  marco
