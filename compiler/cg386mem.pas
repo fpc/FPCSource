@@ -241,7 +241,8 @@ implementation
          { yes but p^.left^.symtableentry can be nil
            for example on @self !! }
          { symtableentry can be also invalid, if left is no tree node }
-         if (p^.left^.treetype=loadn) and
+         if (m_tp_procvar in aktmodeswitches) and
+           (p^.left^.treetype=loadn) and
            assigned(p^.left^.symtableentry) and
            (p^.left^.symtableentry^.typ=varsym) and
            (pvarsym(p^.left^.symtableentry)^.definition^.deftype=procvardef) then
@@ -746,7 +747,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-12-30 22:15:45  peter
+  Revision 1.24  1999-01-19 12:05:27  pierre
+   * bug with @procvar=procvar fiwed
+
+  Revision 1.23  1998/12/30 22:15:45  peter
     + farpointer type
     * absolutesym now also stores if its far
 
