@@ -213,14 +213,14 @@ aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Netware-.imp files need to be installed in the unit-dir
 #
-override INSTALLPPUFILES+=nwimp/aio.imp nwimp/aio.imp nwimp/audnlm32.imp \
-nwimp/calnlm32.imp nwimp/ccs.imp nwimp/ccs-os.imp nwimp/clibaux.imp \
-nwimp/clibctx.imp nwimp/clib.imp nwimp/clxnlm32.imp nwimp/dplsv386.imp \
-nwimp/dsapi.imp nwimp/dsevent.imp nwimp/lib0.imp \
-nwimp/locnlm32.imp nwimp/ndpsrpc.imp nwimp/netnlm32.imp nwimp/nit.imp \
-nwimp/nlmlib.imp nwimp/nwpsrv3x.imp nwimp/nwpsrv.imp nwimp/nwsnut.imp \
-nwimp/requestr.imp nwimp/socklib.imp nwimp/streams.imp nwimp/threads.imp \
-nwimp/tli.imp nwimp/vollib.imp nwimp/ws2_32.imp nwimp/ws2nlm.imp
+override INSTALLPPUFILES+=aio.imp aio.imp audnlm32.imp \
+calnlm32.imp ccs.imp ccs-os.imp clibaux.imp \
+clibctx.imp clib.imp clxnlm32.imp dplsv386.imp \
+dsapi.imp dsevent.imp lib0.imp \
+locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
+nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
+requestr.imp socklib.imp streams.imp threads.imp \
+tli.imp vollib.imp ws2_32.imp ws2nlm.imp
 
 # the smartlinked objects will not be installed by the
 # standard makefile ????
