@@ -2020,7 +2020,8 @@
 
       begin
          if (not binittable) and
-            (psym(s)^.typ=varsym) then
+            (psym(s)^.typ=varsym) and
+            assigned(pvarsym(s)^.vartype.def) then
           begin
             if ((pvarsym(s)^.vartype.def^.deftype<>objectdef) or
                not(pobjectdef(pvarsym(s)^.vartype.def)^.is_class)) then
@@ -3852,7 +3853,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.182  1999-12-19 17:00:27  peter
+  Revision 1.183  1999-12-23 12:19:42  peter
+    * check_rec_inittable fix from sg
+
+  Revision 1.182  1999/12/19 17:00:27  peter
     * has_rtti should be saved in the ppu for objects
 
   Revision 1.181  1999/12/18 14:55:21  florian
