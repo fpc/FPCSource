@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=wprt0 wdllprt0 gprt0
+loaders=wprt0 wdllprt0 gprt0 wcygprt0
 units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       lineinfo heaptrc matrix \
       windows ole2 activex shellapi shlobj winsock initc cmem \
@@ -97,6 +97,7 @@ gprt0$(OEXT) : gprt0.as
 
 wdllprt0$(OEXT) : wdllprt0.as
 
+wcygprt0$(OEXT) : wcygprt0.as
 
 #
 # System Units (System, Objpas, Strings)
