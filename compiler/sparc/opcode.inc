@@ -24,7 +24,7 @@ A_NOP,
 A_OR,A_ORcc,A_ORN,A_ORNcc,
 A_RDASR,A_RDY,A_RDPSR,A_RDWIM,A_RDTBR,
 A_RESTORE,
-A_RET,
+A_RETT,
 A_SAVE,
 A_SDIV,A_SDIVcc,
 A_SMUL,A_SMULcc,
@@ -68,7 +68,10 @@ A_skipz,A_skipnz,
 A_tst
 {
 	$Log$
-	Revision 1.3  2002-10-17 14:48:34  mazen
-	* branch instructions are now contigous
+	Revision 1.4  2002-11-10 17:49:14  mazen
+	* A_RET --> A_RETT (RET from Trap)
 
+	Revision 1.3  2002/10/17 14:48:34  mazen
+	* branch instructions are now contigous
+	
 }
