@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0
 #exceptn fpu
 units=system objpas macpas strings watcom dos crt objects \
-      cpu charset types getopts heaptrc lineinfo
+      cpu charset types getopts heaptrc lineinfo ctypes
 #      math typinfo mmx ucomplex \
 #      varutils variants sysutils
 
@@ -204,4 +204,4 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 
-callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)

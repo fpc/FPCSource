@@ -243,7 +243,7 @@ SYSTEMUNIT=syslinux
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=system exec strings dos crt objects printer objpas macpas matrix heaptrc lineinfo getopts graph sysutils math typinfo
+override TARGET_UNITS+=system exec strings dos crt objects printer objpas macpas matrix heaptrc lineinfo getopts graph sysutils math typinfo ctypes
 override TARGET_LOADERS+=prt0
 override TARGET_RSTS+=math
 override INSTALL_FPCPACKAGE=y
@@ -1482,3 +1482,5 @@ getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp $(REDIR)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/heaptrc.pp $(REDIR)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/ctypes.pp $(REDIR)

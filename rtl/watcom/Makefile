@@ -236,7 +236,7 @@ ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
 endif
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
-override TARGET_UNITS+=system objpas macpas strings watcom dos crt objects cpu charset types getopts heaptrc lineinfo
+override TARGET_UNITS+=system objpas macpas strings watcom dos crt objects cpu charset types getopts heaptrc lineinfo ctypes
 override TARGET_LOADERS+=prt0
 override TARGET_RSTS+=math varutils typinfo classes variants sysconst
 override INSTALL_FPCPACKAGE=y
@@ -1500,4 +1500,4 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
-callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)

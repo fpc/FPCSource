@@ -238,7 +238,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
 override TARGET_LOADERS+=prt0 prt1
 override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
 override INSTALL_FPCPACKAGE=y
@@ -1516,3 +1516,4 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

@@ -238,7 +238,7 @@ endif
 ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
-override TARGET_UNITS+=system objpas macpas strings go32 dpmiexcp initc ports profile dxetype dxeload emu387 dos crt objects printer graph sysutils classes math typinfo matrix cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutil convutil strutils
+override TARGET_UNITS+=system objpas macpas strings go32 dpmiexcp initc ports profile dxetype dxeload emu387 dos crt objects printer graph sysutils classes math typinfo matrix cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutil convutil strutils ctypes
 override TARGET_LOADERS+=prt0 exceptn fpu
 override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
 override INSTALL_FPCPACKAGE=y
@@ -1513,4 +1513,4 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
-callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
