@@ -275,6 +275,11 @@ begin
                     dec(attopcode[0]);
                     attsuffix:='attsufFPU';
                   end;
+                'R' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufFPUint';
+                  end;
                 else
                   attsuffix:='attsufNONE';
               end;
@@ -418,7 +423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-02-09 13:23:11  peter
+  Revision 1.9  2000-04-04 13:44:03  pierre
+   + R suffix for integer FPU operations
+
+  Revision 1.8  2000/02/09 13:23:11  peter
     * log truncated
 
   Revision 1.7  2000/01/28 09:41:39  peter
