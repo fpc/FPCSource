@@ -905,10 +905,16 @@ procedures }
       orddef:
         if is_boolean(left.resulttype.def)and is_boolean(right.resulttype.def)
         then{handling boolean expressions}
-          second_addboolean
+          begin
+            second_addboolean;
+            exit;
+          end
         else if is_64bitint(left.resulttype.def)
         then{64bit operations}
-          second_add64bit;
+          begin
+            second_add64bit;
+            exit;
+          end;
       stringdef:
         InternalError(20020726);//second_addstring;
       setdef:
@@ -1040,7 +1046,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.7  2003-01-20 22:21:36  mazen
+    Revision 1.8  2003-01-22 20:45:15  mazen
+    * making math code in RTL compiling.
+    *NB : This does NOT mean necessary that it will generate correct code!
+
+    Revision 1.7  2003/01/20 22:21:36  mazen
     * many stuff related to RTL fixed
 
     Revision 1.6  2003/01/08 18:43:58  daniel

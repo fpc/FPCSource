@@ -1052,16 +1052,16 @@ implementation
                      cg.a_call_ref(exprasmlist,href);
                      cg.free_scratch_reg(exprasmlist,tmpreg);
                   end;
-
+{$ifndef SPARC}{We don't need that on SPARC arch!}
               { push base pointer ?}
               { never when inlining, since if necessary, the base pointer }
               { can/will be gottten from the current procedure's symtable }
-              { (JM)                                                      }
+              { (JM)}
               if not inlined then
                 if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
                   ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
                   load_framepointer;
-
+{$endif SPARC}
               rg.saveregvars(exprasmlist,regs_to_push);
 
 {$ifdef dummy}
@@ -1572,7 +1572,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-01-17 12:03:45  daniel
+  Revision 1.35  2003-01-22 20:45:15  mazen
+  * making math code in RTL compiling.
+  *NB : This does NOT mean necessary that it will generate correct code!
+
+  Revision 1.34  2003/01/17 12:03:45  daniel
     * Optalign conditional code adapted to record Tregister
 
   Revision 1.33  2003/01/08 18:43:56  daniel

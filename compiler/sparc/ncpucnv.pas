@@ -246,7 +246,7 @@ procedure TSparctypeconvnode.second_int_to_real;
       tempconst.free;
       location.register := rg.getregisterfpu(exprasmlist);
       {$WARNING FIXME what really should be done?}
-      exprasmlist.concat(taicpu.op_reg_ref(A_LD,location.register,ref));
+      exprasmlist.concat(taicpu.op_Ref_Reg(A_LDF,Ref,location.register));
       tg.ungetiftemp(exprasmlist,ref);
       exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,location.register,tmpfpureg));
       rg.ungetregisterfpu(exprasmlist,tmpfpureg);
@@ -388,7 +388,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-01-20 22:21:36  mazen
+  Revision 1.11  2003-01-22 20:45:15  mazen
+  * making math code in RTL compiling.
+  *NB : This does NOT mean necessary that it will generate correct code!
+
+  Revision 1.10  2003/01/20 22:21:36  mazen
   * many stuff related to RTL fixed
 
   Revision 1.9  2002/12/05 14:28:03  florian

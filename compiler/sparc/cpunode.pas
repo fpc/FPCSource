@@ -28,14 +28,18 @@ the behaviour of such a unit having just a USES clause!}
 implementation
 uses
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
-  ncpuadd,ncpucall,{n386con,n386cnv,n386flw,}ncpumat,{n386mem,}
-  {n386set,}ncpuinln,{n386opt,}ncpucnv,
+  ncpuadd,ncpucall,{n386con,n386flw,}ncpumat,{n386mem,}
+  ncgset,ncpuinln,{n386opt,}ncpucnv,
   { this not really a node }
   {ncpuobj,}rgcpu;
 end.
 {
     $Log$
-    Revision 1.6  2002-12-21 23:21:47  mazen
+    Revision 1.7  2003-01-22 20:45:15  mazen
+    * making math code in RTL compiling.
+    *NB : This does NOT mean necessary that it will generate correct code!
+
+    Revision 1.6  2002/12/21 23:21:47  mazen
     + added support for the shift nodes
     + added debug output on screen with -an command line option
 
