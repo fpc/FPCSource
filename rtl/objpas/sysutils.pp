@@ -112,6 +112,9 @@ interface
   { Read other file handling function declarations }
   {$i filutilh.inc}
   
+  { Read disk function declarations }
+  {$i diskh.inc}
+  
   implementation
   
   { Read message string definitions }
@@ -131,6 +134,9 @@ interface
 
   { Read other file handling function implementations }
   {$i filutil.inc}
+  
+  { Read disk function implementations }
+  {$i disk.inc}
   
   { Read date & Time function implementations }
   {$i dati.inc}
@@ -274,7 +280,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.16  1998-10-11 12:23:41  michael
+    Revision 1.17  1998-10-20 19:26:37  michael
+    + Forgot to include disk functions
+
+    Revision 1.16  1998/10/11 12:23:41  michael
     + More sysutils calls.
 
     Revision 1.15  1998/10/10 09:53:10  michael
