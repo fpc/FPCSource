@@ -19,21 +19,18 @@ type
   { corresponding to real    single     fixed   extended and comp for i386 }
 
 {$ifdef i386}
-{$ifdef ver_above0_9_ still not ok }
-  bestreal  = extended; { still gives problems }
-{$else ver_above0_9_8}
+{  bestreal  = extended;  still gives problems }
   bestreal = double;
-{$endif ver_above0_9_8}
-{$else not i386}
+{$else i386}
   bestreal = single;
-{$endif not i386}
+{$endif i386}
 
 Procedure str_real (len,f : longint; d : bestreal; real_type :treal_type; var s : string);
-
-{ These numbers are for the double type...
+{
+  These numbers are for the double type...
   At the moment these are mapped onto a double but this may change
-  in the future ! }
-
+  in the future !
+}
 var  maxlen : longint;   { Maximal length of string for float }
      minlen : longint;   { Minimal length of string for float }
      explen : longint;   { Length of exponent, including E and sign.
@@ -88,11 +85,7 @@ begin
     end;
   { check parameters }
   { default value for length is -32767 }
-{$ifdef ver_above0_9_7}
   if len=-32767 then len:=maxlen;
-{$else }
-  if (len=-1) and (f=-1) then len:=maxlen;
-{$endif }
   { determine sign. before precision, needs 2 less calls to abs() }
   sign:=d<0;
   { the creates a cannot determine which overloaded function to call
@@ -205,41 +198,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-04-07 22:40:46  florian
+  Revision 1.3  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
+
+  Revision 1.2  1998/04/07 22:40:46  florian
     * final fix of comp writing
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.7  1998/03/16 23:38:17  peter
-    * fixed 0.997:0:2 bugs
-
-  Revision 1.6  1998/01/26 11:59:47  michael
-  + Added log at the end
-
-
-  revision 1.5
-  date: 1998/01/05 00:48:24;  author: carl;  state: Exp;  lines: +2 -2
-  + Now compatible with m68k floating point types
-  ----------------------------
-  revision 1.4
-  date: 1997/12/02 17:44:45;  author: pierre;  state: Exp;  lines: +2 -2
-    * use of extended type in function str_real still buggy
-  ----------------------------
-  revision 1.3
-  date: 1997/12/01 12:08:04;  author: michael;  state: Exp;  lines: +12 -6
-  + added copyright reference header.
-  ----------------------------
-  revision 1.2
-  date: 1997/11/28 19:45:21;  author: pierre;  state: Exp;  lines: +6 -3
-    * one more bug fix with namelength
-    + fixed math in fixed_math define (does not compile yet)
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
 }

@@ -42,43 +42,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.7  1998/01/27 12:44:46  peter
-    * removed comment level 2 warning
-
-  Revision 1.6  1998/01/26 11:59:40  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/mathh.inc
-  description:
-  ----------------------------
-  revision 1.5
-  date: 1997/12/01 12:08:04;  author: michael;  state: Exp;  lines: +12 -4
-  + added copyright reference header.
-  ----------------------------
-  revision 1.4
-  date: 1997/11/28 23:26:45;  author: florian;  state: Exp;  lines: +3 -5
-  $ifdef fixed added
-  ----------------------------
-  revision 1.3
-  date: 1997/11/28 19:45:21;  author: pierre;  state: Exp;  lines: +35 -33
-    * one more bug fix with namelength
-    + fixed math in fixed_math define (does not compile yet)
-  ----------------------------
-  revision 1.2
-  date: 1997/11/28 16:49:08;  author: carl;  state: Exp;  lines: +33 -26
-  + added fixed point routines.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

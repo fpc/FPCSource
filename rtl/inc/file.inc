@@ -257,28 +257,10 @@ End;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:44  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.4  1998/03/05 02:42:29  peter
-    + blockread/blockwrite with integer result
-
-  Revision 1.3  1998/01/26 11:59:44  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/inc/file.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1998/01/25 21:53:28;  author: peter;  state: Exp;  lines: +2 -2
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-  ----------------------------
-  revision 1.1
-  date: 1998/01/11 02:43:11;  author: michael;  state: Exp;
-  + Initial implementation of these files (by Peter Vreman).
-    file operations are now in separate files per type of file.
-  =============================================================================
 }

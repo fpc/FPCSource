@@ -34,7 +34,7 @@ unit cpu;
 
       {
         Check if the ID-flag can be changed, if changed then CpuID is supported.
-        Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (Syn)
+        Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
       }
       asm
          pushf
@@ -70,41 +70,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
-
-  Revision 1.6  1998/03/03 23:20:14  florian
-    * mov eax,cr0 isn't yet recognized by the asm parser, removed
-
-  Revision 1.5  1998/03/03 22:47:00  florian
-    * small problems fixed
-
-  Revision 1.4  1998/02/04 23:00:58  florian
-    - mmx stuff moved to mmx unit
-
-  Revision 1.3  1998/01/26 11:59:17  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/i386/cpu.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:34:37;  author: michael;  state: Exp;  lines: +12 -6
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 22:49:04;  author: florian;  state: Exp;
-  - CPU.PP added
-  - some bugs in DOS fixed (especially for go32v1)
-  - the win32 system unit is now compilable
-  =============================================================================
-
- History:
-   6th november 1997:
-      + inital version (FK)
-  27th november 1997:
-      + cpuid_support, thanks to synopsis (FK)
+  Revision 1.2  1998-05-12 10:42:41  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
 }

@@ -713,19 +713,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:44  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.2  1998/01/26 12:00:10  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/astrings.pp
-  description:
-  ----------------------------
-  revision 1.1
-  date: 1998/01/02 16:58:14;  author: michael;  state: Exp;
-  + Initial implementation of AnsiStrings
-  =============================================================================
 }

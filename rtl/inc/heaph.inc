@@ -12,58 +12,36 @@
 
  **********************************************************************}
 
-  const
-    heapblocks : boolean=false;
 
-
-  var
-     heaporg,heapptr,heapend,heaperror,freelist : pointer;
-
-  procedure release(var p : pointer);
-  procedure mark(var p : pointer);
-  procedure markheap(var oldfreelist,oldheapptr : pointer);
-  procedure releaseheap(oldfreelist,oldheapptr : pointer);
-  function  cal_memavail : longint;
-  function  heapsize : longint;
+Procedure release(var p : pointer);
+Procedure mark(var p : pointer);
+Procedure markheap(var oldfreelist,oldheapptr : pointer);
+Procedure releaseheap(oldfreelist,oldheapptr : pointer);
+Function  cal_memavail : longint;
+Function  heapsize : longint;
 {$ifdef TEMPHEAP}
-  procedure split_heap;
-  procedure switch_to_base_heap;
-  procedure switch_to_temp_heap;
-  procedure switch_heap;
-  procedure releasetempheap;
-  procedure gettempmem(var p : pointer;size : longint);
+  Procedure split_heap;
+  Procedure switch_to_base_heap;
+  Procedure switch_to_temp_heap;
+  Procedure switch_heap;
+  Procedure releasetempheap;
+  Procedure gettempmem(var p : pointer;size : longint);
 {$endif TEMPHEAP}
 
-  const
-     allow_special : boolean =true;
+const
+  allow_special : boolean =true;
+  heapblocks    : boolean=false;
+var
+  heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
 {
   $Log$
-  Revision 1.2  1998-04-21 10:23:15  peter
+  Revision 1.3  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
+
+  Revision 1.2  1998/04/21 10:23:15  peter
     + heapblocks
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.3  1998/01/26 11:59:33  michael
-  + Added log at the end
-
-
-
-
-  Working file: rtl/inc/heaph.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:08:03;  author: michael;  state: Exp;  lines: +11 -3
-  + added copyright reference header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

@@ -210,316 +210,63 @@ begin
 end;
 
 
+{*****************************************************************************
+                              Str() Helpers
+*****************************************************************************}
 
-{$ifndef str_intern }
-procedure str(i : integer;var s : string);
-
-begin
-   str(longint(i),s);
-end;
-   
-procedure str(si : shortint;var s : string);
-
-begin
-   str(longint(si),s);
-end;
-
-procedure str(b : byte;var s : string);
-
-begin
-   str(longint(b),s);
-end;
-
-procedure str(w : word;var s : string);
-
-begin
-   str(longint(w),s);
-end;
-
-{$ifdef ieee_support}
-procedure str(d : double;var s : string);
-
-begin
-   str_real(-1,-1,d,rt_s64real,s);
-end;
-{$endif ieee_support}
-
-
-{$ifndef ieee_support}
-{ REAL TYPE = single type in this case }
-procedure str(d : real;var s : string);
-
-begin
-   str_real(-1,-1,d,rt_s32real,s);
-end;
-{$endif ieee_support}
-
-{$else not str_intern }
 procedure int_str_real(d : real;len,fr : longint;var s : string);[public, alias : 'STR_REAL'];
-
 begin
- {$ifdef i386}
+{$ifdef i386}
    str_real(len,fr,d,rt_s64real,s);
- {$else}
+{$else}
    str_real(len,fr,d,rt_s32real,s);
- {$endif}
+{$endif}
 end;
 
-{$ifdef support_ieee}
-procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : 'STR_SINGLE'];
 
+procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : 'STR_SINGLE'];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
+
 
 procedure int_str_extended(d : extended;len,fr : longint;var s : string);[public, alias : 'STR_EXTENDED'];
-
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
-{$endif support_ieee}
 
-{$ifdef support_comp}
+
 procedure int_str_comp(d : comp;len,fr : longint;var s : string);[public, alias : 'STR_COMP'];
-
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
-{$endif support_comp}
+
 
 procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : 'STR_FIXED'];
-
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
 
-procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : 'STR_LONGINT'];
 
+procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : 'STR_LONGINT'];
 begin
    int_str(v,s);
    if length(s)<len then
      s:=space(len-length(s))+s;
 end;
 
-{$ifdef ver_above0_9_8}
-procedure int_str_cardinal(v : cardinal;len : longint;var s : string);[public, alias : 'STR_CARDINAL'];
-var
-   d : real;
 
+procedure int_str_cardinal(v : cardinal;len : longint;var s : string);[public, alias : 'STR_CARDINAL'];
 begin
   int_str(v,s);
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
-{$endif ver_above0_9_8}
 
-{$endif  str_intern }
 
-procedure val(const s : string;var d : real;var code : word);
-
-  var
-     { faster on a pentium }
-     esign,sign : real;
-
-     i : longint;
-     exponent : longint;
-     flags : byte;
-     hd : real;
-
-  begin
-     d:=0;
-     code:=1;
-     exponent:=0;
-     esign:=1;
-     flags:=0;
-     sign:=1;
-     while (code<=length(s)) and (s[code] in [' ',#9]) do
-       inc(code);
-     case s[code] of
-      '+' : inc(code);
-      '-' : begin
-              sign:=-1.0;
-              inc(code);
-            end;
-     end;
-     while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
-       begin
-          { Read integer part }
-          flags:=flags or 1;
-          d:=d*10;
-          d:=d+(ord(s[code])-ord('0'));
-          inc(code);
-       end;
-     { Decimal ? }
-     if (s[code]='.') and (length(s)>=code) then
-       begin
-          hd:=0.1;
-          inc(code);
-          { After dot, a number is required. }
-          if not(s[code] in ['0'..'9']) or (length(s)<code) then
-            begin
-               d:=0.0;
-               exit;
-            end;
-          while (s[code] in ['0'..'9']) and (length(s)>=code) do
-            begin
-               { Read fractional part. }
-               flags:=flags or 2;
-               d:=d+hd*(ord(s[code])-ord('0'));
-               hd:=hd/10.0;
-               inc(code);
-            end;
-       end;
-     { Again, read integer and fractional part}
-     if flags=0 then
-       begin
-          d:=0.0;
-          exit;
-       end;
-     { Exponent ? }
-     if (upcase(s[code])='E') and (length(s)>=code) then
-       begin
-          inc(code);
-          if s[code]='+' then
-            inc(code)
-          else if s[code]='-' then
-            begin
-               esign:=-1;
-               inc(code);
-            end;
-          if not(s[code] in ['0'..'9']) or (length(s)<code) then
-            begin
-               d:=0.0;
-               exit;
-            end;
-          while (s[code] in ['0'..'9']) and (length(s)>=code) do
-            begin
-               exponent:=exponent*10;
-               exponent:=exponent+ord(s[code])-ord('0');
-               inc(code);
-            end;
-       end;
-     { Calculate Exponent }
-     if esign>0 then
-       for i:=1 to exponent do
-         d:=d*10
-     else
-       for i:=1 to exponent do
-         d:=d/10;
-     { Not all characters are read ? }
-     if length(s)>=code then
-       begin
-          d:=0.0;
-          exit;
-       end;
-     { evalute sign }
-     d:=d*sign;
-     { success ! }
-     code:=0;
-  end;
-
-procedure val(const s : string;var d : real;var code : integer);
-
-  begin
-     val(s,d,word(code));
-  end;
-
-procedure val(const s : string;var d : real);
-  var code : word;
-  begin
-     val(s,d,code);
-  end;
-
-{$ifdef ver_above0_9_2}
-{$IFDEF ieee_support}
-procedure val(const s : string;var d : single;var code : word);
-
-  var e : double;
-
-  begin
-     val(s,e,code);
-     d:=e;
-  end;
-
-procedure val(const s : string;var d : single;var code : integer);
-
-  var e : double;
-
-  begin
-     val(s,e,word(code));
-     d:=e;
-  end;
-
-procedure val(const s : string;var d : single);
-
-  var code : word;
-      e    : double;
-  begin
-     val(s,e,code);
-     d:=e;
-  end;
-{$ENDIF ieee_support}
-{$endif ver_above0_9_2}
-{$ifdef ver_above0_9_7}
-{$ifdef ieee_support}
-procedure val(const s : string;var d : extended;var code : word);
-
-var e : double;
-
-begin
-   val(s,e,code);
-   d:=e;
-end;
-
-procedure val(const s : string;var d : extended;var code : integer);
-
-var e : double;
-
-begin
-   val(s,e,word(code));
-   d:=e;
-end;
-
-procedure val(const s : string;var d : extended);
-
-var code : word;
-    e    : double;
-begin
-   val(s,e,code);
-   d:=e;
-end;
-{$endif ieee_support}
-{$ifdef comp_support}
-procedure val(const s : string;var d : comp;var code : word);
-
-var e : double;
-
-begin
-   val(s,e,code);
-   d:=e;
-end;
-
-procedure val(const s : string;var d : comp;var code : integer);
-
-var e : double;
-
-begin
-   val(s,e,word(code));
-   d:=e;
-end;
-
-procedure val(const s : string;var d : comp);
-
-var code : word;
-    e    : double;
-begin
-   val(s,e,code);
-   d:=e;
-end;
-{$endif comp_support}
-
-{$endif ver_above0_9_7}
-
+{*****************************************************************************
+                           Val() Functions 
+*****************************************************************************}
 
 Function InitVal(const s:string;var negativ:boolean;var base:byte):Word;
 var
@@ -561,43 +308,43 @@ begin
 end;
 
 
-procedure val(const s : string;var v : longint;var code : word);
+procedure val(const s : string;var l : longint;var code : word);
 var
   base,u  : byte;
   negativ : boolean;
 begin
-  v:=0;
+  l:=0;
   Code:=InitVal(s,negativ,base);
   if Code>length(s) then
    exit;
   if negativ and (s='-2147483648') then
    begin
      Code:=0;
-     v:=$80000000;
+     l:=$80000000;
      exit;
    end;
   while Code<=Length(s) do
    begin
      u:=ord(s[code]);
      case u of
-      48..57  : dec(u,48);
-      65..70  : dec(u,55);
+       48..57 : dec(u,48);
+       65..70 : dec(u,55);
       97..104 : dec(u,87);
      else
       u:=16;
      end;
-     v:=v*longint(base);
-     if (u>=base) or ((base=10) and (2147483647-v<longint(u))) then
+     l:=l*longint(base);
+     if (u>=base) or ((base=10) and (2147483647-l<longint(u))) then
       begin
-        v:=0;
+        l:=0;
         exit;
       end;
-     inc(v,u);
+     inc(l,u);
      inc(code);
    end;
   code := 0;
   if negativ then
-   v:=0-v;
+   l:=0-l;
 end;
 
 
@@ -609,7 +356,7 @@ end;
 
 procedure val(const s : string;var l : longint);
 var
-   code : word;
+  code : word;
 begin
    val (s,l,code);
 end;
@@ -619,17 +366,17 @@ procedure val(const s : string;var b : byte);
 var
   l : longint;
 begin
-   val(s,l);
-   b:=l;
+  val(s,l);
+  b:=l;
 end;
 
 
 procedure val(const s : string;var b : byte;var code : word);
 var
-   l : longint;
+  l : longint;
 begin
-   val(s,l,code);
-   b:=l;
+  val(s,l,code);
+  b:=l;
 end;
 
 
@@ -641,10 +388,10 @@ end;
 
 procedure val(const s : string;var b : shortint);
 var
-   l : longint;
+  l : longint;
 begin
-   val(s,l);
-   b:=l;
+  val(s,l);
+  b:=l;
 end;
 
 
@@ -711,7 +458,203 @@ begin
 end;
 
 
-{$ifdef ver_above0_9_8}
+procedure val(const s : string;var d : real;var code : word);
+var
+  hd,
+  esign,sign : real;
+  exponent,i : longint;
+  flags      : byte;
+begin
+  d:=0;
+  code:=1;
+  exponent:=0;
+  esign:=1;
+  flags:=0;
+  sign:=1;
+  while (code<=length(s)) and (s[code] in [' ',#9]) do
+   inc(code);
+  case s[code] of
+   '+' : inc(code);
+   '-' : begin
+           sign:=-1.0;
+           inc(code);
+         end;
+  end;
+  while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
+   begin
+   { Read integer part }
+      flags:=flags or 1;
+      d:=d*10;
+      d:=d+(ord(s[code])-ord('0'));
+      inc(code);
+   end;
+{ Decimal ? }
+  if (s[code]='.') and (length(s)>=code) then
+   begin
+      hd:=0.1;
+      inc(code);
+      { After dot, a number is required. }
+      if not(s[code] in ['0'..'9']) or (length(s)<code) then
+        begin
+           d:=0.0;
+           exit;
+        end;
+      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+        begin
+           { Read fractional part. }
+           flags:=flags or 2;
+           d:=d+hd*(ord(s[code])-ord('0'));
+           hd:=hd/10.0;
+           inc(code);
+        end;
+   end;
+ { Again, read integer and fractional part}
+  if flags=0 then
+   begin
+      d:=0.0;
+      exit;
+   end;
+ { Exponent ? }
+  if (upcase(s[code])='E') and (length(s)>=code) then
+   begin
+      inc(code);
+      if s[code]='+' then
+        inc(code)
+      else
+        if s[code]='-' then
+         begin
+           esign:=-1;
+           inc(code);
+         end;
+      if not(s[code] in ['0'..'9']) or (length(s)<code) then
+        begin
+           d:=0.0;
+           exit;
+        end;
+      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+        begin
+           exponent:=exponent*10;
+           exponent:=exponent+ord(s[code])-ord('0');
+           inc(code);
+        end;
+   end;
+{ Calculate Exponent }
+  if esign>0 then
+    for i:=1 to exponent do
+      d:=d*10
+    else
+      for i:=1 to exponent do
+        d:=d/10;
+{ Not all characters are read ? }
+  if length(s)>=code then
+   begin
+     d:=0.0;
+     exit;
+   end;
+{ evalute sign }
+  d:=d*sign;
+{ success ! }
+  code:=0;
+end;
+
+
+procedure val(const s : string;var d : real;var code : integer);
+begin
+  val(s,d,word(code));
+end;
+
+
+procedure val(const s : string;var d : real);
+var
+  code : word;
+begin
+  val(s,d,code);
+end;
+
+
+procedure val(const s : string;var d : single;var code : word);
+var
+  e : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : single;var code : integer);
+var
+  e : double;
+begin
+  val(s,e,word(code));
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : single);
+var
+  code : word;
+  e    : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : extended;var code : word);
+var
+  e : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : extended;var code : integer);
+var
+  e : double;
+begin
+  val(s,e,word(code));
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : extended);
+var
+  code : word;
+  e    : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : comp;var code : word);
+var
+  e : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : comp;var code : integer);
+var
+  e : double;
+begin
+  val(s,e,word(code));
+  d:=e;
+end;
+
+
+procedure val(const s : string;var d : comp);
+var
+  code : word;
+  e    : double;
+begin
+  val(s,e,code);
+  d:=e;
+end;
+
 
 procedure val(const s : string;var v : cardinal;var code : word);
 var
@@ -726,8 +669,8 @@ begin
    begin
      u:=ord(s[code]);
      case u of
-      48..57  : dec(u,48);
-      65..70  : dec(u,55);
+       48..57 : dec(u,48);
+       65..70 : dec(u,55);
       97..104 : dec(u,87);
      else
       u:=16;
@@ -758,42 +701,12 @@ begin
   val(s,v,word(code));
 end;
 
-{$endif ver_above0_9_8}
-
 {
   $Log$
-  Revision 1.2  1998-03-26 14:41:22  michael
-  + Added comp support for val and read(ln)
+  Revision 1.3  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.8  1998/03/18 15:04:36  pierre
-    * bug in val : a was accepted as 10 in base 10 !!
-
-  Revision 1.7  1998/02/11 16:55:18  michael
-  fixed cardinal printing. Large cardinals (>0fffffff) not yet working
-
-  Revision 1.6  1998/02/08 23:57:51  peter
-    * fixed val(longint) so it works again with $80000000+
-
-  Revision 1.5  1998/02/08 21:51:40  peter
-    * some optimizes and Val(cardinal) fixed
-
-  Revision 1.4  1998/01/26 12:00:13  michael
-  + Added log at the end
-
-  revision 1.3
-  date: 1998/01/23 12:06:05;  author: daniel;  state: Exp;  lines: +18 -22
-  * Did some small code tweaks.
-  ----------------------------
-  revision 1.2
-  date: 1998/01/12 02:31:44;  author: carl;  state: Exp;  lines: +30 -9
-    + added generic Floating point support/fixes for m68k port and other ports
-  ----------------------------
-  revision 1.1
-  date: 1997/12/22 18:54:25;  author: michael;  state: Exp;
-  + Initial implementation: moved all strings routines from system.inc to
-    sstrings.inc.
-  =============================================================================
 }

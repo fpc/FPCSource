@@ -11,7 +11,8 @@ unit Graph;
   Info:
 
   This unit provides the functions of Borland's Graph unit for linux,
-  it uses the SVGAlib to do the actual work, so you must have svgalib 
+  it uses the SVGAlib to do the actual work, so you must have svgalib
+
   on your system
 
   This version requires Free Pascal 0.99.5 or higher.
@@ -34,7 +35,8 @@ unit Graph;
                               declarations here so it can be used independently
                               of the svgalib unit. Removed things that are NOT
                               part of Borland's Graph from the unit interface.
-                               
+
+
   License Conditions:
 
   This library is free software; you can redistribute it and/or
@@ -50,7 +52,8 @@ unit Graph;
   You should have received a copy of the GNU Library General Public
   License along with this library; if not, write to the Free
   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  
+
+
   *********************************************************************}
 
 {
@@ -68,7 +71,8 @@ unit Graph;
   SetAspectRatio
   PieSlice
   Sector
-  
+
+
   (please remove what you implement fom this list)
 }
 
@@ -77,7 +81,8 @@ interface
 
 
 { ---------------------------------------------------------------------
-   Constants 
+   Constants
+
   ---------------------------------------------------------------------}
 
 const
@@ -142,7 +147,8 @@ const
 
 
 { ---------------------------------------------------------------------
-   Types 
+   Types
+
   ---------------------------------------------------------------------}
 
 
@@ -158,12 +164,15 @@ Type
   RGBColor = record
     r,g,b,i : byte;
   end;
-  
+
+
   PaletteType = record
-     Size   : integer; 
+     Size   : integer;
+
      Colors : array[0..767]of Byte;
   end;
-  
+
+
   LineSettingsType = record
      linestyle : word;
      pattern : word;
@@ -192,7 +201,8 @@ Type
      Clip : boolean;
   end;
 
-  
+
+
  const
   fillpattern : array[0..12] of FillPatternType = (
       ($00,$00,$00,$00,$00,$00,$00,$00),     { Hintergrundfarbe }
@@ -210,18 +220,20 @@ Type
       (0,0,0,0,0,0,0,0)                      { benutzerdefiniert }
      );
 
-   
+
+
 { ---------------------------------------------------------------------
-   Function Declarations 
+   Function Declarations
+
   ---------------------------------------------------------------------}
 
 { Retrieving coordinates }
-function  GetX: Integer;					
-function  GetY: Integer;					
+function  GetX: Integer;                                        
+function  GetY: Integer;                                        
 
 { Pixel-oriented routines }
 procedure PutPixel(X, Y: Integer; Pixel: Word);
-function  GetPixel(X, Y: Integer): Word;	
+function  GetPixel(X, Y: Integer): Word;        
 
 { Line-oriented primitives }
 procedure SetWriteMode(WriteMode: Integer);
@@ -245,7 +257,7 @@ procedure FloodFill(X, Y: Integer; Border: Word);
 { Nonlinearly bounded primitives }
 
 procedure Arc(X, Y: Integer; StAngle, EndAngle, Radius: Word);
-procedure GetArcCoords(var ArcCoords: ArcCoordsType);	
+procedure GetArcCoords(var ArcCoords: ArcCoordsType);   
 procedure Circle(X, Y: Integer; Radius: Word);
 procedure Ellipse(X, Y: Integer; StAngle, EndAngle: Word; XRadius, YRadius : Word);
 procedure FillEllipse(X, Y: Integer; XRadius, YRadius : Word);
@@ -292,7 +304,8 @@ uses Objects, Linux;
 
 
 { ---------------------------------------------------------------------
-   SVGA bindings. 
+   SVGA bindings.
+
   ---------------------------------------------------------------------}
 
 {  Link with VGA, gl and c libraries }
@@ -303,7 +316,7 @@ uses Objects, Linux;
  { Constants }
 const
   { VGA modes }
-  TEXT              = 0;		{ Compatible with VGAlib v1.2 }
+  TEXT              = 0;                { Compatible with VGAlib v1.2 }
   G320x200x16       = 1;
   G640x200x16       = 2;
   G640x350x16       = 3;
@@ -340,9 +353,9 @@ const
   G1024x768x16      = 30;
   G1280x1024x16     = 31;
 
-  G720x348x2        = 32;		{ Hercules emulation mode }
+  G720x348x2        = 32;               { Hercules emulation mode }
 
-  G320x200x16M32    = 33;	{ 32-bit per pixel modes. }
+  G320x200x16M32    = 33;       { 32-bit per pixel modes. }
   G640x480x16M32    = 34;
   G800x600x16M32    = 35;
   G1024x768x16M32   = 36;
@@ -366,7 +379,8 @@ const
   GLASTMODE         = 49;
 
   { Text }
-  
+
+
   WRITEMODE_OVERWRITE = 0;
   WRITEMODE_MASKED    = 1;
   FONT_EXPANDED       = 0;
@@ -392,7 +406,8 @@ const
      linewidth_unit: Longint;    { Use only a multiple of this as parameter for
                                    set_displaystart }
      linear_aperture: PChar;     { points to mmap secondary mem aperture of card }
-     aperture_size: Longint;     { size of aperture in KB if size>=videomemory.} 
+     aperture_size: Longint;     { size of aperture in KB if size>=videomemory.}
+
      set_aperture_page: procedure (page: Longint);
             { if aperture_size<videomemory select a memory page }
      extensions: Pointer;        { points to copy of eeprom for mach32 }
@@ -401,31 +416,35 @@ const
 
   PGraphicsContext = ^TGraphicsContext;
   TGraphicsContext = record
-		       ModeType: Byte;
-		       ModeFlags: Byte;
-		       Dummy: Byte;
-		       FlipPage: Byte;
-		       Width: LongInt;
-		       Height: LongInt;
-		       BytesPerPixel: LongInt;
-		       Colors: LongInt;
-		       BitsPerPixel: LongInt;
-		       ByteWidth: LongInt;
-		       VBuf: pointer;
-		       Clip: LongInt;
-		       ClipX1: LongInt;
-		       ClipY1: LongInt;
-		       ClipX2: LongInt;
-		       ClipY2: LongInt;
-		       ff: pointer;
-		     end;
-                                                                                                                                                      
+                       ModeType: Byte;
+                       ModeFlags: Byte;
+                       Dummy: Byte;
+                       FlipPage: Byte;
+                       Width: LongInt;
+                       Height: LongInt;
+                       BytesPerPixel: LongInt;
+                       Colors: LongInt;
+                       BitsPerPixel: LongInt;
+                       ByteWidth: LongInt;
+                       VBuf: pointer;
+                       Clip: LongInt;
+                       ClipX1: LongInt;
+                       ClipY1: LongInt;
+                       ClipX2: LongInt;
+                       ClipY2: LongInt;
+                       ff: pointer;
+                     end;
+
+
  { vga functions }
  function vga_init: Longint; Cdecl; External;
- function vga_getdefaultmode: Longint; Cdecl; External;  
- function vga_hasmode(mode: Longint): Boolean; Cdecl; External; 
+ function vga_getdefaultmode: Longint; Cdecl; External;
+
+ function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
+
  function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
- function vga_setmode(mode: Longint): Longint; Cdecl; External; 
+ function vga_setmode(mode: Longint): Longint; Cdecl; External;
+
 
  { gl functions }
  procedure gl_setpixel(x, y, c: LongInt); Cdecl; External;
@@ -448,14 +467,18 @@ const
  procedure gl_setwritemode(wm: LongInt); Cdecl; External;
  procedure gl_setfontcolors(bg, fg: LongInt); Cdecl; External;
  procedure gl_writen(x, y, n: LongInt; s: PChar); Cdecl; External;
- procedure gl_setfont(fw, fh: LongInt; fdp: pointer); Cdecl; External; 
+ procedure gl_setfont(fw, fh: LongInt; fdp: pointer); Cdecl; External;
+
  procedure gl_copyboxfromcontext(var gc: TGraphicsContext; x1, y1, w, h, x2, y2: LongInt); Cdecl; External;
- procedure gl_setcontext(gc: PGraphicsContext); Cdecl; External; 
+ procedure gl_setcontext(gc: PGraphicsContext); Cdecl; External;
+
  function  gl_setcontextvgavirtual(m: LongInt): LongInt; cdecl; external;
- procedure gl_font8x8; Cdecl; External; 
+ procedure gl_font8x8; Cdecl; External;
+
 
 { ---------------------------------------------------------------------
-   Types, constants and variables 
+   Types, constants and variables
+
   ---------------------------------------------------------------------}
 
 var
@@ -496,7 +519,7 @@ const
   vmcCopy        = 2;
   vmcSaveRestore = 4;
   vmcBuffer      = 8;
-  vmcBackPut	 = 16;
+  vmcBackPut     = 16;
 
 { ---------------------------------------------------------------------
    Graphics Vision Layer
@@ -524,8 +547,9 @@ const
 var
   sFont, sColor:Word;
   sCharSpace: Integer;
+{ Not used
   sMarker: Char;
-  sAttr: Word;
+  sAttr: Word; }
 
 { Windows-style text metric }
 type
@@ -558,10 +582,11 @@ type
 type
   PBitmap = ^TBitmap;
   TBitmap = record
-	      Width, Height: Integer;
-	      Data: record end;
-	    end;
-	    
+              Width, Height: Integer;
+              Data: record end;
+            end;
+        
+
  { Storing screen regions }
 type
   TVgaBuf = record
@@ -587,15 +612,16 @@ type
 
 
  { Procedures and functions }
- 
+
+
 procedure SetColors;
 var
   i: Integer;
 begin
   for i:=0 to 15 do
     ColorTable[i] := gl_rgbcolor(BgiColors[i] shr 16,
-				 (BgiColors[i] shr 8) and 255,
-				 BgiColors[i] and 255)
+                                 (BgiColors[i] shr 8) and 255,
+                                 BgiColors[i] and 255)
 end;
 
 procedure InitVideo;
@@ -613,8 +639,8 @@ begin
     if (VgaMode = -1) then VgaMode := G320X200X256;
     if (not vga_hasmode(VgaMode))
       then begin
-	WriteLn('BGI: Mode not available.');
-	Halt(1)
+        WriteLn('BGI: Mode not available.');
+        Halt(1)
       end;
     ModeInfo := vga_getmodeinfo(VgaMode);
     {IsVirtual := (ModeInfo^.colors = 16) or (ModeInfo^.flags and IS_MODEX <> 0);}
@@ -622,10 +648,10 @@ begin
     { We always want a back screen (for buffering). }
     if IsVirtual
       then begin
-	{ Create virtual screen }
-	gl_setcontextvgavirtual(VgaMode);
-	BackScreen := gl_allocatecontext;
-	gl_getcontext(BackScreen)
+        { Create virtual screen }
+        gl_setcontextvgavirtual(VgaMode);
+        BackScreen := gl_allocatecontext;
+        gl_getcontext(BackScreen)
       end;
     vga_setmode(VgaMode);
     gl_setcontextvga(VgaMode);  { Physical screen context. }
@@ -678,8 +704,8 @@ begin
   if not NoGraphics
     then begin
       if ClipRect.Empty
-	then gl_setclippingwindow(0, 0, 0, 0)
-	else gl_setclippingwindow(x1, y1, x2 - 1, y2 - 1);
+        then gl_setclippingwindow(0, 0, 0, 0)
+        else gl_setclippingwindow(x1, y1, x2 - 1, y2 - 1);
       {gl_enableclipping(0);}
     end;
   SetDelta
@@ -784,14 +810,14 @@ begin
   begin
     If (Q[0] = TheMarker) and DoUseMarker
       then begin
-	If col then gl_setfontcolors(BackColor, MarkColor)
-	else gl_setfontcolors(BackColor, TextColor);
-	If Q <> P then begin
-	  gl_writen(CurX, CurY, Q-P, P);
-	  MoveRel(FontWidth * (Q-P), 0)
-	end;
-	col := not col;
-	P := Q + 1
+        If col then gl_setfontcolors(BackColor, MarkColor)
+        else gl_setfontcolors(BackColor, TextColor);
+        If Q <> P then begin
+          gl_writen(CurX, CurY, Q-P, P);
+          MoveRel(FontWidth * (Q-P), 0)
+        end;
+        col := not col;
+        P := Q + 1
       end;
     {Inc(Q)} Q := Q + 1
   end;
@@ -955,10 +981,10 @@ begin
       gl_setcontext(BackScreen);
       gl_disableclipping;
       case Action of
-	pbCopy	: gl_copyboxfromcontext(PhysicalScreen^,
-					R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y,
-					R.A.X, R.A.Y);
-	pbClear	: gl_fillbox(R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y, 0);
+        pbCopy  : gl_copyboxfromcontext(PhysicalScreen^,
+                                        R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y,
+                                        R.A.X, R.A.Y);
+        pbClear : gl_fillbox(R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y, 0);
       end;
       PrepBuf := true;
       SetDrawOrigin(0, 0);
@@ -981,8 +1007,8 @@ procedure PasteRectAt(var R: Objects.TRect; P: Objects.TPoint; var Buf: TVgaBuf)
 begin
   if not NoGraphics and (BackScreen <> nil)
     then gl_copyboxfromcontext(BackScreen^,
-			       R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y,
-			       P.X, P.Y);
+                               R.A.X, R.A.Y, R.B.X - R.A.X, R.B.Y - R.A.Y,
+                               P.X, P.Y);
 end;
 
 
@@ -995,7 +1021,6 @@ end; { PasteRect }
 function StoreScreen(x1, y1, x2, y2: Integer): PScreenBuf;
 var
   s: LongInt;
-  Handle: Word;
   p: pointer;
   SaveOrigin: TPoint;
 
@@ -1027,7 +1052,7 @@ procedure FreeScreenBuf(Buf: PScreenBuf);
 Begin
   If Buf <> nil then Begin
     case Buf^.Mode of
-      2	: FreeImage(pointer(Buf^.Info));
+      2 : FreeImage(pointer(Buf^.Info));
     end;
     Dispose(Buf)
   End
@@ -1039,13 +1064,13 @@ var
 Begin
   If Buf <> nil then
     case Buf^.Mode of
-      2	:
-	  begin
-	    SaveOrigin := DrawOrigin;
-	    SetDrawOrigin(0, 0);
-	    PasteImage(x3, y3, pointer(Buf^.Info), NormalPut);
-	    SetDrawOriginP(SaveOrigin);
-	  end
+      2 :
+          begin
+            SaveOrigin := DrawOrigin;
+            SetDrawOrigin(0, 0);
+            PasteImage(x3, y3, pointer(Buf^.Info), NormalPut);
+            SetDrawOriginP(SaveOrigin);
+          end
     end
 End;
 
@@ -1092,12 +1117,12 @@ end;
   ---------------------------------------------------------------------}
 
 
-function GetX: Integer;					
+function GetX: Integer;                                 
 begin
   GetX := CurX - DrawDelta.X
 end;
 
-function GetY: Integer;					
+function GetY: Integer;                                 
 begin
   GetY := CurY - DrawDelta.Y
 end;
@@ -1109,7 +1134,7 @@ begin
     then gl_setpixel(X + DrawDelta.X, Y + DrawDelta.Y, Pixel)
 end;
 
-function GetPixel(X, Y: Integer): Word;			
+function GetPixel(X, Y: Integer): Word;                 
 begin
   if NoGraphics
     then GetPixel := 0
@@ -1154,7 +1179,7 @@ procedure Line(x1, y1, x2, y2: Integer);
 begin
   if not NoGraphics
     then gl_line(x1 + DrawDelta.X, y1 + DrawDelta.Y,
-		 x2 + DrawDelta.X, y2 + DrawDelta.Y, TheColor)
+                 x2 + DrawDelta.X, y2 + DrawDelta.Y, TheColor)
 end;
 
 procedure SetLineStyle(LineStyle: Word; Pattern: Word; Thickness: Word);
@@ -1185,11 +1210,11 @@ begin
   if not NoGraphics
     then begin
       R.Assign(x1 + DrawDelta.X, y1 + DrawDelta.Y,
-	       x2 + DrawDelta.X + 1, y2 + DrawDelta.Y + 1);
+               x2 + DrawDelta.X + 1, y2 + DrawDelta.Y + 1);
       R.Intersect(ClipRect);
       if not R.Empty
-	then gl_fillbox(R.A.X, R.A.Y,
-			R.B.X - R.A.X, R.B.Y - R.A.Y, TheFillColor)
+        then gl_fillbox(R.A.X, R.A.Y,
+                        R.B.X - R.A.X, R.B.Y - R.A.Y, TheFillColor)
     end;
 end;
 
@@ -1205,7 +1230,8 @@ begin
   end;
   Moveto(x2+depth,y1-depth);
   Lineto(x2+depth,y2-depth);
-  Lineto(x2,y2);  
+  Lineto(x2,y2);
+
 end;
 
 procedure DrawPoly(NumPoints: Word; var PolyPoints);
@@ -1243,7 +1269,7 @@ end;
 
 { Nonlinearly bounded primitives
 }
-procedure GetArcCoords(var ArcCoords: ArcCoordsType);	
+procedure GetArcCoords(var ArcCoords: ArcCoordsType);   
 
 begin
 end;
@@ -1295,7 +1321,7 @@ begin
 end;
 
 
-procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);	
+procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);        
 var
   SaveClipRect: TRect;
 begin
@@ -1305,12 +1331,12 @@ begin
     Height := y2 - y1 + 1;
     if not NoGraphics
       then begin
-	{gl_disableclipping(0);}
-	SaveClipRect := ClipRect;
-	SetClipRect(0, 0, SizeX, SizeY);
-	gl_getbox(x1 + DrawDelta.X, y1 + DrawDelta.Y,
-		  x2 - x1 + 1, y2 - y1 + 1, @Data);
-	SetClipRectR(SaveClipRect)
+        {gl_disableclipping(0);}
+        SaveClipRect := ClipRect;
+        SetClipRect(0, 0, SizeX, SizeY);
+        gl_getbox(x1 + DrawDelta.X, y1 + DrawDelta.Y,
+                  x2 - x1 + 1, y2 - y1 + 1, @Data);
+        SetClipRectR(SaveClipRect)
       end;
   end;
 end;
@@ -1325,20 +1351,20 @@ begin
     begin
       {gl_putbox(x + DrawDelta.X, y + DrawDelta.Y, Width, Height, @Data)}
       R.Assign(X + DrawDelta.X, Y + DrawDelta.Y,
-	       X + DrawDelta.X + Width, Y + DrawDelta.Y + Height);
+               X + DrawDelta.X + Width, Y + DrawDelta.Y + Height);
       R.Intersect(ClipRect);
       if not R.Empty
-	then begin
-	  {gl_disableclipping(0);}
-	  SaveClipRect := ClipRect;
-	  SetClipRect(0, 0, SizeX, SizeY);
-	  gl_putboxpart(R.A.X, R.A.Y,
-			R.B.X - R.A.X, R.B.Y - R.A.Y,
-			Width, Height,
-			@Data,
-			R.A.X - X, R.A.Y - Y);
-	  SetClipRectR(SaveClipRect);
-	end;
+        then begin
+          {gl_disableclipping(0);}
+          SaveClipRect := ClipRect;
+          SetClipRect(0, 0, SizeX, SizeY);
+          gl_putboxpart(R.A.X, R.A.Y,
+                        R.B.X - R.A.X, R.B.Y - R.A.Y,
+                        Width, Height,
+                        @Data,
+                        R.A.X - X, R.A.Y - Y);
+          SetClipRectR(SaveClipRect);
+        end;
     end;
 end; { PutImage }
 
@@ -1358,7 +1384,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-04-15 13:40:11  michael
+  Revision 1.2  1998-05-12 10:42:47  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
+
+  Revision 1.1  1998/04/15 13:40:11  michael
   + Initial implementation of graph unit
 
 }

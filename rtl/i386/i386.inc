@@ -5,7 +5,8 @@
 
     Processor dependent implementation for the system unit for
     intel i386+
-    
+
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -87,7 +88,7 @@ begin
 end;
 
 
-Procedure FillChar(var x;count:longint;value:byte);[alias: '.L_FILL_OBJECT'];
+Procedure FillChar(var x;count:longint;value:byte);[alias: 'FILL_OBJECT'];
 begin
         asm
         cld
@@ -159,47 +160,47 @@ asm
      0 %ebp
 }
       { eax isn't touched anywhere, so it doesn't have to reloaded }
-	movl	8(%ebp),%eax
+        movl    8(%ebp),%eax
       { initialise self ? }
-	orl	%esi,%esi
-	jne	.LHC_4
+        orl     %esi,%esi
+        jne     .LHC_4
       { get memory, but save register first temporary variable }
-        subl	$4,%esp
-        movl	%esp,%esi
+        subl    $4,%esp
+        movl    %esp,%esi
       { Save Register}
         pushal
       { Memory size }
-        pushl	(%eax)
-        pushl	%esi
-        call	GETMEM
+        pushl   (%eax)
+        pushl   %esi
+        call    GETMEM
         popal
       { Memory size to %esi }
-        movl	(%esi),%esi
-        addl	$4,%esp
+        movl    (%esi),%esi
+        addl    $4,%esp
       { If no memory available : fail() }
-        orl	%esi,%esi
-        jz	.LHC_5
+        orl     %esi,%esi
+        jz      .LHC_5
       { init self for the constructor }
-        movl	%esi,12(%ebp)
+        movl    %esi,12(%ebp)
 .LHC_4:
       { is there a VMT address ? }
-        orl	%eax,%eax
-        jnz	.LHC_7
+        orl     %eax,%eax
+        jnz     .LHC_7
       { In case the constructor doesn't do anything, the Zero-Flag }
       { can't be put, because this calls Fail() }
-        incl	%eax
+        incl    %eax
         ret
 .LHC_7:
       { set zero inside the object }
         pushal
-        pushw	$0
-        pushl	(%eax)
-        pushl	%esi
-        call	.L_FILL_OBJECT
+        pushw   $0
+        pushl   (%eax)
+        pushl   %esi
+        call    FILL_OBJECT
         popal
       { set the VMT address for the new created object }
-        movl	%eax,(%esi)
-        orl	%eax,%eax
+        movl    %eax,(%esi)
+        orl     %eax,%eax
 .LHC_5:
 end;
 
@@ -284,44 +285,45 @@ asm
      0 %ebp
 }
       { temporary Variable }
-	subl 	$4,%esp
-        movl 	%esp,%edi
+        subl    $4,%esp
+        movl    %esp,%edi
         pushal
       { Should the object be resolved ? }
-        movl 	8(%ebp),%eax
-        orl 	%eax,%eax
-        jz 	.LHD_3
+        movl    8(%ebp),%eax
+        orl     %eax,%eax
+        jz      .LHD_3
       { Yes, get size from SELF! }
-        movl 	12(%ebp),%eax
+        movl    12(%ebp),%eax
       { get VMT-pointer (from Self) to %ebx }
-        movl 	(%eax),%ebx
+        movl    (%eax),%ebx
       { And put size on the Stack }
-        pushl 	(%ebx)
+        pushl   (%ebx)
       { SELF }
       { I think for precaution }
       { that we should clear the VMT here }
-        movl 	$0,(%eax)
-        movl 	%eax,(%edi)
-        pushl 	%edi
-        call 	FREEMEM
+        movl    $0,(%eax)
+        movl    %eax,(%edi)
+        pushl   %edi
+        call    FREEMEM
 .LHD_3:
         popal
-        addl	$4,%esp
+        addl    $4,%esp
 end;
 
 
 {****************************************************************************
-                                 String 
+                                 String
+
 ****************************************************************************}
 
-procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:'STRCOPY'];
+procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'STRCOPY'];
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
 begin
   asm
-        pushl %eax
-        pushl %ecx
+        pushl   %eax
+        pushl   %ecx
         cld
         movl    16(%ebp),%edi
         movl    12(%ebp),%esi
@@ -350,13 +352,13 @@ begin
         movl    %eax,%ecx
         rep
         movsb
-        popl %ecx
-        popl %eax
+        popl    %ecx
+        popl    %eax
   end ['ECX','EAX','ESI','EDI'];
 end;
 
 
-procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
+procedure int_strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 begin
   asm
         xorl    %ecx,%ecx
@@ -395,7 +397,7 @@ begin
 end;
 
 
-procedure strcmp(dstr,sstr : pointer);[public,alias: 'STRCMP'];
+procedure int_strcmp(dstr,sstr : pointer);[public,alias: 'STRCMP'];
 begin
   asm
         cld
@@ -443,6 +445,9 @@ begin
   end ['EDX','ECX','EBX','EAX','ESI','EDI'];
 end;
 
+{****************************************************************************
+                                  PChar
+****************************************************************************}
 
 function strpas(p:pchar):string;
 begin
@@ -480,6 +485,7 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
+
 function strlen(p:pchar):longint;assembler;
 asm
         movl    p,%edi
@@ -492,26 +498,35 @@ asm
         subl    %ecx,%eax
 end ['EDI','ECX','EAX'];
 
+
 {****************************************************************************
-                                 Other 
+                                 Other
+
 ****************************************************************************}
+
+Function Sptr : Longint;assembler;
+asm
+        movl    %esp,%eax
+        addl    $4,%eax         // Don't count the Call
+end ['EAX'];
+
 
 function get_addr(addrbp:longint):longint;assembler;
 asm
-	movl	addrbp,%eax
-	orl	%eax,%eax
-	jz	.Lg_a_null
-        movl	4(%eax),%eax
+        movl    addrbp,%eax
+        orl     %eax,%eax
+        jz      .Lg_a_null
+        movl    4(%eax),%eax
 .Lg_a_null:
 end ['EAX'];
 
 
 function get_next_frame(framebp:longint):longint;assembler;
 asm
-	movl	framebp,%eax
-	orl	%eax,%eax
-	jz	.Lgnf_null
-        movl	(%eax),%eax
+        movl    framebp,%eax
+        orl     %eax,%eax
+        jz      .Lgnf_null
+        movl    (%eax),%eax
 .Lgnf_null:
 end ['EAX'];
 
@@ -546,14 +561,16 @@ procedure runerror(w : word);[alias: 'runerror'];
      halt(errorcode);
   end;
 
-procedure io1(addr : longint);[public,alias: 'IOCHECK'];
+
+
+procedure int_iocheck(addr : longint);[public,alias: 'IOCHECK'];
 var
   l : longint;
 begin
 { Since IOCHECK is called directly and only later the optimiser }
 { Maybe also save global registers  }
   asm
-	pushal
+        pushal
   end;
   l:=ioresult;
   if l<>0 then
@@ -562,179 +579,158 @@ begin
      halt(l);
    end;
   asm
-	popal
-   end;
+        popal
+  end;
 end;
 
 
-procedure re_overflow;[public,alias: 'RE_OVERFLOW'];
+procedure int_re_overflow;[public,alias: 'RE_OVERFLOW'];
 var
   addr : longint;
 begin
 { Overflow was shortly before the return address }
    asm
-	movl	4(%ebp),%edi
-        movl	%edi,addr
+        movl    4(%ebp),%edi
+        movl    %edi,addr
    end;
    writeln('Overflow at ',addr);
    RunError(215);
 end;
 
 
+procedure int_flush_stdout;[public,alias: 'FLUSH_STDOUT'];
+begin
+  asm
+        pushal
+  end;
+  FileFunc(textrec(output).flushfunc)(textrec(output));
+  asm
+        popal
+  end;
+end;
+
+
+
+{****************************************************************************
+                                 Math Functions
+****************************************************************************}
+
 function abs(l:longint):longint;assembler;
 asm
-	movl	l,%eax
-        orl	%eax,%eax
-        jns	.LMABS1
-        negl	%eax
+        movl    l,%eax
+        orl     %eax,%eax
+        jns     .LMABS1
+        negl    %eax
 .LMABS1:
 end ['EAX'];
 
 
 function odd(l:longint):boolean;assembler;
 asm
-       movl	l,%eax
-       andl	$1,%eax
-       setnz	%al
+       movl     l,%eax
+       andl     $1,%eax
+       setnz    %al
 end ['EAX'];
 
 
 function sqr(l:longint):longint;assembler;
 asm
-        mov	l,%eax
-        imull	%eax,%eax
+        mov     l,%eax
+        imull   %eax,%eax
 end ['EAX'];
 
 
-{$ifndef str_intern }
-    procedure str(l : longint;var s : string);
-{$else str_intern }
-    procedure int_str(l : longint;var s : string);
-{$endif str_intern }
-
-      var
-         buffer : array[0..11] of byte;
-
-      begin
-         { Workaround: }
-         if l=$80000000 then
-           begin
-              s:='-2147483648';
-              exit;
-           end;
-         asm
-            movl 8(%ebp),%eax    // load Integer
-            movl 12(%ebp),%edi      // Load String address
-            xorl %ecx,%ecx    // String length=0
-            xorl %ebx,%ebx    // Buffer length=0
-            movl $0x0a,%esi      // load 10 as dividing constant.
-            or %eax,%eax        // Sign ?
-            jns .LM2
-            neg %eax
-            movb $0x2d,1(%edi)   // put '-' in String
-            incl %ecx
-         .LM2:
-            cdq
-            idivl %esi,%eax
-            addb $0x30,%dl    // convert Rest to ASCII.
-            movb %dl,-12(%ebp,%ebx)
-            incl %ebx
-            cmpl $0,%eax
-            jnz .LM2
-                        // copy String
-         .LM3:
-            movb -13(%ebp,%ebx),%al    // -13 because EBX is decreased only
-                                       // later.
-            movb %al,1(%edi,%ecx)
-            incl %ecx
-            decl %ebx
-            jnz .LM3
-            movb %cl,(%edi)      // Copy String length
-         end;
-      end;
-
-{$ifndef str_intern }
-    procedure str(c : cardinal;var s : string);
-{$else str_intern }
-    procedure int_str(c : cardinal;var s : string);
-{$endif str_intern }
-
-      var
-         buffer : array[0..14] of byte;
-
-      begin
-         asm
-            movl 8(%ebp),%eax       // load CARDINAL
-            movl 12(%ebp),%edi      // Load String address
-            xorl %ecx,%ecx          // String length=0
-            xorl %ebx,%ebx          // Buffer length=0
-            movl $0x0a,%esi         // load 10 as dividing constant.
-         .LM4:
-            xorl %edx,%edx
-            divl %esi,%eax
-            addb $0x30,%dl          // convert Rest to ASCII.
-            movb %dl,-12(%ebp,%ebx)
-            incl %ebx
-            cmpl $0,%eax
-            jnz .LM4
-            { now copy the string }
-         .LM5:
-            movb -13(%ebp,%ebx),%al    // -13 because EBX is decreased only
-                                       // later.
-            movb %al,1(%edi,%ecx)
-            incl %ecx
-            decl %ebx
-            jnz .LM5
-            movb %cl,(%edi)            // Copy String length
-         end;
-      end;
-
-    procedure f1;[public,alias: 'FLUSH_STDOUT'];
-
-      begin
-         asm
-            pushal
-         end;
-         FileFunc(textrec(output).flushfunc)(textrec(output));
-         asm
-            popal
-         end;
-      end;
-
-      
-Function Sptr : Longint;
+procedure int_str(l : longint;var s : string);
+var
+  buffer : array[0..11] of byte;
 begin
+{ Workaround: }
+  if l=$80000000 then
+   begin
+     s:='-2147483648';
+     exit;
+   end;
   asm
-    movl %esp,%eax
-    addl $8,%eax
-    movl %eax,-4(%ebp)
-  end ['EAX'];
+        movl    8(%ebp),%eax            // load Integer
+        movl    12(%ebp),%edi           // Load String address
+        xorl    %ecx,%ecx               // String length=0
+        xorl    %ebx,%ebx               // Buffer length=0
+        movl    $0x0a,%esi              // load 10 as dividing constant.
+        or      %eax,%eax               // Sign ?
+        jns     .LM2
+        neg     %eax
+        movb    $0x2d,1(%edi)           // put '-' in String
+        incl    %ecx
+.LM2:
+        cdq
+        idivl   %esi,%eax
+        addb    $0x30,%dl               // convert Rest to ASCII.
+        movb    %dl,-12(%ebp,%ebx)
+        incl    %ebx
+        cmpl    $0,%eax
+        jnz     .LM2
+.LM3:
+        movb    -13(%ebp,%ebx),%al      // -13 because EBX is decreased only later
+        movb    %al,1(%edi,%ecx)
+        incl    %ecx
+        decl    %ebx
+        jnz     .LM3
+        movb    %cl,(%edi)              // Copy String length
+  end;
 end;
 
+
+procedure int_str(c : cardinal;var s : string);
+var
+  buffer : array[0..14] of byte;
+begin
+  asm
+        movl 8(%ebp),%eax       // load CARDINAL
+        movl 12(%ebp),%edi      // Load String address
+        xorl %ecx,%ecx          // String length=0
+        xorl %ebx,%ebx          // Buffer length=0
+        movl $0x0a,%esi         // load 10 as dividing constant.
+.LM4:
+        xorl %edx,%edx
+        divl %esi,%eax
+        addb $0x30,%dl          // convert Rest to ASCII.
+        movb %dl,-12(%ebp,%ebx)
+        incl %ebx
+        cmpl $0,%eax
+        jnz .LM4
+.LM5:                           // now copy the string
+        movb -13(%ebp,%ebx),%al    // -13 because EBX is decreased only later
+        movb %al,1(%edi,%ecx)
+        incl %ecx
+        decl %ebx
+        jnz .LM5
+        movb %cl,(%edi)            // Copy String length
+  end;
+end;
 
 {$I386_ATT}
 
 Function Random(L: LongInt): LongInt;assembler;
 asm
-	  movl	$134775813,%eax
-          mull	RandSeed
-          incl	%eax
-          movl	%eax,RandSeed
-          mull	4(%esp)
-          movl	%edx,%eax
+          movl  $134775813,%eax
+          mull  RandSeed
+          incl  %eax
+          movl  %eax,RandSeed
+          mull  4(%esp)
+          movl  %edx,%eax
 end;
-{
-begin
-  Randseed:=Randseed*134775813+1;
-  Random:=abs(Randseed mod l);
-end;
-}
 
 {$I386_DIRECT}
 
 {
   $Log$
-  Revision 1.5  1998-04-29 13:28:19  peter
+  Revision 1.6  1998-05-12 10:42:41  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
+
+  Revision 1.5  1998/04/29 13:28:19  peter
     * some cleanup and i386_att usage
 
   Revision 1.4  1998/04/10 15:41:54  florian
@@ -745,118 +741,4 @@ end;
 
   Revision 1.2  1998/04/08 07:53:31  michael
   + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.30  1998/03/20 05:11:17  carl
-    * bugfix of register usage list for strcmp and strconcat
-
-  Revision 1.29  1998/03/15 19:38:41  peter
-    * fixed a bug in Move()
-
-  Revision 1.28  1998/03/10 23:50:39  florian
-    * strcopy saves now the used registers except ESI and EDI, solves
-      a problem with the optimizer
-
-  Revision 1.27  1998/03/10 16:25:52  jonas
-    * removed reloading of eax with 8(ebp), in int_help_constructor, as eax is nowhere modified
-
-  Revision 1.25  1998/03/02 11:44:43  florian
-    * writing of large cardinals fixed
-
-  Revision 1.24  1998/03/02 04:14:02  carl
-    * page fault bug fix with CHECK_OBJECT
-       warning: Will only work with GAS as VMT pointer field is an
-       .lcomm and will be ZEROED by linker (might not be true for TASM)
-
-  Revision 1.23  1998/02/24 17:50:46  peter
-    * upto 100% (255's char is different ;) faster STRCMP
-    * faster StrPas from i386.inc also strings.pp
-
-  Revision 1.22  1998/02/22 22:01:26  carl
-  + IOCHECK halts with the correct errorcode now
-
-  Revision 1.21  1998/02/11 16:55:14  michael
-  fixed cardinal printing. Large cardinals (>0fffffff) not yet working
-
-  Revision 1.20  1998/02/06 09:12:39  florian
-    * bug in CHECK_OBJECT fixed
-
-  Revision 1.19  1998/02/05 22:30:25  florian
-    + CHECK_OBJECT to check for an valid VMT (before calling a virtual method)
-
-  Revision 1.18  1998/02/04 14:46:36  daniel
-  * Some small tweaks
-
-  Revision 1.17  1998/01/27 22:05:07  florian
-    * again small fixes to DOM (Delphi Object Model)
-
-  Revision 1.16  1998/01/26 11:59:01  michael
-  + Added log at the end
-
-  revision 1.15
-  date: 1998/01/25 22:52:52;  author: peter;  state: Exp;  lines: +140 -122
-    * Faster string functions by using aligning
-  ----------------------------
-  revision 1.14
-  date: 1998/01/25 22:30:48;  author: florian;  state: Exp;  lines: +14 -2
-    * DOM: some fixes to tobject and the con-/destructor help routines
-  ----------------------------
-  revision 1.13
-  date: 1998/01/23 18:08:29;  author: florian;  state: Exp;  lines: +10 -4
-    * more bugs in FCL object model removed
-  ----------------------------
-  revision 1.12
-  date: 1998/01/23 15:54:47;  author: florian;  state: Exp;  lines: +5 -5
-    + small extensions to FCL object model
-  ----------------------------
-  revision 1.11
-  date: 1998/01/20 00:14:24;  author: peter;  state: Exp;  lines: +18 -5
-    * .type is linux only, go32v2 doesn't like it
-  ----------------------------
-  revision 1.10
-  date: 1998/01/19 16:19:53;  author: peter;  state: Exp;  lines: +7 -1
-  * Works now correct with shared libs, .globl always needs a .type
-  ----------------------------
-  revision 1.9
-  date: 1998/01/19 10:21:35;  author: michael;  state: Exp;  lines: +1 -6
-  * moved Fillchar t(..,char) to system.inc
-  ----------------------------
-  revision 1.8
-  date: 1998/01/19 09:15:05;  author: michael;  state: Exp;  lines: +40 -132
-  * Bugfixes in Move and FillChar
-  ----------------------------
-  revision 1.7
-  date: 1998/01/16 23:10:52;  author: florian;  state: Exp;  lines: +23 -1
-    + some tobject stuff
-  ----------------------------
-  revision 1.6
-  date: 1998/01/16 22:21:35;  author: michael;  state: Exp;  lines: +601 -493
-  + Installed pentium-optimized move (optional)
-  ----------------------------
-  revision 1.5
-  date: 1998/01/12 03:39:17;  author: carl;  state: Exp;  lines: +2 -2
-    * bugfix of RE_OVERFLOW, gives out now a Runerror(215)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/01 16:57:36;  author: michael;  state: Exp;  lines: +1 -21
-  Moved DO_EXIT to system.inc. Now processor independent
-  ----------------------------
-  revision 1.3
-  date: 1997/12/10 12:12:31;  author: michael;  state: Exp;  lines: +2 -2
-  * changed dateifunc to FileFunc
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:34:36;  author: michael;  state: Exp;  lines: +13 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

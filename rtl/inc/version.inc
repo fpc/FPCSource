@@ -149,19 +149,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:46  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.2  1998/01/26 12:00:36  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/version.inc
-  description:
-  ----------------------------
-  revision 1.1
-  date: 1998/01/11 02:44:07;  author: michael;  state: Exp;
-  + Initial implementation (By Peter Vreman)
-  =============================================================================
 }

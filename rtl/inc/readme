@@ -1,7 +1,7 @@
 This directory contains only RTL parts independent 
 of the processor and of the operating system.
 
-The files contain the following:
+The include files contain the following:
 
 system.inc	OS and Processor independent implementation part of system unit.
 systemh.inc	Interface part of the system unit.
@@ -12,3 +12,8 @@ lstrings.pp	LongStrings implementation.
 sstrings.inc	ShortStrings implementation.
 heaph.inc	Declarations of Heap functions.
 mathh.inc	Declarations of mathematical functions.	
+
+The unit files are:
+
+complex.pp	Complex functions using operator overloading
+getops.pp	Pascal implementation of the GNU Getops

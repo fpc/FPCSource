@@ -245,8 +245,8 @@ graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
 # Other RTL Units
 #
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/getopts.pp .
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/getopts.pp .
 	$(PP) $(OPT) getopts $(REDIR)
 	$(DEL) getopts.pp
 

@@ -551,27 +551,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:44  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.3  1998/01/26 11:59:25  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/complex.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 15:33:30;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

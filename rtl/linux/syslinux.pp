@@ -33,14 +33,15 @@ Interface
 {$I heaph.inc}
 
 const
-  UnusedHandle=$ffff; 
-  StdInputHandle=0;
-  StdOutputHandle=1;
-  StdErrorHandle=2; 
+  UnusedHandle    = $ffff;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
 
-var argc : longint;
-    argv : ppchar;
-    envp : ppchar;
+var
+  argc : longint;
+  argv : ppchar;
+  envp : ppchar;
 
 Implementation
 
@@ -50,35 +51,34 @@ Type
   PLongint = ^Longint;
 
 {$ifdef crtlib}
-Procedure _rtl_exit(l: longint); [ C ];
-Function  _rtl_paramcount: longint; [ C ];
-Procedure _rtl_paramstr(st: pchar; l: longint); [ C ];
-Function  _rtl_open(f: pchar; flags: longint): longint; [ C ];
-Procedure _rtl_close(h: longint); [ C ];
-Procedure _rtl_write(h: longint; addr: longInt; len : longint); [ C ];
-Procedure _rtl_erase(p: pchar); [ C ];
-Procedure _rtl_rename(p1: pchar; p2 : pchar); [ C ];
-Function  _rtl_read(h: longInt; addr: longInt; len : longint) : longint; [ C ];
-Function  _rtl_filepos(Handle: longint): longint; [ C ];
-Procedure _rtl_seek(Handle: longint; pos:longint); [ C ];
-Function  _rtl_filesize(Handle:longint): longInt; [ C ];
-Procedure _rtl_rmdir(buffer: pchar); [ C ];
-Procedure _rtl_mkdir(buffer: pchar); [ C ];
-Procedure _rtl_chdir(buffer: pchar); [ C ];
+  Procedure _rtl_exit(l: longint); cdecl;
+  Function  _rtl_paramcount: longint; cdecl;
+  Procedure _rtl_paramstr(st: pchar; l: longint); cdecl;
+  Function  _rtl_open(f: pchar; flags: longint): longint; cdecl;
+  Procedure _rtl_close(h: longint); cdecl;
+  Procedure _rtl_write(h: longint; addr: longInt; len : longint); cdecl;
+  Procedure _rtl_erase(p: pchar); cdecl;
+  Procedure _rtl_rename(p1: pchar; p2 : pchar); cdecl;
+  Function  _rtl_read(h: longInt; addr: longInt; len : longint) : longint; cdecl;
+  Function  _rtl_filepos(Handle: longint): longint; cdecl;
+  Procedure _rtl_seek(Handle: longint; pos:longint); cdecl;
+  Function  _rtl_filesize(Handle:longint): longInt; cdecl;
+  Procedure _rtl_rmdir(buffer: pchar); cdecl;
+  Procedure _rtl_mkdir(buffer: pchar); cdecl;
+  Procedure _rtl_chdir(buffer: pchar); cdecl;
 {$else}
+  { used in syscall to report errors.}
+  var
+    Errno : longint;
 
-{ used in syscall to report errors.}
-var Errno : longint;
+  { Include constant and type definitions }
+  {$i errno.inc    }  { Error numbers                 }
+  {$i sysnr.inc    }  { System call numbers           }
+  {$i sysconst.inc }  { Miscellaneous constants       }
+  {$i systypes.inc }  { Types needed for system calls }
 
-{ Include constant and type definitions }
-{$i errno.inc    }  { Error numbers                 }
-{$i sysnr.inc    }  { System call numbers           }
-{$i sysconst.inc }  { Miscellaneous constants       }
-{$i systypes.inc }  { Types needed for system calls }
-
-{ Read actual system call definitions. }
-{$i syscalls.inc }  
-
+  { Read actual system call definitions. }
+  {$i syscalls.inc }
 {$endif}
 
 {*****************************************************************************
@@ -92,9 +92,8 @@ Begin
   Do_Exit;
 {$ifdef i386}
   asm
-    jmp _haltproc
+        jmp     _haltproc
   end;
-{$else}
 {$endif}
 End;
 
@@ -102,9 +101,9 @@ End;
 Function ParamCount: Longint;
 Begin
 {$ifdef crtlib}
-  ParamCount := _rtl_paramcount;
-{$else}  
-  Paramcount := argc-1
+  ParamCount:=_rtl_paramcount;
+{$else}
+  Paramcount:=argc-1
 {$endif}
 End;
 
@@ -119,7 +118,7 @@ Var
 Begin
 {$ifdef crtlib}
   _rtl_paramstr(@b, l);
-{$else}  
+{$else}
   if l>argc then
    begin
      paramstr:='';
@@ -127,20 +126,20 @@ Begin
    end;
   pp:=argv;
   i:=0;
-  while (i<l) and (pp^<>nil) do 
+  while (i<l) and (pp^<>nil) do
    begin
      pp:=pp+4;
      inc(i);
    end;
   if pp^<>nil then
    move (pp^^,b[0],255)
-  else 
+  else
    b[0]:=#0;
 {$endif}
   ParamStr:=StrPas(b);
 End;
 
-  
+
 Procedure Randomize;
 Begin
 {$ifdef crtlib}
@@ -155,45 +154,33 @@ End;
                               Heap Management
 *****************************************************************************}
 
-{ ___brk_addr is defined and allocated in prt1.S. }
+{ ___brk_addr is defined and allocated in prt1.as }
 
-Function Get_Brk_addr : longint;
-begin
+Function Get_Brk_addr : longint;assembler;
 {$ifdef i386}
-  asm
-    movl ___brk_addr,%eax
-    leave
-    ret
-  end ['EAX'];
-{$else}
+asm
+        movl    ___brk_addr,%eax
+end ['EAX'];
 {$endif}
-end;
 
 
-Procedure Set_brk_addr (NewAddr : longint);
-begin
+Procedure Set_brk_addr (NewAddr : longint);assembler;
 {$ifdef i386}
-  asm
-    movl 8(%ebp),%eax
-    movl %eax,___brk_addr
-  end ['EAX'];
-{$else}
+asm
+        movl    NewAddr,%eax
+        movl    %eax,___brk_addr
+end ['EAX'];
 {$endif}
-end;
 
 
 Function brk(Location : longint) : Longint;
 { set end of data segment to location }
-var t     : syscallregs;
-    dummy : longint;
-
+var
+  t     : syscallregs;
+  dummy : longint;
 begin
   t.reg2:=Location;
-  dummy:=syscall (syscall_nr_brk,t);
-{$ifdef debug}
-  writeln ('Brk syscall returned : ',dummy);
-  writeln ('Errno = ',errno);
-{$endif}
+  dummy:=syscall(syscall_nr_brk,t);
   set_brk_addr(dummy);
   brk:=dummy;
 end;
@@ -206,8 +193,8 @@ begin
      Set_brk_addr(brk(0));
      if Get_brk_addr=0 then
       exit(-1);
-   end; 
-  init_brk:=0; 
+   end;
+  init_brk:=0;
 end;
 
 
@@ -242,7 +229,8 @@ end;
 Procedure Errno2Inoutres;
 {
   Convert ErrNo error to the correct Inoutres value
-}  
+}
+
 begin
   if ErrNo=0 then { Else it will go through all the cases }
    exit;
@@ -261,12 +249,12 @@ begin
    Sys_ENOSPC : Inoutres:=101;
  Sys_ENAMETOOLONG,
     Sys_ELOOP,
-  Sys_ENOTDIR : Inoutres:=3;        
+  Sys_ENOTDIR : Inoutres:=3;
     Sys_EROFS : Inoutres:=150;
    Sys_EEXIST,
    Sys_EACCES : Inoutres:=5;
   Sys_ETXTBSY : Inoutres:=162;
-  end; 
+  end;
 end;
 
 
@@ -286,7 +274,7 @@ Begin
   _rtl_erase(p);
 {$else}
   sys_unlink(p);
-  Errno2Inoutres; 
+  Errno2Inoutres;
 {$endif}
 End;
 
@@ -297,7 +285,7 @@ Begin
   _rtl_rename(p1,p2);
 {$else }
   sys_rename(p1,p2);
-  Errno2Inoutres; 
+  Errno2Inoutres;
 {$endif}
 End;
 
@@ -309,7 +297,7 @@ Begin
   Do_Write:=Len;
 {$else}
   Do_Write:=sys_write(Handle,pchar(addr),len);
-  Errno2Inoutres; 
+  Errno2Inoutres;
 {$endif}
   if Do_Write<0 then
    Do_Write:=0;
@@ -322,7 +310,7 @@ Begin
   Do_Read:=_rtl_read(Handle,addr,len);
 {$else}
   Do_Read:=sys_read(Handle,pchar(addr),len);
-  Errno2Inoutres; 
+  Errno2Inoutres;
 {$endif}
   if Do_Read<0 then
    Do_Read:=0;
@@ -335,7 +323,7 @@ Begin
   Do_FilePos:=_rtl_filepos(Handle);
 {$else}
   Do_FilePos:=sys_lseek(Handle, 0, Seek_Cur);
-  Errno2Inoutres; 
+  Errno2Inoutres;
 {$endif}
 End;
 
@@ -375,8 +363,8 @@ Begin
   if SysCall(SysCall_nr_fstat,regs)=0 then
    Do_FileSize:=Info.Size
   else
-   Do_FileSize:=-1; 
-  Errno2Inoutres; 
+   Do_FileSize:=-1;
+  Errno2Inoutres;
 {$endif}
 End;
 
@@ -385,14 +373,14 @@ Procedure Do_Truncate(Handle,Pos:longint);
 {$ifndef crtlib}
 var
   sr : syscallregs;
-{$endif}  
+{$endif}
 begin
 {$ifndef crtlib}
   sr.reg2:=Handle;
   sr.reg3:=Pos;
   syscall(syscall_nr_ftruncate,sr);
-  Errno2Inoutres; 
-{$endif}  
+  Errno2Inoutres;
+{$endif}
 end;
 
 
@@ -429,17 +417,18 @@ Begin
    0 : begin
          oflags :=Open_RDONLY;
          FileRec(f).mode:=fminput;
-       end;      
+       end;
    1 : begin
          oflags :=Open_WRONLY;
          FileRec(f).mode:=fmoutput;
-       end;      
+       end;
+
    2 : begin
          oflags :=Open_RDWR;
          FileRec(f).mode:=fminout;
-       end;      
+       end;
   end;
-  if (flags and $100)=$100 then 
+  if (flags and $100)=$100 then
    oflags:=oflags or (Open_CREAT or Open_TRUNC)
   else
    if (flags and $10)=$10 then
@@ -453,17 +442,17 @@ Begin
       fmappend : begin
                    FileRec(f).Handle:=StdOutputHandle;
                    FileRec(f).mode:=fmoutput; {fool fmappend}
-                 end;  
+                 end;
      end;
      exit;
    end;
-{ real open call }  
+{ real open call }
 {$ifdef crtlib}
   FileRec(f).Handle:=_rtl_open(p, oflags);
   if FileRec(f).Handle<0 then
    InOutRes:=2
   else
-   InOutRes:=0; 
+   InOutRes:=0;
 {$else}
   FileRec(f).Handle:=sys_open(p,oflags,438);
   Errno2Inoutres;
@@ -565,7 +554,7 @@ var
 begin
   drivenr:=0;
   dir:='';
-{$ifndef crtlib}  
+{$ifndef crtlib}
   thedir:='/'#0;
   if sys_stat(@thedir[1],thisdir)<0 then
    exit;
@@ -594,7 +583,7 @@ begin
       exit;
      repeat
        d:=sys_readdir (dirstream);
-       if (d<>nil) and 
+       if (d<>nil) and
           (not ((d^.name[0]='.') and ((d^.name[1]=#0) or ((d^.name[1]='.') and (d^.name[2]=#0))))) and
           (mountpoint or (d^.ino=thisino)) then
         begin
@@ -655,8 +644,6 @@ end;
 
 
 Begin
-{ Initialize ExitProc }
-  ExitProc:=Nil;
 { Set up segfault Handler }
   InstallSegFaultHandler;
 { Setup heap }
@@ -665,15 +652,18 @@ Begin
   OpenStdIO(Input,fmInput,'stdin',StdInputHandle);
   OpenStdIO(Output,fmOutput,'stdout',StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,'stderr',StdErrorHandle);
-{ Reset IO Error }  
+{ Reset IO Error }
   InOutRes:=0;
 End.
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:35:26  michael
-  + Removed log from before restored version.
+  Revision 1.3  1998-05-12 10:42:48  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
+  Revision 1.2  1998/05/06 12:35:26  michael
+  + Removed log from before restored version.
 }

@@ -407,27 +407,19 @@ Begin
   w(Len,t,s);
 End;
 
+
+Procedure w(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
+var
+   s : String;
+Begin
 {$ifdef i386}
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
-var
-   s : String;
-Begin
    Str_real(Len,fixkomma,r,rt_s64real,s);
-   w(Len,t,s);
-End;
 {$else}
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
-var
-   s : String;
-Begin
    Str_real(Len,fixkomma,r,rt_s32real,s);
+{$endif}
    w(Len,t,s);
 End;
-{$endif}
 
-
-{$IFDEF VER_ABOVE0_9_7}
-{ Older versions of the compiler convert all floats to real }
 
 Procedure w(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias: 'WRITE_TEXT_CARDINAL'];
 var
@@ -438,7 +430,6 @@ Begin
 End;
 
 
-{$ifdef ieee_support}
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: 'WRITE_TEXT_SINGLE'];
 var
   s : String;
@@ -455,19 +446,16 @@ Begin
   Str_real(Len,fixkomma,r,rt_s80real,s);
   w(Len,t,s);
 End;
-{$endif ieee_support}
 
-{$ifdef comp_support}
+
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
 var
   s : String;
-  L : longint;
-
 Begin
   Str_real(Len,fixkomma,r,rt_s64bit,s);
   w(Len,t,s);
 End;
-{$endif comp_support}
+
 
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
 var
@@ -476,7 +464,7 @@ Begin
   Str_real(Len,fixkomma,r,rt_f32bit,s);
   w(Len,t,s);
 End;
-{$ENDIF VER_ABOVE0_9_7 }
+
 
 { Is called wc to avoid recursive calling. }
 Procedure wc(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
@@ -770,7 +758,6 @@ Begin
 End;
 
 
-{$IFDEF VER_ABOVE0_9_8}
 Procedure r(var f : TextRec;var l : cardinal);[Public,Alias: 'READ_TEXT_CARDINAL'];
 var
   hs   : String;
@@ -787,7 +774,6 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
-{$ENDIF VER_ABOVE0_9_8}
 
 
 Procedure r(var f : TextRec;var d : Real);[Public,Alias: 'READ_TEXT_REAL'];
@@ -826,7 +812,7 @@ Begin
    RunError(106);
 End;
 
-{$ifdef ieee_support}
+
 Procedure r(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
 var
   hs   : String;
@@ -862,9 +848,8 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
-{$endif ieee_support}
 
-{$ifdef comp_support}
+
 Procedure r(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
 var
   hs   : String;
@@ -900,64 +885,14 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
-{$endif}
-
 {
   $Log$
-  Revision 1.4  1998-04-07 22:40:46  florian
+  Revision 1.5  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
+
+  Revision 1.4  1998/04/07 22:40:46  florian
     * final fix of comp writing
-
-  Revision 1.3  1998/04/04 17:06:17  michael
-  * fixed initialization bug in assign.
-
-  Revision 1.2  1998/03/26 14:41:22  michael
-  + Added comp support for val and read(ln)
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.13  1998/03/19 12:00:42  pierre
-    * missing write for comp fixed
-      was just a conditionnal mistyping !!
-
-  Revision 1.12  1998/03/16 23:36:37  peter
-    * fixed read(real) for a value with a . and a E
-
-  Revision 1.11  1998/02/23 14:43:23  carl
-    * bugfix of reading reals for non-i386 processors
-
-  Revision 1.10  1998/02/23 02:19:53  carl
-    * bugfix of writing real under non-i386 processors.
-
-  Revision 1.9  1998/02/12 11:05:27  michael
-  * fixed printing of cardinals
-
-  Revision 1.8  1998/02/04 09:54:22  michael
-  * fixed bug in reading of numeric input
-
-  Revision 1.7  1998/01/27 17:46:10  peter
-    * previous commit was the wrong file :(
-
-  Revision 1.6  1998/01/27 12:46:06  peter
-    * Fixed readln() from file which was broken after previous fix
-
-  Revision 1.5  1998/01/27 10:56:12  peter
-    * Readln; works again
-
-  Revision 1.4  1998/01/26 12:00:28  michael
-  + Added log at the end
-
-  revision 1.3
-  date: 1998/01/25 21:53:30;  author: peter;  state: Exp;  lines: +9 -7
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-
-  revision 1.2
-  date: 1998/01/12 02:32:36;  author: carl;  state: Exp;  lines: +5 -3
-    + portability stuff (mainly FPU related)
-
-  revision 1.1
-  date: 1998/01/11 02:43:10;  author: michael;  state: Exp;
-  + Initial implementation of these files (by Peter Vreman).
-    file operations are now in separate files per type of file.
 }

@@ -535,35 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-12 10:42:45  peter
+    * moved getopts to inc/, all supported OS's need argc,argv exported
+    + strpas, strlen are now exported in the systemunit
+    * removed logs
+    * removed $ifdef ver_above
 
-  Revision 1.3  1998/01/26 12:00:05  michael
-  + Added log at the end
-
-  Revision 1.2  1997/12/22 15:36:19  michael
-  + All functions are implemented and tested.
-
-}
-{
-  $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
-
-  Revision 1.3  1998/01/26 12:00:05  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/lstrings.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/22 15:36:19;  author: michael;  state: Exp;  lines: +498 -18
-  + All functions are implemented and tested.
-  ----------------------------
-  revision 1.1
-  date: 1997/12/19 16:11:49;  author: michael;  state: Exp;
-  + Initial implementation.
-  =============================================================================
 }

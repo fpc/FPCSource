@@ -1,5 +1,4 @@
-This directory contains only RTL parts specific
-to the processor I386 family.
+This directory contains only RTL parts specific to the processor I386 family.
 
 (They are specific because they contain assembler instructions)
 
@@ -11,5 +10,3 @@ Include files for system are :
 
 Units are :
   strings.pp (written in assembler for speed)
-  getopts.pp (depends on the way the command line 
-              is transmitted to the program)
