@@ -32,7 +32,7 @@ Function StatFS(Path:Pathstr;Var Info:tstatfs):cint;
 }
 begin
   path:=path+#0;
-  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info));
+  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info)));
 end;
 
 Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
@@ -110,7 +110,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2003-11-17 10:05:51  marco
+  Revision 1.20  2003-11-17 10:21:47  marco
+   * small fixes for changing unit unix again
+
+  Revision 1.19  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.18  2003/11/13 17:40:12  marco
