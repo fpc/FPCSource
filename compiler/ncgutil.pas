@@ -635,13 +635,17 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               if l.size in [OS_64,OS_S64] then
-                cg64.a_load64_loc_ref(list,l,r)
+                begin
+                  cg64.a_load64_loc_ref(list,l,r);
+                  location_release(list,l);
+                end
               else
-                cg.a_load_loc_ref(list,l.size,l,r);
-              location_release(list,l);
+                begin
+                  location_release(list,l);
+                  cg.a_load_loc_ref(list,l.size,l,r);
+                end;
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
-
             end;
           LOC_CREFERENCE,
           LOC_REFERENCE : ;
@@ -717,6 +721,7 @@ implementation
            else
 *)
              begin
+               location_release(list,p.location);
 {$ifdef i386}
                case p.location.loc of
                  LOC_FPUREGISTER,
@@ -769,13 +774,13 @@ implementation
                end;
 {$endif i386}
              end;
-           location_release(list,p.location);
          end
         else
          begin
            { copy the value on the stack or use normal parameter push? }
            if paramanager.copy_value_on_stack(varspez,p.resulttype.def,calloption) then
             begin
+              location_release(list,p.location);
 {$ifdef i386}
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
@@ -817,9 +822,11 @@ implementation
                        else
 *)
                         cg64.a_param64_loc(list,p.location,locpara);
+                        location_release(list,p.location);
                      end
                     else
                      begin
+                       location_release(list,p.location);
                        inc(pushedparasize,alignment);
 (*
                        if calloption=pocall_inline then
@@ -837,12 +844,12 @@ implementation
 *)
                         cg.a_param_loc(list,p.location,locpara);
                      end;
-                    location_release(list,p.location);
                   end;
 {$ifdef SUPPORT_MMX}
                 LOC_MMXREGISTER,
                 LOC_CMMXREGISTER:
                   begin
+                     location_release(list,p.location);
                      inc(pushedparasize,8);
 (*
                      if calloption=pocall_inline then
@@ -2064,7 +2071,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2003-09-25 21:28:00  peter
+  Revision 1.149  2003-09-28 13:39:38  peter
+    * optimized releasing of registers
+
+  Revision 1.148  2003/09/25 21:28:00  peter
     * parameter fixes
 
   Revision 1.147  2003/09/23 21:03:59  peter

@@ -287,12 +287,12 @@ implementation
                          LOC_CREFERENCE,
                          LOC_REFERENCE:
                            begin
+                              location_release(exprasmlist,left.location);
                               hregister:=rg.getaddressregister(exprasmlist);
                               if is_class_or_interface(left.resulttype.def) then
                                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister)
                               else
                                 cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister);
-                              location_release(exprasmlist,left.location);
                               location_freetemp(exprasmlist,left.location);
                            end;
                          else
@@ -535,12 +535,17 @@ implementation
                       begin
                         cgsize:=def_cgsize(left.resulttype.def);
                         if cgsize in [OS_64,OS_S64] then
-                         cg64.a_load64_ref_reg(exprasmlist,
-                             right.location.reference,left.location.register64,false)
+                          begin
+                            cg64.a_load64_ref_reg(exprasmlist,
+                               right.location.reference,left.location.register64,false);
+                            location_release(exprasmlist,right.location);
+                          end
                         else
-                         cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
-                             right.location.reference,left.location.register);
-                        location_release(exprasmlist,right.location);
+                          begin
+                            location_release(exprasmlist,right.location);
+                            cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
+                                right.location.reference,left.location.register);
+                          end;
                       end;
                     LOC_CFPUREGISTER :
                       begin
@@ -820,8 +825,8 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
-                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paraloc);
                        location_release(exprasmlist,hp.left.location);
+                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paraloc);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
                        inc(pushedparasize,pointer_size);
@@ -842,11 +847,11 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
+                       location_release(exprasmlist,hp.left.location);
                        tmpreg:=rg.getaddressregister(exprasmlist);
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                        rg.ungetregisterint(exprasmlist,tmpreg);
-                       location_release(exprasmlist,hp.left.location);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
                      end
@@ -869,7 +874,6 @@ implementation
                     is_widestring(left.resulttype.def) or
                     (left.resulttype.def.deftype=variantdef) then
                    freetemp:=false;
-                 location_release(exprasmlist,hp.left.location);
                  case hp.left.location.loc of
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
@@ -880,14 +884,21 @@ implementation
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin
+                       location_release(exprasmlist,hp.left.location);
                        cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
                      end;
                    else
                      begin
                        if hp.left.location.size in [OS_64,OS_S64] then
-                         cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
+                         begin
+                           cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href);
+                           location_release(exprasmlist,hp.left.location);
+                         end
                        else
-                         cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
+                         begin
+                           location_release(exprasmlist,hp.left.location);
+                           cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
+                         end;
                      end;
                  end;
                  inc(href.offset,elesize);
@@ -905,7 +916,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-09-25 21:27:31  peter
+  Revision 1.85  2003-09-28 13:39:38  peter
+    * optimized releasing of registers
+
+  Revision 1.84  2003/09/25 21:27:31  peter
     * rearranged threadvar code so the result register is the same
       for the relocated and address loaded variables
 

@@ -252,10 +252,10 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
+               location_release(exprasmlist,left.location);
                tg.GetTemp(exprasmlist,256,tt_normal,location.reference);
                cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,
                  location.reference);
-               location_release(exprasmlist,left.location);
                location_freetemp(exprasmlist,left.location);
              end;
            { the rest is removed in the resulttype pass and converted to compilerprocs }
@@ -511,7 +511,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-08-26 12:43:02  peter
+  Revision 1.46  2003-09-28 13:39:38  peter
+    * optimized releasing of registers
+
+  Revision 1.45  2003/08/26 12:43:02  peter
     * methodpointer fixes
 
   Revision 1.44  2003/06/03 21:11:09  peter
