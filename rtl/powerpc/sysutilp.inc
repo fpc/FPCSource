@@ -24,9 +24,9 @@ function InterLockedDecrement (var Target: integer) : Integer; assembler;
 { side-effect: target := target-1 }
 asm
 .LInterLockedDecLoop:
-        lwarx   r10,r0,r3
+        lwarx   r10,0,r3
         subi    r10,r10,1
-        stwcx.  r10,r0,r3
+        stwcx.  r10,0,r3
         bne     .LInterLockedDecLoop
         mr      r3,r10
 end;
@@ -38,9 +38,9 @@ function InterLockedIncrement (var Target: integer) : Integer; assembler;
 { side-effect: target := target+1 }
 asm
 .LInterLockedIncLoop:
-        lwarx   r10,r0,r3
+        lwarx   r10,0,r3
         addi    r10,r10,1
-        stwcx.  r10,r0,r3
+        stwcx.  r10,0,r3
         bne     .LInterLockedIncLoop
         mr      r3,r10
 end;
@@ -52,8 +52,8 @@ function InterLockedExchange (var Target: integer;Source : integer) : Integer; a
 { side-effect: target := source                 }
 asm
 .LInterLockedXchgLoop:
-        lwarx   r10,r0,r3
-        stwcx.  r4,r0,r3
+        lwarx   r10,0,r3
+        stwcx.  r4,0,r3
         bne     .LInterLockedXchgLoop
         mr      r3,r10
 end;
@@ -65,9 +65,9 @@ function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer
 { side-effect: target := target+source          }
 asm
 .LInterLockedXchgAddLoop:
-        lwarx   r10,r0,r3
+        lwarx   r10,0,r3
         add     r10,r10,r4
-        stwcx.  r10,r0,r3
+        stwcx.  r10,0,r3
         bne     .LInterLockedXchgAddLoop
         sub     r3,r10,r4
 end;
@@ -75,7 +75,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-12-28 20:55:57  jonas
+  Revision 1.7  2004-01-04 20:09:36  jonas
+    * renamed "r0" usages as base register to 0
+
+  Revision 1.6  2003/12/28 20:55:57  jonas
     * fixed *locked* routines
 
   Revision 1.5  2003/11/29 16:27:19  jonas
