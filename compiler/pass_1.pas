@@ -1517,11 +1517,18 @@ unit pass_1;
               p:=t;
               exit;
            end;
-         { !!!!!! u32bit }
-         p^.right:=gentypeconvnode(p^.right,s32bitdef);
-         p^.left:=gentypeconvnode(p^.left,s32bitdef);
+         { the resulttype depends on the right side, because the left becomes }
+         { always 64 bit                                                      }
+         if not(p^.right^.resulttype^.deftype=orddef) or
+           not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
+           p^.right:=gentypeconvnode(p^.right,s32bitdef);
+
+         if not(p^.left^.resulttype^.deftype=orddef) or
+           not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
+           p^.right:=gentypeconvnode(p^.right,s32bitdef);
          firstpass(p^.left);
          firstpass(p^.right);
+         p^.resulttype:=p^.right^.resulttype;
 
          if codegenerror then
            exit;
@@ -1529,8 +1536,6 @@ unit pass_1;
          left_right_max(p);
          if p^.left^.registers32<=p^.right^.registers32 then
            inc(p^.registers32);
-
-         p^.resulttype:=s32bitdef;
          p^.location.loc:=LOC_REGISTER;
       end;
 
@@ -5488,7 +5493,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.80  1998-09-08 14:10:11  pierre
+  Revision 1.81  1998-09-09 14:37:39  florian
+    * mod/div for cardinal type fixed
+
+  Revision 1.80  1998/09/08 14:10:11  pierre
     * typen check in read write
       there are probably other inline function that have the same bug !!
 

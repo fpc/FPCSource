@@ -136,9 +136,18 @@ implementation
                         emit_reg_reg(A_MOV,S_L,hreg1,R_EAX);
                      end;
                 end;
-              exprasmlist^.concat(new(pai386,op_none(A_CLTD,S_NO)));
-                 exprasmlist^.concat(new(pai386,op_reg(A_IDIV,S_L,R_EDI)));
-                 if p^.treetype=divn then
+              { sign extension depends on the left type }
+              if porddef(p^.left^.resulttype)^.typ=u32bit then
+                 exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EDX,R_EDX)))
+              else
+                 exprasmlist^.concat(new(pai386,op_none(A_CLTD,S_NO)));
+
+              { division depends on the right type }
+              if porddef(p^.right^.resulttype)^.typ=u32bit then
+                exprasmlist^.concat(new(pai386,op_reg(A_DIV,S_L,R_EDI)))
+              else
+                exprasmlist^.concat(new(pai386,op_reg(A_IDIV,S_L,R_EDI)));
+              if p^.treetype=divn then
                 begin
                    { if result register is busy then copy }
                    if popeax then
@@ -156,7 +165,7 @@ implementation
               if popeax then
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
               if popedx then
-                    exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
              end;
            { this registers are always used when div/mod are present }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
@@ -549,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-08-23 16:07:20  florian
+  Revision 1.6  1998-09-09 14:37:37  florian
+    * mod/div for cardinal type fixed
+
+  Revision 1.5  1998/08/23 16:07:20  florian
     * internalerror with mod/div fixed
 
   Revision 1.4  1998/08/18 09:24:38  pierre
