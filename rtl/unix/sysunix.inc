@@ -144,9 +144,18 @@ asm
         move.l  a0,d0
 end['A0','D0'];
 {$endif m68k}
+{$ifdef powerpc}
+{$define fpc_getheapstart_ok}
+asm
+        lea.l   _HEAP,a0
+        move.l  a0,d0
+end['A0','D0'];
+{$endif powerpc}
 {$ifndef fpc_getheapstart_ok}
 asm
-end;
+	lis r3,_HEAP@ha
+        la r3,_HEAP@l(r3)
+end ['r3'];
 {$error Getheapstart code is not implemented }
 {$endif not fpc_getheapstart_ok}
 
@@ -162,9 +171,16 @@ end ['EAX'];
 {$ifdef m68k}
 {$define fpc_getheapsize_ok}
 asm
-       move.l   _HEAPSIZE,d0
+	move.l   _HEAPSIZE,d0
 end ['D0'];
 {$endif m68k}
+{$ifdef powerpc}
+{$define fpc_getheapsize_ok}
+asm
+	lis r9,_HEAPSIZE@ha
+	lwz r3,_HEAPSIZE@l(r9)
+end ['r0','r9'];
+{$endif powerpc}
 {$ifndef fpc_getheapsize_ok}
 asm
 end;
@@ -771,7 +787,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  2002-07-29 21:28:17  florian
+  Revision 1.25  2002-08-03 20:05:13  florian
+    + ppc implementation of heap functions added
+
+  Revision 1.24  2002/07/29 21:28:17  florian
     * several fixes to get further with linux/ppc system unit compilation
 
   Revision 1.23  2002/07/28 20:43:49  florian
