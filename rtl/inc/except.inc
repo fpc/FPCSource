@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by xxxx
+    Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -19,9 +19,9 @@
 
 
 Const 
-  { Type of exception. Currently only one.} 
+  { Type of exception. Currently only one. } 
   FPC_EXCEPTION   = 1;
-  { types of frames for the exception address stack}
+  { types of frames for the exception address stack }
   cExceptionFrame = 1;
   cFinalizeFrame  = 2;
 
@@ -44,7 +44,7 @@ Type
 
 Const 
   CatchAllExceptions = -1;
-      
+
 Var ExceptAddrStack : PExceptAddr;
     ExceptObjectStack : PExceptObject;
 
@@ -100,7 +100,7 @@ begin
   ExceptObjectStack^.Addr:=AnAddr;
 end;
 
-Function Raiseexcept (Var Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
+Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 
 begin
 {$ifdef excdebug}
