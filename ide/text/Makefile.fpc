@@ -41,8 +41,12 @@ ifneq ($(DJDIR),)
 GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
-ifeq ($(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))),)
+ifeq ($(strip $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))),)
 override GDB=0
+GDBFOUND=0
+else
+override LIBGDB=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+GDBFOUND=1
 endif
 endif
 
@@ -71,14 +75,29 @@ distclean: clean
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
+testgdb:
+ifneq ($(GDBFOUND),0)
+        $(ECHO) LibGDB found in $(LIBGDB)
+else
+        $(ECHO) LibGDB not found
+        $(ECHO) LIBGDB=$(LIBGDB)
+        $(ECHO) GDBLIBDIR=$(GDBLIBDIR)
+        $(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
+endif
+
+postgdbinfo:
+ifeq ($(GDBFOUND),0)
+        $(ECHO) LibGDB was not found, IDE has no Debugger support
+endif
+
 gdb:
-        $(MAKE) all GDB=1
+        $(MAKE) testgdb all GDB=1 postgdbinfo
 
 full:
         $(MAKE) all FULL=1
 
 fullgdb:
-        $(MAKE) all FULL=1 GDB=1
+        $(MAKE) testgdb all FULL=1 GDB=1 postgdbinfo
 
 # This is necessary because we don't have all units separate in the
 # units targets
@@ -88,9 +107,16 @@ clean: fpc_cleanall
 # Installation
 #
 
+ifndef UNIXINSTALLDIR
+override DATAINSTALLDIR=$(BININSTALLDIR)
+endif
+
 install: fpc_install
         $(MKDIR) $(DATAINSTALLDIR)
-        $(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(DATAINSTALLDIR)
+        $(MKDIR) $(DOCINSTALLDIR)
+        $(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(DATAINSTALLDIR)
+        $(INSTALL) readme.ide $(DOCINSTALLDIR)
+
 
 #
 # Misc
