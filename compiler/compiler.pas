@@ -144,7 +144,7 @@ begin
   if recoverpospointer<>nil then
     LongJmp(recoverpospointer^,1)
   else
-    Halt(1);
+    Do_Halt(1);
 end;
 {$endif USEEXCEPT}
 
@@ -299,7 +299,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1999-09-02 18:47:44  daniel
+  Revision 1.33  1999-09-07 15:10:04  pierre
+   * use do_halt instead of halt
+
+  Revision 1.32  1999/09/02 18:47:44  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
