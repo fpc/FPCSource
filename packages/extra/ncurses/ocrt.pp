@@ -153,6 +153,7 @@ Uses
   {$ifdef ver1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif}
@@ -1254,15 +1255,20 @@ End;
  ----------------------------------------------}
 function nKeypressed(timeout : word) : boolean;
 var
-   fds : FDSet;
+   fds : {$ifdef ver1_0}FDSet{$else}TFDSet{$endif};
    maxFD : longint;
 Begin
-   FD_Zero(fds);
+   {$ifdef ver1_0}FD_Zero{$else}fpFD_Zero{$endif}(fds);
    maxFD := 1;
    { turn on stdin bit }
-   If not FD_IsSet(STDIN,fds) Then FD_Set(STDIN,fds);
+{$ifdef ver1_0}
+   If not FD_IsSet(STDIN,fds) Then
+{$else}
+   If fpFD_IsSet(STDIN,fds)=0 Then
+{$endif}
+     {$ifdef ver1_0}FD_Set{$else}fpFD_Set{$endif}(STDIN,fds);
    { wait for some input }
-   If Select(maxFD,@fds,nil,nil,timeout) > 0 Then
+   If {$ifdef ver1_0}Select{$else}fpSelect{$endif}(maxFD,@fds,nil,nil,timeout) > 0 Then
       nKeypressed := TRUE
    Else
       nKeypressed := FALSE;
@@ -3266,7 +3272,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:01  peter
+  Revision 1.3  2003-09-27 12:19:20  peter
+    * fixed for unix
+
+  Revision 1.2  2002/09/07 15:43:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:17  peter

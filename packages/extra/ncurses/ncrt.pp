@@ -29,6 +29,7 @@ Uses
   {$ifdef ver1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif}
@@ -46,7 +47,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.3  2002-09-07 15:43:01  peter
+  Revision 1.4  2003-09-27 12:19:20  peter
+    * fixed for unix
+
+  Revision 1.3  2002/09/07 15:43:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/31 11:54:33  marco

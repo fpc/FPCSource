@@ -821,7 +821,7 @@ End;
 { Wait for DTime milliseconds }
 Procedure Delay(DTime: Word);
 Begin
-  Select(0,nil,nil,nil,DTime);
+  {$ifdef ver1_0}Select{$else}fpselect{$endif}(0,nil,nil,nil,DTime);
 End;
 
 { create a new subwindow of stdscr }
@@ -963,7 +963,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:01  peter
+  Revision 1.3  2003-09-27 12:19:20  peter
+    * fixed for unix
+
+  Revision 1.2  2002/09/07 15:43:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:17  peter
