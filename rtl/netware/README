@@ -117,6 +117,9 @@
                         available at the location for binutils-win32 shown
                         above.
       $SCREENNAME     : Sets the screen-name (i.e. shown in ctrl-esc screen)
+                        $SCREENNAME DEFAULT : output to logger screen
+			$SCREENNAME NONE    : no output at all
+			$SCREENNAME MyScreen: Name the screen "MyScreen"
       $THREADNAME     : Sets the thread name (dont use names that are to long
                         for netware, that will prevent your nlm from loading)
 

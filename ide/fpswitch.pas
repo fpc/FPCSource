@@ -934,8 +934,9 @@ begin
      AddSelectItem('~N~etBSD','netbsd',idNone);
      AddSelectItem('~O~S/2','os2',idNone);
      AddSelectItem('~W~IN32','win32',idNone);
-     AddSelectItem('N~e~tWare','netware',idNone);
+     AddSelectItem('N~e~tWare Clib','netware',idNone);
      AddSelectItem('O~p~enBSD','openbsd',idNone);
+     AddSelectItem('Netware Lib~c~','netwlibc',idNone);
 {$endif I386}
 {$ifdef M68K}
      AddSelectItem('~A~miga','amiga',idNone);
@@ -1119,8 +1120,12 @@ begin
   {$ifdef win32}
        TargetSwitches^.SetCurrSelParam('win32');
   {$endif}
-  {$ifdef netware}
+  {$ifdef netwlibc}
+       TargetSwitches^.SetCurrSelParam('netwlibc');
+  {$else}
+    {$ifdef netware}
        TargetSwitches^.SetCurrSelParam('netware');
+    {$endif}
   {$endif}
   {$ifdef netbsd}
        TargetSwitches^.SetCurrSelParam('netbsd');
@@ -1268,7 +1273,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2004-03-08 00:07:26  marco
+  Revision 1.16  2004-09-04 23:33:39  armin
+  * makefiles regenerated
+  * ide: added target netwlibc
+
+  Revision 1.15  2004/03/08 00:07:26  marco
    * Darwin target added
 
   Revision 1.14  2003/02/09 23:50:10  pierre
