@@ -63,12 +63,6 @@ BASEDIR=.
 endif
 
 #####################################################################
-# Default target
-#####################################################################
-
-override CPU_TARGET:=i386
-
-#####################################################################
 # FPC version/target Detection
 #####################################################################
 
@@ -129,7 +123,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong
@@ -183,13 +177,14 @@ endif
 # Targets
 
 override UNITOBJECTS+=interbase
-override EXEOBJECTS+=testib
+override EXAMPLEOBJECTS+=testib
 
 # Clean
 
 
 # Install
 
+PACKAGENAME=interbase
 ZIPTARGET=install
 
 # Defaults
@@ -198,9 +193,8 @@ override NEEDOPT=-S2
 
 # Directories
 
-override NEEDUNITDIR=..
 ifndef TARGETDIR
-TARGETDIR=.
+TARGETDIR=../../$(OS_TARGET)
 endif
 
 # Packages
@@ -209,7 +203,6 @@ override PACKAGES+=rtl fcl ibase
 
 # Libraries
 
-override NEEDGCCLIB=1
 
 # Info
 
@@ -826,12 +819,16 @@ ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
 endif
 
+<<<<<<< Makefile
 # Add GCC lib path if asked
 ifdef GCCLIBDIR
 override FPCOPT+=-Fl$(GCCLIBDIR)
 endif
 
 # Target dirs and the prefix to use for clean/install
+=======
+# Target dirs and the prefix to use for clean/install
+>>>>>>> 1.1.2.8
 ifdef TARGETDIR
 override FPCOPT+=-FE$(TARGETDIR)
 ifeq ($(TARGETDIR),.)
@@ -902,6 +899,10 @@ all: fpc_all
 
 debug: fpc_debug
 
+examples: fpc_examples
+
+test: fpc_test
+
 smart: fpc_smart
 
 shared: fpc_shared
@@ -928,7 +929,7 @@ cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
 # Units
@@ -945,11 +946,12 @@ override CLEANPPUFILES+=$(UNITPPUFILES)
 fpc_units: $(UNITPPUFILES)
 
 #####################################################################
-# Exes
+# Examples
 #####################################################################
 
-.PHONY: fpc_exes
+.PHONY: fpc_examples fpc_test
 
+<<<<<<< Makefile
 ifdef EXEOBJECTS
 override EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
 override EXEOFILES:=$(addsuffix $(OEXT),$(EXEOBJECTS)) $(addprefix $(LIBPREFIX),$(addsuffix $(STATICLIBEXT),$(EXEOBJECTS)))
@@ -957,11 +959,31 @@ override EXEOFILES:=$(addsuffix $(OEXT),$(EXEOBJECTS)) $(addprefix $(LIBPREFIX),
 override ALLTARGET+=fpc_exes
 override INSTALLEXEFILES+=$(EXEFILES)
 override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
+=======
+ifdef EXAMPLEOBJECTS
+override EXAMPLESOURCEFILES:=$(addsuffix $(PASEXT),$(EXAMPLEOBJECTS))
+override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(EXAMPLEOBJECTS))
+override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(EXAMPLEOBJECTS)) $(addprefix $(LIBPREFIX),$(addsuffix $(STATICLIBEXT),$(EXAMPLEOBJECTS)))
+>>>>>>> 1.1.2.8
 
+<<<<<<< Makefile
+=======
+override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
+>>>>>>> 1.1.2.8
 endif
+<<<<<<< Makefile
+=======
 
+fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(EXAMPLEDIROBJECTS))
+>>>>>>> 1.1.2.8
+
+<<<<<<< Makefile
 fpc_exes: $(EXEFILES)
 
+=======
+fpc_test: examples
+
+>>>>>>> 1.1.2.8
 #####################################################################
 # General compile rules
 #####################################################################

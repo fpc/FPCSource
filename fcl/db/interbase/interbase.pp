@@ -1,13 +1,10 @@
-{
-    $Id$
+{   $Id$     
+    
     Copyright (c) 2000 by Pavel Stingl
 
 
     Interbase database & dataset
     
-    Roughly based on work of FPC development team,
-    especially Michael Van Canneyt 
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -17,45 +14,81 @@
 
  **********************************************************************}
 
-unit interbase;
+unit Interbase;
 
 {$H+}
 
-interface 
+interface
 
-uses SysUtils, Classes, ibase60, Db;
+uses SysUtils, Classes, IBase60, DB;
 
 type
 
   PInteger = ^integer;
-
+  PSmallInt= ^smallint;
+  
+  TIBDatabase = class;
+  TIBTransaction = class;
+  TIBQuery = class;
+  TIBStoredProc = class;
+    
+{ TIBDatabase }
+  
   TIBDatabase = class (TDatabase)
   private
     FIBDatabaseHandle    : pointer;
-    FIBTransactionHandle : pointer;
     FPassword            : string;
     FStatus              : array [0..19] of ISC_STATUS;
+    FTransaction         : TIBTransaction;
     FUserName            : string;
+    FDialect             : integer;
     
-    procedure CheckError(ProcName : string);
+    procedure SetDBDialect;
+    procedure SetTransaction(Value : TIBTransaction);
   protected
+    function GetHandle : pointer; virtual;
+      { This procedure makes connection to Interbase server internally.
+        Is visible only by descendants, in application programming
+        will be invisible. Connection you must establish by setting 
+        @link(Connected) property to true, or by call of Open method.
+      }
     procedure DoInternalConnect; override;
+      { This procedure disconnects object from IB server internally.
+        Is visible only by descendants, in application programming
+        will be invisible. Disconnection you must make by setting 
+        @link(Connected) property to false, or by call of Close method.
+      }
     procedure DoInternalDisconnect; override;
   public
-    constructor Create(AOwner : TComponent); override;
-
-    procedure CommitTransaction; virtual;
-    procedure RollbackTransaction; virtual;
     procedure StartTransaction; override;
     procedure EndTransaction; override;
-
-    property DatabaseHandle: pointer read FIBDatabaseHandle; 
-    property TransactionHandle: pointer read FIBTransactionHandle;
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
   published
-    property Password: string read FPassword write FPassword;
-    property UserName: string read FUserName write FUserName;
-    
+    { On connect, TIBDatabase object retrieve SQL dialect of database file,
+      and sets this property to responding value }
+    property Dialect  : integer read FDialect write FDialect;
+    { Before firing Open method you must set @link(Password),@link(DatabaseName),
+      @link(UserName) properties in order of successfull connect to database }
+    property Password : string read FPassword write FPassword;
+    { This property holds default transaction for database. You must assign it by hand
+      now, default assignment becomes handy, in next release, with transaction
+      handling and evidence }
+    property Transaction : TIBTransaction read FTransaction write SetTransaction;
+    { Before firing Open method you must set @link(Password),@link(DatabaseName),
+      @link(UserName) properties in order of successfull connect to database }
+    property UserName : string read FUserName write FUserName;
+
+    { Identifies, if connection to Interbase server is established, or not.
+      Instead of calling Open, Close methods you can connect or disconnect
+      by setting this property to true or false.
+    }
     property Connected;
+    { This property holds database connect string. On local server it will be
+      absolute path to the db file, if you wanna connect over network, this
+      path looks like this: <server_name>:<path_on_server>, where server_name
+      is absolute IP address, or name of server in DNS or hosts file, path_on_server
+      is absolute path to the file again }
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -63,68 +96,144 @@ type
     property OnLogin;
   end;
 
-  PIBBookmark = ^TIBBookmark;
-  TIBBookmark = record
-    BookmarkData: Integer;
-    BookmarkFlag: TBookmarkFlag;
-  end;
+{ TIBTransaction }
+
+  {
+    Interbase has two modes for commit and rollback transactions,
+    the difference is simple. If you execute Commit or Rollback,
+    current transaction ends, and you must create new one.
+    If you, on other side, need only commit or rollback data
+    without transaction closing, execute with CommitRetaining or
+    RollbackRetaining. Transaction handle, environment etc. will be
+    as same as before action. Possible values are : caNone, caCommit, caCommitRetaining, caRollback, 
+    caRollbackRetaining
+  }
   
-  // TStatementType indicates if SQL statement returns
-  // result set.
-  TStatementType = (stResult, stNoResult, stDDL);
+  TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback, 
+    caRollbackRetaining);
+  TAccessMode = (amReadWrite, amReadOnly);
+  TIsolationLevel = (ilConcurrent, ilConsistent, ilReadCommittedRecV,
+    ilReadCommitted);
+  TLockResolution = (lrWait, lrNoWait);
+  TTableReservation = (trNone, trSharedLockRead, trSharedLockWrite, 
+    trProtectedLockRead, trProtectedLockWrite);
   
-  TIBDataset = class (TDataset)
+  TIBTransaction = class (TComponent)
   private
-    FBufferSize          : longint;
-    FCurrentRecord       : longint;
-    FCurrStmtType        : TStatementType;
+    FTransactionHandle   : pointer;               // Transaction handle
+    FAction              : TCommitRollbackAction; 
+    FActive              : boolean;
+    FTPB                 : string;                // Transaction parameter buffer
     FDatabase            : TIBDatabase;
-    FFlag                : array [0..1024] of shortint;
-    FIsEOF               : boolean;
-    FLoadingFieldDefs    : boolean;
-	FSQLPrepared		 : boolean;
-    FRecordSize          : word;
-    FRecordCount         : integer;
-    FSQL                 : TStrings;
-    FSQLDA               : PXSQLDA;
-    FSQLDAAllocated      : longint;
-    FStatementHandle     : pointer;
+    FAccessMode          : TAccessMode;
+    FIsolationLevel      : TIsolationLevel;
+    FLockResolution      : TLockResolution;
+    FTableReservation    : TTableReservation; 
     FStatus              : array [0..19] of ISC_STATUS;
     
-    FDBHandle            : pointer;
-    FTRHandle            : pointer;
-    
-    procedure CheckError(ProcName : string);
-    procedure DoAssignBuffers;
-    procedure DoExecSQL;
-    procedure DoFetch;
-    procedure DoFreeBuffers;
-    procedure DoParseSQL;
-    procedure DoSQLDAAlloc(Count : longint);
-    procedure DoStmtAlloc;
-    procedure DoStmtDealloc;
-    
-    procedure SetBufExtended(Field : TField; CurrBuff,Buffer : pointer);
-    procedure SetBufInteger(Field : TField; CurrBuff,Buffer : pointer);
-    procedure SetBufDateTime(Field : TField; CurrBuff,Buffer : pointer; AType : integer);
-    procedure SetBufString(Field : TField; CurrBuff,Buffer : pointer);
-    
-    function GetStmtType: TStatementType;
-    
-    function LoadBufferFromData(Buffer : PChar): TGetResult;
-    procedure SetDatabase(Value : TIBDatabase);
-    procedure SetSizes;
-    procedure TranslateFieldType(AType, AScale: longint; 
-      var XType: TFieldType; var XScale: word);
+    procedure SetActive(Value : boolean);
+    procedure SetTPB;
   protected
+    function GetHandle : pointer; virtual;
+  public
+    { Commits all actions, which was made in transaction, and closes transaction}
+    procedure Commit; virtual;
+    { Commits all actions, closes transaction, and creates new one }
+    procedure CommitRetaining; virtual;
+    { Rollbacks all actions made in transaction, and closes transaction }
+    procedure Rollback; virtual;
+    { Rollbacks all actions made in transaction, closes trans. and creates new one }
+    procedure RollbackRetaining; virtual;
+    { Creates new transaction. If transaction is active, closes it and make new one.
+      Action taken while closing responds to @link(Action) property settings }
+    procedure StartTransaction;
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+  published
+    { Default action while closing transaction by setting 
+     @link(Active) property. For details see @link(TCommitRollbackAction)}
+    property Action : TCommitRollbackAction read FAction write FAction;
+    { Is set to true while transaction is active, false if not.
+      If you set it manually to true, object executes 
+      @link(StartTransaction) method, if transaction is
+      active, and you set Active to false, object executes
+      one of @link(Commit), @link(CommitRetaining), @link(Rollback),
+      @link(RollbackRetaining) methods, depending on @link(Action) property
+      setting.
+    }
+    property Active : boolean read FActive write SetActive;
+    { Transaction must be assigned to some database session, for which purpose
+      you must use this property}
+    property Database : TIBDatabase read FDatabase write FDatabase;
+  end;
+  
+{ TIBQuery }
+
+  PIBBookmark = ^TIBBookmark;
+  TIBBookmark = record
+    BookmarkData : integer;
+    BookmarkFlag : TBookmarkFlag;
+  end;
+  
+  TStatementType = (stNone, stSelect, stInsert, stUpdate, stDelete,
+    stDDL, stGetSegment, stPutSegment, stExecProcedure,
+    stStartTrans, stCommit, stRollback, stSelectForUpd);
+  
+  TIBQuery = class (TDBDataset)
+  private
+    FTransaction         : TIBTransaction;
+    FDatabase            : TIBDatabase;
+    FStatus              : array [0..19] of ISC_STATUS;
+    FFieldFlag           : array [0..1023] of shortint;
+    FBufferSize          : integer;
+    FSQLDA               : PXSQLDA;
+    FSQLDAAllocated      : integer;
+    FStatement           : pointer;
+    FRecordCount         : integer;
+    FRecordSize          : word;
+    FCurrentRecord       : integer;
+    FSQL                 : TStrings;
+    FPrepared            : boolean;
+    FIsEOF               : boolean;
+    FStatementType       : TStatementType;
+    FLoadingFieldDefs    : boolean;
+        
+    procedure SetDatabase(Value : TIBDatabase);
+    procedure SetTransaction(Value : TIBTransaction);
+    procedure AllocSQLDA(Count : integer);
+    procedure AllocStatement;
+    procedure FreeStatement;
+    procedure PrepareStatement;
+    procedure DescribeStatement;
+    procedure SetUpSQLVars;
+    procedure AllocFldBuffers;
+    procedure FreeFldBuffers;
+    procedure Fetch;
+    function LoadBufferFromSQLDA(Buffer : PChar): TGetResult;
+    procedure GetStatementType;
+    procedure SetFieldSizes;
+    procedure TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
+      var TrType : TFieldType; var TrLen : word);
+
+    procedure ExecuteImmediate;
+    procedure ExecuteParams;
+    procedure Execute;
+    
+    // conversion methods
+    procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
+    procedure GetFloat(CurrBuff, Buffer : pointer; Field : TField);
+
+  protected
+  
+    // abstract & virual methods of TDataset
     function AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    function GetRecordCount: integer; override;
     function GetRecordSize: Word; override;
-	function GetRecordCount: integer; override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
     procedure InternalDelete; override;
@@ -142,11 +251,28 @@ type
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
   public
+    { This method is used for executing sql statements, which
+      doesn't return any rows. (insert,delete,update, and DDL commands) }
+    procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
   published
-    property SQL : TStrings read FSQL write FSQL;
-    property Database : TIBDatabase read FDatabase write SetDatabase;
+    { Query must have transaction assigned. If transaction is not assigned, and database
+      is, object looks, if database have default transaction, and assigns it }
+    property Transaction : TIBTransaction read FTransaction write SetTransaction;
+    { Use this property to determine, which database session can query use }
+    property Database    : TIBDatabase read FDatabase write SetDatabase;
+    { This property holds SQL command, which you want to execute }
+    property SQL         : TStrings read FSQL write FSQL;
+  end;
+  
+{ TIBStoredProc - not implemented - yet :-/}
+  
+  TIBStoredProc = class (TDataset)
+  private
+  protected
+  public
+  published
   end;
 
 implementation
@@ -167,35 +293,71 @@ type
     __tm_zone : Pchar;
   end;
 
-
-///////////////////////////////////////////////////////////////////////
-// TIBDatabase implementation
-//
-
-// PRIVATE PART of TIBDatabase
-
-{---------------------------------------------------------------------}
-{ CheckError                                                          }
-{ This procedure checks IB status vector and, if found some error     }
-{ condition, raises exception with IB error text                      }
-{---------------------------------------------------------------------}
-
-procedure TIBDatabase.CheckError(ProcName:string);
+procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
 var
   buf : array [0..1024] of char;
-  P : pointer;
-  x : integer;
+  p   : pointer;
+  Msg : string;
 begin
-  if ((FStatus[0] = 1) and (FStatus[1] <> 0)) then
+  if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
-    p := @FStatus;
-    isc_interprete(Buf, @p);
-    raise Exception.Create(ProcName + ': ' + StrPas(buf));
+    p := @Status;
+    while isc_interprete(Buf, @p) > 0 do
+      Msg := Msg + #10' -' + StrPas(Buf);
+    raise Exception.Create(ProcName + ': ' + Msg);
   end;
 end;
 
+{ TIBDatabase }
 
-// PROTECTED PART of TIBDatabase
+procedure TIBDatabase.SetDBDialect;
+var
+  x : integer;
+  Len : integer;
+  Buffer : string;
+  ResBuf : array [0..39] of byte;
+begin
+  Buffer := Chr(isc_info_db_sql_dialect) + Chr(isc_info_end);
+  if isc_database_info(@FStatus, @FIBDatabaseHandle, Length(Buffer),
+    @Buffer[1], SizeOf(ResBuf), @ResBuf) <> 0 then
+      CheckError('TIBDatabse.SetDBDialect', FStatus);
+  x := 0;
+  while x < 40 do
+    case ResBuf[x] of
+      isc_info_db_sql_dialect : 
+        begin
+          Inc(x);
+          Len := isc_vax_integer(@ResBuf[x], 2);
+          Inc(x, 2);
+          FDialect := isc_vax_integer(@ResBuf[x], Len);
+          Inc(x, Len);  
+        end;
+      isc_info_end : Break;
+    end;  
+end;
+
+procedure TIBDatabase.SetTransaction(Value : TIBTransaction);
+begin
+  if FTransaction = nil then
+  begin
+    FTransaction := Value;
+    FTransaction.Database := Self;
+    Exit;
+  end;
+  
+  if (Value <> FTransaction) and (Value <> nil) then
+    if (not FTransaction.Active) then
+    begin
+      FTransaction := Value;
+      FTransaction.Database := Self;
+    end
+    else Exception.Create('Cannot assign transaction while old transaction active!'); 
+end;
+
+function TIBDatabase.GetHandle: pointer;
+begin
+  Result := FIBDatabaseHandle;
+end;
 
 procedure TIBDatabase.DoInternalConnect;
 var
@@ -215,7 +377,8 @@ begin
   FIBDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FIBDatabaseHandle, 
          Length(DPB), @DPB[1]) <> 0 then
-    CheckError('TIBDatabase.Open');
+    CheckError('TIBDatabase.Open', FStatus);
+  SetDBDialect;
 end;
 
 procedure TIBDatabase.DoInternalDisconnect;
@@ -226,620 +389,806 @@ begin
     Exit;
   end;
   isc_detach_database(@FStatus[0], @FIBDatabaseHandle);
-  CheckError('TIBDatabase.Close');
-end;
-
-
-// PUBLIC PART of TIBDatabase
-
-constructor TIBDatabase.Create(AOwner : TComponent);
-begin
-  inherited Create(AOwner);
-  FIBDatabaseHandle := nil;
-  FIBTransactionHandle := nil;
-  FUserName := '';
-  FPassword := '';
-end;
-
-procedure TIBDatabase.CommitTransaction;
-begin
-  if FIBTransactionHandle <> nil then
-    if isc_commit_retaining(@FStatus, @FIBTransactionHandle) <> 0 then
-      CheckError('TIBDatabase.CommitTransaction');
-end;
-
-procedure TIBDatabase.RollbackTransaction;
-begin
-  if FIBTransactionHandle <> nil then
-    if isc_rollback_retaining(@FStatus, FIBTransactionHandle) <> 0 then
-      CheckError('TIBDatabase.RollbackTransaction');
+  CheckError('TIBDatabase.Close', FStatus);
 end;
 
 procedure TIBDatabase.StartTransaction;
 begin
-  if FIBTransactionHandle = nil then
-  begin
-    if isc_start_transaction(@FStatus, @FIBTransactionHandle, 1, [@FIBDatabaseHandle, 0, nil]) <> 0 then
-      CheckError('TIBDatabase.StartTransaction');
-  end;
+  if FTransaction = nil then
+    raise EDatabaseError.Create('TIBDatabase.StartTransaction: Transaction not set');
+  FTransaction.Active := True;    
 end;
 
 procedure TIBDatabase.EndTransaction;
 begin
-  if FIBTransactionHandle <> nil then
+  if FTransaction = nil then
+    raise EDatabaseError.Create('TIBDatabase.EndTransaction: Transaction not set');
+  FTransaction.Active := False;    
+end;
+
+constructor TIBDatabase.Create(AOwner : TComponent);
+begin
+  inherited Create(AOwner);
+  FIBDatabaseHandle    := nil;
+  FPassword            := '';
+  FTransaction         := nil;
+  FUserName            := '';
+  FillChar(FStatus, SizeOf(FStatus), #0);
+end;
+
+destructor TIBDatabase.Destroy;
+begin
+  if FTransaction <> nil then
   begin
-    if isc_commit_transaction(@FStatus, @FIBTransactionHandle) <> 0 then
-      CheckError('TIBDatabase.EndTransaction');
-    FIBTransactionHandle := nil;
+    FTransaction.Active := False;
+    FTransaction.Database := nil;
   end;
+  inherited Destroy;
 end;
 
+{ TIBTransaction }
 
-///////////////////////////////////////////////////////////////////////
-// TIBDataset implementation
-//
-
-// PRIVATE PART
-
-procedure TIBDataset.CheckError(ProcName : string);
-var
-  buf : array [0..1024] of char;
-  P : pointer;
-  Msg : string;
-  x : integer;
+procedure TIBTransaction.SetActive(Value : boolean);
 begin
-  if ((FStatus[0] = 1) and (FStatus[1] <> 0)) then
-  begin
-    p := @FStatus;
-    while isc_interprete(Buf, @p) > 0 do
-      Msg := Msg + #10' -' + StrPas(Buf);
-    raise Exception.Create(ProcName + ': ' + Msg);
-  end;
+  if FActive = Value then Exit;
+  if (FActive) and (not Value) then
+    case FAction of
+      caCommit            : Commit;
+      caCommitRetaining   : CommitRetaining;
+      caRollback          : Rollback;
+      caRollbackRetaining : RollbackRetaining;
+    else
+      Exception.Create('TIBTransaction.SetActive: Transaction is already active.');
+    end;
+  if (not FActive) and (Value) then
+    StartTransaction;
 end;
 
-procedure TIBDataset.DoAssignBuffers;
-var
-  Buf : PChar;
-  x   : longint;
+procedure TIBTransaction.SetTPB;
 begin
-  for x := 0 to FSQLDA^.SQLD - 1 do
-  begin
-    Buf := AllocMem(FSQLDA^.SQLVar[x].SQLLen);
-    FSQLDA^.SQLVar[x].SQLData := Buf;
-    FSQLDA^.SQLVar[x].SQLInd  := @FFlag[x];
-  end;
-end;
+  FTPB := chr(isc_tpb_version3);
 
-procedure TIBDataset.DoExecSQL;
-begin
-  if isc_dsql_execute(@FStatus, @FTrHandle, @FStatementHandle, 1, nil) <> 0 then
-    CheckError('TIBDataset.DoExecSQL');
-end;
-
-procedure TIBDataset.DoFetch;
-var
-  Res : longint;
-begin
-  if FCurrStmtType <> stResult then Exit;
-  Res := isc_dsql_fetch(@FStatus, @FStatementHandle, 1, FSQLDA);
-  if (Res <> 100) then
-    CheckError('TIBDataset.DoFetch');
-  FIsEOF := (Res = 100);
-end;
-
-procedure TIBDataset.DoFreeBuffers;
-var
-  x   : longint;
-begin
-  for x := 0 to FSQLDA^.SQLD - 1 do
-    if (FSQLDA^.SQLVar[x].SQLData <> nil) then
-      FreeMem(FSQLDA^.SQLVar[x].SQLData);
-end;
-
-procedure TIBDataset.DoParseSQL;
-var
-  Buf      : string;
-  x        : longint;
-begin
-  if FSQL.Count < 1 then
-    raise Exception.Create('TIBDataset.DoParseSQL: Empty SQL statement');
-
-  Buf := '';
-  for x := 0 to FSQL.Count - 1 do
-    Buf := Buf + FSQL[x] + ' ';
-
-  if isc_dsql_prepare(@FStatus, @FTrHandle, @FStatementHandle, 0, @Buf[1], 1, nil) <> 0 then    CheckError('TIBDataset.DoParseSQL - Prepare');
-    
-  if isc_dsql_describe(@FStatus, @FStatementHandle, 1, FSQLDA) <> 0 then
-    CheckError('TIBDataset.DoParseSQL - Describe');
-
-  if FSQLDA^.SQLN < FSQLDA^.SQLD then
-  begin
-    x := FSQLDA^.SQLD;
-    DoSQLDAAlloc(x);
-    if isc_dsql_describe(@FStatus, @FStatementHandle, 1, FSQLDA) <> 0 then
-      CheckError('TIBDataset.DoParseSQL - Describe');
+  case FAccessMode of
+    amReadWrite : FTPB := FTPB + chr(isc_tpb_write);
+    amReadOnly  : FTPB := FTPB + chr(isc_tpb_read);
   end;
   
-  FCurrStmtType := GetStmtType;
-  FSQLPrepared := True;  
+  case FIsolationLevel of
+    ilConsistent        : FTPB := FTPB + chr(isc_tpb_consistency);
+    ilConcurrent        : FTPB := FTPB + chr(isc_tpb_concurrency);
+    ilReadCommittedRecV : FTPB := FTPB + chr(isc_tpb_read_committed) +
+      chr(isc_tpb_rec_version);
+    ilReadCommitted     : FTPB := FTPB + chr(isc_tpb_read_committed) +
+      chr(isc_tpb_no_rec_version);
+  end;
+  
+  case FLockResolution of
+    lrWait   : FTPB := FTPB + chr(isc_tpb_wait);
+    lrNoWait : FTPB := FTPB + chr(isc_tpb_nowait);
+  end;
+  
+  case FTableReservation of
+    trSharedLockRead     : FTPB := FTPB + chr(isc_tpb_shared) + 
+      chr(isc_tpb_lock_read);
+    trSharedLockWrite    : FTPB := FTPB + chr(isc_tpb_shared) + 
+      chr(isc_tpb_lock_write);
+    trProtectedLockRead  : FTPB := FTPB + chr(isc_tpb_protected) +
+      chr(isc_tpb_lock_read);
+    trProtectedLockWrite : FTPB := FTPB + chr(isc_tpb_protected) +
+      chr(isc_tpb_lock_write);
+  end;
 end;
 
-procedure TIBDataset.DoSQLDAAlloc(Count : longint);
+function TIBTransaction.GetHandle: pointer;
+begin
+  Result := FTransactionHandle;
+end;
+
+procedure TIBTransaction.Commit;
+begin
+  if not FActive then Exit;
+  if isc_commit_transaction(@FStatus, @FTransactionHandle) <> 0 then
+    CheckError('TIBTransaction.Commit', FStatus)
+  else FActive := False;
+end;
+
+procedure TIBTransaction.CommitRetaining;
+begin
+  if not FActive then Exit;
+  if isc_commit_retaining(@FStatus, @FTransactionHandle) <> 0 then
+    CheckError('TIBTransaction.CommitRetaining', FStatus);
+end;
+
+procedure TIBTransaction.Rollback;
+begin
+  if not FActive then Exit;
+  if isc_rollback_transaction(@FStatus, @FTransactionHandle) <> 0 then
+    CheckError('TIBTransaction.Rollback', FStatus)
+  else FActive := False;
+end;
+
+procedure TIBTransaction.RollbackRetaining;
+begin
+  if not FActive then Exit;
+  if isc_rollback_retaining(@FStatus, @FTransactionHandle) <> 0 then
+    CheckError('TIBTransaction.RollbackRetaining', FStatus);
+end;
+
+procedure TIBTransaction.StartTransaction;
+var
+  DBHandle : pointer;
+begin
+  if Active then Active := False;
+  
+  if FDatabase = nil then
+    Exception.Create('TIBTransaction.StartTransaction: Database not assigned!');
+  
+  if not Database.Connected then
+    Database.Open;
+  
+  DBHandle := Database.GetHandle;
+  SetTPB;
+  FTransactionHandle := nil;
+  
+  if isc_start_transaction(@FStatus, @FTransactionHandle, 1,
+     [@DBHandle, Length(FTPB), @FTPB[1]]) <> 0 then
+    CheckError('TIBTransaction.StartTransaction',FStatus)
+  else FActive := True;
+end;
+
+constructor TIBTransaction.Create(AOwner : TComponent);
+begin
+  inherited Create(AOwner);
+
+  FAction := caNone;
+  FActive := False;
+  FAccessMode := amReadWrite;
+  FIsolationLevel := ilReadCommitted;
+  FLockResolution := lrWait;
+  FTableReservation := trNone;
+  FTransactionHandle := nil;
+  FDatabase := nil;
+  
+  FillChar(FStatus, SizeOf(FStatus), #0);
+end;
+
+destructor TIBTransaction.Destroy;
+begin
+  if Database <> nil then
+    Database.Transaction := nil;
+
+{  // i really can't allow commit of transaction
+  // on destroy...
+}
+{  
+  try
+    if Active then 
+      Active := False;
+  except
+  end;
+}
+  
+  inherited Destroy;
+end;
+
+{ TIBQuery }
+
+procedure TIBQuery.SetTransaction(Value : TIBTransaction);
+begin
+  CheckInactive;
+  if (FTransaction <> Value) then
+    FTransaction := Value;
+end;
+
+procedure TIBQuery.SetDatabase(Value : TIBDatabase);
+begin
+  CheckInactive;
+  if (FDatabase <> Value) then
+  begin
+    FDatabase := Value;
+    if (FTransaction = nil) and (Assigned(FDatabase.Transaction)) then
+      SetTransaction(FDatabase.Transaction);
+  end;
+end;
+
+procedure TIBQuery.AllocSQLDA(Count : integer);
 begin
   if FSQLDAAllocated > 0 then
     FreeMem(FSQLDA, XSQLDA_Length * FSQLDAAllocated);
   GetMem(FSQLDA, XSQLDA_Length * Count);
   FSQLDAAllocated := Count;
-  FSQLDA^.Version := SQLDA_VERSION1;
-  FSQLDA^.SQLN := Count;
+  FSQLDA^.Version := sqlda_version1;
+  FSQLDA^.SQLN := Count; 
 end;
 
-procedure TIBDataset.DoStmtAlloc;
+procedure TIBQuery.AllocStatement;
+var
+  dh : pointer;
 begin
   if not FDatabase.Connected then
     FDatabase.Open;
-  if FDatabase.TransactionHandle = nil then
-    FDatabase.StartTransaction;
-  FDBHandle := FDatabase.DatabaseHandle;
-  FTRHandle := FDatabase.TransactionHandle;
-
-  if isc_dsql_allocate_statement(@FStatus, @FDBHandle, @FStatementHandle) <> 0 then
-    CheckError('TIBDataset.DoStmtAlloc');
+  dh := FDatabase.GetHandle;
+  
+  if isc_dsql_allocate_statement(@FStatus, @dh, @FStatement) <> 0 then
+    CheckError('TIBQuery.AllocStatement', FStatus);
 end;
 
-procedure TIBDataset.DoStmtDealloc;
+procedure TIBQuery.FreeStatement;
 begin
-  if isc_dsql_free_statement(@FStatus, @FStatementHandle, DSQL_Drop) <> 0 then
-    CheckError('TIBDataset.DoStmtDealloc');
-  FStatementHandle := nil;
+  if isc_dsql_free_statement(@FStatus, @FStatement, DSQL_Drop) <> 0 then
+    CheckError('TIBQuery.DeallocStatement', FStatus);
+  FStatement := nil;
 end;
 
-function TIBDataset.GetStmtType: TStatementType;
+procedure TIBQuery.PrepareStatement;
 var
-  ResBuf : array [0..7] of char;
-  x : integer;
-  SType : integer;
+  Buf : string;
+  x   : integer;
+  tr  : pointer;
 begin
+  tr := FTransaction.GetHandle;
+  
+  for x := 0 to FSQL.Count - 1 do
+    Buf := Buf + FSQL[x] + ' ';
+    
+  if isc_dsql_prepare(@FStatus, @tr, @FStatement, 0, @Buf[1], 1, nil) <> 0 then
+    CheckError('TIBQuery.PrepareStatement', FStatus);
+end;
+
+procedure TIBQuery.DescribeStatement;
+begin
+  if isc_dsql_describe(@FStatus, @FStatement, 1, FSQLDA) <> 0 then
+    CheckError('TIBQuery.DescribeStatement', FStatus);
+  if FSQLDA^.SQLD > FSQLDA^.SQLN then
+  begin
+    AllocSQLDA(FSQLDA^.SQLD);
+    if isc_dsql_describe(@FStatus, @FStatement, 1, FSQLDA) <> 0 then
+      CheckError('TIBQuery.DescribeStatement', FStatus);
+  end;
+end;
+
+procedure TIBQuery.SetUpSQLVars;
+var
+  x : integer;
+begin
+  for x := 0 to FSQLDA^.SQLN - 1 do
+  begin
+    case FSQLDA^.SQLVar[x].SQLType of
+      sql_varying + 1: 
+        FSQLDA^.SQLVar[x].SQLType := sql_varying;
+      sql_text + 1   : 
+        FSQLDA^.SQLVar[x].SQLType := sql_text;
+      sql_short, sql_short + 1, sql_long + 1:
+        FSQLDA^.SQLVar[x].SQLType := sql_long;
+      sql_float + 1  :
+        FSQLDA^.SQLVar[x].SQLType := sql_float;
+      sql_double + 1 : 
+        FSQLDA^.SQLVar[x].SQLType := sql_double;
+      sql_blob + 1   : 
+        FSQLDA^.SQLVar[x].SQLType := sql_blob;
+      sql_type_time + 1   :
+        FSQLDA^.SQLVar[x].SQLType := sql_type_time;
+      sql_timestamp + 1:
+        FSQLDA^.SQLVar[x].SQLType := sql_timestamp;
+    end; 
+  end;
+end;
+
+procedure TIBQuery.AllocFldBuffers;
+var
+  Buf: pointer;
+  x  : shortint;
+begin
+  {$R-}
+  for x := 0 to FSQLDA^.SQLD - 1 do
+  begin
+    Buf := AllocMem(FSQLDA^.SQLVar[x].SQLLen);
+    FSQLDA^.SQLVar[x].SQLData := Buf;
+    FSQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
+  end;
+  {$R+}
+end;
+
+procedure TIBQuery.FreeFldBuffers;
+var
+  x  : integer;
+begin
+  {$R-}
+  for x := 0 to FSQLDA^.SQLD - 1 do
+  begin
+    if FSQLDA^.SQLVar[x].SQLData <> nil then
+    begin
+      FreeMem(FSQLDA^.SQLVar[x].SQLData);
+      FSQLDA^.SQLVar[x].SQLData := nil; 
+    end;
+  end;
+  {$R+}
+end;
+
+procedure TIBQuery.Fetch;
+var
+  retcode : integer;
+begin
+  if not (FStatementType in [stSelect]) then 
+    Exit;
+
+  retcode := isc_dsql_fetch(@FStatus, @FStatement, 1, FSQLDA);
+  if (retcode <> 0) and (retcode <> 100) then
+    CheckError('TIBQuery.Fetch', FStatus);
+
+  FIsEOF := (retcode = 100); 
+end;
+
+function TIBQuery.LoadBufferFromSQLDA(Buffer : PChar): TGetResult;
+var
+  x          : integer;
+  VarcharLen : word;
+begin
+  
+  Fetch;
+  if FIsEOF then
+  begin
+    Result := grEOF;
+    Exit;
+  end;
+  
+  {$R-}
+  for x := 0 to FSQLDA^.SQLD - 1 do
+  begin
+    with FSQLDA^.SQLVar[x] do
+    begin
+      if ((SQLType and not 1) = SQL_VARYING) then
+      begin
+        Move(SQLData^, VarcharLen, 2);
+        Move((SQLData + 2)^, Buffer^, VarcharLen);
+        PChar(Buffer + VarcharLen)^ := #0;
+      end
+      else Move(SQLData^, Buffer^, SQLLen);
+      Inc(Buffer, SQLLen);
+    end;
+  end;
+  {$R+} 
+  Result := grOK;
+
+end;
+
+procedure TIBQuery.GetStatementType;
+var
+  x : integer;
+  ResBuf : array [0..7] of char;
+begin
+  FStatementType := stNone;
   x := isc_info_sql_stmt_type;
-  isc_dsql_sql_info(@FStatus, @FStatementHandle, SizeOf(x),
-    @x, SizeOf(ResBuf), @ResBuf);
+  if isc_dsql_sql_info(@FStatus, @FStatement, SizeOf(X), 
+    @x, SizeOf(ResBuf), @ResBuf) <> 0 then
+    CheckError('TIBQuery.GetStatementType', FStatus);
   if Ord(ResBuf[0]) = isc_info_sql_stmt_type then
   begin
     x := isc_vax_integer(@ResBuf[1], 2);
-    SType := isc_vax_integer(@ResBuf[3], x);
-  end;
-  case SType of
-    isc_info_sql_stmt_select:
-      Result := stResult;
-    isc_info_sql_stmt_insert, isc_info_sql_stmt_update,
-    isc_info_sql_stmt_delete:
-      Result := stNoResult;
-    else Result := stDDL;
+    FStatementType := TStatementType(isc_vax_integer(@ResBuf[3], x));
   end;
 end;
 
-function TIBDataset.LoadBufferFromData(Buffer : PChar): TGetResult;
-var
-  x : integer;
-  p : word;
-  T : TISC_TIMESTAMP;
-begin
-  DoFetch;
-  if FIsEOF then
-    Result := grEOF
-  else begin
-    for x := 0 to FSQLDA^.SQLD - 1 do
-    begin
-      if (FSQLDA^.SQLVar[x].SQLType = SQL_VARYING) or
-         (FSQLDA^.SQLVar[x].SQLType = SQL_VARYING + 1) then
-      begin
-        Move(FSQLDA^.SQLVar[x].SQLData^, P, 2);
-    	Move((FSQLDA^.SQLVar[x].SQLData + 2)^, Buffer^, P);
-        PChar(Buffer+P)^ := #0;
-      end
-	  else
-    	Move(FSQLDA^.SQLVar[x].SQLData^, Buffer^, FSQLDA^.SQLVar[x].SQLLen);
-      Inc(Buffer,FSQLDA^.SQLVar[x].SQLLen);
-    end;
-    Result := grOK;
-  end;
-end;
-
-procedure TIBDataset.SetDatabase(Value : TIBDatabase);
-begin
-  CheckInactive;
-  If Value<>FDatabase then
-  begin
-    if Value<>Nil Then
-      FDatabase:=Value; 
-  end;
-end;
-
-procedure TIBDataset.SetSizes;
+procedure TIBQuery.SetFieldSizes;
 var
   x : integer;
 begin
   FRecordSize := 0;
   FBufferSize := 0;
+  {$R-}
   for x := 0 to FSQLDA^.SQLD - 1 do
-  begin
     Inc(FRecordSize, FSQLDA^.SQLVar[x].SQLLen);
-  end;
+  {$R+}
   FBufferSize := FRecordSize + SizeOf(TIBBookmark);
 end;
 
-procedure TIBDataset.TranslateFieldType(AType, AScale: longint; 
-  var XType: TFieldType; var XScale: word);
+procedure TIBQuery.TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
+  var TrType : TFieldType; var TrLen : word);
 begin
-  case AType of
-    SQL_TEXT, SQL_VARYING, SQL_TEXT+1, SQL_VARYING+1:
+  LensSet := False;
+
+  case (SQLType and not 1) of
+    SQL_VARYING : 
       begin
-        XType := ftString;
-        XScale := AScale;
+        LensSet := True;
+        TrType := ftString;
+        TrLen := SQLLen;
       end;
-    SQL_DOUBLE, SQL_DOUBLE+1: 
+    SQL_TEXT :      
       begin
-        XType := ftFloat;
-        XScale := AScale;
+        LensSet := True;
+        TrType := ftString;
+        TrLen := SQLLen;
       end;
-    SQL_LONG, SQL_LONG+1, SQL_SHORT, SQL_SHORT+1: 
+    SQL_TYPE_DATE :
+        TrType := ftDateTime;
+    SQL_TYPE_TIME :
+        TrType := ftDateTime;
+    SQL_TIMESTAMP :
+        TrType := ftDateTime;
+    SQL_ARRAY :
       begin
-        XType := ftInteger;
-        XScale := AScale;
       end;
-{    SQL_DATE, SQL_DATE+1, SQL_TIME, SQL_TIME+1,}
-    SQL_TYPE_TIME:
+    SQL_BLOB : 
       begin
-        XType := ftTime;
-        XScale := AScale;
       end;
-    SQL_TYPE_DATE:
+    SQL_SHORT :
       begin
-        XType := ftDate;
-        XScale := AScale;
+        LensSet := True;
+        TrLen := SQLLen;
+        TrType := ftInteger;
       end;
-    SQL_FLOAT,SQL_FLOAT+1:
+    SQL_LONG :
       begin
-        XType := ftFloat;
-        XScale := AScale;
+        LensSet := True;
+        TrLen := SQLLen;
+        TrType := ftInteger;
       end;
-    SQL_TIMESTAMP, SQL_TIMESTAMP+1: 
+    SQL_INT64 :
+        {TrType := ftInt64};
+    SQL_DOUBLE :
       begin
-        XType := ftDateTime;
-        XScale := AScale;
+        LensSet := True;
+        TrLen := SQLLen;
+        TrType := ftFloat;
+      end;
+    SQL_FLOAT :
+      begin
+        LensSet := True;
+        TrLen := SQLLen;
+        TrType := ftFloat;
       end;
   end;
 end;
 
+procedure TIBQuery.ExecuteImmediate;
+begin
+end;
 
-// PROTECTED PART
+procedure TIBQuery.ExecuteParams;
+begin
+  //!! to be implemented
+end;
 
-function TIBDataset.AllocRecordBuffer: PChar;
+procedure TIBQuery.Execute;
+var
+  tr : pointer;
+begin
+  tr := FTransaction.GetHandle;
+  if isc_dsql_execute(@FStatus, @tr, @FStatement, 1, nil) <> 0 then
+    CheckError('TIBQuery.Execute', FStatus);
+end;
+
+procedure TIBQuery.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
+var
+  CTime : TTm;          // C struct time
+  STime : TSystemTime;  // System time
+  PTime : TDateTime;    // Pascal time
+begin
+  case (AType and not 1) of 
+    SQL_TYPE_DATE : 
+      isc_decode_sql_date(PISC_DATE(CurrBuff), @CTime);
+    SQL_TYPE_TIME :
+      isc_decode_sql_time(PISC_TIME(CurrBuff), @CTime);
+    SQL_TIMESTAMP :
+      isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @CTime);
+  end;
+  STime.Year        := CTime.tm_year + 1900;
+  STime.Month       := CTime.tm_mon + 1;
+  STime.Day         := CTime.tm_mday;
+  STime.Hour        := CTime.tm_hour;
+  STime.Minute      := CTime.tm_min;
+  STime.Second      := CTime.tm_sec;
+  STime.Millisecond := 0;
+  
+  PTime := SystemTimeToDateTime(STime);
+  Move(PTime, Buffer^, SizeOf(PTime));
+end;
+
+procedure TIBQuery.GetFloat(CurrBuff, Buffer : pointer; Field : TField);
+var
+  Ext : extended;
+  Dbl : double;
+  Sin : single;
+begin
+  case Field.Size of
+    4 :
+      begin
+        Move(CurrBuff^, Sin, 4);
+        Ext := Sin;
+      end;
+    8 :
+      begin
+        Move(CurrBuff^, Dbl, 8);
+        Ext := Dbl;
+      end;
+    10: Move(CurrBuff^, Ext, 10);
+  end;
+  Move(Ext, Buffer^, 10);
+end;
+
+function TIBQuery.AllocRecordBuffer: PChar;
 begin
   Result := AllocMem(FBufferSize);
 end;
 
-procedure TIBDataset.FreeRecordBuffer(var Buffer: PChar);
+procedure TIBQuery.FreeRecordBuffer(var Buffer: PChar);
 begin
   FreeMem(Buffer);
 end;
 
-procedure TIBDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TIBQuery.GetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  PInteger(Data)^ := PIBBookmark(Buffer + FRecordSize)^.BookmarkData;
+  PInteger(Data)^ := PIBBookmark(Buffer + FRecordSize)^.BookmarkData; 
 end;
 
-function TIBDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TIBQuery.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
 begin
   Result := PIBBookmark(Buffer + FRecordSize)^.BookmarkFlag;
 end;
 
-procedure TIBDataset.SetBufExtended(Field : TField; CurrBuff,Buffer : pointer);
+function TIBQuery.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
-  E    : extended;
-  D    : double;
-  S    : single;
-begin
-  case Field.Size of
-    4    : 
-      begin
-        Move(CurrBuff^,S,4);
-        E := S;
-      end;
-    8    :
-      begin
-        Move(CurrBuff^,D,8);
-        E := D;
-      end;
-    10   : Move(CurrBuff^,E,10);
-  end;
-  Move(E, Buffer^, 10);
-end;
-
-procedure TIBDataset.SetBufInteger(Field : TField; CurrBuff,Buffer : pointer);
-var
-  I    : integer;
-begin
-  I := 0;
-  Move(I, Buffer^, SizeOf(Integer));
-  Move(CurrBuff^, Buffer^, Field.Size);
-end;
-
-procedure TIBDataset.SetBufDateTime(Field : TField; CurrBuff,Buffer : pointer; AType : integer);
-var
-  D    : TDateTime;
-  S    : TSystemTime;
-  TM   : TTm;
-  TT   : TIsc_timestamp;
-begin
-  case AType of
-    SQL_TYPE_DATE: 
-      isc_decode_sql_date(PISC_DATE(CurrBuff), @TM);
-    SQL_TYPE_TIME:
-      isc_decode_sql_time(PISC_TIME(CurrBuff), @TM);
-    SQL_TIMESTAMP, SQL_TIMESTAMP+1:
-      isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @TM);
-  end;
-  S.Year := TM.tm_year + 1900;
-  S.Month := TM.tm_mon + 1;
-  S.Day := TM.tm_mday;
-  S.Hour := TM.tm_hour;
-  S.Minute := TM.tm_min;
-  S.Second := TM.tm_sec;
-  S.Millisecond := 0;
-  D := SystemTimeToDateTime(S);
-  {$warning !!! D is okay, but Field.AsDateTime returns wrong value !!! } 
-//  WriteLn(DateTimeToStr(D));
-  Move(D, Buffer^, SizeOf(D));
-end;
-
-procedure TIBDataset.SetBufString(Field : TField; CurrBuff,Buffer : pointer);
-begin
-  Move(CurrBuff^, Buffer^, Field.Size);
-  PChar(Buffer + Field.Size)^ := #0;
-end;
-
-function TIBDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
-var
-  x        : longint;
+  x : longint;
+  b : longint;
   CurrBuff : PChar;
 begin
   Result := False;
   CurrBuff := ActiveBuffer;
+  
   for x := 0 to FSQLDA^.SQLD - 1 do
   begin
+    {$R-}
     if (Field.FieldName = FSQLDA^.SQLVar[x].SQLName) then
     begin
-
       case Field.DataType of
-        ftFloat:  
-          SetBufExtended(Field, CurrBuff, Buffer);
-        ftString: 
-          SetBufString(Field, CurrBuff, Buffer);
-        ftDate,ftTime,ftDateTime:
-          SetBufDateTime(Field, CurrBuff, Buffer, FSQLDA^.SQLVar[x].SQLType);
-        ftInteger:
-          SetBufInteger(Field, CurrBuff, Buffer);
+        ftInteger : 
+          begin
+            b := 0;
+            Move(b, Buffer^, 4);
+            Move(CurrBuff^, Buffer^, Field.Size);
+          end;
+        ftDate, ftTime, ftDateTime:
+          GetDateTime(CurrBuff, Buffer, FSQLDA^.SQLVar[x].SQLType);
+        ftString  :
+          begin
+            Move(CurrBuff^, Buffer^, Field.Size);
+            PChar(Buffer + Field.Size)^ := #0;
+          end;
+        ftFloat   : 
+          GetFloat(CurrBuff, Buffer, Field);
       end;
-
+      
       Result := True;
-
-      break; 
+      
+      Break;
     end
     else Inc(CurrBuff, FSQLDA^.SQLVar[x].SQLLen);
+    {$R+}
   end;
 end;
 
-function TIBDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+function TIBQuery.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 begin
-  if FCurrStmtType <> stResult then Exit;
-  if FIsEOF then 
+  if FStatementType <> stSelect then 
+  begin
+    Result := grEOF;
+    Exit;
+  end;
+  if FIsEOF then
     Result := grEOF
   else begin
-	Result := grOk;
+    Result := grOK;
     case GetMode of
-	  gmPrior: 
-		if FCurrentRecord <= 0 then
-		begin
-		  Result := grBOF;
-		  FCurrentRecord := -1;
-		end
-		else Dec(FCurrentRecord);
-	  gmCurrent:
-		if (FCurrentRecord < 0) or (FCurrentRecord >= RecordCount) then
-		  Result := grError;
-      gmNext: 
-		if FCurrentRecord >= (RecordCount - 1) then
+      gmPrior :
+        if FCurrentRecord <= 0 then
         begin
-		  Result := LoadBufferFromData(Buffer);
-          if Result = grOk then 
+          Result := grBOF;
+          FCurrentRecord := -1;
+        end
+        else Dec(FCurrentRecord);
+      gmCurrent : 
+        if (FCurrentRecord < 0) or (FCurrentRecord >= RecordCount) then
+          Result := grError;
+      gmNext : 
+        if FCurrentRecord >= (RecordCount - 1) then
+        begin
+          Result := LoadBufferFromSQLDA(Buffer);
+          if Result = grOK then
           begin
             Inc(FCurrentRecord);
             Inc(FRecordCount);
           end;
         end
-		else Inc(FCurrentRecord);
+        else Inc(FCurrentRecord);
     end;
-
-    if Result = grOK then
-    begin
-      with PIBBookmark(Buffer + FRecordSize)^ do
-      begin
-        BookmarkData := FCurrentRecord;
-        BookmarkFlag := bfCurrent;
-      end;               
-    end
-    else if (Result = grError) {and (DoCheck)} then
-      DatabaseError('No record');
   end;
+  
+  if Result = grOK then
+  begin
+    with PIBBookmark(Buffer + FRecordSize)^ do
+    begin
+      BookmarkData := FCurrentRecord;
+      BookmarkFlag := bfCurrent;
+    end;
+  end
+  else if (Result = grError) then
+    DatabaseError('No record');
 end;
 
-function TIBDataset.GetRecordCount: integer;
+function TIBQuery.GetRecordCount: integer;
 begin
   Result := FRecordCount;
 end;
 
-function TIBDataset.GetRecordSize: Word;
+function TIBQuery.GetRecordSize: Word;
 begin
   Result := FRecordSize;
 end;
 
-procedure TIBDataset.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
+procedure TIBQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
 begin
+  // not implemented - sql dataset
 end;
 
-procedure TIBDataset.InternalClose;
+procedure TIBQuery.InternalClose;
 begin
-  DoFreeBuffers;
-  DoStmtDealloc;
+  FreeFldBuffers;
+  FreeStatement;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
   FCurrentRecord := -1;
   FBufferSize := 0;
   FRecordSize := 0;
-  FRecordCount := 0;
-//  DoSQLDAAlloc(50);
+  FRecordCount:= 0;
 end;
 
-procedure TIBDataset.InternalDelete;
+procedure TIBQuery.InternalDelete;
 begin
+  // not implemented - sql dataset
 end;
 
-procedure TIBDataset.InternalFirst;
+procedure TIBQuery.InternalFirst;
 begin
   FCurrentRecord := -1;
 end;
 
-procedure TIBDataset.InternalGotoBookmark(ABookmark: Pointer);
+procedure TIBQuery.InternalGotoBookmark(ABookmark: Pointer);
 begin
   FCurrentRecord := PInteger(ABookmark)^;
 end;
 
-procedure TIBDataset.InternalHandleException;
+procedure TIBQuery.InternalHandleException;
 begin
-  // not implemented
 end;
 
-procedure TIBDataset.InternalInitFieldDefs;
+procedure TIBQuery.InternalInitFieldDefs;
 var
-  x       : longint;
-  TransFt : TFieldType;
-  TransSz : word;
+  x         : integer;
+  lenset    : boolean;
+  TransLen  : word;
+  TransType : TFieldType;
 begin
-  if FLoadingFieldDefs then 
-  begin
-    WriteLn('Loading FieldDefs...');
+  if FLoadingFieldDefs then
     Exit;
-  end;
-  
+
   FLoadingFieldDefs := True;
   
   try
-    try
-      FieldDefs.Clear;
-      for x := 0 to FSQLDA^.SQLD - 1 do
-      begin
-        TranslateFieldType(FSQLDA^.SQLVar[x].SQLType, FSQLDA^.SQLVar[x].SQLLen,
-          TransFt, TransSz);
-        TFieldDef.Create(FieldDefs,
-          FSQLDA^.SQLVar[x].SQLName, 
-          TransFt, TransSz, False, (x+1));
-      end;
-    finally
+    FieldDefs.Clear;
+    {$R-}
+    for x := 0 to FSQLDA^.SQLD - 1 do
+    begin
+      TranslateFldType(FSQLDA^.SQLVar[x].SQLType, FSQLDA^.SQLVar[x].SQLLen, lenset, 
+        TransType, TransLen);
+      TFieldDef.Create(FieldDefs, FSQLDA^.SQLVar[x].SQLName, TransType, 
+        TransLen, False, (x + 1));
     end;
+    {$R+}
   finally
     FLoadingFieldDefs := False;
   end;
 end;
 
-procedure TIBDataset.InternalInitRecord(Buffer: PChar);
+procedure TIBQuery.InternalInitRecord(Buffer: PChar);
 begin
   FillChar(Buffer^, FBufferSize, #0);
 end;
 
-procedure TIBDataset.InternalLast;
+procedure TIBQuery.InternalLast;
 begin
   FCurrentRecord := RecordCount;
 end;
 
-procedure TIBDataset.InternalOpen;
+procedure TIBQuery.InternalOpen;
 begin
   try
-    DoStmtAlloc;
-    DoParseSQL;
-    if FCurrStmtType = stResult then
+    AllocStatement;
+    PrepareStatement;
+    GetStatementType;
+    if FStatementType in [stSelect] then
     begin
-      DoAssignBuffers;
-      DoExecSQL;
+      DescribeStatement;
+      AllocFldBuffers;
+      Execute;
       InternalInitFieldDefs;
       if DefaultFields then
         CreateFields;
-      SetSizes;
+      SetFieldSizes;
       BindFields(True);
     end
-    else DoExecSQL;
+    else Execute;
   except
-	raise;
+    on E:Exception do
+      raise;
   end;
-  
 end;
 
-procedure TIBDataset.InternalPost;
+procedure TIBQuery.InternalPost;
 begin
+  // not implemented - sql dataset
 end;
 
-procedure TIBDataset.InternalSetToRecord(Buffer: PChar);
+procedure TIBQuery.InternalSetToRecord(Buffer: PChar);
 begin
   FCurrentRecord := PIBBookmark(Buffer + FRecordSize)^.BookmarkData;
 end;
 
-function TIBDataset.IsCursorOpen: Boolean;
+function TIBQuery.IsCursorOpen: Boolean;
 begin
-  Result := FStatementHandle <> nil; //??
+  Result := False;
 end;
 
-procedure TIBDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TIBQuery.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
 begin
   PIBBookmark(Buffer + FRecordSize)^.BookmarkFlag := Value;
 end;
 
-procedure TIBDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TIBQuery.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
   PIBBookmark(Buffer + FRecordSize)^.BookmarkData := PInteger(Data)^;
 end;
 
-procedure TIBDataset.SetFieldData(Field: TField; Buffer: Pointer);
+procedure TIBQuery.SetFieldData(Field: TField; Buffer: Pointer);
 begin
 end;
 
-// PUBLIC PART
+// public part
 
-constructor TIBDataset.Create(AOwner : TComponent);
+procedure TIBQuery.ExecSQL;
+begin
+  AllocStatement;
+  PrepareStatement;
+  GetStatementType;
+  Execute;
+  FreeStatement;
+end;
+
+constructor TIBQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
+  FillChar(FFieldFlag, SizeOf(FFieldFlag), #0);
   FSQL := TStringList.Create;
-  FIsEOF := False;
+  FStatement := nil;
   FCurrentRecord := -1;
-  FBufferSize := 0;
-  FRecordSize := 0;
-  FRecordCount := 0;
-  DoSQLDAAlloc(50);
+  FDatabase := nil;
+  FTransaction := nil;
+  FSQLDAAllocated := 0;
+  FLoadingFieldDefs := False;
+  FPrepared := False;
+  AllocSQLDA(10);
 end;
 
-destructor TIBDataset.Destroy;
+destructor TIBQuery.Destroy;
 begin
+  if Active then Close;
   FSQL.Free;
   inherited Destroy;
   FreeMem(FSQLDA, XSQLDA_Length * FSQLDAAllocated);
 end;
 
+{ TIBStoredProc }
+
 end.
 
-{
-  $Log$
-  Revision 1.2  2000-07-13 11:32:57  michael
-  + removed logs
- 
-}
