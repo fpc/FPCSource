@@ -467,30 +467,36 @@ install:
         @echo pdfinstall,htmlinstall,htmldosinstall
         @exit
 
+
 #####################################################################
-# Archives
+# Distribution archives/packages
 #####################################################################
 
-psdist:
-        $(MAKE) zipinstall ZIPTARGET=psinstall
+pstar:
+        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier=1 USETAR=y FULLZIPNAME=docs=fpcdocps
+
+pszip:
+        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier= USEZIP=y FULLZIPNAME=docs=ps
 
 pdftar:
-        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdoc
 
 pdfzip:
-        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y FULLZIPNAME=docs-pdf
 
 dvidist:
-        $(MAKE) zipinstall ZIPTARGET=dviinstall
+        $(MAKE) zipinstall ZIPTARGET=dviinstall FULLZIPNAME=doc-dvi
 
 txtdist:
-        $(MAKE) zipinstall ZIPTARGET=txtinstall
+        $(MAKE) zipinstall ZIPTARGET=txtinstall FULLZIPNAME=doc-txt
 
 htmltar:
-        $(MAKE) zipinstall ZIPTARGET=htmlinstall USETAR=y
+        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdochtml
 
 htmlzip:
-        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier= USEZIP=y
+        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-html
+
+psdist: pszip pstar
 
 pdfdist: pdfzip pdftar
 
@@ -498,14 +504,6 @@ htmldist: htmlzip htmltar
 
 alldist: dvidist psdist txtdist pdfdist htmldist
 
-#####################################################################
-# Zips of htmls
-#####################################################################
-
-DOCPREFIX=doc
-BASEDIR=$(shell pwd)
-
-# html only, no htm
 
 #####################################################################
 # Examples
@@ -567,7 +565,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.3  2005-02-06 21:02:12  peter
+# Revision 1.4  2005-02-07 20:39:19  peter
+# fix zip names
+#
+# Revision 1.3  2005/02/06 21:02:12  peter
 #   * updated for current rtl
 #
 # Revision 1.2  2005/01/10 22:49:56  armin
