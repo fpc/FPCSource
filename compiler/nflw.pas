@@ -246,6 +246,7 @@ implementation
             forn:
                p:=cfornode.create(l,r,n1,nil,back);
          end;
+         resulttypepass(p);
          genloopnode:=p;
       end;
 
@@ -1469,7 +1470,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-10-28 15:36:01  peter
+  Revision 1.87  2003-11-12 15:48:27  peter
+    * fix set_varstate in for loops
+    * fix set_varstate from case statements
+
+  Revision 1.86  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.85  2003/10/23 14:44:07  peter

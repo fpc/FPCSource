@@ -201,7 +201,6 @@ interface
 
          { general }
          nf_write,       { Node is written to            }
-         nf_varstateset,
          nf_isproperty,
 
          { flags used by tcallnode }
@@ -1092,7 +1091,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2003-11-10 22:02:52  peter
+  Revision 1.75  2003-11-12 15:48:27  peter
+    * fix set_varstate in for loops
+    * fix set_varstate from case statements
+
+  Revision 1.74  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.73  2003/10/23 14:44:07  peter
