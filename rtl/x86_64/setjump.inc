@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
+function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;
   asm
     // Save registers.
     movq %rbx,(%rdi)
@@ -55,7 +55,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.3  2004-04-26 19:23:19  florian
+  Revision 1.4  2004-11-01 16:00:28  florian
+    * setjmp must not have a stack frame else the offsets are wrong
+
+  Revision 1.3  2004/04/26 19:23:19  florian
     * saving of rbp in setjmp fixe
 
   Revision 1.2  2004/04/24 20:13:34  florian
