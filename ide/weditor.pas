@@ -19,7 +19,7 @@ unit WEditor;
 interface
 {tes}
 uses
-  Dos,Objects,Drivers,Views,Menus,
+  Dos,Objects,Drivers,Views,Dialogs,Menus,
 {$ifdef FVISION}
   FVConsts,
 {$else}
@@ -711,6 +711,12 @@ type
 
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
+    TEditorInputLine = object(TInputLine)
+      Procedure   HandleEvent(var Event : TEvent);virtual;
+    end;
+    PEditorInputLine = ^TEditorInputLine;
+
+
 const
 
      cmCopyWin = 240;
@@ -755,7 +761,7 @@ procedure RegisterWEditor;
 implementation
 
 uses
-  Strings,Video,MsgBox,Dialogs,App,StdDlg,Validate,
+  Strings,Video,MsgBox,App,StdDlg,Validate,
 {$ifdef WinClipSupported}
   WinClip,
 {$endif WinClipSupported}
@@ -790,11 +796,6 @@ type
        Scope    : RecordWord;
        Origin   : RecordWord;
      end;
-
-     TEditorInputLine = object(TInputLine)
-       Procedure   HandleEvent(var Event : TEvent);virtual;
-     end;
-     PEditorInputLine = ^TEditorInputLine;
 
      TGotoLineDialogRec = packed record
        LineNo  : string[5];
@@ -6827,7 +6828,8 @@ function CreateReplaceDialog: PDialog;
 var R,R1,R2: TRect;
     D: PDialog;
     Control : PView;
-    IL1,IL2: PInputLine;
+    IL1: PEditorInputLine;
+    IL2: PInputLine;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
 begin
@@ -7104,7 +7106,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2002-09-02 10:33:37  pierre
+  Revision 1.26  2002-09-03 13:56:21  pierre
+   * declare TEditorInputLine in interface and use it in Replace dialog
+
+  Revision 1.25  2002/09/02 10:33:37  pierre
    * fix web bug report 2099
 
   Revision 1.24  2002/08/26 14:00:48  pierre
