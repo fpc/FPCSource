@@ -901,7 +901,7 @@ end;
 
     function fexpand(const path : pathstr) : pathstr;
        var
-         s,pa : string[79];
+         s,pa : string;
          i,j  : longint;
        begin
           getdir(0,s);
@@ -1162,7 +1162,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.16  1998-11-17 09:37:41  pierre
+  Revision 1.17  1998-11-22 09:33:21  florian
+    * fexpand bug (temp. strings were too shoort) fixed, was reported
+      by Marco van de Voort
+
+  Revision 1.16  1998/11/17 09:37:41  pierre
    * explicit conversion from word dosreg.ax to integer doserror
 
   Revision 1.15  1998/11/01 20:27:18  peter
