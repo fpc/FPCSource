@@ -21,7 +21,7 @@ uses Dos;
 {.$define debug}
 
 const
-{$ifdef linux}
+{$ifdef unix}
   exeext='';
 {$else}
   exeext='.EXE';
@@ -81,7 +81,7 @@ begin
   for i:=length(s) downto 1 do
    begin
      case s[i] of
- {$ifdef Linux}
+ {$ifdef unix}
   '/','\' : begin
               FixFn[i]:='/';
               NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
@@ -531,7 +531,7 @@ begin
   Outfile:='';
   AddCall:=0;
   Verbose:=False;
-{$IFDEF LINUX}
+{$IFDEF linux}
   UnitExt:='ppu';
 {$ELSE}
   UnitExt:='PPU';
@@ -579,13 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2002-02-27 16:32:50  carl
+  * ifdef linux -> ifdef unix
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
-
-  Revision 1.4  2000/02/09 16:44:14  peter
-    * log truncated
-
-  Revision 1.3  2000/01/07 16:46:02  daniel
-    * copyright 2000
 
 }
