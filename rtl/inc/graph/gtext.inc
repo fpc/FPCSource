@@ -664,7 +664,9 @@
          if (font>DefaultFont) and not assigned(fonts[font].instr) then
            begin
               assign(f,bgipath+fonts[font].name+'.CHR');
+{$i-}
               reset(f,1);
+{$i+}
               if ioresult<>0 then
                 begin
                    _graphresult:=grFontNotFound;
@@ -731,7 +733,10 @@
 
 {
 $Log$
-Revision 1.9  1999-12-20 11:22:36  peter
+Revision 1.10  1999-12-23 16:48:13  jonas
+  * turn off IO checking when attempting to open a font file (to avoid RTE)
+
+Revision 1.9  1999/12/20 11:22:36  peter
   * integer -> smallint to overcome -S2 switch needed for ggi version
 
 Revision 1.8  1999/11/11 22:29:21  florian
