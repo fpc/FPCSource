@@ -24,10 +24,17 @@ XML files and XML fragments.
 At the moment it supports only the node types which can be read by XMLRead.
 Please note that the writer replaces some characters by entity references
 automatically:
-For attribute values, '"' gets replaced by '&quot;', and '&' gets replaced by
-'&amp'. For normal text nodes, the following replacements will be done:
+For normal text nodes, the following replacements will be done:
 '<' => '&lt;'
 '>' => '&gt;'
 '&' => '&amp;'
+For attribute values, additionally '"' gets replaced by '&quot;'. Single
+apostrophes (') don't need to get converted, as values are already written using
+"" quotes.
 The XML reader (in xmlread.pp) will convert these entity references back to
 their original characters.
+
+
+XPath:
+Just a XPath implementation. Should be fairly completed, but there hasn't been
+further development recently.
