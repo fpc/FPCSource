@@ -24,6 +24,8 @@
 
 {$I gensigset.inc}     // general sigset funcs implementation. 
 
+
+
 Function fpKill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -40,7 +42,10 @@ begin
 //  Kill:=0;
 end;
 
-function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, alias : 'FPC_SYSC_SIGPROGMASK'];
+{overload}
+Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
+
+Function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, alias : 'FPC_SYSC_SIGPROGMASK'];
 {
   Change the list of currently blocked signals.
   How determines which signals will be blocked :
@@ -410,7 +415,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2002-12-18 16:43:26  marco
+ Revision 1.2  2003-01-05 19:16:45  marco
+  * small fix
+
+ Revision 1.1  2002/12/18 16:43:26  marco
   * new unix rtl, linux part.....
 
  Revision 1.1  2002/11/14 16:48:39  marco
