@@ -726,6 +726,7 @@ begin
    end;
 { search the path }
   fsearch:='';
+  
   for i:=1 to length(path) do
    if path[i]='/' then
     path[i]:='\';
@@ -733,6 +734,12 @@ begin
   for i:=1 to length(dirlist) do
    if dirlist[i]='/' then
     dirlist[i]:='\';
+  { bugfix here : Win98SE returns a path, when the name is NULL! }  
+  { so if the name of the file to search is '' then simply exit  }
+  { immediately (WinNT behavior is correct).                     }
+  if name='' then
+    exit;
+    
   { allow slash as backslash }
   StringToPchar(name);
   StringToPchar(ext);
@@ -1011,7 +1018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-05-16 19:32:57  carl
+  Revision 1.13  2002-07-06 11:48:09  carl
+  + fsearch bugfix for Win9X systems
+
+  Revision 1.12  2002/05/16 19:32:57  carl
   * fix range check error
 
   Revision 1.11  2001/11/23 01:35:09  carl
