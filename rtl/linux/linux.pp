@@ -2495,6 +2495,7 @@ var
   pl: ^LongInt;
 begin
   LinuxError := 0;
+  AssignStream := -1;
 
   // Assign pipes
   AssignPipe(StreamIn, PipeOut);
@@ -2526,7 +2527,6 @@ begin
     Close(PipeErr);
     Close(PipeIn);
     Close(StreamOut);
-    AssignStream := -1;
     exit;
   end;
 
@@ -3817,7 +3817,11 @@ End.
 
 {
   $Log$
-  Revision 1.55  1999-12-08 01:03:54  peter
+  Revision 1.56  1999-12-28 09:38:07  sg
+  * the long version of AssignStream now sets the result value to -1 in
+    _all_ cases when it would fail.
+
+  Revision 1.55  1999/12/08 01:03:54  peter
     * overloaded gettime functions supporting hsec and msec,usec
 
   Revision 1.54  1999/12/01 22:46:59  peter
