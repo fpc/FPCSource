@@ -593,7 +593,7 @@ unit rgobj;
     procedure trgobj.ungetregistergenint(list:taasmoutput;const r:Tregister;
                                          const usableregs:Tsupregset;
                                          var unusedregs:Tsupregset
-                                         {$ifndef newra}var countunusedregs:byte{$endif});
+                                         {$ifndef newra};var countunusedregs:byte{$endif});
 
     var supreg:Tsuperregister;
 
@@ -2001,7 +2001,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2003-04-23 14:42:07  daniel
+  Revision 1.39  2003-04-23 20:23:06  peter
+    * compile fix for no-newra
+
+  Revision 1.38  2003/04/23 14:42:07  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number
