@@ -1094,7 +1094,7 @@ cycle:
 	$(MAKE) -C $(UNITDIR_RTL) clean
 	$(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
 	$(MAKE) remake3
-	$(MAKE) $(addsuffix _all,$(TARGET_DIRS))
+	$(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 	$(MAKE) echotime
 cycledep:
 	$(MAKE) cycle USEDEPEND=1
