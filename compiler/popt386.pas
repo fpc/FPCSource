@@ -46,9 +46,9 @@ Var
 
   TmpRef: PReference;
 
-{$Ifdef RegAlloc}
+{ $Ifdef RegAlloc
   RegsUsed: Set of TRegister;
-{$EndIf RegAlloc}
+ $EndIf RegAlloc}
 
   Procedure GetFinalDestination(hp: pai_labeled);
   {traces sucessive jumps to their final destination and sets it, e.g.
@@ -98,9 +98,9 @@ Var
 
 Begin
   P := Pai(AsmL^.First);
-{$IfDef RegAlloc}
+{ $IfDef RegAlloc
   RegsUsed := [];
-{$EndIf RegAlloc}
+ $EndIf RegAlloc}
   While Assigned(P) Do
     Begin
       Case P^.Typ Of
@@ -1030,7 +1030,7 @@ Begin
                         TmpRef^.segment := R_DEFAULT_SEG;
                         TmpRef^.base := R_NO;
                         TmpRef^.index := TRegister(Pai386(p)^.op2);
-                        TmpRef^.scalefactor := PowerOf2(Longint(Pai386(p)^.op1));
+                        TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
                         TmpRef^.symbol := nil;
                         TmpRef^.isintvalue := false;
                         TmpRef^.offset := 0;
@@ -1114,7 +1114,7 @@ Begin
                                    TmpRef^.segment := R_DEFAULT_SEG;
                                    TmpRef^.base := R_NO;
                                    TmpRef^.index := TRegister(Pai386(p)^.op2);
-                                   TmpRef^.scalefactor := PowerOf2(Longint(Pai386(p)^.op1));
+                                   TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
                                    TmpRef^.symbol := nil;
                                    TmpRef^.isintvalue := false;
                                    TmpRef^.offset := 0;
@@ -1146,7 +1146,7 @@ Begin
                           Begin
                             Dec(Longint(Pai386(p)^.op1), Longint(Pai386(hp1)^.op1));
                             Pai386(hp1)^._operator := A_And;
-                            Pai386(hp1)^.op1 := Pointer(PowerOf2(Longint(Pai386(hp1)^.op1))-1);
+                            Pai386(hp1)^.op1 := Pointer(1 shl Longint(Pai386(hp1)^.op1)-1);
                             If (Pai386(p)^.Size = S_L)
                               Then Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff)
                               Else Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
@@ -1161,7 +1161,7 @@ Begin
                               Begin
                                 Dec(Longint(Pai386(hp1)^.op1), Longint(Pai386(p)^.op1));
                                 Pai386(p)^._operator := A_And;
-                                Pai386(p)^.op1 := Pointer(PowerOf2(Longint(Pai386(p)^.op1))-1);
+                                Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
                                 If (Pai386(p)^.Size = S_L)
                                   Then Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff)
                                   Else Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
@@ -1169,7 +1169,7 @@ Begin
                             Else
                               Begin
                                 Pai386(p)^._operator := A_And;
-                                Pai386(p)^.op1 := Pointer(PowerOf2(Longint(Pai386(p)^.op1))-1);
+                                Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
                                 Case Pai386(p)^.Size Of
                                   S_B: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
                                   S_W: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffff);
@@ -1277,10 +1277,10 @@ Begin
                   Continue
                 End;
           End;}
-{$ifdef regalloc}
+{ $ifdef regalloc
         ait_regalloc: UsedRegs := UsedRegs + [PaiAlloc(p)^.Reg];
         ait_regdealloc: UsedRegs := UsedRegs - [PaiAlloc(p)^.Reg];
-{$endif regalloc}
+ $endif regalloc}
       End;
       p:=pai(p^.next);
     end;
@@ -1360,7 +1360,10 @@ End.
 
 {
  $Log$
- Revision 1.12  1998-09-15 14:05:22  jonas
+ Revision 1.13  1998-09-16 18:00:00  jonas
+   * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
+
+ Revision 1.12  1998/09/15 14:05:22  jonas
    * fixed optimizer incompatibilities with freelabel code in psub
 
  Revision 1.11  1998/08/28 10:57:02  peter
