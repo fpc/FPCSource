@@ -174,7 +174,8 @@ begin
     Procedure Getmem(Var p:pointer;Size:Longint);
     
     begin
-      SysGetmem(P,Size+SizeOf(Longint));
+      Inc(Size,SizeOf(Longint));
+      SysGetmem(P,Size);
       PLongint(P)^:=Size;
       Inc(P,SizeOf(Longint));
     end;
@@ -336,7 +337,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-08-19 19:52:26  michael
+  Revision 1.34  1999-08-20 10:50:55  michael
+  + Fixed memory leak
+
+  Revision 1.33  1999/08/19 19:52:26  michael
   * Fixed freemem bug; reported by Sebastian Guenther
 
   Revision 1.32  1999/08/15 21:28:57  michael
