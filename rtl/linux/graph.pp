@@ -272,7 +272,9 @@ procedure SetEGAColor(color: Integer);
 begin
   if color <> LastColor then begin
     LastColor := color;
-    vga_setegacolor(color);
+    if maxcolor = 16 then
+      vga_setegacolor(color)
+    else vga_setcolor(color);
   end;
 end;
 
@@ -286,22 +288,23 @@ begin
   vga_setmode(0);
 end;
 
+{
 const
   BgiColors: array[0..15] of LongInt
     = ($000000, $000020, $002000, $002020,
        $200000, $200020, $202000, $303030,
        $202020, $00003F, $003F00, $003F3F,
        $3F0000, $3F003F, $3F3F00, $3F3F3F);
+}
 
-procedure InitColors;
+procedure InitColors(nrColors: longint);
 
 var
   i: Integer;
 begin
-  for i:=0 to 15 do
-    vga_setpalette(I,BgiColors[i] shr 16,
-                     (BgiColors[i] shr 8) and 255,
-                      BgiColors[i] and 255)
+  for i:=0 to nrColors do
+    vga_setpalette(I,DefaultColors[i].red shr 2,
+      DefaultColors[i].green shr 2,DefaultColors[i].blue shr 2)
 end;
 
 procedure libvga_initmodeproc;
@@ -314,8 +317,7 @@ begin
   VidMem := vga_getgraphmem;
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
-    InitColors;
-
+    InitColors(nrColors);
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -597,7 +599,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-07-31 12:30:54  jonas
+    * You can now set colors > 15 (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }
