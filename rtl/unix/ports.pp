@@ -61,49 +61,52 @@ var
 
 implementation
 
-uses unix;
+uses x86;
 
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : Longint;data : byte);
 
 begin
-  unix.writeport (p,data)
+  x86.writeport (p,data)
 end;
 
 function tport.readport(p : Longint) : byte;
 
 begin
-  readport := unix.readportb (p);
+  readport := x86.readportb (p);
 end;
 
 procedure tportw.writeport(p : longint;data : word);
 
 begin
-  unix.writeport (p,data)
+  x86.writeport (p,data)
 end;
 
 function tportw.readport(p : longint) : word;
 
 begin
-  readport := unix.readportw(p);
+  readport := x86.readportw(p);
 end;
 
 procedure tportl.writeport(p : longint;data : longint);
 
 begin
-  unix.writeport (p,data)
+  x86.writeport (p,data)
 end;
 
 function tportl.readport(p : longint) : longint;
 
 begin
-  readPort := Unix.readportl(p);
+  readPort := x86.readportl(p);
 end;
 
 end.
   $Log$
-  Revision 1.4  2002-09-07 16:01:27  peter
+  Revision 1.5  2003-09-20 18:10:28  marco
+   * More fixes
+
+  Revision 1.4  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

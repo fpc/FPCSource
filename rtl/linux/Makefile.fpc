@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) baseunix strings systhrds objpas syscall unixutil \
       heaptrc lineinfo \
-      $(LINUXUNIT) unix initc $(CPU_UNITS) \
+      $(LINUXUNIT1) unix $(LINUXUNIT2) initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
       sysutils typinfo math varutils \
       charset ucomplex getopts \
@@ -61,11 +61,13 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-LINUXUNIT=linux
+LINUXUNIT1=
+LINUXUNIT2=linux oldlinux
 PRT0=prt0
 else
 SYSTEMUNIT=syslinux
-LINUXUNIT=linux
+LINUXUNIT1=linux
+LINUXUNIT2=
 PRT0=prt0_10
 override FPCOPT+=-dUNIX
 endif
