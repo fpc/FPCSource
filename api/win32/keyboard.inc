@@ -193,6 +193,7 @@ begin
      exit;
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
+   FlushConsoleInputBuffer(TextRec(Input).Handle);
    newKeyEvent := CreateEvent (nil,        // address of security attributes
                                true,       // flag for manual-reset event
                                false,      // flag for initial state
@@ -788,7 +789,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-05-19 13:02:25  pierre
+  Revision 1.3  2000-05-25 14:26:30  pierre
+   * Flush keyboard also at init
+
+  Revision 1.2  2000/05/19 13:02:25  pierre
    * Empty the keyboard buffer in DoneKeyboard
 
   Revision 1.1  2000/01/06 01:20:31  peter
