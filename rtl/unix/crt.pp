@@ -111,7 +111,7 @@ procedure CursorOff;
 
 Implementation
 
-uses BaseUnix,unix;
+uses BaseUnix ,unix;
 
 {
   The definitions of TextRec and FileRec are in separate files.
@@ -1121,7 +1121,7 @@ Procedure Delay(DTime: Word);
   Wait for DTime milliseconds.
 }
 Begin
-  Select(0,nil,nil,nil,DTime);
+  fpSelect(0,nil,nil,nil,DTime);
 End;
 
 
@@ -1476,8 +1476,7 @@ end;
 
 Procedure TextMode(Mode: Integer);
 {
-  Only Clears Screen under linux
-}
+  Only Clears Screen under linux}
 begin
   ClrScr;
 end;
@@ -1583,7 +1582,7 @@ begin
   fpWrite(0,s[1],length(s));
   fpFD_ZERO(fds);
   fpFD_SET(1,fds);
-  if (Select(2,@fds,nil,nil,1000)>0) then
+  if (fpSelect(2,@fds,nil,nil,1000)>0) then
    begin
      readed:=fpRead(1,buf,sizeof(buf));
      i:=0;
@@ -1682,7 +1681,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.12  2003-09-16 16:13:56  marco
+  Revision 1.13  2003-09-16 20:52:24  marco
+   * small cleanups. Mostly killing of already commented code in unix etc
+
+  Revision 1.12  2003/09/16 16:13:56  marco
    * fdset functions renamed to fp<posix name>
 
   Revision 1.11  2003/09/14 20:15:01  marco

@@ -589,6 +589,7 @@ begin
   LinuxError:=fpgetErrno;
 end;
 
+{
 function MMap(const m:tmmapargs):pointer;
 begin
   mmap:=fpmmap(pointer(m.address),m.size,m.prot, m.flags,m.fd, m.offset);
@@ -601,6 +602,7 @@ begin
   MUnMap:=fpmunmap(p,size)=0;
   LinuxError:=fpgetErrno;
 end;
+}
 
 {--------------------------------
       Port IO functions
@@ -636,7 +638,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-09-16 16:06:02  peter
+  Revision 1.4  2003-09-16 20:52:24  marco
+   * small cleanups. Mostly killing of already commented code in unix etc
+
+  Revision 1.3  2003/09/16 16:06:02  peter
     * add typecasts for oldlinuxstat
 
   Revision 1.2  2003/09/15 21:07:41  marco

@@ -30,7 +30,6 @@ Uses BaseUnix;
 {$i ostypes.inc}
 
 var
-//  ErrNo,
   LinuxError : Longint;
 
 {********************
@@ -112,26 +111,6 @@ const
 
 {$I termios.inc}
 
-{********************
-      Info
-********************}
-
-Type
-
-  TSysinfo = packed record
-    uptime    : longint;
-    loads     : array[1..3] of longint;
-    totalram,
-    freeram,
-    sharedram,
-    bufferram,
-    totalswap,
-    freeswap  : longint;
-    procs     : integer;
-    s         : string[18];
-  end;
-  PSysInfo = ^TSysInfo;
-
 {******************************************************************************
                             Procedure/Functions
 ******************************************************************************}
@@ -151,8 +130,6 @@ procedure GetLocalTimezone(timer:longint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
-//Procedure GetTimeOfDay(var tv:timeval);
-//Function  GetTimeOfDay:longint;
 Function  GetEpochTime: longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
@@ -208,7 +185,6 @@ Function  Flock (var F : File;mode : longint) : boolean;
 Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
 Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
 
-Function  Select(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 Function  SelectText(var T:Text;TimeOut :Longint):Longint;
 
@@ -281,19 +257,6 @@ const
   MAP_EXECUTABLE = $1000;      { mark it as an executable }
   MAP_LOCKED     = $2000;      { pages are locked }
   MAP_NORESERVE  = $4000;      { don't check for reservations }
-
-type
-  tmmapargs=record
-    address : longint;
-    size    : longint;
-    prot    : longint;
-    flags   : longint;
-    fd      : longint;
-    offset  : longint;
-  end;
-
-//function MMap(const m:tmmapargs):longint;
-function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
     Utility functions
@@ -821,20 +784,6 @@ end;
                            FileSystem calls
 ******************************************************************************}
 
-Function fdOpen(pathname:string;flags:longint):longint;
-begin
-  pathname:=pathname+#0;
-  fdOpen:=fpOpen(@pathname[1],flags,438);
-  linuxerror:=fpgeterrno;;
-end;
-
-Function fdOpen(pathname:string;flags,mode:longint):longint;
-begin
-  pathname:=pathname+#0;
-  fdOpen:=fpOpen(@pathname[1],flags,mode);
-  linuxerror:=fpgeterrno;;
-end;
-
 Procedure Execl(const Todo:Ansistring);
 
 {
@@ -843,70 +792,6 @@ Procedure Execl(const Todo:Ansistring);
 
 begin
   ExecLE(ToDo,EnvP);
-end;
-
-{$ifdef BSD}
-Function Fcntl(Fd:longint;Cmd:longint):longint;
-{
-  Read or manipulate a file.(See also fcntl (2) )
-  Possible values for Cmd are :
-    F_GetFd,F_GetFl,F_GetOwn
-  Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=ESysEninval.
-}
-
-begin
-  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
-   begin
-     Linuxerror:=fpfcntl(fd,cmd,0);
-     if linuxerror=-1 then
-      begin
-        linuxerror:=fpgeterrno;;
-        fcntl:=0;
-      end
-     else
-      begin
-        fcntl:=linuxerror;
-        linuxerror:=0;
-      end;
-   end
-  else
-   begin
-     linuxerror:=ESysEinval;
-     Fcntl:=0;
-   end;
-end;
-
-Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
-{
-  Read or manipulate a file. (See also fcntl (2) )
-  Possible values for Cmd are :
-    F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
-  Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=ESysEninval.
-  F_DupFD is not allowed, due to the structure of Files in Pascal.
-}
-begin
-  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
-   begin
-     fpfcntl(fd,cmd,arg);
-     linuxerror:=fpgeterrno;;
-   end
-  else
-   linuxerror:=ESysEinval;
-end;
-{$endif}
-
-Function Fcntl(var Fd:Text;Cmd:longint):longint;
-
-begin
-  Fcntl := Fcntl(textrec(Fd).handle, Cmd);
-end;
-
-Procedure Fcntl(var Fd:Text;Cmd,Arg:Longint);
-
-begin
-  Fcntl(textrec(Fd).handle, Cmd, Arg);
 end;
 
 Function Flock (var T : text;mode : longint) : boolean;
@@ -918,30 +803,6 @@ end;
 Function  Flock (var F : File;mode : longint) : boolean;
 begin
   Flock:=Flock(FileRec(F).Handle,mode);
-end;
-
-
-
-
-Function Select(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
-{
-  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
-  have changed.
-  This function allows specification of a timeout as a longint.
-}
-var
-  p  : PTimeVal;
-  tv : TimeVal;
-begin
-  if TimeOut=-1 then
-   p:=nil
-  else
-   begin
-     tv.tv_Sec:=Timeout div 1000;
-     tv.tv_Usec:=(Timeout mod 1000)*1000;
-     p:=@tv;
-   end;
-  Select:=fpSelect(N,Readfds,WriteFds,ExceptFds,p);
 end;
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
@@ -1129,7 +990,6 @@ Procedure PCloseText(Var F:text);
 begin
   PClose(f);
 end;
-
 
 Procedure POpen(var F:text;const Prog:String;rw:char);
 {
@@ -1802,11 +1662,6 @@ begin
    end;
 end;
 
-{
-function FExpand (const Path: PathStr): PathStr;
-- declared in fexpand.inc
-}
-
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
@@ -2150,12 +2005,14 @@ Initialization
 
 finalization
   DoneLocalTime;
-
 End.
 
 {
   $Log$
-  Revision 1.33  2003-09-16 16:13:56  marco
+  Revision 1.34  2003-09-16 20:52:24  marco
+   * small cleanups. Mostly killing of already commented code in unix etc
+
+  Revision 1.33  2003/09/16 16:13:56  marco
    * fdset functions renamed to fp<posix name>
 
   Revision 1.32  2003/09/15 20:08:49  marco
