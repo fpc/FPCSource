@@ -3,7 +3,7 @@
 #
 
 [targets]
-loaders=wprt0 wdllprt0
+loaders=$(PRT0) wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
       windows ole2 opengl32 os_types winsock initc \
       dos crt objects graph \
@@ -38,8 +38,10 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+PRT0=wprt0
 else
 SYSTEMUNIT=syswin32
+PRT0=wprt0_10
 endif
 
 # Paths
