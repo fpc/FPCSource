@@ -55,10 +55,13 @@ unit agppcgas;
       var
          i : longint;
       begin
-         for i:=0 to 31 do
-           AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
-         for i:=0 to 31 do
-           AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+         if (target_info.system <> system_powerpc_darwin) then
+           begin
+             for i:=0 to 31 do
+               AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+             for i:=0 to 31 do
+               AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+           end;
       end;
 
     const
@@ -82,7 +85,30 @@ unit agppcgas;
               '.stab','.stabstr','COMMON')
           );
 
+
+       as_ppc_gas_darwin_info : tasminfo =
+          (
+            id     : as_darwin;
+
+            idtxt  : 'AS-Darwin';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : system_any;
+            outputbinary: false;
+            allowdirect : true;
+            needar : true;
+            labelprefix_only_inside_procedure : false;
+            labelprefix : 'L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.text',
+              '','','','','','',
+              '.stab','.stabstr','COMMON')
+          );
+
+
      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
+     symaddr2str_darwin: array[trefsymaddr] of string[4] = ('','ha16','lo16');
 
 
     function getreferencestring(var ref : treference) : string;
@@ -97,10 +123,16 @@ unit agppcgas;
             internalerror(19991);
           if (symaddr = refs_full) then
             s := ''
-          else if not assigned(symbol) then
-            s := '('
           else
-            s:='('+symbol.name;
+            begin
+              if target_info.system = system_powerpc_darwin then
+                s := symaddr2str_darwin[symaddr]
+              else
+                s :='';
+              s := s+'(';
+              if assigned(symbol) then
+                s:= s+symbol.name;
+            end;
           if offset<0 then
            s:=s+tostr(offset)
           else
@@ -113,16 +145,23 @@ unit agppcgas;
             end;
 
            if (symaddr <> refs_full) then
-             s := s+')'+symaddr2str[symaddr];
+             begin
+               s := s+')';
+               if (target_info.system <> system_powerpc_darwin) then
+                 s := s+symaddr2str[symaddr];
+             end;
 
            if (index=NR_NO) and (base<>NR_NO) then
              begin
                 if offset=0 then
                   begin
-                     if assigned(symbol) then
-                       s:=s+'+0'
-                     else
-                       s:=s+'0';
+                       if assigned(symbol) then
+                         begin
+                           if target_info.system <> system_powerpc_darwin then
+                             s:=s+'+0'
+                         end
+                       else
+                         s:=s+'0';
                   end;
                 s:=s+'('+gas_regname(base)+')';
              end
@@ -330,10 +369,14 @@ unit agppcgas;
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_darwin_info,TPPCGNUAssembler);
 end.
 {
   $Log$
-  Revision 1.38  2003-12-09 20:09:09  jonas
+  Revision 1.39  2004-01-04 21:12:47  jonas
+  *** empty log message ***
+
+  Revision 1.38  2003/12/09 20:09:09  jonas
     * support writing of symbols with length 255
 
   Revision 1.37  2003/11/29 22:54:32  jonas

@@ -138,6 +138,7 @@ interface
              ,as_i386_pecoffwdosx
              ,as_m68k_mit
              ,as_powerpc_mpw
+             ,as_darwin
        );
 
        tar = (ar_none
@@ -650,7 +651,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.75  2003-12-20 12:38:51  florian
+  Revision 1.76  2004-01-04 21:12:47  jonas
+  *** empty log message ***
+
+  Revision 1.75  2003/12/20 12:38:51  florian
     * some x86-64 compilation fixe
 
   Revision 1.74  2003/11/29 15:53:06  florian
