@@ -414,7 +414,8 @@ implementation
                             floatdef :
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
-                                inc(fpuvaroffset);
+                                if pfloatdef(p^.resulttype)^.typ<>f32bit then
+                                  inc(fpuvaroffset);
                                 if doread then
                                   StoreDirectFuncResult(hp^.left);
                               end;
@@ -702,7 +703,8 @@ implementation
              floatdef:
                begin
                   procedureprefix := 'FPC_VAL_REAL_';
-                  inc(fpuvaroffset);
+                  if pfloatdef(p^.resulttype)^.typ<>f32bit then
+                    inc(fpuvaroffset);
                end;
              orddef:
                if is_64bitint(dest_para^.resulttype) then
@@ -1317,7 +1319,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-08-10 12:47:53  pierre
+  Revision 1.67  1999-08-10 13:21:08  pierre
+   * fpuvaroffset not increased for f32bit float type
+
+  Revision 1.66  1999/08/10 12:47:53  pierre
    * fpuvaroffset problems solved
 
   Revision 1.65  1999/08/04 00:22:47  florian
