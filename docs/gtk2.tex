@@ -1,0 +1,218 @@
+\documentclass[10pt]{article}
+\usepackage{a4}
+\usepackage{epsfig}
+\usepackage{listings}
+\lstset{language=Delphi}%
+\lstset{basicstyle=\sffamily\small}%
+\lstset{commentstyle=\itshape}%
+\lstset{keywordstyle=\bfseries}%
+\lstset{blankstring=true}%
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \pdfoutput=1
+  \pdftrue
+\fi
+\begin{document}
+\title{Programming GTK in Free Pascal}
+\author{Florian Kl\"ampfl\\and\\Micha\"el Van Canneyt}
+\date{September 2000}
+\maketitle
+\section{Introduction}
+In this second article on programming the GTK toolkit, a more advanced use
+of the GTK library is presented. Techniques to create a new GTK widget
+are discussed by creating two custom widgets. 
+
+The first widget is realized by combining existing GTK widgets to create 
+a new widget, a GTKFileEdit component, modeled after the TFileEdit component
+found in the RXLib library for Delphi.
+
+The second widget is..
+
+\section{Preliminaries}
+Whatever the method used when creating new GTK widgets, it is necessary to 
+split the functionality of the widget in 2 parts. 
+The first part is the functionality that is common to all instances of the 
+new widget. This part is by far the most important
+one, and is implemented in the 'class record'. 
+The second part concerns the particular instance of the widget that is 
+created. It is the actual object created by the user. This part of the
+widget is implemented in the 'Object record'. 
+
+Creating a new widget consists of defining 2 records that contain the 
+data for the class as a whole, and one for the individual instances of
+the objects. 
+Then some standard methods must be implemented in order to integrate 
+the new widget in the GTK library. Implementing some methods for the
+ user to manipulate the properties of the new widget finishes then 
+the creation of a new widget.
+
+Since GTK is implemented in C, the programmer must obey some rules in order
+to preserve the object-oriented aspect of the GTK library. More precisely,
+when defining the class and object structures, care must be taken to specify 
+the parent object as the first element in the newly created structure. This
+will allow typecasting of the widget to its parent objects.
+
+Taking a look at the \lstinline|TGtkContainer| widget, we see that the declaration
+of the object record starts with the delaration of its parent widget 
+\lstinline|TGtkWidget|:
+\begin{lstlisting}{}
+TGtkContainer = record
+  widget : TGtkWidget;
+  focus_child : PGtkWidget;
+  flag0 : longint;
+  resize_widgets : PGSList;
+end;
+\end{lstlisting}
+The same is true for the \lstinline|TGtkContainerClass| record:
+\begin{lstlisting}{}
+TGtkContainerClass = record
+  parent_class : TGtkWidgetClass;  
+  n_child_args : guint;
+  // ...
+end;
+\end{lstlisting}
+For both the components that will be made, such records will be made.
+
+\section{A filename edit component}
+The \lstinline|TGTKFileEdit| component presented here is composed out of three 
+other components; first of all a single line edit control, in which the
+user can type a filename if he wishes. The second is a button. The button
+is always placed on the right edge of the edit control, and has the same
+height. The third component is an image component, which is used to display
+an image on the button\footnote{In GTK a button does not necessarily contains a
+caption, it is an empty placeholder, which can be filled with whatever 
+you want, in this case an image. To have the button display a caption, 
+a label is placed in it.}
+
+Since the edit and button component must be kept together, we use a
+\lstinline|TGtkHBox| as the 'Parent' component, and this component will be
+used to keep the edit and button control. There is no need to consider the
+image component, since it will be placed inside the button.
+
+Having decided that, the structure of the record for the instance of the
+component is more or less determined:
+\begin{lstlisting}{}
+Type
+  PGtkFileEdit = ^TGtkFileEdit;
+  TGtkFileEdit = Record
+    Box : TGtkHBox;
+    Edit : PGtkEntry;
+    Button : PGtkButton;
+    Image : PGtkPixmap;
+    Dialog : PGtkFileSelection;
+  end;
+\end{lstlisting}
+The first field of the record contains the parent record, as required
+by the OOP structure of GTK. The other fields are used to contain references
+to the other controls used. The \lstinline|Dialog| field will be filled with the
+reference to the file selection dialog which is created when the user clicks
+the button, at all other times it will contain a \lstinline|nil| pointer.
+Remark that the first field is a record, and all other fields are pointers.
+
+Since the fields of the record are 'Public' the user can access the button
+and edit components, and set or read their properties, and set additional 
+signals. (e.g. a 'change' signal for the edit component)
+
+The class record for the {TGTKFileEdit} component should contain as a first 
+field the parent class record, in this case \lstinline|TgtkHBoxClass|. Furthermore
+in the class record the default bitmap that will be displayed on the button
+will be stored. For this two fields are needed; one to keep the bitmap
+(\lstinline|DefaultPixmap|, and
+another one to keep a bitmask that is used to determine the transparant
+pixels in the bitmap (\lstinline|DefaultBitMap|):
+\begin{lstlisting}{}
+  PGtkFileEditClass = ^TGtkFileEditClass;
+  TGtkFileEditClass = Record
+    Parent_Class : TgtkHBoxClass;
+    DefaultPixmap : PGdkPixmap;
+    DefaultBitMap : PGdkBitmap;
+  end;
+\end{lstlisting}
+As usual, a pointer type is defined which points to the record. The fields
+of the class record will be filled in by the initialization code for our
+component, as will be shown below.
+
+To register the component with the GTK library, a function must be
+implemented which returns the type of the widget: 
+The \lstinline|GtkFileEdit\_get\_type| function. 
+When this function is called for the first time, it will register
+the new class with GTK, which will in turn supply a unique ID for the
+new component. This ID is returned and also stored, and will be returned
+the next times when the \lstinline|\_get\_type| function is called.
+
+Registering a new type with GTK is done by filling a \lstinline|TGtkTypeInfo|
+record with information on the new type, and passing it on to GTK with
+\lstinline|gtk\_type\_unique|:
+\begin{lstlisting}{}
+Function GtkFileEdit_get_type : Guint;cdecl;
+
+Const
+  GtkFileEditInfo : TGtkTypeInfo =
+    (type_name : 'GtkFileEdit';   
+     object_size : SizeOf(TGtkFileEdit);
+     class_size : SizeOf(TGtkFileEditClass);
+     class_init_func : TGtkClassInitFunc(@GtkFileEditClassInit);
+     object_init_func : TGtkObjectInitFunc(@GtkFileEditInit);   
+     reserved_1 : Nil;
+     reserved_2 : Nil;
+     base_class_init_func : Nil
+    );
+
+begin
+  if (GtkFileEditType=0) then
+    GtkFileEditType:=gtk_type_unique(gtk_hbox_get_type,@GtkFileEditInfo);
+  Result:=GtkFileEditType;  
+end;
+\end{lstlisting}
+The fields of the \lstinline|TGtkTypeInfo| record are filled with the following
+information:
+\begin{description}
+\item[type\_name] Contains the name of the type that must be registered. 
+\item[object\_size] The size of the object record. GTK itself will allocate 
+the memory when an new instance of the object is created, so it must know the
+size of the object.  
+\item[class\_size] The size of the class object. Only one instance of this
+record will be created (by GTK)
+\item[class\_init\_func] The address of a function that will initialize the
+class record. This function accepts as a single arument a pointer to the
+class record to be initialized. This function will normally be called only
+once.
+\item[object\_init\_func] The address of a function that will initialize 
+an instance of the object. The function must accept as a single argument
+a pointer to an instance of the object. This instance will be created by 
+GTK. This function is called for each instance of the object.
+\end{description}
+The other three fields of the record are unfortunately not documented, so
+they are left blank. 
+
+The component is registered by passing along a suitably filled
+\lstinline|TGtkTypeInfo| record together with the type of the parent class
+(acquired with it's \lstinline|gtk\_hbox\_get\_type| function) to the
+\lstinline|gtk\_type\_unique| function. this function will return a numeric ID for 
+the \lstinline|GtkFileEdit| class.
+
+If a \lstinline|class\_init\_func| was specified when registering the new type,
+then GTK will call this method; it should initialize any class-specific 
+data in the class record. In the case of the \lstinline|GTKFileEdit|, the bitmap 
+which is used to fill the button is loaded:
+\begin{lstlisting}{}
+Procedure GtkFileEditClassInit (CObj : PGtkFileEditClass);cdecl;
+   
+begin
+  With Cobj^ do
+    DefaultPixMap:=gdk_pixmap_create_from_xpm(Nil,@DefaultBitmap,
+                                              Nil,'fileopen.xpm');
+end;
+\end{lstlisting}
+The \lstinline|gdk_pixmap_create_from_xpm| does 2 things: It loads a bitmap
+from the \textsf{fileopen.xpm} file and returns a PGdkPixmap pointer.
+At the same time it returns a pointer to a bitmask which designates the
+transparant regions of the bitmap.
+
+The result of this function is stored in the class record, so the bitmap
+is available when a new instance of the class is created.
+
+
+\end{document}
