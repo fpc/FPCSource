@@ -31,7 +31,7 @@ TYPE
     FUNCTION GetResFlags(unsigned:Boolean):TResFlags;
     procedure left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
     procedure emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
-    procedure emit_op_right_left(op:TAsmOp;OpSize:TOpsize);
+    procedure emit_op_right_left(op:TAsmOp);
     procedure pass_left_and_right;
     procedure set_result_location(cmpOp,unsigned:Boolean);
   end;
@@ -142,8 +142,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
             if extra_not
             then
               emit_reg(A_NOT,S_L,left.location.register);
-             // emit_reg_reg(op,opsize,left.location.register,right.location.register);
-            exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,S_L,right.location.register,left.location.register,right.location.register));
+            exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
             { newly swapped also set swapped flag }
             location_swap(left.location,right.location);
             toggleflag(nf_swaped);
@@ -154,7 +153,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
             then
               emit_reg(A_NOT,S_L,right.location.register);
            // emit_reg_reg(op,opsize,right.location.register,left.location.register);
-            exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,S_L,right.location.register,left.location.register,right.location.register));
+            exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
           end;
       end
     ELSE
@@ -208,7 +207,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
                   end
                 ELSE
                   begin
-                    emit_op_right_left(op,opsize);
+                    emit_op_right_left(op);
                   end;
               end;
           end;
@@ -234,13 +233,13 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
           end;
       end;
   end;
-procedure TSparcAddNode.emit_op_right_left(op:TAsmOp;OpSize:TOpsize);
+procedure TSparcAddNode.emit_op_right_left(op:TAsmOp);
   begin
     {left must be a register}
     with exprasmlist do
       case right.location.loc of
         LOC_REGISTER,LOC_CREGISTER:
-          concat(taicpu.op_reg_reg_reg(op,S_W,right.location.register,left.location.register,left.location.register));
+          concat(taicpu.op_reg_reg_reg(op,right.location.register,left.location.register,left.location.register));
         LOC_REFERENCE,LOC_CREFERENCE :
           concat(taicpu.op_reg_ref_reg(op,S_W,left.location.register,right.location.reference,left.location.register));
         LOC_CONSTANT:
@@ -262,17 +261,14 @@ procedure TSparcAddNode.set_result_location(cmpOp,unsigned:Boolean);
   end;
 procedure TSparcAddNode.pass_2;
 {is also being used for "xor", and "mul", "sub", or and comparative operators}
-  VAR
+  var
     popeax,popedx,pushedfpu,mboverflow,cmpop:Boolean;
     op:TAsmOp;
     power:LongInt;
     OpSize:TOpSize;
     unsigned:Boolean;{true, if unsigned types are compared}
-        { is_in_dest if the result is put directly into }
-        { the resulting refernce or varregister }
-        {is_in_dest : boolean;}
-        { true, if for sets subtractions the extra not should generated }
     extra_not:Boolean;
+    cgop:TOpCg;
   begin
 {to make it more readable, string and set (not smallset!) have their own
 procedures }
@@ -318,7 +314,8 @@ procedures }
     extra_not:=false;
     mboverflow:=false;
     cmpop:=false;
-    unsigned:=not(is_signed(left.resulttype.def))or not(is_signed(right.resulttype.def));
+    unsigned:=not(is_signed(left.resulttype.def))or 
+              not(is_signed(right.resulttype.def));
     opsize:=def_opsize(left.resulttype.def);
     pass_left_and_right;
     IF(left.resulttype.def.deftype=pointerdef)OR
@@ -461,7 +458,7 @@ procedures }
               location_release(exprasmlist,left.location);
             end;
             set_result_location(cmpop,unsigned);
-          end
+          end;
 
         { 8/16 bit enum,char,wchar types }
 {         else
@@ -528,7 +525,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.6  2002-11-05 16:15:00  mazen
+    Revision 1.7  2002-11-06 11:31:24  mazen
+    * op_reg_reg_reg don't need any more a TOpSize parameter
+
+    Revision 1.6  2002/11/05 16:15:00  mazen
     *** empty log message ***
 
     Revision 1.5  2002/10/22 13:43:01  mazen

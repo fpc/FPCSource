@@ -267,7 +267,7 @@ implementation
 
          tg.ungetiftemp(exprasmlist,ref);
 
-         exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,S_L,location.register,
+         exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
            location.register,tmpfpureg));
          rg.ungetregisterfpu(exprasmlist,tmpfpureg);
 
@@ -325,8 +325,7 @@ implementation
                 hreg1 := rg.getregisterint(exprasmlist);
                 exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,S_L,hreg1,1,
                   hreg2));
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,S_L,hreg1,hreg1,
-                  hreg2));
+                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
                 rg.ungetregister(exprasmlist,hreg2);
               end;
             LOC_FLAGS :
@@ -421,7 +420,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-10-22 13:43:01  mazen
+  Revision 1.6  2002-11-06 11:31:24  mazen
+  * op_reg_reg_reg don't need any more a TOpSize parameter
+
+  Revision 1.5  2002/10/22 13:43:01  mazen
   - cga.pas redueced to an empty unit
 
   Revision 1.4  2002/10/10 19:57:52  mazen

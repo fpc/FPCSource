@@ -113,7 +113,7 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
 			  LOC_REGISTER:
     			if r<>Register
 					then
-						Concat(taicpu.op_Reg_Reg_Reg(A_OR,S_SW,r,R_G0,Register));
+						Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
 				else
 				  InternalError(2002101002);
 			end;
@@ -214,7 +214,7 @@ procedure tcgSPARC.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TR
       THEN{R_G0 is usually set to zero, so we use it}
         Concat(taicpu.op_reg_const_reg(A_OR,TCGSize2OpSize[size],R_G0,a,reg))
       ELSE{The is no A_MOV in sparc, that's why we use A_OR with help of R_G0}
-        Concat(taicpu.op_reg_reg_reg(A_OR,TCGSize2OpSize[size],R_G0,R_G0,reg));
+        Concat(taicpu.op_reg_reg_reg(A_OR,R_G0,R_G0,reg));
   END;
 procedure tcgSPARC.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);
   BEGIN
@@ -269,7 +269,7 @@ procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
           OS_S16:
             InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
           OS_32,OS_S32:
-            concat(taicpu.op_reg_reg_reg(A_OR,S_SW,R_G0,reg1,reg2));
+            concat(taicpu.op_reg_reg_reg(A_OR,R_G0,reg1,reg2));
           else internalerror(2002090901);
         end;
   end;
@@ -707,7 +707,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
             { can't do anything special for these }
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
           OP_IMUL:
-            list.concat(taicpu.op_reg_reg_reg(A_SMUL,S_SW,src1,src2,dst));
+            list.concat(taicpu.op_reg_reg_reg(A_SMUL,src1,src2,dst));
           OP_ADD:
             begin
               reference_reset(tmpref);
@@ -1254,7 +1254,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.21  2002-11-05 16:15:00  mazen
+  Revision 1.22  2002-11-06 11:31:24  mazen
+  * op_reg_reg_reg don't need any more a TOpSize parameter
+
+  Revision 1.21  2002/11/05 16:15:00  mazen
   *** empty log message ***
 
   Revision 1.20  2002/11/03 20:22:40  mazen

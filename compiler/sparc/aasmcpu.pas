@@ -52,7 +52,7 @@ type
     constructor op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
  { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
  constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
- constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
+ constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
  constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
  constructor op_reg_ref_reg(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference;_op3:TRegister);
  constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
@@ -232,7 +232,7 @@ constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference
      loadref(0,_op1);
      loadref(1,_op2);
   end;
-constructor taicpu.op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
+constructor taicpu.op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
   begin
      inherited create(op);
      init(_size);
@@ -1138,7 +1138,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.10  2002-11-05 16:15:00  mazen
+    Revision 1.11  2002-11-06 11:31:24  mazen
+    * op_reg_reg_reg don't need any more a TOpSize parameter
+
+    Revision 1.10  2002/11/05 16:15:00  mazen
     *** empty log message ***
 
     Revision 1.9  2002/10/28 20:59:17  mazen

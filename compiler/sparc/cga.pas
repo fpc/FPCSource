@@ -126,7 +126,7 @@ procedure emit_const_reg_reg(i:tasmop;s:topsize;c:longint;reg1,reg2:tregister);
   end;
 procedure emit_reg_reg_reg(i:tasmop;s:topsize;reg1,reg2,reg3:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_reg_reg_reg(i,S_L,reg1,reg2,reg3));
+    exprasmList.concat(Taicpu.Op_reg_reg_reg(i,reg1,reg2,reg3));
   end;
 procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
   begin
@@ -135,7 +135,10 @@ procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
 end.
 {
   $Log$
-  Revision 1.3  2002-10-22 13:43:01  mazen
+  Revision 1.4  2002-11-06 11:31:24  mazen
+  * op_reg_reg_reg don't need any more a TOpSize parameter
+
+  Revision 1.3  2002/10/22 13:43:01  mazen
   - cga.pas redueced to an empty unit
 
   Revision 1.2  2002/10/13 19:47:34  mazen
