@@ -447,6 +447,9 @@ implementation
                    { dirty trick to avoid the secondcall below }
                    p^.methodpointer:=genzeronode(callparan);
                    p^.methodpointer^.location.loc:=LOC_REGISTER;
+{$ifndef noAllocEDI}
+                   getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                    p^.methodpointer^.location.register:=R_ESI;
                    { ARGHHH this is wrong !!!
                      if we can init from base class for a child
@@ -512,6 +515,9 @@ implementation
                                          { way to accept virtual static functions (PM)     }
                                          loadesi:=true;
                                          { if no VMT just use $0 bug0214 PM }
+{$ifndef noAllocEDI}
+                                         getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                                          if not(oo_has_vmt in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions) then
                                            emit_const_reg(A_MOV,S_L,0,R_ESI)
                                          else
@@ -565,6 +571,9 @@ implementation
                                  begin
                                     { extended syntax of new }
                                     { ESI must be zero }
+{$ifndef noAllocEDI}
+                                    getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                                     emit_reg_reg(A_XOR,S_L,R_ESI,R_ESI);
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     { insert the vmt }
@@ -578,6 +587,9 @@ implementation
 
                                     { destructor with extended syntax called from dispose }
                                     { hdisposen always deliver LOC_REFERENCE          }
+{$ifndef noAllocEDI}
+                                    getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                                     emit_ref_reg(A_LEA,S_L,
                                       newreference(p^.methodpointer^.location.reference),R_ESI);
                                     del_reference(p^.methodpointer^.location.reference);
@@ -600,6 +612,9 @@ implementation
                                               end;
                                             else
                                               begin
+{$ifndef noAllocEDI}
+                                                 getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                                                  if (p^.methodpointer^.resulttype^.deftype=classrefdef) or
                                                     ((p^.methodpointer^.resulttype^.deftype=objectdef) and
                                                    pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
@@ -1318,7 +1333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2000-01-20 12:14:47  florian
+  Revision 1.119  2000-01-21 12:17:41  jonas
+    * regallocation fixes
+
+  Revision 1.118  2000/01/20 12:14:47  florian
     * bug 793 fixed
 
   Revision 1.117  2000/01/16 22:17:11  peter

@@ -625,12 +625,16 @@ do_jmp:
          getlabel(lastonlabel);
          push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
          emitjmp(C_NE,exceptlabel);
-
+   
          { try code }
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.left;
@@ -641,6 +645,8 @@ do_jmp:
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,endexceptlabel);
@@ -676,22 +682,36 @@ do_jmp:
            end
          else
            emitcall('FPC_RERAISE');
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
 
          { do some magic for exit in the try block }
          emitlab(exitexceptlabel);
          emitcall('FPC_POPADDRSTACK');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_POP,S_L,R_EAX);
          emitjmp(C_None,oldaktexitlabel);
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
 
          if assigned(aktbreaklabel) then
           begin
             emitlab(breakexceptlabel);
             emitcall('FPC_POPADDRSTACK');
+            { allocate eax }
+            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
             emit_reg(A_POP,S_L,R_EAX);
+            { deallocate eax }
+            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
             emitjmp(C_None,oldaktbreaklabel);
             emitlab(continueexceptlabel);
             emitcall('FPC_POPADDRSTACK');
+            { allocate eax }
+            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
             emit_reg(A_POP,S_L,R_EAX);
+            { deallocate eax }
+            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
             emitjmp(C_None,oldaktcontinuelabel);
           end;
 
@@ -721,6 +741,8 @@ do_jmp:
          emit_sym(A_PUSH,S_L,
            newasmsymbol(p^.excepttype^.vmt_mangledname));
          emitcall('FPC_CATCHES');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
@@ -732,6 +754,8 @@ do_jmp:
 
          emit_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref));
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
 
          if assigned(p^.right) then
            begin
@@ -800,10 +824,14 @@ do_jmp:
 
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
          emitjmp(C_NE,finallylabel);
 
          { try code }
@@ -826,6 +854,8 @@ do_jmp:
          aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,endfinallylabel);
@@ -840,22 +870,34 @@ do_jmp:
             emit_reg(A_DEC,S_L,R_EAX);
             emitjmp(C_Z,oldaktcontinuelabel);
           end;
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
          emitlab(reraiselabel);
          emitcall('FPC_RERAISE');
 
          { do some magic for exit,break,continue in the try block }
          emitlab(exitfinallylabel);
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_POP,S_L,R_EAX);
          emit_const(A_PUSH,S_L,2);
          emitjmp(C_NONE,finallylabel);
          if assigned(aktbreaklabel) then
           begin
             emitlab(breakfinallylabel);
+            { allocate eax }
+             exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
             emit_reg(A_POP,S_L,R_EAX);
+            { deallocate eax }
+            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
             emit_const(A_PUSH,S_L,3);
             emitjmp(C_NONE,finallylabel);
             emitlab(continuefinallylabel);
+            { allocate eax }
+            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
             emit_reg(A_POP,S_L,R_EAX);
+            { deallocate eax }
+            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
             emit_const(A_PUSH,S_L,4);
             emitjmp(C_NONE,finallylabel);
           end;
@@ -885,7 +927,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.66  2000-01-07 01:14:20  peter
+  Revision 1.67  2000-01-21 12:17:42  jonas
+    * regallocation fixes
+
+  Revision 1.66  2000/01/07 01:14:20  peter
     * updated copyright to 2000
 
   Revision 1.65  1999/12/22 23:30:06  peter

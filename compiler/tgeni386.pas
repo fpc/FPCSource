@@ -355,7 +355,7 @@ implementation
 
       begin
 {$ifndef noAllocEdi}
-         if r = R_EDI then
+         if r in [R_ESI,R_EDI] then
            begin
              exprasmlist^.concat(new(pairegalloc,dealloc(r)));
              exit;
@@ -549,7 +549,7 @@ implementation
 
       begin
 {$ifndef noAllocEdi}
-         if r = R_EDI then
+         if r in [R_ESI,R_EDI] then
            begin
              exprasmlist^.concat(new(pairegalloc,alloc(r)));
              getexplicitregister32 := r;
@@ -630,7 +630,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2000-01-09 12:35:02  jonas
+  Revision 1.39  2000-01-21 12:17:42  jonas
+    * regallocation fixes
+
+  Revision 1.38  2000/01/09 12:35:02  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the

@@ -652,17 +652,15 @@ implementation
                                   emit_reg_reg(A_MOV,opsize,
                                     p^.right^.location.register,
                                     p^.left^.location.register);
-{$IfDef regallocfix}
                                  ungetregister(p^.right^.location.register);
-{$EndIf regallocfix}
                                 end
                               else
                                 Begin
                                   emit_reg_ref(A_MOV,opsize,
                                     p^.right^.location.register,
                                     newreference(p^.left^.location.reference));
-{$IfDef regallocfix}
                                   ungetregister(p^.right^.location.register);
+{$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
                                 end;
@@ -1005,7 +1003,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2000-01-09 12:35:01  jonas
+  Revision 1.97  2000-01-21 12:17:42  jonas
+    * regallocation fixes
+
+  Revision 1.96  2000/01/09 12:35:01  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
