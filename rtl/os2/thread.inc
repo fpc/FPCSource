@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+{$IFDEF MT}
 {$DEFINE EMX}
 
 const
@@ -34,14 +35,12 @@ type
   P: pointer;
  end;
  PThreadInfo = ^TThreadInfo;
- PPointer = ^pointer;
 
 var
 (* Pointer to an allocated dword space within the local thread *)
 (* memory area. Pointer to the real memory block allocated for *)
 (* thread vars in this block is then stored in this dword.     *)
  DataIndex: PPointer;
- CritSectSem: longint;
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
@@ -50,7 +49,8 @@ function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
 function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
                                                  external 'DOSCALLS' index 455;
 
-function DosCreateThread (var TID: longint; Address: TThreadEntry;
+function DosCreateThread (var TID: longint; Address: pointer;
+(* TThreadFunc *) 
         aParam: pointer; Flags: longint; StackSize: longint): longint; cdecl;
                                                  external 'DOSCALLS' index 311;
 
@@ -62,6 +62,9 @@ function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: longint;
 
 function DosCloseMutExSem (Handle: longint): longint; cdecl;
                                                  external 'DOSCALLS' index 333;
+
+function DosQueryMutExSem (Handle: longint; var PID, TID, Count: longint):
+                                 longint; cdecl; external 'DOSCALLS' index 336;
 
 function DosRequestMutExSem (Handle, Timeout: longint): longint; cdecl;
                                                  external 'DOSCALLS' index 334;
@@ -75,6 +78,10 @@ function DosAllocMem (var P: pointer; Size, Flag: longint): longint; cdecl;
 function DosFreeMem (P: pointer): longint; cdecl;
                                                  external 'DOSCALLS' index 304;
 
+function DosEnterCritSec:longint; cdecl; external 'DOSCALLS' index 232;
+
+function DosExitCritSec:longint; cdecl; external 'DOSCALLS' index 233;
+
 
 procedure Init_ThreadVar (var TVOffset: dword; Size: dword);
                                          [public, alias: 'FPC_INIT_THREADVAR'];
@@ -86,7 +93,7 @@ end;
 function Relocate_ThreadVar (TVOffset: dword): pointer;
                                       [public,alias: 'FPC_RELOCATE_THREADVAR'];
 begin
- Relocate_ThreadVar := DataIndex + TVOffset;
+ Relocate_ThreadVar := DataIndex^ + TVOffset;
 end;
 
 procedure AllocateThreadVars;
@@ -107,6 +114,16 @@ begin
  end;
 end;
 
+procedure ReleaseThreadVars;
+begin
+ { release thread vars }
+ if os_mode = osOS2 then DosFreeMem (DataIndex^) else
+ begin
+  (* Deallocate the DOS memory here. *)
+
+ end;
+end;
+
 procedure InitThread;
 begin
  InitFPU;
@@ -117,32 +134,30 @@ begin
  { so every thread has its on exception handling capabilities }
  InitExceptions;
  InOutRes := 0;
- ErrNo := 0;
+{ ErrNo := 0;}
 end;
 
 procedure DoneThread;
+var
+ PTIB: PThreadInfoBlock;
+ ThreadID: longint;
 begin
- { release thread vars }
- if os_mode = osOS2 then
- begin
-  DosFreeMem (DataIndex^);
+ ReleaseThreadVars;
+ DosGetInfoBlocks (@PTIB, nil);
+ ThreadID := PTIB^.TIB2^.TID;
 {$IFDEF EMX}
 {$ASMMODE INTEL}
-  asm
-   mov eax, 7F2Dh
-   mov edx, ThreadID
-   call syscall
-  end;
+ if os_mode = osOS2 then
+ asm
+  mov eax, 7F2Dh
+  mov edx, ThreadID
+  call syscall
+ end;
 {$ASMMODE DEFAULT}
 {$ENDIF EMX}
- end else
- begin
-  (* Deallocate the DOS memory here. *)
-
- end;
 end;
 
-function ThreadMain (Param: pointer): dword; cdecl
+function ThreadMain (Param: pointer): dword; cdecl;
 var
  TI: TThreadInfo;
 begin
@@ -177,8 +192,8 @@ begin
 {$ifdef DEBUG_MT}
  WriteLn ('Starting new thread');
 {$endif DEBUG_MT}
- BeginThread := DosCreateThread (ThreadID, @ThreadMain, TI, StackSize, TI,
-       CreationFlags);
+ BeginThread := DosCreateThread (ThreadID, @ThreadMain, TI, CreationFlags,
+                                                                    StackSize);
 {$IFDEF EMX}
 {$ASMMODE INTEL}
  asm
@@ -225,30 +240,95 @@ begin
  EndThread (0);
 end;
 
-procedure InitCriticalSection (var CS);
+procedure InitCriticalSection (var CS: TCriticalSection);
 begin
  if os_mode = osOS2 then
-      if DosCreateMutExSem (nil, CritSectSem, 0, false) <> 0 then RunError (8);
+ begin
+  if DosCreateMutExSem (nil, CS.LockSemaphore2, 0, true) <> 0 then
+                                                                  RunError (8);
+  DosEnterCritSec;
+  CS.LockCount := 0;
+  CS.OwningThread := $FFFF;
+  DosExitCritSec;
+  DosReleaseMutexSem (CS.LockSemaphore2);
+ end;
 end;
 
-procedure DoneCriticalSection (var CS);
+procedure DoneCriticalSection (var CS: TCriticalSection);
 begin
- if os_mode = osOS2 then DosCloseMutExSem (CritSectSem);
+ if os_mode = osOS2 then DosCloseMutExSem (CS.LockSemaphore2);
 end;
 
-procedure EnterCriticalsection (var CS);
+procedure EnterCriticalSection (var CS: TCriticalSection);
+var
+ P, T, Cnt: longint;
+ PTIB: PThreadInfoBlock;
 begin
- if os_mode = osOS2 then DosRequestMutExSem (CritSectSem, sem_Indefinite_Wait);
+ if os_mode = osOS2 then
+ begin
+  DosGetInfoBlocks (@PTIB, nil);
+  DosEnterCritSec;
+  with CS do if (LockCount = 0) and
+    (DosQueryMutExSem (LockSemaphore2, P, T, Cnt) = 0) and (Cnt = 0) and
+                                                     (T = PTIB^.TIB2^.TID) then
+  begin
+   LockCount := 1;
+   OwningThread2 := PTIB^.TIB2^.TID;
+   DosExitCritSec;
+   DosRequestMutExSem (LockSemaphore2, sem_Indefinite_Wait);
+  end else if PTIB^.TIB2^.TID = OwningThread2 then
+  begin
+   Inc (LockCount);
+   if LockCount = 0 then Dec (LockCount);
+   DosExitCritSec;
+  end else
+  begin
+   DosExitCritSec;
+   DosRequestMutExSem (LockSemaphore2, sem_Indefinite_Wait);
+   DosEnterCritSec;
+   LockCount := 1;
+   OwningThread2 := PTIB^.TIB2^.TID;
+   DosExitCritSec;
+  end;
+ end;
 end;
 
-procedure LeaveCriticalsection(var cs);
+procedure LeaveCriticalSection (var CS: TCriticalSection);
+var
+ PTIB: PThreadInfoBlock;
+ Err: boolean;
 begin
- if os_mode = osOS2 then DosReleaseMutExSem (CritSectSem);
+ if os_mode = osOS2 then
+ begin
+  Err := false;
+  DosGetInfoBlocks (@PTIB, nil);
+  DosEnterCritSec;
+  with CS do if OwningThread2 <> PTIB^.TIB2^.TID then
+  begin
+   DosExitCritSec;
+   Err := true;
+  end else if LockCount = 1 then
+  begin
+   if DosReleaseMutExSem (LockSemaphore2) <> 0 then Err := true;
+   Dec (LockCount);
+   DosExitCritSec;
+  end else
+  begin
+   Dec (LockCount);
+   DosExitCritSec;
+  end;
+  if Err then RunError (5);
+ end;
 end;
+
+{$ENDIF MT}
 
 {
   $Log$
-  Revision 1.2  2001-01-27 18:28:52  hajny
+  Revision 1.3  2001-02-01 21:30:01  hajny
+    * MT support completion
+
+  Revision 1.2  2001/01/27 18:28:52  hajny
     * OS/2 implementation of threads almost finished
 
   Revision 1.1  2001/01/23 20:38:59  hajny

@@ -46,7 +46,7 @@ Coding style:
 
     My coding style is a bit unusual for Pascal. Nevertheless I friendly ask
     you to try to make your changes not look all to different. In general,
-    set your IDE to use tab characters, optimal fill on and a tabsize of 4.}
+    set your IDE to use a tabsize of 4.}
 
 interface
 
@@ -54,6 +54,31 @@ interface
 {$l prt1.oo2}
 
 {$I SYSTEMH.INC}
+
+type
+    { FK: The fields of this record are OS dependent and they shouldn't  }
+    { be used in a program; only the type TCriticalSection is important. }
+    (* TH: To make things easier, I copied the record definition *)
+    (* from the Win32 version and just added longint variants,   *)
+    (* because it seemed well suited for OS/2 too.               *)
+    TCriticalSection = packed record
+        DebugInfo: pointer;
+        LockCount: longint;
+        RecursionCount: longint;
+        case boolean of
+        false:
+        (OwningThread: DWord;
+        LockSemaphore: DWord;
+        Reserved: DWord);
+        true:
+        (OwningThread2: longint;
+        LockSemaphore2: longint;
+        Reserved2: longint);
+    end;
+
+{ include threading stuff }
+{$i threadh.inc}
+
 {$I heaph.inc}
 
 type    Tos=(osDOS,osOS2,osDPMI);
@@ -61,9 +86,11 @@ type    Tos=(osDOS,osOS2,osDPMI);
 var     os_mode:Tos;
         first_meg:pointer;
 
-type    Psysthreadib=^Tsysthreadib;
-        Pthreadinfoblock=^Tthreadinfoblock;
-        Pprocessinfoblock=^Tprocessinfoblock;
+type    PSysThreadIB=^TSysThreadIB;
+        PThreadInfoBlock=^Tthreadinfoblock;
+        PPThreadInfoBlock=^PThreadInfoBlock;
+        PProcessInfoBlock=^TProcessInfoBlock;
+        PPProcessInfoBlock=^PProcessInfoBlock;
 
         Tbytearray=array[0..$ffff] of byte;
         Pbytearray=^Tbytearray;
@@ -113,8 +140,8 @@ implementation
 
 {$I SYSTEM.INC}
 
-procedure DosGetInfoBlocks (var Atib: PThreadInfoBlock;
-                            var Apib: PProcessInfoBlock); cdecl;
+procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
+                            PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
 
 function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
@@ -800,6 +827,23 @@ end;
 
 {****************************************************************************
 
+                             Thread Handling
+*****************************************************************************}
+
+const
+    fpucw: word = $1332;
+
+procedure InitFPU; assembler;
+
+asm
+    fninit
+    fldcw fpucw
+end;
+
+{ include threading stuff, this is os independend part }
+{$I thread.inc}
+
+{*****************************************************************************
                         System unit initialization.
 
 ****************************************************************************}
@@ -812,8 +856,7 @@ begin
                                                  else GetFileHandleCount := L2;
 end;
 
-var pib:Pprocessinfoblock;
-    tib:Pthreadinfoblock;
+var tib:Pthreadinfoblock;
 
 begin
     {Determine the operating system we are running on.}
@@ -868,7 +911,7 @@ begin
                                  stack bottom.}
         osOS2:
             begin
-                dosgetinfoblocks(tib,pib);
+                dosgetinfoblocks(@tib,nil);
                 stackbottom:=longint(tib^.stack);
             end;
         osDPMI:
@@ -878,11 +921,11 @@ begin
     exitproc:=nil;
 
 {$ifdef MT}
-    if os_mode = os_OS2 then
+    if os_mode = osOS2 then
         begin
             { allocate one ThreadVar entry from the OS, we use this entry }
             { for a pointer to our threadvars                             }
-            DataIndex := TlsAlloc;
+            if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then RunError (8);
             { the exceptions use threadvars so do this _before_ initexceptions }
             AllocateThreadVars;
         end;
@@ -907,7 +950,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-01-23 20:38:59  hajny
+  Revision 1.6  2001-02-01 21:30:01  hajny
+    * MT support completion
+
+  Revision 1.5  2001/01/23 20:38:59  hajny
     + beginning of the OS/2 version
 
   Revision 1.4  2000/11/13 21:23:38  hajny
