@@ -796,6 +796,53 @@ unit n386add;
                  opsize:=S_W
              else
                opsize:=S_L;
+             if (cs_full_boolean_eval in aktlocalswitches) or
+                (p^.treetype in
+                  [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
+               begin
+                 if left.treetype=ordconstn then
+                  swaptree(p);
+                 if left.location.loc=LOC_JUMP then
+                   begin
+                      otl:=truelabel;
+                      getlabel(truelabel);
+                      ofl:=falselabel;
+                      getlabel(falselabel);
+                   end;
+
+                 secondpass(left);
+                 { if in flags then copy first to register, because the
+                   flags can be destroyed }
+                 case left.location.loc of
+                    LOC_FLAGS:
+                      locflags2reg(left.location,opsize);
+                    LOC_JUMP:
+                      locjump2reg(left.location,opsize, otl, ofl);
+                 end;
+                 set_location(location,left.location);
+                 pushed:=maybe_push(right.registers32,p,false);
+                 if right.location.loc=LOC_JUMP then
+                   begin
+                      otl:=truelabel;
+                      getlabel(truelabel);
+                      ofl:=falselabel;
+                      getlabel(falselabel);
+                   end;
+                 secondpass(right);
+                 if pushed then
+                   begin
+                      restore(p,false);
+                      set_location(left.location,location);
+                   end;
+                 case right.location.loc of
+                    LOC_FLAGS:
+                      locflags2reg(right.location,opsize);
+                    LOC_JUMP:
+                      locjump2reg(right.location,opsize,otl,ofl);
+                 end;
+                 goto do_normal;
+              end
+
              case treetype of
               andn,
                orn : begin
@@ -825,50 +872,6 @@ unit n386add;
                        secondpass(right);
                        maketojumpbool(right);
                      end;
-          unequaln,ltn,lten,gtn,gten,
-       equaln,xorn : begin
-                       if left.treetype=ordconstn then
-                        swaptree(p);
-                       if left.location.loc=LOC_JUMP then
-                         begin
-                            otl:=truelabel;
-                            getlabel(truelabel);
-                            ofl:=falselabel;
-                            getlabel(falselabel);
-                         end;
-
-                       secondpass(left);
-                       { if in flags then copy first to register, because the
-                         flags can be destroyed }
-                       case left.location.loc of
-                          LOC_FLAGS:
-                            locflags2reg(left.location,opsize);
-                          LOC_JUMP:
-                            locjump2reg(left.location,opsize, otl, ofl);
-                       end;
-                       set_location(location,left.location);
-                       pushed:=maybe_push(right.registers32,p,false);
-                       if right.location.loc=LOC_JUMP then
-                         begin
-                            otl:=truelabel;
-                            getlabel(truelabel);
-                            ofl:=falselabel;
-                            getlabel(falselabel);
-                         end;
-                       secondpass(right);
-                       if pushed then
-                         begin
-                            restore(p,false);
-                            set_location(left.location,location);
-                         end;
-                       case right.location.loc of
-                          LOC_FLAGS:
-                            locflags2reg(right.location,opsize);
-                          LOC_JUMP:
-                            locjump2reg(right.location,opsize,otl,ofl);
-                       end;
-                       goto do_normal;
-                    end
              else
                CGMessage(type_e_mismatch);
              end
@@ -2321,7 +2324,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-20 21:23:32  florian
+  Revision 1.2  2000-09-21 12:24:22  jonas
+    * small fix to my changes for full boolean evaluation support (moved
+      opsize determination for boolean operations back in boolean
+      processing block)
+    + full boolean evaluation support (from cg386add)
+
+  Revision 1.1  2000/09/20 21:23:32  florian
     * initial revision
 
 }
