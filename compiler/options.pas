@@ -982,9 +982,10 @@ begin
   def_symbol('VER'+version_nr);
   def_symbol('VER'+version_nr+'_'+release_nr);
   def_symbol('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
-
+  
 { Temporary defines, until things settle down }
   def_symbol('INT64');
+  def_symbol('HASRESOURCESTRINGS');
   
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1141,7 +1142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-07-18 10:19:57  florian
+  Revision 1.6  1999-07-23 22:56:27  michael
+  + Added HasResourceStrings define
+
+  Revision 1.5  1999/07/18 10:19:57  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
