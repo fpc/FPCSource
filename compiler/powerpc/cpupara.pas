@@ -198,6 +198,10 @@ unit cpupara;
         end;
 
       begin
+         { zero alignment bytes }
+         fillchar(nextintreg,sizeof(nextintreg),0);
+         fillchar(nextfloatreg,sizeof(nextfloatreg),0);
+         fillchar(nextmmreg,sizeof(nextmmreg),0);
          nextintreg.enum:=R_INTREGISTER;
          nextintreg.number:=NR_R3;
          nextfloatreg.enum:=R_F1;
@@ -223,7 +227,8 @@ unit cpupara;
               else
                 paradef := hp.paratype.def;
               loc:=getparaloc(paradef);
-              hp.paraloc.sp_fixup:=0;
+              { make sure all alignment bytes are 0 as well }
+              fillchar(hp.paraloc,sizeof(hp.paraloc),0);
               case loc of
                  LOC_REGISTER:
                    begin
@@ -306,6 +311,7 @@ unit cpupara;
 
     function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
+         fillchar(result,sizeof(result),0);
          case p.rettype.def.deftype of
             orddef,
             enumdef:
@@ -358,7 +364,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-06-07 18:57:04  jonas
+  Revision 1.36  2003-06-08 10:52:01  jonas
+    * zero paraloc tregisters, so that the alignment bytes are 0 (otherwise
+      the crc of the ppu files can change between interface and
+      implementation)
+
+  Revision 1.35  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
