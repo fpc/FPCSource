@@ -392,7 +392,17 @@ unit types;
     function push_addr_param(def : pdef) : boolean;
       begin
          push_addr_param:=never_copy_const_param or
-           (def^.deftype in [arraydef,formaldef,recorddef]) or
+           (def^.deftype = formaldef) or
+           ((def^.deftype in [arraydef,recorddef])
+           { copy directly small records or arrays unless
+             array of const ! PM }
+{$ifndef COPY_SMALL_RECORDS}
+           and ((def^.size>4) or
+           ((def^.deftype=arraydef) and
+           (parraydef(def)^.IsConstructor or
+            parraydef(def)^.isArrayOfConst)))
+{$endif def COPY_SMALL_RECORDS}
+           ) or
            ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
@@ -1283,7 +1293,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.54  1999-03-02 22:52:20  peter
+  Revision 1.55  1999-03-09 11:45:42  pierre
+   * small arrays and records (size <=4) are copied directly
+
+  Revision 1.54  1999/03/02 22:52:20  peter
     * fixed char array, which can start with all possible values
 
   Revision 1.53  1999/02/25 21:02:57  peter
