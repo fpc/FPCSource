@@ -79,9 +79,17 @@ FUNCTION _BeginThread (func, stack : pointer; Stacksize : LONGINT; arg : pointer
 FUNCTION _GetThreadDataAreaPtr : POINTER; CDecl; EXTERNAL NlmLib NAME 'GetThreadDataAreaPtr';
 PROCEDURE _SaveThreadDataAreaPtr (P : POINTER); CDecl; EXTERNAL NlmLib NAME 'SaveThreadDataAreaPtr';
 PROCEDURE _exit (ExitCode : LONGINT); CDecl; EXTERNAL CLib;
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
-PROCEDURE printf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
-PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib NAME 'ConsolePrintf';
+
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PCHAR); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+// this gives internet compiler error 1234124 ??
+//PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
+
+PROCEDURE _printf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
+PROCEDURE _printf (FormatStr : PCHAR); CDecl; EXTERNAL CLib;
+// this gives internet compiler error 1234124 ??
+// PROCEDURE _printf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
 
 // values for __action_code used with ExitThread()
 CONST
@@ -322,10 +330,16 @@ FUNCTION _EnterCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'EnterCritSec'
 FUNCTION _ExitCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'ExitCritSec';
 
 
+FUNCTION _SetThreadGroupID (id : longint) : longint; CDecl; EXTERNAL ThreadsNlm NAME 'SetThreadGroupID';
+FUNCTION _GetThreadGroupID : longint; CDecl; EXTERNAL ThreadsNlm NAME 'GetThreadGroupID';
+
 
 {
   $Log$
-  Revision 1.4  2002-03-08 19:06:47  armin
+  Revision 1.5  2002-03-30 09:09:47  armin
+  + support check-function for netware
+
+  Revision 1.4  2002/03/08 19:06:47  armin
   	* Additional routines needed for MT
 
   Revision 1.3  2001/04/16 18:39:50  florian

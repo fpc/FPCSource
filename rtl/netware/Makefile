@@ -4,7 +4,8 @@
 UNITDIR = $(INSTALL_PREFIX)/usr/lib/fpc/1.1/units/netware/rtl
 #PPC386OPT = -n -dMT -dDEBUG_MT -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
 #PPC386OPT = -n -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
-PPC386OPT = -n -di386 -O3 -Og -Sg -Tnetware -Aelf -a -al -FE.
+#PPC386OPT = -n -di386 -O3 -Og -Sg -Tnetware -Aelf -a -al -FE.
+PPC386OPT = -n -di386 -O3 -Og -Sg -Tnetware -Aelf -a -al -FE. -dMT
 PPC386OPTDBG = -n -di386 -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
 INCLUDES = -I../inc -I../i386 -I../objpas
 
@@ -76,9 +77,9 @@ install: $(OBJS)
 	cp -f os_types.$(PPUEXT) $(UNITDIR)
 	cp -f winsock2.$(OBJEXT) $(UNITDIR)
 	cp -f winsock2.$(PPUEXT) $(UNITDIR)
-	cp -f aio.$(OBJEXT) $(UNITDIR)
 	cp -f aio.$(PPUEXT) $(UNITDIR)
 	cp -f nwimp/*.imp $(UNITDIR)
+	cp -f *.a $(UNITDIR)
 
 clean:
 	rm -f *.$(OBJEXT) *.$(PPUEXT) *.$(ASMEXT) *.bak *.rst *.a

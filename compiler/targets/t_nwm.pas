@@ -352,6 +352,7 @@ begin
   { start and stop-procedures }
   LinkRes.Add ('START _Prelude');  { defined in rtl/netware/nwpre.pp }
   LinkRes.Add ('EXIT _Stop');
+  LinkRes.Add ('CHECK FPC_NW_CHECKFUNCTION');
 
   if not (cs_link_strip in aktglobalswitches) then
     LinkRes.Add ('DEBUG');
@@ -551,7 +552,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-03-29 17:19:51  armin
+  Revision 1.17  2002-03-30 09:09:47  armin
+  + support check-function for netware
+
+  Revision 1.16  2002/03/29 17:19:51  armin
   + allow exports for netware
 
   Revision 1.15  2002/03/19 20:23:57  armin

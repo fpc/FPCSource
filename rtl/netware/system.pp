@@ -72,14 +72,24 @@ CONST
 
    sLineBreak : STRING = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+   
+TYPE
+   TNWCheckFunction = procedure (var code : longint);
 
 VAR
    ArgC   : INTEGER;
    ArgV   : ppchar;
+   NetwareCheckFunction    : TNWCheckFunction;
+   NetwareMainThreadGroupID: longint;
 
 CONST   
    envp   : ppchar = nil;   {dummy to make heaptrc happy}
-
+   
+   
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
+PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
+PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
+   
 
 implementation
 
@@ -128,12 +138,31 @@ END;
 PROCEDURE CloseAllRemainingSemaphores; FORWARD;
 {$endif}
 
+{ if return-value is <> 0, netware shows the message
+  Unload Anyway ?
+  To Disable unload at all, SetNLMDontUnloadFlag can be used on
+  Netware >= 4.0 }
+function CheckFunction : longint; CDECL; [public,alias: 'FPC_NW_CHECKFUNCTION'];
+var oldTG:longint;
+begin
+  if @NetwareCheckFunction <> nil then
+  begin
+    { this function is called without clib context, to allow clib
+      calls, we set the thread group id before calling the
+      user-function }
+    oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
+    result := 0;
+    NetwareCheckFunction (result);
+    _SetThreadGroupID (oldTG);
+  end else
+    result := 0;
+end;
+
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
 Procedure system_exit;
 begin
-  {ConsolePrintf ('system_exit called'#13#10,0);}
   {$ifdef MT}
   CloseAllRemainingSemaphores;
   {$endif}
@@ -590,6 +619,9 @@ Begin
   AllocateThreadVars;
 {$endif MT}
 
+  NetwareCheckFunction := nil;
+  NetwareMainThreadGroupID := _GetThreadGroupID;
+
 { Setup heap }
   InitHeap;
   InitExceptions;
@@ -614,7 +646,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  2002-03-17 17:57:33  armin
+  Revision 1.8  2002-03-30 09:09:47  armin
+  + support check-function for netware
+
+  Revision 1.7  2002/03/17 17:57:33  armin
   + threads and winsock2 implemented
 
   Revision 1.5  2001/06/18 14:26:16  jonas
