@@ -33,7 +33,7 @@
 \input{syntax/diagram.tex}
 \latex{\usepackage{fpc}}
 \latex{\usepackage{listings}\blankstringtrue%
-\selectlisting{fpc}\stringstyle{\ttfamily}\keywordstyle{\bfseries}
+\selectlisting{tp}\stringstyle{\ttfamily}\keywordstyle{\bfseries}
 \prelisting{\sffamily}}
 \html{\input{fpc-html.tex}}
 \usepackage{fancyheadings}
@@ -517,7 +517,7 @@ values \var{True} and \var{False}, as well as the \var{ByteBool},
 assigned to a \var{Boolean} type. Of course, any expression that resolves
 to a \var{boolean} value, can also be assigned to a boolean type.
 
-\begin{FPCltable}{lll}{Boolean types}{booleans}
+\begin{FPCltable}{lll}{Boolean types}{booleantypes}
 Name & Size & Ord(True) \\ hline
 Boolean & 1 & 1 \\
 ByteBool & 1 & Any nonzero value \\
@@ -1006,7 +1006,7 @@ Here is the type declaration for a file type:
 \input{syntax/typefil.syn}
 If no type identifier is given, then the file is an untyped file; it can be
 considered as equivalent to a file of bytes. Untyped files require special
-commands to act on them (see \seep{BlockRead}, \seep{BlockWrite}).
+commands to act on them (see \seep{Blockread}, \seep{Blockwrite}).
 
 The following declaration declares a file of records:
 \begin{listing}
@@ -1360,7 +1360,7 @@ given.
 \section{Method invocation}
 Methods are called just as normal procedures are called, only they have a 
 object instance identifier prepended to them
-\seec{statements}.
+\seec{Statements}.
 
 To determine which method is called, it is necessary to know the type of
 method:
@@ -2038,9 +2038,9 @@ that contain integers or reals. There are 2 kinds of operators : Binary and
 unary arithmetic operators. 
 
 Binary operators are listed in \seet{binaroperators}, unary operators are
-listed in \seet{unaroperator}.
+listed in \seet{unaroperators}.
 
-\begin{FPCltable}{ll}{Binary arithmetic operators}{binaroperators.}
+\begin{FPCltable}{ll}{Binary arithmetic operators}{binaroperators}
 Operator & Operation \\ \hline
 \var{+} & Addition\\    
 \var{-} & Subtraction\\
@@ -2059,7 +2059,7 @@ then  the result is real.
 
 As an exception : division \var{/} results always in real values.
 
-\begin{FPCltable}{ll}{Unary arithmetic operators}{unnaroperators.}
+\begin{FPCltable}{ll}{Unary arithmetic operators}{unaroperators}
 Operator & Operation \\ \hline
 \var{+} & Sign identity\\    
 \var{-} & Sign inversion \\ \hline
@@ -2113,9 +2113,10 @@ Boolean operators can be considered logical operations on a type with 1 bit
 size. Therefore the \var{shl} and \var{shr} operations have little sense.
 
 Boolean operators can only have boolean type operands, and the resulting
-type is always boolean. The possible operators are listed in \seet{booleans}
+type is always boolean. The possible operators are listed in
+\seet{booleanoperators}
 
-\begin{FPCltable}{ll}{Boolean operators}{booleans}
+\begin{FPCltable}{ll}{Boolean operators}{booleanoperators}
 Operator & Operation \\ \hline
 \var{not} & logical negation (unary) \\
 \var{and} & logical and \\
@@ -2200,6 +2201,7 @@ ordinal type as the set type) is an element of the set which is the right
 operand, otherwise it returns \var{False}
 
 \chapter{Statements}
+\label{ch:Statements}
 
 The heart of each algorithm are the actions it takes. These actions are
 contained in the statements of your program or unit. You can label your
@@ -2324,7 +2326,7 @@ Conditional statements come in 2 flavours :
 
 Repetitive statements come in 3 flavours:
 
-\input{syntax/repetitive}
+\input{syntax/repetiti.syn}
 
 The following sections deal with each of these statements.
 
@@ -2462,7 +2464,7 @@ else
    stat2
 \end{listing}
 If it is this latter construct you want, you must explicitly put the
-\var{begin} and \ver{end} keywords. When in doubt, add them, they don't
+\var{begin} and \var{end} keywords. When in doubt, add them, they don't
 hurt.
 
 The following is a valid statement:
@@ -2475,61 +2477,120 @@ else
 
 \subsection{The \var{For..to/downto..do} statement}
 
-\fpc supports the \var{For} loop construction. The prototype syntax is as
-follows:
+\fpc supports the \var{For} loop construction. A for loop is used in case
+one wants to calculated something a fixed number of times. 
+The prototype syntax is as follows:
 
 \input{syntax/for.syn}
 
-\var{Statement} can be a compound statement. In the first case, if
-\var{Lowerbound} is larger than \var{Upperbound} then \var{Statement} will
-never be executed. \var{Counter} must be an ordinal type, no other types can
-be used as counters in a loop.
+\var{Statement} can be a compound statement. 
+When this statement is encountered, the control variable is initialized with
+the initial value, and is compared with the final value.
+What happens next depends on whether \var{to} or \var{downto} is used:
+\begin{enumerate}
+\item In the case \var{To} is used, if the initial value larger than the final 
+value then \var{Statement} will never be executed. 
+\item In the case \var{DownTo} is used, if the initial value larger than the final 
+value then \var{Statement} will never be executed. 
+\end{enumerate}
+After this check, the statement after \var{Do} is executed. After the
+execution of the statement, the control variable is increased or decreased
+with 1, depending on whether \var{To} or \var{Downto} is used.
+
+The control variable must be an ordinal type, no other 
+types can be used as counters in a loop.
 
 {\em Remark:} Contrary to ANSI pascal specifications, \fpc first initializes
 the counter variable, and only then calculates the upper bound.
 
-
+The following are valid loops:
+\begin{listing}
+For Day:=Monday to Friday do Work;
+For I:=100 downto 1 do
+  Writeln ('Counting down : ',i);
+For I:=1 to 7*dwarfs do KissDwarf(i); 
+\end{listing}
 
 \subsection{The \var{Repeat..until} statement}
-The prototype of the \var{Repeat..until} statement is
-\begin{listing}
-Repeat
-  Statement1;
-  Statement2;
-Until Expression;
-\end{listing}
-This will execute \var{Statement1} etc. until \var{Expression} evaluates to
-\var{True}. Since \var{Expression} is evaluated {\em after} the execution of the
+
+The \var{repeat} statement is used to execute a statement until a certain
+condition is reached. The statement will be executed at least once.
+The prototype syntax of the \var{Repeat..until} statement is
+
+\input{syntax/repeat.syn}
+
+This will execute the statements between \var{repeat} and {until} up to
+the moment when \var{Expression} evaluates to \var{True}. 
+Since the \var{expression} is evaluated {\em after} the execution of the
 statements, they are executed at least once.
 
-Be aware of the fact that the boolean expressions \var{Expression1} and
-\var{Expression2} will be short-cut evaluated. (Meaning that the evaluation
-will be stopped at the point where the outcome is known with certainty)
+Be aware of the fact that the boolean expression \var{Expression} will be 
+short-cut evaluated. (Meaning that the evaluation will be stopped at the 
+point where the outcome is known with certainty)
+
+The following are valid \var{repeat} statements
+\begin{listing}
+repeat
+  Writeln ('I =',i);
+  I:=I+2;
+until I>100;
+
+repeat
+ X:=X/2
+until x<10e-3
+\end{listing}
 
 \subsection{The \var{While..do} statement}
-The prototype of the \var{While..do} statement is
-\begin{listing}
-While Expression Do
-  Statement;
-\end{listing}
+
+A \var{while} statement is used to execute a statement as long as a certain
+condition holds. This may imply that the statement is never executed.  
+The prototype syntax of the \var{While..do} statement is
+
+\input{syntax/while.syn}
+
 This will execute \var{Statement} as long as \var{Expression} evaluates to
 \var{True}. Since \var{Expression} is evaluated {\em before} the execution
 of \var{Statement}, it is possible that \var{Statement} isn't executed at
-all.
+all. \var{Statement} can be a compound statement.
 
-\var{Statement} can be a compound statement.
+Be aware of the fact that the boolean expression \var{Expression} will be 
+short-cut evaluated. (Meaning that the evaluation will be stopped at the 
+point where the outcome is known with certainty)
 
-Be aware of the fact that the boolean expressions \var{Expression1} and
-\var{Expression2} will be short-cut evaluated. (Meaning that the evaluation
-will be stopped at the point where the outcome is known with certainty)
+The following are valid \var{while} statements:
+\begin{listing}
+I:=I+2;
+while i<=100 do
+  begin
+  Writeln ('I =',i);
+  I:=I+2;
+  end;
+
+X:=X/2;
+while x>=10e-3 do
+  X:=X/2;
+\end{listing}
+They correspond to the example loops for the \var{repeat} statements.
 
 \subsection{The \var{With} statement}
+\label{se:With}
 
-The with statement serves to access the elements of a record\footnote{
+The \var{with} statement serves to access the elements of a record\footnote{
 The \var{with} statement does not work correctly when used with 
 objects or classes until version 0.99.6}
-, without
-having to specify the name of the record. Given the declaration:
+or object or class, without having to specify the name of the each time. 
+
+The syntax for a \var{with} statement is
+
+\input{syntax/with.syn}
+
+The variable reference must be a variable of a record, object or class type.
+In the \var{with} statement, any variable reference, or method reference is
+checked to see if it is a field or method of the record or object or class.
+If so, then that field is accessed, or that method is called.
+
+
+Given the declaration:
 \begin{listing}
 Type Passenger = Record
        Name : String[30];
@@ -2552,175 +2613,80 @@ With TheCustomer do
   end;
 \end{listing}
 
-\subsection{Compound statements}
-Compound statements are a group of statements, separated by semicolons,
-that are surrounded by the keywords \var{Begin} and \var{End}. The
-Last statement doesn't need to be followed by a semicolon, although it is
-allowed.
+The statement
+\begin{listing}
+With A,B,C,D do Statement;
+\end{listing}
+is equivalent to
+\begin{listing}
+With A do
+ With B do
+  With C do
+   With D do Statement;
+\end{listing}
+This also is a clear example of the fact that the variables are tried {\em last
+to first}, i.e., when the compiler encounters a variable reference, it will
+first check if it is a field or method of the last variable. If not, then it
+will check the last-but-one, and so on.  
 
-\subsection{Exceptions}
+The following example shows this;
+\begin{listing}
+Program testw;
+
+Type AR = record
+      X,Y : Longint;
+     end;
+     
+Var S,T : Ar;
+
+begin
+  S.X:=1;S.Y:=1;
+  T.X:=2;T.Y:=2;
+  With S,T do 
+    writeln (X,' ',Y);
+end.     
+\end{listing}
+The output of this program is
+\begin{verbatim}
+2 2
+\end{verbatim}
+Showing thus that the \var{X,Y} in the \var{writeln} statement match the 
+\var{T} record variable.
+
+\subsection{Exception Statements}
 
 As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
 closely related to classes. 
 
-Exception support is based on 3 constructs:
-\begin{description}
-\item [Raise\ ] statements. To raise an exeption. This is usually done to signal an
-error condition.
-\item [Try ... Except\ ] blocks. These block serve to catch exceptions
-raised within the scope of the block, and to provide exception-recovery 
-code.
-\item [Try ... Finally\ ] blocks. These block serve to force code to be
-executed irrespective of an exception occurrence or not. They generally
-serve to clean up memory or close files in case an exception occurs. 
-code.
-\end{description}
+Exception support is explained in \seec{Exceptions}
 
-The \var{raise} statement is as follows:
-\begin{listing}
-  Raise [ExceptionInstance [at Address]];
-\end{listing}
-This statement will raise an exception. If specified, \var{ExceptionInstance} 
-must be an initialized instance of a class, which is the raise type. If
-specified, \var{Address} must be an expression that returns an address.
+\chapter{Using functions and procedures}
 
-If \var{ExceptionInstance} is omitted, then the Current exception is
-re-raised. This construct can only be used in an exception handling
-block.
-
-As an example: The following division checks whether the denominator is
-zero, and if so, raises an exception of type \var{EDivException}
-\begin{listing}
-Type EDivException = Class(Exception);
-
-Function DoDiv (X,Y : Longint) : Integer;
-
-begin
-  If Y=0 then 
-    Raise EDivException.Create ('Division by Zero would occur');
-  Result:=X Div Y;
-end;
-\end{listing}
-The class \var{Exception} is defined in the \file{Sysutils} unit of the rtl.
-
-An exception handling block is of the following form :
-\begin{listing}
-  Try
-    ...Statement List...
-  Except
-    [On [E:] ExceptionClass do CompoundStatement;] 
-    [ Default exception handler]
-  end;
-\end{listing}
-If an exception occurs during the execution of the \var{statement list}, the
-program flow fill be transferred to the except block. There, the type of the
-exception is checked, and if there is a \var{On ExcType} statement where
-\var{ExcType} matches the exception object type, or is a parent type of
-the exception object type, then the statements follwing the corresponding 
-\var{Do} will be executed. The first matching type is used. After the
-\var{Do} block was executed, the program continues after the \var{End}
-statement.
-
-The identifier \var{E} is optional, and declares an exception object. It
-can be used to manipulate the exception object in the exception handling 
-code. The scope of this declaration is the statement block foillowing the
-\var{Do} keyword.
-
-If none of the \var{On} handlers matches the exception object type, then the
-\var{Default exception handler} is executed. If no such default handler is 
-found, then the exception is automatically re-raised. This process allows
-to nest \var{try...except} blocks.
-
-As an example, given the previous declaration of the \var{DoDiv} function,
-consider the following
-\begin{listing}
-Try
-  Z:=DoDiv (X,Y);
-Except
-  On EDivException do Z:=0;
-end;
-\end{listing}
-If \var{Y} happens to be zero, then the DoDiv function code will raise an
-exception. When this happens, program flow is transferred to the except
-statement, where the Exception handler will set the value of \var{Z} to
-zero. If no exception is raised, then program flow continues past the last
-\var{end} statement.
-
-To allow error recovery, the \var{Try ... Finally} block is supported.
-A \var{Try...Finally} block ensures that the statements following the
-\var{Finally} keyword are guaranteed to be executed, even if an exception
-occurs.
-
-A \var{Try..Finally} block has the following form:
-
-\begin{listing}
-  Try
-    ...Statement List...
-  Finally
-    [ Finally Statements ]
-  end;
-\end{listing}
-If no exception occurs inside the \var{Statement List}, then the program
-runs as if the \var{Try}, \var{Finally} and \var{End} keywords were not
-present.
-
-If, however, an exception occurs, the program flow is immediatly
-transferred to the first statement of the \var{Finally statements}. 
-All statements of the \var{Finally Statements} will be executed, and then
-the exception will be automatically re-raised. Any statements between the
-place where the exception was raised and the first statement of the
-\var{Finally Statements} are skipped.
-
-As an example consider the following routine:
-
-\begin{listing}
-Procedure Doit (Name : string);
-
-Var F : Text;
-
-begin
-  Try
-    Assign (F,Name);
-    Rewrite (name);
-
-    ... File handling ...
-
-  Finally
-    Close(F);
-  end;  
-\end{listing}
-If during the execution of the file handling an excption occurs, then
-program flow will continue at the \var{close(F)} statement, skipping any
-file operations that might follow between the place where the exception
-was raised, and the \var{Close} statement.
-
-If no exception occurred, all file operations will be executed, and the file
-will be closed at the end.
-
-It is possible to nest \var{Try...Except} blocks with \var{Try...Finally}
-blocks. Program flow will be done according to a \var{lifo} (last in, first
-out) principle: The code of the last encountered \var{Try...Except} or
- \var{Try...Finally} block will be executed first. If the exception is not
-caught, or it was a finally statement, program flow will we transferred to
-the last but-one block, {\em ad infinitum}.
-
-If an exception occurs, and there is no exception handler present, then a
-runerror 217 will be generated. If you use the \file{sysutils} unit, a default
-handler is installed which ioll show the exception object message, and the
-address where the exception occurred, after which the program will exit with
-a \var{Halt} instruction.
-
-\section{Using functions and procedures}
 \fpc supports the use of functions and procedures, but with some extras:
 Function overloading is supported, as well as \var{Const} parameters and
 open arrays.
 
-{\em remark:} In the subsequent paragraph the word \var{procedure} and
-\var{function} will be used interchangeably. The statements made are
-valid for both.
+{\em remark:} In many of the subsequent paragraphs the word \var{procedure} 
+and \var{function} will be used interchangeably. The statements made are
+valid for both, except when indicated otherwise.
 
-\subsection{Function overloading}
+\section{Procedure declaration}
+
+A procedure declaration defines an identifier and associates it with a
+block of code. The procedure can then be called with a procedure statement.
+
+\input{syntax/procedur.syn}
+
+\section{Function declaration}
+A function declaration defines an identifier and associates it with a
+block of code. The block of code will return a result.  
+The function can then be called inside an expression, or with a procedure 
+statement. 
+
+\input{syntax/function.syn}
+
+\section{Function overloading}
 Function overloading simply means that you can define the same function more
 than once, but each time with a different set of arguments.
 
@@ -2744,7 +2710,7 @@ specified parameter list. If the compiler finds such a function, a call is
 inserted to that function. If no such function is found, a compiler error is
 generated.
 
-\subsection{\var{Const} parameters}
+\section{\var{Const} parameters}
 In addition to \var{var} parameters and normal parameters (call by value,
 call by reference), \fpc also supports \var{Const} parameters. You can
 specify a \var{Const} parameter as follows:
@@ -2758,7 +2724,7 @@ but you are not allowed to assign to it, this will result in a compiler error.
 The main use for this is reducing the stack size, hence improving
 performance.
 
-\subsection{Open array parameters}
+\section{Open array parameters}
 \fpc supports the passing of open arrays, i.e. You can declare a procedure
 with an array of unspecified length as a parameter, as in Delphi.
 
@@ -2775,66 +2741,15 @@ In a function or procedure, you can pass open arrays only to functions which
 are also declared with open arrays as parameters, {\em not} to functions or
 procedures which accept arrays of fixed length.
 
-\section{Using assembler in your code}
-
-\fpc supports the use of assembler in your code, but not inline
-assembler macros.  To have more information on the processor
-specific assembler syntax and its limitations, see the \progref.
-
-\subsection{ Assembler statements }
-
-The following is an example of assembler inclusion in your code.
-\begin{listing}
- ...
- Statements;
- ...
- Asm
-   your asm code here
-   ...
- end;
- ...
- Statements;
-\end{listing}
-
-The assembler instructions between the \var{Asm} and \var{end} keywords will
-be inserted in the assembler generated by the compiler.
-
-You can still use conditionals in your assembler, the compiler will
-recognise it, and treat it as any other conditionals.
-
-\emph{ Remark: } Before version 0.99.1, \fpc did not support
-reference to variables by their names in the assembler parts of your code.
-
-\subsection{ Assembler procedures and functions }
-
-Assembler procedures and functions are declared using the
-\var{Assembler} directive. The \var{Assembler} keyword is supported
-as of version 0.9.7. This permits the code generator to make a number
-of code generation optimizations.
-
-The code generator does not generate any stack frame (entry and exit
-code for the routine) if it contains no local variables and no
-parameters. In the case of functions, ordinal values must be returned
-in the accumulator. In the case of floating point values, these depend
-on the target processor and emulation options.
-
-\emph{ Remark: } Before version 0.99.1, \fpc did not support
-reference to variables by their names in the assembler parts of your code.
-
-\emph{ Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
-FPC 0.99.5a), the \var{Assembler} directive did not have the
-same effect as in Turbo Pascal, so beware! The stack frame would be
-omitted if there were no local variables, in this case if the assembly
-routine had any parameters, they would be referenced directly via the stack
-pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
-omitted if there are no parameters \emph{ and } no local variables. As
-stated earlier, starting from version 0.99.5a, \fpc now has the same
-behaviour as Turbo Pascal.
-
 \section{Modifiers}
+A function or procedure declaration can contain modifiers. Here we list the
+various possibilities:
+\input{syntax/modifiers.syn}
+
 \fpc doesn't support all Turbo Pascal modifiers, but
 does support a number of additional modifiers. They are used mainly for assembler and
-reference to C object files.
+reference to C object files. More on the use of modifiers can be found in
+\progref.
 
 \subsection{Public}
 The \var{Public} keyword is used to declare a function globally in a unit.
@@ -3065,7 +2980,7 @@ end; ['register1','register2',...,'registern'];
 Where is register one of any of the available processor registers.
 
 
-\subsection{Unsupported Turbo Pascal modifiers}
+\section{Unsupported Turbo Pascal modifiers}
 The modifiers that exist in Turbo pascal, but aren't supported by \fpc, are
 listed in \seet{Modifs}.
 \begin{FPCltable}{lr}{Unsupported modifiers}{Modifs}
@@ -3074,6 +2989,481 @@ Near & \fpc is a 32-bit compiler.\\
 Far & \fpc is a 32-bit compiler. \\
 %External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programs, Units, Blocks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Programs, units, blocks}
+
+A Pascal program consists of modules called \var{units}. A unit can be used
+to group pieces of code together, or to give someone code without giving
+the sources. 
+
+Both programs and units consist of code blocks, which are mixtures of
+statements, procedures, and variable or type declarations.
+
+\section{Programs}
+A pascal program consists of the program header, followed possibly by a 
+'uses' clause, and a block.
+
+\input{syntax/program.syn}
+
+The program header is provided for backwards compatibility, nd is oignored
+by the compiler.
+
+The uses clause serves to identify all units that are needed by the program.
+The system unit doesn't have to be in this list, since it is always loaded
+by the compiler.
+
+The order in which the units appear is significant, it determines in
+which order they are initialized. Units are initialized in the same order
+as they appear in the uses clause. Identifiers are searched in the opposite
+order, i.e. when the compiler searches for an identifier, then it looks
+first in the last unit in the uses clause, then the last but one, and so on.
+
+This is important in case two units declare different types with the same 
+identifier.
+
+When the compiler looks for unit files, it adds the extension \file{.ppu}
+(\file{.ppw} for \windowsnt) to the name of the unit. On \linux, unit names
+are converted to all lowercase when looking for a unit.
+
+If a unit name is longer than 8 characters, the compiler will first look for
+a unit name with this length, and then it will truncate the name to 8
+characters and look for it again.
+
+\section{Units}
+
+A unit contains a set of declarations, procedures and functions that can be
+used by a program or another unit.
+
+The syntax for a unit is as follows:
+
+\input{syntax/unit.syn}
+
+The interface part declares all identifiers that must be exported from the
+unit. This can be constant, type or variable identifiers, and also procedure
+or function identifier declarations. Declarations inside the
+implementationpart are {\em not} accessible outside the unit. The
+implementation must contain a function declaration for each function or
+procedure that is declared in the interface part. If a function is declared
+in the interface part, but no declaration of that function is present in the 
+implementation section is present, then the compiler will give an error.
+
+When a program uses a unit (say \file{unitA}) and this units uses a second
+unit, say \file{unitB}, then the program depends indirectly also on
+\var{unitB}. This means that the compiler must have access to \file{unitB} when
+trying to compile the program. If the unit is not present at compile time,
+an error occurs.
+
+Note that the identifiers from a unit on which a program depends indirectly,
+are not accessible to the program. To have access to the identifiers of a
+unit, you must put that unit in the uses clause of the program or unit where
+you want to yuse the identifier.
+
+Units can be mutually dependent, that is, they can reference each other in
+their uses clauses. This is allowed, on the condition that at least one of
+the references is in the implementation section of the unit. This also holds
+for indirect mutually dependent units. 
+
+If it is possible to start from one interface uses clause of a unit, and to return
+there via uses clauses of interfaces only, then there is circular unit
+dependence, and the compiler will generate an error.
+
+As and example : the following is not allowed:
+\begin{listing}
+Unit UnitA;
+
+interface
+
+Uses UnitB;
+
+implementation
+end.
+
+Unit UnitB
+
+Uses UnitA;
+
+implementation 
+end.
+\end{listing}
+But this is allowed :
+\begin{listing}
+Unit UnitA;
+
+interface
+
+Uses UnitB;
+
+implementation
+end.
+
+Unit UnitB
+
+implementation 
+
+Uses UnitA;
+
+end.
+\end{listing}
+Because \file{UnitB} uses \file{UnitA} only in it's implentation section.
+
+In general, it is a bad idea to have circular unit dependencies, even if it is
+only in implementation sections.
+
+\section{Blocks}
+
+Units and programs are made of blocks. A block is made of declarations of 
+labels, constants, types variables and functions or procedures. Blocks can
+be nested in certain ways, i.e., a procedure or function declaration can
+have blocks in themselves.
+
+A block looks like the following:
+
+\input{syntax/block.syn}
+
+Labels that can be used to identify statements in a block are declared in
+the label declaration part of that block. Each label can only identify one
+statement.
+
+Constants that are to be used only in one block should be declared in that
+block's constant declaration part.
+
+Variables that are to be used only in one block should be declared in that
+block's constant declaration part.
+
+Types that are to be used only in one block should be declared in that
+block's constant declaration part.
+
+Lastly, functions and procedures that will be used in that block can be
+declared in the procedure/function declaration part.
+
+After the different declaration parts comes the statement part. This
+contains any actions that the block should execute.
+All identifiers declared before the statement part can be used in that 
+statement part.
+
+\section{Scope}
+
+Identifiers are valid from the point of their declaration until the end of
+the block in which the declaration occurred. The range where the identifier
+is known is the {\em scope} of the identifier. The exact scope of an
+identifier depends on the way it was defined.
+
+\subsection{Block scope}
+The {\em scope} of a variable declared in the declaration part of a block,
+is valid from the point of declaration until the end of the block.
+
+If a block contains a second block, in which the identfier is
+redeclared, then inside this block, the second declaration will be valid.
+Upon leaving the inner block, the first declaration is valid again.
+
+Consider the following example:
+\begin{listing}
+Program Demo;
+
+Var X : Real;
+{ X is real variable }
+Procedure NewDeclaration
+
+Var X : Integer;  { Redeclare X as integer}
+
+begin
+ // X:=1.234; {would give an error when trying to compile}
+ X:=10; { Correct assigment}
+end;
+
+{ From here on, X is Real again}
+begin
+ X:=2.468;
+end.
+\end{listing}
+In this example, inside the procedure, X denotes an integer variable.
+It has it's own storage space, independent of the variable \var{X} outside
+the procedure.
+
+\subsection{Record scope}
+
+The field identifiers inside a record definition are valid in the following
+places:
+\begin{enumerate}
+\item to the end of the record definition.
+\item field designators of a variable of the given record type.
+\item identifiers inside a \var{With} statement that operates on a variable
+of the given record type.
+\end{enumerate}
+
+\subsection{Class scope}
+A component identifier is valid in the following places:
+\begin{enumerate}
+\item From the point of declaration to the end of the class definition.
+\item In all descendent types of this class.
+\item In all method declaration blocks of this class and descendent classes.
+\item In a with statement that operators on a variable of the given class's
+definition.
+\end{enumerate}
+
+Note that method designators are also considered identifiers.
+
+\subsection{Unit scope}
+
+All identifiers in the interface part of a unit are valid from the point of
+declaration, until the end of the unit. Furthermore, the identifiers are
+known in programs or units that have the unit in their uses clause.
+Identifiers from indirectly dependent units are {\em not} available.
+
+Identifiers declared in the implementation part of a unit are valid from the
+point of declaration to the end of the unit.
+
+The system unit is automatically used in all units and programs. 
+It's identifiers are therefore always known, in each program or unit 
+you make.
+
+The rules of unit scope implie that you can redefine an identifier of a
+unit. To have access to an identifier of another unit that was redeclared in 
+the current unit, precede it with that other units name, as in the following
+example:
+
+\begin{listing}
+unit unitA;
+
+interface
+Type
+  MyType = Real;
+
+implementation
+end.
+
+Program prog;
+
+Uses UnitA;
+ 
+{ Redeclaration of MyType}
+Type MyType = Integer;
+
+Var A : Mytype;      { Will be Integer }
+    B : UnitA.MyType { Will be real }
+
+begin
+end.
+\end{listing}
+This is especially useful if you redeclare the system unit's identifiers.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Exceptions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Exceptions}
+\label{ch:Exceptions}
+
+As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
+convenient way to program error and error-recovery mechanisms, and are
+closely related to classes. 
+
+Exception support is based on 3 constructs:
+\begin{description}
+\item [Raise\ ] statements. To raise an exeption. This is usually done to signal an
+error condition.
+\item [Try ... Except\ ] blocks. These block serve to catch exceptions
+raised within the scope of the block, and to provide exception-recovery 
+code.
+\item [Try ... Finally\ ] blocks. These block serve to force code to be
+executed irrespective of an exception occurrence or not. They generally
+serve to clean up memory or close files in case an exception occurs. 
+code.
+\end{description}
+
+The \var{raise} statement is as follows:
+\begin{listing}
+  Raise [ExceptionInstance [at Address]];
+\end{listing}
+This statement will raise an exception. If specified, \var{ExceptionInstance} 
+must be an initialized instance of a class, which is the raise type. If
+specified, \var{Address} must be an expression that returns an address.
+
+If \var{ExceptionInstance} is omitted, then the Current exception is
+re-raised. This construct can only be used in an exception handling
+block.
+
+As an example: The following division checks whether the denominator is
+zero, and if so, raises an exception of type \var{EDivException}
+\begin{listing}
+Type EDivException = Class(Exception);
+
+Function DoDiv (X,Y : Longint) : Integer;
+
+begin
+  If Y=0 then 
+    Raise EDivException.Create ('Division by Zero would occur');
+  Result:=X Div Y;
+end;
+\end{listing}
+The class \var{Exception} is defined in the \file{Sysutils} unit of the rtl.
+
+An exception handling block is of the following form :
+\begin{listing}
+  Try
+    ...Statement List...
+  Except
+    [On [E:] ExceptionClass do CompoundStatement;] 
+    [ Default exception handler]
+  end;
+\end{listing}
+If an exception occurs during the execution of the \var{statement list}, the
+program flow fill be transferred to the except block. There, the type of the
+exception is checked, and if there is a \var{On ExcType} statement where
+\var{ExcType} matches the exception object type, or is a parent type of
+the exception object type, then the statements follwing the corresponding 
+\var{Do} will be executed. The first matching type is used. After the
+\var{Do} block was executed, the program continues after the \var{End}
+statement.
+
+The identifier \var{E} is optional, and declares an exception object. It
+can be used to manipulate the exception object in the exception handling 
+code. The scope of this declaration is the statement block foillowing the
+\var{Do} keyword.
+
+If none of the \var{On} handlers matches the exception object type, then the
+\var{Default exception handler} is executed. If no such default handler is 
+found, then the exception is automatically re-raised. This process allows
+to nest \var{try...except} blocks.
+
+As an example, given the previous declaration of the \var{DoDiv} function,
+consider the following
+\begin{listing}
+Try
+  Z:=DoDiv (X,Y);
+Except
+  On EDivException do Z:=0;
+end;
+\end{listing}
+If \var{Y} happens to be zero, then the DoDiv function code will raise an
+exception. When this happens, program flow is transferred to the except
+statement, where the Exception handler will set the value of \var{Z} to
+zero. If no exception is raised, then program flow continues past the last
+\var{end} statement.
+
+To allow error recovery, the \var{Try ... Finally} block is supported.
+A \var{Try...Finally} block ensures that the statements following the
+\var{Finally} keyword are guaranteed to be executed, even if an exception
+occurs.
+
+A \var{Try..Finally} block has the following form:
+
+\begin{listing}
+  Try
+    ...Statement List...
+  Finally
+    [ Finally Statements ]
+  end;
+\end{listing}
+If no exception occurs inside the \var{Statement List}, then the program
+runs as if the \var{Try}, \var{Finally} and \var{End} keywords were not
+present.
+
+If, however, an exception occurs, the program flow is immediatly
+transferred to the first statement of the \var{Finally statements}. 
+All statements of the \var{Finally Statements} will be executed, and then
+the exception will be automatically re-raised. Any statements between the
+place where the exception was raised and the first statement of the
+\var{Finally Statements} are skipped.
+
+As an example consider the following routine:
+
+\begin{listing}
+Procedure Doit (Name : string);
+
+Var F : Text;
+
+begin
+  Try
+    Assign (F,Name);
+    Rewrite (name);
+
+    ... File handling ...
+
+  Finally
+    Close(F);
+  end;  
+\end{listing}
+If during the execution of the file handling an excption occurs, then
+program flow will continue at the \var{close(F)} statement, skipping any
+file operations that might follow between the place where the exception
+was raised, and the \var{Close} statement.
+
+If no exception occurred, all file operations will be executed, and the file
+will be closed at the end.
+
+It is possible to nest \var{Try...Except} blocks with \var{Try...Finally}
+blocks. Program flow will be done according to a \var{lifo} (last in, first
+out) principle: The code of the last encountered \var{Try...Except} or
+ \var{Try...Finally} block will be executed first. If the exception is not
+caught, or it was a finally statement, program flow will we transferred to
+the last but-one block, {\em ad infinitum}.
+
+If an exception occurs, and there is no exception handler present, then a
+runerror 217 will be generated. If you use the \file{sysutils} unit, a default
+handler is installed which ioll show the exception object message, and the
+address where the exception occurred, after which the program will exit with
+a \var{Halt} instruction.
+
+\chapter{Using assembler}
+
+\fpc supports the use of assembler in your code, but not inline
+assembler macros.  To have more information on the processor
+specific assembler syntax and its limitations, see the \progref.
+
+\section{Assembler statements }
+
+The following is an example of assembler inclusion in your code.
+\begin{listing}
+ ...
+ Statements;
+ ...
+ Asm
+   your asm code here
+   ...
+ end;
+ ...
+ Statements;
+\end{listing}
+
+The assembler instructions between the \var{Asm} and \var{end} keywords will
+be inserted in the assembler generated by the compiler.
+
+You can still use conditionals in your assembler, the compiler will
+recognise it, and treat it as any other conditionals.
+
+\emph{ Remark: } Before version 0.99.1, \fpc did not support
+reference to variables by their names in the assembler parts of your code.
+
+\section{Assembler procedures and functions}
+
+Assembler procedures and functions are declared using the
+\var{Assembler} directive. The \var{Assembler} keyword is supported
+as of version 0.9.7. This permits the code generator to make a number
+of code generation optimizations.
+
+The code generator does not generate any stack frame (entry and exit
+code for the routine) if it contains no local variables and no
+parameters. In the case of functions, ordinal values must be returned
+in the accumulator. In the case of floating point values, these depend
+on the target processor and emulation options.
+
+\emph{ Remark: } Before version 0.99.1, \fpc did not support
+reference to variables by their names in the assembler parts of your code.
+
+\emph{ Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
+FPC 0.99.5a), the \var{Assembler} directive did not have the
+same effect as in Turbo Pascal, so beware! The stack frame would be
+omitted if there were no local variables, in this case if the assembly
+routine had any parameters, they would be referenced directly via the stack
+pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
+omitted if there are no parameters \emph{ and } no local variables. As
+stated earlier, starting from version 0.99.5a, \fpc now has the same
+behaviour as Turbo Pascal.
+
 
 %
 % System unit reference guide.
