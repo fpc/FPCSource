@@ -34,14 +34,14 @@ begin
   result:=Malloc(Size);
 end;
 
-Function CFreeMem (Var P : pointer) : Longint;
+Function CFreeMem (P : pointer) : Longint;
 
 begin
   Free(P);
   Result:=0;
 end;
 
-Function CFreeMemSize(var p:pointer;Size:Longint):Longint;
+Function CFreeMemSize(p:pointer;Size:Longint):Longint;
 
 begin
   Result:=CFreeMem(P);
@@ -112,7 +112,10 @@ end.
 
 {   
  $Log$
- Revision 1.1  2002-01-29 17:54:59  peter
+ Revision 1.2  2002-06-13 04:54:47  michael
+ + Fixed parameter type mismatch
+
+ Revision 1.1  2002/01/29 17:54:59  peter
    * splitted to base and extra
 
  Revision 1.5  2001/10/23 12:14:36  jonas
