@@ -729,7 +729,7 @@ program install;
                   S := FExpand (Data.BasePath);
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
-                  Space := DiskFree (byte (S [1]) - 64) shr 10;
+                  Space := DiskFree (byte (Upper(S [1])) - 64) shr 10;
                   if Space < DSize then
                    S := 'is not'
                   else
@@ -1074,6 +1074,11 @@ end;
 {$ENDIF}
 
 begin
+{$ifdef FPC}
+{$ifdef win32}
+  Dos.Exec(GetEnv('COMSPEC'),'/C echo This dummy call gets the mouse to become visible');
+{$endif win32}
+{$endif FPC}
 (* TH - no error boxes if checking an inaccessible disk etc. *)
 {$IFDEF OS2}
  {$IFDEF FPC}
@@ -1107,7 +1112,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-02-02 15:21:31  peter
+  Revision 1.15  2000-02-02 17:19:10  pierre
+   * avoid diskfree problem and get mouse visible
+
+  Revision 1.14  2000/02/02 15:21:31  peter
     * show errorcode in message when error in unzipping
 
   Revision 1.13  2000/01/26 21:49:33  peter
