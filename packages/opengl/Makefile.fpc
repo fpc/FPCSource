@@ -8,12 +8,14 @@ version=1.0.5
 
 [require]
 packages_linux=x11
+packages_freebsd=x11
 libc=y
 
 [target]
 units=gl glut
 units_win32=glaux gl_sl glut_sl glaux_sl
 units_linux=glx
+units_freebsd=glx
 exampledirs=examples
 
 [compiler]

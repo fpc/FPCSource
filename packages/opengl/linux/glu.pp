@@ -36,7 +36,7 @@ interface
 
 {$MACRO ON}
 
-{$IFDEF Linux}
+{$IFDEF Unix}
   uses GL;
 {$ELSE}
   {$MESSAGE Unsupported platform.}
@@ -359,7 +359,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-10-01 22:17:59  peter
+  Revision 1.3  2001-06-20 13:59:20  marco
+   * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
+
+  Revision 1.2  2000/10/01 22:17:59  peter
     * new bounce demo
 
   Revision 1.1.2.1  2000/10/01 22:12:28  peter
@@ -376,7 +379,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-10-01 22:17:59  peter
+  Revision 1.3  2001-06-20 13:59:20  marco
+   * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
+
+  Revision 1.2  2000/10/01 22:17:59  peter
     * new bounce demo
 
   Revision 1.1.2.1  2000/10/01 22:12:28  peter

@@ -43,7 +43,7 @@ interface
 
 {$MACRO ON}
 
-{$IFDEF Linux}
+{$IFDEF Unix}
   {$LINKLIB c}
 {$ELSE}
   {$MESSAGE Unsupported platform.}
@@ -2039,7 +2039,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-10-01 22:17:58  peter
+  Revision 1.6  2001-06-20 13:59:20  marco
+   * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
+
+  Revision 1.5  2000/10/01 22:17:58  peter
     * new bounce demo
 
   Revision 1.4.2.1  2000/10/01 22:12:27  peter
@@ -2056,7 +2059,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-10-01 22:17:58  peter
+  Revision 1.6  2001-06-20 13:59:20  marco
+   * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
+
+  Revision 1.5  2000/10/01 22:17:58  peter
     * new bounce demo
 
   Revision 1.4.2.1  2000/10/01 22:12:27  peter

@@ -32,7 +32,7 @@ interface
 
 {$MACRO ON}
 
-{$IFDEF Linux}
+{$IFDEF Unix}
   {$DEFINE gldecl := cdecl;}
   {$DEFINE extdecl := cdecl;}
   uses GL;
@@ -451,7 +451,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-10-01 22:17:59  peter
+  Revision 1.6  2001-06-20 13:59:20  marco
+   * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
+
+  Revision 1.5  2000/10/01 22:17:59  peter
     * new bounce demo
 
   Revision 1.4.2.1  2000/10/01 22:12:28  peter
