@@ -1366,7 +1366,7 @@ implementation
         curconstSegment.concat(Tai_align.create(const_align(l)));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
-          concatstabto(curconstsegment);
+          ttypedconstsym(sym).concatstabto(curconstsegment);
 {$endif GDB}
         if (cs_create_smart in aktmoduleswitches) or
            DLLSource then
@@ -1491,7 +1491,7 @@ implementation
         datasize:=tvarsym(sym).address+l;
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
-           concatstabto(bsssegment);
+           tvarsym(sym).concatstabto(bsssegment);
 {$endif GDB}
         if (symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
@@ -1526,7 +1526,7 @@ implementation
         curconstSegment.concat(Tai_align.create(const_align(l)));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
-          concatstabto(curconstsegment);
+          ttypedconstsym(sym).concatstabto(curconstsegment);
 {$endif GDB}
         if (symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
@@ -2342,7 +2342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-11-18 17:32:00  peter
+  Revision 1.79  2002-11-19 16:26:33  pierre
+   * correct a stabs generation problem that lead to use errordef in stabs
+
+  Revision 1.78  2002/11/18 17:32:00  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.77  2002/11/15 01:58:54  peter
