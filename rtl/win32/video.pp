@@ -35,17 +35,19 @@ const
 var ConsoleInfo : TConsoleScreenBufferInfo;
     ConsoleCursorInfo : TConsoleCursorInfo;
 
-    OrigCurType: TConsoleCursorInfo;
-    OrigVioMode: TConsoleScreenBufferInfo;
     OrigCP: cardinal;
-
+    OrigConsoleCursorInfo : TConsoleCursorInfo;
+    OrigConsoleInfo : TConsoleScreenBufferInfo;
 
 procedure SysInitVideo;
 
 begin
   ScreenColor:=true;
-  GetConsoleScreenBufferInfo(TextRec(Output).Handle, ConsoleInfo);
-  GetConsoleCursorInfo(TextRec(Output).Handle, ConsoleCursorInfo);
+  GetConsoleScreenBufferInfo(TextRec(Output).Handle, OrigConsoleInfo);
+  GetConsoleCursorInfo(TextRec(Output).Handle, OrigConsoleCursorInfo);
+  OrigCP := GetConsoleCP;
+  ConsoleInfo:=OrigConsoleInfo;
+  ConsoleCursorInfo:=OrigConsoleCursorInfo;
   {
     About the ConsoleCursorInfo record: There are 3 possible
     structures in it that can be regarded as the 'screen':
@@ -76,7 +78,10 @@ end;
 
 procedure SysDoneVideo;
 begin
+  SetConsoleScreenBufferSize (TextRec (Output).Handle, OrigConsoleInfo.dwSize);
+  SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, OrigConsoleInfo.srWindow);
   SetCursorType(crUnderLine);
+  SetConsoleCP(OrigCP);
 end;
 
 
@@ -401,17 +406,14 @@ Const
   );
 
 procedure TargetEntry;
-
 var
   C: Coord;
   SR: Small_Rect;
-
+  VioMode: TConsoleScreenBufferInfo;
 begin
-  GetConsoleScreenBufferInfo (TextRec (Output).Handle, OrigVioMode);
-  GetConsoleCursorInfo (TextRec (Output).Handle, OrigCurType);
-  OrigCP := GetConsoleCP;
+  GetConsoleScreenBufferInfo (TextRec (Output).Handle, VioMode);
   { Register the curent video mode in reserved slot in System Modes}
-  with OrigVioMode do
+  with VioMode do
     begin
       {Assume we have at least 16 colours available in "colour" modes}
       SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
@@ -421,7 +423,7 @@ begin
     end;
   GetMem (OrigScreen, OrigScreenSize);
   with C do
-    begin  
+    begin
       X := 0;
       Y := 0;
     end;
@@ -429,10 +431,10 @@ begin
     begin
       Top := 0;
       Left := 0;
-      Right := Pred (OrigVioMode.dwSize.X);
-      Bottom := Pred (OrigVioMode.dwSize.Y);
+      Right := Pred (VioMode.dwSize.X);
+      Bottom := Pred (VioMode.dwSize.Y);
     end;
-  if not (ReadConsoleOutput (TextRec (Output).Handle, OrigScreen, OrigVioMode.dwSize, C, SR)) then
+  if not (ReadConsoleOutput (TextRec (Output).Handle, OrigScreen, VioMode.dwSize, C, SR)) then
     begin
       FreeMem (OrigScreen, OrigScreenSize);
       OrigScreen := nil;
@@ -447,7 +449,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-10-03 20:16:43  armin
+  Revision 1.16  2004-12-22 15:29:26  peter
+    * always restore original window/buffersize for the console at exit
+
+  Revision 1.15  2004/10/03 20:16:43  armin
   * SysUpdateScreen modified esi and edi
 
   Revision 1.14  2004/09/15 18:59:40  hajny
