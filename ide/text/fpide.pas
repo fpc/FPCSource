@@ -652,7 +652,7 @@ begin
     Shell(ProgramPath+' '+Params);
   {$else}
     if (InFile='') and (OutFile='') then
-      Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
+      DosExecute(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
     else
       ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
   {$endif}
@@ -854,7 +854,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.42  1999-10-27 12:10:42  pierre
+  Revision 1.43  1999-11-10 17:19:06  pierre
+   * Use DosExecute from Fpredir unit
+
+  Revision 1.42  1999/10/27 12:10:42  pierre
     + With DebugUndo added 3 menu items
       "Dump Undo" "Undo All" and "Redo All"
       for Undo checks
