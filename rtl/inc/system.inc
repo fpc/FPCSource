@@ -433,7 +433,7 @@ end;
 
 Procedure system_exit;forward;
 
-Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+Procedure InternalExit;
 var
   current_exit : Procedure;
 Begin
@@ -446,7 +446,7 @@ Begin
    End;
   { Finalize units }
   FinalizeUnits;
-  { Show runtime error }
+  { Show runtime error and exit }
   If erroraddr<>nil Then
    Begin
      Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
@@ -455,9 +455,20 @@ Begin
      dump_stack(stdout,ErrorBase);
      Writeln(stdout,'');
    End;
-  { call system dependent exit code }
-  System_exit;
 End;
+
+
+Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+begin
+  InternalExit;
+  System_exit;
+end;
+
+
+Procedure lib_exit;saveregisters;[Public,Alias:'FPC_LIB_EXIT'];
+begin
+  InternalExit;
+end;
 
 
 Procedure Halt(ErrNum: Byte);
@@ -639,7 +650,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-05-09 19:57:07  peter
+  Revision 1.14  2001-06-03 15:15:58  peter
+    * lib_exit added
+
+  Revision 1.13  2001/05/09 19:57:07  peter
   *** empty log message ***
 
   Revision 1.12  2001/04/13 18:06:28  peter
