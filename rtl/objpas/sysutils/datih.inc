@@ -43,7 +43,7 @@ const
      ((31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
       (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31));
 
-   TwoDigitYearCenturyWindow : word=0;
+   TwoDigitYearCenturyWindow : word= 50;
                              { Threshold to be subtracted from year before
                                age-detection.}
 
@@ -128,7 +128,10 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-26 20:15:46  michael
+  TwoDigitYearCenturyWindow is 50
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.8  2003/01/18 23:45:37  michael
