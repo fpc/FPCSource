@@ -403,13 +403,15 @@ implementation
           (symtableentry = tloadnode(p).symtableentry) and
           (symtable = tloadnode(p).symtable);
       end;
-    
+
+{$ifdef extdebug}
     procedure Tloadnode.dowrite;
     
     begin
 	inherited dowrite;
 	write('[',symtableentry.name,']');
     end;
+{$endif}
 
 
 {*****************************************************************************
@@ -993,7 +995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-07-19 12:55:27  daniel
+  Revision 1.48  2002-07-20 07:44:37  daniel
+  * Forgot to add a {$ifdef extdebug}
+
+  Revision 1.47  2002/07/19 12:55:27  daniel
   * Further developed state tracking in whilerepeatn
 
   Revision 1.46  2002/07/19 11:41:36  daniel
