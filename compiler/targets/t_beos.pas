@@ -183,9 +183,21 @@ end;
 *****************************************************************************}
 
 Constructor TLinkerBeos.Create;
+var
+  s : string;
+  i : integer;
 begin
   Inherited Create;
-  LibrarySearchPath.AddPath(GetEnv('BELIBRARIES'),true); {format:'path1;path2;...'}
+  s:=GetEnv('BELIBRARIES');
+  { convert to correct format in case under unix system }
+  for i:=1 to length(s) do
+    if s[i] = ':' then
+      s[i] := ';';
+  { just in case we have a single path : add the ending ; }
+  { since that is what the compiler expects.              }
+  if pos(';',s) = 0 then
+    s:=s+';';
+  LibrarySearchPath.AddPath(s,true); {format:'path1;path2;...'}
 end;
 
 
@@ -517,7 +529,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-09-18 11:32:00  michael
+  Revision 1.9  2001-10-12 16:05:34  peter
+    * system lib search fixed (merged)
+
+  Revision 1.8  2001/09/18 11:32:00  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
