@@ -27,15 +27,18 @@ actions are included in the INITALIZATION part of these units. This explains
 the behaviour of such a unit having just a USES clause!}
 implementation
 uses
-  ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
-  ncpuadd,ncpucall,{n386con,n386flw,}ncpumat,{n386mem,}
-  ncgset,ncpuinln,{n386opt,}ncpucnv,
+  ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,
+  ncpuadd,ncpucall,ncpumat,
+  ncgset,ncpuinln,ncpucnv,
   { this not really a node }
-  {ncpuobj,}rgcpu;
+  rgcpu;
 end.
 {
     $Log$
-    Revision 1.7  2003-01-22 20:45:15  mazen
+    Revision 1.8  2003-08-11 09:05:09  mazen
+    - Code cleaning : removed unused commentd units which equivalent were already added.
+
+    Revision 1.7  2003/01/22 20:45:15  mazen
     * making math code in RTL compiling.
     *NB : This does NOT mean necessary that it will generate correct code!
 
