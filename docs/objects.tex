@@ -19,7 +19,7 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The Objects unit.}
-This chapte documents te \file{objects} unit. The unit was implemented by
+This chapter documents the \file{objects} unit. The unit was implemented by
 many people, and was mainly taken from the FreeVision sources.
 
 The methods and fields that are in a \var{Private} part of an object
@@ -679,7 +679,7 @@ Constructor Init (FileName: FNameStr; Mode: Word);
 \var{Init} instantiates an instance of \var{TDosStream}. The name of the 
 file that contains (or will contain) the data of the stream is given in
 \var{FileName}. The \var{Mode} parameter determines whether a new file 
-should be created and what access righrts you have on the file. 
+should be created and what access rights you have on the file. 
 It can be one of the following constants:
 \begin{description}
 \item[stCreate] Creates a new file.
@@ -691,7 +691,7 @@ It can be one of the following constants:
 On error, \var{Status} is set to \var{stInitError}, and \var{ErrorInfo}
 is set to the \dos error code.
 \SeeAlso
-\seep{TStream.Init}, \seepl{Done}{TDosStream.Done}
+\seepl{Done}{TDosStream.Done}
 \end{procedure}
 
 \begin{procedure}{TDosStream.Done}
@@ -703,7 +703,7 @@ instance of \var{TDosStream}.
 \Errors
 None.
 \SeeAlso
-\seep{TStream.Done}, \seepl{Init}{TDosStream.Init},
+\seepl{Init}{TDosStream.Init},
 \seepl{Close}{TDosStream.Close}
 \end{procedure}
 
@@ -721,23 +721,92 @@ None.
 \seepl{Done}{TDosStream.Done}
 \end{procedure}
 
-\begin{procedure}
+\begin{procedure}{TDosStream.Truncate}
 \Declaration
 Procedure TDosStream.Truncate; Virtual;
 \Description
 If the status of the stream is \var{stOK}, then \var{Truncate} tries to
 truncate the stream size to the current file position.
+\Errors
+If an error occurs, the stream's status is set to \var{stError} and
+\var{ErrorInfo} is set to the OS error code.
+\SeeAlso
+\seep{TStream.Truncate}, \seefl{GetSize}{TStream.GetSize}
+\end{procedure}
 
+\begin{procedure}{TDosStream.Seek}
+\Declaration
+Procedure TDosStream.Seek (Pos: LongInt); Virtual;
+\Description
+If the stream's status is \var{stOK}, then \var{Seek} sets the 
+file position to \var{Pos}. \var{Pos} is a zero-based offset, counted from
+the beginning of the file.
+\Errors
+In case an error occurs, the stream's status is set to \var{stSeekError},
+and the OS error code is stored in \var{ErrorInfo}.
+\SeeAlso
+\seep{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
+\end{procedure}
 
-      PROCEDURE Seek (Pos: LongInt); Virtual;
-      PROCEDURE Open (OpenMode: Word); Virtual;
-      PROCEDURE Read (Var Buf; Count: Sw_Word); Virtual;
-      PROCEDURE Write (Var Buf; Count: Sw_Word); Virtual;
+\begin{procedure}{TDosStream.Open}
+\Declaration
+Procedure TDosStream.Open (OpenMode: Word); Virtual;
+\Description
+If the stream's status is \var{stOK}, and the stream is closed then
+\var{Open} re-opens the file stream with mode \var{OpenMode}.
+This call can be used after a \seepl{Close}{TDosStream.Close} call.
+\Errors
+If an error occurs when re-opening the file, then \var{Status} is set
+to \var{stOpenError}, and the OS error code is stored in \var{ErrorInfo}
+\SeeAlso
+\seep{TStream.Open}, \seepl{Close}{TDosStream.Close}
+\end{procedure}
 
-\end{function}
+\begin{procedure}{TDosStream.Read}
+\Declaration
+Procedure TDosStream.Read (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+If the Stream is open and the stream status is \var{stOK} then 
+\var{Read} will read \var{Count} bytes from the stream and place them
+in  \var{Buf}.
+\Errors
+In case of an error, \var{Status} is set to \var{StReadError}, and
+\var{ErrorInfo} gets the OS specific error, or 0 when an attempt was
+made to read beyond the end of the stream.
+\SeeAlso
+\seep{TStream.Read}, \seepl{Write}{TDosStream.Write}
+\end{procedure}
+
+\begin{procedure}{TDosStream.Write}
+\Declaration
+Procedure TDosStream.Write (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+If the Stream is open and the stream status is \var{stOK} then 
+\var{Write} will write \var{Count} bytes from \var{Buf} and place them
+in the stream.
+\Errors
+In case of an error, \var{Status} is set to \var{StWriteError}, and
+\var{ErrorInfo} gets the OS specific error.
+\SeeAlso
+\seep{TStream.Write}, \seepl{Read}{TDosStream.Read}
+
+\end{procedure}
 
 \section{TBufStream}
 \label{se:TBufStream}
+
+\var{Bufstream} implements a buffered file stream. That is, all data written
+to the stream is written to memory first. Only when the buffer is full, or
+on explicit request, the data is written to disk.
+
+Also, when reading from the stream, first the buffer is checked if there is
+any unread data in it. If so, this is read first. If not the buffer is
+filled again, and then the data is read from the buffer.
+
+The size of the buffer is fixed and is set when constructing the file.
+
+This is useful if you need heavy throughput for your stream, because it
+speeds up operations.
 
 \begin{verbatim}
 TYPE
@@ -759,6 +828,156 @@ TYPE
    END;
    PBufStream = ^TBufStream;
 \end{verbatim}
+
+\begin{procedure}{TBufStream.Init}
+\Declaration
+Constructor Init (FileName: FNameStr; Mode,Size: Word);
+\Description
+\var{Init} instantiates an instance of \var{TBufStream}. The name of the 
+file that contains (or will contain) the data of the stream is given in
+\var{FileName}. The \var{Mode} parameter determines whether a new file 
+should be created and what access rights you have on the file. 
+It can be one of the following constants:
+\begin{description}
+\item[stCreate] Creates a new file.
+\item[stOpenRead] Read access only.
+\item[stOpenWrite] Write access only.
+\item[stOpen] Read and write access.
+\end{description}
+The \var{Size} parameter determines the size of the buffer that will be
+created. It should be different from zero.
+\Errors
+On error, \var{Status} is set to \var{stInitError}, and \var{ErrorInfo}
+is set to the \dos error code.
+\SeeAlso
+\seep{TDosStream.Init}, \seepl{Done}{TBufStream.Done}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Done}
+\Declaration
+Destructor TBufStream.Done; Virtual;
+\Description
+\var{Done} flushes and closes the file if it was open and cleans up the 
+instance of \var{TBufStream}. 
+\Errors
+None.
+\SeeAlso
+\seep{TDosStream.Done}, \seepl{Init}{TBufStream.Init},
+\seepl{Close}{TBufStream.Close}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Close}
+\Declaration
+Pocedure TBufStream.Close; Virtual;
+\Description
+\var{Close} flushes and closes the file if it was open, and sets \var{Handle} to -1. 
+Contrary to \seepl{Done}{TBufStream.Done} it does not clean up the instance
+of \var{TBufStream}
+\Errors
+None.
+\SeeAlso
+\seep{TStream.Close}, \seepl{Init}{TBufStream.Init},
+\seepl{Done}{TBufStream.Done}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Flush}
+\Declaration
+Pocedure TBufStream.Flush; Virtual;
+\Description
+When the stream is in write mode, the contents of the buffer are written to
+disk, and the buffer position is set to zero.
+
+When the stream is in read mode, the buffer position is set to zero.
+\Errors
+Write errors may occur if the file was in write mode.
+see \seepl{Write}{TBufStream.Write} for more info on the errors.
+\SeeAlso
+\seep{TStream.Close}, \seepl{Init}{TBufStream.Init},
+\seepl{Done}{TBufStream.Done}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Truncate}
+\Declaration
+Procedure TBufStream.Truncate; Virtual;
+\Description
+If the status of the stream is \var{stOK}, then \var{Truncate} tries to
+flush the buffer, and then truncates the stream size to the current 
+file position.
+\Errors
+Errors can be those of \seepl{Flush}{TBufStream.Flush} or
+\seep{TDosStream.Truncate}.
+\SeeAlso
+\seep{TStream.Truncate}, \seep{TDosStream.Truncate},
+\seefl{GetSize}{TStream.GetSize}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Seek}
+\Declaration
+Procedure TBufStream.Seek (Pos: LongInt); Virtual;
+\Description
+If the stream's status is \var{stOK}, then \var{Seek} sets the 
+file position to \var{Pos}. \var{Pos} is a zero-based offset, counted from
+the beginning of the file.
+\Errors
+In case an error occurs, the stream's status is set to \var{stSeekError},
+and the OS error code is stored in \var{ErrorInfo}.
+\SeeAlso
+\seep{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Open}
+\Declaration
+Procedure TBufStream.Open (OpenMode: Word); Virtual;
+\Description
+If the stream's status is \var{stOK}, and the stream is closed then
+\var{Open} re-opens the file stream with mode \var{OpenMode}.
+This call can be used after a \seepl{Close}{TBufStream.Close} call.
+\Errors
+If an error occurs when re-opening the file, then \var{Status} is set
+to \var{stOpenError}, and the OS error code is stored in \var{ErrorInfo}
+\SeeAlso
+\seep{TStream.Open}, \seepl{Close}{TBufStream.Close}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Read}
+\Declaration
+Procedure TBufStream.Read (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+If the Stream is open and the stream status is \var{stOK} then 
+\var{Read} will read \var{Count} bytes from the stream and place them
+in  \var{Buf}.
+
+\var{Read} will first try to read the data from the stream's internal
+buffer. If insufficient data is available, the buffer will be filled before
+contiunuing to read. This process is repeated until all needed data 
+has been read.
+
+\Errors
+In case of an error, \var{Status} is set to \var{StReadError}, and
+\var{ErrorInfo} gets the OS specific error, or 0 when an attempt was
+made to read beyond the end of the stream.
+\SeeAlso
+\seep{TStream.Read}, \seepl{Write}{TBufStream.Write}
+\end{procedure}
+
+\begin{procedure}{TBufStream.Write}
+\Declaration
+Procedure TBufStream.Write (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+If the Stream is open and the stream status is \var{stOK} then 
+\var{Write} will write \var{Count} bytes from \var{Buf} and place them
+in the stream.
+
+\var{Write} will first try to write the data to the stream's internal
+buffer. When the internal buffer is full, then the contents will be written 
+to disk. This process is repeated until all data has been written.
+\Errors
+In case of an error, \var{Status} is set to \var{StWriteError}, and
+\var{ErrorInfo} gets the OS specific error.
+\SeeAlso
+\seep{TStream.Write}, \seepl{Read}{TBufStream.Read}
+
+\end{procedure}
 
 \section{TMemoryStream}
 \section{se:TMemoryStream}
