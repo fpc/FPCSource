@@ -6809,28 +6809,87 @@ end;
 
 procedure TEditorInputLine.HandleEvent(var Event : TEvent);
 var
-  s : string;
+  s,s2 : string;
   i : longint;
 begin
-     If (Event.What=evKeyDown) and
-        (Event.KeyCode=kbRight) and
-        (CurPos = Length(Data^)) and
-        Assigned(FindReplaceEditor) then
-       Begin
-         s:=FindReplaceEditor^.GetDisplayText(FindReplaceEditor^.CurPos.Y);
-         s:=Copy(s,FindReplaceEditor^.CurPos.X + 1 -length(Data^),high(s));
-         i:=pos(Data^,s);
-         if i>0 then
+     If (Event.What=evKeyDown) then
+       begin
+         if (Event.KeyCode=kbRight) and
+            (CurPos = Length(Data^)) and
+            Assigned(FindReplaceEditor) then
+           Begin
+             s:=FindReplaceEditor^.GetDisplayText(FindReplaceEditor^.CurPos.Y);
+             s:=Copy(s,FindReplaceEditor^.CurPos.X + 1 -length(Data^),high(s));
+             i:=pos(Data^,s);
+             if i>0 then
+               begin
+                 s:=Data^+s[i+length(Data^)];
+                 If not assigned(validator) or
+                    Validator^.IsValidInput(s,False)  then
+                   Begin
+                     Event.CharCode:=s[length(s)];
+                     Event.Scancode:=0;
+                     Inherited HandleEvent(Event);
+                   End;
+               end;
+             ClearEvent(Event);
+           End
+         else if (Event.KeyCode=kbShiftIns)  and
+                 Assigned(Clipboard) and (Clipboard^.ValidBlock) then
+           { paste from clipboard }
            begin
-             s:=Data^+s[i+length(Data^)];
-             If not assigned(validator) or
-                Validator^.IsValidInput(s,False)  then
-               Begin
-                 Event.CharCode:=s[length(s)];
-                 Event.Scancode:=0;
-                 Inherited HandleEvent(Event);
-               End;
-           end;
+             i:=Clipboard^.SelStart.Y;
+             s:=Clipboard^.GetDisplayText(i);
+             i:=Clipboard^.SelStart.X;
+             if i>0 then
+              s:=copy(s,i+1,high(s));
+             if (Clipboard^.SelStart.Y=Clipboard^.SelEnd.Y) then
+               begin
+                 i:=Clipboard^.SelEnd.X-i;
+                 s:=copy(s,1,i);
+               end;
+             for i:=1 to length(s) do
+               begin
+                 s2:=Data^+s[i];
+                 If not assigned(validator) or
+                    Validator^.IsValidInput(s2,False)  then
+                   Begin
+                     Event.What:=evKeyDown;
+                     Event.CharCode:=s[i];
+                     Event.Scancode:=0;
+                     Inherited HandleEvent(Event);
+                   End;
+               end;
+             ClearEvent(Event);
+           end
+         else if (Event.KeyCode=kbCtrlIns)  and
+                 Assigned(Clipboard) then
+           { Copy to clipboard }
+           begin
+             s:=GetStr(Data);
+             s:=copy(s,selstart+1,selend-selstart);
+             Clipboard^.SelStart:=Clipboard^.CurPos;
+             Clipboard^.InsertText(s);
+             Clipboard^.SelEnd:=Clipboard^.CurPos;
+             ClearEvent(Event);
+           end
+         else if (Event.KeyCode=kbShiftDel)  and
+                 Assigned(Clipboard) then
+           { Cut to clipboard }
+           begin
+             s:=GetStr(Data);
+             s:=copy(s,selstart+1,selend-selstart);
+             Clipboard^.SelStart:=Clipboard^.CurPos;
+             Clipboard^.InsertText(s);
+             Clipboard^.SelEnd:=Clipboard^.CurPos;
+             s2:=GetStr(Data);
+             { now remove the selected part }
+             Event.keyCode:=kbDel;
+             inherited HandleEvent(Event);
+             ClearEvent(Event);
+           end
+         else
+           Inherited HandleEvent(Event);
        End
      else
        Inherited HandleEvent(Event);
@@ -6914,7 +6973,7 @@ var R,R1,R2: TRect;
     D: PDialog;
     Control : PView;
     IL1: PEditorInputLine;
-    IL2: PInputLine;
+    IL2: PEditorInputLine;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
 begin
@@ -7001,7 +7060,7 @@ function CreateGotoLineDialog(Info: pointer): PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
     Control : PView;
-    IL: PInputLine;
+    IL: PEditorInputLine;
 begin
   R.Assign(0,0,40,7);
   New(D, Init(R, dialog_gotoline));
@@ -7191,7 +7250,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.38  2002-12-17 13:48:28  pierre
+  Revision 1.39  2002-12-18 01:18:10  pierre
+   + Cut/Copy/Paste added to TEditorInputLine
+
+  Revision 1.38  2002/12/17 13:48:28  pierre
    * fix web bug 2012
 
   Revision 1.37  2002/12/16 15:13:58  pierre
