@@ -57,14 +57,17 @@ Function  lo(i : Integer) : byte;  [INTERNPROC: In_lo_Word];
 Function  lo(w : Word) : byte;     [INTERNPROC: In_lo_Word];
 Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
 Function  lo(l : DWord) : Word;  [INTERNPROC: In_lo_long];
-Function  lo(q : QWord) : DWord;  [INTERNPROC: In_lo_qword];
-Function  lo(i : Int64) : DWord;  [INTERNPROC: In_lo_qword];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
 Function  hi(l : DWord) : Word;  [INTERNPROC: In_hi_long];
+
+{$ifdef INT64}
+Function  lo(q : QWord) : DWord;  [INTERNPROC: In_lo_qword];
+Function  lo(i : Int64) : DWord;  [INTERNPROC: In_lo_qword];
 Function  hi(q : QWord) : DWord;  [INTERNPROC: In_hi_qword];
 Function  hi(i : Int64) : DWord;  [INTERNPROC: In_hi_qword];
+{$endif}
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -155,6 +158,7 @@ Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
+{$ifdef INT64}
 Function Swap (X : QWord) : QWord;
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
@@ -164,7 +168,7 @@ Function swap (X : Int64) : Int64;
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
-
+{$endif}
 
 {$endif RTLLITE}
 
@@ -569,7 +573,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  1999-07-02 18:06:42  florian
+  Revision 1.63  1999-07-03 01:24:19  peter
+    * $ifdef int64
+
+  Revision 1.62  1999/07/02 18:06:42  florian
     + qword/int64: lo/hi/swap
 
   Revision 1.61  1999/07/01 15:39:51  florian

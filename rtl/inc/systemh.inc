@@ -170,21 +170,23 @@ Function  lo(l:Longint):Word;
 Function  lo(l:DWord):Word;
 Function  lo(i:Integer):byte;
 Function  lo(B: Byte):Byte;
-Function  lo(q : QWord) : DWord;
-Function  lo(i : Int64) : DWord;
 Function  hi(w:Word):byte;
 Function  hi(i:Integer):byte;
 Function  hi(l:Longint):Word;
 Function  hi(b : Byte) : Byte;
 Function  hi(l: DWord): Word;
-Function  hi(q : QWord) : DWord;
-Function  hi(i : Int64) : DWord;
 Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:LongInt):LongInt;
+{$ifdef INT64}
+Function  lo(q : QWord) : DWord;
+Function  lo(i : Int64) : DWord;
+Function  hi(q : QWord) : DWord;
+Function  hi(i : Int64) : DWord;
 Function  Swap (X:QWord):QWord;
 Function  Swap (X:Int64):Int64;
+{$endif}
 {$endif RTLLITE}
 
 Function  Random(l:Longint):Longint;
@@ -476,7 +478,10 @@ const
 
 {
   $Log$
-  Revision 1.59  1999-07-02 18:06:43  florian
+  Revision 1.60  1999-07-03 01:24:21  peter
+    * $ifdef int64
+
+  Revision 1.59  1999/07/02 18:06:43  florian
     + qword/int64: lo/hi/swap
 
   Revision 1.58  1999/06/30 22:17:22  florian
