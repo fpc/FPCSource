@@ -141,8 +141,8 @@ interface
 ********************************************}
 
     const
-       { the real size will be [-hasharray..hasharray] ! }
-       hasharraysize = 2047;
+       { the real size will be [0..hasharray-1] ! }
+       hasharraysize = 512;
 
     type
        { namedindexobect for use with dictionary and indexarray }
@@ -175,7 +175,7 @@ interface
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
-       Tdictionaryhasharray=array[-hasharraysize..hasharraysize] of TNamedIndexItem;
+       Tdictionaryhasharray=array[0..hasharraysize-1] of TNamedIndexItem;
 
        TnamedIndexCallback = procedure(p:TNamedIndexItem) of object;
        TnamedIndexStaticCallback = procedure(p:TNamedIndexItem);
@@ -885,12 +885,49 @@ end;
       end;
 
 
+    function counttree(p: tnamedindexitem): longint;
+      begin
+        if not assigned(p) then
+          exit(0);
+        result := 1;
+        inc(result,counttree(p.fleft));
+        inc(result,counttree(p.fright));
+      end;
+
     destructor Tdictionary.destroy;
+{$ifdef hashdebug}
+      var
+        i, unused, slots_with_col, collissions, treecount, maxcol: longint;
+{$endif hashdebug}        
       begin
         if not noclear then
          clear;
         if assigned(FHashArray) then
-         dispose(FHashArray);
+         begin
+{$ifdef hashdebug}
+           unused := 0;
+           collissions := 0;
+           maxcol := 0;
+           slots_with_col := 0;
+           for i := low(fhasharray^) to high(fhasharray^) do
+             if assigned(fhasharray^[i]) then
+               begin
+                 treecount := counttree(fhasharray^[i]);
+                 inc(collissions,sqr(treecount-1));
+                 if treecount > maxcol then
+                   maxcol := treecount;
+                 inc(slots_with_col,ord(treecount>1));
+               end
+             else
+               inc(unused);
+           writeln('Slots unused: ',unused,' out of ',hasharraysize,
+             ' (',slots_with_col,' with >1 items)');
+           writeln('Mean number of collissions: ',
+             (sqrt(collissions / extended(hasharraysize-1))):0:3,' (max: ',maxcol,')');
+           writeln;
+{$endif hashdebug}
+           dispose(FHashArray);
+         end;
       end;
 
 
@@ -912,7 +949,7 @@ end;
         if assigned(FRoot) then
           cleartree(FRoot);
         if assigned(FHashArray) then
-         for w:=-hasharraysize to hasharraysize do
+         for w:= low(FHashArray^) to high(FHashArray^) do
           if assigned(FHashArray^[w]) then
            cleartree(FHashArray^[w]);
       end;
@@ -1046,7 +1083,7 @@ end;
         if assigned(FHashArray) then
          begin
            empty:=false;
-           for w:=-hasharraysize to hasharraysize do
+           for w:=low(FHashArray^) to high(FHashArray^) do
             if assigned(FHashArray^[w]) then
              exit;
            empty:=true;
@@ -1072,7 +1109,7 @@ end;
       begin
         if assigned(FHashArray) then
          begin
-           for i:=-hasharraysize to hasharraysize do
+           for i:=low(FHashArray^) to high(FHashArray^) do
             if assigned(FHashArray^[i]) then
              a(FHashArray^[i]);
          end
@@ -1098,7 +1135,7 @@ end;
       begin
         if assigned(FHashArray) then
          begin
-           for i:=-hasharraysize to hasharraysize do
+           for i:=low(FHashArray^) to high(FHashArray^) do
             if assigned(FHashArray^[i]) then
              a(FHashArray^[i]);
          end
@@ -1738,7 +1775,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-05-04 19:50:04  peter
+  Revision 1.8  2001-11-05 14:16:25  jonas
+    * reduced memory usage by about 10% and increased speed by about 15%
+
+  Revision 1.7  2001/05/04 19:50:04  peter
     * fixed dynamicarray.seek() with pos equals multiple of $10000
 
   Revision 1.6  2001/04/13 01:22:06  peter
