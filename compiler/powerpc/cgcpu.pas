@@ -435,30 +435,23 @@ const
        var
          instr: taicpu;
        begin
-         if (reg1<>reg2) or
-            (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
-            ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
-             (tosize <> fromsize) and
-             not(fromsize in [OS_32,OS_S32])) then
-           begin
-             case tosize of
-               OS_8:
-                 instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
-                   reg2,reg1,0,31-8+1,31);
-               OS_S8:
-                 instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
-               OS_16:
-                 instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
-                   reg2,reg1,0,31-16+1,31);
-               OS_S16:
-                 instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
-               OS_32,OS_S32:
-                 instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
-               else internalerror(2002090901);
-             end;
-             list.concat(instr);
-             rg[R_INTREGISTER].add_move_instruction(instr);
-           end;
+         case tosize of
+           OS_8:
+             instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+               reg2,reg1,0,31-8+1,31);
+           OS_S8:
+             instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
+           OS_16:
+             instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+               reg2,reg1,0,31-16+1,31);
+           OS_S16:
+             instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
+           OS_32,OS_S32:
+             instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
+           else internalerror(2002090901);
+         end;
+         list.concat(instr);
+         rg[R_INTREGISTER].add_move_instruction(instr);
        end;
 
 
@@ -2299,7 +2292,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2004-01-25 16:36:34  jonas
+  Revision 1.157  2004-02-03 19:49:24  jonas
+    - removed mov "reg, reg" optimizations, as they are removed by the
+      register allocator and may be necessary to indicate a register may not
+      be reused before some point
+
+  Revision 1.156  2004/01/25 16:36:34  jonas
     - removed double construction of fpu register allocator
 
   Revision 1.155  2004/01/12 22:11:38  peter
