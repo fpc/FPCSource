@@ -636,8 +636,9 @@ implementation
                   secondpass(p^.left);
                   clear_location(p^.location);
                   p^.location.loc:=LOC_REGISTER;
-                  p^.location.register:=def_getreg(p^.resulttype);
                   del_reference(p^.left^.location.reference);
+                  { this was placed before del_ref => internaalerror(10) }
+                  p^.location.register:=def_getreg(p^.resulttype);
                   if p^.left^.location.loc=LOC_CREGISTER then
                     emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
                   else
@@ -754,7 +755,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-12-11 16:50:22  florian
+  Revision 1.16  1999-01-19 10:51:32  pierre
+   * fix to bug0183 in secondnot
+
+  Revision 1.15  1998/12/11 16:50:22  florian
     + typed const int64 and qword
     + unary minus-operator  q1:=-q2;
     + not-operator
