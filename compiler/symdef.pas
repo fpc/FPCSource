@@ -4391,7 +4391,7 @@ Const local_symtable_index : longint = $8001;
     function tobjectdef.vmtmethodoffset(index:longint):longint;
       begin
         { for offset of methods for classes, see rtl/inc/objpash.inc }
-        if objecttype in [odt_interfacecom,odt_interfacecorba] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
           vmtmethodoffset:=(index+12)*target_os.size_of_pointer
         else
 {$ifdef WITHDMT}
@@ -5521,7 +5521,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.8  2000-11-06 23:13:53  peter
+  Revision 1.9  2000-11-07 20:01:57  peter
+    * fix vmt index for classes
+
+  Revision 1.8  2000/11/06 23:13:53  peter
     * uppercase manglednames
 
   Revision 1.7  2000/11/06 23:11:38  florian
