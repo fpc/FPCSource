@@ -167,13 +167,15 @@
            intftable : pinterfacetable;
            i : longint;
         begin
-          if assigned(objclass.classparent) then
-            InitInterfacePointers(objclass.classparent,instance);
-          intftable:=objclass.getinterfacetable;
-          if assigned(intftable) then
-            for i:=0 to intftable^.EntryCount-1 do
-              ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
-                pointer(intftable^.Entries[i].VTable);
+          while assigned(objclass) do
+            begin
+               intftable:=objclass.getinterfacetable;
+               if assigned(intftable) then
+                 for i:=0 to intftable^.EntryCount-1 do
+                   ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
+                     pointer(intftable^.Entries[i].VTable);
+               objclass:=objclass.classparent
+            end;
         end;
 {$else HASINTF}
         begin
@@ -699,7 +701,10 @@
 
 {
   $Log$
-  Revision 1.27  2002-09-07 15:07:46  peter
+  Revision 1.28  2002-10-11 14:05:21  florian
+    * initinterfacepointers improved
+
+  Revision 1.27  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.26  2002/09/07 11:08:58  carl
