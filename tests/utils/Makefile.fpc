@@ -2,11 +2,6 @@
 # Makefile.fpc for Free Pascal testing utilities
 #
 
-[prerules]
-ifeq ($(USESQL),YES)
-DBDIGEST=dbdigest
-endif
-
 [install]
 fpcpackage=y
 
@@ -17,7 +12,7 @@ fpcdir=../..
 packages = mysql
 
 [target]
-programs = dotest fail testfail digest $(DBDIGEST)
+programs = dotest fail testfail digest dbdigest
 
 [rules]
 

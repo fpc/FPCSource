@@ -113,10 +113,8 @@ utils:
         $(MAKE) -C utils
 
 
-ifeq ($(USESQL),YES)
 ifndef DBDIGEST
 DBDIGEST=utils/dbdigest
-endif
 endif
 
 ifndef DIGEST
@@ -301,9 +299,9 @@ distclean: clean fpc_distclean
 
 digest : utils
         -$(DIGEST) $(LOG)
-ifeq ($(USESQL),YES)
+
+dbdigest: utils
         -$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) -l $(LOG) $(DBDIGESTOPT)
-endif
 
 all : allexectests
 
