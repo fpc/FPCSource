@@ -26,6 +26,9 @@ Unit cpuinfo;
 
 Interface
 
+  uses
+    globtype;
+
 Type
    AWord = QWord;
    PAWord = ^AWord;
@@ -52,17 +55,12 @@ Type
 
    tprocessors =
       (no_processor,
-       ClassDefault
+       ClassAthlon64
       );
 
    tfputype =
      (no_fpuprocessor,
-      fpu_soft,
-      fpu_standard,
-      fpu_x87,
-      fpu_sse,
-      fpu_sse2,
-      fpu_sse3
+      fpu_sse2
      );
 
 Const
@@ -82,12 +80,36 @@ Const
    jmp_buf_size = 48;
 
 
+   { calling conventions supported by the code generator }
+   supported_calling_conventions = [
+     pocall_internproc,
+     pocall_compilerproc,
+     pocall_inline,
+     pocall_register,
+     pocall_safecall,
+     pocall_stdcall,
+     pocall_cdecl,
+     pocall_cppdecl
+   ];
+
+   processorsstr : array[tprocessors] of string[10] = ('',
+     'ATHLON64'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SSE2'
+   );
+
+
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.7  2003-09-24 17:12:02  florian
+  Revision 1.8  2003-12-20 12:38:51  florian
+    * some x86-64 compilation fixe
+
+  Revision 1.7  2003/09/24 17:12:02  florian
     * several fixes for new reg allocator
 
   Revision 1.6  2003/01/05 13:36:54  florian

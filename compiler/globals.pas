@@ -1718,16 +1718,16 @@ implementation
         initfputype:=fpu_fpa;
 {$endif arm}
 {$ifdef x86_64}
-        initoptprocessor:=ClassDefault;
-        initspecificoptprocessor:=ClassDefault;
+        initoptprocessor:=ClassAthlon64;
+        initspecificoptprocessor:=ClassAthlon64;
 
-        initfputype:=fpu_standard;
+        initfputype:=fpu_sse2;
 
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_direct;
+        initasmmode:=asmmode_x8664_gas;
 {$endif x86_64}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_default;
@@ -1744,7 +1744,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-11-30 19:35:29  florian
+  Revision 1.117  2003-12-20 12:38:51  florian
+    * some x86-64 compilation fixe
+
+  Revision 1.116  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.115  2003/11/12 16:05:39  florian

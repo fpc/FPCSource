@@ -72,6 +72,7 @@ interface
             ,asmmode_ppc_motorola
             ,asmmode_arm_gas
             ,asmmode_sparc_gas
+            ,asmmode_x8664_gas
        );
 
      (* IMPORTANT NOTE:
@@ -649,7 +650,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.74  2003-11-29 15:53:06  florian
+  Revision 1.75  2003-12-20 12:38:51  florian
+    * some x86-64 compilation fixe
+
+  Revision 1.74  2003/11/29 15:53:06  florian
     + nasmelf mode for BeOS
     + DQWORD directive in intel assembler mode
 

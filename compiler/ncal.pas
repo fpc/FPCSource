@@ -2460,6 +2460,11 @@ type
               if (procdefinition.proccalloption=pocall_inline) then
                 begin
                    current_procinfo.flags:=current_procinfo.flags+((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+                   {
+                   writeln(longint(current_procinfo.flags));
+                   writeln(longint(inherited_inlining_flags));
+                   writeln(longint((procdefinition as tprocdef).inlininginfo^.flags));
+                   }
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
                    if assigned(right) then
@@ -2699,7 +2704,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.214  2003-12-16 22:09:31  florian
+  Revision 1.215  2003-12-20 12:38:51  florian
+    * some x86-64 compilation fixe
+
+  Revision 1.214  2003/12/16 22:09:31  florian
     * better inheritence of procinfo flags of inlined procedures
 
   Revision 1.213  2003/12/16 21:29:24  florian
