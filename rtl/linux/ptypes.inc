@@ -122,15 +122,15 @@ Type
 
   TStatfs = packed record
     fstype,            { File system type }
-    bsize,             { Optimal block trensfer size }
+    bsize   : cint;    { Optimal block trensfer size }
     blocks,            { Data blocks in system }
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
-    ffree,             { Free file nodes in system }
-    fsid,              { File system ID }
-    namelen : longint; { Maximum name length in system }
-    spare   : array [0..6] of longint; { For later use }
+    ffree   : clong;             { Free file nodes in system }
+    fsid    : array[0..1] of cint;          { File system ID }
+    namelen : clong; { Maximum name length in system }
+    spare   : array [0..5] of clong; { For later use }
   end;
   PStatFS=^TStatFS;
 
@@ -150,7 +150,10 @@ CONST
 
 {
    $Log$
-   Revision 1.9  2004-04-26 16:53:19  peter
+   Revision 1.10  2004-05-02 01:00:07  peter
+     * statfs fixed
+
+   Revision 1.9  2004/04/26 16:53:19  peter
      * use cpu64
 
    Revision 1.8  2004/03/04 22:15:16  marco
