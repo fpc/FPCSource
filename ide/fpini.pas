@@ -70,6 +70,11 @@ const
   ieRunParameters    = 'Parameters';
   ieDebuggeeRedir    = 'DebugRedirection';
   ieRemoteMachine    = 'RemoteMachine';
+  ieRemotePort       = 'RemotePort';
+  ieRemoteSendCommand = 'RemoteSendCommand';
+  ieRemoteConfig     = 'RemoteSendConfig';
+  ieRemoteIdent      = 'RemoteSendIdent';
+  ieRemoteDirectory  = 'RemoteDirectory';
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
@@ -352,9 +357,14 @@ begin
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
 {$ifndef GABOR}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
   RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
-{$endif CrossGDB}
+  RemotePort :=INIFile^.GetEntry(secRun,ieRemotePort,RemotePort);
+  RemoteSendCommand :=INIFile^.GetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
+  RemoteConfig :=INIFile^.GetEntry(secRun,ieRemoteConfig,RemoteConfig);
+  RemoteIdent :=INIFile^.GetEntry(secRun,ieRemoteIdent,RemoteIdent);
+  RemoteDir :=INIFile^.GetEntry(secRun,ieRemoteDirectory,RemoteDir);
+{$endif SUPPORT_REMOTE}
 {$endif}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
@@ -545,9 +555,14 @@ begin
 {$ifndef GABOR}
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
     INIFile^.SetEntry(secRun,ieRemoteMachine,RemoteMachine);
-{$endif CrossGDB}
+    INIFile^.SetEntry(secRun,ieRemotePort,RemotePort);
+    INIFile^.SetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
+    INIFile^.SetEntry(secRun,ieRemoteConfig,RemoteConfig);
+    INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
+    INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
+{$endif SUPPORT_REMOTE}
 {$endif}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
@@ -631,7 +646,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2002-11-21 00:37:56  pierre
+  Revision 1.10  2002-11-28 12:55:06  pierre
+   + save/retrieve remote support variables
+
+  Revision 1.9  2002/11/21 00:37:56  pierre
    + some cross gdb enhancements
 
   Revision 1.8  2002/10/23 18:01:50  hajny
