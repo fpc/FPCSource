@@ -343,9 +343,12 @@ endif
 
 # this can be set to 'rtl' when the RTL units are installed
 ifndef UNITPREFIX
+ifndef inlinux
 UNITPREFIX=units
+else
+UNITPREFIX=linuxunits
 endif
-
+endif
 # set the directory where to install the units.
 ifndef UNITINSTALLDIR
 ifdef inlinux
@@ -552,6 +555,7 @@ ifndef NODEFAULTRULES
 
 # Create Filenames
 EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
+EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
@@ -622,7 +626,7 @@ ifdef UNITOBJECTS
 ifeq ($(SMARTLINK),YES)
 	$(INSTALL) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
 else
-	-$(INSTALL) *$(OEXT) $(UNITINSTALLDIR)
+	-$(INSTALL) $(UNITOFILES) $(UNITINSTALLDIR)
 endif
 endif
 
@@ -649,12 +653,16 @@ libinstall: staticlibinstall sharedlibinstall
 #####################################################################
 
 clean:
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) $(PPAS) link.res log
+	-$(DEL) $(UNITOFILES) $(UNITFILES) $(PPAS) link.res log
+ifeq ($(SMARTLINK),YES)
 	-$(DELTREE) *$(SMARTEXT)
-ifdef EXEOBJECTS
-	-$(DEL) $(EXEFILES)
 endif
-
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES) $(EXEOFILES)
+endif
+ifdef EXTRACLEAN
+	-$(DEL) $(EXTRACLEAN)
+endif
 
 #####################################################################
 # Depend rules
