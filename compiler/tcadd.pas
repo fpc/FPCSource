@@ -42,6 +42,7 @@ implementation
 {$ifdef m68k}
       ,m68k
 {$endif}
+      ,tccnv
       ;
 
 {*****************************************************************************
@@ -530,8 +531,19 @@ implementation
          else
 
          { left side a setdef ? }
-           if (ld^.deftype=setdef) then
+           if (ld^.deftype=setdef) or is_array_constructor(ld) then
              begin
+             { convert array constructors to sets }
+                if is_array_constructor(ld) then
+                 begin
+                   arrayconstructor_to_set(p^.left);
+                   ld:=p^.left^.resulttype;
+                 end;
+                if is_array_constructor(rd) then
+                 begin
+                   arrayconstructor_to_set(p^.right);
+                   rd:=p^.right^.resulttype;
+                 end;
              { trying to add a set element? }
                 if (p^.treetype=addn) and (rd^.deftype<>setdef) then
                  begin
@@ -1001,7 +1013,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-01-20 17:39:26  jonas
+  Revision 1.21  1999-01-20 21:05:09  peter
+    * fixed set operations which still had array constructor as type
+
+  Revision 1.20  1999/01/20 17:39:26  jonas
     + fixed bug0163 (set1 <= set2 support)
 
   Revision 1.19  1998/12/30 13:35:35  peter
