@@ -638,15 +638,15 @@ uses
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
-         if target_info.system in [system_i386_WIN32,system_i386_wdosx] then
-           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
-         else
-           sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
          else
           p:=path^;
+         if target_info.system in [system_i386_WIN32,system_i386_wdosx] then
+           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
+         else
+           sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
          exefilename:=stringdup(p+n+target_info.exeext);
          mapfilename:=stringdup(p+n+'.map');
       end;
@@ -704,7 +704,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.21  2002-12-29 14:57:50  peter
+  Revision 1.22  2003-04-28 16:18:16  peter
+    * sharedlib is placed in exe outputdir
+
+  Revision 1.21  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
