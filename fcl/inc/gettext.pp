@@ -128,7 +128,7 @@ begin
 {    SetLength(s, TranslTable^[i].length);
     AStream.Read(s[1], TranslTable^[i].length);
     TranslStrings^[i] := StrNew(PChar(s));}
-    GetMem(TranslStrings^[i], TranslTable^[i].length);
+    GetMem(TranslStrings^[i], TranslTable^[i].length+1);
     AStream.Read(TranslStrings^[i]^, TranslTable^[i].length);
     TranslStrings^[i][TranslTable^[i].length] := #0;
   end;
@@ -253,7 +253,7 @@ begin
       if Length(s) > 0 then
       begin
         SetResourceStringValue(i, j, s);
-	GettextUsed := True;
+        GettextUsed := True;
       end;
     end;
   end;
@@ -273,7 +273,7 @@ begin
     begin
       lang := GetEnv('LANG');
       if Length(lang) = 0 then
-        exit;	// no language defined via environment variables
+        exit;   // no language defined via environment variables
     end;
   end;
 
@@ -310,7 +310,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-09-21 12:52:54  sg
+  Revision 1.5  2002-01-19 11:54:52  peter
+    * fixed wrong getmem
+
+  Revision 1.4  2001/09/21 12:52:54  sg
   * Evaluates all 3 i18n environment variables: LC_ALL, LC_MESSAGES, LANG
   * Now takes sublanguage specifiers into account: When the language is set
     to xx_YY, then the catalogue for xx will be loaded first, and then the
@@ -321,5 +324,5 @@ end.
 
   Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }
