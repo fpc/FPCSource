@@ -23,18 +23,21 @@ asm
         cmplwi  cr0,r3,0
         { if yes, do nothing }
         beq     .LStrLenDone
-        subi    r29,r3,1
+        subi    r9,r3,1
 .LStrLenLoop:
-        lbzu    r30,1(r29)
-        cmplwi  cr0,r30,0
+        lbzu    r10,1(r9)
+        cmplwi  cr0,r10,0
         bne     .LStrLenLoop
-        sub     r3,r29,r3
+        sub     r3,r9,r3
 .LStrLenDone:
 end;
 
 {
   $Log$
-  Revision 1.8  2003-11-23 17:34:27  jonas
+  Revision 1.9  2004-01-12 18:37:10  jonas
+    * use volatile instead of non-volatile registers
+
+  Revision 1.8  2003/11/23 17:34:27  jonas
     * fixed some label names
 
   Revision 1.7  2003/11/15 19:01:27  florian
