@@ -211,13 +211,16 @@ implementation
     function get_ordinal_value(p : tnode) : longint;
 {$endif INT64FUNCRESOK}
       begin
-         if p.nodetype=ordconstn then
-           get_ordinal_value:=tordconstnode(p).value
-         else
-           begin
-             Message(type_e_ordinal_expr_expected);
-             get_ordinal_value:=0;
-           end;
+        get_ordinal_value:=0;
+        if is_constnode(p) then
+          begin
+            if p.nodetype=ordconstn then
+              get_ordinal_value:=tordconstnode(p).value
+            else
+              Message(type_e_ordinal_expr_expected);
+          end
+        else
+          Message(type_e_constant_expr_expected);
       end;
 
 
@@ -908,7 +911,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-10-02 21:18:44  peter
+  Revision 1.54  2003-10-07 18:17:44  peter
+    * Give message that constant expr is expected when a none constant
+      is passed to get_ordinal_value
+
+  Revision 1.53  2003/10/02 21:18:44  peter
     * niln is also a constnode
 
   Revision 1.52  2003/10/01 20:34:48  peter
