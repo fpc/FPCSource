@@ -139,8 +139,15 @@ procedure getcbreak(var breakvalue:boolean);
 procedure setcbreak(breakvalue:boolean);
 procedure getverify(var verify:boolean);
 procedure setverify(verify : boolean);
-function diskfree(drive:byte):int64;
-function disksize(drive:byte):int64;
+
+{$IFDEF INT64}
+function DiskFree (Drive: byte) : int64;
+function DiskSize (Drive: byte) : int64;
+{$ELSE}
+function DiskFree (Drive: byte) : longint;
+function DiskSize (Drive: byte) : longint;
+{$ENDIF}
+
 procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
 procedure findnext(var f:searchRec);
 procedure findclose(var f:searchRec);
@@ -196,15 +203,15 @@ var i,p1:longint;
 {$ASMMODE INTEL}
 function CheckFile (FN: ShortString):boolean; assembler;
 asm
- mov ax, 4300h
- mov edx, FN
- inc edx
- call syscall
- mov ax, 0
- jc @LCFstop
- test cx, 18h
- jnz @LCFstop
- inc ax
+    mov ax, 4300h
+    mov edx, FN
+    inc edx
+    call syscall
+    mov ax, 0
+    jc @LCFstop
+    test cx, 18h
+    jnz @LCFstop
+    inc ax
 @LCFstop:
 end;
 {$ASMMODE ATT}
@@ -573,7 +580,7 @@ begin
 end;
 
 procedure settime(hour,minute,second,sec100:word);
-
+(* TODO: Syscall 58h (__settime) should be used instead!!! *)
 begin
     asm
         movb 8(%ebp),%ch
@@ -637,13 +644,15 @@ begin
     end;
 end;
 
-function diskfree(drive:byte):int64;
+{$IFDEF INT64}
 
-var fi:TFSinfo;
-    rc:longint;
+function DiskFree (Drive: byte): int64;
+
+var FI: TFSinfo;
+    RC: longint;
 
 begin
-    if (os_mode=osDOS) or (os_mode = osDPMI) then
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -666,22 +675,22 @@ begin
     else
         {In OS/2, we use the filesystem information.}
         begin
-            RC:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
-            if RC=0 then
-                diskfree:=FI.free_clusters*FI.sectors_per_cluster*
-                 FI.bytes_per_sector
+            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskFree := int64 (FI.Free_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
-                diskfree:=-1;
+                DiskFree := -1;
         end;
 end;
 
-function disksize(drive:byte):int64;
+function DiskSize (Drive: byte): int64;
 
-var fi:TFSinfo;
-    RC:longint;
+var FI: TFSinfo;
+    RC: longint;
 
 begin
-    if (os_mode=osDOS) or (os_mode = osDPMI) then
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -705,14 +714,95 @@ begin
     else
         {In OS/2, we use the filesystem information.}
         begin
-            RC:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
-            if RC=0 then
-                disksize:=FI.total_clusters*FI.sectors_per_cluster*
-                 FI.bytes_per_sector
+            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskSize := int64 (FI.Total_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
-                disksize:=-1;
+                DiskSize := -1;
         end;
 end;
+
+{$ELSE}
+
+function DiskFree (Drive: byte): longint;
+
+var FI: TFSinfo;
+    RC: longint;
+
+begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+    {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            cmpw $-1,%ax
+            je .LDISKFREE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+         .LDISKFREE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskFree := FI.Free_Clusters *
+                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
+            else
+                DiskFree := -1;
+        end;
+end;
+
+function DiskSize (Drive: byte): longint;
+
+var FI: TFSinfo;
+    RC: longint;
+
+begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+        {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            movw %dx,%bx
+            cmpw $-1,%ax
+            je .LDISKSIZE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+        .LDISKSIZE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskSize := FI.Total_Clusters *
+                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
+            else
+                DiskSize := -1;
+        end;
+end;
+
+{$ENDIF}
 
 procedure SearchRec2DosSearchRec (var F: SearchRec);
 
@@ -1084,7 +1174,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2000-05-21 16:06:38  hajny
+  Revision 1.25  2000-05-28 18:20:16  hajny
+    * DiskFree/DiskSize updated
+
+  Revision 1.24  2000/05/21 16:06:38  hajny
     + FSearch and Find* reworked
 
   Revision 1.23  2000/04/18 20:30:02  hajny
