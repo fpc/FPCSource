@@ -125,8 +125,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : longint); Override;
-    Constructor Create(const AHost: String; APort: Word);
+    Constructor Create(ASocket : longint); Override; Overload;
+    Constructor Create(const AHost: String; APort: Word); Overload;
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
   end;
@@ -137,8 +137,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : Longint);
-    Constructor Create(AFileName : String);
+    Constructor Create(ASocket : Longint); Overload;
+    Constructor Create(AFileName : String); Overload;
     Property FileName : String Read FFileName;
   end;
 
@@ -515,7 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-04-20 18:50:00  marco
+  Revision 1.7  2001-11-20 18:53:29  peter
+    * overload fix
+
+  Revision 1.6  2001/04/20 18:50:00  marco
    * FreeVSD fixy
 
   Revision 1.5  2001/04/08 11:26:03  peter
