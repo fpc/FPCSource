@@ -41,10 +41,12 @@ endif
 
 # what target do we use
 # currently dos go32v2 os2 and linux are available
+ifndef TARGET
 ifdef inlinux
 TARGET=linux
 else
 TARGET=go32v2
+endif
 endif
 
 # What processor do you want to compile for : i386 m68k (case sensitive !!)
@@ -77,7 +79,7 @@ RTLDIR:=$(BASEDIR)/../rtl
 # This needs to be set correctly for the 'remake' target to work !
 ifndef UNITDIR
 UNITDIR=$(RTLDIR)/$(TARGET)
-ifeq ($(TARGET),dos)
+ifeq ($(TARGET),go32v1)
 UNITDIR=$(RTLDIR)/dos/go32v1
 endif
 ifeq ($(TARGET),go32v2)
@@ -161,7 +163,7 @@ endif
 PPDEFS:=-d$(CPU) -dGDB -dFPC
 
 # Set the needed compiler options
-PPOPTS:=$(OPT) $(PPDEFS) -Sg
+PPOPTS:=$(OPT) $(PPDEFS) -Sg -T$(TARGET)
 
 # Unitdir specified ?
 ifneq ("$(UNITDIR)", "")
@@ -417,7 +419,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.17  1998-06-08 09:22:02  michael
+# Revision 1.18  1998-06-10 10:42:44  peter
+#   * ifndef TARGET to allow target on commandline
+#
+# Revision 1.17  1998/06/08 09:22:02  michael
 # fixed dependcies and rules. Make would not run any more after peters changes.
 #
 # Revision 1.16  1998/06/05 14:37:28  pierre
