@@ -66,6 +66,11 @@ implementation
        ,ra386dir
   {$endif NoRa386Dir}
 {$endif i386}
+{$ifdef x86_64}
+  {$ifndef NoRax86Dir}
+       ,rax86dir
+  {$endif NoRax86Dir}
+{$endif i386}
 {$ifdef m68k}
   {$ifndef NoRa68kMot}
        ,ra68kmot
@@ -771,6 +776,24 @@ implementation
              end;
   {$endif NoRA386Dir}
 {$endif}
+
+{$ifdef x86_64}
+  {$ifndef NoRA386Dir}
+           asmmode_i386_direct:
+             begin
+               if not target_asm.allowdirect then
+                 Message(parser_f_direct_assembler_not_allowed);
+               if (aktprocdef.proccalloption=pocall_inline) then
+                 Begin
+                    Message1(parser_w_not_supported_for_inline,'direct asm');
+                    Message(parser_w_inlining_disabled);
+                    aktprocdef.proccalloption:=pocall_fpccall;
+                 End;
+               asmstat:=tasmnode(rax86dir.assemble);
+             end;
+  {$endif NoRA386Dir}
+{$endif x86_64}
+
 {$ifdef m68k}
   {$ifndef NoRA68kMot}
            asmmode_m68k_mot:
@@ -810,6 +833,23 @@ implementation
                   else if pattern='EDI' then
                     include(rg.usedinproc,R_EDI)
 {$endif i386}
+{$ifdef x86_64}
+                  if pattern='RAX' then
+                    include(usedinproc,R_RAX)
+                  else if pattern='RBX' then
+                    include(usedinproc,R_RBX)
+                  else if pattern='RCX' then
+                    include(usedinproc,R_RCX)
+                  else if pattern='RDX' then
+                    include(usedinproc,R_RDX)
+                  else if pattern='RSI' then
+                    begin
+                       include(usedinproc,R_RSI);
+                       exclude(asmstat.flags,nf_object_preserved);
+                    end
+                  else if pattern='RDI' then
+                    include(usedinproc,R_RDI)
+{$endif x86_64}
 {$ifdef m68k}
                   if pattern='D0' then
                     include(rg.usedinproc,R_D0)
@@ -1217,7 +1257,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-07-01 18:46:25  peter
+  Revision 1.60  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.59  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

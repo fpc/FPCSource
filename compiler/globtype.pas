@@ -30,7 +30,7 @@ interface
 
     type
        { System independent float names }
-{$ifdef i386}
+{$ifdef x86}
        bestreal = extended;
        ts32real = single;
        ts64real = double;
@@ -255,7 +255,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-07-01 18:46:22  peter
+  Revision 1.28  2002-07-04 20:43:00  florian
+    * first x86-64 patches
+
+  Revision 1.27  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

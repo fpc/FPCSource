@@ -27,6 +27,7 @@ program pp;
   -----------------------------------------------------------------
   GDB*                support of the GNU Debugger
   I386                generate a compiler for the Intel i386+
+  x86_64              generate a compiler for the AMD x86-64 architecture
   M68K                generate a compiler for the M68000
   SPARC               generate a compiler for SPARC
   POWERPC             generate a compiler for the PowerPC
@@ -64,6 +65,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif I386}
+   {$ifdef x86_64}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif x86_64}
    {$ifdef M68K}
      {$ifdef CPUDEFINED}
         {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -170,7 +177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-05-22 19:02:16  carl
+  Revision 1.15  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.14  2002/05/22 19:02:16  carl
   + generic FPC_HELP_FAIL
   + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
   + generic FPC_DISPOSE_CLASS

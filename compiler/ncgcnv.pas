@@ -490,7 +490,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-07-01 18:46:22  peter
+  Revision 1.18  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.17  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

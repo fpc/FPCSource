@@ -23,9 +23,6 @@
 unit psub;
 
 {$i fpcdefs.inc}
-{$ifdef powerpc}
-  {$define newcg}
-{$endif powerpc}
 
 interface
 
@@ -47,7 +44,7 @@ implementation
        globtype,globals,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+       cpubase,cpuinfo,aasmbase,aasmtai,
        { symtable }
        symconst,symbase,symdef,symsym,symtype,symtable,types,
        ppu,fmodule,
@@ -281,8 +278,8 @@ implementation
 
          { reset the temporary memory }
          rg.cleartempgen;
-
          rg.usedinproc:=[];
+         
          { save entry info }
          entrypos:=aktfilepos;
          entryswitches:=aktlocalswitches;
@@ -819,7 +816,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-07-01 18:46:25  peter
+  Revision 1.55  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.54  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

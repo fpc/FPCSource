@@ -51,6 +51,9 @@ interface
 {$ifdef i386}
        target_cpu_string = 'i386';
 {$endif}
+{$ifdef x86_64}
+       target_cpu_string = 'x86_64';
+{$endif}
 {$ifdef sparc}
        target_cpu_string = 'sparc';
 {$endif}
@@ -66,6 +69,13 @@ interface
 {$ifdef ia64}
        target_cpu_string = 'ia64';
 {$endif}
+{$ifdef mips}
+       target_cpu_string = 'mips';
+{$endif}
+{$ifdef arm}
+       target_cpu_string = 'arm';
+{$endif}
+
 
        { source cpu string }
 {$ifdef cpu86}
@@ -76,6 +86,9 @@ interface
 {$endif}
 {$ifdef cpuia64}
        target_cpu_string = 'ia64';
+{$endif}
+{$ifdef cpu86_64}
+        source_cpu_string = 'x86_64';
 {$endif}
 
 function version_string:string;
@@ -104,7 +117,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-05-18 13:34:21  peter
+  Revision 1.13  2002-07-04 20:43:02  florian
+    * first x86-64 patches
+
+  Revision 1.12  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.11  2002/05/16 19:46:47  carl
@@ -118,5 +134,4 @@ end.
 
   Revision 1.8  2002/03/01 12:47:21  pierre
    * used shl 7 for release number
-
 }

@@ -813,7 +813,6 @@ implementation
              ;
         end;
 
-
       var
         i : longint;
         found,
@@ -1631,9 +1630,9 @@ implementation
                     procinfo^.flags:=procinfo^.flags or pi_do_call;
                 end;
 
-             { for the PowerPC standard calling conventions this information isn't necassary (FK) }
              { It doesn't hurt to calculate it already though :) (JM) }
              rg.incrementregisterpushed(tprocdef(procdefinition).usedregisters);
+             
            end;
 
          { get a register for the return value }
@@ -1744,7 +1743,7 @@ implementation
 
                      registersfpu:=max(methodpointer.registersfpu,registersfpu);
                      registers32:=max(methodpointer.registers32,registers32);
-{$ifdef SUPPORT_MMX}
+{$ifdef SUPPORT_MMX }
                      registersmmx:=max(methodpointer.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
                   end;
@@ -1871,7 +1870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-07-01 16:23:52  peter
+  Revision 1.78  2002-07-04 20:43:00  florian
+    * first x86-64 patches
+
+  Revision 1.77  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -75,8 +75,9 @@ implementation
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
       nld,ncon,
-      tgobj,rgobj,
       ncgutil,
+      cga,
+      tgobj,rgobj,
       regvars,cgobj,cgcpu,cg64f32;
 
 {*****************************************************************************
@@ -628,7 +629,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-07-01 18:46:22  peter
+  Revision 1.22  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.21  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 
@@ -719,4 +723,3 @@ end.
     * removed compiler warnings
 
 }
-

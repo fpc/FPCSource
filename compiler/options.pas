@@ -1359,39 +1359,41 @@ begin
   def_symbol('VALUEFREEMEM');
   def_symbol('HASCURRENCY');
 
-  { some stuff for TP compatibility }
-  case target_info.cpu of
-   cpu_i386:
-        begin
-         def_symbol('CPU86');
-         def_symbol('CPU87');
-         def_symbol('CPUI386');
-        end;
-   cpu_m68k:
-        begin
-          def_symbol('CPU68');
-          def_symbol('CPU68K');
-        end;
-   cpu_alpha:
-        begin
-          def_symbol('CPUALPHA');
-        end;
-   cpu_powerpc:
-        begin
-          def_symbol('CPUPOWERPC');
-        end;
-   cpu_sparc:
-        begin
-          def_symbol('CPUSPARC');
-        end;
-   cpu_vm:
-        begin
-          def_symbol('CPUVIS');
-        end;
-   else
-        internalerror(1295969);
-  end;
+{ using a case is pretty useless here (FK) }
+{ some stuff for TP compatibility }
+{$ifdef i386}
+  def_symbol('CPU86');
+  def_symbol('CPU87');
+{$endif}
+{$ifdef m68k}
+  def_symbol('CPU68');
+{$endif}
 
+{ new processor stuff }
+{$ifdef i386}
+  def_symbol('CPUI386');
+{$endif}
+{$ifdef m68k}
+  def_symbol('CPU68K');
+{$endif}
+{$ifdef ALPHA}
+  def_symbol('CPUALPHA');
+{$endif}
+{$ifdef powerpc}
+  def_symbol('CPUPOWERPC');
+{$endif}
+{$ifdef iA64}
+  def_symbol('CPUIA64');
+{$endif}
+{$ifdef x64_64}
+  def_symbol('CPU 86_64');
+{$endif}
+{$ifdef sparc}
+  def_symbol('CPUSPARC');
+{$endif}
+{$ifdef vis}
+  def_symbol('CPUVIS');
+{$endif}
 
 { get default messagefile }
 {$ifdef Delphi}
@@ -1668,7 +1670,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.75  2002-07-01 18:46:24  peter
+  Revision 1.76  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.75  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

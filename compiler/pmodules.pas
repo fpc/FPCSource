@@ -276,6 +276,10 @@ implementation
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
          case target_info.target of
+{$ifdef x86_64}
+            target_x86_64_linux:
+              ;
+{$endif x86_64}
 {$ifdef i386}
             target_i386_OS2:
               ;
@@ -1384,7 +1388,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-07-01 18:46:25  peter
+  Revision 1.68  2002-07-04 20:43:01  florian
+    * first x86-64 patches
+
+  Revision 1.67  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

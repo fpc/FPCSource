@@ -748,6 +748,75 @@ end;
             use_function_relative_addresses : true
           );
 {$endif alpha}
+{$ifdef x86_64}
+    const
+       target_x86_64_linux_info : ttargetinfo =
+          (
+            target       : target_i386_LINUX;
+            name         : 'Linux for x86-64';
+            shortname    : 'Linux64';
+            flags        : [];
+            cpu          : x86_64;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_i386_elf32;
+            assemextern  : as_i386_as;
+            link         : ld_i386_linux;
+            linkextern   : ld_i386_linux;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            size_of_pointer : 8;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 65536*1024;
+            stacksize    : 16*1024;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif x86_64}
 {$IFDEF SPARC}
   CONST
        target_SPARC_linux_info : ttargetinfo =
@@ -815,6 +884,7 @@ end;
           );
 {$ENDIF SPARC}
 
+
 initialization
 {$ifdef i386}
   RegisterLinker(ld_i386_linux,TLinkerLinux);
@@ -840,6 +910,12 @@ initialization
   RegisterExport(target_alpha_linux,texportliblinux);
   RegisterTarget(target_alpha_linux_info);
 {$endif alpha}
+{$ifdef x86_64}
+  RegisterLinker(ld_x86_64_linux,TLinkerLinux);
+  RegisterImport(target_x86_64_linux,timportliblinux);
+  RegisterExport(target_x86_64_linux,texportliblinux);
+  RegisterTarget(target_x86_64_linux_info);
+{$endif x86_64}
 {$IFDEF SPARC}
   RegisterLinker(ld_SPARC_linux,TLinkerLinux);
   RegisterImport(target_SPARC_linux,timportliblinux);
@@ -847,9 +923,13 @@ initialization
   RegisterTarget(target_SPARC_linux_info);
 {$ENDIF SPARC}
 end.
+
 {
   $Log$
-  Revision 1.27  2002-07-01 18:46:35  peter
+  Revision 1.28  2002-07-04 20:43:02  florian
+    * first x86-64 patches
+
+  Revision 1.27  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 
@@ -897,5 +977,4 @@ end.
 
   Revision 1.15  2002/01/09 07:38:37  michael
   + Patch from Peter for library imports
-
 }

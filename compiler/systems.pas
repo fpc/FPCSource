@@ -46,7 +46,11 @@ interface
              cpu_alpha,                    { 3 }
              cpu_powerpc,                  { 4 }
              cpu_sparc,                    { 5 }
-             cpu_vm                        { 6 }
+             cpu_vm,                       { 6 }
+             cpu_iA64,                     { 7 }
+             cpu_x86_64,                   { 8 }
+             cpu_mips,                     { 9 }
+             cpu_arm                       { 10 }
        );
 
        tprocessors = (no_processor
@@ -100,7 +104,8 @@ interface
              target_i386_qnx,           { 20 }
              target_i386_wdosx,         { 21 }
              target_sparc_sunos,        { 22 }
-             target_sparc_linux         { 23 }
+             target_sparc_linux,        { 23 }
+             target_x86_64_linux        { 24 }
        );
 
        tasm = (as_none
@@ -120,11 +125,12 @@ interface
             ld_i386_GO32V1,ld_i386_GO32V2,ld_i386_linux,
               ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
               ld_i386_Netware,ld_i386_sunos,ld_i386_beos,
-              ld_i386_coff,ld_i386_pecoff,
+              ld_i386_coff,ld_i386_pecoff,ld_i386_Wdosx,
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
               ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
             ld_alpha_linux,
-            ld_powerpc_linux,ld_powerpc_macos,ld_i386_Wdosx,
+            ld_x86_64_linux,
+            ld_powerpc_linux,ld_powerpc_macos,
             ld_SPARC_SunOs,ld_SPARC_linux
        );
 
@@ -627,6 +633,9 @@ begin
       {$endif os2}
     {$endif go32v2}
 {$endif cpu86}
+{$ifdef cpu86_64}
+  set_source(target_x86_64_linux);
+{$endif cpu86_64}
 {$ifdef cpu68}
   {$ifdef AMIGA}
     set_source(target_m68k_Amiga);
@@ -654,6 +663,13 @@ begin
     default_target(target_i386_linux);
   {$endif cpu86}
 {$endif i386}
+{$ifdef x86_64}
+  {$ifdef cpu86_64}
+    default_target(source_info.target);
+  {$else cpu86_64}
+    default_target(target_x86_64_linux);
+  {$endif cpu86_64}
+{$endif x86_64}
 {$ifdef m68k}
   {$ifdef cpu68}
     default_target(source_info.target);
@@ -687,7 +703,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2002-07-01 18:46:29  peter
+  Revision 1.47  2002-07-04 20:43:02  florian
+    * first x86-64 patches
+
+  Revision 1.46  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 
@@ -722,12 +741,4 @@ end.
 
   Revision 1.38  2002/04/14 16:56:30  carl
   - remove duplicate comment
-
-  Revision 1.37  2002/04/07 10:20:15  carl
-  + added SPARC targets
-  + added VM target
-
-  Revision 1.36  2002/04/04 19:18:06  carl
-  - removed cmnts
-
 }

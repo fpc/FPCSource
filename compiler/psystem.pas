@@ -114,10 +114,10 @@ begin
   addtype('Double',s64floattype);
   addtype('Extended',s80floattype);
   addtype('Real',s64floattype);
-{$ifdef i386}
+{$ifdef x86}
   adddef('Comp',tfloatdef.create(s64comp));
+{$endif x86}
   addtype('Currency',s64currencytype);
-{$endif}
   addtype('Pointer',voidpointertype);
   addtype('FarPointer',voidfarpointertype);
   addtype('ShortString',cshortstringtype);
@@ -248,12 +248,12 @@ begin
   openshortstringtype.setdef(tstringdef.createshort(0));
   openchararraytype.setdef(tarraydef.create(0,-1,s32bittype));
   tarraydef(openchararraytype.def).elementtype:=cchartype;
-{$ifdef i386}
+{$ifdef x86}
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
+{$endif x86}
   s64currencytype.setdef(tfloatdef.create(s64currency));
-{$endif}
 {$ifdef m68k}
   s32floattype.setdef(tfloatdef.create(s32real));
   if (cs_fp_emulation in aktmoduleswitches) then
@@ -280,7 +280,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2002-07-01 16:23:54  peter
+  Revision 1.28  2002-07-04 20:43:02  florian
+    * first x86-64 patches
+
+  Revision 1.27  2002/07/01 16:23:54  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)
