@@ -1,0 +1,240 @@
+%!
+% we need to define metric units
+/mm {2.834 mul} def
+/cm {28.34 mul } def
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Configurable section
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sets the line width of the class graph to 0.5 points
+/SetLineWidth { 0.5 setlinewidth} def
+
+% sets the line color of the class graph to black
+/SetLineColor { 0 0 0 setrgbcolor } def
+
+% sets the default font for class names
+/SetClassFont
+{
+/ArialMT findfont
+10 scalefont
+setfont
+} def
+
+% RGB colors of the texts
+/StandardTextColor { 0 0 0 } def
+/MissedTextColor { 0.50 0.50 0.50 } def
+
+% RGB colors of the boxes
+/MissedColor { 0.92 0.92 0.92 } def
+/IncompleteColor { 1 0.5 0.5 } def
+/UntestedColor { 1 1 0.6} def
+/ReadyColor { 0.7 1 0.7 } def
+
+% Starting point of the class graph 
+% (0,0) is the lower left corner of the paper
+/nextx { 0 mm } def
+/nexty { 300 mm } def
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  End of Configurable section
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/Missed {0} def
+/Incomplete {1} def
+/Untested {2} def
+/Ready {3} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+% drawbox
+% takes two parameters: 
+%     classname........name of the class
+%     status......status of development
+/drawbox
+{
+  % save parameters
+  /status exch def  
+  /classname exch def
+  % save enviroment
+  gsave
+  newpath
+
+  % determine the size of the class name
+  SetClassFont
+  classname
+  stringwidth
+
+  % and save it ...
+  /widthy exch def
+  /widthx exch def
+
+  % moveto start point of the box
+  nextx 8 mm add
+  nexty  
+  moveto
+
+  % calculate the place for the icons
+  nextx 8 mm add
+  widthx 4.5 mm add add
+  /nexticonx exch def 
+
+  % set box color
+  status Missed eq { MissedColor setrgbcolor } if
+  status Incomplete eq { IncompleteColor setrgbcolor } if
+  status Untested eq { UntestedColor setrgbcolor } if
+  status Ready eq { ReadyColor setrgbcolor } if
+
+  % draw box
+  0 mm 2.1 mm rlineto
+  widthx 3 mm add 0 mm rlineto
+  0 mm -4.2 mm rlineto
+  0 widthx 3 mm add sub 0 mm rlineto
+  0 mm 2.1 mm rlineto
+  closepath
+  fill
+
+  % set text color
+  status Missed eq { MissedTextColor setrgbcolor } 
+  { StandardTextColor setrgbcolor } ifelse
+
+  % set text pos and write text
+  nextx 9.5 mm add
+  nexty 1.25 mm sub
+  moveto
+  classname
+  show
+
+  grestore
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% newchildclass
+% draws a new class 
+% takes two parameters: 
+%     name of the class
+%     status of development
+/newchildclass
+{
+   % save parameters
+   /status exch def  
+   /classname exch def
+   % save enviroment
+   % push this on the stack for onelevelback
+   nexty 
+   newpath
+   SetLineWidth 
+   SetLineColor
+   nexty -2.1 mm add
+   /nexty exch def
+   nextx 11 mm add
+   /nextx exch def   
+   nextx nexty moveto
+   0 mm -2.9 mm rlineto
+   8 mm 0 mm rlineto stroke
+   nexty -2.9 mm add
+   /nexty exch def
+   classname   
+   status
+   drawbox
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% newclass
+% draws a new class 
+% takes two parameters: 
+%     name of the class
+%     status of development
+/newclass
+{
+   gsave
+   newpath
+   SetLineWidth 
+   SetLineColor
+   nextx nexty moveto
+   0 mm -5 mm rlineto
+   8 mm 0 mm rlineto stroke
+   nexty -5 mm add
+   /nexty exch def
+   drawbox
+   grestore
+} def
+/onelevelback
+{
+   /oldy exch def
+   newpath
+   SetLineWidth 
+   SetLineColor
+%   nexty -5 mm add
+%   /nexty exch def
+   nextx -11 mm add
+   /nextx exch def
+   nextx oldy moveto
+   nextx nexty lineto stroke         
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Linuxonly
+% draws the linux icon
+/Linuxonly
+{
+  gsave
+  newpath
+  nexticonx
+  nexty 1.25 mm sub
+  moveto
+  SetClassFont 
+  StandardTextColor setrgbcolor
+  (Linux)
+  show
+  grestore
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Win32only
+% draws the win32 icon
+/Win32only
+{
+  gsave
+  newpath
+  nexticonx
+  nexty 1.25 mm sub
+  moveto
+  SetClassFont 
+  StandardTextColor setrgbcolor
+  (Win32)
+  show
+  grestore
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Both
+% dummy
+/Both
+{
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% here the class tree follows
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+% TObject
+%%%%%%%%%%%%%%%%%%%%%%%
+(TObject) Ready drawbox
+
+%%%%%%%%%%%%%%%%%%%%%%%
+% Exception classes
+%%%%%%%%%%%%%%%%%%%%%%%
+
+(Exception) Missed newchildclass
+(EAbort) Incomplete newchildclass
+  (ENewAbort) Untested newchildclass
+  (ECustomAbort) Ready newclass
+  onelevelback
+(EAbstractError) Missed newclass Linuxonly
+(EDatabaseError) Missed newclass Linuxonly
+  (EDBCLient) Missed newchildclass
+    (EReconcileError) Missed newchildclass Linuxonly
+    onelevelback
+  (EDBEngineError) Missed newclass Win32only
+  (ENoResultSet) Missed newclass
+  (EUpdateError) Missed newclass
+  onelevelback
+(EDBEditError) Missed newclass
+(EDSWriter) Missed newclass
+showpage
+
+
+
