@@ -156,7 +156,7 @@ type
       function    IsClipboard: Boolean; virtual;
       function    LoadFromStream(Stream: PStream): boolean; virtual;
       function    SaveToStream(Stream: PStream): boolean; virtual;
-      function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;
+      function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;virtual;
       destructor  Done; virtual;
     public
 {      ChangedLine : sw_integer;}
@@ -1756,7 +1756,7 @@ end;
 
 
 END.
-{ 
- $Log $ 
- 
+{
+ $Log $
+
 }

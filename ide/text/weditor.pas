@@ -469,7 +469,7 @@ type
    {a}procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
    {a}function    LoadFromStream(Stream: PStream): boolean; virtual;
    {a}function    SaveToStream(Stream: PStream): boolean; virtual;
-   {a}function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;
+   {a}function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;virtual;
     public
    {a}function    InsertFrom(Editor: PCustomCodeEditor): Boolean; virtual;
    {a}function    InsertText(const S: string): Boolean; virtual;
@@ -5842,7 +5842,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.91  2000-05-29 10:44:58  pierre
+  Revision 1.92  2000-06-15 20:29:45  pierre
+   * avoid RTE 211 on Ctrl K W
+
+  Revision 1.91  2000/05/29 10:44:58  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.90  2000/05/17 11:58:26  pierre
