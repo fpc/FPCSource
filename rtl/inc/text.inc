@@ -440,7 +440,7 @@ End;
                                Write(Ln)
 *****************************************************************************}
 
-Procedure WriteBuffer(var f:Text;const b;len:longint);
+Procedure fpc_WriteBuffer(var f:Text;const b;len:longint);[Public,Alias:'FPC_WRITEBUFFER'];
 var
   p   : pchar;
   left,
@@ -463,7 +463,7 @@ begin
 end;
 
 
-Procedure WriteBlanks(var f:Text;len:longint);
+Procedure fpc_WriteBlanks(var f:Text;len:longint);[Public,Alias:'FPC_WRITEBLANKS'];
 var
   left : longint;
 begin
@@ -498,7 +498,7 @@ begin
       begin
         eol:=sLineBreak;
         { Write EOL }
-        WriteBuffer(f,eol,length(sLineBreak));
+        fpc_WriteBuffer(f,eol,length(sLineBreak));
         { Flush }
         if TextRec(f).FlushFunc<>nil then
           FileFunc(TextRec(f).FlushFunc)(TextRec(f));
@@ -517,8 +517,8 @@ Begin
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
         If Len>Length(s) Then
-          WriteBlanks(f,Len-Length(s));
-        WriteBuffer(f,s[1],Length(s));
+          fpc_WriteBlanks(f,Len-Length(s));
+        fpc_WriteBuffer(f,s[1],Length(s));
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -547,8 +547,8 @@ Begin
         if ArrayLen = -1 then
           ArrayLen := high(s)+1;
         If Len>ArrayLen Then
-          WriteBlanks(f,Len-ArrayLen);
-        WriteBuffer(f,p^,ArrayLen);
+          fpc_WriteBlanks(f,Len-ArrayLen);
+        fpc_WriteBuffer(f,p^,ArrayLen);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -567,8 +567,8 @@ Begin
       begin
         PCharLen:=StrLen(p);
         If Len>PCharLen Then
-          WriteBlanks(f,Len-PCharLen);
-        WriteBuffer(f,p^,PCharLen);
+          fpc_WriteBlanks(f,Len-PCharLen);
+        fpc_WriteBuffer(f,p^,PCharLen);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -590,9 +590,9 @@ begin
       begin
         SLen:=Length(s);
         If Len>SLen Then
-          WriteBlanks(f,Len-SLen);
+          fpc_WriteBlanks(f,Len-SLen);
         if slen > 0 then
-          WriteBuffer(f,PChar(S)^,SLen);
+          fpc_WriteBuffer(f,PChar(S)^,SLen);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -615,8 +615,8 @@ begin
       begin
         SLen:=Length(s);
         If Len>SLen Then
-          WriteBlanks(f,Len-SLen);
-        WriteBuffer(f,PChar(AnsiString(S))^,SLen);
+          fpc_WriteBlanks(f,Len-SLen);
+        fpc_WriteBuffer(f,PChar(AnsiString(S))^,SLen);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -696,7 +696,7 @@ End;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CHAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   If (InOutRes<>0) then
-   exit;
+    exit;
   if (TextRec(t).mode<>fmOutput) Then
    begin
      if TextRec(t).mode=fmClosed then
@@ -706,9 +706,9 @@ Begin
      exit;
    end;
   If Len>1 Then
-   WriteBlanks(t,Len-1);
+    fpc_WriteBlanks(t,Len-1);
   If TextRec(t).BufPos+1>=TextRec(t).BufSize Then
-   FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+    FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=c;
   Inc(TextRec(t).BufPos);
 End;
@@ -720,7 +720,7 @@ var
   ch : char;
 Begin
   If (InOutRes<>0) then
-   exit;
+    exit;
   if (TextRec(t).mode<>fmOutput) Then
    begin
      if TextRec(t).mode=fmClosed then
@@ -730,9 +730,9 @@ Begin
      exit;
    end;
   If Len>1 Then
-   WriteBlanks(t,Len-1);
+    fpc_WriteBlanks(t,Len-1);
   If TextRec(t).BufPos+1>=TextRec(t).BufSize Then
-   FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+    FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   ch:=c;
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=ch;
   Inc(TextRec(t).BufPos);
@@ -1274,7 +1274,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2004-06-21 18:48:48  olle
+  Revision 1.25  2004-08-20 10:04:39  olle
+  * prefixed write[buffer|blanks] with fpc_ and made them externally visible
+
+  Revision 1.24  2004/06/21 18:48:48  olle
     + handles mac line endings without blocking the console, on Mac OS only
 
   Revision 1.23  2004/05/01 20:52:50  peter
