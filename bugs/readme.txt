@@ -170,3 +170,4 @@ bug0121.pp   cardinal -> byte conversion not work (and crashes)
 bug0122.pp   exit() gives a warning that the result is not set
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
+bug0125.pp   wrong colors with DOS CRT unit

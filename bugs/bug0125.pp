@@ -1,0 +1,13 @@
+uses
+crt;
+var
+i:integer;
+begin
+clrscr;
+textcolor(blue);
+writeln('ole');
+textcolor(red);
+readln(i);
+writeln('rasmussen');
+writeln(i);
+end.
