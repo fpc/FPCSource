@@ -22,10 +22,11 @@ uses Objects,
 
 const
      HTMLIndexMagicNo = ord('H')+ord('H') shl 8+ord('I') shl 16+ord('X') shl 24;
-     HTMLIndexVersion = 1;
+     HTMLIndexVersion = 2;
 
 type
      PHTMLLinkScanner = ^THTMLLinkScanner;
+     PHTMLLinkScanDocument = ^THTMLLinkScanDocument;
 
      TCustomHTMLLinkScanner = object(THTMLParser)
        function    DocAddTextChar(C: char): boolean; virtual;
@@ -39,13 +40,14 @@ type
        CurLinkText: string;
        CurURL: string;
        CurDoc: string;
-       InAnchor: boolean;
+       InAnchor,InNameAnchor: boolean;
+       LastSynonym: PHTMLLinkScanDocument;
      end;
 
-     PHTMLLinkScanDocument = ^THTMLLinkScanDocument;
      THTMLLinkScanDocument = object(TObject)
        constructor Init(const ADocName: string);
        function    GetName: string;
+       function    GetUniqueName: string;
        function    GetAliasCount: sw_integer;
        function    GetAlias(Index: sw_integer): string;
        procedure   AddAlias(const Alias: string);
@@ -54,6 +56,7 @@ type
        destructor  Done; virtual;
      private
        DocName: PString;
+       Synonym: PHTMLLinkScanDocument;
        Aliases: PStringCollection;
      end;
 
@@ -63,6 +66,7 @@ type
        function    Compare(Key1, Key2: Pointer): sw_Integer; virtual;
        function    At(Index: sw_Integer): PHTMLLinkScanDocument;
        function    SearchDocument(const DocName: string): PHTMLLinkScanDocument;
+       procedure   MoveAliasesToSynonym;
      private
        Scanner: PHTMLLinkScanner;
      end;
@@ -72,6 +76,7 @@ type
        procedure   SetBaseDir(const ABaseDir: string);
        function    GetDocumentCount: sw_integer;
        function    GetDocumentURL(DocIndex: sw_integer): string;
+       function    GetUniqueDocumentURL(DocIndex: sw_integer): string;
        function    GetDocumentAliasCount(DocIndex: sw_integer): sw_integer;
        function    GetDocumentAlias(DocIndex, AliasIndex: sw_integer): string;
        constructor LoadDocuments(var S: TStream);
@@ -142,6 +147,9 @@ const
      Store:   @THTMLLinkScanDocument.Store
   );
 
+const
+  CurrentHTMLIndexVersion : sw_integer = HTMLIndexVersion;
+
 function TCustomHTMLLinkScanner.DocAddTextChar(C: char): boolean;
 var Added: boolean;
 begin
@@ -151,6 +159,8 @@ begin
     CurLinkText:=CurLinkText+C;
     Added:=true;
   end;
+  if ord(c)>32 then
+    LastSynonym:=nil;
   DocAddTextChar:=Added;
 end;
 
@@ -161,7 +171,11 @@ begin
       CurLinkText:='';
       if DocGetTagParam('HREF',CurURL)=false then
       if DocGetTagParam('NAME',CurURL) then
-        CurURL:=CurDoc+'#'+CurURL
+        begin
+          InNameAnchor:=true;
+          If Pos('#',CurURL)=0 then
+            CurURL:=CurDoc+'#'+CurURL;
+        end
       else
         CurURL:='';
       CurURL:=Trim(CurURL);
@@ -170,8 +184,9 @@ begin
   else
     begin
       CurLinkText:=Trim(CurLinkText);
-      if CheckURL(CurURL) and CheckText(CurLinkText) then
+      if CheckURL(CurURL) and CheckText(CurLinkText) or InNameAnchor then
         AddLink(CurLinkText,CurURL);
+      InNameAnchor:=false;
     end;
   InAnchor:=Entered;
 end;
@@ -204,12 +219,24 @@ begin
   inherited Init;
   SetStr(DocName,ADocName);
   New(Aliases, Init(10,10));
+  Synonym:=nil;
 end;
 
 function THTMLLinkScanDocument.GetName: string;
 begin
   GetName:=GetStr(DocName);
 end;
+
+function THTMLLinkScanDocument.GetUniqueName: string;
+var
+  PD: PHTMLLinkScanDocument;
+begin
+  PD:=@Self;
+  while assigned(PD^.synonym) do
+    PD:=PD^.Synonym;
+  GetUniqueName:=GetStr(PD^.DocName);
+end;
+
 
 function THTMLLinkScanDocument.GetAliasCount: sw_integer;
 begin
@@ -284,6 +311,28 @@ begin
   SearchDocument:=P;
 end;
 
+procedure THTMLLinkScanDocumentCollection.MoveAliasesToSynonym;
+  procedure MoveAliases(P: PHTMLLinkScanDocument);
+  var
+    PD: PHTMLLinkScanDocument;
+    i: sw_integer;
+  begin
+    if not assigned(P^.synonym) then
+      exit;
+    PD:=P;
+    while assigned(PD^.synonym) do
+      PD:=PD^.Synonym;
+
+    For i:=P^.GetAliasCount-1 downto 0 do
+      begin
+        PD^.AddAlias(P^.GetAlias(i));
+        P^.Aliases^.AtFree(i);
+      end;
+  end;
+begin
+  ForEach(@MoveAliases);
+end;
+
 constructor THTMLLinkScanner.Init(const ABaseDir: string);
 begin
   inherited Init;
@@ -322,6 +371,11 @@ begin
   GetDocumentURL:=ExpandChildURL(Documents^.At(DocIndex)^.GetName);
 end;
 
+function THTMLLinkScanner.GetUniqueDocumentURL(DocIndex: sw_integer): string;
+begin
+  GetUniqueDocumentURL:=ExpandChildURL(Documents^.At(DocIndex)^.GetUniqueName);
+end;
+
 function THTMLLinkScanner.GetDocumentAliasCount(DocIndex: sw_integer): sw_integer;
 begin
   GetDocumentAliasCount:=Documents^.At(DocIndex)^.GetAliasCount;
@@ -334,6 +388,10 @@ end;
 
 procedure THTMLLinkScanner.AddLink(const LinkText, LinkURL: string);
 var D: PHTMLLinkScanDocument;
+    DoInsert: boolean;
+    int: sw_integer;
+    Text: string;
+    error: word;
 begin
   D:=Documents^.SearchDocument(LinkURL);
   if D=nil then
@@ -341,7 +399,20 @@ begin
     New(D, Init(NormalizeChildURL(LinkURL)));
     Documents^.Insert(D);
   end;
-  D^.AddAlias(LinkText);
+  If assigned(LastSynonym) then
+    LastSynonym^.Synonym:=D;
+  DoInsert:=true;
+  If (length(LinkText)=0) or (Pos(',',LinkText)=1) then
+    DoInsert:=false;
+  Val(LinkText,int,error);
+  If (Error>1) and (LinkText[Error]=' ') then
+    Text:=Trim(Copy(LinkText,error+1,length(LinkText)))
+  else
+    Text:=LinkText;
+  IF DoInsert then
+    D^.AddAlias(Text);
+  If InNameAnchor then
+    LastSynonym:=D;
 end;
 
 constructor THTMLLinkScanner.LoadDocuments(var S: TStream);
@@ -355,6 +426,7 @@ begin
   if (S.Status=stOK) and (L=HTMLIndexMagicNo) then
   begin
     S.Read(L,sizeof(L));
+    CurrentHTMLIndexVersion:=L;
     OK:=(S.Status=stOK);
   end;
   if not OK then
@@ -367,6 +439,8 @@ begin
   New(Documents, Load(S));
   if not Assigned(Documents) then
     Fail;
+  Documents^.MoveAliasesToSynonym;
+  CurrentHTMLIndexVersion:=HTMLIndexVersion;
 end;
 
 procedure THTMLLinkScanner.StoreDocuments(var S: TStream);
@@ -375,8 +449,10 @@ begin
   L:=HTMLIndexMagicNo;
   S.Write(L,sizeof(L));
   L:=HTMLIndexVersion;
+  CurrentHTMLIndexVersion:=L;
   S.Write(L,sizeof(L));
   S.WriteStr(BaseDir);
+  Documents^.MoveAliasesToSynonym;
   Documents^.Store(S);
 end;
 
@@ -537,7 +613,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2002-04-11 07:06:31  pierre
+  Revision 1.3  2002-04-23 09:55:22  pierre
+    + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
+      these allow to eliminate double index entries pointing to the same
+      html file location (which had two different names).
+
+  Revision 1.2  2002/04/11 07:06:31  pierre
    + recreate the full target of an anchor that only has a NAME field
 
   Revision 1.1  2001/08/04 11:30:26  peter

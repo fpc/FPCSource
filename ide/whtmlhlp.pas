@@ -1192,11 +1192,11 @@ begin
     begin
       LS^.SetBaseDir(DirOf(IndexFileName));
       for I:=0 to LS^.GetDocumentCount-1 do
-       for J:=0 to LS^.GetDocumentAliasCount(I)-1 do
         begin
           TLI:=TopicLinks^.AddItem(LS^.GetDocumentURL(I));
           TLI:=EncodeHTMLCtx(ID,TLI+1);
-          IndexEntries^.Insert(NewIndexEntry(FormatAlias(LS^.GetDocumentAlias(I,J)),ID,TLI));
+          for J:=0 to LS^.GetDocumentAliasCount(I)-1 do
+            IndexEntries^.Insert(NewIndexEntry(FormatAlias(LS^.GetDocumentAlias(I,J)),ID,TLI));
         end;
       Dispose(LS, Done);
     end;
@@ -1233,7 +1233,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2002-04-11 07:04:23  pierre
+  Revision 1.5  2002-04-23 09:55:22  pierre
+    + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
+      these allow to eliminate double index entries pointing to the same
+      html file location (which had two different names).
+
+  Revision 1.4  2002/04/11 07:04:23  pierre
    + handle tables
 
   Revision 1.3  2002/03/20 17:16:11  pierre
