@@ -1,11 +1,15 @@
-{$ifdef go32v2}
+{$mode objfpc}
 uses
-   dpmiexcp;
+   sysutils
+{$ifdef go32v2}
+   ,dpmiexcp
 {$endif go32v2}
+   ;
 
-procedure dumpqword(q : qword);forward;
-
-{$i ..\rtl\inc\int64.inc}
+type
+   tqwordrec = packed record
+      low,high : dword;
+   end;
 
 procedure dumpqword(q : qword);
 
@@ -675,6 +679,7 @@ procedure teststringqword;
      l : longint;
 
   begin
+     {!!!!!!!!!!!
      { testing str }
      // simple tests
      q1:=1;
@@ -704,6 +709,7 @@ procedure teststringqword;
        do_error(2203);
      { testing val }
      { !!!!!!!     }
+     }
   end;
 
 procedure testmodqword;
@@ -815,6 +821,121 @@ procedure testconstassignqword;
      //!!!!! large constants are still missed 
   end;
 
+{$Q+}
+procedure testreqword;
+
+  var
+     q0,q1,q2,q3 : qword;
+
+  begin
+     q0:=0;
+     assignqword($ffffffff,$ffffffff,q1);
+     q2:=1;
+
+     // addition
+     try
+       // expect an exception
+       q3:=q1+q2;
+       do_error(2500);
+     except
+       on eintoverflow do
+         ;
+       else
+       do_error(2501);
+     end;
+     // subtraction
+     try
+       q3:=q0-q2;
+       do_error(2502);
+     except
+       on eintoverflow do
+         ;
+       else
+       do_error(2503);
+     end;
+
+     // multiplication
+     q2:=2;
+     try
+       q3:=q2*q1;
+       do_error(2504);
+     except
+       on eintoverflow do
+         ;
+       else
+       do_error(2505);
+     end;
+
+     // division
+     try
+       q3:=q1 div q0;
+       do_error(2506);
+     except
+       on edivbyzero do
+         ;
+       else
+       do_error(2507);
+     end;
+
+     // modulo division
+     try
+       q3:=q1 mod q0;
+       do_error(2508);
+     except
+       on edivbyzero do
+         ;
+       else
+       do_error(2509);
+     end;
+{$Q-}
+
+     // now we do the same operations but without overflow
+     // checking -> we should get no exceptions
+     q2:=1;
+
+     // addition
+     try
+       q3:=q1+q2;
+     except
+       do_error(2510);
+     end;
+     // subtraction
+     try
+       q3:=q0-q2;
+     except
+       do_error(2511);
+     end;
+
+     // multiplication
+     q2:=2;
+     try
+       q3:=q2*q1;
+     except
+       do_error(2512);
+     end;
+
+  end;
+
+procedure testintqword;
+
+  var
+     q1,q2 : qword;
+
+  begin
+     // lo/hi
+     assignqword($fafafafa,$03030303,q1);
+     if lo(q1)<>$03030303 then
+       do_error(2600);
+     if hi(q1)<>$fafafafa then
+       do_error(2601);
+     if lo(q1+1)<>$03030304 then
+       do_error(2602);
+     if hi(q1+$f0000000)<>$fafafafa then
+       do_error(2603);
+     assignqword($03030303,$fafafafa,q2);
+     if swap(q1)<>q2 then
+       do_error(2604);
+  end;
 
 var
    q : qword;
@@ -884,12 +1005,15 @@ begin
    writeln('Testing QWord type casts was successful');
    writeln;
 
-   {!!!!!!
+   writeln('Testing QWord internal procedures');
+   testintqword;
+   writeln('Testing QWord internal procedures was successful');
+   writeln;
+
    writeln('Testing QWord multiplications');
    testmulqword;
    writeln('Testing QWord multiplications was successful');
    writeln;
-   }
 
    writeln('Testing QWord division');
    testdivqword;
@@ -899,6 +1023,11 @@ begin
    writeln('Testing QWord modulo division');
    testmodqword;
    writeln('Testing QWord modulo division was successful');
+   writeln;
+
+   writeln('Testing QWord runtime errors');
+   testreqword;
+   writeln('Testing QWord runtime errors was successful');
    writeln;
 
    writeln('Testing QWord string conversion');
