@@ -498,6 +498,7 @@ end;
 initialization
 {$ifdef i386}
   RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerFreeBSD);
+  RegisterExternalLinker(system_i386_NetBSD_info,TLinkerFreeBSD);
   RegisterImport(system_i386_freebsd,timportlibfreebsd);
   RegisterExport(system_i386_freebsd,texportlibfreebsd);
   RegisterTarget(system_i386_freebsd_info);
@@ -506,7 +507,8 @@ initialization
   RegisterTarget(system_i386_netbsd_info);
 {$endif i386}
 {$ifdef m68k}
-  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerFreeBSD);
+//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerFreeBSD);
+  RegisterExternalLinker(system_m68k_NetBSD_info,TLinkerFreeBSD);
   RegisterImport(system_m68k_netbsd,timportlibfreebsd);
   RegisterExport(system_m68k_netbsd,texportlibfreebsd);
   RegisterTarget(system_m68k_netbsd_info);
@@ -514,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-09 17:34:17  peter
+  Revision 1.3  2003-01-18 16:16:13  marco
+   * Small fix for netbsd
+
+  Revision 1.2  2002/09/09 17:34:17  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
