@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO8859-1"?>
 <fpdoc-descriptions>
-
-<module name="Classes">
+<package name="fcl">
+<module name="classes">
 <short>Basic classes for FCL </short>
 <descr>
 <p>This documentation describes the FPC <file>classes</file> unit. 
@@ -257,14 +257,22 @@ streamed component.
 The <var>TAlignment</var> type is used to specify the alignment of
 the text in controls that display a text. 
 </p>
-<table>
-<caption><var>TALignment</var> values and their meanings.</caption>
-<th><td>Value</td><td>Meaning</td></th>
-<tr><td><var>taLeftJustify</var></td><td>Text is displayed aligned to the left.</td></tr>
-<tr><td><var>taRightJustify</var></td><td>Text is displayed aligned to the right.</td></tr>
-<tr><td><var>taCenter</var></td><td>Text is displayed centered.</td></tr>
-</table>
 </descr>
+</element>
+
+<element name="TAlignment.taLeftJustify">
+<short>Text is displayed aligned to the left
+</short>
+</element>
+
+<element name="TAlignment.taCenter">
+<short>Text is displayed centered.
+</short>
+</element>
+
+<element name="TAlignment.taRightJustify">
+<short>Text is displayed aligned to the right.
+</short>
 </element>
 
 <element name="TShiftState">
@@ -280,25 +288,65 @@ special keys are pressed on a keyboard when a key event is generated.
 The set contains the special keys that can be used in combination with a
 'normal' key.
 </p>
-<table>
-<th><td>Set element</td><td>Key pressed</td></th>
-<tr><td>ssShift</td><td>Either left or right shift key</td></tr>
-<tr><td>ssAlt</td><td>Either left or right ALT key</td></tr>
-<tr><td>ssCTRL</td><td>Either left or right CTRL key</td></tr>
-<tr><td>ssLeft</td><td>Either left or right shift key</td></tr>
-<tr><td>ssRight</td><td></td></tr>
-<tr><td>ssMiddle</td><td></td></tr>
-<tr><td>ssDouble</td><td></td></tr>
-<tr><td>ssMeta</td><td>The META key</td></tr>
-<tr><td>ssSuper</td><td></td></tr>
-<tr><td>ssHyper</td><td></td></tr>
-<tr><td>ssAltGr</td><td>The AltGr (right Alt) key</td></tr>
-<tr><td>ssCaps</td><td>The CapsLock key</td></tr>
-<tr><td>ssNum</td><td>The NumLock key</td></tr>
-<tr><td>ssScroll</td><td>The ScrollLock key</td></tr>
-</table>
 </descr>
 </element>
+
+<element name="TShiftState.ssShift">
+<short>Either left or right shift key</short>
+</element>
+
+<element name="TShiftState.ssAlt">
+<short>Either left or right ALT key</short>
+</element>
+
+<element name="TShiftState.ssCTRL">
+<short>Either left or right CTRL key</short>
+</element>
+
+<element name="TShiftState.ssLeft">
+<short>Either left or right shift key</short>
+</element>
+
+<element name="TShiftState.ssRight">
+<short></short>
+</element>
+
+<element name="TShiftState.ssMiddle">
+<short></short>
+</element>
+
+<element name="TShiftState.ssDouble">
+<short></short>
+</element>
+
+<element name="TShiftState.ssMeta">
+<short>The META key</short>
+</element>
+
+<element name="TShiftState.ssSuper">
+<short></short>
+</element>
+
+<element name="TShiftState.ssHyper">
+<short></short>
+</element>
+
+<element name="TShiftState.ssAltGr">
+<short>The AltGr (right Alt) key</short>
+</element>
+
+<element name="TShiftState.ssCaps">
+<short>The CapsLock key</short>
+</element>
+
+<element name="TShiftState.ssNum">
+<short>The NumLock key</short>
+</element>
+
+<element name="TShiftState.ssScroll">
+<short>The ScrollLock key</short>
+</element>
+
 
 <element name="TNotifyEvent">
 <short>
@@ -1076,57 +1124,57 @@ This can be used to quickly copy the list of pinters to another location.
 -->
 
 <element name="TThreadList">  <!-- Class -->
-<short>List object containing all threads.</short>
-<descr></descr>
+<short>Thread-safe list object (not yet implemented).</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.Create">  <!-- Constructor -->
-<short></short>
-<descr></descr>
+<short>Creates a new thread-safe list.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.Destroy">  <!-- Destructor -->
-<short></short>
-<descr></descr>
+<short>Destroys the list instance.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.Add">  <!-- Procedure -->
-<short></short>
-<descr></descr>
+<short>Adds an element to the list.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.Clear">  <!-- Procedure -->
-<short></short>
-<descr></descr>
+<short>Removes all emements from the list.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.LockList">  <!-- Function -->
-<short></short>
-<descr></descr>
+<short>Locks the list for exclusive access.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.Remove">  <!-- Procedure -->
-<short></short>
-<descr></descr>
+<short>Removes an item from the list.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
 
 <element name="TThreadList.UnlockList">  <!-- Procedure -->
-<short></short>
-<descr></descr>
+<short>Unlocks the list after it was locked.</short>
+<descr>This class is not yet implemented in Free Pascal.</descr>
 <errors></errors>
 <seealso></seealso>
 </element>
@@ -6054,121 +6102,55 @@ by itself, if this is necessary.
 <element name="TBinaryObjectReader">  <!-- Class -->
 <short>Driver class descendent which reads component data stored in binary format.</short>
 <descr>
+The <var>TBinaryObjectReader</var> class reads component data stored in 
+binary form in a file. For this, it overrides or implements all abstract
+methods from <link id="TAbstractObjectReader"/>. No new functionality is 
+added by this class, it is a driver class for the streaming system.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader"/>
+<link id="TBinaryObjectWriter"/>
 </seealso>
 </element>
 
 <element name="TBinaryObjectReader.Create">  <!-- Constructor -->
 <short>Creates a new binary data reader instance.</short>
 <descr>
+<var>Create</var> instantiates a new binary component data reader. The
+<var>Stream</var> stream is the stream from which data will be read. The
+<var>BufSize</var> argument is the size of the internal buffer that will be
+used by the reader. This can be used to optimize the reading process.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader"/>
 </seealso>
 </element>
 
 <element name="TBinaryObjectReader.Destroy">  <!-- Destructor -->
 <short>Destroys the binary data reader.</short>
 <descr>
+<var>Destroy</var> frees the buffer allocated when the instance was created.
+It also positions the stream on the last used position in the stream (the
+buffering may cause the reader to read more bytes than were actually used.)
 </descr>
 <seealso>
+<link id="TBinaryObjectReader.Create"/>
 </seealso>
-</element>
-
-<element name="TBinaryObjectReader.NextValue" link="TAbstractObjectReader.NextValue">  <!-- Function -->
-<short>Returns the type of the next value, but does not position the stream to read
-it</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadValue" link="TAbstractObjectReader.ReadValue">  <!-- Function -->
-<short>Returns the type of the next value, and positions the stream to read it</short>
-</element>
-
-<element name="TBinaryObjectReader.BeginRootComponent" link="TAbstractObjectReader.BeginRootComponent">  <!-- Procedure -->
-<short>Signals the beginning of the reading of the root component</short>
-</element>
-
-<element name="TBinaryObjectReader.BeginComponent" link="TAbstractObjectReader.BeginComponent">   <!-- Procedure -->
-<short>Signals the beginning of the reading of a component</short>
-</element>
-
-<element name="TBinaryObjectReader.BeginProperty"
-link="TAbstractObjectReader.BeginProperty">  <!-- Function -->
-<short>Starts reading a property.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadBinary"
-link="TAbstractObjectReader.ReadBinary">  <!-- Procedure -->
-<short>Starts reading binary data.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadFloat"
-link="TAbstractObjectReader.ReadFloat">  <!-- Function -->
-<short>Reads a float from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadSingle"
-link="TAbstractObjectReader.ReadSingle">  <!-- Function -->
-<short>Reads a signle-type real from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadDate"
-link="TAbstractObjectReader.ReadDate">  <!-- Function -->
-<short>Reads a date from the stream</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadIdent"
-link="TAbstractObjectReader.ReadIdent">  <!-- Function -->
-<short>Reads an identifier from the stream</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadInt8"
-link="TAbstractObjectReader.ReadInt8">  <!-- Function -->
-<short>Reads an 8-bit integer from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadInt16"
-link="TAbstractObjectReader.ReadInt16">  <!-- Function -->
-<short>Reads a 16-bit integer from the stream</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadInt32"
-link="TAbstractObjectReader.ReadInt32">  <!-- Function -->
-<short>Reads a 32-bit integer from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadInt64"
-link="TAbstractObjectReader.ReadInt64">  <!-- Function -->
-<short>Reads a 64-bit integer from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadSet"
-link="TAbstractObjectReader.ReadSet">  <!-- Function -->
-<short>Reads a set from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadStr"
-link="TAbstractObjectReader.ReadStr">  <!-- Function -->
-<short>Reads a shortstring from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.ReadString"
-link="TAbstractObjectReader.ReadString">  <!-- Function -->
-<short>Reads a string of type <var>StringType</var> from the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.SkipComponent"
-link="TAbstractObjectReader.SkipComponent">  <!-- Procedure -->
-<short>Skips over a component's data in the stream.</short>
-</element>
-
-<element name="TBinaryObjectReader.SkipValue"
-link="TAbstractObjectReader.SkipValue">  <!-- Procedure -->
-<short>Skip over a value in the data.</short>
 </element>
 
 <element name="TFindMethodEvent">  <!-- Procedure type -->
 <short>Occurs when the streaming process needs to locate a method</short>
+<descr>
+If a <link id="TReader"/> instance needs to locate a method and it doesn't
+find it in the streamed form, then the <link
+id="TReader.OnFindMethod">OnFindMethod</link> event handler will be called,
+if one is installed. This event can be assigned in order to use different
+locating methods. If a method is found, then its address should be returned
+in <var>Address</var>. The <var>Error</var> should be set to <var>True</var> 
+if the reader should raise an exception after the event was handled. If it 
+is set to <var>False</var> no exception will be raised, even if no method
+was found. On entry, <var>Error</var> will be set to <var>True</var>.
+</descr>
 </element>
 
 <element name="TSetNameEvent">  <!-- Procedure type -->
@@ -6238,24 +6220,57 @@ when a component is read from a stream.</short>
 <element name="TReader">  <!-- Class -->
 <short>Generic reader object which reads component data from any given source.</short>
 <descr>
+The <var>TReader</var> class is a reader class that implements generic
+component streaming capabilities, independent of the format of the data in
+the stream. It uses a driver class <link id="TAbstractObjectReader"/> to
+do the actual reading of data. The interface of the <var>TReader</var> class
+should be identical to the interface in Delphi.
 </descr>
 <seealso>
+<link id="TFiler"/>
+<link id="TWriter"/>
+<link id="TAbstractObjectReader"/>
 </seealso>
 </element>
 
 <element name="TReader.Error">  <!-- Function -->
-<short>Raises an error with message <var>Message</var></short>
+<short>Calls an installed error handler and passes it <var>Message</var></short>
 <descr>
+<p>
+<var>Error</var> returns <var>False</var> if no <link id="TReader.OnError"/>
+handler is installed. If one is installed, then it will be called, passing
+the reader instance, message, and function return value as parameters.
+</p>
+<p>
+If the function result <var>False</var>, i.e. when there is no handler
+installed or the handler restured <var>False</var>, then the calling code
+will raise an exception.
+</p>
 </descr>
 <seealso>
+<link id="TReader.FindMethod"/>
 </seealso>
 </element>
 
 <element name="TReader.FindMethod">  <!-- Function -->
 <short>Return the address of a published method.</short>
 <descr>
+<p>
+<var>FindMethod</var> will search for the method in <var>ARoot</var>. If it
+isn't found there, then it will call a <var>OnFindMethod</var> handler, if
+one is installed, passing it the method name <var>AMethodName</var>, the
+result pointer and a variable which says whether an exception should be
+raised if no method with name <var>AMethodName</var> is found.
+</p>
+<p>
+If the method cannot be found and the <link
+id="TReader.OnFindMethod">OnFindMethod</link> returns <var>True</var>, then
+an exception will be raised.
+</p>
 </descr>
 <seealso>
+<link id="TReader.OnFindMethod"/>
+<link id="TFindMethodEvent"/>
 </seealso>
 </element>
 
@@ -7677,111 +7692,280 @@ descendent, and call it's execute method.
 <element name="TComponent">  <!-- Class -->
 <short>Base class for all components that need owner-owned functionality.</short>
 <descr>
+<p>
+<var>TComponent</var> is the base class for any set of classes that needs
+owner-owned functionality, and which needs support for property streaming.
+All classes that should be handled by an IDE (Integrated Development 
+Environment) must descend from <var>TComponent</var>, as it includes all
+support for streaming all its published properties.
+</p>
+<p>
+Components can 'own' other components. <var>TComponent</var> introduces
+methods for enumerating the child components. It also allows to name the
+owned components with a unique name. Furthermore, functionality for 
+sending notifications when a component is removed from the list or
+removed from memory alltogether is also introduced in <var>TComponent</var>
+</p>
+<p>
+<var>TComponent</var> introduces a form of automatic memory management: When
+a component is destroyed, all its child components will be destroyed first.
+</p>
 </descr>
-<seealso>
-</seealso>
 </element>
 
 
 <element name="TComponent.FComponentStyle">  <!-- Variable -->
 <short>Contains the component's style.</short>
 <descr>
+<var>FComponentStyle</var> is the location where the <link
+id="TComponent.ComponentStyle">ComponentStyle</link> property is read from.
 </descr>
 <seealso>
 </seealso>
+<link id="TComponent.ComponentStyle">ComponentStyle</link>
 </element>
 
 <element name="TComponent.ChangeName">  <!-- Procedure -->
-<short>Called when the name of the component is changed.</short>
+<short>Actually sets the component name.</short>
 <descr>
+<p>
+<var>ChangeName</var> is called by the <link
+id="TComponent.SetName">SetName</link> procedure when the component name is
+set and the name has been verified. It actually sets  the name of the 
+component to <var>NewName</var>, and can be used to bypass the name checks which are done when the
+<link id="TComponent.Name">Name</link> property is set.
+</p>
+<p>
+Application programmers should never use <var>SetName</var> directly.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.SetName">SetName</link>
+<link id="TComponent.Name">Name</link>
 </seealso>
 </element>
 
 <element name="TComponent.DefineProperties">  <!-- Procedure -->
 <short>Defines fake top,left properties for handling in the IDE.</short>
 <descr>
+<var>DefineProperties</var> overrides the standard <link
+id="TPersistent.DefineProperties"/> to store the top/left properties used to
+display an icon for a non-visual component in an IDE.
 </descr>
 <seealso>
+<link id="TPersistent.DefineProperties"/>
 </seealso>
 </element>
 
 <element name="TComponent.GetChildren">  <!-- Procedure -->
 <short>Must be overridden by descendents to return all child components that must be streamed.</short>
 <descr>
+<p>
+<var>GetChildren</var> is called by the streaming system to determine which
+child components should be streamed as well when the component is being 
+streamed. 
+By default, no child components are streamed, i.e. the <var>TComponent</var>
+implementation is empty.
+</p>
+<p>
+<var>TComponent</var> descendents should override this method. For each
+child that needs to be streamed, <var>Proc</var> should be called with as
+an argument the child component that must be streamed. The <var>Root</var>
+argument contains the root component relative to which all streaming is
+done.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.WriteState"/>
 </seealso>
 </element>
 
 <element name="TComponent.GetChildOwner">  <!-- Function -->
 <short>Returns the owner of any children.</short>
 <descr>
+<p>
+<var>GetChildOwner</var> returns the owner of the children that are read from the stream.
+If the method returns <var>Nil</var> (the default) this means that streamed
+child components are owned by the root component of the streaming process
+(usually a Form or Datamodule)
+</p>
+<p>
+Application programmers should not call <var>GetChildOwner</var> directly,
+it is called by the streaming system when needed.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.WriteState"/>
+<link id="TComponent.ReadState"/>
+<link id="TComponent.Owner"/>
+<link id="TComponent.GetChildParent"/>
 </seealso>
 </element>
 
 <element name="TComponent.GetChildParent">  <!-- Function -->
 <short>Returns the parent of any children.</short>
 <descr>
+<p>
+<var>GetChildParent</var> returns the parent component of the child
+components being streamed. The parent property is a visual property, which
+is not always meaningful. If there is no parent component, the owner 
+of child components that are streamed is returned. If <var>Nil</var> is
+returned, then the root component of the streaming operation is assumed.
+The <var>TComponent</var> implementation of this method returns
+<var>Self</var>. 
+</p>
+<p>
+Application programmers should not call this method, it is called
+automatically by the streaming mechanism.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.GetChildOwner"/>
 </seealso>
 </element>
 
 <element name="TComponent.GetNamePath">  <!-- Function -->
 <short>Returns the name path of this component.</short>
 <descr>
+<p>
+<var>GetNamePath</var> returns the name of the component as it will be 
+shown in the object inspector. 
+</p>
+<p>
+<var>TComponent</var> overrides <var>GetNamePath</var> so it returns the
+<link id="TComponent.Name">Name</link> property of the component.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.Name">Name</link>
+<link id="TPersistent.GetNamePath"/>
 </seealso>
 </element>
 
 <element name="TComponent.GetOwner">  <!-- Function -->
 <short>Returns the owner of this component.</short>
 <descr>
+<var>GetOwner</var> returns the owner of this component as indicated by the 
+<link id="TComponent.Owner">Owner</link> property. The
+<var>GetOwner</var> call is introduced in <link id="TPersistent"/>
+and is used by the streaming system to determine the 'owner' of a component.
 </descr>
 <seealso>
+<link id="TPersistent.GetOwner"/>
+<link id="TComponent.Owner"/>
 </seealso>
 </element>
 
 <element name="TComponent.Loaded">  <!-- Procedure -->
 <short>Called when the component has finished loading.</short>
 <descr>
+<p>
+<var>Loaded</var> is called by the streaming system when a root
+component was completely read from a stream and all properties and 
+references to other objects have been resolved by the streaming 
+system. Descendents of <var>TComponent</var> should override this method to
+do some additional processing of properties after all published 
+properties have been set from values obtained from the stream.
+</p>
+<p>
+Application programmers should never call <var>Loaded</var> directly, this
+is done automatically by the streaming system.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.ReadState"/>
+<link id="TComponent.ComponentState"/>
 </seealso>
 </element>
 
 <element name="TComponent.Notification">  <!-- Procedure -->
 <short>Called by components that are freed and which received a FreeNotification.</short>
 <descr>
+<p>
+<var>Notification</var> is called whenever a child component is destroyed,
+inserted or removed from the list of owned component. Components that
+were requested to send a notification when they are freed 
+((with <link id="TComponent.FreeNotification">FreeNotification</link>)
+will also call <var>Notification</var> when they are freed.
+</p>
+<p>The <var>AComponent</var> parameter specifies which component sends the
+notification, and <var>Operation</var> specifies whether the component is
+being inserted into or removed from the child component list, or whether it
+is being destroyed.
+</p>
+<p>
+Descendents of <var>TComponent</var> can use <link
+id="TComponent.FreeNotification">FreeNotification</link> to request
+notification of the destruction of another object. By overriding the
+<var>Notification</var> method, they can do special processing (typically,
+set a reference to this component to <var>Nil</var>) 
+when this component is destroyed. The <var>Notification</var> method is
+called quite often in the streaming process, so speed should be a
+consideration when overriding this method.
+</p> 
 </descr>
 <seealso>
+<link id="TOperation"/>
+<link id="TComponent.FreeNotification"/>
 </seealso>
 </element>
 
 <element name="TComponent.ReadState">  <!-- Procedure -->
 <short>Read the component's state from a stream.</short>
 <descr>
+<p>
+<var>ReadState</var> reads the component's state from a stream through the
+reader object <var>reader</var>. Values for all published properties of 
+the component can be read from the stream. Normally there is no need to 
+call <var>ReadState</var> directly. The streaming system calls 
+<var>ReadState</var> itself. 
+</p>
+<p>
+The <link id="TComponent"/> implementation of <var>ReadState</var> simply
+calls <link id="TReader.ReadData"/> Descendent classes can, however, 
+override  <var>ReadState</var>to provide additional processing of stream 
+data.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.WriteState">WriteState</link>
+<link id="TStream.ReadComponent"/>
+<link id="TReader.ReadData"/>
 </seealso>
 </element>
 
 <element name="TComponent.SetAncestor">  <!-- Procedure -->
 <short>Sets the <var>csAncestor</var> state of the component.</short>
 <descr>
+<p>
+<var>SetAncestor</var> includes or excludes the <var>csAncestor</var> flag
+in the <link id="TComponent.ComponentState">ComponentState</link> set property, 
+depending on the boolean <var>Value</var>. The flag is set recursively for
+all owned components as well.
+</p>
+<p>
+This is normally only done during the streaming system, and should not be called 
+directly by an application programmer.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.ComponentState">ComponentState</link>
 </seealso>
 </element>
 
 <element name="TComponent.SetDesigning">  <!-- Procedure -->
 <short>Sets the <var>csDesigning</var> state of the component.</short>
 <descr>
+<p>
+<var>SetDesigning</var> includes or excludes the <var>csDesigning</var> flag
+in the <link id="TComponent.ComponentState">ComponentState</link> set property, 
+depending on the boolean <var>Value</var>. The flag is set recursively for
+all owned components as well.
+</p>
+<p>
+This is normally only done during the streaming system, and should not be called 
+directly by an application programmer.
+</p>
 </descr>
 <seealso>
 </seealso>
@@ -7790,46 +7974,85 @@ descendent, and call it's execute method.
 <element name="TComponent.SetName">  <!-- Procedure -->
 <short>Write handler for <link id="TComponent.Name">Name</link> property.</short>
 <descr>
+<var>SetName</var> is the write handler for the <link
+id="TComponent.Name">Name</link> property. It checks whether the desired
+name is valid (i.e is a valid identifier) and is unique among the children
+of the owner component. If either conditions is not satisfied, an exception
+is raised.
 </descr>
 <seealso>
+<link id="TComponent.Name">Name</link>
+<link id="TComponent.ValidateRename">ValidateRename</link>
 </seealso>
 </element>
 
 <element name="TComponent.SetChildOrder">  <!-- Procedure -->
 <short>Determines the order in which children are streamed/created.</short>
 <descr>
+This method does nothing. It can be used to change the order in which child
+components are streamed and created. This can be used by descendent classes
+to optimize or correct the order in which child components are streamed.
 </descr>
 <seealso>
+<link id="TComponent.ReadState"/>
 </seealso>
 </element>
 
 <element name="TComponent.SetParentComponent">  <!-- Procedure -->
 <short>Set the parent component.</short>
 <descr>
+<var>SetParentComponent</var> does nothing, but is called by the streaming
+system to set the parent component of the current component. This method
+can be overridden by descendent components to set the parent component of
+the current component.
 </descr>
 <seealso>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.Updating">  <!-- Procedure -->
 <short>Sets the state to <var>csUpdating</var></short>
 <descr>
+<p>
+<var>Updating</var> includes <var>csUpdating</var> in the <link
+id="TComponent.ComponentState">ComponentState</link> property of the
+component.
+</p>
+<p>
+Normally, an application programmer should not call this method directly, it
+is called automatically by the streaming system.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.Updated">Updated</link>
+<link id="TComponent.ComponentState">ComponentState</link>
 </seealso>
 </element>
 
 <element name="TComponent.Updated">  <!-- Procedure -->
 <short>Ends the <var>csUpdating</var> state.</short>
 <descr>
+<p>
+<var>Updated</var> excludes <var>csUpdating</var> from the <link
+id="TComponent.ComponentState">ComponentState</link> property of the
+component.
+</p>
+<p>
+Normally, an application programmer should not call this method directly, it
+is called automatically by the streaming system.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.Updating">Updating</link>
+<link id="TComponent.ComponentState">ComponentState</link>
 </seealso>
 </element>
 
 <element name="TComponent.UpdateRegistry">  <!-- Procedure -->
 <short>For compatibilty only.</short>
 <descr>
+This method does nothing, and is provided for compatibility only.
 </descr>
 <seealso>
 </seealso>
@@ -7838,126 +8061,247 @@ descendent, and call it's execute method.
 <element name="TComponent.ValidateRename">  <!-- Procedure -->
 <short>Called when a name change must be validated</short>
 <descr>
+<var>ValidateRename</var> checks whether <var>NewName</var> is a valid 
+replacement for <var>CurName</var> for component <var>AComponent</var>.
+Two owned components of a component can not have the same name. 
+If a child component with the same name is found, then an exception 
+is raised.
 </descr>
 <seealso>
+<link id="TComponent.SetName">SetName</link>
+<link id="TComponent.Name">Name</link>
 </seealso>
 </element>
 
 <element name="TComponent.ValidateContainer">  <!-- Procedure -->
 <short>??</short>
 <descr>
+<var>ValidateContainer</var> is provided for compatibility only. 
+It doesn't do anything in Free Pascal.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TComponent.ValidateInsert">  <!-- Procedure -->
 <short>Called when an insert must be validated.</short>
 <descr>
+<p>
+<var>ValidateInsert</var> should be implemented by descendent components to
+see whether the <var>AComponent</var> component may be inserted in the list
+of owned components. 
+</p>
+<p>
+This procedure does nothing in the <var>TComponent</var> implementation, it
+should be overridden by descendant components.
+</p>
 </descr>
+
 <seealso>
+<link id="TComponent.Insert">Insert</link>
 </seealso>
 </element>
 
 <element name="TComponent.WriteState">  <!-- Procedure -->
 <short>Writes the component to a stream.</short>
 <descr>
+<p>
+<var>WriteState</var> writes the component's current state to a stream 
+through the <link id="TWriter">writer</link> object <var>writer</var>. 
+Values for all published properties of the component can be written to 
+the stream. Normally there is no need to call <var>WriteState</var> directly. 
+The streaming system calls  <var>WriteState</var> itself. 
+</p>
+<p>
+The <link id="TComponent"/> implementation of <var>WriteState</var> simply
+calls <link id="TWriter.WriteData"/>. Descendent classes can, however, 
+override  <var>WriteState</var>to provide additional processing of stream 
+data.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.ReadState">ReadState</link>
+<link id="TStream.WriteComponent"/>
+<link id="TWriter.WriteData"/>
 </seealso>
 </element>
 
 <element name="TComponent.Create">  <!-- Constructor -->
 <short>Creates a new instance of the component.</short>
 <descr>
+<var>Create</var> creates a new instance of a <var>TComponent</var> class.
+If <var>AOwner</var> is not <var>Nil</var>, the new component attempts to 
+insert itself in the list of owned components of the owner.
 </descr>
 <seealso>
+<link id="TComponent.Insert">Insert</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.Destroy">  <!-- Destructor -->
 <short>Destroys the instance of the component.</short>
 <descr>
+<var>Destroy</var> sends a <var>opRemove</var> notification to all components 
+in the free-notification list. After that, all owned components are
+destroyed by calling <link id="TComponent.DestroyComponents">DestroyComponents</link> 
+(and hence removed from the list of owned components). When this
+is done, the component removes itself from its owner's child component list.
+After that, the parent's destroy method is called.
 </descr>
 <seealso>
+<link id="TComponent.Notification">Notification</link>
+<link id="TComponent.Owner">Owner</link>
+<link id="TComponent.DestroyComponents">DestroyComponents</link>
+<link id="TComponent.Components">Components</link>
 </seealso>
 </element>
 
 <element name="TComponent.DestroyComponents">  <!-- Procedure -->
 <short>Destroy child components.</short>
 <descr>
+<p>
+<var>DestroyComponents</var> calls the destructor of all owned components,
+till no more components are left in the <link id="TComponent.Components">Components</link> array.
+</p>
+<p>
+Calling the destructor of an owned component has as the effect that the
+component will remove itself from the list of owned components, if nothing
+has disrupted the sequence of destructors.
+</p>
 </descr>
+<errors> 
+If an overridden 'destroy' method does not call it's intherited 
+destructor or raises an exception, it's <link id="TComponent.Destroy"/> 
+destructor will not be called, which may result in an endless loop.
+</errors>
 <seealso>
+<link id="TComponent.Destroy">Destroy</link>
+<link id="TComponent.Components">Components</link>
 </seealso>
 </element>
 
 <element name="TComponent.Destroying">  <!-- Procedure -->
 <short>Called when the component is being destroyed</short>
 <descr>
+<p>
+<var>Destroying</var> sets the <var>csDestroying</var> flag in the
+component's <link id="TComponent.State">state</link> property, and does the
+same for all owned components.
+</p>
+<p>
+It is not necessary to call <var>Destroying</var> directly, the destructor <link
+id="TComponent.Destroy">Destroy</link> does this automatically.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.State">State</link>
+<link id="TComponent.Destroy">Destroy</link>
 </seealso>
 </element>
 
 <element name="TComponent.FindComponent">  <!-- Function -->
 <short>Finds and returns the named component in the owned components.</short>
 <descr>
+<var>FindComponent</var> searches the component with name <var>AName</var>
+in the list of owned components. If <var>AName</var> is empty, then
+<var>Nil</var> is returned.
 </descr>
 <seealso>
+<link id="TComponent.Components">Components</link>
+<link id="TComponent.Name">Name</link>
 </seealso>
 </element>
 
 <element name="TComponent.FreeNotification">  <!-- Procedure -->
 <short>Ask the component to notify called when it is being destroyed.</short>
 <descr>
+<var>FreeNotification</var> inserts <var>AComponent</var> in the
+freenotification list. When the component is destroyed, the <link
+id="TComponent.Notification">Notification</link> method is called for all
+components in the freenotification list.
 </descr>
 <seealso>
+<link id="TComponent.Components">Components</link>
+<link id="TComponent.Notification">Notification</link>
 </seealso>
 </element>
 
 <element name="TComponent.FreeOnRelease">  <!-- Procedure -->
 <short>Part of the <var>IVCLComObject</var> interface.</short>
 <descr>
+Provided for Delphi compatibility, but is not yet impltmentedd.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TComponent.GetParentComponent">  <!-- Function -->
 <short>Returns the parent component.</short>
 <descr>
+<var>GetParentComponent</var> can be implemented to return the parent
+component of this component. The implementation of this method in
+<var>TComponent</var> always returns <var>Nil</var>. Descendent classes must
+override this method to return the visual parent of the component.
 </descr>
 <seealso>
+<link id="TComponent.HasParent">HasParent</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.HasParent">  <!-- Function -->
 <short>Does the component have a parent ?</short>
 <descr>
+<var>HasParent</var> can be implemented to return whether the parent of the
+component exists. The implementation of this method in TComponent always
+returns <var>False</var>, and should be overridden by descendent classes to
+return <var>True</var> when a parent is available. If <var>HasParent</var>
+returns <var>True</var>, then <link
+id="TComponent.GetParentComponent">GetParentComponent</link> will return the
+parent component.
 </descr>
 <seealso>
+<link id="TComponent.HasParent">HasParent</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.InsertComponent">  <!-- Procedure -->
 <short>Insert the given component in the list of owned components.</short>
 <descr>
+<var>InsertComponent</var> attempts to insert <var>AComponent</var> in the
+list with owned components. It first calls <link
+id="TComponent">ValidateComponent</link> to see whether the component can be
+inserted. It then checks whether there are no name conflicts by calling
+<link id="TComponent.ValidateRename">ValidateRename</link>. If neither of
+these checks have raised an exception the component is inserted, and
+notified of the insert.
 </descr>
 <seealso>
+<link id="TComponent.RemoveComponent">RemoveComponent</link>
+<link id="TComponent.Insert">Insert</link>
+<link id="TComponent.ValidateContainer">ValidateContainer</link>
+<link id="TComponent.ValidateRename">ValidateRename</link>
+<link id="TComponent.Notification">Notification</link>
 </seealso>
 </element>
 
 <element name="TComponent.RemoveComponent">  <!-- Procedure -->
 <short>Remove the given component from the list of owned components.</short>
 <descr>
+<var>RemoveComponent</var> will send an <var>opRemove</var> notification to
+<var>AComponent</var> and will then proceed to remove <var>AComponent</var> 
+from the list of owned components. 
 </descr>
 <seealso>
+<link id="TComponent.InsertComponent">InsertComponent</link>
+<link id="TComponent.Remove">Remove</link>
+<link id="TComponent.ValidateRename">ValidateRename</link>
+<link id="TComponent.Notification">Notification</link>
 </seealso>
 </element>
 
 <element name="TComponent.SafeCallException">  <!-- Function -->
 <short>Part of the <var>IVCLComObject</var> Interface.</short>
 <descr>
+Provided for Delphi compatibility, but not implemented.
 </descr>
 <seealso>
 </seealso>
@@ -7966,32 +8310,78 @@ descendent, and call it's execute method.
 <element name="TComponent.Components">  <!-- Property -->
 <short>Indexed list (zero-based) of all owned components.</short>
 <descr>
+<var>Components</var> provides indexed access to the list of owned
+components. <var>Index</var> can range from 0 to <link
+id="TComponent.ComponentCount">ComponentCount-1</link>.
 </descr>
 <seealso>
+<link id="TComponent.ComponentCount">ComponentCount</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.ComponentCount">  <!-- Property -->
 <short>Count of owned components</short>
 <descr>
+<var>ComponentCount</var> returns the number of components that the current
+component owns. It can be used to determine the valid index range in the
+<link id="TComponent.Components">Component</link> array.
 </descr>
 <seealso>
+<link id="TComponent.Components">Components</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.ComponentIndex">  <!-- Property -->
 <short>Index of component in it's owner's list.</short>
 <descr>
+<var>ComponentIndex</var> is the index of the current component in its
+owner's list of components. If the component has no owner, the value of this
+property is -1.
 </descr>
 <seealso>
+<link id="TComponent.Components">Components</link>
+<link id="TComponent.ComponentCount">ComponentCount</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.ComponentState">  <!-- Property -->
 <short>Current component's state.</short>
 <descr>
+<p>
+<var>ComponentState</var> indicates the current state of the component. It
+is a set of flags which indicate the various stages in the lifetime of a
+component. The following values can occur in this set:
+</p>
+<table>
+<caption>Component states</caption>
+<th><td>Flag</td><td>Meaning</td></th>
+<tr><td>csLoading</td><td>The component is being loaded from stream</td></tr>
+<tr><td>csReading</td><td>Component properties are being read from stream.</td></tr>
+<tr><td>csWriting</td><td>Component properties are weing written to stream.</td></tr>
+<tr><td>csDestroying</td><td>The component or one of it's owners is being destoyed.</td></tr>
+<tr><td>csAncestor</td><td>The component is being streamed as part of a frame </td></tr>
+<tr><td>csUpdating</td><td>The component is being updated</td></tr>
+<tr><td>csFixups</td><td>References to other components are being resolved</td></tr>
+<tr><td>csFreeNotification</td><td>The component has freenotifications.</td></tr>
+<tr><td>csInline</td><td>The component is being loaded as part of a frame</td></tr>
+<tr><td>csDesignInstance</td><td>? not used.</td></tr>
+</table>
+<p>
+The component state is set by various actions such as reading it from stream,
+destroying it etc.
+</p>
 </descr>
 <seealso>
+<link id="TComponent.SetAncestor">SetAncestor</link>
+<link id="TComponent.SetDesigning">SetDesigning</link>
+<link id="TComponent.SetInline">SetInline</link>
+<link id="TComponent.SetDesignInstance">SetDesignInstance</link>
+<link id="TComponent.Updating">Updating</link>
+<link id="TComponent.Updated">Updated</link>
+<link id="TComponent.Loaded">Loaded</link>
 </seealso>
 </element>
 
@@ -8006,46 +8396,618 @@ descendent, and call it's execute method.
 <element name="TComponent.DesignInfo">  <!-- Property -->
 <short>Information for IDE designer.</short>
 <descr>
+<var>DesignInformation</var> can be used by an IDE to store design
+information in the component. It should not be used by an application
+programmer. 
 </descr>
 <seealso>
+<link id="TComponent.Tag">Tag</link>
 </seealso>
 </element>
 
 <element name="TComponent.Owner">  <!-- Property -->
 <short>Owner of this component.</short>
 <descr>
+<var>Owner</var> returns the owner of this component. The owner cannot be
+set except by explicitly inserting the component in another component's
+owned components list using that component's <link
+id="TComponent.InsertComponent">InsertComponent</link> method, or by
+removing the component from it's owner's owned component list using the
+<link id="TComponent.RemoveComponent">RemoveComponent</link> method.
 </descr>
 <seealso>
+<link id="TComponent.Components">Components</link>
+<link id="TComponent.InsertComponent">InsertComponent</link>
+<link id="TComponent.RemoveComponent">RemoveComponent</link>
 </seealso>
 </element>
 
 <element name="TComponent.VCLComObject">  <!-- Property -->
 <short>Not implemented.</short>
 <descr>
+<var>VCLComObject</var> is not yet implemented in Free Pascal.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TComponent.Name">  <!-- Property -->
 <short>Name of the component.</short>
 <descr>
+<var>Name</var> is the name of the component. This name should be a valid
+identifier, i.e. must start with a letter, and can contain only letters,
+numbers and the underscore character. When attempting to set the name of a
+component, the name will be checked for validity. Furthermore, when a
+component is owned by another component, the name must be either empty
+or must be unique among the child component names.
 </descr>
+<errors>
+Attempting to set the name to an invalid value will result in an exception
+being raised.
+</errors>
 <seealso>
+<link id="TComponent.ValidateRename">ValidateRename</link>
+<link id="TComponent.Owner">Owner</link>
 </seealso>
 </element>
 
 <element name="TComponent.Tag">  <!-- Property -->
 <short>Tag value of the component.</short>
 <descr>
+<var>Tag</var> can be used to store an integer value in the component. This
+value is streamed together with all other published properties. It can be
+used for instance to quickly identify a component in an event handler.
 </descr>
 <seealso>
+<link id="TComponent.Name">Name</link>
 </seealso>
 </element>
+
+<!--
+  *********************************************************************
+  TBasicAction
+  *********************************************************************
+-->
+
+<element name="TBasicAction">
+<short>Abstract base class for all Actions.</short>
+<descr>
+<p>
+<var>TBasicAction</var> implements a basic action class from which all
+actions are derived. It introduces all basic methods of an action, and
+implements functionality to maintain a list of clients, i.e. components that
+are connected with this action.
+</p>
+<p>
+Do not create instances of <var>TBasicAction</var>. Instead, create a
+descendent class and create an instance of this class instead.
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink"/>
+<link id="TComponent"/>
+</seealso>
+</element>
+
+
+<element name="TBasicAction.FClients">
+<short>List with components linked to this action.
+</short>
+<descr>
+<var>FClients</var> is a list of <link id="TBasicActionLink"/> classes which
+represent links to various components that are connected to this action.
+The elements in this list should not be manipulated directly, but should be
+managed with the 
+<link id="TBasicAction.RegisterChanges">RegisterChanges</link> and 
+<link id="TBasicAction.UnRegisterChanges">UnRegisterChanges</link> methods.
+</descr>
+<seealso>
+<link id="TBasicAction.RegisterChanges">RegisterChanges</link>
+<link id="TBasicAction.UnRegisterChanges">UnRegisterChanges</link>
+<link id="TBasicActionLink"/>
+</seealso>
+</element>
+
+<element name="TBasicAction.Change">
+<short>Calls the <link id="TBasicAction.OnChange">OnChange</link> handler.</short>
+<descr>
+<p>
+<var>Change</var> calls the <link id="TBasicAction.OnChange">OnChange</link>
+handler if one is assigned.
+</p>
+<p>
+Application programmers should not call <var>Change</var> directly.
+It is called automatically if a property of an action component changes.
+</p>
+<p>
+Descendent classes of <var>TBasicAction</var> should call explicitly call
+<var>Change</var> if one of their properties that affect client controls
+changes its value.
+</p>
+</descr>
+</element>
+
+<element name="TBasicAction.SetOnExecute">
+<short>Assigns an <link id="TBasicAction.OnExecute">OnExecute</link> event
+handler</short>
+<descr>
+<var>SetOnExecute</var> sets the 
+<link id="TBasicAction.OnExecute">OnExecute</link> handler of the component.
+It also propagates this event to all client controls, and finally triggers
+the <link id="TBasicAction.OnChange">OnChange</link> event.
+</descr>
+<seealso>
+<link id="TBasicAction.OnExecute">OnExecute</link>
+<link id="TBasicAction.OnChange">OnChange</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.OnChange">
+<short>Occurs when one of the action's properties changes.
+</short>
+<descr>
+<p>
+<var>OnChange</var> is the event that is triggered when one of the
+action's properties changes. This event should be used by client 
+controls or descendent classes to respond to these changes in the properties
+of the action.
+</p>
+<p>
+Application programmers should never use the <var>OnChange</var> event
+directly.
+</p>
+</descr>
+</element>
+
+<element name="TBasicAction.Create">
+<short>Creates a new instance of a <link id="TBasicAction"/> class.
+</short>
+<descr>
+<p>
+<var>Create</var> calls the inherited constructor, and then initializes the 
+list of clients controls (or action lists) by adding the <var>AClient</var>
+argument to the list of client controls.
+</p>
+<p>
+Under normal circumstances it should not be necessary to create a
+<var>TBasicAction</var> descendent manually, actions are created in an IDE.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.Destroy">Destroy</link>
+<link id="TBasicAction.AssignClient">AssignClient</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.Destroy">
+<short>Destroys the action.</short>
+<descr>
+<p>
+<var>Destroy</var> cleans up the list of client controls and then calls the
+inherited destructor.
+</p>
+<p>
+An application programmer should not call <var>Destroy</var> directly;
+Instead <var>Free</var> should be called, if it needs to be called at all.
+Normally the controlling class (e.g. a TActionList) will destroy the action.
+</p>
+</descr>
+</element>
+
+<element name="TBasicAction.HandlesTarget">
+<short>Determines whether <var>Target</var> can be handled by this action
+</short>
+<descr>
+<p>
+<var>HandlesTarget</var> returns <var>True</var> if <var>Target</var> is 
+a valid client for this action and if so, if it is in a suitable state to
+execute the action. An application programmer should never need to call
+<var>HandlesTarget</var> directly, it will be called by the action itself
+when needed.
+</p>
+<p>
+In <var>TBasicAction</var> this method is empty; descendent classes should
+override this method to implement appropriate checks.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.UpdateTarget">UpdateTarget</link>
+<link id="TBasicAction.ExecuteTarget">ExecuteTarget</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.UpdateTarget">
+<short>Notify client controls when the action updates itself.</short>
+<descr>
+<p>
+<var>UpdateTarget</var> should update the client control specified by
+<var>Target</var> when the action updates itself. 
+In <var>TBasicAction</var>, the implementation of <var>UpdateTarget</var> 
+is empty. Descendent classes should override and implement 
+<var>UpdateTarget</var> to actually update the <var>Target</var> object.
+</p>
+<p>
+An application programmer should never need to call
+<var>HandlesTarget</var> directly, it will be called by the action itself
+when needed.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.HandlesTarget">HandlesTarget</link>
+<link id="TBasicAction.ExecuteTarget">ExecuteTarget</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.ExecuteTarget">
+<short>Executes the action on the <var>Target</var> object</short>
+<descr>
+<p>
+<var>ExecuteTarget</var> performs the action on the <var>Target</var>
+object. In <var>TBasicAction</var> this method does nothing. Descendent
+classes should implement the action to be performed. For instance an action
+to post data in a dataset could call the <var>Post</var> method of the
+dataset.
+</p>
+<p>
+An application programmer should never call <var>ExecuteTarget</var>
+directly.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.HandlesTarget">HandlesTarget</link>
+<link id="TBasicAction.ExecuteTarget">UpdateTarget</link>
+<link id="TBasicAction.Execute">Execute</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.Execute">
+<short>Triggers the <link id="TBasicAction.OnExecute">OnExecute</link> event</short>
+<descr>
+<var>Execute</var> triggers the <var>OnExecute</var> event, if one is
+assigned. It returns <var>True</var> if the event handler was called,
+<var>False</var> otherwise.
+</descr>
+</element>
+
+<element name="TBasicAction.RegisterChanges">
+<short>Registers a new client with the action.</short>
+<descr>
+<var>RegisterChanges</var> adds <var>Value</var> to the list of clients. 
+</descr>
+<seealso>
+<link id="TBasicAction.UnregisterChanges">UnregisterChanges</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.UnregisterChanges">
+<short>Unregisters a client from the list of clients</short>
+<descr>
+<var>UnregisterChanges</var> removes <var>Value</var> from the list of clients.
+This is called for instance when the action is destroyed, or when the client
+is assigned a new action.
+</descr>
+<seealso>
+<link id="TBasicAction.UnregisterChanges">UnregisterChanges</link>
+<link id="TBasicAction.Destroy">Destroy</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.Update">
+<short>Triggers the <link id="TBasicAction.OnUpdate">OnUpdate</link> event</short>
+<descr>
+<p>
+<var>Update</var> triggers the <var>OnUpdate</var> event, if one is
+assigned. It returns <var>True</var> if the event was triggered, or
+<var>False</var> if no event was assigned.
+</p>
+<p>
+Application programmers should never run <var>Update</var> directly. The
+<var>Update</var> method is called automatically by the action mechanism;
+Normally this is in the Idle time of an application. An application
+programmer should assign the <link id="TBasicAction.OnUpdate">OnUpdate</link>
+event, and perform any checks in that handler.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.OnUpdate">OnUpdate</link>
+<link id="TBasicAction.Execute">Execute</link>
+<link id="TBAsicAction.UpdateTarget">UpdateTarget</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.ActionComponent">
+<short>Returns the component that initiated the action.</short>
+<descr>
+<var>ActionComponent</var> is set to the component that caused the action to
+execute, e.g. a toolbutton or a menu item. 
+The property is set just before the action executes, and is reset to nil 
+after the action was executed.
+</descr>
+<seealso>
+<link id="TBasicAction.Execute">Execute</link>
+<link id="TBasicAction.OnExecute">OnExecute</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.OnExecute">
+<short>Event triggered when the action executes.</short>
+<descr>
+<p>
+<var>OnExecute</var> is the event triggered when the action is activated
+(executed). The event is triggered e.g. when the user clicks e.g. on a menu
+item or a button associated to the action. The application programmer 
+should provide a <var>OnExecute</var> event handler to execute whatever code
+is necessary when the button is pressed or the menu item is chosen.
+</p>
+<p>
+Note that assigning an <var>OnExecute</var> handler will result in the
+<link id="TBasicAction.Execute">Execute</link> method returning a
+<var>True</var> value. Predefined actions (such as dataset actions)
+will check the result of <var>Execute</var> and will not perform their 
+normal task if the <var>OnExecute</var> handler was called.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction.Execute">Execute</link>
+<link id="TBasicAction.OnUpdate">OnUpdate</link>
+</seealso>
+</element>
+
+<element name="TBasicAction.OnUpdate">
+<short>Event trigged when the application is idle.</short>
+<descr>
+<var>OnUpdate</var> is the event triggered when the application is idle, and
+the action is being updated. The <var>OnUpdate</var> event can be used to
+set the state of the action, for instance disable it if the action cannot be
+executed at this point in time.
+</descr>
+<seealso>
+<link id="TBasicAction.Update">Update</link>
+<link id="TBasicAction.OnExecute">OnExecute</link>
+</seealso>
+</element>
+
+<!--
+  *********************************************************************
+  TBasicActionLink
+  *********************************************************************
+-->
+
+<element name="TBasicActionLink">
+<short>Link between actions and action clients (e.g. controls)</short>
+<descr>
+<p>
+<var>TBasicActionLink</var> links an Action to its clients. With each client
+for an action, a <var>TBasicActionLink</var> class is instantiated to handle
+the communication between the action and the client. It passes events
+between the action and its clients, and thus presents the action with a
+uniform interface to the clients.
+</p>
+<p>An application programmer should never use a <var>TBasicActionLink</var>
+instance directly; They are created automatically when an action is
+associated with a component. Component programmers should create specialized
+descendents of <var>TBasicActionLink</var> which communicate changes in the
+action to the component.
+</p>
+</descr>
+<seealso>
+<link id="TBasicAction"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.FAction">
+<short>The action with which this link is associated</short>
+<descr>
+<var>FAction</var> contains a reference to the action with which this link
+is associated. It should never be manipulated directly. It will be set
+automatically by the <link id="TBasicActionLink.SetAction">SetAction</link> write method
+for the <link id="TBasicActionLink.Action">Action</link> property.
+</descr>
+<seealso>
+<link id="TBasicActionLink.SetAction">SetAction</link>
+<link id="TBasicActionLink.Action">Action</link>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.AssignClient">
+<short>Assigns a control (client) to the action link.</short>
+<descr>
+<var>AssignClient</var> assigns a control to the actionlink and hence to the
+action. Descendent classes can override <var>AssignClient</var> to check
+whether the new client is a suitable client for this action.
+</descr>
+<seealso>
+<link id="TBasicActionLink.Action">Action</link>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.Change">
+<short>Executed whenever the Action is changed.</short>
+<descr>
+<p>
+<var>Change</var> is executed whenever the action changes. 
+It executes the <link id="TBasicActionLink.OnChange">OnChange</link>
+handler, if one is assigned.
+</p>
+<p>
+Component programmers may decide to override the <var>Change</var>
+procedure in descendent classes to perform aditional actions when 
+the properties of the action changes.
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink.OnChange">OnChange</link>
+<link id="TBasicAction.Change"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.IsOnExecuteLinked">
+<short>Returns whether the client has it's OnExecute property linked.</short>
+<descr>
+<var>IsOnExecuteLinked</var> always returns true in <var>TBasicActionLink</var>. 
+Descendent classes can override this method to provide a different result.
+</descr>
+<link id="TBasicActionLink.OnExecute">OnExecute</link>
+</element>
+
+<element name="TBasicActionLink.SetAction">
+<short>Sets the action with which the actionlink is associated.</short>
+<descr>
+<var>SetAction</var> is the write handler for the <link
+id="TBasicActionLink.Action">Action</link> property. It sets the
+<var>Action</var> property to it's new value, after unregistering itself 
+with the old action, if there was one.
+</descr>
+<seealso>
+<link id="TBasicActionLink.Action">Action</link>
+<link id="TBasicAction"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.SetOnExecute">
+<short>Assigns the <link id="TBasicAction.OnExecute">OnExecute</link> handler
+to the client</short>
+<descr>
+<var>SetOnExecute</var> must be overridden by descendent classes to pass the
+<var>OnExecute</var> handler of the associated action to the client control.
+It will attach the <var>OnExecute</var> handler to whatever handler is
+appropriate for the client control.
+</descr>
+<seealso>
+<link id="TBasicAction.OnExecute">OnExecute</link>
+<link id="TBasicAction"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.Create">
+<short>Creates a new instance of the TBasicActionLink class</short>
+<descr>
+<p>
+<var>Create</var> creates a new instance of a <var>TBasicActionLink</var>
+and assigns <var>AClient</var> as the client of the link.
+</p>
+<p>
+Application programmers should never instantiate <var>TBasicActionLink</var>
+classes directly. An instance is created automatically when an action is
+assigned to a control (client).
+</p>
+<p>
+Component programmers can override the create constructor to initialize
+further properties. 
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink.Destroy">Destroy</link>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.Destroy">
+<short>Destroys the TBasicActionLink instance.</short>
+<descr>
+<p>
+<var>Destroy</var> unregisters the <var>TBasicActionLink</var> with the
+action, and then calls the inherited destructor.
+</p>
+<p>
+Application programmers should never call <var>Destroy</var> directly. If a
+link should be destroyed at all, the <var>Free</var> method should be called
+instead.
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink.Create">Create</link>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.Execute">
+<short>Calls the action's Execute method.</short>
+<descr>
+<p>
+<var>Execute</var> sets the <link
+id="TBasicAction.ActionComponent">ActionComponent</link> 
+property of the associated <link id="TBasicActionLink.Action">Action</link> to 
+<var>AComponent</var> and then calls the Action's  <link
+id="TBasicAction.Execute">execute</link> method. After the action has 
+executed, the <var>ActionComponent</var> property is cleared again.
+</p>
+<p>
+The return value of the function is the return value of the Action's execute
+method.
+</p>
+<p>
+Application programmers should never call <var>Execute</var> directly. This
+method will be called automatically when the associated control is
+activated. (e.g. a button is clicked on)
+</p>
+<p>
+Component programmers should call <var>Execute</var> whenever the action
+should be activated.
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink.Action">Action</link>
+<link id="TBasicAction.ActionComponent"/>
+<link id="TBasicAction.Execute"/>
+<link id="TBasicAction.onExecute"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.Update">
+<short>Calls the action's Update method</short>
+<descr>
+<p>
+<var>Update</var> calls the associated Action's <link
+id="TBasicAction.Update">Update</link> methoda.
+</p>
+<p>
+Component programmers can override the <var>Update</var> method to provide
+additional processing when the <var>Update</var> method occurs.
+</p>
+</descr>
+</element>
+
+<element name="TBasicActionLink.Action">
+<short>The action to which the link was assigned.</short>
+<descr>
+<var>Action</var> represents the <link id="TBasicAction">Action</link> which
+was assigned to the client. Setting this property will unregister the client
+at the old action (if one existed) and registers the client at the new
+action.
+</descr>
+<seealso>
+<link id="TBasicAction"/>
+</seealso>
+</element>
+
+<element name="TBasicActionLink.OnChange">
+<short>Event handler triggered when the action's properties change</short>
+<descr>
+<p>
+<var>OnChange</var> is the event triggered when the action's properties
+change.
+</p>
+<p>
+Application programmers should never need to assign this event. Component
+programmers can assign this event to have a client control reflect any
+changes in an Action's properties.
+</p>
+</descr>
+<seealso>
+<link id="TBasicActionLink.Change">Change</link>
+<link id="TBasicAction.Change"/>
+</seealso>
+</element>
+
+<!--
+  *********************************************************************
+  Various calls
+  *********************************************************************
+-->
+
 
 <element name="TActiveXRegType">  <!-- Enumeration type -->
 <short>Used when registering ActveX component types.</short>
 <descr>
+This type is provided for compatibility only, and is currently not used in
+Free Pascal.
 </descr>
 <seealso>
 </seealso>
@@ -8053,32 +9015,32 @@ descendent, and call it's execute method.
 
 <element name="TActiveXRegType.axrComponentOnly">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TActiveXRegType.axrIncludeDescendants">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="RegisterComponentsProc">  <!-- Variable -->
 <short>Callback procedure used when handling component registration.</short>
 <descr>
+<var>RegisterComponentsProc</var> can be set by an IDE to be notified when
+new components are being registered. Application programmers should never
+have to set <var>RegisterComponentsProc</var>
 </descr>
 <seealso>
+<link id="RegisterNoIconProc"/>
+<link id="RegisterComponents"/>
 </seealso>
 </element>
 
 <element name="RegisterNoIconProc">  <!-- Variable -->
-<short>>Callback procedure used when handling iconless component
-registration.</short>
+<short>Callback procedure used when handling iconless component registration.</short>
 <descr>
+<var>RegisterNoIconProc</var> can be set by an IDE to be notified when
+new components are being registered, and which do not need an Icon in the
+component palette. Application programmers should never
+have to set <var>RegisterComponentsProc</var>
 </descr>
 <seealso>
 </seealso>
@@ -8087,24 +9049,48 @@ registration.</short>
 <element name="Point">  <!-- Function -->
 <short>Returns a <var>TPoint</var> record with the given coordinates.</short>
 <descr>
+<var>Point</var> returns a <link id="TPoint"/> record with the given
+coordinates <var>AX</var> and <var>AY</var> filled in.
 </descr>
 <seealso>
+<link id="TPoint"/>
+<link id="SmallPoint"/>
+<link id="Rect"/>
+<link id="Bounds"/>
 </seealso>
 </element>
 
 <element name="SmallPoint">  <!-- Function -->
 <short>Returns a <var>TSmallPoint</var> record with the given coordinates.</short>
 <descr>
+<var>SmallPoint</var> returns a <link id="TSmallPoint"/> record with the given
+coordinates <var>AX</var> and <var>AY</var> filled in.
 </descr>
 <seealso>
+<link id="TSmallPoint"/>
+<link id="Point"/>
+<link id="Rect"/>
+<link id="Bounds"/>
 </seealso>
 </element>
 
 <element name="Rect">  <!-- Function -->
 <short>Returns a <var>TRect</var> record with the given coordinates.</short>
 <descr>
+<p>
+<var>Rect</var> returns a <link id="TRect"/> record with the given
+top-left <var>(ALeft,ATop)</var> and bottom-right <var>(ABottom,ARight)</var>
+corners filled in.
+</p>
+<p>
+No checking is done to see whether the coordinates are valid.
+</p>
 </descr>
 <seealso>
+<link id="TRect"/>
+<link id="Point"/>
+<link id="SmallPoint"/>
+<link id="Bounds"/>
 </seealso>
 </element>
 
@@ -8112,6 +9098,9 @@ registration.</short>
 <short>Returns a <var>TRect</var> structure with the bounding rect of the
 given location and size.</short>
 <descr>
+<var>Bounds</var> returns a <link id="TRect"/> record with the given
+origin <var>(ALeft,ATop)</var> and dimensions <var>(AWidth,AHeight)</var> 
+filled in.
 </descr>
 <seealso>
 </seealso>
@@ -8120,86 +9109,169 @@ given location and size.</short>
 <element name="RegisterClass">  <!-- Procedure -->
 <short>Registers a class with the streaming system.</short>
 <descr>
+<var>RegisterClass</var> registers the class <var>AClass</var> in the
+streaming system. After the class has been registered, it can be read from
+a stream when a reference to this class is encountered.
 </descr>
 <seealso>
+<link id="RegisterClasses"/>
+<link id="RegisterClassAlias"/>
+<link id="RegisterComponents"/>
+<link id="UnregisterClass"/>
 </seealso>
 </element>
 
 <element name="RegisterClasses">  <!-- Procedure -->
 <short>Registers multiple classes with the streaming system.</short>
 <descr>
+<var>RegisterClasses</var> registers the specified classes <var>AClass</var> in the
+streaming system. After the classes have been registered, they can be read from
+a stream when a reference to this class is encountered.
 </descr>
 <seealso>
+<link id="RegisterClass"/>
+<link id="RegisterClassAlias"/>
+<link id="RegisterComponents"/>
+<link id="UnregisterClass"/>
 </seealso>
 </element>
 
 <element name="RegisterClassAlias">  <!-- Procedure -->
 <short>Registers a class alias with the streaming system.</short>
 <descr>
+<var>RegisterClassAlias</var> registers a class alias in the streaming
+system. If a reference to a class <var>Alias</var> is encountered in a
+stream, then an instance of the class <var>AClass</var> will be created 
+instead by the streaming code.
 </descr>
 <seealso>
+<link id="RegisterClass"/>
+<link id="RegisterClasses"/>
+<link id="RegisterComponents"/>
+<link id="UnregisterClass"/>
 </seealso>
 </element>
 
 <element name="UnRegisterClass">  <!-- Procedure -->
 <short>Unregisters a class from the streaming system.</short>
 <descr>
+<var>UnregisterClass</var> removes the class <var>AClass</var> from the
+class definitions in the streaming system.
 </descr>
 <seealso>
+<link id="UnRegisterClasses"/>
+<link id="UnRegisterModuleClasses"/>
+<link id="RegisterClass"/>
 </seealso>
 </element>
 
 <element name="UnRegisterClasses">  <!-- Procedure -->
 <short>Unregisters multiple classes from the streaming system.</short>
 <descr>
+<var>UnregisterClasses</var> removes the classes in <var>AClasses</var> from the
+class definitions in the streaming system.
 </descr>
+<link id="UnRegisterClass"/>
+<link id="UnRegisterModuleClasses"/>
+<link id="RegisterClasses"/>
 <seealso>
 </seealso>
 </element>
 
 <element name="UnRegisterModuleClasses">  <!-- Procedure -->
-<short></short>
+<short>Unregisters classes registered by module.</short>
 <descr>
+<var>UnRegisterModuleClasses</var> unregisters all classes which reside in 
+the module <var>Module</var>. For each registered class, the definition
+pointer is checked to see whether it resides in the module, and if it does,
+the definition is removed.
 </descr>
 <seealso>
+<link id="UnRegisterClass"/>
+<link id="UnRegisterClasses"/>
+<link id="RegisterClasses"/>
 </seealso>
 </element>
 
 <element name="FindClass">  <!-- Function -->
 <short>Returns the class pointer of a class with given name.</short>
 <descr>
+<p>
+<var>FindClass</var> searches for the class named <var>ClassName</var>
+in the list of registered classes and returns a class pointer to the
+definition. If no class with the given name could be found, an exception is
+raised.
+</p>
+<p>The <link id="GetClass"/> function does not raise an exception when it
+does not find the class, but returns a <var>Nil</var> pointer instead.
+</p>
 </descr>
 <seealso>
+<link id="RegisterClass"/>
+<link id="GetClass"/>
 </seealso>
 </element>
 
 <element name="GetClass">  <!-- Function -->
 <short>Returns the class pointer of a class with given name.</short>
 <descr>
+<p>
+<var>GetClass</var> searches for the class named <var>ClassName</var>
+in the list of registered classes and returns a class pointer to the
+definition. If no class with the given name could be found, <var>Nil</var>
+is returned.
+</p>
+<p>The <link id="FindClass"/> function will raise an exception if the 
+does not find the class.
+</p>
 </descr>
 <seealso>
+<link id="RegisterClass"/>
+<link id="GetClass"/>
 </seealso>
 </element>
 
 <element name="RegisterComponents">  <!-- Procedure -->
 <short>Registers components for the component palette.</short>
 <descr>
+<p>
+<var>RegisterComponents</var> registers the component on the appropriate
+component page. The component pages can be used by an IDE to display the
+known components so an application programmer may pick and use the
+components in his programs.
+</p>
+<p>
+Registercomponents inserts the component class in the correct component
+page. If the <var>RegisterComponentsProc</var> procedure is set, this is
+called as well. Note that this behaviour is different from Delphi's
+behaviour where an exception will be raised if the procedural variable is
+not set.
+</p>
 </descr>
 <seealso>
+<link id="RegisterClass"/>
+<link id="RegisterNoIcon"/>
 </seealso>
 </element>
 
 <element name="RegisterNoIcon">  <!-- Procedure -->
-<short>Registers components that have no icon on component palette.</short>
+<short>Registers components that have no icon on the component palette.</short>
 <descr>
+<var>RegisterNoIcon</var> performs the same function as <link
+id="RegisterComponents"/> except that it calls <link
+id="RegisterNoIconProc"/>
+instead of <link id="RegisterComponentsProc"/>
 </descr>
 <seealso>
+<link id="RegisterNoIconProc"/>
+<link id="RegisterComponents"/>
 </seealso>
 </element>
 
 <element name="RegisterNonActiveX">  <!-- Procedure -->
 <short>Register non-activex component.</short>
 <descr>
+Not yet implemented in Free Pascal
 </descr>
 <seealso>
 </seealso>
@@ -8208,48 +9280,85 @@ given location and size.</short>
 <element name="TIdentMapEntry">  <!-- Record type -->
 <short>Record used when associating names with integer values.</short>
 <descr>
+<var>TIdentMapEntry</var> is used internally by the <link id="IdentToInt"/>
+and <link id="IntToIdent"/> calls to store the mapping between the
+identifiers and the integers they represent.
 </descr>
 <seealso>
+<link id="IntToIdent"/>
+<link id="IdentToInt"/>
 </seealso>
 </element>
 
 <element name="TIdentMapEntry.Value">  <!-- Variable -->
 <short>Integer value</short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TIdentMapEntry.Name">  <!-- Variable -->
 <short>Name of the integer value.</short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TIdentToInt">  <!-- Function type -->
 <short>Callback for converting identifiers to integers.</short>
 <descr>
+<p>
+<var>TIdentToInt</var> is a callback used to look up identifiers 
+(<var>Ident</var>) and return an integer value corresponding to this
+identifier (<var>Int</var>). The callback should return <var>True</var> if a
+value corresponding to integer <var>Ident</var> was found, <var>False</var>
+if not.
+</p>
+<p>
+A callback of type <var>TIdentToInt</var> should be specified when an
+integer is registered using the <link id="RegisterIntegerConsts"/> call.
+</p>
 </descr>
 <seealso>
+<link id="RegisterIntegerConsts"/>
+<link id="TIntToIdent"/>
 </seealso>
 </element>
 
 <element name="TIntToIdent">  <!-- Function type -->
 <short>Callback for converting integers to identifiers.</short>
 <descr>
+<p>
+<var>TIdentToInt</var> is a callback used to look up integers 
+(<var>Ident</var>) and return an identifier (<var>Ident</var>) 
+that can be used to represent this integer value in an IDE.
+The callback should return <var>True</var> if a value corresponding 
+to integer <var>Ident</var> was found, <var>False</var> if not.
+</p>
+<p>
+A callback of type <var>TIntToIdent</var> should be specified when an
+integer is registered using the <link id="RegisterIntegerConsts"/> call.
+</p>
 </descr>
 <seealso>
+<link id="RegisterIntegerConsts"/>
+<link id="TIdentToInt"/>
 </seealso>
 </element>
 
 <element name="TFindGlobalComponent">  <!-- Function type -->
 <short>Callback type to search for a component.</short>
 <descr>
+<p>
+<var>TFindGlobalComponent</var> is a callback used to find a component in a
+global scope. It is used when the streaming system needs to find a component
+which is not part of the component which is currently being streamed. It
+should return the component with name <var>Name</var>, or <var>Nil</var> if
+none is found.
+</p>
+<p>
+The variable <link id="FindGlobalComponent"/> is a callback of type
+<var>TFindGlobalComponent</var>. It can be set by the IDE when an unknown
+reference is found, to offer the designer to redirect the link to a new
+component.
+</p>
 </descr>
 <seealso>
+<link id="FindGlobalComponent"/>
 </seealso>
 </element>
 
@@ -8264,141 +9373,286 @@ given location and size.</short>
 <element name="FindGlobalComponent">  <!-- Variable -->
 <short>Callback used when a component must be found.</short>
 <descr>
+<p>
+<var>FindGlobalComponent</var> is a callback of type
+<link id="TFindGlobalComponent"/>. It can be set by the IDE when an unknown
+reference is found, to offer the user to redirect the link to a new
+component.
+</p>
+<p>
+It is a callback used to find a component in a
+global scope. It is used when the streaming system needs to find a component
+which is not part of the component which is currently being streamed. It
+should return the component with name <var>Name</var>, or <var>Nil</var> if
+none is found.
+</p>
 </descr>
 <seealso>
+<link id="TFindGlobalComponent"/>
 </seealso>
 </element>
 
 <element name="RegisterIntegerConsts">  <!-- Procedure -->
 <short>Registers some integer-to-identifier mappings.</short>
 <descr>
+<p>
+<var>RegisterIntegerConsts</var> registers a pair of callbacks to be used
+when an integer of type <var>IntegerType</var> must be mapped to an
+identifier (using <var>IntToIdentFn</var>) or when an identifier must be
+mapper to an integer (using <var>IdentToIntFn</var>). 
+</p>
+<p>
+Component programmers can use <var>RegisterIntegerConsts</var> to associate
+a series of identifier strings with integer values for a property. A
+necessary condition is that the property should have a separate type
+declared using the <var>type integer</var> syntax. If a type of integer is
+defined in this way, an IDE can show symbolic names for the values of these 
+properties.
+</p>
+<p>
+The <var>IntegerType</var> should be a pointer to the type information of
+the integer type. The <var>IntToIdentFn</var> and <var>IdentToIntFn</var>
+are two callbacks that will be used when converting between the identifier
+and integer value and vice versa. The functions <link id="IdentToInt"/>
+and <link id="IntToIdent"/> can be used to implement these callback
+functions.
+</p>
 </descr>
 <seealso>
+<link id="TIdentToInt"/>
+<link id="TIntToIdent"/>
+<link id="IdentToInt"/>
+<link id="IntToIdent"/>
 </seealso>
 </element>
 
 <element name="IdentToInt">  <!-- Function -->
-<short>Returns the integer value that corresponds with the identifier.</short>
+<short>Looks up an integer value in a integer-to-identifier map list.</short>
 <descr>
+<var>IdentToInt</var> searches <var>Map</var> for an entry whose
+<var>Name</var> field matches <var>Ident</var> and returns the corresponding
+integer value in <var>Int</var>. If a match was found, the function returns
+<var>True</var>, otherwise, <var>False</var> is returned.
 </descr>
 <seealso>
+<link id="TIdentToInt"/>
+<link id="TIntToIdent"/>
+<link id="IntToIdent"/>
+<link id="TIdentMapEntry"/>
 </seealso>
 </element>
 
 <element name="IntToIdent">  <!-- Function -->
-<short></short>
+<short>Looks up an identifier for an integer value in a identifier-to-integer map list.</short>
 <descr>
+<var>IdentToInt</var> searches <var>Map</var> for an entry whose
+<var>Value</var> field matches <var>Int</var> and returns the corresponding
+identifier in <var>Ident</var>. If a match was found, the function returns
+<var>True</var>, otherwise, <var>False</var> is returned.
 </descr>
 <seealso>
+<link id="TIdentToInt"/>
+<link id="TintToIdent"/>
+<link id="IdentToInt"/>
+<link id="TIdentMapEntry"/>
 </seealso>
 </element>
 
 <element name="InitInheritedComponent">  <!-- Function -->
-<short></short>
+<short>Initializes a component descending from <var>RootAncestor</var></short>
 <descr>
+<p>
+<var>InitInheritedComponent</var> should be called from a constructor to
+read properties of the component <var>Instance</var> from the streaming
+system. The <var>RootAncestor</var> class is the root class from which
+<var>Instance</var> is a descendent. This must be one of
+<var>TDatamodule</var>, <var>TCustomForm</var> or <var>TFrame</var>.
+</p>
+<p>
+The function returns <var>True</var> if the properties were successfully
+read from a stream or <var>False</var> if some error occurred.
+</p>
 </descr>
 <seealso>
+<link id="ReadComponentRes"/>
+<link id="ReadComponentResEx"/>
+<link id="ReadComponentResFile"/>
 </seealso>
 </element>
 
 <element name="InitComponentRes">  <!-- Function -->
-<short></short>
+<short>Provided for Delphi compatibility only</short>
 <descr>
+This function is provided for Delphi compatibility. 
+It always returns <var>false</var>.
 </descr>
 <seealso>
+<link id="ReadComponentRes"/>
 </seealso>
 </element>
 
 <element name="ReadComponentRes">  <!-- Function -->
-<short></short>
+<short>Read component properties from a resource in the current module</short>
 <descr>
+This function is provided for Delphi compatibility. 
+It always returns <var>Nil</var>.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="ReadComponentResEx">  <!-- Function -->
-<short></short>
+<short>Read component properties from a resource in the specified module</short>
 <descr>
+This function is provided for Delphi compatibility. 
+It always returns <var>Nil</var>.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="ReadComponentResFile">  <!-- Function -->
-<short></short>
+<short>Read component properties from a specified resource file</short>
 <descr>
+<var>ReadComponentResFile</var> starts reading properties for
+<var>Instance</var> from the file <var>FileName</var>. It creates a
+filestream from <var>FileName</var> and then calls the <link
+id="TStream.ReadComponentRes"/> method to read the state of the component from the
+stream.
 </descr>
 <seealso>
+<link id="TStream.ReadComponentRes"/>
+<link id="WriteComponentResFile"/>
 </seealso>
 </element>
 
 <element name="WriteComponentResFile">  <!-- Procedure -->
-<short></short>
+<short>Write component properties to a specified resource file</short>
 <descr>
+<var>WriteComponentResFile</var> starts writing properties of
+<var>Instance</var> to the file <var>FileName</var>. It creates a
+filestream from <var>FileName</var> and then calls <link
+id="TStream.WriteComponentRes"/> method to write the state of 
+the component to the stream.
 </descr>
 <seealso>
+<link id="TStream.WriteComponentRes"/>
+<link id="ReadComponentResFile"/>
 </seealso>
 </element>
 
 <element name="GlobalFixupReferences">  <!-- Procedure -->
-<short></short>
+<short>Called to resolve unresolved references after forms are loaded.</short>
 <descr>
+<var>GlobalFixupReferences</var> runs over the list of unresolved references
+and tries to resolve them. This routine should under normal circumstances
+not be called in an application programmer's code. It is called
+automatically by the streaming system after a component has been
+instantiated and its properties read from a stream. It will attempt to
+resolve references to other global components. 
 </descr>
 <seealso>
+<link id="GetFixupReferenceNames"/>
+<link id="GetFixupInstanceNames"/>
 </seealso>
 </element>
 
 <element name="GetFixupReferenceNames">  <!-- Procedure -->
-<short></short>
+<short>Returns the names of elements that need to be resolved for the
+<var>root</var> component.</short>
 <descr>
+<var>GetFixupReferenceNames</var> examines the list of unresolved references
+and returns the names of properties that must be resolved for the
+component <var>Root</var> in the list <var>Names</var>. The list is not
+cleared prior to filling it.
 </descr>
 <seealso>
+<link id="GetFixupInstanceNames"/>
+<link id="GlobalFixupReferences"/>
 </seealso>
 </element>
 
 <element name="GetFixupInstanceNames">  <!-- Procedure -->
-<short></short>
+<short>Returns the names of elements that need to be resolved for the
+<var>root</var> component, whose reference contains <var>ReferenceRootName</var></short>
 <descr>
+<var>GetFixupInstanceNames</var> examines the list of unresolved references
+and returns the names of classes that contain unresolved references to the
+<var>Root</var> component in the list <var>Names</var>. The list is not
+cleared prior to filling it.
 </descr>
 <seealso>
+<link id="GetFixupReferenceNames"/>
+<link id="GlobalFixupReferences"/>
 </seealso>
 </element>
 
 <element name="RedirectFixupReferences">  <!-- Procedure -->
-<short></short>
+<short>Redirects references under the <var>root</var> object from
+<var>OldRootName</var> to <var>NewRootName</var></short>
 <descr>
+<p>
+<var>RedirectFixupReferences</var> examines the list of unresolved
+references and replaces references to a root object named
+<var>OldRootName</var> with references to root object 
+<var>NewRootName</var>.
+</p>
+<p>
+An application programmer should never need to call 
+<var>RedirectFixupReferences</var>.
+This function can be used by an IDE to support redirection of broken
+component links.
+</p>
 </descr>
 <seealso>
+<link id="RemoveFixupReferences"/>
 </seealso>
 </element>
 
 <element name="RemoveFixupReferences">  <!-- Procedure -->
-<short></short>
+<short>Removes references to rootname from the fixup list.</short>
 <descr>
+<p>
+<var>RemoveFixupReferences</var> examines the list of unresolved
+references and removes references to a root object pointing at
+<var>Root</var> or a root component named <var>RootName</var>.
+</p>
+<p>
+An application programmer should never need to call 
+<var>RemoveFixupReferences</var>.
+This function can be used by an IDE to support removal of broken
+component links.
+</p>
 </descr>
 <seealso>
+<link id="RedirectFixupReferences"/>
 </seealso>
 </element>
 
 <element name="RemoveFixups">  <!-- Procedure -->
-<short></short>
+<short>Removes <var>Instance</var> from the fixup list.</short>
 <descr>
+<var>RemoveFixups</var> removes all entries for component
+<var>Instance</var> from the list of unresolved references.a
 </descr>
 <seealso>
+<link id="RedirectFixupReferences"/>
+<link id="RemoveFixupReferences"/>
 </seealso>
 </element>
 
 <element name="FindNestedComponent">  <!-- Function -->
-<short></short>
+<short>Finds the component with name path starting at the indicated root
+component.</short>
 <descr>
+<var>FindNestedComponent</var> will descend through the list of owned
+components (starting at <var>Root</var>) and will return the component whose
+name path matches <var>NamePath</var>. As a path separator the characters .
+(dot), - (dash) and > (greater than) can be used
 </descr>
 <seealso>
+<link id="GlobalFixupReferences"/>
 </seealso>
 </element>
 
 <element name="BeginGlobalLoading">  <!-- Procedure -->
-<short></short>
+<short>Not yet implemented</short>
 <descr>
 </descr>
 <seealso>
@@ -8406,7 +9660,7 @@ given location and size.</short>
 </element>
 
 <element name="NotifyGlobalLoading">  <!-- Procedure -->
-<short></short>
+<short>Not yet implemented.</short>
 <descr>
 </descr>
 <seealso>
@@ -8414,7 +9668,7 @@ given location and size.</short>
 </element>
 
 <element name="EndGlobalLoading">  <!-- Procedure -->
-<short></short>
+<short>Not yet implemented.</short>
 <descr>
 </descr>
 <seealso>
@@ -8422,23 +9676,28 @@ given location and size.</short>
 </element>
 
 <element name="CollectionsEqual">  <!-- Function -->
-<short></short>
+<short>Returns <var>True</var> if two collections are equal.</short>
 <descr>
+<var>CollectionsEqual</var> is not yet implemented. It simply returns
+<var>False</var>
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="ObjectBinaryToText">  <!-- Procedure -->
-<short></short>
+<short>Converts an object stream from a binary to a text format.</short>
 <descr>
+<var>ObjectBinaryToText</var> reads an object stream in binary format from
+<var>Input</var> and writes the object stream in text format to
+<var>Output</var>. No components are instantiated during the process, 
+this is a pure conversion routine.
 </descr>
 <seealso>
+<link id="ObjectTextToBinary"/>
 </seealso>
 </element>
 
 <element name="ObjectTextToBinary">  <!-- Procedure -->
-<short></short>
+<short>Converts an object stream from a text to a binary format.</short>
 <descr>
 </descr>
 <seealso>
@@ -8446,27 +9705,106 @@ given location and size.</short>
 </element>
 
 <element name="ObjectResourceToText">  <!-- Procedure -->
-<short></short>
+<short>Converts an object stream from a (windows) resource to a text format.</short>
 <descr>
+<var>ObjectResourceToText</var> reads the resource header from the
+<var>Input</var> stream and then passes the streams to
+<link id="ObjectBinaryToText"/>
 </descr>
 <seealso>
+<link id="ObjectBinaryToText"/>
+<link id="ObjectTextToResource"/>
 </seealso>
 </element>
 
 <element name="ObjectTextToResource">  <!-- Procedure -->
-<short></short>
+<short>Converts an object stream from a text to a (windows) resource  format.</short>
 <descr>
+<p>
+<var>ObjectTextToResource</var> reads an object stream in text format from
+<var>Input</var> and writes a resource stream to <var>Output</var>.
+</p>
+<p>
+Note that for the current implementation of this method in Free Pascal, 
+the output stream should support positioning. (e.g. it should not be a pipe)
+</p> 
 </descr>
 <seealso>
+<link id="ObjectBinaryToText"/>
+<link id="ObjectResourceToText"/>
 </seealso>
 </element>
 
 <element name="LineStart">  <!-- Function -->
-<short></short>
+<short>Finds the start of a line in <var>Buffer</var> before
+<var>BufPos</var>.</short>
 <descr>
+<var>LineStart</var> reversely scans <var>Buffer</var> starting at
+<var>BufPos</var> for a linefeed character. It returns a pointer at the
+linefeed character.
 </descr>
-<seealso>
-</seealso>
+</element>
+
+<element name="TPointerList">
+<short>Type for an Array of pointers.</short>
+</element>
+
+<element name="PPointerList">
+<short>Pointer to an array of pointers.</short>
+</element>
+
+<element name="THelpContext">
+<short>Range type to specify help contexts.</short>
+</element>
+
+<element name="THelptype">
+<short>Enumeration type specifying the kind of help requested.</short>
+</element>
+
+<element name="PStringItemList">
+<short>Pointer to a <link id="TStringItemList"/>.</short>
+</element>
+
+<element name="TBasicActionClass">
+<short><link id="TBasicAction"/> class reference.</short>
+</element>
+
+<element name="TBAsicActionLinkClass">
+<short><link id="TBasicActionLink"/> class reference.</short>
+</element>
+
+<element name="TListNotification">
+<short>Kind of list notification event.</short>
+</element>
+
+
+<element name="TListSortCompare">
+<short>Callback type for the list sort algorithm.</short>
+</element>
+
+
+<element name="TSeekOrigin">
+<short>Specifies the origin of the <link id="TStream.Seek"/> method.</short>
+</element>
+
+<element name="TSeekOrigin.soBeginning">
+<short>Offset is interpreted relative to the start of the stream.</short>
+</element>
+
+<element name="TSeekOrigin.SoEnd">
+<short>Offset is interpreted relative to the end of the stream.</short>
+</element>
+
+<element name="TSeekOrigin.soCurrent">
+<short>Offset is interpreted relative to the current position in the stream.</short>
+</element>
+
+<element name="TShortCut">
+<short>Enumeration type to identify shortcut key combinations.</short>
+</element>
+
+<element name="TStringListSortCompare">
+<short>Callback type used in stringlist compares.</short>
 </element>
 
 
@@ -8480,4 +9818,5 @@ given location and size.</short>
 -->
 
 </module>
+</package>
 </fpdoc-descriptions>
