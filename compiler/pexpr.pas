@@ -542,6 +542,7 @@ unit pexpr;
       var
          paras : ptree;
          p2 : ptree;
+         forceread : boolean;
 
       begin
          paras:=nil;
@@ -558,7 +559,9 @@ unit pexpr;
               p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
               paras:=gencallparanode(p2,paras);
            end;
-         if not(afterassignment) and not(in_args) then
+         { we need only a write property if a := follows }
+         { if not(afterassignment) and not(in_args) then }
+         if token=ASSIGNMENT then
            begin
               { write property: }
               { no result }
@@ -1978,7 +1981,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.94  1999-04-17 13:12:17  peter
+  Revision 1.95  1999-04-19 06:10:08  florian
+    * property problem fixed: a propertysym is only a write
+      access if it is followed by a assignment token
+
+  Revision 1.94  1999/04/17 13:12:17  peter
     * addr() internal
 
   Revision 1.93  1999/04/15 09:00:08  peter
