@@ -201,7 +201,7 @@ ASMEXT=.s
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux objpas \
 	dos crt objects printer \
-	getopts errors sockets \
+	getopts errors sockets graph\
 
 # Extra Syslinux Depends
 ifeq ($(LINK_TO_C),YES)
@@ -355,6 +355,9 @@ printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) $(INC)/textrec.inc .
 	$(PP) $(OPT) printer $(REDIR)
 	$(DEL) textrec.inc
+
+graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
+	$(PP) $(OPT) graph $(REDIR)
 
 #
 # Other RTL Units
