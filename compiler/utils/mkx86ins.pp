@@ -208,6 +208,7 @@ var
    nopfile,attfile,intfile,
    infile,insfile : text;
    { instruction fields }
+   skip : boolean;
    last,
    ops    : longint;
    intopcode,
@@ -257,8 +258,6 @@ begin
         readln(infile,s);
         while (s[1]=' ') do
          delete(s,1,1);
-        if (s=';!!!x86_64') and not(x86_64) then
-          break;
         if (s='') or (s[1]=';') then
           continue;
         if (s[1]='[') then
@@ -343,6 +342,7 @@ begin
         optypes[3]:='';
         codes:='';
         flags:='';
+        skip:=false;
         { ops and optypes }
         i:=1;
         repeat
@@ -404,12 +404,16 @@ begin
         while not(s[i] in [' ',#9,#13,#10]) and (i<=length(s)) do
           begin
              hs:=readstr;
-             if (hs='ignore') or
-               ((upcase(hs)='X86_64') and not(x86_64)) then
-              begin
-                flags:='0';
-                break;
-              end;
+	     if x86_64 then
+	       begin
+                 if (upcase(hs)='NOX86_64') then
+		   skip:=true;
+	       end
+	     else  
+	       begin
+                 if (upcase(hs)='X86_64') then
+  		   skip:=true;
+	       end;
              if hs<>'ND' then
               begin
                 if flags<>'' then
@@ -421,19 +425,22 @@ begin
              else
               break;
           end;
-      { write instruction }
-        if not(first) then
-          writeln(insfile,',')
-        else
-          first:=false;
-        writeln(insfile,'  (');
-        writeln(insfile,'    opcode  : ',opcode,';');
-        writeln(insfile,'    ops     : ',ops,';');
-        writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],');');
-        writeln(insfile,'    code    : ',codes,';');
-        writeln(insfile,'    flags   : ',flags);
-        write(insfile,'  )');
-        inc(insns);
+        { write instruction }
+	if not skip then
+	  begin
+            if not(first) then
+              writeln(insfile,',')
+            else
+              first:=false;
+            writeln(insfile,'  (');
+            writeln(insfile,'    opcode  : ',opcode,';');
+            writeln(insfile,'    ops     : ',ops,';');
+            writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],');');
+            writeln(insfile,'    code    : ',codes,';');
+            writeln(insfile,'    flags   : ',flags);
+            write(insfile,'  )');
+            inc(insns);
+	  end;  
      end;
    close(infile);
    closeinc(insfile);
@@ -448,7 +455,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-02-03 16:50:51  peter
+  Revision 1.6  2004-02-09 20:30:48  peter
+    * support X86_64 and NOX86_64 flags
+
+  Revision 1.5  2004/02/03 16:50:51  peter
     * linux path separators
 
   Revision 1.4  2004/01/15 14:01:32  florian
