@@ -628,7 +628,7 @@ implementation
              if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
               begin
                 Message1(parser_e_header_dont_match_any_member,
-                  aktprocsym^.declarationstr(aktprocsym^.definition));
+                         aktprocsym^.definition^.fullprocname);
                 aktprocsym^.write_parameter_lists(aktprocsym^.definition);
               end
              else
@@ -642,7 +642,7 @@ implementation
                    not(assigned(aktprocsym^.definition^.nextoverloaded^.nextoverloaded)) then
                  begin
                    Message1(parser_e_header_dont_match_forward,
-                     aktprocsym^.declarationstr(aktprocsym^.definition));
+                            aktprocsym^.definition^.fullprocname);
                    aktprocsym^.write_parameter_lists(aktprocsym^.definition);
                  end
                 else
@@ -690,7 +690,7 @@ implementation
          if (pdflags and pd_body)<>0 then
            begin
              Message1(parser_p_procedure_start,
-               aktprocsym^.declarationstr(aktprocsym^.definition));
+                      aktprocsym^.definition^.fullprocname);
              names^.insert(aktprocsym^.definition^.mangledname);
             { set _FAIL as keyword if constructor }
             if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
@@ -832,7 +832,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-10-31 22:02:50  peter
+  Revision 1.21  2000-11-01 23:04:38  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.20  2000/10/31 22:02:50  peter
     * symtable splitted, no real code changes
 
   Revision 1.19  2000/10/24 22:21:25  peter

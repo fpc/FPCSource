@@ -2353,7 +2353,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-10-31 22:02:52  peter
+  Revision 1.13  2000-11-01 23:04:38  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.12  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
 
 }

@@ -452,7 +452,7 @@ begin
      if aktprocsym^.typ<>procsym then
       begin
         if (m_fpc in aktmodeswitches) then
-         Message1(parser_e_overloaded_no_procedure,aktprocsym^.name)
+         Message1(parser_e_overloaded_no_procedure,aktprocsym^.realname)
         else
          DuplicateSym(aktprocsym);
         { try to recover by creating a new aktprocsym }
@@ -1019,7 +1019,7 @@ begin
        begin
          { external shouldn't override the cdecl/system name }
          if not (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-           aktprocsym^.definition^.setmangledname(aktprocsym^.name);
+           aktprocsym^.definition^.setmangledname(aktprocsym^.realname);
        end;
     end;
 end;
@@ -1580,7 +1580,7 @@ begin
                    (aktprocsym^.definition^.maxparacount>0)) then
                  begin
                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                aktprocsym^.declarationstr(aktprocsym^.definition));
+                                aktprocsym^.definition^.fullprocname);
                     exit;
                  end;
                if hd^.forwarddef then
@@ -1593,7 +1593,7 @@ begin
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
                        MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                   aktprocsym^.declarationstr(aktprocsym^.definition));
+                                   aktprocsym^.definition^.fullprocname);
                        exit;
                      end;
                    { Check calling convention, no check for internconst,internproc which
@@ -1649,7 +1649,7 @@ begin
                            begin
                              MessagePos1(aktprocsym^.definition^.fileinfo,
                                          parser_e_function_already_declared_public_forward,
-                                         aktprocsym^.declarationstr(aktprocsym^.definition));
+                                         aktprocsym^.definition^.fullprocname);
                              check_identical_proc:=true;
                            { Remove other forward from the list to reduce errors }
                              pd^.nextoverloaded:=pd^.nextoverloaded^.nextoverloaded;
@@ -1736,7 +1736,7 @@ begin
                     not((po_overload in aktprocsym^.definition^.procoptions) and
                         ((po_overload in hd^.procoptions))) then
                   begin
-                    MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_no_overload_for_all_procs,aktprocsym^.name);
+                    MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_no_overload_for_all_procs,aktprocsym^.realname);
                     break;
                   end;
                end
@@ -1815,7 +1815,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:49  peter
+  Revision 1.5  2000-11-01 23:04:37  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.4  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/21 18:16:11  florian

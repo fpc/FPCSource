@@ -473,9 +473,7 @@ interface
           procedure setmangledname(const s : string);
           procedure load_references;
           function  write_references : boolean;
-{$ifdef dummy}
-          function  procname: string;
-{$endif dummy}
+          function  fullprocname:string;
           function  cplusplusmangledname : string;
           { debug }
 {$ifdef GDB}
@@ -3170,7 +3168,7 @@ implementation
         while assigned(hp) do
          begin
            if assigned(hp^.paratype.def^.typesym) then
-             s:=s+hp^.paratype.def^.typesym^.name
+             s:=s+hp^.paratype.def^.typesym^.realname
            else if hp^.paratyp=vs_var then
              s:=s+'var'
            else if hp^.paratyp=vs_const then
@@ -3376,6 +3374,19 @@ implementation
          count:=true;
          is_used:=false;
       end;
+
+
+    function tprocdef.fullprocname:string;
+      var
+        s : string;
+      begin
+        s:='';
+        if assigned(_class) then
+         s:=_class^.objname^+'.';
+        s:=s+procsym^.realname+demangled_paras;
+        fullprocname:=s;
+      end;
+
 
     function tprocdef.getsymtable(t:tgetsymtable):psymtable;
       begin
@@ -3720,35 +3731,6 @@ Const local_symtable_index : longint = $8001;
            is_used:=true;
       end;
 
-
-{$ifdef dummy}
-    function tprocdef.procname: string;
-      var
-        s : string;
-        l : longint;
-      begin
-         s:=mangledname;
-         { delete leading $$'s }
-         l:=pos('$$',s);
-         while l<>0 do
-           begin
-              delete(s,1,l+1);
-              l:=pos('$$',s);
-           end;
-         { delete leading _$'s }
-         l:=pos('_$',s);
-         while l<>0 do
-           begin
-              delete(s,1,l+1);
-              l:=pos('_$',s);
-           end;
-         l:=pos('$',s);
-         if l=0 then
-          procname:=s
-         else
-          procname:=Copy(s,1,l-1);
-      end;
-{$endif}
 
     function tprocdef.cplusplusmangledname : string;
 
@@ -5099,7 +5081,11 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-31 22:02:52  peter
+  Revision 1.2  2000-11-01 23:04:38  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.1  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
 
 }

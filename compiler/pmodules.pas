@@ -617,6 +617,8 @@ implementation
 {$endif SHORT_ON_FILE_HANDLES}
          current_ppu:=old_current_ppu;
          current_module:=old_current_module;
+         { we are back }
+         SetCompileModule(current_module);
          loadunit:=hp;
       end;
 
@@ -1695,7 +1697,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-10-31 22:02:50  peter
+  Revision 1.18  2000-11-01 23:04:37  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.17  2000/10/31 22:02:50  peter
     * symtable splitted, no real code changes
 
   Revision 1.16  2000/10/21 14:36:26  peter

@@ -555,16 +555,17 @@ implementation
                                                  { warn only if it is the first time,
                                                    we hide the method }
                                                  if _c=hp^._class then
-                                                   Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
+                                                   Message1(parser_w_should_use_override,hp^.fullprocname);
                                               end
                                             else
                                               if _c=hp^._class then
                                                 begin
                                                    if (po_virtualmethod in procdefcoll^.data^.procoptions) then
-                                                     Message1(parser_w_overloaded_are_not_both_virtual,_c^.objname^+'.'+_name)
+                                                     Message1(parser_w_overloaded_are_not_both_virtual,
+                                                              hp^.fullprocname)
                                                    else
                                                      Message1(parser_w_overloaded_are_not_both_non_virtual,
-                                                       _c^.objname^+'.'+_name);
+                                                              hp^.fullprocname);
                                                 end;
                                             { was newentry; exit; (FK) }
                                             newdefentry;
@@ -579,7 +580,7 @@ implementation
                                           ((procdefcoll^.data^.procoptions-
                                               [po_abstractmethod,po_overridingmethod,po_assembler])<>
                                            (hp^.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])) then
-                                         Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
+                                         Message1(parser_e_header_dont_match_forward,hp^.fullprocname);
 
                                        { check, if the overridden directive is set }
                                        { (povirtualmethod is set! }
@@ -591,7 +592,7 @@ implementation
                                             { warn only if it is the first time,
                                               we hide the method }
                                             if _c=hp^._class then
-                                              Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
+                                              Message1(parser_w_should_use_override,hp^.fullprocname);
                                             { was newentry; (FK) }
                                             newdefentry;
                                             exit;
@@ -605,7 +606,7 @@ implementation
                                            (pobjectdef(hp^.rettype.def)^.is_class) and
                                            (pobjectdef(hp^.rettype.def)^.is_related(
                                                pobjectdef(procdefcoll^.data^.rettype.def)))) then
-                                         Message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
+                                         Message1(parser_e_overloaded_methodes_not_same_ret,hp^.fullprocname);
 
 
                                        { now set the number }
@@ -635,7 +636,7 @@ implementation
                                   { check, if a method should be overridden }
                                   if (po_overridingmethod in hp^.procoptions) then
                                    MessagePos1(hp^.fileinfo,parser_e_nothing_to_be_overridden,
-                                     _c^.objname^+'.'+_name+hp^.demangled_paras);
+                                     hp^.fullprocname);
                                end;
                           handlenextdef:
                              hp:=hp^.nextoverloaded;
@@ -1039,7 +1040,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-10-31 22:02:47  peter
+  Revision 1.9  2000-11-01 23:04:37  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.8  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.7  2000/10/14 10:14:47  peter

@@ -109,8 +109,7 @@ interface
           constructor load;
           destructor done;virtual;
           function mangledname : string;virtual;
-          function declarationstr(p : pprocdef):string;
-          { writes all declarations }
+          { writes all declarations except the specified one }
           procedure write_parameter_lists(skipdef:pprocdef);
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
@@ -703,12 +702,6 @@ implementation
       end;
 
 
-    function tprocsym.declarationstr(p : pprocdef):string;
-      begin
-        declarationstr:=realname+p^.demangled_paras;
-      end;
-
-
     procedure tprocsym.write_parameter_lists(skipdef:pprocdef);
       var
          p : pprocdef;
@@ -717,7 +710,7 @@ implementation
          while assigned(p) do
            begin
               if p<>skipdef then
-                MessagePos1(p^.fileinfo,sym_b_param_list,name+p^.demangled_paras);
+                MessagePos1(p^.fileinfo,sym_b_param_list,p^.fullprocname);
               p:=p^.nextoverloaded;
            end;
       end;
@@ -732,10 +725,7 @@ implementation
            begin
               if pd^.forwarddef then
                 begin
-                   if assigned(pd^._class) then
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+declarationstr(pd))
-                   else
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,declarationstr(pd));
+                   MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^.fullprocname);
                    { Turn futher error messages off }
                    pd^.forwarddef:=false;
                 end;
@@ -1718,11 +1708,9 @@ implementation
           (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-{$ifndef Delphi}
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+st+
                      '",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
-{$endif}
          end
        else if (owner^.symtabletype = globalsymtable) or
           (owner^.symtabletype = unitsymtable) then
@@ -2476,7 +2464,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-31 22:02:52  peter
+  Revision 1.2  2000-11-01 23:04:38  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.1  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
 
 }
