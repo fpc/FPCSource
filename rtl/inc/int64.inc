@@ -30,6 +30,44 @@
        end;
 {$endif ENDIAN_BIG}
 
+
+{$ifdef  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+{$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
+    function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      begin
+        {!!!!}
+      end;
+{$endif FPC_SYSTEM_HAS_SHL_QWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
+   function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      begin
+        {!!!!}
+      end;
+{$endif FPC_SYSTEM_HAS_SHR_QWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_SHL_INT64}
+    function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      begin
+        {!!!!}
+      end;
+{$endif FPC_SYSTEM_HAS_SHL_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_SHR_INT64}
+    function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      begin
+        {!!!!}
+      end;
+{$endif FPC_SYSTEM_HAS_SHR_INT64}
+
+
+{$endif FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+
     function count_leading_zeros(q : qword) : longint;
 
       var
@@ -603,7 +641,12 @@
 
 {
   $Log$
-  Revision 1.20  2003-05-12 11:17:55  florian
+  Revision 1.21  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.20  2003/05/12 11:17:55  florian
     * fixed my commit, strange, it didn't give any conflicts with Jonas patch
 
   Revision 1.19  2003/05/12 11:16:21  florian

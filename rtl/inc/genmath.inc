@@ -233,7 +233,8 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
  End;
 
 
-    function trunc(d : real) : longint;[internconst:in_const_trunc];
+  {$warning FIX ME !! }
+  function trunc(d : real) : int64;[internconst:in_const_trunc];
     var
      l: longint;
      f32 : float32;
@@ -321,7 +322,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 {$ifndef FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : Real) : Real; compilerproc;
     begin
-       if( d < 0.0 ) then
+       if (d<0.0) then
          fpc_abs_real := -d
       else
          fpc_abs_real := d ;
@@ -600,9 +601,9 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 {$ifdef hascompilerproc}
     function round(d : Real) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
 
-    function fpc_round(d : Real) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+    function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 {$else}
-    function round(d : Real) : int64;assembler;[internconst:in_const_round];
+    function round(d : Real) : int64;[internconst:in_const_round];
 {$endif hascompilerproc}
      var
       fr: Real;
@@ -611,17 +612,17 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
        fr := Frac(d);
        tr := Trunc(d);
        if fr > 0.5 then
-          Round:=Trunc(d)+1
+          result:=Trunc(d)+1
        else
        if fr < 0.5 then
-          Round:=Trunc(d)
+          result:=Trunc(d)
        else { fr = 0.5 }
           { check sign to decide ... }
           { as in Turbo Pascal...    }
           if d >= 0.0 then
-            Round := Trunc(d)+1
+            result:=Trunc(d)+1
           else
-            Round := Trunc(d);
+            result:=Trunc(d);
     end;
 {$endif}
 
@@ -1051,6 +1052,29 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 {$endif}
 
 
+{$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+{$ifndef FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
+function fpc_qword_to_double(q : qword): double; compilerproc;
+  begin
+     result:=dword(q and $ffffffff)+dword(q shr 32)*4294967296.0;
+  end;
+{$endif FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
+
+
+{$ifndef FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
+function fpc_int64_to_double(i : int64): double; compilerproc;
+  begin
+    if i<0 then
+      result:=-double(qword(-i))
+    else
+      result:=qword(i);
+  end;
+{$endif FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
+
+{$endif FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+
 {$ifdef SUPPORT_DOUBLE}
 {****************************************************************************
                     Helper routines to support old TP styled reals
@@ -1088,7 +1112,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.14  2003-05-24 13:39:32  jonas
+  Revision 1.15  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.14  2003/05/24 13:39:32  jonas
     * fsqrt is an optional instruction in the ppc architecture and isn't
       implemented by any current ppc afaik, so use the generic sqrt routine
       instead (adapted so it works with compilerproc)

@@ -67,6 +67,14 @@ Begin
   end;
 End;
 
+function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+  begin
+  end;
+  
+function fpc_dynarray_to_variant(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+  begin
+  end;
+
 { ---------------------------------------------------------------------
     Overloaded operators.
   ---------------------------------------------------------------------}
@@ -578,7 +586,12 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.12  2002-10-10 19:24:28  florian
+  Revision 1.13  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.12  2002/10/10 19:24:28  florian
     + write(ln) support for variants added
 
   Revision 1.11  2002/10/09 20:13:26  florian

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) systhrds objpas strings \
       sysutils typinfo math varutils variants \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer dynlibs \
-      video mouse keyboard types comobj
+      video mouse keyboard types comobj dateutils rtlconst sysconst
 rsts=math varutils typinfo
 
 [require]
@@ -92,10 +92,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 wprt0$(OEXT) : $(PRT0).as
         $(AS) -o wprt0$(OEXT) $(PRT0).as
-        
+
 gprt0$(OEXT) : gprt0.as
         $(AS) -o gprt0$(OEXT) gprt0.as
-        
+
 
 wdllprt0$(OEXT) : wdllprt0.as
         $(AS) -o wdllprt0$(OEXT) wdllprt0.as
@@ -186,11 +186,20 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
                     objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/comobjh.inc $(OBJPASDIR)/comobj.inc
         $(COMPILER) -I$(OBJPASDIR) comobj.pp
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp
+	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+	$(COMPILER) $(OBJPASDIR)/dateutils.pp
 
 #
 # Other system-independent RTL Units

@@ -804,7 +804,12 @@ End.
 
 {
   $Log$
-  Revision 1.32  2003-08-21 22:21:00  olle
+  Revision 1.33  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.32  2003/08/21 22:21:00  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.31  2002/10/14 19:39:17  peter

@@ -1,10 +1,8 @@
 {
     $Id$
-
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2003 by the Free Pascal development team.
-
-    Implementation of mathematical Routines (only for real)
+    Copyright (c) 2003 by Florian Klaempfl
+    member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,21 +12,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit sysconst;
 
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:in_abs_extended];
+  interface
 
-    {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+  implementation
 
+end.
 {
   $Log$
-  Revision 1.2  2003-09-03 14:09:37  florian
+  Revision 1.1  2003-09-03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
-
-  Revision 1.1  2003/08/21 16:41:54  florian
-    * empty dummy files
-    + [long|set]jmp implemented
 }

@@ -152,7 +152,7 @@ LTruncNoAdd:
         beq    cr0,LTruncPositive
         subfic r4,r4,0
         subfze r3,r3
-LTruncPositive: 
+LTruncPositive:
       end;
 
 
@@ -248,7 +248,7 @@ LRoundNoAdd:
         beq    cr0,LRoundPositive
         subfic r4,r4,0
         subfze r3,r3
-LRoundPositive: 
+LRoundPositive:
       end;
 
 
@@ -342,6 +342,7 @@ LRoundPositive:
                          Int to real helpers
  ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i: int64): double; compilerproc;
 assembler;
 { input: high(i) in r4, low(i) in r3 }
@@ -424,7 +425,12 @@ end;
 
 {
   $Log$
-  Revision 1.27  2003-08-08 22:02:05  olle
+  Revision 1.28  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.27  2003/08/08 22:02:05  olle
     * small bugfix macos
 
   Revision 1.26  2003/06/14 12:41:08  jonas

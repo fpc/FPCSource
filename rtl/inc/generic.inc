@@ -32,7 +32,7 @@ begin
   if count <= 0 then exit;
   Dec(count);
   for i:=0 to count do
-         bytearray(dest)[i]:=bytearray(source)[i];
+    bytearray(dest)[i]:=bytearray(source)[i];
 end;
 {$endif not FPC_SYSTEM_HAS_MOVE}
 
@@ -568,11 +568,10 @@ begin
   move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
   fpc_shortstr_concat[0]:=chr(s1l+s2l);
 end;
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);{$ifdef hascompilerproc} compilerproc; {$endif}
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
@@ -585,11 +584,10 @@ begin
   move(s2[1],s1[s1l+1],s2l);
   s1[0]:=chr(s1l+s2l);
 end;
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
    s1,s2,max,i : byte;
@@ -791,6 +789,47 @@ end;
                                  Math
 ****************************************************************************}
 
+{****************************************************************************
+                          Software longint/dword division
+****************************************************************************}
+{$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
+
+{$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
+function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  begin
+    {!!!!}
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_DWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
+function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  begin
+    {!!!!}
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_DWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_DIV_LONGINT}
+function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  begin
+    {!!!!}
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_LONGINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_LONGINT}
+function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  begin
+    {!!!!}
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_LONGINT}
+
+{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
+
+
+{****************************************************************************}
+
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
 function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
 begin
@@ -975,7 +1014,12 @@ end;
 
 {
   $Log$
-  Revision 1.60  2003-06-01 14:50:17  jonas
+  Revision 1.61  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.60  2003/06/01 14:50:17  jonas
     * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
       maxlen
     + ppc version of fpc_shortstr_append_shortstr

@@ -88,7 +88,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_LITTLE}
   {$i i386.inc}  { Case dependent, don't change }
 {$endif cpui386}
 
@@ -96,7 +95,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_BIG}
   {$i m68k.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpum68k}
@@ -105,7 +103,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_LITTLE}
   {$i x86_64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpux86_64}
@@ -114,7 +111,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_BIG}
   {$i powerpc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpupowerpc}
@@ -123,7 +119,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_BIG}
   {$i alpha.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpualpha}
@@ -132,7 +127,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_LITTLE}
   {$i ia64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpuiA64}
@@ -141,10 +135,17 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_BIG}
   {$i sparc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpusparc}
+
+{$ifdef cpuarm}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i arm.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuarm}
 
 procedure fillchar(var x;count : longint;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
@@ -766,7 +767,12 @@ end;
 
 {
   $Log$
-  Revision 1.41  2003-08-21 22:10:55  olle
+  Revision 1.42  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.41  2003/08/21 22:10:55  olle
     - removed parameter from fpc_iocheck
     * changed processor compiler directive * to cpu*
 

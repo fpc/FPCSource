@@ -19,7 +19,7 @@
 Const 			// OS specific parameters for general sigset behaviour
    SIG_MAXSIG      = 1024;	// highest signal version
    wordsinsigset   = 32;	// words in sigset_t
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
 
    ln2bitmask	   = 2 shl ln2bitsinword - 1;
 
@@ -125,6 +125,7 @@ type
   end;
 {$endif cpui386}
 
+
 {$Ifdef cpum68k}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
@@ -132,12 +133,15 @@ type
   end;
 {$endif cpum68k}
 
+
 {$ifdef cpupowerpc}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     { dummy for now PM }
   end;
 {$endif cpupowerpc}
+
+
 {$ifdef cpusparc}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
@@ -145,6 +149,13 @@ type
   end;
 {$endif cpusparc}
 
+
+{$ifdef cpuarm}
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    { dummy for now PM }
+  end;
+{$endif cpuarm}
 (*
   PSigInfoRec = ^SigInfoRec;
   SigInfoRec = record
@@ -224,7 +235,12 @@ type
 
 {
   $Log$
-  Revision 1.10  2003-08-21 22:24:52  olle
+  Revision 1.11  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.10  2003/08/21 22:24:52  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.9  2002/12/24 21:30:20  mazen

@@ -147,6 +147,24 @@ Type
   PComp = ^Comp;
 {$endif CPUSPARC}
 
+{$ifdef CPUARM}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Real;
+
+  { Comp type does not exist on fpu }
+  Comp    = int64;
+{$endif CPUARM}
+
 {$ifdef CPU64}
   StrLenInt = Int64;
   SizeInt = Int64;
@@ -672,7 +690,12 @@ const
 
 {
   $Log$
-  Revision 1.70  2003-09-01 20:47:23  peter
+  Revision 1.71  2003-09-03 14:09:37  florian
+    * arm fixes to the common rtl code
+    * some generic math code fixed
+    * ...
+
+  Revision 1.70  2003/09/01 20:47:23  peter
     * pcomp added for sparc
 
   Revision 1.69  2003/05/01 08:05:23  florian
