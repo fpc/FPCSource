@@ -830,6 +830,7 @@ implementation
         gotpointer,
         gotvec,
         gotclass,
+        gotdynarray,
         gotderef : boolean;
         fromdef,
         todef    : tdef;
@@ -846,6 +847,7 @@ implementation
         gotclass:=false;
         gotpointer:=false;
         gotwith:=false;
+        gotdynarray:=false;
         hp:=p;
         if not(valid_void in opts) and
            is_void(hp.resulttype.def) then
@@ -879,6 +881,9 @@ implementation
                     (
                      gotclass and
                      (gotsubscript or gotwith)
+                    ) or
+                    (
+                      (gotvec and gotdynarray)
                     ) or
                     (
                      (Valid_Addr in opts) and
@@ -961,6 +966,9 @@ implementation
              vecn :
                begin
                  gotvec:=true;
+                 { accesses to dyn. arrays override read only access in delphi }
+                 if (m_delphi in aktmodeswitches) and is_dynamic_array(tunarynode(hp).left.resulttype.def) then
+                   gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
              asn :
@@ -2020,7 +2028,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2005-02-01 22:50:50  florian
+  Revision 1.114  2005-02-02 22:16:39  florian
+    * delphi assumes dyn. array access make expressions l-values because it's internally a pointer
+
+  Revision 1.113  2005/02/01 22:50:50  florian
     * inherited; works now in delphi mode for private methods; looks like a delphi bug
 
   Revision 1.112  2005/01/25 18:49:45  peter
