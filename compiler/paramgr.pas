@@ -35,6 +35,7 @@ unit paramgr;
        symconst,symtype,symdef;
 
     type
+       tcallercallee = (callerside,calleeside);
        {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
        }
@@ -95,9 +96,9 @@ unit paramgr;
           procedure freeparaloc(list: taasmoutput; const loc: tparalocation); virtual;
 
           {# This is used to populate the location information on all parameters
-             for the routine. This is used for normal call resolution.
+             for the routine as seen in either the caller or the callee. This is used for normal call resolution.
           }
-          procedure create_paraloc_info(p : tabstractprocdef);virtual;abstract;
+          procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);virtual;abstract;
 
           {
             Returns the location where the invisible parameter for structured
@@ -442,7 +443,12 @@ end.
 
 {
    $Log$
-   Revision 1.47  2003-07-02 22:18:04  peter
+   Revision 1.48  2003-07-05 20:11:41  jonas
+     * create_paraloc_info() is now called separately for the caller and
+       callee info
+     * fixed ppc cycle
+
+   Revision 1.47  2003/07/02 22:18:04  peter
      * paraloc splitted in callerparaloc,calleeparaloc
      * sparc calling convention updates
 

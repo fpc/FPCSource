@@ -1190,7 +1190,7 @@ const
                  end;
 
              { compute end of gpr save area }
-             a_op_const_reg(list,OP_ADD,OS_ADDR,href.offset+8,r);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,aword(href.offset+8),r);
           end;
 
         { save gprs and fetch GOT pointer }
@@ -1238,7 +1238,7 @@ const
                     if (hp.calleeparaloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                        reference_reset_base(href2,r,hp.calleeparaloc.reference.offset);
+                        reference_reset_base(href2,r,hp.callerparaloc.reference.offset);
                         cg.a_load_ref_ref(list,hp.calleeparaloc.size,hp.calleeparaloc.size,href2,href);
                       end;
                     hp := tparaitem(hp.next);
@@ -2620,8 +2620,8 @@ const
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg_reg(list,op,OS_32,cardinal(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
+              cg.a_op_const_reg_reg(list,op,OS_32,aword(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,aword(value shr 32),regsrc.reghi,
                 regdst.reghi);
             end;
           OP_ADD, OP_SUB:
@@ -2686,7 +2686,7 @@ const
               else
                 begin
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
+                  cg.a_op_const_reg_reg(list,op,OS_32,aword(value shr 32),regsrc.reghi,
                     regdst.reghi);
                 end;
             end;
@@ -2702,7 +2702,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2003-07-02 22:18:04  peter
+  Revision 1.112  2003-07-05 20:11:42  jonas
+    * create_paraloc_info() is now called separately for the caller and
+      callee info
+    * fixed ppc cycle
+
+  Revision 1.111  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

@@ -39,7 +39,7 @@ interface
         {Creates location information related to the parameter of the function}
         procedure allocparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure freeparaloc(list: taasmoutput; const loc: tparalocation);override;
-        procedure create_paraloc_info(p:TAbstractProcDef);override;
+        procedure create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);override;
         {Returns the location where the invisible parameter for structured function
         results will be passed.}
         function GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;override;
@@ -119,7 +119,7 @@ implementation
       end;
 
 
-    procedure TSparcParaManager.create_paraloc_info(p:TAbstractProcDef);
+    procedure TSparcParaManager.create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);
       var
         nextintreg : tsuperregister;
         nextfloatreg : toldregister;
@@ -177,21 +177,25 @@ implementation
                 else
                   inc(stack_offset,4);
               end;
-            hp.callerparaloc:=paraloc;
-            { update callee paraloc and use Ix registers instead
-              of Ox registers }
-            hp.calleeparaloc:=paraloc;
-            if hp.calleeparaloc.loc=LOC_REGISTER then
-              begin
-                inc(hp.calleeparaloc.registerlow.number,(RS_I0-RS_O0) shl 8);
-                if is_64bit then
-                  inc(hp.calleeparaloc.registerhigh.number,(RS_I0-RS_O0) shl 8);
-              end
+            if side = callerside then
+              hp.callerparaloc:=paraloc
             else
               begin
-                if hp.calleeparaloc.low_in_reg then
-                  inc(hp.calleeparaloc.lowreg.number,(RS_I0-RS_O0) shl 8);
-                inc(hp.calleeparaloc.reference.index.number,(RS_I0-RS_O0) shl 8);
+                { update callee paraloc and use Ix registers instead
+                  of Ox registers }
+                hp.calleeparaloc:=paraloc;
+                if hp.calleeparaloc.loc=LOC_REGISTER then
+                  begin
+                   inc(hp.calleeparaloc.registerlow.number,(RS_I0-RS_O0) shl 8);
+                   if is_64bit then
+                     inc(hp.calleeparaloc.registerhigh.number,(RS_I0-RS_O0) shl 8);
+                  end
+                else
+                  begin
+                    if hp.calleeparaloc.low_in_reg then
+                      inc(hp.calleeparaloc.lowreg.number,(RS_I0-RS_O0) shl 8);
+                    inc(hp.calleeparaloc.reference.index.number,(RS_I0-RS_O0) shl 8);
+                  end;
               end;
             hp:=TParaItem(hp.Next);
           end;
@@ -271,7 +275,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-07-02 22:18:04  peter
+  Revision 1.23  2003-07-05 20:11:41  jonas
+    * create_paraloc_info() is now called separately for the caller and
+      callee info
+    * fixed ppc cycle
+
+  Revision 1.22  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

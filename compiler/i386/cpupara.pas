@@ -47,7 +47,7 @@ unit cpupara;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           function getparaloc(p : tdef) : tcgloc;
-          procedure create_paraloc_info(p : tabstractprocdef);override;
+          procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
        end;
 
@@ -132,7 +132,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef);
+    procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         hp : tparaitem;
         paraloc : tparalocation;
@@ -153,9 +153,11 @@ unit cpupara;
                 paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
               end;
             paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
-            hp.calleeparaloc:=paraloc;
+            if side = callerside then
+              hp.callerparaloc:=paraloc
 {$warning callerparaloc shall not be the same as calleeparaloc}
-            hp.callerparaloc:=paraloc;
+            else
+              hp.calleeparaloc:=paraloc;
             hp:=tparaitem(hp.next);
           end;
       end;
@@ -180,7 +182,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-07-02 22:18:04  peter
+  Revision 1.21  2003-07-05 20:11:41  jonas
+    * create_paraloc_info() is now called separately for the caller and
+      callee info
+    * fixed ppc cycle
+
+  Revision 1.20  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

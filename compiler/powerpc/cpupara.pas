@@ -38,7 +38,7 @@ unit cpupara;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
-          procedure create_paraloc_info(p : tabstractprocdef);override;
+          procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
 
@@ -48,7 +48,7 @@ unit cpupara;
        verbose,systems,
        cpuinfo,cginfo,cgbase,
        rgobj,
-       defutil;
+       defutil,symsym;
 
     function tppcparamanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
 
@@ -167,7 +167,7 @@ unit cpupara;
         end;
       end;
 
-    procedure tppcparamanager.create_paraloc_info(p : tabstractprocdef);
+    procedure tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
 
       var
          nextintreg,nextfloatreg,nextmmreg : tregister;
@@ -225,10 +225,15 @@ unit cpupara;
          while assigned(hp) do
            begin
               if (hp.paratyp in [vs_var,vs_out]) then
-                paradef := voidpointertype.def
+                begin
+                  paradef := voidpointertype.def;
+                  loc := LOC_REGISTER;
+                end
               else
-                paradef := hp.paratype.def;
-              loc:=getparaloc(paradef);
+                begin
+                  paradef := hp.paratype.def;
+                  loc:=getparaloc(paradef);
+                end;
               { make sure all alignment bytes are 0 as well }
               fillchar(paraloc,sizeof(paraloc),0);
               case loc of
@@ -307,11 +312,18 @@ unit cpupara;
                  else
                    internalerror(2002071002);
               end;
-              hp.callerparaloc:=paraloc;
-              hp.calleeparaloc:=paraloc;
+              if side = callerside then
+                hp.callerparaloc:=paraloc
+              else
+                begin
+                  if (paraloc.loc = LOC_REFERENCE) then
+                    paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;
+                  hp.calleeparaloc:=paraloc;
+                end;
               hp:=tparaitem(hp.next);
            end;
       end;
+
 
     function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
@@ -374,7 +386,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-07-02 22:18:04  peter
+  Revision 1.41  2003-07-05 20:11:41  jonas
+    * create_paraloc_info() is now called separately for the caller and
+      callee info
+    * fixed ppc cycle
+
+  Revision 1.40  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 
