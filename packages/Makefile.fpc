@@ -44,7 +44,7 @@ pkgs_os2=bas{paszlib,regexpr} \
             mis{zip}
 
 [install]
-packagename=packages
+packagename=pkg
 sourcesubdirs=0
 examplesubdirs=1
 

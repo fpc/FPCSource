@@ -3,7 +3,7 @@
 #
 
 [targets]
-dirs=compiler rtl utils fcl api fv packages ide
+dirs=compiler rtl utils fcl fv packages ide
 
 [defaults]
 defaultrule=help
@@ -23,19 +23,9 @@ zipinstall=1
 
 
 [presettings]
-OLDFPCDIR:=$(FPCDIR)
-
-checkfpcdir:
-ifdef OLDFPCDIR
-ifneq ($(OLDFPCDIR),)
-        @echo ---------------------------------------------------------
-        @echo
-        @echo   You must unset FPCDIR to use this the packaging rules.
-        @echo
-        @echo ---------------------------------------------------------
-        @cantcontinuewithfpcdir
-endif
-endif
+# Force FPCDIR
+override FPCDIR:=$(BASEDIR)
+export FPCDIR
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
@@ -146,7 +136,7 @@ unexport FPC_VERSION OS_SOURCE
 # Main targets
 #####################################################################
 
-.PHONY: help checkfpcdir
+.PHONY: help
 
 help:
         @echo
@@ -289,7 +279,6 @@ else
 endif
 # clean
         $(MAKE) rtl_clean
-        $(MAKE) api_clean
         $(MAKE) fcl_clean
         $(MAKE) packages_clean
         $(MAKE) utils_clean
@@ -299,7 +288,6 @@ ifdef IDE
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) api_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
@@ -341,7 +329,6 @@ endif
 install: build-stamp.$(OS_TARGET)
         $(MAKE) installbase $(INSTALLOPTS)
         $(MAKE) utils_install $(INSTALLOPTS)
-        $(MAKE) api_install $(INSTALLOPTS)
         $(MAKE) fcl_install $(INSTALLOPTS)
         $(MAKE) packages_install $(INSTALLOPTS)
 ifdef IDE
@@ -350,14 +337,12 @@ endif
 # install examples
 ifndef SNAPSHOT
         $(MAKE) fcl_exampleinstall $(INSTALLOPTS)
-        $(MAKE) api_exampleinstall $(INSTALLOPTS)
         $(MAKE) packages_exampleinstall $(INSTALLOPTS)
 endif
 
 zipinstall: build-stamp.$(OS_TARGET)
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
         $(MAKE) utils_zipinstall $(INSTALLOPTS)
-        $(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
         $(MAKE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
         $(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 ifdef IDE
@@ -365,7 +350,6 @@ ifdef IDE
 endif
 ifndef SNAPSHOT
         $(MAKE) fcl_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
-        $(MAKE) api_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
         $(MAKE) packages_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 endif
 
@@ -420,7 +404,6 @@ sourcezip: distclean
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
-        $(MAKE) api_zipsourceinstall
         $(MAKE) fcl_zipsourceinstall
         $(MAKE) packages_zipsourceinstall
         $(MAKE) utils_zipsourceinstall
@@ -435,35 +418,35 @@ sourcezip: distclean
 
 .PHONY: go32v2 win32 linux freebsd os2 go32v2zip win32zip linuxzip freebsdzip os2zip
 
-go32v2: checkfpcdir
+go32v2:
         $(MAKE) install OS_TARGET=go32v2
 
-win32: checkfpcdir
+win32:
         $(MAKE) install OS_TARGET=win32
 
-linux: checkfpcdir
+linux:
         $(MAKE) install OS_TARGET=linux
 
-freebsd: checkfpcdir
+freebsd:
         $(MAKE) install OS_TARGET=freebsd
 
-os2: checkfpcdir
+os2:
         $(MAKE) install OS_TARGET=os2
 
-go32v2zip: checkfpcdir
+go32v2zip:
         $(MAKE) zipinstall OS_TARGET=go32v2
 
-win32zip: checkfpcdir
+win32zip:
         $(MAKE) zipinstall OS_TARGET=win32
 
-linuxzip: checkfpcdir
+linuxzip:
         $(MAKE) zipinstall OS_TARGET=linux
 
 
-freebsdzip : checkfpcdir
+freebsdzip :
         $(MAKE) zipinstall OS_TARGET=freebsd
 
-os2zip: checkfpcdir
+os2zip:
         $(MAKE) zipinstall OS_TARGET=os2
 
 ##########################################################################
@@ -479,7 +462,6 @@ debcopy: distclean
         $(COPYTREE) compiler $(DEBSRCDIR)
         $(COPYTREE) rtl $(DEBSRCDIR)
         $(COPYTREE) fcl $(DEBSRCDIR)
-        $(COPYTREE) api $(DEBSRCDIR)
         $(COPYTREE) packages $(DEBSRCDIR)
         $(COPYTREE) utils $(DEBSRCDIR)
         $(COPYTREE) logs $(DEBSRCDIR)
@@ -492,7 +474,7 @@ debcopy: distclean
         find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         chmod 755 $(DEBSRCDIR)/debian/rules
 
-deb: checkfpcdir debcopy
+deb:  debcopy
         cd $(DEBSRCDIR) ; debian/rules binary
 
 
@@ -512,7 +494,6 @@ rpmcopy: distclean
         $(COPYTREE) compiler $(RPMSRCDIR)
         $(COPYTREE) rtl $(RPMSRCDIR)
         $(COPYTREE) fcl $(RPMSRCDIR)
-        $(COPYTREE) api $(RPMSRCDIR)
         $(COPYTREE) packages $(RPMSRCDIR)
         $(COPYTREE) utils $(RPMSRCDIR)
         $(COPYTREE) logs $(RPMSRCDIR)
@@ -530,6 +511,6 @@ rpmcopy: distclean
         find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
 
-rpm: checkfpcdir rpmcopy
+rpm:  rpmcopy
         cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
         cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec

@@ -193,7 +193,7 @@ endif
 
 # Install
 
-PACKAGENAME=packages
+PACKAGENAME=pkg
 ZIPTARGET=install
 
 # Defaults
