@@ -44,3 +44,6 @@ Range checking ........ range.pp       range checking when converting int64/
                         range2.pp      range checking when converting
                                        between longint and cardinal
                         range3.pp      range checking for arrays
+Implicit units ........ implprog.pp    compile the program twice, second time
+                        impluni1.pp    there's an error about not being able
+                        impluni2.pp    to use a constant
