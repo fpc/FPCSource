@@ -268,7 +268,7 @@ graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 #####################################################################
 
 staticlib:
-	make clean
+	make libclean
 	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
 sharedlib:
@@ -295,7 +295,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.14  1998-08-20 08:08:37  pierre
+# Revision 1.15  1998-09-10 10:16:52  florian
+#   * make staticlib does now a make libclean instead of make clean
+#
+# Revision 1.14  1998/08/20 08:08:37  pierre
 #   * dpmiexcp did not compile with older versions
 #     due to the proc to procvar bug
 #   * makefile separator problem fixed
