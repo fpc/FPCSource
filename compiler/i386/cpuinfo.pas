@@ -28,7 +28,7 @@ Interface
 
 Type
    {# Natural integer register type and size for the target machine }
-   AWord = Cardinal;
+   AWord = longword;
    PAWord = ^AWord;
 
    { this must be an ordinal type with the same size as a pointer }
@@ -36,8 +36,8 @@ Type
    { pointer(-1) will result in a pointer with the value          }
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
-   TConstPtrUInt = cardinal;
-
+   TConstPtrUInt = longword;
+   
    bestreal = extended;
    ts32real = single;
    ts64real = double;
@@ -77,7 +77,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-09-07 15:25:10  peter
+  Revision 1.15  2002-09-07 20:48:43  carl
+    * cardinal -> longword
+
+  Revision 1.14  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.13  2002/08/15 15:15:55  carl

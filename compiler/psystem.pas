@@ -152,7 +152,7 @@ implementation
         addtype('Char',cchartype);
         addtype('WideChar',cwidechartype);
         adddef('Text',tfiledef.createtext);
-        addtype('Cardinal',u32bittype);
+        addtype('Longword',u32bittype);
         addtype('QWord',cu64bittype);
         addtype('Int64',cs64bittype);
         adddef('TypedFile',tfiledef.createtyped(voidtype));
@@ -268,7 +268,7 @@ implementation
         voidtype.setdef(torddef.create(uvoid,0,0));
         u8bittype.setdef(torddef.create(u8bit,0,255));
         u16bittype.setdef(torddef.create(u16bit,0,65535));
-        u32bittype.setdef(torddef.create(u32bit,0,high(cardinal)));
+        u32bittype.setdef(torddef.create(u32bit,0,high(longword)));
         s32bittype.setdef(torddef.create(s32bit,low(longint),high(longint)));
         cu64bittype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
         cs64bittype.setdef(torddef.create(s64bit,low(int64),high(int64)));
@@ -469,7 +469,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-08-23 13:11:11  mazen
+  Revision 1.39  2002-09-07 20:46:10  carl
+    * cardinal -> longword
+
+  Revision 1.38  2002/08/23 13:11:11  mazen
   fixed compilation problem related to tai_labeled_instruction
 
   Revision 1.37  2002/08/18 20:06:25  peter

@@ -33,7 +33,7 @@ UNIT cpuinfo;
 INTERFACE
 TYPE
 {# Natural integer register type and size for the target machine }
-  AWord=Cardinal;
+  AWord=Longword;
   PAWord=^AWord;
 { the ordinal type used when evaluating constant integer expressions }
   TConstExprInt=int64;

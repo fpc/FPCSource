@@ -243,7 +243,7 @@ implementation
         else
           case torddef(source.resulttype.def).typ of
             u32bit:
-              procname := procname + 'cardinal';
+              procname := procname + 'longword';
             u64bit:
               procname := procname + 'qword';
             s64bit:
@@ -2376,7 +2376,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2002-09-07 12:16:04  carl
+  Revision 1.87  2002-09-07 20:42:16  carl
+    * cardinal -> longword
+
+  Revision 1.86  2002/09/07 12:16:04  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 

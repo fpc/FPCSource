@@ -92,7 +92,7 @@ implementation
                 a cardinal value.
               }
               begin
-                 fname := 'fpc_cardinal_to_double';
+                 fname := 'fpc_longword_to_double';
                  result := ccallnode.createintern(fname,ccallparanode.create(
                     left,nil));
                  left:=nil;
@@ -292,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:25:13  peter
+  Revision 1.4  2002-09-07 20:53:28  carl
+    * cardinal -> longword
+
+  Revision 1.3  2002/09/07 15:25:13  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/14 19:31:26  carl

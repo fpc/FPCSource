@@ -19,7 +19,7 @@ Interface
 
 Type
    { Architecture word - Native unsigned type }
-   AWord  = Cardinal;
+   AWord  = Longword;
    PAWord = ^AWord;
 
    { this must be an ordinal type with the same size as a pointer }
@@ -29,7 +29,7 @@ Type
    { pointer(-1) will result in a pointer with the value          }
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
-   TConstPtrUInt = Cardinal;
+   TConstPtrUInt = Longword;
 
    bestreal = double;
    ts32real = single;
@@ -67,7 +67,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-09-07 15:25:14  peter
+  Revision 1.12  2002-09-07 20:57:08  carl
+    * cardinal -> longword
+
+  Revision 1.11  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/08/15 15:15:55  carl

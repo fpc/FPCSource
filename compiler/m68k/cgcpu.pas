@@ -415,7 +415,7 @@ Implementation
                      rg.getexplicitregisterint(list,R_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, R_D0));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, R_D1));
-                     cg.a_call_name(list,'FPC_MUL_CARDINAL');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,R_D0, reg));
                      rg.ungetregisterint(list,R_D0);
                      rg.ungetregisterint(list,R_D1);
@@ -619,7 +619,7 @@ Implementation
                      rg.getexplicitregisterint(list,R_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, R_D0));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, R_D1));
-                     cg.a_call_name(list,'FPC_MUL_CARDINAL');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,R_D0, reg2));
                      rg.ungetregisterint(list,R_D0);
                      rg.ungetregisterint(list,R_D1);
@@ -1234,7 +1234,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:25:12  peter
+  Revision 1.7  2002-09-07 20:53:28  carl
+    * cardinal -> longword
+
+  Revision 1.6  2002/09/07 15:25:12  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/19 18:17:48  carl

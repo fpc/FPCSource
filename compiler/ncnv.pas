@@ -1435,7 +1435,7 @@ implementation
             if is_signed(left.resulttype.def) then
               fname := 'fpc_longint_to_'+typname
             else
-              fname := 'fpc_cardinal_to_'+typname;
+              fname := 'fpc_longword_to_'+typname;
             result := ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -2037,7 +2037,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2002-09-07 15:25:03  peter
+  Revision 1.80  2002-09-07 20:40:23  carl
+    * cardinal -> longword
+
+  Revision 1.79  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.78  2002/09/07 12:16:04  carl
