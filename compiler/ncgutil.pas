@@ -983,6 +983,8 @@ implementation
                 internalerror(2003091810);
             end;
             cg.ungetregister(list,NR_FUNCTION_RETURN_REG);
+            // for the optimizer
+            cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_FUNCTION_RETURN_REG);
             uses_acc:=true;
             exit;
@@ -1029,6 +1031,9 @@ implementation
                      cg.getexplicitregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
                      cg.ungetregister(list,NR_FUNCTION_RETURN64_LOW_REG);
                      cg.ungetregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
+                     // for the optimizer
+                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
+                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
                      cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
                                            NR_FUNCTION_RETURN64_HIGH_REG),false);
                    end
@@ -1038,6 +1043,8 @@ implementation
                      cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
                      hreg:=cg.makeregsize(NR_FUNCTION_RETURN_REG,resloc.size);
                      cg.ungetregister(list,hreg);
+                     // for the optimizer
+                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
                      cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                    end;
                 end;
@@ -1065,6 +1072,9 @@ implementation
                         cg.getexplicitregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
                         cg.ungetregister(list,NR_FUNCTION_RETURN64_LOW_REG);
                         cg.ungetregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
+                        // for the optimizer
+                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
+                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
                         cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
                                               NR_FUNCTION_RETURN64_HIGH_REG),false);
                       end
@@ -1074,6 +1084,8 @@ implementation
                         cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
                         hreg:=cg.makeregsize(NR_FUNCTION_RETURN_REG,resloc.size);
                         cg.ungetregister(list,hreg);
+                        // for the optimizer
+                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
                         cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                       end;
                     end
@@ -1964,7 +1976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2003-11-11 21:10:12  peter
+  Revision 1.168  2003-11-22 00:31:25  jonas
+    + extra allocations of function result regs for the optimiser
+
+  Revision 1.167  2003/11/11 21:10:12  peter
     * remove temporary stdcall hack
 
   Revision 1.166  2003/11/10 22:02:52  peter
