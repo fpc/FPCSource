@@ -2,7 +2,7 @@
 % The Keyboard unit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The KEYBOARD unit}
-\FPCexampledir{keybex}
+\FPCexampledir{kbdex}
 
 The \file{KeyBoard} unit implements a keyboard access layer which is system
 independent. It can be used to poll the keyboard state and wait for certaine
@@ -83,7 +83,7 @@ The \var{TKeyEvent} type is the base type for all keyboard events:
   TKeyEvent = Longint;
 \end{verbatim}
 The structure of a \var{TKeyEvent} is explained in \seet{keyevent}.
-\begin{FPCltable}{lp}{Structure of \var{TKeyEvent}}{keyevent}
+\begin{FPCltable}{ll}{Structure of TKeyEvent}{keyevent}
 Bytes & Meaning \\ \hline
 2 bytes & Depending on \var{flags} either the physical representation of a key
          (under DOS scancode, ascii code pair), or the translated
@@ -103,9 +103,10 @@ possibily having the same name (but different value).
 \subsection{Variables}
 The following variable contains any pending (i.e. not yet consumed) keyboard
 event:
-\begin
+\begin{verbatim}
 var
   PendingKeyEvent : TKeyEvent;
+\end{verbatim}
 
 \section{Functions and Procedures}
 
@@ -143,7 +144,7 @@ description of how the key is described.
 \Errors
 If no key became available, 0 is returned.
 \SeeAlso
-\seep{PutKeyEvent}, \seef{PollKeyEvent}, \ßeef{TranslateKeyEvent},
+\seep{PutKeyEvent}, \seef{PollKeyEvent}, \seef{TranslateKeyEvent},
 \seef{TranslateKeyEventUniCode}
 \end{function}
 
@@ -250,7 +251,7 @@ None.
 \seef{GetKeyEvent}
 \end{function}
 
-No example yet.
+No example available yet.
 
 \begin{procedure}{InitKeyBoard}
 \Declaration
@@ -265,7 +266,7 @@ keyboard functions.
 \Errors
 None.
 \SeeAlso
-\seep{DoneKeyBoard}
+\seep{DoneKeyboard}
 \end{procedure}
 
 For an example, see most other functions.
@@ -282,18 +283,26 @@ None.
 \seef{GetKeyEvent}
 \end{function}
 
+\FPCexample{ex7}
+
 \begin{function}{PollKeyEvent}
 \Declaration
 function PollKeyEvent: TKeyEvent;
 \Description
 \var{PollKeyEvent} checks whether a key event is available, 
 and returns it if one is found. If no event is pending, 
-it returns 0.
+it returns 0. 
+
+Note that this does not remove the key from the pending keys. 
+The key should still be retrieved from the pending key events 
+list with the \seef{GetKeyEvent} function.
 \Errors
 None.
 \SeeAlso
 \seep{PutKeyEvent}, \seef{GetKeyEvent}
 \end{function}
+
+\FPCexample{ex4}
 
 \begin{function}{PollShiftStateEvent}
 \Declaration
@@ -304,8 +313,10 @@ keyevent. This will return 0 if there is no key event pending.
 \Errors
 None.
 \SeeAlso
-\seep{PollKeyEvent}, \seef{GetKeyEvent}
+\seef{PollKeyEvent}, \seef{GetKeyEvent}
 \end{function}
+
+\FPCexample{ex6}
 
 \begin{procedure}{PutKeyEvent}
 \Declaration
@@ -316,27 +327,190 @@ queue. Please note that depending on the implementation this
 can hold only one value, i.e. when calling \var{PutKeyEvent}
 multiple times, only the last pushed key will be remembered.
 \Errors
+None
 \SeeAlso
-\end{function}
+\seef{PollKeyEvent}, \seef{GetKeyEvent}
+\end{procedure}
+
+\FPCexample{ex5}
 
 \begin{function}{TranslateKeyEvent}
 \Declaration
 function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
 \Description
-\var{TranslateKeyEvent} performs ASCII translation of the 
-\var{KeyEvent}.
+\var{TranslateKeyEvent} performs ASCII translation of the \var{KeyEvent}.
+It translates a physical key to a function key if the key is a function key,
+and translates the physical key to the ordinal of the ascii character if 
+there is an equivalent character key.
 \Errors
 None.
 \SeeAlso
 \seef{TranslateKeyEventUniCode}
 \end{function}
 
+For an example, see \seef{GetKeyEvent}
+
 \begin{function}{TranslateKeyEventUniCode}
 \Declaration
 function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
 \Description
 \var{TranslateKeyEventUniCode} performs Unicode translation of the 
-\var{KeyEvent}
+\var{KeyEvent}. It is not yet implemented for all platforms.
+
 \Errors
+If the function is not yet implemented, then the \var{ErrorCode} of the 
+\file{system} unit will be set to \var{errKbdNotImplemented}
 \SeeAlso
 \end{function}
+
+No example available yet.
+
+\section{Keyboard scan codes}
+Special physical keys are encoded with the DOS scan codes for these keys
+in the second byte of the \var{TKeyEvent} type.
+What follows is a list of the scan codes.
+\begin{FPCtable}{ll}{Physical keys scan codes}
+Scan code (hex) & Key \\ \hline
+00 & NoKey \\
+01 & ALT-Esc \\
+02 & ALT-Space \\
+04 & CTRL-Ins \\
+05 & SHIFT-Ins \\
+06 & CTRL-Del \\
+07 & SHIFT-Del \\
+08 & ALT-Back \\
+09 & ALT-SHIFT-Back \\
+0F & SHIFT-Tab \\
+10 & ALT-Q \\
+11 & ALT-W \\
+12 & ALT-E \\
+13 & ALT-R \\
+14 & ALT-T \\
+15 & ALT-Y \\
+16 & ALT-U \\
+17 & ALT-I \\
+18 & ALT-O \\
+19 & ALT-P \\
+1A & ALT-LftBrack \\
+1B & ALT-RgtBrack \\
+1E & ALT-A \\
+1F & ALT-S \\
+20 & ALT-D \\
+21 & ALT-F \\
+22 & ALT-G \\
+23 & ALT-H \\
+24 & ALT-J \\
+25 & ALT-K \\
+26 & ALT-L \\
+27 & ALT-SemiCol \\
+28 & ALT-Quote \\
+29 & ALT-OpQuote \\
+2B & ALT-BkSlash \\
+2C & ALT-Z \\
+2D & ALT-X \\
+2E & ALT-C \\
+2F & ALT-V \\
+30 & ALT-B \\
+31 & ALT-N \\
+32 & ALT-M \\
+33 & ALT-Comma \\
+34 & ALT-Period \\
+35 & ALT-Slash \\
+37 & ALT-GreyAst \\
+3B & F1 \\
+3C & F2 \\
+3D & F3 \\
+3E & F4 \\
+3F & F5 \\
+40 & F6 \\
+41 & F7 \\
+42 & F8 \\
+43 & F9 \\
+44 & F10 \\
+47 & Home \\
+48 & Up \\
+49 & PgUp \\
+4B & Left \\
+4C & Center \\
+4D & Right \\
+4E & ALT-GrayPlus \\
+4F & end \\
+50 & Down \\
+51 & PgDn \\
+52 & Ins \\
+53 & Del \\
+54 & SHIFT-F1 \\
+55 & SHIFT-F2 \\
+56 & SHIFT-F3 \\
+57 & SHIFT-F4 \\
+58 & SHIFT-F5 \\
+59 & SHIFT-F6 \\
+5A & SHIFT-F7 \\
+5B & SHIFT-F8 \\
+5C & SHIFT-F9 \\
+5D & SHIFT-F10 \\
+5E & CTRL-F1 \\
+5F & CTRL-F2 \\
+60 & CTRL-F3 \\
+61 & CTRL-F4 \\
+62 & CTRL-F5 \\
+63 & CTRL-F6 \\
+64 & CTRL-F7 \\
+65 & CTRL-F8 \\
+66 & CTRL-F9 \\
+67 & CTRL-F10 \\
+68 & ALT-F1 \\
+69 & ALT-F2 \\
+6A & ALT-F3 \\
+6B & ALT-F4 \\
+6C & ALT-F5 \\
+6D & ALT-F6 \\
+6E & ALT-F7 \\
+6F & ALT-F8 \\
+70 & ALT-F9 \\
+71 & ALT-F10 \\
+72 & CTRL-PrtSc \\
+73 & CTRL-Left \\
+74 & CTRL-Right \\
+75 & CTRL-end \\
+76 & CTRL-PgDn \\
+77 & CTRL-Home \\
+78 & ALT-1 \\
+79 & ALT-2 \\
+7A & ALT-3 \\
+7B & ALT-4 \\
+7C & ALT-5 \\
+7D & ALT-6 \\
+7E & ALT-7 \\
+7F & ALT-8 \\
+80 & ALT-9 \\
+81 & ALT-0 \\
+82 & ALT-Minus \\
+83 & ALT-Equal \\
+84 & CTRL-PgUp \\
+85 & F11 \\
+86 & F12 \\
+87 & SHIFT-F11 \\
+88 & SHIFT-F12 \\
+89 & CTRL-F11 \\
+8A & CTRL-F12 \\
+8B & ALT-F11 \\
+8C & ALT-F12 \\
+8D & CTRL-Up \\
+8E & CTRL-Minus \\
+8F & CTRL-Center \\
+90 & CTRL-GreyPlus \\
+91 & CTRL-Down \\
+94 & CTRL-Tab \\
+97 & ALT-Home \\
+98 & ALT-Up \\
+99 & ALT-PgUp \\
+9B & ALT-Left \\
+9D & ALT-Right \\
+9F & ALT-end \\
+A0 & ALT-Down \\
+A1 & ALT-PgDn \\
+A2 & ALT-Ins \\
+A3 & ALT-Del \\
+A5 & ALT-Tab \\ \hline
+\end{FPCtable}
