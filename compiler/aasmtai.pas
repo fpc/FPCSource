@@ -198,7 +198,7 @@ interface
         constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
         procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
-    
+
 
        taiclass = class of tai;
 
@@ -563,7 +563,8 @@ uses
 
     procedure tai.checkredefinesym(sym:tasmsymbol);
       begin
-{        if assigned(sym.taiowner) then
+{        if assigned(sym.taiowner) and
+            (target_asm.id in binassem) then
          begin
            Message1(asmw_e_redefined_label,sym.name);
          end
@@ -1690,8 +1691,8 @@ uses
               { find the last file information record }
               if not (tai(last).typ in SkipLineInfo) then
                  getlasttaifilepos:=@tailineinfo(last).fileinfo
-              else 
-               { go through list backwards to find the first entry 
+              else
+               { go through list backwards to find the first entry
                  with line information
                }
                begin
@@ -1708,7 +1709,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.13  2002-11-17 16:31:55  carl
+  Revision 1.14  2002-12-06 17:50:21  peter
+    * symbol count fix merged
+
+  Revision 1.13  2002/11/17 16:31:55  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
