@@ -485,21 +485,26 @@ unit types;
            begin
               is_mmx_able_array:=(p^.deftype=arraydef) and
                 (
-                 ((parraydef(p)^.definition^.deftype=orddef) and
+                 (
+                  (parraydef(p)^.definition^.deftype=orddef) and
                   (
-                  (parraydef(p)^.lowrange=0) and
-                  (parraydef(p)^.highrange=1) and
-                  (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
-                  ) or
-                  (
-                  (parraydef(p)^.lowrange=0) and
-                  (parraydef(p)^.highrange=3) and
-                  (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=1) and
+                    (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
+                   )
+                   or
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=3) and
+                    (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
+                   )
                   )
                  )
-                ) or
+                 or
                 (
-                 ((parraydef(p)^.definition^.deftype=floatdef) and
+                 (
+                  (parraydef(p)^.definition^.deftype=floatdef) and
                   (
                    (parraydef(p)^.lowrange=0) and
                    (parraydef(p)^.highrange=3) and
@@ -511,42 +516,50 @@ unit types;
                    (pfloatdef(parraydef(p)^.definition)^.typ=s32real)
                   )
                  )
-                );
+                )
+              );
            end
          else
            begin
               is_mmx_able_array:=(p^.deftype=arraydef) and
                 (
-                 ((parraydef(p)^.definition^.deftype=orddef) and
+                 (
+                  (parraydef(p)^.definition^.deftype=orddef) and
                   (
-                  (parraydef(p)^.lowrange=0) and
-                  (parraydef(p)^.highrange=1) and
-                  (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
-                  ) or
-                  (
-                  (parraydef(p)^.lowrange=0) and
-                  (parraydef(p)^.highrange=3) and
-                  (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
-                  ) or
-                  (
-                  (parraydef(p)^.lowrange=0) and
-                  (parraydef(p)^.highrange=7) and
-                  (porddef(parraydef(p)^.definition)^.typ in [u8bit,s8bit])
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=1) and
+                    (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
+                   )
+                   or
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=3) and
+                    (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
+                   )
+                   or
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=7) and
+                    (porddef(parraydef(p)^.definition)^.typ in [u8bit,s8bit])
+                   )
                   )
                  )
-                ) or
-                (
-                 ((parraydef(p)^.definition^.deftype=floatdef) and
+                 or
+                 (
+                  (parraydef(p)^.definition^.deftype=floatdef) and
                   (
-                   (parraydef(p)^.lowrange=0) and
-                   (parraydef(p)^.highrange=3) and
-                   (pfloatdef(parraydef(p)^.definition)^.typ=f32bit)
-                  )
-                  or
-                  (
-                   (parraydef(p)^.lowrange=0) and
-                   (parraydef(p)^.highrange=1) and
-                   (pfloatdef(parraydef(p)^.definition)^.typ=s32real)
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=3) and
+                    (pfloatdef(parraydef(p)^.definition)^.typ=f32bit)
+                   )
+                   or
+                   (
+                    (parraydef(p)^.lowrange=0) and
+                    (parraydef(p)^.highrange=1) and
+                    (pfloatdef(parraydef(p)^.definition)^.typ=s32real)
+                   )
                   )
                  )
                 );
@@ -1033,7 +1046,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.43  1998-12-30 13:41:20  peter
+  Revision 1.44  1999-01-15 11:33:03  pierre
+   * bug in mmx code removed
+
+  Revision 1.43  1998/12/30 13:41:20  peter
     * released valuepara
 
   Revision 1.42  1998/12/11 00:04:03  peter
