@@ -73,6 +73,21 @@ type    Tkbdkeyinfo=record
         end;
         Pviomodeinfo=^viomodeinfo;
 
+    TVioCursorInfo=record
+        case boolean of
+        false:(
+        yStart:word;    {Cursor start (top) scan line (0-based)}
+        cEnd:word;      {Cursor end (bottom) scan line}
+        cx:word;        {Cursor width (0=default width)}
+        Attr:word);     {Cursor colour attribute (-1=hidden)}
+        true:(
+        yStartInt: integer; {integer variants can be used to specify negative}
+        cEndInt:integer; {negative values (interpreted as percentage by OS/2)}
+        cxInt:integer;
+        AttrInt:integer);
+    end;
+    PVioCursorInfo=^TVioCursorInfo;
+
 {EMXWRAP.DLL has strange calling conventions: All parameters must have
  a 4 byte size.}
 
@@ -102,6 +117,13 @@ function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 121;
 function viosetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 122;
+function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 132;
+{external 'VIOCALLS' index 32;}
+function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 127;
+{external 'VIOCALLS' index 27;}
+
 
 procedure setscreenmode(mode:word);
 
@@ -764,21 +786,97 @@ begin
         end;
 end;
 
-procedure cursoron;
 
+
+{****************************************************************************
+                             Extra Crt Functions
+****************************************************************************}
+
+
+{$ASMMODE INTEL}
+procedure CursorOn;
+var
+ I: TVioCursorInfo;
 begin
+ if Os_Mode = osOS2 then
+  begin
+   VioGetCurType (I, 0);
+   with I do
+    begin
+     yStartInt := -90;
+     cEndInt := -100;
+     Attr := 15;
+    end;
+   VioSetCurType (I, 0);
+  end
+ else
+  asm
+   push es
+   push bp
+   mov ax, 1130h
+   mov bh, 0
+   mov ecx, 0
+   int 10h
+   pop bp
+   pop es
+   or ecx, ecx
+   jnz @COnOld
+   mov cx, 0707h
+   jmp @COnAll
+@COnOld:
+   dec cx
+   mov ch, cl
+   dec ch
+@COnAll:
+   mov ah, 1
+   int 10h
+  end;
 end;
 
-procedure cursoroff;
 
+procedure CursorOff;
+var
+ I: TVioCursorInfo;
 begin
+ if Os_Mode = osOS2 then
+  begin
+   VioGetCurType (I, 0);
+   I.AttrInt := -1;
+   VioSetCurType (I, 0);
+  end
+ else
+  asm
+   mov ah, 1
+   mov cx, 0FFFFh
+   int 10h
+  end;
 end;
 
-procedure cursorbig;
 
+procedure CursorBig;
+var
+ I: TVioCursorInfo;
 begin
+ if Os_Mode = osOS2 then
+  begin
+   VioGetCurType (I, 0);
+   with I do
+    begin
+     yStart := 0;
+     cEndInt := -100;
+     Attr := 15;
+    end;
+   VioSetCurType (I, 0);
+  end
+ else
+  asm
+   mov ah, 1
+   mov cx, 1Fh
+   int 10h
+  end;
 end;
 
+{$ASMMODE DEFAULT}
 
 
 
@@ -851,7 +949,7 @@ begin
         end;
     windmin:=0;
     windmax:=((maxrows-1) shl 8) or (maxcols-1);
-    if os_mode=osDOS then
+    if os_mode <> osOS2 then
         initdelay;
     crt_error:=cenoerror;
     assigncrt(input);
@@ -862,7 +960,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-02-08 16:22:20  michael
+  Revision 1.4  2004-03-21 20:28:43  hajny
+    + Cursor* implemented
+
+  Revision 1.3  2004/02/08 16:22:20  michael
   + Moved CRT interface to common include file
 
   Revision 1.2  2003/10/19 09:35:28  hajny

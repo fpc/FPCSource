@@ -67,6 +67,22 @@ type    Tkbdkeyinfo=record
             ext_data_addr:pointer;           { ????? info wanted !}
         end;
 
+    TVioCursorInfo=record
+        case boolean of
+        false:(
+        yStart:word;    {Cursor start (top) scan line (0-based)}
+        cEnd:word;      {Cursor end (bottom) scan line}
+        cx:word;        {Cursor width (0=default width)}
+        Attr:word);     {Cursor colour attribute (-1=hidden)}
+        true:(
+        yStartInt: integer; {integer variants can be used to specify negative}
+        cEndInt:integer; {negative values (interpreted as percentage by OS/2)}
+        cxInt:integer;
+        AttrInt:integer);
+    end;
+    PVioCursorInfo=^TVioCursorInfo;
+
+
 {EMXWRAP.DLL has strange calling conventions: All parameters must have
  a 4 byte size.}
 
@@ -94,6 +110,14 @@ function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 121;
 function viosetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 122;
+function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 132;
+{external 'VIOCALLS' index 32;}
+function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 127;
+{external 'VIOCALLS' index 27;}
+
+
 
 procedure setscreenmode(mode:word);
 
@@ -509,21 +533,53 @@ procedure nosound;
 begin
 end;
 
-{Extra Functions}
-procedure cursoron;
 
+
+{****************************************************************************
+                             Extra Crt Functions
+****************************************************************************}
+
+
+procedure CursorOn;
+var
+ I: TVioCursorInfo;
 begin
+ VioGetCurType (I, 0);
+ with I do
+  begin
+   yStartInt := -90;
+   cEndInt := -100;
+   Attr := 15;
+  end;
+ VioSetCurType (I, 0);
 end;
 
-procedure cursoroff;
 
+procedure CursorOff;
+var
+ I: TVioCursorInfo;
 begin
+ VioGetCurType (I, 0);
+ I.AttrInt := -1;
+ VioSetCurType (I, 0);
 end;
 
-procedure cursorbig;
 
+procedure CursorBig;
+var
+ I: TVioCursorInfo;
 begin
+ VioGetCurType (I, 0);
+ with I do
+  begin
+   yStart := 0;
+   cEndInt := -100;
+   Attr := 15;
+  end;
+ VioSetCurType (I, 0);
 end;
+
+
 
 {Initialization.}
 
@@ -558,7 +614,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-02-08 16:22:20  michael
+  Revision 1.7  2004-03-21 20:28:43  hajny
+    + Cursor* implemented
+
+  Revision 1.6  2004/02/08 16:22:20  michael
   + Moved CRT interface to common include file
 
   Revision 1.5  2003/10/18 16:53:21  hajny
