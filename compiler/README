@@ -51,8 +51,18 @@ Changes in the syntax or semantic of FPC:
              because the new temporary ansistring handling support
              exceptions and exceptions need the class OOP model
   18/05/99   The compiler will stop directly if there are errors in the
-             commandline parameters           
+             commandline parameters
   16/08/99   DLL are relocatable by default (need to strip symbols)
              -WN make non relocatable DLL (which can retain debug info)
              for both type of DLL the prefered image base can be specified
              with -WB1100000 for instance to get image base at $11000000.
+  08/09/99   pointer addition/substraction (only available in fpc,objfpc mode)
+             now uses the size of the type the pointer points to, just like
+             inc(),dec() already did. Now inc(p) is the same as p:=p+1.
+             But old code can be broken by this when there is a p:=p+4 then
+             it's now parsed like: p:=p+4*sizeof(type). To get the old situation
+             you can use typecasting: p:=ptype(pointer(p)+4).
+  08/09/99   class/object field return their offsets in the object/class. You
+             must access them self with loading the object/class pointer and
+             then create a reference where you add the field
+             
