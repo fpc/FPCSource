@@ -160,7 +160,7 @@ begin
   EditorWasFirst:=(PWindow(Desktop^.First)=PWindow(EditorWindow)) and
                   assigned(WatchesWindow);
   If assigned(EditorWindow) then
-    S:=LowerCaseStr(EditorWindow^.Editor^.GetCurrentWord)
+    S:={LowerCaseStr(}EditorWindow^.Editor^.GetCurrentWord
   else
     S:='';
   P:=New(PWatch,Init(S));
@@ -179,7 +179,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-02 09:27:35  pierre
+  Revision 1.3  2002-09-03 13:59:09  pierre
+   * don't use LowerCaseStr for AddWatch as it confuses line completion
+
+  Revision 1.2  2002/09/02 09:27:35  pierre
    * avoid 100 CPU usage when AltF5 is used
 
   Revision 1.1  2001/08/04 11:30:23  peter
