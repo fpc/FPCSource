@@ -113,12 +113,9 @@ implementation
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
-        if (token=_RKLAMMER) and
-          (m_delphi in aktmodeswitches) then
-          begin
-             consume(_RKLAMMER);
-             exit;
-          end;
+        if try_to_consume(_RKLAMMER) and
+          not(m_tp in aktmodeswitches) then
+          exit;
         inc(testcurobject);
         repeat
           if try_to_consume(_VAR) then
@@ -1895,7 +1892,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-03-22 22:35:42  florian
+  Revision 1.15  2001-03-24 12:18:11  florian
+    * procedure p(); is now allowed in all modes except TP
+
+  Revision 1.14  2001/03/22 22:35:42  florian
     + support for type a = (a=1); in Delphi mode added
     + procedure p(); in Delphi mode supported
     + on isn't keyword anymore, it can be used as
