@@ -421,7 +421,7 @@ implementation
 
     function tassignmentnode.det_resulttype:tnode;
       var
-        hp,hp2 : tnode;
+        hp : tnode;
       begin
         result:=nil;
         resulttype:=voidtype;
@@ -450,12 +450,11 @@ implementation
         if is_dynamic_array(left.resulttype.def) and
            (right.nodetype=niln) then
          begin
-           hp := ctypeconvnode.create(left,voidpointertype);
-           hp.toggleflag(nf_explizit);
-           hp2 := crttinode.create(tstoreddef(left.resulttype.def),initrtti);
-           hp := ccallparanode.create(hp2,ccallparanode.create(hp,nil));
-           left:=nil;
+           hp:=ccallparanode.create(caddrnode.create
+                   (crttinode.create(tstoreddef(left.resulttype.def),initrtti)),
+               ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil));
            result := ccallnode.createintern('fpc_dynarray_clear',hp);
+           left:=nil;
            exit;
          end;
 
@@ -925,7 +924,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-04-22 16:30:06  peter
+  Revision 1.37  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.36  2002/04/22 16:30:06  peter
     * fixed @methodpointer
 
   Revision 1.35  2002/04/21 19:02:04  peter

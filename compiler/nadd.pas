@@ -1052,7 +1052,7 @@ implementation
 
               { create the call to the concat routine both strings as arguments }
               result := ccallnode.createintern('fpc_'+
-                lower(tstringdef(resulttype.def).stringtypname)+'_concat',
+                tstringdef(resulttype.def).stringtypname+'_concat',
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { we reused the arguments }
               left := nil;
@@ -1097,7 +1097,7 @@ implementation
                 end;
               { no string constant -> call compare routine }
               result := ccallnode.createintern('fpc_'+
-                lower(tstringdef(left.resulttype.def).stringtypname)+'_compare',
+                tstringdef(left.resulttype.def).stringtypname+'_compare',
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,
@@ -1601,7 +1601,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-04-04 19:05:56  peter
+  Revision 1.46  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.45  2002/04/04 19:05:56  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

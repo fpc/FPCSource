@@ -43,6 +43,8 @@ interface
 
     procedure string_dec(var t: ttype);
 
+    function parse_paras(__colon,in_prop_paras : boolean) : tnode;
+
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean);
 
@@ -72,7 +74,7 @@ implementation
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
        { parser }
        scanner,
-       pbase,
+       pbase,pinline,
        { codegen }
        cgbase
        ;
@@ -215,313 +217,6 @@ implementation
                     p:=p1;
                  end;
             end;
-      end;
-
-
-    function new_dispose_statement(is_new:boolean) : tnode;
-      var
-        newstatement : tstatementnode;
-        temp         : ttempcreatenode;
-        para         : tcallparanode;
-        p,p2     : tnode;
-        again    : boolean; { dummy for do_proc_call }
-        destructorname : stringid;
-        sym      : tsym;
-        classh   : tobjectdef;
-        destructorpos,
-        storepos : tfileposinfo;
-      begin
-        consume(_LKLAMMER);
-        p:=comp_expr(true);
-        { calc return type }
-        { rg.cleartempgen; }
-        set_varstate(p,(not is_new));
-        { constructor,destructor specified }
-        if try_to_consume(_COMMA) then
-          begin
-            { extended syntax of new and dispose }
-            { function styled new is handled in factor }
-            { destructors have no parameters }
-            destructorname:=pattern;
-            destructorpos:=akttokenpos;
-            consume(_ID);
-
-            if (p.resulttype.def.deftype<>pointerdef) then
-              begin
-                 Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
-                 p.free;
-                 p:=factor(false);
-                 p.free;
-                 consume(_RKLAMMER);
-                 new_dispose_statement:=cerrornode.create;
-                 exit;
-              end;
-            { first parameter must be an object or class }
-            if tpointerdef(p.resulttype.def).pointertype.def.deftype<>objectdef then
-              begin
-                 Message(parser_e_pointer_to_class_expected);
-                 p.free;
-                 new_dispose_statement:=factor(false);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
-                 exit;
-              end;
-            { check, if the first parameter is a pointer to a _class_ }
-            classh:=tobjectdef(tpointerdef(p.resulttype.def).pointertype.def);
-            if is_class(classh) then
-              begin
-                 Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
-                 exit;
-              end;
-            { search cons-/destructor, also in parent classes }
-            storepos:=akttokenpos;
-            akttokenpos:=destructorpos;
-            sym:=search_class_member(classh,destructorname);
-            akttokenpos:=storepos;
-
-            { the second parameter of new/dispose must be a call }
-            { to a cons-/destructor                              }
-            if (not assigned(sym)) or (sym.typ<>procsym) then
-              begin
-                 if is_new then
-                  Message(parser_e_expr_have_to_be_constructor_call)
-                 else
-                  Message(parser_e_expr_have_to_be_destructor_call);
-                 p.free;
-                 new_dispose_statement:=cerrornode.create;
-              end
-            else
-              begin
-                if is_new then
-                 p2:=chnewnode.create(tpointerdef(p.resulttype.def).pointertype)
-                else
-                 p2:=chdisposenode.create(p);
-                do_resulttypepass(p2);
-                if is_new then
-                  do_member_read(false,sym,p2,again)
-                else
-                  begin
-                    if not(m_fpc in aktmodeswitches) then
-                      do_member_read(false,sym,p2,again)
-                    else
-                      begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
-                        { support dispose(p,done()); }
-                        if try_to_consume(_LKLAMMER) then
-                          begin
-                            if not try_to_consume(_RKLAMMER) then
-                              begin
-                                Message(parser_e_no_paras_for_destructor);
-                                consume_all_until(_RKLAMMER);
-                                consume(_RKLAMMER);
-                              end;
-                          end;
-                      end;
-                  end;
-
-                { we need the real called method }
-                { rg.cleartempgen;}
-                do_resulttypepass(p2);
-                if not codegenerror then
-                 begin
-                   if is_new then
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
-                        Message(parser_e_expr_have_to_be_constructor_call);
-                      p2.resulttype:=p.resulttype;
-                      p2:=cassignmentnode.create(p,p2);
-                    end
-                   else
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
-                        Message(parser_e_expr_have_to_be_destructor_call);
-                    end;
-                 end;
-                new_dispose_statement:=p2;
-              end;
-          end
-        else
-          begin
-             if (p.resulttype.def.deftype<>pointerdef) then
-               Begin
-                  Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
-                  new_dispose_statement:=cerrornode.create;
-               end
-             else
-               begin
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=objectdef) and
-                     (oo_has_vmt in tobjectdef(tpointerdef(p.resulttype.def).pointertype.def).objectoptions) then
-                    Message(parser_w_use_extended_syntax_for_objects);
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=orddef) and
-                     (torddef(tpointerdef(p.resulttype.def).pointertype.def).typ=uvoid) then
-                    begin
-                      if (m_tp7 in aktmodeswitches) or
-                         (m_delphi in aktmodeswitches) then
-                       Message(parser_w_no_new_dispose_on_void_pointers)
-                      else
-                       Message(parser_e_no_new_dispose_on_void_pointers);
-                    end;
-
-                  { create statements with call to getmem+initialize or
-                    finalize+freemem }
-                  new_dispose_statement:=internalstatements(newstatement);
-
-                  if is_new then
-                   begin
-                     { create temp for result }
-                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,true);
-                     addstatement(newstatement,temp);
-
-                     { create call to fpc_getmem }
-                     para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype),nil);
-                     addstatement(newstatement,cassignmentnode.create(
-                         ctemprefnode.create(temp),
-                         ccallnode.createintern('fpc_getmem',para)));
-
-                     { create call to fpc_initialize }
-                     if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
-                      begin
-                        para := ccallparanode.create(caddrnode.create(crttinode.create(
-                                   tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-                                ccallparanode.create(ctemprefnode.create
-                                   (temp),nil));
-                        addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
-                      end;
-
-                     { copy the temp to the destination }
-                     addstatement(newstatement,cassignmentnode.create(
-                         p,
-                         ctemprefnode.create(temp)));
-
-                     { release temp }
-                     addstatement(newstatement,ctempdeletenode.create(temp));
-                   end
-                  else
-                   begin
-                     { create call to fpc_finalize }
-                     if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
-                      begin
-                        { we need to use a copy of p here }
-                        para := ccallparanode.create(caddrnode.create(crttinode.create
-                                   (tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-                                ccallparanode.create(p.getcopy,nil));
-                        addstatement(newstatement,ccallnode.createintern('fpc_finalize',para));
-                      end;
-
-                     { create call to fpc_freemem }
-                     para := ccallparanode.create(p,nil);
-                     addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
-                   end;
-               end;
-          end;
-        consume(_RKLAMMER);
-      end;
-
-
-    function new_function : tnode;
-      var
-        newstatement : tstatementnode;
-        newblock     : tblocknode;
-        temp         : ttempcreatenode;
-        para         : tcallparanode;
-        p1,p2  : tnode;
-        classh : tobjectdef;
-        sym    : tsym;
-        again  : boolean; { dummy for do_proc_call }
-      begin
-        consume(_LKLAMMER);
-        p1:=factor(false);
-        if p1.nodetype<>typen then
-         begin
-           Message(type_e_type_id_expected);
-           p1.destroy;
-           p1:=cerrornode.create;
-           do_resulttypepass(p1);
-         end;
-
-        if (p1.resulttype.def.deftype<>pointerdef) then
-          Message1(type_e_pointer_type_expected,p1.resulttype.def.typename)
-        else
-         if token=_RKLAMMER then
-          begin
-            if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=objectdef) and
-               (oo_has_vmt in tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def).objectoptions)  then
-              Message(parser_w_use_extended_syntax_for_objects);
-
-            { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement);
-
-            { create temp for result }
-            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,true);
-            addstatement(newstatement,temp);
-
-            { create call to fpc_getmem }
-            para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype),nil);
-            addstatement(newstatement,cassignmentnode.create(
-                ctemprefnode.create(temp),
-                ccallnode.createintern('fpc_getmem',para)));
-
-            { create call to fpc_initialize }
-            if tpointerdef(p1.resulttype.def).pointertype.def.needs_inittable then
-             begin
-               para := ccallparanode.create(caddrnode.create(crttinode.create
-                          (tstoreddef(tpointerdef(p1.resulttype.def).pointertype.def),initrtti)),
-                       ccallparanode.create(ctemprefnode.create
-                          (temp),nil));
-               addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
-             end;
-
-            { the last statement should return the value as
-              location and type, this is done be referencing the
-              temp and converting it first from a persistent temp to
-              normal temp }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctemprefnode.create(temp));
-
-            p1.destroy;
-            p1:=newblock;
-            consume(_RKLAMMER);
-          end
-        else
-          begin
-            p2:=chnewnode.create(tpointerdef(p1.resulttype.def).pointertype);
-            do_resulttypepass(p2);
-            consume(_COMMA);
-            afterassignment:=false;
-            { determines the current object defintion }
-            classh:=tobjectdef(p2.resulttype.def);
-            if classh.deftype=objectdef then
-             begin
-               { check for an abstract class }
-               if (oo_has_abstract in classh.objectoptions) then
-                Message(sym_e_no_instance_of_abstract_object);
-               { search the constructor also in the symbol tables of
-                 the parents }
-               sym:=searchsym_in_class(classh,pattern);
-               consume(_ID);
-               do_member_read(false,sym,p2,again);
-               { we need to know which procedure is called }
-               do_resulttypepass(p2);
-               if (p2.nodetype<>calln) or
-                  (assigned(tcallnode(p2).procdefinition) and
-                   (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor)) then
-                Message(parser_e_expr_have_to_be_constructor_call);
-             end
-            else
-             Message(parser_e_pointer_to_class_expected);
-            { constructors return boolean, update resulttype to return
-              the pointer to the object }
-            p2.resulttype:=p1.resulttype;
-            p1.destroy;
-            p1:=p2;
-            consume(_RKLAMMER);
-          end;
-        new_function:=p1;
       end;
 
 
@@ -724,7 +419,7 @@ implementation
 
           in_finalize_x:
             begin
-              consume(_LKLAMMER);
+{              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               if token=_COMMA then
@@ -737,6 +432,8 @@ implementation
               p2:=ccallparanode.create(p1,p2);
               statement_syssym:=geninlinenode(in_finalize_x,false,p2);
               consume(_RKLAMMER);
+}
+              statement_syssym:=inline_finalize;
             end;
 
           in_concat_x :
@@ -783,17 +480,7 @@ implementation
 
           in_setlength_x:
             begin
-              if token=_LKLAMMER then
-               begin
-                 consume(_LKLAMMER);
-                 in_args:=true;
-                 paras:=parse_paras(false,false);
-                 consume(_RKLAMMER);
-               end
-              else
-               paras:=nil;
-              p1:=geninlinenode(l,false,paras);
-              statement_syssym := p1;
+              statement_syssym := inline_setlength;
             end;
 
           in_length_x:
@@ -2537,7 +2224,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-04-21 19:02:05  peter
+  Revision 1.64  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.63  2002/04/21 19:02:05  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

@@ -36,6 +36,7 @@ interface
           totype   : ttype;
           convtype : tconverttype;
           constructor create(node : tnode;const t : ttype);virtual;
+          constructor create_explicit(node : tnode;const t : ttype);
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -410,6 +411,14 @@ implementation
       end;
 
 
+    constructor ttypeconvnode.create_explicit(node : tnode;const t:ttype);
+
+      begin
+         self.create(node,t);
+         toggleflag(nf_explizit);
+      end;
+
+
     function ttypeconvnode.getcopy : tnode;
 
       var
@@ -458,7 +467,7 @@ implementation
 
       begin
         result := ccallnode.createinternres(
-          'fpc_chararray_to_'+lower(tstringdef(resulttype.def).stringtypname),
+          'fpc_chararray_to_'+tstringdef(resulttype.def).stringtypname,
           ccallparanode.create(left,nil),resulttype);
         left := nil;
       end;
@@ -485,7 +494,7 @@ implementation
              exit;
            end;
         result := ccallnode.createinternres(
-          'fpc_'+lower(tstringdef(left.resulttype.def).stringtypname)+
+          'fpc_'+tstringdef(left.resulttype.def).stringtypname+
           '_to_chararray',ccallparanode.create(left,ccallparanode.create(
           cordconstnode.create(arrsize,s32bittype),nil)),resulttype);
         left := nil;
@@ -532,9 +541,8 @@ implementation
          else
            begin
              { get the correct procedure name }
-             procname := 'fpc_'+
-               lower(tstringdef(left.resulttype.def).stringtypname+
-               '_to_'+tstringdef(resulttype.def).stringtypname);
+             procname := 'fpc_'+tstringdef(left.resulttype.def).stringtypname+
+                         '_to_'+tstringdef(resulttype.def).stringtypname;
 
              { create parameter (and remove left node from typeconvnode }
              { since it's reused as parameter)                          }
@@ -585,8 +593,7 @@ implementation
                left := nil;
 
                { and the procname }
-               procname := 'fpc_char_to_' +
-                 lower(tstringdef(resulttype.def).stringtypname);
+               procname := 'fpc_char_to_' +tstringdef(resulttype.def).stringtypname;
 
                { and finally the call }
                result := ccallnode.createinternres(procname,para,resulttype);
@@ -734,7 +741,7 @@ implementation
 
       begin
         result := ccallnode.createinternres(
-          'fpc_pchar_to_'+lower(tstringdef(resulttype.def).stringtypname),
+          'fpc_pchar_to_'+tstringdef(resulttype.def).stringtypname,
           ccallparanode.create(left,nil),resulttype);
         left := nil;
       end;
@@ -1705,7 +1712,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-04-21 19:02:03  peter
+  Revision 1.53  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.52  2002/04/21 19:02:03  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

@@ -1252,7 +1252,7 @@ implementation
     function tstringdef.stringtypname:string;
       const
         typname:array[tstringtype] of string[8]=('',
-          'SHORTSTR','LONGSTR','ANSISTR','WIDESTR'
+          'shortstr','longstr','ansistr','widestr'
         );
       begin
         stringtypname:=typname[string_typ];
@@ -5470,7 +5470,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-04-21 19:02:05  peter
+  Revision 1.74  2002-04-23 19:16:35  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.73  2002/04/21 19:02:05  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

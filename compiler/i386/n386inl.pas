@@ -59,16 +59,11 @@ implementation
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
        var
          asmop : tasmop;
-         pushed : tpushedsaved;
          {inc/dec}
          addconstant : boolean;
          addvalue : longint;
-         hp : tnode;
-
-      var
-         href,href2 : treference;
+         href : treference;
          hp2 : tstringconstnode;
-         dummycoll  : tparaitem;
          l : longint;
          ispushed : boolean;
          hregisterhi,
@@ -76,7 +71,6 @@ implementation
          lengthlab,
          otlabel,oflabel{,l1}   : tasmlabel;
          oldpushedparasize : longint;
-         def : tdef;
          cgop : TOpCG;
          cgsize : TCGSize;
       begin
@@ -276,36 +270,6 @@ implementation
                   emit_ref_reg(A_LEA,S_L,href,location.register);
                end;
 
-             in_finalize_x:
-               begin
-                  rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                  { if a count is passed, push size, typeinfo and count }
-                  if assigned(tcallparanode(left).right) then
-                    begin
-                       secondpass(tcallparanode(tcallparanode(left).right).left);
-                       push_int(tcallparanode(left).left.resulttype.def.size);
-                       if codegenerror then
-                        exit;
-                       cg.a_param_loc(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,1);
-                    end;
-
-                  { generate a reference }
-                  reference_reset_symbol(href,tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(initrtti),0);
-                  emitpushreferenceaddr(href);
-
-                  { data to finalize }
-                  secondpass(tcallparanode(left).left);
-                  if codegenerror then
-                    exit;
-                  emitpushreferenceaddr(tcallparanode(left).left.location.reference);
-                  rg.saveregvars(exprasmlist,all_registers);
-                  if assigned(tcallparanode(left).right) then
-                    emitcall('FPC_FINALIZEARRAY')
-                  else
-                    emitcall('FPC_FINALIZE');
-                  rg.restoreusedregisters(exprasmlist,pushed);
-               end;
-
             in_assigned_x :
               begin
                  secondpass(tcallparanode(left).left);
@@ -323,93 +287,6 @@ implementation
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_NE;
               end;
-            in_setlength_x:
-               begin
-                  rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                  l:=0;
-                  { push dimensions }
-                  hp:=left;
-                  while assigned(tcallparanode(hp).right) do
-                    begin
-                       inc(l);
-                       hp:=tcallparanode(hp).right;
-                    end;
-                  def:=tcallparanode(hp).left.resulttype.def;
-                  hp:=left;
-                  if is_dynamic_array(def) then
-                    begin
-                       { get temp. space }
-                       tg.gettempofsizereference(exprasmlist,l*4,href);
-                       { keep data start }
-                       href2:=href;
-                       { copy dimensions }
-                       hp:=left;
-                       while assigned(tcallparanode(hp).right) do
-                         begin
-                            secondpass(tcallparanode(hp).left);
-                            location_release(exprasmlist,tcallparanode(hp).left.location);
-                            cg.a_load_loc_ref(exprasmlist,tcallparanode(hp).left.location,href);
-                            inc(href.offset,4);
-                            hp:=tcallparanode(hp).right;
-                         end;
-                    end
-                  else
-                    begin
-                       secondpass(tcallparanode(hp).left);
-                       cg.a_param_loc(exprasmlist,tcallparanode(hp).left.location,1);
-                       hp:=tcallparanode(hp).right;
-                    end;
-                  { handle shortstrings separately since the hightree must be }
-                  { pushed too (JM)                                           }
-                  if not(is_dynamic_array(def)) and
-                     (tstringdef(def).string_typ = st_shortstring) then
-                    begin
-                      dummycoll:=TParaItem.Create;
-                      dummycoll.paratyp:=vs_var;
-                      dummycoll.paratype:=openshortstringtype;
-                      tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
-                      dummycoll.free;
-                      if codegenerror then
-                        exit;
-                    end
-                  else secondpass(tcallparanode(hp).left);
-                  if is_dynamic_array(def) then
-                    begin
-                       emitpushreferenceaddr(href2);
-                       push_int(l);
-                       reference_reset_symbol(href2,tstoreddef(def).get_rtti_label(initrtti),0);
-                       emitpushreferenceaddr(href2);
-                       emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                       rg.saveregvars(exprasmlist,all_registers);
-                       emitcall('FPC_DYNARR_SETLENGTH');
-                       tg.ungetiftemp(exprasmlist,href);
-                    end
-                  else
-                    { must be string }
-                    begin
-                       case tstringdef(def).string_typ of
-                          st_widestring:
-                            begin
-                              emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                              rg.saveregvars(exprasmlist,all_registers);
-                              emitcall('FPC_WIDESTR_SETLENGTH');
-                            end;
-                          st_ansistring:
-                            begin
-                              emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                              rg.saveregvars(exprasmlist,all_registers);
-                              emitcall('FPC_ANSISTR_SETLENGTH');
-                            end;
-                          st_shortstring:
-                            begin
-                              rg.saveregvars(exprasmlist,all_registers);
-                              emitcall('FPC_SHORTSTR_SETLENGTH');
-                            end;
-                       end;
-                    end;
-                  rg.restoreusedregisters(exprasmlist,pushed);
-                  maybe_loadself;
-               end;
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -591,7 +468,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-04-21 15:35:54  carl
+  Revision 1.39  2002-04-23 19:16:35  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.38  2002/04/21 15:35:54  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.37  2002/04/19 15:39:35  peter

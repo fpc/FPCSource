@@ -201,7 +201,7 @@ implementation
         left := nil;
 
         { create procedure name }
-        procname := 'fpc_' + lower(tstringdef(dest.resulttype.def).stringtypname)+'_';
+        procname := 'fpc_' + tstringdef(dest.resulttype.def).stringtypname+'_';
         if is_real then
           procname := procname + 'float'
         else
@@ -543,7 +543,7 @@ implementation
                 case para.left.resulttype.def.deftype of
                   stringdef :
                     begin
-                      name := procprefix+lower(tstringdef(para.left.resulttype.def).stringtypname);
+                      name := procprefix+tstringdef(para.left.resulttype.def).stringtypname;
                     end;
                   pointerdef :
                     begin
@@ -941,7 +941,7 @@ implementation
         { play a trick to have tcallnode handle invalid source parameters: }
         { the shortstring-longint val routine by default                   }
         if (sourcepara.resulttype.def.deftype = stringdef) then
-          procname := procname + lower(tstringdef(sourcepara.resulttype.def).stringtypname)
+          procname := procname + tstringdef(sourcepara.resulttype.def).stringtypname
         else procname := procname + 'shortstr';
 
         { set up the correct parameters for the call: the code para... }
@@ -1070,14 +1070,10 @@ implementation
         end;
 
       var
-         counter   : longint;
-         ppn       : tcallparanode;
-         dummycoll : tparaitem;
          vl,vl2    : longint;
          vr        : bestreal;
          hp        : tnode;
          srsym     : tsym;
-         def       : tdef;
          isreal    : boolean;
       label
          myexit;
@@ -1573,81 +1569,11 @@ implementation
                     end;
                 end;
 
+              in_finalize_x,
               in_setlength_x:
                 begin
-                   resulttype:=voidtype;
-                   if assigned(left) then
-                     begin
-                        ppn:=tcallparanode(left);
-                        counter:=0;
-                        { check type }
-                        while assigned(ppn.right) do
-                          begin
-                             set_varstate(ppn.left,true);
-                             inserttypeconv(ppn.left,s32bittype);
-                             inc(counter);
-                             ppn:=tcallparanode(ppn.right);
-                          end;
-                        { last param must be var }
-                        valid_for_var(ppn.left);
-                        set_varstate(ppn.left,false);
-                        { first param must be a string or dynamic array ...}
-                        if not((ppn.left.resulttype.def.deftype=stringdef) or
-                           (is_dynamic_array(ppn.left.resulttype.def))) then
-                          CGMessage(type_e_mismatch);
-
-                        { only dynamic arrays accept more dimensions }
-                        if (counter>1) then
-                          if (not(is_dynamic_array(ppn.left.resulttype.def))) then
-                            CGMessage(type_e_mismatch)
-                          else
-                            { check if the amount of dimensions is valid }
-                            begin
-                              def := tarraydef(ppn.left.resulttype.def).elementtype.def;
-                              while counter > 1 do
-                                begin
-                                  if not(is_dynamic_array(def)) then
-                                    begin
-                                      CGMessage(parser_e_wrong_parameter_size);
-                                      break;
-                                    end;
-                                  dec(counter);
-                                  def := tarraydef(def).elementtype.def;
-                                end;
-                            end;
-
-                       { convert shortstrings to openstring parameters }
-                       { (generate the hightree) (JM)                  }
-                       if (ppn.left.resulttype.def.deftype = stringdef) and
-                          (tstringdef(ppn.left.resulttype.def).string_typ =
-                            st_shortstring) then
-                         begin
-                           dummycoll:=tparaitem.create;
-                           dummycoll.paratyp:=vs_var;
-                           dummycoll.paratype:=openshortstringtype;
-                           tcallparanode(ppn).insert_typeconv(dummycoll,false);
-                           dummycoll.destroy;
-                         end;
-                     end
-                   else
-                     CGMessage(type_e_mismatch);
-                end;
-
-              in_finalize_x:
-                begin
-                   resulttype:=voidtype;
-                   if assigned(left) and assigned(tcallparanode(left).left) then
-                     begin
-                        { first param must be var }
-                        valid_for_var(tcallparanode(left).left);
-                        set_varstate(tcallparanode(left).left,true);
-
-                        { two parameters?, the last parameter must be a longint }
-                        if assigned(tcallparanode(left).right) then
-                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32bittype);
-                     end
-                   else
-                     CGMessage(type_e_mismatch);
+                  { inlined from pinline }
+                  internalerror(200204231);
                 end;
 
               in_inc_x,
@@ -2341,7 +2267,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2002-04-02 17:11:29  peter
+  Revision 1.72  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.71  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

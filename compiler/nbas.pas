@@ -109,12 +109,14 @@ interface
         { a node which is a reference to a certain temp }
         ttemprefnode = class(tnode)
           constructor create(const temp: ttempcreatenode); virtual;
+          constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
           function docompare(p: tnode): boolean; override;
          protected
           tempinfo: ptempinfo;
+          offset : longint;
         end;
        ttemprefnodeclass = class of ttemprefnode;
 
@@ -543,6 +545,13 @@ implementation
       begin
         inherited create(temprefn);
         tempinfo := temp.tempinfo;
+        offset:=0;
+      end;
+
+    constructor ttemprefnode.create_offset(const temp: ttempcreatenode;aoffset:longint);
+      begin
+        self.create(temp);
+        offset := aoffset;
       end;
 
     function ttemprefnode.getcopy: tnode;
@@ -570,6 +579,7 @@ implementation
 
     function ttemprefnode.pass_1 : tnode;
       begin
+        location.loc:=LOC_REFERENCE;
         result := nil;
       end;
 
@@ -665,7 +675,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-04-21 19:02:03  peter
+  Revision 1.22  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.21  2002/04/21 19:02:03  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

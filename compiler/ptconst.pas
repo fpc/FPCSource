@@ -774,15 +774,16 @@ implementation
                             Message1(sym_e_illegal_field,s);
                             error := true;
                           end;
-                        if not assigned(srsym) or
-                           (s <> srsym.name) then
+                        if (not error) and
+                           (not assigned(srsym) or
+                            (s <> srsym.name)) then
                           { possible variant record (JM) }
                           begin
                             { All parts of a variant start at the same offset      }
                             { Also allow jumping from one variant part to another, }
                             { as long as the offsets match                         }
                             if (assigned(srsym) and
-                               (tvarsym(recsym).address = tvarsym(srsym).address)) or
+                                (tvarsym(recsym).address = tvarsym(srsym).address)) or
                                { srsym is not assigned after parsing w2 in the      }
                                { typed const in the next example:                   }
                                {   type tr = record case byte of                    }
@@ -970,7 +971,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-04-20 21:32:24  carl
+  Revision 1.45  2002-04-23 19:16:35  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.44  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

@@ -263,6 +263,7 @@ interface
         { set the temp's location }
         location_reset(location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
         location.reference := tempinfo^.ref;
+        inc(location.reference.offset,offset);
       end;
 
 {*****************************************************************************
@@ -289,7 +290,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-04-21 19:02:03  peter
+  Revision 1.14  2002-04-23 19:16:34  peter
+    * add pinline unit that inserts compiler supported functions using
+      one or more statements
+    * moved finalize and setlength from ninl to pinline
+
+  Revision 1.13  2002/04/21 19:02:03  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this
