@@ -599,6 +599,11 @@ VAR
 { API Units }
   USES
   FVConsts,
+{$IFDEF GRAPH_API}                                    { GRAPH CODE }
+{$ifdef win32}
+  win32gr,
+{$endif}
+{$ENDIF GRAPH_API}                                    { GRAPH CODE }
   Keyboard,Mouse;
 
 {***************************************************************************}
@@ -1306,6 +1311,9 @@ if Not TextmodeGFV then
     ScreenMode.col:=ScreenWidth;
     ScreenMode.row:=ScreenHeight;
 {$endif USE_VIDEO_API}
+{$ifdef win32}
+    SetGraphHooks;
+{$endif}
   end
 else
 {$endif GRAPH_API}
@@ -1335,7 +1343,12 @@ PROCEDURE DoneVideo;
 BEGIN
 {$ifdef GRAPH_API}
   if Not TextmodeGFV then
-    CloseGraph
+    begin
+      CloseGraph;
+{$ifdef win32}
+    UnsetGraphHooks;
+{$endif}
+    end
   else
 {$endif GRAPH_API}
 {$ifdef USE_video_api}
@@ -1568,7 +1581,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.17  2002-05-23 15:07:31  pierre
+ Revision 1.18  2002-05-24 09:36:33  pierre
+  + use win32gr unit to add mouse and keyboard support for win32 graph
+
+ Revision 1.17  2002/05/23 15:07:31  pierre
   * compute graphic size correctly
 
  Revision 1.16  2002/05/23 06:34:06  pierre
