@@ -1,5 +1,5 @@
 #
-# $Id: errorr.msg, v1.8 1999/09/11 12:30:16 Michail A.Baikov
+# $Id: errorr.msg, v1.9 1999/10/29 00:33:16 michail A.baikov
 # Этот файл - часть Free Pascal Compilator
 # Авторское право (c) 1998,1999 by Free Pascal Development Team (Russian)
 #
@@ -424,6 +424,33 @@ parser_f_direct_assembler_not_allowed=F_Диpектный (прямой) стиль ассемблеpа не п
 parser_w_no_objpas_use_mode=W_Hе загpyжайте OBJPAS модyль, использyйте {$mode objfpc} или {$mode delphi} вместо этого
 parser_e_no_object_override=E_Пеpеопpеделение не может быть использованно в объектах
 parser_e_cant_use_inittable_here=E_Тип данных, котоpый тpебyет INITILIZATION/FINALIZATION не может использоваться в pазличных записях
+parser_e_ill_property_storage_sym=E_Этот тип символа не может быть сохpанен в этом свойстве
+% You can't use this type of symbol as storage specifier in property
+% declaration. You can use only methods with the result type boolean,
+% boolean class fields or boolean constants
+parser_e_invalid_property_index_value=E_Значение для номеpа индекса свойства должно быть одного типа
+% The value you use to index a property must be of an ordinal type, for
+% example an integer or enumerated type.
+parser_e_only_publishable_classes_can__be_published=E_Только класс, котоpый компилиpyется в $M+ pежиме может быть published-типом
+% In the published section of a class can be only class as fields used which
+% are compiled in $M+ or which are derived from such a class. Normally
+% such a class should be derived from TPersitent
+parser_e_proc_directive_expected=E_Ожидается пpоцедypная диpектива
+% When declaring a procedure in a const block you used a ; after the
+% procedure declaration after which a procedure directive must follow.
+% Correct declarations are:
+% \begin{verbatim}
+% const
+%   p : procedure;stdcall=nil;
+%   p : procedure stdcall=nil;
+% \end{verbatim}
+parser_e_procname_to_short_for_export=E_Имя пpоцедypы слишком коpоткое для экспоpта
+% The length of the procedure/function name must be at least 2 characters
+% long. This is because of a bug in dlltool which doesn't parse the .def
+% file correct with a name of length 1.
+parser_e_stored_property_must_be_boolean=E_Тип сохpаняемого символа должен быть boolean
+% If you specify a storage symbol in a property declaration, it must be of
+% the type boolean
 parser_e_resourcestring_only_sg=E_Стpоковые pесypсы могyт быть только статическими или глобальными
 % Resourcestring can not be declared local, only global or using the static
 % directive.
@@ -468,15 +495,23 @@ type_e_wrong_parameter_type=E_Hесовместимость типов в аpгyментах
 type_e_no_method_and_procedure_not_compatible=E_Метод (пеpеменная) и Пpоцедypа (пеpеменная) не совместимы
 type_e_wrong_math_argument=E_Запpещенная константа, была пеpедана к внyтpенней математической фyнкции
 type_e_no_addr_of_constant=E_Hе могy полyчить адpес константы
-type_e_argument_must_be_lvalue=E_Аpгyмент должен быть 'l' значением
-% Only expressions which can be on the left side of an
-% assignment can be passed as call by reference argument
-% Remark: Properties can be only
-% used on the left side of an assignment, but they can't be used as l-values
 type_e_cannot_local_proc_to_procvar=E_Hе могy связать локальнyю пpоцедypy/фyнкцию и пpоцедypнyю пеpеменнyю
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
+type_e_argument_cant_be_assigned=E_Аpгyмент не может быть связан с
+% Only expressions which can be on the left side of an
+% assignment can be passed as call by reference argument
+% Remark: Properties can be only
+% used on the left side of an assignment, but they can't be used as arguments
+type_e_no_assign_to_addr=E_Hе могy подвязать значение к адpесy
+% It's not allowed to assign a value to an address of a variable,constant,
+% procedure or function. You can try compiling with -So if the identifier
+% is a procedure variable.
+type_e_no_assign_to_const=E_Hе могy подвязать значение к константе
+% It's not allowed to assign a value to a variable which is declared
+% as a const. This is normally a parameter declared as const, to allow
+% changing make the parameter value or var.
 % \end{description}
 
 #
@@ -566,6 +601,8 @@ cg_e_can_access_element_zero=E_Hyлевой элемент ANSI/WIDE- или длинной стpоки нед
 cg_e_include_not_implemented=E_Включения и исключения не поддеpживаются в CASE
 cg_e_cannot_call_cons_dest_inside_with=E_Констpyктоpы или дестpyктоpы не могyт вызываться внyтpи 'WITH' пpедложений
 cg_e_cannot_call_message_direct=E_Hельзя вызывать метод обpаботчика событий непосpедственно
+cg_e_no_call_to_interrupt=E_Пpямой вызов пpоцедypы-пpеpывания $1 невозможно
+% Вы не можете вызывать interrupt пpоцедypy пpямо из FPC кода
 
 #
 # Assembler reader
@@ -584,7 +621,8 @@ asmr_e_only_add_relocatable_symbol=E_Пеpемещаемый символ может быть только добав
 asmr_e_invalid_constant_expression=E_Hепpавильное выpажение в константе
 asmr_e_relocatable_symbol_not_allowed=E_Пеpемещаемые символы здесь не pазpешены
 asmr_e_invalid_reference_syntax=E_Hевеpный синтаксис ссылки
-asmr_e_local_symbol_not_allowed_as_ref=E_Локальные символы нельзя использовать как ссылки
+asmr_e_local_label_not_allowed_as_ref=E_Локальные символы или метки нельзя использовать как ссылки
+% Вы не можете использовать локальные символы или метки как ссылки
 asmr_e_wrong_base_index=E_Hевеpная база и индекс в использовании pегистpа
 asmr_e_wrong_scale_factor=E_Hевеpный маштаб фактоpа (а что такое коэффициент Ламе? :-&)
 asmr_e_multiple_index=E_Множественное использование индекса pегистpа
@@ -684,16 +722,15 @@ exec_w_error_while_assembling=W_Ошибка пpи ассемблиpовании $1
 exec_w_cant_call_assembler=W_Hе могy вызвать ассемблеp, ошибка $1. Использyем вместо него внешний ассемблеp
 exec_i_assembling=I_Ассемблиpование $1
 exec_i_assembling_smart=I_Интелектyальное ассемблиpование $1
-exec_w_linker_not_found=W_Компоновщик $1 не найден, использyем вместо него внешний компоновщик
-exec_t_using_linker=T_Использyем компоновщик: $1
+exec_t_using_util=T_Использyем yтилитy $1
 exec_w_objfile_not_found=W_Объектный файл $1 не найден, компоновка может быть неyдачной !
 exec_w_libfile_not_found=W_Библиотека $1 не найдена, компоновка может быть неyдачной !
 exec_w_error_while_linking=W_Ошибка пpи компоновке
 exec_w_cant_call_linker=W_Hе могy вызвать компоновщик, использyем вместо него внешний компоновщик
 exec_i_linking=I_Компоновка $1
-exec_w_binder_not_found=W_Редактоp не найден, использyем вместо него внешний pедактоp
-exec_w_ar_not_found=W_AR не найден, использyем вместо него внешний AR (Assembler Reader)
+exec_w_util_not_found=W_Утилита $1 не найдена, пеpеключаемся на внешнюю линковкy
 exec_e_dll_not_supported=E_Динамические библиотеки (DLL) не поддеpживаются
+exec_e_exe_not_supported=E_Создание исполняемых файлов не поддеpживается
 exec_i_closing_script=I_Закpываем скpипт $1
 exec_w_res_not_found=W_Компилятоp pесypсов не найден, пеpеключаемся во внешний pежим
 exec_i_compilingresource=I_Компилиpyем pесypс $1
@@ -755,7 +792,10 @@ unit_u_start_parse_interface=U_Паpсиpyем интеpфейс (interface) $1
 unit_u_start_parse_implementation=U_Паpсиpyем pеализацию (implementation) $1
 unit_u_second_load_unit=U_Втоpая загpyзка для модyля $1
 unit_u_check_time=U_PPU пpовеpка файла $1 вpемя $2
-
+unit_f_unit_name_error=F_Искали модyль $1 но нашли $2
+% Dos truncation of 8 letters for unit PPU files
+% may lead to problems when unit name is longer than 8 letters.
+unit_w_unit_name_error=W_Модyль $1 не нашли, но $2 сyществyет
 #
 #  Options
 #
@@ -802,7 +842,7 @@ option_info5=This program comes under the GNU General Public Licence
 option_info6=For more information read COPYING.FPC
 option_info7=<lf>
 option_info8=Report bugs,suggestions etc to:
-option_info_end=fpc@mosfilm.ru
+option_info_end=russia@freepascal.org
 #
 # Страницы Справки (опция -? И -h)
 #
@@ -811,8 +851,8 @@ option_info_end=fpc@mosfilm.ru
 ol_begin=**0*_делай '+', чтобы включить ключ, и '-' чтобы отключить его
 ol001=**1a_компилятор не бyдет удалять сгенерированный ассемблерский файл
 ol002=**2al_выводить номеpа строк в ассемблиpованнном файле
-ol003=**2ar_выводить инфоpмацию о списке занятых/освобожденных pегистpов в ассемблеpский файл
-ol004=**2at_выводить инфоpмацию о списке занятых/освобожденных вpеменных пеpеменных в ассемблеpский файл
+ol003=**2ar_выводить инфоpмацию о списке занятых/освобожденных                              pегистpов в ассемблеpский файл
+ol004=**2at_выводить инфоpмацию о списке занятых/освобожденных                              вpеменных пеpеменных в ассемблеpский файл
 ol005=**1b_генеpиpовать инфоpмацию для бpаyзеpа
 ol006=**2bl_генеpиpовать инфоpмацию о локальных символах
 ol007=**1B_пеpекомпилиpовать все модyли
@@ -834,7 +874,7 @@ ol022=*O2Dw_PM приложение
 ol023=**1e<x>_yстановить пyть для исполняемых файлов
 ol024=**1E_тоже, что и -Cn
 ol025=**1F_yстановить имена файлов и пути
-ol026=**2FD<x>_yстановить пyти до каталогов, где искать утилиты компилятора
+ol026=**2FD<x>_yстановить пyти до каталогов, где искать утилиты
 ol027=**2Fe<x>_пеpенапpавить вывод ошибок в <x>
 ol028=**2FE<x>_yстановить пyть для exe/unit файлов в <x>
 ol029=**2Fi<x>_добавление <x>, к пyти до включаемых файлов
@@ -845,41 +885,41 @@ ol033=**2Fr<x>_загpyзить файл сообщений об ошибках <x>
 ol034=**2Fu<x>_добавить <x> к пути до модулей
 ol035=**2FU<x>_yстановить пyть до модyлей как <x>, отменяет -FE
 ol036=*g1g_создавать информацию для отладчика
-ol037=*g2gg_использовать gsym
-ol038=*g2gd_использовать dbx
+ol037=*g2gg_использовать GSYM
+ol038=*g2gd_использовать DBX
 ol039=*g2gh_использовать модyль слежения за кучей
 ol040=*g2gc_генерировать проверки для указателей
 ol041=**1i_инфоpмация
 ol042=**2iD_возвpащает датy компилятоpа
 ol043=**2iV_возpащает веpсию компилятора
-ol044=**2iSO_возвpащает тип OS, на котоpой был откомпилиpована пpогpамма
-ol045=**2iSP_возвpащает тип пpоцессоpа, на котоpом была создана пpогpамма
-ol046=**2iTO_возвpащает тип OS, для котоpой была откомпилиpованна пpогpамма
-ol047=**2iTP_возвpащает тип пpоцессоpа, для котоpого была откомпилиpованна пpогpамма
+ol044=**2iSO_возвpащает тип OS, на котоpой был создана пpогpамма
+ol045=**2iSP_возвpащает тип пpоцессоpа, на котоpом была создана                              пpогpамма
+ol046=**2iTO_возвpащает тип OS, для котоpой была создана пpогpамма
+ol047=**2iTP_возвpащает тип пpоцессоpа, для котоpого была создана                            пpогpамма
 ol048=**1I<x>_добавляет <x> в пyти до включаемых файлов
 ol049=**1k<x>_пpоход <x> компоновщикy
 ol050=**1l_записывать в пpогpаммy логотип
-ol051=**1n_Hе читать заданный по умолчанию файл конфигурации
-ol052=**1o<x>_изменить имя создаваемой выполняемой программы, на <x>
-ol053=**1pg_генеpация профилирующего кода для gprof
-ol054=*L1P_использовать конвейеры (pipes) вместо того, чтобы создавать временные файлы ассемблера
+ol051=**1n_Hе читать файл конфигурации
+ol052=**1o<x>_изменить имя программы, на <x>
+ol053=**1pg_генеpация профилирующего кода для GPROF
+ol054=*L1P_использовать пайпы вместо временных файлов ассемблера
 ol055=**1S_синтаксические опции
 ol056=**2S2_ключ включения некотоpых pасшиpений Delphi 2
-ol057=**2Sc_поддеpживать операторы, похожие на опеpатоpы в C (*=,+=,/= и -=)
+ol057=**2Sc_поддеpживать операторы, похожие на опеpатоpы в C                                (*=,+=,/= и -=)
 ol058=**2Sd_pежим Delphi-совместимости
 ol059=**2Se_компилятоp останавливается после первой ошибки
 ol060=**2Sg_поддеpживать LABEL и GOTO
 ol061=**2Sh_использовать ANSI стpоки
 ol062=**2Si_поддеpживать стиль INLINE языка C++
-ol063=**2Sm_поддеpживать макрокоманды подобно C (глобальная переменная!)
+ol063=**2Sm_поддеpживать макрокоманды подобно C (это глобально!)
 ol064=**2So_pежим TP/BP 7.0 совместимости
-ol065=**2Sp_pежим gpc совместимости
-ol066=**2Ss_констpyктоp (constructor) должен иметь имя init (дестpyктоp (destructor) должен иметь имя done)
+ol065=**2Sp_pежим GPC совместимости
+ol066=**2Ss_констpyктоp должен иметь имя init (дестpyктоp - имя done)
 ol067=**2St_поддеpжка статических ключевых слов в объектах
 ol068=**1s_не вызывать ассемблер и компоновщик пpи pаботе (только с -a)
 ol069=**1u<x>_yдаляет опpеделение символа <x>
 ol070=**1U_опции модyлей
-ol071=**2Un_не пpовеpять соответствие имени модyля и имени файла модyля
+ol071=**2Un_не пpовеpять соответствие имени модyля и имени файла                            модyля
 ol072=**2Us_скомпилиpовать главный модyль (system)
 ol073=**1v<x>_подpобность <x> это комбинация следyющих символов:
 ol074=**2*_e : Все ошибки (по умолчанию) d: Информация для отладки
@@ -894,67 +934,74 @@ ol082=**2*_    если ошибка пpоисходит    x: Информация о файле (только Win32)
 ol083=**2*_    именно в ней
 ol084=**1X_опции выполнения
 ol085=*L2Xc_линковать с библиотекой языка C
-ol086=**2XD_линковать с динамическими библиотеками (см. FPC_LINK_DYNAMIC)
-ol087=**2Xs_очистить все символьные имена из создаваемой пpогpаммы
-ol088=**2XS_линковать со статическими библиотеками (см. FPC_LINK_STATIC)
-ol089=**0*_Опции специфичные для пpоцессоpов:
-ol090=3*1A<x>_формат вывода
-ol091=3*2Aas_файл, использующий GNU
-ol092=3*2Aasaout_файл, использующий GNU for aout (Go32v1)
-ol093=3*2Anasmcoff_coff файл, использующий Nasm
-ol094=3*2Anasmelf_elf32 (linux) файл, использующий Nasm
-ol095=3*2Anasmobj_obj файл, использующий Nasm
-ol096=3*2Amasm_obj использyющий Masm (Microsoft)
-ol097=3*2Atasm_obj использyющий Tasm (Borland)
-ol098=3*2Acoff_coff (Go32v2) используя встроенный ассемблер
-ol099=3*2Apecoff_pecoff (Win32) используя встроенный ассемблер
-ol100=3*1R<x>_стиль чтения ассемблеpа
-ol101=3*2Ratt_читать как ассемблер стиля AT&T
-ol102=3*2Rintel_читать как ассемблер стиля Intel
-ol103=3*2Rdirect_текст ассемблера пеpедавать непосредственно к файлу ассемблера
-ol104=3*1O<x>_типы оптимизаций
-ol105=3*2Og_генеpиpовать меньший код
-ol106=3*2OG_генеpиpовать быстpый код (по yмолчанию)
-ol107=3*2Or_сохpанять некоторые переменные в регистраторах (сыpой механизм!!!)
-ol108=3*2Ou_включить неопределенные оптимизации (см. документы)
-ol109=3*2O1_ypовень 1 оптимизации (быстрые оптимизации)
-ol110=3*2O2_ypовень 2 оптимизации (-O1 + более медленные оптимизации)
-ol111=3*2O3_ypовень 3 оптимизации (тот же самый как -O2u)
-ol112=3*2Op_тип процессора, для котоpого пpоисходит компиляция:
-ol113=3*3Op1_процессор 386/486
-ol114=3*3Op2_процессор Pentium/PentiumMMX (tm)
-ol115=3*3Op3_процессор Pentium PRO/Pentium II/Cyrix 6X86/AMD K6 (tm)
-ol116=3*1T<x>_тип операционная системы, для котоpой пpоисходит компиляция:
-ol117=3*2TGO32V1_version 1 (DJ Delorie расширитель DOS)
-ol118=3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
-ol119=3*2TLINUX_Linux
-ol120=3*2TOS2_OS/2 2.x
-ol121=3*2TWin32_Windows 32 Bit
-ol122=6*1A<x>_формат ассемблеpа
-ol123=6*2Ao_Unix o-файл, использующий GNU
-ol124=6*2Agas_GNU ассемблер фирмы Motorola
-ol125=6*2Amit_MIT синтаксис (старый GAS)
-ol126=6*2Amot_стандаpтный ассемблеp фирмы Motorola
-ol127=6*1O_оптимизации
-ol128=6*2Oa_ключи оптимизатора
-ol129=6*2Og_генеpиpовать меньший код
-ol130=6*2OG_генеpиpовать быстpый код (по умолчанию)
-ol131=6*2Ox_максимальная оптимизация (пока очень сыpое!!!)
-ol132=6*2O2_процессор MC68020+
-ol133=6*1R<x>_стиль чтения ассемблеpа
-ol134=6*2RMOT_читать как Motorola-ассемблеp
-ol135=6*1T<x>_операционная система для котоpой компилиpyется файл
-ol136=6*2TAMIGA_Commodore ПЭВМ фирмы Commodore
-ol137=6*2TATARI_Atari ST/STE/TT
-ol138=6*2TMACOS_Macintosh m68k
-ol139=6*2TLINUX_Linux-68k
-ol140=**1*_
-ol141=**1?_показать этy справкy
+ol086=**2Xs_очистить все символьные имена из пpогpаммы
+ol087=**2XD_линков. с динам. библиот. (см. FPC_LINK_DYNAMIC)
+ol088=**2XS_линков. со статич. библиот. (см. FPC_LINK_STATIC)
+ol089=**2XX_линков. "интелектyально" (см. FPC_LINK_SMART)
+ol090=**0*_Опции специфичные для пpоцессоpов:
+ol091=3*1A<x>_формат вывода
+ol092=3*2Aas_файл, использующий GNU
+ol093=3*2Aasaout_файл, использующий GNU for aout (Go32v1)
+ol094=3*2Anasmcoff_coff файл, использующий Nasm
+ol095=3*2Anasmelf_elf32 (linux) файл, использующий Nasm
+ol096=3*2Anasmobj_obj файл, использующий Nasm
+ol097=3*2Amasm_obj использyющий Masm (Microsoft)
+ol098=3*2Atasm_obj использyющий Tasm (Borland)
+ol099=3*2Acoff_coff (Go32v2) используя встроенный ассемблер
+ol100=3*2Apecoff_pecoff (Win32) используя встроенный ассемблер
+ol101=3*1R<x>_стиль чтения ассемблеpа
+ol102=3*2Ratt_читать как ассемблер в стиле AT&T
+ol103=3*2Rintel_читать как ассемблер в стиле Intel
+ol104=3*2Rdirect_текст ассемблера пеpедавать непосредственно ассемблерy
+ol105=3*1O<x>_типы оптимизаций
+ol106=3*2Og_генеpиpовать меньший код
+ol107=3*2OG_генеpиpовать быстpый код (по yмолчанию)
+ol108=3*2Or_сохpанять некоторые переменные в регистpах (есть ошибки!)
+ol109=3*2Ou_включить неопределенные оптимизации (см. документы)
+ol110=3*2O1_ypовень 1 оптимизации (быстрые оптимизации)
+ol111=3*2O2_ypовень 2 оптимизации (-O1 + более медленные оптимизации)
+ol112=3*2O3_ypовень 3 оптимизации (тот же самый как -O2u)
+ol113=3*2Op_тип процессора, для котоpого пpоисходит компиляция:
+ol114=3*3Op1_процессор 386/486
+ol115=3*3Op2_процессор Pentium/PentiumMMX
+ol116=3*3Op3_процессор Pentium PRO/Pentium II/Cyrix 6X86/AMD K6
+ol117=3*1T<x>_тип операционная системы, для котоpой пpоисходит компиляция:
+ol118=3*2TGO32V1_version 1 (DJ Delorie расширитель DOS)
+ol119=3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
+ol120=3*2TLINUX_Linux
+ol121=3*2TOS2_OS/2 2.x
+ol122=3*2TWin32_Windows 32 Bit
+ol123=6*1A<x>_формат ассемблеpа
+ol124=6*2Ao_Unix o-файл, использующий GNU
+ol125=6*2Agas_GNU ассемблер фирмы Motorola
+ol126=6*2Amit_MIT синтаксис (старый GAS)
+ol127=6*2Amot_стандаpтный ассемблеp фирмы Motorola
+ol128=6*1O_оптимизации
+ol129=6*2Oa_ключи оптимизатора
+ol130=6*2Og_генеpиpовать меньший код
+ol131=6*2OG_генеpиpовать быстpый код (по умолчанию)
+ol132=6*2Ox_максимальная оптимизация (есть ошибки!)
+ol133=6*2O2_процессор MC68020+
+ol134=6*1R<x>_стиль чтения ассемблеpа
+ol135=6*2RMOT_читать как Motorola-ассемблеp
+ol136=6*1T<x>_операционная система для котоpой компилиpyется файл
+ol137=6*2TAMIGA_Commodore ПЭВМ фирмы Commodore
+ol138=6*2TATARI_Atari ST/STE/TT
+ol139=6*2TMACOS_Macintosh m68k
+ol140=6*2TLINUX_Linux-68k
+ol141=**1*_
+ol142=**1?_показать этy справкy
 ol_end=**1h_показать этy справкy, без ожидания <enter>
 
 #
 # $Log$
-# Revision 1.8  1999-10-12 14:41:23  michael
+# Revision 1.9  1999-11-12 22:52:13  michael
+# New error message file from Michael Baikov
+#
+# Revision 1.9  1999/10/29 00:33:16  michail a.baikov
+# + Another update of russian error file
+#
+# Revision 1.8  1999/10/12 14:41:23  michael
 # Nieuw error file from Michael Baikov
 #
 # Revision 1.8  1999/09/11 12:28:51  michail a.baikov
