@@ -38,7 +38,7 @@ Unit rappcgas;
         procedure BuildOpCode(instr : tppcinstruction);
         procedure ReadAt(oper : tppcoperand);
         procedure ReadSym(oper : tppcoperand);
-        { procedure ConvertCalljmp(instr : tppcinstruction); }
+        procedure ConvertCalljmp(instr : tppcinstruction);
       end;
 
 
@@ -695,24 +695,20 @@ Unit rappcgas;
           end;
       end;
 
-{
     procedure tppcattreader.ConvertCalljmp(instr : tppcinstruction);
       var
         newopr : toprrec;
       begin
         if instr.Operands[1].opr.typ=OPR_REFERENCE then
           begin
-            newopr.typ:=OPR_SYMBOL;
-            newopr.symbol:=instr.Operands[1].opr.ref.symbol;
-            newopr.symofs:=instr.Operands[1].opr.ref.offset;
+            instr.Operands[1].opr.ref.refaddr:=addr_full;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
               (instr.Operands[1].opr.ref.index<>NR_NO) or
               (instr.Operands[1].opr.ref.symaddr<>refs_full) then
               Message(asmr_e_syn_operand);
-            instr.Operands[1].opr:=newopr;
           end;
       end;
-}
+
 
     procedure tppcattreader.handleopcode;
       var
@@ -721,10 +717,8 @@ Unit rappcgas;
         instr:=TPPCInstruction.Create(TPPCOperand);
         BuildOpcode(instr);
         instr.condition := actcondition;
-        {
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);
-        }
         {
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
@@ -760,7 +754,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-02-27 10:21:05  florian
+  Revision 1.11  2004-02-28 13:24:36  florian
+    * jmps in inline assembler fixed
+
+  Revision 1.10  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
