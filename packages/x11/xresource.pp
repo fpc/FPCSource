@@ -1,305 +1,223 @@
-{
-  $Id$
-}
 unit xresource;
 interface
-
 uses
-  xlib;
+  x,xlib;
 
 {$LinkLib c}
 {$LinkLib X11}
 
-{***************************************************************
- * Quark Management
- ***************************************************************}
-
-type
-  TXrmQuark     = Longint;
-  PXrmQuark     = ^TXrmQuark;
-  TXrmQuarkList = PXrmQuark;
-  TXrmString    = Pchar;
-
-Const
-  NULLQUARK = 0 ;
-  NULLSTRING = 0;
-
-{ find quark for string, create new quark if none already exists }
-Function  XrmStringToQuark( p1 : pchar ) : TXrmQuark;cdecl;external;
-Function  XrmPermStringToQuark( p1 : pchar ) : TXrmQuark;cdecl;external;
-{ find string for quark }
-Function  XrmQuarkToString( p1 : TXrmQuark) : TXrmString;cdecl;external;
-Function  XrmUniqueQuark : TXrmQuark;cdecl;external;
-
 {
-#define XrmStringsEqual(a1, a2) (strcmp(a1, a2) == 0)
+  Automatically converted by H2Pas 0.99.15 from xresource.h
+  The following command line parameters were used:
+    -p
+    -T
+    -S
+    -d
+    -c
+    xresource.h
 }
 
+{$PACKRECORDS C}
 
-{***************************************************************
- * Conversion of Strings to Lists
- ***************************************************************}
+
+function Xpermalloc(para1:dword):Pchar;cdecl;external;
+type
+
+   PXrmQuark = ^TXrmQuark;
+   TXrmQuark = longint;
+   TXrmQuarkList = PXrmQuark;
+   PXrmQuarkList = ^TXrmQuarkList;
+function NULLQUARK : TXrmQuark;
 
 type
-  TXrmBinding = longint;
-  TXrmBindingList = ^longint;
-Const
-  XrmBindTightly = 0;
-  XrmBindLoosely = 1;
 
-procedure XrmStringToQuarkList(
-    p1 : pchar  { string };
-    p2 : TXrmQuarkList  { quarks_return }
-);cdecl;external;
+   PXrmString = ^TXrmString;
+   TXrmString = char;
+function NULLSTRING : TXrmString;
 
-procedure XrmStringToBindingQuarkList(
-    p1 : pchar  { string };
-    p2 : TXrmBindingList        { bindings_return };
-    p3 : TXrmQuarkList  { quarks_return }
-);cdecl;external;
-
-
-{***************************************************************
- * Name and Class lists.
- ***************************************************************}
+function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external;
+function XrmPermStringToQuark(para1:Pchar):TXrmQuark;cdecl;external;
+function XrmQuarkToString(para1:TXrmQuark):TXrmString;cdecl;external;
+function XrmUniqueQuark:TXrmQuark;cdecl;external;
+{$ifdef MACROS}
+function XrmStringsEqual(a1,a2 : longint) : longint;
+{$endif MACROS}
 
 type
-  TXrmName = TXrmQuark;
-  TXrmNameList = TXrmQuarkList ;
-{
-#define XrmNameToString(name)           XrmQuarkToString(name)
-#define XrmStringToName(string)         XrmStringToQuark(string)
-#define XrmStringToNameList(str, name)  XrmStringToQuarkList(str, name)
-}
- TXrmClass = TXrmQuark;
- TXrmClassList = TXrmQuarkList;
-{
-#define XrmClassToString(c_class)       XrmQuarkToString(c_class)
-#define XrmStringToClass(c_class)       XrmStringToQuark(c_class)
-#define XrmStringToClassList(str,c_class) XrmStringToQuarkList(str, c_class)
-}
 
+   PXrmBinding = ^TXrmBinding;
+   TXrmBinding = (XrmBindTightly,XrmBindLoosely);
+   TXrmBindingList = PXrmBinding;
+   PXrmBindingList = ^TXrmBindingList;
 
-{***************************************************************
- * Resource Representation Types and Values
- ***************************************************************}
+procedure XrmStringToQuarkList(para1:Pchar; para2:TXrmQuarkList);cdecl;external;
+procedure XrmStringToBindingQuarkList(para1:Pchar; para2:TXrmBindingList; para3:TXrmQuarkList);cdecl;external;
+type
+
+   PXrmName = ^TXrmName;
+   TXrmName = TXrmQuark;
+
+   PXrmNameList = ^TXrmNameList;
+   TXrmNameList = TXrmQuarkList;
+{$ifdef MACROS}
+function XrmNameToString(name : longint) : longint;
+
+function XrmStringToName(_string : longint) : longint;
+
+function XrmStringToNameList(str,name : longint) : longint;
+{$endif MACROS}
 
 type
-  TXrmRepresentation = TXrmQuark    ;
-  PXrmRepresentation = ^TXrmRepresentation;
-{
-#define XrmStringToRepresentation(string)   XrmStringToQuark(string)
-#define XrmRepresentationToString(type)   XrmQuarkToString(type)
-}
+
+   PXrmClass = ^TXrmClass;
+   TXrmClass = TXrmQuark;
+
+   PXrmClassList = ^TXrmClassList;
+   TXrmClassList = TXrmQuarkList;
+{$ifdef MACROS}
+function XrmClassToString(c_class : longint) : longint;
+
+function XrmStringToClass(c_class : longint) : longint;
+
+function XrmStringToClassList(str,c_class : longint) : longint;
+{$endif MACROS}
+type
+
+   PXrmRepresentation = ^TXrmRepresentation;
+   TXrmRepresentation = TXrmQuark;
+{$ifdef MACROS}
+function XrmStringToRepresentation(_string : longint) : longint;
+
+function XrmRepresentationToString(_type : longint) : longint;
+{$endif MACROS}
 
 type
-  TXrmValue = record
-    size : word;
-    theaddr : TXPointer;
-  end;
-  PXrmValue = ^TXrmValue;
-  TXrmValuePtr = PXrmValue;
 
+   PXrmValue = ^TXrmValue;
+   TXrmValue = record
+        size : dword;
+        addr : TXPointer;
+     end;
+   TXrmValuePtr = PXrmValue;
+   PXrmValuePtr = ^TXrmValuePtr;
 
-{***************************************************************
- * Resource Manager Functions
- ***************************************************************}
-{
-typedef struct _XrmHashBucketRec *XrmHashBucket;
-typedef XrmHashBucket *XrmHashTable;
-typedef XrmHashTable XrmSearchList[];
-typedef struct _XrmHashBucketRec *XrmDatabase;
-}
-Type
-  TXrmHashBucket = pointer;
-  TXrmHashTable = ^TXrmHashBucket;
-  TXrmSearchList = ^TXrmHashTable;
-  TXrmDatabase = pointer;
-  PXrmDatabase = ^TXrmDatabase;
+   PXrmHashBucketRec = ^TXrmHashBucketRec;
+   TXrmHashBucketRec = record
+     end;
+   TXrmHashBucket = PXrmHashBucketRec;
+   PXrmHashBucket = ^TXrmHashBucket;
 
-procedure XrmDestroyDatabase(
-    p1 : TXrmDatabase           { database }
-);cdecl;external;
+   PXrmHashTable = ^TXrmHashTable;
+   TXrmHashTable = TXrmHashBucket;
 
-Procedure XrmQPutResource(
-    p1 :  PXrmDatabase  { database };
-    p2 : TXrmBindingList        { bindings };
-    p3 : TXrmQuarkList  { quarks };
-    p4 : TXrmRepresentation     { type };
-    p5 : PXrmValue              { value }
-);cdecl;external;
+   TXrmDatabase = PXrmHashBucketRec;
+   PXrmDatabase = ^TXrmDatabase;
 
-Procedure  XrmPutResource(
-    p1 : PXrmDatabase   { database };
-    p2 : pchar  { specifier };
-    p3 : pchar  { type };
-    p4 : PXrmValue              { value }
-);cdecl;external;
-
-Procedure  XrmQPutStringResource(
-    p1 : PXrmDatabase   { database };
-    p2 : TXrmBindingList      { bindings };
-    p3 : TXrmQuarkList  { quarks };
-    p4 : Pchar  { value }
-);cdecl;external;
-
-Procedure XrmPutStringResource(
-    P1 : PXrmDatabase   { database };
-    p2,p3 : pchar
-);cdecl;external;
-
-Procedure XrmPutLineResource(
-    p1 : PXrmDatabase   { database };
-    p2 : pchar  { line }
-);cdecl;external;
-
-Function XrmQGetResource(
-    p1 : PXrmDatabase           { database };
-    p2 : TXrmNameList           { quark_name };
-    p3 : TXrmClassList  { quark_class };
-    p4 : PXrmRepresentation     { quark_type_return };
-    p5 : PXrmValue              { value_return }
-) : Integer;cdecl;external;
-
-Function XrmGetResource(
-    p1 : TXrmDatabase           { database };
-    p2 : pchar  { str_name };
-    p3 : pchar  { str_class };
-    p4 : ppchar         { str_type_return };
-    p5 : PXrmValue              { value_return }
-) : Tbool;cdecl;external;
-
-Function XrmQGetSearchList(
-    p1 : TXrmDatabase           { database };
-    p2 : TXrmNameList           { names };
-    p3 : TXrmClassList  { classes };
-    p4 : TXrmSearchList { list_return };
-    p5 : integer                        { list_length }
-) : Tbool;cdecl;external;
-
-Function XrmQGetSearchResource(
-    P1 : TXrmSearchList { list };
-    p2 : TXrmName               { name };
-    p3 : TXrmClass              { class };
-    p4 : PXrmRepresentation     { type_return };
-    p5 : PXrmValue              { value_return }
-) : TBool;cdecl;external;
-
-{***************************************************************
- *
- * Resource Database Management
- *
- ***************************************************************}
-
-procedure XrmSetDatabase(
-    p1 : PDisplay               { display };
-    p2 : TXrmDatabase           { database }
-);cdecl;external;
-
-Function  XrmGetDatabase(
-    p1 : PDisplay               { display }
-) : TXrmDatabase;cdecl;external;
-
-Function XrmGetFileDatabase(
-    p1 : pchar  { filename }
-) : TXrmDatabase ;cdecl;external;
-
-Function XrmCombineFileDatabase(
-    p1 : pchar  { filename };
-    p2 : PXrmDatabase   { target };
-    p3 : TBool          { override }
-) : TStatus ;cdecl;external;
-
-function XrmGetStringDatabase(
-    p1 : pchar  { data }  {  null terminated string }
-) : TXrmDatabase ;cdecl;external;
-
-Procedure XrmPutFileDatabase(
-    p1 : TXrmDatabase           { database };
-    p2: pchar   { filename }
-);cdecl;external;
-
-Procedure XrmMergeDatabases(
-    p1 : TXrmDatabase           { source_db };
-    p2 : PXrmDatabase   { target_db }
-);cdecl;external;
-
-procedure XrmCombineDatabase(
-    p1 : TXrmDatabase           { source_db };
-    p2 : PXrmDatabase   { target_db };
-    p3 : TBool          { override }
-);cdecl;external;
+procedure XrmDestroyDatabase(para1:TXrmDatabase);cdecl;external;
+procedure XrmQPutResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:TXrmRepresentation; para5:PXrmValue);cdecl;external;
+procedure XrmPutResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar; para4:PXrmValue);cdecl;external;
+procedure XrmQPutStringResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:Pchar);cdecl;external;
+procedure XrmPutStringResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar);cdecl;external;
+procedure XrmPutLineResource(para1:PXrmDatabase; para2:Pchar);cdecl;external;
+function XrmQGetResource(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external;
+function XrmGetResource(para1:TXrmDatabase; para2:Pchar; para3:Pchar; para4:PPchar; para5:PXrmValue):TBool;cdecl;external;
+{ There is no definition of TXrmSearchList }
+{function XrmQGetSearchList(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:TXrmSearchList; para5:longint):TBool;cdecl;external;
+function XrmQGetSearchResource(para1:TXrmSearchList; para2:TXrmName; para3:TXrmClass; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external;}
+procedure XrmSetDatabase(para1:PDisplay; para2:TXrmDatabase);cdecl;external;
+function XrmGetDatabase(para1:PDisplay):TXrmDatabase;cdecl;external;
+function XrmGetFileDatabase(para1:Pchar):TXrmDatabase;cdecl;external;
+function XrmCombineFileDatabase(para1:Pchar; para2:PXrmDatabase; para3:TBool):TStatus;cdecl;external;
+function XrmGetStringDatabase(para1:Pchar):TXrmDatabase;cdecl;external;
+procedure XrmPutFileDatabase(para1:TXrmDatabase; para2:Pchar);cdecl;external;
+procedure XrmMergeDatabases(para1:TXrmDatabase; para2:PXrmDatabase);cdecl;external;
+procedure XrmCombineDatabase(para1:TXrmDatabase; para2:PXrmDatabase; para3:TBool);cdecl;external;
 
 const
- XrmEnumAllLevels = 0;
- XrmEnumOneLevel  = 1;
-(*
-Function XrmEnumerateDatabase(
-    XrmDatabase         { db };
-    XrmNameList         { name_prefix };
-    XrmClassList        { class_prefix };
-    int                 { mode };
-    Bool *(#if NeedNestedPrototypes
-             XrmDatabase*       { db };
-             XrmBindingList     { bindings };
-             XrmQuarkList       { quarks };
-             XrmRepresentation* { type };
-             XrmValue*          { value };
-             XPointer           { closure }
+   XrmEnumAllLevels = 0;
+   XrmEnumOneLevel = 1;
+type
+  funcbool=function :TBool;
+function XrmEnumerateDatabase(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:longint; para5:funcbool;
+           para6:TXPointer):TBool;cdecl;external;
+function XrmLocaleOfDatabase(para1:TXrmDatabase):Pchar;cdecl;external;
+type
 
-             )          { proc };
-    XPointer            { closure }
-) : TBool;
-*)
+   PXrmOptionKind = ^TXrmOptionKind;
+   TXrmOptionKind = (XrmoptionNoArg,XrmoptionIsArg,XrmoptionStickyArg,
+     XrmoptionSepArg,XrmoptionResArg,XrmoptionSkipArg,
+     XrmoptionSkipLine,XrmoptionSkipNArgs);
 
-Function XrmLocaleOfDatabase(
-    P1 : TXrmDatabase   { database }
-) : Pchar;cdecl;external;
+   PXrmOptionDescRec = ^TXrmOptionDescRec;
+   TXrmOptionDescRec = record
+        option : Pchar;
+        specifier : Pchar;
+        argKind : TXrmOptionKind;
+        value : TXPointer;
+     end;
+   TXrmOptionDescList = PXrmOptionDescRec;
+   PXrmOptionDescList = ^TXrmOptionDescList;
 
+procedure XrmParseCommand(para1:PXrmDatabase; para2:TXrmOptionDescList; para3:longint; para4:Pchar; para5:Plongint;
+            para6:PPchar);cdecl;external;
 
-{***************************************************************
- *
- * Command line option mapping to resource entries
- *
- ***************************************************************}
+implementation
 
-Const
-    XrmoptionNoArg = 0; { Value is specified in OptionDescRec.value         }
-    XrmoptionIsArg = 1;     { Value is the option string itself             }
-    XrmoptionStickyArg = 2; { Value is characters immediately following option }
-    XrmoptionSepArg = 3;    { Value is next argument in argv                }
-    XrmoptionResArg = 4;        { Resource and value in next argument in argv      }
-    XrmoptionSkipArg = 5;   { Ignore this option and the next argument in argv }
-    XrmoptionSkipLine = 6;  { Ignore this option and the rest of argv       }
-    XrmoptionSkipNArgs = 7;     { Ignore this option and the next
-                           OptionDescRes.value arguments in argv }
-Type TXrmOptionKind = Integer;
+function NULLQUARK : TXrmQuark;
+  begin
+     NULLQUARK:=TXrmQuark(0);
+  end;
 
-TXrmOptionDescRec = record
-    option : pchar;         { Option abbreviation in argv           }
-    specifier : pchar;     { Resource specifier             }
-    argKind : TXrmOptionKind;       { Which style of option it is           }
-    value : TXpointer;      { Value to provide if XrmoptionNoArg   }
+function NULLSTRING : TXrmString;
+  begin
+     NULLSTRING:=TXrmString(0);
+  end;
+
+{$ifdef MACROS}
+function XrmStringsEqual(a1,a2 : longint) : longint;
+begin
+   XrmStringsEqual:=(strcmp(a1,a2)) = 0;
 end;
-PXrmOptionDescRec= ^TXrmOptionDescRec;
-TXrmOptionDescList = PXrmOptionDescRec;
 
+function XrmNameToString(name : longint) : longint;
+begin
+   XrmNameToString:=XrmQuarkToString(name);
+end;
 
-Procedure XrmParseCommand(
-    p1 : TXrmDatabase   { database };
-    p2 : TXrmOptionDescList     { table };
-    p3 : integer                        { table_count };
-    p4 : pchar  { name };
-    p5 : Pointer                { argc_in_out };
-    p6 : ppchar         { argv_in_out }
-);cdecl;external;
+function XrmStringToName(string : longint) : longint;
+begin
+   XrmStringToName:=XrmStringToQuark(_string);
+end;
 
-Implementation
+function XrmStringToNameList(str,name : longint) : longint;
+begin
+   XrmStringToNameList:=XrmStringToQuarkList(str,name);
+end;
+
+function XrmClassToString(c_class : longint) : longint;
+begin
+   XrmClassToString:=XrmQuarkToString(c_class);
+end;
+
+function XrmStringToClass(c_class : longint) : longint;
+begin
+   XrmStringToClass:=XrmStringToQuark(c_class);
+end;
+
+function XrmStringToClassList(str,c_class : longint) : longint;
+begin
+   XrmStringToClassList:=XrmStringToQuarkList(str,c_class);
+end;
+
+function XrmStringToRepresentation(_string : longint) : longint;
+begin
+   XrmStringToRepresentation:=XrmStringToQuark(_string);
+end;
+
+function XrmRepresentationToString(_type : longint) : longint;
+begin
+   XrmRepresentationToString:=XrmQuarkToString(_type);
+end;
+{$endif MACROS}
 
 end.
-{
-  $Log$
-  Revision 1.2  2000-07-13 11:33:34  michael
-  + removed logs
- 
-}
