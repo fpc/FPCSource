@@ -215,7 +215,7 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_sysv;
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2003-12-11 19:06:21  florian
+  Revision 1.17  2003-12-21 21:20:58  florian
+    * sysv calling conventions enabled for powerpc-linux
+
+  Revision 1.16  2003/12/11 19:06:21  florian
     * staticlib extension for powerpc fixed
 
   Revision 1.15  2003/10/03 22:09:49  peter
