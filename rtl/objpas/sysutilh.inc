@@ -149,7 +149,7 @@ const
   PathDelim=System.DirectorySeparator;
   DriveDelim=System.DriveSeparator;
   PathSep=System.PathSeparator;
-   
+
 
 Type
    TFileRec=FileRec;
@@ -175,9 +175,17 @@ Type
 
   procedure FreeAndNil(var obj);
 
+{$ifdef HASINTF}
+  { interface handling }
+  {$i intfh.inc}
+{$endif HASINTF}
+
 {
   $Log$
-  Revision 1.15  2001-11-07 14:58:24  michael
+  Revision 1.16  2002-01-25 17:42:03  peter
+    * interface helpers
+
+  Revision 1.15  2001/11/07 14:58:24  michael
   + Added PathDelim,DriveDelim,PathSep; Removed PathSeparator
 
   Revision 1.14  2001/10/23 21:51:03  peter

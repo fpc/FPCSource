@@ -78,6 +78,10 @@
         temp.free;
       end;
 
+{$ifdef HASINTF}
+  { Interfaces support }
+  {$i intf.inc}
+{$endif HASINTF}
 
     constructor Exception.Create(const msg : string);
 
@@ -359,7 +363,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-01-25 16:23:03  peter
+  Revision 1.9  2002-01-25 17:42:03  peter
+    * interface helpers
+
+  Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
   Revision 1.7  2001/10/22 21:40:55  peter
