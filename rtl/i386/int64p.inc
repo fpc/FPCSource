@@ -90,11 +90,8 @@
       end;
 
 
-(*
-  This does not work correctly
-
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
-    function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       var
          shift,lzz,lzn : longint;
          saveebx,saveedi : longint;
@@ -112,6 +109,7 @@
             pushl $200
             call HandleErrorFrame
             jmp .Lexit
+.Lnodivzero:
             movl z+4,%edx
             movl z,%eax
             testl %ecx,%ecx
@@ -144,7 +142,7 @@
             shrdl %cl,%edi,%ebx
             shrdl %cl,%edx,%eax
             shrl %cl,%edx
-            rorl $1,%edi
+            roll $1,%edi
             divl %ebx
             movl z,%ebx
             movl %eax,%ecx
@@ -164,8 +162,6 @@
             movl saveebx,%ebx
             movl saveedi,%edi
       end;
-*)
-
 
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
     { multiplies two qwords
@@ -209,7 +205,10 @@
 
 {
   $Log$
-  Revision 1.3  2004-05-10 20:58:20  florian
+  Revision 1.4  2004-07-25 11:50:39  florian
+    * assembler version of mod_qword_word reactivated
+
+  Revision 1.3  2004/05/10 20:58:20  florian
     * fpc_mul_qword uses always the assembler implementation
 
   Revision 1.2  2003/12/23 23:09:43  peter
