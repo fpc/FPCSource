@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) objpas macpas strings \
+units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer matrix \
@@ -218,6 +218,7 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Other system-dependent RTL Units
 #

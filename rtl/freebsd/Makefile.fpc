@@ -10,14 +10,14 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0
-units=$(SYSTEMUNIT) objpas macpas strings syscall sysctl unixtype baseunix unixutil \
+units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseunix unixutil \
       unix rtlconst initc cmem matrix \
        dl termio  printer \
       sysutils typinfo systhrds types classes math varutils dynlibs \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo \
       video mouse keyboard console serial variants dateutils \
-      sysconst cthreads strutils convutils dos objects
+      sysconst cthreads strutils convutils dos objects 
 
 rsts=math varutils typinfo classes variants dateutils sysconst
 
@@ -261,3 +261,5 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
         $(COMPILER) $(OBJPASDIR)/convutils.pp
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
