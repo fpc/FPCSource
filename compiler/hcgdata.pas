@@ -601,7 +601,8 @@ implementation
                                            is_class(hp^.rettype.def) and
                                            (pobjectdef(hp^.rettype.def)^.is_related(
                                                pobjectdef(procdefcoll^.data^.rettype.def)))) then
-                                         Message1(parser_e_overloaded_methodes_not_same_ret,hp^.fullprocname);
+                                         Message2(parser_e_overridden_methods_not_same_ret,hp^.fullprocnamewithret,
+                                           procdefcoll^.data^.fullprocnamewithret);
 
 
                                        { now set the number }
@@ -1070,7 +1071,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-12 23:24:10  florian
+  Revision 1.15  2000-11-19 16:23:35  florian
+  *** empty log message ***
+
+  Revision 1.14  2000/11/12 23:24:10  florian
     * interfaces are basically running
 
   Revision 1.13  2000/11/08 00:07:40  florian

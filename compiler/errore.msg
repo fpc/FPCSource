@@ -535,8 +535,8 @@ parser_w_overloaded_are_not_both_virtual=03064_W_overloaded method of virtual me
 parser_w_overloaded_are_not_both_non_virtual=03065_W_overloaded method of non-virtual method should be non-virtual: "$1"
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_e_overloaded_methodes_not_same_ret=03066_E_overloaded methods which are virtual must have the same return type: "$1"
-% If you declare virtual overloaded methods in a class definition, they must
+parser_e_overridden_methods_not_same_ret=03066_E_overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
+% If you declare oerridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 % You cannot declare a function or procedure within a function or procedure

@@ -141,7 +141,7 @@ const
   parser_e_cant_access_private_member=03063;
   parser_w_overloaded_are_not_both_virtual=03064;
   parser_w_overloaded_are_not_both_non_virtual=03065;
-  parser_e_overloaded_methodes_not_same_ret=03066;
+  parser_e_overridden_methods_not_same_ret=03066;
   parser_e_dont_nest_export=03067;
   parser_e_methods_dont_be_export=03068;
   parser_e_call_by_ref_without_typeconv=03069;
@@ -568,7 +568,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 31853;
+  MsgTxtSize = 31886;
 
   MsgIdxMax : array[1..20] of longint=(
     17,59,174,35,41,41,86,14,35,40,

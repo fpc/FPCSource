@@ -508,6 +508,7 @@ interface
           procedure load_references;
           function  write_references : boolean;
           function  fullprocname:string;
+          function fullprocnamewithret:string;
           function  cplusplusmangledname : string;
           { debug }
 {$ifdef GDB}
@@ -3212,8 +3213,13 @@ implementation
         hp : pparaitem;
         hpc : pconstsym;
       begin
-        s:='(';
         hp:=pparaitem(para^.last);
+        if not(assigned(hp)) then
+          begin
+             demangled_paras:='';
+             exit;
+          end;
+        s:='(';
         while assigned(hp) do
          begin
            if assigned(hp^.paratype.def^.typesym) then
@@ -3434,6 +3440,17 @@ implementation
          s:=_class^.objname^+'.';
         s:=s+procsym^.realname+demangled_paras;
         fullprocname:=s;
+      end;
+
+    function tprocdef.fullprocnamewithret:string;
+      var
+        s : string;
+      begin
+        s:=fullprocname;
+        if assigned(rettype.def) and
+          not(is_equal(rettype.def,voiddef)) then
+               s:=s+' : '+rettype.def^.gettypename;
+        fullprocnamewithret:=s;
       end;
 
 
@@ -5528,7 +5545,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.11  2000-11-12 23:24:12  florian
+  Revision 1.12  2000-11-19 16:23:35  florian
+  *** empty log message ***
+
+  Revision 1.11  2000/11/12 23:24:12  florian
     * interfaces are basically running
 
   Revision 1.10  2000/11/11 16:12:38  peter
