@@ -29,6 +29,17 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   copies back the registers as they are after the SysCall.
 }
 asm
+  swi  #0x900071
+  cmn  r0,#126
+  bls  .LDone
+  ldr  r1,.LErrno
+  rsb  r0,r0,#0
+  str  r0,[r1]
+  mvn  r0,#0
+  b    .LDone
+.LErrno:
+  .word Errno
+.LDone:
 end;
 
 function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
@@ -37,6 +48,17 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   copies back the registers as they are after the SysCall.
 }
 asm
+  swi  #0x900071
+  cmn  r0,#126
+  bls  .LDone
+  ldr  r1,.LErrno
+  rsb  r0,r0,#0
+  str  r0,[r1]
+  mvn  r0,#0
+  b    .LDone
+.LErrno:
+  .word Errno
+.LDone:
 end;
 
 
@@ -46,6 +68,17 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   copies back the registers as they are after the SysCall.
 }
 asm
+  swi  #0x900071
+  cmn  r0,#126
+  bls  .LDone
+  ldr  r1,.LErrno
+  rsb  r0,r0,#0
+  str  r0,[r1]
+  mvn  r0,#0
+  b    .LDone
+.LErrno:
+  .word Errno
+.LDone:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
@@ -54,6 +87,17 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   copies back the registers as they are after the SysCall.
 }
 asm
+  swi  #0x900071
+  cmn  r0,#126
+  bls  .LDone
+  ldr  r1,.LErrno
+  rsb  r0,r0,#0
+  str  r0,[r1]
+  mvn  r0,#0
+  b    .LDone
+.LErrno:
+  .word Errno
+.LDone:
 end;
 
 
@@ -149,7 +193,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-08-28 00:08:29  florian
+  Revision 1.2  2003-12-03 17:34:12  florian
+    + started to implement arm syscalls
+
+  Revision 1.1  2003/08/28 00:08:29  florian
     * syscall skeleton
 }
 
