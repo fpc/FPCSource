@@ -348,10 +348,9 @@ end;
 
 Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
 var
-  u: ValSInt;
+  u, temp, prev: ValUInt;
   base : byte;
   negative : boolean;
-  temp, prev: ValUInt;
 begin
   ValSignedInt := 0;
   Temp:=0;
@@ -385,9 +384,9 @@ begin
        End;
      if (u>=base) or
         ((base = 10) and
-         (MaxSIntValue-Temp < u)) or
+         (MaxSIntValue < u+temp)) or
         ((base <> 10) and
-         (MaxUIntValue-Temp < u)) then
+         (ValUInt(MaxUIntValue-Temp) < u)) then
        begin
          ValSignedInt:=0;
          exit;
@@ -415,10 +414,9 @@ end;
 
 Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
-  u: ValUInt;
+  u, prev: ValUInt;
   base : byte;
   negative : boolean;
-  prev: ValUInt;
 begin
   ValUnSignedInt:=0;
   Code:=InitVal(s,negative,base);
@@ -443,7 +441,7 @@ begin
          ValUnsignedInt := 0;
          Exit
        End;
-     if (u>=base) or (MaxUIntValue-ValUnsignedInt < u) then
+     if (u>=base) or (ValUInt(MaxUIntValue-ValUnsignedInt) < u) then
       begin
         ValUnsignedInt:=0;
         exit;
@@ -565,7 +563,11 @@ end;
 
 {
   $Log$
-  Revision 1.30  1999-11-06 14:35:39  peter
+  Revision 1.31  1999-12-11 19:07:44  jonas
+    * avoid unwanted type conversion from cardinal to longint in val for
+      signed and unsigned 32bit int
+
+  Revision 1.30  1999/11/06 14:35:39  peter
     * truncated log
 
   Revision 1.29  1999/07/05 20:04:26  peter
