@@ -150,12 +150,12 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
-procedure fillchar(var x;count : longint;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
 
-procedure fillchar(var x;count : longint;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
@@ -249,7 +249,7 @@ operator ** (bas,expo : int64) i: int64;
 begin
   i:=power(bas,expo);
 end;
-  
+
 
 {****************************************************************************
                   Subroutines for String handling
@@ -886,7 +886,11 @@ end;
 
 {
   $Log$
-  Revision 1.59  2004-05-27 23:34:23  peter
+  Revision 1.60  2004-07-18 20:21:44  florian
+    + several unicode (to/from utf-8 conversion) stuff added
+    * some longint -> SizeInt changes
+
+  Revision 1.59  2004/05/27 23:34:23  peter
     * stop backtrace also when caller frame is nil
 
   Revision 1.58  2004/05/16 18:51:20  peter

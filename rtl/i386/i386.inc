@@ -35,7 +35,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -119,7 +119,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);assembler;
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
 
 asm
         {A push is prefered over a local variable because a local
@@ -160,7 +160,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 {$define FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(var x;count : longint;value : word);assembler;
+procedure fillword(var x;count : SizeInt;value : word);assembler;
 var
   saveedi : longint;
 asm
@@ -197,7 +197,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
-procedure filldword(var x;count : longint;value : dword);assembler;
+procedure filldword(var x;count : SizeInt;value : dword);assembler;
 var
   saveedi : longint;
 asm
@@ -225,7 +225,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler;
 var
   saveedi,saveebx : longint;
 asm
@@ -258,7 +258,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(Const buf;len:longint;b:word):longint; assembler;
+function Indexword(Const buf;len:SizeInt;b:word):SizeInt; assembler;
 var
   saveedi,saveebx : longint;
 asm
@@ -291,7 +291,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
+function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt; assembler;
 var
   saveedi,saveebx : longint;
 asm
@@ -330,7 +330,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:longint):longint; assembler;
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -387,7 +387,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(Const buf1,buf2;len:longint):longint; assembler;
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
 var
   saveesi,saveedi,saveebx : longint;
 asm
@@ -455,7 +455,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(Const buf1,buf2;len:longint):longint; assembler;
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
 var
   saveesi,saveedi,saveebx : longint;
 asm
@@ -521,7 +521,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(Const buf;len:longint;b:Char):longint; assembler;
+function IndexChar0(Const buf;len:SizeInt;b:Char):SizeInt; assembler;
 var
   saveesi,saveebx : longint;
 asm
@@ -1450,7 +1450,11 @@ end;
 
 {
   $Log$
-  Revision 1.63  2004-07-18 16:40:08  jonas
+  Revision 1.64  2004-07-18 20:21:44  florian
+    + several unicode (to/from utf-8 conversion) stuff added
+    * some longint -> SizeInt changes
+
+  Revision 1.63  2004/07/18 16:40:08  jonas
     * fixed indexbyte/word/dword when length is 0 (return -1 instead of 0)
 
   Revision 1.62  2004/07/07 17:38:58  daniel

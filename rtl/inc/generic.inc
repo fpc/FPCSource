@@ -23,7 +23,7 @@ type
   pstring = ^shortstring;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 type
   bytearray    = array [0..maxlongint-1] of byte;
 var
@@ -46,7 +46,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);
+Procedure FillChar(var x;count:SizeInt;value:byte);
 type
   longintarray = array [0..maxlongint div 4] of longint;
   bytearray    = array [0..maxlongint-1] of byte;
@@ -75,7 +75,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (var x;count : longint;value : byte );
+procedure FillByte (var x;count : SizeInt;value : byte );
 begin
   FillChar (X,Count,CHR(VALUE));
 end;
@@ -83,7 +83,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(var x;count : longint;value : word);
+procedure fillword(var x;count : SizeInt;value : word);
 type
   longintarray = array [0..maxlongint div 4] of longint;
   wordarray    = array [0..maxlongint div 2] of word;
@@ -110,7 +110,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
-procedure FillDWord(var x;count : longint;value : DWord);
+procedure FillDWord(var x;count : SizeInt;value : DWord);
 type
   longintarray = array [0..maxlongint div 4] of longint;
 begin
@@ -126,7 +126,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
-function IndexChar(Const buf;len:longint;b:char):longint;
+function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;
 begin
   IndexChar:=IndexByte(Buf,Len,byte(B));
 end;
@@ -134,7 +134,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:longint;b:byte):longint;
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt;
 type
   bytearray    = array [0..maxlongint-1] of byte;
 var
@@ -155,7 +155,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(Const buf;len:longint;b:word):longint;
+function Indexword(Const buf;len:SizeInt;b:word):SizeInt;
 type
   wordarray    = array [0..maxlongint div 2] of word;
 var
@@ -174,7 +174,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(Const buf;len:longint;b:DWord):longint;
+function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt;
 type
   dwordarray = array [0..maxlongint div 4] of dword;
 var
@@ -193,7 +193,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
-function CompareChar(Const buf1,buf2;len:longint):longint;
+function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
@@ -201,7 +201,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:longint):longint;
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
 type
   bytearray = array [0..maxlongint-1] of byte;
 var
@@ -230,7 +230,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(Const buf1,buf2;len:longint):longint;
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt;
 type
   wordarray = array [0..maxlongint div 2] of word;
 var
@@ -259,7 +259,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(Const buf1,buf2;len:longint):longint;
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 type
   longintarray = array [0..maxlongint div 4] of longint;
 var
@@ -288,7 +288,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_MOVECHAR0}
-procedure MoveChar0(Const buf1;var buf2;len:longint);
+procedure MoveChar0(Const buf1;var buf2;len:SizeInt);
 var
   I : longint;
 begin
@@ -303,7 +303,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(Const buf;len:longint;b:Char):longint;
+function IndexChar0(Const buf;len:SizeInt;b:Char):SizeInt;
 var
   I : longint;
 begin
@@ -319,7 +319,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
-function CompareChar0(Const buf1,buf2;len:longint):longint;
+function CompareChar0(Const buf1,buf2;len:SizeInt):SizeInt;
 type
   bytearray = array [0..maxlongint-1] of byte;
 var
@@ -1225,7 +1225,11 @@ end;
 
 {
   $Log$
-  Revision 1.79  2004-05-31 20:25:04  peter
+  Revision 1.80  2004-07-18 20:21:44  florian
+    + several unicode (to/from utf-8 conversion) stuff added
+    * some longint -> SizeInt changes
+
+  Revision 1.79  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.78  2004/05/02 15:15:45  peter

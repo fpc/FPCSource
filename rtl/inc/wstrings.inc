@@ -4,7 +4,7 @@
     Copyright (c) 1999-2001 by Florian Klaempfl,
     member of the Free Pascal development team.
 
-    This file implements support routines for WideStrings with FPC
+    This file implements support routines for WideStrings/Unicode with FPC
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -1030,9 +1030,218 @@ end;
 
 {$endif CPU64}
 
+function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    if assigned(Source) then
+      Result:=UnicodeToUtf8(Dest,MaxBytes,Source,IndexWord(Source^,-1,0))
+    else
+      Result:=0;
+  end;
+
+
+function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
+  var
+    i,j : SizeUInt;
+    w : word;
+  begin
+    result:=0;
+    if source=nil then
+      exit;
+    i:=0;
+    j:=0;
+    if assigned(Dest) then
+      begin
+        while (i<SourceChars) and (j<MaxDestBytes) do
+          begin
+            w:=word(Source[i]);
+            case w of
+              0..$7f:
+                begin
+                  Dest[j]:=char(w);
+                  inc(j);
+                end;
+              $80..$7ff:
+                begin
+                  if j+1>=MaxDestBytes then
+                    break;
+                  Dest[j]:=char($c0 or (w shr 6));
+                  Dest[j+1]:=char($80 or (w and $3f));
+                  inc(j,2);
+                end;
+              else
+                begin
+                    if j+2>=MaxDestBytes then
+                      break;
+                    Dest[j]:=char($e0 or (w shr 12));
+                    Dest[j+1]:=char($80 or ((w shr 6)and $3f));
+                    Dest[j+2]:=char($80 or (w and $3f));
+                    inc(j,3);
+                end;
+            end;
+            inc(i);
+          end;
+
+        if j>MaxDestBytes-1 then
+          j:=MaxDestBytes-1;
+
+        Dest[j]:=#0;
+      end
+    else
+      begin
+        while i<SourceChars do
+          begin
+            case word(Source[i]) of
+              $0..$7f:
+                inc(j);
+              $80..$7ff:
+                inc(j,2);
+              else
+                inc(j,3);
+            end;
+          end;
+      end;
+    result:=j+1;
+  end;
+
+
+function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    if assigned(Source) then
+      Result:=Utf8ToUnicode(Dest,MaxChars,Source,strlen(Source))
+    else
+      Result:=0;
+  end;
+
+
+function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+  var
+    i,j : SizeUInt;
+    w : word;
+    b : byte;
+  begin
+    result:=0;
+    i:=0;
+    j:=0;
+    if assigned(Dest) then
+      begin
+        while (j<MaxDestChars) and (i<SourceBytes) do
+          begin
+            b:=byte(Source[i]);
+            inc(i);
+            // 2 or 3 bytes?
+            if w>=$80 then
+              begin
+                w:=b and $3c;
+                if i>=SourceBytes then
+                  exit;
+                // 3 bytes?
+                if (b and $20)<>0 then
+                  begin
+                    b:=byte(Source[i]);
+                    inc(i);
+                    if i>=SourceBytes then
+                      exit;
+                    if (b and $c0)<>$80 then
+                      exit;
+                    w:=(w shl 6) or (b and $3c);
+                  end;
+                b:=byte(Source[i]);
+                w:=(w shl 6) or (b and $3c);
+                if (b and $c0)<>$80 then
+                  exit;
+                inc(i);
+              end;
+            Dest[j]:=WideChar(w);
+            inc(j);
+          end;
+      end
+    else
+      begin
+        while i<SourceBytes do
+          begin
+            b:=byte(Source[i]);
+            inc(i);
+            // 2 or 3 bytes?
+            if b>=$80 then
+              begin
+                if i>=SourceBytes then
+                  exit;
+                // 3 bytes?
+                if (b and $20)<>0 then
+                  begin
+                    b:=byte(Source[i]);
+                    inc(i);
+                    if i>=SourceBytes then
+                      exit;
+                    if (b and $c0)<>$80 then
+                      exit;
+                  end;
+                if (byte(Source[i]) and $c0)<>$80 then
+                  exit;
+                inc(i);
+              end;
+            inc(j);
+          end;
+      end;
+    result:=j+1;
+  end;
+
+
+function UTF8Encode(const s : WideString) : UTF8String;
+  var
+    i : SizeInt;
+    hs : UTF8String;
+  begin
+    result:='';
+    if s='' then
+      exit;
+    SetLength(hs,length(s)*3);
+    i:=UnicodeToUtf8(pchar(hs),length(hs)+1,PWideChar(s),length(s));
+    if i>0 then
+      begin
+        SetLength(hs,i-1);
+        result:=hs;
+      end;
+  end;
+
+
+function UTF8Decode(const s : UTF8String): WideString;
+  var
+    i : SizeInt;
+    hs : WideString;
+  begin
+    result:='';
+    if s='' then
+      exit;
+    SetLength(hs,length(s));
+    i:=Utf8ToUnicode(PWideChar(hs),length(hs)+1,pchar(s),length(s));
+    if i>0 then
+      begin
+        SetLength(hs,i-1);
+        result:=hs;
+      end;
+  end;
+
+
+function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Utf8Encode(s);
+  end;
+
+
+function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Utf8Decode(s);
+  end;
+
+
 {
   $Log$
-  Revision 1.41  2004-07-12 17:58:19  peter
+  Revision 1.42  2004-07-18 20:21:44  florian
+    + several unicode (to/from utf-8 conversion) stuff added
+    * some longint -> SizeInt changes
+
+  Revision 1.41  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.40  2004/07/02 21:21:09  peter

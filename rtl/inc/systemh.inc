@@ -369,24 +369,24 @@ Var
                         Processor specific routines
 ****************************************************************************}
 
-Procedure Move(const source;var dest;count:Longint);
-Procedure FillChar(Var x;count:Longint;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(Var x;count:Longint;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(Var x;count:Longint;Value:Byte);
-procedure FillByte(var x;count:longint;value:byte);
-Procedure FillWord(Var x;count:Longint;Value:Word);
-procedure FillDWord(var x;count:longint;value:DWord);
-function  IndexChar(const buf;len:longint;b:char):longint;
-function  IndexByte(const buf;len:longint;b:byte):longint;
-function  Indexword(const buf;len:longint;b:word):longint;
-function  IndexDWord(const buf;len:longint;b:DWord):longint;
-function  CompareChar(const buf1,buf2;len:longint):longint;
-function  CompareByte(const buf1,buf2;len:longint):longint;
-function  CompareWord(const buf1,buf2;len:longint):longint;
-function  CompareDWord(const buf1,buf2;len:longint):longint;
-procedure MoveChar0(const buf1;var buf2;len:longint);
-function  IndexChar0(const buf;len:longint;b:char):longint;
-function  CompareChar0(const buf1,buf2;len:longint):longint;
+Procedure Move(const source;var dest;count:SizeInt);
+Procedure FillChar(Var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(Var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(Var x;count:SizeInt;Value:Byte);
+procedure FillByte(var x;count:SizeInt;value:byte);
+Procedure FillWord(Var x;count:SizeInt;Value:Word);
+procedure FillDWord(var x;count:SizeInt;value:DWord);
+function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
+function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
+function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
+function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
+function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
+procedure MoveChar0(const buf1;var buf2;len:SizeInt);
+function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
+function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
 procedure prefetch(const mem);
 
 
@@ -568,6 +568,16 @@ Type
 }
   end;
 
+
+function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
+function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+function UTF8Encode(const s : WideString) : UTF8String;
+function UTF8Decode(const s : UTF8String): WideString;
+function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
@@ -744,7 +754,11 @@ const
 
 {
   $Log$
-  Revision 1.97  2004-07-07 15:15:40  daniel
+  Revision 1.98  2004-07-18 20:21:44  florian
+    + several unicode (to/from utf-8 conversion) stuff added
+    * some longint -> SizeInt changes
+
+  Revision 1.97  2004/07/07 15:15:40  daniel
     * Add inline directive to sysresetfpu
 
   Revision 1.96  2004/07/03 21:50:31  daniel
