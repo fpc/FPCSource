@@ -68,7 +68,10 @@ unit pexpr;
       read as - (1**4) and not (-1)**4 PM }
 
     type
-      Toperator_precedence=(opcompare,opaddition,opmultiply);
+      Toperator_precedence=(opcompare,opaddition,opmultiply,oppower);
+
+    const
+      highest_precedence = oppower;
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;forward;
 
@@ -1869,7 +1872,7 @@ _LECKKLAMMER : begin
                end;
       _MINUS : begin
                  consume(_MINUS);
-                 p1:=sub_expr(opmultiply,false);
+                 p1:=sub_expr(oppower,false);
                  p1:=gensinglenode(unaryminusn,p1);
                end;
         _NOT : begin
@@ -1953,7 +1956,8 @@ _LECKKLAMMER : begin
          ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN,_OP_IS],
           [_PLUS,_MINUS,_OP_OR,_OP_XOR],
           [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
-           _OP_AS,_OP_AND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR]);
+           _OP_AS,_OP_AND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+          [_STARSTAR] );
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
     {Reads a subexpression while the operators are of the current precedence
@@ -1965,7 +1969,7 @@ _LECKKLAMMER : begin
         oldt    : Ttoken;
         filepos : tfileposinfo;
       begin
-        if pred_level=opmultiply then
+        if pred_level=highest_precedence then
           p1:=factor(false)
         else
           p1:=sub_expr(succ(pred_level),true);
@@ -1976,7 +1980,7 @@ _LECKKLAMMER : begin
              oldt:=token;
              filepos:=tokenpos;
              consume(token);
-             if pred_level=opmultiply then
+             if pred_level=highest_precedence then
                p2:=factor(false)
              else
                p2:=sub_expr(succ(pred_level),true);
@@ -2135,7 +2139,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.170  2000-03-14 15:50:19  pierre
+  Revision 1.171  2000-03-16 15:13:03  pierre
+   + oppower
+
+  Revision 1.170  2000/03/14 15:50:19  pierre
    * - 1**4 = -1 fix
 
   Revision 1.169  2000/02/13 14:21:50  jonas
