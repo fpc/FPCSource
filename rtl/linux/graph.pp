@@ -292,6 +292,13 @@ procedure DoneVideo;
 function GetResX: Integer;
 function GetResY: Integer;
 function GetAspect: Real;
+function GetMaxX : Integer;
+function GetMAxY : Integer;
+
+{ For compatibility }
+Procedure DetectGraph (Var Driver,Mode : Integer);
+Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
+Procedure CloseGraph;
 
 const
   NoGraphics: Boolean = false;
@@ -437,14 +444,15 @@ const
 
 
  { vga functions }
- function vga_init: Longint; Cdecl; External;
- function vga_getdefaultmode: Longint; Cdecl; External;
+ Function vga_init: Longint; Cdecl; External;
+ Function vga_getdefaultmode: Longint; Cdecl; External;
 
- function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
+ Function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
 
- function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
- function vga_setmode(mode: Longint): Longint; Cdecl; External;
-
+ Function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
+ Function vga_setmode(mode: Longint): Longint; Cdecl; External;
+ Function vga_getxdim : Longint; cdecl;external;
+ Function vga_getydim : longint; cdecl;external;
 
  { gl functions }
  procedure gl_setpixel(x, y, c: LongInt); Cdecl; External;
@@ -1376,15 +1384,48 @@ begin
       + LongInt(x2 - x1 + 1) * LongInt(y2 - y1 + 1) * PhysicalScreen^.BytesPerPixel;
 end;
 
+function GetMaxX : Integer;
 
 begin
+  GetMaxX:=vga_getxdim;
+end;
+
+function GetMAxY : Integer;
+begin
+  GetMaxY:=vga_getydim;
+end;
+
+Procedure DetectGraph (Var Driver,Mode : Integer);
+
+begin
+  Driver:=9;
+  Mode:=vga_getdefaultmode;  
+end;
+
+Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
+
+begin
+  InitVideo;
+end;
+
+Procedure CloseGraph;
+
+begin
+  DoneVideo;
+end;
+
+begin
+
   { Give up root permissions if we are root.  }
   if geteuid = 0 then vga_init;
 end.
 
 {
   $Log$
-  Revision 1.2  1998-05-12 10:42:47  peter
+  Revision 1.3  1998-08-10 09:01:58  michael
+  + Added some functions to improve compatibility
+
+  Revision 1.2  1998/05/12 10:42:47  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs
