@@ -15,7 +15,7 @@ units=system systhrds objpas macpas strings \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
       sysconst rtlconst dateutil convutil strutils
-rsts=math varutils typinfo classes variants dateutil sysconst
+rsts=math varutils typinfo classes variants dateutil sysconst systhrds 
 
 [require]
 nortl=y
@@ -99,6 +99,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    system$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc system$(PPUEXT) objpas$(PPUEXT)
 
 #
 # System Dependent Units

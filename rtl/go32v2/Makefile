@@ -448,103 +448,103 @@ ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_LOADERS+=prt0 exceptn fpu
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-sunos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),sparc-sunos)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst systhrds
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1960,6 +1960,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   system$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc system$(PPUEXT) objpas$(PPUEXT)
 go32$(PPUEXT) : go32.pp system$(PPUEXT)
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
 	$(COMPILER) -Sg dpmiexcp.pp
