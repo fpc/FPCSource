@@ -220,7 +220,14 @@ begin
   with AsmRes do
     begin
       WriteResponseFile(false);
-      success:=DoExec('Execute',CmdStr,true,false);
+      success:= true;
+
+      if cs_link_on_target in aktglobalswitches then
+        success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
+                     ScriptFixFileName(outputexedir+Info.ResName),true,false);
+
+      if success then
+        success:=DoExec('Execute',CmdStr,true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -245,7 +252,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-08-20 10:30:00  olle
+  Revision 1.12  2004-09-13 16:13:04  olle
+    + When link on target, the script sets file type on link.res
+
+  Revision 1.11  2004/08/20 10:30:00  olle
     + made fpc work as an MPW tool, by itself calling asm and link.
 
   Revision 1.10  2004/06/20 08:55:32  florian
