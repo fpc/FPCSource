@@ -1,15 +1,3 @@
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
-%%% Reordering of errord.msg respective to errore.msg
-%%% Contains all comments from errord.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -1101,6 +1089,9 @@ sym_w_function_result_not_set=W_Funktionsergebnis scheint keine Menge zu sein
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
+sym_w_wrong_C_pack=W_Typ "$1" ist im aktuellen Record mit C-Packing nicht korrekt ausgerichtet
+% Arrays with sizes not multiples of 4 will be wrongly aligned
+% for C structures.
 sym_e_illegal_field=E_Unbekannter Record-Feldbezeichner $1
 % The field doesn't exist in the record definition.
 sym_n_uninitialized_local_variable=W_Lokale Variable "$1" wird verwendet, bevor ihr ein Wert zugewiesen wurde
