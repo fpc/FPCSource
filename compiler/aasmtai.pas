@@ -549,6 +549,7 @@ interface
           { register allocator }
           function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
           function spilling_get_operation_type(opnr: longint): topertype;virtual;
+          function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
        end;
        tai_cpu_class = class of tai_cpu_abstract;
 
@@ -2054,6 +2055,12 @@ implementation
       end;
 
 
+    function tai_cpu_abstract.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+      begin
+        result := operand_read;
+      end;
+
+
     constructor tai_cpu_abstract.ppuload(t:taitype;ppufile:tcompilerppufile);
       var
         i : integer;
@@ -2242,7 +2249,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2005-02-14 17:13:06  peter
+  Revision 1.96  2005-02-18 23:37:51  jonas
+    * fixed spilling for several ppc instructions which only read registers
+    + added support for registers in references that get changed (load/store
+      with update)
+
+  Revision 1.95  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.94  2005/02/06 00:05:56  florian

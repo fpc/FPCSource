@@ -85,6 +85,7 @@ uses
 
          { register spilling code }
          function spilling_get_operation_type(opnr: aint): topertype;override;
+         function spilling_get_operation_type_ref(opnr: aint; reg: tregister): topertype;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -373,17 +374,25 @@ uses cutils;
       begin
         result := operand_read;
         case opcode of
-          A_STB,A_STBX,A_STH,A_STHX,A_STW,A_STWX,A_STBU,A_STBUX,A_STHU,A_STHUX,A_STWU,A_STWUX:
-            begin
-              if opnr = 1 then
-                result := operand_write;
-            end;
+            A_STMW,A_LMW:
+              internalerror(2005021805);
+            A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, A_STFSU, A_STFSUX, A_STFDU, A_STFDUX, A_STB, A_STBX, A_STH, A_STHX, A_STW, A_STWX, A_STFS, A_STFSX, A_STFD, A_STFDX, A_STFIWX, A_STHBRX, A_STWBRX, A_STWCX_, A_CMP, A_CMPI, A_CMPL, A_CMPLI, A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ, A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI, A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR:;
           else
             if opnr = 0 then
               result := operand_write;
           end;
       end;
 
+
+    function taicpu.spilling_get_operation_type_ref(opnr: aint; reg: tregister): topertype;
+      begin
+        result := operand_read;
+        case opcode of
+          A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
+            if (oper[opnr]^.ref^.base = reg) then
+              result := operand_readwrite;
+        end;
+      end;
 
     function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
@@ -413,7 +422,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2005-02-14 17:13:10  peter
+  Revision 1.31  2005-02-18 23:37:51  jonas
+    * fixed spilling for several ppc instructions which only read registers
+    + added support for registers in references that get changed (load/store
+      with update)
+
+  Revision 1.30  2005/02/14 17:13:10  peter
     * truncate log
 
 }

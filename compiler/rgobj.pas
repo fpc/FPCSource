@@ -1834,9 +1834,9 @@ unit rgobj;
                     with ref^ do
                       begin
                         if (base <> NR_NO) then
-                          addreginfo(base,operand_read);
+                          addreginfo(base,instr.spilling_get_operation_type_ref(counter,base));
                         if (index <> NR_NO) then
-                          addreginfo(index,operand_read);
+                          addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
                       end;
                 end;
 {$ifdef ARM}
@@ -2006,7 +2006,12 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.153  2005-02-14 17:13:07  peter
+  Revision 1.154  2005-02-18 23:37:51  jonas
+    * fixed spilling for several ppc instructions which only read registers
+    + added support for registers in references that get changed (load/store
+      with update)
+
+  Revision 1.153  2005/02/14 17:13:07  peter
     * truncate log
 
 }
