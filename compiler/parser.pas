@@ -415,6 +415,7 @@ implementation
          aktalignment:=initalignment;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
+         set_target_asm(aktoutputformat);
          aktoptprocessor:=initoptprocessor;
          aktspecificoptprocessor:=initspecificoptprocessor;
          aktasmmode:=initasmmode;
@@ -551,6 +552,7 @@ implementation
               aktpackenum:=oldaktpackenum;
               aktmaxfpuregisters:=oldaktmaxfpuregisters;
               aktoutputformat:=oldaktoutputformat;
+              set_target_asm(aktoutputformat);
               aktoptprocessor:=oldaktoptprocessor;
               aktspecificoptprocessor:=oldaktspecificoptprocessor;
               aktasmmode:=oldaktasmmode;
@@ -629,7 +631,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-11-02 22:58:02  peter
+  Revision 1.27  2002-01-29 19:43:11  peter
+    * update target_asm according to outputformat
+
+  Revision 1.26  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.25  2001/10/25 21:22:35  peter
