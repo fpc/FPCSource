@@ -42,6 +42,7 @@
 % Settings
 %
 \makeindex
+\FPCexampledir{progex}
 %
 % Start of document.
 %
@@ -4210,6 +4211,82 @@ point mode have not been extensively tested as of version 0.99.5.
 \begin{remark}
 The \var{comp} data type is currently not supported.
 \end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% programming libraries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Programming libraries}
+\label{ch:libraries}
+\section{Introduction}
+\fpc supports the creation of shared libraries on \linux and \windows.
+The mechanism is the same on both systems, although on \windows library
+indexes can be used, which is not the case on \linux.
+
+In the following sections we discuss how to create a library, and how 
+to use these libraries in programs.
+
+\section{Creating a library}
+A library can be created just as a program, only it uses the \var{library}
+keyword, and it has a \var{exports} section. The following program
+demonstrates a simple library:
+
+\FPCexample{subs}
+
+Compilation of this source will result in the creation of a library called
+\file{libsubs.so} on \linux, or \file{subs.dll} on \windows. The compiler
+will take care of any additional linking that is required to create a 
+shared library.
+
+The library exports one function: \var{SubStr}. The case is important. The
+case as it appears in the \var{exports} clause is used to export the
+function.
+
+If you want your libraru to be called from C programs, it is important to
+specify the C calling convention for the exported functions  with the
+\var{cdecl} modifier. Since a C compiler doesn't know about the \fpc
+calling conventions, your functions would be called incorrectly, resulting
+in a corrupted stack.
+
+\section{Using a library in a pascal program}
+To use this library from a pascal program, you can use the following 
+pascal program:
+\FPCexample{psubs}
+As is shown in the example, you must declare the function as \var{external}.
+Here also, it is necessary to specify the correct calling convention, and
+to use the correct casing for your declaration.
+
+This program can be compiled without any additional command-switches,
+and should run just like that, provided the library is placed where
+the system can find it. On \linux, this is \file{/usr/lib} or any 
+directory listed in the \file{/etc/ld.so.conf} file. On \windows, this
+can be the program directory, the Windows system directory, or any directoy
+mentioned in the \var{PATH}.
+
+Using the library in this way links the library to your program at compile
+time. This means that 
+\begin{enumerate}
+\item The library must be present on the system where the program is
+compiled.
+\item The library must be present on the system where the program is
+executed. 
+\item Both libraries must be exactly the same.
+\end{enumerate}
+Or it may simply be that you don't know the name of the function to
+be called, you just know the arguments it expects.
+
+It is therefore also possible to load the library at run-time, store 
+the function address in a procedural variable, and use this procedural
+variable to access the function in the library.
+
+The following example demonstrates this technique:
+\FPCexample{plsubs}
+
+\section{Using a pascal library from a C program}
+
+You can also call this library from a C program:
+%\selectlisting{c}
+%\FPCexample{csubs.c}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % using resources
