@@ -240,7 +240,7 @@ type tmsgconst=(
   type_e_no_method_and_procedure_not_compatible,
   type_e_wrong_math_argument,
   type_e_no_addr_of_constant,
-  type_e_argument_must_be_lvalue,
+  type_e_argument_cant_be_assigned,
   type_e_cannot_local_proc_to_procvar,
   type_e_no_assign_to_addr,
   sym_e_id_not_found,

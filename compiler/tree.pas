@@ -196,6 +196,7 @@ unit tree;
           resulttype : pdef;
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
+          isproperty : boolean;
 {$ifdef extdebug}
           firstpasscount : longint;
 {$endif extdebug}
@@ -1790,7 +1791,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.99  1999-09-27 23:45:03  peter
+  Revision 1.100  1999-10-22 14:37:31  peter
+    * error when properties are passed to var parameters
+
+  Revision 1.99  1999/09/27 23:45:03  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

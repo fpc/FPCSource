@@ -349,7 +349,6 @@ uses
            p,p2 : ppropertysym;
            overriden : psym;
            hs : string;
-           code : integer;
            varspez : tvarspez;
            sc : pstringcontainer;
            hp : pdef;
@@ -1609,7 +1608,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.1  1999-10-22 10:39:35  peter
+  Revision 1.2  1999-10-22 14:37:30  peter
+    * error when properties are passed to var parameters
+
+  Revision 1.1  1999/10/22 10:39:35  peter
     * split type reading from pdecl to ptype unit
     * parameter_dec routine is now used for procedure and procvars
 

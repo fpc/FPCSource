@@ -915,11 +915,11 @@ type_e_wrong_math_argument=E_Illegal constant passed to internal math function
 type_e_no_addr_of_constant=E_Can't get the address of constants
 % It's not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
-type_e_argument_must_be_lvalue=E_Argument must be l-value
+type_e_argument_cant_be_assigned=E_Argument can't be assigned to
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
-% used on the left side of an assignment, but they can't be used as l-values
+% used on the left side of an assignment, but they can't be used as arguments
 type_e_cannot_local_proc_to_procvar=E_Can't assign local procedure/function to procedure variable
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is

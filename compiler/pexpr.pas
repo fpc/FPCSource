@@ -669,6 +669,7 @@ unit pexpr;
                          if getprocvar then
                            handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
                          p1^.left:=gencallparanode(p2,p1^.left);
+                         p1^.isproperty:=true;
                          getprocvar:=false;
                        end;
                      varsym :
@@ -685,6 +686,7 @@ unit pexpr;
                               p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
                             plist:=plist^.next;
                           end;
+                         p1^.isproperty:=true;
                          consume(_ASSIGNMENT);
                          { read the expression }
                          p2:=comp_expr(true);
@@ -724,6 +726,7 @@ unit pexpr;
                                p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
                              plist:=plist^.next;
                            end;
+                          p1^.isproperty:=true;
                        end;
                      procsym :
                        begin
@@ -734,6 +737,7 @@ unit pexpr;
                           p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
                           { insert paras }
                           p1^.left:=paras;
+                          p1^.isproperty:=true;
                        end
                      else
                        begin
@@ -2113,7 +2117,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.149  1999-10-22 10:39:34  peter
+  Revision 1.150  1999-10-22 14:37:30  peter
+    * error when properties are passed to var parameters
+
+  Revision 1.149  1999/10/22 10:39:34  peter
     * split type reading from pdecl to ptype unit
     * parameter_dec routine is now used for procedure and procvars
 

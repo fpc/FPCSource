@@ -200,6 +200,10 @@ implementation
               { check if local proc/func is assigned to procvar }
               if p^.left^.resulttype^.deftype=procvardef then
                 test_local_to_procvar(pprocvardef(p^.left^.resulttype),defcoll^.data);
+              { property is not allowed as var parameter }
+              if (defcoll^.paratyp=vs_var) and
+                 (p^.left^.isproperty) then
+                CGMessagePos(p^.left^.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
               if push_high_param(defcoll^.data) then
                 gen_high_tree(p,is_open_string(defcoll^.data));
@@ -1224,7 +1228,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-10-13 10:35:27  peter
+  Revision 1.69  1999-10-22 14:37:30  peter
+    * error when properties are passed to var parameters
+
+  Revision 1.68  1999/10/13 10:35:27  peter
     * var must match exactly error msg extended with got and expected type
     * array constructor type check now gives error on wrong types
 
