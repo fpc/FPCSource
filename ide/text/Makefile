@@ -43,6 +43,8 @@ else
 override NEEDUNITDIR+=../fake/gdb
 endif
 
+# We need to link to libgcc
+NEEDGCCLIB=1
 
 #####################################################################
 # Real targets
@@ -152,7 +154,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.14  1999-03-16 00:47:00  peter
+# Revision 1.15  1999-07-06 15:49:54  peter
+#   * need gcc lib
+#
+# Revision 1.14  1999/03/16 00:47:00  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
