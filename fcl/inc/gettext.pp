@@ -71,29 +71,12 @@ type
   end;
 
 
-  function CalcHash(s: String): LongWord;
-
   procedure TranslateResourceStrings(AFile: TMOFile);
   procedure TranslateResourceStrings(AFilename: String);
 
 implementation
 
 uses dos;
-
-function CalcHash(s: String): LongWord;
-var
-  g, i : LongWord;
-begin
-  Result := 0;
-  for i := 1 to Length(s) do begin
-    Result := Result shl 4 + Ord(s[i]);
-    g := Result and ($f shl 28);
-    if g <> 0 then
-      Result := (Result xor (g shr 24)) xor g;
-  end;
-  if Result = 0 then Result := not 0;
-end;
-
 
 constructor TMOFile.Create(AStream: TStream);
 var
@@ -194,7 +177,7 @@ end;
 
 function TMOFile.Translate(AOrig: String): String;
 begin
-  Result := Translate(AOrig, CalcHash(AOrig));
+  Result := Translate(AOrig, Hash(AOrig));
 end;
 
 
@@ -267,7 +250,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-08-27 15:53:36  michael
+  Revision 1.4  1999-08-28 13:35:16  michael
+  * Uses now hash function of objpas
+
+  Revision 1.3  1999/08/27 15:53:36  michael
   + Adapted to new resourcestring mechanism. Uses objpas interface only
 
   Revision 1.2  1999/08/26 11:05:15  peter
