@@ -660,7 +660,7 @@ BEGIN
    Options := 0;                                      { No options set }
    Size.X := ScreenWidth;                             { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
-   RawSize.X := ScreenWidth * SysFontWidth;           { Set rawsize x }
+   RawSize.X := ScreenWidth * SysFontWidth - 1;       { Set rawsize x }
    RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
    InitStatusLine;                                    { Init status line }
    If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
@@ -877,8 +877,11 @@ BEGIN
          GetKeyEvent(Event);                          { Fetch key event }
 {$ifdef DEBUG}
          If (Event.What = evKeyDown) then
-           Writeln(stderr,'Key pressed scancode = ',hexstr(Event.Keycode,4));
-{$endif}
+           Begin
+             if Event.keyCode = kbAltF11 then
+               WriteDebugInfo := not WriteDebugInfo;
+           End;
+{$endif DEBUG}
          If (Event.What = evNothing) Then Begin       { No mouse event }
            Drivers.GetMouseEvent(Event);                      { Load mouse event }
            If (Event.What = evNothing) Then Idle;     { Idle if no event }
@@ -1083,7 +1086,10 @@ END;
 END.
 {
  $Log$
- Revision 1.9  2001-05-10 16:46:26  pierre
+ Revision 1.10  2001-05-31 12:15:24  pierre
+  + some debug stuff added
+
+ Revision 1.9  2001/05/10 16:46:26  pierre
   + some improovements made
 
  Revision 1.8  2001/05/07 22:22:03  pierre
