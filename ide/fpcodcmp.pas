@@ -356,10 +356,12 @@ begin
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
   Insert(New(PLabel, Init(R2, 'Unit handling', CB)));
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-  If UseStandardUnitsInCodeComplete then
+  If ShowOnlyUnique then
     CB^.Press(0);
-  If UseAllUnitsInCodeComplete then
+  If UseStandardUnitsInCodeComplete then
     CB^.Press(1);
+  If UseAllUnitsInCodeComplete then
+    CB^.Press(2);
 
   { Standard unit name boolean }
   R.Copy(R3); R.A.Y:=R.B.Y-1; Inc(R.A.X); Dec(R.B.X);
@@ -439,8 +441,9 @@ begin
       if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
       CodeCompleteWords:=C;
       CodeCompleteCase:=TCodeCompleteCase(RB^.Value);
-      UseStandardUnitsInCodeComplete:=CB^.Mark(0);
-      UseAllUnitsInCodeComplete:=CB^.Mark(1);
+      ShowOnlyUnique:=CB^.Mark(0);
+      UseStandardUnitsInCodeComplete:=CB^.Mark(1);
+      UseAllUnitsInCodeComplete:=CB^.Mark(2);
       if UseStandardUnitsInCodeComplete and (not UseAllUnitsInCodeComplete or not assigned(UnitsCodeCompleteWords)) and
          ((StandardUnits<>GetStr(InputL^.Data)) or not assigned(UnitsCodeCompleteWords)) then
         begin
