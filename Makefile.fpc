@@ -25,10 +25,14 @@ endif
 
 # New ppc386 (or ppc68k if on m68k machine !)
 ifndef PPNEW
-ifdef FPC
-PPNEWBASE=$(notdir $(FPC))
-else
+ifeq ($(CPU_TARGET),m68k)
+PPNEWBASE=ppc68k
+endif
+ifeq ($(CPU_TARGET),i386)
 PPNEWBASE=ppc386
+endif
+ifeq ($(CPU_TARGET),powerpc)
+PPNEWBASE=ppcppc
 endif
 
 PPNEW=$(BASEDIR)/compiler/$(PPNEWBASE)$(SRCEXEEXT)
