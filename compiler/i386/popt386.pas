@@ -1033,6 +1033,7 @@ begin
                                       if (taicpu(p).oper[1]^.typ = top_ref) and
                                         { mov reg1, mem1
                                           mov mem2, reg1 }
+                                         (taicpu(hp1).oper[0]^.ref^.refaddr = addr_no) and
                                          GetNextInstruction(hp1, hp2) and
                                          (hp2.typ = ait_instruction) and
                                          (taicpu(hp2).opcode = A_CMP) and
@@ -1623,7 +1624,9 @@ procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
          (taicpu(p).opcode=A_MOV) and
          (taicpu(p).opsize in [S_L,S_W]) and
-         (taicpu(p).oper[0]^.typ in [top_reg,top_ref]) and
+         ((taicpu(p).oper[0]^.typ = top_reg) or
+          ((taicpu(p).oper[0]^.typ = top_ref) and
+           (taicpu(p).oper[0]^.ref^.refaddr = addr_no))) and
          (taicpu(p).oper[1]^.typ in [top_reg]);
     end;
 
@@ -1999,7 +2002,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2004-02-28 16:59:02  jonas
+  Revision 1.59  2004-03-14 18:42:32  jonas
+    * fixed refaddr bug that caused go32v2 cycle failure
+
+  Revision 1.58  2004/02/28 16:59:02  jonas
     * fixed bug in ref_addr changes
 
   Revision 1.57  2004/02/27 10:21:05  florian
