@@ -497,6 +497,7 @@ const
       label_debugger_useanotherconsole = '~U~se another console';
       label_debugger_redirection = 'Debuggee ~R~edirection';
       label_debugger_useanothertty = '~U~se Another tty for Debuggee';
+      label_debugger_remote_machine = '~R~emote machine name:port';
 
       dialog_helpfiles = 'Install Help Files';
       label_helpfiles_helpfiles = '~H~elp files';
@@ -813,6 +814,7 @@ const
       opt_librarydirectories = '~L~ibrary directories';
       opt_objectdirectories = '~O~bject directories';
       opt_exeppudirectories = '~E~XE & PPU directories';
+      opt_cross_tools_directory = '~C~ross tools directory';
       { Library options }
       opt_librariesdefault = '~T~arget default';
       opt_dynamiclibraries = 'Link to ~D~ynamic libraries';
@@ -1037,7 +1039,10 @@ const
 
 {
   $Log$
-  Revision 1.13  2002-09-07 15:40:44  peter
+  Revision 1.14  2002-11-21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.13  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.12  2002/09/02 10:18:10  pierre

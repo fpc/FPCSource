@@ -441,16 +441,23 @@ var R,R2,R3: TRect;
     D: PCenterDialog;
     RB,RB2 : PRadioButtons;
     CBStrip: PCheckBoxes;
+{$ifdef CrossGDB}
+    IL: PInputLine;
+{$else not CrossGDB}
 {$ifdef win32}
     CB2: PCheckBoxes;
 {$endif win32}
 {$ifdef Unix}
     IL: PInputLine;
 {$endif Unix}
+{$endif not CrossGDB}
     IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
 const
+{$ifdef CrossGDB}
+  OtherFieldLines = 3;
+{$else not CrossGDB}
 {$ifdef win32}
   OtherFieldLines = 3;
 {$else not win32}
@@ -460,6 +467,7 @@ const
   OtherFieldLines = 0;
 {$endif Unix}
 {$endif win32}
+{$endif not CrossGDB}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+1+2
       +ProfileInfoSwitches^.ItemCount+2+2+1+OtherFieldLines);
@@ -509,6 +517,14 @@ begin
     Insert(New(PHistory, Init(R3, IL2, hidCompilerArgs)));
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
+{$ifdef CrossGDB}
+    R2.Move(0,4);
+    New(IL, Init(R2, 255));
+    IL^.Data^:=RemoteMachine;
+    Insert(IL);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2,label_debugger_remote_machine, IL)));
+{$else not CrossGDB}
 {$ifdef win32}
     R2.Move(0,4);
     New(CB2,Init(R2,NewSItem(label_debugger_useanotherconsole, nil)));
@@ -529,6 +545,7 @@ begin
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
 {$endif win32}
+{$endif CrossGDB}
   end;
   InsertButtons(D);
   RB^.Select;
@@ -538,6 +555,9 @@ begin
     ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
     OtherLinkerSwitches^.SetBooleanItem(0,CBStrip^.Mark(0));
     CustomArg[SwitchesMode]:=IL2^.Data^;
+{$ifdef CrossGDB}
+    RemoteMachine:=IL^.Data^;
+{$else not CrossGDB}
 {$ifdef win32}
     if CB2^.value<>0 then
       DebuggeeTTY:='on'
@@ -547,6 +567,7 @@ begin
 {$ifdef Unix}
     DebuggeeTTY:=IL^.Data^;
 {$endif Unix}
+{$endif CrossGDB}
   end;
   Dispose(D, Done);
 end;
@@ -1285,7 +1306,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-09-07 15:40:44  peter
+  Revision 1.9  2002-11-21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.8  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/09/04 08:52:46  pierre

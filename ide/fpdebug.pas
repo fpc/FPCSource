@@ -359,6 +359,9 @@ const
      BreakpointStateStr : Array[BreakpointState] of String[8]
        = ( 'enabled','disabled','invalid' );
 
+{$ifdef CrossGDB}
+     RemoteMachine : string = '';
+{$endif CrossGDB}
      DebuggeeTTY : string = '';
 var
   Debugger             : PDebugController;
@@ -777,6 +780,10 @@ var
 {$endif Unix}
 begin
   ResetBreakpointsValues;
+{$ifdef CrossGDB}
+  NoSwitch:=true;
+  Command('target remote '+RemoteMachine);
+{$else CrossGDB}
 {$ifdef win32}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
@@ -817,12 +824,19 @@ begin
       NoSwitch := false;
     end;
 {$endif Unix}
+{$endif CrossGDB}
   { Switch to user screen to get correct handles }
   UserScreen;
   { Don't try to print GDB messages while in User Screen mode }
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.Lock;
+{$ifndef CrossGDB}
   inherited Run;
+{$else CrossGDB}
+  inc(init_count);
+  { pass the stop in start code }
+  Command('continue');
+{$endif CrossGDB}
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
@@ -3376,13 +3390,13 @@ end;
             SetColor(rs.pc,OldReg.pc);
             WriteStr(1,8,'pc '+HexStr(longint(rs.pc),8),color);
             SetColor(rs.ps and $1,OldReg.ps and $1);
-            WriteStr(20,8,'c'+chr(byte((rs.ps and $1)<>0)+48),color);
+            WriteStr(22,8,' c'+chr(byte((rs.ps and $1)<>0)+48),color);
             SetColor(rs.ps and $2,OldReg.ps and $2);
-            WriteStr(18,8,'v'+chr(byte((rs.ps and $2)<>0)+48),color);
+            WriteStr(19,8,' v'+chr(byte((rs.ps and $2)<>0)+48),color);
             SetColor(rs.ps and $4,OldReg.ps and $4);
-            WriteStr(16,8,'z'+chr(byte((rs.ps and $4)<>0)+48),color);
+            WriteStr(16,8,' z'+chr(byte((rs.ps and $4)<>0)+48),color);
             SetColor(rs.ps and $8,OldReg.ps and $8);
-            WriteStr(14,8,'x'+chr(byte((rs.ps and $8)<>0)+48),color);
+            WriteStr(14,8, 'x'+chr(byte((rs.ps and $8)<>0)+48),color);
 {$endif i386}
          end
        else
@@ -3960,6 +3974,20 @@ end;
                          Init/Final
 ****************************************************************************}
 
+
+function GetGDBTargetShortName : string;
+begin
+{$ifdef CROSSGDB}
+GetGDBTargetShortName:='linux';
+{$else not CROSSGDB}
+{$ifdef COMPILER_1_0}
+GetGDBTargetShortName:=source_os.shortname
+{$else}
+GetGDBTargetShortName:=source_info.shortname
+{$endif}
+{$endif not CROSSGDB}
+end;
+
 procedure InitDebugger;
 {$ifdef DEBUG}
 var s : string;
@@ -3997,11 +4025,11 @@ begin
 {$endif}
 
   NeedRecompileExe:=false;
-  if TargetSwitches^.GetCurrSelParam<>{$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname then
+  if TargetSwitches^.GetCurrSelParam<>GetGDBTargetShortName then
     begin
      ClearFormatParams;
      AddFormatParamStr(TargetSwitches^.GetCurrSelParam);
-     AddFormatParamStr({$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname);
+     AddFormatParamStr(GetGDBTargetShortName);
      cm:=ConfirmBox(msg_cantdebugchangetargetto,@FormatParams,true);
      if cm=cmCancel then
        Exit;
@@ -4010,7 +4038,7 @@ begin
          { force recompilation }
          PrevMainFile:='';
          NeedRecompileExe:=true;
-         TargetSwitches^.SetCurrSelParam({$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname);
+         TargetSwitches^.SetCurrSelParam(GetGDBTargetShortName);
          If DebugInfoSwitches^.GetCurrSelParam='-' then
            DebugInfoSwitches^.SetCurrSelParam('l');
          IDEApp.UpdateTarget;
@@ -4222,7 +4250,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  2002-09-21 22:23:49  pierre
+  Revision 1.34  2002-11-21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.33  2002/09/21 22:23:49  pierre
    * restore text mode on reset for Dos apps
 
   Revision 1.32  2002/09/17 21:58:45  pierre

@@ -1001,6 +1001,7 @@ begin
      AddStringItem(opt_librarydirectories,'l',idNone,true,true);
      AddStringItem(opt_objectdirectories,'o',idNone,true,true);
      AddStringItem(opt_exeppudirectories,'E',idNone,true,true);
+     AddStringItem(opt_cross_tools_directory,'D',idNone,true,true);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
@@ -1238,7 +1239,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-09-07 15:40:45  peter
+  Revision 1.11  2002-11-21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.10  2002/09/07 15:40:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/06/01 20:08:42  marco

@@ -69,6 +69,7 @@ const
   ieOpenFileCount    = 'OpenFileCount'; *)
   ieRunParameters    = 'Parameters';
   ieDebuggeeRedir    = 'DebugRedirection';
+  ieRemoteMachine    = 'RemoteMachine';
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
@@ -351,6 +352,9 @@ begin
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
 {$ifndef GABOR}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$ifdef CrossGDB}
+  RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
+{$endif CrossGDB}
 {$endif}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
@@ -541,6 +545,9 @@ begin
 {$ifndef GABOR}
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$ifdef CrossGDB}
+    INIFile^.SetEntry(secRun,ieRemoteMachine,RemoteMachine);
+{$endif CrossGDB}
 {$endif}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
@@ -624,7 +631,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2002-10-23 18:01:50  hajny
+  Revision 1.9  2002-11-21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.8  2002/10/23 18:01:50  hajny
     * mistyping fixed
 
   Revision 1.7  2002/10/18 17:58:48  hajny
