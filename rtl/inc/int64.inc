@@ -64,9 +64,8 @@
 
       begin
          divqword:=0;
-         one:=1;
-         if n=divqword then
-           runerror(200);
+         if n=0 then
+           runerror(200); //!!!!!!!!! must push the address
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -76,72 +75,86 @@
            exit;
          shift:=lzn-lzz;
          n:=n shl shift;
-         repeat                                
+         repeat
            if z>=n then
              begin
                 z:=z-n;
-                divqword:=divqword+(one shl shift);                
+                divqword:=divqword+(qword(1) shl shift);
              end;
            dec(shift);
            n:=n shr 1;
-         until shift<=0;
+         until shift<0;
       end;
 
-    function modqword(z,n : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
+    function modqword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
 
       var
          shift,lzz,lzn : longint;
 
       begin
-         modqword:=z;
+         modqword:=0;
+         if n=0 then
+           runerror(200);   //!!!!!!!!! must push the address
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
+         { then the numerator                     }
          { the d is greater than the n            }
          if lzn<lzz then
-           exit;
+           begin
+              modqword:=z;
+              exit;
+           end;
          shift:=lzn-lzz;
          n:=n shl shift;
-         repeat                                
-           if z>n then
+         repeat
+           if z>=n then
              z:=z-n;
            dec(shift);
            n:=n shr 1;
-         until shift<=0;
+         until shift<0;
          modqword:=z;
       end;
 
-    function divint64(z,n : int64) : int64;[public,alias: 'FPC_DIV_INT64'];
+    function divint64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64'];
 
       var
          sign : boolean;
          q1,q2 : qword;
 
       begin
-         sign:=false;
-         if z<0 then
-           begin
-              sign:=not(sign);
-              q1:=qword(-z);
-           end
+         if n=0 then
+           runerror(200); //!!!!!!!!!!!! must get the right address
+         { can the fpu do the work? }
+         if fpuint64 then
+           //!!!!!!!!!!! divint64:=comp(z)/comp(n)
          else
-           q1:=z;
-         if n<0 then
            begin
-              sign:=not(sign);
-              q2:=qword(-n);
-           end
-         else
-           q2:=n;
+              sign:=false;
+              if z<0 then
+                begin
+                   sign:=not(sign);
+                   q1:=qword(-z);
+                end
+              else
+                q1:=z;
+              if n<0 then
+                begin
+                   sign:=not(sign);
+                   q2:=qword(-n);
+                end
+              else
+                q2:=n;
 
-         { the div is coded by the compiler as call to divqword }
-         if sign then
-           divint64:=-q1 div q2
-         else
-           divint64:=q1 div q2;
+              { the div is coded by the compiler as call to divqword }
+              if sign then
+                divint64:=-(q1 div q2)
+              else
+                divint64:=q1 div q2;
+           end;
       end;
 
-    { multiplies two qwords 
+    { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
     function mulqword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD'];
@@ -152,35 +165,27 @@
 
 
       begin
+         zero:=0;
+         mulqword:=0;
          { we can't write currently qword constants directly :( }
-         zero:=zero xor zero;
-         mulqword:=zero;
          tqwordrec(bitpos64).high:=$80000000;
          tqwordrec(bitpos64).low:=0;
-         tqwordrec(bitpos).high:=0;
-         tqwordrec(bitpos).low:=1;
+         bitpos:=1;
 
          for l:=0 to 63 do
            begin
-              { if the highest bit of f1 is set and it isn't the
-                last run, then an overflow occcurs!
-              }
-              if checkoverflow and (l<>63) and
-                ((tqwordrec(f1).high and $80000000)<>0)  then
-                int_overflow;
-
               if (f2 and bitpos)<>zero then
-                begin
-                   if checkoverflow then
-{$Q+}                
-                     mulqword:=mulqword+f1
-{$Q-}
-                   else
-                     mulqword:=mulqword+f1;
-                end;
+                mulqword:=mulqword+f1;
 
               f1:=f1 shl 1;
               bitpos:=bitpos shl 1;
+           end;
+
+         { if one of the operands is greater than the result an }
+         { overflow occurs                                      }
+         if checkoverflow and ((f1>mulqword) or (f2>mulqword)) then
+           begin
+              int_overflow;
            end;
       end;
 
@@ -198,33 +203,42 @@
          q1,q2,q3 : qword;
 
       begin
-         sign:=false;
-         if f1<0 then
+         { can the fpu do the work ? }
+         if fpuint64 and not(checkoverflow) then
+           // !!!!!!! multint64:=comp(f1)*comp(f2)
+         else
            begin
-              sign:=not(sign);
-              q1:=qword(-f1);
-           end
-         else
-           q1:=f1;
-         if f2<0 then
-           begin
-              sign:=not(sign);
-              q2:=qword(-f2);
-           end
-         else
-           q2:=f2;
-         { the q1*q2 is coded as call to mulqword }
-         if checkoverflow then
-{$Q+}
-           q3:=q1*q2 
-         else
-{$Q-}
-           q3:=q1*q2;
+              sign:=false;
+              if f1<0 then
+                begin
+                   sign:=not(sign);
+                   q1:=qword(-f1);
+                end
+              else
+                q1:=f1;
+              if f2<0 then
+                begin
+                   sign:=not(sign);
+                   q2:=qword(-f2);
+                end
+              else
+                q2:=f2;
+              { the q1*q2 is coded as call to mulqword }
+              q3:=q1*q2;
 
-         if sign then
-           mulint64:=-q3
-         else
-           mulint64:=q3;
+              if checkoverflow and ((q1>q3) or (q2>q3) or
+                { the bit 63 can be only set if we have $80000000 00000000 }
+                { and sign is true                                         }
+                ((tqwordrec(q3).high and $80000000)<>0) and
+                 ((q3<>(qword(1) shl 63)) or not(sign))
+                ) then
+                runerror(202); {!!!!!!!!! must be overflow }
+
+              if sign then
+                mulint64:=-q3
+              else
+                mulint64:=q3;
+           end;
       end;
 
     procedure int_str(value : qword;var s : string);
@@ -233,7 +247,6 @@
          hs : string;
 
       begin
-         {!!!!!!!!!!!      }
          hs:='';
          repeat
            hs:=chr(longint(value mod 10)+48)+hs;
@@ -259,9 +272,36 @@
            int_str(qword(value),s);
       end;
 
+    { should be moved to text.inc!!!!!!!!! }
+    procedure write_qword(len : longint;{!!!!!var t : textrec;}q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
+
+      var
+         s : string;
+
+      begin
+         {
+         if (InOutRes<>0) then
+           exit;
+         int_str(q,s);
+         write_str(len,t,s);
+         }
+      end;
+
+    procedure read_qword(len : longint;{!!!!!var t : textrec;}q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
+
+      begin
+         {!!!!!!!!}
+      end;
+
 {
   $Log$
-  Revision 1.8  1999-06-28 22:25:25  florian
+  Revision 1.9  1999-06-30 22:12:40  florian
+    * qword div/mod fixed
+    + int64 mod/div/* fully implemented
+    * int_str(qword) fixed
+    + dummies for read/write(qword)
+
+  Revision 1.8  1999/06/28 22:25:25  florian
     * fixed qword division
 
   Revision 1.7  1999/06/25 12:24:44  pierre
