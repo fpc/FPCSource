@@ -649,8 +649,12 @@ implementation
            to get the address in some cases }
          if assigned(getprocvardef) then
           begin
-            if (block_type=bt_const) then
-             getaddr:=true
+            if (block_type=bt_const) or
+               getaddr then
+             begin
+               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+               getaddr:=true;
+             end
             else
              if (m_tp_procvar in aktmodeswitches) then
               begin
@@ -2320,7 +2324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-01-15 01:44:32  peter
+  Revision 1.101  2003-01-16 22:12:22  peter
+    * Find the correct procvar to load when using @ in fpc mode
+
+  Revision 1.100  2003/01/15 01:44:32  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.98  2003/01/12 17:51:42  peter
