@@ -121,11 +121,13 @@ end;
 
 function is_asmopcode(const s: string):boolean;
 const
+  { We need first to check the long prefixes, else we get probs
+    with things like movsbl }
   att_sizesuffixstr : array[0..8] of string[2] = (
-    '','B','W','L','BW','BL','WL','Q','T'
+    '','BW','BL','WL','B','W','L','Q','T'
   );
   att_sizesuffix : array[0..8] of topsize = (
-    S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,S_IQ,S_FX
+    S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_IQ,S_FX
   );
 var
   i    : tasmop;
@@ -859,6 +861,27 @@ Begin
           Consume(AS_DOLLAR);
           if actasmtoken<>AS_ID then
            Comment(V_Error,'assem_e_dollar_without_identifier');
+        end;
+      AS_STRING:
+        Begin
+          l:=0;
+          case Length(actasmpattern) of
+           1 :
+            l:=ord(actasmpattern[1]);
+           2 :
+            l:=ord(actasmpattern[2]) + ord(actasmpattern[1]) shl 8;
+           3 :
+            l:=ord(actasmpattern[3]) +
+               Ord(actasmpattern[2]) shl 8 + ord(actasmpattern[1]) shl 16;
+           4 :
+            l:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
+               Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
+          else
+            Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+          end;
+          str(l, tempstr);
+          expr:=expr + tempstr;
+          Consume(AS_STRING);
         end;
       AS_ID:
         Begin
@@ -1932,7 +1955,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  1999-06-21 16:45:01  peter
+  Revision 1.54  1999-07-24 11:17:12  peter
+    * suffix parsing for at&t fixed for things like movsbl
+    * string constants are now handle correctly and also allowed in
+      constant expressions
+
+  Revision 1.53  1999/06/21 16:45:01  peter
     * merged
 
   Revision 1.52  1999/06/14 17:48:03  peter

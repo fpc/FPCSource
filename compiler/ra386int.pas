@@ -776,6 +776,27 @@ Begin
           if actasmtoken<>AS_ID then
            Message(asmr_e_offset_without_identifier);
         end;
+      AS_STRING:
+        Begin
+          l:=0;
+          case Length(actasmpattern) of
+           1 :
+            l:=ord(actasmpattern[1]);
+           2 :
+            l:=ord(actasmpattern[2]) + ord(actasmpattern[1]) shl 8;
+           3 :
+            l:=ord(actasmpattern[3]) +
+               Ord(actasmpattern[2]) shl 8 + ord(actasmpattern[1]) shl 16;
+           4 :
+            l:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
+               Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
+          else
+            Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+          end;
+          str(l, tempstr);
+          expr:=expr + tempstr;
+          Consume(AS_STRING);
+        end;
       AS_ID:
         Begin
           tempstr:=actasmpattern;
@@ -1151,25 +1172,13 @@ Begin
     AS_PLUS,
     AS_MINUS,
     AS_NOT,
-    AS_LPAREN :
+    AS_LPAREN,
+    AS_STRING :
       Begin
         if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
         BuildConstant;
       end;
-
-    AS_STRING :
-      Begin
-        if not (opr.typ in [OPR_NONE]) then
-          Message(asmr_e_invalid_operand_type);
-        if not PadZero(actasmpattern,4) then
-          Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
-        opr.typ:=OPR_CONSTANT;
-        opr.val:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
-                 Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
-        Consume(AS_STRING);
-      end;
-
 
     AS_ID : { A constant expression, or a Variable ref. }
       Begin
@@ -1661,7 +1670,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  1999-07-12 15:03:04  peter
+  Revision 1.41  1999-07-24 11:17:16  peter
+    * suffix parsing for at&t fixed for things like movsbl
+    * string constants are now handle correctly and also allowed in
+      constant expressions
+
+  Revision 1.40  1999/07/12 15:03:04  peter
     * merged
 
   Revision 1.39  1999/06/28 16:02:32  peter
