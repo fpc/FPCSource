@@ -48,6 +48,7 @@ interface
     function hexstr(val : longint;cnt : byte) : string;
     function tostru(i:cardinal) : string;
     function tostr(i : longint) : string;
+    function int64tostr(i : int64) : string;
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
     function is_number(const s : string) : boolean;
@@ -313,6 +314,17 @@ uses
      begin
         str(i,hs);
         tostr:=hs;
+     end;
+
+   function int64tostr(i : int64) : string;
+   {
+     return string of value i
+   }
+     var
+        hs : string;
+     begin
+        str(i,hs);
+        int64tostr:=hs;
      end;
 
 
@@ -599,7 +611,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2000-11-07 20:47:35  peter
+  Revision 1.4  2000-11-28 00:17:43  pierre
+   + int64tostr function added
+
+  Revision 1.3  2000/11/07 20:47:35  peter
     * use tables for upper/lower
 
   Revision 1.2  2000/09/24 15:06:14  peter
