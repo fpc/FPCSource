@@ -39,15 +39,15 @@ type
 const
 {$ifdef newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=100;
-{$else ORDERSOURCES}
   CurrentPPUVersion=101;
+{$else ORDERSOURCES}
+  CurrentPPUVersion=100;
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=17;
-{$else ORDERSOURCES}
   CurrentPPUVersion=18;
+{$else ORDERSOURCES}
+  CurrentPPUVersion=17;
 {$endif ORDERSOURCES}
 {$endif newcg}
 
@@ -406,16 +406,21 @@ end;
 
 
 procedure tppufile.NewHeader;
+var
+  s : string;
 begin
   fillchar(header,sizeof(tppuheader),0);
+  str(currentppuversion,s);
+  while length(s)<3 do
+   s:='0'+s;
   with header do
    begin
      Id[1]:='P';
      Id[2]:='P';
      Id[3]:='U';
-     Ver[1]:='0';
-     Ver[2]:='1';
-     Ver[3]:='7';
+     Ver[1]:=s[1];
+     Ver[2]:=s[2];
+     Ver[3]:=s[3];
    end;
 end;
 
@@ -995,7 +1000,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-09-16 13:27:08  pierre
+  Revision 1.46  1999-09-17 09:14:56  peter
+    * ppu header writting now uses currentppuversion
+
+  Revision 1.45  1999/09/16 13:27:08  pierre
     + error if PPU modulename is different from what is searched
       (8+3 limitations!)
     + cond ORDERSOURCES to allow recompilation of FP
