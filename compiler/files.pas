@@ -869,7 +869,7 @@ end;
          asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
-         if AllowOutput and (OutputFile<>'') then
+         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
          if target_info.target=target_i386_WIN32 then
@@ -1408,7 +1408,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.118  2000-06-15 18:10:11  peter
+  Revision 1.119  2000-07-03 21:08:54  pierre
+   * fix for bug 1025
+
+  Revision 1.118  2000/06/15 18:10:11  peter
     * first look for ppu in cwd and outputpath and after that for source
       in cwd
     * fixpath() for not linux makes path now lowercase so comparing paths
