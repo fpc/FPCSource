@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-examples=fpcunittests  money  moneytest
+units=fpcunittests  money  moneytest
 
 [compiler]
 options=-S2h

@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-examples=asserttest frameworktest suitetest
+units=asserttest frameworktest suitetest
 
 [compiler]
 options=-S2h
