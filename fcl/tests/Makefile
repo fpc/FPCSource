@@ -35,7 +35,8 @@ NEEDOPT=-S2
 #####################################################################
 
 UNITOBJECTS=
-EXEOBJECTS=stringl dparser fstream mstream list threads
+EXEOBJECTS=stringl dparser fstream mstream list threads testrtf\
+           cfgtest testz testz2 xmldump
 
 
 #####################################################################
@@ -112,7 +113,10 @@ endif
 
 #
 # $Log$
-# Revision 1.5  1999-05-30 10:46:43  peter
+# Revision 1.6  1999-07-09 21:08:16  michael
+# + Added ztsream and xml demos
+#
+# Revision 1.5  1999/05/30 10:46:43  peter
 #   * start of tthread for linux,win32
 #
 # Revision 1.4  1999/04/08 10:19:04  peter
