@@ -1091,16 +1091,21 @@ unit pexpr;
                 { try to recover }
                 repeat
                   case token of
-                   CARET : consume(CARET);
-                   POINT : begin
-                             consume(POINT);
-                             consume(ID);
-                           end;
-             LECKKLAMMER : begin
-                             repeat
-                               consume(token);
-                             until token in [RECKKLAMMER,SEMICOLON];
-                           end;
+                   CARET:
+                     consume(CARET);
+
+                   POINT:
+                     begin
+                        consume(POINT);
+                        consume(ID);
+                     end;
+
+                   LECKKLAMMER:
+                     begin
+                        repeat
+                          consume(token);
+                          until token in [RECKKLAMMER,SEMICOLON];
+                     end;
                   else
                     break;
                   end;
@@ -1109,7 +1114,8 @@ unit pexpr;
               end;
            { handle token }
              case token of
-          CARET : begin
+                CARET:
+                  begin
                     consume(CARET);
                     if pd^.deftype<>pointerdef then
                       begin
@@ -1125,7 +1131,9 @@ unit pexpr;
                          pd:=ppointerdef(pd)^.definition;
                       end;
                   end;
-    LECKKLAMMER : begin
+
+                LECKKLAMMER:
+                  begin
                     if (pd^.deftype=objectdef) and pobjectdef(pd)^.isclass then
                       begin
                         { default property }
@@ -1148,11 +1156,13 @@ unit pexpr;
                         consume(LECKKLAMMER);
                         repeat
                           case pd^.deftype of
-                    pointerdef : begin
+                            pointerdef:
+                                begin
                                    p2:=comp_expr(true);
                                    p1:=gennode(vecn,p1,p2);
                                    pd:=ppointerdef(pd)^.definition;
                                  end;
+
                      stringdef : begin
                                    p2:=comp_expr(true);
                                    p1:=gennode(vecn,p1,p2);
@@ -1210,55 +1220,67 @@ unit pexpr;
                   end;
           POINT : begin
                     consume(POINT);
+                    if (pd^.deftype=pointerdef) and
+                      (m_autoderef in aktmodeswitches) then
+                      begin
+                         p1:=gensinglenode(derefn,p1);
+                         pd:=ppointerdef(pd)^.definition;
+                      end;
                     case pd^.deftype of
-                  recorddef : begin
-                                sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
-                                consume(ID);
-                                if sym=nil then
-                                  begin
-                                    Message(sym_e_illegal_field);
-                                    disposetree(p1);
-                                    p1:=genzeronode(errorn);
-                                  end
-                                else
-                                  begin
-                                    p1:=gensubscriptnode(sym,p1);
-                                    pd:=sym^.definition;
-                                  end;
+                       recorddef:
+                         begin
+                            sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
+                            consume(ID);
+                            if sym=nil then
+                              begin
+                                Message(sym_e_illegal_field);
+                                disposetree(p1);
+                                p1:=genzeronode(errorn);
+                              end
+                            else
+                              begin
+                                p1:=gensubscriptnode(sym,p1);
+                                pd:=sym^.definition;
                               end;
-                classrefdef : begin
-                                classh:=pobjectdef(pclassrefdef(pd)^.definition);
-                                sym:=nil;
-                                while assigned(classh) do
-                                 begin
-                                   sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                   srsymtable:=classh^.publicsyms;
-                                   if assigned(sym) then
-                                    break;
-                                   classh:=classh^.childof;
-                                 end;
-                                consume(ID);
-                                do_member_read(false,sym,p1,pd,again);
+                          end;
+
+                        classrefdef:
+                          begin
+                             classh:=pobjectdef(pclassrefdef(pd)^.definition);
+                             sym:=nil;
+                             while assigned(classh) do
+                              begin
+                                sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                srsymtable:=classh^.publicsyms;
+                                if assigned(sym) then
+                                 break;
+                                classh:=classh^.childof;
                               end;
-                  objectdef : begin
-                                classh:=pobjectdef(pd);
-                                sym:=nil;
-                                while assigned(classh) do
-                                 begin
-                                   sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                   srsymtable:=classh^.publicsyms;
-                                   if assigned(sym) then
-                                    break;
-                                   classh:=classh^.childof;
-                                 end;
-                                consume(ID);
-                                do_member_read(false,sym,p1,pd,again);
+                             consume(ID);
+                             do_member_read(false,sym,p1,pd,again);
+                           end;
+
+                         objectdef:
+                           begin
+                             classh:=pobjectdef(pd);
+                             sym:=nil;
+                             while assigned(classh) do
+                              begin
+                                sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                srsymtable:=classh^.publicsyms;
+                                if assigned(sym) then
+                                 break;
+                                classh:=classh^.childof;
                               end;
-                 pointerdef : begin
-                                Message(cg_e_invalid_qualifier);
-                                if ppointerdef(pd)^.definition^.deftype in [recorddef,objectdef,classrefdef] then
-                                 Message(parser_h_maybe_deref_caret_missing);
-                              end;
+                             consume(ID);
+                             do_member_read(false,sym,p1,pd,again);
+                           end;
+                         pointerdef:
+                           begin
+                             Message(cg_e_invalid_qualifier);
+                             if ppointerdef(pd)^.definition^.deftype in [recorddef,objectdef,classrefdef] then
+                              Message(parser_h_maybe_deref_caret_missing);
+                           end;
                     else
                       begin
                         Message(cg_e_invalid_qualifier);
@@ -1843,7 +1865,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.62  1998-10-12 10:05:41  peter
+  Revision 1.63  1998-10-12 10:28:30  florian
+    + auto dereferencing of pointers to structured types in delphi mode
+
+  Revision 1.62  1998/10/12 10:05:41  peter
     * fixed mem leak with arrayconstrutor
 
   Revision 1.61  1998/10/05 13:57:15  peter
