@@ -290,7 +290,7 @@ implementation
                          hp^:=p^.location.reference;
                          inc(hp^.offset,4);
                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                           R_EDI,hp)));
+                           hregister,hp)));
 
                          { virtual method ? }
                          if (pprocsym(p^.symtableentry)^.definition^.options and povirtualmethod)<>0 then
@@ -852,7 +852,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-06-28 22:29:11  florian
+  Revision 1.62  1999-06-30 15:43:18  florian
+    * two bugs regarding method variables fixed
+      - if you take in a method the address of another method
+        don't need self anymore
+      - if the class pointer was in a register, wrong code for a method
+        variable load was generated
+
+  Revision 1.61  1999/06/28 22:29:11  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

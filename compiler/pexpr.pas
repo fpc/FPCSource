@@ -554,6 +554,13 @@ unit pexpr;
                 (p1^.symtableproc^.defowner^.deftype=objectdef) then
                 begin
                    p1^.methodpointer:=getcopy(pwithsymtable(p1^.symtableproc)^.withrefnode);
+                end
+              else if not(assigned(p1^.methodpointer)) then
+                begin
+                   { we must provide a method pointer, if it isn't given, }
+                   { it is self                                           }
+                   p1^.methodpointer:=genselfnode(procinfo._class);
+                   p1^.methodpointer^.resulttype:=procinfo._class;
                 end;
               { no postfix operators }
               again:=false;
@@ -2035,7 +2042,14 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.116  1999-06-26 00:24:53  pierre
+  Revision 1.117  1999-06-30 15:43:20  florian
+    * two bugs regarding method variables fixed
+      - if you take in a method the address of another method
+        don't need self anymore
+      - if the class pointer was in a register, wrong code for a method
+        variable load was generated
+
+  Revision 1.116  1999/06/26 00:24:53  pierre
    * mereg from fixes-0_99_12 branch
 
   Revision 1.112.2.4  1999/06/26 00:22:30  pierre
