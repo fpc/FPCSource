@@ -459,7 +459,7 @@ Begin
   i:=0;
   while bp > prevbp Do
    Begin
-     Writeln(stderr,'  0x',HexStr(get_caller_addr(bp),8));
+     Writeln(f,'  0x',HexStr(get_caller_addr(bp),8));
      Inc(i);
      If i>max_frame_dump Then
       exit;
@@ -582,7 +582,11 @@ end;
 
 {
   $Log$
-  Revision 1.66  1999-08-05 23:45:14  peter
+  Revision 1.67  1999-09-18 16:05:12  jonas
+    * dump_stack now actually dumps its info to f (was still hardcoded
+      to stderr)
+
+  Revision 1.66  1999/08/05 23:45:14  peter
     * saveregister is now working and used for assert and iocheck (which has
       been moved to system.inc because it's now system independent)
 
