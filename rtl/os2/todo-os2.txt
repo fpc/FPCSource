@@ -7,7 +7,7 @@ Free Vision                                   high
   - FPC API
     - FileCtrl
             - Keyboard..............................................TH
-    - Video
+            - Video.................................................TH
             - Mouse.................................................TH
 
 finish PM support                             high
