@@ -58,7 +58,7 @@ endif
 
 
 [rules]
-ifeq ($(OS_SOURCE)$(CPU_SOURCE),$(OS_TARGET)$(CPU_TARGET))
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 
 ifeq ($(GDBFOUND),1)
 # libgdb.a found
@@ -68,7 +68,7 @@ $(CURRDIR)getver$(EXEEXT) : gdbver.pp
 
 ifndef GOTGDBVER
 # gdbver doesn't exists, build it first
-gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT)
+gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
         $(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
 else
 # gdbver exists

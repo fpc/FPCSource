@@ -19,15 +19,19 @@ interface
 
 {.define GDB_HAS_SYSROOT}      {versions of gdb >5.3 may need this}
                                {main.c exports a string that is empty (not null) for}
-			       {targets that do not support sysroot}
-			       {for now GDB_HAS_SYSROOT is not set here, it has to be done}
-			       {manually (set it if you have the unresolved symbol gdb_sysroot) }
-
-{ this is not needed (PM) $output_format as}
+                               {targets that do not support sysroot}
+                               {for now GDB_HAS_SYSROOT is not set here, it has to be done}
+                               {manually (set it if you have the unresolved symbol gdb_sysroot) }
 
 {.$define Verbose}
 {.$define DebugCommand}
 {$define NotImplemented}
+
+{ 6.2.x }
+{$ifdef GDB_V602}
+  {$define GDB_V6}
+  {$define GDB_HAS_SYSROOT}
+{$endif def GDB_V602}
 
 { GDB has a simulator for powerpc CPU
   it is integrated into GDB by default }
@@ -35,205 +39,106 @@ interface
   {$define GDB_HAS_SIM}
 {$endif powerpc}
 
-{$ifdef BSD}                    {v4.x nearly useless for BSD. 5.x is fine}
- {$DEFINE GDB_V502}
-{$endif}
-
-{$ifdef GDB_V600}
-  {$define GDB_V503}
-  {$define GDB_V6}
-  {$define GDB_HAS_SYSROOT}
-{$endif def GDB_V600}
-
-{$ifdef GDB_V621}
-  {$define GDB_V503}
-  {$define GDB_V600}
-  {$define GDB_V6}
-  {$define GDB_HAS_SYSROOT}
-{$endif def GDB_V621}
-
-{ Default version for GDB 5 is 5.01 for now PM }
-
-{$ifdef GDB_V5}
-  {$ifndef GDB_V500}
-    {$define GDB_V501}
-  {$endif ndef GDB_V500}
-{$endif def GDB_V5}
-
-{$ifdef GDB_V503}
-  {$define GDB_V502}
-  {$define GDB_SYMTAB_HAS_MACROS}
-  {$define GDB_V5}
-{$endif GDB_V503}
-
-{$ifdef GDB_V502}
-  {$define GDB_V501}
-  {$define GDB_V5}
-{$endif GDB_V502}
-
-{$ifdef GDB_V501}
-  {$define GDB_USES_PTID}
-  {$define GDB_V5}
-{$endif GDB_V501}
-
-{$ifdef GDB_V500}
-  {$define GDB_V5}
-{$endif GDB_V500}
-
-{ V4.18 is default for now }
-{ set when starting v5 support PM }
-{$ifndef GDB_V5}
-  {$ifndef GDB_V416}
-    {$define GDB_V418}
-  {$endif GDB_V416}
-{$endif GDB_V5}
-
 {$ifdef go32v2}
   {$undef NotImplemented}
-  { ifdef GDB_V418 changed to ifndef GDB_V416}
-  {$ifdef USE_GDB_OBJS}
-    {$include gdbobjs.inc}
-  {$else USE_GDB_OBJS}
-    {$LINKLIB gdb}
+  {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
     {$LINKLIB sim}
   {$endif GDB_HAS_SIM}
-    {$ifdef GDB_V5}
-      {$LINKLIB bfd}
-      {$LINKLIB readline}
-      {$LINKLIB opcodes}
-      {$LINKLIB history}
-      {$LINKLIB iberty}
-      {$LINKLIB intl}
-    {$endif GDB_V5}
-  {$endif ndef USE_GDB_OBJS}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
 
-{$ifndef bsd}
 {$ifdef linux}
+ {$ifndef bsd}
   {$undef NotImplemented}
- {$ifndef GDB_V5}
-  {$LINKLIB ncurses}
- {$endif not GDB_V5}
   {$LINKLIB gdb}
  {$ifdef GDB_HAS_SIM}
   {$LINKLIB sim}
  {$endif GDB_HAS_SIM}
-    {$ifdef GDB_V5}
-      {$LINKLIB bfd}
-      {$LINKLIB readline}
-      {$LINKLIB opcodes}
-      {$LINKLIB history}
-      {$LINKLIB iberty}
-      {$LINKLIB ncurses}
-      {$LINKLIB m}
-      {$LINKLIB iberty}
-      {$LINKLIB dl}
-    {$endif GDB_V5}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
+ {$endif bsd}
 {$endif linux}
-{$endif bsd}
 
 {$ifdef freebsd}
   {$undef NotImplemented}
- {$ifndef GDB_V5}
-  {$LINKLIB ncurses}
- {$endif not GDB_V5}
   {$LINKLIB gdb}
- {$ifdef GDB_HAS_SIM}
-  {$LINKLIB sim}
- {$endif GDB_HAS_SIM}
-    {$ifdef GDB_V5}
-      {$LINKLIB bfd}
-      {$LINKLIB readline}
-      {$LINKLIB opcodes}
-      {$LINKLIB history}
-      {$LINKLIB iberty}
-      {$LINKLIB ncurses}
-      {$LINKLIB m}
-      {$LINKLIB iberty}
-      {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
-                                but I use GDB CVS snapshots for the *BSDs}
-    {$endif GDB_V5}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
+                            but I use GDB CVS snapshots for the *BSDs}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
 
 {$ifdef netbsd}
   {$undef NotImplemented}
- {$ifndef GDB_V5}
-  {$LINKLIB ncurses}
- {$endif not GDB_V5}
   {$LINKLIB gdb}
- {$ifdef GDB_HAS_SIM}
-  {$LINKLIB sim}
- {$endif GDB_HAS_SIM}
-    {$ifdef GDB_V5}
-      {$LINKLIB bfd}
-      {$LINKLIB readline}
-      {$LINKLIB opcodes}
-      {$LINKLIB history}
-      {$LINKLIB iberty}
-      {$LINKLIB ncurses}
-      {$LINKLIB m}
-      {$LINKLIB iberty}
-      {$LINKLIB intl}
-      { does not seem to exist on netbsd LINKLIB dl}
-    {$endif GDB_V5}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
 
 {$ifdef openbsd}
   {$undef NotImplemented}
- {$ifndef GDB_V5}
-  {$LINKLIB curses}
- {$endif not GDB_V5}
   {$LINKLIB gdb}
- {$ifdef GDB_HAS_SIM}
-  {$LINKLIB sim}
- {$endif GDB_HAS_SIM}
-    {$ifdef GDB_V5}
-      {$LINKLIB bfd}
-      {$LINKLIB readline}
-      {$LINKLIB opcodes}
-      {$LINKLIB history}
-      {$LINKLIB iberty}
-      {$LINKLIB ncurses}
-      {$LINKLIB m}
-      {$LINKLIB iberty}
-      {$LINKLIB intl}
-      { does not seem to exist on netbsd LINKLIB dl}
-    {$endif GDB_V5}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
 
 {$ifdef win32}
   {$undef NotImplemented}
-{$ifndef GDB_V5}
-  {$LINKLIB cygwin}
-  {$LINKLIB gdb}
-  {$ifdef GDB_HAS_SIM}
-    {$LINKLIB sim}
-  {$endif GDB_HAS_SIM}
-  {$ifdef USE_TERMCAP}
-    {$LINKLIB termcap}
-  {$else not USE_TERMCAP}
-    {$LINKLIB ncurses}
-  {$endif not USE_TERMCAP}
-  {$LINKLIB gcc}
-  {$LINKLIB c}
-  {$LINKLIB cygwin}
-  { all those are maybe not necessary
-    but at least user32 is required
-    because of clipboard handling PM }
-  {$LINKLIB kernel32}
-  {$LINKLIB user32}
-{$else GDB_V5}
+  {$define GDB_USES_PTID}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
     {$LINKLIB sim}
@@ -242,16 +147,16 @@ interface
   {$LINKLIB readline}
   {$LINKLIB opcodes}
   {$LINKLIB intl}
+  {$LINKLIB iconv}
   {$LINKLIB iberty}
   {$LINKLIB termcap}
+  {$LINKLIB iberty}
   {$LINKLIB gcc}
   {$LINKLIB cygwin} { alias of libm.a and libc.a }
-  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
   {$LINKLIB imagehlp}
   {$LINKLIB kernel32}
   {$LINKLIB user32}
-{$endif GDB_V5}
-
 {$endif win32}
 
 {$ifdef go32v2}
@@ -296,7 +201,6 @@ type
   pframeentry=^tframeentry;
   ppframeentry=^pframeentry;
 
-{$ifndef GDB_V416}
 { needed for handles }
 {not anymore I textrec.inc}
 
@@ -307,19 +211,6 @@ type
   C_FILE     = longint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
 
-{$ifdef GDB_V418}
-{ GDB_FILE type }
-type
-  PGDB_FILE = ^TGDB_FILE;
-  TGDB_FILE = record
-              ts_streamtype : streamtype;
-              ts_filestream : P_C_FILE;
-              ts_strbuf : pchar;
-              ts_buflen : longint;
-              end;
-{$endif GDB_V418}
-
-{$ifdef GDB_V5}
 type
 
   pui_file = ^ui_file;
@@ -362,8 +253,6 @@ type
   procedure set_ui_file_write(stream : pui_file;write : ui_file_write_ftype);cdecl;external;
 
 
-{$endif GDB_V5}
-
 {$ifdef GDB_USES_PTID}
   type
 
@@ -401,19 +290,13 @@ var _impure_ptr : PREENT;cvar;external;
 
 {$endif win32}
 
-{$endif not GDB_V416}
 
 type
   tgdbbuffer=object
     buf   : pchar;
     size,
     idx   : longint;
-{$ifdef GDB_V418}
-    link  : pgdb_file;
-{$endif not GDB_V418}
-{$ifdef GDB_V5}
     gdb_file  : pui_file;
-{$endif not GDB_V5}
     constructor Init;
     destructor  Done;
     procedure Reset;
@@ -685,10 +568,7 @@ type
      psymtab_and_line = ^symtab_and_line;
      symtab_and_line = record
           symtab : psymtab;
-{$ifndef GDB_V416}
-          { v4.16 does not have the section field !! }
           section : pointer; {^asection;}
-{$endif GDB_V416}
           line : longint;
           pc : CORE_ADDR;
           _end : CORE_ADDR;
@@ -1145,9 +1025,9 @@ type
 
 var
 { external variables }
-  error_return : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
-  quit_return  : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
-  {$ifdef GDB_V621}
+  error_return : jmp_buf;cvar;
+  quit_return  : jmp_buf;cvar;
+  {$ifdef GDB_V602}
   deprecated_create_breakpoint_hook : pointer;cvar;external;
   {$else}
   create_breakpoint_hook : pointer;cvar;external;
@@ -1163,9 +1043,6 @@ var
   display_time  : longbool;cvar;public;
   display_space : longbool;cvar;public;
 
-{$ifndef GDB_V416}
-{ the following are also needed from version 4.18 }
-
 { Whether this is the command line version or not }
   tui_version : longint;cvar;public;
 
@@ -1175,18 +1052,12 @@ var
 { Whether dbx commands will be handled }
   dbx_commands : longint;cvar;public;
 
-{$ifndef GDB_V5}
-var
-  gdb_stdout : PGDB_FILE;cvar;public;
-  gdb_stderr : PGDB_FILE;cvar;public;
-{$else GDB_V5}
 var
   gdb_stdout : pui_file;cvar;public;
   gdb_stderr : pui_file;cvar;public;
   gdb_stdlog : pui_file;cvar;public;
   gdb_stdtarg : pui_file;cvar;public;
   event_loop_p : longint;cvar;public;
-{$endif GDB_V5}
 {$ifdef GDB_V6}
 (* target IO streams *)
   gdb_stdtargin : pui_file;cvar;public;
@@ -1194,10 +1065,7 @@ var
 {$endif}
 
 { used for gdb_stdout and gdb_stderr }
-function xmalloc(size : longint) : pointer;cdecl;external;
-
-{$endif not GDB_V416}
-
+function  xmalloc(size : longint) : pointer;cdecl;external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
 function  lookup_minimal_symbol_by_pc(i : CORE_ADDR):pminimal_symbol;cdecl;external;
@@ -1265,12 +1133,7 @@ const
 constructor tgdbbuffer.init;
 begin
   Buf:=nil;
-{$ifdef GDB_V418}
-  link:=nil;
-{$endif GDB_V418}
-{$ifdef GDB_V5}
   gdb_file:=nil;
-{$endif GDB_V5}
   Size:=0;
   Resize(blocksize);
   Reset;
@@ -1281,14 +1144,6 @@ destructor tgdbbuffer.done;
 begin
   if assigned(buf) then
     freemem(buf,size);
-{$ifdef GDB_V418}
-  if assigned(link) then
-    begin
-      link^.ts_streamtype:=afile;
-      link^.ts_strbuf:=nil;
-      link^.ts_buflen:=0;
-    end;
-{$endif GDB_V418}
 end;
 
 
@@ -1340,13 +1195,6 @@ begin
     end;
   buf:=np;
   size:=nsize;
-{$ifdef GDB_V418}
-  if assigned(link) then
-    begin
-      link^.ts_strbuf:=buf;
-      link^.ts_buflen:=size;
-    end;
-{$endif GDB_V418}
 end;
 
 
@@ -1558,7 +1406,7 @@ begin
 {$endif}
 end;
 
-{ only from version 5.0 }
+
 procedure annotate_ignore_count_change;cdecl;public;
 begin
 {$ifdef Verbose}
@@ -2052,18 +1900,6 @@ procedure _initialize_annotate;cdecl;public;
 begin
 end;
 
-{$ifndef GDB_V5}
-procedure fputs_unfiltered(linebuffer:pchar;stream:pointer);cdecl;public;
-begin
-  with curr_gdb^ do
-{$ifdef gdb_v418}
-  if stream = gdb_stderr then
-     gdberrorbuf.append(linebuffer)
-  else
-{$endif gdb_v418}
-     gdboutputbuf.append(linebuffer);
-end;
-{$else GDB_V5}
 
 procedure gdbint_ui_file_write(stream : pui_file; p : pchar; len : longint);cdecl;
 begin
@@ -2079,7 +1915,6 @@ begin
        gdberrorbuf.lappend(p,len);
       end;
 end;
-{$endif GDB_V5}
 
 
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
@@ -2125,27 +1960,7 @@ begin
   gdboutputbuf.init;
   gdberrorbuf.init;
   record_frames:=true;
-{$ifdef GDB_V418}
-(* GDB_FILE *
-  gdb_file_init_astring (n)
-    int n;
-  should we use xmalloc ?
-  gdb could resize the buffer => crash,
-  but normally it should not if unfiltered !! PM *)
-  gdb_stdout^.ts_streamtype := astring;
-  gdb_stdout^.ts_strbuf := gdboutputbuf.buf;
-  gdb_stdout^.ts_buflen := gdboutputbuf.size;
-  gdboutputbuf.link:=gdb_stdout;
 
-  gdb_stderr^.ts_streamtype := astring;
-  gdb_stderr^.ts_strbuf := gdberrorbuf.buf;
-  gdb_stderr^.ts_buflen := gdberrorbuf.size;
-  gdberrorbuf.link:=gdb_stderr;
-{$endif GDB_V418}
-
-{$ifdef GDB_V5}
-
-{$endif GDB_V5}
   { This must be placed before gdb__init is called
     as gdb_init might issue output PM }
   curr_gdb:=@self;
@@ -2179,7 +1994,7 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  {$ifdef GDB_V621}
+  {$ifdef GDB_V602}
   deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
   {$else}
   create_breakpoint_hook:=@CreateBreakPointHook;
@@ -2197,7 +2012,7 @@ begin
       current_target.to_kill;
       current_target.to_close(1);
     end;
-  {$ifdef GDB_V621}
+  {$ifdef GDB_V602}
   deprecated_create_breakpoint_hook:=nil;
   {$else}
   create_breakpoint_hook:=nil;
@@ -2218,7 +2033,6 @@ end;
 var
    top_level_val : longint;
 
-{$ifdef GDB_V5}
 function catch_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
 
 function gdbint_execute_command(command : pchar; from_tty,mask : longint) : longint;cdecl;
@@ -2227,7 +2041,6 @@ begin
   execute_command(command,from_tty);
   gdbint_execute_command:=0;
 end;
-{$endif GDB_V5}
 
 {$ifdef cpui386}
 type
@@ -2275,9 +2088,7 @@ end;
 procedure tgdbinterface.gdb_command(const s:string);
 var
   command          : array[0..256] of char;
-{$ifdef GDB_V5}
   mask : longint;
-{$endif GDB_V5}
   s2 : string;
   old_quit_return,
   old_error_return : jmp_buf;
@@ -2322,12 +2133,8 @@ begin
   if top_level_val=0 then
    begin
      quit_return:=error_return;
-{$ifdef GDB_V5}
      mask:=longint($ffffffff);
      catch_errors(@gdbint_execute_command,@command,0,mask);
-{$else not  GDB_V5}
-     execute_command(@command,0);
-{$endif not  GDB_V5}
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
@@ -2558,16 +2365,11 @@ begin
   AllowQuit:=true;
 end;
 
-{$ifdef GDB_V5}
 var
   version : array[0..0] of char;cvar;external;
 
 procedure error_init;cdecl;external;
 
-{$else}
-var
-  version : pchar;cvar;
-{$endif}
 
 function  GDBVersion : string;
 begin
@@ -2579,14 +2381,6 @@ const next_exit : pointer = nil;
 procedure DoneLibGDB;
 begin
   exitproc:=next_exit;
-{$ifdef GDB_V418}
-  if assigned(gdb_stdout) then
-    dispose(gdb_stdout);
-  gdb_stdout:=nil;
-  if assigned(gdb_stderr) then
-    dispose(gdb_stderr);
-  gdb_stderr:=nil;
-{$endif GDB_V418}
 end;
 
 {$ifdef go32v2}
@@ -2595,24 +2389,6 @@ var
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
 {$endif def go32v2}
-
-{$ifdef GDB_V418}
-{$ifndef go32v2}
-{$ifndef win32}
-var
-   stdout : p_c_file;cvar;external;
-   stderr : p_c_file;cvar;external;
-{$endif win32}
-{$else go32v2}
-{ the type is not really important
-  for external cvars PM
-  but the main problem is that stdout and stderr
-  and defined as macros under DJGPP !! }
-var
-   __dj_stdout : c_file;cvar;external;
-   __dj_stderr : c_file;cvar;external;
-{$endif go32v2}
-{$endif not GDB_V418}
 
 procedure InitLibGDB;
 {$ifdef supportexceptions}
@@ -2637,38 +2413,6 @@ begin
 {$endif}
 {$endif supportexceptions}
 
-{$ifdef GDB_V418}
-  new(gdb_stdout);
-
-  gdb_stdout^.ts_streamtype := afile;
-{$ifndef go32v2}
-{$ifdef win32}
- gdb_stdout^.ts_filestream := _impure_ptr^.stdout;
-{$else not win32 }
- gdb_stdout^.ts_filestream := stdout;{p_c_file(textrec(output).handle); was wrong PM }
-{$endif not win32 }
-{$else go32v2}
-  gdb_stdout^.ts_filestream := @__dj_stdout;
-{$endif go32v2}
-  gdb_stdout^.ts_strbuf := nil;
-  gdb_stdout^.ts_buflen := 0;
-
-  new(gdb_stderr);
-  gdb_stderr^.ts_streamtype := afile;
-{$ifndef go32v2}
-{$ifdef win32}
-  gdb_stderr^.ts_filestream := _impure_ptr^.stderr;
-{$else not win32 }
-  gdb_stderr^.ts_filestream := stderr;
-{$endif not win32 }
-{$else go32v2}
-  gdb_stderr^.ts_filestream := @__dj_stderr;
-{$endif go32v2}
-  gdb_stderr^.ts_strbuf := nil;
-  gdb_stderr^.ts_buflen := 0;
-{$endif  GDB_V418}
-
-{$ifdef GDB_V5}
   if assigned(gdb_stderr) then
     ui_file_delete(gdb_stderr);
   if assigned(gdb_stdout) then
@@ -2680,7 +2424,6 @@ begin
   set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
   set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
   error_init;
-{$endif GDB_V5}
 {$ifdef GDB_V6}
 //  gdb_stdtargin := gdb_stdin;
   gdb_stdtargerr := gdb_stderr;
@@ -2730,7 +2473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-10-04 17:59:19  armin
+  Revision 1.19  2004-11-04 17:56:36  peter
+  drop 4.x support, fixed 6.2.x support
+
+  Revision 1.18  2004/10/04 17:59:19  armin
   * added support for gdb 6.0 and 6.2.1
 
   Revision 1.17  2003/11/05 15:41:30  florian

@@ -11,7 +11,7 @@ program find_gdb_version;
 {$ifdef unix}
   {$Linklib c}
 {$endif}
-  
+
 {$Linklib gdb}
 
 uses
@@ -35,7 +35,6 @@ const
 
 var
   v5_version : array[0..0] of char;external name ver_name;
-  v4_version : pchar;external name ver_name;
   version : pchar;
   subver_str : string;
   i, version_number,
@@ -88,8 +87,8 @@ begin
   else
     begin
       if not only_ver then
-        Writeln('GDB version is ',v4_version);
-      version_number:=ord(v4_version[0])-ord('0');
+        Writeln('Unsupported GDB version');
+      version_number:=0;
     end;
   freemem(version,Max_version_length+1);
   if only_ver then
@@ -99,7 +98,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-02-12 15:59:27  peter
+  Revision 1.9  2004-11-04 17:56:36  peter
+  drop 4.x support, fixed 6.2.x support
+
+  Revision 1.8  2004/02/12 15:59:27  peter
     * linklib c only for unix
 
   Revision 1.7  2004/02/11 20:50:48  peter
