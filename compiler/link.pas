@@ -124,7 +124,7 @@ var
   ext  : extstr;
 begin
   FSplit(s,path,name,ext);
-  ExeName:=Path+Name+target_os.ExeExt;
+  ExeName:=Path+Name+target_info.ExeExt;
 end;
 
 
@@ -257,10 +257,7 @@ Var
   i            : longint;
   prtobj,s,s2  : string;
 begin
-{ Open linkresponse and write header }
-  assign(linkresponse,inputdir+LinkResName);
-  rewrite(linkresponse);
-
+  WriteResponseFile:=False;
 { set special options for some targets }
   prtobj:='prt0';
   case target_info.target of
@@ -275,7 +272,21 @@ begin
                   end;
   end;
 
-{ Add library searchpath }
+{ Fix command line options }
+  If not SharedLibFiles.Empty then
+   LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
+  if Strip then
+   LinkOptions:=LinkOptions+target_link.stripopt;
+
+{ Open linkresponse and write header }
+  assign(linkresponse,inputdir+LinkResName);
+  {$I-}
+   rewrite(linkresponse);
+  {$I+}
+  if ioresult<>0 then
+   exit;
+
+  { Write library searchpath }
   S2:=LibrarySearchPath;
   Repeat
     i:=Pos(';',S2);
@@ -288,7 +299,7 @@ begin
   until S2='';
 
   writeln(linkresponse,target_link.inputstart);
-{ add objectfiles, start with prt0 always }
+  { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    Writeln(linkresponse,FindObjectFile(prtobj));
   while not ObjectFiles.Empty do
@@ -297,7 +308,8 @@ begin
      if s<>'' then
       Writeln(linkresponse,s);
    end;
-{ Write sharedlibraries like -l<lib> }
+
+  { Write sharedlibraries like -l<lib> }
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.Get;
@@ -308,7 +320,7 @@ begin
    end;
   writeln(linkresponse,target_link.inputend);
 
-{ Write staticlibraries }
+  { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
      Writeln(LinkResponse,target_link.GroupStart);
@@ -330,9 +342,8 @@ Function TLinker.MakeExecutable:boolean;
 var
   bindbin    : string[80];
   bindfound  : boolean;
-  _stacksize,i,
-  _heapsize  : longint;
-  s,s2       : string;
+  i          : longint;
+  s          : string;
   dummy      : file;
   success    : boolean;
 begin
@@ -346,11 +357,6 @@ begin
    end;
 {$endif Linux}
 
-  If not SharedLibFiles.Empty then
-   LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
-  if Strip then
-   LinkOptions:=LinkOptions+target_link.stripopt;
-
 { Write used files and libraries }
   WriteResponseFile;
 
@@ -362,25 +368,20 @@ begin
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
   success:=DoExec(FindLinker,s,true,false);
-
 {Bind}
-  if target_info.target=target_os2 then
+  if target_link.bindbin<>'' then
    begin
-   {Calculate the stack and heap size in kilobytes, rounded upwards.}
-     _stacksize:=(stacksize+1023) shr 10;
-   {Minimum stacksize for EMX is 32K.}
-     if _stacksize<32 then
-      _stacksize:=32;
-     str(_stacksize,s);
-     _heapsize:=(heapsize+1023) shr 10;
-     str(_heapsize,s2);
-     bindbin:=FindExe('emxbind',bindfound);
+     s:=target_link.bindcmd;
+     Replace(s,'$EXE',exename);
+     Replace(s,'$HEAPKB',tostr((heapsize+1023) shr 10));
+     Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
+     bindbin:=FindExe(target_link.bindbin,bindfound);
      if (not bindfound) and (not externlink) then
       begin
-        Message(exec_w_binder_not_found);
+        Message1(exec_w_binder_not_found,bindbin);
         externlink:=true;
       end;
-     DoExec(bindbin,'-k'+s+' -o '+exename+'.exe '+exename+' -aim -s'+s2,false,false);
+     DoExec(bindbin,s,false,false);
    end;
 {Remove ReponseFile}
   if (success) and (not externlink) then
@@ -438,7 +439,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-22 12:32:47  peter
+  Revision 1.11  1998-05-27 00:20:31  peter
+    * some scanner optimizes
+    * automaticly aout2exe for go32v1
+    * fixed dynamiclinker option which was added at the wrong place
+
+  Revision 1.10  1998/05/22 12:32:47  peter
     * fixed -L on the commandline, Dos commandline is only 128 bytes
 
   Revision 1.9  1998/05/12 10:46:59  peter

@@ -147,11 +147,11 @@ unit scanner;
         orgpattern,
         pattern        : string;
         macrobuffer    : ^tmacrobuffer;
-        comment_level  : word;
         inputbuffer    : pchar;
         inputpointer   : pchar;
-        parse_types,                      { true, if type declarations are parsed }
+{        parse_types,   }                   { true, if type declarations are parsed }
         s_point        : boolean;
+        comment_level,
         yylexcount,
         macropos,
         lastlinepos,
@@ -412,8 +412,15 @@ unit scanner;
               readstring[i]:=c;
             end;
         { get next char }
-           readchar;
+           c:=inputpointer^;
+           if c=#0 then
+            reload
+           else
+            inc(longint(inputpointer));
          end;
+      { was the next char a linebreak ? }
+        if c in [#10,#13] then
+         linebreak;
         readstring[0]:=chr(i);
       end;
 
@@ -458,12 +465,16 @@ unit scanner;
               readnumber[i]:=c;
             end;
         { get next char }
-           readchar;
+           c:=inputpointer^;
+           if c=#0 then
+            reload
+           else
+            inc(longint(inputpointer));
          end;
-        readnumber[0]:=chr(i);
       { was the next char a linebreak ? }
-      {  if c in [#10,#13] then
-         linebreak; }
+        if c in [#10,#13] then
+         linebreak;
+        readnumber[0]:=chr(i);
       end;
 
 
@@ -498,7 +509,14 @@ unit scanner;
                end;
             end;
           end;
-          readchar;
+{          readchar; }
+          c:=inputpointer^;
+          if c=#0 then
+           reload
+          else
+           inc(longint(inputpointer));
+          if c in [#10,#13] then
+           linebreak;
         until false;
         readcomment[0]:=chr(i);
       end;
@@ -508,14 +526,15 @@ unit scanner;
       begin
         while c in [' ',#9..#13] do
          begin
-           readchar;
-           {c:=inputpointer^;
+{           readchar; }
+           c:=inputpointer^;
            if c=#0 then
             reload
            else
             inc(longint(inputpointer));
            if c in [#10,#13] then
-            linebreak; }
+            linebreak;
+
          end;
       end;
 
@@ -544,12 +563,15 @@ unit scanner;
            else
             found:=0;
            end;
-           readchar;
-           {c:=inputpointer^;
+{           readchar;}
+           c:=inputpointer^;
            if c=#0 then
             reload
            else
-            inc(longint(inputpointer));}
+            inc(longint(inputpointer));
+           if c in [#10,#13] then
+            linebreak;
+
          until (found=2);
       end;
 
@@ -570,14 +592,15 @@ unit scanner;
             '}' : dec_comment_level;
             #26 : Message(scan_f_end_of_file);
            end;
-           readchar;
-           {c:=inputpointer^;
+{           readchar; }
+           c:=inputpointer^;
            if c=#0 then
             reload
            else
-            inc(longint(inputpointer));}
+            inc(longint(inputpointer));
+           if c in [#10,#13] then
+            linebreak;
          end;
-       {if (c=#10) or (c=#13) then linebreak;}
       end;
 
 
@@ -633,18 +656,20 @@ unit scanner;
              else
               found:=0;
              end;
-             readchar;
-             {c:=inputpointer^;
+{             readchar; }
+             c:=inputpointer^;
              if c=#0 then
               reload
              else
-              inc(longint(inputpointer));}
+              inc(longint(inputpointer));
+             if c in [#10,#13] then
+              linebreak;
            until (found=2);
          end;
       end;
 
 
-        function yylex : ttoken;
+     function yylex : ttoken;
      var
         y    : ttoken;
         code : word;
@@ -655,14 +680,14 @@ unit scanner;
       label
          exit_label;
      begin
-        tokenpos.line:=current_module^.current_inputfile^.line_no;
-        tokenpos.column:=get_current_col;
-        tokenpos.fileindex:=current_module^.current_index;
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
         { this is a floating point number or range like 1..3                 }
         if s_point then
           begin
+             tokenpos.line:=current_module^.current_inputfile^.line_no;
+             tokenpos.column:=get_current_col;
+             tokenpos.fileindex:=current_module^.current_index;
              s_point:=false;
              if c='.' then
                begin
@@ -674,80 +699,87 @@ unit scanner;
              goto exit_label;
           end;
 
+      { Skip all spaces and comments }
         repeat
           case c of
            '{' : skipcomment;
-           ' ',#9..#13 : skipspace;
+   ' ',#9..#13 : skipspace;
           else
            break;
           end;
         until false;
 
+      { Save current token position }
         lasttokenpos:=longint(inputpointer);
         tokenpos.line:=current_module^.current_inputfile^.line_no;
         tokenpos.column:=get_current_col;
         tokenpos.fileindex:=current_module^.current_index;
-        { will become line:=lasttokenpos ??;}
-        case c of
-           '_','A'..'Z',
-           'a'..'z' : begin
-                        orgpattern:=readstring;
-                        pattern:=upper(orgpattern);
-                        if (length(pattern) in [2..id_len]) and is_keyword(y) then
-                         yylex:=y
-                        else
-                         begin
-                         { this takes some time ... }
-                           if support_macros then
-                            begin
-                              mac:=pmacrosym(macros^.search(pattern));
-                              if assigned(mac) and (assigned(mac^.buftext)) then
-                               begin
-                               { don't forget the last char }
-                                 dec(longint(inputpointer));
-                                 current_module^.current_inputfile^.bufpos:=inputpointer-inputbuffer;
-                               { this isn't a proper way, but ... }
-                                 hp:=new(pinputfile,init('','Macro '+pattern,''));
-                                 hp^.next:=current_module^.current_inputfile;
-                                 current_module^.current_inputfile:=hp;
-                                 status.currentsource:=current_module^.current_inputfile^.name^;
-                                 { I don't think that we should do that
-                                   because otherwise the file will be searched !! (PM)
-                                   but there is the problem of index !! }
-                                 current_module^.sourcefiles.register_file(hp);
-                                 current_module^.current_index:=hp^.ref_index;
-                               { set an own buffer }
-                                 getmem(hp2,mac^.buflen+1);
-                                 current_module^.current_inputfile^.setbuf(hp2,mac^.buflen+1);
-                                 inputbuffer:=current_module^.current_inputfile^.buf;
-                               { copy text }
-                                 move(mac^.buftext^,inputbuffer^,mac^.buflen);
-                               { put end sign }
-                                 inputbuffer[mac^.buflen+1]:=#0;
-                               { load c }
-                                 c:=inputbuffer^;
-                                 inputpointer:=inputbuffer+1;
-                               { handle empty macros }
-                                 if c=#0 then
-                                  reload;
-                               { play it again ... }
-                                 inc(yylexcount);
-                                 if yylexcount>16 then
-                                  Message(scan_w_macro_deep_ten);
+        
+
+      { Check first for a identifier/keyword, this is 20+% faster (PFV) }       
+
+        if c in ['_','A'..'Z','a'..'z'] then
+         begin
+           orgpattern:=readstring;
+           pattern:=upper(orgpattern);
+           if (length(pattern) in [2..id_len]) and is_keyword(y) then
+            yylex:=y
+           else
+            begin
+            { this takes some time ... }
+              if support_macros then
+               begin
+                 mac:=pmacrosym(macros^.search(pattern));
+                 if assigned(mac) and (assigned(mac^.buftext)) then
+                  begin
+                  { don't forget the last char }
+                    dec(longint(inputpointer));
+                    current_module^.current_inputfile^.bufpos:=inputpointer-inputbuffer;
+                  { this isn't a proper way, but ... }
+                    hp:=new(pinputfile,init('','Macro '+pattern,''));
+                    hp^.next:=current_module^.current_inputfile;
+                    current_module^.current_inputfile:=hp;
+                    status.currentsource:=current_module^.current_inputfile^.name^;
+                    { I don't think that we should do that
+                      because otherwise the file will be searched !! (PM)
+                      but there is the problem of index !! }
+                    current_module^.sourcefiles.register_file(hp);
+                    current_module^.current_index:=hp^.ref_index;
+                  { set an own buffer }
+                    getmem(hp2,mac^.buflen+1);
+                    current_module^.current_inputfile^.setbuf(hp2,mac^.buflen+1);
+                    inputbuffer:=current_module^.current_inputfile^.buf;
+                  { copy text }
+                    move(mac^.buftext^,inputbuffer^,mac^.buflen);
+                  { put end sign }
+                    inputbuffer[mac^.buflen+1]:=#0;
+                  { load c }
+                    c:=inputbuffer^;
+                    inputpointer:=inputbuffer+1;
+                  { handle empty macros }
+                    if c=#0 then
+                     reload;
+                  { play it again ... }
+                    inc(yylexcount);
+                    if yylexcount>16 then
+                     Message(scan_w_macro_deep_ten);
 {$ifdef TP}
-                                 yylex:=yylex;
+                    yylex:=yylex;
 {$else}
-                                 yylex:=yylex();
+                    yylex:=yylex();
 {$endif}
-                               { that's all folks }
-                                 dec(yylexcount);
-                                 exit;
-                               end;
-                            end;
-                           yylex:=ID;
-                         end;
-                        goto exit_label;
-                      end;
+                  { that's all folks }
+                    dec(yylexcount);
+                    exit;
+                  end;
+               end;
+              yylex:=ID;
+            end;
+           goto exit_label;
+         end
+        else    
+         begin
+           case c of
                 '$' : begin
                          pattern:=readnumber;
                          yylex:=INTCONST;
@@ -944,9 +976,8 @@ unit scanner;
                         if c='^' then
                          begin
                            readchar;
-                              c:=upcase(c);
-                              if not(block_type=bt_type) and (c in ['A'..'Z']) then
-{                           if not(block_type=bt_type) and (c in [#64..#128]) then}
+                           c:=upcase(c);
+                           if not(block_type=bt_type) and (c in ['A'..'Z']) then
                             begin
                               pattern:=chr(ord(c)-64);
                               readchar;
@@ -1056,7 +1087,9 @@ unit scanner;
               Message(scan_f_illegal_char);
             end;
            end;
-       exit_label:
+        end;
+
+exit_label:
      end;
 
 
@@ -1069,9 +1102,14 @@ unit scanner;
           end
          else
           readchar;
-        tokenpos.line:=current_module^.current_inputfile^.line_no;
-        tokenpos.column:=get_current_col;
-        tokenpos.fileindex:=current_module^.current_index;
+         with tokenpos do
+          begin
+
+            line:=current_module^.current_inputfile^.line_no;
+            column:=get_current_col;
+            fileindex:=current_module^.current_index;
+          end;
+
          case c of
           '{' : begin
                   skipcomment;
@@ -1137,11 +1175,15 @@ unit scanner;
    procedure get_cur_file_pos(var fileinfo : tfileposinfo);
 
      begin
-        fileinfo.line:=current_module^.current_inputfile^.line_no;
+        with fileinfo do
+         begin
+           line:=current_module^.current_inputfile^.line_no;
         {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
         { should allways be the same !! }
-        fileinfo.fileindex:=current_module^.current_index;
-        fileinfo.column:=get_current_col;
+           fileindex:=current_module^.current_index;
+           column:=get_current_col;
+         end;
+
      end;
 
    procedure set_cur_file_pos(const fileinfo : tfileposinfo);
@@ -1214,7 +1256,12 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.20  1998-05-23 01:21:30  peter
+  Revision 1.21  1998-05-27 00:20:32  peter
+    * some scanner optimizes
+    * automaticly aout2exe for go32v1
+    * fixed dynamiclinker option which was added at the wrong place
+
+  Revision 1.20  1998/05/23 01:21:30  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

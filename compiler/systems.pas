@@ -78,6 +78,8 @@ unit systems;
        tlinkinfo = record
           linkbin       : string[8];
           linkcmd       : string[50];
+          bindbin       : string[8];
+          bindcmd       : string[50];
           stripopt      : string[2];
           libpathprefix : string[12];
           libpathsuffix : string[2];
@@ -97,7 +99,8 @@ unit systems;
           unitext,
           unitlibext,
           asmext,
-          objext      : string[4];
+          objext,
+          exeext      : string[4];
           os          : tos;
           link        : tlink;
           assem       : tasm;
@@ -129,7 +132,7 @@ implementation
             staticlibext : '.A';
             sourceext    : '.PP';
             pasext       : '.PAS';
-            exeext       : '.EXE';
+            exeext       : '';      { No .exe, the linker only output a.out ! }
             scriptext    : '.BAT';
             Cprefix      : '_';
             newline      : #13#10;
@@ -327,6 +330,8 @@ implementation
           (
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
+            bindbin : '';
+            bindcmd : '';
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -340,6 +345,8 @@ implementation
           ,(
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
+            bindbin : 'aout2exe';
+            bindcmd : '$EXE';
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -352,6 +359,8 @@ implementation
           ,(
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
+            bindbin : '';
+            bindcmd : '';
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -364,6 +373,8 @@ implementation
           ,(
             linkbin : 'ldw';
             linkcmd : '$OPT -o $EXE $RES';
+            bindbin : '';
+            bindcmd : '';
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -376,6 +387,8 @@ implementation
           ,(
             linkbin : 'ld';
             linkcmd : '-o $EXE @$RES';
+            bindbin : 'emxbind';
+            bindcmd : '-o $EXE.exe $EXE -k$STACKKB -aim -s$HEAPKB';
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -402,6 +415,7 @@ implementation
             unitlibext  : '.PPL';
             asmext      : '.S1';
             objext      : '.O1';
+            exeext      : ''; { The linker procedures a.out }
             os          : os_GO32V1;
             link        : link_ldgo32v1;
             assem       : as_o
@@ -417,12 +431,14 @@ implementation
             unitlibext  : '.PPL';
             asmext      : '.S';
             objext      : '.O';
+            exeext      : '.EXE';
 {$else UseAnsiString}
             smartext    : '.SL';
             unitext     : '.PAU';
             unitlibext  : '.PPL';
             asmext      : '.SA';
             objext      : '.OA';
+            exeext      : '.EXE';
 {$endif UseAnsiString}
             os          : os_GO32V2;
             link        : link_ldgo32v2;
@@ -438,6 +454,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            exeext      : '';
             os          : os_Linux;
             link        : link_ld;
             assem       : as_o
@@ -452,6 +469,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.so2';
             objext      : '.oo2';
+            exeext      : ''; { The linker procedures a.out }
             os          : os_OS2;
             link        : link_ldos2;
             assem       : as_o
@@ -466,6 +484,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            exeext      : '.exe';
             os          : os_Win32;
             link        : link_ldw;
             assem       : as_o
@@ -480,6 +499,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.asm';
             objext      : '.o';
+            exeext      : '';
             os          : os_Amiga;
             link        : link_ld;
             assem       : as_o
@@ -494,6 +514,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            exeext      : '';
             os          : os_Atari;
             link        : link_ld;
             assem       : as_o
@@ -508,6 +529,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            exeext      : '';
             os          : os_Mac68k;
             link        : link_ld;
             assem       : as_o
@@ -606,7 +628,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-05-23 01:21:32  peter
+  Revision 1.13  1998-05-27 00:20:33  peter
+    * some scanner optimizes
+    * automaticly aout2exe for go32v1
+    * fixed dynamiclinker option which was added at the wrong place
+
+  Revision 1.12  1998/05/23 01:21:32  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
