@@ -982,7 +982,7 @@ implementation
            if (cs_implicit_exceptions in aktmoduleswitches) then
             include(current_procinfo.flags,pi_needs_implicit_finally);
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-            reference_reset_base(href,current_procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
+            reference_reset_base(href,current_procinfo.framepointer,tg.direction*tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
             reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
@@ -1007,7 +1007,7 @@ implementation
                  tvarsym(p).vartype.def.needs_inittable then
                begin
                  if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-                  reference_reset_base(href,current_procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
+                  reference_reset_base(href,current_procinfo.framepointer,tg.direction*tvarsym(p).address+tvarsym(p).owner.address_fixup)
                  else
                   reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
                  cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
@@ -1046,7 +1046,7 @@ implementation
                   include(current_procinfo.flags,pi_needs_implicit_finally);
                  if assigned(tvarsym(p).localvarsym) then
                   reference_reset_base(href,current_procinfo.framepointer,
-                      -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
+                      tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
                  else
                   reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
                  cg.g_incrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
@@ -1087,7 +1087,7 @@ implementation
             begin
               if assigned(tvarsym(p).localvarsym) then
                reference_reset_base(href,current_procinfo.framepointer,
-                   -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
+                   tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
               else
                reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
               cg.g_decrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
@@ -1139,13 +1139,13 @@ implementation
              tt_freewidestring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
                end;
            end;
@@ -1850,7 +1850,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-05-11 21:37:03  peter
+  Revision 1.100  2003-05-12 08:08:27  jonas
+    * fixed several initialization and finalization related bugs (missing
+      tg.direction's, wrong paralocation for decreasing refcount of
+      everything but ansistrings)
+
+  Revision 1.99  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 
