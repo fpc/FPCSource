@@ -48,9 +48,7 @@ implementation
 
     procedure push_shortstring_length(p:ptree);
       var
-        r : preference;
         hightree : ptree;
-
       begin
         if is_open_string(p^.resulttype) then
          begin
@@ -60,9 +58,6 @@ implementation
            secondpass(hightree);
            push_value_para(hightree,false,0);
            disposetree(hightree);
-{           r:=new_reference(highframepointer,highoffset+4);
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,r,R_EDI)));
-           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI))); }
          end
         else
          begin
@@ -1590,7 +1585,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-01-28 14:06:45  florian
+  Revision 1.51  1999-01-28 19:50:15  peter
+    * removed warning
+
+  Revision 1.50  1999/01/28 14:06:45  florian
     * small fix for method pointers
     * found the annoying strpas bug, mainly nested call to type cast which
       use ansistrings crash
