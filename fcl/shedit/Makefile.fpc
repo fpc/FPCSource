@@ -7,11 +7,12 @@ units=doc_text shedit sh_pas sh_xml
 programs_win32=gtkdemo
 programs_linux=gtkdemo
 
+[packages]
+fcl=1
+packages_win32=gtk
+packages_linux=gtk
+
 [dirs]
 fpcdir=../..
-unitdir=$(FPCDIR)/gtk ../$(OS_TARGET)
 targetdir=.
-
-[defaults]
-defaultunits=1
 

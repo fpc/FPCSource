@@ -11,11 +11,12 @@ programs_win32=testz testz2
 [clean]
 files=restest.rst
 
+[packages]
+fcl=1
+
 [dirs]
 fpcdir=../..
-unitdir=../$(OS_TARGET)
 targetdir=.
 
 [defaults]
 defaultoptions=-S2
-

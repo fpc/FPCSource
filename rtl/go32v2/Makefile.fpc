@@ -11,14 +11,12 @@ units=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc \
       msmouse ports
 
-programs=
-
+[packages]
+rtl=0
 
 [defaults]
-defaultunits=1
 defaulttarget=go32v2
 defaultcpu=i386
-
 
 [dirs]
 fpcdir=.

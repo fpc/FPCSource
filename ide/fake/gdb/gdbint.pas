@@ -86,6 +86,8 @@ type
     { functions }
     function  error:boolean;
     function  error_num:longint;
+    procedure DebuggerScreen;
+    procedure UserScreen;
     { Hooks }
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
     procedure DoStartSession;virtual;
@@ -134,6 +136,16 @@ begin
 end;
 
 procedure TGDBInterface.Clear_Frames;
+begin
+end;
+
+
+procedure TGDBInterface.DebuggerScreen;
+begin
+end;
+
+
+procedure TGDBInterface.UserScreen;
 begin
 end;
 
@@ -274,7 +286,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-09-10 08:44:20  peter
+  Revision 1.6  1999-11-25 20:22:59  peter
+    * package dependencies
+
+  Revision 1.5  1999/09/10 08:44:20  peter
     * updated
 
   Revision 1.4  1999/08/17 13:25:17  peter

@@ -10,20 +10,18 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
       errors sockets gpm ipc
-programs=
 
+[packages]
+rtl=0
 
 [defaults]
-defaultunits=1
 defaulttarget=linux
 defaultcpu=i386
-
 
 [dirs]
 fpcdir=.
 incdir=$(INC) $(PROCINC)
 targetdir=.
-
 
 [libs]
 libname=fprtl
@@ -33,6 +31,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
       errors sockets gpm ipc
+
 
 [presettings]
 RTL=..
@@ -48,10 +47,10 @@ GRAPHDIR=$(INC)/graph
 # Define Go32v2 Units
 SYSTEMUNIT=syslinux
 
-# Use new graph unit ? 
+# Use new graph unit ?
 # NEWGRAPH=YES
 # Use LibGGI ?
-# Use 
+# Use
 #
 ifndef USELIBGGI
 USELIBGGI=NO

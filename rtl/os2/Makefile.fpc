@@ -9,14 +9,13 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils math typinfo \
       cpu mmx getopts heaptrc
-programs=
 
+[packages]
+rtl=0
 
 [defaults]
-defaultunits=1
 defaulttarget=os2
 defaultcpu=i386
-
 
 [dirs]
 fpcdir=.

@@ -31,8 +31,8 @@ const
 
 type
   tsections=(sec_none,
-    sec_units,sec_exes,sec_loaders,sec_examples,
-    sec_compile,sec_depend,sec_install,sec_zipinstall,
+    sec_units,sec_exes,sec_loaders,sec_examples,sec_package,
+    sec_compile,sec_depend,sec_install,sec_sourceinstall,sec_zipinstall,
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
@@ -41,14 +41,14 @@ const
   TimeFormat='yyyy/mm/dd hh:nn';
 
   sectionstr : array[tsections] of string=('none',
-    'units','exes','loaders','examples',
-    'compile','depend','install','zipinstall',
+    'units','exes','loaders','examples','package',
+    'compile','depend','install','sourceinstall','zipinstall',
     'clean','libs','command','exts','dirs','tools','info'
   );
 
   sectiondef : array[tsections] of boolean=(false,
-    true,true,false,false,
-    true,false,true,true,
+    true,true,false,false,false,
+    true,false,true,true,true,
     true,true,true,true,true,true,true
   );
 
@@ -57,12 +57,12 @@ const
     'linux','go32v2','win32','os2'
   );
 
-  rules=14;
+  rules=15;
   rulestr : array[1..rules] of string=(
     'all','debug',
     'examples','test',
     'smart','shared',
-    'showinstall','install','zipinstall','zipinstalladd',
+    'showinstall','install','sourceinstall','zipinstall','zipinstalladd',
     'clean','cleanall',
     'depend','info'
   );
@@ -71,7 +71,7 @@ const
     sec_compile,sec_compile,
     sec_examples,sec_examples,
     sec_libs,sec_libs,
-    sec_install,sec_install,sec_zipinstall,sec_zipinstall,
+    sec_install,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipinstall,
     sec_clean,sec_clean,
     sec_depend,sec_info
   );
@@ -79,6 +79,7 @@ const
 { Sections in Makefile.fpc }
   ini_sections='sections';
   ini_install='install';
+  ini_zip='zip';
   ini_clean='clean';
   ini_dirs='dirs';
   ini_packages='packages';
@@ -95,12 +96,17 @@ type
     TargetLoaders,
     TargetUnits,
     TargetPrograms,
-    TargetExamples,
+    TargetExamples : TTargetsString;
+    InstallPrefix,
+    InstallBase    : string;
     InstallUnits,
-    InstallFiles,
+    InstallFiles   : TTargetsString;
     CleanUnits,
     CleanFiles     : TTargetsString;
+    ZipName,
+    ZipTarget      : string;
     DefaultRule,
+    DefaultDir,
     DefaultTarget,
     DefaultCPU,
     DefaultOptions : string;
@@ -113,8 +119,9 @@ type
     DirUnitTarget,
     DirSources,
     DirInc         : string;
+    PackageRTL,
     PackageFCL     : boolean;
-    Packages       : string;
+    Packages       : TTargetsString;
     LibName,
     LibUnits       : string;
     LibGCC,
@@ -146,8 +153,8 @@ type
   end;
 
 var
-  userini : TFpcMake;
-  fpcini  : TIniFile;
+  userini   : TFpcMake;
+  fpcini    : TIniFile;
   IniStream : TMyMemoryStream;
 
 
@@ -238,15 +245,22 @@ begin
      ReadTargetsString(CleanUnits,ini_clean,'units','');
      ReadTargetsString(CleanFiles,ini_clean,'files','');
    { install }
+     InstallPrefix:=ReadString(ini_install,'dirprefix','');
+     InstallBase:=ReadString(ini_install,'dirbase','');
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
+   { zip }
+     ZipName:=ReadString(ini_zip,'zipname','');
+     ZipTarget:=ReadString(ini_zip,'ziptarget','install');
    { defaults }
+     DefaultDir:=ReadString(ini_defaults,'defaultdir','');
      DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
      DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
      DefaultOptions:=ReadString(ini_defaults,'defaultoptions','');
    { packages }
-     Packages:=Readstring(ini_packages,'packages','');
+     ReadTargetsString(Packages,ini_packages,'packages','');
+     PackageRTL:=ReadBool(ini_packages,'rtl',true);
      PackageFCL:=ReadBool(ini_packages,'fcl',false);
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
@@ -284,13 +298,13 @@ begin
       Section[sec]:=ReadBool(ini_sections,sectionstr[sec],section[sec]);
      { turn on needed sections }
      if not TargetStringEmpty(TargetLoaders) then
-      userini.section[sec_loaders]:=true;
+      section[sec_loaders]:=true;
      if not TargetStringEmpty(TargetUnits) then
-      userini.section[sec_units]:=true;
+      section[sec_units]:=true;
      if not TargetStringEmpty(TargetPrograms) then
-      userini.section[sec_exes]:=true;
+      section[sec_exes]:=true;
      if not TargetStringEmpty(TargetExamples) then
-      userini.section[sec_examples]:=true;
+      section[sec_examples]:=true;
    { info }
      InfoCfg:=ReadBool(ini_info,'infoconfig',true);
      InfoDirs:=ReadBool(ini_info,'infodirs',false);
@@ -359,6 +373,7 @@ function WriteMakefile:boolean;
 var
   mf : TStringList;
   ss : TStringList;
+  Phony : string;
 
   procedure FixTab(sl:TStringList);
   var
@@ -433,9 +448,9 @@ var
      begin
        if (length(userini.rules[i])>length(rulestr[rule])) and
           (userini.rules[i][1]=rulestr[rule][1]) and
-	  ((userini.rules[i][length(rulestr[rule])+1]=':') or
-	   ((length(userini.rules[i])>length(rulestr[rule])+1) and
-	    (userini.rules[i][length(rulestr[rule])+2]=':'))) and
+          ((userini.rules[i][length(rulestr[rule])+1]=':') or
+           ((length(userini.rules[i])>length(rulestr[rule])+1) and
+            (userini.rules[i][length(rulestr[rule])+2]=':'))) and
           (Copy(userini.rules[i],1,length(rulestr[rule]))=rulestr[rule]) then
          exit;
        inc(i);
@@ -443,10 +458,14 @@ var
     hs:='';
     if userini.section[rule2sec[rule]] then
      hs:=hs+' fpc_'+rulestr[rule];
-    if not TargetStringEmpty(userini.targetdirs) then
-     hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+    if userini.DefaultDir<>'' then
+     hs:=hs+' '+userini.defaultdir+'_'+rulestr[rule]
+    else
+     if not TargetStringEmpty(userini.targetdirs) then
+      hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
     if hs<>'' then
      begin
+       Phony:=Phony+' '+rulestr[rule];
        mf.Add(rulestr[rule]+':'+hs);
        mf.Add('');
      end;
@@ -464,9 +483,9 @@ var
         if t[i]<>'' then
          begin
            if wildcard then
-            mf.Add(pre+'+=$(wildcard '+t[i]+')')
+            mf.Add('override '+pre+'+=$(wildcard '+t[i]+')')
            else
-            mf.Add(pre+'+='+t[i]);
+            mf.Add('override '+pre+'+='+t[i]);
          end;
         if i<>0 then
          mf.Add('endif');
@@ -475,20 +494,73 @@ var
 
   procedure AddTargetDir(const s:string);
   var
-    j : integer;
+    j  : integer;
+    hs : string;
   begin
     AddHead('Dir '+s);
+    mf.Add('ifdef OBJECTDIR'+Uppercase(s));
+    hs:='.PHONY: ';
+    for j:=1to rules do
+     hs:=hs+' '+s+'_'+rulestr[j];
+    mf.Add(hs);
+    mf.Add('');
     for j:=1to rules do
      begin
        mf.Add(s+'_'+rulestr[j]+':');
        mf.Add(#9+'$(MAKE) -C '+s+' '+rulestr[j]);
-       mf.Add('');
+       if j<rules then
+        mf.Add('');
      end;
+    mf.Add('endif');
+  end;
+
+  procedure AddPackageDep(const packagedir,s,s2:string;ifdefneed:boolean);
+  begin
+    if ifdefneed then
+     mf.Add('ifdef PACKAGE'+Uppercase(s));
+    mf.Add('ifneq ($(wildcard '+packagedir+'/'+s+'),)');
+    mf.Add('ifeq ($(wildcard '+packagedir+'/'+s+'/$(FPCMAKED)),)');
+    mf.Add('override COMPILEPACKAGES+='+s2);
+    mf.Add(s2+'_package:');
+    mf.Add(#9'$(MAKE) -C '+packagedir+'/'+s+' all');
+    mf.Add('endif');
+    mf.Add('endif');
+    if ifdefneed then
+     mf.Add('endif');
+    Phony:=Phony+' '+s+'_package';
+  end;
+
+  function AddTargetDefines(const ts:TTargetsString;const prefix:string):string;
+  var
+    j,i : integer;
+    hs,hs2 : string;
+  begin
+    hs2:='';
+    for j:=0 to targets do
+     if (ts[j]<>'') then
+      begin
+        if j<>0 then
+         mf.Add('ifeq ($(OS_TARGET),'+targetstr[j]+')');
+        hs:=ts[j];
+        repeat
+          i:=pos(' ',hs);
+          if i=0 then
+           i:=length(hs)+1;
+          mf.Add(prefix+Uppercase(Copy(hs,1,i-1))+'=1');
+          { add to the list of dirs without duplicates }
+          if pos(Copy(hs,1,i-1),hs2)=0 then
+           hs2:=hs2+Copy(hs,1,i-1)+' ';
+          system.delete(hs,1,i);
+        until hs='';
+        if j<>0 then
+         mf.Add('endif');
+      end;
+     AddTargetDefines:=hs2;
   end;
 
 var
-  hs : string;
-  i,j : integer;
+  hs  : string;
+  i : integer;
 begin
 { Open the Makefile }
   Verbose('Creating Makefile');
@@ -549,6 +621,16 @@ begin
      AddHead('Install');
      AddTargets('EXTRAINSTALLUNITS',userini.installunits,false);
      AddTargets('EXTRAINSTALLFILES',userini.installfiles,false);
+     if userini.installprefix<>'' then
+      Add('PREFIXINSTALLDIR='+userini.installprefix);
+     if userini.installbase<>'' then
+      Add('BASEINSTALLDIR='+userini.installbase);
+
+   { Zip }
+     if userini.zipname<>'' then
+      Add('ZIPNAME='+userini.zipname);
+     if userini.ziptarget<>'' then
+      Add('ZIPTARGET='+userini.ziptarget);
 
    { Defaults }
      AddHead('Defaults');
@@ -596,11 +678,10 @@ begin
 
    { Packages }
      AddHead('Packages');
-     if userini.Packages<>'' then
-      Add('PACKAGES='+userini.Packages);
+     AddTargets('PACKAGES',userini.packages,false);
      if userini.PackageFCL then
       Add('override NEEDUNITDIR+=$(FPCDIR)/fcl/$(OS_TARGET)');
-     if userini.Packages<>'' then
+     if not TargetStringEmpty(userini.Packages) then
       Add('override NEEDUNITDIR+=$(addprefix $(PACKAGEDIR)/,$(PACKAGES))');
 
    { Libs }
@@ -629,7 +710,7 @@ begin
          hs:=hs+'fpc_infoobjects ';
         if userini.infoinstall then
          hs:=hs+'fpc_infoinstall ';
-        Add('FPCINFO='+hs);
+        Add('INFOTARGET='+hs);
       end;
 
    { Post Settings }
@@ -638,7 +719,6 @@ begin
         AddHead('Post Settings');
         AddStrings(userini.PostSettings);
       end;
-
      Add('');
 
    { write dirs }
@@ -656,8 +736,12 @@ begin
         Add('');
         AddSection(true,'command_begin');
         AddSection((userini.defaultoptions<>''),'command_needopt');
-        AddSection((userini.dirfpc<>''),'command_fpcdir');
-        AddSection((userini.dirunit<>'') or (userini.packages<>'') or (userini.packagefcl),'command_needunit');
+        AddSection((userini.dirfpc<>''),'command_rtldir');
+        AddSection((userini.dirfpc<>''),'command_unitsdir');
+        AddSection((userini.dirunit<>'') or
+                   (userini.packagefcl) or
+                   (not TargetStringEmpty(userini.packages))
+                   ,'command_needunit');
         AddSection((userini.dirlib<>''),'command_needlib');
         AddSection((userini.dirobj<>''),'command_needobj');
         AddSection((userini.dirinc<>''),'command_needinc');
@@ -691,19 +775,53 @@ begin
       AddSection(true,'extensions');
 
    { add default rules }
-     AddSection(true,'defaultrules');
+     AddSection(true,'standardrules');
+     Phony:='';
      for i:=1 to rules do
       AddRule(i);
+     if Phony<>'' then
+      begin
+        Add('.PHONY: '+Phony);
+        Add('');
+      end;
+
+   { Package depends, must be before the other rules so it's done first! }
+     AddSection(true,'packagedependrules');
+     Phony:='';
+     if userini.packagertl then
+      AddPackageDep('$(RTLDIR)','$(OS_TARGET)','rtl',false);
+     if userini.packagefcl then
+      AddPackageDep('$(FCLDIR)','$(OS_TARGET)','fcl',false);
+     Add('');
+     if not TargetStringEmpty(userini.Packages) then
+      begin
+        hs:=AddTargetDefines(userini.Packages,'PACKAGE');
+        repeat
+          i:=pos(' ',hs);
+          if i=0 then
+           i:=length(hs)+1;
+          AddPackageDep('$(PACKAGEDIR)',Copy(hs,1,i-1),Copy(hs,1,i-1),true);
+          system.delete(hs,1,i);
+        until hs='';
+        Add('');
+      end;
+     if Phony<>'' then
+      begin
+        Add('.PHONY: '+Phony);
+        Add('');
+      end;
 
    { compile rules for making units/loaders/exes/examples }
      AddSection(not TargetStringEmpty(userini.targetunits),'unitrules');
      AddSection(not TargetStringEmpty(userini.targetprograms),'exerules');
      AddSection(not TargetStringEmpty(userini.targetloaders),'loaderrules');
      AddSection(not TargetStringEmpty(userini.targetexamples),'examplerules');
+
    { default fpc_ rules }
      AddSection(userini.Section[sec_Compile],'compilerules');
      AddSection(userini.Section[sec_Libs],'libraryrules');
      AddSection(userini.Section[sec_Install],'installrules');
+     AddSection(userini.Section[sec_SourceInstall],'sourceinstallrules');
      AddSection(userini.Section[sec_ZipInstall],'zipinstallrules');
      AddSection(userini.Section[sec_Clean],'cleanrules');
      AddSection(userini.Section[sec_Depend],'dependrules');
@@ -720,22 +838,16 @@ begin
    { Target dirs }
      if not TargetStringEmpty(userini.targetdirs) then
       begin
-        for j:=0 to targets do
-         if (userini.targetdirs[j]<>'') then
-          begin
-            if j<>0 then
-             mf.Add('ifeq ($(OS_TARGET),'+targetstr[j]+')');
-            hs:=userini.targetdirs[j];
-            repeat
-              i:=pos(' ',hs);
-              if i=0 then
-               i:=length(hs)+1;
-              AddTargetDir(Copy(hs,1,i-1));
-              system.delete(hs,1,i);
-            until hs='';
-            if j<>0 then
-             mf.Add('endif');
-          end;
+        AddHead('Target Dirs');
+        hs:=AddTargetDefines(userini.targetdirs,'OBJECTDIR');
+        repeat
+          i:=pos(' ',hs);
+          if i=0 then
+           i:=length(hs)+1;
+          AddTargetDir(Copy(hs,1,i-1));
+          system.delete(hs,1,i);
+        until hs='';
+        Add('');
       end;
 
    { insert users rules }
@@ -774,7 +886,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-11-24 23:53:00  peter
+  Revision 1.9  1999-11-25 20:23:01  peter
+    * package dependencies
+
+  Revision 1.8  1999/11/24 23:53:00  peter
     * packages
     * lot of other changes
 

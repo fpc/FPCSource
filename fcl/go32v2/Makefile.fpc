@@ -3,7 +3,6 @@
 #
 
 [defaults]
-defaultunits=1
 defaulttarget=go32v2
 defaultcpu=i386
 defaultoptions=-S2
@@ -12,6 +11,7 @@ defaultoptions=-S2
 fpcdir=../..
 targetdir=.
 incdir=$(INC)
+sourcesdir=$(INC) $(XML)
 
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS)
@@ -29,8 +29,6 @@ include $(XML)/Makefile.inc
 
 
 [rules]
-vpath %$(PASEXT) $(INC) $(XML)
-
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
 classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
@@ -38,4 +36,3 @@ classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
 
 ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
-

@@ -12,7 +12,7 @@ objdir=$(GDBOBJDIR)
 libdir=$(GDBLIBDIR)
 
 [packages]
-packages=api fv
+packages=api fv gdbint
 
 [libs]
 libgcc=1
@@ -33,7 +33,7 @@ GDBINT=gdbint
 endif
 
 ifeq ($(GDB),1)
-override GDBUNITDIR+=$(PACKAGEDIR)/$(GDBINT)
+GDBUNITDIR+=$(PACKAGEDIR)/$(GDBINT)
 GDBLIBDIR+=$(PACKAGEDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 GDBOBJDIR+=$(PACKAGEDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
