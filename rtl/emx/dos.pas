@@ -214,7 +214,7 @@ asm
     jnz @LCFstop
     inc ax
 @LCFstop:
-end;
+end ['eax', 'ecx', 'edx'];
 {$ASMMODE ATT}
 
 begin
@@ -274,7 +274,7 @@ begin
         xorb %ah,%ah
         movw %ax,doserror
         popl %ebx
-    end;
+    end ['eax', 'ecx', 'edx'];
 end;
 
 procedure SetFTime (var F; Time: longint);
@@ -316,7 +316,7 @@ begin
             xorb %ah,%ah
             movw %ax,doserror
             popl %ebx
-        end;
+        end ['eax', 'ecx', 'edx'];
 end;
 
 procedure msdos(var regs:registers);
@@ -541,7 +541,7 @@ begin
     .Lexprg1:
         movw %di,doserror
         movl %eax,__RESULT
-    end;
+    end ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi'];
 
     freemem(args,ArgsSize);
     FreeMem(env, envc*sizeof(pchar)+16384);
@@ -555,7 +555,7 @@ function dosversion:word;assembler;
 asm
     movb $0x30,%ah
     call syscall
-end;
+end ['eax'];
 
 procedure GetDate (var Year, Month, Day, DayOfWeek: word);
 
@@ -575,7 +575,7 @@ begin
         movl Year, %edi
         xchgw %ecx, %eax
         stosw
-    end;
+    end ['eax', 'ecx', 'edx'];
 end;
 
 {$asmmode intel}
@@ -598,7 +598,7 @@ begin
             mov  dl, byte ptr Day
             mov  ah, 2Bh
             call syscall
-        end;
+        end ['eax', 'ecx', 'edx'];
 end;
 
 {$asmmode att}
@@ -620,7 +620,7 @@ asm
     movl Hour, %edi
     movb %ch,%al
     stosw
-end;
+end ['eax', 'ecx', 'edx'];
 
 {$asmmode intel}
 procedure SetTime (Hour, Minute, Second, Sec100: word);
@@ -643,7 +643,7 @@ begin
             mov  dl, byte ptr Sec100
             mov  ah, 2Dh
             call syscall
-        end;
+        end ['eax', 'ecx', 'edx'];
 end;
 
 {$asmmode att}
@@ -660,10 +660,10 @@ begin
 {! Do not use in OS/2. Also not recommended in DOS. Use
        signal handling instead.
     asm
-        movb 8(%ebp),%dl
+        movb BreakValue,%dl
         movw $0x3301,%ax
         call syscall
-    end;
+    end ['eax', 'edx'];
 }
 end;
 
@@ -677,7 +677,7 @@ begin
          call syscall
          movl verify,%edi
          stosb
-      end
+      end ['eax', 'edi']
   else
   verify := true;
 end;
@@ -691,7 +691,7 @@ begin
         movb verify,%al
         movb $0x2e,%ah
         call syscall
-    end;
+    end ['eax'];
  end;
 
 
@@ -723,7 +723,7 @@ begin
             popl %ebx
             leave
             ret
-        end
+        end ['eax', 'ecx', 'edx']
     else
         {In OS/2, we use the filesystem information.}
         begin
@@ -765,7 +765,7 @@ begin
             popl %ebx
             leave
             ret
-        end
+        end ['eax', 'ecx', 'edx']
     else
         {In OS/2, we use the filesystem information.}
 begin
@@ -838,6 +838,7 @@ end;
 
     begin
         asm
+            pushl %esi
             movl path,%edx
             movw attr,%cx
             {No need to set DTA in EMX. Just give a pointer in ESI.}
@@ -847,7 +848,8 @@ end;
             jnc .LFF
             movw %ax,doserror
         .LFF:
-        end;
+            popl %esi
+        end ['eax', 'ecx', 'edx'];
     end;
 
 
@@ -881,19 +883,20 @@ end;
 
     begin
         asm
+            pushl %esi
             movl f,%esi
             movb $0x4f,%ah
             call syscall
             jnc .LFN
             movw %ax,doserror
         .LFN:
-        end;
+            popl %esi
+        end ['eax'];
     end;
 
 
 procedure FindNext (var F: SearchRec);
 var Count: cardinal;
-
 
 begin
     {No error}
@@ -996,7 +999,7 @@ begin
   pop eax
   mov P, edi      { place pointer to variable contents in P }
 @End:
- end ['eax','ebx','ecx','edx','esi','edi'];
+ end ['eax','ecx','edx','esi','edi'];
  GetEnvPChar := P;
 end;
 {$ASMMODE ATT}
@@ -1006,7 +1009,6 @@ function GetEnv (const EnvVar: string): string;
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
-{$ASMMODE ATT}
 
 procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
                  var ext:extstr);
@@ -1133,7 +1135,7 @@ begin
     movl attr,%ebx
     movw %cx,(%ebx)
     popl %ebx
- end;
+ end ['eax', 'ecx', 'edx'];
 end;
 
 procedure setfattr(var f;attr : word);
@@ -1160,7 +1162,7 @@ begin
      jnc  .Lnoerror
      movw %ax,doserror
    .Lnoerror:
-  end;
+  end ['eax', 'ecx', 'edx'];
 end;
 
 
@@ -1232,7 +1234,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-10-04 17:53:08  hajny
+  Revision 1.6  2003-10-07 21:33:24  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.5  2003/10/04 17:53:08  hajny
     * stdcall changes merged to EMX
 
   Revision 1.4  2003/06/26 17:12:29  yuri

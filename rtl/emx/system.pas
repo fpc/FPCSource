@@ -239,7 +239,7 @@ begin
                 mov ecx, 260
                 mov eax, 7F33h
                 call syscall    { error handle already with empty string }
-            end;
+            end ['eax', 'ecx', 'edx'];
             ParamStr := StrPas (PChar (P));
             FreeMem (P, 260);
         end
@@ -265,7 +265,7 @@ asm
     call syscall
     mov word ptr [randseed], cx
     mov word ptr [randseed + 2], dx
-end;
+end ['eax', 'ecx', 'edx'];
 
 {$ASMMODE ATT}
 
@@ -293,7 +293,7 @@ begin
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
     mov  %eax,L
-  end;
+  end ['eax', 'edx'];
   WriteLn ('New heap at ', L);
   Sbrk := pointer(L);
 end;
@@ -303,7 +303,7 @@ asm
     movl size,%edx
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
-end;
+end ['eax', 'edx'];
 {$ENDIF DUMPGROW}
 
 function getheapstart:pointer;assembler;
@@ -352,7 +352,7 @@ begin
         movw  %ax, InOutRes       { yes, then set InOutRes }
      .Lnoerror:
         popl %ebx
-     end;
+     end ['eax'];
    end;
 end;
 
@@ -367,7 +367,7 @@ begin
         jnc .LERASE1
         movw %ax,inoutres;
     .LERASE1:
-    end;
+    end ['eax', 'edx'];
 end;
 
 procedure do_rename(p1,p2:Pchar);
@@ -376,7 +376,6 @@ begin
     allowslash(p1);
     allowslash(p2);
     asm
-        pushl %edi
         movl P1, %edx
         movl P2, %edi
         movb $0x56,%ah
@@ -384,13 +383,11 @@ begin
         jnc .LRENAME1
         movw %ax,inoutres;
     .LRENAME1:
-        popl %edi
-    end;
+    end ['eax', 'edx', 'edi'];
 end;
 
 function do_read(h,addr,len:longint):longint; assembler;
 asm
-    pushl %ebx
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -400,12 +397,10 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSREAD1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
-    pushl %ebx
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
@@ -417,12 +412,10 @@ asm
     jnc .LDOSWRITE1
     movw %ax,inoutres;
 .LDOSWRITE1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_filepos(handle:longint): longint; assembler;
 asm
-    pushl %ebx
     movw $0x4201,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -431,12 +424,10 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSFILEPOS:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 procedure do_seek(handle,pos:longint); assembler;
 asm
-    pushl %ebx
     movw $0x4200,%ax
     movl handle,%ebx
     movl pos,%edx
@@ -444,12 +435,10 @@ asm
     jnc .LDOSSEEK1
     movw %ax,inoutres;
 .LDOSSEEK1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_seekend(handle:longint):longint; assembler;
 asm
-    pushl %ebx
     movw $0x4202,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -458,8 +447,7 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .Lset_at_end1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_filesize(handle:longint):longint;
 
@@ -473,7 +461,6 @@ end;
 
 procedure do_truncate(handle,pos:longint); assembler;
 asm
-    pushl %ebx
 (* DOS function 40h isn't safe for this according to EMX documentation *)
     movl $0x7F25,%eax
     movl Handle,%ebx
@@ -491,8 +478,7 @@ asm
 .LTruncate1:
     movw %ax,inoutres;
 .LTruncate2:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 const
     FileHandleCount: longint = 20;
@@ -528,7 +514,7 @@ begin
                 movw %ax, Err
 .LIncFHandles:
                 popl %ebx
-            end;
+            end ['eax'];
             if Err <> 0 then
                 begin
                     Increase_File_Handle_Count := false;
@@ -599,6 +585,7 @@ begin
     if Flags and 112 = 0 then
         Action := Action or 64;
     asm
+        pushl %ebx
         movl $0x7f2b, %eax
         movl Action, %ecx
         movl p, %edx
@@ -610,7 +597,8 @@ begin
 .LOPEN1:
         movl f,%edx         { Warning : This assumes Handle is first }
         movw %ax,(%edx)     { field of FileRec                       }
-    end;
+        popl %ebx
+    end ['eax', 'ecx', 'edx'];
     if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
         asm
@@ -625,7 +613,7 @@ begin
 .LOPEN2:
             movl f,%edx
             movw %ax,(%edx)
-        end;
+        end ['eax', 'ecx', 'edx'];
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
@@ -660,7 +648,7 @@ asm
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
     pop ebx
-end;
+end ['eax', 'edx'];
 {$ASMMODE ATT}
 
 
@@ -710,7 +698,7 @@ begin
         jnc  .LDOS_DIRS1
         movw %ax,inoutres
     .LDOS_DIRS1:
-    end;
+    end ['eax', 'edx'];
 end;
 
 
@@ -902,7 +890,7 @@ begin
                 call syscall
                 addb $65,%al
                 movb %al,i
-            end;
+            end ['eax'];
             dir[1]:=char(i);
         end;
     if not (FileNameCaseSensitive) then dir:=upcase(dir);
@@ -1150,6 +1138,7 @@ begin
         call syscall
         cmp eax, -1
         jnz @heapok
+        pop ebx
         push dword 204
         call HandleError
     @heapok:
@@ -1170,7 +1159,7 @@ begin
         call syscall
 {$ENDIF CONTHEAP}
         pop ebx
-    end;
+    end ['eax', 'ecx', 'edx'];
 
     { in OS/2 this will always be nil, but in DOS mode }
     { this can be changed.                             }
@@ -1189,7 +1178,7 @@ begin
             mov first_meg, eax
          @endmem:
             pop ebx
-        end
+        end ['eax', 'ecx', 'edx']
     else
         begin
     (* Initialize the amount of file handles *)
@@ -1249,7 +1238,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-10-04 17:53:08  hajny
+  Revision 1.10  2003-10-07 21:33:24  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.9  2003/10/04 17:53:08  hajny
     * stdcall changes merged to EMX
 
   Revision 1.8  2003/09/29 18:39:59  hajny
