@@ -597,6 +597,7 @@ function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
 function RegisterBGIDriver(driver: pointer): integer;
 procedure SetFillStyle(Pattern : word; Color: word);
 procedure SetFillPattern(Pattern: FillPatternType; Color: word);
+Function GetDriverName: string;
  procedure MoveRel(Dx, Dy: Integer);
  procedure MoveTo(X,Y: Integer);
 

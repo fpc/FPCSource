@@ -116,6 +116,29 @@ CONST
 
     NUM_MODES       =   $8       ; { # of Mode X Variations           }
 
+  var
+     ScrWidth : word absolute $40:$4a;
+
+
+  procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
+
+    begin
+       asm
+          push es
+          push ds
+          cld
+          mov ecx,count
+          mov esi,source
+          mov edi,dest
+          mov ax,dseg
+          mov es,ax
+          mov ax,sseg
+          mov ds,ax
+          rep movsb
+          pop ds
+          pop es
+       end ['ESI','EDI','ECX','EAX']
+    end;
 
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
@@ -544,6 +567,145 @@ CONST
     end;
 {$endif asmgraph}
  end;
+
+  procedure HLine16(x,x2,y: integer); far;
+
+   var
+      xtmp: integer;
+      ScrOfs,HLength : word;
+      LMask,RMask : byte;
+
+   Begin
+
+    { must we swap the values? }
+    if x > x2 then
+      Begin
+        xtmp := x2;
+        x2 := x;
+        x:= xtmp;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    ScrOfs:=y*ScrWidth+x div 8;
+    HLength:=x2 div 8-x div 8;
+    LMask:=$ff shr (x and 7);
+    RMask:=$ff shl (7-(x2 and 7));
+    if HLength=0 then
+      LMask:=LMask and RMask;
+    port[$3ce]:=0;
+    port[$3cf]:=CurrentColor;
+    port[$3ce]:=1;
+    port[$3cf]:=$f;
+    port[$3ce]:=3;
+    case CurrentWriteMode of
+       XORPut:
+         port[$3cf]:=3 shl 3;
+       ANDPut:
+         port[$3cf]:=1 shl 3;
+       ORPut:
+         port[$3cf]:=2 shl 3;
+       NormalPut:
+         port[$3cf]:=0
+       else
+         port[$3cf]:=0
+    end;
+
+    port[$3ce]:=8;
+    port[$3cf]:=LMask;
+    Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+
+    port[$3ce]:=8;
+    if HLength>0 then
+      begin
+         dec(HLength);
+         inc(ScrOfs);
+         if HLength>0 then
+           begin
+              port[$3cf]:=$ff;
+              seg_bytemove(dosmemselector,$a0000+ScrOfs,dosmemselector,$a0000+ScrOfs,HLength);
+              ScrOfs:=ScrOfs+HLength;
+           end;
+         port[$3cf]:=RMask;
+         Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+      end;
+    // clean up
+    port[$3cf]:=0;
+    port[$3ce]:=8;
+    port[$3cf]:=$ff;
+    port[$3ce]:=1;
+    port[$3cf]:=0;
+    port[$3ce]:=3;
+    port[$3cf]:=0;
+   end;
+
+  procedure VLine16(x,y,y2: integer); far;
+
+   var
+     ytmp: integer;
+     ScrOfs,i : longint;
+     BitMask : byte;
+
+  Begin
+    { must we swap the values? }
+    if y > y2 then
+     Begin
+       ytmp := y2;
+       y2 := y;
+       y:= ytmp;
+     end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    Y2  := Y2 + StartYViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x,y2,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    ScrOfs:=y*ScrWidth+x div 8;
+    BitMask:=$80 shr (x and 7);
+    port[$3ce]:=0;
+    port[$3cf]:=CurrentColor;
+    port[$3ce]:=1;
+    port[$3cf]:=$f;
+    port[$3ce]:=8;
+    port[$3cf]:=BitMask;
+    port[$3ce]:=3;
+    case CurrentWriteMode of
+       XORPut:
+         port[$3cf]:=3 shl 3;
+       ANDPut:
+         port[$3cf]:=1 shl 3;
+       ORPut:
+         port[$3cf]:=2 shl 3;
+       NormalPut:
+         port[$3cf]:=0
+       else
+         port[$3cf]:=0
+    end;
+    for i:=y to y2 do
+      begin
+         Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+         ScrOfs:=ScrOfs+ScrWidth;
+      end;
+    // clean up
+    port[$3cf]:=0;
+    port[$3ce]:=8;
+    port[$3cf]:=$ff;
+    port[$3ce]:=1;
+    port[$3cf]:=0;
+    port[$3ce]:=3;
+    port[$3cf]:=0;
+  End;
 
 
  procedure SetVisual480(page: word); far;
@@ -1550,6 +1712,8 @@ const CrtAddress: word = 0;
          mode.SetVisualPage := SetVisual200;
          mode.SetActivePage := SetActive200;
          mode.InitMode := Init640x200x16;
+         mode.HLine := HLine16;
+         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1559,6 +1723,8 @@ const CrtAddress: word = 0;
          mode.SetVisualPage := @SetVisual200;
          mode.SetActivePage := @SetActive200;
          mode.InitMode := @Init640x200x16;
+         mode.HLine := @HLine16;
+         mode.VLine := @VLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -1583,6 +1749,8 @@ const CrtAddress: word = 0;
          mode.GetRGBPalette := GetVGARGBPalette;
          mode.SetVisualPage := SetVisual350;
          mode.SetActivePage := SetActive350;
+         mode.HLine := HLine16;
+         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1592,6 +1760,8 @@ const CrtAddress: word = 0;
          mode.GetRGBPalette := @GetVGARGBPalette;
          mode.SetVisualPage := @SetVisual350;
          mode.SetActivePage := @SetActive350;
+         mode.HLine := @HLine16;
+         mode.VLine := @VLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -1616,6 +1786,8 @@ const CrtAddress: word = 0;
          mode.InitMode := Init640x480x16;
          mode.SetVisualPage := SetVisual480;
          mode.SetActivePage := SetActive480;
+         mode.HLine := HLine16;
+         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1625,6 +1797,8 @@ const CrtAddress: word = 0;
          mode.InitMode := @Init640x480x16;
          mode.SetVisualPage := @SetVisual480;
          mode.SetActivePage := @SetActive480;
+         mode.HLine := @HLine16;
+         mode.VLine := @VLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -2316,7 +2490,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.5  1999-07-14 14:32:12  florian
+Revision 1.6  1999-07-14 18:16:23  florian
+  * HLine16 and VLine16 implemented
+
+Revision 1.5  1999/07/14 14:32:12  florian
   * small VGA detection problem solved
 
 Revision 1.4  1999/07/12 13:27:08  jonas
