@@ -25,29 +25,27 @@
     if length(s) = 0 NewStr returns Nil   }
 
 function NewStr(const S: string): PString;
-
-Type
-  PPointer = ^pointer;
-
 begin
-  result := Nil;
-  if Length(S) <> 0 then
-    begin
-    New(PPointer(Result));
-    PPointer(Result)^:=Nil;
-    result^ := S;
-    end ;
-end ;
+  if (S='') then
+   Result:=nil
+  else
+   begin
+     getmem(Result,length(s)+1);
+     if (Result<>nil) then
+      Result^:=s;
+   end;
+end;
 
 {   DisposeStr frees the memory occupied by S   }
 
 procedure DisposeStr(S: PString);
 begin
-if S <> Nil then begin
-   Dispose(S);
-   S := Nil;
-   end ;
-end ;
+  if S <> Nil then
+   begin
+     Freemem(S,Length(S^)+1);
+     S:=nil;
+   end;
+end;
 
 {   AssignStr assigns S to P^   }
 
@@ -887,7 +885,7 @@ var Error: word;
 
 begin
   Val(Value, result, Error);
-  if Error <> 0 then raise 
+  if Error <> 0 then raise
      EConvertError.createfmt(SInValidFLoat,[Value]);
 end ;
 
@@ -1064,7 +1062,7 @@ end ;
 
 function RightStr(const S: string; Count: integer): string;
 begin
-   If Count>Length(S) then 
+   If Count>Length(S) then
      Count:=Length(S);
    result := Copy(S, 1 + Length(S) - Count, Count);
 end;
@@ -1141,7 +1139,10 @@ const
 
 {
   $Log$
-  Revision 1.23  1999-07-18 17:27:28  michael
+  Revision 1.24  1999-08-16 22:38:53  peter
+    * fixed newstr/disposestr
+
+  Revision 1.23  1999/07/18 17:27:28  michael
   + Fixed bug in format, reported by Romio Pedchecko
 
   Revision 1.22  1999/06/19 07:39:44  michael
