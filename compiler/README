@@ -69,4 +69,7 @@ Changes in the syntax or semantic of FPC:
              exporting classes with properties must be recompiled
              (no new unit format, so be careful) (FK)
   08/11/99   PP variable in Makefiles changed to FPC
-  
+  14/11/99   makefile.fpc is not available anymore. You must now use fpcmake
+             which is available from the utils/. There is also an example
+             Makefile.fpc
+                
