@@ -24,65 +24,71 @@
 {  22nd november 1997                                                     }
 {   * bugfix of btst with long sizes. (CEC)                               }
 {*************************************************************************}
-  { fgt das Element b der Menge zu, auf die p zeigt }
 
-  procedure do_set(p : pointer;b : byte);[public,alias: 'SET_SET_BYTE'];
 
-    begin
-       asm
-          move.l 8(a6),a0
-          move.b 12(a6),d6
-          andi.l #$f8,d6
-          lsl.l  #3,d6
-          adda.l d6,a0
-          move.b 12(a6),d6
-          andi.l #7,d6
+  { add the element b to the set pointed by p }
+  { On entry                                   }
+  {  a0    = pointer to set                    }
+  {  d0.b  = element to add to the set         }
+  { Registers destroyed: d0,a1,d6              }
+  procedure do_set;assembler;
+  asm
+    XDEF SET_SET_BYTE
+          move.b  d0,d6
+          { correct long position: }
+          {   -> (value div 32)*4 = longint }
+          {       (value shr 5)*shl 2       }
+          lsr.l  #5,d6
+          lsl.l  #2,d6
+          adda.l d6,a0       { correct offset from start address of set }
 
+          move.l d0,d6       { bit is now in here                       }
+          andi.l #31,d0      { bit number is =  value mod 32            }
+
+          { now bit set the value }
           move.l  (a0),d0              { we must put bits into register }
-          btst.l  d6,d0                { otherwise btst will be a byte  }
+          bset.l  d6,d0                { otherwise btst will be a byte  }
           { put result in carry flag } { operation.                     }
           bne    @LDOSET1
-          clr.b  d0
-{          andi.b #$fe,ccr  }            { clear carry flag }
+          andi.b #$fe,ccr              { clear carry flag }
           bra    @LDOSET2
        @LDOSET1:
-          move.b #1,d0
-{          ori.b  #$01,ccr }             { set carry flag   }
+          ori.b  #$01,ccr              { set carry flag   }
        @LDOSET2:
-       end ['d0','a0','d6'];
+          move.l  d0,(a0)              { restore the value at that location }
+                                       { of the set.                        }
     end;
 
-  { testet, ob das Element b in der Menge p vorhanden ist }
-  { und setzt das Carryflag entsprechend                  }
-
-  procedure do_in(p : pointer;b : byte);[public,alias: 'SET_IN_BYTE'];
+    { Finds an element in a set }
+    { a0   = address of set                                 }
+    { d0.b = value to compare with                          }
+    { CARRY SET IF FOUND ON EXIT                            }
+    { Registers destroyed: d0,a0,d6                         }
+  procedure do_in; assembler;
   { Returns Carry set then = in set , otherwise carry is cleared }
   {         (D0)                                                 }
-    begin
-      asm
-          move.l  8(a6),a0
-          move.b  12(a6),d6
-          andi.l  #$f8,d6
-          lsl.l   #3,d6
-          adda.l  d6,a0       { correct offset from start address of set }
+  asm
+       XDEF SET_IN_BYTE
+          move.b  d0,d6
+          { correct long position: }
+          {   -> (value div 32)*4 = longint }
+          {       (value shr 5)*shl 2       }
+          lsr.l  #5,d6
+          lsl.l  #2,d6
+          adda.l d6,a0       { correct offset from start address of set }
 
-          move.b 12(a6),d6
-          andi.l #7,d6
+          move.l d0,d6       { bit is now in here                       }
+          andi.l #31,d0      { bit number is =  value mod 32            }
 
           move.l  (a0),d0              { we must put bits into register }
           btst.l  d6,d0                { otherwise btst will be a byte  }
           { put result in carry flag } { operation.                     }
           bne    @LDOIN1
-          clr.b  d0
-{ this does not work, because of how the stack is restored }
-{ by the routine.                                          }
-{          andi.b #$fe,ccr  }            { clear carry flag }
+          andi.b #$fe,ccr              { clear carry flag }
           bra    @LDOIN2
        @LDOIN1:
-          move.b #1,d0
-{          ori.b  #$01,ccr  }            { set carry flag   }
+          ori.b  #$01,ccr             { set carry flag   }
        @LDOIN2:
-       end ['d0','a0','d6'];
     end;
 
 
@@ -100,23 +106,74 @@
         asm
            { saved used register }
            move.l a2,-(sp)
+
            move.l 8(a6),a0
            move.l 12(a6),a1
            move.l 16(a6),a2
 
-           move.l #8,d6
+           move.l #32,d6
 
        @LMADDSETS1:
 
-           move.l  (a0)+,d0
-           or.l    (a1)+,d0
-           move.l  d0,(a2)+
-           subq.l  #4,d6
+           move.b  (a0)+,d0
+           or.b    (a1)+,d0
+           move.b  d0,(a2)+
+           subq.b  #1,d6
            bne     @LMADDSETS1
            { restore register }
            move.l  a2,(sp)+
         end ['d0','d6','a0','a1'];
      end;
+
+   { computes the symetric diff from set1 to set2    }
+   { result in dest                                  }
+
+   procedure sym_sub_sets(set1,set2,dest : pointer);[public,alias: 'SET_SYMDIF_SETS'];
+
+     begin
+        asm
+           { saved used register }
+           move.l a2,-(sp)
+
+           move.l 8(a6),a0
+           move.l 12(a6),a1
+           move.l 16(a6),a2
+
+           move.l #32,d6
+
+       @LMADDSETS1:
+
+           move.b  (a0)+,d0
+           move.b  (a1)+,d1
+           eor.b   d1,d0
+           move.b  d0,(a2)+
+           subq.b  #1,d6
+           bne     @LMADDSETS1
+           { restore register }
+           move.l  a2,(sp)+
+        end;
+     end;
+
+
+  { bad implementation, but it's very seldom used }
+  procedure do_set(p : pointer;l,h : byte);[public,alias: 'SET_SET_RANGE'];
+
+    begin
+       asm
+          move.b h,d0
+       @LSetRLoop:
+          cmp.b  l,d0
+          blt    @Lend
+          move.w d0,-(sp)
+          { adjust value to correct endian }
+          lsl.w  #8,d0
+          pea    p
+          jsr    SET_SET_BYTE
+          sub.b  #1,d0
+          bra    @LSetRLoop
+       @Lend:
+       end;
+    end;
 
 
    { bildet den Durchschnitt von set1 und set2 }
@@ -136,14 +193,14 @@
            move.l 12(a6),a1
            move.l 16(a6),a2
 
-           move.l #8,d6
+           move.l #32,d6
 
        @LMMULSETS1:
 
-           move.l  (a0)+,d0
-           and.l    (a1)+,d0
-           move.l  d0,(a2)+
-           subq.l  #4,d6
+           move.b  (a0)+,d0
+           and.b   (a1)+,d0
+           move.b  d0,(a2)+
+           subq.b  #1,d6
            bne     @LMMULSETS1
            { restore register }
            move.l  a2,(sp)+
@@ -170,43 +227,43 @@
            move.l 12(a6),a1
            move.l 16(a6),a2
 
-           move.l #8,d6
+           move.l #32,d6
 
        @LSUBSETS1:
 
-           move.l  (a0)+,d0
-           not.l   d0
-           and.l   (a1)+,d0
-           move.l  d0,(a2)+
-           subq.l  #4,d6
+           move.b  (a0)+,d0
+           not.b   d0
+           and.b   (a1)+,d0
+           move.b  d0,(a2)+
+           sub.b   #1,d6
            bne     @LSUBSETS1
            { restore register }
            move.l  a2,(sp)+
         end ['d0','d6','a0','a1'];
      end;
 
-   { vergleicht Mengen und setzt die Flags entsprechend }
+   { compare both sets }
+   { compares set1 and set2                             }
+   { zeroflag is set if they are equal                  }
+   { on entry :  a0 = pointer to first set              }
+   {          :  a1 = pointer to second set             }
+   procedure comp_sets; assembler;
 
-   procedure comp_sets(set1,set2 : pointer);[public,alias: 'SET_COMP_SETS'];
-
-     begin
         asm
-           move.l 8(a6),a0  { set1 - esi}
-           move.l 12(a6),a1 { set2 - edi }
-           move.l #8,d6
+         XDEF SET_COMP_SETS
+           move.l #32,d6
        @LMCOMPSETS1:
-           move.l (a0)+,d0
-           move.l (a1),d1
-           cmp.l  d1,d0
-           bne  @LMCOMPSETEND
-           add.l #4,a1
-           subq.l #1,d6
-           bne  @LMCOMPSETS1
+           move.b (a0)+,d0
+           move.b (a1),d1
+           cmp.b  d1,d0
+           bne    @LMCOMPSETEND
+           adda.l #1,a1
+           sub.b  #1,d6
+           bne    @LMCOMPSETS1
            { we are here only if the two sets are equal         }
            { we have zero flag set, and that what is expected   }
-           cmp.l d0,d0
+           cmp.b  d0,d0
        @LMCOMPSETEND:
-        end;
      end;
 
   procedure do_set(p : pointer;b : word);[public,alias: 'SET_SET_WORD'];
@@ -370,7 +427,13 @@
 
 {
   $Log$
-  Revision 1.2  1998-03-27 23:47:35  carl
+  Revision 1.3  1998-06-05 12:32:07  carl
+    * calculating sets is COMPLETELY different from the intel in
+  determining the bit number
+    * new passing parameters conventions
+    * misc bugfixes
+
+  Revision 1.2  1998/03/27 23:47:35  carl
     * bugfix of FLAGS as return values for SET_IN_BYTE and SET_SET_BYTE
 
   Revision 1.4  1998/01/26 12:01:42  michael
