@@ -3587,8 +3587,8 @@ var OK: boolean;
     LineDelta,LineCount: Sw_integer;
     StartPos,DestPos: TPoint;
     LineStartX,LineEndX: Sw_integer;
-    S,OrigS: string;
-    VerticalBlock: boolean;
+    S,OrigS,AfterS: string;
+    OneLineOnly,VerticalBlock: boolean;
     SEnd: TPoint;
 begin
   Lock;
@@ -3626,8 +3626,17 @@ begin
                    Min(LineEndX-LineStartX+1,255));
       if VerticalBlock=false then
         begin
-          OrigS:=GetDisplayText(DestPos.Y);
-          SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+copy(OrigS,DestPos.X+1,255));
+          If LineDelta=0 then
+            begin
+              OrigS:=GetDisplayText(DestPos.Y);
+              AfterS:=Copy(OrigS,DestPos.X+1,255);
+            end
+          else
+            OrigS:='';
+          if LineDelta=LineCount-1 then
+            SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+AfterS)
+          else
+            SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S);
           if LineDelta=LineCount-1 then
             begin
               SEnd.Y:=DestPos.Y;
@@ -3640,7 +3649,10 @@ begin
            end;
         end
       else { if VerticalBlock=false then .. else }
-        S:=RExpand(S,LineEndX-LineStartX+1);
+        begin
+          { this is not yet implemented !! PM }
+          S:=RExpand(S,LineEndX-LineStartX+1);
+        end;
       Inc(LineDelta);
       OK:=GetLineCount<MaxLineCount;
     end;
@@ -4465,7 +4477,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.49  1999-09-23 16:33:30  pierre
+  Revision 1.50  1999-09-28 23:44:13  pierre
+   * text insertion in middle of line was buggy
+
+  Revision 1.49  1999/09/23 16:33:30  pierre
     * ^B^A now prints out the ascii 1 char
     * In SearchReplace Several occurence of a pattern in the same line
       should now be found correctly
