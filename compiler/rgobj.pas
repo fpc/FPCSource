@@ -62,7 +62,7 @@ if two registers interfere there is a connection between them in the graph.
 In addition to the imaginary registers in the code generator, the psysical
 CPU registers are also present in this graph. This allows us to make
 interferences between imaginary registers and cpu registers. This is very
-usefull for describing archtectural constraints, like for example that
+usefull for describing architectural constraints, like for example that
 the div instruction modifies edx, so variables that are in use at that time
 cannot be stored into edx. This can be modelled by making edx interfere
 with those variables.
@@ -1819,7 +1819,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-11-10 19:05:50  peter
+  Revision 1.96  2003-11-24 15:17:37  florian
+    * changed some types to prevend range check errors
+
+  Revision 1.95  2003/11/10 19:05:50  peter
     * fixed alias/colouring > 255
 
   Revision 1.94  2003/11/07 15:58:32  florian

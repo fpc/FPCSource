@@ -553,13 +553,13 @@ Unit raarmgas;
                 begin
                   if actasmtoken=AS_REGISTER then
                     begin
-                      include(registerset,actasmregister);
+                      include(registerset,getsupreg(actasmregister));
                       tempreg:=actasmregister;
                       consume(AS_REGISTER);
                       if actasmtoken=AS_MINUS then
                         begin
                           consume(AS_MINUS);
-                          for ireg:=tempreg to actasmregister do
+                          for ireg:=getsupreg(tempreg) to getsupreg(actasmregister) do
                             include(registerset,ireg);
                           consume(AS_REGISTER);
                         end;
@@ -783,7 +783,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-11-21 16:29:26  florian
+  Revision 1.3  2003-11-24 15:17:37  florian
+    * changed some types to prevend range check errors
+
+  Revision 1.2  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.1  2003/11/17 23:23:47  florian

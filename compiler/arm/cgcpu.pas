@@ -477,21 +477,21 @@ unit cgcpu;
                  begin
                    if dst<>src1 then
                      begin
-                       rgint.add_edge(dst,src1);
+                       rgint.add_edge(getsupreg(dst),getsupreg(src1));
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
                      end
                    else
                      begin
                        tmpreg:=getintregister(list,size);
                        a_load_reg_reg(list,size,size,src2,dst);
-                       rgint.add_edge(dst,tmpreg);
+                       rgint.add_edge(getsupreg(dst),getsupreg(tmpreg));
                        ungetregister(list,tmpreg);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
                      end;
                  end
                else
                  begin
-                   rgint.add_edge(dst,src2);
+                   rgint.add_edge(getsupreg(dst),getsupreg(src2));
                    list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
                  end;
              end;
@@ -532,15 +532,15 @@ unit cgcpu;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
-          if is_shifter_const(a,imm_shift) then
+          if is_shifter_const(dword(a),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
-          else if is_shifter_const(not(a),imm_shift) then
+          else if is_shifter_const(dword(not(a)),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
           else
             begin
                objectlibrary.getdatalabel(l);
                current_procinfo.aktlocaldata.concat(tai_symbol.Create(l,0));
-               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(a));
+               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
                reference_reset(hr);
                hr.symbol:=l;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
@@ -937,7 +937,7 @@ unit cgcpu;
           end;
 
         if assigned(tmpref.symbol) or
-           not(is_shifter_const(tmpref.offset,b)) or
+           not(is_shifter_const(dword(tmpref.offset),b)) or
            ((tmpref.base<>NR_NO) and (tmpref.index<>NR_NO)) then
           fixref(list,tmpref);
 
@@ -1282,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-11-21 16:29:26  florian
+  Revision 1.24  2003-11-24 15:17:37  florian
+    * changed some types to prevend range check errors
+
+  Revision 1.23  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.22  2003/11/07 15:58:32  florian

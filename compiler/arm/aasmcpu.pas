@@ -50,12 +50,12 @@ uses
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
-         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
 
          constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aword);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
@@ -161,7 +161,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
       begin
          inherited create(op);
          ops:=2;
@@ -198,7 +198,7 @@ implementation
       end;
 
 
-     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aword);
        begin
          inherited create(op);
          ops:=3;
@@ -365,7 +365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-11-02 14:30:03  florian
+  Revision 1.14  2003-11-24 15:17:37  florian
+    * changed some types to prevend range check errors
+
+  Revision 1.13  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.12  2003/09/11 11:54:59  florian

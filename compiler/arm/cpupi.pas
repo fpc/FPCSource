@@ -39,6 +39,7 @@ unit cpupi;
           constructor create(aparent:tprocinfo);override;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
+          procedure set_first_temp_offset;override;
           procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
        end;
@@ -104,6 +105,11 @@ unit cpupi;
 *)
 
 
+    procedure tarmprocinfo.set_first_temp_offset;
+      begin
+        tg.setfirsttemp(0);
+      end;
+
     procedure tarmprocinfo.allocate_push_parasize(size:longint);
       begin
         if size>maxpushedparasize then
@@ -115,9 +121,9 @@ unit cpupi;
       begin
         { more or less copied from cgcpu.pas/g_stackframe_entry }
         if not (po_assembler in procdef.procoptions) then
-          result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp,16)
+          result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp*tg.direction,16)
         else
-          result := align(tg.lasttemp,16);
+          result := align(tg.lasttemp*tg.direction,16);
       end;
 
 
@@ -126,7 +132,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-11-02 14:30:03  florian
+  Revision 1.3  2003-11-24 15:17:37  florian
+    * changed some types to prevend range check errors
+
+  Revision 1.2  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.1  2003/08/20 15:50:13  florian
