@@ -447,8 +447,8 @@ begin
         VarInt64    : Result:=IntToStr(VInt64);
         VarQword    : Result:=IntToStr(VQWord);
         VarString   : Result:=ansistring(VString);
-    else
-      VariantTypeMismatch;
+      else
+        VariantTypeMismatch;
     end;
   except
     On EConvertError do
@@ -588,7 +588,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2005-03-10 21:05:36  florian
+  Revision 1.13  2005-03-28 20:36:14  florian
+    * some variant <-> string types fixes
+
+  Revision 1.12  2005/03/10 21:05:36  florian
     + writing of variants implemented
 
   Revision 1.11  2005/02/14 17:13:31  peter
