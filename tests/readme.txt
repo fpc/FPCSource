@@ -34,3 +34,14 @@ make full This should create a log of all failed tests.
 
 make rundigest scans the created log file and outputs some statistics
 make rundigest USESQL=YES sends the results to an SQL database
+
+
+Also remote execution of the testsuite is possible
+Requirements:
+- current build tree contains a cross compiled rtl/fcl
+- the cross compiler is installed works without passing extra parameters
+- the tests tree is somewhere on the remote machine e.g. /mnt/cf/fpc/tests
+- some dir, e.g. i386-utils contains a dotest executable for the host system
+- ssh must work without keyboard interaction or extra parameters
+then a example make command could be
+make DOTEST=i386-utils/dotest FPC=ppcarm "DOTESTOPT=-Y-XParm-linux- -Rroot@192.168.44.9 -P/mnt/cf/fpc/tests -T"

@@ -51,6 +51,10 @@ const
   DoKnown : boolean = false;
   DoAll : boolean = false;
   DoUsual : boolean = true;
+  ExtraCompilerOpts : string = '';
+  DelExecutable : boolean = false;
+  RemoteAddr : string = '';
+  RemotePath : string = '';
 
 Function FileExists (Const F : String) : Boolean;
 {
@@ -373,7 +377,7 @@ var
 begin
   RunCompiler:=false;
   OutName:=ForceExtension(PPFile,'log');
-  args:='-n -Fuunits';
+  args:='-n -Fuunits '+ExtraCompilerOpts;
 {$ifdef unix}
   { Add runtime library path to current dir to find .so files }
   if Config.NeedLibrary then
@@ -477,11 +481,26 @@ begin
   TestExe:=ForceExtension(PPFile,ExeExt);
   OutName:=ForceExtension(PPFile,'elg');
   Verbose(V_Debug,'Executing '+TestExe);
-  { don't redirect interactive and graph programs .. }
-  if Config.IsInteractive or Config.UsesGraph then
-    ExecuteRedir(TestExe,'','','','')
+  if RemoteAddr<>'' then
+    begin
+      ExecuteRedir('ssh',RemoteAddr+' rm -f '+RemotePath+'/'+TestExe,'',OutName,'');
+      ExecuteRedir('scp',TestExe+' '+RemoteAddr+':'+RemotePath+'/'+TestExe,'',OutName,'');
+      { don't redirect interactive and graph programs .. }
+      if Config.IsInteractive or Config.UsesGraph then
+        ExecuteRedir(TestExe,'','','','')
+      else
+        ExecuteRedir('ssh',RemoteAddr+' '+RemotePath+'/'+TestExe,'',OutName,'');
+      if DelExecutable then
+        ExecuteRedir('ssh',RemoteAddr+' rm -f '+RemotePath+'/'+TestExe,'',OutName,'');
+    end
   else
-    ExecuteRedir(TestExe,'','',OutName,'');
+    begin
+      { don't redirect interactive and graph programs .. }
+      if Config.IsInteractive or Config.UsesGraph then
+        ExecuteRedir(TestExe,'','','','')
+      else
+        ExecuteRedir(TestExe,'','',OutName,'');
+    end;
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   if ExecuteResult<>Config.ResultCode then
    begin
@@ -533,6 +552,10 @@ var
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
+    writeln('  -R<remote>    run the tests remotely with the given ssh address');
+    writeln('  -P<path>      path to the tests tree on the remote machine');
+    writeln('  -T            remove executables after execution (applies only for remote tests)');
+    writeln('  -Y<opts>      extra options passed to the compiler');
     halt(1);
   end;
 
@@ -575,7 +598,16 @@ begin
                    DoUsual:=false;
                end;
          'V' : DoVerbose:=true;
+
          'X' : UseComSpec:=false;
+
+         'P' : RemotePath:=Para;
+
+         'Y' : ExtraCompilerOpts:=Para;
+
+         'R' : RemoteAddr:=Para;
+
+         'T' : DelExecutable:=true;
         end;
      end
     else
@@ -793,7 +825,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-10-31 16:14:20  peter
+  Revision 1.30  2004-03-21 19:15:18  florian
+    * explanation for running the testsuite remotely
+    + dotest supports remote execution using scp/ssh
+
+  Revision 1.29  2003/10/31 16:14:20  peter
     * remove compileerror10, note10
     * remove known, use knowncompileerror,knownrunerror instead
     * knowncompileerror,knownrunerror tests are now really skipped
