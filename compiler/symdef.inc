@@ -2004,7 +2004,7 @@
       begin
          if isarrayofconst or isConstructor then
            begin
-             if isvariant then
+             if isvariant or ((highrange=-1) and (lowrange=0)) then
                gettypename:='Array Of Const'
              else
                gettypename:='Array Of '+elementtype.def^.typename;
@@ -4260,7 +4260,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.15  2000-09-09 18:36:40  peter
+  Revision 1.16  2000-09-10 20:13:37  peter
+    * fixed array of const writing instead of array of tvarrec (merged)
+
+  Revision 1.15  2000/09/09 18:36:40  peter
     * fixed C alignment of array of record (merged)
 
   Revision 1.14  2000/08/27 20:19:39  peter
