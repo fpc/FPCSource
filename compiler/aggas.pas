@@ -305,8 +305,11 @@ var
         s : string;
       begin
         AsmLn;
-        if (target_info.system <> system_powerpc_darwin) then
+        case target_info.system of
+         system_powerpc_darwin, system_i386_OS2, system_i386_EMX: ;
+         else 
           AsmWrite('.section ');
+        end;
         s:=sectionname(atype,aname);
         AsmWrite(s);
         if copy(s,1,4)='.gnu' then
@@ -966,7 +969,10 @@ var
 end.
 {
   $Log$
-  Revision 1.56  2004-07-01 18:16:10  jonas
+  Revision 1.57  2004-07-18 22:04:55  hajny
+    * fix for OS/2 and EMX - .section not supported by as.exe
+
+  Revision 1.56  2004/07/01 18:16:10  jonas
     * Darwin fixes
 
   Revision 1.55  2004/06/20 08:55:28  florian
