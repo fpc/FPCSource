@@ -294,11 +294,14 @@ Fixed bugs:
   bug0234.pp   New with void pointer                                OK 0.99.11 (PM)
   bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
   bug0236.pp   Problem with range check of subsets !! compile with -Cr OK 0.99.11 (PFV)
+  bug0237.pp   Can't have sub procedures with names defined in interface OK 0.99.13 (PM)
   bug0238.pp   Internal error 432645 (from Frank MCCormick, mailinglist 24/2) OK 0.99.11 (PM)
   bug0239.pp   No warning for uninitialized class in IS statements  OK 0.99.11 (PM)
   bug0240.pp   Problems with larges value is case statements        OK 0.99.11 (FK)
   bug0241.pp   Problem with importing function from a DLL with .drv suffix ! OK 0.99.11 (PM)
   bug0242.pp   Crash when passing a procedure to formal parameter   OK 0.99.11 (PM)
+  bug0244.pp   nested procedures can't have same name as global ones (same as bug0237) OK 0.99.13 (PM)
+  bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) OK 0.99.13 (PFV)
   bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
                allowed in -Sd mode OK 0.99.11 (PM)
   bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
@@ -322,10 +325,12 @@ Fixed bugs:
   bug0268.pp   crash with exceptions                                OK 0.99.13 (FK)
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
   bug0270.pp   unexpected eof in tp mode with (* and directives     OK 0.99.13 (PFV)
+  bug0271.pp   abstract methods can't be assigned to methodpointers OK 0.99.13 (??)
   bug0273.pp   small array pushing to array of char procedure is wrong OK 0.99.13 (PFV)
   bug0274.pp   @(proc) is not allowed                               OK 0.99.13 (PFV)
   bug0276.pp   Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV)
   bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
+  bug0279.pp   crash with ansistring and new(^ansistring)           OK 0.99.13 (PFV)
   bug0280.pp   problem with object finalization.                    OK 0.99.13 (FK)
   bug0282.pp   long mangledname problem with -Aas                   OK 0.99.13 (PFV)
   bug0283.pp   bug in constant char comparison evaluation           OK 0.99.13 (PFV)
@@ -363,17 +368,13 @@ Unfixed bugs:
 -------------
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
-bug0237.pp   Can't have sub procedures with names defined in interface
-bug0244.pp   nested procedures can't have same name as global ones (same as bug0237)
-bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
-bug0271.pp   abstract methods can't be assigned to methodpointers
 bug0272.pp   No error issued if wrong parameter in function inside a second function
 bug0275.pp   too many warnings
 bug0277.pp   typecasting with const not possible
-bug0279.pp   crash with ansistring and new(^ansistring)
 bug0281.pp   dup id checking with property is wrong
+bug0289.pp   no hint/note for unused types
