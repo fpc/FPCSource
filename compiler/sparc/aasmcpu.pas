@@ -1,4 +1,4 @@
-{******************************************************************************
+{*****************************************************************************
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
     
@@ -72,13 +72,6 @@ type
     procedure SetCondition(const c:TAsmCond);
   private
     { next fields are filled in pass1, so pass2 is faster }
-    insentry  : PInsEntry;
-    insoffset,
-    inssize   : longint;
-    LastInsOffset : longint; { need to be public to be reset }
-    function  InsEnd:longint;
-    function  calcsize(p:PInsEntry):longint;
-    function  NeedAddrPrefix(opidx:byte):boolean;
     procedure Swatoperands;
   end;
 PROCEDURE DoneAsm;
@@ -312,18 +305,6 @@ procedure taicpu.Swatoperands;
 {*****************************************************************************
                             Assembler
 *****************************************************************************}
-type
-  ea=packed record
-sib_present:boolean;
-bytes:byte;
-size:byte;
-modrm:byte;
-sib:byte;
-  end;
-function taicpu.InsEnd:longint;
-begin
-  InsEnd:=InsOffset+InsSize;
-end;
 procedure TAiCpu.SetCondition(const c:TAsmCond);
   const
     AsmCond2OpCode:array[TAsmCond]of TAsmOp=
@@ -341,292 +322,6 @@ A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_BNE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_N
       {$ENDIF EXTDEBUG}
       end;
   end;
-function taicpu.NeedAddrPrefix(opidx:byte):boolean;
-var
-  i,b:tregister;
-begin
-{  if (OT_MEMORY and (not oper[opidx].ot))=0 then
-   begin
- i:=oper[opidx].ref^.index;
- b:=oper[opidx].ref^.base;
- if not(i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
-    not(b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
-  begin
-    NeedAddrPrefix:=true;
-    exit;
-  end;
-   end;}
-  NeedAddrPrefix:=false;
-end;
-
-
-function regval(r:tregister):byte;
-begin
-  {case r of
-R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0:
-  regval:=0;
-R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1:
-  regval:=1;
-R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2:
-  regval:=2;
-R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3:
-  regval:=3;
-R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4:
-  regval:=4;
-R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5:
-  regval:=5;
-R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6:
-  regval:=6;
-R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7:
-  regval:=7;
-else}
-  begin
-    internalerror(777001);
-    regval:=0;
-  end;
-{  end;}
-end;
-
-
-function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
-{const
-  regs:array[0..63] of tregister=(
-R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NONE, R_NONE, R_NONE,
-R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NONE, R_NONE, R_NONE,
-R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NONE, R_NONE, R_NONE,
-R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NONE, R_NONE, R_NONE,
-R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NONE, R_NONE, R_NONE,
-R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NONE, R_NONE, R_NONE,
-R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NONE, R_NONE, R_NONE,
-R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NONE, R_NONE, R_NONE
-  );}
-var
-  j:longint;
-  i,b:tregister;
-  sym:tasmsymbol;
-  md,s:byte;
-  base,index,scalefactor,
-  o:longint;
-begin
-  process_ea:=false;
-{ register ? }
-{  if (input.typ=top_reg) then
-   begin
- j:=0;
- while (j<=high(regs)) do
-  begin
-    if input.reg=regs[j] then
-     break;
-    inc(j);
-  end;
- if j<=high(regs) then
-  begin
-    output.sib_present:=false;
-    output.bytes:=0;
-    output.modrm:=$c0 or (rfield shl 3) or (j shr 3);
-    output.size:=1;
-    process_ea:=true;
-  end;
- exit;
-   end;}
-{ memory reference }
-  i:=input.ref^.index;
-  b:=input.ref^.base;
-  s:=input.ref^.scalefactor;
-  o:=input.ref^.offset+input.ref^.offsetfixup;
-  sym:=input.ref^.symbol;
-{ it's direct address }
-  if (b.enum=R_NONE) and (i.enum=R_NONE) then
-   begin
- { it's a pure offset }
- output.sib_present:=false;
- output.bytes:=4;
- output.modrm:=5 or (rfield shl 3);
-   end
-  else
-  { it's an indirection }
-   begin
- { 16 bit address? }
-{     if not((i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
-        (b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
-  Message(asmw_e_16bit_not_supported);}
-{$ifdef OPTEA}
- { make single reg base }
- if (b=R_NONE) and (s=1) then
-  begin
-    b:=i;
-    i:=R_NONE;
-  end;
- { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
-{     if (b=R_NONE) and
-    (((s=2) and (i<>R_ESP)) or
-      (s=3) or (s=5) or (s=9)) then
-  begin
-    b:=i;
-    dec(s);
-  end;}
- { swap ESP into base if scalefactor is 1 }
-{     if (s=1) and (i=R_ESP) then
-  begin
-    i:=b;
-    b:=R_ESP;
-  end;}
-{$endif}
- { wrong, for various reasons }
-{     if (i=R_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (i<>R_NONE)) then
-  exit;}
- { base }
-{     case b of
-   R_EAX:base:=0;
-   R_ECX:base:=1;
-   R_EDX:base:=2;
-   R_EBX:base:=3;
-   R_ESP:base:=4;
-   R_NONE,
-   R_EBP:base:=5;
-   R_ESI:base:=6;
-   R_EDI:base:=7;
- else
-   exit;
- end;}
- { index }
-{     case i of
-   R_EAX:index:=0;
-   R_ECX:index:=1;
-   R_EDX:index:=2;
-   R_EBX:index:=3;
-   R_NONE:index:=4;
-   R_EBP:index:=5;
-   R_ESI:index:=6;
-   R_EDI:index:=7;
- else
-   exit;
- end;
- case s of
-  0,
-  1:scalefactor:=0;
-  2:scalefactor:=1;
-  4:scalefactor:=2;
-  8:scalefactor:=3;
- else
-  exit;
- end;
- if (b=R_NONE) or
-    ((b<>R_EBP) and (o=0) and (sym=nil)) then
-  md:=0
- else
-  if ((o>=-128) and (o<=127) and (sym=nil)) then
-   md:=1
-  else
-   md:=2;
- if (b=R_NONE) or (md=2) then
-  output.bytes:=4
- else
-  output.bytes:=md;}
- { SIB needed ? }
-{     if (i=R_NONE) and (b<>R_ESP) then
-  begin
-    output.sib_present:=false;
-    output.modrm:=(md shl 6) or (rfield shl 3) or base;
-  end
- else
-  begin
-    output.sib_present:=true;
-    output.modrm:=(md shl 6) or (rfield shl 3) or 4;
-    output.sib:=(scalefactor shl 6) or (index shl 3) or base;
-  end;}
-   end;
-  if output.sib_present then
-   output.size:=2+output.bytes
-  else
-   output.size:=1+output.bytes;
-  process_ea:=true;
-end;
-
-
-function taicpu.calcsize(p:PInsEntry):longint;
-var
-  codes:pchar;
-  c:byte;
-  len:longint;
-  ea_data:ea;
-begin
-  len:=0;
-  codes:=@p^.code;
-  repeat
-c:=ord(codes^);
-inc(codes);
-case c of
-  0:
-    break;
-  1,2,3:
-    begin
-      inc(codes,c);
-      inc(len,c);
-    end;
-  8,9,10:
-    begin
-      inc(codes);
-      inc(len);
-    end;
-  4,5,6,7:
-    begin
-      if opsize=S_W then
-        inc(len,2)
-      else
-        inc(len);
-    end;
-  15,
-  12,13,14,
-  16,17,18,
-  20,21,22,
-  40,41,42:
-    inc(len);
-  24,25,26,
-  31,
-  48,49,50:
-    inc(len,2);
-  28,29,30, { we don't have 16 bit immediates code }
-  32,33,34,
-  52,53,54,
-  56,57,58:
-    inc(len,4);
-  192,193,194:
-    if NeedAddrPrefix(c-192) then
-     inc(len);
-  208:
-    inc(len);
-  200,
-  201,
-  202,
-  209,
-  210,
-  217,218,219:;
-  216:
-    begin
-      inc(codes);
-      inc(len);
-    end;
-  224,225,226:
-    begin
-      InternalError(777002);
-    end;
-  else
-    begin
-      if (c>=64) and (c<=191) then
-       begin
-         if not process_ea(oper[(c shr 3) and 7], ea_data, 0) then
-          Message(asmw_e_invalid_effective_address)
-         else
-          inc(len,ea_data.size);
-       end
-      else
-       InternalError(777003);
-    end;
-end;
-  until false;
-  calcsize:=len;
-end;
 procedure taicpu.loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
   begin
     if opidx>=ops
@@ -660,7 +355,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.24  2003-05-07 11:28:26  mazen
+    Revision 1.25  2003-05-07 11:45:02  mazen
+    - removed unused code
+
+    Revision 1.24  2003/05/07 11:28:26  mazen
     - method CheckNonCommutativeOpcode removed as not used
 
     Revision 1.23  2003/05/06 20:27:43  mazen
