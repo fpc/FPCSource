@@ -318,6 +318,9 @@ begin
    begin
      getsym(sp,true);
      sym:=srsym;
+     { load proc name }
+     sp:=pattern;
+     realname:=orgpattern;
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
         (ptypesym(sym)^.definition^.deftype<>objectdef) then
@@ -330,8 +333,6 @@ begin
        begin
           { used to allow private syms to be seen }
           aktobjectdef:=pobjectdef(ptypesym(sym)^.definition);
-          sp:=pattern;
-          realname:=orgpattern;
           consume(_ID);
           procinfo^._class:=pobjectdef(ptypesym(sym)^.definition);
           aktprocsym:=pprocsym(procinfo^._class^.symtable^.search(sp));
@@ -353,18 +354,6 @@ begin
 
      aktprocsym:=pprocsym(symtablestack^.search(sp));
 
-     if lexlevel=normal_function_level then
-{$ifdef UseNiceNames}
-       hs:=procprefix+'_'+tostr(length(sp))+sp
-{$else UseNiceNames}
-       hs:=procprefix+'_'+sp
-{$endif UseNiceNames}
-     else
-{$ifdef UseNiceNames}
-       hs:=lowercase(procprefix)+'_'+tostr(length(sp))+sp;
-{$else UseNiceNames}
-       hs:=procprefix+'_$'+sp;
-{$endif UseNiceNames}
      if not(parse_only) then
        begin
          {The procedure we prepare for is in the implementation
@@ -391,19 +380,38 @@ begin
           end;
        end;
    end;
-  { problem with procedures inside methods }
+
+{ Create the mangledname }
 {$ifndef UseNiceNames}
   if assigned(procinfo^._class) then
-    if (pos('_$$_',procprefix)=0) then
+   begin
+     if (pos('_$$_',procprefix)=0) then
       hs:=procprefix+'_$$_'+procinfo^._class^.objname^+'_$$_'+sp
-    else
+     else
       hs:=procprefix+'_$'+sp;
+   end
+  else
+   begin
+     if lexlevel=normal_function_level then
+      hs:=procprefix+'_'+sp
+     else
+      hs:=procprefix+'_$'+sp;
+   end;
 {$else UseNiceNames}
   if assigned(procinfo^._class) then
-    if (pos('_5Class_',procprefix)=0) then
+   begin
+     if (pos('_5Class_',procprefix)=0) then
       hs:=procprefix+'_5Class_'+procinfo^._class^.name^+'_'+tostr(length(sp))+sp
-    else
+     else
       hs:=procprefix+'_'+tostr(length(sp))+sp;
+   end
+  else
+   begin
+     if lexlevel=normal_function_level then
+      hs:=procprefix+'_'+tostr(length(sp))+sp
+     else
+      hs:=lowercase(procprefix)+'_'+tostr(length(sp))+sp;
+   end;
 {$endif UseNiceNames}
 
   if assigned(aktprocsym) then
@@ -2091,7 +2099,11 @@ end.
 
 {
   $Log$
-  Revision 1.27  1999-10-12 21:20:46  florian
+  Revision 1.28  1999-10-13 10:37:36  peter
+    * moved mangledname creation of normal proc so it also handles a wrong
+      method proc
+
+  Revision 1.27  1999/10/12 21:20:46  florian
     * new codegenerator compiles again
 
   Revision 1.26  1999/10/03 19:38:39  peter
