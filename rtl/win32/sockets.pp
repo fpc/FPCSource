@@ -113,7 +113,7 @@ Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Boolean;
 
 begin
   Connect:=WinSock.Connect(Sock,WinSock.TSockAddr(Addr),AddrLen)=0;
-  if Connect then
+  if not Connect then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
@@ -224,7 +224,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-07-28 06:34:53  sg
+  * Applied patch to "Connect" by Markus Kaemmerer: WinSock.Connect returns
+    zero when it succeeded, and not vice versa.
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
  
 }
