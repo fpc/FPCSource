@@ -789,51 +789,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.3  2000/05/25 14:26:30  pierre
-   * Flush keyboard also at init
-
-  Revision 1.2  2000/05/19 13:02:25  pierre
-   * Empty the keyboard buffer in DoneKeyboard
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  1999/12/13 14:09:37  pierre
-   + several changes for not standard keyboards
-
-  Revision 1.12  1999/11/24 23:36:59  peter
-    * moved to packages dir
-
-  Revision 1.11  1999/09/22 12:56:53  pierre
-   + added boolean to avoid double done
-
-  Revision 1.10  1999/09/20 20:57:58  florian
-    * from Armin Diehl: fixed altgr+key, Alt 0..9, Shift-Tab for fv
-
-  Revision 1.9  1999/08/01 16:10:26  florian
-    * fixed cursor size
-
-  Revision 1.6  1999/07/15 23:40:00 armin
-    * support for alt + number, cursor keys retuned wrong codes, shift state not ok if i.e. alt released
-
-  Revision 1.5  1999/07/12 22:22:00 armin
-    * used scancodes, not virtual keys, PollKeyEvent works, special keys (shift-state untested)
-
-  Revision 1.4  1999/07/11 18:21:00 armin
-    * win32 implemented most functions
-
-  Revision 1.3  1999/06/21 16:43:53  peter
-    * win32 updates from Maarten Bekkers
-
-  Revision 1.2  1999/01/09 07:30:00  florian
-    * small additions, not completed yet
-
-  Revision 1.1  1998/12/04 12:49:01  peter
-    * moved some dirs
-
-  Revision 1.1  1998/10/26 11:31:49  peter
-    + inital include files
+  Revision 1.2  2000-07-13 11:32:27  michael
+  + removed logs
+ 
 }

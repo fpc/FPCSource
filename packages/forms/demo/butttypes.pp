@@ -93,3 +93,8 @@ begin
    fl_show_form(fd_form0^.form0,FL_PLACE_CENTER,FL_FULLBORDER,'form0');
    fl_do_forms();
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:13  michael
+  + removed logs
+ 
+}

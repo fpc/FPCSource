@@ -273,32 +273,7 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.18  2000/02/24 18:41:39  peter
-    * removed warnings/notes
-
-  Revision 1.17  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.16  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.15  1999/11/08 10:37:12  peter
-    * filename fixes for win32 imports for units with multiple needed dll's
-
-  Revision 1.14  1999/11/06 14:34:21  peter
-    * truncated log to 20 revs
-
-  Revision 1.13  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.12  1999/09/07 15:22:20  pierre
-   * runerror => do_halt
-
-  Revision 1.11  1999/08/04 00:23:04  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
 
 }

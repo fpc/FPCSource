@@ -233,36 +233,7 @@
        end;
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:48  michael
-  + Initial import
-
-  Revision 1.11  2000/06/22 18:05:56  michael
-  + Modifications for exception support in sysutils. Mainly added
-     RaiseList function.
-
-  Revision 1.10  2000/05/14 18:47:53  florian
-    * TVarRec with Int64/QWord stuff extended
-
-  Revision 1.9  2000/04/24 11:11:50  peter
-    * backtraces for exceptions are now only generated from the place of the
-      exception
-    * frame is also pushed for exceptions
-    * raise statement enhanced with [,<frame>]
-
-  Revision 1.8  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.7  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.6  2000/01/07 16:32:25  daniel
-    * copyright 2000 added
-
-  Revision 1.5  1999/12/02 19:28:53  peter
-    * public added to TObject
-
-  Revision 1.4  1999/08/09 22:20:03  peter
-    * classes vmt changed to only positive addresses
-    * sharedlib creation is working
-
+  Revision 1.2  2000-07-13 11:33:45  michael
+  + removed logs
+ 
 }

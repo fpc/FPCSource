@@ -68,30 +68,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:02  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:34  peter
-    * moved to packages dir
-
-  Revision 1.6  1999/10/06 17:42:48  peter
-    * external is now only in the interface
-    * removed gtk 1.0 support
-
-  Revision 1.5  1999/07/23 16:11:48  peter
-    * use packrecords C
-
-  Revision 1.4  1999/07/03 10:29:23  peter
-    * enum fixes
-    * use version 1.3 instead of 1.2 for win32
-
-  Revision 1.3  1999/05/11 00:37:58  peter
-    * win32 fixes
-
-  Revision 1.2  1999/05/10 15:18:46  peter
-    * cdecl fixes
-
-  Revision 1.1  1999/05/07 10:40:22  peter
-    * first things for 1.2
-
+  Revision 1.2  2000-07-13 11:33:20  michael
+  + removed logs
+ 
 }

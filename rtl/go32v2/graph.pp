@@ -2593,26 +2593,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:38  michael
-  + Initial import
-
-  Revision 1.11  2000/07/07 19:05:34  jonas
-    * fixed getpixelx/directputpixelx (only pascal version, assembler
-      versions are still wrong)
-    * fixed getrvgagbpalette procedur e(also returns 8 instead of 6 bit
-      values now)
-
-  Revision 1.10  2000/05/12 08:52:09  jonas
-    * fixed bug in setvgargbpalette (now you can again pass values in the
-      range 0..255 instead of 0..63)
-
-  Revision 1.9  2000/05/09 04:23:11  jonas
-    * fixed bug in getscanline16 (affects floodfil and getimage under VGA
-      640x480x16 (VGA/VGAHI)
-
-  Revision 1.8  2000/03/19 11:20:12  peter
-    * graph unit include is now independent and the dependent part
-      is now in graph.pp
-    * ggigraph unit for linux added
-
+  Revision 1.2  2000-07-13 11:33:40  michael
+  + removed logs
+ 
 }

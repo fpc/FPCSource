@@ -120,3 +120,8 @@ unit vgamouse;
   function mouse_getbutton:longint;CDECL; external;
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:31  michael
+  + removed logs
+ 
+}

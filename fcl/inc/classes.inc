@@ -1198,34 +1198,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:30  michael
-  + Initial import
-
-  Revision 1.18  2000/07/01 09:49:02  peter
-    * fixed go32v2,win32 build
-
-  Revision 1.17  2000/06/29 16:29:23  sg
-  * Implemented streaming. Note: The writer driver interface is stable, but
-    the reader interface is not final yet!
-
-  Revision 1.16  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.15  2000/01/06 01:20:32  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/04 18:07:16  michael
-  + Streaming implemented
-
-  Revision 1.1  2000/01/03 19:33:06  peter
-    * moved to packages dir
-
-  Revision 1.13  1999/10/19 11:27:03  sg
-  * Added DFM<->ASCII conversion procedures
-
-  Revision 1.12  1999/09/30 19:31:42  fcl
-  * Implemented LineStart  (sg)
-
-  Revision 1.11  1999/09/11 21:59:31  fcl
-  * Moved class and registration functions to cregist.inc  (sg)
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

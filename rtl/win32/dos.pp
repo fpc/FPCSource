@@ -1004,67 +1004,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:19  michael
-  + Initial import
-
-  Revision 1.37  2000/05/26 12:03:13  marco
-   * added getlongname and getshortname
-
-  Revision 1.36  2000/05/19 13:20:37  pierre
-   * avoid some Range Check errors
-
-  Revision 1.35  2000/04/17 20:43:27  pierre
-   fix bug 902 for win32 and linux
-
-  Revision 1.34  2000/02/26 13:24:26  peter
-    * fixed fexpand with empty argument to return current dir
-
-  Revision 1.33  2000/02/09 16:59:34  peter
-    * truncated log
-
-  Revision 1.32  2000/02/02 17:32:59  pierre
-   * use int64 typecast in diskfree and disksize
-
-  Revision 1.31  2000/01/24 21:57:56  florian
-    * disksize/diskfree return now a int64
-
-  Revision 1.30  2000/01/11 13:45:19  pierre
-   * fsearch was still worng for multiple pathes
-
-  Revision 1.29  2000/01/11 12:49:26  pierre
-   * fsearch bugs and fexpand memory leak fixed
-
-  Revision 1.28  2000/01/07 16:41:52  daniel
-    * copyright 2000
-
-  Revision 1.27  2000/01/07 16:32:34  daniel
-    * copyright 2000 added
-
-  Revision 1.26  1999/11/18 15:28:47  michael
-  * Better and faster Fexpand, SearchPath fromPiotr Sawicki
-
-  Revision 1.25  1999/10/14 08:57:51  peter
-    * getfattr resets doserror
-
-  Revision 1.24  1999/10/12 08:56:48  pierre
-   * fix form bug660
-
-  Revision 1.23  1999/09/22 12:34:05  pierre
-   ExecInheritsHandles  reset to false by default
-
-  Revision 1.22  1999/09/21 13:24:32  pierre
-   * typo error
-
-  Revision 1.21  1999/09/21 12:37:09  pierre
-   * Child inherits now file handles from parent in Exec by default
-
-  Revision 1.20  1999/09/21 11:34:40  pierre
-   + ExecInheritedHandles boolean
-
-  Revision 1.19  1999/08/25 13:57:55  michael
-  + Patched FSearch from Frank McCormick
-
-  Revision 1.18  1999/08/12 09:24:14  michael
-  Fixed win32finddata size; searchrec.excludeattr was overwritten.
-
+  Revision 1.2  2000-07-13 11:33:57  michael
+  + removed logs
+ 
 }

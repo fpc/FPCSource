@@ -577,41 +577,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:05  michael
-  + Initial import
-
-  Revision 1.13  2000/07/06 19:03:40  hajny
-    * filutil.inc implementation (almost) finished
-
-  Revision 1.12  2000/06/05 18:57:38  hajny
-    * handle number check added to FileClose
-
-  Revision 1.11  2000/06/04 15:04:22  hajny
-    * another bunch of corrections
-
-  Revision 1.10  2000/06/04 14:22:02  hajny
-    * minor corrections
-
-  Revision 1.9  2000/06/01 18:36:50  hajny
-    * FileGetDate added
-
-  Revision 1.8  2000/05/29 17:59:58  hajny
-    * FindClose implemented
-
-  Revision 1.7  2000/05/28 18:22:58  hajny
-    + implementation started
-
-  Revision 1.6  2000/02/17 22:16:05  sg
-  * Changed the second argument of FileWrite from "var buffer" to
-    "const buffer", like in Delphi.
-
-  Revision 1.5  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:47  daniel
-    * copyright 2000
-
-  Revision 1.3  1999/11/08 22:45:55  peter
-    * updated
-
+  Revision 1.2  2000-07-13 11:33:52  michael
+  + removed logs
+ 
 }

@@ -27,3 +27,8 @@ Type
 
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
+  $Log$
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
+}

@@ -148,32 +148,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:06  michael
-  + Initial import
-
-  Revision 1.9  2000/07/06 18:59:41  hajny
-    * FileOpen corrected
-
-  Revision 1.8  2000/06/12 17:26:29  hajny
-    * little mistyping in SetFileSize
-
-  Revision 1.7  2000/06/06 17:10:36  hajny
-    * moving file ptr to the end in SetFileSize
-
-  Revision 1.6  2000/06/05 18:55:54  hajny
-    * another SetFileSize correction
-
-  Revision 1.5  2000/06/04 14:17:28  hajny
-    * SetFileSize fixed
-
-  Revision 1.4  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.3  2000/01/07 16:41:48  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:32  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:52  michael
+  + removed logs
+ 
 }
-

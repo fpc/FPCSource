@@ -254,19 +254,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:54  michael
-  + Initial import
-
-  Revision 1.7  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.6  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.5  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.4  1999/09/08 16:14:43  peter
-    * pointer fixes
-
+  Revision 1.2  2000-07-13 11:33:49  michael
+  + removed logs
+ 
 }

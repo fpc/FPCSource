@@ -164,19 +164,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:50  michael
-  + Initial import
-
-  Revision 1.7  2000/02/24 18:41:39  peter
-    * removed warnings/notes
-
-  Revision 1.6  2000/02/09 13:22:53  peter
-    * log truncated
-
-  Revision 1.5  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/12/20 23:23:28  pierre
-   + $description $version
+  Revision 1.2  2000-07-13 11:32:41  michael
+  + removed logs
 
 }

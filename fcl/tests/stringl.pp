@@ -73,4 +73,8 @@ begin
   Data:=memavail;
   test;
   Writeln ('Lost ',Data-Memavail);
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:04  michael
+end.  + removed logs
+end. 
+}

@@ -215,59 +215,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:56  michael
-  + Initial import
-
-  Revision 1.13  2000/06/18 18:11:32  peter
-    * C record packing fixed to also check first entry of the record
-      if bigger than the recordalignment itself
-    * variant record alignment uses alignment per variant and saves the
-      highest alignment value
-
-  Revision 1.12  2000/06/02 21:15:49  pierre
-   + vo_is_exported for bug0317 fix
-
-  Revision 1.11  2000/03/19 14:56:38  florian
-    * bug 873 fixed
-    * some cleanup in objectdec
-
-  Revision 1.10  2000/01/09 23:16:06  peter
-    * added st_default stringtype
-    * genstringconstnode extended with stringtype parameter using st_default
-      will do the old behaviour
-
-  Revision 1.9  2000/01/07 01:14:39  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/12/18 14:55:21  florian
-    * very basic widestring support
-
-  Revision 1.7  1999/11/30 10:40:54  peter
-    + ttype, tsymlist
-
-  Revision 1.6  1999/11/17 17:05:04  pierre
-   * Notes/hints changes
-
-  Revision 1.5  1999/11/07 23:16:49  florian
-    * finally bug 517 solved ...
-
-  Revision 1.4  1999/10/26 12:30:45  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.3  1999/10/01 08:02:48  peter
-    * forward type declaration rewritten
-
-  Revision 1.2  1999/08/04 13:45:29  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.1  1999/08/03 22:03:14  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:49  michael
+  + removed logs
 
 }

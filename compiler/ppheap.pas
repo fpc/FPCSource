@@ -72,17 +72,7 @@ unit ppheap;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:54  michael
-  + Initial import
-
-  Revision 1.10  2000/02/09 13:22:59  peter
-    * log truncated
-
-  Revision 1.9  2000/01/07 01:14:30  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/11/17 17:05:02  pierre
-   * Notes/hints changes
+  Revision 1.2  2000-07-13 11:32:45  michael
+  + removed logs
 
 }
-

@@ -180,20 +180,7 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.8  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.7  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.6  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.5  1999/08/04 00:23:06  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
 
 }

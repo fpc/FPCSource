@@ -52,17 +52,8 @@ end;
 
 
 {
- $Log$
- Revision 1.1  2000-07-13 06:31:15  michael
- + Initial import
-
- Revision 1.2  2000/01/07 16:41:51  daniel
-   * copyright 2000
-
- Revision 1.1  1999/11/08 22:45:01  peter
-   * inserted as templates
-
- Revision 1.1  1998/10/11 13:42:55  michael
- Added disk functions
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:56  michael
+  + removed logs
+ 
 }

@@ -88,25 +88,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:00  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.4  1999/05/11 00:37:44  peter
-    * win32 fixes
-
-  Revision 1.3  1999/05/10 19:18:13  peter
-    * more fixes for the examples to work
-
-  Revision 1.1  1999/05/10 09:02:36  peter
-    * gtk 1.2 port working
-
-  Revision 1.2  1998/10/22 11:37:30  peter
-    * fixes for win32
-
-  Revision 1.1  1998/10/21 22:27:01  peter
-    + initial version
-
+  Revision 1.2  2000-07-13 11:33:18  michael
+  + removed logs
+ 
 }

@@ -36,13 +36,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:49  michael
-  + Initial import
-
-  Revision 1.2  2000/01/07 16:41:37  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/12/18 14:55:53  florian
-    + initial version
-
+  Revision 1.2  2000-07-13 11:33:46  michael
+  + removed logs
+ 
 }

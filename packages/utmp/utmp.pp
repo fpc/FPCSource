@@ -318,3 +318,8 @@ begin
   Utmp_file := '/var/run/utmp';
   Set_search_parameters(Include,DefaultLoginType);
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:33  michael
+  + removed logs
+ 
+}

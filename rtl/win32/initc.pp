@@ -44,3 +44,8 @@ finalization
 C_exit(0);
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:57  michael
+  + removed logs
+ 
+}

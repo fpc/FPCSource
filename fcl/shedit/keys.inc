@@ -491,51 +491,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:44  michael
-  + Initial import
-
-  Revision 1.12  2000/02/22 14:28:35  sg
-  * "AdjustRangeToCursor" now is called after each pressed key
-
-  Revision 1.11  2000/01/23 23:58:25  sg
-  * KeyPressed now returns a Boolean which indicates if the key has been
-    processed or not
-
-  Revision 1.10  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.9  2000/01/06 01:20:34  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/05 19:05:31  sg
-  * Selections must now changed between "StartSelectionChange" and
-    "EndSelectionChange" calls.
-
-  Revision 1.1  2000/01/03 19:33:09  peter
-    * moved to packages dir
-
-  Revision 1.7  1999/12/30 21:10:24  sg
-  * Fixed some keyboard issues
-
-  Revision 1.5  1999/12/10 15:01:02  peter
-    * first things for selection
-    * Better Adjusting of range/cursor
-
-  Revision 1.4  1999/12/09 23:16:41  peter
-    * cursor walking is now possible, both horz and vert ranges are now
-      adapted
-    * filter key modifiers
-    * selection move routines added, but still no correct output to the
-      screen
-
-  Revision 1.3  1999/12/08 01:03:15  peter
-    * changes so redrawing and walking with the cursor finally works
-      correct
-
-  Revision 1.2  1999/11/15 21:47:36  peter
-    * first working keypress things
-
-  Revision 1.1  1999/10/29 15:59:04  peter
-    * inserted in fcl
-
+  Revision 1.2  2000-07-13 11:33:02  michael
+  + removed logs
+ 
 }

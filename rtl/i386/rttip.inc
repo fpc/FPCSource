@@ -385,30 +385,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:42  michael
-  + Initial import
-
-  Revision 1.23  2000/06/07 08:55:30  jonas
-    * fixed web bug 983 (array name wasn't skipped in add/decref)
-
-  Revision 1.22  2000/04/01 11:45:34  peter
-    * fixed addref/decref for records, the data/type was read in the
-      wrong order
-
-  Revision 1.21  2000/02/18 15:23:01  florian
-    * fixed constants in rtti
-    * longjmp does now a finit
-
-  Revision 1.20  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.19  2000/01/11 21:11:34  marco
-   * Direct params to internal assembler
-
-  Revision 1.18  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.17  1999/07/31 22:27:28  michael
-  Object finalization data fixed
-
+  Revision 1.2  2000-07-13 11:33:41  michael
+  + removed logs
+ 
 }

@@ -189,66 +189,8 @@ begin
         writeln(f,'{$endif not gtk_include_files}');
         writeln(f,'');
         writeln(f,'{');
-        writeln(f,'  $Log: fixgtk.pp,v $
-        writeln(f,'  Revision 1.1  1999/11/24 23:36:33  peter
-        writeln(f,'    * moved to packages dir
-        writeln(f,'
-        writeln(f,'  Revision 1.2  1999/05/10 09:02:33  peter
-        writeln(f,'    * gtk 1.2 port working
-        writeln(f,'');
-        writeln(f,'}');
-        continue;
-      end;
-
-     readln(t,s);
-     fixreplace(s);
-
-     func:=false;
-     if lower(copy(trimspace(ssmall),1,8))='function' then
-      begin
-        func:=true;
-        name:=trimspace(ssmall+s);
-        delete(name,1,9);
-        name:=trimspace(name);
-        i:=1;
-        while (name[i] in ['_','A'..'Z','a'..'z','0'..'9']) do
-         inc(i);
-        delete(name,i,255);
-        hs:=trimbegin(ssmall);
-        replace(hs,'FUNCTION','function ',true);
-        write(f,hs);
-      end
-     else
-      if lower(copy(trimspace(ssmall),1,9))='procedure' then
-       begin
-         func:=true;
-         name:=trimspace(ssmall+s);
-         delete(name,1,10);
-         name:=trimspace(name);
-         i:=1;
-         while (name[i] in ['_','A'..'Z','a'..'z','0'..'9']) do
-          inc(i);
-         delete(name,i,255);
-         write(f,trimbegin(ssmall));
-       end
-     else
-       write(f,ssmall);
-
-     if func and (copy(name,1,3)='gtk') then
-      begin
-        if pos('cdecl;',s)=0 then
-         begin
-           write(f,s);
-           readln(t,s);
-         end;
-        replace(s,'CDECL;','{$ifndef win32}cdecl;{$endif}',true);
-        writeln(f,s);
-      end
-     else
-      writeln(f,s);
-   end;
-  close(f);
-  close(t);
-  erase(t);
-  rename(f,paramstr(1));
-end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:18  michael
+  + removed logs
+ 
+}

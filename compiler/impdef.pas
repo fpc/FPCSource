@@ -143,4 +143,8 @@ begin
   if FileCreated then
    close(t);
 end;
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:32:43  michael
+end.  + removed logs
 end.
+}

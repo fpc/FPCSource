@@ -539,44 +539,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:00  michael
-  + Initial import
-
-  Revision 1.43  2000/05/23 13:55:27  pierre
-   Use a multiple of 4 to substract from stack pointer for locals and temps
-
-  Revision 1.42  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.41  2000/01/07 01:14:47  peter
-    * updated copyright to 2000
-
-  Revision 1.40  1999/12/19 23:53:14  pierre
-   * problem with persistant temp fixed
-
-  Revision 1.39  1999/12/01 12:42:33  peter
-    * fixed bug 698
-    * removed some notes about unused vars
-
-  Revision 1.38  1999/11/06 14:34:31  peter
-    * truncated log to 20 revs
-
-  Revision 1.37  1999/09/27 23:45:02  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.36  1999/09/26 13:26:08  florian
-    * exception patch of Romio nevertheless the excpetion handling
-      needs some corections regarding register saving
-    * gettempansistring is again a procedure
-
-  Revision 1.35  1999/09/16 11:34:59  pierre
-   * typo correction
-
-  Revision 1.34  1999/08/04 00:23:46  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.33  1999/08/02 00:34:06  michael
-  * alpha has no index
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

@@ -336,36 +336,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:19  michael
-  + Initial import
-
-  Revision 1.2  2000/07/08 20:58:05  pierre
-   * adapt to new graph modes
-
-  Revision 1.1  2000/03/09 02:40:04  alex
-  moved files
-
-  Revision 1.10  2000/03/08 22:32:41  alex
-  fixed warnings about type conversion
-
-  Revision 1.9  2000/02/22 03:43:55  alex
-  fixed the warning
-
-  Revision 1.8  2000/01/04 15:29:42  marco
-   * fixed constants for graphmodes
-
-  Revision 1.7  1999/12/22 14:36:07  jonas
-    * changed type of max_color to word so it works now with 16bit color modes
-      (thanks to Arjan van Dijk for noticing the problem)
-
-  Revision 1.6  1999/12/14 22:59:52  pierre
-   * adapted to new graph unit
-
-  Revision 1.5  1999/05/27 21:36:33  peter
-    * new demo's
-    * fixed mandel for linux
-
-  Revision 1.4  1998/12/20 22:22:10  peter
-    * updates
-
+  Revision 1.2  2000-07-13 11:33:08  michael
+  + removed logs
+ 
 }

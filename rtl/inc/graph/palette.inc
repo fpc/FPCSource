@@ -382,33 +382,8 @@ CONST
       end;
 
 {
-$Log$
-Revision 1.1  2000-07-13 06:30:52  michael
-+ Initial import
-
-Revision 1.8  2000/01/07 16:41:39  daniel
-  * copyright 2000
-
-Revision 1.7  2000/01/07 16:32:26  daniel
-  * copyright 2000 added
-
-Revision 1.6  1999/12/25 22:22:56  jonas
-  * setpallette only worked for colors 0-63, fixed
-
-Revision 1.5  1999/12/20 11:22:36  peter
-  * integer -> smallint to overcome -S2 switch needed for ggi version
-
-Revision 1.4  1999/07/12 13:27:15  jonas
-  + added Log and Id tags
-  * added first FPC support, only VGA works to some extend for now
-  * use -dasmgraph to use assembler routines, otherwise Pascal
-    equivalents are used
-  * use -dsupportVESA to support VESA (crashes under FPC for now)
-  * only dispose vesainfo at closegrph if a vesa card was detected
-  * changed int32 to longint (int32 is not declared under FPC)
-  * changed the declaration of almost every procedure in graph.inc to
-    "far;" becquse otherwise you can't assign them to procvars under TP
-    real mode (but unexplainable "data segnment too large" errors prevent
-    it from working under real mode anyway)
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:47  michael
+  + removed logs
+ 
 }

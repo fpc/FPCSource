@@ -212,35 +212,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.3  1998/12/15 17:17:18  peter
-    + cursor at 1,1 at the end
-
-  Revision 1.2  1998/12/15 10:25:16  peter
-    * Use Segb800 instead of $b800
-
-  Revision 1.1  1998/12/04 12:48:57  peter
-    * moved some dirs
-
-  Revision 1.4  1998/11/01 20:29:13  peter
-    + lockupdatescreen counter to not let updatescreen() update
-
-  Revision 1.3  1998/10/28 21:18:28  peter
-    * more fixes
-
-  Revision 1.2  1998/10/28 00:02:09  peter
-    + mouse
-    + video.clearscreen, video.videobufsize
-
-  Revision 1.1  1998/10/26 11:31:49  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:27  michael
+  + removed logs
+ 
 }

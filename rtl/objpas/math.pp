@@ -862,53 +862,8 @@ end;
 
 end.
 {
-    $Log$
-    Revision 1.1  2000-07-13 06:31:00  michael
-    + Initial import
-
-    Revision 1.25  2000/07/08 17:12:56  michael
-    + Final fixes
-
-    Revision 1.24  2000/07/08 07:03:20  michael
-    + fixed meanandstddev
-
-    Revision 1.23  2000/07/08 06:45:07  michael
-    + Added some functions
-
-    Revision 1.22  2000/07/06 21:59:25  michael
-    + Added many overloaded functions with as argument pointer to
-      array and count
-    + Implemented meanandstddev
-    + Improved power
-
-    Revision 1.21  2000/07/06 12:13:59  michael
-    + SOme changes in error reporting
-
-    Revision 1.20  2000/07/05 13:19:59  michael
-    + Corrected arsinh function
-
-    Revision 1.19  2000/07/04 20:53:22  michael
-    + Exceptions now used for errors
-
-    Revision 1.18  2000/04/29 10:10:51  jonas
-      * fixed arctan2 (tbug788 now works correctly)
-
-    Revision 1.17  2000/04/20 13:12:40  pierre
-     * fix bug visible in new tests/webtbs/tbug788 file
-
-    Revision 1.16  2000/04/20 08:14:27  jonas
-      * better arcsin/arccos from Arjan van Dijk
-
-    Revision 1.15  2000/02/09 16:59:32  peter
-      * truncated log
-
-    Revision 1.14  2000/01/11 21:07:33  marco
-     * Changed some (%ebp) to real parameters
-
-    Revision 1.13  2000/01/07 16:41:43  daniel
-      * copyright 2000
-
-    Revision 1.12  1999/09/21 20:47:05  florian
-      * ceil and floor still had bugs :), hopefully it's the final fix now
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }

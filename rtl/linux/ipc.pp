@@ -371,16 +371,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.9  2000/03/16 15:23:35  marco
-   * put one BSD incompability under a ifndef bsd
-
-  Revision 1.8  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.7  2000/01/07 16:41:40  daniel
-    * copyright 2000
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

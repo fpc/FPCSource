@@ -21,28 +21,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:30  michael
-  + Initial import
-
-  Revision 1.3  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
-
-  Revision 1.2  1998/01/26 12:02:52  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/atari/os.inc
-  description:
-  ----------------------------
-  revision 1.1
-  date: 1998/01/05 00:38:27;  author: carl;  state: Exp;
-  + Initial revision
-  =============================================================================
+  Revision 1.2  2000-07-13 11:33:37  michael
+  + removed logs
+ 
 }

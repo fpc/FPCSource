@@ -815,69 +815,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:34  michael
-  + Initial import
-
-  Revision 1.5  2000/04/14 12:18:11  pierre
-   * fix for bug 923
-
-  Revision 1.4  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1999/06/09 16:46:08  peter
-    * fixed fullwin,textbackground
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.17  1998/12/15 22:42:49  peter
-    * removed temp symbols
-
-  Revision 1.16  1998/12/09 23:04:36  jonas
-    * fixed bug in InsLine (changed "my" from "WinMaxY -1" to "WinMaxY - WinMinY")
-
-  Revision 1.15  1998/11/28 14:09:48  peter
-    * NOATTCDQ define
-
-  Revision 1.14  1998/11/26 23:14:52  jonas
-    * changed cdq to cltd in AT&T assembler block
-
-  Revision 1.13  1998/08/26 10:01:54  peter
-    * fixed readln cursor position
-
-  Revision 1.12  1998/08/19 17:57:55  peter
-    * fixed crtread with wrong cursor position
-
-  Revision 1.11  1998/08/19 14:55:44  peter
-    * fixed removeline which scrolled too much lines
-
-  Revision 1.10  1998/08/18 13:32:46  carl
-    * bugfix to make it work with FPC 0.99.5 (Delayloop is not correctly
-  converted by ATT parser)
-
-  Revision 1.9  1998/08/15 17:00:10  peter
-    * moved delaycnt from interface to implementation
-
-  Revision 1.8  1998/08/08 21:56:45  peter
-    * updated crt with new delay, almost like bp7 routine
-
-  Revision 1.5  1998/05/31 14:18:12  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.4  1998/05/28 10:21:38  pierre
-    * Handles of input and output restored
-
-  Revision 1.3  1998/05/27 00:19:16  peter
-    * fixed crt input
-
-  Revision 1.2  1998/05/21 19:30:46  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
+  Revision 1.2  2000-07-13 11:33:38  michael
+  + removed logs
+ 
 }
-

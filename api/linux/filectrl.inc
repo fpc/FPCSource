@@ -158,19 +158,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.1  1998/12/04 12:48:30  peter
-    * moved some dirs
-
-  Revision 1.1  1998/10/26 11:31:47  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:24  michael
+  + removed logs
+ 
 }

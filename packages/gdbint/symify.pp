@@ -78,23 +78,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:58  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.2  1999/11/09 22:59:07  pierre
-   + function name and offset
-
-  Revision 1.1  1999/05/22 13:43:00  peter
-    * moved
-
-  Revision 1.1  1998/10/07 15:57:38  peter
-    * initial version
-
-  Revision 1.1  1998/10/07 15:48:20  peter
-    * initial version
-
+  Revision 1.2  2000-07-13 11:33:16  michael
+  + removed logs
+ 
 }
-

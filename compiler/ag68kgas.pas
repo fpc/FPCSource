@@ -723,19 +723,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:43  michael
-  + Initial import
-
-  Revision 1.26  2000/04/14 12:49:11  pierre
-   * some debug related updates
-
-  Revision 1.25  2000/02/09 13:22:44  peter
-    * log truncated
-
-  Revision 1.24  2000/01/07 01:14:18  peter
-    * updated copyright to 2000
-
-  Revision 1.23  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
+  Revision 1.2  2000-07-13 11:32:31  michael
+  + removed logs
 
 }

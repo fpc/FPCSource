@@ -725,19 +725,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:46  michael
-  + Initial import
-
-  Revision 1.15  2000/02/09 13:22:49  peter
-    * log truncated
-
-  Revision 1.14  2000/01/07 01:14:22  peter
-    * updated copyright to 2000
-
-  Revision 1.13  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.12  1999/08/25 11:59:52  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+  Revision 1.2  2000-07-13 11:32:37  michael
+  + removed logs
 
 }

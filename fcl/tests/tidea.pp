@@ -37,4 +37,8 @@ begin
     end;
   Writeln ('Position after Reading : ',DS.Position);  
   DS.destroy;
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:05  michael
+end.  + removed logs
+end. 
+}

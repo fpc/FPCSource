@@ -390,58 +390,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:53  michael
-  + Initial import
-
-  Revision 1.115  2000/05/25 12:00:14  jonas
-    * fixed unreachable code detection
-
-  Revision 1.114  2000/02/17 14:53:42  florian
-    * some updates for the newcg
-
-  Revision 1.113  2000/02/09 13:22:55  peter
-    * log truncated
-
-  Revision 1.112  2000/01/07 01:14:28  peter
-    * updated copyright to 2000
-
-  Revision 1.111  1999/12/14 09:58:42  florian
-    + compiler checks now if a goto leaves an exception block
-
-  Revision 1.110  1999/11/30 10:40:44  peter
-    + ttype, tsymlist
-
-  Revision 1.109  1999/11/18 15:34:47  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.108  1999/11/17 17:05:01  pierre
-   * Notes/hints changes
-
-  Revision 1.107  1999/10/26 12:30:43  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.106  1999/09/27 23:44:51  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.105  1999/09/26 21:30:16  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.104  1999/09/11 09:08:31  florian
-    * fixed bug 596
-    * fixed some problems with procedure variables and procedures of object,
-      especially in TP mode. Procedure of object doesn't apply only to classes,
-      it is also allowed for objects !!
-
-  Revision 1.103  1999/08/04 00:23:09  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:44  michael
+  + removed logs
 
 }

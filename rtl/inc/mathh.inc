@@ -61,19 +61,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:47  michael
-  + Initial import
-
-  Revision 1.9  2000/02/15 14:36:57  florian
-    * disabled FIXED data type per default
-
-  Revision 1.8  2000/02/09 16:59:30  peter
-    * truncated log
-
-  Revision 1.7  2000/01/07 16:41:34  daniel
-    * copyright 2000
-
-  Revision 1.6  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:44  michael
+  + removed logs
+ 
 }

@@ -325,19 +325,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:00  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.2  1999/05/10 19:18:08  peter
-    * more fixes for the examples to work
-
-  Revision 1.1  1999/05/10 09:02:36  peter
-    * gtk 1.2 port working
-
-  Revision 1.1  1998/11/09 10:12:27  peter
-    + initial version
-
+  Revision 1.2  2000-07-13 11:33:18  michael
+  + removed logs
+ 
 }

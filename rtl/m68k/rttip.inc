@@ -176,24 +176,8 @@ begin
 end;
 
 {
- $Log$
- Revision 1.1  2000-07-13 06:30:57  michael
- + Initial import
-
- Revision 1.5  2000/01/07 16:41:43  daniel
-   * copyright 2000
-
- Revision 1.4  2000/01/07 16:32:29  daniel
-   * copyright 2000 added
-
- Revision 1.3  1998/10/13 08:00:07  pierre
-   * some bugs related to FPC_ prefix fixed
-   * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
-
- Revision 1.2  1998/06/08 19:26:53  michael
- + Implemented DecRef
-
- Revision 1.1  1998/06/08 15:32:08  michael
- + Split rtti according to processor. Implemented optimized i386 code.
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }

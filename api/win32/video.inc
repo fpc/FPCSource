@@ -340,39 +340,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  1999/12/09 21:36:47  pierre
-   * freeze screen size
-
-  Revision 1.9  1999/11/24 23:37:00  peter
-    * moved to packages dir
-
-  Revision 1.8  1999/10/14 10:13:57  pierre
-   * Screen size problem solved
-
-  Revision 1.7  1999/09/22 12:57:38  pierre
-   + support for Screen switches : ClearScreen removed
-
-  Revision 1.6  1999/08/01 16:10:27  florian
-    * fixed cursor size
-
-  Revision 1.5  1999/07/14 22:04:04  florian
-    * noch mehr Fehler behoben, TV-Programme laufen nun so lala
-
-  Revision 1.4  1999/07/11 21:57:48  florian
-    * small fixes to get at least some output
-
-  Revision 1.3  1999/06/21 16:43:55  peter
-    * win32 updates from Maarten Bekkers
-
-  Revision 1.2  1999/01/08 16:50:05  florian
-    + complete, but undebugged implementation
-
-  Revision 1.1  1999/01/08 14:37:03  florian
-    + initial version, not working yet
+  Revision 1.2  2000-07-13 11:32:27  michael
+  + removed logs
+ 
 }

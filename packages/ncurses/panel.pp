@@ -80,3 +80,8 @@ const External_library='';
   function panel_hidden(_para1:pPANEL):longint;cdecl;External;
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:27  michael
+  + removed logs
+ 
+}

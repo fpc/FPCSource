@@ -116,19 +116,7 @@ type
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:22  michael
-  + Initial import
-
-  Revision 1.12  2000/05/08 13:25:34  peter
-    * defined filemode constants in windows unit
-
-  Revision 1.11  2000/02/09 16:59:34  peter
-    * truncated log
-
-  Revision 1.10  2000/01/25 13:15:35  florian
-    * new constants to compile dos unit again
-
-  Revision 1.9  2000/01/07 16:41:53  daniel
-    * copyright 2000
-
+  Revision 1.2  2000-07-13 11:33:58  michael
+  + removed logs
+ 
 }

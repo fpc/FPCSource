@@ -94,31 +94,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:10  michael
-  + Initial import
-
-  Revision 1.8  2000/01/07 16:41:51  daniel
-    * copyright 2000
-
-  Revision 1.7  2000/01/07 16:32:34  daniel
-    * copyright 2000 added
-
-  Revision 1.6  1999/09/17 10:00:40  florian
-    * now using direct assembler mode
-
-  Revision 1.5  1999/05/17 21:52:46  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.4  1999/01/18 10:05:56  pierre
-   + system_exit procedure added
-
-  Revision 1.3  1998/08/31 12:18:37  peter
-    * export changed to public which is allowed in implementation
-
-  Revision 1.2  1998/08/22 10:23:59  florian
-    + PilotMain implemented
-
-  Revision 1.1  1998/08/05 17:19:07  florian
-    + first few things for PalmOS support
-
+  Revision 1.2  2000-07-13 11:33:54  michael
+  + removed logs
+ 
 }

@@ -107,4 +107,8 @@ Initialization
   
 Finalization
   SetMemoryManager (OldMemoryManager);
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:10  michael
+end.  + removed logs
+end. 
+}

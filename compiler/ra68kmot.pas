@@ -2178,24 +2178,7 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:56  michael
-  + Initial import
-
-  Revision 1.13  2000/02/09 13:23:02  peter
-    * log truncated
-
-  Revision 1.12  2000/01/07 01:14:37  peter
-    * updated copyright to 2000
-
-  Revision 1.11  1999/11/10 00:06:08  pierre
-   * adapted to procinfo as pointer
-
-  Revision 1.10  1999/11/09 23:06:46  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.9  1999/09/16 23:05:56  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
+  Revision 1.2  2000-07-13 11:32:48  michael
+  + removed logs
 
 }
-

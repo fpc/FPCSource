@@ -448,24 +448,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:44  michael
-  + Initial import
-
-  Revision 1.6  2000/02/09 13:22:45  peter
-    * log truncated
-
-  Revision 1.5  2000/01/07 01:14:20  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/11/30 10:40:42  peter
-    + ttype, tsymlist
-
-  Revision 1.3  1999/11/17 17:04:58  pierre
-   * Notes/hints changes
-
-  Revision 1.2  1999/08/03 22:02:30  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:32  michael
+  + removed logs
 
 }
-

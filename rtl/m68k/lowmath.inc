@@ -914,48 +914,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:55  michael
-  + Initial import
-
-  Revision 1.6  2000/01/07 16:41:42  daniel
-    * copyright 2000
-
-  Revision 1.5  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.4  1998/10/13 08:00:04  pierre
-    * some bugs related to FPC_ prefix fixed
-    * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
-
-  Revision 1.3  1998/07/01 14:28:32  carl
-    * LONGDIV bugfixed with signed and modulo
-    * LONGDIV bugfix when divisor is less then 16 bits
-
-  Revision 1.1.1.1  1998/03/25 11:18:44  root
-  * Restored version
-
-  Revision 1.5  1998/01/26 12:01:47  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/m68k/lowmath.inc
-  description:
-  ----------------------------
-  revision 1.4
-  date: 1998/01/05 00:33:30;  author: carl;  state: Exp;  lines: +144 -156
-  * Several minor bugfixes
-  ----------------------------
-  revision 1.3
-  date: 1997/12/14 19:03:36;  author: carl;  state: Exp;  lines: +11 -12
-  + uses now correct register conventions
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:37:20;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 13:55:47;  author: carl;  state: Exp;
-  Internal RTL math functions for m68k.
-  =============================================================================
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }

@@ -62,23 +62,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:21  michael
-  + Initial import
-
-  Revision 1.5  2000/02/22 03:46:55  alex
-  fixed the warning
-
-  Revision 1.4  2000/01/21 00:44:51  peter
-    * remove unused vars
-    * renamed to .pp
-
-  Revision 1.3  1999/10/26 12:33:53  peter
-    * fixed illegal expr
-
-  Revision 1.2  1999/06/30 22:04:56  michael
-  * Added code to remove warnings
-
-  Revision 1.1  1999/01/12 14:20:36  peter
-    + dll example
-
+  Revision 1.2  2000-07-13 11:33:10  michael
+  + removed logs
+ 
 }

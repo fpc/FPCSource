@@ -603,51 +603,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:44  michael
-  + Initial import
-
-  Revision 1.65  2000/06/01 19:11:19  peter
-    * added ifdef fpc around findclose
-
-  Revision 1.64  2000/06/01 13:02:45  peter
-    * clean .o and .s from smartlinkpath when starting the writer
-
-  Revision 1.63  2000/04/04 15:05:03  pierre
-   + accept nasmwin32 output
-
-  Revision 1.62  2000/02/24 18:41:38  peter
-    * removed warnings/notes
-
-  Revision 1.61  2000/02/09 13:22:45  peter
-    * log truncated
-
-  Revision 1.60  2000/01/11 09:52:06  peter
-    * fixed placing of .sl directories
-    * use -b again for base-file selection
-    * fixed group writing for linux with smartlinking
-
-  Revision 1.59  2000/01/07 01:14:19  peter
-    * updated copyright to 2000
-
-  Revision 1.58  1999/11/12 11:03:49  peter
-    * searchpaths changed to stringqueue object
-
-  Revision 1.57  1999/11/08 10:37:12  peter
-    * filename fixes for win32 imports for units with multiple needed dll's
-
-  Revision 1.56  1999/11/06 14:34:17  peter
-    * truncated log to 20 revs
-
-  Revision 1.55  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.54  1999/09/16 11:34:44  pierre
-   * typo correction
-
-  Revision 1.53  1999/09/02 18:47:44  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
+  Revision 1.2  2000-07-13 11:32:32  michael
+  + removed logs
 
 }

@@ -141,14 +141,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:55  michael
-  + Initial import
-
-  Revision 1.2  2000/03/31 23:11:23  pierre
-   * TSigAction Context param is the full record not a pointer
-
-  Revision 1.1  2000/03/31 13:24:28  jonas
-    * signal handling using sigaction when compiled with -dnewsignal
-      (allows multiple signals to be received in one run)
-
+  Revision 1.2  2000-07-13 11:33:49  michael
+  + removed logs
+ 
 }

@@ -246,42 +246,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
-  + Initial import
-
-  Revision 1.3  2000/06/30 09:00:33  jonas
-    * compiles again with -dnomouse
-
-  Revision 1.2  2000/04/17 08:51:38  pierre
-   + set conditional NOMOUSE to get dummy mouse unit
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/07/01 19:41:26  peter
-    * define OLDGPM to compile with old gpm (for v1.14) else the new
-      gpm unit from rtl will be used (v1.17)
-
-  Revision 1.4  1999/06/23 00:01:30  peter
-    * check for videobuf=nil
-
-  Revision 1.3  1999/03/31 20:20:18  michael
-  + Fixed probmem preventing IDE to run in x-term.
-
-  Revision 1.2  1998/12/11 00:13:20  peter
-    + SetMouseXY
-    * use far for exitproc procedure
-
-  Revision 1.1  1998/12/04 12:48:30  peter
-    * moved some dirs
-
-  Revision 1.3  1998/12/01 15:08:16  peter
-    * fixes for linux
-
-  Revision 1.2  1998/10/29 12:49:49  peter
-    * more fixes
-
+  Revision 1.2  2000-07-13 11:32:25  michael
+  + removed logs
+ 
 }

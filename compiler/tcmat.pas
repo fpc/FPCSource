@@ -477,62 +477,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:59  michael
-  + Initial import
-
-  Revision 1.31  2000/06/05 20:41:18  pierre
-    + support for NOT overloading
-    + unsupported overloaded operators generate errors
-
-  Revision 1.30  2000/06/02 21:13:56  pierre
-   * use is_equal instead of direct def equality in unary minus overload
-
-  Revision 1.29  2000/02/17 14:53:43  florian
-    * some updates for the newcg
-
-  Revision 1.28  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.27  2000/01/07 01:14:46  peter
-    * updated copyright to 2000
-
-  Revision 1.26  1999/12/11 18:53:31  jonas
-    * fixed type conversions of results of operations with cardinals
-      (between -dcardinalmulfix)
-
-  Revision 1.25  1999/11/30 10:40:58  peter
-    + ttype, tsymlist
-
-  Revision 1.24  1999/11/26 13:51:29  pierre
-   * fix for overloading of shr shl mod and div
-
-  Revision 1.23  1999/11/18 15:34:50  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.22  1999/11/06 14:34:30  peter
-    * truncated log to 20 revs
-
-  Revision 1.21  1999/10/26 12:30:46  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.20  1999/08/23 23:37:01  pierre
-   * firstnot register counting error corrected
-
-  Revision 1.19  1999/08/04 13:03:15  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.18  1999/08/04 00:23:43  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.17  1999/08/03 22:03:34  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

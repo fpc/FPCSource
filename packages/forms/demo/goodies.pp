@@ -47,3 +47,8 @@ begin
   fl_show_message('You typed:','',s);
   fl_show_messages('Good Bye');
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:14  michael
+  + removed logs
+ 
+}

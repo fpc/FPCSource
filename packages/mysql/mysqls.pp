@@ -15,3 +15,8 @@ begin
   writeln ('TNET : ',sizeof(TNET));
   writeln ('USED_MEM : ',sizeof(TUSED_MEM));
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:26  michael
+  + removed logs
+ 
+}

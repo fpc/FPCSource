@@ -114,24 +114,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.20  2000/05/31 06:58:50  florian
-    * first implementation of -Oa switch
-
-  Revision 1.19  2000/02/09 13:22:55  peter
-    * log truncated
-
-  Revision 1.18  2000/01/23 21:29:17  florian
-    * CMOV support in optimizer (in define USECMOV)
-    + start of support of exceptions in constructors
-
-  Revision 1.17  2000/01/07 01:14:28  peter
-    * updated copyright to 2000
-
-  Revision 1.16  1999/08/04 13:02:47  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
+  Revision 1.2  2000-07-13 11:32:44  michael
+  + removed logs
 
 }

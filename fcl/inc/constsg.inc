@@ -273,14 +273,7 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:30  michael
-  + Initial import
-
-  Revision 1.7  2000/06/29 16:29:23  sg
-  * Implemented streaming. Note: The writer driver interface is stable, but
-    the reader interface is not final yet!
-
-  Revision 1.6  2000/02/15 21:57:51  sg
-  * Added copyright notice and CVS log tags where necessary
-
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

@@ -48,3 +48,8 @@ begin
     Free;  
     end;
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:04  michael
+  + removed logs
+ 
+}

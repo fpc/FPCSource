@@ -507,56 +507,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:57  michael
-  + Initial import
-
-  Revision 1.14  2000/07/08 20:43:38  peter
-    * findobjectfile gets extra arg with directory where the unit is found
-      and the .o should be looked first
-
-  Revision 1.13  2000/06/28 03:34:06  hajny
-    * little corrections for EMX resources
-
-  Revision 1.12  2000/06/25 19:08:28  hajny
-    + $R support for OS/2 (EMX) added
-
-  Revision 1.11  2000/04/01 10:45:14  hajny
-    * .ao2 bug fixed
-
-  Revision 1.10  2000/02/28 17:23:57  daniel
-  * Current work of symtable integration committed. The symtable can be
-    activated by defining 'newst', but doesn't compile yet. Changes in type
-    checking and oop are completed. What is left is to write a new
-    symtablestack and adapt the parser to use it.
-
-  Revision 1.9  2000/02/09 13:23:06  peter
-    * log truncated
-
-  Revision 1.8  2000/01/09 00:55:51  pierre
-    * GROUP of smartlink units put before the C libraries
-      to allow for smartlinking code that uses C code.
-
-  Revision 1.7  2000/01/07 01:14:43  peter
-    * updated copyright to 2000
-
-  Revision 1.6  1999/11/30 10:40:56  peter
-    + ttype, tsymlist
-
-  Revision 1.5  1999/11/29 20:15:29  hajny
-    * missing space in EMXBIND params
-
-  Revision 1.4  1999/11/16 23:39:04  peter
-    * use outputexedir for link.res location
-
-  Revision 1.3  1999/11/12 11:03:50  peter
-    * searchpaths changed to stringqueue object
-
-  Revision 1.2  1999/11/04 10:55:31  peter
-    * TSearchPathString for the string type of the searchpaths, which is
-      ansistring under FPC/Delphi
-
-  Revision 1.1  1999/10/21 14:29:38  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
+  Revision 1.2  2000-07-13 11:32:50  michael
+  + removed logs
 
 }

@@ -519,68 +519,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:02  michael
-  + Initial import
-
-  Revision 1.24  2000/06/18 18:12:40  peter
-    * support overload keyword
-
-  Revision 1.23  2000/06/05 20:41:18  pierre
-    + support for NOT overloading
-    + unsupported overloaded operators generate errors
-
-  Revision 1.22  2000/03/19 14:56:39  florian
-    * bug 873 fixed
-    * some cleanup in objectdec
-
-  Revision 1.21  2000/02/12 23:53:18  carl
-    * bugfixes in tokens using TP conditional
-
-  Revision 1.20  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.19  2000/01/07 01:14:48  peter
-    * updated copyright to 2000
-
-  Revision 1.18  1999/11/15 17:53:00  pierre
-    + one field added for ttoken record for operator
-      linking the id to the corresponding operator token that
-      can now now all be overloaded
-    * overloaded operators are resetted to nil in InitSymtable
-      (bug when trying to compile a uint that overloads operators twice)
-
-  Revision 1.17  1999/09/21 20:53:23  florian
-    * fixed 1/s problem from mailing list
-
-  Revision 1.16  1999/09/17 09:17:49  peter
-    * removed uses globals
-
-  Revision 1.15  1999/09/16 13:41:37  peter
-    * better error checking
-
-  Revision 1.14  1999/09/08 16:02:04  peter
-    * tokendat compiles for tp
-    * tokens.dat supplied by default
-
-  Revision 1.13  1999/09/03 08:37:34  pierre
-    *  tokens.dat only used for TP, and also removed from
-       compiler dependencies
-
-  Revision 1.12  1999/09/02 18:47:49  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.11  1999/08/04 13:03:17  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.10  1999/08/03 22:03:39  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.9  1999/07/22 09:38:01  florian
-    + resourcestring implemented
-    + start of longstring support
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

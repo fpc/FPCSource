@@ -958,72 +958,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:45  michael
-  + Initial import
-
-  Revision 1.52  2000/05/17 11:42:27  florian
-    * fixed my previous commit
-
-  Revision 1.51  2000/05/16 18:56:04  florian
-    * fixed a problem with case and negative labels if a linear list
-      was generated (fixes tests\test\testcase)
-
-  Revision 1.50  2000/05/11 09:56:20  pierre
-    * fixed several compare problems between longints and
-      const > $80000000 that are treated as int64 constanst
-      by Delphi reported by Kovacs Attila Zoltan
-
-  Revision 1.49  2000/03/26 11:33:49  jonas
-    * release the register used to hold the value of the case variable
-      at the end of the case
-
-  Revision 1.48  2000/02/09 13:22:48  peter
-    * log truncated
-
-  Revision 1.47  2000/01/09 12:35:02  jonas
-    * changed edi allocation to use getexplicitregister32/ungetregister
-      (adapted tgeni386 a bit for this) and enabled it by default
-    * fixed very big and stupid bug of mine in cg386mat that broke the
-      include() code (and make cycle :( ) if you compiled without
-      -dnewoptimizations
-
-  Revision 1.46  2000/01/09 01:44:21  jonas
-    + (de)allocation info for EDI to fix reported bug on mailinglist.
-      Also some (de)allocation info for ESI added. Between -dallocEDI
-      because at this time of the night bugs could easily slip in ;)
-
-  Revision 1.45  2000/01/07 01:14:21  peter
-    * updated copyright to 2000
-
-  Revision 1.44  1999/12/01 22:45:54  peter
-    * fixed wrong assembler with in-node
-
-  Revision 1.43  1999/11/06 14:34:18  peter
-    * truncated log to 20 revs
-
-  Revision 1.42  1999/09/27 23:44:48  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.41  1999/09/20 16:38:52  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.40  1999/08/25 11:59:47  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.39  1999/08/23 23:46:42  pierre
-   * del_reference moved to respect registers32 in secondin
-
-  Revision 1.38  1999/08/19 13:08:53  pierre
-   * emit_??? used
-
-  Revision 1.37  1999/08/04 00:22:54  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.36  1999/08/03 22:02:48  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:35  michael
+  + removed logs
 
 }

@@ -1173,59 +1173,7 @@ End;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:35  michael
-  + Initial import
-
-  Revision 1.24  2000/05/30 04:41:05  jonas
-    * fixed compiling problem with formal expression passed as var
-      parameter
-
-  Revision 1.23  2000/03/22 08:00:42  pierre
-   + allow double backslash for network drives
-
-  Revision 1.22  2000/02/09 16:59:28  peter
-    * truncated log
-
-  Revision 1.21  2000/02/09 13:00:32  peter
-    + getlongname
-
-  Revision 1.20  2000/02/02 17:34:49  pierre
-   * use int64 typecast to avoid overflows in diskfree and disksize
-
-  Revision 1.19  2000/01/23 16:31:23  peter
-    * hasint64diskspace define changed to int64 so it's default now
-
-  Revision 1.18  2000/01/23 12:28:38  marco
-   * Added diskfree and disksize with AH=71 dos functions (LFN/Fat32)
-
-  Revision 1.17  2000/01/07 16:41:30  daniel
-    * copyright 2000
-
-  Revision 1.16  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.15  1999/12/06 18:26:49  peter
-    * fpcmake updated for win32 commandline
-
-  Revision 1.14  1999/11/09 11:07:50  pierre
-    * SwapVectors does not reset DosError anymore
-    + DosError is set to ax regsiter value if extended doserror function
-      retruns zero.
-    + Support for LFN in EXEC function using
-      function 7160 to get short filename counterpart
-
-  Revision 1.13  1999/11/06 14:38:23  peter
-    * truncated log
-
-  Revision 1.12  1999/09/10 17:14:09  peter
-    * better errorcode returning using int21h,5900
-
-  Revision 1.11  1999/09/08 18:55:49  peter
-    * pointer fixes
-
-  Revision 1.10  1999/08/13 21:23:15  peter
-    * fsearch checks first if the specified file exists and returns that
-      if it was found
-
+  Revision 1.2  2000-07-13 11:33:39  michael
+  + removed logs
+ 
 }
-

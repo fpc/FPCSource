@@ -136,27 +136,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.12  2000/06/25 19:08:28  hajny
-    + $R support for OS/2 (EMX) added
-
-  Revision 1.11  2000/06/23 20:11:05  peter
-    * made resourcecompiling object so it can be inherited and replaced
-      for other targets if needed
-
-  Revision 1.10  2000/02/09 13:22:50  peter
-    * log truncated
-
-  Revision 1.9  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/12/01 12:42:32  peter
-    * fixed bug 698
-    * removed some notes about unused vars
-
-  Revision 1.7  1999/11/12 11:03:50  peter
-    * searchpaths changed to stringqueue object
+  Revision 1.2  2000-07-13 11:32:38  michael
+  + removed logs
 
 }

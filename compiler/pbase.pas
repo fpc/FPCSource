@@ -197,43 +197,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:53  michael
-  + Initial import
-
-  Revision 1.31  2000/03/11 21:11:24  daniel
-    * Ported hcgdata to new symtable.
-    * Alignment code changed as suggested by Peter
-    + Usage of my is operator replacement, is_object
-
-  Revision 1.30  2000/02/09 13:22:56  peter
-    * log truncated
-
-  Revision 1.29  2000/01/11 17:16:04  jonas
-    * removed a lot of memory leaks when an error is encountered (caused by
-      procinfo and pstringcontainers). There are still plenty left though :)
-
-  Revision 1.28  2000/01/07 01:14:28  peter
-    * updated copyright to 2000
-
-  Revision 1.27  1999/11/06 14:34:21  peter
-    * truncated log to 20 revs
-
-  Revision 1.26  1999/10/01 08:02:46  peter
-    * forward type declaration rewritten
-
-  Revision 1.25  1999/09/02 18:47:44  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.24  1999/08/04 13:02:50  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.23  1999/07/27 23:42:10  peter
-    * indirect type referencing is now allowed
-
-  Revision 1.22  1999/07/26 09:42:10  florian
-    * bugs 494-496 fixed
+  Revision 1.2  2000-07-13 11:32:44  michael
+  + removed logs
 
 }

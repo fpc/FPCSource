@@ -2800,33 +2800,7 @@ END;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:47  michael
-  + Initial import
-
-  Revision 1.37  2000/04/07 21:10:35  pierre
-    + ReturnNilIfGrowHeapFails used in objects unit
-      to handle TMemoryStream out of memory properly
-      as MaxAvail is not a good test anymore.
-
-  Revision 1.36  2000/03/06 20:15:32  daniel
-    + Added is_object method to Tobject. It is similar to the is operator.
-
-  Revision 1.35  2000/02/09 16:59:30  peter
-    * truncated log
-
-  Revision 1.34  2000/01/07 16:41:34  daniel
-    * copyright 2000
-
-  Revision 1.33  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.32  1999/12/06 18:25:30  peter
-    * fixed vmtptr crash in tstream.put
-
-  Revision 1.31  1999/11/06 14:35:38  peter
-    * truncated log
-
-  Revision 1.30  1999/09/10 17:15:13  peter
-    * fixed freeall
-
+  Revision 1.2  2000-07-13 11:33:44  michael
+  + removed logs
+ 
 }

@@ -640,43 +640,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:47  michael
-  + Initial import
-
-  Revision 1.12  2000/06/22 18:36:18  peter
-    * removed notes
-
-  Revision 1.11  2000/06/05 13:04:11  pierre
-   * StabOfs for OS2 changed, hopefully correct now
-
-  Revision 1.10  2000/05/08 13:23:46  peter
-    * export function so ppl can use it in their own programs
-
-  Revision 1.9  2000/04/20 13:03:41  pierre
-   * disable stack check in lineinfo
-
-  Revision 1.8  2000/04/12 11:15:06  pierre
-   * reset funcstab when changing object
-
-  Revision 1.7  2000/03/23 22:00:08  pierre
-   * fix for OS/2 hopefully
-
-  Revision 1.6  2000/03/19 18:10:41  hajny
-    + added support for EMX
-
-  Revision 1.5  2000/02/09 16:59:30  peter
-    * truncated log
-
-  Revision 1.4  2000/02/08 15:23:02  pierre
-   * fix for directories included in stabsinfo
-
-  Revision 1.3  2000/02/06 22:13:42  florian
-    * small typo for go32 fixed
-
-  Revision 1.2  2000/02/06 19:14:22  peter
-    * linux elf support
-
-  Revision 1.1  2000/02/06 17:19:22  peter
-    * lineinfo unit added which uses stabs to get lineinfo for backtraces
-
+  Revision 1.2  2000-07-13 11:33:44  michael
+  + removed logs
+ 
 }

@@ -30,3 +30,8 @@ type
 implementation
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:32:56  michael
+  + removed logs
+ 
+}

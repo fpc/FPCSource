@@ -957,43 +957,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:31  michael
-  + Initial import
-
-  Revision 1.11  2000/03/07 07:50:55  michael
-  + Added ebginupdate/endupdate
-
-  Revision 1.10  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.9  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:08  peter
-    * moved to packages dir
-
-  Revision 1.7  1999/12/22 01:08:18  peter
-    * use reallocmem/freemem/getmem from the heapmanager
-
-  Revision 1.6  1999/11/25 13:28:13  michael
-  + Fixed bug in settext
-
-  Revision 1.5  1999/07/07 12:34:01  peter
-    * removed debug writeln
-
-  Revision 1.4  1999/05/26 13:22:23  michael
-  + Fixed insertitem
-
-  Revision 1.3  1999/04/27 07:46:18  michael
-  * Fixed bug that caused error in loadfromstream when last line in stream has not CRLF pair
-
-  Revision 1.2  1999/04/15 07:51:45  michael
-  + Bugfix in strings.Loadfromstream
-
-  Revision 1.1  1999/04/13 08:52:28  michael
-  + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
-
-  Revision 1.15  1999/04/08 10:18:56  peter
-    * makefile updates
-
+  Revision 1.2  2000-07-13 11:33:01  michael
+  + removed logs
+ 
 }

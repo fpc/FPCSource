@@ -271,45 +271,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:30  michael
-  + Initial import
-
-  Revision 1.11  2000/02/20 10:59:11  sg
-  * Fixed dynamic array sizes
-
-  Revision 1.10  2000/02/17 22:14:51  sg
-  * Now calls "ResetResourceTables" on unit finalization if gettext has been
-    used. This enabled programs using gettext to use heaptrc, which reported
-    memory leaks for the translated strings until now.
-
-  Revision 1.9  2000/01/30 22:16:59  sg
-  * Fixed memory leaks
-
-  Revision 1.8  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.7  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:07  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/10/15 19:42:18  michael
-  hash is available in tables
-
-  Revision 1.4  1999/08/28 13:35:16  michael
-  * Uses now hash function of objpas
-
-  Revision 1.3  1999/08/27 15:53:36  michael
-  + Adapted to new resourcestring mechanism. Uses objpas interface only
-
-  Revision 1.2  1999/08/26 11:05:15  peter
-    * updated for new resourcestrings
-
-  Revision 1.1  1999/08/04 11:31:09  michael
-  * Added gettext
-
-  Revision 1.1  1999/07/25 16:23:31  michael
-  + Initial implementation from Sebastian Guenther
-
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

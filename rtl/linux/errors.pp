@@ -175,19 +175,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.7  2000/05/17 17:11:16  peter
-    * fixed string length
-
-  Revision 1.6  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.5  2000/01/07 16:41:40  daniel
-    * copyright 2000
-
-  Revision 1.4  2000/01/07 16:32:26  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

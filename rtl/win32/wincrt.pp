@@ -226,21 +226,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:22  michael
-  + Initial import
-
-  Revision 1.5  2000/03/27 12:56:55  florian
-    * special keys like arrows and function keys are supported now by readkey
-
-  Revision 1.4  2000/03/05 13:07:58  florian
-    + some more functions added, also some dummies
-
-  Revision 1.3  2000/01/07 16:41:53  daniel
-    * copyright 2000
-
-  Revision 1.2  1999/11/29 22:03:39  florian
-    * first implementation of winmouse unit
-
-  Revision 1.1  1999/11/24 22:33:15  florian
-    + created from extgraph
+  Revision 1.2  2000-07-13 11:33:58  michael
+  + removed logs
+ 
 }

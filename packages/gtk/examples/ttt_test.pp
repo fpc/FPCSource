@@ -48,25 +48,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:01  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.4  1999/10/05 09:28:26  peter
-    * patches from Frank Loemker
-
-  Revision 1.3  1999/06/10 20:00:18  peter
-    * fixed tictactoe
-
-  Revision 1.2  1999/05/10 19:18:16  peter
-    * more fixes for the examples to work
-
-  Revision 1.1  1999/05/10 09:02:36  peter
-    * gtk 1.2 port working
-
-  Revision 1.1  1998/10/21 22:27:01  peter
-    + initial version
-
+  Revision 1.2  2000-07-13 11:33:18  michael
+  + removed logs
+ 
 }

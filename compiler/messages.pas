@@ -429,34 +429,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.16  2000/06/30 20:23:36  peter
-    * new message files layout with msg numbers (but still no code to
-      show the number on the screen)
-
-  Revision 1.15  2000/06/18 18:14:21  peter
-    * only replace the $1,$2,$3 once, so it doesn't loop when the
-      value to replace with contains $1,$2 or $3
-
-  Revision 1.14  2000/05/23 20:32:11  peter
-    * fixed wrong code not detected due a bug in FPC
-
-  Revision 1.13  2000/05/15 14:07:33  pierre
-   + calculate CRC value and check if consistant
-
-  Revision 1.12  2000/03/01 22:29:18  peter
-    * message files are check for amount of msgs found. If not correct a
-      line is written to stdout and switched to internal messages
-
-  Revision 1.11  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.10  2000/01/23 16:32:08  peter
-    * fixed wrong freemem size when loading message file
-
-  Revision 1.9  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
 
 }

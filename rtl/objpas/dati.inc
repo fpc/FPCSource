@@ -673,34 +673,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:58  michael
-  + Initial import
-
-  Revision 1.22  2000/06/18 18:02:54  peter
-    * fixed decodetime which used trunc instead of round
-
-  Revision 1.21  2000/02/27 14:41:25  peter
-    * removed warnings/notes
-
-  Revision 1.20  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.19  1999/11/29 16:59:27  pierre
-   * fix for form bug 719
-
-  Revision 1.18  1999/11/06 14:41:30  peter
-    * truncated log
-
-  Revision 1.17  1999/10/28 09:52:29  peter
-    * fixed dayofweek
-
-  Revision 1.16  1999/08/11 21:53:04  peter
-    * fixed formatdatetime('c',...)
-    * fixed strtodate
-    * dateencode/decode is now delphi compatible
-
-  Revision 1.15  1999/07/24 11:21:14  peter
-    * fixed encode/decode date/time
-
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }
-

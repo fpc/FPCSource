@@ -734,69 +734,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:57  michael
-  + Initial import
-
-  Revision 1.61  2000/02/29 22:32:13  pierre
-   * first bug with ORDERSOURCES corrected :(
-
-  Revision 1.60  2000/02/29 21:58:31  pierre
-   * ORDERSOURCES released
-
-  Revision 1.59  2000/02/09 13:23:05  peter
-    * log truncated
-
-  Revision 1.58  2000/01/07 01:14:40  peter
-    * updated copyright to 2000
-
-  Revision 1.57  1999/11/30 10:40:55  peter
-    + ttype, tsymlist
-
-  Revision 1.56  1999/11/21 01:42:37  pierre
-   * Nextoverloading ordering fix
-
-  Revision 1.55  1999/11/17 17:05:04  pierre
-   * Notes/hints changes
-
-  Revision 1.54  1999/11/12 11:03:50  peter
-    * searchpaths changed to stringqueue object
-
-  Revision 1.53  1999/11/06 14:34:27  peter
-    * truncated log to 20 revs
-
-  Revision 1.52  1999/11/05 17:18:03  pierre
-    * local browsing works at first level
-      ie for function defined in interface or implementation
-      not yet for functions inside other functions
-
-  Revision 1.51  1999/09/16 13:27:08  pierre
-    + error if PPU modulename is different from what is searched
-      (8+3 limitations!)
-    + cond ORDERSOURCES to allow recompilation of FP
-      if symppu.inc is changed (need PPUversion change!)
-
-  Revision 1.50  1999/09/12 15:45:11  florian
-    * tnamedindexobject._name should be never accessed direct! Use the
-      function name instead
-
-  Revision 1.49  1999/09/03 10:54:22  pierre
-   * message about conditionals changed to Hint
-
-  Revision 1.48  1999/08/31 15:47:56  pierre
-   + startup conditionals stored in PPU file for debug info
-
-  Revision 1.47  1999/08/27 10:54:45  pierre
-    * some code adapted to CRC_only computation
-    + main file is search in unitspathlist
-      and triggers do_compile flag
-    * some changes to get identical CRC vaules after
-      interface and after implementation
-
-  Revision 1.46  1999/08/13 21:33:12  peter
-    * support for array constructors extended and more error checking
-
-  Revision 1.45  1999/08/03 22:03:17  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
+  Revision 1.2  2000-07-13 11:32:49  michael
+  + removed logs
+ 
 }

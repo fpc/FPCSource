@@ -750,30 +750,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:45  michael
-  + Initial import
-
-  Revision 1.9  2000/07/07 18:23:41  marco
-   * Changed move (var source;var dest) to move (const source;var dest)
-
-  Revision 1.8  2000/03/10 13:45:31  pierre
-   * small fixes
-
-  Revision 1.7  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.6  2000/01/10 09:54:30  peter
-    * primitives added
-
-  Revision 1.5  2000/01/07 16:41:34  daniel
-    * copyright 2000
-
-  Revision 1.4  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.3  1999/12/21 11:12:16  pierre
-     * some assembler functions translated to pascal
-       WARNING these are not yet TESTED !!!
-     + FPC_CHARARRAY_TO_SHORTSTRING added
-
+  Revision 1.2  2000-07-13 11:33:43  michael
+  + removed logs
+ 
 }

@@ -2234,12 +2234,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:19  michael
-  + Initial import
-
-  Revision 1.5  2000/05/25 18:59:50  sg
-  * Completed GLU and GLUT support
-  * Some minor fixes (missing "const"s, changed some untyped "var" arguments
-    to "const" arguments etc.)
-
+  Revision 1.2  2000-07-13 11:33:29  michael
+  + removed logs
+ 
 }

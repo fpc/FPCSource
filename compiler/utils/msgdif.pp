@@ -410,23 +410,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:14  michael
-  + Initial import
-
-  Revision 1.12  2000/05/12 15:03:44  pierre
-   + interactive mode for translation
-
-  Revision 1.11  2000/05/12 08:47:25  pierre
-    + add a warning if the error level is different in the two files
-    + force to keep the order of orgfile
-
-  Revision 1.10  2000/05/11 13:37:37  pierre
-   * ordering bugs fixed
-
-  Revision 1.9  2000/02/09 13:23:11  peter
-    * log truncated
-
-  Revision 1.8  2000/01/07 01:15:01  peter
-    * updated copyright to 2000
-
+  Revision 1.2  2000-07-13 11:32:55  michael
+  + removed logs
+ 
 }

@@ -118,20 +118,7 @@ end ;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:01  michael
-  + Initial import
-
-  Revision 1.9  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.8  1999/12/10 15:02:12  peter
-    * strnew is ofcourse also different between sysutils and strings, just
-      like stralloc/strdispose.
-
-  Revision 1.7  1999/11/06 14:41:31  peter
-    * truncated log
-
-  Revision 1.6  1999/08/24 13:14:50  peter
-    * disposestr allocstr compatible with delphi
-
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }

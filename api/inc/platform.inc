@@ -302,22 +302,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/12/23 19:36:47  peter
-    * place unitfiles in target dirs
-
-  Revision 1.1  1999/11/24 23:36:37  peter
-    * moved to packages dir
-
-  Revision 1.1  1998/12/04 12:48:24  peter
-    * moved some dirs
-
-  Revision 1.5  1998/10/26 11:22:53  peter
-    * updates
-
+  Revision 1.2  2000-07-13 11:32:24  michael
+  + removed logs
+ 
 }

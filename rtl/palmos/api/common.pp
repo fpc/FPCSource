@@ -25,10 +25,7 @@ unit common;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:11  michael
-  + Initial import
-
-  Revision 1.1  1998/08/05 17:19:07  florian
-    + first few things for PalmOS support
-
+  Revision 1.2  2000-07-13 11:33:55  michael
+  + removed logs
+ 
 }

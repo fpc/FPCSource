@@ -401,61 +401,8 @@ Finalization
   InValidPointer.Free;
 end.
 {
-    $Log$
-    Revision 1.1  2000-07-13 06:31:01  michael
-    + Initial import
-
-    Revision 1.47  2000/06/22 18:05:18  michael
-    + Added ExceptObject, ExceptAddr,ExceptionErrorMessage
-       ShowException Abort; OutOfMemoryError; Beep;
-
-    Revision 1.46  2000/06/11 07:07:23  peter
-      + TSysCharSet
-
-    Revision 1.45  2000/04/24 13:34:29  peter
-      * added enhancedraise define
-
-    Revision 1.43  2000/03/30 13:54:15  pierre
-     No stack check inside CatchUnhandledException
-
-    Revision 1.42  2000/02/10 22:56:43  florian
-      * quick hack for stack trace in the case of an unhandled exception
-
-    Revision 1.41  2000/02/09 16:59:33  peter
-      * truncated log
-
-    Revision 1.40  2000/01/16 19:10:25  hajny
-      * 'uses Dos' added for OS/2 target
-
-    Revision 1.39  2000/01/07 16:41:44  daniel
-      * copyright 2000
-
-    Revision 1.38  1999/12/26 19:30:53  hajny
-      * OS/2 target added to the uses clause
-
-    Revision 1.36  1999/11/15 21:49:47  peter
-      * exception address fixes
-
-    Revision 1.35  1999/11/06 14:41:31  peter
-      * truncated log
-
-    Revision 1.34  1999/10/30 17:39:05  peter
-      * memorymanager expanded with allocmem/reallocmem
-
-    Revision 1.33  1999/10/26 12:29:07  peter
-      * assert handler must use shortstring
-
-    Revision 1.32  1999/09/15 20:26:30  florian
-      * patch from Sebastian Guenther applied: TMethod implementation
-
-    Revision 1.31  1999/08/28 14:53:27  florian
-      * bug 471 fixed: run time error 2 is now converted into a file not
-        found exception
-
-    Revision 1.30  1999/08/18 11:28:24  michael
-    * Fixed reallocmem bug 535
-
-    Revision 1.29  1999/07/27 13:01:12  peter
-      + filerec,textrec declarations
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }

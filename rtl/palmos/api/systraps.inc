@@ -475,3 +475,8 @@ ACCOMPANYING THE COMPACT DISK.
      { Trap dispatcher }
      sysDispatchTrapNum = 15;
 
+  $Log$
+  Revision 1.2  2000-07-13 11:33:55  michael
+  + removed logs
+ 
+}

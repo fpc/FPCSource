@@ -455,42 +455,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:48  michael
-  + Initial import
-
-  Revision 1.18  2000/07/08 21:27:42  sg
-  * Fixed TObject.FieldAddress
-
-  Revision 1.17  2000/07/08 07:24:24  sg
-  * FieldAddress now returns immediately if name=''
-
-  Revision 1.16  2000/06/29 16:32:50  sg
-  * Implemented TObject.FieldAddress
-
-  Revision 1.15  2000/05/16 08:06:14  michael
-  + Fixed ClassNameIs so it is case insensitive
-
-  Revision 1.14  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.13  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.12  2000/01/07 16:32:25  daniel
-    * copyright 2000 added
-
-  Revision 1.11  1999/09/15 20:28:35  florian
-    * fixed methodname/address: the loops must go from 0 to ...^.count-1
-
-  Revision 1.10  1999/09/12 14:53:26  florian
-    + tobject.methodaddress und tobject.methodname durchsucht nun auch
-      die Elternklassen
-
-  Revision 1.9  1999/09/12 08:01:00  florian
-    + implementation of TObject.MethodName and TObject.MethodAddress (not
-      in the compiler yet)
-
-  Revision 1.8  1999/09/08 16:14:41  peter
-    * pointer fixes
-
+  Revision 1.2  2000-07-13 11:33:45  michael
+  + removed logs
+ 
 }

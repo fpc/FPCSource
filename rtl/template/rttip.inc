@@ -162,20 +162,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:17  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 16:41:51  daniel
-    * copyright 2000
-
-  Revision 1.3  1998/08/23 20:58:53  florian
-    + rtti for objects and classes
-    + TObject.GetClassName implemented
-
-  Revision 1.2  1998/06/08 19:32:16  michael
-  + Implemented DecRef
-
-  Revision 1.1  1998/06/08 15:32:14  michael
-  + Split rtti according to processor. Implemented optimized i386 code.
-
+  Revision 1.2  2000-07-13 11:33:56  michael
+  + removed logs
+ 
 }

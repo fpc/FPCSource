@@ -9276,3 +9276,8 @@
     flags   : if_pent or if_3dnow or if_fpu
   )
 );
+  $Log$
+  Revision 1.2  2000-07-13 11:32:42  michael
+  + removed logs
+ 
+}

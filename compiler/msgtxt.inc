@@ -738,3 +738,10 @@ const msgtxt : array[0..000125,1..240] of char=(
   '**1?_shows this help'#010+
   '**1h_shows this help without waiting'#000
 );
+
+{
+  $Log$
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
+ 
+}

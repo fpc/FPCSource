@@ -688,51 +688,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:56  michael
-  + Initial import
-
-  Revision 1.17  2000/01/07 16:41:42  daniel
-    * copyright 2000
-
-  Revision 1.16  2000/01/07 16:32:29  daniel
-    * copyright 2000 added
-
-  Revision 1.15  1998/10/17 14:34:37  carl
-   * FillChar and FillObject bugfix, count was compared with byte
-
-  Revision 1.14  1998/10/16 13:37:45  pierre
-    * added code for vmt_offset in destructors
-
-  Revision 1.13  1998/10/15 11:35:03  pierre
-   + first step of variable vmt offset
-     offset is stored in R_EDI (R_D0)
-     if objectvmtoffset is defined
-
-  Revision 1.12  1998/10/13 08:00:06  pierre
-    * some bugs related to FPC_ prefix fixed
-    * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
-
-  Revision 1.11  1998/09/14 10:48:29  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.10  1998/08/17 12:26:04  carl
-    + simple cleanup of comments
-
-  Revision 1.9  1998/07/30 13:26:14  michael
-  + Added support for ErrorProc variable. All internal functions are required
-    to call HandleError instead of runerror from now on.
-    This is necessary for exception support.
-
-  Revision 1.8  1998/07/10 11:02:41  peter
-    * support_fixed, becuase fixed is not 100% yet for the m68k
-
-  Revision 1.7  1998/07/02 12:20:58  carl
-    + Io-Error and overflow print erroraddr in hex now
-
-  Revision 1.6  1998/07/01 14:25:57  carl
-    * strconcat was copying one byte too much
-    * strcopy bugfix was using signed comparison
-    + STRCOPY uses register calling conventions
-    * FillChar bugfix was loading a word instead of a byte
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }

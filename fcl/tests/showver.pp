@@ -28,4 +28,8 @@ begin
       Writeln (VersionCategories[I],'=',VersionStrings[i]);
     free;
     end;
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:04  michael
+end.  + removed logs
+end. 
+}

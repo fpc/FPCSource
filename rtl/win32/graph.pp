@@ -2044,65 +2044,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:20  michael
-  + Initial import
-
-  Revision 1.7  2000/04/02 12:12:22  florian
-    * a lot of optimizing done
-
-  Revision 1.6  2000/03/27 12:57:30  florian
-    * some "resource leaks" fixed
-
-  Revision 1.5  2000/03/25 19:10:11  florian
-    * colored bitmap font drawing fixed: the color brush
-      was selected for the recovery bitmap
-
-  Revision 1.4  2000/03/24 18:18:15  florian
-    * accelerated output of bitmap fonts
-
-  Revision 1.3  2000/03/24 12:57:41  florian
-    * the window is now cleared by wm_create
-    * default mode is again 640x480x16
-
-  Revision 1.2  2000/03/24 10:49:17  florian
-    * the mode detection takes now care of window caption and border
-    + 1024x768 and 1280x1024 modes added
-    + special gui modes added: largest window and maximized window to
-      use the desktop as much as possible
-    * Hline fixed: the windows function LineTo doesn't draw the last pixel!
-
-  Revision 1.1  2000/03/19 11:20:14  peter
-    * graph unit include is now independent and the dependent part
-      is now in graph.pp
-    * ggigraph unit for linux added
-
-  Revision 1.8  2000/03/17 22:53:20  florian
-    * window class is registered only once => multible init/closegraphs are possible
-    * calling cleardevice when creating the window
-
-  Revision 1.7  2000/03/05 13:06:32  florian
-    * the title can be user defined
-
-  Revision 1.6  2000/01/07 16:41:52  daniel
-    * copyright 2000
-
-  Revision 1.5  1999/12/08 09:09:34  pierre
-   + add VESA compatible mode in 16 and 256 colors
-
-  Revision 1.4  1999/12/02 00:24:36  pierre
-    * local var col was undefined
-    + 640x200 and 640x350 modes added (VGALo and VGAMed)
-    * WM_PAINT better handled (only requested region written)
-
-  Revision 1.3  1999/11/30 22:36:53  florian
-    * the wm_nc... messages aren't handled anymore it leads to too mch problems ...
-
-  Revision 1.2  1999/11/29 22:03:39  florian
-    * first implementation of winmouse unit
-
-  Revision 1.1  1999/11/08 11:15:22  peter
-    * move graph.inc to the target dir
-
-  Revision 1.1  1999/11/03 20:23:02  florian
-    + first release of win32 gui support
+  Revision 1.2  2000-07-13 11:33:57  michael
+  + removed logs
+ 
 }

@@ -318,34 +318,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.23  2000/05/29 10:04:40  pierre
-    * New bunch of Gabor changes
-
-  Revision 1.22  2000/05/10 13:40:19  peter
-    * -Se<x> option extended to increase errorcount for
-      warning,notes or hints
-
-  Revision 1.21  2000/02/09 13:22:50  peter
-    * log truncated
-
-  Revision 1.20  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
-
-  Revision 1.19  1999/11/18 15:34:45  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.18  1999/09/07 14:03:48  pierre
-   + added do_halt procedure
-
-  Revision 1.17  1999/08/05 16:52:53  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
+  Revision 1.2  2000-07-13 11:32:38  michael
+  + removed logs
 
 }

@@ -81,25 +81,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:31  michael
-  + Initial import
-
-  Revision 1.6  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.5  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:08  peter
-    * moved to packages dir
-
-  Revision 1.3  1998/10/02 22:41:29  michael
-  + Added exceptions for error handling
-
-  Revision 1.2  1998/05/27 12:22:14  michael
-  + Implemented TPersistent
-
-  Revision 1.1  1998/05/04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
-
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

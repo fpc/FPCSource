@@ -914,42 +914,7 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.21  2000/04/18 08:03:40  michael
-  Corrected fix for bug 902
-
-  Revision 1.20  2000/04/17 20:43:27  pierre
-   fix bug 902 for win32 and linux
-
-  Revision 1.19  2000/03/19 18:48:19  peter
-    * dosexitcode finally works correct
-
-  Revision 1.18  2000/03/16 15:23:02  marco
-   * Added one BSD conditional (uname not supported)
-
-  Revision 1.17  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.16  2000/02/02 15:07:05  peter
-    * gettime supports now also sec100
-    * removed crtlib code as it was broken (still available in old releases)
-    * int64 disksize/diskfree
-
-  Revision 1.15  2000/01/07 16:41:40  daniel
-    * copyright 2000
-
-  Revision 1.14  2000/01/07 16:32:26  daniel
-    * copyright 2000 added
-
-  Revision 1.13  1999/09/08 16:14:41  peter
-    * pointer fixes
-
-  Revision 1.12  1999/07/28 23:18:35  peter
-    * closedir fixes, which now disposes the pdir itself
-
-  Revision 1.11  1999/07/24 11:18:11  peter
-    * fixed getfattr which didn't reset doserror
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

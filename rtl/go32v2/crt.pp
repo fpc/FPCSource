@@ -821,31 +821,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:35  michael
-  + Initial import
-
-  Revision 1.13  2000/04/12 14:10:50  pierre
-   * fix the crt blinking compat problem bug 902
-
-  Revision 1.12  2000/02/09 16:59:28  peter
-    * truncated log
-
-  Revision 1.11  2000/01/07 16:41:30  daniel
-    * copyright 2000
-
-  Revision 1.10  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.9  2000/01/07 14:55:47  pierre
-   * bad sound if changing frequency solved
-
-  Revision 1.8  1999/11/06 14:38:23  peter
-    * truncated log
-
-  Revision 1.7  1999/11/03 23:47:34  peter
-    * support extended keys
-
-  Revision 1.6  1999/10/22 14:36:20  peter
-    * crtreturn also needs f:textrec as parameter
-
+  Revision 1.2  2000-07-13 11:33:39  michael
+  + removed logs
+ 
 }

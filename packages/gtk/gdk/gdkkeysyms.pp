@@ -1326,22 +1326,7 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:01  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.4  1999/05/11 00:37:48  peter
-    * win32 fixes
-
-  Revision 1.3  1999/05/07 10:40:18  peter
-    * first things for 1.2
-
-  Revision 1.2  1998/10/21 20:22:01  peter
-    * cdecl, packrecord fixes (from the gtk.tar.gz)
-    * win32 support
-    * gtk.pp,gdk.pp for an all in one unit
-
+  Revision 1.2  2000-07-13 11:33:19  michael
+  + removed logs
+ 
 }
-

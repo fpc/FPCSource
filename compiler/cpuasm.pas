@@ -1673,63 +1673,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.15  2000/05/23 20:34:35  peter
-    * fixed instruction matching when a size flag is specified for all
-      operands
-
-  Revision 1.14  2000/05/12 21:26:22  pierre
-    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
-      simply by swapping from reverse to normal and vice-versa
-      when passing from one syntax to the other !
-
-  Revision 1.13  2000/05/09 14:12:35  pierre
-   * fix for test/testpusw problem
-
-  Revision 1.12  2000/02/09 13:22:51  peter
-    * log truncated
-
-  Revision 1.11  2000/01/23 21:29:14  florian
-    * CMOV support in optimizer (in define USECMOV)
-    + start of support of exceptions in constructors
-
-  Revision 1.10  2000/01/12 10:38:18  peter
-    * smartlinking fixes for binary writer
-    * release alignreg code and moved instruction writing align to cpuasm,
-      but it doesn't use the specified register yet
-
-  Revision 1.9  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
-
-  Revision 1.8  2000/01/07 00:07:24  peter
-    * display fpu,mmx,xmm names instead of reg??
-
-  Revision 1.7  1999/12/24 15:22:52  peter
-    * reset insentry/lastinsoffset so writing smartlink works correct for
-      short jmps
-
-  Revision 1.6  1999/11/30 10:40:43  peter
-    + ttype, tsymlist
-
-  Revision 1.5  1999/11/06 14:34:20  peter
-    * truncated log to 20 revs
-
-  Revision 1.4  1999/11/05 16:01:46  jonas
-    + first implementation of choosing least used register for alignment code
-       (not yet working, between ifdef alignreg)
-
-  Revision 1.3  1999/08/25 11:59:57  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.2  1999/08/12 14:36:01  peter
-    + KNI instructions
-
-  Revision 1.1  1999/08/04 00:22:57  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.17  1999/08/01 23:55:53  michael
-  * Moved taitempalloc
+  Revision 1.2  2000-07-13 11:32:38  michael
+  + removed logs
 
 }

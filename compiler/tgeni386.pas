@@ -651,65 +651,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:01  michael
-  + Initial import
-
-  Revision 1.42  2000/04/02 18:30:12  florian
-    * fixed another problem with readln(<floating point register variable>);
-    * the register allocator takes now care of necessary pushes/pops for
-      readln/writeln
-
-  Revision 1.41  2000/02/10 11:27:18  jonas
-    * esi is never deallocated anymore in methods
-
-  Revision 1.40  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.39  2000/01/21 12:17:42  jonas
-    * regallocation fixes
-
-  Revision 1.38  2000/01/09 12:35:02  jonas
-    * changed edi allocation to use getexplicitregister32/ungetregister
-      (adapted tgeni386 a bit for this) and enabled it by default
-    * fixed very big and stupid bug of mine in cg386mat that broke the
-      include() code (and make cycle :( ) if you compiled without
-      -dnewoptimizations
-
-  Revision 1.37  2000/01/07 01:14:47  peter
-    * updated copyright to 2000
-
-  Revision 1.36  1999/11/06 14:34:31  peter
-    * truncated log to 20 revs
-
-  Revision 1.35  1999/09/27 23:45:02  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.34  1999/08/27 10:38:32  pierre
-   + EXTTEMPREGDEBUG code added
-
-  Revision 1.33  1999/08/25 12:00:06  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.32  1999/08/23 23:25:58  pierre
-    + TEMPREGDEBUG code, test of register allocation
-      if a tree uses more than registers32 regs then
-      internalerror(10) is issued
-    + EXTTEMPREGDEBUG will also give internalerror(10) if
-      a same register is freed twice (happens in several part
-      of current compiler like addn for strings and sets)
-
-  Revision 1.31  1999/08/10 12:47:55  pierre
-   * fpuvaroffset problems solved
-
-  Revision 1.30  1999/08/04 13:45:32  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.29  1999/08/04 00:23:48  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.28  1999/08/02 17:17:11  florian
-    * small changes for the new code generator
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

@@ -46,26 +46,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:49  michael
-  + Initial import
-
-  Revision 1.13  2000/07/01 12:28:38  sg
-  * Added initialisation and finalisation code which is common to all
-    platforms.
-
-  Revision 1.12  2000/01/07 00:01:33  peter
-    * uses typinfo moved to interface
-
-  Revision 1.11  2000/01/06 01:20:36  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/04 18:08:35  michael
-  + Added typinfo unit
-
-  Revision 1.1  2000/01/03 19:33:11  peter
-    * moved to packages dir
-
-  Revision 1.9  1999/05/30 10:46:45  peter
-    * start of tthread for linux,win32
-
+  Revision 1.2  2000-07-13 11:33:06  michael
+  + removed logs
+ 
 }

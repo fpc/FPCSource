@@ -36,17 +36,7 @@ Const
    
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:01  michael
-  + Initial import
-
-  Revision 1.5  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:44  daniel
-    * copyright 2000
-
-  Revision 1.3  1999/08/28 14:53:27  florian
-    * bug 471 fixed: run time error 2 is now converted into a file not
-      found exception
-
-}   
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
+}

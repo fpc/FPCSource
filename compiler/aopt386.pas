@@ -100,24 +100,8 @@ End;
 End.
 
 {
- $Log$
- Revision 1.1  2000-07-13 06:29:44  michael
- + Initial import
-
- Revision 1.32  2000/02/09 13:22:44  peter
-   * log truncated
-
- Revision 1.31  2000/01/07 01:14:19  peter
-   * updated copyright to 2000
-
- Revision 1.30  1999/11/27 23:50:22  jonas
-   + if you define "newOptimizations", all extra optimizations that
-     require conditional defines will be activated (ie., it's equivalent
-     to "-dreplacereg -darithopt -dforopt -dfoldarithops")
-
- Revision 1.29  1999/10/23 14:44:24  jonas
-   * finally got around making GetNextInstruction return false when
-     the current pai object is a AsmBlockStart marker
-   * changed a loop in aopt386 which was incompatible with this change
+  $Log$
+  Revision 1.2  2000-07-13 11:32:31  michael
+  + removed logs
 
 }

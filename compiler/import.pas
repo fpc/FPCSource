@@ -250,40 +250,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.19  2000/02/28 17:23:57  daniel
-  * Current work of symtable integration committed. The symtable can be
-    activated by defining 'newst', but doesn't compile yet. Changes in type
-    checking and oop are completed. What is left is to write a new
-    symtablestack and adapt the parser to use it.
-
-  Revision 1.18  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.17  2000/01/12 10:34:29  peter
-    * only give unsupported error once
-
-  Revision 1.16  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.15  1999/11/06 14:34:21  peter
-    * truncated log to 20 revs
-
-  Revision 1.14  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.13  1999/10/21 14:29:34  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
-
-  Revision 1.12  1999/08/04 13:02:44  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.11  1999/08/03 13:50:16  michael
-  + Changes for alpha
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
 
 }

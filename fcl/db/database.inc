@@ -175,19 +175,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:27  michael
-  + Initial import
-
-  Revision 1.5  2000/01/07 01:24:32  peter
-    * updated copyright to 2000
-
-  Revision 1.4  2000/01/06 01:20:32  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:05  peter
-    * moved to packages dir
-
-  Revision 1.2  1999/10/24 17:07:54  michael
-  + Added copyright header
-
+  Revision 1.2  2000-07-13 11:32:56  michael
+  + removed logs
+ 
 }

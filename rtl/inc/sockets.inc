@@ -167,25 +167,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:48  michael
-  + Initial import
-
-  Revision 1.7  2000/06/21 22:27:50  pierre
-   * no bufpos reset on flush for fminput
-
-  Revision 1.6  2000/05/22 12:38:51  jonas
-    * CloseSock is now a dummy (it called system.close, but this doesn't
-      make any sense since itself can only be called by system.close) This
-      caused an endless loop with my last changes where the mode of a
-      textrec is set to fmClosed only after the closeFunc() has been called.
-
-  Revision 1.5  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:25  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:45  michael
+  + removed logs
+ 
 }

@@ -19,10 +19,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.1  2000/02/05 21:53:46  peter
-    * added initc unit dummy
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

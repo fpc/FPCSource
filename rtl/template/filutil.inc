@@ -167,22 +167,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:15  michael
-  + Initial import
-
-  Revision 1.3  2000/06/04 14:19:34  hajny
-    * parameter name change in FileSeek
-
-  Revision 1.2  2000/01/07 16:41:51  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/11/08 22:45:01  peter
-    * inserted as templates
-
-  Revision 1.2  1998/10/12 08:35:22  pierre
-   * wrong file commited by Michael corrected
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
-
+  Revision 1.2  2000-07-13 11:33:56  michael
+  + removed logs
+ 
 }

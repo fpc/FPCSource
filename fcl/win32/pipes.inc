@@ -34,3 +34,8 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   Result := CreatePipe (@Inhandle,@OutHandle,@piInheritablePipe,PipeBufSize);
 end;
+  $Log$
+  Revision 1.2  2000-07-13 11:33:07  michael
+  + removed logs
+ 
+}

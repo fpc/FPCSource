@@ -143,29 +143,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.2  1998/12/12 19:13:13  peter
-    * keyboard updates
-    * make test target, make all only makes units
-
-  Revision 1.1  1998/12/04 12:48:57  peter
-    * moved some dirs
-
-  Revision 1.3  1998/11/01 20:28:25  peter
-    * fixed strange al=$e0 after int $16 call
-
-  Revision 1.2  1998/10/28 21:18:27  peter
-    * more fixes
-
-  Revision 1.1  1998/10/26 11:31:49  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:26  michael
+  + removed logs
+ 
 }

@@ -136,28 +136,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:59  michael
-  + Initial import
-
-  Revision 1.12  2000/02/09 13:23:07  peter
-    * log truncated
-
-  Revision 1.11  2000/01/07 01:14:45  peter
-    * updated copyright to 2000
-
-  Revision 1.10  1999/09/26 21:30:22  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.9  1999/09/04 20:52:07  florian
-    * bug 580 fixed
-
-  Revision 1.8  1999/08/04 00:23:38  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.7  1999/08/03 22:03:29  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:51  michael
+  + removed logs
 
 }

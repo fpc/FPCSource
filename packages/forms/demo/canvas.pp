@@ -241,3 +241,8 @@ begin
    while (fl_do_forms() <> fd_canvasform^.done) do  ;
 end.
 
+  $Log$
+  Revision 1.2  2000-07-13 11:33:13  michael
+  + removed logs
+ 
+}

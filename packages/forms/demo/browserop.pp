@@ -87,3 +87,8 @@ begin
   until obj = exitobj;
   fl_hide_form(form);
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:13  michael
+  + removed logs
+ 
+}

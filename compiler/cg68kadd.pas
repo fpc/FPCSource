@@ -1284,22 +1284,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:46  michael
-  + Initial import
-
-  Revision 1.20  2000/03/01 00:04:31  pierre
-   Use $GOTO ON
-
-  Revision 1.19  2000/02/09 13:22:48  peter
-    * log truncated
-
-  Revision 1.18  2000/01/07 01:14:21  peter
-    * updated copyright to 2000
-
-  Revision 1.17  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.16  1999/09/16 11:34:52  pierre
-   * typo correction
+  Revision 1.2  2000-07-13 11:32:36  michael
+  + removed logs
 
 }

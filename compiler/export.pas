@@ -213,36 +213,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:50  michael
-  + Initial import
-
-  Revision 1.12  2000/02/28 17:23:56  daniel
-  * Current work of symtable integration committed. The symtable can be
-    activated by defining 'newst', but doesn't compile yet. Changes in type
-    checking and oop are completed. What is left is to write a new
-    symtablestack and adapt the parser to use it.
-
-  Revision 1.11  2000/02/09 13:22:52  peter
-    * log truncated
-
-  Revision 1.10  2000/01/12 10:34:29  peter
-    * only give unsupported error once
-
-  Revision 1.9  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/11/06 14:34:20  peter
-    * truncated log to 20 revs
-
-  Revision 1.7  1999/10/21 14:29:34  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
-
-  Revision 1.6  1999/08/04 13:02:41  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.5  1999/08/03 17:09:34  florian
-    * the alpha compiler can be compiled now
+  Revision 1.2  2000-07-13 11:32:41  michael
+  + removed logs
 
 }

@@ -427,29 +427,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:20  michael
-  + Initial import
-
-  Revision 1.17  2000/06/04 14:16:54  hajny
-    * parameter name change in FileSeek
-
-  Revision 1.16  2000/05/15 19:28:41  peter
-    * int64 support for diskfree,disksize
-
-  Revision 1.15  2000/02/17 22:16:05  sg
-  * Changed the second argument of FileWrite from "var buffer" to
-    "const buffer", like in Delphi.
-
-  Revision 1.14  2000/02/09 16:59:34  peter
-    * truncated log
-
-  Revision 1.13  2000/01/16 22:25:38  peter
-    * check handle for file closing
-
-  Revision 1.12  2000/01/07 16:41:52  daniel
-    * copyright 2000
-
-  Revision 1.11  1999/08/18 08:38:42  michael
-  * Fixed bug 533, in findmatch
-
+  Revision 1.2  2000-07-13 11:33:57  michael
+  + removed logs
+ 
 }

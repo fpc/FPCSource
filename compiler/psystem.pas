@@ -249,38 +249,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:55  michael
-  + Initial import
-
-  Revision 1.34  2000/02/15 14:36:45  florian
-    * disable FIXED data type per default
-
-  Revision 1.33  2000/02/09 13:23:00  peter
-    * log truncated
-
-  Revision 1.32  2000/01/07 01:14:33  peter
-    * updated copyright to 2000
-
-  Revision 1.31  1999/12/18 14:55:21  florian
-    * very basic widestring support
-
-  Revision 1.30  1999/11/30 10:40:51  peter
-    + ttype, tsymlist
-
-  Revision 1.29  1999/11/06 14:34:23  peter
-    * truncated log to 20 revs
-
-  Revision 1.28  1999/09/16 23:05:55  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.27  1999/08/13 14:24:17  pierre
-    + stabs for classes and classref working,
-      a class still needs an ^ to get that content of it,
-      but the class fields inside a class don't result into an
-      infinite loop anymore!
-
-  Revision 1.26  1999/08/03 22:03:07  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:47  michael
+  + removed logs
 
 }

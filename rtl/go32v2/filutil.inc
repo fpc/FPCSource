@@ -460,39 +460,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:37  michael
-  + Initial import
-
-  Revision 1.15  2000/06/04 14:19:04  hajny
-    * FileGetDate returns -1 on error, FileSeek parameter name changed
-
-  Revision 1.14  2000/04/10 11:04:45  pierre
-    * use 16 bit regs at return of system interrupts instead of 32
-    * call Dos.FindClose because it is not a dummy if LFNSupport is true
-
-  Revision 1.13  2000/02/17 22:16:05  sg
-  * Changed the second argument of FileWrite from "var buffer" to
-    "const buffer", like in Delphi.
-
-  Revision 1.12  2000/02/09 16:59:28  peter
-    * truncated log
-
-  Revision 1.11  2000/01/16 22:25:38  peter
-    * check handle for file closing
-
-  Revision 1.10  2000/01/07 16:41:31  daniel
-    * copyright 2000
-
-  Revision 1.9  1999/11/25 15:55:52  pierre
-   * web bug 716
-
-  Revision 1.8  1999/08/26 11:02:50  peter
-    * findclose freemem fixed
-
-  Revision 1.7  1999/08/24 13:14:28  peter
-    * fixed DeleteFile()
-
-  Revision 1.6  1999/08/19 14:00:08  pierre
-   * bug in country info code fixed
-
+  Revision 1.2  2000-07-13 11:33:40  michael
+  + removed logs
+ 
 }

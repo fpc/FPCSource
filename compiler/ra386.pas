@@ -437,49 +437,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:55  michael
-  + Initial import
-
-  Revision 1.19  2000/05/17 11:08:27  pierre
-   + add a warning if using ENTER instruction with linux target
-
-  Revision 1.18  2000/05/15 14:08:49  pierre
-   * FADD without operand translated into FADDP
-
-  Revision 1.17  2000/05/12 21:26:22  pierre
-    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
-      simply by swapping from reverse to normal and vice-versa
-      when passing from one syntax to the other !
-
-  Revision 1.16  2000/05/10 08:55:08  pierre
-   * no warning nor error for pushl of segment register
-
-  Revision 1.15  2000/05/09 21:44:28  pierre
-    * add .byte 066h to force correct pushw %es
-    * handle push es as a pushl %es
-
-  Revision 1.14  2000/04/14 12:26:33  pierre
-   avoid to reset operand size of opsize is S_NO
-
-  Revision 1.13  2000/04/04 13:48:44  pierre
-    + TOperand.SetCorrectSize virtual method added
-      to be able to change the suffix according to the instruction
-      (FIADD word ptr w need a s as ATT suffix
-      wheras FILD word ptr w need a w suffix :( )
-
-  Revision 1.12  2000/02/09 13:23:01  peter
-    * log truncated
-
-  Revision 1.11  2000/01/07 01:14:34  peter
-    * updated copyright to 2000
-
-  Revision 1.10  1999/12/12 12:59:34  peter
-    * only check suffixsize for byte,word,long
-
-  Revision 1.9  1999/08/25 12:00:05  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.8  1999/08/04 00:23:23  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:47  michael
+  + removed logs
 
 }

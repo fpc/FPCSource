@@ -65,3 +65,8 @@ begin
    fl_show_form(ui^.inv,FL_PLACE_CENTER,FL_TRANSIENT,'inv');
    while fl_do_forms <> ui^.done do;
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:14  michael
+  + removed logs
+ 
+}

@@ -81,10 +81,7 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:50  michael
-  + Initial import
-
-  Revision 1.1  2000/07/07 17:07:20  florian
-    + initial revision
+  Revision 1.2  2000-07-13 11:32:41  michael
+  + removed logs
 
 }

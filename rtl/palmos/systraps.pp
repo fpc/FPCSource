@@ -860,13 +860,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:10  michael
-  + Initial import
-
-  Revision 1.2  2000/01/07 16:41:51  daniel
-    * copyright 2000
-
-  Revision 1.1  1998/10/14 14:30:03  florian
-    + Initial revision
-
+  Revision 1.2  2000-07-13 11:33:55  michael
+  + removed logs
+ 
 }

@@ -37,4 +37,8 @@ begin
   fl_show_form(form,FL_PLACE_ASPECT,border,'Buttons');
   while (fl_do_forms() <> but) do;
   fl_hide_form(form);
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:12  michael
+end.  + removed logs
+end. 
+}

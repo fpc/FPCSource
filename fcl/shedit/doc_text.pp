@@ -410,59 +410,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:44  michael
-  + Initial import
-
-  Revision 1.13  2000/07/01 12:28:38  sg
-  * Added initialisation and finalisation code which is common to all
-    platforms.
-
-  Revision 1.12  2000/02/24 13:32:10  sg
-  * The last line in a document is now read correctly
-
-  Revision 1.11  2000/02/22 14:26:52  sg
-  * New, much faster stream reader
-  * Added more notifiers for the attached view objects
-
-  Revision 1.10  2000/02/19 19:05:16  sg
-  * Lines are now stored as AnsiStrings instead of PChars
-
-  Revision 1.9  2000/01/31 19:22:16  sg
-  * Added support for loading from streams
-    (NOTE: The new loading code is very slow at the moment)
-  * Added saving support
-  * The line ending to use (CR/LF, LF...) can now be specified
-  * The last line of a document isn't written with a line ending, this
-    preserves the original structure of a previously loaded file
-  * Fixed memory leaks
-
-  Revision 1.8  2000/01/08 12:08:58  sg
-  * Set the upper bound of TLineArray to max. possible value so that this
-    unit works correctly with activated range checks
-
-  Revision 1.7  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.6  2000/01/06 01:20:34  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:09  peter
-    * moved to packages dir
-
-  Revision 1.4  1999/12/30 21:02:14  sg
-  * Shortened copyright notice
-
-  Revision 1.3  1999/12/09 23:16:41  peter
-    * cursor walking is now possible, both horz and vert ranges are now
-      adapted
-    * filter key modifiers
-    * selection move routines added, but still no correct output to the
-      screen
-
-  Revision 1.2  1999/11/14 21:32:55  peter
-    * fixes to get it working without crashes
-
-  Revision 1.1  1999/10/29 15:59:03  peter
-    * inserted in fcl
-
+  Revision 1.2  2000-07-13 11:33:02  michael
+  + removed logs
+ 
 }

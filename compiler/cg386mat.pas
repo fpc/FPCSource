@@ -990,71 +990,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:45  michael
-  + Initial import
-
-  Revision 1.45  2000/03/19 15:20:22  florian
-    * not(b) if b is a register variable, didn't work, fixed
-
-  Revision 1.44  2000/02/24 18:41:38  peter
-    * removed warnings/notes
-
-  Revision 1.43  2000/02/18 21:25:48  florian
-    * fixed a bug in int64/qword handling was a quite ugly one
-
-  Revision 1.42  2000/02/09 13:22:47  peter
-    * log truncated
-
-  Revision 1.41  2000/01/27 15:46:00  florian
-    * slighly improved code for -<qword> and -<int64>
-
-  Revision 1.40  2000/01/09 12:35:01  jonas
-    * changed edi allocation to use getexplicitregister32/ungetregister
-      (adapted tgeni386 a bit for this) and enabled it by default
-    * fixed very big and stupid bug of mine in cg386mat that broke the
-      include() code (and make cycle :( ) if you compiled without
-      -dnewoptimizations
-
-  Revision 1.39  2000/01/09 01:44:20  jonas
-    + (de)allocation info for EDI to fix reported bug on mailinglist.
-      Also some (de)allocation info for ESI added. Between -dallocEDI
-      because at this time of the night bugs could easily slip in ;)
-
-  Revision 1.38  2000/01/07 01:14:21  peter
-    * updated copyright to 2000
-
-  Revision 1.37  2000/01/07 00:12:10  peter
-    * fixed movd isntruction to be A_MOVD instead of A_MOV S_D
-
-  Revision 1.36  1999/11/18 15:34:44  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.35  1999/11/06 14:34:18  peter
-    * truncated log to 20 revs
-
-  Revision 1.34  1999/09/28 19:43:47  florian
-    * the maybe_push fix of Pierre wasn't 100%, the tree parameter
-      must contain a valid location (which is saved if necessary)
-
-  Revision 1.33  1999/09/27 23:37:26  peter
-    * fixed push/restore bug in div/mod
-
-  Revision 1.32  1999/09/02 17:07:38  florian
-    * problems with -Or fixed: tdef.isfpuregable was wrong!
-
-  Revision 1.31  1999/08/19 13:08:50  pierre
-   * emit_??? used
-
-  Revision 1.30  1999/08/04 13:45:23  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.29  1999/08/04 00:22:51  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.28  1999/08/03 22:02:45  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:35  michael
+  + removed logs
 
 }

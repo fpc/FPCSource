@@ -1,7 +1,6 @@
 #
 # Here we set some variables, needed by all OSes.
 #
-
 # System unit include files. These are composed from header and
 # implementation files.
 

@@ -336,26 +336,7 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:21  michael
-  + Initial import
-
-  Revision 1.7  2000/01/21 00:44:51  peter
-    * remove unused vars
-    * renamed to .pp
-
-  Revision 1.6  1999/08/10 08:21:45  michael
-  + Log keyword placement correction.
-
-  Revision 1.5  1999/08/10 08:20:49  michael
-   + Enhancements by Göran Andersson
-
-  Revision 1.4  1999/07/16 12:20:57  michael
-  + Added saving in fixed file
-
-  Revision 1.3  1999/06/28 16:15:11  peter
-    * fixed dup id
-
-  Revision 1.2  1999/05/03 18:04:39  peter
-    * updates
-
+  Revision 1.2  2000-07-13 11:33:10  michael
+  + removed logs
+ 
 }

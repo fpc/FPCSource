@@ -284,61 +284,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.18  2000/06/04 08:48:54  jonas
-    * resource string numbering
-
-  Revision 1.17  2000/06/01 19:09:57  peter
-    * made resourcestrings OOP so it's easier to handle it per module
-
-  Revision 1.16  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
-
-  Revision 1.15  1999/11/06 14:34:20  peter
-    * truncated log to 20 revs
-
-  Revision 1.14  1999/08/27 15:55:36  michael
-  * Fixed small bug: next field in resourcelist was not initialized
-
-  Revision 1.13  1999/08/26 20:24:39  michael
-  + Hopefuly last fixes for resourcestrings
-
-  Revision 1.12  1999/08/25 16:41:07  peter
-    * resources are working again
-
-  Revision 1.11  1999/08/23 11:48:23  michael
-  * resourcestrings ams list needs unitname prepended
-
-  Revision 1.10  1999/08/23 11:45:41  michael
-  * Hopefully final attempt at resourcestrings
-
-  Revision 1.9  1999/08/15 21:57:59  michael
-  Changes for resource strings
-
-  Revision 1.8  1999/07/29 20:54:01  peter
-    * write .size also
-
-  Revision 1.7  1999/07/26 09:42:00  florian
-    * bugs 494-496 fixed
-
-  Revision 1.6  1999/07/25 19:27:15  michael
-  + Fixed hash computing, now compatible with gnu .mo file
-
-  Revision 1.5  1999/07/24 18:35:41  michael
-  * Forgot to add unitname to resourcestring data
-
-  Revision 1.4  1999/07/24 16:22:10  michael
-  + Improved resourcestring handling
-
-  Revision 1.3  1999/07/24 15:12:58  michael
-  changes for resourcestrings
-
-  Revision 1.2  1999/07/22 20:04:58  michael
-  + Added computehashvalue
-
-  Revision 1.1  1999/07/22 09:34:04  florian
-    + initial revision
+  Revision 1.2  2000-07-13 11:32:39  michael
+  + removed logs
 
 }

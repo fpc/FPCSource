@@ -73,3 +73,8 @@ begin
   rename(f,paramstr(1));
 end.
 
+  $Log$
+  Revision 1.2  2000-07-13 11:32:55  michael
+  + removed logs
+ 
+}

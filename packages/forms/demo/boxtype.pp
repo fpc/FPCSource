@@ -219,4 +219,8 @@ begin
   fl_set_choice (modeob, fl_vmode+1); 
    fl_show_form (form, FL_PLACE_MOUSE, border, 'Box types');
   while (fl_do_forms <> exitob) do;
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:12  michael
+end.  + removed logs
+end. 
+}

@@ -328,10 +328,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:29  michael
-  + Initial import
-
-  Revision 1.1  2000/05/16 07:56:02  sg
-  * Initial version
-
+  Revision 1.2  2000-07-13 11:32:58  michael
+  + removed logs
+ 
 }

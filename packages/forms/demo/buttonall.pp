@@ -110,3 +110,8 @@ begin
    fl_show_form(fd_buttform^.buttform,FL_PLACE_CENTER,FL_FULLBORDER,'buttform');
    while (fl_do_forms<>nil) do ;
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:13  michael
+  + removed logs
+ 
+}

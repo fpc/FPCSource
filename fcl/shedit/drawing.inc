@@ -259,50 +259,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:44  michael
-  + Initial import
-
-  Revision 1.13  2000/02/22 14:27:50  sg
-  * Fix in ChangeInLine: Now the correct horizontal area gets invalidated
-
-  Revision 1.12  2000/02/19 19:05:43  sg
-  * Improved cursor drawing
-
-  Revision 1.11  2000/02/10 18:20:23  sg
-  * Really fixed the bug in "ChangeInLine" now: Not only width and height
-    were swapped before, but x and y too...
-
-  Revision 1.10  2000/02/10 18:11:30  sg
-  * Fixed operand order for InvalidateRect in "ChangeInLine"
-
-  Revision 1.9  2000/01/31 19:23:37  sg
-  * Fixed selection redrawing bugs
-  * Changed "x1, y2, x2, y2" arguments to "x, y, w, h"
-
-  Revision 1.8  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.7  2000/01/06 01:20:34  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/05 19:03:16  sg
-  * Added ASSERTs to highlighting routine (especially for the insertion of
-    the selection start and end markers)
-
-  Revision 1.1  2000/01/03 19:33:09  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/12/30 21:02:49  sg
-  * Name change: Renderer -> FWidget
-
-  Revision 1.3  1999/12/10 15:01:02  peter
-    * first things for selection
-    * Better Adjusting of range/cursor
-
-  Revision 1.2  1999/12/08 00:42:54  sg
-  * The cursor should be displayed correctly now
-
-  Revision 1.1  1999/10/29 15:59:04  peter
-    * inserted in fcl
-
+  Revision 1.2  2000-07-13 11:33:02  michael
+  + removed logs
+ 
 }

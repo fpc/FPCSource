@@ -165,22 +165,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.2  2000/05/31 07:27:12  jonas
-    * fixed formal parameters passed to var arguments problem
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.2  1999/06/21 16:43:52  peter
-    * win32 updates from Maarten Bekkers
-
-  Revision 1.1  1999/01/08 14:37:03  florian
-    + initial version, not working yet
-
+  Revision 1.2  2000-07-13 11:32:27  michael
+  + removed logs
+ 
 }

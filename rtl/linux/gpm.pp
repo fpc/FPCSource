@@ -206,19 +206,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.5  2000/06/15 06:17:35  michael
-  Corrected TGpmEvent
-
-  Revision 1.4  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.3  2000/01/26 21:51:34  peter
-    * removed gpm_ctlfd
-
-  Revision 1.2  2000/01/07 16:41:40  daniel
-    * copyright 2000
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

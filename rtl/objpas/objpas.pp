@@ -360,71 +360,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:01  michael
-  + Initial import
-
-  Revision 1.48  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.47  2000/01/07 16:41:44  daniel
-    * copyright 2000
-
-  Revision 1.46  2000/01/07 16:32:29  daniel
-    * copyright 2000 added
-
-  Revision 1.45  1999/12/20 11:20:35  peter
-    * integer is defined as longint, removed smallint which is now in system
-
-  Revision 1.44  1999/11/06 14:41:30  peter
-    * truncated log
-
-  Revision 1.43  1999/10/30 17:39:05  peter
-    * memorymanager expanded with allocmem/reallocmem
-
-  Revision 1.42  1999/10/03 19:41:30  peter
-    * moved tvarrec to systemunit
-
-  Revision 1.41  1999/09/28 21:13:33  florian
-    * fixed bug 626, objpas must redefine maxint!
-
-  Revision 1.40  1999/09/17 17:14:12  peter
-    + new heap manager supporting delphi freemem(pointer)
-
-  Revision 1.39  1999/08/28 13:03:23  michael
-  + Added Hash function to interface
-
-  Revision 1.38  1999/08/27 15:54:15  michael
-  + Added many resourcestring methods
-
-  Revision 1.37  1999/08/25 16:41:08  peter
-    * resources are working again
-
-  Revision 1.36  1999/08/24 22:42:56  michael
-  * changed resourcestrings to new mechanism
-
-  Revision 1.35  1999/08/24 12:02:29  michael
-  + Changed external var for resourcestrings
-
-  Revision 1.34  1999/08/20 10:50:55  michael
-  + Fixed memory leak
-
-  Revision 1.33  1999/08/19 19:52:26  michael
-  * Fixed freemem bug; reported by Sebastian Guenther
-
-  Revision 1.32  1999/08/15 21:28:57  michael
-  + Pass hash also for speed reasons.
-
-  Revision 1.31  1999/08/15 21:02:56  michael
-  + Changed resource string mechanism to use names.
-
-  Revision 1.30  1999/08/15 18:56:13  michael
-  + Delphi-style getmem and freemem
-
-  Revision 1.29  1999/07/23 23:13:54  peter
-    * array[cardinal] is buggy, use array[word]
-    * small fix in getresourcestring
-
-  Revision 1.28  1999/07/23 22:51:11  michael
-  * Added HasResourceStrings check
-
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }

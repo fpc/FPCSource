@@ -50,3 +50,8 @@ begin
   while (obj <> readyobj) do obj := fl_do_forms;
   fl_hide_form(form);
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:14  michael
+  + removed logs
+ 
+}

@@ -33,16 +33,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:45  michael
-  + Initial import
-
-  Revision 1.3  2000/01/06 01:20:36  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:10  peter
-    * moved to packages dir
-
-  Revision 1.1  1999/08/09 16:12:26  michael
-  * Fixes and new examples from Sebastian Guenther
-
+  Revision 1.2  2000-07-13 11:33:03  michael
+  + removed logs
+ 
 }

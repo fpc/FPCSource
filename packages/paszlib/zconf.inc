@@ -21,3 +21,10 @@
  {$UNDEF UNALIGNED_OK}  { requires SizeOf(ush) = 2 ! }
  {$UNDEF MAXSEG_64K}
 {$ENDIF}
+
+{
+  $Log$
+  Revision 1.2  2000-07-13 11:33:30  michael
+  + removed logs
+ 
+}

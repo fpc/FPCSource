@@ -642,47 +642,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:44  michael
-  + Initial import
-
-  Revision 1.43  2000/07/04 07:57:46  pierre
-   * Change Code to var param in ValAnsiUnsignedInt function
-
-  Revision 1.42  2000/06/11 07:02:30  peter
-    * UniqueAnsiString -> UniqueString for Delphi compatibility
-
-  Revision 1.41  2000/05/18 17:04:48  peter
-    * use freemem without size
-
-  Revision 1.40  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.39  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.38  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.37  1999/11/28 11:24:04  sg
-  * Fixed bug 722: If the start position of AnsiString Copy is less than 1,
-    it will be set to 1 (same behaviour as in Delphi)
-
-  Revision 1.36  1999/11/25 13:34:57  michael
-  + Added Ansistring setstring call
-
-  Revision 1.35  1999/11/06 14:35:38  peter
-    * truncated log
-
-  Revision 1.34  1999/11/02 23:57:54  peter
-    * fixed copy where size+index could be < 0
-
-  Revision 1.33  1999/10/27 14:27:49  florian
-    * StringOfChar fixed, how can be a bug in two lines of code ?????
-
-  Revision 1.32  1999/10/27 14:17:20  florian
-    + StringOfChar
-
-  Revision 1.31  1999/10/04 20:48:18  peter
-    * pos function speed up by a factor 40 :)
-
+  Revision 1.2  2000-07-13 11:33:42  michael
+  + removed logs
+ 
 }

@@ -25,4 +25,8 @@ begin
   until Count=0;  
   writeln;
   S.Free;  
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:04  michael
+end.  + removed logs
+end. 
+}

@@ -9,4 +9,8 @@ begin
   Writeln ('Name       = ',get_value('name'));
   Writeln ('Address    = ',get_value('address'));
   Writeln ('City       = ',get_value('city'));
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:32  michael
+end.  + removed logs
+end. 
+}

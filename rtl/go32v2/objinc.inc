@@ -181,25 +181,7 @@ END;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:39  michael
-  + Initial import
-
-  Revision 1.7  2000/06/30 22:16:19  peter
-    * fixed truncate
-
-  Revision 1.6  2000/05/30 06:45:53  marco
-   * fixed in line 164 pointer(@buf) to buf
-
-  Revision 1.5  2000/03/20 19:19:44  pierre
-   * LFN support in streams
-
-  Revision 1.4  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.3  2000/01/07 16:41:32  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:40  michael
+  + removed logs
+ 
 }

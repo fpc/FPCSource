@@ -1007,29 +1007,7 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:19  michael
-  + Initial import
-
-  Revision 1.16  2000/06/11 07:04:58  peter
-    * Windows unit has now more Delphi compatibile functions
-    * placed the external functions only in the interface
-
-  Revision 1.15  2000/04/14 12:14:39  pierre
-   * try to get it to work if output is redirected
-
-  Revision 1.14  2000/02/26 14:57:17  florian
-    * writing at coloumn <screenwidth> wasn't possible in some cases,
-      fixed
-
-  Revision 1.13  2000/02/09 16:59:34  peter
-    * truncated log
-
-  Revision 1.12  1999/10/22 14:36:20  peter
-    * crtreturn also needs f:textrec as parameter
-
-  Revision 1.11  1999/08/28 09:30:39  peter
-    * fixes from Maarten Bekers
-
-  Revision 1.10  1999/08/24 13:15:44  peter
-    * Removeline fixed
+  Revision 1.2  2000-07-13 11:33:56  michael
+  + removed logs
+ 
 }

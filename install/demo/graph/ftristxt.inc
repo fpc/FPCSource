@@ -236,3 +236,8 @@ BEGIN
    GotoXY(40,18);
    Write('Score :',Score);
 END;
+  $Log$
+  Revision 1.2  2000-07-13 11:33:08  michael
+  + removed logs
+ 
+}

@@ -466,31 +466,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:47  michael
-  + Initial import
-
-  Revision 1.20  2000/03/17 21:27:56  jonas
-    * fixed declaration of val_int64 (removed destsize parameter)
-    * fixed val_int64 and val_qword so they reject invalid input
-      (u >= base)
-    * when reading a number, invalid input is removed from the input
-      buffer (+ it should be faster as well)
-
-  Revision 1.19  2000/02/09 22:19:24  florian
-    + helper routine for <int64> mod <in64> added
-
-  Revision 1.18  2000/02/09 16:59:30  peter
-    * truncated log
-
-  Revision 1.17  2000/01/27 15:43:02  florian
-    * improved qword*qword code, if no overflow checking is done
-
-  Revision 1.16  2000/01/23 12:27:39  florian
-    * int64/int64 and int64*int64 is now done by the fpu if possible
-
-  Revision 1.15  2000/01/23 12:22:37  florian
-    * reading of 64 bit type implemented
-
-  Revision 1.14  2000/01/07 16:41:34  daniel
-    * copyright 2000
+  Revision 1.2  2000-07-13 11:33:44  michael
+  + removed logs
+ 
 }

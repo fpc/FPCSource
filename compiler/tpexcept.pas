@@ -385,25 +385,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:02  michael
-  + Initial import
-
-  Revision 1.13  2000/05/11 09:36:22  pierre
-   * Delphi implementation by Kovacs Attila Zoltan
-
-  Revision 1.12  2000/02/24 18:41:39  peter
-    * removed warnings/notes
-
-  Revision 1.11  2000/02/11 23:59:35  jonas
-    + $asmmode att for people with -Rintel in their ppc386.cfg
-
-  Revision 1.10  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.9  2000/01/07 01:14:48  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/08/18 11:35:59  pierre
-   * esp loading corrected
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

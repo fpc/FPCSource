@@ -96,40 +96,7 @@ var
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:41  michael
-  + Initial import
-
-  Revision 1.5  2000/03/09 22:32:30  pierre
-   * fixes for LFB mode
-
-  Revision 1.4  2000/01/07 16:41:32  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1999/12/10 12:51:09  pierre
-   + some VESA 2 extensions
-
-  Revision 1.1  1999/11/08 11:15:21  peter
-    * move graph.inc to the target dir
-
-  Revision 1.2  1999/09/26 13:31:07  jonas
-    * changed name of modeinfo variable to vesamodeinfo and fixed
-      associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
-      of sizeof(TVesamodeinfo) etc)
-    * changed several sizeof(type) to sizeof(varname) to avoid similar
-      errors in the future
-
-  Revision 1.1  1999/09/24 22:52:40  jonas
-    * optimized patternline a bit (always use hline when possible)
-    * isgraphmode stuff cleanup
-    * vesainfo.modelist now gets disposed in cleanmode instead of in
-      closegraph (required moving of some declarations from vesa.inc to
-      new vesah.inc)
-    * queryadapter gets no longer called from initgraph (is called from
-      initialization of graph unit)
-    * bugfix for notput in 32k and 64k vesa modes
-    * a div replaced by / in fillpoly
-
+  Revision 1.2  2000-07-13 11:33:41  michael
+  + removed logs
+ 
 }

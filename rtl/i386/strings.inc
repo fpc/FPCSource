@@ -415,29 +415,7 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:43  michael
-  + Initial import
-
-  Revision 1.11  2000/06/23 11:13:56  jonas
-    * fixed bug in strscan :(
-
-  Revision 1.10  2000/06/12 19:53:32  peter
-    * change .align to .balign
-
-  Revision 1.9  2000/06/11 14:25:23  jonas
-    * much faster strcopy and strscan procedures
-
-  Revision 1.8  2000/03/28 11:14:33  jonas
-    * added missing register that is destroyed by strecopy
-    + some destroyed register lists for procedures that didn't have one yet
-
-  Revision 1.7  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.6  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.5  1999/12/18 23:08:33  florian
-    * bug 766 fixed
-
+  Revision 1.2  2000-07-13 11:33:42  michael
+  + removed logs
+ 
 }

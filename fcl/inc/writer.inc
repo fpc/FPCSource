@@ -805,27 +805,7 @@ end;}
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:32  michael
-  + Initial import
-
-  Revision 1.7  2000/06/29 16:29:23  sg
-  * Implemented streaming. Note: The writer driver interface is stable, but
-    the reader interface is not final yet!
-
-  Revision 1.6  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.5  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/04 18:07:16  michael
-  + Streaming implemented
-
-  Revision 1.3  1999/09/13 08:35:16  fcl
-  * Changed some argument names (Root->ARoot etc.) because the new compiler
-    now performs more ambiguity checks  (sg)
-
-  Revision 1.2  1999/04/08 10:18:58  peter
-    * makefile updates
-
+  Revision 1.2  2000-07-13 11:33:01  michael
+  + removed logs
+ 
 }

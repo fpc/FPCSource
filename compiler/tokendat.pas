@@ -70,15 +70,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:02  michael
-  + Initial import
-
-  Revision 1.5  2000/01/07 01:14:47  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/09/08 16:02:03  peter
-    * tokendat compiles for tp
-    * tokens.dat supplied by default
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }
-

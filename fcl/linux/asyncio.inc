@@ -159,13 +159,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:32  michael
-  + Initial import
-
-  Revision 1.2  2000/07/09 11:48:24  sg
-  * Implemented methods for reading event handlers
-
-  Revision 1.1  2000/02/18 23:14:10  michael
-  + Initial implementation
-
+  Revision 1.2  2000-07-13 11:33:01  michael
+  + removed logs
+ 
 }

@@ -53,20 +53,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:46  michael
-  + Initial import
-
-  Revision 1.4  2000/01/06 01:20:36  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:10  peter
-    * moved to packages dir
-
-  Revision 1.2  1999/12/22 13:43:14  sg
-  * Improved messages in the case of failure: Now the test prints the results
-    it got from the XMLCfg unit
-
-  Revision 1.1  1999/07/09 21:06:59  michael
-  + Initial implementation by sebastian Guenther
-
+  Revision 1.2  2000-07-13 11:33:03  michael
+  + removed logs
+ 
 }

@@ -773,37 +773,7 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:46  michael
-  + Initial import
-
-  Revision 1.16  2000/03/01 00:04:31  pierre
-   Use $GOTO ON
-
-  Revision 1.15  2000/02/09 13:22:49  peter
-    * log truncated
-
-  Revision 1.14  2000/01/07 01:14:22  peter
-    * updated copyright to 2000
-
-  Revision 1.13  1999/12/22 01:01:47  peter
-    - removed freelabel()
-    * added undefined label detection in internal assembler, this prevents
-      a lot of ld crashes and wrong .o files
-    * .o files aren't written anymore if errors have occured
-    * inlining of assembler labels is now correct
-
-  Revision 1.12  1999/11/09 23:06:44  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.11  1999/09/27 23:44:48  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.10  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.9  1999/08/25 11:59:49  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+  Revision 1.2  2000-07-13 11:32:36  michael
+  + removed logs
 
 }

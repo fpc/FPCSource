@@ -109,29 +109,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:44  michael
-  + Initial import
-
-  Revision 1.14  2000/04/07 20:52:24  marco
-   * For BSD signals are off for now
-
-  Revision 1.13  2000/03/20 09:37:51  florian
-    * catching of exceptions is switched off on all targets if the define
-      DEBUG is used
-
-  Revision 1.12  2000/02/18 12:34:43  pierre
-   DEBUG implies NOCATCH for go32v2
-
-  Revision 1.11  2000/02/09 13:22:45  peter
-    * log truncated
-
-  Revision 1.10  2000/01/07 01:14:20  peter
-    * updated copyright to 2000
-
-  Revision 1.9  1999/08/25 16:41:04  peter
-    * resources are working again
-
-  Revision 1.8  1999/08/10 12:27:15  pierre
-   * not stack check inside catch !!
+  Revision 1.2  2000-07-13 11:32:32  michael
+  + removed logs
 
 }

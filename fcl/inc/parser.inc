@@ -307,25 +307,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:31  michael
-  + Initial import
-
-  Revision 1.11  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.10  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:08  peter
-    * moved to packages dir
-
-  Revision 1.8  1999/09/30 19:32:08  fcl
-  * Implemented TParser.HexToBinary  (sg)
-
-  Revision 1.7  1999/09/28 10:28:21  fcl
-  * Fixed some severe bugs  (sg)
-
-  Revision 1.6  1999/04/08 10:18:53  peter
-    * makefile updates
-
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

@@ -244,37 +244,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:44  michael
-  + Initial import
-
-  Revision 1.20  2000/06/22 18:05:56  michael
-  + Modifications for exception support in sysutils. Mainly added
-     RaiseList function.
-
-  Revision 1.19  2000/05/04 12:25:53  pierre
-   * Use saveregisters for PushExcept..
-
-  Revision 1.18  2000/04/24 11:11:50  peter
-    * backtraces for exceptions are now only generated from the place of the
-      exception
-    * frame is also pushed for exceptions
-    * raise statement enhanced with [,<frame>]
-
-  Revision 1.17  2000/02/09 22:16:50  florian
-    + popsecondobjectstack added
-
-  Revision 1.16  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.15  2000/02/06 17:17:57  florian
-    * popobjectstack is now a function
-
-  Revision 1.14  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.13  1999/07/27 08:14:15  florian
-    * catch doesn't call popaddrstack anymore, this is done now by the compiler
-
-  Revision 1.12  1999/07/26 12:11:28  florian
-    * reraise doesn't call popaddrstack anymode
+  Revision 1.2  2000-07-13 11:33:42  michael
+  + removed logs
+ 
 }

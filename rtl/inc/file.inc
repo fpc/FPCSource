@@ -385,41 +385,7 @@ End;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:44  michael
-  + Initial import
-
-  Revision 1.20  2000/03/24 10:26:18  jonas
-    * changed a lot of "if fm.mode = fmClosed then" to case statements,
-      because if f is not yet initialized, the mode is invalid and can
-      contain another value even though the file is closed
-    + check if a file is open in writeln_end (caused crash if used on
-      not opened files)
-
-  Revision 1.19  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.18  2000/01/17 20:02:30  peter
-    * open with mode 2 in rewrite
-
-  Revision 1.17  2000/01/16 22:25:38  peter
-    * check handle for file closing
-
-  Revision 1.16  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.15  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.14  1999/10/28 09:52:50  peter
-    * use filemode for rewrite instead of mode 1
-
-  Revision 1.13  1999/09/10 15:40:33  peter
-    * fixed do_open flags to be > $100, becuase filemode can be upto 255
-
-  Revision 1.12  1999/09/08 16:12:24  peter
-    * fixed inoutres for diskfull
-
-  Revision 1.11  1999/09/07 15:54:18  hajny
-    * fixed problem with Close under OS/2
-
+  Revision 1.2  2000-07-13 11:33:43  michael
+  + removed logs
+ 
 }

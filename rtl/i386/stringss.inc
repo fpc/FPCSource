@@ -98,41 +98,7 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:43  michael
-  + Initial import
-
-  Revision 1.15  2000/07/01 10:52:12  jonas
-    * fixed reading past end-of-heap again (correctly this time I hope)
-
-  Revision 1.14  2000/06/30 12:20:20  jonas
-    * strpas is again slightly slower, but won't crash anymore if a pchar
-      is passed to it that starts less than 4 bbytes from the heap end
-
-  Revision 1.13  2000/06/12 19:53:32  peter
-    * change .align to .balign
-
-  Revision 1.12  2000/06/12 13:17:56  jonas
-    * fixed typo :(
-
-  Revision 1.11  2000/06/12 08:33:26  jonas
-    * new fixed and faster strpas (previous version only returned the first
-      254 chars when the pchar was aligned on a 4 byte boundary and was >=
-      255 chars)
-
-  Revision 1.10  2000/03/28 11:14:33  jonas
-    * added missing register that is destroyed by strecopy
-    + some destroyed register lists for procedures that didn't have one yet
-
-  Revision 1.9  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.8  2000/01/11 22:56:57  pierre
-    * wrong change for StrPas function corrected
-
-  Revision 1.7  2000/01/11 21:12:15  marco
-   * direct params to internal asm.
-
-  Revision 1.6  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
+  Revision 1.2  2000-07-13 11:33:42  michael
+  + removed logs
+ 
 }

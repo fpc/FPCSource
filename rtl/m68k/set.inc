@@ -422,42 +422,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:57  michael
-  + Initial import
-
-  Revision 1.8  2000/01/07 16:41:43  daniel
-    * copyright 2000
-
-  Revision 1.7  2000/01/07 16:32:29  daniel
-    * copyright 2000 added
-
-  Revision 1.6  1998/07/30 12:16:29  carl
-    * set_sub_sets bugfix, was not using correct operation
-
-  Revision 1.5  1998/07/01 14:27:13  carl
-    * set_set and set_in bugfix
-
-  Revision 1.2  1998/03/27 23:47:35  carl
-    * bugfix of FLAGS as return values for SET_IN_BYTE and SET_SET_BYTE
-
-  Revision 1.4  1998/01/26 12:01:42  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/m68k/set.inc
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1998/01/05 00:34:50;  author: carl;  state: Exp;  lines: +349 -350
-  * Silly syntax errors fixed.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:37:22;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/28 16:51:20;  author: carl;  state: Exp;
-  + set routines for m68k.
-  =============================================================================
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }

@@ -367,25 +367,7 @@ const
 {$ENDIF}
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:33  michael
-  + Initial import
-
-  Revision 1.4  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.2  2000/04/05 13:59:10  marco
-   * added constants for syscall.inc
-
-  Revision 1.1  2000/04/05 13:06:24  marco
-   * Initial version. (copied from linux.) Patch for BSD not ready yeT
-
-  Revision 1.5  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:38  michael
+  + removed logs
+ 
 }

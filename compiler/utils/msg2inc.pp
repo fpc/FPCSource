@@ -797,38 +797,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:14  michael
-  + Initial import
-
-  Revision 1.12  2000/07/09 17:39:05  peter
-    * escape $ with \$
-
-  Revision 1.11  2000/07/09 17:01:26  peter
-    * replace only $ with arg if next char is a number
-
-  Revision 1.10  2000/07/09 16:30:59  peter
-    * fixed tex writign
-
-  Revision 1.9  2000/07/04 19:05:53  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.8  2000/06/30 20:23:38  peter
-    * new message files layout with msg numbers (but still no code to
-      show the number on the screen)
-
-  Revision 1.7  2000/05/26 18:20:38  peter
-    * fixed wrong var parameter with @
-
-  Revision 1.6  2000/05/15 13:14:48  pierre
-   + calculate a CRC value for enums
-
-  Revision 1.5  2000/02/09 13:23:11  peter
-    * log truncated
-
-  Revision 1.4  2000/01/27 11:29:15  peter
-    * version 0.99.14
-
-  Revision 1.3  2000/01/07 01:15:00  peter
-    * updated copyright to 2000
-
+  Revision 1.2  2000-07-13 11:32:55  michael
+  + removed logs
+ 
 }

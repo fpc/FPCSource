@@ -591,20 +591,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:22  michael
-  + Initial import
-
-  Revision 1.4  2000/04/08 09:31:59  peter
-    * makefiles added
-    * removed notes
-
-  Revision 1.3  2000/03/19 16:20:44  florian
-    * some improvements
-
-  Revision 1.2  2000/03/14 22:57:51  florian
-    + added flags
-    + support of case insensitive search
-
-  Revision 1.1  2000/03/14 22:09:03  florian
-    * Initial revision
+  Revision 1.2  2000-07-13 11:33:31  michael
+  + removed logs
+ 
 }

@@ -78,13 +78,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:20  michael
-  + Initial import
-
-  Revision 1.1  2000/03/09 02:49:09  alex
-  moved files
-
-  Revision 1.2  1998/09/11 10:55:26  peter
-    + header+log
-
+  Revision 1.2  2000-07-13 11:33:10  michael
+  + removed logs
+ 
 }

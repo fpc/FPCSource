@@ -23,13 +23,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:30  michael
-  + Initial import
-
-  Revision 1.6  2000/06/29 16:29:23  sg
-  * Implemented streaming. Note: The writer driver interface is stable, but
-    the reader interface is not final yet!
-
-  Revision 1.5  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

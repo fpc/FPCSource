@@ -210,3 +210,8 @@ function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bo
 function  get_tty_password(opt_message:  pchar) : pchar;cdecl;external;
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:26  michael
+  + removed logs
+ 
+}

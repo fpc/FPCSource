@@ -200,18 +200,7 @@ unit winmouse;
   end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:22  michael
-  + Initial import
-
-  Revision 1.3  2000/03/05 13:08:52  florian
-    + some new functions
-    * double click messages are handled like single clicks because this
-      is the behavior as old DOS applications expect
-
-  Revision 1.2  2000/01/07 16:41:53  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/11/29 22:03:39  florian
-    * first implementation of winmouse unit
-
+  Revision 1.2  2000-07-13 11:33:58  michael
+  + removed logs
+ 
 }

@@ -478,51 +478,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
-  + Initial import
-
-  Revision 1.3  2000/06/30 12:28:57  jonas
-    * fixed termtype structure
-
-  Revision 1.2  2000/03/12 15:02:10  peter
-    * removed unused var
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/07/05 21:38:19  peter
-    * works now also on not /dev/tty* units
-    * if col,row is 0,0 then take 80x25 by default
-
-  Revision 1.4  1999/02/22 12:46:16  peter
-    + lowascii boolean if ascii < #32 is handled correctly
-
-  Revision 1.3  1999/02/08 10:34:26  peter
-    * cursortype futher implemented
-
-  Revision 1.2  1998/12/12 19:13:03  peter
-    * keyboard updates
-    * make test target, make all only makes units
-
-  Revision 1.1  1998/12/04 12:48:30  peter
-    * moved some dirs
-
-  Revision 1.6  1998/12/03 10:18:07  peter
-    * tty fixed
-
-  Revision 1.5  1998/12/01 15:08:17  peter
-    * fixes for linux
-
-  Revision 1.4  1998/11/01 20:29:12  peter
-    + lockupdatescreen counter to not let updatescreen() update
-
-  Revision 1.3  1998/10/29 12:49:50  peter
-    * more fixes
-
-  Revision 1.1  1998/10/26 11:31:47  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:25  michael
+  + removed logs
+ 
 }

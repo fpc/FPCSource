@@ -1391,36 +1391,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:47  michael
-  + Initial import
-
-  Revision 1.40  2000/02/09 13:22:49  peter
-    * log truncated
-
-  Revision 1.39  2000/01/07 01:14:22  peter
-    * updated copyright to 2000
-
-  Revision 1.38  1999/11/17 17:04:58  pierre
-   * Notes/hints changes
-
-  Revision 1.37  1999/11/09 23:06:44  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.36  1999/11/06 14:34:18  peter
-    * truncated log to 20 revs
-
-  Revision 1.35  1999/09/27 23:44:48  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.34  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.33  1999/09/16 11:34:54  pierre
-   * typo correction
-
-  Revision 1.32  1999/08/25 11:59:54  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+  Revision 1.2  2000-07-13 11:32:37  michael
+  + removed logs
 
 }

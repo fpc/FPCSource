@@ -551,29 +551,7 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:19  michael
-  + Initial import
-
-  Revision 1.1  2000/03/09 02:40:04  alex
-  moved files
-
-  Revision 1.5  2000/03/08 21:01:48  alex
-  braced some vars to avoid compiler warnings
-
-  Revision 1.4  2000/01/21 00:44:51  peter
-    * remove unused vars
-    * renamed to .pp
-
-  Revision 1.3  1999/12/31 17:04:22  marco
-
-
-  Graphical version
-
-  Revision 1.2  1999/06/01 19:24:33  peter
-    * updates from marco
-
-  Revision 1.1  1999/05/27 21:36:34  peter
-    * new demo's
-    * fixed mandel for linux
-
+  Revision 1.2  2000-07-13 11:33:09  michael
+  + removed logs
+ 
 }

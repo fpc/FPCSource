@@ -2393,70 +2393,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.54  2000/05/11 09:56:20  pierre
-    * fixed several compare problems between longints and
-      const > $80000000 that are treated as int64 constanst
-      by Delphi reported by Kovacs Attila Zoltan
-
-  Revision 1.53  2000/05/11 09:29:01  pierre
-   * disbal all code using MemAvail for Delphi reported by Kovacs Attila Zoltan
-
-  Revision 1.52  2000/02/09 13:22:50  peter
-    * log truncated
-
-  Revision 1.51  2000/01/11 17:16:04  jonas
-    * removed a lot of memory leaks when an error is encountered (caused by
-      procinfo and pstringcontainers). There are still plenty left though :)
-
-  Revision 1.50  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
-
-  Revision 1.49  1999/12/22 01:01:48  peter
-    - removed freelabel()
-    * added undefined label detection in internal assembler, this prevents
-      a lot of ld crashes and wrong .o files
-    * .o files aren't written anymore if errors have occured
-    * inlining of assembler labels is now correct
-
-  Revision 1.48  1999/12/06 18:21:03  peter
-    * support !ENVVAR for long commandlines
-    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
-      finally supported as installdir.
-
-  Revision 1.47  1999/11/15 14:59:55  pierre
-   * last was not handled correctly in TStringQueue
-
-  Revision 1.46  1999/11/14 15:56:36  peter
-    * fixed stringqueue.delete
-
-  Revision 1.45  1999/11/12 11:03:49  peter
-    * searchpaths changed to stringqueue object
-
-  Revision 1.44  1999/11/06 14:34:20  peter
-    * truncated log to 20 revs
-
-  Revision 1.43  1999/10/26 12:30:41  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.42  1999/09/07 15:08:51  pierre
-   * runerror => do_internalerror
-
-  Revision 1.41  1999/08/24 13:13:57  peter
-    * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
-
-  Revision 1.40  1999/08/12 23:19:05  pierre
-   * added inherited init call to tstringcontainer.init_no_double for Peter
-
-  Revision 1.39  1999/08/05 14:58:07  florian
-    * some fixes for the floating point registers
-    * more things for the new code generator
+  Revision 1.2  2000-07-13 11:32:38  michael
+  + removed logs
 
 }

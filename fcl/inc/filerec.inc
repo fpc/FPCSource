@@ -35,28 +35,7 @@ type
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:30  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 01:24:33  peter
-    * updated copyright to 2000
-
-  Revision 1.3  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:07  peter
-    * moved to packages dir
-
-  Revision 1.1  1999/08/09 16:18:00  michael
-  + Added filerec.inc for xmlread changes by Sebastian guenther
-
-  Revision 1.5  1998/09/14 10:48:15  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.4  1998/09/04 18:16:13  peter
-    * uniform filerec/textrec (with recsize:longint and name:0..255)
-
-  Revision 1.3  1998/05/21 11:55:59  carl
-   * works with all OS
+  Revision 1.2  2000-07-13 11:32:59  michael
+  + removed logs
+ 
 }

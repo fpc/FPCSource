@@ -199,17 +199,7 @@ END;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:29  michael
-  + Initial import
-
-  Revision 1.3  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:22  daniel
-    * copyright 2000 added
-
-  Revision 1.1  1998/07/15 12:10:48  carl
-    + first working version
-
+  Revision 1.2  2000-07-13 11:33:37  michael
+  + removed logs
+ 
 }
-

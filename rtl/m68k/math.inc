@@ -943,46 +943,7 @@ const sincof : TabCoef = (
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:56  michael
-  + Initial import
-
-  Revision 1.4  2000/05/02 10:37:50  pierre
-   * 0**n where n<>0 is 0; 0**0 generates RTE 207
-
-  Revision 1.3  2000/01/07 16:41:43  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:29  daniel
-    * copyright 2000 added
-
-  Revision 1.1.1.1  1998/03/25 11:18:44  root
-  * Restored version
-
-  Revision 1.6  1998/02/20 20:41:54  carl
-    + fixed other problems...
-
-  Revision 1.5  1998/01/26 12:01:37  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/m68k/math.inc
-  description:
-  ----------------------------
-  revision 1.4
-  date: 1998/01/05 00:34:21;  author: carl;  state: Exp;  lines: +896 -903
-  * Licencing problem fixed.
-  ----------------------------
-  revision 1.3
-  date: 1997/12/01 12:37:22;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.2
-  date: 1997/11/28 16:51:54;  author: carl;  state: Exp;  lines: +901 -891
-  + added power.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 13:57:50;  author: carl;  state: Exp;
-  m68k implementation of math routines. (Initial version)
-  =============================================================================
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
 }

@@ -590,61 +590,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:03  michael
-  + Initial import
-
-  Revision 1.55  2000/06/30 20:23:38  peter
-    * new message files layout with msg numbers (but still no code to
-      show the number on the screen)
-
-  Revision 1.54  2000/05/23 20:32:48  peter
-    * removed dup msgcrcvalue
-
-  Revision 1.53  2000/05/15 14:05:40  pierre
-   Declare MsgCrcValue with cond EXTERN_MSG
-
-  Revision 1.52  2000/05/10 19:20:23  pierre
-    * Use integer third arg for val in SetErrorFlags
-      to allow compilation with Delphi
-      reported by Kovacs Attila Zoltan
-
-  Revision 1.51  2000/05/10 13:40:19  peter
-    * -Se<x> option extended to increase errorcount for
-      warning,notes or hints
-
-  Revision 1.50  2000/04/01 10:46:29  hajny
-    * logfile appended if exists
-
-  Revision 1.49  2000/03/12 08:24:45  daniel
-    * Made check for message file TP compilable.
-
-  Revision 1.48  2000/03/01 22:29:18  peter
-    * message files are check for amount of msgs found. If not correct a
-      line is written to stdout and switched to internal messages
-
-  Revision 1.47  2000/03/01 21:45:42  peter
-    * lowercase .INC -> .inc
-
-  Revision 1.46  2000/02/28 17:23:57  daniel
-  * Current work of symtable integration committed. The symtable can be
-    activated by defining 'newst', but doesn't compile yet. Changes in type
-    checking and oop are completed. What is left is to write a new
-    symtablestack and adapt the parser to use it.
-
-  Revision 1.45  2000/02/09 13:23:09  peter
-    * log truncated
-
-  Revision 1.44  2000/01/07 01:14:49  peter
-    * updated copyright to 2000
-
-  Revision 1.43  1999/11/06 14:34:32  peter
-    * truncated log to 20 revs
-
-  Revision 1.42  1999/08/05 16:53:28  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
+  Revision 1.2  2000-07-13 11:32:54  michael
+  + removed logs
 
 }

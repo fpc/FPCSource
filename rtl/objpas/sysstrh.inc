@@ -94,15 +94,7 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:01  michael
-  + Initial import
-
-  Revision 1.10  2000/05/08 17:03:02  sg
-  * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
-    CompareMem. (CompareMem needs a Boolean as result type, not Integer)
-
-  Revision 1.9  2000/02/09 16:59:33  peter
-    * truncated log
-
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }
-

@@ -1499,64 +1499,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:49  michael
-  + Initial import
-
-  Revision 1.16  2000/07/09 11:38:33  sg
-  * Fixed TDOMNode_WithChildren.RemoveNode for the case when the node to be
-    removed is the first child node.
-
-  Revision 1.15  2000/06/29 08:45:05  sg
-  * RemoveAttributeNode bugfix
-
-  Revision 1.14  2000/05/04 18:24:22  sg
-  * Bugfixes: In some cases the DOM node tree was invalid
-  * Simplifications
-  * Minor optical improvements
-
-  Revision 1.13  2000/04/20 14:15:45  sg
-  * Minor bugfixes
-  * Started support for DOM level 2
-
-  Revision 1.12  2000/02/13 10:03:31  sg
-  * Hopefully final fix for TDOMDocument.DocumentElement:
-    - Reading this property always delivers the first element in the document
-    - Removed SetDocumentElement. Use "AppendChild" or one of the other
-      generic methods for TDOMNode instead.
-
-  Revision 1.11  2000/01/30 22:18:16  sg
-  * Fixed memory leaks, all nodes are now freed by their parent
-  * Many cosmetic changes
-
-  Revision 1.10  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.9  2000/01/06 23:55:22  peter
-    * childnodes property as that is used instead of getchildnodes
-      in the apps
-
-  Revision 1.8  2000/01/06 01:20:36  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:11  peter
-    * moved to packages dir
-
-  Revision 1.6  1999/12/05 22:00:10  sg
-  * Bug workaround for problem with "exit(<some string type>)"
-
-  Revision 1.5  1999/07/12 12:19:49  michael
-  + More fixes from Sebastian Guenther
-
-  Revision 1.4  1999/07/11 20:20:11  michael
-  + Fixes from Sebastian Guenther
-
-  Revision 1.3  1999/07/10 21:48:26  michael
-  + Made domelement constructor virtual, needs overriding in thtmlelement
-
-  Revision 1.2  1999/07/09 21:05:49  michael
-  + fixes from Guenther Sebastian
-
-  Revision 1.1  1999/07/09 08:35:09  michael
-  + Initial implementation by Sebastian Guenther
-
+  Revision 1.2  2000-07-13 11:33:07  michael
+  + removed logs
+ 
 }

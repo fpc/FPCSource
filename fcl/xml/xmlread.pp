@@ -1117,30 +1117,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:50  michael
-  + Initial import
-
-  Revision 1.19  2000/07/09 14:23:42  sg
-  * Tabs are now considered as whitespace, too, when the reader determines if
-    a text node would be empty or not
-
-  Revision 1.18  2000/07/09 13:56:09  sg
-  * Added support for predefined entities for attribute values
-
-  Revision 1.17  2000/07/09 11:39:15  sg
-  * Added support for predefined entities
-  * Improved whitespace handling
-
-  Revision 1.16  2000/04/20 14:15:45  sg
-  * Minor bugfixes
-  * Started support for DOM level 2
-
-  Revision 1.15  2000/02/13 10:03:31  sg
-  * Hopefully final fix for TDOMDocument.DocumentElement:
-    - Reading this property always delivers the first element in the document
-    - Removed SetDocumentElement. Use "AppendChild" or one of the other
-      generic methods for TDOMNode instead.
-
-  Revision 1.14  2000/01/30 22:19:13  sg
-  * Made some optimizations and cosmetic changes
+  Revision 1.2  2000-07-13 11:33:07  michael
+  + removed logs
+ 
 }

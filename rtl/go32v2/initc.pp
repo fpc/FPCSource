@@ -95,19 +95,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:38  michael
-  + Initial import
-
-  Revision 1.6  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.5  2000/01/09 00:35:17  pierre
-   * initc now loads dpmiexcp unit to avoid linker problems
-
-  Revision 1.4  2000/01/07 16:41:32  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:40  michael
+  + removed logs
+ 
 }

@@ -534,21 +534,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.4  2000/07/09 07:22:51  peter
-    * fixed maxx,maxy setting
-
-  Revision 1.3  2000/07/08 21:22:16  peter
-    * finalization added with setrawmode(false)
-
-  Revision 1.2  2000/05/26 18:21:04  peter
-    * fixed @ with var parameters
-
-  Revision 1.1  2000/03/19 11:20:14  peter
-    * graph unit include is now independent and the dependent part
-      is now in graph.pp
-    * ggigraph unit for linux added
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

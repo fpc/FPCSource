@@ -856,21 +856,7 @@ End;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:48  michael
-  + Initial import
-
-  Revision 1.9  2000/05/12 05:51:43  pierre
-   * Reset DosError in Exec reported by Kovacs Attila Zoltan
-
-  Revision 1.8  2000/05/11 09:56:20  pierre
-    * fixed several compare problems between longints and
-      const > $80000000 that are treated as int64 constanst
-      by Delphi reported by Kovacs Attila Zoltan
-
-  Revision 1.7  2000/02/09 13:22:52  peter
-    * log truncated
-
-  Revision 1.6  2000/01/07 01:14:23  peter
-    * updated copyright to 2000
+  Revision 1.2  2000-07-13 11:32:40  michael
+  + removed logs
 
 }

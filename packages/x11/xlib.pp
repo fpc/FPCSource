@@ -1724,26 +1724,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:23  michael
-  + Initial import
-
-  Revision 1.7  2000/05/24 09:37:29  sg
-  * translated more X11 functions
-
-  Revision 1.6  2000/05/22 08:21:05  sg
-  * Added pointer types for all events. (PXxxxEvent = ^TXxxxEvent)
-
-  Revision 1.5  2000/03/06 16:15:43  peter
-    * removed comment warnings
-
-  Revision 1.4  2000/03/01 09:16:13  sg
-  * Changed all occurences of $linklib C into $linklib c
-
-  Revision 1.3  2000/02/27 14:39:54  peter
-    * added explicit linklib c
-
-  Revision 1.2  2000/02/27 13:11:31  peter
-    * cleanup, removed warnings
-    * external decls moved from implementation to interface
-
+  Revision 1.2  2000-07-13 11:33:34  michael
+  + removed logs
+ 
 }

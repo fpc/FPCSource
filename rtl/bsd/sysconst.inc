@@ -87,30 +87,7 @@ Const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:33  michael
-  + Initial import
-
-  Revision 1.5  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.3  2000/02/03 17:05:13  marco
-   * fixes and updates due to linux unit porting
-
-  Revision 1.2  2000/02/02 16:35:29  marco
-   * Checked stat constants
-
-  Revision 1.1  2000/02/02 15:41:28  marco
-   * initial BSD version.
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1998/05/06 12:38:22  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
+  Revision 1.2  2000-07-13 11:33:37  michael
+  + removed logs
+ 
 }

@@ -96,19 +96,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:37  michael
-  + Initial import
-
-  Revision 1.5  2000/05/29 05:32:50  jonas
-    * should compile again
-
-  Revision 1.4  2000/02/09 16:59:28  peter
-    * truncated log
-
-  Revision 1.3  2000/01/07 16:41:31  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
+  Revision 1.2  2000-07-13 11:33:40  michael
+  + removed logs
+ 
 }

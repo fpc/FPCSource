@@ -300,31 +300,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:29  michael
-  + Initial import
-
-  Revision 1.8  2000/02/15 21:57:51  sg
-  * Added copyright notice and CVS log tags where necessary
-
-  Revision 1.7  2000/01/07 01:24:32  peter
-    * updated copyright to 2000
-
-  Revision 1.6  2000/01/06 01:20:32  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:06  peter
-    * moved to packages dir
-
-  Revision 1.4  1999/08/13 22:14:40  peter
-    * removed email separator at the bottom ;)
-
-  Revision 1.3  1999/08/13 16:31:41  michael
-  + Patch to support sizeless streams by Sebastian Guenter
-
-  Revision 1.2  1999/08/09 16:12:28  michael
-  * Fixes and new examples from Sebastian Guenther
-
-  Revision 1.1  1999/08/03 17:02:38  michael
-  * Base64 en/de cdeing streams added
-
+  Revision 1.2  2000-07-13 11:32:58  michael
+  + removed logs
+ 
 }

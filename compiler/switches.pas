@@ -174,28 +174,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:56  michael
-  + Initial import
-
-  Revision 1.28  2000/05/09 21:31:50  pierre
-   * fix problem when modifying several local switches in a row
-
-  Revision 1.27  2000/05/03 14:36:58  pierre
-   * fix for tests/test/testrang.pp bug
-
-  Revision 1.26  2000/02/09 13:23:04  peter
-    * log truncated
-
-  Revision 1.25  2000/01/07 01:14:39  peter
-    * updated copyright to 2000
-
-  Revision 1.24  1999/11/06 14:34:26  peter
-    * truncated log to 20 revs
-
-  Revision 1.23  1999/09/16 11:34:58  pierre
-   * typo correction
-
-  Revision 1.22  1999/08/01 23:35:06  michael
-  * Alpha changes
+  Revision 1.2  2000-07-13 11:32:49  michael
+  + removed logs
 
 }

@@ -172,10 +172,7 @@ const
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:22  michael
-  + Initial import
-
-  Revision 1.2  2000/02/02 12:43:42  michael
-  + Added copyright and log
-
+  Revision 1.2  2000-07-13 11:33:31  michael
+  + removed logs
+ 
 }

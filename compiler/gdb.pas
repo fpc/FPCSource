@@ -251,25 +251,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:50  michael
-  + Initial import
-
-  Revision 1.17  2000/05/12 05:57:34  pierre
-   * * get it to compile with Delphi by Kovacs Attila Zoltan
-
-  Revision 1.16  2000/05/11 09:40:11  pierre
-    * some DBX changes but it still does not work !
-
-  Revision 1.15  2000/02/09 13:22:52  peter
-    * log truncated
-
-  Revision 1.14  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.13  1999/11/09 23:51:25  pierre
-   * some DBX work
-
-  Revision 1.12  1999/08/04 00:23:01  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:41  michael
+  + removed logs
 
 }

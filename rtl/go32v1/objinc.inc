@@ -173,31 +173,7 @@ END;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:34  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 16:41:30  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1999/06/01 13:23:10  peter
-    * fixes to work with the new makefile
-    * os2 compiles now correct under linux
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.4  1998/07/06 12:26:19  carl
-    * Glurbl.... now work perfectly! Do not change :)
-
-  Revision 1.3  1998/07/02 12:25:27  carl
-    * NOTHING would work, FileOpen is now correct!!
-
-  Revision 1.2  1998/05/31 14:18:18  peter
-    * force att or direct assembling
-    * cleanup of some files
-
+  Revision 1.2  2000-07-13 11:33:38  michael
+  + removed logs
+ 
 }
-

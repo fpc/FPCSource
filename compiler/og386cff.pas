@@ -1003,61 +1003,7 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.24  2000/06/21 20:56:37  pierre
-   * fix the problem of long mangledname in internal writer
-
-  Revision 1.23  2000/04/12 12:42:29  pierre
-   * fix the -g-l option
-
-  Revision 1.22  2000/03/10 16:05:28  pierre
-   * check that symbol is in object
-
-  Revision 1.21  2000/03/10 09:15:54  pierre
-   * rva relocation bug fixed
-
-  Revision 1.20  2000/03/09 14:29:47  pierre
-   * fix for the stab section size changes with smartlinking
-
-  Revision 1.19  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.18  2000/01/12 10:38:18  peter
-    * smartlinking fixes for binary writer
-    * release alignreg code and moved instruction writing align to cpuasm,
-      but it doesn't use the specified register yet
-
-  Revision 1.17  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.16  1999/12/20 22:29:26  pierre
-    * relocation with debug info in rva (only with internal compiler)
-
-  Revision 1.15  1999/11/30 10:40:43  peter
-    + ttype, tsymlist
-
-  Revision 1.14  1999/11/06 14:34:21  peter
-    * truncated log to 20 revs
-
-  Revision 1.13  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.12  1999/08/16 15:35:25  pierre
-    * fix for DLL relocation problems
-    * external bss vars had wrong stabs for pecoff
-    + -WB11000000 to specify default image base, allows to
-      load several DLLs with debugging info included
-      (relocatable DLL are stripped because the relocation
-       of the .Stab section is misplaced by ldw)
-
-  Revision 1.11  1999/08/11 17:17:38  peter
-    * fixed rva writting for section relocs
-    * fixed section flags for edata and idata
-
-  Revision 1.10  1999/08/04 00:23:05  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
 
 }

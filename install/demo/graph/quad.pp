@@ -680,3 +680,8 @@ Begin
   Writeln('FPC conversion and cleanup by Marco van de Voort');
   Writeln;
 End.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:08  michael
+  + removed logs
+ 
+}

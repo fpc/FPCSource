@@ -28,4 +28,8 @@ begin
       Write ('IP address : ',Ip_address[1],'.',Ip_address[2]);
       Writeln ('.',ip_address[3],'.',ip_address[4]);
       end;
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:32  michael
+end.  + removed logs
+end. 
+}

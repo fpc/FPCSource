@@ -86,3 +86,8 @@
 
         gtk_main();
   end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:18  michael
+  + removed logs
+ 
+}

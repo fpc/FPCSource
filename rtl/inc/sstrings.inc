@@ -571,26 +571,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:48  michael
-  + Initial import
-
-  Revision 1.35  2000/04/06 11:51:47  pierre
-   * fix for extended constants
-
-  Revision 1.34  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.33  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.32  2000/01/07 16:32:25  daniel
-    * copyright 2000 added
-
-  Revision 1.31  1999/12/11 19:07:44  jonas
-    * avoid unwanted type conversion from cardinal to longint in val for
-      signed and unsigned 32bit int
-
-  Revision 1.30  1999/11/06 14:35:39  peter
-    * truncated log
-
+  Revision 1.2  2000-07-13 11:33:45  michael
+  + removed logs
+ 
 }

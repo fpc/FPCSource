@@ -78,36 +78,7 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:47  michael
-  + Initial import
-
-  Revision 1.18  2000/04/07 21:10:35  pierre
-    + ReturnNilIfGrowHeapFails used in objects unit
-      to handle TMemoryStream out of memory properly
-      as MaxAvail is not a good test anymore.
-
-  Revision 1.17  2000/02/09 16:59:30  peter
-    * truncated log
-
-  Revision 1.16  2000/01/31 23:41:30  peter
-    * reallocmem fixed for freemem() call when size=0
-
-  Revision 1.15  2000/01/20 12:35:35  jonas
-    * fixed problem with reallocmem and heaptrc
-
-  Revision 1.14  2000/01/07 16:41:34  daniel
-    * copyright 2000
-
-  Revision 1.13  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.12  1999/11/01 13:56:50  peter
-    * freemem,reallocmem now get var argument
-
-  Revision 1.11  1999/10/30 17:39:05  peter
-    * memorymanager expanded with allocmem/reallocmem
-
-  Revision 1.10  1999/09/17 17:14:12  peter
-    + new heap manager supporting delphi freemem(pointer)
-
+  Revision 1.2  2000-07-13 11:33:44  michael
+  + removed logs
+ 
 }

@@ -204,32 +204,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:41  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.6  1999/09/22 12:56:53  pierre
-   + added boolean to avoid double done
-
-  Revision 1.5  1999/07/18 10:56:39  florian
-    + compressing of MouseMoving in the mouse event queue:
-     this leads to a smoother mouse dragging
-
-  Revision 1.4  1999/07/17 22:37:10  florian
-    * implemented mouse handling
-
-  Revision 1.3  1999/07/17 17:21:37  florian
-    * fixed the win32 keyboard event handling
-
-  Revision 1.2  1999/06/21 16:43:54  peter
-    * win32 updates from Maarten Bekkers
-
-  Revision 1.1  1999/01/08 14:37:03  florian
-    + initial version, not working yet
-
+  Revision 1.2  2000-07-13 11:32:27  michael
+  + removed logs
+ 
 }

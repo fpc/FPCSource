@@ -169,28 +169,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
-  + Initial import
-
-  Revision 1.4  2000/04/08 19:54:26  hajny
-    * finished
-
-  Revision 1.3  2000/03/19 11:29:07  hajny
-    * PollKeyEvent implemented
-
-  Revision 1.2  2000/01/09 20:42:05  hajny
-    + the first part of implementation
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.1  1998/12/04 12:48:32  peter
-    * moved some dirs
-
-  Revision 1.1  1998/10/26 11:31:49  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:26  michael
+  + removed logs
+ 
 }

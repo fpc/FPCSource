@@ -429,34 +429,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:14  michael
-  + Initial import
-
-  Revision 1.11  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.10  2000/05/09 06:39:17  pierre
-   + generate also i386nop.inc containing the number of opcodes
-
-  Revision 1.9  2000/04/04 13:44:03  pierre
-   + R suffix for integer FPU operations
-
-  Revision 1.8  2000/02/09 13:23:11  peter
-    * log truncated
-
-  Revision 1.7  2000/01/28 09:41:39  peter
-    * fixed fpu suffix parsing for att reader
-
-  Revision 1.6  2000/01/07 01:15:01  peter
-    * updated copyright to 2000
-
-  Revision 1.5  1999/10/28 09:47:45  peter
-    * update to use i386ins.dat
-
-  Revision 1.4  1999/10/27 16:06:52  peter
-    * updated for new layout
-
-  Revision 1.3  1999/08/12 14:36:09  peter
-    + KNI instructions
-
+  Revision 1.2  2000-07-13 11:32:55  michael
+  + removed logs
+ 
 }

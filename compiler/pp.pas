@@ -294,61 +294,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:54  michael
-  + Initial import
+  Revision 1.2  2000-07-13 11:32:45  michael
+  + removed logs
 
-  Revision 1.60  2000/04/02 15:22:19  florian
-    * fixed bug 903: the compiler gives now a nice message if it can't create
-      the .o file, (same for future .ar)
-
-  Revision 1.59  2000/03/20 09:36:23  florian
-    * using the directive DEBUG when compiling the compiler will include now
-      the lineinfo unit on all targets
-
-  Revision 1.58  2000/03/16 10:29:06  florian
-    * disk full runerror writes now a nice message
-
-  Revision 1.57  2000/03/14 16:30:14  pierre
-   + lineinfo for win32 with debug
-
-  Revision 1.56  2000/02/18 12:34:43  pierre
-   DEBUG implies NOCATCH for go32v2
-
-  Revision 1.55  2000/02/10 23:44:43  florian
-    * big update for exception handling code generation: possible mem holes
-      fixed, break/continue/exit should work always now as expected
-
-  Revision 1.54  2000/02/09 13:22:59  peter
-    * log truncated
-
-  Revision 1.53  2000/01/07 01:14:30  peter
-    * updated copyright to 2000
-
-  Revision 1.52  1999/11/06 14:34:23  peter
-    * truncated log to 20 revs
-
-  Revision 1.51  1999/11/05 13:15:00  florian
-    * some fixes to get the new cg compiling again
-
-  Revision 1.50  1999/09/17 17:14:10  peter
-    * @procvar fixes for tp mode
-    * @<id>:= gives now an error
-
-  Revision 1.49  1999/09/16 23:05:54  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.48  1999/09/10 18:48:08  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.47  1999/09/02 18:47:45  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.46  1999/08/28 15:34:20  florian
-    * bug 519 fixed
-
-  Revision 1.45  1999/08/04 00:23:18  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
 }

@@ -55,20 +55,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:58  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.1  1999/05/22 13:43:00  peter
-    * moved
-
-  Revision 1.4  1999/01/29 10:32:57  peter
-    * fixes to compile with the makefile
-
-  Revision 1.3  1999/01/22 10:23:51  peter
-    * small update to get it working with the IDE
-
+  Revision 1.2  2000-07-13 11:33:16  michael
+  + removed logs
+ 
 }
-

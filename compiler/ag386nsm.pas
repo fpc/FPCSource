@@ -774,62 +774,7 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:43  michael
-  + Initial import
-
-  Revision 1.60  2000/05/15 14:11:45  pierre
-   * add implicit args for FADDP
-
-  Revision 1.59  2000/05/12 21:26:22  pierre
-    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
-      simply by swapping from reverse to normal and vice-versa
-      when passing from one syntax to the other !
-
-  Revision 1.58  2000/05/09 21:44:27  pierre
-    * add .byte 066h to force correct pushw %es
-    * handle push es as a pushl %es
-
-  Revision 1.57  2000/04/06 07:09:15  pierre
-    * handle offset fixup
-    + add source lines
-    * no NEAR for opcodes that only support short jumps
-
-  Revision 1.56  2000/02/09 13:22:43  peter
-    * log truncated
-
-  Revision 1.55  2000/01/07 01:14:18  peter
-    * updated copyright to 2000
-
-  Revision 1.54  1999/11/06 14:34:16  peter
-    * truncated log to 20 revs
-
-  Revision 1.53  1999/11/02 15:06:56  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.52  1999/09/13 16:27:24  peter
-    * fix for jmps to be always near
-    * string writing fixed
-
-  Revision 1.51  1999/09/10 15:41:18  peter
-    * added symbol_end
-
-  Revision 1.50  1999/09/02 18:47:43  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.49  1999/08/25 11:59:38  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.48  1999/08/04 00:22:37  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.47  1999/08/01 18:28:10  florian
-    * modifications for the new code generator
-
-  Revision 1.46  1999/07/22 09:37:33  florian
-    + resourcestring implemented
-    + start of longstring support
+  Revision 1.2  2000-07-13 11:32:30  michael
+  + removed logs
 
 }

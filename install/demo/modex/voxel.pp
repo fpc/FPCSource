@@ -170,22 +170,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:19  michael
-  + Initial import
-
-  Revision 1.1  2000/03/09 02:48:10  alex
-  moved files
-
-  Revision 1.4  2000/03/08 22:20:04  alex
-  fixed warnings about type conversion
-
-  Revision 1.3  2000/02/22 04:12:42  alex
-  removed game unit reference for non fpc version
-
-  Revision 1.2  2000/01/03 13:51:08  marco
-   * Fixed broken comment
-
-  Revision 1.1  2000/01/01 14:58:01  marco
-   * initial version
-
+  Revision 1.2  2000-07-13 11:33:09  michael
+  + removed logs
+ 
 }

@@ -27,3 +27,8 @@ Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias :
 asm
 end;
 
+  $Log$
+  Revision 1.2  2000-07-13 11:33:50  michael
+  + removed logs
+ 
+}

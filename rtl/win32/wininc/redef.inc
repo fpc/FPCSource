@@ -884,50 +884,7 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:24  michael
-  + Initial import
-
-  Revision 1.13  2000/06/20 10:09:21  pierre
-   * wrong overloads removed
-
-  Revision 1.12  2000/06/16 13:35:07  pierre
-   * GetFullPathName was wrong
-
-  Revision 1.11  2000/06/15 11:26:58  pierre
-    * avoid lines longer than 255 chars
-    + add smartlink on by default, if not version 0.99.14
-    * some functions not present in win95 DLL's are now only inserted if
-      smartlink is on.
-
-  Revision 1.10  2000/06/12 19:54:25  peter
-    * removed some declares which don't exists in dll
-
-  Revision 1.9  2000/06/11 07:04:59  peter
-    * Windows unit has now more Delphi compatibile functions
-    * placed the external functions only in the interface
-
-  Revision 1.8  2000/05/17 11:01:55  marco
-   * JCL alias for getstringsexa
-
-  Revision 1.7  2000/05/08 13:25:34  peter
-    * defined filemode constants in windows unit
-
-  Revision 1.6  2000/04/22 19:51:08  marco
-   * Forgot to remove the tpoint stuff.
-
-  Revision 1.5  2000/04/22 17:46:05  marco
-   * some redef fixes (for lazarus mwedit component)
-
-  Revision 1.4  2000/03/19 20:29:06  marco
-   * some stuff for JCL
-
-  Revision 1.3  2000/02/09 16:59:36  peter
-    * truncated log
-
-  Revision 1.2  2000/01/07 16:41:56  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/09/16 13:38:24  peter
-    * windows unit include moved to wininc/
-
+  Revision 1.2  2000-07-13 11:34:00  michael
+  + removed logs
+ 
 }

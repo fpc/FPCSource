@@ -697,29 +697,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:24  michael
-  + Initial import
-
-  Revision 1.9  2000/05/28 21:16:18  sg
-  * More additions...
-
-  Revision 1.8  2000/05/26 14:28:13  sg
-  * More functions added
-
-  Revision 1.7  2000/05/24 09:37:29  sg
-  * translated more X11 functions
-
-  Revision 1.6  2000/03/06 16:15:43  peter
-    * removed comment warnings
-
-  Revision 1.5  2000/03/01 09:16:13  sg
-  * Changed all occurences of $linklib C into $linklib c
-
-  Revision 1.4  2000/02/27 14:39:54  peter
-    * added explicit linklib c
-
-  Revision 1.3  2000/02/27 13:11:31  peter
-    * cleanup, removed warnings
-    * external decls moved from implementation to interface
-
+  Revision 1.2  2000-07-13 11:33:34  michael
+  + removed logs
+ 
 }

@@ -414,51 +414,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:32  michael
-  + Initial import
-
-  Revision 1.15  2000/04/16 16:08:53  marco
-   * Fixes (mainly opendir/Readdir/closedir)
-
-  Revision 1.14  2000/04/14 17:04:13  marco
-   * Working!
-
-  Revision 1.13  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.11  2000/04/05 13:58:40  marco
-   * syscall variablenames reintroduced.
-
-  Revision 1.10  2000/03/16 16:18:12  marco
-   * Last changes before next test. ppc386 -h works with these srcs.
-
-  Revision 1.9  2000/03/02 15:34:07  marco
-   * added a syscall for 5 longints
-
-  Revision 1.8  2000/03/01 20:03:57  marco
-   * small fixes for syslinux
-
-  Revision 1.7  2000/03/01 17:28:40  marco
-   * some changes due to updating linux.pp to new syscall
-
-  Revision 1.6  2000/02/27 23:45:39  marco
-   * Redone the syscalls
-
-  Revision 1.5  2000/02/04 16:53:26  marco
-   * Finished Linux (and rest syscalls) roughly. Some things still need to be
-    tested, and checked (off_t calls specially)
-
-  Revision 1.4  2000/02/03 17:04:47  marco
-   * additions fixes due to port linux
-
-  Revision 1.3  2000/02/02 18:07:27  marco
-   * Ported except for readdir which is 200 lines C code in FBSD linux
-        emulator
-
-  Revision 1.2  2000/02/02 16:35:10  marco
-   * Ported more functions. Half done now.
-
-  Revision 1.1  2000/02/02 15:41:56  marco
-   * Initial BSD version. Still needs a lot of work.
-
+  Revision 1.2  2000-07-13 11:33:37  michael
+  + removed logs
+ 
 }

@@ -862,72 +862,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:01  michael
-  + Initial import
-
-  Revision 1.43  2000/06/29 08:47:13  sg
-  * Bugfix for SetAStrProp (reference counter hasn't been increased)
-  * Implemented GetInt64Prop
-
-  Revision 1.42  2000/06/22 20:02:51  peter
-    * qword,int64 rtti support basics
-
-  Revision 1.41  2000/06/22 15:31:09  sg
-  * Fixed a small typo in my previous update
-
-  Revision 1.40  2000/06/22 15:29:31  sg
-  * Added prototypes for GetInt64Prop and SetInt64Prop
-  * Added constants "BooleanIdents" and "DotSep"
-
-  Revision 1.39  2000/05/18 09:42:17  michael
-  + GetPropInfo now case insensitive
-
-  Revision 1.38  2000/02/15 14:39:56  florian
-    * disabled FIXED data type per default
-
-  Revision 1.37  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.36  2000/01/07 16:41:44  daniel
-    * copyright 2000
-
-  Revision 1.35  2000/01/07 16:32:29  daniel
-    * copyright 2000 added
-
-  Revision 1.34  2000/01/06 01:08:33  sg
-  * _This_ is the real revision 1.32... :-)
-
-  Revision 1.33  2000/01/06 00:23:24  pierre
-   * missing declarations for otChar andotWChar added
-
-  Revision 1.32  2000/01/05 18:59:56  sg
-  * Fixed missing () in InsertProp which caused memory corruptions
-  * GetOrdProp handles Char and WChar now. (there are still some
-    property types missing!)
-
-  Revision 1.31  1999/12/28 12:19:36  jonas
-    * replaced "movl mem,%eax; xorl %eax,%eax" with "movl mem,%eax;
-      testl %eax,%eax"
-
-  Revision 1.30  1999/11/06 14:41:31  peter
-    * truncated log
-
-  Revision 1.29  1999/09/16 08:59:48  florian
-    * GetPropInfo returns now nil if the property wasn't found
-
-  Revision 1.28  1999/09/15 20:27:24  florian
-    + patch of Sebastion Guenther applied: Get/SetMethodProp implementation
-
-  Revision 1.27  1999/09/08 16:14:43  peter
-    * pointer fixes
-
-  Revision 1.26  1999/09/03 15:39:23  michael
-  * Fixes from Sebastian Guenther
-
-  Revision 1.25  1999/08/29 22:21:27  michael
-  * Patch from Sebastian Guenther
-
-  Revision 1.24  1999/08/06 13:21:40  michael
-  * Patch from Sebastian Guenther
-
+  Revision 1.2  2000-07-13 11:33:52  michael
+  + removed logs
+ 
 }

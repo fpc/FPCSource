@@ -1190,4 +1190,10 @@ begin
         insb
   end ['ECX','EDI','EDX'];
 end;
-{$ENDIF}
+{$ENDIF}  
+{
+  $Log$
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
+}

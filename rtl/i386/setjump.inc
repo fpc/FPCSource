@@ -48,32 +48,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:42  michael
-  + Initial import
-
-  Revision 1.13  2000/05/04 09:47:40  pierre
-    * Preserve all registers in SetJmp
-    * set EAX to value filed in LongJmp instead of only 0 or 1
-
-  Revision 1.12  2000/03/31 23:12:09  pierre
-   * remove fninit in longjump
-
-  Revision 1.11  2000/02/18 16:16:13  florian
-    * we don't need to to finit twice ...
-
-  Revision 1.10  2000/02/18 15:23:01  florian
-    * fixed constants in rtti
-    * longjmp does now a finit
-
-  Revision 1.9  2000/02/09 22:12:54  florian
-    * longjump does now a finit
-
-  Revision 1.8  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.7  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.6  1999/08/18 10:42:13  pierre
-   * loading of esp value corrected
+  Revision 1.2  2000-07-13 11:33:42  michael
+  + removed logs
+ 
 }

@@ -2197,3 +2197,8 @@ type
 
 
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:25  michael
+  + removed logs
+ 
+}

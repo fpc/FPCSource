@@ -124,32 +124,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
-  + Initial import
-
-  Revision 1.1  2000/01/06 01:20:30  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  1999/12/10 12:42:26  pierre
-   * several mods to handle different keyboard layouts
-
-  Revision 1.3  1999/11/24 23:36:56  peter
-    * moved to packages dir
-
-  Revision 1.2  1998/12/12 19:13:00  peter
-    * keyboard updates
-    * make test target, make all only makes units
-
-  Revision 1.1  1998/12/04 12:48:27  peter
-    * moved some dirs
-
-  Revision 1.3  1998/11/01 20:28:26  peter
-    * fixed strange al=$e0 after int $16 call
-
-  Revision 1.2  1998/10/28 21:18:24  peter
-    * more fixes
-
-  Revision 1.1  1998/10/26 11:31:47  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:24  michael
+  + removed logs
+ 
 }

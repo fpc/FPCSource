@@ -320,25 +320,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:54  michael
-  + Initial import
-
-  Revision 1.15  2000/06/19 13:31:46  michael
-  + Corrected GetSocketOptions
-
-  Revision 1.14  2000/03/16 15:24:37  marco
-   * Put one BSD incompability under an ifndef BSD
-
-  Revision 1.13  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.12  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.11  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.10  1999/11/14 21:35:04  peter
-    * removed warnings
-
+  Revision 1.2  2000-07-13 11:33:49  michael
+  + removed logs
+ 
 }

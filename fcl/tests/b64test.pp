@@ -33,3 +33,8 @@ begin
 
   BaseStream.Free;
 end.
+  $Log$
+  Revision 1.2  2000-07-13 11:33:03  michael
+  + removed logs
+ 
+}

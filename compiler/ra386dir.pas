@@ -297,37 +297,7 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:55  michael
-  + Initial import
-
-  Revision 1.30  2000/02/09 13:23:02  peter
-    * log truncated
-
-  Revision 1.29  2000/01/07 01:14:36  peter
-    * updated copyright to 2000
-
-  Revision 1.28  1999/11/30 10:40:53  peter
-    + ttype, tsymlist
-
-  Revision 1.27  1999/11/17 17:05:03  pierre
-   * Notes/hints changes
-
-  Revision 1.26  1999/11/09 23:06:46  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.25  1999/11/06 14:34:24  peter
-    * truncated log to 20 revs
-
-  Revision 1.24  1999/09/27 23:44:58  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.23  1999/08/04 00:23:26  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.22  1999/08/03 22:03:11  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:48  michael
+  + removed logs
 
 }

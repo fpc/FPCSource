@@ -324,37 +324,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:00  michael
-  + Initial import
-
-  Revision 1.19  2000/02/17 14:53:43  florian
-    * some updates for the newcg
-
-  Revision 1.18  2000/02/09 13:23:08  peter
-    * log truncated
-
-  Revision 1.17  2000/01/07 01:14:47  peter
-    * updated copyright to 2000
-
-  Revision 1.16  1999/11/30 10:40:59  peter
-    + ttype, tsymlist
-
-  Revision 1.15  1999/11/18 15:34:51  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.14  1999/09/27 23:45:02  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.13  1999/09/07 15:01:33  pierre
-   * elem in set_type did not work yet
-
-  Revision 1.12  1999/08/04 00:23:45  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.11  1999/08/03 22:03:38  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:52  michael
+  + removed logs
 
 }

@@ -152,20 +152,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:53  michael
-  + Initial import
-
-  Revision 1.6  2000/04/02 15:22:19  florian
-    * fixed bug 903: the compiler gives now a nice message if it can't create
-      the .o file, (same for future .ar)
-
-  Revision 1.5  2000/02/24 18:41:39  peter
-    * removed warnings/notes
-
-  Revision 1.4  2000/02/09 13:22:55  peter
-    * log truncated
-
-  Revision 1.3  2000/01/07 01:14:28  peter
-    * updated copyright to 2000
+  Revision 1.2  2000-07-13 11:32:44  michael
+  + removed logs
 
 }

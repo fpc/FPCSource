@@ -1652,69 +1652,7 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:52  michael
-  + Initial import
-
-  Revision 1.32  2000/07/08 21:29:13  peter
-    * use initialization/finalization instead of exitproc
-
-  Revision 1.31  2000/06/22 18:37:49  peter
-    * removed unused vars
-
-  Revision 1.30  2000/06/20 08:52:16  jonas
-    * crtread didn't set f.bufpos back to 0, so it failed if that wasn't
-      already the case on entry
-    * crtread now makes sure it doesn't try to read mode characters than
-      what fits in the read buffer
-
-  Revision 1.29  2000/06/06 13:51:18  jonas
-    * fixed linefeed problem with new crtread (I wrote #13 instead of #10 to
-      the screen, causing the cursor to jump to the start of the current
-      line instead of to the next line)
-
-  Revision 1.28  2000/06/06 08:22:41  sg
-  * Implemented "Sound" and "NoSound". Please notice that these normally only
-    work on Linux textmode console, as the sound is created using special
-    Linux terminal IOCTLs.
-
-  Revision 1.27  2000/06/05 08:35:28  jonas
-    * in readkey, check if keypresses are waiting using sysKeyPressed instead
-      of simply checking if there are keys left in the ttyRecvChar buffer
-    * CrtRead supports the backspace key when reading from a TTY.
-      NOTE: you have to use ReadKey or ttyRecvChar in crtRead, because it's
-      possible that when CrtRead starts, there are already keys waiting in
-      the ttyRecvChar buffer which would be missed using an fdRead!
-
-  Revision 1.26  2000/06/04 13:49:57  jonas
-    * fixed webbug 978
-
-  Revision 1.25  2000/05/08 13:24:27  peter
-    * removed hardcoded limit of 80 width
-
-  Revision 1.24  2000/04/14 12:15:31  pierre
-   * several bugs fixed
-
-  Revision 1.23  2000/04/07 13:26:27  jonas
-    * fix for web bug 917
-    * also do not mirror input if input is another TTY than output or if
-      input is redirected
-
-  Revision 1.22  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.21  2000/01/07 16:41:39  daniel
-    * copyright 2000
-
-  Revision 1.20  2000/01/07 16:32:26  daniel
-    * copyright 2000 added
-
-  Revision 1.19  1999/10/22 14:36:20  peter
-    * crtreturn also needs f:textrec as parameter
-
-  Revision 1.18  1999/09/07 07:47:46  peter
-    * write > 255 chars
-
-  Revision 1.17  1999/09/07 07:38:09  michael
-  + Applied readkey patch from Deekoo L
-
+  Revision 1.2  2000-07-13 11:33:47  michael
+  + removed logs
+ 
 }

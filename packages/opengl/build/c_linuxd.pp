@@ -163,21 +163,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:17  michael
-  + Initial import
-
-  Revision 1.2  2000/05/25 18:59:50  sg
-  * Completed GLU and GLUT support
-  * Some minor fixes (missing "const"s, changed some untyped "var" arguments
-    to "const" arguments etc.)
-
-  Revision 1.1  1999/12/23 13:51:50  peter
-    * reorganized, it now doesn't depend on fcl anymore by default
-
-  Revision 1.2  1999/12/01 00:55:44  alex
-  Added info prints so that we know how far the program worked.
-
-  Revision 1.1  1999/11/28 17:55:22  sg
-  * Added new unit generation tools and auto-generated GL units for Linux
-
+  Revision 1.2  2000-07-13 11:33:28  michael
+  + removed logs
+ 
 }

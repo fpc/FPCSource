@@ -243,68 +243,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:58  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:32  peter
-    * moved to packages dir
-
-  Revision 1.3  1999/08/23 09:16:48  pierre
-   * Better GetError code
-
-  Revision 1.2  1999/07/12 13:08:19  pierre
-    + added GDBVersion function
-    * tries to intercept quit command from GDB Window
-    + AllowQuit method
-
-  Revision 1.1  1999/05/22 13:43:00  peter
-    * moved
-
-  Revision 1.12  1999/02/11 13:03:27  pierre
-      Problem with last commit
-    + added virtuals CommandBegin and CommandEnd
-    + added command_level for TGDBInterface
-
-
-  Revision 1.10  1999/02/10 09:00:42  pierre
-     * duplicate call_reset removed
-     * frames allocation and freeing corrected
-     + GetError and GetOutput pchar function added
-     + stop_breakpoint_number to know why the program stopped
-       (used for watches)
-
-  Revision 1.9  1999/02/08 17:35:09  pierre
-    + added Run made TraceStep TraceNext Continue virtual
-
-  Revision 1.8  1999/02/08 14:00:00  pierre
-    - removed second debugger_started in TGDBController
-    + StartTrace and Reset made virtual to be able to
-      change CmResetDebugger state in IDE
-
-  Revision 1.7  1999/02/08 11:37:13  pierre
-   + added procargs var and SetArgs method
-
-  Revision 1.6  1999/02/04 14:29:35  pierre
-    + Continue command added
-    * Reset inside command removed
-
-  Revision 1.5  1999/01/22 18:07:44  pierre
-   * Loadfile arg changed to var
-
-  Revision 1.4  1999/01/22 18:05:40  pierre
-   * change dir sep from  to / for dos
-
-  Revision 1.3  1999/01/22 10:23:49  peter
-    * small update to get it working with the IDE
-
-  Revision 1.2  1999/01/18 11:01:58  pierre
-   + working version for go32v2
-
-  Revision 1.1  1998/10/07 15:57:38  peter
-    * initial version
-
-  Revision 1.1  1998/10/07 15:48:20  peter
-    * initial version
-
+  Revision 1.2  2000-07-13 11:33:15  michael
+  + removed logs
+ 
 }
-

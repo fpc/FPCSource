@@ -137,4 +137,8 @@ begin
    DestroyregExprEngine(r);
    }
    writeln('*** Testing unit regexpr was successful ***');
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:31  michael
+end.  + removed logs
+end. 
+}

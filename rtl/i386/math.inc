@@ -384,31 +384,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:42  michael
-  + Initial import
-
-  Revision 1.23  2000/05/02 10:37:50  pierre
-   * 0**n where n<>0 is 0; 0**0 generates RTE 207
-
-  Revision 1.22  2000/04/07 21:29:00  pierre
-   changed to get nasm to compile system
-
-  Revision 1.21  2000/02/15 14:37:36  florian
-    * disabled FIXED data type per default
-
-  Revision 1.20  2000/02/09 16:59:29  peter
-    * truncated log
-
-  Revision 1.19  2000/01/07 16:41:33  daniel
-    * copyright 2000
-
-  Revision 1.18  2000/01/07 16:32:24  daniel
-    * copyright 2000 added
-
-  Revision 1.17  1999/10/06 17:44:43  peter
-    * fixed power(int,int) with negative base
-    * power(ext,ext) with negative base gives rte 207
-
-  Revision 1.16  1999/09/15 20:24:11  florian
-    * some math functions are now coded inline by the compiler
+  Revision 1.2  2000-07-13 11:33:41  michael
+  + removed logs
+ 
 }

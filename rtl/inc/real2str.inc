@@ -403,76 +403,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:48  michael
-  + Initial import
-
-  Revision 1.32  2000/07/07 18:03:08  jonas
-    * changed precision for extended back (otherwise strreal2.pp in
-      tests/test failed)
-
-  Revision 1.31  2000/07/06 21:09:45  florian
-    * fixed writing of comp and extended: the precision of comp was to little
-      while it was too high for extended
-
-  Revision 1.30  2000/03/26 11:36:28  jonas
-    + $maxfpuregisters 0 for i386 in systemh (to avoid requiring too much
-      empty FPU registers for sysstem routines
-    * fixed bug in str_real when using :x:0
-    * str_real now doesn't call exp() anymore at runtime, so it should
-      require less free FPU registers now (and be slightly faster)
-
-  Revision 1.29  2000/03/21 12:00:30  jonas
-    * fixed more bugs due to inexact nature of FPU
-
-  Revision 1.28  2000/03/17 20:20:33  jonas
-    * fixed rounding bugs with certain formatting parameters in str_real
-    * fixed tbs0218 so it compares both results only until max precision
-
-  Revision 1.27  2000/03/05 09:41:05  jonas
-    * fixed rounding problem when writing out single/double type vars
-
-  Revision 1.26  2000/03/02 07:35:57  jonas
-    * sign was not written in some cases
-
-  Revision 1.25  2000/02/27 14:41:25  peter
-    * removed warnings/notes
-
-  Revision 1.24  2000/02/26 18:53:11  jonas
-    * fix for lost precision because sometimes the correction value was
-      larger than the number to be corrected
-    * incompatibility with TP's output fixed
-
-  Revision 1.23  2000/02/26 15:49:40  jonas
-    + new str_real which is completely TP compatible regarding output
-      format and which should have no rounding errors anymore
-
-  Revision 1.22  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.21  2000/02/09 12:17:51  peter
-    * moved halt to system.inc
-    * syslinux doesn't use direct asm anymore
-
-  Revision 1.20  2000/01/17 13:00:51  jonas
-    + support for NaN's, cleaner support for Inf
-
-  Revision 1.19  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.18  1999/11/28 23:57:23  pierre
-   * Infinite loop for infinite value problem fixed
-
-  Revision 1.17  1999/11/03 09:54:24  peter
-    * another fix for precision
-
-  Revision 1.16  1999/11/03 00:55:09  pierre
-   * problem of last commit for large d values corrected
-
-  Revision 1.15  1999/11/02 15:05:53  peter
-    * better precisio by dividing only once with a calculated longint
-      instead of multiple times by 10
-
-  Revision 1.14  1999/08/03 21:58:44  peter
-    * small speed improvements
-
+  Revision 1.2  2000-07-13 11:33:45  michael
+  + removed logs
+ 
 }

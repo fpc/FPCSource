@@ -291,17 +291,7 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:08  michael
-  + Initial import
-
-  Revision 1.1  2000/02/24 18:40:42  peter
-    * moved to new/
-
-  Revision 1.1  2000/02/21 08:45:26  michael
-  Committed for Florian.
-
-  Revision 1.1  2000/02/20 20:49:45  florian
-    * newcg is compiling
-    * fixed the dup id problem reported by Paul Y.
-
+  Revision 1.2  2000-07-13 11:32:54  michael
+  + removed logs
+ 
 }

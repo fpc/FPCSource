@@ -77,21 +77,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:34  michael
-  + Initial import
-
-  Revision 1.3  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.2  1999/04/08 12:22:53  peter
-    * removed os.inc
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.2  1998/10/30 14:13:13  michael
-  + Implementation of functions by Gertjan Schouten
-
-  Revision 1.1  1998/10/11 13:42:55  michael
-  Added disk functions
+  Revision 1.2  2000-07-13 11:33:38  michael
+  + removed logs
+ 
 }

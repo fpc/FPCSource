@@ -72,29 +72,7 @@ function  gtk_rc_parse_priority(scanner:PGScanner; priority:PGtkPathPriorityType
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:05  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:36  peter
-    * moved to packages dir
-
-  Revision 1.7  1999/10/06 17:42:50  peter
-    * external is now only in the interface
-    * removed gtk 1.0 support
-
-  Revision 1.6  1999/05/11 00:39:17  peter
-    * win32 fixes
-
-  Revision 1.5  1999/05/10 15:20:15  peter
-    * cdecl fixes
-
-  Revision 1.4  1999/05/10 09:03:45  peter
-    * gtk 1.2 port working
-
-  Revision 1.3  1998/10/21 20:23:05  peter
-    * cdecl, packrecord fixes (from the gtk.tar.gz)
-    * win32 support
-    * gtk.pp,gdk.pp for an all in one unit
-
+  Revision 1.2  2000-07-13 11:33:24  michael
+  + removed logs
+ 
 }
-

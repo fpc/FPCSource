@@ -75,28 +75,7 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:08  michael
-  + Initial import
-
-  Revision 1.1  2000/07/09 10:37:50  peter
-    * renamed to lowercase names
-
-  Revision 1.6  2000/07/09 07:49:34  hajny
-    * $R used now
-
-  Revision 1.5  2000/06/18 18:37:17  hajny
-   * cdecl added
-
-  Revision 1.4  2000/01/07 16:41:50  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:34  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1999/08/10 14:33:51  hajny
-    * PM samples
-
-  Revision 1.1  1999/06/02 16:01:35  hajny
-    * changes by Ramon Bosque
-
+  Revision 1.2  2000-07-13 11:33:53  michael
+  + removed logs
+ 
 }

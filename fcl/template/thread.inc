@@ -92,22 +92,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:45  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.3  2000/01/06 01:20:35  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:10  peter
-    * moved to packages dir
-
-  Revision 1.1  1999/05/30 10:46:43  peter
-    * start of tthread for linux,win32
-
-  Revision 1.2  1999/04/08 10:18:57  peter
-    * makefile updates
-
+  Revision 1.2  2000-07-13 11:33:03  michael
+  + removed logs
+ 
 }

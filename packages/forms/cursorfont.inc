@@ -108,3 +108,10 @@ Const
   XC_ur_angle= 148;
   XC_watch= 150;
   XC_xterm= 152;
+
+{
+  $Log$
+  Revision 1.2  2000-07-13 11:33:11  michael
+  + removed logs
+ 
+}

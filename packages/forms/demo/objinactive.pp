@@ -109,4 +109,8 @@ begin
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,NiL);
   while (fl_do_forms()<>nil) do 
     begin end;
-end.
+end.  $Log$
+end.  Revision 1.2  2000-07-13 11:33:14  michael
+end.  + removed logs
+end. 
+}

@@ -88,3 +88,8 @@ Begin
    fl_do_forms;
 end.
 
+  $Log$
+  Revision 1.2  2000-07-13 11:33:14  michael
+  + removed logs
+ 
+}

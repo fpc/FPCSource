@@ -334,67 +334,7 @@ end;
 {
 
   $Log$
-  Revision 1.1  2000-07-13 06:29:40  michael
-  + Initial import
-
-  Revision 1.2  2000/07/09 07:56:09  hajny
-    * proper units added
-
-  Revision 1.1  2000/02/23 22:44:22  daniel
-  * Video.inc for os/2
-
-
-  Revision 1.4  1998/12/15 17:17:17  peter
-
-    + cursor at 1,1 at the end
-
-
-
-  Revision 1.3  1998/12/12 19:13:01  peter
-
-    * keyboard updates
-
-    * make test target, make all only makes units
-
-
-
-  Revision 1.2  1998/12/10 11:41:50  florian
-
-    * cursor is properly restored in DoneVideo
-
-
-
-  Revision 1.1  1998/12/04 12:48:27  peter
-
-    * moved some dirs
-
-
-
-  Revision 1.4  1998/11/01 20:29:11  peter
-
-    + lockupdatescreen counter to not let updatescreen() update
-
-
-
-  Revision 1.3  1998/10/28 21:18:26  peter
-
-    * more fixes
-
-
-
-  Revision 1.2  1998/10/28 00:02:08  peter
-
-    + mouse
-
-    + video.clearscreen, video.videobufsize
-
-
-
-  Revision 1.1  1998/10/26 11:31:47  peter
-
-    + inital include files
-
-
-
+  Revision 1.2  2000-07-13 11:32:26  michael
+  + removed logs
+ 
 }
-

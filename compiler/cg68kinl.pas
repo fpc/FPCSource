@@ -900,30 +900,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:46  michael
-  + Initial import
-
-  Revision 1.22  2000/02/09 13:22:49  peter
-    * log truncated
-
-  Revision 1.21  2000/01/07 01:14:22  peter
-    * updated copyright to 2000
-
-  Revision 1.20  1999/12/20 21:42:35  pierre
-    + dllversion global variable
-    * FPC_USE_CPREFIX code removed, not necessary anymore
-      as we use .edata direct writing by default now.
-
-  Revision 1.19  1999/11/20 01:22:18  pierre
-    + cond FPC_USE_CPREFIX (needs also some RTL changes)
-      this allows to use unit global vars as DLL exports
-      (the underline prefix seems needed by dlltool)
-
-  Revision 1.18  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.17  1999/08/25 11:59:50  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+  Revision 1.2  2000-07-13 11:32:36  michael
+  + removed logs
 
 }
-

@@ -26,10 +26,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:32  michael
-  + Initial import
-
-  Revision 1.6  2000/02/15 21:57:51  sg
-  * Added copyright notice and CVS log tags where necessary
-
+  Revision 1.2  2000-07-13 11:33:01  michael
+  + removed logs
+ 
 }

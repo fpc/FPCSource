@@ -118,27 +118,7 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:02  michael
-  + Initial import
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/10/21 14:35:23  peter
-    * removed glibdll constant
-
-  Revision 1.4  1999/10/06 17:42:47  peter
-    * external is now only in the interface
-    * removed gtk 1.0 support
-
-  Revision 1.3  1999/05/11 00:37:55  peter
-    * win32 fixes
-
-  Revision 1.2  1999/05/07 15:09:44  peter
-    * more fixes
-
-  Revision 1.1  1999/05/07 10:40:22  peter
-    * first things for 1.2
-
+  Revision 1.2  2000-07-13 11:33:19  michael
+  + removed logs
+ 
 }
-

@@ -126,18 +126,8 @@ begin
      end;
 end.
 {
-    $Log$
-    Revision 1.1  2000-07-13 06:30:42  michael
-    + Initial import
-
-    Revision 1.7  2000/02/15 14:37:36  florian
-      * disabled FIXED data type per default
-
-    Revision 1.6  2000/02/09 16:59:29  peter
-      * truncated log
-
-    Revision 1.5  2000/01/07 16:41:33  daniel
-      * copyright 2000
-
+  $Log$
+  Revision 1.2  2000-07-13 11:33:41  michael
+  + removed logs
+ 
 }
-

@@ -112,44 +112,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:44  michael
-  + Initial import
-
-  Revision 1.4  2000/02/22 14:30:32  sg
-  * Fixed memory leaks
-
-  Revision 1.3  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.2  2000/01/06 16:12:53  sg
-  * The demo can't display the file README anymore now in this directory,
-    as it doesn't exist here... not it displays the source of gtkshedit.pp
-    without syntax highlighting.
-
-  Revision 1.1  2000/01/06 16:03:25  peter
-    * moved gtkshedit to gtk dir
-
-  Revision 1.9  2000/01/06 01:20:34  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:09  peter
-    * moved to packages dir
-
-  Revision 1.7  1999/12/30 21:03:25  sg
-  * Major restructuring and simplifications
-
-  Revision 1.6  1999/12/22 22:28:08  peter
-    * updates for cursor setting
-    * button press event works
-
-  Revision 1.5  1999/12/08 01:03:15  peter
-    * changes so redrawing and walking with the cursor finally works
-      correct
-
-  Revision 1.4  1999/11/15 21:47:36  peter
-    * first working keypress things
-
-  Revision 1.3  1999/11/14 21:32:55  peter
-    * fixes to get it working without crashes
-
+  Revision 1.2  2000-07-13 11:33:02  michael
+  + removed logs
+ 
 }

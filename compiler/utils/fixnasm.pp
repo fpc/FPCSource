@@ -100,16 +100,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:14  michael
-  + Initial import
-
-  Revision 1.4  2000/02/09 13:23:11  peter
-    * log truncated
-
-  Revision 1.3  2000/01/07 01:15:00  peter
-    * updated copyright to 2000
-
-  Revision 1.2  1999/10/28 09:47:45  peter
-    * update to use i386ins.dat
-
+  Revision 1.2  2000-07-13 11:32:55  michael
+  + removed logs
+ 
 }

@@ -731,68 +731,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:51  michael
-  + Initial import
-
-  Revision 1.30  2000/06/30 22:11:28  peter
-    * fixed some getlabel to getdatalabel
-
-  Revision 1.29  2000/06/20 12:47:52  pierre
-    * equal_paras and convertable_paras changed by transforming third parameter
-      into an enum with three possible values:
-      cp_none, cp_value_equal_const and cp_all.
-
-  Revision 1.28  2000/05/11 06:55:28  florian
-    * fixed some vmt problems, especially related to overloaded methods
-      in objects/classes
-
-  Revision 1.27  2000/04/29 12:49:30  peter
-    * fixed long line for tp7
-
-  Revision 1.26  2000/03/06 15:57:42  peter
-    * better error pos for overridden error
-
-  Revision 1.25  2000/02/09 13:22:53  peter
-    * log truncated
-
-  Revision 1.24  2000/01/28 23:17:53  florian
-    * virtual XXXX; support for objects, only if -dWITHDMT is defined
-
-  Revision 1.23  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.22  1999/12/02 19:22:16  peter
-    * write also parameters for override info
-
-  Revision 1.21  1999/12/01 12:42:32  peter
-    * fixed bug 698
-    * removed some notes about unused vars
-
-  Revision 1.20  1999/11/30 10:40:43  peter
-    + ttype, tsymlist
-
-  Revision 1.19  1999/11/29 23:42:49  pierre
-   * fix for form bug 555
-
-  Revision 1.18  1999/10/26 12:30:41  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.17  1999/09/13 16:23:42  peter
-    * remvoed unused var
-
-  Revision 1.16  1999/09/12 14:50:50  florian
-    + implemented creation of methodname/address tables
-
-  Revision 1.15  1999/09/01 13:44:56  florian
-    * fixed writing of class rtti: vmt offset were written wrong
-
-  Revision 1.14  1999/08/03 22:02:52  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:41  michael
+  + removed logs
 
 }

@@ -372,21 +372,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:46  michael
-  + Initial import
-
-  Revision 1.9  2000/02/09 13:22:49  peter
-    * log truncated
-
-  Revision 1.8  2000/01/07 01:14:22  peter
-    * updated copyright to 2000
-
-  Revision 1.7  1999/09/20 16:38:52  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.6  1999/09/16 23:05:51  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
+  Revision 1.2  2000-07-13 11:32:36  michael
+  + removed logs
 
 }

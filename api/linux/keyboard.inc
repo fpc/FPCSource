@@ -576,36 +576,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
-  + Initial import
-
-  Revision 1.2  2000/06/30 09:00:33  jonas
-    * compiles again with -dnomouse
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/11/24 23:36:38  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/02/16 10:44:53  peter
-    * alt-f<x> support
-
-  Revision 1.4  1998/12/15 10:30:34  peter
-    + ctrl arrows support
-    * better backspace
-
-  Revision 1.3  1998/12/12 19:13:02  peter
-    * keyboard updates
-    * make test target, make all only makes units
-
-  Revision 1.1  1998/12/04 12:48:30  peter
-    * moved some dirs
-
-  Revision 1.3  1998/10/29 12:49:48  peter
-    * more fixes
-
-  Revision 1.1  1998/10/26 11:31:47  peter
-    + inital include files
-
+  Revision 1.2  2000-07-13 11:32:25  michael
+  + removed logs
+ 
 }

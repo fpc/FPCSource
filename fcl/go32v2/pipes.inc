@@ -21,3 +21,8 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   Result := False;
 end;
+  $Log$
+  Revision 1.2  2000-07-13 11:32:58  michael
+  + removed logs
+ 
+}

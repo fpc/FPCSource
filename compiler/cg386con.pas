@@ -440,39 +440,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:45  michael
-  + Initial import
-
-  Revision 1.46  2000/06/18 18:09:31  peter
-    * empty ansistring now use constant value of 0
-
-  Revision 1.45  2000/02/09 13:22:46  peter
-    * log truncated
-
-  Revision 1.44  2000/01/07 01:14:20  peter
-    * updated copyright to 2000
-
-  Revision 1.43  1999/11/06 14:34:17  peter
-    * truncated log to 20 revs
-
-  Revision 1.42  1999/09/26 21:30:15  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.41  1999/09/20 16:38:52  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.40  1999/09/04 20:53:06  florian
-    * bug 580 fixed
-
-  Revision 1.39  1999/08/04 00:22:45  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.38  1999/08/03 22:02:38  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
+  Revision 1.2  2000-07-13 11:32:33  michael
+  + removed logs
 
 }

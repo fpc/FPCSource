@@ -71,20 +71,7 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:59  michael
-  + Initial import
-
-  Revision 1.9  2000/06/04 14:22:15  hajny
-    * parameter name change in FileSeek
-
-  Revision 1.8  2000/02/17 22:16:05  sg
-  * Changed the second argument of FileWrite from "var buffer" to
-    "const buffer", like in Delphi.
-
-  Revision 1.7  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.6  2000/01/07 16:41:43  daniel
-    * copyright 2000
-
+  Revision 1.2  2000-07-13 11:33:51  michael
+  + removed logs
+ 
 }

@@ -858,39 +858,7 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:18  michael
-  + Initial import
-
-  Revision 1.1  2000/03/09 02:40:03  alex
-  moved files
-
-  Revision 1.6  2000/01/21 00:44:51  peter
-    * remove unused vars
-    * renamed to .pp
-
-  Revision 1.5  2000/01/14 22:03:43  marco
-   * Change Lee's first name to John :-)
-
-  Revision 1.4  2000/01/01 14:54:16  marco
-   * Added bp comtibility
-  :wq
-   * bp compat routines
-
-
-
-
-  B
-  B
-  B
-
-  Revision 1.3  1999/12/31 17:05:25  marco
-
-
-  Graphical version and fixes. BP cursorroutines moved from FPCTRIS
-
-  Revision 1.2  1999/06/11 12:51:29  peter
-    * updated for linux
-
-  Revision 1.1  1999/06/01 19:24:33  peter
-    * updates from marco
+  Revision 1.2  2000-07-13 11:33:08  michael
+  + removed logs
+ 
 }

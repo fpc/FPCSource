@@ -788,23 +788,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:33:59  michael
-  + Initial import
-
-  Revision 1.5  2000/05/02 10:27:39  sg
-  * Fixed a small typo (GI_BM_TYPE_LOGIC instead of GGI_BM_TYPE_LOGIC)
-
-  Revision 1.4  2000/04/15 11:13:30  sg
-  * Hopefully the final fix for the second argument of ggiSetGCForeground
-    and ggiSetGCBackground... :-)
-
-  Revision 1.3  2000/04/14 16:57:58  sg
-  * Fixed some wrong argument lists
-
-  Revision 1.2  1999/11/12 18:47:34  sg
-  * Fixed a small typo...
-
-  Revision 1.1  1999/11/10 14:14:34  sg
-  * Added to CVS
-
+  Revision 1.2  2000-07-13 11:33:16  michael
+  + removed logs
+ 
 }

@@ -597,39 +597,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:53  michael
-  + Initial import
-
-  Revision 1.18  2000/07/08 21:22:16  peter
-    * finalization added with setrawmode(false)
-
-  Revision 1.17  2000/06/30 22:14:44  peter
-    * removed unused var
-
-  Revision 1.16  2000/06/25 13:38:30  jonas
-    * disabled libvga_imagesizeproc() because currently the default
-      getimage and putimage are used (so the default imagesize should
-      be used too)
-
-  Revision 1.15  2000/04/16 21:19:19  sg
-  * The terminal will now be set to raw mode directly on initialization,
-    as the svgalib switches the terminal immediately after startup, and
-    not after a switch to graphics mode!
-  * Fixed a problem which occured after Florian's last patch: MaxX and MaxY
-    are smaller by 1 now, which lead to a wrong scanline width calculation
-    for the optimized routines for 16 colour modes.
-
-  Revision 1.14  2000/04/13 16:01:22  sg
-  * The new terminal started by svgalib after a switch to graphics mode is
-    now set to raw mode, so that some functions of the CRT unit such as
-    ReadKey can work correctly now.
-
-  Revision 1.13  2000/03/25 19:12:00  florian
-    * fixed values of MaxX and MaxY
-
-  Revision 1.12  2000/03/19 11:20:14  peter
-    * graph unit include is now independent and the dependent part
-      is now in graph.pp
-    * ggigraph unit for linux added
-
+  Revision 1.2  2000-07-13 11:33:48  michael
+  + removed logs
+ 
 }

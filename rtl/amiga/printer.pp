@@ -29,5 +29,8 @@ begin
   rewrite(lst);
 end.
 {
- $Log :printer.pp,v $
+  $Log$
+  Revision 1.2  2000-07-13 11:33:37  michael
+  + removed logs
+ 
 }

@@ -99,24 +99,7 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:52  michael
-  + Initial import
-
-  Revision 1.16  2000/02/09 13:22:54  peter
-    * log truncated
-
-  Revision 1.15  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.14  1999/09/15 20:35:40  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.13  1999/08/28 15:34:19  florian
-    * bug 519 fixed
-
+  Revision 1.2  2000-07-13 11:32:43  michael
+  + removed logs
+ 
 }
-

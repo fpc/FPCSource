@@ -487,38 +487,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:22  michael
-  + Initial import
-
-  Revision 1.11  2000/06/16 13:35:07  pierre
-   * GetFullPathName was wrong
-
-  Revision 1.10  2000/06/15 11:26:57  pierre
-    * avoid lines longer than 255 chars
-    + add smartlink on by default, if not version 0.99.14
-    * some functions not present in win95 DLL's are now only inserted if
-      smartlink is on.
-
-  Revision 1.9  2000/06/14 19:24:58  peter
-    * removed more var stuff which is now in redef
-
-  Revision 1.6  2000/06/11 07:04:58  peter
-    * Windows unit has now more Delphi compatibile functions
-    * placed the external functions only in the interface
-
-  Revision 1.5  2000/03/20 23:44:43  alex
-   + added overlaoded PeekMessage fundtion for delphi compatibility
-
-  Revision 1.4  2000/02/09 16:59:35  peter
-    * truncated log
-
-  Revision 1.3  2000/01/07 16:41:54  daniel
-    * copyright 2000
-
-  Revision 1.2  1999/09/28 22:30:00  peter
-    * fixed createdc to be D4 compatible
-
-  Revision 1.1  1999/09/16 13:38:22  peter
-    * windows unit include moved to wininc/
-
+  Revision 1.2  2000-07-13 11:33:58  michael
+  + removed logs
+ 
 }

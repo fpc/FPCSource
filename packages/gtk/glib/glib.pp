@@ -1642,66 +1642,7 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:02  michael
-  + Initial import
-
-  Revision 1.2  2000/02/20 14:05:28  sg
-  * Removed the following symbols because they don't exist in newer glib
-    versions anymore: exportfunc, exportprefix, exportcache
-
-  Revision 1.1  1999/11/24 23:36:33  peter
-    * moved to packages dir
-
-  Revision 1.11  1999/10/06 17:42:47  peter
-    * external is now only in the interface
-    * removed gtk 1.0 support
-
-  Revision 1.10  1999/10/05 09:28:26  peter
-    * patches from Frank Loemker
-
-  Revision 1.9  1999/07/23 16:11:46  peter
-    * use packrecords C
-
-  Revision 1.8  1999/07/03 10:29:21  peter
-    * enum fixes
-    * use version 1.3 instead of 1.2 for win32
-
-  Revision 1.7  1999/06/18 18:27:14  daniel
-  * Now compiles again
-
-  Revision 1.6  1999/05/21 14:32:07  peter
-    * fixed dup id error
-
-  Revision 1.5  1999/05/11 00:37:56  peter
-    * win32 fixes
-
-  Revision 1.4  1999/05/10 15:18:43  peter
-    * cdecl fixes
-
-  Revision 1.3  1999/05/10 09:02:49  peter
-    * gtk 1.2 port working
-
-  Revision 1.2  1999/05/07 15:09:46  peter
-    * more fixes
-
-  Revision 1.1  1999/05/07 10:40:22  peter
-    * first things for 1.2
-
-  Revision 1.6  1999/02/01 09:57:03  michael
-  + Patch from Frank Loemker
-
-  Revision 1.5  1999/01/26 12:42:23  michael
-  *** empty log message ***
-
-  Revision 1.4  1998/11/12 11:35:49  peter
-    + array of const
-
-  Revision 1.3  1998/10/22 11:37:36  peter
-    * fixes for win32
-
-  Revision 1.2  1998/10/21 20:22:03  peter
-    * cdecl, packrecord fixes (from the gtk.tar.gz)
-    * win32 support
-    * gtk.pp,gdk.pp for an all in one unit
-
+  Revision 1.2  2000-07-13 11:33:19  michael
+  + removed logs
+ 
 }

@@ -642,70 +642,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
-  + Initial import
-
-  Revision 1.4  2000/02/17 17:00:01  pierre
-   * Data locking cleaned up
-
-  Revision 1.3  2000/02/07 22:54:44  florian
-    * custommouse define removed, i.e. code is always active
-    * the xor value for the mouse cursor must be $7f instead of $ff
-
-  Revision 1.2  2000/02/06 14:29:45  florian
-    * mouse support for vesa resolutions under go32v2, needs currently the define
-      custommouse
-
-  Revision 1.1  2000/01/06 01:20:30  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  1999/12/08 13:25:20  pierre
-   * fix form bug 731
-
-  Revision 1.12  1999/11/24 23:36:56  peter
-    * moved to packages dir
-
-  Revision 1.11  1999/10/18 15:46:24  pierre
-   * not int $0x33 call if no mouse driver present
-
-  Revision 1.10  1999/10/18 07:37:05  pierre
-   * Unlock code moved to exitproc because CWSDPMI has no lock counter
-
-  Revision 1.9  1999/10/16 08:35:52  jonas
-    * MouseCallBack was never unlocked
-
-  Revision 1.8  1999/10/15 23:53:07  pierre
-   * mouse problem with CWSDPMI solved
-
-  Revision 1.7  1999/10/15 11:46:33  pierre
-   * MouseInt was not locked !!
-
-  Revision 1.6  1999/03/03 16:42:27  pierre
-   + test for NT compatibility
-
-  Revision 1.5  1999/02/19 16:44:48  peter
-    * fixed (esi) which also got the 0xffff limit under NT
-
-  Revision 1.4  1999/02/19 12:28:39  pierre
-    + Uses now v2prt0_ds_alias for RMCB regs
-      regs are located in text section of v2prt0.as
-      so that its offset is below $ffff limit (for window NT !)
-
-  Revision 1.3  1999/02/08 09:39:13  pierre
-   * added exitproc to avoid real mode crash with function 12 of mouse interrupt
-
-  Revision 1.2  1998/12/11 00:13:19  peter
-    + SetMouseXY
-    * use far for exitproc procedure
-
-  Revision 1.1  1998/12/04 12:48:27  peter
-    * moved some dirs
-
-  Revision 1.2  1998/10/28 21:18:25  peter
-    * more fixes
-
-  Revision 1.1  1998/10/28 00:02:08  peter
-    + mouse
-    + video.clearscreen, video.videobufsize
-
+  Revision 1.2  2000-07-13 11:32:24  michael
+  + removed logs
+ 
 }

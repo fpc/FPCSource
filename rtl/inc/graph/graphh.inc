@@ -805,47 +805,7 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:51  michael
-  + Initial import
-
-  Revision 1.11  2000/07/05 11:25:20  jonas
-    * added internModeNumber to modeinfo type to fix Linux compatibility
-      with -dnewmodes code
-
-  Revision 1.10  2000/06/27 13:37:04  jonas
-    * released -dnewmodes
-
-  Revision 1.9  2000/06/19 08:57:52  jonas
-    * fixed newHighMode constant
-
-  Revision 1.8  2000/06/19 01:18:19  carl
-    * bugfix of comments with tp.
-    + Added Amiga/Atari graphics modes
-
-  Revision 1.7  2000/06/18 06:11:21  jonas
-    + added missing detectMode stuff for -dnewmodes
-
-  Revision 1.6  2000/06/17 19:09:23  jonas
-    * new platform independent mode handling (between -dnewmodes)
-
-  Revision 1.5  2000/06/17 11:16:07  sg
-  * The string translation is now deactivated by default on all platforms.
-
-  Revision 1.4  2000/06/16 17:06:08  sg
-  * The text functions can now convert the character sets of the given
-    strings. By default, for GO32V2 there is no conversion, and for all
-    other platforms the strings are converted from ANSI to DOS-ASCII.
-
-  Revision 1.3  2000/04/02 12:13:36  florian
-    * some more procedures can be now hooked by the OS specific implementation
-
-  Revision 1.2  2000/03/24 18:16:33  florian
-    * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
-      win32
-
-  Revision 1.1  2000/03/19 11:20:13  peter
-    * graph unit include is now independent and the dependent part
-      is now in graph.pp
-    * ggigraph unit for linux added
-
+  Revision 1.2  2000-07-13 11:33:47  michael
+  + removed logs
+ 
 }
