@@ -416,6 +416,12 @@ end;
                           Error / Exit / ExitProc
 *****************************************************************************}
 
+function SysBackTraceStr (Addr: longint): ShortString;
+begin
+  SysBackTraceStr:='  0x'+HexStr(addr,8);
+end;
+
+
 Procedure HandleErrorFrame (Errno : longint;frame : longint);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
@@ -476,7 +482,7 @@ Begin
   i:=0;
   while bp > prevbp Do
    Begin
-     Writeln(f,'  0x',HexStr(get_caller_addr(bp),8));
+     Writeln(f,BackTraceStrFunc(get_caller_addr(bp)));
      Inc(i);
      If i>max_frame_dump Then
       exit;
@@ -506,7 +512,7 @@ Begin
    Begin
      Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      { to get a nice symify }
-     Writeln(stdout,'  0x',HexStr(Longint(Erroraddr),8));
+     Writeln(stdout,BackTraceStrFunc(Longint(Erroraddr)));
      dump_stack(stdout,ErrorBase);
      Writeln(stdout,'');
    End;
@@ -599,7 +605,10 @@ end;
 
 {
   $Log$
-  Revision 1.80  2000-01-10 09:54:30  peter
+  Revision 1.81  2000-02-06 17:19:22  peter
+    * lineinfo unit added which uses stabs to get lineinfo for backtraces
+
+  Revision 1.80  2000/01/10 09:54:30  peter
     * primitives added
 
   Revision 1.79  2000/01/07 16:41:36  daniel

@@ -397,14 +397,17 @@ Procedure halt;
 *****************************************************************************}
 
 procedure AbstractError;
+Function  SysBackTraceStr(Addr: Longint): ShortString;
 Procedure SysAssert(Const Msg,FName:ShortString;LineNo,ErrorAddr:Longint);
 
 { Error handlers }
 Type
+  TBackTraceStrFunc = Function (Addr: Longint): ShortString;
   TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno,erroraddr:longint);
 const
+  BackTraceStrFunc  : TBackTraceStrFunc = @SysBackTraceStr;
   ErrorProc         : TErrorProc = nil;
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
@@ -425,7 +428,10 @@ const
 
 {
   $Log$
-  Revision 1.76  2000-01-21 15:32:07  jonas
+  Revision 1.77  2000-02-06 17:19:22  peter
+    * lineinfo unit added which uses stabs to get lineinfo for backtraces
+
+  Revision 1.76  2000/01/21 15:32:07  jonas
     * set FPUInt64 to false for i386, because comp mul and div code for int64 is
       commented out in int64.inc
 

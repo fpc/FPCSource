@@ -5,11 +5,11 @@
 [targets]
 loaders=prt0 exceptn fpu
 units=$(SYSTEMUNIT) objpas strings \
-      go32  dpmiexcp initc profile dxeload emu387 \
+      go32 dpmiexcp initc ports profile dxeload emu387 \
       dos crt objects printer graph \
       sysutils math typinfo \
-      cpu mmx getopts heaptrc \
-      msmouse ports
+      cpu mmx getopts heaptrc lineinfo \
+      msmouse
 
 [require]
 rtl=0
@@ -103,6 +103,8 @@ dxeload$(PPUEXT) : dxeload.pp $(SYSTEMPPU)
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)
 
+ports$(PPUEXT) : ports.pp objpas$(PPUEXT) $(SYSTEMPPU)
+
 #
 # TP7 Compatible RTL Units
 #
@@ -154,7 +156,13 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
+
+
+#
+# Other system-dependent RTL Units
+#
+
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) $(SYSTEMPPU)
 

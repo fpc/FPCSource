@@ -202,7 +202,7 @@ endif
 # Targets
 
 override LOADEROBJECTS+=prt0 cprt0 gprt0 cprt21 gprt21
-override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings initc linux ports dos crt objects printer graph sysutils typinfo math cpu mmx getopts heaptrc errors sockets gpm ipc
+override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings linux ports initc dos crt objects printer graph sysutils typinfo math cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc
 
 # Clean
 
@@ -1230,6 +1230,8 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 
 #
 # Other system-dependent RTL Units

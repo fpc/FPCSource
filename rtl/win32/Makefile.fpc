@@ -5,11 +5,11 @@
 [targets]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
-      windows ole2 opengl32 winsock \
-      sockets initc \
+      windows ole2 opengl32 winsock initc \
       dos crt objects graph \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc wincrt winmouse
+      cpu mmx getopts heaptrc lineinfo \
+      wincrt winmouse sockets
 
 [require]
 rtl=0
@@ -166,6 +166,8 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 
 #
 # Other system-dependent RTL Units
