@@ -1036,7 +1036,7 @@
                    mmxbase:=mmx_type(p^.left^.resulttype);
                    case p^.treetype of
                       addn : begin
-                                if (cs_mmx_saturation in aktswitches^) then
+                                if (cs_mmx_saturation in aktswitches) then
                                   begin
                                      case mmxbase of
                                         mmxs8bit:
@@ -1070,7 +1070,7 @@
                                 end;
                              end;
                       subn : begin
-                                if (cs_mmx_saturation in aktswitches^) then
+                                if (cs_mmx_saturation in aktswitches) then
                                   begin
                                      case mmxbase of
                                         mmxs8bit:
@@ -1234,7 +1234,12 @@
 
 {
      $Log$
-     Revision 1.3  1998-04-08 11:34:22  peter
+     Revision 1.4  1998-04-21 15:22:45  pierre
+       * typing error in secondadd for mmx corrected
+       * USE_RHIDE sets usestderr to true
+         replacing gpc by fpc in RHIDE should be a lot easier
+
+     Revision 1.3  1998/04/08 11:34:22  peter
        * nasm works (linux only tested)
 
      Revision 1.2  1998/03/28 23:09:55  florian

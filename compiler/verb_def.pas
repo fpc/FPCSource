@@ -215,6 +215,9 @@ end;
 {$endif}
 
 begin
+{$ifdef USE_RHIDE}
+  UseStdErr:=true;
+{$endif USE_RHIDE}
 {$ifdef FPC}
   do_stop:=@_stop;
   do_comment:=@_comment;
@@ -239,7 +242,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:57  florian
+  Revision 1.3  1998-04-21 15:22:46  pierre
+    * typing error in secondadd for mmx corrected
+    * USE_RHIDE sets usestderr to true
+      replacing gpc by fpc in RHIDE should be a lot easier
+
+  Revision 1.2  1998/03/28 23:09:57  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

@@ -41,11 +41,14 @@
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
   GDB;I386
 
+  Required switches for a 68000 compiler be compiled by Free Pascal Compiler:
+  GDB;M68K
+
   Required switches for a i386 compiler be compiled by Turbo Pascal:
   GDB;I386;TP
 
   Required switches for a 68000 compiler be compiled by Turbo Pascal:
-  GDB;M68k;TP
+  GDB;M68K;TP
 }
 
 {$ifdef FPC}
@@ -373,7 +376,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-04-21 10:16:48  peter
+  Revision 1.4  1998-04-21 15:22:46  pierre
+    * typing error in secondadd for mmx corrected
+    * USE_RHIDE sets usestderr to true
+      replacing gpc by fpc in RHIDE should be a lot easier
+
+  Revision 1.3  1998/04/21 10:16:48  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 
