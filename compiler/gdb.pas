@@ -27,7 +27,7 @@ unit gdb;
     uses
       globtype,
 {$ifdef i386}
-   {$ifdef AG386BIN}
+   {$ifndef OLDASM}
        i386base,
    {$else}
        i386,
@@ -96,7 +96,7 @@ Const
           0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
           -1,10,12,13,14,15,11,
           -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
           -1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,
           -1,-1,-1,-1,-1,
@@ -263,7 +263,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-03-17 10:52:38  peter
+  Revision 1.9  1999-05-01 13:24:20  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.8  1999/03/17 10:52:38  peter
     * fixed comment in directive
 
   Revision 1.7  1999/03/02 02:56:12  peter

@@ -20,37 +20,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  **********************************************************************}
-
 Unit RAUtils;
-
-{*************************************************************************}
-{  This unit implements some objects as well as utilities which will be   }
-{  used by all inline assembler parsers (non-processor specific).         }
-{                                                                         }
-{  Main routines/objects herein:                                          }
-{  o Object TExprParse is a simple expression parser to resolve assembler }
-{    expressions. (Based generally on some code by Thai Tran from SWAG).  }
-{  o Object TInstruction is a simple object used for instructions         }
-{  o Record TOperand is a simple record used to store information on      }
-{    each operand.                                                        }
-{  o String conversion routines from octal,binary and hex to decimal.     }
-{  o A linked list object/record for local labels                         }
-{  o Routines for retrieving symbols (local and global)                   }
-{  o Object for a linked list of strings (with duplicate strings not      }
-{    allowed).                                                            }
-{  o Non-processor dependant routines for adding instructions to the      }
-{    instruction list.                                                    }
-{*************************************************************************}
-
-
-{--------------------------------------------------------------------}
-{ LEFT TO DO:                                                        }
-{ o Fix the remaining bugs in the expression parser, such as with    }
-{     4+-3                                                           }
-{ o Add support for local typed constants search.                    }
-{ o Add support for private/protected fields in method assembler     }
-{    routines.                                                       }
-{--------------------------------------------------------------------}
 Interface
 
 Uses
@@ -58,11 +28,7 @@ Uses
   symtable,aasm,hcodegen,verbose,globals,files,strings,
   cobjects,
 {$ifdef i386}
-{$ifdef Ag386Bin}
   i386base;
-{$else}
-  i386;
-{$endif}
 {$endif}
 {$ifdef m68k}
    m68k;
@@ -77,16 +43,12 @@ Const
 
 
 Type
-
-
   {---------------------------------------------------------------------}
   {                     Label Management types                          }
   {---------------------------------------------------------------------}
 
-
-    PAsmLabel = ^TAsmLabel;
-
     { Each local label has this structure associated with it }
+    PAsmLabel = ^TAsmLabel;
     TAsmLabel = record
       name: PString;    { pointer to a pascal string name of label }
       lab: PLabel;      { pointer to a label as defined in FPC     }
@@ -103,7 +65,6 @@ Type
       Function Search(const s: string): PAsmLabel;
     private
       Last: PAsmLabel;
-      Function NewPasStr(s:string): PString;
     end;
 
 
@@ -130,51 +91,38 @@ Type
     { Each instruction operand can be of this type }
     TOperand = record
       size: topsize;
-      opinfo: longint; { ao_xxxx flags }
+      opinfo: longint; { ot_ flags }
       overriden : boolean; { indicates if the opcode has been overriden }
                            { by a pseudo-opcode such as DWORD PTR       }
+      hasvar : boolean; { if the operand is loaded with a variable }
       case operandtype:toperandtype of
        { the size of the opr_none field should be at least equal to each }
        { other field as to facilitate initialization.                    }
        OPR_NONE: (l: array[1..sizeof(treference)] of byte);
-       OPR_REFERENCE: (ref:treference);
        OPR_CONSTANT:  (val: longint);
+         { the fakeval is here so the val of a constant will not override
+           any field in the reference (PFV) }
+       OPR_REFERENCE: (fakeval:longint;ref:treference);
        OPR_REGISTER:  (reg:tregister);
        OPR_LABINSTR: (hl: plabel);
        { Register list such as in the movem instruction }
        OPR_REGLIST:  (list: set of tregister);
-       OPR_SYMBOL : (symbol:pasmsymbol);
+       OPR_SYMBOL : (symofs:longint;symbol:pasmsymbol);
     end;
-
 
 
     TInstruction = object
     public
+      opcode    : tasmop;
+      opsize    : topsize;
+      condition : tasmcond;
+      ops       : byte;
       operands: array[1..maxoperands] of TOperand;
-      { if numops = zero, a size may still be valid in operands[1] }
-      { it still should be checked.                                }
-      numops: byte;
-      { set to TRUE if the instruction is labeled.                }
+      { set to TRUE if the instruction is labeled }
       labeled: boolean;
-      { This is used for instructions such A_CMPSB... etc, to determine }
-      { the size of the instruction.                                    }
-      stropsize: topsize;
       procedure init;
       procedure done;
-      { sets up the prefix field with the instruction pointed to in s }
-      procedure addprefix(tok: tasmop);
-      { sets up the instruction with the instruction pointed to in s }
-      procedure addinstr(tok: tasmop);
-      { get the current instruction of this object }
-      function getinstruction: tasmop;
-      { get the current prefix of this instruction }
-      function getprefix: tasmop;
-    private
-      prefix: tasmop;
-      instruction: tasmop;
     end;
-
-
 
 
   {---------------------------------------------------------------------}
@@ -183,11 +131,11 @@ Type
 
   { expression parser error codes }
   texpr_error =
-  (zero_divide,       { divide by zero.     }
-   stack_overflow,    { stack overflow.     }
-   stack_underflow,   { stack underflow.    }
-   invalid_number,    { invalid conversion  }
-   invalid_op);       { invalid operator    }
+   (zero_divide,       { divide by zero.     }
+    stack_overflow,    { stack overflow.     }
+    stack_underflow,   { stack underflow.    }
+    invalid_number,    { invalid conversion  }
+    invalid_op);       { invalid operator    }
 
 
    TExprOperator = record
@@ -240,6 +188,10 @@ Type
   {                     String routines                                 }
   {---------------------------------------------------------------------}
 
+Function ValDecimal(const S:String):longint;
+Function ValOctal(const S:String):longint;
+Function ValBinary(const S:String):longint;
+Function ValHexaDecimal(const S:String):longint;
 
   {*********************************************************************}
   { PROCEDURE PadZero;                                                  }
@@ -251,25 +203,9 @@ Type
   {*********************************************************************}
   Function PadZero(Var s: String; n: byte): Boolean;
 
-  { Converts an Hex digit string to a Decimal string                      }
-  { Returns '' if there was an error.                                     }
-  Function HexToDec(const S:String): String;
-
-  { Converts a binary digit string to a Decimal string                    }
-  { Returns '' if there was an error.                                     }
-  Function BinaryToDec(const S:String): String;
-
-  { Converts an octal digit string to a Decimal string                    }
-  { Returns '' if there was an error.                                     }
-  Function OctalToDec(const S:String): String;
-
   { Converts a string containing C styled escape sequences to }
   { a pascal style string.                                    }
   Function EscapeToPascal(const s:string): string;
-
-  Procedure ConcatPasString(p : paasmoutput;s:string);
-  { Writes the string s directly to the assembler output }
-  Procedure ConcatDirect(p : paasmoutput;s:string);
 
 
   {---------------------------------------------------------------------}
@@ -277,22 +213,13 @@ Type
   {---------------------------------------------------------------------}
 
   Procedure SetOperandSize(var instr:TInstruction;operandnum,size:longint);
-Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+  Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
   Function SearchIConstant(const s:string; var l:longint): boolean;
   Function SearchLabel(const s: string; var hl: plabel): boolean;
+  Function SearchDirectVar(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
   Function CreateVarInstr(var Instr: TInstruction; const hs:string;
      operandnum:byte):boolean;
-  {*********************************************************************}
-  { FUNCTION NewPasStr(s:string): PString                               }
-  {  Description: This routine allocates a string on the heap and       }
-  {  returns a pointer to the allocated string.                         }
-  {                                                                     }
-  {  Remarks: The string allocated should not be modified, since it's   }
-  {  length will be less then 255.                                      }
-  {  Remarks: It is assumed that HeapError will be called if an         }
-  {  allocation fails.                                                  }
-  {*********************************************************************}
-  Function newpasstr(s: string): Pointer;
+
   Procedure SetupResult(Var Instr:TInstruction; operandnum: byte);
 {$ifdef i386}
 
@@ -306,8 +233,12 @@ Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):bool
   { swaps in the case of a 2/3 operand opcode the destination and the    }
   { source as to put it in AT&T style instruction format.                }
   Procedure SwapOperands(Var instr: TInstruction);
+  Procedure ConcatPasString(p : paasmoutput;s:string);
+  { Writes the string s directly to the assembler output }
+  Procedure ConcatDirect(p : paasmoutput;s:string);
   Procedure ConcatLabel(p: paasmoutput;var l : plabel);
   Procedure ConcatConstant(p : paasmoutput;value: longint; maxvalue: longint);
+  Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
   Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : paasmoutput;s:string);
   Procedure ConcatPublic(p:paasmoutput;const s : string);
@@ -318,6 +249,7 @@ Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):bool
   Procedure ConcatExternal(const s : string;typ : texternal_typ);
   { add to internal list of labels }
   Procedure ConcatInternal(const s : string;typ : texternal_typ);
+
 
 Implementation
 
@@ -334,13 +266,18 @@ var
   t : tmsgconst;
 Begin
   case anerror of
-  zero_divide: t:=assem_f_ev_zero_divide;
-  stack_overflow: t:=assem_f_ev_stack_overflow;
-  stack_underflow: t:=assem_f_ev_stack_underflow;
-  invalid_number: t:=assem_f_ev_invalid_number;
-  invalid_op: t:=assem_f_ev_invalid_op;
-  else
-   t:=assem_f_ev_unknown;
+    zero_divide:
+      t:=assem_f_ev_zero_divide;
+    stack_overflow:
+      t:=assem_f_ev_stack_overflow;
+    stack_underflow:
+      t:=assem_f_ev_stack_underflow;
+    invalid_number:
+      t:=assem_f_ev_invalid_number;
+    invalid_op:
+      t:=assem_f_ev_invalid_op;
+    else
+      t:=assem_f_ev_unknown;
   end;
   Message(t);
 end;
@@ -561,272 +498,210 @@ Begin
   expr.Done;
 end;
 
+
 {*************************************************************************}
 {                         String conversions/utils                        }
 {*************************************************************************}
 
-  Function newpasstr(s: string): Pointer;
-  Var
-   StrPtr: PString;
-  Begin
-    GetMem(StrPtr, length(s)+1);
-    Move(s,StrPtr^,length(s)+1);
-    newpasstr:= Strptr;
-  end;
-
-
-  Function EscapeToPascal(const s:string): string;
-  { converts a C styled string - which contains escape }
-  { characters to a pascal style string.               }
-  var
-   i,j: word;
-   str: string;
-   temp: string;
-   value: byte;
-   code: integer;
-  Begin
-   str:='';
-   i:=1;
-   j:=1;
-   repeat
-     if s[i] = '\' then
-     Begin
-      Inc(i);
-      if i > 255 then
+Function EscapeToPascal(const s:string): string;
+{ converts a C styled string - which contains escape }
+{ characters to a pascal style string.               }
+var
+  i,len : longint;
+  hs    : string;
+  temp  : string;
+  c     : char;
+Begin
+  hs:='';
+  len:=0;
+  i:=0;
+  while (i<length(s)) and (len<255) do
+   begin
+     Inc(i);
+     if (s[i]='\') and (i<length(s)) then
       Begin
-       EscapeToPascal:=str;
-       exit;
-      end;
-      case s[i] of
-       '\': insert('\',str,j);
-       'b': insert(#08,str,j);
-       'f': insert(#12,str,j);
-       'n': insert(#10,str,j);
-       'r': insert(#13,str,j);
-       't': insert(#09,str,j);
-       '"': insert('"',str,j);
-       { octal number }
-       '0'..'7': Begin
-                  temp:=s[i];
-                  temp:=temp+s[i+1];
-                  temp:=temp+s[i+2];
-                  inc(i,2);
-                  val(octaltodec(temp),value,code);
-                  if (code <> 0) then
-                   Message(assem_w_invalid_numeric);
-                  insert(chr(value),str,j);
-                 end;
-     { hexadecimal number }
-     'x': Begin
-            temp:=s[i+1];
-            temp:=temp+s[i+2];
-            inc(i,2);
-            val(hextodec(temp),value,code);
-            if (code <> 0) then
-             Message(assem_w_invalid_numeric);
-            insert(chr(value),str,j);
-          end;
+        inc(i);
+        case s[i] of
+         '\' :
+           c:='\';
+         'b':
+           c:=#8;
+         'f':
+           c:=#12;
+         'n':
+           c:=#10;
+         'r':
+           c:=#13;
+         't':
+           c:=#9;
+         '"':
+           c:='"';
+         '0'..'7':
+           Begin
+             temp:=s[i];
+             temp:=temp+s[i+1];
+             temp:=temp+s[i+2];
+             inc(i,2);
+             c:=chr(ValOctal(temp));
+           end;
+         'x':
+           Begin
+             temp:=s[i+1];
+             temp:=temp+s[i+2];
+             inc(i,2);
+             c:=chr(ValHexaDecimal(temp));
+           end;
+         else
+           Begin
+             Message1(assem_e_escape_seq_ignored,s[i]);
+             c:=s[i];
+           end;
+        end;
+      end
      else
-      Begin
-         Message1(assem_e_escape_seq_ignored,s[i]);
-         insert(s[i],str,j);
-      end;
-    end; {end case }
-    Inc(i);
-   end
-   else
-   Begin
-    Insert(s[i],str,j);
-    Inc(i);
-    if i > 255 then
-    Begin
-     EscapeToPascal:=str;
-     exit;
-    end;
+      c:=s[i];
+     inc(len);
+     hs[len]:=c;
    end;
-   Inc(j);
- until (i > length(s)) or (j > 255);
- EscapeToPascal:=str;
+  hs[0]:=chr(len);
+  EscapeToPascal:=hs;
 end;
 
 
-
-  Function OctalToDec(const S:String): String;
-  { Converts an octal string to a Decimal string }
-  { Returns '' if there was an error.            }
-  var vs: longint;
-    c: byte;
-    st: string;
-  Begin
-   vs := 0;
-   for c:=1 to length(s) do
+Function ValDecimal(const S:String):longint;
+{ Converts a decimal string to longint }
+var
+  vs,c : longint;
+Begin
+  vs := 0;
+  for c:=1 to length(s) do
    begin
+     vs:=vs*10;
+     if s[c] in ['0'..'9'] then
+      inc(vs,ord(s[c])-ord('0'))
+     else
+      begin
+        Comment(V_Error,'assem_e_error_converting_decimal');
+        ValDecimal:=0;
+        exit;
+      end;
+   end;
+  ValDecimal:=vs;
+end;
+
+
+Function ValOctal(const S:String):longint;
+{ Converts an octal string to longint }
+var
+  vs,c : longint;
+Begin
+  vs := 0;
+  for c:=1 to length(s) do
+   begin
+     vs:=vs shl 3;
+     if s[c] in ['0'..'7'] then
+      inc(vs,ord(s[c])-ord('0'))
+     else
+      begin
+        Comment(V_Error,'assem_e_error_converting_octal');
+        ValOctal:=0;
+        exit;
+      end;
+   end;
+  ValOctal:=vs;
+end;
+
+
+Function ValBinary(const S:String):longint;
+{ Converts a binary string to longint }
+var
+  vs,c : longint;
+Begin
+  vs := 0;
+  for c:=1 to length(s) do
+   begin
+     vs:=vs shl 1;
+     if s[c] in ['0'..'1'] then
+      inc(vs,ord(s[c])-ord('0'))
+     else
+      begin
+        Comment(V_Error,'assem_e_error_converting_binary');
+        ValBinary:=0;
+        exit;
+      end;
+   end;
+  ValBinary:=vs;
+end;
+
+
+Function ValHexadecimal(const S:String):longint;
+{ Converts a binary string to longint }
+var
+  vs,c : longint;
+Begin
+  vs := 0;
+  for c:=1 to length(s) do
+   begin
+     vs:=vs shl 4;
      case s[c] of
-     '0': vs:=vs shl 3;
-     '1': vs:=vs shl 3+1;
-     '2': vs:=vs shl 3+2;
-     '3': vs:=vs shl 3+3;
-     '4': vs:=vs shl 3+4;
-     '5': vs:=vs shl 3+5;
-     '6': vs:=vs shl 3+6;
-     '7': vs:=vs shl 3+7;
-    else
-      begin
-        Message(assem_f_error_converting_octal);
-        OctalToDec := '';
-        exit;
-      end;
-    end;
+       '0'..'9' :
+         inc(vs,ord(s[c])-ord('0'));
+       'A'..'F' :
+         inc(vs,ord(s[c])-ord('A')+10);
+       'a'..'f' :
+         inc(vs,ord(s[c])-ord('a')+10);
+       else
+         begin
+           Comment(V_Error,'assem_e_error_converting_hexadecimal');
+           ValHexadecimal:=0;
+           exit;
+         end;
+     end;
    end;
-     str(vs,st);
-     OctalToDec := st;
-  end;
+  ValHexadecimal:=vs;
+end;
 
-  Function BinaryToDec(const S:String): String;
-  { Converts a binary string to a Decimal string }
-  { Returns '' if there was an error.            }
-  var vs: longint;
-    c: byte;
-    st: string;
+
+Function PadZero(Var s: String; n: byte): Boolean;
+Begin
+  PadZero := TRUE;
+  { Do some error checking first }
+  if Length(s) = n then
+    exit
+  else
+  if Length(s) > n then
   Begin
-   vs := 0;
-   for c:=1 to length(s) do
-   begin
-     if s[c] = '0' then
-       vs:=vs shl 1
-     else
-     if s[c]='1' then
-       vs:=vs shl 1+1
-     else
-       begin
-         Message(assem_f_error_converting_bin);
-         BinaryToDec := '';
-         exit;
-       end;
-   end;
-     str(vs,st);
-     BinaryToDec := st;
-  end;
-
-
-  Function HexToDec(const S:String): String;
-  var vs: longint;
-    c: byte;
-    st: string;
-  Begin
-   vs := 0;
-   for c:=1 to length(s) do
-   begin
-     case upcase(s[c]) of
-     '0': vs:=vs shl 4;
-     '1': vs:=vs shl 4+1;
-     '2': vs:=vs shl 4+2;
-     '3': vs:=vs shl 4+3;
-     '4': vs:=vs shl 4+4;
-     '5': vs:=vs shl 4+5;
-     '6': vs:=vs shl 4+6;
-     '7': vs:=vs shl 4+7;
-     '8': vs:=vs shl 4+8;
-     '9': vs:=vs shl 4+9;
-     'A': vs:=vs shl 4+10;
-     'B': vs:=vs shl 4+11;
-     'C': vs:=vs shl 4+12;
-     'D': vs:=vs shl 4+13;
-     'E': vs:=vs shl 4+14;
-     'F': vs:=vs shl 4+15;
-    else
-      begin
-        Message(assem_f_error_converting_hex);
-        HexToDec := '';
-        exit;
-      end;
-    end;
-   end;
-     str(vs,st);
-     HexToDec := st;
-  end;
-
-  Function PadZero(Var s: String; n: byte): Boolean;
-  Begin
+    PadZero := FALSE;
+    delete(s,n+1,length(s));
+    exit;
+  end
+  else
     PadZero := TRUE;
-    { Do some error checking first }
-    if Length(s) = n then
-      exit
-    else
-    if Length(s) > n then
-    Begin
-      PadZero := FALSE;
-      delete(s,n+1,length(s));
-      exit;
-    end
-    else
-      PadZero := TRUE;
-    { Fill it up with the specified character }
-    fillchar(s[length(s)+1],n-1,#0);
-    {$ifndef TP}
-      {$ifopt H+}
-        setlength(s,n);
-      {$else}
-        s[0] := chr(n);
-      {$endif}
-    {$else}
-      s[0] := chr(n);
-    {$endif}
-  end;
+  { Fill it up with the specified character }
+  fillchar(s[length(s)+1],n-1,#0);
+  s[0] := chr(n);
+end;
 
-{*************************************************************************}
-{                          Instruction utilities                          }
-{*************************************************************************}
 
- Procedure TInstruction.init;
- var
-  k: integer;
- Begin
-  numops := 0;
+{****************************************************************************
+                                 TInstruction
+****************************************************************************}
+
+Procedure TInstruction.init;
+Begin
+  Opcode:=A_NONE;
+  Opsize:=S_NO;
+  Condition:=C_NONE;
   labeled := FALSE;
-  stropsize := S_NO;
-  prefix := A_NONE;
-  instruction := A_NONE;
-  for k:=1 to maxoperands do
-  begin
-    operands[k].size := S_NO;
-    operands[k].overriden := FALSE;
-    operands[k].operandtype := OPR_NONE;
-    { init to zeros }
-    fillchar(operands[k].l, sizeof(operands[k].l),#0);
-  end;
- end;
+  Ops:=0;
+  FillChar(Operands,sizeof(Operands),0);
+end;
 
- Procedure TInstruction.addprefix(tok: tasmop);
- Begin
-   if tok = A_NONE then
-    Message(assem_e_syn_prefix_not_found);
-   if Prefix = A_NONE then
-    Prefix := tok
-   else
-    Message(assem_e_syn_try_add_more_prefix);
- end;
 
- Procedure TInstruction.addinstr(tok: tasmop);
- Begin
-   if tok = A_NONE then
-    Message(assem_e_syn_opcode_not_found);
-   Instruction := tok;
- end;
+Procedure TInstruction.done;
+Begin
+end;
 
- function TInstruction.getinstruction: tasmop;
- Begin
-   getinstruction := Instruction;
- end;
-      { get the current prefix of this instruction }
- function TInstruction.getprefix: tasmop;
- Begin
-   getprefix := prefix;
- end;
-
- Procedure TInstruction.done;
- Begin
- end;
 
 {*************************************************************************}
 {                          Local label utilities                          }
@@ -860,7 +735,7 @@ end;
           New(Last^.Next);
           Last := Last^.Next;
        end;
-      Last^.name := NewPasStr(s);
+      Last^.name := stringdup(s);
       Last^.Lab := lab;
       Last^.Next := nil;
       Last^.emitted := emitted;
@@ -919,43 +794,22 @@ end;
   end;
 
 
-
-  Function TAsmLabelList.newpasstr(s: string): PString;
-  {*********************************************************************}
-  { FUNCTION NewPasStr(s:string): PString                               }
-  {  Description: This routine allocates a string on the heap and       }
-  {  returns a pointer to the allocated string.                         }
-  {                                                                     }
-  {  Remarks: The string allocated should not be modified, since it's   }
-  {  length will be less then 255.                                      }
-  {  Remarks: It is assumed that HeapError will be called if an         }
-  {  allocation fails.                                                  }
-  {*********************************************************************}
-  Var
-   StrPtr: PString;
-  Begin
-    GetMem(StrPtr, length(s)+1);
-    Move(s,StrPtr^,length(s)+1);
-    newpasstr:= Strptr;
-  end;
-
 {*************************************************************************}
 {                      Symbol table helper routines                       }
 {*************************************************************************}
-
 
   Procedure SwapOperands(Var instr: TInstruction);
   Var
    tempopr: TOperand;
   Begin
-    if instr.numops = 2 then
+    if instr.Ops = 2 then
     Begin
       tempopr := instr.operands[1];
       instr.operands[1] := instr.operands[2];
       instr.operands[2] := tempopr;
     end
     else
-    if instr.numops = 3 then
+    if instr.Ops = 3 then
     Begin
       tempopr := instr.operands[1];
       instr.operands[1] := instr.operands[3];
@@ -1195,7 +1049,9 @@ Begin
           parasymtable :
             begin
               instr.operands[operandnum].ref.base := procinfo.framepointer;
-              instr.operands[operandnum].ref.offset := pvarsym(sym)^.address+aktprocsym^.definition^.parast^.address_fixup;
+              instr.operands[operandnum].ref.offset := pvarsym(sym)^.address;
+              instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
+              instr.operands[operandnum].ref.options := ref_parafixup;
             end;
           localsymtable :
             begin
@@ -1205,6 +1061,8 @@ Begin
                 begin
                   instr.operands[operandnum].ref.base := procinfo.framepointer;
                   instr.operands[operandnum].ref.offset := -(pvarsym(sym)^.address);
+                  instr.operands[operandnum].ref.options := ref_localfixup;
+                  instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
                 end;
             end;
         end;
@@ -1216,6 +1074,7 @@ Begin
           arraydef :
             SetOperandSize(instr,operandnum,parraydef(pvarsym(sym)^.definition)^.elesize)
         end;
+        instr.operands[operandnum].hasvar:=true;
         CreateVarInstr := TRUE;
         Exit;
       end;
@@ -1230,6 +1089,7 @@ Begin
           arraydef :
             SetOperandSize(instr,operandnum,parraydef(ptypedconstsym(sym)^.definition)^.elesize)
         end;
+        instr.operands[operandnum].hasvar:=true;
         CreateVarInstr := TRUE;
         Exit;
       end;
@@ -1239,6 +1099,7 @@ Begin
          begin
            instr.operands[operandnum].operandtype:=OPR_CONSTANT;
            instr.operands[operandnum].val:=pconstsym(sym)^.value;
+           instr.operands[operandnum].hasvar:=true;
            CreateVarInstr := TRUE;
            Exit;
          end;
@@ -1249,6 +1110,7 @@ Begin
          begin
            instr.operands[operandnum].operandtype:=OPR_CONSTANT;
            instr.operands[operandnum].val:=0;
+           instr.operands[operandnum].hasvar:=true;
            CreateVarInstr := TRUE;
            Exit;
          end;
@@ -1259,6 +1121,7 @@ Begin
           Message(assem_w_calling_overload_func);
         instr.operands[operandnum].operandtype:=OPR_SYMBOL;
         instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
+        instr.operands[operandnum].hasvar:=true;
         CreateVarInstr := TRUE;
         Exit;
       end;
@@ -1313,6 +1176,39 @@ end;
       end;
     end;
   end;
+
+
+{ looks for internal names of variables and routines }
+Function SearchDirectVar(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
+var
+  p : pai_external;
+Begin
+   SearchDirectVar:=false;
+   { search in the list of internals }
+   p:=search_assembler_symbol(internals,hs,EXT_ANY);
+     if p=nil then
+       p:=search_assembler_symbol(externals,hs,EXT_ANY);
+   if p<>nil then
+     begin
+       instr.operands[operandnum].ref.symbol:=p^.sym;
+        case p^.exttyp of
+           EXT_BYTE   : instr.operands[operandnum].size := S_B;
+           EXT_WORD   : instr.operands[operandnum].size := S_W;
+           EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
+           instr.operands[operandnum].size := S_L;
+           EXT_QWORD  : instr.operands[operandnum].size := S_FL;
+           EXT_TBYTE  : instr.operands[operandnum].size := S_FX;
+         else
+           { this is in the case where the instruction is LEA }
+           { or something like that, in that case size is not }
+           { important.                                       }
+             instr.operands[operandnum].size := S_NO;
+         end;
+       instr.operands[operandnum].hasvar:=true;
+       SearchDirectVar := TRUE;
+       Exit;
+     end;
+end;
 
 
  {*************************************************************************}
@@ -1388,6 +1284,13 @@ end;
       if maxvalue = $ffffffff then
           p^.concat(new(pai_const,init_32bit(longint(value))));
   end;
+
+
+  Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
+  begin
+    p^.concat(new(pai_const_symbol,init_offset(sym,l)));
+  end;
+
 
   Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
   {***********************************************************************}
@@ -1494,35 +1397,35 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-04-26 23:26:14  peter
+  Revision 1.10  1999-05-01 13:24:41  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.8  1999/04/26 23:26:19  peter
     * redesigned record offset parsing to support nested records
     * normal compiler uses the redesigned createvarinstr()
 
-  Revision 1.8  1999/03/31 13:55:19  peter
+  Revision 1.7  1999/04/14 09:07:48  peter
+    * asm reader improvements
+
+  Revision 1.6  1999/03/31 13:55:34  peter
     * assembler inlining working for ag386bin
 
-  Revision 1.7  1999/03/24 23:17:23  peter
-    * fixed bugs 212,222,225,227,229,231,233
+  Revision 1.5  1999/03/26 00:01:17  peter
+    * first things for optimizer (compiles but cycle crashes)
 
-  Revision 1.6  1999/03/01 13:22:25  pierre
-   * varsym refs incremented
+  Revision 1.4  1999/03/25 16:55:36  peter
+    + unitpath,librarypath,includepath,objectpath directives
 
-  Revision 1.5  1999/02/25 21:02:51  peter
-    * ag386bin updates
-    + coff writer
+  Revision 1.3  1999/03/06 17:24:28  peter
+    * rewritten intel parser a lot, especially reference reading
+    * size checking added for asm parsers
 
-  Revision 1.4  1999/02/22 02:15:39  peter
-    * updates for ag386bin
+  Revision 1.2  1999/03/02 02:56:33  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
 
-  Revision 1.3  1999/02/16 00:47:28  peter
-    * fixed local copies of value para's
-
-  Revision 1.2  1999/01/27 13:04:11  pierre
-   * bug with static vars in assembler readers
-
-  Revision 1.1  1999/01/10 15:38:00  peter
-    * moved some tables from ra386*.pas -> i386.pas
-    + start of coff writer
-    * renamed asmutils unit to rautils
-
+  Revision 1.1  1999/03/01 15:46:26  peter
+    * ag386bin finally make cycles correct
+    * prefixes are now also normal opcodes
 }

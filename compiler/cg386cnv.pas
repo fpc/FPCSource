@@ -43,7 +43,7 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -1289,7 +1289,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-04-28 06:01:54  florian
+  Revision 1.69  1999-05-01 13:24:04  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.68  1999/04/28 06:01:54  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

@@ -41,7 +41,7 @@ implementation
       hcodegen,htypechk,pass_1,
       tccnv
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       ,i386base
 {$else}
       ,i386
@@ -99,7 +99,7 @@ implementation
             arrayconstructor_to_set(p^.right);
             firstpass(p^.right);
             if codegenerror then
-             exit; 
+             exit;
           end;
 
          if p^.right^.resulttype^.deftype<>setdef then
@@ -259,7 +259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-04-14 15:00:13  peter
+  Revision 1.9  1999-05-01 13:24:58  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.8  1999/04/14 15:00:13  peter
     * forgot firstpass after array->set conversion
 
   Revision 1.7  1999/03/02 18:22:36  peter

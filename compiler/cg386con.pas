@@ -44,7 +44,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -257,7 +257,7 @@ implementation
                       st_shortstring:
                         begin
                            { empty strings }
-                           
+
                            (* if p^.length=0 then
                            { consts^.concat(new(pai_const,init_16bit(0)))}
                            { this was not very good because several occurence
@@ -410,7 +410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-04-07 15:16:43  pierre
+  Revision 1.32  1999-05-01 13:24:06  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.31  1999/04/07 15:16:43  pierre
    * zero length string were generated multiple times
 
   Revision 1.30  1999/03/31 13:51:49  peter

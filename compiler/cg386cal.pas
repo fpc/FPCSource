@@ -44,7 +44,7 @@ implementation
       gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -1215,7 +1215,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-04-29 22:12:21  pierre
+  Revision 1.78  1999-05-01 13:24:02  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.77  1999/04/29 22:12:21  pierre
    * fix for ID 388 removing real from stack was wrong
 
   Revision 1.76  1999/04/25 22:33:19  pierre

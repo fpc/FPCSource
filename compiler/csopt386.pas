@@ -31,11 +31,11 @@ Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
 
 Implementation
 
-Uses CObjects, verbose, hcodegen, globals
-   {$ifdef i386}
-     ,i386, DAOpt386
-   {$endif i386}
-     ;
+Uses
+  CObjects, verbose, hcodegen, globals
+  ,i386base,i386asm
+  ,DAOpt386;
+
 {
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
 Var P1: Pai;
@@ -110,16 +110,16 @@ Begin {CheckSequence}
               (Pai(hp2)^.typ = ait_instruction) And
               ((Pai386(hp2)^.opcode = A_MOV) or
                (Pai386(p1)^.opcode = A_MOVZX)) And
-              (Pai386(hp2)^.op1t = top_ref) And
-              (Pai386(hp2)^.op2t = top_reg) And
+              (Pai386(hp2)^.oper[0].typ = top_ref) And
+              (Pai386(hp2)^.optype[1] = top_reg) And
               Assigned(hp3) And
               (Pai(hp3)^.typ = ait_instruction) And
               ((Pai386(hp3)^.opcode = A_MOV) or
                (Pai386(hp3)^.opcode = A_MOVZX)) And
-              (Pai386(hp3)^.op1t = top_ref) And
-              (Pai386(hp3)^.op2t = top_reg) And
+              (Pai386(hp3)^.oper[0].typ = top_ref) And
+              (Pai386(hp3)^.optype[1] = top_reg) And
                (Pai386(hp2)^.opcode <> Pai386(hp3)^.opcode) And
-              RefsEquivalent(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^), RegInfo)
+              RefsEquivalent(TReference(Pai386(hp2)^.oper[1]^),TReference(Pai386(hp3)^.oper[1]^), RegInfo)
              Then
 
 {hack to be able to optimize
@@ -136,13 +136,13 @@ Begin {CheckSequence}
                  Then
                    Begin
                     If (Pai386(hp2)^.opsize = S_B) And
-                       RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.op2)),
-                                      TRegister(Pai386(hp3)^.op2), RegInfo)
+                       RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.oper[1])),
+                                      TRegister(Pai386(hp3)^.oper[1]), RegInfo)
                        Then
                          Begin
                            Pai386(hp2)^.opcode := A_MOVZX;
-                           Pai386(hp2)^.op2 := Pai386(hp3)^.op2;
                            Pai386(hp2)^.opsize := S_BL;
+                           Pai386(hp2)^.loadoper(1,Pai386(hp3)^.oper[1]);
                            Inc(Found);
                            TmpResult := True;
                          End
@@ -156,8 +156,8 @@ Begin {CheckSequence}
                  Else
                    Begin
                      If (Pai386(hp3)^.opsize = S_B) And
-                       RegsEquivalent(TRegister(Pai386(hp2)^.op2),
-                                      Reg8toReg32(TRegister(Pai386(hp3)^.op2)),
+                       RegsEquivalent(TRegister(Pai386(hp2)^.oper[1]),
+                                      Reg8toReg32(TRegister(Pai386(hp3)^.oper[1])),
                                       RegInfo)
                        Then
                          Begin
@@ -253,20 +253,20 @@ Begin
                        PPaiProp(Pai(p)^.fileinfo.line)^.CanBeRemoved := True;
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
-                  Case Pai386(p)^.op1t Of
+                  Case Pai386(p)^.oper[0].typ Of
 {                    Top_Reg:
-                      Case Pai386(p)^.op2t Of
+                      Case Pai386(p)^.optype[1] Of
                         Top_Reg:;
                         Top_Ref:;
                       End;}
                     Top_Ref:
                       Begin {destination is always a register in this case}
-                        With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op2))] Do
+                        With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
                           Begin
                             If GetLastInstruction (p, hp1) And
                               (hp1^.typ <> ait_marker) Then
 {so we don't try to check a sequence when p is the first instruction of the block}
-                               If CheckSequence(p, TRegister(Pai386(p)^.op2), Cnt, RegInfo) And
+                               If CheckSequence(p, Pai386(p)^.oper[1].reg, Cnt, RegInfo) And
                                   (Cnt > 0)
                                  Then
                                    Begin
@@ -291,8 +291,8 @@ Begin
                                      While Cnt2 <= Cnt Do
                                        Begin
                                          If (hp1 = nil) And
-                                            Not(RegInInstruction(Tregister(Pai386(hp2)^.op2), p) Or
-                                                RegInInstruction(Reg32(Tregister(Pai386(hp2)^.op2)), p))
+                                            Not(RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
+                                                RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p))
                                            Then hp1 := p;
 {$ifndef noremove}
                                          PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True;
@@ -443,16 +443,16 @@ Begin
                                  Else
                                    If (Cnt > 0) And
                                       (PPaiProp(p^.fileinfo.line)^.
-                                        Regs[Reg32(TRegister(Pai386(p)^.op2))].Typ = Con_Ref) And
+                                        Regs[Reg32(Pai386(p)^.oper[1].reg)].Typ = Con_Ref) And
                                       (PPaiProp(p^.fileinfo.line)^.CanBeRemoved) Then
                                      Begin
                                        hp2 := p;
                                        Cnt2 := 1;
                                        While Cnt2 <= Cnt Do
                                          Begin
-                                           If RegInInstruction(Tregister(Pai386(hp2)^.op2), p) Or
-                                              RegInInstruction(Reg32(Tregister(Pai386(hp2)^.op2)), p)
-                                             Then PPaiProp(p^.fileinfo.line)^.CanBeRemoved := False;
+                                           If RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
+                                              RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p) Then
+                                             PPaiProp(p^.fileinfo.line)^.CanBeRemoved := False;
                                            Inc(Cnt2);
                                            GetNextInstruction(p, p);
                                          End;
@@ -462,13 +462,13 @@ Begin
                       End;
                     Top_Const:
                       Begin
-                        Case Pai386(p)^.op2t Of
+                        Case Pai386(p)^.oper[1].typ Of
                           Top_Reg:
                             Begin
                               If GetLastInstruction(p, hp1) Then
-                                With PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(TRegister(Pai386(p)^.op2))] Do
+                                With PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
                                   If (Typ = Con_Const) And
-                                     (StartMod = Pai386(p)^.op1) Then
+                                     (StartMod = p) Then
                                     PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True;
                             End;
 {                          Top_Ref:;}
@@ -481,12 +481,12 @@ Begin
                         PPaiProp(Pai(p)^.fileinfo.line)^.CanBeRemoved := True;
               A_XOR:
                 Begin
-                  If (Pai386(p)^.op1t = top_reg) And
-                     (Pai386(p)^.op2t = top_reg) And
-                     (Pai386(p)^.op1 = Pai386(p)^.op2) And
+                  If (Pai386(p)^.oper[0].typ = top_reg) And
+                     (Pai386(p)^.oper[0].typ = top_reg) And
+                     (Pai386(p)^.oper[1].reg = Pai386(p)^.oper[1].reg) And
                      GetLastInstruction(p, hp1) And
-                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].typ = con_const) And
-                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].StartMod = Pointer(0))
+                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].typ = con_const) And
+                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].StartMod = nil)
                     Then PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True
                 End
             End
@@ -552,7 +552,17 @@ End.
 
 {
  $Log$
- Revision 1.19  1999-02-26 00:48:17  peter
+ Revision 1.20  1999-05-01 13:24:19  peter
+   * merged nasm compiler
+   * old asm moved to oldasm/
+
+ Revision 1.2  1999/03/29 16:05:45  peter
+   * optimizer working for ag386bin
+
+ Revision 1.1  1999/03/26 00:01:09  peter
+   * first things for optimizer (compiles but cycle crashes)
+
+ Revision 1.19  1999/02/26 00:48:17  peter
    * assembler writers fixed for ag386bin
 
  Revision 1.18  1998/12/29 18:48:22  jonas

@@ -47,7 +47,7 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -802,7 +802,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.34  1999-04-26 13:31:25  peter
+  Revision 1.35  1999-05-01 13:24:07  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.34  1999/04/26 13:31:25  peter
     * release storenumber,double_checksum
 
   Revision 1.33  1999/04/21 09:43:29  peter

@@ -58,7 +58,7 @@ unit win_targ;
        ,gdb
 {$endif}
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
        ,i386base,i386asm
 {$else}
        ,i386
@@ -710,7 +710,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.23  1999-04-07 14:18:32  pierre
+  Revision 1.24  1999-05-01 13:25:04  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.23  1999/04/07 14:18:32  pierre
    * typo correction
 
   Revision 1.22  1999/04/07 14:04:40  pierre

@@ -27,7 +27,7 @@ unit tgeni386;
     uses
        cobjects,globals,tree,hcodegen,verbose,files,aasm
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
        ,i386base,i386asm
 {$else}
        ,i386
@@ -373,7 +373,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-04-21 16:31:48  pierre
+  Revision 1.23  1999-05-01 13:25:01  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.22  1999/04/21 16:31:48  pierre
   ra386att.pas
 
   Revision 1.21  1999/04/16 11:49:47  peter

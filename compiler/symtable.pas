@@ -34,7 +34,7 @@ unit symtable;
        globtype,globals,tokens,systems,verbose,
        aasm
 {$ifdef i386}
-  {$ifdef ag386bin}
+  {$ifndef OLDASM}
        ,i386base
   {$else}
        ,i386
@@ -3204,7 +3204,11 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.4  1999-04-29 17:25:37  peter
+  Revision 1.5  1999-05-01 13:24:43  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.4  1999/04/29 17:25:37  peter
     * small fix for deref
 
   Revision 1.3  1999/04/26 18:30:03  peter

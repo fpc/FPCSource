@@ -26,7 +26,7 @@ unit temp_gen;
 
     uses
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -648,7 +648,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-04-19 09:30:48  pierre
+  Revision 1.21  1999-05-01 13:24:59  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.20  1999/04/19 09:30:48  pierre
    + added warning for unreleased ANSI temp
 
   Revision 1.19  1999/04/16 20:44:38  florian

@@ -30,7 +30,7 @@ unit tree;
 
     uses
        globtype,cobjects,symtable,aasm
-{$ifdef ag386bin}
+{$ifndef OLDASM}
        ,i386base
 {$else}
        ,i386
@@ -1717,7 +1717,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.74  1999-04-21 21:45:31  pierre
+  Revision 1.75  1999-05-01 13:25:02  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.74  1999/04/21 21:45:31  pierre
    * wrong log fro v1.73 corrected
 
   Revision 1.73  1999/04/21 16:31:49  pierre

@@ -43,7 +43,7 @@ implementation
       tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
       ,i386base,i386asm
 {$else}
       ,i386
@@ -372,7 +372,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  1999-02-22 02:44:07  peter
+  Revision 1.101  1999-05-01 13:24:26  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.100  1999/02/22 02:44:07  peter
     * ag386bin doesn't use i386.pas anymore
 
   Revision 1.99  1998/12/11 00:03:27  peter

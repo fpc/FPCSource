@@ -40,7 +40,7 @@ unit ag386int;
 
     uses
       dos,globals,systems,cobjects,
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -158,7 +158,7 @@ unit ag386int;
        getreferencestring:=s;
      end;
 
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
 
     function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
     var
@@ -376,7 +376,7 @@ unit ag386int;
       consttyp : tait;
       found,
       quoted   : boolean;
-{$ifdef AG386Bin}
+{$ifndef OLDASM}
       sep      : char;
 {$endif}
     begin
@@ -554,7 +554,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
    ait_instruction : begin
                        suffix:='';
                        prefix:= '';
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.ops = 0) and
                           ((pai386(hp)^.opcode = A_REP) or
@@ -795,7 +795,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.33  1999-04-17 22:17:05  pierre
+  Revision 1.34  1999-05-01 13:23:58  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.33  1999/04/17 22:17:05  pierre
     * ifdef USE_OP3 released (changed into ifndef NO_OP3)
     * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
 

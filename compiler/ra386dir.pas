@@ -33,7 +33,7 @@ unit Ra386dir;
 
      uses
         files,hcodegen,globals,scanner,aasm
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
         ,i386base,i386asm
 {$else}
         ,i386
@@ -295,7 +295,11 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.17  1999-03-31 13:55:18  peter
+  Revision 1.18  1999-05-01 13:24:40  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.17  1999/03/31 13:55:18  peter
     * assembler inlining working for ag386bin
 
   Revision 1.16  1999/03/24 23:17:22  peter

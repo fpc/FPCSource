@@ -49,7 +49,7 @@ implementation
      ,gdb
 {$endif}
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
      ,i386base,i386asm
 {$else}
      ,i386
@@ -120,7 +120,7 @@ implementation
 
 
     procedure secondasm(var p : ptree);
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
       var
         hp,hp2 : pai;
         localfixup,parafixup,
@@ -128,7 +128,7 @@ implementation
         r : preference;
 {$endif}
       begin
-{$ifdef AG386BIN}
+{$ifndef OLDASM}
          if (aktprocsym^.definition^.options and poinline)<>0 then
            begin
              localfixup:=aktprocsym^.definition^.localst^.address_fixup;
@@ -547,7 +547,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-04-28 06:02:04  florian
+  Revision 1.19  1999-05-01 13:24:28  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.18  1999/04/28 06:02:04  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

@@ -38,7 +38,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -824,7 +824,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-04-16 13:42:30  jonas
+  Revision 1.28  1999-05-01 13:24:15  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.27  1999/04/16 13:42:30  jonas
     * more regalloc fixes (still not complete)
 
   Revision 1.26  1999/04/09 08:36:36  peter

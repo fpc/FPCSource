@@ -48,7 +48,7 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       ,i386base
 {$else}
       ,i386
@@ -555,7 +555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-04-26 18:30:05  peter
+  Revision 1.14  1999-05-01 13:24:57  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.13  1999/04/26 18:30:05  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.12  1999/03/02 18:24:24  peter

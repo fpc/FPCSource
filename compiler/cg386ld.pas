@@ -39,7 +39,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -109,7 +109,7 @@ implementation
                          if popeax then
                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-                         if symtabletype=unitsymtable then
+                         if p^.symtable^.symtabletype=unitsymtable then
                            concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))));
                          { the called procedure isn't allowed to change }
@@ -357,7 +357,7 @@ implementation
          loc : tloc;
          r : preference;
          oldrl : plinkedlist;
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
          ai : pai386;
 {$endif}
       begin
@@ -670,7 +670,7 @@ implementation
                               if loc=LOC_CREGISTER then
                                 emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
                               else
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
                                 begin
                                   ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
                                   ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
@@ -864,7 +864,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-04-28 06:01:55  florian
+  Revision 1.52  1999-05-01 13:24:10  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.51  1999/04/28 06:01:55  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

@@ -64,7 +64,7 @@ unit pdecl;
        ,pbase,ptconst,pexpr,psub,pexports
        { processor specific stuff }
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
        ,i386base
 {$else}
        ,i386
@@ -2272,7 +2272,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.112  1999-04-28 06:02:07  florian
+  Revision 1.113  1999-05-01 13:24:30  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.112  1999/04/28 06:02:07  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

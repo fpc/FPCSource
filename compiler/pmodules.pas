@@ -38,7 +38,7 @@ unit pmodules;
        symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu,comprsrc
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
        ,i386base,i386asm
 {$else}       ,i386
 {$endif}
@@ -1359,7 +1359,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.116  1999-04-26 23:22:42  peter
+  Revision 1.117  1999-05-01 13:24:32  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.116  1999/04/26 23:22:42  peter
     * fixed double .o file insertion
 
   Revision 1.115  1999/04/26 18:29:58  peter

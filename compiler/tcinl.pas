@@ -38,7 +38,7 @@ implementation
       hcodegen,htypechk,pass_1,
       tccal
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       ,i386base
 {$else}
       ,i386
@@ -1100,7 +1100,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-04-28 06:02:15  florian
+  Revision 1.30  1999-05-01 13:24:53  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.29  1999/04/28 06:02:15  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

@@ -44,7 +44,7 @@ unit pstatmnt;
        symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
        ,i386base,i386asm
 {$else}
        ,i386
@@ -1283,7 +1283,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.81  1999-04-26 13:31:42  peter
+  Revision 1.82  1999-05-01 13:24:35  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.81  1999/04/26 13:31:42  peter
     * release storenumber,double_checksum
 
   Revision 1.80  1999/04/21 09:43:48  peter

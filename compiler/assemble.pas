@@ -85,7 +85,7 @@ uses
 {$endif}
   ,strings
 {$ifdef i386}
-  {$ifdef Ag386Bin}
+  {$ifndef OLDASM}
     ,ag386bin
   {$endif}
   {$ifndef NoAg386Att}
@@ -446,14 +446,14 @@ Procedure GenerateAsm;
 var
   a : PAsmList;
 {$ifdef i386}
-  {$ifdef Ag386Bin}
+  {$ifndef OLDASM}
     b : Pi386binasmlist;
   {$endif}
 {$endif}
 begin
   case aktoutputformat of
 {$ifdef i386}
-  {$ifdef Ag386Bin}
+  {$ifndef OLDASM}
      as_i386_dbg,
      as_i386_coff,
      as_i386_pecoff :
@@ -541,7 +541,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-03-24 23:16:42  peter
+  Revision 1.42  1999-05-01 13:24:00  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.41  1999/03/24 23:16:42  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.40  1999/03/18 20:30:44  peter

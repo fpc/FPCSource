@@ -823,7 +823,7 @@ implementation
             exeext      : '.exe';
             os          : os_i386_GO32V2;
             link        : link_i386_ldgo32v2;
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
             assem       : as_i386_coff;
 {$else}
             assem       : as_i386_as;
@@ -899,7 +899,7 @@ implementation
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
             assem       : as_i386_pecoff;
 {$else}
             assem       : as_i386_asw;
@@ -1369,7 +1369,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  1999-03-26 00:05:47  peter
+  Revision 1.66  1999-05-01 13:24:44  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.65  1999/03/26 00:05:47  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

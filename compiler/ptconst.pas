@@ -41,7 +41,7 @@ unit ptconst;
        ,pbase,pexpr
        { processor specific stuff }
 {$ifdef i386}
-{$ifdef Ag386Bin}
+{$ifndef OLDASM}
        ,i386base
 {$else}
        ,i386
@@ -714,7 +714,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.40  1999-04-25 22:42:17  pierre
+  Revision 1.41  1999-05-01 13:24:39  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.40  1999/04/25 22:42:17  pierre
    + code for initialized vars in Delphi mode
 
   Revision 1.39  1999/03/24 23:17:21  peter

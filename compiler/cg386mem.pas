@@ -47,7 +47,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -882,7 +882,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-04-26 18:29:54  peter
+  Revision 1.35  1999-05-01 13:24:13  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.34  1999/04/26 18:29:54  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.33  1999/03/26 11:43:26  pierre

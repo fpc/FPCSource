@@ -29,7 +29,7 @@ unit hcodegen;
       tokens,verbose,
       aasm,symtable
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       ,i386base
 {$else}
       ,i386
@@ -321,7 +321,11 @@ end.
 
 {
   $Log$
-  Revision 1.29  1999-04-21 09:43:38  peter
+  Revision 1.30  1999-05-01 13:24:22  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.29  1999/04/21 09:43:38  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

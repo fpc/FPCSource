@@ -53,7 +53,7 @@ unit pexpr;
        ,pbase,pdecl
        { processor specific stuff }
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
        ,i386base
 {$else}
        ,i386
@@ -1972,7 +1972,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.98  1999-04-26 18:29:56  peter
+  Revision 1.99  1999-05-01 13:24:31  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.98  1999/04/26 18:29:56  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.97  1999/04/19 09:27:48  peter

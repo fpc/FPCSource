@@ -36,7 +36,7 @@ implementation
       cobjects,verbose,globals,files,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       i386base,i386asm,
 {$else}
       i386,
@@ -1290,7 +1290,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-04-26 18:28:13  peter
+  Revision 1.45  1999-05-01 13:24:08  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.44  1999/04/26 18:28:13  peter
     * better read/write array
 
   Revision 1.43  1999/04/19 09:45:48  pierre

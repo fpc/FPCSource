@@ -47,7 +47,7 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,temp_gen,pass_1
 {$ifdef i386}
-{$ifdef ag386bin}
+{$ifndef OLDASM}
       ,i386base
 {$else}
       ,i386
@@ -500,7 +500,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-03-24 23:17:36  peter
+  Revision 1.9  1999-05-01 13:24:52  peter
+    * merged nasm compiler
+    * old asm moved to oldasm/
+
+  Revision 1.8  1999/03/24 23:17:36  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.7  1999/03/09 19:24:42  peter
