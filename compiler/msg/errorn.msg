@@ -1753,7 +1753,7 @@ option_asm_forced=11022_W_Gebruik van "$1" assembler opgelegd
 #
 option_logo=11023_[
 Free Pascal Compiler versie $FPCVER [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1998-2003 door Florian Klaempfl en anderen
+Copyright (c) 1998-2004 door Florian Klaempfl en anderen
 ]
 
 #
