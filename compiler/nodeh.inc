@@ -204,7 +204,10 @@
          nf_cargs,
          nf_cargswap,
          nf_forcevaria,
-         nf_novariaallowed
+         nf_novariaallowed,
+
+         { ttypeconvnode }
+         nf_explizit
        );
 
        tnodeflagset = set of tnodeflags;
@@ -320,7 +323,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-09-25 15:05:25  florian
+  Revision 1.6  2000-09-25 15:37:14  florian
+    * more fixes
+
+  Revision 1.5  2000/09/25 15:05:25  florian
     * some updates
 
   Revision 1.4  2000/09/24 21:15:34  florian

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit nld;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -71,7 +74,7 @@ interface
 
        ttypenode = class(tnode)
           typenodetype : pdef;
-          typenodesym:ptypesym
+          typenodesym:ptypesym;
           constructor create(t : pdef;sym:ptypesym);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -85,7 +88,11 @@ interface
        carrayconstructnode : class of tarrayconstructnode;
        ctypenode : class of ttypenode;
 
+    function genloadnode(v : pvarsym;st : psymtable) : tloadnode;
     function gentypenode(t : pdef;sym:ptypesym) : ttypenode;
+    function genloadcallnode(v: pprocsym;st: psymtable): tloadnode;
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp: tnode): tloadnode;
+    function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : tloadnode;
 
 implementation
 
@@ -108,8 +115,64 @@ implementation
 
     function genloadnode(v : pvarsym;st : psymtable) : tloadnode;
 
+      var
+         n : tloadnode;
+
       begin
-         genloadnode:=cloadnode.create(v,st);
+         n:=cloadnode.create(v,st);
+{$fidef NEWST}
+         n.resulttype:=v^.definition;
+{$else NEWST}
+         n.resulttype:=v^.vartype.def;
+{$endif NEWST}
+         genloadnode:=n:
+      end;
+
+    function genloadcallnode(v: pprocsym;st: psymtable): tloadnode;
+      var
+         n : tloadnode;
+
+      begin
+         n:=cloadnode.create(v,st);
+{$ifdef NEWST}
+         n.resulttype:=nil; {We don't know which overloaded procedure is
+                              wanted...}
+{$else NEWST}
+         n.resulttype:=v^.definition;
+{$endif NEWST}
+         genloadcallnode:=n;
+      end;
+
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp: tnode): tloadnode;
+      var
+         n : tloadnode;
+
+      begin
+         n:=cloadnode.create(v,st);
+{$ifdef NEWST}
+         n.resulttype:=nil; {We don't know which overloaded procedure is
+                              wanted...}
+{$else NEWST}
+         n.resulttype:=v^.definition;
+{$endif NEWST}
+         p^.left:=mp;
+         genloadmethodcallnode:=v;
+      end;
+
+
+    function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : tloadnode;
+
+      var
+         n : tloadnode;
+
+      begin
+         n:=cloadnode.create(sym,st);
+{$ifdef NEWST}
+         n.resulttype:=sym^.definition;
+{$else NEWST}
+         n.resulttype:=sym^.typedconsttype.def;
+{$endif NEWST}
+         gentypedconstloadnode:=n;
       end;
 
     function gentypenode(t : pdef;sym:ptypesym) : ttypenode;
@@ -690,7 +753,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-25 14:55:05  florian
-    * initial revision
+  Revision 1.2  2000-09-25 15:37:14  florian
+    * more fixes
 
+  Revision 1.1  2000/09/25 14:55:05  florian
+    * initial revision
 }

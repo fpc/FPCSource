@@ -130,7 +130,7 @@ implementation
       globtype,systems,
       cutils,cobjects,verbose,globals,
       symconst,aasm,types,
-      htypechk,pass_1,ncal
+      htypechk,pass_1,ncal,nld
 {$ifdef newcg}
       ,cgbase
 {$else newcg}
@@ -884,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-09-25 15:05:25  florian
+  Revision 1.3  2000-09-25 15:37:14  florian
+    * more fixes
+
+  Revision 1.2  2000/09/25 15:05:25  florian
     * some updates
 
   Revision 1.1  2000/09/25 09:58:22  florian
