@@ -471,7 +471,13 @@ implementation
          { can be false                                             }
          pushed:=maybe_push(p^.right^.registers32,p^.left,false);
          secondpass(p^.right);
-         if pushed then restore(p^.left,false);
+
+         { restoring here is nonsense for LOC_JMP !! }
+         { This generated code that was after a jmp and before any
+           label => unreachable !!
+           Could this be tested somehow ?? PM }
+         if pushed and (p^.right^.location.loc <>LOC_JUMP) then
+           restore(p^.left,false);
 
          if codegenerror then
            exit;
@@ -745,6 +751,8 @@ implementation
             LOC_JUMP     : begin
                               getlabel(hlabel);
                               emitlab(truelabel);
+                              if pushed then
+                                restore(p^.left,false);
                               if loc=LOC_CREGISTER then
                                 emit_const_reg(A_MOV,S_B,
                                   1,p^.left^.location.register)
@@ -755,6 +763,8 @@ implementation
                                   1,p^.left^.location);}
                               emitjmp(C_None,hlabel);
                               emitlab(falselabel);
+                              if pushed then
+                                restore(p^.left,false);
                               if loc=LOC_CREGISTER then
                                 emit_reg_reg(A_XOR,S_B,
                                   p^.left^.location.register,
@@ -1009,7 +1019,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-03-01 00:03:11  pierre
+  Revision 1.102  2000-03-01 13:20:33  pierre
+   * fix for bug 859
+
+  Revision 1.101  2000/03/01 00:03:11  pierre
     * fixes for locals in inlined procedures
       fix for bug797
     + stabs generation for inlined paras and locals
