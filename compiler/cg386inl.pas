@@ -77,6 +77,75 @@ implementation
                              SecondInLine
 *****************************************************************************}
 
+    procedure StoreDirectFuncResult(dest:ptree);
+      var
+        hp : ptree;
+        hdef : porddef;
+        hreg : tregister;
+        oldregisterdef : boolean;
+      begin
+        SecondPass(dest);
+        if Codegenerror then
+         exit;
+        Case dest^.resulttype^.deftype of
+          floatdef:
+            floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
+          orddef:
+            begin
+              Case dest^.resulttype^.size of
+                1 : hreg:=regtoreg8(accumulator);
+                2 : hreg:=regtoreg16(accumulator);
+                4 : hreg:=accumulator;
+              End;
+              emit_mov_reg_loc(hreg,dest^.location);
+              If (cs_check_range in aktlocalswitches) and
+                 {no need to rangecheck longints or cardinals on 32bit processors}
+                  not((porddef(dest^.resulttype)^.typ = s32bit) and
+                      (porddef(dest^.resulttype)^.low = $80000000) and
+                      (porddef(dest^.resulttype)^.high = $7fffffff)) and
+                  not((porddef(dest^.resulttype)^.typ = u32bit) and
+                      (porddef(dest^.resulttype)^.low = 0) and
+                      (porddef(dest^.resulttype)^.high = $ffffffff)) then
+                Begin
+                  {do not register this temporary def}
+                  OldRegisterDef := RegisterDef;
+                  RegisterDef := False;
+                  hdef:=nil;
+                  Case PordDef(dest^.resulttype)^.typ of
+                    u8bit,u16bit,u32bit:
+                      begin
+                        new(hdef,init(u32bit,0,$ffffffff));
+                        hreg:=accumulator;
+                      end;
+                    s8bit,s16bit,s32bit:
+                      begin
+                        new(hdef,init(s32bit,$80000000,$7fffffff));
+                        hreg:=accumulator;
+                      end;
+                  end;
+                  { create a fake node }
+                  hp := genzeronode(nothingn);
+                  hp^.location.loc := LOC_REGISTER;
+                  hp^.location.register := hreg;
+                  if assigned(hdef) then
+                    hp^.resulttype:=hdef
+                  else
+                    hp^.resulttype:=dest^.resulttype;
+                  { emit the range check }
+                  emitrangecheck(hp,dest^.resulttype);
+                  hp^.right := nil;
+                  if assigned(hdef) then
+                    Dispose(hdef, Done);
+                  RegisterDef := OldRegisterDef;
+                  disposetree(hp);
+                End;
+            End;
+          else
+            internalerror(66766766);
+        end;
+      end;
+
+
     procedure secondinline(var p : ptree);
        const
          { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
@@ -100,18 +169,21 @@ implementation
 
         procedure loadstream;
           const
-            io:array[0..1] of string[7]=('_OUTPUT','_INPUT');
+            io:array[boolean] of string[7]=('_OUTPUT','_INPUT');
           var
             r : preference;
           begin
             new(r);
             reset_reference(r^);
-            r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[byte(doread)]);
+            r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[doread]);
             concat_external(r^.symbol^.name,EXT_NEAR);
             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
           end;
 
+        const
+           rdwrprefix:array[boolean] of string[15]=('FPC_WRITE_TEXT_','FPC_READ_TEXT_');
         var
+           destpara,
            node,hp    : ptree;
            typedtyp,
            pararesult : pdef;
@@ -119,7 +191,6 @@ implementation
            dummycoll  : tdefcoll;
            iolabel    : plabel;
            npara      : longint;
-
         begin
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
@@ -208,16 +279,25 @@ implementation
                      hp^.right:=nil;
                      if hp^.is_colon_para then
                        CGMessage(parser_e_illegal_colon_qualifier);
-                     if ft=ft_typed then
-                       never_copy_const_param:=true;
-                     { reset data type }
-                     dummycoll.data:=nil;
-                     { support openstring calling for readln(shortstring) }
-                     if doread and (is_shortstring(hp^.resulttype)) then
-                       dummycoll.data:=openshortstringdef;
-                     secondcallparan(hp,@dummycoll,false,false,0);
-                     if ft=ft_typed then
-                       never_copy_const_param:=false;
+                     { when read ord,floats are functions, so they need this
+                       parameter as their destination instead of being pushed }
+                     if doread and
+                        (ft<>ft_typed) and
+                        (hp^.resulttype^.deftype in [orddef,floatdef]) then
+                      destpara:=hp^.left
+                     else
+                      begin
+                        if ft=ft_typed then
+                          never_copy_const_param:=true;
+                        { reset data type }
+                        dummycoll.data:=nil;
+                        { support openstring calling for readln(shortstring) }
+                        if doread and (is_shortstring(hp^.resulttype)) then
+                          dummycoll.data:=openshortstringdef;
+                        secondcallparan(hp,@dummycoll,false,false,0);
+                        if ft=ft_typed then
+                          never_copy_const_param:=false;
+                      end;
                      hp^.right:=node;
                      if codegenerror then
                        exit;
@@ -287,7 +367,11 @@ implementation
                                 end
                             end;
                           case pararesult^.deftype of
-                       stringdef : begin
+                            stringdef :
+                              begin
+{$ifndef OLDREAD}
+                                emitcall(rdwrprefix[doread]+pstringdef(pararesult)^.stringtypname,true);
+{$else}
                                      if doread then
                                        begin
                                          { push maximum string length }
@@ -313,136 +397,78 @@ implementation
                                         st_widestring:
                                           emitcall ('FPC_WRITE_TEXT_ANSISTRING',true);
                                         end;
-                                   end;
-                      pointerdef : begin
-                                     if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
-                                       begin
-                                         if doread then
-                                           emitcall('FPC_READ_TEXT_PCHAR_AS_POINTER',true)
-                                         else
-                                           emitcall('FPC_WRITE_TEXT_PCHAR_AS_POINTER',true);
-                                       end;
-                                   end;
-                        arraydef : begin
-                                     if is_chararray(pararesult) then
-                                       begin
-                                         if doread then
-                                           emitcall('FPC_READ_TEXT_PCHAR_AS_ARRAY',true)
-                                         else
-                                           emitcall('FPC_WRITE_TEXT_PCHAR_AS_ARRAY',true);
-                                       end;
-                                   end;
-                        floatdef : begin
-                                     if doread then
-                                       emitcall('FPC_READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
-                                     else
-                                       emitcall('FPC_WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
-                                   end;
-                          orddef : begin
- {in the range checking code, hp^.left is stil the current parameter, since
-  hp only gets modified when doread is false (JM)}
-                                     case porddef(pararesult)^.typ of
-                                          u8bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_BYTE',true);
-{$IfDef ReadRangeCheck}
-                                                      If (porddef(pararesult)^.low <> 0) or
-                                                         (porddef(pararesult)^.high <> 255) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End;
-{$EndIf ReadRangeCheck}
-
-                                          s8bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_SHORTINT',true);
-{$IfDef ReadRangeCheck}
-                                                      If (porddef(pararesult)^.low <> -128) or
-                                                         (porddef(pararesult)^.high <> 127) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End;
-{$EndIf ReadRangeCheck}
-                                         u16bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_WORD',true);
-{$IfDef ReadRangeCheck}
-                                                      If (porddef(pararesult)^.low <> 0) or
-                                                         (porddef(pararesult)^.high <> 65535) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End;
-{$EndIf ReadRangeCheck}
-                                         s16bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_INTEGER',true);
-{$IfDef ReadRangeCheck}
-                                                      If (porddef(pararesult)^.low <> -32768) or
-                                                         (porddef(pararesult)^.high <> 32767) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End;
-{$EndIf ReadRangeCheck}
-                                         s32bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_LONGINT',true)
-{$IfDef ReadRangeCheck}
-                                                      ;If (porddef(pararesult)^.low <> $80000000) or
-                                                         (porddef(pararesult)^.high <> $7fffffff) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End
-{$EndIf ReadRangeCheck}
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_LONGINT',true);
-                                         u32bit : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                      emitcall('FPC_READ_TEXT_CARDINAL',true)
-{$IfDef ReadRangeCheck}
-                                                      ;If (porddef(pararesult)^.low <> $0) or
-                                                         (porddef(pararesult)^.high <> $ffffffff) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End
-{$EndIf ReadRangeCheck}
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_CARDINAL',true);
-                                          uchar : if doread then
-{$IfDef ReadRangeCheck}
-                                                    Begin
-{$EndIf ReadRangeCheck}
-                                                        emitcall('FPC_READ_TEXT_CHAR',true)
-{$IfDef ReadRangeCheck}
-                                                      ;If (porddef(pararesult)^.low <> 0) or
-                                                         (porddef(pararesult)^.high <> 255) Then
-                                                        emitrangecheck(hp^.left,pararesult);
-                                                    End
-{$EndIf ReadRangeCheck}
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_CHAR',true);
-                                         s64bitint:
-                                                  if doread then
-                                                    emitcall('FPC_READ_TEXT_INT64',true)
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_INT64',true);
-                                         u64bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_QWORD',true)
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_QWORD',true);
-                                       bool8bit,
-                                      bool16bit,
-                                      bool32bit : if  doread then
-                                                    CGMessage(parser_e_illegal_parameter_list)
-                                                  else
-                                                    emitcall('FPC_WRITE_TEXT_BOOLEAN',true);
-                                     end;
-                                   end;
+{$endif}
+                              end;
+                            pointerdef :
+                              begin
+                                if is_pchar(pararesult) then
+                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_POINTER',true)
+                              end;
+                            arraydef :
+                              begin
+                                if is_chararray(pararesult) then
+                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_ARRAY',true)
+                              end;
+                            floatdef :
+                              begin
+{$ifndef OLDREAD}
+                                if doread then
+                                  begin
+                                    emitcall(rdwrprefix[doread]+'FLOAT',true);
+                                    StoreDirectFuncResult(destpara);
+                                  end
+                                else
+{$endif}
+                                  emitcall(rdwrprefix[doread]+float_name[pfloatdef(pararesult)^.typ],true)
+                              end;
+                            orddef :
+                              begin
+                                case porddef(pararesult)^.typ of
+{$ifndef OLDREAD}
+                                  s8bit,s16bit,s32bit :
+                                    emitcall(rdwrprefix[doread]+'SINT',true);
+                                  u8bit,u16bit,u32bit :
+                                    emitcall(rdwrprefix[doread]+'UINT',true);
+{$else}
+                                  u8bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_BYTE',true);
+                                  s8bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_SHORTINT',true);
+                                  u16bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_WORD',true);
+                                  s16bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_INTEGER',true);
+                                  s32bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_LONGINT',true)
+                                    else
+                                      emitcall('FPC_WRITE_TEXT_LONGINT',true);
+                                  u32bit :
+                                    if doread then
+                                      emitcall('FPC_READ_TEXT_CARDINAL',true)
+                                    else
+                                      emitcall('FPC_WRITE_TEXT_CARDINAL',true);
+{$endif}
+                                  uchar :
+                                    emitcall(rdwrprefix[doread]+'CHAR',true);
+                                  s64bitint:
+                                    emitcall(rdwrprefix[doread]+'INT64',true);
+                                  u64bit :
+                                    emitcall(rdwrprefix[doread]+'QWORD',true);
+                                  bool8bit,
+                                  bool16bit,
+                                  bool32bit :
+                                    emitcall(rdwrprefix[doread]+'BOOLEAN',true);
+                                end;
+{$ifndef OLDREAD}
+                                if doread then
+                                 StoreDirectFuncResult(destpara);
+{$endif}
+                              end;
                           end;
                        end;
                    { load ESI in methods again }
@@ -528,19 +554,7 @@ implementation
              dummycoll.data:=openshortstringdef
            else
              dummycoll.data:=hp^.resulttype;
-           case pstringdef(hp^.resulttype)^.string_typ of
-              st_widestring:
-                procedureprefix:='FPC_WIDESTR_';
-
-              st_ansistring:
-                procedureprefix:='FPC_ANSISTR_';
-
-              st_shortstring:
-                procedureprefix:='FPC_SHORTSTR_';
-
-              st_longstring:
-                procedureprefix:='FPC_LONGSTR_';
-           end;
+           procedureprefix:='FPC_'+pstringdef(hp^.resulttype)^.stringtypname+'_';
            secondcallparan(hp,@dummycoll,false,false,0);
            if codegenerror then
              exit;
@@ -718,16 +732,6 @@ implementation
                emitpushreferenceaddr(exprasmlist,hr);
              End;
 
-           Case dest_para^.resulttype^.deftype of
-             floatdef:
-               procedureprefix := 'FPC_VAL_REAL_';
-             orddef:
-               if is_signed(dest_para^.resulttype) then
-                 procedureprefix := 'FPC_VAL_SINT_'
-               else
-                 procedureprefix := 'FPC_VAL_UINT_';
-           End;
-
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
            dummycoll.data:=node^.resulttype;
@@ -735,26 +739,22 @@ implementation
            if codegenerror then
              exit;
 
-           {if we are converting to a signed number, we have to include the
-            size of the destination, so the Val function can extend the sign
-            of the result to allow proper range checking}
-           If (dest_para^.resulttype^.deftype = orddef) Then
-              Case PordDef(dest_para^.resulttype)^.typ of
-                s8bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
-                s16bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,2)));
-                s32bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,4)));
-              End;
-
-           case pstringdef(node^.resulttype)^.string_typ of
-              st_widestring:
-                emitcall(procedureprefix+'WIDESTR',true);
-              st_ansistring:
-                emitcall(procedureprefix+'ANSISTR',true);
-              st_shortstring:
-                emitcall(procedureprefix+'SHORTSTR',true);
-              st_longstring:
-                emitcall(procedureprefix+'LONGSTR',true);
-           end;
+           Case dest_para^.resulttype^.deftype of
+             floatdef:
+               procedureprefix := 'FPC_VAL_REAL_';
+             orddef:
+               if is_signed(dest_para^.resulttype) then
+                 begin
+                   {if we are converting to a signed number, we have to include the
+                    size of the destination, so the Val function can extend the sign
+                    of the result to allow proper range checking}
+                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,dest_para^.resulttype^.size)));
+                   procedureprefix := 'FPC_VAL_SINT_'
+                 end
+               else
+                 procedureprefix := 'FPC_VAL_UINT_';
+           End;
+           emitcall(procedureprefix+pstringdef(node^.resulttype)^.stringtypname,true);
            disposetree(node);
            p^.left := nil;
 
@@ -788,8 +788,8 @@ implementation
            popusedregisters(pushed);
           {save the function result in the destination variable}
            Case dest_para^.left^.resulttype^.deftype of
-             floatdef: floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ,
-                                   dest_para^.left^.location.reference);
+             floatdef:
+               floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ,dest_para^.left^.location.reference);
              orddef:
                Case PordDef(dest_para^.left^.resulttype)^.typ of
                  u8bit,s8bit:
@@ -1278,7 +1278,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-04-07 15:31:16  pierre
+  Revision 1.40  1999-04-08 15:57:46  peter
+    + subrange checking for readln()
+
+  Revision 1.39  1999/04/07 15:31:16  pierre
     * all formaldefs are now a sinlge definition
       cformaldef (this was necessary for double_checksum)
     + small part of double_checksum code

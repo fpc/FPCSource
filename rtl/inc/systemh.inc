@@ -47,33 +47,28 @@ Type
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
-   StrLenInt = LongInt;
+  Double = real;
+  StrLenInt = LongInt;
+
   {$define DEFAULT_EXTENDED}
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
-
-{causes internalerror(17) with internal val handling, and is not yet fully
- supported anyway (JM)}
+  {causes internalerror(17) with internal val handling, and is not yet fully
+   supported anyway (JM)}
   { define SUPPORT_FIXED}
 
-  Double = real;
-{$IfDef ValInternCompiled}
-  TMaxSInt = Longint;
-  TMaxUInt = Cardinal;
-{$EndIf ValInternCompiled}
-  {$ifdef DEFAULT_EXTENDED}
-    ValReal = Extended;
-  {$else}
-    ValReal = Double;
-  {$endif}
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Extended;
 {$endif}
 
 {$ifdef m68k}
-  TMaxSInt = Longint;
-  TMaxUInt = Cardinal;
-   StrLenInt = Longint;
-   ValReal = Real;
+  StrLenInt = Longint;
+
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Real;
 {$endif}
 
 { some type aliases }
@@ -90,8 +85,8 @@ Type
 const
 {$IfDef ValInternCompiled}
 { Maximum value of the biggest signed and unsigned integer type available}
-  MaxSIntValue = High(TMaxSInt);
-  MaxUIntValue = High(TMaxUInt);
+  MaxSIntValue = High(ValSInt);
+  MaxUIntValue = High(ValUInt);
 {$EndIf ValInternCompiled}
 
 
@@ -457,7 +452,10 @@ const
 
 {
   $Log$
-  Revision 1.53  1999-03-16 17:49:37  jonas
+  Revision 1.54  1999-04-08 15:57:56  peter
+    + subrange checking for readln()
+
+  Revision 1.53  1999/03/16 17:49:37  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
     * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,

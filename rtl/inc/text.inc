@@ -433,7 +433,7 @@ begin
 end;
 
 
-Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias:'FPC_WRITE_TEXT_STRING'];
+Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
 Begin
   If (InOutRes<>0) then
    exit;
@@ -486,7 +486,7 @@ Begin
 End;
 
 
-Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public,alias:'FPC_WRITE_TEXT_ANSISTRING'];
+Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public,alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'ANSISTR'{$else}'ANSISTRING'{$endif}];
 {
  Writes a AnsiString to the Text file T
 }
@@ -497,7 +497,7 @@ begin
 end;
 
 
-Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias:'FPC_WRITE_TEXT_LONGINT'];
+Procedure Write_SInt(Len : Longint;var t : TextRec;l : ValSInt);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'SINT'{$else}'LONGINT'{$endif}];
 var
   s : String;
 Begin
@@ -506,6 +506,18 @@ Begin
   Str(l,s);
   Write_Str(Len,t,s);
 End;
+
+
+Procedure Write_UInt(Len : Longint;var t : TextRec;l : ValUInt);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'UINT'{$else}'CARDINAL'{$endif}];
+var
+  s : String;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  Str(L,s);
+  Write_Str(Len,t,s);
+End;
+
 
 
 Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias:'FPC_WRITE_TEXT_REAL'];
@@ -520,17 +532,6 @@ Begin
    Str_real(Len,fixkomma,r,rt_s32real,s);
 {$endif}
    Write_Str(Len,t,s);
-End;
-
-
-Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias:'FPC_WRITE_TEXT_CARDINAL'];
-var
-  s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  Str(L,s);
-  Write_Str(Len,t,s);
 End;
 
 
@@ -732,7 +733,7 @@ Begin
 End;
 
 
-Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_STRING'];
+Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
 var
   maxlen,
   sPos,len : Longint;
@@ -788,32 +789,6 @@ Begin
 End;
 
 
-Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias:'FPC_READ_TEXT_CHAR'];
-Begin
-  c:=#0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-{ Read next char or EOF }
-  If f.BufPos>=f.BufEnd Then
-   begin
-     FileFunc(f.InOutFunc)(f);
-     If f.BufPos>=f.BufEnd Then
-      begin
-        c:=#26;
-        exit;
-      end;
-   end;
-  c:=f.Bufptr^[f.BufPos];
-  inc(f.BufPos);
-end;
-
-
 Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER'];
 var
   p,maxp,startp,sidx : PChar;
@@ -851,7 +826,7 @@ Begin
     Move(startp^,sidx^,Len);
     inc(sidx,len);
   { was it a LF? then leave }
-    if p^=#10 then
+    if (p<maxp) and (p^=#10) then
      begin
        If pchar(p-1)^=#13 Then
         dec(p);
@@ -899,7 +874,7 @@ Begin
     Move(startp^,sidx^,Len);
     inc(sidx,len);
   { was it a LF? then leave }
-    if p^=#10 then
+    if (p<maxp) and (p^=#10) then
      begin
        If pchar(p-1)^=#13 Then
         dec(p);
@@ -910,7 +885,7 @@ Begin
 End;
 
 
-Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_ANSISTRING'];
+Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'ANSISTR'{$else}'ANSISTRING'{$endif}];
 var
   p,maxp,startp,sidx : PChar;
   maxlen,spos,len : longint;
@@ -954,7 +929,7 @@ Begin
     inc(sidx,len);
     inc(spos,len);
   { was it a LF? then leave }
-    if p^=#10 then
+    if (p<maxp) and (p^=#10) then
      begin
        If pchar(sidx-1)^=#13 Then
         begin
@@ -970,6 +945,156 @@ Begin
   sidx^:=#0;
   PAnsiRec(Pointer(S)-FirstOff)^.Len:=spos;
 End;
+
+
+{$ifdef NEWREADINT}
+
+Function Read_Char(var f : TextRec):char;[Public,Alias:'FPC_READ_TEXT_CHAR'];
+Begin
+  Read_Char:=#0;
+{ Check error and if file is open }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read next char or EOF }
+  If f.BufPos>=f.BufEnd Then
+   begin
+     FileFunc(f.InOutFunc)(f);
+     If f.BufPos>=f.BufEnd Then
+       exit(#26);
+   end;
+  Read_Char:=f.Bufptr^[f.BufPos];
+  inc(f.BufPos);
+end;
+
+
+Function Read_SInt(var f : TextRec):ValSInt;[Public,Alias:'FPC_READ_TEXT_SINT'];
+var
+  hs   : String;
+  code : Longint;
+  base : longint;
+Begin
+  Read_SInt:=0;
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
+   ReadNumeric(f,hs,Base);
+  Val(hs,Read_SInt,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
+
+
+Function Read_UInt(var f : TextRec):ValUInt;[Public,Alias:'FPC_READ_TEXT_UINT'];
+var
+  hs   : String;
+  code : longint;
+  base : longint;
+Begin
+  Read_UInt:=0;
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
+   ReadNumeric(f,hs,Base);
+  val(hs,Read_UInt,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
+
+
+Function Read_Float(var f : TextRec):ValReal;[Public,Alias:'FPC_READ_TEXT_FLOAT'];
+var
+  hs : string;
+  code : Word;
+begin
+  Read_Float:=0.0;
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
+   begin
+   { First check for a . }
+     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'.';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        ReadNumeric(f,hs,10);
+      end;
+   { Also when a point is found check for a E }
+     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'E';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        if ReadSign(f,hs) then
+         ReadNumeric(f,hs,10);
+      end;
+   end;
+  val(hs,Read_Float,code);
+  If code<>0 Then
+   InOutRes:=106;
+end;
+
+
+{$else}
+
+Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias:'FPC_READ_TEXT_CHAR'];
+Begin
+  c:=#0;
+{ Check error and if file is open }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read next char or EOF }
+  If f.BufPos>=f.BufEnd Then
+   begin
+     FileFunc(f.InOutFunc)(f);
+     If f.BufPos>=f.BufEnd Then
+      begin
+        c:=#26;
+        exit;
+      end;
+   end;
+  c:=f.Bufptr^[f.BufPos];
+  inc(f.BufPos);
+end;
 
 
 Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias:'FPC_READ_TEXT_LONGINT'];
@@ -1080,7 +1205,7 @@ Begin
    ReadNumeric(f,hs,Base);
   val(hs,l,code);
   If code<>0 Then
-   InOutRes:=201;
+   InOutRes:=106;
 End;
 
 
@@ -1183,6 +1308,8 @@ Begin
 End;
 {$endif SUPPORT_FIXED}
 
+{$endif}
+
 
 {*****************************************************************************
                                Initializing
@@ -1208,7 +1335,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  1999-04-07 22:05:18  peter
+  Revision 1.44  1999-04-08 15:57:57  peter
+    + subrange checking for readln()
+
+  Revision 1.43  1999/04/07 22:05:18  peter
     * fixed bug with readln where it sometime didn't read until eol
 
   Revision 1.42  1999/03/16 17:49:39  jonas

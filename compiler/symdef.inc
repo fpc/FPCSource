@@ -525,6 +525,16 @@
       end;
 
 
+    function tstringdef.stringtypname:string;
+      const
+        typname:array[tstringtype] of string[8]=(
+          'SHORTSTR','LONGSTR','ANSISTR','WIDESTR'
+        );
+      begin
+        stringtypname:=typname[string_typ];
+      end;
+
+
     function tstringdef.size : longint;
       begin
         size:=savesize;
@@ -3423,7 +3433,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.99  1999-04-07 15:39:32  pierre
+  Revision 1.100  1999-04-08 15:57:51  peter
+    + subrange checking for readln()
+
+  Revision 1.99  1999/04/07 15:39:32  pierre
     + double_checksum code added
 
   Revision 1.98  1999/03/06 17:24:16  peter

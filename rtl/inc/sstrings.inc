@@ -344,12 +344,7 @@ end;
                            Val() Functions
 *****************************************************************************}
 
-Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):
-{$IfDef ValInternCompiled}
-TMaxSInt;
-{$Else ValInternCompiled}
-Word;
-{$EndIf ValInternCompiled}
+Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):ValSInt;
 var
   Code : Longint;
 begin
@@ -394,12 +389,12 @@ end;
 
 {$IfDef ValInternCompiled}
 
-Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
+Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
 var
-  u: TMaxSInt;
+  u: ValSInt;
   base : byte;
   negative : boolean;
-  temp, prev: TMaxUInt;
+  temp, prev: ValUInt;
 begin
   ValSignedInt := 0;
   Temp:=0;
@@ -423,9 +418,9 @@ begin
       u:=16;
      end;
      Prev := Temp;
-     Temp := Temp*TMaxUInt(base);
+     Temp := Temp*ValUInt(base);
      If ((base = 10) and
-         (prev > MaxSIntValue div TMaxUInt(Base))) or
+         (prev > MaxSIntValue div ValUInt(Base))) or
         (Temp < prev) Then
        Begin
          ValSignedInt := 0;
@@ -444,7 +439,7 @@ begin
      inc(code);
    end;
   code := 0;
-  ValSignedInt := TMaxSInt(Temp);
+  ValSignedInt := ValSInt(Temp);
   If Negative Then
     ValSignedInt := -ValSignedInt;
   If Not(Negative) and (base <> 10) Then
@@ -460,12 +455,12 @@ begin
     End;
 end;
 
-Function ValUnsignedInt(Const S: ShortString; var Code: TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
+Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
-  u: TMaxUInt;
+  u: ValUInt;
   base : byte;
   negative : boolean;
-  prev: TMaxUInt;
+  prev: ValUInt;
 begin
   ValUnSignedInt:=0;
   Code:=InitVal(s,negative,base);
@@ -481,10 +476,10 @@ begin
       u:=16;
      end;
      prev := ValUnsignedInt;
-     ValUnsignedInt:=ValUnsignedInt*TMaxUInt(base);
+     ValUnsignedInt:=ValUnsignedInt*ValUInt(base);
      If prev > ValUnsignedInt Then
       {we've had an overflow. Can't check this with
-       "If ValUnsignedInt <= (MaxUIntValue div TMaxUInt(Base)) Then"
+       "If ValUnsignedInt <= (MaxUIntValue div ValUInt(Base)) Then"
        because this division always overflows! (JM)}
        Begin
          ValUnsignedInt := 0;
@@ -501,7 +496,7 @@ begin
   code := 0;
 end;
 
-Function ValFloat(const s : shortstring; var code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR'];
+Function ValFloat(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR'];
 var
   hd,
   esign,sign : valreal;
@@ -595,7 +590,7 @@ begin
 end;
 
 {$ifdef SUPPORT_FIXED}
-Function ValFixed(const s : shortstring;var code : TMaxSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SHORTSTR'];
+Function ValFixed(const s : shortstring;var code : ValSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SHORTSTR'];
 begin
   ValFixed := Fixed(ValFloat(s,code));
 end;
@@ -1195,7 +1190,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1999-04-05 12:28:27  michael
+  Revision 1.27  1999-04-08 15:57:54  peter
+    + subrange checking for readln()
+
+  Revision 1.26  1999/04/05 12:28:27  michael
   + Fixed insert with char. length byte wrapped around in some cases.
 
   Revision 1.25  1999/04/01 22:11:50  peter

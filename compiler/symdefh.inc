@@ -444,6 +444,7 @@
           constructor ansiload;
           constructor wideinit(l : longint);
           constructor wideload;
+          function stringtypname:string;
           function size : longint;virtual;
           procedure write;virtual;
 {$ifdef GDB}
@@ -505,7 +506,10 @@
 
 {
   $Log$
-  Revision 1.18  1999-03-02 18:24:21  peter
+  Revision 1.19  1999-04-08 15:57:52  peter
+    + subrange checking for readln()
+
+  Revision 1.18  1999/03/02 18:24:21  peter
     * fixed overloading of array of char
 
   Revision 1.17  1999/03/01 13:45:06  pierre

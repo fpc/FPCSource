@@ -10,6 +10,8 @@ In future, please add also your name short cut, when fixing a bug.
 
 Fixed bugs:
 -----------
+  1.pp          produces a linker error under win32/linux, sorry for the filename
+                but the filename is the bug :)                      OK 0.99.11 (PFV)
   bug0001.pp    tests a bug in the .ascii output (#0 and too long)  OK 0.9.2
   bug0002.pp    tests for the endless bug in the optimizer          OK 0.9.2
   bug0003.pp    dito                                                OK 0.9.2
@@ -223,6 +225,7 @@ Fixed bugs:
   bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
   bug0183.pp   internal error 10 in secondnot                        OK 0.99.11 (PM)
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
+  bug0185.pp   missing range checking for Val and subrange types     OK 0.99.11 (JM/PFV)
   bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
   bug0187.pp   constructor in a WIth statement isn't called correct.
                (works at lest in the case stated)                    OK 0.99.11 (PM)
@@ -280,8 +283,7 @@ Fixed bugs:
   bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
-  1.pp         produces a linker error under win32/linux, sorry for the filename
-               but the filename is the bug :)                       OK 0.99.11 (PFV)
+  bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
 
 
 Unproducable bugs:
@@ -311,12 +313,10 @@ bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 bug0226.pp   Asm, offset of var is not allowed as constant
 bug0228.pp   Asm, wrong warning for size
 
-bug0185.pp   missing range checking for Val and subrange types
 bug0217.pp   in tp mode can't use the procvar in writeln
 bug0230.pp   several strange happen on the ln function: ln(0): no
              FPE and writeln can't write non numeric values
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0234.pp   New with void pointer
-bug0235.pp   Val(cardinal) bug
 bug0236.pp   Problem with range check of subsets !! compile with -Cr

@@ -6,7 +6,6 @@ var s: String;
     i: integer;
     code: word;
     e: 0..10;
-    enum : (a,b,c,d);
 
 Begin
 {$R-}
@@ -29,7 +28,4 @@ Begin
   val(s, i, code); {must give a range check error}
   Writeln('Val range check failed!');
 
-  { val must also handle enums }
-  s:='2';
-  val(s, enum, code); 
 End.

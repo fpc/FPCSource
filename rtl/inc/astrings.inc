@@ -490,7 +490,7 @@ end;
 
 {$IfDef ValInternCompiled}
 
-Function ValAnsiFloat(Const S : AnsiString; Var Code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
+Function ValAnsiFloat(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
 Var SS : String;
 begin
  AnsiStr_To_ShortStr(SS,Pointer(S));
@@ -498,7 +498,7 @@ begin
 end;
 
 
-Function ValAnsiUnsigendInt (Const S : AnsiString; Code : TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
+Function ValAnsiUnsigendInt (Const S : AnsiString; Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
 Var SS : ShortString;
 
 begin
@@ -507,7 +507,7 @@ begin
 end;
 
 
-Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
+Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
 
 Var SS : ShortString;
 
@@ -517,7 +517,7 @@ begin
 end;
 
 {$IfDef SUPPORT_FIXED}
-Function ValAnsiFixed(Const S : AnsiString; Var Code : TMaxSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
+Function ValAnsiFixed(Const S : AnsiString; Var Code : ValSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
 Var SS : String;
 begin
  AnsiStr_To_ShortStr (SS,Pointer(S));
@@ -764,7 +764,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-04-08 10:19:55  peter
+  Revision 1.19  1999-04-08 15:57:53  peter
+    + subrange checking for readln()
+
+  Revision 1.18  1999/04/08 10:19:55  peter
     * fixed concat when s1 or s2 was nil
 
   Revision 1.17  1999/04/06 11:23:58  peter
