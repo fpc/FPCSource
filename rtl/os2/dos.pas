@@ -128,8 +128,8 @@ procedure getcbreak(var breakvalue:boolean);
 procedure setcbreak(breakvalue:boolean);
 procedure getverify(var verify:boolean);
 procedure setverify(verify : boolean);
-function diskfree(drive:byte):longint;
-function disksize(drive:byte):longint;
+function diskfree(drive:byte):int64;
+function disksize(drive:byte):int64;
 procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
 procedure findnext(var f:searchRec);
 procedure findclose(var f:searchRec);
@@ -615,12 +615,12 @@ begin
     end;
 end;
 
-function diskfree(drive:byte):longint;
+function diskfree(drive:byte):int64;
 
 var fi:TFSinfo;
 
 begin
-    if os_mode=osDOS then
+    if os_mode=osDOS or os_mode = osDPMI then
     {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -652,12 +652,12 @@ begin
         end;
 end;
 
-function disksize(drive:byte):longint;
+function disksize(drive:byte):int64;
 
 var fi:TFSinfo;
 
 begin
-    if os_mode=osDOS then
+    if os_mode=osDOS or os_mode = osDPMI then
         {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-02-09 16:59:33  peter
+  Revision 1.21  2000-03-05 19:00:37  hajny
+    * DiskFree, DiskSize - int64 result, fix for osDPMI mode
+
+  Revision 1.20  2000/02/09 16:59:33  peter
     * truncated log
 
   Revision 1.19  2000/01/09 20:51:03  hajny
