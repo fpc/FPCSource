@@ -549,6 +549,7 @@ function ValidateRect(hWnd:HWND;lpRect:LPRECT):WINBOOL; external 'user32' name '
 function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external 'user32' name 'InvalidateRgn';
 function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external 'user32' name 'ValidateRgn';
 function RedrawWindow(hWnd:HWND; var lprcUpdate:RECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external 'user32' name 'RedrawWindow';
+function RedrawWindow(hWnd:HWND; lprcUpdate:LPRECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external 'user32' name 'RedrawWindow';
 function LockWindowUpdate(hWndLock:HWND):WINBOOL; external 'user32' name 'LockWindowUpdate';
 function ScrollWindow(hWnd:HWND; XAmount:longint; YAmount:longint; var lpRect:RECT; var lpClipRect:RECT):WINBOOL; external 'user32' name 'ScrollWindow';
 function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT;hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL; external 'user32' name 'ScrollDC';
@@ -2299,7 +2300,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-09-15 17:53:45  peter
+  Revision 1.11  2002-09-26 10:38:10  florian
+    + added RedrawWindow with LPRECT as second parameter
+
+  Revision 1.10  2002/09/15 17:53:45  peter
     * Remove Float type, use Single instead
 
   Revision 1.9  2002/09/07 16:01:31  peter
