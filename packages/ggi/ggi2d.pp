@@ -30,6 +30,8 @@ unit GGI2D;
 
 interface
 
+uses GGI;
+
 const
 
   libggi2d = 'ggi2d';
@@ -109,8 +111,8 @@ function  ggi2dGetDrawColor(Visual: TGGIVisual): TGGIPixel; cdecl; external libg
 function  ggi2dSetFillColor(Visual: TGGIVisual; Color: TGGIPixel): Integer; cdecl; external libggi2d;
 function  ggi2dGetFillColor(Visual: TGGIVisual): TGGIPixel; cdecl; external libggi2d;
 function  ggi2dSetFillTexture(Visual: TGGIVisual; RefPoint: TGGI2dCoord; Texture: TGGI2dImage): Integer; cdecl; external libggi2d;
-function  ggi2dGetFillTexture(Visual: TGGIVisual; var RefPoint: TGGI2dCoord; var Texture: TGGI2dTexture): Integer; cdecl; external libggi2d;
-function  ggi2dSetOperator(Visual: TGGIVisual; Operator: TGGI2dOperator): Integer; cdecl; external libggi2d;
+function  ggi2dGetFillTexture(Visual: TGGIVisual; var RefPoint: TGGI2dCoord; var Texture: TGGI2dImage): Integer; cdecl; external libggi2d;
+function  ggi2dSetOperator(Visual: TGGIVisual; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
 function  ggi2dGetOperator(Visual: TGGIVisual): TGGI2dOperator; cdecl; external libggi2d;
 
 
@@ -175,13 +177,13 @@ function  ggi2dBlitOp(
 	    Visual: TGGIVisual; dx, dy: SmallInt;
 	    Src1: TGGI2dImage; s1x, s1y: SmallInt;
 	    Src2: TGGI2dImage; s2x, s2y: SmallInt;
-	    Width, Height: SmallInt; Operator: TGGI2dOperator): Integer; cdecl; external libggi2d;
+	    Width, Height: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
 
 function  ggi2dStretchBlitOp(
 	    Visual: TGGIVisual; dx, dy, DWidth, DHeight: SmallInt;
 	    Src1: TGGI2dImage; s1x, s1y: SmallInt;
 	    Src2: TGGI2dImage; s2x, s2y: SmallInt;
-	    SWidth, SHeight: SmallInt; Operator: TGGI2dOperator): Integer; cdecl; external libggi2d;
+	    SWidth, SHeight: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
 
 
 
@@ -192,7 +194,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-11-10 14:14:34  sg
+  Revision 1.2  1999-11-12 18:48:59  sg
+  * Fixed some typos
+
+  Revision 1.1  1999/11/10 14:14:34  sg
   * Added to CVS
 
 }
