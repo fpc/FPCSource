@@ -31,18 +31,23 @@
     function power(bas,expo : extended) : extended;
     function power(bas,expo : longint) : longint;
 
-{$ifdef SUPPORT_DOUBLE}
     type
        real48 = array[0..5] of byte;
 
+{$ifdef SUPPORT_DOUBLE}
     function Real2Double(r : real48) : double;
     operator := (b:real48) d:double;
-    operator := (b:real48) e:extended;
 {$endif}
+{$ifdef SUPPORT_EXTENDED}
+    operator := (b:real48) e:extended;
+{$endif SUPPORT_EXTENDED}
 
 {
   $Log$
-  Revision 1.6  2001-12-26 21:03:56  peter
+  Revision 1.7  2002-07-26 22:46:06  florian
+    * interface of system unit for Linux/PowerPC compiles
+
+  Revision 1.6  2001/12/26 21:03:56  peter
     * merged fixes from 1.0.x
 
   Revision 1.5  2001/12/13 20:23:19  michael

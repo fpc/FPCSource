@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2000 by Jonas Maebe and other members of the
+    Copyright (c) 2000-2002 by Jonas Maebe and other members of the
     Free Pascal development team
 
     SetJmp/Longjmp declarations
@@ -15,10 +15,20 @@
 
  **********************************************************************}
 
+type
+   jmp_buf = record
+   end;
+   pjmp_buf = ^jmp_buf;
+
+function setjmp(var S : jmp_buf) : longint;
+procedure longjmp(var S : jmp_buf;value : longint);
 
 {
   $Log$
-  Revision 1.2  2002-07-26 22:08:38  florian
+  Revision 1.3  2002-07-26 22:46:17  florian
+    * interface of system unit for Linux/PowerPC compiles
+
+  Revision 1.2  2002/07/26 22:08:38  florian
     * comments fixed
 
   Revision 1.1  2002/07/26 22:08:13  florian

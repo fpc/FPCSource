@@ -114,7 +114,7 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$fatal ENDIAN_BIG}
+  {$define ENDIAN_BIG}
   {$i powerpc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif powerpc}
@@ -755,7 +755,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2002-07-26 16:42:00  florian
+  Revision 1.31  2002-07-26 22:46:06  florian
+    * interface of system unit for Linux/PowerPC compiles
+
+  Revision 1.30  2002/07/26 16:42:00  florian
     * endian directive for PowerPC fixed
 
   Revision 1.29  2002/07/04 20:40:09  florian

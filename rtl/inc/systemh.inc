@@ -133,9 +133,7 @@ Type
 {$ifdef SUPPORT_COMP}
   PComp               = ^Comp;
 {$endif SUPPORT_COMP}
-{$ifdef SUPPORT_EXTENDED}
   PExtended           = ^Extended;
-{$endif SUPPORT_EXTENDED}
 
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
@@ -581,7 +579,10 @@ const
 
 {
   $Log$
-  Revision 1.49  2002-07-26 21:29:03  florian
+  Revision 1.50  2002-07-26 22:46:06  florian
+    * interface of system unit for Linux/PowerPC compiles
+
+  Revision 1.49  2002/07/26 21:29:03  florian
     + powerpc type support
 
   Revision 1.48  2002/07/04 20:40:09  florian
