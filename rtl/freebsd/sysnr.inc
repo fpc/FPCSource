@@ -117,7 +117,7 @@ const
  syscall_nr_getdomainname               =162;
  syscall_nr_setdomainname               =163;
  syscall_nr_uname                       =164;
- syscall_nr_sysarch                     =165;
+
  syscall_nr_rtprio                      =166;
  syscall_nr_semsys                      =169;
  syscall_nr_msgsys                      =170;
@@ -242,7 +242,7 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked BSD syscalls}
-
+ syscall_nr_sysarch                     = 165;
  syscall_nr_accept                      =  30;
  syscall_nr_access                      =  33;
  syscall_nr_bind                        = 104;
@@ -316,7 +316,10 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.3  2000-10-26 23:00:12  peter
+  Revision 1.4  2001-01-22 07:25:10  marco
+   * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
+
+  Revision 1.3  2000/10/26 23:00:12  peter
     * fixes merges
 
   Revision 1.2  2000/09/18 13:42:35  marco
