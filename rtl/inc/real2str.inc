@@ -23,7 +23,7 @@ const
    i10 : longint = 10;
    i2  : longint = 2;
    i1  : longint = 1;
-
+(*
    { we can use this conditional if the Inf const is defined
      in processor specific code PM }
 {$ifdef FPC_HAS_INFINITY_CONST}
@@ -60,7 +60,7 @@ const
     {$warning don't know Infinity values }
 {$endif not FPC_INFINITY_FOR_REAL2STR}
 {$endif not FPC_HAS_INFINITY_CONST}
-
+*)
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
 {
   These numbers are for the double type...
@@ -76,6 +76,28 @@ const
       minexp = 1e-35;   { Minimum value for decimal expressions }
       zero   = '0000000000000000000000000000000000000000';
 
+type
+  TSplitExtended = packed record
+    case byte of
+      0: (bytes: Array[0..9] of byte);
+      1: (words: Array[0..4] of word);
+      2: (cards: Array[0..1] of cardinal; w: word);
+  end;
+
+  TSplitDouble = packed record
+    case byte of
+      0: (bytes: Array[0..7] of byte);
+      1: (words: Array[0..3] of word);
+      2: (cards: Array[0..1] of cardinal);
+  end;
+
+  TSplitSingle = packed record
+    case byte of
+      0: (bytes: Array[0..3] of byte);
+      1: (words: Array[0..1] of word);
+      2: (cards: Array[0..0] of cardinal);
+  end;
+
 var correct : longint;  { Power correction }
     currprec : longint;
     il,il2,roundcorr : Valreal;
@@ -85,6 +107,7 @@ var correct : longint;  { Power correction }
     i : integer;
     dot : byte;
     currp : pchar;
+    mantZero, expMaximal: boolean;
 begin
   case real_type of
     rt_s32real :
@@ -130,153 +153,191 @@ begin
   if len=-32767 then
     len:=maxlen;
   { determine sign. before precision, needs 2 less calls to abs() }
-  sign:=d<0;
-  { the creates a cannot determine which overloaded function to call
-  if d is extended !!!
-  we should prefer real_to_real on real_to_longint !!
-  corrected in compiler }
-
-  {  d:=abs(d); this converts d to double so we loose precision }
-  { for the same reason I converted d:=frac(d) to d:=d-int(d); (PM) }
-  if sign then
-    d:=-d;
-
-{$ifdef FPC_INFINITY_FOR_REAL2STR}
-{$ifndef FPC_HAS_INFINITY_CONST}
-    if d=ValReal(InfArray) then
-{$else FPC_HAS_INFINITY_CONST}
-    if d=Inf then
-{$endif FPC_HAS_INFINITY_CONST}
-      begin
-        if sign then
-          s:='-Inf'
-        else
-          s:='Inf';
-        exit;
-      end;
-{$endif FPC_INFINITY_FOR_REAL2STR}
-  { determine precision : maximal precision is : }
-  currprec:=maxlen-explen-3;
-  { this is also the maximal number of decimals !!}
-  if f>currprec then
-    f:=currprec;
-  { when doing a fixed-point, we need less characters.}
-  if (f<0) or ( (d<>0) and ((d>maxexp) or (d<minexp))) then
-    begin
-    { determine maximal number of decimals }
-      if (len>=0) and (len<minlen) then
-        len:=minlen;
-      if (len>0) and (len<maxlen) then
-        currprec:=len-explen-3;
-    end;
-  { convert to standard form. }
-  correct:=0;
-  if d>=i10 then
-   begin
-     il:=i1;
-     il2:=i10;
-     repeat
-       il:=il2;
-       il2:=il*i10;
-       inc(correct);
-     until (d<il2);
-     d:=d/il;
-   end
+{  sign:=d<0;}
+{$ifndef big_endian}
+{$ifdef SUPPORT_EXTENDED}
+  { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
+  sign := (TSplitExtended(d).w and $8000) <> 0;
+  expMaximal := (TSplitExtended(d).w and $7fff) = 32767;
+  mantZero := (TSplitExtended(d).cards[0] = 0) and
+                  (TSplitExtended(d).cards[1] = 0);
+{$else SUPPORT_EXTENDED}
+{$ifdef SUPPORT_DOUBLE}
+  { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
+  sign := ((TSplitDouble(d).cards[1] shr 20) and $800) <> 0;
+  expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
+  mantZero := (TSplitDouble(d).cards[1] and $fffff = 0) and
+              (TSplitDouble(d).cards[0] = 0);
+{$else SUPPORT_DOUBLE}
+{$ifdef SUPPORT_SINGLE}
+  { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
+  sign := ((TSplitSingle(d).words[1] shr 7) and $100) <> 0;
+  expMaximal := ((TSplitSingle(d).words[1] shr 7) and $ff) = 255;
+  mantZero := (TSplitSingle(d).cards[0] and $7fffff = 0);
+{$else SUPPORT_SINGLE}
+  {$error No floating type supported for real2str}
+{$endif SUPPORT_SINGLE}
+{$endif SUPPORT_DOUBLE}
+{$endif SUPPORT_EXTENDED}
+{$else big_endian}
+  {$error NaN/Inf not yet supported for big endian machines in str_real}
+{$endif big_endian}
+  if expMaximal then
+    if mantZero then
+      if sign then
+        temp := '-Inf'
+      else temp := 'Inf'
+    else temp := 'NaN'
   else
-   if (d<1) and (d<>0) then
     begin
-      while d<1 do
+      { the creates a cannot determine which overloaded function to call
+      if d is extended !!!
+      we should prefer real_to_real on real_to_longint !!
+      corrected in compiler }
+
+      {  d:=abs(d); this converts d to double so we loose precision }
+      { for the same reason I converted d:=frac(d) to d:=d-int(d); (PM) }
+      if sign then
+        d:=-d;
+(*
+    {$ifdef FPC_INFINITY_FOR_REAL2STR}
+    {$ifndef FPC_HAS_INFINITY_CONST}
+        if d=ValReal(InfArray) then
+    {$else FPC_HAS_INFINITY_CONST}
+        if d=Inf then
+    {$endif FPC_HAS_INFINITY_CONST}
+          begin
+            if sign then
+              s:='-Inf'
+            else
+              s:='Inf';
+            exit;
+          end;
+    {$endif FPC_INFINITY_FOR_REAL2STR}
+*)      
+      { determine precision : maximal precision is : }
+      currprec:=maxlen-explen-3;
+      { this is also the maximal number of decimals !!}
+      if f>currprec then
+        f:=currprec;
+      { when doing a fixed-point, we need less characters.}
+      if (f<0) or ( (d<>0) and ((d>maxexp) or (d<minexp))) then
+        begin
+        { determine maximal number of decimals }
+          if (len>=0) and (len<minlen) then
+            len:=minlen;
+          if (len>0) and (len<maxlen) then
+            currprec:=len-explen-3;
+        end;
+      { convert to standard form. }
+      correct:=0;
+      if d>=i10 then
+       begin
+         il:=i1;
+         il2:=i10;
+         repeat
+           il:=il2;
+           il2:=il*i10;
+           inc(correct);
+         until (d<il2);
+         d:=d/il;
+       end
+      else
+       if (d<1) and (d<>0) then
+        begin
+          while d<1 do
+           begin
+             d:=d*i10;
+             dec(correct);
+           end;
+        end;
+      { RoundOff }
+      roundcorr:=extended(i1)/extended(i2);
+      if f<0 then
+        for i:=1 to currprec do roundcorr:=roundcorr/i10
+      else
+        begin
+          if correct+f<0 then
+           begin
+             for i:=1 to abs(correct+f) do
+              roundcorr:=roundcorr*i10;
+           end
+          else
+           begin
+             for i:=1 to correct+f do
+              roundcorr:=roundcorr/i10;
+           end;
+        end;
+      d:=d+roundcorr;
+      { 0.99 + 0.05 > 1.0 ! Fix this by dividing the results >=10 first (PV) }
+      while (d>=10.0) do
+       begin
+         d:=d/i10;
+         inc(correct);
+       end;
+      { Now we have a standard expression : sign d *10^correct
+        where  1<d<10 or d=0 ... }
+      { get first character }
+      currp:=pchar(@temp[1]);
+      if sign then
+        currp^:='-'
+      else
+        currp^:=' ';
+      inc(currp);
+      currp^:=chr(ord('0')+trunc(d));
+      inc(currp);
+      d:=d-int(d);
+      { Start making the string }
+      for i:=1 to currprec do
        begin
          d:=d*i10;
-         dec(correct);
+         currp^:=chr(ord('0')+trunc(d));
+         inc(currp);
+         d:=d-int(d);
        end;
-    end;
-  { RoundOff }
-  roundcorr:=extended(i1)/extended(i2);
-  if f<0 then
-    for i:=1 to currprec do roundcorr:=roundcorr/i10
-  else
-    begin
-      if correct+f<0 then
-       begin
-         for i:=1 to abs(correct+f) do
-          roundcorr:=roundcorr*i10;
-       end
+      temp[0]:=chr(currp-pchar(@temp[1]));
+      { Now we need two different schemes for the different
+        representations. }
+      if (f<0) or (correct>maxexp) then
+        begin
+          insert ('.',temp,3);
+          str(abs(correct),power);
+          if length(power)<explen-2 then
+           power:=copy(zero,1,explen-2-length(power))+power;
+          if correct<0 then
+            power:='-'+power
+          else
+            power:='+'+power;
+          temp:=temp+'E'+power;
+        end
       else
-       begin
-         for i:=1 to correct+f do
-          roundcorr:=roundcorr/i10;
-       end;
-    end;
-  d:=d+roundcorr;
-  { 0.99 + 0.05 > 1.0 ! Fix this by dividing the results >=10 first (PV) }
-  while (d>=10.0) do
-   begin
-     d:=d/i10;
-     inc(correct);
-   end;
-  { Now we have a standard expression : sign d *10^correct
-    where  1<d<10 or d=0 ... }
-  { get first character }
-  currp:=pchar(@temp[1]);
-  if sign then
-    currp^:='-'
-  else
-    currp^:=' ';
-  inc(currp);
-  currp^:=chr(ord('0')+trunc(d));
-  inc(currp);
-  d:=d-int(d);
-  { Start making the string }
-  for i:=1 to currprec do
-   begin
-     d:=d*i10;
-     currp^:=chr(ord('0')+trunc(d));
-     inc(currp);
-     d:=d-int(d);
-   end;
-  temp[0]:=chr(currp-pchar(@temp[1]));
-  { Now we need two different schemes for the different
-    representations. }
-  if (f<0) or (correct>maxexp) then
-    begin
-      insert ('.',temp,3);
-      str(abs(correct),power);
-      if length(power)<explen-2 then
-       power:=copy(zero,1,explen-2-length(power))+power;
-      if correct<0 then
-        power:='-'+power
-      else
-        power:='+'+power;
-      temp:=temp+'E'+power;
-    end
-  else
-    begin
-      if not sign then
-       begin
-         delete (temp,1,1);
-         dot:=2;
-       end
-      else
-       dot:=3;
-      { set zeroes and dot }
-      if correct>=0 then
-       begin
-         if length(temp)<correct+dot+f then
-          temp:=temp+copy(zero,1,correct+dot+f-length(temp));
-         insert ('.',temp,correct+dot);
-       end
-      else
-       begin
-         correct:=abs(correct);
-         insert(copy(zero,1,correct),temp,dot-1);
-         insert ('.',temp,dot);
-       end;
-      { correct length to fit precision }
-      if f>0 then
-       temp[0]:=chr(pos('.',temp)+f)
-      else
-       temp[0]:=chr(pos('.',temp)-1);
+        begin
+          if not sign then
+           begin
+             delete (temp,1,1);
+             dot:=2;
+           end
+          else
+           dot:=3;
+          { set zeroes and dot }
+          if correct>=0 then
+           begin
+             if length(temp)<correct+dot+f then
+              temp:=temp+copy(zero,1,correct+dot+f-length(temp));
+             insert ('.',temp,correct+dot);
+           end
+          else
+           begin
+             correct:=abs(correct);
+             insert(copy(zero,1,correct),temp,dot-1);
+             insert ('.',temp,dot);
+           end;
+          { correct length to fit precision }
+          if f>0 then
+           temp[0]:=chr(pos('.',temp)+f)
+          else
+           temp[0]:=chr(pos('.',temp)-1);
+        end;
     end;
   if length(temp)<len then
     s:=space(len-length(temp))+temp
@@ -286,7 +347,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2000-01-07 16:41:36  daniel
+  Revision 1.20  2000-01-17 13:00:51  jonas
+    + support for NaN's, cleaner support for Inf
+
+  Revision 1.19  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.18  1999/11/28 23:57:23  pierre
