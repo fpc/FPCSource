@@ -859,7 +859,7 @@ implementation
                  end;
              end;
              { load mask }
-             emit_reg_reg(A_MOV,S_D,R_EDI,R_MM7);
+             emit_reg_reg(A_MOVD,S_NO,R_EDI,R_MM7);
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
              { shift mask }
@@ -940,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-11-18 15:34:44  pierre
+  Revision 1.37  2000-01-07 00:12:10  peter
+    * fixed movd isntruction to be A_MOVD instead of A_MOV S_D
+
+  Revision 1.36  1999/11/18 15:34:44  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 
