@@ -28,6 +28,9 @@ interface
 
   type
     TConsoleMode =
+{$ifdef OS2}
+      dword
+{$endif OS2}
 {$ifdef UNIX}
       TermIos
 {$endif UNIX}
@@ -77,7 +80,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:40:48  peter
+  Revision 1.5  2002-10-12 19:42:01  hajny
+    + OS/2 support
+
+  Revision 1.4  2002/09/07 15:40:48  peter
     * old logs removed and tabs fixed
 
 }
