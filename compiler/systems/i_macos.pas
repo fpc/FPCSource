@@ -37,7 +37,7 @@ unit i_macos;
             unit_env     : '';
             extradefines : '';
             sourceext    : '.pp';
-            pasext       : '.p';
+            pasext       : '.pas'; //is normally .p on MacOS, but then the compiler doesnt compile.
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-01-13 22:15:58  florian
+  Revision 1.9  2003-06-18 10:19:07  olle
+    * changed .p to .pas to make the compiler compile
+
+  Revision 1.8  2003/01/13 22:15:58  florian
     * changed ppu extentions from pput to ppu
 
   Revision 1.7  2003/01/13 17:16:44  olle
