@@ -44,7 +44,13 @@ end ;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
 begin
-result := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond) { div MSecsPerDay} ;
+If ((hour>=0) and (Hour<24)) and 
+   ((Minute>=0) and (Minute<60)) and
+   ((Second>=0) and (Second<60)) and
+   ((MilliSecond>=0) and (Millisecond<1000)) then
+  Result := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond)
+else
+  Result:=0;
 end ;
 
 {==============================================================================}
@@ -381,12 +387,16 @@ begin
 Current := 0;
 Len := length(s);
 PM := False;
+for i:=0 to 4 do 
+  timevalues[i]:=0;
 i := 0;
 TimeValues[i] := GetElement;
 while (i < 5) and (TimeValues[i] <> -1) do begin
    i := i + 1;
    TimeValues[i] := GetElement;
    end ;
+If (i<5) and (TimeValues[I]=-1) then 
+  TimeValues[I]:=0;
 if PM then Inc(TimeValues[0], 12);
 result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
 end ;
@@ -622,7 +632,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-05-11 09:05:13  michael
+  Revision 1.12  1999-05-13 21:51:41  michael
+  * several fixes
+
+  Revision 1.11  1999/05/11 09:05:13  michael
   * SMall fixes to date/time routines
 
   Revision 1.10  1999/04/18 19:03:03  michael

@@ -35,7 +35,10 @@ var i: longint;
 begin
 i := Length(FileName);
 while (i > 0) and not (FileName[i] in ['/', '\', ':']) do Dec(i);
-Result := Copy(FileName, 1, i);
+If I>0 then
+  Result := Copy(FileName, 1, i)
+else
+  Result:='';
 end;
 
 function ExtractFileDir(const FileName: string): string;
@@ -85,11 +88,15 @@ end;
 
 function ExpandFileName (Const FileName : string): String;
 
+Var S : String;
+
 Begin
+ S:=FileName;
+ DoDirSeparators(S);
 {$ifdef linux}
-  Result:=Linux.fexpand(FileName);
+  Result:=Linux.fexpand(S);
 {$else}
-  Result:=Dos.Fexpand(FileName);
+  Result:=Dos.Fexpand(S);
 {$endif}
 end;
 
@@ -181,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-12-19 14:52:28  peter
+  Revision 1.6  1999-05-13 21:51:42  michael
+  * several fixes
+
+  Revision 1.5  1998/12/19 14:52:28  peter
     * removed temp define
 
   Revision 1.4  1998/10/05 21:35:41  peter
