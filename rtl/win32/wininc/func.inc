@@ -77,6 +77,7 @@ procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32' name 'GlobalUnfix';
 function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalWire';
 function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnWire';
 procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
+procedure GlobalMemoryStatus(var Buffer: MEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
 function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32' name 'LocalAlloc';
 function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
 function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32' name 'LocalReAlloc';
@@ -2302,7 +2303,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2002-10-11 09:37:40  michael
+  Revision 1.14  2002-10-11 09:40:43  michael
+  + Fixed globalmemorystatus (bug 2076)
+
+  Revision 1.13  2002/10/11 09:37:40  michael
   + Fixed getlocaltime incompatibility (bug 2075)
 
   Revision 1.12  2002/10/02 19:30:52  florian
