@@ -9276,13 +9276,3 @@
     flags   : if_pent or if_3dnow or if_fpu
   )
 );
-
-{
-  $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:42  michael
-  + removed logs
- 
-}
