@@ -1788,7 +1788,11 @@ type
            { destructor: direct call, no dispose, vmt=0
              constructor: initialize object, load vmt }
            if (procdefinition.proctypeoption=potype_constructor) then
-             vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+             { old styled inherited call? }
+             if (methodpointer.nodetype=typen) then
+               vmttree:=cpointerconstnode.create(0,voidpointertype)
+             else
+               vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
            else
              vmttree:=cpointerconstnode.create(0,voidpointertype);
          end;
@@ -2544,7 +2548,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.188  2003-10-03 22:00:33  peter
+  Revision 1.189  2003-10-04 19:00:52  florian
+    * fixed TP 6.0 styled inherited call; fixes IDE with 1.1
+
+  Revision 1.188  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.187  2003/10/03 14:44:38  peter
