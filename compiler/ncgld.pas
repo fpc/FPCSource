@@ -709,7 +709,7 @@ implementation
          hr_valid : boolean;
          i : integer;
       begin
-         location_reset(location,LOC_REFERENCE,def_cgsize(funcretsym.returntype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          hr_valid:=false;
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
@@ -989,7 +989,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-11-18 17:31:54  peter
+  Revision 1.39  2002-11-22 16:22:45  jonas
+    * fixed error in my previous commit (the size of the location of the
+      funcretnode must be based on the current resulttype of the node and not
+      the resulttype defined by the function; these can be different in case
+      of "absolute" declarations)
+
+  Revision 1.38  2002/11/18 17:31:54  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.37  2002/11/15 21:16:39  jonas
