@@ -78,6 +78,13 @@ unit ptconst;
              end;
         end;
 
+      function is_po_equal(o1,o2:longint):boolean;
+        begin
+        { assembler does not affect }
+          is_po_equal:=(o1 and not(poassembler))=
+                       (o2 and not(poassembler));
+        end;
+
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
          case def^.deftype of
@@ -447,9 +454,9 @@ unit ptconst;
                    exit;
                 end
               else
-              if not(m_tp_procvar in aktmodeswitches) then
-                if token=KLAMMERAFFE then
-                  consume(KLAMMERAFFE);
+                if not(m_tp_procvar in aktmodeswitches) then
+                  if token=KLAMMERAFFE then
+                    consume(KLAMMERAFFE);
               getsym(pattern,true);
               consume(ID);
               if srsym^.typ=unitsym then
@@ -465,27 +472,27 @@ unit ptconst;
                    pd:=pprocsym(srsym)^.definition;
                    if assigned(pd^.nextoverloaded) then
                      Message(parser_e_no_overloaded_procvars);
-                   if not((pprocvardef(def)^.options=pd^.options)) or
-                     not(is_equal(pprocvardef(def)^.retdef,pd^.retdef)) then
-                     Message(type_e_mismatch)
-                     else
+                   if is_po_equal(pprocvardef(def)^.options,pd^.options) and
+                      is_equal(pprocvardef(def)^.retdef,pd^.retdef) then
+                     begin
+                       hp1:=pprocvardef(def)^.para1;
+                       hp2:=pd^.para1;
+                       while assigned(hp1) and assigned(hp2) do
                         begin
-                           hp1:=pprocvardef(def)^.para1;
-                           hp2:=pd^.para1;
-                           while assigned(hp1) and assigned(hp2) do
-                             begin
-                                if not(is_equal(hp1^.data,hp2^.data)) or
-                                   not(hp1^.paratyp=hp2^.paratyp) then
-                                  begin
-                                     Message(type_e_mismatch);
-                                     break;
-                                  end;
-                                hp1:=hp1^.next;
-                                hp2:=hp2^.next;
-                             end;
-                           if not((hp1=nil) and (hp2=nil)) then
-                             Message(type_e_mismatch);
-                        end;
+                          if not(is_equal(hp1^.data,hp2^.data)) or
+                             not(hp1^.paratyp=hp2^.paratyp) then
+                            begin
+                              Message(type_e_mismatch);
+                              break;
+                            end;
+                           hp1:=hp1^.next;
+                           hp2:=hp2^.next;
+                         end;
+                        if not((hp1=nil) and (hp2=nil)) then
+                          Message(type_e_mismatch);
+                     end
+                   else
+                     Message(type_e_mismatch);
                    datasegment^.concat(new(pai_const,init_symbol(strpnew(pd^.mangledname))));
                    if pd^.owner^.symtabletype=unitsymtable then
                      concat_external(pd^.mangledname,EXT_NEAR);
@@ -540,7 +547,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.19  1998-10-12 12:20:58  pierre
+  Revision 1.20  1998-10-16 08:51:49  peter
+    + target_os.stackalignment
+    + stack can be aligned at 2 or 4 byte boundaries
+
+  Revision 1.19  1998/10/12 12:20:58  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

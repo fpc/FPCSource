@@ -78,6 +78,7 @@
 {$ifdef GDB}
          is_def_stab_written := false;
          globalnb := 0;
+{$endif GDB}
          if assigned(lastglobaldef) then
            begin
               lastglobaldef^.nextglobal := @self;
@@ -90,7 +91,6 @@
            end;
          lastglobaldef := @self;
          nextglobal := nil;
-{$endif GDB}
       end;
 
 
@@ -106,6 +106,7 @@
 {$ifdef GDB}
          is_def_stab_written := false;
          globalnb := 0;
+{$endif GDB}
          if assigned(lastglobaldef) then
            begin
               lastglobaldef^.nextglobal := @self;
@@ -118,13 +119,11 @@
            end;
          lastglobaldef := @self;
          nextglobal := nil;
-{$endif GDB}
       end;
 
 
     destructor tdef.done;
       begin
-{$ifdef GDB}
          { first element  ? }
          if not(assigned(previousglobal)) then
            begin
@@ -148,7 +147,6 @@
            nextglobal^.previousglobal:=previousglobal;
          previousglobal:=nil;
          nextglobal:=nil;
-{$endif GDB}
       end;
 
 
@@ -1862,7 +1860,7 @@
               hp:=para1;
            end;
       end;
-      
+
     destructor tabstractprocdef.done;
       begin
          disposepdefcoll(para1);
@@ -1941,20 +1939,17 @@
          l:=0;
          pdc:=para1;
          while assigned(pdc) do
-           begin
-              case pdc^.paratyp of
-                vs_value :
-                  l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
-                vs_var :
-                  l:=l+sizeof(pointer);
-                vs_const :
-                  if dont_copy_const_param(pdc^.data) then
-                    l:=l+sizeof(pointer)
-                  else
-                    l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
-                end;
-              pdc:=pdc^.next;
-           end;
+          begin
+            case pdc^.paratyp of
+              vs_value : inc(l,align(pdc^.data^.size,target_os.stackalignment));
+              vs_var   : inc(l,sizeof(pointer));
+              vs_const : if dont_copy_const_param(pdc^.data) then
+                          inc(l,sizeof(pointer))
+                         else
+                          inc(l,align(pdc^.data^.size,target_os.stackalignment));
+            end;
+            pdc:=pdc^.next;
+          end;
          para_size:=l;
       end;
 
@@ -3093,7 +3088,11 @@
 
 {
   $Log$
-  Revision 1.58  1998-10-15 15:13:30  pierre
+  Revision 1.59  1998-10-16 08:51:51  peter
+    + target_os.stackalignment
+    + stack can be aligned at 2 or 4 byte boundaries
+
+  Revision 1.58  1998/10/15 15:13:30  pierre
     + added oo_hasconstructor and oo_hasdestructor
       for objects options
 

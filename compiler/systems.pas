@@ -120,6 +120,7 @@ unit systems;
           Cprefix   : string[2];
           newline   : string[2];
           endian    : tendian;
+          stackalignment : longint;
           use_function_relative_addresses : boolean;
        end;
 
@@ -220,6 +221,7 @@ implementation
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
+            stackalignment : 2;
             use_function_relative_addresses : true
           ),
           (
@@ -235,6 +237,7 @@ implementation
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
+            stackalignment : 2;
             use_function_relative_addresses : true
           ),
           (
@@ -250,6 +253,7 @@ implementation
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
+            stackalignment : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -265,6 +269,7 @@ implementation
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
+            stackalignment : 2;
             use_function_relative_addresses : false
           ),
           (
@@ -280,6 +285,7 @@ implementation
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
+            stackalignment : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -295,6 +301,7 @@ implementation
             Cprefix      : '_';
             newline      : #10;
             endian       : endian_big;
+            stackalignment : 2;
             use_function_relative_addresses : false
           ),
           (
@@ -310,6 +317,7 @@ implementation
             Cprefix      : '_';
             newline      : #10;
             endian       : endian_big;
+            stackalignment : 2;
             use_function_relative_addresses : false
           ),
           (
@@ -325,6 +333,7 @@ implementation
             Cprefix      : '_';
             newline      : #13;
             endian       : endian_big;
+            stackalignment : 2;
             use_function_relative_addresses : false
           ),
           (
@@ -340,6 +349,7 @@ implementation
             Cprefix      : '';
             newline      : #10;
             endian       : endian_big;
+            stackalignment : 2;
             use_function_relative_addresses : true
           ),
           (
@@ -355,6 +365,7 @@ implementation
             Cprefix      : '_';
             newline      : #10;
             endian       : endian_big;
+            stackalignment : 2;
             use_function_relative_addresses : false
           )
           );
@@ -1141,7 +1152,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  1998-10-15 16:20:41  peter
+  Revision 1.46  1998-10-16 08:51:54  peter
+    + target_os.stackalignment
+    + stack can be aligned at 2 or 4 byte boundaries
+
+  Revision 1.45  1998/10/15 16:20:41  peter
     * removed uses verbose which is not possible! this unit may not use
       any other unit !
 

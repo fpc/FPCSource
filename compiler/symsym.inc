@@ -1105,11 +1105,7 @@
                           end;
            parasymtable : begin
                             address:=owner^.datasize;
-                          { needs word alignment }
-                            if odd(l) then
-                             inc(owner^.datasize,l+1)
-                            else
-                             inc(owner^.datasize,l);
+                            owner^.datasize:=align(owner^.datasize+l,target_os.stackalignment);
                           end
              else
                begin
@@ -1118,11 +1114,6 @@
                     inc(owner^.datasize,4-modulo)
                   else
                     if (l>=2) and ((modulo and 1)<>0) then
-                    { nice piece of code !!
-                    inc(owner^.datasize,2-(datasize and 1));
-                    2 - (datasize and 1) is allways 1 in this case
-                    Florian when will your global stream analyser
-                    find this out ?? }
                       inc(owner^.datasize);
                   address:=owner^.datasize;
                   inc(owner^.datasize,l);
@@ -1721,7 +1712,11 @@
 
 {
   $Log$
-  Revision 1.52  1998-10-08 17:17:32  pierre
+  Revision 1.53  1998-10-16 08:51:53  peter
+    + target_os.stackalignment
+    + stack can be aligned at 2 or 4 byte boundaries
+
+  Revision 1.52  1998/10/08 17:17:32  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

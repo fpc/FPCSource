@@ -47,10 +47,10 @@
           { address of rtti }
           rtti_label : plabel;
 
-{$ifdef GDB}
-          globalnb       : word;
           nextglobal,
           previousglobal : pdef;
+{$ifdef GDB}
+          globalnb       : word;
           is_def_stab_written : boolean;
 {$endif GDB}
           constructor init;
@@ -317,11 +317,10 @@
        pabstractprocdef = ^tabstractprocdef;
        tabstractprocdef = object(tdef)
           { saves a definition to the return type }
-          retdef : pdef;
-          fpu_used : byte; { how many stack fpu must be empty }
-          { save the procedure options }
-          options : longint;
-          para1 : pdefcoll;
+          retdef   : pdef;
+          fpu_used : byte;    { how many stack fpu must be empty }
+          options  : longint; { save the procedure options }
+          para1    : pdefcoll;
           constructor init;
           constructor load;
           destructor done;virtual;
@@ -479,7 +478,11 @@
 
 {
   $Log$
-  Revision 1.3  1998-10-05 21:33:30  peter
+  Revision 1.4  1998-10-16 08:51:52  peter
+    + target_os.stackalignment
+    + stack can be aligned at 2 or 4 byte boundaries
+
+  Revision 1.3  1998/10/05 21:33:30  peter
     * fixed 161,165,166,167,168
 
   Revision 1.2  1998/10/02 07:20:40  florian
