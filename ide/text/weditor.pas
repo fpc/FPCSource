@@ -3599,6 +3599,9 @@ begin
     VerticalBlock:=(Editor^.Flags and efVerticalBlocks)<>0;
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
+    OrigS:=GetDisplayText(DestPos.Y);
+    AfterS:=Copy(OrigS,DestPos.X+1,255);
+
     { BUG:: this is wrong if we do not insert at begin of line !!! PM }
     while OK and (LineDelta<LineCount) do
     begin
@@ -3626,12 +3629,7 @@ begin
                    Min(LineEndX-LineStartX+1,255));
       if VerticalBlock=false then
         begin
-          If LineDelta=0 then
-            begin
-              OrigS:=GetDisplayText(DestPos.Y);
-              AfterS:=Copy(OrigS,DestPos.X+1,255);
-            end
-          else
+          If LineDelta>0 then
             OrigS:='';
           if LineDelta=LineCount-1 then
             SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+AfterS)
@@ -4477,7 +4475,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.50  1999-09-28 23:44:13  pierre
+  Revision 1.51  1999-10-08 15:24:50  pierre
+   * InsertFrom bug (end of line wasdiscarded)
+
+  Revision 1.50  1999/09/28 23:44:13  pierre
    * text insertion in middle of line was buggy
 
   Revision 1.49  1999/09/23 16:33:30  pierre
