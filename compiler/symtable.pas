@@ -632,13 +632,10 @@ implementation
            {if (symtabletype=unitsymtable) and (hp.typ=unitsym) and
               assigned(current_module) and (current_module.globalsymtable<>.load) then
              hp:=nil;}
-           if assigned(hp) and
-              make_ref and
-              (cs_browser in aktmoduleswitches) then
+           if make_ref and (cs_browser in aktmoduleswitches) then
              begin
                 newref:=tref.create(hp.lastref,@akttokenpos);
-                { for symbols that are in tables without
-                browser info or syssyms (PM) }
+                { for symbols that are in tables without browser info or syssyms }
                 if hp.refcount=0 then
                   begin
                     hp.defref:=newref;
@@ -656,11 +653,9 @@ implementation
                   hp.lastref:=newref;
                 inc(hp.refcount);
              end;
-           if assigned(hp) and make_ref then
-             begin
+           if make_ref then
                inc(hp.refs);
-             end;
-         end;
+         end; { value was not found }
         speedsearch:=hp;
       end;
 
@@ -2342,7 +2337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-11-19 16:26:33  pierre
+  Revision 1.80  2002-11-22 22:45:49  carl
+  + small optimization for speed
+
+  Revision 1.79  2002/11/19 16:26:33  pierre
    * correct a stabs generation problem that lead to use errordef in stabs
 
   Revision 1.78  2002/11/18 17:32:00  peter
