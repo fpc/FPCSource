@@ -743,14 +743,14 @@ begin
                          {Remove non core targetname extra defines}
                          CASE target_info.target OF
                           target_i386_freebsd: begin
-						 undef_symbol('LINUX');
-						 undef_symbol('BSD');
- 					         undef_symbol('UNIX');
-					       end;
+                                                 undef_symbol('LINUX');
+                                                 undef_symbol('BSD');
+                                                 undef_symbol('UNIX');
+                                               end;
                           target_i386_linux:   undef_symbol('UNIX');
-		          end;
+                          end;
 
-			   { remove old target define }
+                           { remove old target define }
 
                          undef_symbol(target_info.short_name);
                        { load new target }
@@ -809,9 +809,9 @@ begin
                                  end;
                                break;
                              end;
-                        'C': apptype:=at_cui;
+                        'C': apptype:=app_cui;
                         'D': ForceDeffileForExport:=true;
-                        'G': apptype:=at_gui;
+                        'G': apptype:=app_gui;
                         'N': begin
                                RelocSection:=false;
                                RelocSectionSetExplicitly:=true;
@@ -1379,7 +1379,7 @@ begin
 
  if target_info.target=target_i386_linux then
   begin
-   def_symbol('LINUX'); 
+   def_symbol('LINUX');
    def_symbol('UNIX');
   end;
 
@@ -1515,7 +1515,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-11-07 15:09:27  marco
+  Revision 1.16  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.15  2000/11/07 15:09:27  marco
    * Define UNIX for FreeBSD and Linux. Checked crosscompile thingy.
 
   Revision 1.14  2000/11/07 14:25:08  marco

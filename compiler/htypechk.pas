@@ -765,9 +765,9 @@ implementation
                              (hsym^.owner = aktprocsym^.definition^.localst)) then
                            begin
                              if tloadnode(p).symtable^.symtabletype=localsymtable then
-                              CGMessage1(sym_n_uninitialized_local_variable,hsym^.name)
+                              CGMessage1(sym_n_uninitialized_local_variable,hsym^.realname)
                              else
-                              CGMessage1(sym_n_uninitialized_variable,hsym^.name);
+                              CGMessage1(sym_n_uninitialized_variable,hsym^.realname);
                            end;
                         end;
                      end;
@@ -887,7 +887,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-04 14:25:19  florian
+  Revision 1.15  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.14  2000/11/04 14:25:19  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.13  2000/10/31 22:02:47  peter

@@ -260,6 +260,7 @@ interface
          procedure align(i:longint);
          procedure seek(i:longint);
          procedure write(const d;len:longint);
+         procedure writestr(const s:string);
          function  read(var d;len:longint):longint;
          procedure blockwrite(var f:file);
        private
@@ -1631,6 +1632,12 @@ end;
       end;
 
 
+    procedure tdynamicarray.writestr(const s:string);
+      begin
+        write(s[1],length(s));
+      end;
+
+
     function tdynamicarray.read(var d;len:longint):longint;
       var
         p : pchar;
@@ -1846,7 +1853,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-11-04 14:25:19  florian
+  Revision 1.19  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.18  2000/11/04 14:25:19  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.17  2000/11/03 19:41:06  jonas

@@ -1257,7 +1257,7 @@ implementation
         { must_be_valid:=true; obsolete PM }
         not_unit_proc:=true;
 
-        apptype:=at_cui;
+        apptype:=app_cui;
      end;
 
 begin
@@ -1270,7 +1270,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-11-04 14:25:19  florian
+  Revision 1.19  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.18  2000/11/04 14:25:19  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.17  2000/10/31 22:02:46  peter

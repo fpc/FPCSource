@@ -962,7 +962,7 @@ begin
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
-  if apptype=at_gui then
+  if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
@@ -1043,7 +1043,7 @@ begin
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
-  if apptype=at_gui then
+  if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
@@ -1194,10 +1194,12 @@ begin
   { when -s is used or it's a dll then quit }
   if (cs_link_extern in aktglobalswitches) then
    begin
-     if apptype=at_gui then
-       cmdstr:='--subsystem gui'
-     else if apptype=at_cui then
-       cmdstr:='--subsystem console';
+     case apptype of
+       app_gui :
+         cmdstr:='--subsystem gui';
+       app_cui :
+         cmdstr:='--subsystem console';
+     end;
      if dllversion<>'' then
        cmdstr:=cmdstr+' --version '+dllversion;
      cmdstr:=cmdstr+' --input '+fn;
@@ -1228,10 +1230,12 @@ begin
   { sub system }
   { gui=2 }
   { cui=3 }
-  if apptype=at_gui then
-    peheader.Subsystem:=2
-  else if apptype=at_cui then
-    peheader.Subsystem:=3;
+  case apptype of
+    app_gui :
+      peheader.Subsystem:=2;
+    app_cui :
+      peheader.Subsystem:=3;
+  end;
   if dllversion<>'' then
     begin
      peheader.MajorImageVersion:=dllmajor;
@@ -1301,7 +1305,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:31  peter
+  Revision 1.6  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.5  2000/09/24 15:06:31  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:54  peter

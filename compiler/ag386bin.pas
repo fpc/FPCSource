@@ -25,7 +25,6 @@ unit ag386bin;
 {$i defines.inc}
 
 {$define MULTIPASS}
-{$define EXTERNALBSS}
 
 interface
 
@@ -83,7 +82,8 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       og386,og386dbg,og386cff,og386elf;
+       ogbase,
+       ogcoff,ogelf;
 
 {$ifdef GDB}
 
@@ -380,7 +380,6 @@ interface
                end;
              ait_datablock :
                begin
-{$ifdef EXTERNALBSS}
                  if not SmartAsm then
                   begin
                     if not pai_datablock(hp)^.is_global then
@@ -395,7 +394,6 @@ interface
                   end
                  else
                   begin
-{$endif}
                     l:=pai_datablock(hp)^.size;
                     if l>2 then
                       objectalloc^.sectionalign(4)
@@ -477,7 +475,6 @@ interface
                begin
                  if objectalloc^.currsec<>sec_bss then
                   Message(asmw_e_alloc_data_only_in_bss);
-{$ifdef EXTERNALBSS}
                  if not SmartAsm then
                   begin
                     if pai_datablock(hp)^.is_global then
@@ -500,7 +497,6 @@ interface
                      end;
                    end
                   else
-{$endif}
                    begin
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
@@ -664,18 +660,14 @@ interface
              ait_datablock :
                begin
                  objectoutput^.writesymbol(pai_datablock(hp)^.sym);
-                 if SmartAsm
-{$ifdef EXTERNALBSS}
-                    or (not pai_datablock(hp)^.is_global)
-{$endif}
-                    then
+                 if SmartAsm or (not pai_datablock(hp)^.is_global) then
                    begin
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
-                       objectoutput^.writealign(4)
+                       objectoutput^.allocalign(4)
                      else if l>1 then
-                       objectoutput^.writealign(2);
-                     objectoutput^.writealloc(pai_datablock(hp)^.size);
+                       objectoutput^.allocalign(2);
+                     objectoutput^.alloc(pai_datablock(hp)^.size);
                    end;
                end;
              ait_const_32bit :
@@ -852,10 +844,10 @@ interface
            objectalloc^.resetsections;
            objectalloc^.setsection(startsec);
            TreePass0(hp);
-{$endif}
            { leave if errors have occured }
            if errorcount>0 then
             exit;
+{$endif MULTIPASS}
 
          { Pass 1 }
            currpass:=1;
@@ -977,14 +969,14 @@ interface
         case t of
           og_none :
             Message(asmw_f_no_binary_writer_selected);
-          og_dbg :
-            objectoutput:=new(pdbgoutput,init(smart));
           og_coff :
-            objectoutput:=new(pdjgppcoffoutput,init(smart));
+            objectoutput:=new(pcoffoutput,initdjgpp(smart));
           og_pecoff :
-            objectoutput:=new(pwin32coffoutput,init(smart));
+            objectoutput:=new(pcoffoutput,initwin32(smart));
           og_elf :
             objectoutput:=new(pelf32output,init(smart));
+          else
+            internalerror(43243432);
         end;
         objectalloc:=new(pobjectalloc,init);
         SmartAsm:=smart;
@@ -1011,7 +1003,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:10  peter
+  Revision 1.9  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.8  2000/09/24 15:06:10  peter
     * use defines.inc
 
   Revision 1.7  2000/08/27 16:11:49  peter

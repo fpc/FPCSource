@@ -146,7 +146,8 @@ type
 implementation
 
 uses
-  cutils,og386;
+  cutils,
+  ogbase;
 
 {*****************************************************************************
                                  TaiRegAlloc
@@ -1669,7 +1670,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-10-15 10:50:46  florian
+  Revision 1.3  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.2  2000/10/15 10:50:46  florian
    * fixed xmm register access
 
   Revision 1.1  2000/10/15 09:39:37  peter

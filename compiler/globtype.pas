@@ -139,8 +139,8 @@ interface
        tmodeswitches = set of tmodeswitch;
 
        { win32 sub system }
-       tapptype = (at_none,
-         at_gui,at_cui
+       tapptype = (app_none,
+         app_gui,app_cui
        );
 
        { interface types }
@@ -210,7 +210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-11-04 14:25:19  florian
+  Revision 1.9  2000-11-12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.8  2000/11/04 14:25:19  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.7  2000/09/24 15:06:16  peter
