@@ -157,7 +157,7 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(exprasmlist,self);
+        cg.g_overflowcheck(exprasmlist,location,resulttype.def);
       end;
 
 
@@ -404,7 +404,7 @@ implementation
                        begin
                           src1 := rg.getregisterint(exprasmlist,OS_32);
                           location.register:= src1;
-                          cg.a_load_ref_reg(exprasmlist,OS_32,
+                          cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,
                             left.location.reference,src1);
                        end;
                      reference_release(exprasmlist,left.location.reference);
@@ -433,7 +433,7 @@ implementation
 { 32-bit before doing neg!!     }
 { So this is useless...     }
 { that's not true: -2^31 gives an overflow error if it is negated (FK) }
-        cg.g_overflowcheck(exprasmlist,self);
+        cg.g_overflowcheck(exprasmlist,location,resulttype.def);
       end;
 
 
@@ -520,7 +520,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-06-01 21:38:06  peter
+  Revision 1.29  2003-06-04 11:58:58  jonas
+    * calculate localsize also in g_return_from_proc since it's now called
+      before g_stackframe_entry (still have to fix macos)
+    * compilation fixes (cycle doesn't work yet though)
+
+  Revision 1.28  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

@@ -128,6 +128,7 @@ implementation
         tempconst: trealconstnode;
         ref: treference;
         valuereg, tempreg, leftreg, tmpfpureg: tregister;
+        size: tcgsize;
         signed, valuereg_is_scratch: boolean;
       begin
 {$ifdef VER1_0}
@@ -200,22 +201,26 @@ implementation
               leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               valuereg := leftreg;
               valuereg_is_scratch := true;
+              if signed then
+                size := OS_S32
+              else
+                size := OS_32;
               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
-                left.location.reference,leftreg);
+                size,left.location.reference,leftreg);
             end
           else
             internalerror(200110012);
          end;
          tempreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
-         cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
+         cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,tempreg,ref);
          cg.free_scratch_reg(exprasmlist,tempreg);
          if signed then
            exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
              leftreg,$8000));
          inc(ref.offset,4);
-         cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
+         cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
          if (valuereg_is_scratch) then
            cg.free_scratch_reg(exprasmlist,valuereg);
@@ -302,18 +307,18 @@ implementation
                     hreg2:=rg.getregisterint(exprasmlist,OS_INT);
                     if left.location.size in [OS_64,OS_S64] then
                       begin
-                        cg.a_load_ref_reg(exprasmlist,OS_INT,
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
                          left.location.reference,hreg2);
                         hreg1:=rg.getregisterint(exprasmlist,OS_INT);
                         href:=left.location.reference;
                         inc(href.offset,4);
-                        cg.a_load_ref_reg(exprasmlist,OS_INT,
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
                           href,hreg1);
                         cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,hreg1,hreg2);
                         rg.ungetregisterint(exprasmlist,hreg1);
                       end
                     else
-                      cg.a_load_ref_reg(exprasmlist,opsize,
+                      cg.a_load_ref_reg(exprasmlist,opsize,opsize,
                         left.location.reference,hreg2);
                   end
                 else
@@ -429,7 +434,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-06-01 21:38:06  peter
+  Revision 1.38  2003-06-04 11:58:58  jonas
+    * calculate localsize also in g_return_from_proc since it's now called
+      before g_stackframe_entry (still have to fix macos)
+    * compilation fixes (cycle doesn't work yet though)
+
+  Revision 1.37  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

@@ -27,6 +27,7 @@ unit cgcpu;
   interface
 
     uses
+       symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
        cpubase,cpuinfo,node,cg64f32,cginfo;
@@ -57,9 +58,9 @@ unit cgcpu;
 
         { move instructions }
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
-        procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
-        procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref : treference;reg : tregister);override;
-        procedure a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
+        procedure a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
+        procedure a_load_reg_reg(list : taasmoutput; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
@@ -85,7 +86,7 @@ unit cgcpu;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
-        procedure g_overflowcheck(list: taasmoutput; const p: tnode); override;
+        procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
@@ -188,15 +189,15 @@ const
       begin
         case locpara.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,r,locpara.register);
+            a_load_ref_reg(list,size,size,r,locpara.register);
           LOC_REFERENCE:
             begin
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
                tmpreg := get_scratch_reg_int(list,size);
-               a_load_ref_reg(list,size,r,tmpreg);
-               a_load_reg_ref(list,size,tmpreg,ref);
+               a_load_ref_reg(list,size,size,r,tmpreg);
+               a_load_reg_ref(list,size,size,tmpreg,ref);
                free_scratch_reg(list,tmpreg);
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
@@ -231,7 +232,7 @@ const
                 ref.offset := locpara.reference.offset;
                 tmpreg := get_scratch_reg_address(list);
                 a_loadaddr_ref_reg(list,r,tmpreg);
-                a_load_reg_ref(list,OS_ADDR,tmpreg,ref);
+                a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
                 free_scratch_reg(list,tmpreg);
               end;
             else
@@ -296,7 +297,7 @@ const
 
       begin
         tmpreg := get_scratch_reg_int(list,OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
         if target_info.system=system_powerpc_macos then
           begin
             {Generate instruction to load the procedure address from
@@ -341,7 +342,7 @@ const
        end;
 
 
-     procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
+     procedure tcgppc.a_load_reg_ref(list : taasmoutput; fromsize, tosize: TCGSize; reg : tregister;const ref : treference);
 
        const
          StoreInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
@@ -356,20 +357,20 @@ const
        begin
          ref2 := ref;
          freereg := fixref(list,ref2);
-         if size in [OS_S8..OS_S16] then
+         if tosize in [OS_S8..OS_S16] then
            { storing is the same for signed and unsigned values }
-           size := tcgsize(ord(size)-(ord(OS_S8)-ord(OS_8)));
+           tosize := tcgsize(ord(tosize)-(ord(OS_S8)-ord(OS_8)));
          { 64 bit stuff should be handled separately }
-         if size in [OS_64,OS_S64] then
+         if tosize in [OS_64,OS_S64] then
            internalerror(200109236);
-         op := storeinstr[tcgsize2unsigned[size],ref2.index.number<>NR_NO,false];
+         op := storeinstr[tcgsize2unsigned[tosize],ref2.index.number<>NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
            cg.free_scratch_reg(list,ref2.base);
        End;
 
 
-     procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
+     procedure tcgppc.a_load_ref_reg(list : taasmoutput; fromsize,tosize : tcgsize;const ref: treference;reg : tregister);
 
        const
          LoadInstr: Array[OS_8..OS_S32,boolean, boolean] of TAsmOp =
@@ -390,17 +391,19 @@ const
          freereg: boolean;
 
        begin
-          if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
+          { TODO: optimize/take into consideration fromsize/tosize. Will }
+          { probably only matter for OS_S8 loads though                  }
+          if not(fromsize in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
           ref2 := ref;
           freereg := fixref(list,ref2);
-          op := loadinstr[size,ref2.index.number<>NR_NO,false];
+          op := loadinstr[fromsize,ref2.index.number<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           if freereg then
             free_scratch_reg(list,ref2.base);
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
-          if size = OS_S8 then
+          if fromsize = OS_S8 then
             list.concat(taicpu.op_reg_reg(A_EXTSB,reg,reg));
        end;
 
@@ -1130,7 +1133,7 @@ const
                      usesgpr:=true;
                      r.enum := R_INTREGISTER;
                      r.number := regcounter2 shl 8;
-                     a_load_reg_ref(list,OS_INT,r,href);
+                     a_load_reg_ref(list,OS_INT,OS_INT,r,href);
                      dec(href.offset,4);
                   end;
               end;
@@ -1156,7 +1159,7 @@ const
                       begin
                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
                         reference_reset_base(href2,r,hp.paraloc.reference.offset);
-                        cg.a_load_ref_ref(list,hp.paraloc.size,href2,href);
+                        cg.a_load_ref_ref(list,hp.paraloc.size,hp.paraloc.size,href2,href);
                       end;
                     hp := tparaitem(hp.next);
                   end;
@@ -1217,8 +1220,10 @@ const
          usesfpr,usesgpr,genret : boolean;
          r,r2:Tregister;
          regcounter2:Tsuperregister;
+         localsize: aword;
 
       begin
+        localsize := 0;
         { release parameter registers }
         r.enum := R_INTREGISTER;
         for regcounter2 := RS_R3 to RS_R10 do
@@ -1251,6 +1256,19 @@ const
                 end;
             end;
 
+        if not (po_assembler in current_procdef.procoptions) then
+          inc(localsize,(31-13+1)*4+(31-14+1)*8);
+
+        { align to 16 bytes }
+        localsize:=align(localsize,16);
+
+        inc(localsize,tg.lasttemp);
+
+        localsize:=align(localsize,16);
+
+        tppcprocinfo(current_procinfo).localsize:=localsize;
+
+
         { no return (blr) generated yet }
         genret:=true;
         if usesgpr or usesfpr then
@@ -1282,7 +1300,7 @@ const
                      usesgpr:=true;
                      r.enum := R_INTREGISTER;
                      r.number := regcounter2 shl 8;
-                     a_load_ref_reg(list,OS_INT,href,r);
+                     a_load_ref_reg(list,OS_INT,OS_INT,href,r);
                      dec(href.offset,4);
                   end;
               end;
@@ -1797,6 +1815,7 @@ const
         count, count2: aword;
         orgsrc, orgdst: boolean;
         r:Tregister;
+        size: tcgsize;
 
       begin
 {$ifdef extdebug}
@@ -1811,7 +1830,8 @@ const
             begin
               if len < 8 then
                 begin
-                  a_load_ref_ref(list,int_cgsize(len),source,dest);
+                  size := int_cgsize(len);
+                  a_load_ref_ref(list,size,size,source,dest);
                   if delsource then
                     begin
                       reference_release(list,source);
@@ -1842,7 +1862,7 @@ const
         if loadref then
           begin
             src.base := get_scratch_reg_address(list);
-            a_load_ref_reg(list,OS_32,source,src.base);
+            a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
         else if (count > 4) or
@@ -1929,8 +1949,8 @@ const
             r.enum:=R_INTREGISTER;
             r.number:=NR_R0;
             a_reg_alloc(list,r);
-            a_load_ref_reg(list,OS_32,src,r);
-            a_load_reg_ref(list,OS_32,r,dst);
+            a_load_ref_reg(list,OS_32,OS_32,src,r);
+            a_load_reg_ref(list,OS_32,OS_32,r,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
             a_reg_dealloc(list,r);
@@ -1974,8 +1994,8 @@ const
             a_reg_alloc(list,r);
             for count2 := 1 to count do
               begin
-                a_load_ref_reg(list,OS_32,src,r);
-                a_load_reg_ref(list,OS_32,r,dst);
+                a_load_ref_reg(list,OS_32,OS_32,src,r);
+                a_load_reg_ref(list,OS_32,OS_32,r,dst);
                 inc(src.offset,4);
                 inc(dst.offset,4);
               end;
@@ -1989,8 +2009,8 @@ const
            r.enum:=R_INTREGISTER;
            r.number:=NR_R0;
            a_reg_alloc(list,r);
-           a_load_ref_reg(list,OS_16,src,r);
-           a_load_reg_ref(list,OS_16,r,dst);
+           a_load_ref_reg(list,OS_16,OS_16,src,r);
+           a_load_reg_ref(list,OS_16,OS_16,r,dst);
            inc(src.offset,2);
            inc(dst.offset,2);
            a_reg_dealloc(list,r);
@@ -2000,8 +2020,8 @@ const
            r.enum:=R_INTREGISTER;
            r.number:=NR_R0;
            a_reg_alloc(list,r);
-           a_load_ref_reg(list,OS_8,src,r);
-           a_load_reg_ref(list,OS_8,r,dst);
+           a_load_ref_reg(list,OS_8,OS_8,src,r);
+           a_load_reg_ref(list,OS_8,OS_8,r,dst);
            a_reg_dealloc(list,r);
          end;
        if orgsrc then
@@ -2141,7 +2161,7 @@ const
 !!!!}
       end;
 
-    procedure tcgppc.g_overflowcheck(list: taasmoutput; const p: tnode);
+    procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
 
       var
          hl : tasmlabel;
@@ -2150,9 +2170,9 @@ const
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
          objectlibrary.getlabel(hl);
-         if not ((p.resulttype.def.deftype=pointerdef) or
-                ((p.resulttype.def.deftype=orddef) and
-                 (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+         if not ((def.deftype=pointerdef) or
+                ((def.deftype=orddef) and
+                 (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
                                                   bool8bit,bool16bit,bool32bit]))) then
            begin
              r.enum:=R_CR7;
@@ -2543,7 +2563,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-06-01 21:38:06  peter
+  Revision 1.104  2003-06-04 11:58:58  jonas
+    * calculate localsize also in g_return_from_proc since it's now called
+      before g_stackframe_entry (still have to fix macos)
+    * compilation fixes (cycle doesn't work yet though)
+
+  Revision 1.103  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

@@ -83,7 +83,7 @@ implementation
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister2);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister2);
             { it must be adjusted! }
          end
          { this is only true if the difference is one !!
@@ -101,14 +101,14 @@ implementation
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
             { the previous frame pointer is always saved at }
             { previous_framepointer+12 (in the link area)   }
             reference_reset_base(href,hregister1,12);
             i:=current_procdef.parast.symtablelevel-1;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
+                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
                  dec(i);
               end;
             hregister2.enum:=R_INTREGISTER;
@@ -125,7 +125,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-05-25 14:32:42  jonas
+  Revision 1.17  2003-06-04 11:58:58  jonas
+    * calculate localsize also in g_return_from_proc since it's now called
+      before g_stackframe_entry (still have to fix macos)
+    * compilation fixes (cycle doesn't work yet though)
+
+  Revision 1.16  2003/05/25 14:32:42  jonas
     * fixed register numbering bug
 
   Revision 1.15  2003/05/24 11:47:27  jonas

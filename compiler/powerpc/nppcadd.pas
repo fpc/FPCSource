@@ -1080,7 +1080,7 @@ interface
               left.location.registerlow,right.location.registerlow));
             exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.registerhigh,
               right.location.registerhigh,left.location.registerhigh));
-            cg.g_overflowcheck(exprasmlist,self);
+            cg.g_overflowcheck(exprasmlist,location,resulttype.def);
           end;
 
         { set result location }
@@ -1461,7 +1461,7 @@ interface
              end;
              exprasmlist.concat(taicpu.op_reg_reg_reg(op,location.register,
                left.location.register,right.location.register));
-             cg.g_overflowcheck(exprasmlist,self);
+             cg.g_overflowcheck(exprasmlist,location,resulttype.def);
            end;
 
          clear_left_right(cmpop);
@@ -1472,7 +1472,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-06-01 21:38:06  peter
+  Revision 1.32  2003-06-04 11:58:58  jonas
+    * calculate localsize also in g_return_from_proc since it's now called
+      before g_stackframe_entry (still have to fix macos)
+    * compilation fixes (cycle doesn't work yet though)
+
+  Revision 1.31  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
