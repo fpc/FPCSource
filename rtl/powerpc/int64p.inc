@@ -17,7 +17,7 @@
 {$define FPC_SYSTEM_HAS_DIV_QWORD}
     function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       { from the ppc compiler writers guide }
-      assembler;
+      assembler; nostackframe;
       asm
         // (R5:R6) = (R5:R6) / (R3:R4) (64b) = (64b / 64b)
         // quo        dvd         dvs
@@ -144,7 +144,7 @@
       the longbool for checkoverflow avoids a misaligned stack
     }
     function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      assembler;
+      assembler; nostackframe;
       asm
         // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
         //   res        f1        f2
@@ -198,7 +198,11 @@
 
 {
   $Log$
-  Revision 1.4  2004-05-29 21:35:54  jonas
+  Revision 1.5  2004-10-19 18:51:15  jonas
+    + "nostackframe" modifier, because the automatic detection in the
+      compiler to determine that a stack frame is not needed no longer works
+
+  Revision 1.4  2004/05/29 21:35:54  jonas
     * fixed overflow checking for qword multiplication
 
   Revision 1.3  2004/01/12 21:35:51  jonas

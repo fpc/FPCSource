@@ -33,7 +33,7 @@ const
 }
 
 procedure fpc_enable_ppc_fpu_exceptions;
-assembler;
+assembler; nostackframe;
 asm
   { clear all "exception happened" flags we care about}
   mtfsfi 0,0
@@ -118,7 +118,7 @@ label
   _restfpr_30_l,
   _restfpr_31_l;
 
-procedure saverestorereg;assembler;
+procedure saverestorereg;assembler; nostackframe;
 asm
 { exit }
 .globl _restfpr_14_x
@@ -212,7 +212,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler; nostackframe;
 asm
           {  count <= 0 ?  }
           cmpwi   cr0,r5,0
@@ -577,7 +577,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure filldword(var x;count : longint;value : dword);
-assembler;
+assembler; nostackframe;
 asm
 {       registers:
         r3              x
@@ -598,7 +598,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(const buf;len:longint;b:byte):longint; assembler;
+function IndexByte(const buf;len:longint;b:byte):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -625,7 +625,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function IndexWord(const buf;len:longint;b:word):longint; assembler;
+function IndexWord(const buf;len:longint;b:word):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -653,7 +653,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(const buf;len:longint;b:DWord):longint; assembler;
+function IndexDWord(const buf;len:longint;b:DWord):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -681,7 +681,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(const buf1,buf2;len:longint):longint; assembler;
+function CompareByte(const buf1,buf2;len:longint):longint; assembler; nostackframe;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -710,7 +710,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(const buf1,buf2;len:longint):longint; assembler;
+function CompareWord(const buf1,buf2;len:longint):longint; assembler; nostackframe;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -739,7 +739,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(const buf1,buf2;len:longint):longint; assembler;
+function CompareDWord(const buf1,buf2;len:longint):longint; assembler; nostackframe;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -768,7 +768,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(const buf;len:longint;b:Char):longint; assembler;
+function IndexChar0(const buf;len:longint;b:Char):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                         }
 { output: r3 = position of found position (-1 if not found) }
 asm
@@ -803,7 +803,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-assembler;
+assembler; nostackframe;
 { input: r3: pointer to result, r4: len, r5: sstr }
 asm
         { load length source }
@@ -835,7 +835,7 @@ procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_
 {$else}
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 {$endif}
-assembler;
+assembler; nostackframe;
 { input: r3: len, r4: sstr, r5: dstr }
 asm
         { load length source }
@@ -915,7 +915,7 @@ end;
 procedure fpc_shortstr_append_shortstr(var s1: shortstring; const s2: shortstring); compilerproc;
 { expects that results (r3) contains a pointer to the current string s1, r4 }
 { high(s1) and (r5) a pointer to the one that has to be concatenated        }
-assembler;
+assembler; nostackframe;
 asm
       { load length s1 }
       lbz     r6, 0(r3)
@@ -1017,20 +1017,20 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-assembler;
+assembler; nostackframe;
 {$include strpas.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif} nostackframe;
 {$include strlen.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
@@ -1038,7 +1038,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
@@ -1055,7 +1055,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
     cmplwi  r3,0
     beq     .Lcaller_frame_null
@@ -1064,7 +1064,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;[internconst:in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+function abs(l:longint):longint; assembler;[internconst:in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         srawi   r0,r3,31
         add     r3,r0,r3
@@ -1077,21 +1077,21 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;[internconst:in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+function odd(l:longint):boolean;assembler;[internconst:in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         rlwinm  r3,r3,0,31,31
 end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         mullw   r3,r3,r3
 end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         mr    r3,r1
 end;
@@ -1111,7 +1111,7 @@ end;
 { do a thread save inc/dec }
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function declocked(var l : longint) : boolean;assembler;
+function declocked(var l : longint) : boolean;assembler;nostackframe;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
 asm
@@ -1125,7 +1125,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;
+procedure inclocked(var l : longint);assembler;nostackframe;
 asm
 .LIncLockedLoop:
     lwarx   r10,0,r3
@@ -1137,7 +1137,11 @@ end;
 
 {
   $Log$
-  Revision 1.68  2004-10-09 21:00:46  jonas
+  Revision 1.69  2004-10-19 18:51:15  jonas
+    + "nostackframe" modifier, because the automatic detection in the
+      compiler to determine that a stack frame is not needed no longer works
+
+  Revision 1.68  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is

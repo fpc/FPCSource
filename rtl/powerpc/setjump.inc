@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
+function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; nostackframe;
   asm
      stw     r1,0(r3)
      mflr    r0
@@ -62,7 +62,7 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
      li      r3,0
   end;
 
-procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
+procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; nostackframe;
   asm
      lwz     r1,0(r3)
      lwz     r2,4(r3)
@@ -111,7 +111,11 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.8  2003-04-26 20:00:24  florian
+  Revision 1.9  2004-10-19 18:51:15  jonas
+    + "nostackframe" modifier, because the automatic detection in the
+      compiler to determine that a stack frame is not needed no longer works
+
+  Revision 1.8  2003/04/26 20:00:24  florian
     * fixed previous commit of setjmp
 
   Revision 1.7  2003/04/26 19:52:07  florian
