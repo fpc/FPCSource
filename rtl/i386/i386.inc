@@ -223,15 +223,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %ebx,saveebx
-{$ifdef REGCALL}
-        movl    %edx,%ecx       // Load len
-        movb    %cl,%bl
-        movl    %eax,%edi       // Load String
-{$else}
-        movl    Len,%ecx       // Load len
-        movl    Buf,%edi       // Load String
+        movl    buf,%edi       // Load String
         movb    b,%bl
-{$endif}
+        movl    len,%ecx       // Load len
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lready
@@ -1420,7 +1414,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  2003-12-04 21:44:39  peter
+  Revision 1.56  2003-12-24 23:07:28  peter
+    * fixed indexbyte for regcall
+
+  Revision 1.55  2003/12/04 21:44:39  peter
     * fix warning in gas
 
   Revision 1.54  2003/11/19 16:58:44  peter
