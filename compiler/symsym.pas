@@ -1507,6 +1507,7 @@ implementation
     begin
       { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
       { while stabs aren't adapted for regvars yet                             }
+      stabstring:=nil;
       loc := localloc.loc;
       if (vo_is_self in varoptions) then
         begin
@@ -1521,11 +1522,15 @@ implementation
           if (po_classmethod in current_procinfo.procdef.procoptions) or
              (po_staticmethod in current_procinfo.procdef.procoptions) then
             if (loc=LOC_REFERENCE) then
+              begin
               stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
-                [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])
+                [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)]);
+(*
             else
               stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
                 [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])])
+*)
+              end
           else
             begin
               if not(is_class(current_procinfo.procdef._class)) then
@@ -1534,15 +1539,16 @@ implementation
                 c:='p';
               if (loc=LOC_REFERENCE) then
                 stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
-                      [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)])
+                      [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
+(*
               else
                 stabstring:=stabstr_evaluate('"$$t:r$1",${N_RSYM},0,0,$2',
                       [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]);
+*)
             end;
         end
       else
         begin
-          stabstring:=nil;
           st:=tstoreddef(vartype.def).numberstring;
           if (vo_is_thread_var in varoptions) then
             threadvaroffset:='+'+tostr(sizeof(aint))
@@ -2223,7 +2229,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2004-10-11 15:48:15  peter
+  Revision 1.185  2004-10-11 20:48:34  peter
+    * don't generate stabs for self when it is in a regvar
+
+  Revision 1.184  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead
