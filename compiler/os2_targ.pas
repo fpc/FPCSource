@@ -262,7 +262,7 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 
 begin
     seq_no:=1;
-    Linker.AddLibraryFile(s+'.dll');
+    Linker.AddSharedLibrary(s+'.dll');
     current_module^.linkofiles.insert(s+'.dll');
     assign(out_file,s+'.ao2');
     rewrite(out_file,1);
@@ -353,23 +353,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
-
-  Revision 1.15  1998/03/10 01:17:21  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.14  1998/03/02 23:08:41  florian
-    * the concatcopy bug removed (solves problems when compilg sysatari!)
-
-  Revision 1.13  1998/03/02 13:38:40  peter
-    + importlib object
-    * doesn't crash on a systemunit anymore
-    * updated makefile and depend
-
-  Revision 1.11  1998/02/28 00:20:27  florian
-    * more changes to get import libs for Win32 working
+  Revision 1.2  1998-05-04 17:54:27  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
 
 }

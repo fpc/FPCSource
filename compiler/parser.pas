@@ -230,14 +230,9 @@ unit parser;
          { first, we assume a program }
          if not(assigned(current_module)) then
            begin
-{!!!}
               current_module:=new(pmodule,init(filename,false));
               main_module:=current_module;
            end;
-         { reset flags }
-         current_module^.flags:=0;
-         { ... and crc }
-         current_module^.crc:=0;
 
          { save scanner state }
          oldmacros:=macros;
@@ -411,22 +406,28 @@ unit parser;
 
              GenerateAsm(filename);
 
+           { add the files for the linker from current_module}
+             addlinkerfiles(current_module);
+
+             if smartlink then
+              begin
+                Linker.SetLibName(FileName);
+                Linker.MakeStaticLibrary(SmartLinkPath(FileName));
+              end;
+
              { Check linking  => we are at first level in compile }
              if (compile_level=1) then
               begin
-                if Linker.ExeName='' then
-                 Linker.SetFileName(FileName);
-                if (comp_unit) then
-                 begin
-                   Linker.Make_Library;
-                 end
-                else
+                if not comp_unit then
                  begin
                    if (cs_no_linking in initswitches) then
                     externlink:=true;
-                   Linker.Link;
+                   if Linker.ExeName='' then
+                    Linker.SetExeName(FileName);
+                   Linker.MakeExecutable;
                  end;
               end;
+
            end
          else
            begin
@@ -536,7 +537,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.11  1998-05-01 16:38:45  florian
+  Revision 1.12  1998-05-04 17:54:28  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.11  1998/05/01 16:38:45  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp
@@ -586,361 +592,6 @@ end.
   Revision 1.3  1998/04/07 22:45:04  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
-
-  Revision 1.2  1998/03/26 11:18:30  florian
-    - switch -Sa removed
-    - support of a:=b:=0 removed
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.60  1998/03/24 21:48:32  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.59  1998/03/20 23:31:33  florian
-    * bug0113 fixed
-    * problem with interdepened units fixed ("options.pas problem")
-    * two small extensions for future AMD 3D support
-
-  Revision 1.58  1998/03/13 22:45:58  florian
-    * small bug fixes applied
-
-  Revision 1.57  1998/03/10 17:19:29  peter
-    * fixed bug0108
-    * better linebreak scanning (concentrated in nextchar(), it supports
-      #10, #13, #10#13, #13#10
-
-  Revision 1.56  1998/03/10 16:27:40  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.55  1998/03/10 12:54:06  peter
-    * def_symbol renamed to def_macro and use it in defines_macros
-
-  Revision 1.54  1998/03/10 01:17:22  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.53  1998/03/06 00:52:34  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.52  1998/03/02 16:00:37  peter
-    * -Ch works again
-
-  Revision 1.51  1998/03/02 13:38:44  peter
-    + importlib object
-    * doesn't crash on a systemunit anymore
-    * updated makefile and depend
-
-  Revision 1.49  1998/02/28 00:20:31  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.48  1998/02/27 22:27:56  florian
-    + win_targ unit
-    + support of sections
-    + new asmlists: sections, exports and resource
-
-  Revision 1.47  1998/02/24 10:29:17  peter
-    * -a works again
-
-  Revision 1.46  1998/02/24 00:19:14  peter
-    * makefile works again (btw. linux does like any char after a \ )
-    * removed circular unit with assemble and files
-    * fixed a sigsegv in pexpr
-    * pmodule init unit/program is the almost the same, merged them
-
-  Revision 1.45  1998/02/22 23:03:25  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.44  1998/02/19 00:11:04  peter
-    * fixed -g to work again
-    * fixed some typos with the scriptobject
-
-  Revision 1.43  1998/02/18 13:48:12  michael
-  + Implemented an OS independent AsmRes object.
-
-  Revision 1.42  1998/02/17 21:20:54  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.41  1998/02/16 12:51:35  michael
-  + Implemented linker object
-
-  Revision 1.40  1998/02/15 21:16:25  peter
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-
-  Revision 1.39  1998/02/14 01:45:26  peter
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-
-  Revision 1.38  1998/02/13 22:26:33  peter
-    * fixed a few SigSegv's
-    * INIT$$ was not written for linux!
-    * assembling and linking works again for linux and dos
-    + assembler object, only attasmi3 supported yet
-    * restore pp.pas with AddPath etc.
-
-  Revision 1.37  1998/02/13 10:35:17  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.36  1998/02/12 17:19:12  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.35  1998/02/12 11:50:16  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.34  1998/02/02 11:47:36  pierre
-    + compilation stops at unit with error
-
-  Revision 1.33  1998/02/01 22:41:08  florian
-    * clean up
-    + system.assigned([class])
-    + system.assigned([class of xxxx])
-    * first fixes of as and is-operator
-
-  Revision 1.32  1998/01/30 17:31:23  pierre
-    * bug of cyclic symtablestack fixed
-
-  Revision 1.31  1998/01/29 12:13:21  michael
-  * fixed Typos for library making
-
-  Revision 1.30  1998/01/28 13:48:45  michael
-  + Initial implementation for making libs from within FPC. Not tested, as compiler does not run
-
-  Revision 1.29  1998/01/25 18:45:47  peter
-    + Search for as and ld at startup
-    + source_info works the same as target_info
-    + externlink allows only external linking
-
-  Revision 1.28  1998/01/23 21:14:59  carl
-    * RunError 105 (file not open) with -Agas switch fix
-
-  Revision 1.27  1998/01/23 17:55:11  michael
-  + Moved linking stage to it's own unit (link.pas)
-    Incorporated Pierres changes, but removed -E switch
-    switch for not linking is now -Cn instead of -E
-
-  Revision 1.26  1998/01/23 17:12:15  pierre
-    * added some improvements for as and ld :
-      - doserror and dosexitcode treated separately
-      - PATH searched if doserror=2
-    + start of long and ansi string (far from complete)
-      in conditionnal UseLongString and UseAnsiString
-    * options.pas cleaned (some variables shifted to globals)gl
-
-  Revision 1.25  1998/01/22 14:47:16  michael
-  + Reinstated linker options as -k option. How did they dissapear ?
-
-  Revision 1.24  1998/01/17 01:57:36  michael
-  + Start of shared library support. First working version.
-
-  Revision 1.23  1998/01/16 22:34:37  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.22  1998/01/14 12:52:04  michael
-  - Removed the 'Assembled' line and replaced 'Calling Linker/assembler...'
-    with 'Assembling/linking...'. Too much verbosity when V_info is on.
-
-  Revision 1.21  1998/01/13 16:15:56  pierre
-    *  bug in interdependent units handling
-       - primary unit was not in loaded_units list
-       - current_module^.symtable was assigned too early
-       - donescanner must not call error if the compilation
-       of the unit was done at a higher level.
-
-  Revision 1.20  1998/01/11 10:54:22  florian
-    + generic library support
-
-  Revision 1.19  1998/01/11 04:17:11  carl
-  + correct heap and memory variables for m68k targets
-
-  Revision 1.18  1998/01/08 23:56:39  florian
-    * parser unit divided into several smaller units
-
-  Revision 1.17  1998/01/08 17:10:12  florian
-    * the name of the initialization part of a unit was sometimes written
-      in lower case
-
-  Revision 1.16  1998/01/07 00:16:56  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.13  1997/12/14 22:43:21  florian
-    + command line switch -Xs for DOS (passes -s to the linker to strip symbols from
-      executable)
-    * some changes of Carl-Eric implemented
-
-  Revision 1.12  1997/12/12 13:28:31  florian
-  + version 0.99.0
-  * all WASM options changed into MASM
-  + -O2 for Pentium II optimizations
-
-  Revision 1.11  1997/12/10 23:07:21  florian
-  * bugs fixed: 12,38 (also m68k),39,40,41
-  + warning if a system unit is without -Us compiled
-  + warning if a method is virtual and private (was an error)
-  * some indentions changed
-  + factor does a better error recovering (omit some crashes)
-  + problem with @type(x) removed (crashed the compiler)
-
-  Revision 1.10  1997/12/09 13:50:36  carl
-  * bugfix of possible alignment problems with m68k
-  * bugfix of circular unit use -- could still give a stack overflow,
-    so changed to fatalerror instead.
-  * bugfix of nil procedural variables, fpc = @nil is illogical!
-    (if was reversed!)
-
-  Revision 1.9  1997/12/08 13:31:31  daniel
-  * File was in DOS format. Translated to Unix.
-
-  Revision 1.8  1997/12/08 10:01:08  pierre
-    * nil for a procvar const was not allowed (os2_targ.pas not compilable)
-    * bug in loadunit for units in implementation part already loaded
-      (crashed on dos_targ.pas, thanks to Daniel who permitted me
-      to find this bug out)
-
-  Revision 1.7  1997/12/04 17:47:50  carl
-   + renamed m68k units and refs to these units according to cpu rules.
-
-  Revision 1.6  1997/12/02 15:56:13  carl
-  * bugfix of postfixoperator with pd =nil
-  * bugfix of motorola instructions types for exit code.
-
-  Revision 1.5  1997/12/01 18:14:33  pierre
-      * fixes a bug in nasm output due to my previous changes
-
-  Revision 1.3  1997/11/28 18:14:40  pierre
-   working version with several bug fixes
-
-  Revision 1.2  1997/11/27 17:59:46  carl
-  * made it compile under BP (line too long errors)
-
-  Revision 1.1.1.1  1997/11/27 08:32:57  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-
-
-  History (started with version 0.9.0):
-       5th november 1996:
-         * adapted to 0.9.0
-      25th november 1996:
-         * more stuff adapted
-       9th december 1996:
-         + support for different inline assemblers added (FK)
-      22th september:
-         + support for PACKED RECORD implemented (FK)
-      24th september:
-         + internal support of system.seg added (FK)
-         * system.ofs bug fixed (FK)
-         * problem with compiler switches solved (see also pass_1.pas) (FK)
-         * all aktswitch memory is now recoverd (see also scanner.pas) (FK)
-      24th september 1997:
-         * bug in ESI offset, pushed only if not nested, changed in cgi386.pas in v93 by (FK)
-           but forgotten here (PM)
-      25th september:
-         + parsing of open arrays implemented (FK)
-         + parsing of high and low implemented (FK)
-         + open array support also for proc vars added (FK)
-      1th october:
-         * in typed constants is now the conversion int -> real
-           automatically done (FK)
-      3rd october 1997:
-         + started conversion to motorola 68000 - ifdef m68k to find
-           changes (this makes the code look horrible, may later separate
-           in includes?) - look for all ifdef i386 and ifdef m68k to see
-           changes. (CEC)
-         - commented out regnames (was unused) (CEC)
-         + peepholeopt put in i386 define (not yet available for motorola
-            68000) (CEC)
-         + i386 defines around a_att, in a_o and around a_wasm, a_nasm (CEC).
-         + code for in_ord_x (PM)
-      4th october 1997:
-         + checking for double definitions of function/procedure
-           with same parameters in interface (PM)
-         + enums with jumps set the boolean has_jumps and
-           disable the succ and pred use (PM)
-       9th october 1997:
-         * Fixed problem with 80float on the 68000 output, caused a GPF (CEC).
-      13th october 1997:
-         + Added support for Motorola Standard assembler. (CEC)
-       15th october 1997:
-         + added code for static modifier for objects variables and methods
-           controlled by -St switch at command line (PM)
-      17th october 1997:
-        + Added support for Motorola inline assembler (CEC)
-        * Bugfix with .align 4,0x90, this is NOT allowed in TASM/MASM/WASM (CEC).
-        + procedure set_macro and setting of fpc_* macros (FK)
-      19th october 1997:
-        * Bugfix of RTS on 68000 target. PC Counter would become corrupt
-          with paramsize (CEC).
-      23th october 1997:
-        * Small bugfixes concerning SUBI #const,address_reg (CEC).
-      24th october 1997:
-        * array[boolean] works now (FK)
-      25th october 1997:
-        + CDECL and STDCALL (FK)
-        * ASSEMBLER isn't a keyword anymore (FK)
-       3rd november 1997:
-         + added symdif for sets (PM)
-       5th november 1997:
-         * changed all while token<>ATOKEN do consume(token);
-           by a procedure call consume_all_untill(ATOKEN)
-           to test for _EOF (PM)
-         * aktobjectname was not reset to '' at the end of objectcomponenten (PM)
-       14th november 1997:
-         * removed bug for procvar where the type was not allways set correctly (PM)
-         + integer const not in longint range converted to real constant (PM)
-       25th november 1997:
-         * removed bugs due to wrong current_module references in compile procedure (PM)
-
 }
 
 

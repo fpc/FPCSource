@@ -33,23 +33,6 @@ const
 {$else}
   AsmOutSize=10000;
 {$endif}
-  SmartExt='.sl';
-
-{$ifdef i386}
-{ tof = (of_none,of_o,of_obj,of_masm,of_att,of_nasm,of_win32) }
-  AsBin : array[tof] of string[8]=('','as','nasm','tasm','as','nasm','asw');
-  { I hope that all I386 assembler recongnize this as
-    a comment begin (PM) }
-  As_comment : string[2] = '# ';
-{$endif}
-{$ifdef m68k}
-{ tof = (of_none,of_o,of_gas,of_mot,of_mit)  }
-  AsBin : array[tof] of string[8]=('','','as68k','','');
-  { I hope that all M68K assembler recongnize this as
-    a comment begin (PM) }
-  As_comment : string[2] = '| ';
-{$endif}
-
 
 type
   PAsmList=^TAsmList;
@@ -68,7 +51,7 @@ type
     outfile  : file;
     Constructor Init(const fn:string);
     Destructor Done;
-    Function  FindAssembler(curr_of:tof):string;
+    Function  FindAssembler:string;
     Function  CallAssembler(const command,para:string):Boolean;
     Function  DoAssemble:boolean;
     Procedure RemoveAsm;
@@ -116,17 +99,17 @@ end;
 *****************************************************************************}
 
 const
-  last_of  : tof=of_none;
+  lastas  : byte=255;
 var
   LastASBin : string;
-Function TAsmList.FindAssembler(curr_of:tof):string;
+Function TAsmList.FindAssembler:string;
 var
   asfound : boolean;
 begin
-  if last_of<>curr_of then
+  if lastas<>ord(target_asm.id) then
    begin
-     last_of:=curr_of;
-     LastASBin:=FindExe(asbin[curr_of],asfound);
+     lastas:=ord(target_asm.id);
+     LastASBin:=FindExe(target_asm.asmbin,asfound);
      if (not asfound) and (not externasm) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
@@ -186,58 +169,19 @@ end;
 
 
 Function TAsmList.DoAssemble:boolean;
+var
+  s : string;
 begin
+  DoAssemble:=true;
   if DoPipe then
    exit;
   if not externasm then
    Message1(exec_i_assembling,asmfile);
-  case current_module^.output_format of
-{$ifdef i386}
-   of_att : begin
-              externasm:=true; {Force Extern Asm}
-              if CallAssembler(FindAssembler(of_att),' -D -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            end;
-     of_o : begin
-              if CallAssembler(FindAssembler(of_o),'-D -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            end;
- of_win32 : begin
-              if CallAssembler(FindAssembler(of_win32),'-D -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            end;
-  of_nasm : begin
-            {$ifdef linux}
-              if CallAssembler(FindAssembler(of_nasm),' -f elf -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            {$else}
-              if CallAssembler(FindAssembler(of_nasm),' -f coff -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            {$endif}
-            end;
-   of_obj : begin
-              if CallAssembler(FindAssembler(of_nasm),' -f obj -o '+objfile+' '+AsmFile) then
-               RemoveAsm;
-            end;
-  of_masm : begin
-            { !! Nothing yet !! }
-            end;
-{$endif}
-{$ifdef m68k}
-   of_mot,
-   of_mit : begin
-            { !! Nothing yet !! }
-            end;
-   of_o,of_gas : begin
-              if CallAssembler(FindAssembler(of_gas),'  --register-prefix-optional'+
-              ' -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            end;
-{$endif}
-  else
-   internalerror(30000);
-  end;
-  DoAssemble:=true;
+  s:=target_asm.asmcmd;
+  Replace(s,'$ASM',AsmFile);
+  Replace(s,'$OBJ',ObjFile);
+  if CallAssembler(FindAssembler,s) then
+   RemoveAsm;
 end;
 
 
@@ -304,11 +248,11 @@ Procedure TAsmList.AsmLn;
 begin
   if OutCnt>=AsmOutSize-2 then
    AsmFlush;
-  OutBuf[OutCnt]:=target_info.newline[1];
+  OutBuf[OutCnt]:=target_os.newline[1];
   inc(OutCnt);
-  if length(target_info.newline)>1 then
+  if length(target_os.newline)>1 then
    begin
-     OutBuf[OutCnt]:=target_info.newline[2];
+     OutBuf[OutCnt]:=target_os.newline[2];
      inc(OutCnt);
    end;
 end;
@@ -395,7 +339,7 @@ begin
   smartcnt:=0;
   if smartlink then
    begin
-     path:=FixPath(path)+FixFileName(name+smartext);
+     path:=SmartLinkPath(name);
      {$I-}
       mkdir(path);
      {$I+}
@@ -448,24 +392,7 @@ Procedure OnlyAsm(const fn:string);
 var
   a : PAsmList;
 begin
-  case current_module^.output_format of
-{$ifdef i386}
-     of_o,
- of_win32,
-   of_att : a:=new(pi386attasmlist,Init(fn));
-   of_obj,
-  of_masm,
-  of_nasm : a:=new(pi386intasmlist,Init(fn));
-{$endif}
-{$ifdef m68k}
-     of_o,
-   of_gas : a:=new(pm68kgasasmlist,Init(fn));
-   of_mot : a:=new(pm68kmotasmlist,Init(fn));
-   of_mit : a:=new(pm68kmitasmlist,Init(fn));
-{$endif}
-  else
-   internalerror(30000);
-  end;
+  a:=new(pasmlist,Init(fn));
   a^.DoAssemble;
   dispose(a,Done);
 end;
@@ -473,7 +400,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-29 10:33:44  pierre
+  Revision 1.6  1998-05-04 17:54:24  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.5  1998/04/29 10:33:44  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
@@ -496,79 +428,4 @@ end.
 
   Revision 1.1.1.1  1998/03/25 11:18:16  root
   * Restored version
-
-  Revision 1.17  1998/03/10 13:23:00  florian
-    * small win32 problems fixed
-
-  Revision 1.16  1998/03/10 01:17:14  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.15  1998/03/09 10:37:41  peter
-    * fixed very long pchar writing (> outbufsize)
-
-  Revision 1.14  1998/03/05 22:43:45  florian
-    * some win32 support stuff added
-
-  Revision 1.13  1998/03/04 14:18:58  michael
-  * modified messaging system
-
-  Revision 1.12  1998/03/04 01:34:51  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.11  1998/03/02 01:48:05  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.10  1998/02/26 11:57:00  daniel
-  * New assembler optimizations commented out, because of bugs.
-  * Use of dir-/name- and extstr.
-
-  Revision 1.9  1998/02/24 10:29:12  peter
-    * -a works again
-
-  Revision 1.8  1998/02/21 03:31:40  carl
-    + mit68k asm support.
-
-  Revision 1.7  1998/02/18 14:18:16  michael
-  + added log at end of file (retroactively)
-
-  revision 1.6
-  date: 1998/02/18 13:43:11;  author: michael;  state: Exp;  lines: +3 -19
-  + Implemented an OS independent AsmRes object.
-  ----------------------------
-  revision 1.5
-  date: 1998/02/17 21:20:28;  author: peter;  state: Exp;  lines: +60 -54
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-  ----------------------------
-  revision 1.4
-  date: 1998/02/16 12:51:27;  author: michael;  state: Exp;  lines: +2 -2
-  + Implemented linker object
-  ----------------------------
-  revision 1.3
-  date: 1998/02/15 21:15:58;  author: peter;  state: Exp;  lines: +8 -9
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-  ----------------------------
-  revision 1.2
-  date: 1998/02/14 01:45:04;  author: peter;  state: Exp;  lines: +3 -14
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-  ----------------------------
-  revision 1.1
-  date: 1998/02/13 22:28:16;  author: peter;  state: Exp;
-    + Initial implementation
 }

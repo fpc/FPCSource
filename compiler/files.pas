@@ -101,7 +101,8 @@ unit files;
           imports       : plinkedlist;
 
           sourcefiles   : tfilemanager;
-          linklibfiles,
+          linksharedlibs,
+          linkstaticlibs,
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
           current_inputfile : pinputfile;
@@ -142,7 +143,7 @@ unit files;
                                    { signature    |          |       }
                                    {  |           |          |       }
                                    { /-------\   /-------\  /----\   }
-       unitheader : tunitheader  = ('P','P','U','0','1','3',#0,#99,
+       unitheader : tunitheader  = ('P','P','U','0','1','4',#0,#99,
                                      #0,#0,#0,#0,#0,#0,#255,#255,
                                    { |   | \---------/ \-------/    }
                                    { |   |    |             |        }
@@ -184,11 +185,12 @@ unit files;
        ibabsolutesym   = 28;
        ibclassrefdef   = 29;
        ibpropertysym   = 30;
-       iblibraries     = 31;
+       ibsharedlibs    = 31;
        iblongstringdef = 32;
        ibansistringdef = 33;
        ibunitname      = 34;
        ibwidestringdef = 35;
+       ibstaticlibs    = 36;
        ibend           = 255;
 
        { unit flags }
@@ -328,7 +330,7 @@ unit files;
          objfilename:=stringdup(s+target_info.objext);
          asmfilename:=stringdup(s+target_info.asmext);
          ppufilename:=stringdup(s+target_info.unitext);
-         arfilename:=stringdup(s+target_info.arext);
+         arfilename:=stringdup(s+target_os.staticlibext);
       end;
 
     function tmodule.load_ppu(const unit_path,n,ext : string):boolean;
@@ -395,7 +397,6 @@ unit files;
 
     { read name if its there }
       ppufile^.read_data(b,1,count);
-{$IFDEF UNITNAME}
       if b=ibunitname then
        begin
          ppufile^.read_data(hs[0],1,count);
@@ -404,7 +405,6 @@ unit files;
          unitname:=stringdup(hs);
          ppufile^.read_data(b,1,count);
        end;
-{$ENDIF UNITNAME}
 
     { search source files there is at least one source file }
       do_compile:=false;
@@ -451,23 +451,32 @@ unit files;
       mainsource:=stringdup(ppufile^.path^+hs);
 
     { check the object and assembler file if not a library }
-      if (flags and uf_in_library)=0 then
+      if (flags and uf_smartlink)<>0 then
        begin
-       { the objectfile should be newer than the ppu file }
-         objfiletime:=getnamedfiletime(objfilename^);
+         objfiletime:=getnamedfiletime(arfilename^);
          if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+           do_compile:=true;
+       end
+      else
+       begin
+         if (flags and uf_in_library)=0 then
           begin
-          { check if assembler file is older than ppu file }
-            asmfileTime:=GetNamedFileTime(asmfilename^);
-            if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+          { the objectfile should be newer than the ppu file }
+            objfiletime:=getnamedfiletime(objfilename^);
+            if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
              begin
-               Message(unit_d_obj_and_asm_are_older_than_ppu);
-               do_compile:=true;
-             end
-            else
-             begin
-               Message(unit_d_obj_is_older_than_asm);
-               do_assemble:=true;
+             { check if assembler file is older than ppu file }
+               asmfileTime:=GetNamedFileTime(asmfilename^);
+               if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+                begin
+                  Message(unit_d_obj_and_asm_are_older_than_ppu);
+                  do_compile:=true;
+                end
+               else
+                begin
+                  Message(unit_d_obj_is_older_than_asm);
+                  do_assemble:=true;
+                end;
              end;
           end;
        end;
@@ -504,11 +513,11 @@ unit files;
          { Check for PPL file }
            if not (cs_link_static in aktswitches) then
             begin
-              Found:=UnitExists(target_info.libext);
+              Found:=UnitExists(target_info.unitlibext);
               if Found then
                Begin
                  SetFileName(SinglePathString,FileName);
-                 Found:=Load_PPU(singlepathstring,filename,target_info.libext);
+                 Found:=Load_PPU(singlepathstring,filename,target_info.unitlibext);
                End;
              end;
          { Check for PPU file }
@@ -527,22 +536,22 @@ unit files;
               ppufile:=nil;
               do_compile:=true;
             {Check for .pp file}
-              Found:=UnitExists(target_info.sourceext);
+              Found:=UnitExists(target_os.sourceext);
               if Found then
-               Ext:=target_info.sourceext
+               Ext:=target_os.sourceext
               else
                begin
                {Check for .pas}
-                 Found:=UnitExists(target_info.pasext);
+                 Found:=UnitExists(target_os.pasext);
                  if Found then
-                  Ext:=target_info.pasext;
+                  Ext:=target_os.pasext;
                end;
               stringdispose(mainsource);
               if Found then
                begin
                  sources_avail:=true;
                {Load Filenames when found}
-	         mainsource:=StringDup(SinglePathString+FileName+Ext);
+                 mainsource:=StringDup(SinglePathString+FileName+Ext);
                  SetFileName(SinglePathString,FileName);
                end
               else
@@ -569,12 +578,14 @@ unit files;
          used_units.init;
          sourcefiles.init;
          linkofiles.init;
-         linklibfiles.init;
+         linkstaticlibs.init;
+         linksharedlibs.init;
          ppufile:=nil;
          current_inputfile:=nil;
          map:=nil;
          symtable:=nil;
          flags:=0;
+         crc:=0;
          unitcount:=1;
          do_assemble:=false;
          do_compile:=false;
@@ -585,6 +596,9 @@ unit files;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
          output_format:=commandline_output_format;
+       { set smartlink flag }
+         if smartlink then
+          flags:=flags or uf_smartlink;
        { search the PPU file if it is an unit }
          if is_unit then
           search_unit(unitname^);
@@ -600,11 +614,12 @@ unit files;
          used_units.done; }
          sourcefiles.done;
          linkofiles.done;
-         linklibfiles.done;
+         linkstaticlibs.done;
+         linksharedlibs.done;
          if assigned(ppufile) then
           dispose(ppufile,done);
          if assigned(imports) then
-           dispose(imports,done);
+          dispose(imports,done);
          inherited done;
       end;
 
@@ -631,7 +646,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-01 16:38:44  florian
+  Revision 1.8  1998-05-04 17:54:25  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.7  1998/05/01 16:38:44  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp
@@ -666,199 +686,4 @@ end.
   Revision 1.2  1998/04/21 10:16:47  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.37  1998/03/13 22:45:58  florian
-    * small bug fixes applied
-
-  Revision 1.36  1998/03/11 22:22:52  florian
-    * Fixed circular unit uses, when the units are not in the current dir (from Peter)
-    * -i shows correct info, not <lf> anymore (from Peter)
-    * linking with shared libs works again (from Peter)
-
-  Revision 1.35  1998/03/10 16:27:38  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.34  1998/03/10 01:17:18  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.33  1998/03/04 17:33:44  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.32  1998/03/04 01:35:03  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.31  1998/02/28 14:43:47  florian
-    * final implemenation of win32 imports
-    * extended tai_align to allow 8 and 16 byte aligns
-
-  Revision 1.30  1998/02/28 09:30:57  florian
-    + writing of win32 import section added
-
-  Revision 1.29  1998/02/28 00:20:23  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.28  1998/02/26 11:57:06  daniel
-  * New assembler optimizations commented out, because of bugs.
-  * Use of dir-/name- and extstr.
-
-  Revision 1.27  1998/02/24 14:20:51  peter
-    + tstringcontainer.empty
-    * ld -T option restored for linux
-    * libraries are placed before the objectfiles in a .PPU file
-    * removed 'uses link' from files.pas
-
-  Revision 1.26  1998/02/24 10:29:13  peter
-    * -a works again
-
-  Revision 1.25  1998/02/24 00:19:09  peter
-    * makefile works again (btw. linux does like any char after a \ )
-    * removed circular unit with assemble and files
-    * fixed a sigsegv in pexpr
-    * pmodule init unit/program is the almost the same, merged them
-
-  Revision 1.24  1998/02/22 23:03:17  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.23  1998/02/17 21:20:48  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.22  1998/02/16 12:51:30  michael
-  + Implemented linker object
-
-  Revision 1.21  1998/02/13 10:34:58  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.20  1998/02/12 11:50:04  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.19  1998/02/06 23:08:33  florian
-    + endian to targetinfo and sourceinfo added
-    + endian independed writing of ppu file (reading missed), a PPU file
-      is written with the target endian
-
-  Revision 1.18  1998/02/02 13:13:27  pierre
-    * line_count transfered to tinputfile, to avoid crosscounting
-
-  Revision 1.17  1998/01/30 17:31:20  pierre
-    * bug of cyclic symtablestack fixed
-
-  Revision 1.16  1998/01/26 18:51:18  peter
-    * ForceSlash() changed to FixPath() which also removes a trailing './'
-
-  Revision 1.15  1998/01/23 17:12:11  pierre
-    * added some improvements for as and ld :
-      - doserror and dosexitcode treated separately
-      - PATH searched if doserror=2
-    + start of long and ansi string (far from complete)
-      in conditionnal UseLongString and UseAnsiString
-    * options.pas cleaned (some variables shifted to globals)gl
-
-  Revision 1.14  1998/01/22 08:57:54  peter
-    + added target_info.pasext and target_info.libext
-
-  Revision 1.13  1998/01/21 00:11:35  peter
-    * files in a ppl will now not recompile
-    * better info about source files of a ppu, a * after the time will
-      indicate that the file is changed
-
-  Revision 1.12  1998/01/20 13:16:29  michael
-  + Added flag for static/shared libs.
-
-  Revision 1.11  1998/01/17 01:57:32  michael
-  + Start of shared library support. First working version.
-
-  Revision 1.10  1998/01/16 12:52:09  michael
-  + Path treatment and file searching should now be more or less in their
-    definite form:
-    - Using now modified AddPathToList everywhere.
-    - File Searching mechanism is uniform for all files.
-    - Include path is working now !!
-    All fixes by Peter Vreman. Tested with remake3 target.
-
-  Revision 1.9  1998/01/16 00:00:54  michael
-  + Better and more modular searching and loading of units.
-    - searching in tmodule.search_unit.
-    - initial Loading in tmpodule.load_ppu.
-    - tmodule.init now calls search_unit.
-  * Case sensitivity problem of unix hopefully solved now forever.
-    (All from Peter Vreman, checked with remake3)
-
-  Revision 1.8  1998/01/15 13:07:46  michael
-  + added library treating stuff
-
-  Revision 1.7  1998/01/15 12:01:19  michael
-  * Linux prints now that actual name of the file being loaded.
-
-  Revision 1.6  1998/01/13 23:39:26  michael
-  * changed mechanism to look for unit file.
-  + added iblibraries constant to implement shared libraries.
-
-  Revision 1.5  1998/01/13 23:05:51  florian
-    + unit format 013 (change of options size, see symtable.pas log)
-
-  Revision 1.4  1998/01/13 17:13:06  michael
-  * File time handling and file searching is now done in an OS-independent way,
-    using the new file treating functions in globals.pas.
-
-  Revision 1.3  1998/01/07 00:16:49  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.2  1997/11/28 18:14:31  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:56  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC  Carl-Eric Codere
-  FK   Florian Klaempfl
-  +    feature added
-  -    removed
-  *    bug fixed or changed
-
-  History (started with version 0.9.0):
-       2th december 1996:
-         + unit started  (FK)
-      22th december 1996:
-         + tinputfile added  (FK)
-      7th september 1997:
-         + moved main_module and current_module to const section
-           line ~319 and ~416: in_main initialized - added in_main
-           field to tmodule object  (CEC)
-
 }

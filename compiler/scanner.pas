@@ -191,7 +191,7 @@ unit scanner;
 
      uses
        dos,verbose,pbase,
-       symtable,switches,link;
+       symtable,switches;
 
      var
     { this is usefull to get the write filename
@@ -1461,7 +1461,12 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-01 16:38:46  florian
+  Revision 1.16  1998-05-04 17:54:28  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.15  1998/05/01 16:38:46  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp

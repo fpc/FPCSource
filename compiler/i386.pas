@@ -1107,11 +1107,11 @@ unit i386;
            lab2str:='ILLEGAL'
          else
          begin
-            lab2str:=target_info.labelprefix+tostr(l^.nb);
+            lab2str:=target_asm.labelprefix+tostr(l^.nb);
          end;
 {$else EXTDEBUG}
            internalerror(2000);
-           lab2str:=target_info.labelprefix+tostr(l^.nb);
+           lab2str:=target_asm.labelprefix+tostr(l^.nb);
 {$endif EXTDEBUG}
          { was missed: }
          inc(l^.refcount);
@@ -1780,7 +1780,12 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-29 10:33:53  pierre
+  Revision 1.6  1998-05-04 17:54:25  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.5  1998/04/29 10:33:53  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
@@ -1802,127 +1807,4 @@ end.
     * bugfix of crash with ins_cache and popfd
     * bugfix of pushfd typo mistake in att output
     + added setc, and setnc
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.21  1998/03/10 16:27:39  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.20  1998/03/10 01:17:19  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.19  1998/03/09 12:58:11  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.18  1998/03/06 00:52:19  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.17  1998/03/02 01:48:38  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.16  1998/02/28 00:20:25  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.15  1998/02/25 12:32:16  daniel
-  * Compiler uses even less memory.
-
-  Revision 1.14  1998/02/13 10:35:06  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.13  1998/02/12 17:19:04  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.12  1998/02/12 11:50:08  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.11  1998/02/04 22:01:59  florian
-    + S_D for MMX MOVD added, but unused
-
-  Revision 1.10  1998/01/16 22:34:33  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.9  1997/12/13 18:59:46  florian
-  + I/O streams are now also declared as external, if neccessary
-  * -Aobj generates now a correct obj file via nasm
-
-  Revision 1.8  1997/12/09 13:42:09  carl
-  * bugfix of lab2str with nasm output
-    (. = local label in nasm, which would cause some problems sometimes)
-  * bugfix of out reg,imm8 (missing instruction template)
-  + renamed pai_labeled386 --> pai_labeled
-  + added extended size constant
-
-  Revision 1.7  1997/12/08 11:43:43  pierre
-     * syntax error in previous commit
-
-  Revision 1.6  1997/12/08 10:12:05  pierre
-     * bug fix for cmpb for a value in the range 129-255 :
-       if the destination is a word or lognint reg then there is an implicit sign
-       extension of the const (thus becoming -127 to -1)
-     + redefined ao_floatreg to include the floatacc (used in ratti386.pas)
-
-  Revision 1.5  1997/11/28 23:46:09  florian
-  LOC_CMMXREGISTER added
-
-  Revision 1.4  1997/11/28 19:56:41  carl
-  * forgot dtou!
-
-  Revision 1.3  1997/11/28 18:15  pierre
-   working version with several bug fixes
-
-  Revision 1.2  1997/11/28 14:53:38  carl
-  + added popad,popfd,pushad,pushfd in op table.
-
-  Revision 1.1.1.1  1997/11/27 08:32:56  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-  FK     Florian Klaempfl
-  PM     Pierre Muller
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  History:
-      30th september 1996:
-         + unit started
-      15th october 1996:
-         + tai386 added
-         + some code from asmgen moved to this unit
-      26th november 1996:
-         + tai386_labeled
-      15th october 1997:
-         + lab2str increments also refcount (FK)
-      6th november 1997:
-         * added S_T for s80real fldt and fstpt (PM)
-      20th november 1997:
-         * changed LOC_FPUSTACK to LOC_FPU for compatibility with m68k (PM)
-
 }

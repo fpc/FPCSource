@@ -49,7 +49,8 @@ unit pmodules;
 {$endif}
        ;
 
-    function loadunit(const s : string;compile_system, in_uses : boolean) : pmodule;
+    procedure addlinkerfiles(hp:pmodule);
+    function  loadunit(const s : string;compile_system, in_uses : boolean) : pmodule;
     procedure proc_unit;
     procedure proc_program(islibrary : boolean);
 
@@ -59,6 +60,19 @@ unit pmodules;
        parser;
 
     {$I innr.inc}
+
+    procedure addlinkerfiles(hp:pmodule);
+      begin
+        with hp^ do
+         begin
+           while not linkofiles.empty do
+            Linker.AddObject(linkofiles.Get);
+           while not linksharedlibs.empty do
+            Linker.AddSharedLibrary(linksharedlibs.Get);
+           while not linkstaticlibs.empty do
+            Linker.AddStaticLibrary(linkstaticlibs.Get);
+         end;
+      end;
 
     { all intern procedures for system unit }
 
@@ -116,7 +130,7 @@ unit pmodules;
          p^.insert(new(ptypesym,init('string',cstringdef)));
          p^.insert(new(ptypesym,init('longstring',clongstringdef)));
          p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
-         p^.insert(new(ptypesym,init('widestring',cansistringdef)));
+         p^.insert(new(ptypesym,init('widestring',cwidestringdef)));
          p^.insert(new(ptypesym,init('word',u16bitdef)));
          p^.insert(new(ptypesym,init('boolean',booldef)));
          p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
@@ -353,15 +367,13 @@ unit pmodules;
                 begin
                 { only reassemble ? }
                   if (hp^.do_assemble) then
-                   OnlyAsm(hp^.asmfilename^);
+                    OnlyAsm(hp^.asmfilename^);
                  { we should know there the PPU file else it's an error and
                    we can't load the unit }
                   if hp^.ppufile^.name^<>'' then
-                    begin
-                      if (hp^.flags and uf_in_library)=0 then
-                       Linker.AddObjectFile(hp^.objfilename^);
-                      load_ppu(hp,compile_system);
-                    end;
+                    load_ppu(hp,compile_system);
+                 { add the files for the linker }
+                  addlinkerfiles(hp);
                 end;
 
               { register the unit _once_ }
@@ -548,12 +560,14 @@ unit pmodules;
                Message(unit_w_switch_us_missed);
              dispose(s2);
              dispose(s1);
-	     
-	  { Add Object File }     
-             Linker.AddObjectFile(current_module^.objfilename^);
-             current_module^.linkofiles.insert(current_module^.objfilename^);
+
+          { Add Object File }
+             if smartlink then
+              current_module^.linkstaticlibs.insert(current_module^.arfilename^)
+             else
+              current_module^.linkofiles.insert(current_module^.objfilename^);
           end;
-	  
+
          consume(ID);
          consume(SEMICOLON);
          consume(_INTERFACE);
@@ -833,7 +847,7 @@ unit pmodules;
          aktprocsym:=new(Pprocsym,init('main'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
-         aktprocsym^.definition^.setmangledname(target_info.Cprefix+'main');
+         aktprocsym^.definition^.setmangledname(target_os.Cprefix+'main');
          {The localst is a local symtable. Change it into the static
           symtable.}
          dispose(aktprocsym^.definition^.localst,done);
@@ -849,7 +863,7 @@ unit pmodules;
 
          {Load the units used by the program we compile.}
          if token=_USES then
-	   loadunits;
+           loadunits;
 
          {Insert the name of the main program into the symbol table.}
          if programname<>'' then
@@ -888,13 +902,15 @@ unit pmodules;
            target_WIN32 : names.insert('_main');
            target_LINUX : names.insert('main');
          end;
-
          compile_proc_body(names,true,false);
+         names.done;
 
          codegen_doneprocedure;
 
-         Linker.AddObjectFile(current_module^.objfilename^);
-         current_module^.linkofiles.insert(current_module^.objfilename^);
+         if smartlink then
+          current_module^.linkstaticlibs.insert(current_module^.arfilename^)
+         else
+          current_module^.linkofiles.insert(current_module^.objfilename^);
 
          if smartlink then
            begin
@@ -940,8 +956,6 @@ unit pmodules;
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
          datasize:=symtablestack^.datasize;
 
-         names.done;
-
          consume(POINT);
 
          symtablestack^.check_forwards;
@@ -951,7 +965,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-01 16:38:45  florian
+  Revision 1.10  1998-05-04 17:54:28  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.9  1998/05/01 16:38:45  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp
@@ -988,198 +1007,4 @@ end.
 
   Revision 1.3  1998/04/03 09:51:00  daniel
   * Fixed heap allocation for OS/2.
-
-  Revision 1.2  1998/03/30 15:53:01  florian
-    * last changes before release:
-       - gdb fixed
-       - ratti386 warning removed (about unset function result)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.43  1998/03/20 23:31:34  florian
-    * bug0113 fixed
-    * problem with interdepened units fixed ("options.pas problem")
-    * two small extensions for future AMD 3D support
-
-  Revision 1.42  1998/03/11 22:22:52  florian
-    * Fixed circular unit uses, when the units are not in the current dir (from Peter)
-    * -i shows correct info, not <lf> anymore (from Peter)
-    * linking with shared libs works again (from Peter)
-
-  Revision 1.41  1998/03/10 17:19:29  peter
-    * fixed bug0108
-    * better linebreak scanning (concentrated in nextchar(), it supports
-      #10, #13, #10#13, #13#10
-
-  Revision 1.40  1998/03/10 16:27:42  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.39  1998/03/10 01:17:24  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.38  1998/03/05 22:43:50  florian
-    * some win32 support stuff added
-
-  Revision 1.37  1998/03/04 01:35:08  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.36  1998/03/03 23:18:45  florian
-    * ret $8 problem with unit init/main program fixed
-
-  Revision 1.35  1998/03/02 13:38:48  peter
-    + importlib object
-    * doesn't crash on a systemunit anymore
-    * updated makefile and depend
-
-  Revision 1.34  1998/03/02 01:49:04  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.33  1998/03/01 22:46:20  florian
-    + some win95 linking stuff
-    * a couple of bugs fixed:
-      bug0055,bug0058,bug0059,bug0064,bug0072,bug0093,bug0095,bug0098
-
-  Revision 1.32  1998/02/28 09:30:58  florian
-    + writing of win32 import section added
-
-  Revision 1.31  1998/02/28 03:57:08  carl
-    + replaced target_info.short_name by target_info.target (a bit faster)
-
-  Revision 1.30  1998/02/27 09:25:58  daniel
-  * Changed symtable handling so no junk symtable is put on the symtablestack.
-
-  Revision 1.28  1998/02/24 14:20:54  peter
-    + tstringcontainer.empty
-    * ld -T option restored for linux
-    * libraries are placed before the objectfiles in a .PPU file
-    * removed 'uses link' from files.pas
-
-  Revision 1.27  1998/02/24 00:19:19  peter
-    * makefile works again (btw. linux does like any char after a \ )
-    * removed circular unit with assemble and files
-    * fixed a sigsegv in pexpr
-    * pmodule init unit/program is the almost the same, merged them
-
-  Revision 1.26  1998/02/22 23:55:18  peter
-    * small fix
-
-  Revision 1.25  1998/02/22 23:03:28  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.24  1998/02/22 18:51:06  carl
-    * where the heck did the HEAP for m68k go??????? REINSTATED
-
-  Revision 1.23  1998/02/21 05:50:14  carl
-    * bugfix of crash with Us switch
-
-  Revision 1.22  1998/02/19 00:11:08  peter
-    * fixed -g to work again
-    * fixed some typos with the scriptobject
-
-  Revision 1.21  1998/02/17 21:20:57  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.20  1998/02/16 12:51:38  michael
-  + Implemented linker object
-
-  Revision 1.19  1998/02/14 01:45:29  peter
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-
-  Revision 1.18  1998/02/13 22:26:37  peter
-    * fixed a few SigSegv's
-    * INIT$$ was not written for linux!
-    * assembling and linking works again for linux and dos
-    + assembler object, only attasmi3 supported yet
-    * restore pp.pas with AddPath etc.
-
-  Revision 1.17  1998/02/13 10:35:27  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.16  1998/02/12 17:19:22  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.15  1998/02/12 11:50:28  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.14  1998/01/30 17:31:26  pierre
-    * bug of cyclic symtablestack fixed
-
-  Revision 1.13  1998/01/28 13:48:49  michael
-  + Initial implementation for making libs from within FPC. Not tested, as compiler does not run
-
-  Revision 1.12  1998/01/19 15:46:25  peter
-  * fixed INIT$$lowercase generation
-
-  Revision 1.11  1998/01/19 09:32:28  michael
-  * Shared Lib and GDB/RHIDE Bufixes from Peter Vreman.
-
-  Revision 1.10  1998/01/17 01:57:39  michael
-  + Start of shared library support. First working version.
-
-  Revision 1.9  1998/01/16 18:03:17  florian
-    * small bug fixes, some stuff of delphi styled constructores added
-
-  Revision 1.8  1998/01/13 23:11:15  florian
-    + class methods
-
-  Revision 1.7  1998/01/13 17:13:09  michael
-  * File time handling and file searching is now done in an OS-independent way,
-    using the new file treating functions in globals.pas.
-
-  Revision 1.6  1998/01/13 16:16:03  pierre
-    *  bug in interdependent units handling
-       - primary unit was not in loaded_units list
-       - current_module^.symtable was assigned too early
-       - donescanner must not call error if the compilation
-       of the unit was done at a higher level.
-
-  Revision 1.5  1998/01/12 13:03:32  florian
-    + parsing of class methods implemented
-
-  Revision 1.4  1998/01/11 10:54:24  florian
-    + generic library support
-
-  Revision 1.3  1998/01/11 04:17:36  carl
-  + floating point support for m68k
-
-  Revision 1.2  1998/01/09 09:10:01  michael
-  + Initial implementation, second try
-
 }

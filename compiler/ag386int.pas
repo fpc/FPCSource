@@ -58,49 +58,6 @@ unit ag386int;
       if ref.isintvalue then
        s:= tostr(ref.offset)
       else
-{$ifdef ver0_6}
-       begin
-      first:=true;
-      { have we a segment prefix ? }
-      if ref.segment<>R_DEFAULT_SEG then
-      begin
-        if current_module^.output_format in [of_nasm,of_obj] then
-          s:='['+_reg2str[ref.segment]+':'
-        else
-          s:=_reg2str[ref.segment]+':[';
-      end
-      else s:='[';
-
-      if assigned(ref.symbol) then
-        begin
-           s:=s+ref.symbol^;
-           first:=false;
-        end;
-      if (ref.base<>R_NO) then
-        begin
-           if not(first) then
-             s:=s+'+'
-           else
-             first:=false;
-           s:=s+_reg2str[ref.base];
-        end;
-      if (ref.index<>R_NO) then
-        begin
-           if not(first) then
-             s:=s+'+'
-           else
-             first:=false;
-           s:=s+_reg2str[ref.index];
-           if ref.scalefactor<>0 then
-             s:=s+'*'+tostr(ref.scalefactor);
-        end;
-      if ref.offset<0 then
-        s:=s+tostr(ref.offset)
-      else if (ref.offset>0) then
-        s:=s+'+'+tostr(ref.offset);
-      s:=s+']';
-        end;
-{$else}
       with ref do
         begin
           first:=true;
@@ -143,7 +100,6 @@ unit ag386int;
            s:=s+'+'+tostr(offset);
          s:=s+']';
         end;
-{$endif}
        getreferencestring:=s;
      end;
 
@@ -322,12 +278,11 @@ unit ag386int;
       while assigned(hp) do
        begin
          case hp^.typ of
-           ait_comment :
-             Begin
-                AsmWrite(As_comment);
-                AsmWritePChar(pai_asm_comment(hp)^.str);
-                AsmLn;
-             End;
+       ait_comment : Begin
+                       AsmWrite(target_asm.comment);
+                       AsmWritePChar(pai_asm_comment(hp)^.str);
+                       AsmLn;
+                     End;
          ait_align : begin
                      { align not supported at all with nasm v095  }
                      { align with specific value not supported by }
@@ -440,7 +395,7 @@ unit ag386int;
                                       end;
                                end; { end for i:=0 to... }
                              if quoted then AsmWrite('"');
-                               AsmWrite(target_info.newline);
+                               AsmWrite(target_os.newline);
                              counter := counter+line_length;
                           end; { end for j:=0 ... }
                         { do last line of lines }
@@ -653,7 +608,7 @@ ait_stab_function_name : ;
       else
        begin
          AsmWriteLn(#9'.386p');
-         AsmWriteLn(#9'LOCALS '+target_info.labelprefix);
+         AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
 
          WriteTree(externals);
          { INTEL ASM doesn't support stabs
@@ -694,7 +649,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.5  1998-05-01 07:43:52  florian
+  Revision 1.6  1998-05-04 17:54:24  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.5  1998/05/01 07:43:52  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 
@@ -715,125 +675,4 @@ end.
 
   Revision 1.2  1998/04/08 11:34:17  peter
     * nasm works (linux only tested)
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.1  1998/03/10 01:26:09  peter
-    + new uniform names
-
-  Revision 1.18  1998/03/09 12:58:11  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.17  1998/03/06 00:52:23  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.16  1998/03/02 01:48:41  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.15  1998/02/23 02:57:41  carl
-    * small bugfix when compiling $extdebug
-
-  Revision 1.14  1998/02/15 21:16:20  peter
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-
-  Revision 1.13  1998/02/13 10:35:07  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.12  1998/02/12 17:19:07  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.11  1998/02/12 11:50:11  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.10  1997/12/13 18:59:48  florian
-  + I/O streams are now also declared as external, if neccessary
-  * -Aobj generates now a correct obj file via nasm
-
-  Revision 1.9  1997/12/12 13:28:26  florian
-  + version 0.99.0
-  * all WASM options changed into MASM
-  + -O2 for Pentium II optimizations
-
-  Revision 1.8  1997/12/09 13:45:10  carl
-  * bugfix of DT under nasm (not allowed if non integral - nasm v095)
-  + added pai_align --> useless here see file for more info
-  * bugfix of problems with in,out instructions under nasm
-  * bugfix of call under nasm (not fully tested though -- not sure)
-  * some range check errors removed (probably a few left though)
-  * bugfix of checking for extended type when emitting ':'
-
-  Revision 1.7  1997/12/04 15:20:47  carl
-  * esthetic bugfix with extdebug on.
-
-  Revision 1.6  1997/12/03 13:46:40  carl
-  * bugfix of my bug with near, now near in nasm mode for all non-rel8
-  instructions. (jcxz,jecxz still does not work thoug - assumed short now).
-
-  Revision 1.5  1997/12/02 15:52:26  carl
-  * bugfix of string (again...) - would be sometimes invalid.
-  * bugfix of segment overrides under nasm.
-  - removed near in labeled instructions (would cause errors).
-
-  Revision 1.4  1997/12/01 17:42:51  pierre
-     + added some more functionnality to the assembler parser
-
-  Revision 1.3  1997/11/28 18:14:36  pierre
-   working version with several bug fixes
-
-  Revision 1.2  1997/11/28 14:54:50  carl
-  + added popfd instruction.
-
-  Revision 1.1.1.1  1997/11/27 08:32:57  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  History:
-
-     9th october 1997:
-      * bugfix of string write, closing quotes would never be written. (CEC)
-    23 october 1997:
-      * fixed problem with writing strings of length = 0 (CEC).
-      + added line separation of long string chains. (CEC).
-    31st october 1997:
-      + completed the table of opcodes. (CEC)
-     3rd november 1997:
-      + MMX instructions added (FK)
-     9th november 1997:
-      * movsb represented the AT&T movsx - fixed, absolute values
-        in getreferencestring would be preceded by $ - fixed (CEC).
-
-  What's to do:
-    o Fix problems regarding the segment names under NASM
-    o generate extern entries for typed constants and variables
-    o write lines numbers and file names to output file
-    o comments
 }

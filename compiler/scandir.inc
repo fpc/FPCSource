@@ -628,9 +628,6 @@ const
       begin
         skipspace;
         hs:=FixFileName(readstring);
-        if (not path_absolute(hs)) and (not assigned(current_module^.current_inputfile^.path)) then
-         path:=search(hs,current_module^.current_inputfile^.path^+';'+objectsearchpath,found);
-        Linker.AddObjectFile(path+hs);
         current_module^.linkofiles.insert(hs);
       end;
 
@@ -641,8 +638,7 @@ const
       begin
         skipspace;
         hs:=FixFileName(readstring);
-        Linker.AddLibraryFile(hs);
-        current_module^.linklibfiles.insert(hs);
+        current_module^.linkSharedLibs.insert(hs);
       end;
 
 
@@ -825,7 +821,12 @@ const
 
 {
   $Log$
-  Revision 1.5  1998-04-30 15:59:42  pierre
+  Revision 1.6  1998-05-04 17:54:28  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.5  1998/04/30 15:59:42  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

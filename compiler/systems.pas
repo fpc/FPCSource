@@ -26,320 +26,464 @@ unit systems;
   interface
 
     type
-       { target operanting system }
-       ttarget = (target_GO32V1,target_OS2,target_LINUX,
-                  target_WIN32,target_GO32V2,
-                  target_Amiga,target_Atari,target_Mac68k);
+       ttarget = (target_GO32V1,target_GO32V2,target_LINUX,target_OS2,
+                  target_WIN32,target_Amiga,target_Atari,target_Mac68k);
+
+       tos = (os_GO32V1, os_GO32V2, os_Linux, os_OS2,
+              os_WIN32, os_Amiga, os_Atari, os_Mac68k);
+
+       tasm = (as_as
+       {$ifdef i386}
+              ,as_nasmcoff, as_nasmelf, as_nasmobj
+       {$endif}
+       {$ifdef m68k}
+              ,as_as68k
+       {$endif}
+       );
+
+       tlink = (link_ld
+       {$ifdef i386}
+              ,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2);
+       {$endif i386}
 
        tendian = (endian_little,en_big_endian);
 
-
-       ttargetinfo = record
-          target : ttarget;
-          target_name : string[30];
-          short_name : string[8];
-          unit_env : string[20];
-          system_unit : string[8];
-          exeext,
-          objext,
-          dllext,
-          arext,
-          unitext,
-          libext,
-          asmext,
+       tosinfo = record
+          name      : string[30];
+          sharedlibext,
+          staticlibext,
           sourceext,
-          pasext  : string[4];
-          newline : string[3];
-          labelprefix : string[2];
-          Cprefix : string[2];
-          use_function_relative_addresses : boolean;
-          endian : tendian;
-       end;
-
-       tsourceinfo = record
-          source:ttarget;
-          source_name:string[30];
+          pasext,
           exeext,
           scriptext : string[4];
-          endian : tendian;
+          Cprefix   : string[2];
+          newline   : string[2];
+          endian    : tendian;
+          use_function_relative_addresses : boolean;
+       end;
+
+       tasminfo = record
+          id          : tasm;
+          idtxt       : string[8];
+          asmbin      : string[8];
+          asmcmd      : string[50];
+          labelprefix : string[2];
+          comment     : string[2];
+       end;
+
+       tlinkinfo = record
+          linkbin   : string[8];
+          linkcmd   : string[40];
+          stripopt  : string[2];
+          groupstart,
+          groupend,
+          inputstart,
+          inputend  : string[8];
+          libprefix : string[2];
+       end;
+
+       ttargetinfo = record
+          target      : ttarget;
+          short_name  : string[8];
+          unit_env    : string[12];
+          system_unit : string[8];
+          smartext,
+          unitext,
+          unitlibext,
+          asmext,
+          objext      : string[4];
+          os          : tos;
+          link        : tlink;
+          assem       : tasm;
        end;
 
     var
-       source_info : tsourceinfo;
        target_info : ttargetinfo;
+       target_os   : tosinfo;
+       target_asm  : tasminfo;
+       target_link : tlinkinfo;
+       source_os   : tosinfo;
 
     function set_string_target(const s : string) : boolean;
 
   implementation
 
     const
+       os_infos : array[tos] of tosinfo = (
+          (
+            name         : 'GO32 V1 DOS extender';
+            sharedlibext : '.DLL';
+            staticlibext : '.A';
+            sourceext    : '.PP';
+            pasext       : '.PAS';
+            exeext       : '.EXE';
+            scriptext    : '.BAT';
+            Cprefix      : '_';
+            newline      : #13#10;
+            endian       : endian_little;
+            use_function_relative_addresses : true
+          ),
+          (
+            name         : 'GO32 V2 DOS extender';
+            sharedlibext : '.DLL';
+            staticlibext : '.A';
+            sourceext    : '.PP';
+            pasext       : '.PAS';
+            exeext       : '.EXE';
+            scriptext    : '.BAT';
+            Cprefix      : '_';
+            newline      : #13#10;
+            endian       : endian_little;
+            use_function_relative_addresses : true
+          ),
+          (
+            name         : 'Linux';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            scriptext    : '.sh';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : endian_little;
+            use_function_relative_addresses : true
+          ),
+          (
+            name         : 'OS/2 (32bit)';
+            sharedlibext : '.ao2';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            scriptext    : '.cmd';
+            Cprefix      : '_';
+            newline      : #13#10;
+            endian       : endian_little;
+            use_function_relative_addresses : false
+          ),
+          (
+            name         : 'Win32';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            scriptext    : '.bat';
+            Cprefix      : '_';
+            newline      : #13#10;
+            endian       : endian_little;
+            use_function_relative_addresses : true
+          ),
+          (
+            name         : 'Commodore Amiga';
+            sharedlibext : '.library';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            scriptext    : '';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : en_big_endian;
+            use_function_relative_addresses : false
+          ),
+          (
+            name         : 'Atari ST/STE';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.tpp';
+            scriptext    : '';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : en_big_endian;
+            use_function_relative_addresses : false
+          ),
+          (
+            name         : 'Macintosh m68k';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.tpp';
+            scriptext    : '';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : en_big_endian;
+            use_function_relative_addresses : false
+          )
+          );
+
+       as_infos : array[tasm] of tasminfo = (
+          (
+            id     : as_as;
+            idtxt  : 'O';
+            asmbin : 'as';
+            asmcmd : '-D -o $OBJ $ASM';
+            labelprefix : '.L';
+            comment : '# '
+          )
+{$ifdef i386}
+          ,(
+            id     : as_nasmcoff;
+{$ifdef linux}
+            idtxt  : 'NASM';
+{$else}
+            idtxt  : 'NASMCOFF';
+{$endif}
+            asmbin : 'nasm';
+            asmcmd : '-f coff -o $OBJ $ASM';
+            labelprefix : 'L';
+            comment : '; '
+          )
+          ,(
+            id     : as_nasmelf;
+{$ifdef linux}
+            idtxt  : 'NASM';
+{$else}
+            idtxt  : 'NASMELF';
+{$endif}
+            asmbin : 'nasm';
+            asmcmd : '-f elf -o $OBJ $ASM';
+            labelprefix : 'L';
+            comment : '; '
+          )
+          ,(
+            id     : as_nasmobj;
+            idtxt  : 'OBJ';
+            asmbin : 'nasm';
+            asmcmd : '-f obj -o $OBJ $ASM';
+            labelprefix : 'L';
+            comment : '; '
+          )
+{$endif}
+{$ifdef m68k}
+          ,(
+            id     : as_as68k;
+            idtxt  : 'O';
+            asmbin : 'as68k'; { Gas for the Amiga}
+            asmcmd : '-D --register-prefix-optional -o $OBJ $ASM';
+            labelprefix : '__L';
+            comment : '| '
+          )
+{$endif}
+          );
+
+       link_infos : array[tlink] of tlinkinfo = (
+          (
+            linkbin : 'ld';
+            linkcmd : '$OPT -o $EXE $RES';
+            stripopt   : '-s';
+            groupstart : 'GROUP(';
+            groupend   : ')';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+{$ifdef i386}
+
+
+          ,(
+            linkbin : 'ld';
+            linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
+            stripopt   : '-s';
+            groupstart : '-(';
+            groupend   : ')-';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+          ,(
+            linkbin : 'ld';
+            linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
+            stripopt   : '-s';
+            groupstart : '-(';
+            groupend   : ')-';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+          ,(
+            linkbin : 'ldw';
+            linkcmd : '$OPT -o $EXE $RES';
+            stripopt   : '-s';
+            groupstart : 'GROUP(';
+            groupend   : ')';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+          ,(
+            linkbin : 'ld';
+            linkcmd : '-o $EXE @$RES';
+            stripopt   : '-s';
+            groupstart : '-(';
+            groupend   : ')-';
+            inputstart : '';
+            inputend   : '';
+            libprefix  : ''
+          )
+{$endif i386}
+
+
+          );
+
        target_infos : array[ttarget] of ttargetinfo = (
           (
-            target : target_GO32V1;
-            target_name : 'GO32 V1 DOS extender';
-            short_name : 'GO32V1';
-            unit_env : 'GO32V1UNITS';
+            target      : target_GO32V1;
+            short_name  : 'GO32V1';
+            unit_env    : 'GO32V1UNITS';
             system_unit : 'SYSTEM';
-            exeext : '';
-            objext : '.O1';
-            dllext : '.DLL';
-            arext : '.A';
-            unitext : '.PP1';
-            libext : '.PPL';
-            asmext : '.S1';
-            sourceext : '.PP';
-            pasext : '.PAS';
-            newline : #13#10;
-            labelprefix : '.L';
-            Cprefix : '_';
-            use_function_relative_addresses : true;
-            endian : endian_little
+            smartext    : '.SL';
+            unitext     : '.PP1';
+            unitlibext  : '.PPL';
+            asmext      : '.S1';
+            objext      : '.O1';
+            os          : os_GO32V1;
+            link        : link_ldgo32v1;
+            assem       : as_as
           ),
           (
-            target : target_OS2;
-            target_name : 'OS/2 (32 bit)';
-            short_name : 'OS2';
-            unit_env : 'OS2UNITS';
-            system_unit : 'SYSOS2';
-            exeext : '';
-            objext : '.oo2';
-            dllext : '.ao2';
-            arext : '.a';
-            unitext : '.ppo';
-            libext : '.ppl';
-            asmext : '.so2';
-            sourceext : '.pas';
-            pasext : '.pp';
-            newline : #13#10;
-            labelprefix : 'L';
-            Cprefix : '_';
-            use_function_relative_addresses : false;
-            endian : endian_little
-          ),
-          (
-            target : target_LINUX;
-            target_name : 'Linux';
-            short_name : 'LINUX';
-            unit_env : 'LINUXUNITS';
-            system_unit : 'syslinux';
-            exeext : '';
-            objext : '.o';
-            dllext : '.so';
-            arext : '.a';
-            unitext : '.ppu';
-            libext : '.ppl';
-            asmext : '.s';
-            sourceext : '.pp';
-            pasext : '.pas';
-            newline : #10;
-            labelprefix : '.L';
-            Cprefix : '';
-            use_function_relative_addresses : true;
-            endian : endian_little
-          ),
-          (
-            target : target_WIN32;
-            target_name : 'Win32';
-            short_name : 'WIN32';
-            unit_env : 'WIN32UNITS';
-            system_unit : 'SYSWIN32';
-            exeext : '.exe';
-            objext : '.o';
-            dllext : '.dll';
-            arext : '.a';
-            unitext : '.ppw';
-            libext : '.ppl';
-            asmext : '.s';
-            sourceext : '.pp';
-            pasext : '.pas';
-            newline : #13#10;
-            labelprefix : '.L';
-            Cprefix : '_'; {???}
-            use_function_relative_addresses : true; {????}
-            endian : endian_little
-          ),
-          (
-            target : target_GO32V2;
-            target_name : 'GO32 V2.0 DOS extender';
-            short_name : 'GO32V2';
-            unit_env : 'GO32V2UNITS';
+            target      : target_GO32V2;
+            short_name  : 'GO32V2';
+            unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
-            exeext : '.EXE';
 {$ifndef UseAnsiString}
-            objext : '.O';
-            dllext : '.DLL';
-            arext : '.A';
-            unitext : '.PPU';
-            libext : '.PPL';
-            asmext : '.S';
+            smartext    : '.SL';
+            unitext     : '.PPU';
+            unitlibext  : '.PPL';
+            asmext      : '.S';
+            objext      : '.O';
 {$else UseAnsiString}
-   { just for tests }
-            objext : '.OA';
-            dllext : '.DLL';
-            arext : '.AA';
-            unitext : '.PAU';
-            libext : '.PPL';
-            asmext : '.SA';
+            smartext    : '.SL';
+            unitext     : '.PAU';
+            unitlibext  : '.PPL';
+            asmext      : '.SA';
+            objext      : '.OA';
 {$endif UseAnsiString}
-            sourceext : '.PP';
-            pasext : '.PAS';
-            newline : #13#10;
-            labelprefix : '.L';
-            Cprefix : '_';
-            use_function_relative_addresses : true;
-            endian : endian_little
+            os          : os_GO32V2;
+            link        : link_ldgo32v2;
+            assem       : as_as
           ),
           (
-            target : target_Amiga;
-            target_name : 'Commodore Amiga';
-            short_name : 'AMIGA';
-            unit_env : '';
-            system_unit : 'sysamiga';  { case sensitive }
-            exeext : '';
-            objext : '.o';
-            dllext : '.library';
-            arext : '.a';
-            unitext : '.ppa';
-            libext : '.ppl';
-            asmext : '.asm';
-            sourceext : '.pp';
-            pasext : '.pas';
-            newline : #10;  { ??? }
-            labelprefix : '.L';
-            Cprefix : '';
-            use_function_relative_addresses : true;
-            endian : endian_little
+            target      : target_LINUX;
+            short_name  : 'LINUX';
+            unit_env    : 'LINUXUNITS';
+            system_unit : 'syslinux';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            os          : os_Linux;
+            link        : link_ld;
+            assem       : as_as
           ),
           (
-            target : target_Atari;
-            target_name : 'Atari ST/STE';
-            short_name : 'ATARI';
-            unit_env : '';
+            target      : target_OS2;
+            short_name  : 'OS2';
+            unit_env    : 'OS2UNITS';
+            system_unit : 'SYSOS2';
+            smartext    : '.sl';
+            unitext     : '.ppo';
+            unitlibext  : '.ppl';
+            asmext      : '.so2';
+            objext      : '.oo2';
+            os          : os_OS2;
+            link        : link_ldos2;
+            assem       : as_as
+          ),
+          (
+            target      : target_WIN32;
+            short_name  : 'WIN32';
+            unit_env    : 'WIN32UNITS';
+            system_unit : 'SYSWIN32';
+            smartext    : '.sl';
+            unitext     : '.ppw';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            os          : os_Win32;
+            link        : link_ldw;
+            assem       : as_as
+          ),
+          (
+            target      : target_Amiga;
+            short_name  : 'AMIGA';
+            unit_env    : '';
+            system_unit : 'sysamiga';
+            smartext    : '.sl';
+            unitext     : '.ppa';
+            unitlibext  : '.ppl';
+            asmext      : '.asm';
+            objext      : '.o';
+            os          : os_Amiga;
+            link        : link_ld;
+            assem       : as_as
+          ),
+          (
+            target      : target_Atari;
+            short_name  : 'ATARI';
+            unit_env    : '';
             system_unit : 'SYSATARI';
-            exeext : '.ttp';
-            objext : '.o';
-            dllext : '.dll';
-            arext : '.a';
-            unitext : '.PPT';
-            libext : '.PPL';
-            asmext : '.s';
-            sourceext : '.pp';
-            pasext : '.pas';
-            newline : #13#10;
-            labelprefix : '.L';
-            Cprefix : '';
-            use_function_relative_addresses : true;
-            endian : endian_little
+            smartext    : '.sl';
+            unitext     : '.ppt';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            os          : os_Atari;
+            link        : link_ld;
+            assem       : as_as
           ),
           (
-            target : target_Mac68k;
-            target_name : 'Macintosh m68k';
-            short_name : 'MAC OS';
-            unit_env : '';
-            system_unit : 'sysmac';    { case sensitive }
-            exeext : '';
-            objext : '.o';
-            dllext : '.dll';
-            arext : '.a';
-            unitext : '.ppm';
-            libext : '.ppl';
-            asmext : '.asm';
-            sourceext : '.pp';
-            pasext : '.pas';
-            newline : #13;   { ??? }
-            labelprefix : '__L';{ only ascii A..Z,a..z or _ allowed as first }
-            Cprefix : '';
-            use_function_relative_addresses : true;
-            endian : endian_little
+            target      : target_Mac68k;
+            short_name  : 'MACOS';
+            unit_env    : '';
+            system_unit : 'sysmac';
+            smartext    : '.sl';
+            unitext     : '.ppt';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            os          : os_Mac68k;
+            link        : link_ld;
+            assem       : as_as
           )
-       );
+          );
 
-       source_infos : array[ttarget] of tsourceinfo = (
-          (
-            source : target_GO32V1;
-            source_name : 'GO32 V1 DOS extender';
-            exeext : '.EXE';
-            scriptext : '.BAT';
-            endian : endian_little
-          ),
-          (
-            source : target_OS2;
-            source_name : 'OS/2 (32 bit)';
-            exeext : '.EXE';
-            scriptext : '.CMD';
-            endian : endian_little
-          ),
-          (
-            source : target_LINUX;
-            source_name : 'Linux';
-            exeext : '';
-            scriptext : '.sh';
-            endian : endian_little
-          ),
-          (
-            source : target_WIN32;
-            source_name : 'Win32';
-            exeext : '.EXE';
-            scriptext : '.BAT';
-            endian : endian_little
-          ),
-          (
-            source : target_GO32V2;
-            source_name : 'GO32 V2.0 DOS extender';
-            exeext : '.EXE';
-            scriptext : '.BAT';
-            endian : endian_little
-          ),
-          (
-            source : target_Amiga;
-            source_name : 'Commodore Amiga';
-            exeext : '';
-            scriptext : '';
-            endian : en_big_endian
-          ),
-          (
-            source : target_Atari;
-            source_name : 'Atari ST/STE';
-            exeext : '.ttp';
-            scriptext : '';
-            endian : en_big_endian
-          ),
-          (
-            source : target_Mac68k;
-            source_name : 'Macintosh m68k';
-            exeext : '';
-            scriptext : '';
-            endian : en_big_endian
-          )
-       );
 
-    procedure set_target(t : ttarget);
+procedure set_target(t : ttarget);
+begin
+  target_info:=target_infos[t];
+  target_os:=os_infos[target_info.os];
+  target_asm:=as_infos[target_info.assem];
+  target_link:=link_infos[target_info.link];
+end;
 
-      begin
-         target_info:=target_infos[t];
-      end;
 
-    function set_string_target(const s : string) : boolean;
 
-      var
-         t : ttarget;
+function set_string_target(const s : string) : boolean;
+var
+  t : ttarget;
+begin
+  set_string_target:=false;
+  for t:=target_GO32V1 to target_mac68k do
+   if target_infos[t].short_name=s then
+    begin
+      set_string_target:=true;
+      set_target(t);
+    end;
+end;
 
-      begin
-         set_string_target:=false;
-         for t:=target_GO32V1 to target_mac68k do
-           if target_infos[t].short_name=s then
-             begin
-                set_string_target:=true;
-                set_target(t);
-             end;
-      end;
 
-    procedure default_os(t:ttarget);
+procedure default_os(t:ttarget);
+begin
+  set_target(t);
+  source_os:=os_infos[target_info.os];
+end;
 
-      begin
-         set_target(t);
-         source_info:=source_infos[t];
-      end;
 
 begin
 {$ifdef tp}
@@ -376,7 +520,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1998-05-01 07:43:57  florian
+  Revision 1.7  1998-05-04 17:54:29  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
+
+  Revision 1.6  1998/05/01 07:43:57  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 
@@ -394,158 +543,4 @@ end.
 
   Revision 1.3  1998/04/16 10:50:45  daniel
   * Fixed some things that were broken for OS/2.
-
-  Revision 1.2  1998/03/30 15:53:01  florian
-    * last changes before release:
-       - gdb fixed
-       - ratti386 warning removed (about unset function result)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.33  1998/03/10 23:48:37  florian
-    * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly
-      enough, it doesn't run
-
-  Revision 1.32  1998/03/10 16:27:46  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.31  1998/03/10 01:17:29  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.30  1998/03/05 22:43:53  florian
-    * some win32 support stuff added
-
-  Revision 1.29  1998/03/02 22:04:36  carl
-    + Added mac line break
-
-  Revision 1.28  1998/03/02 13:38:51  peter
-    + importlib object
-    * doesn't crash on a systemunit anymore
-    * updated makefile and depend
-
-  Revision 1.25  1998/02/28 00:20:34  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.24  1998/02/27 22:28:01  florian
-    + win_targ unit
-    + support of sections
-    + new asmlists: sections, exports and resource
-
-  Revision 1.23  1998/02/27 21:24:20  florian
-    * dll support changed (dll name can be also a string contants)
-
-  Revision 1.22  1998/02/23 02:55:08  carl
-    + added correct extension to AMIGA libext
-
-  Revision 1.21  1998/02/22 23:03:39  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.20  1998/02/18 14:14:44  michael
-  * removed entries for dos_targ and lin_targ
-
-  Revision 1.19  1998/02/17 21:21:05  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.18  1998/02/14 01:45:35  peter
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-
-  Revision 1.17  1998/02/13 22:26:45  peter
-    * fixed a few SigSegv's
-    * INIT$$ was not written for linux!
-    * assembling and linking works again for linux and dos
-    + assembler object, only attasmi3 supported yet
-    * restore pp.pas with AddPath etc.
-
-  Revision 1.16  1998/02/13 10:35:50  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.15  1998/02/12 17:19:32  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.14  1998/02/12 11:50:50  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.11  1998/01/26 16:42:01  daniel
-  * Reversed source_ext and pas_ext for OS/2 target. The .pas extension is
-  recognized by the Workplace Shell of OS/2, the .pp is not.
-
-  Revision 1.10  1998/01/26 13:35:33  florian
-    * adapted to work with TP
-
-  Revision 1.9  1998/01/25 18:45:50  peter
-    + Search for as and ld at startup
-    + source_info works the same as target_info
-    + externlink allows only external linking
-
-  Revision 1.8  1998/01/22 08:57:55  peter
-    + added target_info.pasext and target_info.libext
-
-  Revision 1.7  1998/01/09 19:44:09  carl
-    * labels for mac68k target now use the MPW correct syntax
-
-  Revision 1.6  1997/12/12 13:28:42  florian
-  + version 0.99.0
-  * all WASM options changed into MASM
-  + -O2 for Pentium II optimizations
-
-  Revision 1.5  1997/12/09 14:12:21  carl
-  + added planned m68k systems, and fixed some problems in amiga info.
-
-  Revision 1.4  1997/12/08 11:53:49  pierre
-      reverted to old version of systems.pas,
-      Daniel's version is not compilable due to the bug (corrected) of
-      mil value for a procvar const !!
-
-  Revision 1.1.1.1  1997/11/27 08:33:02  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-    CEC    Carl-Eric Codere
-    FK     Florian Klaempfl
-    +      feature added
-    -      removed
-    *      bug fixed or changed
-
-  History:
-      15th october 1996:
-         + ttargetinfo.newline added (FK)
-      19th september 1997:
-         * the suffix of GO32V1 units is now PP1 (FK)
-       8th october 1997:
-         + target amiga added for tests, unit should divided
-           into sysi386 and sysm68k (FK)
 }

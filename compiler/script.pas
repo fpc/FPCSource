@@ -35,7 +35,7 @@ type
     destructor Done;
     procedure AddStart(const s:string);
     procedure Add(const s:string);
-    Function Empty:boolean;
+    Function  Empty:boolean;
     procedure WriteToDisk;virtual;
   end;
 
@@ -68,7 +68,7 @@ uses
 
 constructor TScript.Init(const s:string);
 begin
-  fn:=FixFileName(s)+source_info.scriptext;
+  fn:=FixFileName(s)+source_os.scriptext;
   data.Init;
 end;
 
@@ -117,44 +117,50 @@ end;
 ****************************************************************************}
 
 Constructor TAsmScript.Init (Const ScriptName : String);
-
 begin
   Inherited Init(ScriptName);
 end;
 
-Procedure TAsmScript.AddAsmCommand (Const Command, Options,FileName : String);
 
+Procedure TAsmScript.AddAsmCommand (Const Command, Options,FileName : String);
 begin
   {$ifdef linux}
-  Add('echo Assembling '+FileName);
+  if FileName<>'' then
+   Add('echo Assembling '+FileName);
   Add (Command+' '+Options);
   Add('if [ $? != 0 ]; then DoExitAsm '+FileName+'; fi');
   {$else}
-  Add('SET THEFILE='+FileName);
-  Add('echo Assembling %THEFILE%');
+  if FileName<>'' then
+   begin
+     Add('SET THEFILE='+FileName);
+     Add('echo Assembling %THEFILE%');
+   end;
   Add(command+' '+Options);
   Add('if errorlevel 1 goto asmend');
   {$endif}
 end;
 
-Procedure TasmScript.AddLinkCommand (Const Command, Options, FileName : String);
 
+Procedure TasmScript.AddLinkCommand (Const Command, Options, FileName : String);
 begin
   {$ifdef linux}
-  Add('echo Linking '+FileName);
+  if FileName<>'' then
+   Add('echo Linking '+FileName);
   Add (Command+' '+Options);
   Add('if [ $? != 0 ]; then DoExitLink '+FileName+'; fi');
   {$else}
-  Add('SET THEFILE='+FileName);
-  Add('echo Linking %THEFILE%');
+  if FileName<>'' then
+   begin
+     Add('SET THEFILE='+FileName);
+     Add('echo Linking %THEFILE%');
+   end;
   Add (Command+' '+Options);
   Add('if errorlevel 1 goto linkend');
   {$endif}
 end;
 
 
- Procedure TAsmScript.AddDeleteCommand (Const FileName : String);
-
+Procedure TAsmScript.AddDeleteCommand (Const FileName : String);
 begin
  {$ifdef linux}
  Add('rm '+FileName);
@@ -165,7 +171,6 @@ end;
 
 
 Procedure TAsmScript.WriteToDisk;
-
 Begin
 {$ifdef linux}
   AddStart('{ echo "An error occurred while linking $1"; exit 1; }');
@@ -190,30 +195,9 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-05-04 17:54:29  peter
+    + smartlinking works (only case jumptable left todo)
+    * redesign of systems.pas to support assemblers and linkers
+    + Unitname is now also in the PPU-file, increased version to 14
 
-  Revision 1.6  1998/03/10 01:17:28  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.5  1998/02/23 12:53:46  pierre
-    + added some info when running ppas.bat
-      * updated makefile
-
-  Revision 1.4  1998/02/19 00:11:08  peter
-    * fixed -g to work again
-    * fixed some typos with the scriptobject
-
-  Revision 1.3  1998/02/18 14:18:30  michael
-  + added log at end of file (retroactively)
-
-  revision 1.2
-  date: 1998/02/18 13:43:15;  author: michael;  state: Exp;  lines: +75 -20
-  + Implemented an OS independent AsmRes object.
-  ----------------------------
-  revision 1.1
-  date: 1998/02/17 21:44:04;  author: peter;  state: Exp;
-    + Initial implementation
 }
