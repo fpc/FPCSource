@@ -92,7 +92,8 @@ asm
         jmp     .MyArrayInitLoop
 # AnsiString handling :
 .DoAnsiStringInit:
-        movl    $0,8(%ebp)
+        movl 8(%ebp), %eax
+        movl $0,(%eax)
 .ExitInitialize:
         pop     %edx
         pop     %ecx
@@ -175,8 +176,7 @@ asm
         jmp     .MyArrayFinalLoop
 # AnsiString handling :
 .DoAnsiStringFinal:
-        movl    8(%ebp),%eax
-        pushl   %eax
+        pushl   8(%ebp)
         call    FPC_DECR_ANSI_REF
 .ExitFinalize:
         pop     %edx
@@ -261,8 +261,7 @@ asm
         jmp     .MyArrayAddRefLoop
 # AnsiString handling :
 .DoAnsiStringAddRef:
-        movl    8(%ebp),%eax
-        pushl   %eax
+        pushl   8(%ebp)
         call    FPC_INCR_ANSI_REF
 .ExitAddRef:
         pop     %edx
@@ -361,7 +360,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-09-14 10:48:11  peter
+  Revision 1.8  1998-09-20 17:49:07  florian
+    * some ansistring fixes
+
+  Revision 1.7  1998/09/14 10:48:11  peter
     * FPC_ names
     * Heap manager is now system independent
 

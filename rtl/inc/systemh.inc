@@ -249,12 +249,12 @@ Procedure Val(const s:string;Var d:ValReal);
 
 Procedure SetLength (Var S : AnsiString; l : Longint);
 Procedure UniqueAnsiString (Var S : AnsiString);
-Function  Length (Var S : AnsiString) : Longint;
-Function  Copy (Var S : AnsiString; Index,Size : Longint) : AnsiString;
-Function  Pos (Var Substr : AnsiString; Var Source : AnsiString) : Longint;
-Procedure Insert (Var Source : AnsiString; Var S : AnsiString; Index : Longint);
-Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-Procedure Val (Var S : AnsiString; var R : real; Var Code : Integer);
+Function  Length (Const S : AnsiString) : Longint;
+Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
+Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
+Procedure Delete (Const S : AnsiString; Index,Size: Longint);
+Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 {
 Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
 }
@@ -387,7 +387,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.30  1998-09-17 16:34:17  peter
+  Revision 1.31  1998-09-20 17:49:09  florian
+    * some ansistring fixes
+
+  Revision 1.30  1998/09/17 16:34:17  peter
     * new eof,eoln,seekeoln,seekeof
     * speed upgrade for read_string
     * inoutres 104/105 updates for read_* and write_*

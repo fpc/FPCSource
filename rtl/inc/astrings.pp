@@ -39,9 +39,9 @@ Type shortstring=string;
 
 Function  NewAnsiString (Len : Longint) : AnsiString; forward;
 Procedure DisposeAnsiString (Var P : Pointer); forward;
-Procedure Decr_Ansi_Ref (Var S : AnsiString); forward;
-Procedure Incr_Ansi_Ref (Var S : AnsiString); forward;
-Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); forward;
+Procedure Decr_Ansi_Ref (Var S : Pointer); forward;
+Procedure Incr_Ansi_Ref (Var S : Pointer); forward;
+Procedure AssignAnsiString (Var S1 : Pointer; S2 : Pointer); forward;
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Var S2 : AnsiString); forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
@@ -114,7 +114,7 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (P : Pointer);[Alias : 'FPC_DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (Var P : Pointer);[Alias : 'FPC_DECR_ANSI_REF'];
 {
  Decreases the ReferenceCount of a non constant ansistring;
  If the reference count is zero, deallocate the string;
@@ -140,7 +140,7 @@ Begin
     end
 end;
 
-Procedure Incr_Ansi_Ref (S : Pointer);[Alias : 'FPC_INCR_ANSI_REF'];
+Procedure Incr_Ansi_Ref (Var S : Pointer);[Alias : 'FPC_INCR_ANSI_REF'];
 
 Begin
   If S=Nil then
@@ -246,7 +246,7 @@ begin
 end;
 
 Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);
-  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
+  [Public, alias: 'FPC_ANSI2SHORT'];
 {
  Converts a AnsiString to a ShortString;
 }
@@ -261,7 +261,8 @@ end;
 
 
 
-Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); [Public, alias: 'FPC_SHORT_TO_ANSISTRING'];
+Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString);
+  [Public, alias: 'FPC_SHORT2ANSI'];
 {
  Converts a ShortString to a AnsiString;
 }
@@ -374,7 +375,7 @@ end;
    Public functions, In interface.
   ---------------------------------------------------------------------}
 
-Function Length (Var S : AnsiString) : Longint;
+Function Length (Const S : AnsiString) : Longint;
 {
  Returns the length of an AnsiString.
  Takes in acount that zero strings are NIL;
@@ -426,7 +427,7 @@ begin
     end;
 end;
 
-Function Copy (Var S : AnsiString; Index,Size : Longint) : AnsiString;
+Function Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 
 var ResultAddress : Pointer;
 
@@ -451,7 +452,7 @@ end;
 
 
 
-Function Pos (Var Substr : AnsiString; Var Source : AnsiString) : Longint;
+Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 
 var i,j : longint;
     e : boolean;
@@ -478,7 +479,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var R : real; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 
 Var SS : String;
 
@@ -500,7 +501,7 @@ end;
 }
 
 
-Procedure Val (var S : AnsiString; var E : Extended; Code : Integer);
+Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
 
 Var SS : ShortString;
 
@@ -511,7 +512,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var C : Cardinal; Code : Integer);
+Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
 
 Var SS : ShortString;
 
@@ -522,7 +523,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var L : Longint; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
 
 Var SS : ShortString;
 
@@ -533,7 +534,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var W : Word; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
 
 Var SS : ShortString;
 
@@ -544,7 +545,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var I : Integer; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
 
 Var SS : ShortString;
 
@@ -555,7 +556,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var B : Byte; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
 
 Var SS : ShortString;
 
@@ -566,7 +567,7 @@ end;
 
 
 
-Procedure Val (var S : AnsiString; var SI : ShortInt; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var SI : ShortInt; Var Code : Integer);
 
 Var SS : ShortString;
 
@@ -598,7 +599,7 @@ end;
 }
 
 
-Procedure Str (Var E : Extended;Lenf,Fr: Longint; Var S : AnsiString);
+Procedure Str (E : Extended;Lenf,Fr: Longint; Var S : AnsiString);
 
 Var SS : ShortString;
 
@@ -609,14 +610,14 @@ end;
 
 
 
-Procedure Str (Var C : Cardinal;Len : Longint; Var S : AnsiString);
+Procedure Str (C : Cardinal;Len : Longint; Var S : AnsiString);
 
 begin
 end;
 
 
 
-Procedure Str (Var L : Longint; Len : Longint; Var S : AnsiString);
+Procedure Str (L : Longint; Len : Longint; Var S : AnsiString);
 
 Var SS : ShortString;
 
@@ -677,7 +678,7 @@ begin
     end;
 end;
 
-Procedure Insert (Var Source : AnsiString; Var S : AnsiString; Index : Longint);
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 
 var s3,s4 : Pointer;
 
@@ -700,7 +701,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1998-09-19 08:33:17  florian
+  Revision 1.16  1998-09-20 17:49:08  florian
+    * some ansistring fixes
+
+  Revision 1.15  1998/09/19 08:33:17  florian
     * some internal procedures take now an pointer instead of a
       ansistring
 
