@@ -90,6 +90,9 @@ implementation
 {$else cpu64bit}
       cg64f32,
 {$endif cpu64bit}
+{$ifdef powerpc}
+      cpupi,
+{$endif powerpc}
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu;
 
 
@@ -1125,7 +1128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-05-23 14:27:35  peter
+  Revision 1.69  2003-05-23 18:01:56  jonas
+    * fixed ppc compiler
+
+  Revision 1.68  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
