@@ -932,12 +932,22 @@ implementation
 
     procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
       begin
-         if (not b_needs_init_final) and
-            (tsym(p).typ=varsym) and
-            assigned(tvarsym(p).vartype.def) and
-            not is_class(tvarsym(p).vartype.def) and
-            tstoreddef(tvarsym(p).vartype.def).needs_inittable then
-           b_needs_init_final:=true;
+         if b_needs_init_final then
+          exit;
+         case tsym(p).typ of
+           varsym :
+             begin
+               if not(is_class(tvarsym(p).vartype.def)) and
+                  tstoreddef(tvarsym(p).vartype.def).needs_inittable then
+                 b_needs_init_final:=true;
+             end;
+           typedconstsym :
+             begin
+               if ttypedconstsym(p).is_writable and
+                  tstoreddef(ttypedconstsym(p).typedconsttype.def).needs_inittable then
+                 b_needs_init_final:=true;
+             end;
+         end;
       end;
 
 
@@ -2311,7 +2321,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-10-05 12:43:29  carl
+  Revision 1.74  2002-10-06 19:41:31  peter
+    * Add finalization of typed consts
+    * Finalization of globals in the main program
+
+  Revision 1.73  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

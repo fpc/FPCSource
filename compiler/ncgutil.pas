@@ -971,18 +971,31 @@ implementation
         list : taasmoutput;
       begin
         list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           not(vo_is_local_copy in tvarsym(p).varoptions) and
-           assigned(tvarsym(p).vartype.def) and
-           not(is_class(tvarsym(p).vartype.def)) and
-           tvarsym(p).vartype.def.needs_inittable then
-         begin
-           if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-            reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
-           else
-            reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
-           cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
-         end;
+        case tsym(p).typ of
+          varsym :
+            begin
+              if not(vo_is_local_copy in tvarsym(p).varoptions) and
+                 assigned(tvarsym(p).vartype.def) and
+                 not(is_class(tvarsym(p).vartype.def)) and
+                 tvarsym(p).vartype.def.needs_inittable then
+               begin
+                 if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
+                  reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
+                 else
+                  reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
+                 cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
+               end;
+            end;
+          typedconstsym :
+            begin
+              if ttypedconstsym(p).is_writable and
+                 ttypedconstsym(p).typedconsttype.def.needs_inittable then
+               begin
+                 reference_reset_symbol(href,objectlibrary.newasmsymbol(ttypedconstsym(p).mangledname),0);
+                 cg.g_finalize(list,ttypedconstsym(p).typedconsttype.def,href,false);
+               end;
+            end;
+        end;
       end;
 
 
@@ -1295,6 +1308,8 @@ implementation
              end;
            { units have seperate code for initilization and finalization }
            potype_unitfinalize: ;
+           { program init/final is generated in separate procedure }
+           potype_proginit: ;
            else
              aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
         end;
@@ -1537,8 +1552,10 @@ implementation
                 tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
                 tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
              end;
-           { units have seperate code for initialization and finalization }
+           { units/progs have separate code for initialization and finalization }
            potype_unitinit: ;
+           { program init/final is generated in separate procedure }
+           potype_proginit: ;
            else
              aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
         end;
@@ -1827,7 +1844,8 @@ implementation
          list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
-         tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
+         if assigned(current_module.globalsymtable) then
+           tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          cg.g_return_from_proc(list,0);
       end;
@@ -1844,7 +1862,8 @@ implementation
          list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
-         tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
+         if assigned(current_module.globalsymtable) then
+           tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          cg.g_return_from_proc(list,0);
       end;
@@ -1854,7 +1873,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-10-05 15:18:42  carl
+  Revision 1.54  2002-10-06 19:41:30  peter
+    * Add finalization of typed consts
+    * Finalization of globals in the main program
+
+  Revision 1.53  2002/10/05 15:18:42  carl
     * fix heap leaks
 
   Revision 1.52  2002/09/30 07:00:46  florian

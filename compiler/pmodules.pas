@@ -212,9 +212,6 @@ implementation
       end;
 
 
-
-
-
     procedure InsertInitFinalTable;
       var
         hp : tused_unit;
@@ -241,14 +238,19 @@ implementation
             end;
            hp:=tused_unit(hp.next);
          end;
-        if current_module.islibrary then
-          if (current_module.flags and uf_finalize)<>0 then
-            begin
-              { INIT code is done by PASCALMAIN calling }
-              unitinits.concat(Tai_const.Create_32bit(0));
-              unitinits.concat(Tai_const_symbol.Createname('FINALIZE$$'+current_module.modulename^));
-              inc(count);
-            end;
+        { Insert initialization/finalization of the program }
+        if (current_module.flags and (uf_init or uf_finalize))<>0 then
+         begin
+           if (current_module.flags and uf_init)<>0 then
+            unitinits.concat(Tai_const_symbol.Createname('INIT$$'+current_module.modulename^))
+           else
+            unitinits.concat(Tai_const.Create_32bit(0));
+           if (current_module.flags and uf_finalize)<>0 then
+            unitinits.concat(Tai_const_symbol.Createname('FINALIZE$$'+current_module.modulename^))
+           else
+            unitinits.concat(Tai_const.Create_32bit(0));
+           inc(count);
+         end;
         { TableCount,InitCount }
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
@@ -1262,6 +1264,20 @@ implementation
          insertLocalThreadvarsTablesTable;
          compile_proc_body(true,false);
 
+         { should we force unit initialization? }
+         if tstaticsymtable(current_module.localsymtable).needs_init_final then
+           begin
+              current_module.flags:=current_module.flags or (uf_init or uf_finalize);
+              { Add initialize section }
+              if (cs_create_smart in aktmoduleswitches) then
+                codeSegment.concat(Tai_cut.Create);
+              genimplicitunitinit(codesegment);
+              { Add finalize section }
+              if (cs_create_smart in aktmoduleswitches) then
+                codeSegment.concat(Tai_cut.Create);
+              genimplicitunitfinal(codesegment);
+           end;
+
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
@@ -1388,7 +1404,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-09-09 17:34:15  peter
+  Revision 1.80  2002-10-06 19:41:30  peter
+    * Add finalization of typed consts
+    * Finalization of globals in the main program
+
+  Revision 1.79  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
