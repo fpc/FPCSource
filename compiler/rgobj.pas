@@ -1944,10 +1944,6 @@ unit rgobj;
                 end;
             end;
 
-        { we are now at the original instruction, restore live registers }
-        live_registers.done;
-        live_registers:=oldlive_registers;
-
         { store the spilled registers }
         storepos:=tai(instr.next);
         for counter := 0 to pred(regindex) do
@@ -1959,6 +1955,12 @@ unit rgobj;
                   ungetregisterinline(list,tempreg);
                 end;
             end;
+
+        { now all spilling code is generated we can restore the live registers. This
+          must be done after the store because the store can need an extra register
+          that also needs to conflict with the registers of the instruction }
+        live_registers.done;
+        live_registers:=oldlive_registers;
 
         { substitute registers }
         for counter:=0 to instr.ops-1 do
@@ -1994,7 +1996,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.139  2004-10-05 20:41:01  peter
+  Revision 1.140  2004-10-06 20:14:08  peter
+    * live_registers must be restored after the spilling store code
+      is generate to add correct conflicts for extra temporary registers
+
+  Revision 1.139  2004/10/05 20:41:01  peter
     * more spilling rewrites
 
   Revision 1.138  2004/10/04 20:46:22  peter
