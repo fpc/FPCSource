@@ -14,6 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 unit systhrds;
 interface
 
@@ -178,7 +179,7 @@ function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCu
       end;
 
 
-    function BeginThread(sa : Pointer;stacksize : dword;
+    function SysBeginThread(sa : Pointer;stacksize : dword;
                          ThreadFunction : tthreadfunc;p : pointer;
                          creationFlags : dword; var ThreadId : DWord) : DWord;
       var
@@ -207,66 +208,66 @@ function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCu
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        BeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
+        SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
       end;
 
 
-    procedure EndThread(ExitCode : DWord);
+    procedure SysEndThread(ExitCode : DWord);
       begin
         DoneThread;
         ExitThread(ExitCode);
       end;
 
 
-    procedure ThreadSwitch;
+    procedure SysThreadSwitch;
     begin
       Sleep(0);
     end;
 
 
-    function  SuspendThread (threadHandle : dword) : dword;
+    function  SysSuspendThread (threadHandle : dword) : dword;
     begin
-      SuspendThread:=WinSuspendThread(threadHandle);
+      SysSuspendThread:=WinSuspendThread(threadHandle);
     end;
 
 
-    function  ResumeThread  (threadHandle : dword) : dword;
+    function  SysResumeThread  (threadHandle : dword) : dword;
     begin
-      ResumeThread:=WinResumeThread(threadHandle);
+      SysResumeThread:=WinResumeThread(threadHandle);
     end;
 
 
-    function  KillThread (threadHandle : dword) : dword;
+    function  SysKillThread (threadHandle : dword) : dword;
     var exitCode : dword;
     begin
       if not TerminateThread (threadHandle, exitCode) then
-        KillThread := GetLastError
+        SysKillThread := GetLastError
       else
-        KillThread := 0;
+        SysKillThread := 0;
     end;
 
-    function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+    function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
     begin
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
-      WaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
+      SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
     end;
 
 
-    function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+    function  SysThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
     begin
-      ThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
+      SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
     end;
 
 
-    function  ThreadGetPriority (threadHandle : dword): Integer;
+    function  SysThreadGetPriority (threadHandle : dword): Integer;
     begin
-      ThreadGetPriority:=WinThreadGetPriority(threadHandle);
+      SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
     end;
 
 
-    function  GetCurrentThreadId : dword;
+    function  SysGetCurrentThreadId : dword;
     begin
-      GetCurrentThreadId:=WinGetCurrentThreadId;
+      SysGetCurrentThreadId:=WinGetCurrentThreadId;
     end;
 
 {*****************************************************************************
@@ -285,27 +286,27 @@ procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
 procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
   stdcall;external 'kernel32' name 'LeaveCriticalSection';
 
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure SySInitCriticalSection(var cs);
 begin
-  WinInitCriticalSection(cs);
+  WinInitCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
 
-procedure DoneCriticalSection(var cs : TRTLCriticalSection);
+procedure SysDoneCriticalSection(var cs);
 begin
-  WinDoneCriticalSection(cs);
+  WinDoneCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
 
-procedure EnterCriticalSection(var cs : TRTLCriticalSection);
+procedure SysEnterCriticalSection(var cs);
 begin
-  WinEnterCriticalSection(cs);
+  WinEnterCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
 
-procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
+procedure SySLeaveCriticalSection(var cs);
 begin
-  WinLeaveCriticalSection(cs);
+  WinLeaveCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
 
@@ -348,14 +349,52 @@ end;
       begin
         SetMemoryMutexManager(Win32MemoryMutexManager);
       end;
+Var
+  WinThreadManager : TThreadManager; 
 
+Procedure SetWinThreadManager;
+
+Var
+  Dummy : TThreadManager;
+
+begin
+  With WinThreadManager do
+    begin
+    InitManager            :=Nil;
+    DoneManager            :=Nil;
+    BeginThread            :=@SysBeginThread;
+    EndThread              :=@SysEndThread;
+    SuspendThread          :=@SysSuspendThread;
+    ResumeThread           :=@SysResumeThread;
+    KillThread             :=@SysKillThread;
+    ThreadSwitch           :=@SysThreadSwitch;
+    WaitForThreadTerminate :=@SysWaitForThreadTerminate;
+    ThreadSetPriority      :=@SysThreadSetPriority;
+    ThreadGetPriority      :=@SysThreadGetPriority;
+    GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    InitCriticalSection    :=@SysInitCriticalSection;
+    DoneCriticalSection    :=@SysDoneCriticalSection;
+    EnterCriticalSection   :=@SysEnterCriticalSection;
+    LeaveCriticalSection   :=@SysLeaveCriticalSection;
+    InitThreadVar          :=@SysInitThreadVar;
+    RelocateThreadVar      :=@SysRelocateThreadVar;
+    AllocateThreadVars     :=@SysAllocateThreadVars;
+    ReleaseThreadVars      :=@SysReleaseThreadVars;
+    end;
+  SetThreadManager(WinThreadManager,Dummy);
+  InitHeapMutexes;
+end;
 
 initialization
-  InitHeapMutexes;
+  SetWinThreadManager;
 end.
+
 {
   $Log$
-  Revision 1.6  2003-10-01 21:00:09  peter
+  Revision 1.7  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.6  2003/10/01 21:00:09  peter
     * GetCurrentThreadHandle renamed to GetCurrentThreadId
 
   Revision 1.5  2003/09/17 15:06:36  peter

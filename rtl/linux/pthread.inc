@@ -142,6 +142,7 @@
      t_pthread_cleanup_push_routine = procedure (_para1:pointer);
      t_pthread_cleanup_push_defer_routine = procedure (_para1:pointer);
 
+{$ifndef dynpthreads}
     function pthread_create(__thread:ppthread_t; __attr:ppthread_attr_t;__start_routine: __start_routine_t;__arg:pointer):longint;cdecl;external;
     function pthread_self:pthread_t;cdecl;external;
     function pthread_equal(__thread1:pthread_t; __thread2:pthread_t):longint;cdecl;external;
@@ -195,10 +196,140 @@
     function sigwait(__set:psigset_t; __sig:plongint):longint;cdecl;external;
     function pthread_atfork(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;external;
     procedure pthread_kill_other_threads_np;cdecl;external;
+{$else}
+Var
+    pthread_create : Function(__thread:ppthread_t; __attr:ppthread_attr_t;__start_routine: __start_routine_t;__arg:pointer):longint;cdecl;
+    pthread_self: Function : pthread_t;cdecl;
+    pthread_equal : Function(__thread1:pthread_t; __thread2:pthread_t):longint;cdecl;
+    pthread_exit : procedure (__retval:pointer);cdecl;
+    pthread_join : Function(__th:pthread_t; __thread_return:ppointer):longint;cdecl;
+    pthread_detach : Function(__th:pthread_t):longint;cdecl;
+    pthread_attr_init : Function(__attr:ppthread_attr_t):longint;cdecl;
+    pthread_attr_destroy : Function(__attr:ppthread_attr_t):longint;cdecl;
+    pthread_attr_setdetachstate : Function(__attr:ppthread_attr_t; __detachstate:longint):longint;cdecl;
+    pthread_attr_getdetachstate : Function(__attr:ppthread_attr_t; __detachstate:plongint):longint;cdecl;
+    pthread_attr_setschedparam : Function(__attr:ppthread_attr_t; __param:psched_param):longint;cdecl;
+    pthread_attr_getschedparam : Function(__attr:ppthread_attr_t; __param:psched_param):longint;cdecl;
+    pthread_attr_setschedpolicy : Function(__attr:ppthread_attr_t; __policy:longint):longint;cdecl;
+    pthread_attr_getschedpolicy : Function(__attr:ppthread_attr_t; __policy:plongint):longint;cdecl;
+    pthread_attr_setinheritsched : Function(__attr:ppthread_attr_t; __inherit:longint):longint;cdecl;
+    pthread_attr_getinheritsched : Function(__attr:ppthread_attr_t; __inherit:plongint):longint;cdecl;
+    pthread_attr_setscope : Function(__attr:ppthread_attr_t; __scope:longint):longint;cdecl;
+    pthread_attr_getscope : Function(__attr:ppthread_attr_t; __scope:plongint):longint;cdecl;
+    pthread_setschedparam : Function(__target_thread:pthread_t; __policy:longint; __param:psched_param):longint;cdecl;
+    pthread_getschedparam : Function(__target_thread:pthread_t; __policy:plongint; __param:psched_param):longint;cdecl;
+    pthread_mutex_init : Function(__mutex:ppthread_mutex_t; __mutex_attr:ppthread_mutexattr_t):longint;cdecl;
+    pthread_mutex_destroy : Function(__mutex:ppthread_mutex_t):longint;cdecl;
+    pthread_mutex_trylock : Function(__mutex:ppthread_mutex_t):longint;cdecl;
+    pthread_mutex_lock : Function(__mutex:ppthread_mutex_t):longint;cdecl;
+    pthread_mutex_unlock : Function(__mutex:ppthread_mutex_t):longint;cdecl;
+    pthread_mutexattr_init : Function(__attr:ppthread_mutexattr_t):longint;cdecl;
+    pthread_mutexattr_destroy : Function(__attr:ppthread_mutexattr_t):longint;cdecl;
+    pthread_mutexattr_setkind_np : Function(__attr:ppthread_mutexattr_t; __kind:longint):longint;cdecl;
+    pthread_mutexattr_getkind_np : Function(__attr:ppthread_mutexattr_t; __kind:plongint):longint;cdecl;
+    pthread_cond_init : Function(__cond:ppthread_cond_t; __cond_attr:ppthread_condattr_t):longint;cdecl;
+    pthread_cond_destroy : Function(__cond:ppthread_cond_t):longint;cdecl;
+    pthread_cond_signal : Function(__cond:ppthread_cond_t):longint;cdecl;
+    pthread_cond_broadcast : Function(__cond:ppthread_cond_t):longint;cdecl;
+    pthread_cond_wait : Function(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t):longint;cdecl;
+    pthread_cond_timedwait : Function(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):longint;cdecl;
+    pthread_condattr_init : Function(__attr:ppthread_condattr_t):longint;cdecl;
+    pthread_condattr_destroy : Function(__attr:ppthread_condattr_t):longint;cdecl;
+    pthread_key_create : Function(__key:ppthread_key_t; __destr_function:__destr_function_t):longint;cdecl;
+    pthread_key_delete : Function(__key:pthread_key_t):longint;cdecl;
+    pthread_setspecific : Function(__key:pthread_key_t; __pointer:pointer):longint;cdecl;
+    pthread_getspecific : Function(__key:pthread_key_t):pointer;cdecl;
+    pthread_once : Function(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;
+    pthread_setcancelstate : Function(__state:longint; __oldstate:plongint):longint;cdecl;
+    pthread_setcanceltype : Function(__type:longint; __oldtype:plongint):longint;cdecl;
+    pthread_cancel : Function(__thread:pthread_t):longint;cdecl;
+    pthread_testcancel : Procedure ;cdecl;
+    _pthread_cleanup_push : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;
+    _pthread_cleanup_push_defer : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;
+    pthread_sigmask : Function(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;
+    pthread_kill : Function(__thread:pthread_t; __signo:longint):longint;cdecl;
+    sigwait : Function(__set:psigset_t; __sig:plongint):longint;cdecl;
+    pthread_atfork : Function(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;
+    pthread_kill_other_threads_np : procedure;cdecl;
+
+Var
+  PthreadDLL : Pointer;
+
+Function LoadPthreads : Boolean;
+
+begin
+  PThreadDLL:=DlOpen('libpthread.so.0',RTLD_LAZY);
+  Result:=PThreadDLL<>Nil;
+  If Not Result then 
+    exit;
+  Pointer(pthread_create) := dlsym(PthreadDLL,'pthread_create');
+  Pointer(pthread_self) := dlsym(PthreadDLL,'pthread_self');
+  Pointer(pthread_equal) := dlsym(PthreadDLL,'pthread_equal');
+  Pointer(pthread_exit) := dlsym(PthreadDLL,'pthread_exit');
+  Pointer(pthread_join) := dlsym(PthreadDLL,'pthread_join');
+  Pointer(pthread_detach) := dlsym(PthreadDLL,'pthread_detach');
+  Pointer(pthread_attr_init) := dlsym(PthreadDLL,'pthread_attr_init');
+  Pointer(pthread_attr_destroy) := dlsym(PthreadDLL,'pthread_attr_destroy');
+  Pointer(pthread_attr_setdetachstate) := dlsym(PthreadDLL,'pthread_attr_setdetachstate');
+  Pointer(pthread_attr_getdetachstate) := dlsym(PthreadDLL,'pthread_attr_getdetachstate');
+  Pointer(pthread_attr_setschedparam) := dlsym(PthreadDLL,'pthread_attr_setschedparam');
+  Pointer(pthread_attr_getschedparam) := dlsym(PthreadDLL,'pthread_attr_getschedparam');
+  Pointer(pthread_attr_setschedpolicy) := dlsym(PthreadDLL,'pthread_attr_setschedpolicy');
+  Pointer(pthread_attr_getschedpolicy) := dlsym(PthreadDLL,'pthread_attr_getschedpolicy');
+  Pointer(pthread_attr_setinheritsched) := dlsym(PthreadDLL,'pthread_attr_setinheritsched');
+  Pointer(pthread_attr_getinheritsched) := dlsym(PthreadDLL,'pthread_attr_getinheritsched');
+  Pointer(pthread_attr_setscope) := dlsym(PthreadDLL,'pthread_attr_setscope');
+  Pointer(pthread_attr_getscope) := dlsym(PthreadDLL,'pthread_attr_getscope');
+  Pointer(pthread_setschedparam) := dlsym(PthreadDLL,'pthread_setschedparam');
+  Pointer(pthread_getschedparam) := dlsym(PthreadDLL,'pthread_getschedparam');
+  Pointer(pthread_mutex_init) := dlsym(PthreadDLL,'pthread_mutex_init');
+  Pointer(pthread_mutex_destroy) := dlsym(PthreadDLL,'pthread_mutex_destroy');
+  Pointer(pthread_mutex_trylock) := dlsym(PthreadDLL,'pthread_mutex_trylock');
+  Pointer(pthread_mutex_lock) := dlsym(PthreadDLL,'pthread_mutex_lock');
+  Pointer(pthread_mutex_unlock) := dlsym(PthreadDLL,'pthread_mutex_unlock');
+  Pointer(pthread_mutexattr_init) := dlsym(PthreadDLL,'pthread_mutexattr_init');
+  Pointer(pthread_mutexattr_destroy) := dlsym(PthreadDLL,'pthread_mutexattr_destroy');
+  Pointer(pthread_mutexattr_setkind_np) := dlsym(PthreadDLL,'pthread_mutexattr_setkind_np');
+  Pointer(pthread_mutexattr_getkind_np) := dlsym(PthreadDLL,'pthread_mutexattr_getkind_np');
+  Pointer(pthread_cond_init) := dlsym(PthreadDLL,'pthread_cond_init');
+  Pointer(pthread_cond_destroy) := dlsym(PthreadDLL,'pthread_cond_destroy');
+  Pointer(pthread_cond_signal) := dlsym(PthreadDLL,'pthread_cond_signal');
+  Pointer(pthread_cond_broadcast) := dlsym(PthreadDLL,'pthread_cond_broadcast');
+  Pointer(pthread_cond_wait) := dlsym(PthreadDLL,'pthread_cond_wait');
+  Pointer(pthread_cond_timedwait) := dlsym(PthreadDLL,'pthread_cond_timedwait');
+  Pointer(pthread_condattr_init) := dlsym(PthreadDLL,'pthread_condattr_init');
+  Pointer(pthread_condattr_destroy) := dlsym(PthreadDLL,'pthread_condattr_destroy');
+  Pointer(pthread_key_create) := dlsym(PthreadDLL,'pthread_key_create');
+  Pointer(pthread_key_delete) := dlsym(PthreadDLL,'pthread_key_delete');
+  Pointer(pthread_setspecific) := dlsym(PthreadDLL,'pthread_setspecific');
+  Pointer(pthread_getspecific) := dlsym(PthreadDLL,'pthread_getspecific');
+  Pointer(pthread_once) := dlsym(PthreadDLL,'pthread_once');
+  Pointer(pthread_setcancelstate) := dlsym(PthreadDLL,'pthread_setcancelstate');
+  Pointer(pthread_setcanceltype) := dlsym(PthreadDLL,'pthread_setcanceltype');
+  Pointer(pthread_cancel) := dlsym(PthreadDLL,'pthread_cancel');
+  Pointer(pthread_testcancel) := dlsym(PthreadDLL,'pthread_testcancel');
+  Pointer(_pthread_cleanup_push) := dlsym(PthreadDLL,'_pthread_cleanup_push');
+  Pointer(_pthread_cleanup_push_defer) := dlsym(PthreadDLL,'_pthread_cleanup_push_defer');
+  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');
+  Pointer(pthread_kill) := dlsym(PthreadDLL,'pthread_kill');
+  Pointer(pthread_atfork) := dlsym(PthreadDLL,'pthread_atfork');
+  Pointer(pthread_kill_other_threads_np) := dlsym(PthreadDLL,'pthread_kill_other_threads_np');
+end;
+
+Function UnLoadPthreads : Boolean;
+
+begin
+  Result:=dlclose(PThreadDLL)=0;
+end;
+  
+{$endif}
 
 {
   $Log$
-  Revision 1.2  2003-09-14 20:15:01  marco
+  Revision 1.3  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.2  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.1  2002/10/18 18:03:57  marco

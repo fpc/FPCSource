@@ -20,7 +20,59 @@ const
 
 
 type
-   TThreadFunc = function(parameter : pointer) : longint;
+  TThreadFunc = function(parameter : pointer) : longint;
+ 
+  // Function prototypes for TThreadManager Record.
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : DWord) : DWord;
+  TEndThreadHandler = Procedure (ExitCode : DWord);
+  // Used for Suspend/Resume/Kill
+  TThreadHandler = Function (threadHandle : dword) : dword;
+  TThreadSwitchHandler = Procedure;
+  TWaitForThreadTerminateHandler = Function (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout} 
+  TThreadSetPriorityHandler = Function (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+  TThreadGetPriorityHandler = Function (threadHandle : dword): Integer;
+  TGetCurrentThreadIdHandler = Function : dword;
+  TCriticalSectionHandler = Procedure (var cs);
+  TInitThreadVarHandler = Procedure(var offset : dword;size : dword);
+  TRelocateThreadVarHandler = Function(offset : dword) : pointer;
+  TAllocateThreadVarsHandler = Procedure;
+  TReleaseThreadVarsHandler = Procedure;
+  
+  // TThreadManager interface.
+  TThreadManager = Record
+    InitManager            : Function : Boolean;
+    DoneManager            : Function : Boolean;
+    BeginThread            : TBeginThreadHandler;
+    EndThread              : TEndThreadHandler;
+    SuspendThread          : TThreadHandler;
+    ResumeThread           : TThreadHandler;
+    KillThread             : TThreadHandler;
+    ThreadSwitch           : TThreadSwitchHandler;
+    WaitForThreadTerminate : TWaitForThreadTerminateHandler;
+    ThreadSetPriority      : TThreadSetPriorityHandler;
+    ThreadGetPriority      : TThreadGetPriorityHandler;
+    GetCurrentThreadId     : TGetCurrentThreadIdHandler;
+    InitCriticalSection    : TCriticalSectionHandler;
+    DoneCriticalSection    : TCriticalSectionHandler;
+    EnterCriticalSection   : TCriticalSectionHandler;
+    LeaveCriticalSection   : TCriticalSectionHandler;
+    InitThreadVar          : TInitThreadVarHandler;
+    RelocateThreadVar      : TRelocateThreadVarHandler;
+    AllocateThreadVars     : TAllocateThreadVarsHandler;
+    ReleaseThreadVars      : TReleaseThreadVarsHandler;
+  end;
+
+{*****************************************************************************
+                         Thread Handler routines
+*****************************************************************************}
+
+
+Function GetThreadManager(Var TM : TThreadManager) : Boolean;
+Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+Procedure SetNoThreadManager;
+// Needs to be exported, so the manager can call it.
+procedure InitThreadVars(RelocProc : Pointer);
+procedure InitThread(stklen:cardinal);
 
 {*****************************************************************************
                          Multithread Handling
@@ -65,7 +117,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.11  2003-10-01 21:00:09  peter
+  Revision 1.12  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.11  2003/10/01 21:00:09  peter
     * GetCurrentThreadHandle renamed to GetCurrentThreadId
 
   Revision 1.10  2003/03/27 17:14:27  armin

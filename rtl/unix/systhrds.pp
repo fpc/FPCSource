@@ -14,17 +14,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit systhrds;
-interface
-{$S-}
+{$mode objfpc}
+{$define dynpthreads}
 
-{$ifndef BSD}
- {$linklib c}
- {$linklib pthread}
-{$else}
- // Link reentrant libc with pthreads
- {$linklib c_r}
-{$endif}
+unit systhrds;
+
+interface
+
+{ Posix compliant definition }
 
   type
      PRTLCriticalSection = ^TRTLCriticalSection;
@@ -41,10 +38,7 @@ interface
 { Include generic thread interface }
 {$i threadh.inc}
 
-
 implementation
-
-Uses BaseUnix,unix;
 
 {*****************************************************************************
                              Generic overloaded
@@ -53,335 +47,26 @@ Uses BaseUnix,unix;
 { Include generic overloaded routines }
 {$i thread.inc}
 
-{ Include OS specific parts. }
-{$i pthread.inc}
-
-{*****************************************************************************
-                       System dependent memory allocation
-*****************************************************************************}
-
-{
-{$ifndef BSD}
-
-Const
-
-  { Constants for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$20;
-
-{$else}
-
-{$ifdef FreeBSD}
-CONST
-  { Constants for MMAP. These are still private for *BSD }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
-{$ELSE}
- {$ENTER ME}
-{$ENDIF}
-{$ENDIF}
-}
-{*****************************************************************************
-                             Threadvar support
-*****************************************************************************}
-
-{$ifdef HASTHREADVAR}
-    const
-      threadvarblocksize : dword = 0;
-
-    var
-      TLSKey : pthread_key_t;
-
-    procedure SysInitThreadvar(var offset : dword;size : dword);
-      begin
-        offset:=threadvarblocksize;
-        inc(threadvarblocksize,size);
-      end;
-
-    function SysRelocateThreadvar(offset : dword) : pointer;
-      begin
-        SysRelocateThreadvar:=pthread_getspecific(tlskey)+Offset;
-      end;
-
-
-    procedure SysAllocateThreadVars;
-      var
-        dataindex : pointer;
-      begin
-        { we've to allocate the memory from system  }
-        { because the FPC heap management uses      }
-        { exceptions which use threadvars but       }
-        { these aren't allocated yet ...            }
-        { allocate room on the heap for the thread vars }
-        DataIndex:=Pointer(Fpmmap(0,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
-        FillChar(DataIndex^,threadvarblocksize,0);
-        pthread_setspecific(tlskey,dataindex);
-      end;
-
-
-    procedure SysReleaseThreadVars;
-      begin
-        {$ifdef ver1_0}
-        Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
-        {$else}
-        Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
-        {$endif}
-      end;
-
 { Include OS independent Threadvar initialization }
+{$ifdef HASTHREADVAR}
 {$i threadvr.inc}
-
-
 {$endif HASTHREADVAR}
 
+Procedure InitSystemThreads;
 
-{*****************************************************************************
-                            Thread starting
-*****************************************************************************}
-
-    type
-      pthreadinfo = ^tthreadinfo;
-      tthreadinfo = record
-        f : tthreadfunc;
-        p : pointer;
-        stklen : cardinal;
-      end;
-
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-{$ifdef HASTHREADVAR}
-        SysReleaseThreadVars;
-{$endif HASTHREADVAR}
-      end;
-
-
-    function ThreadMain(param : pointer) : pointer;cdecl;
-      var
-        ti : tthreadinfo;
-{$ifdef DEBUG_MT}
-        // in here, don't use write/writeln before having called
-        // InitThread! I wonder if anyone ever debugged these routines,
-        // because they will have crashed if DEBUG_MT was enabled!
-        // this took me the good part of an hour to figure out
-        // why it was crashing all the time!
-        // this is kind of a workaround, we simply write(2) to fd 0
-        s: string[100]; // not an ansistring
-{$endif DEBUG_MT}
-      begin
-{$ifdef DEBUG_MT}
-        s := 'New thread started, initing threadvars'#10;
-        fpwrite(0,s[1],length(s));
-{$endif DEBUG_MT}
-{$ifdef HASTHREADVAR}
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-        SysAllocateThreadVars;
-{$endif HASTHREADVAR}
-        { Copy parameter to local data }
-{$ifdef DEBUG_MT}
-        s := 'New thread started, initialising ...'#10;
-        fpwrite(0,s[1],length(s));
-{$endif DEBUG_MT}
-        ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
-        { Initialize thread }
-        InitThread(ti.stklen);
-        { Start thread function }
-{$ifdef DEBUG_MT}
-        writeln('Jumping to thread function');
-{$endif DEBUG_MT}
-        ThreadMain:=pointer(ti.f(ti.p));
-        DoneThread;
-	pthread_detach(pointer(pthread_self));
-      end;
-
-
-    function BeginThread(sa : Pointer;stacksize : dword;
-                         ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
-      var
-        ti : pthreadinfo;
-        thread_attr : pthread_attr_t;
-      begin
-{$ifdef DEBUG_MT}
-        writeln('Creating new thread');
-{$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-{$ifdef HASTHREADVAR}
-          { We're still running in single thread mode, setup the TLS }
-           pthread_key_create(@TLSKey,nil);
-           InitThreadVars(@SysRelocateThreadvar);
-{$endif HASTHREADVAR}
-           IsMultiThread:=true;
-         end;
-        { the only way to pass data to the newly created thread
-          in a MT safe way, is to use the heap }
-        new(ti);
-        ti^.f:=ThreadFunction;
-        ti^.p:=p;
-        ti^.stklen:=stacksize;
-        { call pthread_create }
-{$ifdef DEBUG_MT}
-        writeln('Starting new thread');
-{$endif DEBUG_MT}
-        pthread_attr_init(@thread_attr);
-        pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
-        
-        // will fail under linux -- apparently unimplemented
-        pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
-
-        // don't create detached, we need to be able to join (waitfor) on
-        // the newly created thread!
-        //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
-        if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
-          threadid := 0;
-        end;
-        BeginThread:=threadid;
-{$ifdef DEBUG_MT}
-        writeln('BeginThread returning ',BeginThread);
-{$endif DEBUG_MT}
-      end;
-
-
-    procedure EndThread(ExitCode : DWord);
-      begin
-        DoneThread;
-        pthread_detach(pointer(pthread_self));
-        pthread_exit(pointer(ExitCode));
-      end;
-
-
-    function  SuspendThread (threadHandle : dword) : dword;
-    begin
-      {$Warning SuspendThread needs to be implemented}
-    end;
-
-    function  ResumeThread  (threadHandle : dword) : dword;
-    begin
-      {$Warning ResumeThread needs to be implemented}
-    end;
-
-    procedure ThreadSwitch;  {give time to other threads}
-    begin
-      {extern int pthread_yield (void) __THROW;}
-      {$Warning ThreadSwitch needs to be implemented}
-    end;
-
-    function  KillThread (threadHandle : dword) : dword;
-    begin
-      pthread_detach(pointer(threadHandle));
-      KillThread := pthread_cancel(Pointer(threadHandle));
-    end;
-
-    function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
-    var
-      LResultP: Pointer;
-      LResult: DWord;
-    begin
-      LResult := 0;
-      LResultP := @LResult;
-      pthread_join(Pointer(threadHandle), @LResultP);
-      WaitForThreadTerminate := LResult;
-    end;
-
-    function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
-    begin
-      {$Warning ThreadSetPriority needs to be implemented}
-    end;
-
-
-    function  ThreadGetPriority (threadHandle : dword): Integer;
-    begin
-      {$Warning ThreadGetPriority needs to be implemented}
-    end;
-
-    function  GetCurrentThreadId : dword;
-    begin
-      GetCurrentThreadId:=dword(pthread_self);
-    end;
-
-
-{*****************************************************************************
-                          Delphi/Win32 compatibility
-*****************************************************************************}
-
-    procedure InitCriticalSection(var CS:TRTLCriticalSection);
-      begin
-         cs.m_spinlock:=0;
-         cs.m_count:=0;
-         cs.m_owner:=0;
-         cs.m_kind:=1;
-         cs.m_waiting.head:=0;
-         cs.m_waiting.tail:=0;
-         pthread_mutex_init(@CS,NIL);
-      end;
-
-    procedure EnterCriticalSection(var CS:TRTLCriticalSection);
-      begin
-         pthread_mutex_lock(@CS);
-      end;
-
-    procedure LeaveCriticalSection(var CS:TRTLCriticalSection);
-      begin
-         pthread_mutex_unlock(@CS);
-      end;
-
-    procedure DoneCriticalSection(var CS:TRTLCriticalSection);
-      begin
-         pthread_mutex_destroy(@CS);
-      end;
-
-
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-    var
-      HeapMutex : pthread_mutex_t;
-
-    procedure PThreadHeapMutexInit;
-      begin
-         pthread_mutex_init(@heapmutex,nil);
-      end;
-
-    procedure PThreadHeapMutexDone;
-      begin
-         pthread_mutex_destroy(@heapmutex);
-      end;
-
-    procedure PThreadHeapMutexLock;
-      begin
-         pthread_mutex_lock(@heapmutex);
-      end;
-
-    procedure PThreadHeapMutexUnlock;
-      begin
-         pthread_mutex_unlock(@heapmutex);
-      end;
-
-    const
-      PThreadMemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @PThreadHeapMutexInit;
-        MutexDone : @PThreadHeapMutexDone;
-        MutexLock : @PThreadHeapMutexLock;
-        MutexUnlock : @PThreadHeapMutexUnlock;
-      );
-
-    procedure InitHeapMutexes;
-      begin
-        SetMemoryMutexManager(PThreadMemoryMutexManager);
-      end;
-
+begin
+  SetNoThreadManager;
+end;
 
 initialization
-  InitHeapMutexes;
+  InitSystemThreads;
 end.
 {
   $Log$
-  Revision 1.20  2003-11-19 10:54:32  marco
+  Revision 1.21  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.20  2003/11/19 10:54:32  marco
    * some simple restructures
 
   Revision 1.19  2003/11/18 22:36:12  marco

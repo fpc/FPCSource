@@ -41,7 +41,7 @@ procedure init_unit_threadvars (tableEntry : pltvInitEntry);
 begin
   while tableEntry^.varaddr <> nil do
    begin
-     SysInitThreadvar (tableEntry^.varaddr^, tableEntry^.size);
+     CurrentTM.InitThreadvar (tableEntry^.varaddr^, tableEntry^.size);
      inc (pchar (tableEntry), sizeof (tableEntry^));
    end;
 end;
@@ -66,7 +66,7 @@ var
 begin
   while tableEntry^.varaddr <> nil do
    begin
-     newp:=SysRelocateThreadVar(tableEntry^.varaddr^);
+     newp:=CurrentTM.RelocateThreadVar(tableEntry^.varaddr^);
      oldp:=pointer(pchar(tableEntry^.varaddr)+4);
      move(oldp^,newp^,tableEntry^.size);
      inc (pchar (tableEntry), sizeof (tableEntry^));
@@ -85,23 +85,27 @@ begin
     copy_unit_threadvars (ThreadvarTablesTable.tables[i]);
 end;
 
-    procedure InitThreadVars(RelocProc : Pointer);
-      begin
-        { initialize threadvars }
-        init_all_unit_threadvars;
-        { allocate mem for main thread threadvars }
-        SysAllocateThreadVars;
-        { copy main thread threadvars }
-        copy_all_unit_threadvars;
-        { install threadvar handler }
-        fpc_threadvar_relocate_proc:=RelocProc;
-      end;
+procedure InitThreadVars(RelocProc : Pointer);
+
+begin
+   { initialize threadvars }
+   init_all_unit_threadvars;
+   { allocate mem for main thread threadvars }
+   CurrentTM.AllocateThreadVars;
+   { copy main thread threadvars }
+   copy_all_unit_threadvars;
+   { install threadvar handler }
+   fpc_threadvar_relocate_proc:=RelocProc;
+end;
 
 {$endif HASTHREADVAR}
 
 {
   $Log$
-  Revision 1.1  2002-10-31 13:46:11  carl
+  Revision 1.2  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.1  2002/10/31 13:46:11  carl
     * threadvar.inc -> threadvr.inc
 
   Revision 1.2  2002/10/16 19:04:27  michael

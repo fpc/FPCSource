@@ -78,10 +78,249 @@
         EndThread(0);
       end;
 
+Var
+  CurrentTM : TThreadManager;
+
+function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : DWord) : DWord;
+
+begin
+  Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
+end;
+
+procedure EndThread(ExitCode : DWord);
+
+begin
+  CurrentTM.EndThread(ExitCode);
+end;
+
+function  SuspendThread (threadHandle : dword) : dword;
+
+begin
+  Result:=CurrentTM.SuspendThread(ThreadHandle);
+end;
+
+function ResumeThread  (threadHandle : dword) : dword;
+
+begin
+  Result:=CurrentTM.ResumeThread(ThreadHandle);
+end;
+
+procedure ThreadSwitch;
+
+begin
+  CurrentTM.ThreadSwitch;
+end;
+
+function  KillThread (threadHandle : dword) : dword;
+
+begin
+  Result:=CurrentTM.KillThread(ThreadHandle);
+end;
+
+function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+
+begin
+  Result:=CurrentTM.WaitForThreadTerminate(ThreadHandle,TimeOutMS);
+end;
+
+function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;
+begin
+  Result:=CurrentTM.ThreadSetPriority(ThreadHandle,Prio);
+end;
+
+function  ThreadGetPriority (threadHandle : dword): Integer;
+
+begin
+  Result:=CurrentTM.ThreadGetPriority(ThreadHandle);
+end;
+
+function  GetCurrentThreadId : dword;
+
+begin
+  Result:=CurrentTM.GetCurrentThreadID();
+end;
+
+procedure InitCriticalSection(var cs : TRTLCriticalSection);
+
+begin
+  CurrentTM.InitCriticalSection(cs);
+end;
+
+procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+
+begin
+  CurrentTM.DoneCriticalSection(cs);
+end;
+
+procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+
+begin
+  CurrentTM.EnterCriticalSection(cs);
+end;
+
+procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
+
+begin
+  CurrentTM.LeaveCriticalSection(cs);
+end;
+
+Function GetThreadManager(Var TM : TThreadManager) : Boolean;
+
+begin
+  TM:=CurrentTM;
+  Result:=True;
+end;
+
+Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+
+begin
+  Result:=True;
+  OldTM:=CurrentTM;
+  If Assigned(CurrentTM.DoneManager) then
+    Result:=CurrentTM.DoneManager();
+  If Result then
+    begin  
+    CurrentTM:=NewTM;  
+    If Assigned(CurrentTM.InitManager) then
+      Result:=CurrentTM.InitManager();
+    end;  
+end;
+
+{ ---------------------------------------------------------------------
+    ThreadManager which gives run-time error. Use if no thread support.
+  ---------------------------------------------------------------------}
+  
+
+Resourcestring
+  SNoThreads = 'This binary has no thread support compiled in.';
+  SRecompileWithThreads = 'Recompile the application with a thread-driver in the program uses clause.';
+
+Procedure NoThreadError;
+
+begin
+  If IsConsole then
+    begin
+    Writeln(StdErr,SNoThreads);
+    Writeln(StdErr,SRecompileWithThreads);
+    end;
+  RunError(232)  
+end;
+
+function NoBeginThread(sa : Pointer;stacksize : dword;
+                     ThreadFunction : tthreadfunc;p : pointer;
+                     creationFlags : dword; var ThreadId : DWord) : DWord;
+begin
+  NoThreadError;
+end;
+
+procedure NoEndThread(ExitCode : DWord);
+begin
+  NoThreadError;
+end;
+
+function  NoThreadHandler (threadHandle : dword) : dword;
+begin
+  NoThreadError;
+end;
+
+procedure NoThreadSwitch;  {give time to other threads}
+begin
+  NoThreadError;
+end;
+
+function  NoWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+begin
+  NoThreadError;
+end;
+
+function  NoThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+begin
+  NoThreadError;
+end;
+
+function  NoThreadGetPriority (threadHandle : dword): Integer;
+begin
+  NoThreadError;
+end;
+
+function  NoGetCurrentThreadId : dword;
+begin
+  NoThreadError;
+end;
+
+procedure NoCriticalSection(var CS);
+
+begin
+  NoThreadError;
+end;
+
+procedure NoInitThreadvar(var offset : dword;size : dword);
+
+begin
+  NoThreadError;
+end;
+
+function NoRelocateThreadvar(offset : dword) : pointer;
+
+begin
+  NoThreadError;
+end;
+
+
+procedure NoAllocateThreadVars;
+
+begin
+  NoThreadError;
+end;
+
+procedure NoReleaseThreadVars;
+
+begin
+  NoThreadError;
+end;
+
+Var
+  NoThreadManager : TThreadManager;
+
+Procedure SetNoThreadManager;
+
+Var
+  Dummy : TThreadManager;
+
+begin
+  With NoThreadManager do
+    begin
+    InitManager            :=Nil;
+    DoneManager            :=Nil;
+    BeginThread            :=@NoBeginThread;
+    EndThread              :=@NoEndThread;
+    SuspendThread          :=@NoThreadHandler;
+    ResumeThread           :=@NoThreadHandler;
+    KillThread             :=@NoThreadHandler;
+    ThreadSwitch           :=@NoThreadSwitch;
+    WaitForThreadTerminate :=@NoWaitForThreadTerminate;
+    ThreadSetPriority      :=@NoThreadSetPriority;
+    ThreadGetPriority      :=@NoThreadGetPriority;
+    GetCurrentThreadId     :=@NoGetCurrentThreadId;
+    InitCriticalSection    :=@NoCriticalSection;
+    DoneCriticalSection    :=@NoCriticalSection;
+    EnterCriticalSection   :=@NoCriticalSection;
+    LeaveCriticalSection   :=@NoCriticalSection;
+    InitThreadVar          :=@NoInitThreadVar;
+    RelocateThreadVar      :=@NoRelocateThreadVar;
+    AllocateThreadVars     :=@NoAllocateThreadVars;
+    ReleaseThreadVars      :=@NoReleaseThreadVars;
+    end;
+  SetThreadManager(NoThreadManager,Dummy);
+end;
+
 
 {
   $Log$
-  Revision 1.3  2002-11-14 12:40:06  jonas
+  Revision 1.4  2003-11-26 20:10:59  michael
+  + New threadmanager implementation
+
+  Revision 1.3  2002/11/14 12:40:06  jonas
     * the BeginThread() variant that allowed you to specify the stacksize
       still passed DefaultStackSize to the OS-specific routines
 
