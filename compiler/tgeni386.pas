@@ -84,6 +84,17 @@ unit tgeni386;
     { corrects the fpu stack register by ofs }
     function correct_fpuregister(r : tregister;ofs : byte) : tregister;
 
+    type
+{$ifdef SUPPORT_MMX}
+       regvar_longintarray = array[R_EAX..R_MM6] of longint;
+       regvar_booleanarray = array[R_EAX..R_MM6] of boolean;
+       regvar_ptreearray = array[R_EAX..R_MM6] of ptree;
+{$else SUPPORT_MMX}
+       regvar_longintarray = array[R_EAX..R_EDI] of longint;
+       regvar_boolarray = array[R_EAX..R_EDI] of boolean;
+       regvar_ptreearray = array[R_EAX..R_EDI] of ptree;
+{$endif SUPPORT_MMX}
+
     var
        unused,usableregs : tregisterset;
        c_usableregs : longint;
@@ -95,21 +106,12 @@ unit tgeni386;
 
        { count, how much a register must be pushed if it is used as register }
        { variable                                                           }
-{$ifdef SUPPORT_MMX}
-       reg_pushes : array[R_EAX..R_MM6] of longint;
-       is_reg_var : array[R_EAX..R_MM6] of boolean;
+       reg_pushes : regvar_longintarray;
+       is_reg_var : regvar_booleanarray;
 {$ifdef TEMPREGDEBUG}
-       reg_user   : array[R_EAX..R_MM6] of ptree;
-       reg_releaser : array[R_EAX..R_MM6] of ptree;
+       reg_user   : regvar_ptreearray;
+       reg_releaser : regvar_ptreearray;
 {$endif TEMPREGDEBUG}
-{$else SUPPORT_MMX}
-       reg_pushes : array[R_EAX..R_EDI] of longint;
-       is_reg_var : array[R_EAX..R_EDI] of boolean;
-{$ifdef TEMPREGDEBUG}
-       reg_user   : array[R_EAX..R_EDI] of ptree;
-       reg_releaser : array[R_EAX..R_EDI] of ptree;
-{$endif TEMPREGDEBUG}
-{$endif SUPPORT_MMX}
 
 
 implementation
@@ -651,7 +653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-08-04 05:09:49  jonas
+    * forgot to commit :( (part of regvar changes)
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }
