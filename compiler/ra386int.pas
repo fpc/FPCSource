@@ -976,15 +976,19 @@ var
   code : integer;
   hreg,
   oldbase : tregister;
-  GotStar,
+  GotStar,GotOffset,HadVar,
   GotPlus,Negative : boolean;
 Begin
   Consume(AS_LBRACKET);
   InitRef;
   GotStar:=false;
   GotPlus:=true;
+  GotOffset:=false;
   Negative:=false;
   repeat
+    if GotOffset and (actasmtoken<>AS_ID) then
+      Message(asmr_e_invalid_reference_syntax);
+
     Case actasmtoken of
 
       AS_ID: { Constant reference expression OR variable reference expression }
@@ -1013,14 +1017,27 @@ Begin
            end
           else
            Begin
-             if hasvar then
+             if hasvar and not GotOffset then
                Message(asmr_e_cant_have_multiple_relocatable_symbols);
+             HadVar:=hasvar and GotOffset;
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
              opr.ref.base:=R_NO;
              if not SetupVar(actasmpattern) then
                Message1(sym_e_unknown_id,actasmpattern);
+             if GotOffset then
+              if hasvar and (opr.ref.base=procinfo^.framepointer) then
+               begin
+                 opr.ref.base:=R_NO;
+                 hasvar:=hadvar;
+               end
+              else
+               begin
+                 if hasvar and hadvar then
+                   Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 { should we allow ?? }
+               end;
              { is the base register loaded by the var ? }
              if (opr.ref.base<>R_NO) then
               begin
@@ -1040,6 +1057,7 @@ Begin
                 inc(opr.ref.offset,opr.val);
               end;
              Consume(AS_ID);
+             GotOffset:=false;
            end;
         end;
 
@@ -1119,6 +1137,7 @@ Begin
       AS_OFFSET :
         begin
           Consume(AS_OFFSET);
+          GotOffset:=true;
         end;
 
       AS_TYPE,
@@ -1783,7 +1802,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2000-02-13 22:46:28  florian
+  Revision 1.60  2000-03-02 11:48:31  pierre
+   * fix for bug 848
+
+  Revision 1.59  2000/02/13 22:46:28  florian
     * fixed an internalerror with writeln
     * fixed arrayconstructor_to_set to force the generation of better code
       and added a more strict type checking
