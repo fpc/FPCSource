@@ -872,7 +872,11 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(cos(getconstrealvalue))
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_sin_extended :
@@ -880,7 +884,11 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(sin(getconstrealvalue))
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_arctan_extended :
@@ -888,7 +896,11 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(arctan(getconstrealvalue))
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_abs_extended :
@@ -896,7 +908,11 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(abs(getconstrealvalue))
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_sqr_extended :
@@ -904,7 +920,11 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(sqr(getconstrealvalue))
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_sqrt_extended :
@@ -921,7 +941,11 @@ implementation
                        setconstrealvalue(sqrt(vr));
                    end
                   else
-                   resulttype:=s80floattype;
+                   begin
+                     set_varstate(left,true);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
+                   end;
                 end;
 
               in_ln_extended :
@@ -939,11 +963,9 @@ implementation
                    end
                   else
                    begin
-                     resulttype:=s80floattype;
                      set_varstate(left,true);
-                     if (left.resulttype.def^.deftype<>floatdef) or
-                        (pfloatdef(left.resulttype.def)^.typ<>s80real) then
-                      inserttypeconv(left,s80floattype);
+                     inserttypeconv(left,s80floattype);
+                     resulttype:=s80floattype;
                    end;
                 end;
 
@@ -1699,7 +1721,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-04-04 22:42:40  peter
+  Revision 1.35  2001-04-05 21:02:13  peter
+    * fixed fpu inline functions typeconvs
+
+  Revision 1.34  2001/04/04 22:42:40  peter
     * move constant folding into det_resulttype
 
   Revision 1.33  2001/04/04 21:30:43  florian
