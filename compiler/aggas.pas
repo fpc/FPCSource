@@ -636,7 +636,10 @@ var
                   AsmWrite('.globl'#9);
                   AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               if target_info.system in [system_i386_linux,system_i386_beos] then
+               if target_info.system in [system_i386_linux,system_i386_beos,
+                                         system_powerpc_linux,system_m68k_linux,
+                                         system_sparc_linux,system_alpha_linux,
+                                         system_x86_64_linux,system_arm_linux] then
                 begin
                    AsmWrite(#9'.type'#9);
                    AsmWrite(tai_symbol(hp).sym.name);
@@ -832,7 +835,14 @@ var
 end.
 {
   $Log$
-  Revision 1.39  2003-12-14 22:42:54  peter
+  Revision 1.40  2004-01-03 13:51:05  jonas
+    + support exported procedures for linuxppc
+    * refuse to compile systems/t_linux.pas if processor-specific  support
+      for exported procedures is absent
+    + generate .type and .size info for all currently defined linux-variants
+      in aggas.pas
+
+  Revision 1.39  2003/12/14 22:42:54  peter
     * fixed range check error
 
   Revision 1.38  2003/12/10 17:13:22  peter

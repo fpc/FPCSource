@@ -181,14 +181,25 @@ begin
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
            codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
-{$endif i386}
+{$else i386}
 {$ifdef m68k}
            { place jump in codesegment }
            codesegment.concat(tai_align.create(4));
            codesegment.concat(tai_symbol.createname_global(hp2.name^,0));
            codesegment.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
            codesegment.concat(tai_symbol_end.createname(hp2.name^));
+{$else m68k}
+{$ifdef powerpc}
+           { place jump in codesegment }
+           codesegment.concat(tai_align.create(4));
+           codesegment.concat(tai_symbol.createname_global(hp2.name^,0));
+           codesegment.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codesegment.concat(tai_symbol_end.createname(hp2.name^));
+{$endif powerpc}
+{$else powerpc}
+{$error Exportliblinux.generatelib not yet implemented for target processor}
 {$endif m68k}
+{$endif i386}
          end;
       end
      else
@@ -567,7 +578,14 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-01-01 15:34:50  jonas
+  Revision 1.14  2004-01-03 13:51:05  jonas
+    + support exported procedures for linuxppc
+    * refuse to compile systems/t_linux.pas if processor-specific  support
+      for exported procedures is absent
+    + generate .type and .size info for all currently defined linux-variants
+      in aggas.pas
+
+  Revision 1.13  2004/01/01 15:34:50  jonas
     * default linker name for non-i386 and non-m68k
 
   Revision 1.12  2003/10/30 18:35:30  marco
