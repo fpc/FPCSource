@@ -72,7 +72,12 @@ FUNCTION  _fstat (Fileno : LONGINT; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTE
 PROCEDURE NWFree   (P : POINTER); CDECL; EXTERNAL Clib NAME 'free';
 
 PROCEDURE PressAnyKeyToContinue; CDecl; EXTERNAL; // Clib;
+
+
 PROCEDURE ExitThread (action_code, termination_code : LONGINT); CDecl; EXTERNAL CLib;
+FUNCTION _BeginThread (func, stack : pointer; Stacksize : LONGINT; arg : pointer) : LONGINT; Cdecl; EXTERNAL Threads NAME 'BeginThread';
+FUNCTION _GetThreadDataAreaPtr : POINTER; CDecl; EXTERNAL NlmLib NAME 'GetThreadDataAreaPtr';
+PROCEDURE _SaveThreadDataAreaPtr (P : POINTER); CDecl; EXTERNAL NlmLib NAME 'SaveThreadDataAreaPtr';
 PROCEDURE _exit (ExitCode : LONGINT); CDecl; EXTERNAL CLib;
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
 PROCEDURE printf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
@@ -80,9 +85,10 @@ PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNA
 
 // values for __action_code used with ExitThread()
 CONST
-  TSR_THREAD  = -1;
-  EXIT_THREAD = 0;
-  EXIT_NLM    = 1;
+  TSR_THREAD  = -1; //-Terminate only the current thread.
+  EXIT_THREAD = 0;  //-Terminate the current thread; if the current thread is
+                    // also the last thread, terminate the NLM.
+  EXIT_NLM    = 1;  //-Terminate the entire NLM.
 
 FUNCTION _GetStdIn  : POINTER; CDECL; EXTERNAL Clib NAME '__get_stdin';  // result: **FILE
 FUNCTION _GetStdOut : POINTER; CDECL; EXTERNAL Clib NAME '__get_stdout';
@@ -173,6 +179,7 @@ FUNCTION __get_errno_ptr : _PLONGINT; CDECL; EXTERNAL Clib;
 
 // Memory
 FUNCTION _malloc (size : LONGINT) : POINTER; CDECL; EXTERNAL Threads NAME 'malloc';
+FUNCTION _realloc (p : POINTER; size : LONGINT) : POINTER; CDECL; EXTERNAL Threads NAME 'realloc';
 PROCEDURE _free (what : POINTER); CDECL; EXTERNAL Threads NAME 'free';
 FUNCTION _stackavail : LONGINT; CDECL; EXTERNAL Threads NAME 'stackavail';
 
@@ -307,9 +314,21 @@ FUNCTION  _SetAutoScreenDestructionMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EX
 // Misc
 FUNCTION _memcpy (Dest, Src : POINTER; Len : LONGINT) : POINTER; CDECL; EXTERNAL ThreadsNlm NAME 'memcpy';
 
+FUNCTION _OpenLocalSemaphore (InitialValue : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'OpenLocalSemaphore';
+FUNCTION _WaitOnLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'WaitOnLocalSemaphore';
+FUNCTION _SignalLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'SignalLocalSemaphore';
+FUNCTION _CloseLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'CloseLocalSemaphore';
+FUNCTION _EnterCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'EnterCritSec';
+FUNCTION _ExitCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'ExitCritSec';
+
+
+
 {
   $Log$
-  Revision 1.3  2001-04-16 18:39:50  florian
+  Revision 1.4  2002-03-08 19:06:47  armin
+  	* Additional routines needed for MT
+
+  Revision 1.3  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/04/11 14:17:00  florian
