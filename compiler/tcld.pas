@@ -60,7 +60,6 @@ implementation
     procedure firstload(var p : ptree);
       var
          p1 : ptree;
-
       begin
          if (p^.symtable^.symtabletype=withsymtable) and
             (pwithsymtable(p^.symtable)^.direct_with) and
@@ -80,16 +79,7 @@ implementation
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         if p^.symtableentry^.typ=funcretsym then
-           begin
-              p1:=genzeronode(funcretn);
-              p1^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
-              p1^.rettype:=pfuncretsym(p^.symtableentry)^.rettype;
-              firstpass(p1);
-              putnode(p);
-              p:=p1;
-              exit;
-           end;
+         { handle first absolute as it will replace the p^.symtableentry }
          if p^.symtableentry^.typ=absolutesym then
            begin
               p^.resulttype:=pabsolutesym(p^.symtableentry)^.vartype.def;
@@ -99,7 +89,23 @@ implementation
               p^.is_absolute:=true;
            end;
          case p^.symtableentry^.typ of
-            absolutesym :;
+            funcretsym :
+              begin
+                p1:=genzeronode(funcretn);
+                p1^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
+                p1^.rettype:=pfuncretsym(p^.symtableentry)^.rettype;
+                firstpass(p1);
+                { if it's refered as absolute then we need to have the
+                  type of the absolute instead of the function return,
+                  the function return is then also assigned }
+                if p^.is_absolute then
+                 begin
+                   pprocinfo(p1^.funcretprocinfo)^.funcret_state:=vs_assigned;
+                   p1^.resulttype:=p^.resulttype;
+                 end;
+                putnode(p);
+                p:=p1;
+              end;
             constsym:
               begin
                  if pconstsym(p^.symtableentry)^.consttyp=constresourcestring then
@@ -115,7 +121,11 @@ implementation
               end;
             varsym :
                 begin
-                   if not(p^.is_absolute) and (p^.resulttype=nil) then
+                { if it's refered by absolute then it's used }
+                if p^.is_absolute then
+                 pvarsym(p^.symtableentry)^.varstate:=vs_used
+                else
+                 if (p^.resulttype=nil) then
                      p^.resulttype:=pvarsym(p^.symtableentry)^.vartype.def;
                    if (p^.symtable^.symtabletype in [parasymtable,localsymtable]) and
                       (lexlevel>p^.symtable^.symtablelevel) then
@@ -187,12 +197,13 @@ implementation
                         firstpass(p^.left);
                         p^.registers32:=max(p^.registers32,p^.left^.registers32);
                         p^.registersfpu:=max(p^.registersfpu,p^.left^.registersfpu);
-{$ifdef SUPPORT_MMX}
+ {$ifdef SUPPORT_MMX}
                         p^.registersmmx:=max(p^.registersmmx,p^.left^.registersmmx);
-{$endif SUPPORT_MMX}
+ {$endif SUPPORT_MMX}
                      end;
                 end;
-            else internalerror(3);
+           else
+             internalerror(3);
          end;
       end;
 
@@ -498,7 +509,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-08-13 08:42:59  peter
+    * support absolute refering to funcret (merged)
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:52  michael

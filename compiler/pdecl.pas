@@ -515,7 +515,7 @@ unit pdecl;
                       consume(_ID);
                     end;
                    { we should check the result type of srsym }
-                   if not (srsym^.typ in [varsym,typedconstsym]) then
+                   if not (srsym^.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
@@ -1273,7 +1273,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-02 19:49:59  peter
+  Revision 1.7  2000-08-13 08:42:59  peter
+    * support absolute refering to funcret (merged)
+
+  Revision 1.6  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.5  2000/07/30 17:04:43  peter
