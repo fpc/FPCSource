@@ -66,8 +66,10 @@ begin
      if (cs_link_on_target in aktglobalswitches) then begin
         ExeCmd[1]:='ld $OPT -o $EXE --script $RES';
         ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
-     end else
-        ExeCmd[1]:='ld $OPT $STRIP -o $EXE $RES'
+     end else begin
+        ExeCmd[1]:='ld $OPT -o $EXE $RES';
+        ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
+     end;
    end;
 end;
 
@@ -178,16 +180,10 @@ var
   binstr,
   cmdstr  : string;
   success : boolean;
-  StripStr : string[40];
 begin
 
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
-
-{ Create some replacements }
-  StripStr:='';
-  if (cs_link_strip in aktglobalswitches) then
-    StripStr:='-s';
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -200,7 +196,6 @@ begin
     Replace(cmdstr,'$EXE',ScriptFixFileName(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',ScriptFixFileName(outputexedir+Info.ResName));
-  Replace(cmdstr,'$STRIP',StripStr);
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
@@ -233,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-06-07 23:44:37  karoly
+  Revision 1.6  2004-06-08 15:04:23  karoly
+    * fixed stripping really this time
+
+  Revision 1.5  2004/06/07 23:44:37  karoly
     + fixed stripping support
 
   Revision 1.4  2004/04/28 15:19:03  florian
