@@ -1614,7 +1614,6 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
                 recordalignmax  : 2;
                 maxCrecordalign : 16
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32*1024*1024;
@@ -1636,7 +1635,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2002-04-05 17:49:09  carl
+  Revision 1.28  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.27  2002/04/05 17:49:09  carl
   * fix compilation problems
   * fix range check error
 

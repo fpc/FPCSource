@@ -536,7 +536,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32768*1024;
@@ -555,7 +554,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-03-04 19:10:14  peter
+  Revision 1.17  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.16  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.15  2001/12/15 05:29:36  carl

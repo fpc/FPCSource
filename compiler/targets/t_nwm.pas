@@ -365,21 +365,21 @@ begin
         S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
          begin
-	   {ad: that's a hack !
-	    whith -XX we get the .a files as static libs (in addition to the
-	    imported libraries}
-	   if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
-	   begin
-	     LinkRes.Add ('INPUT '+FindObjectFile(s,'')); 
-	   end else
-	   begin
+       {ad: that's a hack !
+        whith -XX we get the .a files as static libs (in addition to the
+        imported libraries}
+       if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
+       begin
+         LinkRes.Add ('INPUT '+FindObjectFile(s,'')); 
+       end else
+       begin
              i:=Pos(target_info.staticlibext,S);
              if i>0 then
                Delete(S,i,255);
              S := S + '.imp';
              librarysearchpath.FindFile(S,s);
              LinkRes.Add('IMPORT @'+s);
-	   end;
+       end;
          end
       end;
    end;
@@ -533,7 +533,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32768*1024;
@@ -552,7 +551,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-03-30 09:09:47  armin
+  Revision 1.18  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.17  2002/03/30 09:09:47  armin
   + support check-function for netware
 
   Revision 1.16  2002/03/29 17:19:51  armin

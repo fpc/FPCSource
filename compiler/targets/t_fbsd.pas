@@ -549,7 +549,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
@@ -616,7 +615,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
@@ -686,7 +684,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
@@ -716,7 +713,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-01-29 21:27:34  peter
+  Revision 1.15  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.14  2002/01/29 21:27:34  peter
     * default alignment changed to 4 bytes for locals and static const,var
 
   Revision 1.13  2001/11/02 22:58:11  peter

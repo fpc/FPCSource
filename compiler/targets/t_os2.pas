@@ -574,7 +574,6 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32768*1024;
@@ -593,7 +592,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-04-04 19:06:13  peter
+  Revision 1.16  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.15  2002/04/04 19:06:13  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

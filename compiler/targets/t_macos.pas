@@ -81,7 +81,6 @@ implementation
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 4;
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 128*1024;
             maxheapsize  : 32768*1024;
@@ -132,7 +131,6 @@ implementation
             endian       : endian_big;
             stackalignment : 8;
             maxCrecordalignment : 32;
-            size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32768*1024;
@@ -154,7 +152,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-09-17 21:29:16  peter
+  Revision 1.6  2002-04-15 19:16:57  carl
+  - remove size_of_pointer field
+
+  Revision 1.5  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.4  2001/08/07 18:47:15  peter
