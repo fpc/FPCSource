@@ -246,7 +246,8 @@ implementation
            @second_class_to_intf,
            @second_char_to_char,
            @second_nothing,  { normal_2_smallset }
-           @second_nothing   { dynarray_2_openarray }
+           @second_nothing,  { dynarray_2_openarray }
+           @second_nothing   { tc_pwchar_2_string   }
          );
       type
          tprocedureofobject = procedure of object;
@@ -292,7 +293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 20:53:28  carl
+  Revision 1.5  2002-11-09 16:10:35  carl
+    + update for compilation
+
+  Revision 1.4  2002/09/07 20:53:28  carl
     * cardinal -> longword
 
   Revision 1.3  2002/09/07 15:25:13  peter
