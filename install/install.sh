@@ -128,6 +128,9 @@ installbinary ()
   
   echo "Installing utilities..."
   unztarfromtar $BINARYTAR ${CROSSPREFIX}utils.$1.tar.gz $PREFIX
+  if yesno "Install Textmode IDE"; then
+      unztarfromtar $BINARYTAR ${CROSSPREFIX}ide.$1.tar.gz $PREFIX
+  fi
   if yesno "Install FCL"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}units-fcl.$1.tar.gz $PREFIX
   fi
