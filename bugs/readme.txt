@@ -364,6 +364,7 @@ bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
              but only BP respects this convention Delphi and GPC also
              use right to left pushing !!
+bug0290.pp   problem with storing hex numbers in integers
 
 
 Wishlist bugs:
@@ -381,4 +382,3 @@ bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
-bug0290.pp   problem with storing hex numbers in integers
