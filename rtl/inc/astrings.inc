@@ -347,6 +347,20 @@ begin
   AnsiCompare:=Temp;
 end;
 
+Procedure AnsiCheckZero(p : pointer);[Public,Alias : 'FPC_ANSISTR_CHECKZERO'];
+
+  begin
+     if p=nil then
+       HandleErrorFrame(201,get_frame);
+  end;
+
+
+Procedure AnsiCheckRange(len,index : longint);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];
+
+  begin
+     if (index>len) or (Index<1) then
+       HandleErrorFrame(201,get_frame);
+  end;
 
 
 Function AnsiCompare (Var S1 : Pointer; Var S2 : ShortString): Longint;
@@ -487,7 +501,7 @@ begin
      j := i;
      e := false;
      end;
-   DisposeAnsiString(S);
+   // DisposeAnsiString(S);
    end;
  pos := j;
 end;
@@ -727,7 +741,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-02-02 11:37:34  peter
+  Revision 1.10  1999-02-04 10:49:21  florian
+    + routines for range checking added
+
+  Revision 1.9  1999/02/02 11:37:34  peter
     * fixed ansi2short
 
   Revision 1.8  1999/01/06 14:48:43  michael
