@@ -490,13 +490,13 @@ implementation
          else
            begin
              secondpass(left);
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
              location_copy(location,left.location);
-             if location.loc=LOC_CREGISTER then
-              location.register := cg.getintregister(exprasmlist,OS_INT);
+             location.loc := LOC_REGISTER;
+             location.register := cg.getintregister(exprasmlist,OS_INT);
              { perform the NOT operation }
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
-               left.location.register));
+             cg.a_op_reg_reg(exprasmlist,OP_NOT,def_cgsize(resulttype.def),left.location.register,
+               location.register);
           end;
       end;
 
@@ -508,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-10-17 01:22:08  florian
+  Revision 1.36  2003-12-28 23:49:30  jonas
+    * fixed tnotnode for < 32 bit quantities
+
+  Revision 1.35  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.34  2003/10/01 20:34:49  peter

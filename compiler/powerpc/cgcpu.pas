@@ -520,14 +520,14 @@ const
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
 
        begin
-         a_op_const_reg_reg(list,op,OS_32,a,reg,reg);
+         a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
 
 
       procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
          begin
-           a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
+           a_op_reg_reg_reg(list,op,size,src,dst,dst);
          end;
 
 
@@ -722,7 +722,13 @@ const
        begin
          case op of
            OP_NEG,OP_NOT:
-             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
+             begin
+               list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,src1));
+               if (op = OP_NOT) and
+                  not(size in [OS_32,OS_S32]) then
+                 { zero/sign extend result again }
+                 a_load_reg_reg(list,OS_32,size,dst,dst);
+              end;
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;
@@ -2318,7 +2324,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.151  2003-12-28 19:22:27  florian
+  Revision 1.152  2003-12-28 23:49:30  jonas
+    * fixed tnotnode for < 32 bit quantities
+
+  Revision 1.151  2003/12/28 19:22:27  florian
     * handling of open array value parameters fixed
 
   Revision 1.150  2003/12/26 14:02:30  peter
