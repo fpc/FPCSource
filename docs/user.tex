@@ -74,7 +74,8 @@ authoritative.
 % About the compiler
 \section{About the compiler}
 \fpc is a 32-bit compiler for the i386 and m68k processors\footnote{Work is being done
-on a port to ALPHA Architecture}. Currently, it supports 7 operating systems:
+on a port to ALPHA and PPC architectures}. Currently, it supports the following 
+operating systems:
 \begin{itemize}
 \item \dos
 \item \linux
@@ -83,17 +84,20 @@ on a port to ALPHA Architecture}. Currently, it supports 7 operating systems:
 \item \windows
 \item \ostwo (using the EMX package, so it also works on DOS/Windows)
 \item \freebsd (usable, but still under development).
+\item \beos (under development)
+\item \solaris (under development)
+\item \palmos(under development)
 \end{itemize}
 
 \fpc is designed to be, as much as possible, source compatible with
 Turbo Pascal 7.0 and Delphi 5 (although this goal is not yet attained),
-but it also enhances these languages with elements like function overloading.
+but it also enhances these languages with elements like operator overloading.
 And, unlike these ancestors, it supports multiple platforms.
 
 It also differs from them in the sense that you cannot use compiled units
 from one system for the other.
 
-Also, at the time of writing, there is only a early beta version of an
+Also, at the time of writing, there is a beta version of an
 Integrated Development Environment (IDE) available for \fpc.
 
 \fpc consists of three parts :
@@ -122,12 +126,11 @@ It also contains the instructions for inscribing to the
 \textit{mailing-list}.
 
 \item
-\htmladdnormallink{http://www.brain.uni-freiburg.de/\~{}klaus/fpc/fpc.html}
-{http://www.brain.uni-freiburg.de/\~{}klaus/fpc/fpc.html} is a mirror
-of the main \fpc information site.
+\htmladdnormallink{http://community.freepascal.org:10000/}
+{http://community.freepascal.org:10000/} is a forum site where
+questions can be posted.
 \end{itemize}
-Both places can be used to download the \fpc distribution, although you can
-probably find them on other places also.
+Other than that, some mirrors exist.
 
 Finally, if you think something should be added to this manual
 (entirely possible), please do not hesitate and contact me at
@@ -202,7 +205,7 @@ We discuss the process for each platform separately.
 First, you must get the latest distribution files of \fpc. They come as zip
 files, which you must unzip first, or you can download the compiler as a
 series of separate files. This is especially useful if you have a slow
-connection, but it is also nice if you want to install only some pats of the
+connection, but it is also nice if you want to install only some parts of the
 compiler distribution.  The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
 the compiler.
@@ -337,19 +340,15 @@ as it will attempt to create the directories you specify.
 In principle, you can install it wherever you want, though.
 
 At the end of installation, the installation program will generate a
-configuration file for the \fpc compiler which reflects the settings
-that you chose. It will install this file in the \file{/etc} directory, (if
-you are not installing as \var{root}, this will fail), and in the
-directory where you installed the libraries.
+configuration file (\file{ppc386.cfg}) for the \fpc compiler which 
+reflects the settings that you chose. It will install this file in 
+the \file{/etc} directory or in your home directory (with name
+\file{.ppc386.cfg}) if you do not have write permission in the \file{/etc}
+directory. It will make a copy in the directory where you installed the 
+libraries.
 
-If you want the \fpc compiler to use this configuration file, it must be
-present in \file{/etc}, or you can set the environment variable
-\var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a
-\begin{verbatim}
-setenv PPC_CONFIG_PATH /usr/lib/ppc/0.99.14
-\end{verbatim}
-line to your \file{.login} file in your home directory.
-(see also the next section)
+The compiler will first look for a file \file{.ppc386.cfg} in your home 
+directory before looking in the \file{/etc} directory.
 
 \section{Optional configuration steps}
 On any platform, after installing the compiler you may wish to set
@@ -485,7 +484,7 @@ look for compiled versions of these units in the following way:
 \end{enumerate}
 You can add a directory to the unit search path with the (\seeo{Fu})
 option. Every occurrence of one of this options will {\em insert}
-a directory to the unit search path. i.e. last path on the command line
+a directory to the unit search path. i.e. the last path on the command line
 will be searched first.
 
 The compiler adds several paths to the unit search path:
@@ -1470,8 +1469,6 @@ and will not be changed.
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
 \fpc. (however, the \seeo{So} option solves this.)
-\item \var {(* ... *)} as comment delimiters are not allowed in versions
-older than 0.9.1. This can easily be remedied with a grown-up editor.
 \item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
 access are not available in the system unit. This is due to the operating system. Under
 \dos, the extender unit (\file {GO32.PPU}) implements the mem constuct.
@@ -1690,19 +1687,21 @@ begin
 \section{A note on long file names under \dos}
 Under \windows 95 and higher, long filenames are supported. Compiling
 for the win32 target ensures that long filenames are supported in all
-functions that do fie or disk access in any way.
+functions that do file or disk access in any way.
 
 Moreover, \fpc supports the use of long filenames in the system unit and
 the dos unit also for go32v2 executables. The system unit contains the
 boolean variable \var{LFNsupport}. If it is set to \var{True} then all
 system unit functions and DOS unit functions will use long file names
-if they are available. This should be so on all versions of Windows,
-with the possible exception of \windows 2000. The system unit will check
-this by calling \dos function \var{71A0h} and checking whether long
-filenames are supported on the \file{C:} drive.
+if they are available. This should be so on \windows 95 and 98, but
+not on \windows NT or \windows 2000. The system unit will check this 
+by calling \dos function \var{71A0h} and checking whether long filenames 
+are supported on the \file{C:} drive.
 
 It is possible to disable the long filename support by setting the
-\var{LFNSupport} variable to \var{False}.
+\var{LFNSupport} variable to \var{False}; but in general it is recommended
+to compile programs that need long filenames as native Win32 applications;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Utilities.
@@ -1763,7 +1762,7 @@ Turbo Pascal.
 
 It should be distributed in binary form along with the compiler.
 
-It's usage is very simple:
+Its usage is very simple:
 \begin{verbatim}
 ppumove [options] unit1.ppu unit2.ppu ... unitn.ppu
 \end{verbatim}
@@ -1981,7 +1980,7 @@ The source of the \file{PtoP} program is conveniently split in two files:
 One is a unit containing an object that does the actual beautifying of the
 source, the other is a shell built around this object so it can be used
 from the command line. This design makes it possible to include the object
-in some program (e.g. an IDE) and use it's features to format code.
+in some program (e.g. an IDE) and use its features to format code.
 
 The object resided in the \file{PtoPU} unit, and is declared as follows
 \begin{verbatim}
@@ -1998,7 +1997,7 @@ The object resided in the \file{PtoPU} unit, and is declared as follows
 
 Using this object is very simple. The procedure is as follows:
 \begin{enumerate}
-\item Create the object, using it's constructor.
+\item Create the object, using its constructor.
 \item Set the \var{Ins} stream. This is an open stream, from which pascal source will be
 read. This is a mandatory step.
 \item Set the \var{OutS} stream. This is an open stream, to which the
@@ -2071,7 +2070,7 @@ It reads a \file{Makefile.fpc} configuration file and converts it to a
 your projects. It is similar in functionality to GNU \file{autoconf}
 or \file{Imake} for making X projects.
 
-\file{fpcmake} accepts filenames of makefile description files as it's
+\file{fpcmake} accepts filenames of makefile description files as its
 command-line arguments. For each of these files it will create a
 \file{Makefile} in the same directory where the file is located,
 overwriting any other existing file.
@@ -2099,8 +2098,12 @@ are guaranteed to be the same on all platforms.
 \begin{itemize}
 \item [getopts] This unit gives you the \gnu \var{getopts} command-line
 arguments  handling mechanism. It also supports long options.
+\item [keyboard] provides basic keyboard handling in a platform independent way,
+and supports writing custom drivers.
 \item [mmx] This unit provides support for \var{mmx} extensions in your
 code.
+\item [mouse] provides basic mouse handling in a platform independent way,
+and supports writing custom drivers.
 \item [objects]  This unit provides basic routines for handling objects.
 \item [objpas] is used for Delphi compatibility; you should never load this
 unit explicitly; it is automatically loaded if you request Delphi mode.
@@ -2112,6 +2115,8 @@ libraries.
 Delphi.
 \item[typinfo] Provides functions to acces Run-Time Type Information, just
 like Delphi.
+\item [video] provides basic screen handling in a platform independent way,
+and supports writing custom drivers.
 \end{itemize}
 
 %
@@ -2184,7 +2189,7 @@ would like.
 \item [sockets] This unit gives you access to sockets and TCP/IP
 programming.
 \item [graph] Is an implementation of Borlands \file{graph} unit, which
-works on the Linux console. It's implementation is as complete as on
+works on the Linux console. Its implementation is as complete as on
 the other platforms (it shares the same code).
 It uses the libvga and libvgagl graphics libraries, so you need these
 installed for this unit to work. Also, programs using this library need
@@ -2214,7 +2219,7 @@ root, and are a serious security risk on your system.
 \chapter{Debugging your Programs}
 
 \fpc supports debug information for the \gnu debugger \var{gdb}, or
-it's derivatives \file{Insight} on win32 or \file{ddd} on \linux.
+its derivatives \file{Insight} on win32 or \file{ddd} on \linux.
 
 This chapter describes shortly how to use this feature. It doesn't attempt
 to describe completely the \gnu debugger, however.
@@ -2297,7 +2302,7 @@ example:
 \end{verbatim}
 If your program runs without problems, \var{gdb} will inform you of this,
 and return the exit code of your program. If the exit code was zero, then
-the message \var{'Program exited normally'}.
+the message \var{'Program exited normally'} is displayed.
 
 If something went wrong (a segmentation fault or so), \var{gdb} will stop
 the execution of your program, and inform you of this with an appropriate
@@ -2341,7 +2346,7 @@ There are some peculiarities of \fpc which you should be aware of when using
 \begin{enumerate}
 \item \fpc generates information for GDB in uppercare letters. This is a
 consequence of the fact that pascal is a case insensitive language. So, when
-referring to a variable or function, you need to make it's name all
+referring to a variable or function, you need to make its name all
 uppercase.
 
 As an example, of you want to watch the value of a loop variable
@@ -2392,7 +2397,7 @@ break TPOINT__DRAW
 
 \item Global overloaded functions confuse \var{gdb} because they have the same
 name. Thus you cannot set a breakpoint at an overloaded function, unless you
-know it's line number, in which case you can set a breakpoint at the
+know its line number, in which case you can set a breakpoint at the
 starting linenumber of the function.
 \end{enumerate}
 
@@ -2548,7 +2553,7 @@ which can be used as a base for more complex CGI programming.
 That's why, in this chapter, we will discuss the basics of CGI in \fpc.
 In the subsequent, we will assume that the server for which the programs are
 created, are based upon the NCSA \var{httpd} WWW server, as the examples
-will be based upon the NCSA method of CGI programming\footnote{... and it's
+will be based upon the NCSA method of CGI programming\footnote{... and its
 the only WWW-server I have to my disposition at the moment.}.
 They have been tested with the \file{apache} server on \linux, and
 the \file{xitami} server on \windowsnt.
@@ -2677,8 +2682,8 @@ this may be needed.
 
 % Data passed through an environment variable
 \subsection{Data passed through an environment variable}
-If your form uses the \var{GET} method of passing it's data, the CGI script
-needs to read the \var{QUERY\_STRING} environment variable to get it's data.
+If your form uses the \var{GET} method of passing its data, the CGI script
+needs to read the \var{QUERY\_STRING} environment variable to get its data.
 Since this variable can, and probably will, be more than 255 characters long,
 you will not be able to use normal string methods, present in pascal. \fpc
 implements the \var{pchar} type, which is a pointer to a null-terminated
