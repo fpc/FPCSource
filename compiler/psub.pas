@@ -959,20 +959,6 @@ implementation
       end;
 
 
-    function checklocalinlining(var n: tnode; arg: pointer): foreachnoderesult;
-      begin
-        result:=fen_false;
-        case n.nodetype of
-          loadn :
-            if tloadnode(n).symtableentry.owner.symtabletype=staticsymtable then
-              result:=fen_norecurse_true;
-          calln :
-            if tcallnode(n).procdefinition.owner.symtabletype=staticsymtable then
-              result:=fen_norecurse_true;
-        end;
-      end;
-
-
     procedure tcgprocinfo.parse_body;
       var
          oldprocinfo : tprocinfo;
@@ -1060,9 +1046,6 @@ implementation
                  include(procdef.procoptions,po_has_inlininginfo);
                  procdef.inlininginfo^.code:=code.getcopy;
                  procdef.inlininginfo^.flags:=current_procinfo.flags;
-                 { References a local var or proc? }
-                 if foreachnodestatic(procdef.inlininginfo^.code,@checklocalinlining,nil) then
-                   include(procdef.inlininginfo^.flags,pi_inline_local_only);
                  { The blocknode needs to set an exit label }
                  if procdef.inlininginfo^.code.nodetype=blockn then
                    include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
@@ -1464,7 +1447,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.226  2004-12-27 14:41:09  jonas
+  Revision 1.227  2004-12-27 16:35:48  peter
+    * set flag if a procedure references a symbol in staticsymtable
+
+  Revision 1.226  2004/12/27 14:41:09  jonas
     - disable inlining for any procedure that contains assembler. Could
       be enabled again if the procedure has neither local variables nor
       parameters.

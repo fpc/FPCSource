@@ -237,8 +237,9 @@ than 255 characters. That's why using Ansi Strings}
          pi_uses_fpu,
          { procedure uses GOT for PIC code }
          pi_needs_got,
-         { references local var/proc }
-         pi_inline_local_only
+         { references var/proc/type/const in static symtable,
+           i.e. not allowed for inlining from other units }
+         pi_uses_static_symtable
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -315,7 +316,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-12-15 21:08:15  peter
+  Revision 1.66  2004-12-27 16:35:48  peter
+    * set flag if a procedure references a symbol in staticsymtable
+
+  Revision 1.65  2004/12/15 21:08:15  peter
     * disable inlining across units when the inline procedure references
       a variable or procedure in the static symtable
 

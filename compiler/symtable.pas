@@ -1799,6 +1799,12 @@ implementation
                    end;
                  if Tsym(srsym).is_visible_for_object(topclass) then
                    begin
+                     { we need to know if a procedure references symbols
+                       in the static symtable, because then it can't be
+                       inlined from outside this unit }
+                     if assigned(current_procinfo) and
+                        (srsym.owner.symtabletype=staticsymtable) then
+                       include(current_procinfo.flags,pi_uses_static_symtable);
                      searchsym:=true;
                      exit;
                    end;
@@ -2312,7 +2318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2004-12-21 08:38:16  michael
+  Revision 1.167  2004-12-27 16:35:48  peter
+    * set flag if a procedure references a symbol in staticsymtable
+
+  Revision 1.166  2004/12/21 08:38:16  michael
   + Enable local debug info in methods
 
   Revision 1.165  2004/12/15 15:59:54  peter
