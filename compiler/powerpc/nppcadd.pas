@@ -157,6 +157,13 @@ interface
       begin
         load_node(left);
         load_node(right);
+        if not(cmpop) and
+           (location.register.number = NR_NO) then
+         begin
+           location.register := rg.getregisterint(exprasmlist,OS_INT);
+           if is_64bit(resulttype.def) then
+             location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+         end;
       end;
 
 
@@ -1479,7 +1486,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-04-27 11:55:34  jonas
+  Revision 1.30  2003-05-30 18:49:14  jonas
+    * fixed problem where sometimes no register was allocated for the result
+      of an addnode when using regvars
+
+  Revision 1.29  2003/04/27 11:55:34  jonas
     * fixed overflow checking form of 64bit add instruction
 
   Revision 1.28  2003/04/27 11:06:06  jonas
