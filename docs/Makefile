@@ -44,7 +44,13 @@ ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif
 
+ifndef FPDOC
 FPDOC=fpdoc
+endif
+
+ifndef FPCSRCDIR
+FPCSRCDIR=..
+endif
 
 # Use Ascii mode ? (i.e. no pics in produced HTML ?)
 ifndef ASCIIMODE
@@ -312,7 +318,7 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl --descr=classes.xml --input='../fcl/linux/classes.pp -Fi../fcl/inc'
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/fcl/linux/classes.pp -Fi$(FPCSRCDIR)/fcl/inc'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
@@ -543,7 +549,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.21  2003-03-18 21:25:23  michael
+# Revision 1.22  2003-05-29 10:25:51  peter
+#   * allow to specify FPCSRCDIR and FPDOC
+#
+# Revision 1.21  2003/03/18 21:25:23  michael
 # + Added fcl docs and fpdoc
 #
 # Revision 1.20  2003/03/18 00:14:51  michael
