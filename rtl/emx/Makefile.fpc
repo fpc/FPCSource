@@ -155,7 +155,7 @@ printer$(PPUEXT) : $(OS2INC)/printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEX
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) doscalls$(PPUEXT) sysconst$(PPUEXT)
+                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
   $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : ../os2/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -182,7 +182,7 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
 
 #
 # Other system-independent RTL Units
