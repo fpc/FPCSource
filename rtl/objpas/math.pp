@@ -123,7 +123,12 @@ interface
 {$define OverflowCheckWasOn}
 {$Q-}
 {$endif opt Q+}
+{$ifdef CPUARM}
+       { the ARM linux emulator doesn't like 0.0/0.0 }
+       NaN = ln(-1.0);
+{$else CPUARM}
        NaN = 0.0/0.0;
+{$endif CPUARM}
        Infinity = 1.0/0.0;
 {$ifdef RangeCheckWasOn}
 {$R+}
@@ -1344,7 +1349,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-12-05 16:52:34  jonas
+  Revision 1.27  2005-01-04 16:47:05  florian
+    * compilation on ARM fixed
+
+  Revision 1.26  2004/12/05 16:52:34  jonas
     * also invalid argument if trying to calculate 0^0 with intpower()
 
   Revision 1.25  2004/12/05 16:43:57  jonas
