@@ -459,9 +459,9 @@ end;
 
 function random(l:int64): int64;
 begin
-{$ifndef VER_1_0}
+{$ifndef VER1_0}
   random := int64((qword(cardinal(genrand_MT19937)) or ((qword(cardinal(genrand_MT19937)) shl 32))) and $7fffffffffffffff) mod l;
-{$endif VER_1_0}
+{$endif VER1_0}
 end;
 
 function random: extended;
@@ -883,7 +883,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  2004-08-30 17:36:18  jonas
+  Revision 1.63  2004-08-31 12:23:53  jonas
+    * fixed compilation with 1.0.x
+
+  Revision 1.62  2004/08/30 17:36:18  jonas
     * fixed random(int64)
 
   Revision 1.61  2004/08/29 10:23:12  peter
