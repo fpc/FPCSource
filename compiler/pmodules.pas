@@ -800,6 +800,7 @@ implementation
         nostackframe:=false;
         objectlibrary.getlabel(aktexitlabel);
         objectlibrary.getlabel(aktexit2label);
+        include(current_procinfo.flags,pi_do_call);
         genentrycode(list,true,0,parasize,nostackframe,false);
         genexitcode(list,parasize,nostackframe,false);
         list.convert_registers;
@@ -1483,7 +1484,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.104  2003-04-28 21:19:02  peter
+  Revision 1.105  2003-05-11 19:31:28  florian
+    * fixed implicit init/final code for units, stack frame was wrong for ppc
+
+  Revision 1.104  2003/04/28 21:19:02  peter
     * fix stabs generation for implicit initfinal
 
   Revision 1.103  2003/04/27 11:21:34  peter
