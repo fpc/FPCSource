@@ -338,7 +338,7 @@ end;
 
 procedure FileClose (Handle: longint);
 begin
-    if (Handle > 4) or (os_mode = osOS2) and (Handle > 2) then
+    if (Handle > 4) or ((os_mode = osOS2) and (Handle > 2)) then
         asm
             mov eax, 3E00h
             mov ebx, Handle
@@ -983,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2003-03-29 19:14:16  yuri
+  Revision 1.26  2003-03-31 02:18:39  yuri
+  FileClose bug fixed (again ;))
+
+  Revision 1.25  2003/03/29 19:14:16  yuri
     * Directoryexists function header changed back.
 
   Revision 1.24  2003/03/29 18:53:10  yuri
