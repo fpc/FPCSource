@@ -57,7 +57,7 @@ type
    AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
    AS_DATA,AS_TEXT,AS_END,
    {------------------ Assembler Operators  --------------------}
-   AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR);
+   AS_TYPE,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR);
 
    tasmkeyword = string[10];
 
@@ -80,7 +80,7 @@ const
     '.align','.balign','.p2align','.ascii',
     '.asciz','.lcomm','.comm','.single','.double','.tfloat',
     '.data','.text','END',
-    '%','<<','>>','!','&','|','^','~');
+    'TYPE','%','<<','>>','!','&','|','^','~');
 
 const
   newline = #10;
@@ -388,6 +388,11 @@ begin
            if actasmpattern = 'END' then
             Begin
               actasmtoken:=AS_END;
+              exit;
+            end;
+           if actasmpattern = 'TYPE' then
+            Begin
+              actasmtoken:=AS_TYPE;
               exit;
             end;
            actasmtoken:=AS_ID;
@@ -912,23 +917,51 @@ Begin
           expr:=expr + tempstr;
           Consume(AS_STRING);
         end;
+      AS_TYPE:
+        begin
+          l:=0;
+          Consume(AS_TYPE);
+          if actasmtoken<>AS_ID then
+           Message(asmr_e_type_without_identifier)
+          else
+           begin
+             tempstr:=actasmpattern;
+             Consume(AS_ID);
+             if actasmtoken=AS_DOT then
+              BuildRecordOffsetSize(tempstr,k,l)
+             else
+              begin
+                getsym(tempstr,false);
+                if assigned(srsym) then
+                 begin
+                   case srsym^.typ of
+                     varsym :
+                       l:=pvarsym(srsym)^.getsize;
+                     typedconstsym :
+                       l:=ptypedconstsym(srsym)^.getsize;
+                     typesym :
+                       l:=ptypesym(srsym)^.restype.def^.size;
+                     else
+                       Message(asmr_e_wrong_sym_type);
+                   end;
+                 end
+                else
+                 Message1(sym_e_unknown_id,tempstr);
+              end;
+           end;
+          str(l, tempstr);
+          expr:=expr + tempstr;
+        end;
       AS_ID:
         Begin
           tempstr:=actasmpattern;
           prevtok:=prevasmtoken;
           consume(AS_ID);
-          if actasmtoken=AS_DOT then
+          if SearchIConstant(tempstr,l) then
            begin
-             BuildRecordOffsetSize(tempstr,l,k);
              str(l, tempstr);
              expr:=expr + tempstr;
            end
-          else
-           if SearchIConstant(tempstr,l) then
-            begin
-              str(l, tempstr);
-              expr:=expr + tempstr;
-            end
           else
            begin
              hs:='';
@@ -968,27 +1001,35 @@ Begin
              if hs<>'' then
               begin
                 if needofs and (prevtok<>AS_DOLLAR) then
-                 Message(asmr_e_need_offset);
+                 Message(asmr_e_need_dollar);
                 if asmsym='' then
                  asmsym:=hs
                 else
                  Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 if (expr='') or (expr[length(expr)]='+') then
                  begin
-                   delete(expr,length(expr),1);
-                   if not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END]) then
-                    Message(asmr_e_only_add_relocatable_symbol);
+                   { don't remove the + if there could be a record field }
+                   if actasmtoken<>AS_DOT then
+                    delete(expr,length(expr),1);
                  end
                 else
                  Message(asmr_e_only_add_relocatable_symbol);
+              end;
+             if actasmtoken=AS_DOT then
+              begin
+                BuildRecordOffsetSize(tempstr,l,k);
+                str(l, tempstr);
+                expr:=expr + tempstr;
               end
              else
               begin
-                { Error recovery }
                 if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
                  delete(expr,length(expr),1);
               end;
            end;
+          { check if there are wrong operator used like / or mod etc. }
+          if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_LPAREN,AS_END]) then
+           Message(asmr_e_only_add_relocatable_symbol);
         end;
       AS_END,
       AS_SEPARATOR,
@@ -2058,7 +2099,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2000-05-26 18:23:11  peter
+  Revision 1.82  2000-06-14 19:02:41  peter
+    * fixed TYPE with records and fields
+    * added TYPE support for ATT reader else it wouldn't be possible to
+      get the size of a type/variable
+
+  Revision 1.81  2000/05/26 18:23:11  peter
     * fixed % parsing and added modulo support
     * changed some evaulator errors to more generic illegal expresion
 

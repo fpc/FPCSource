@@ -788,33 +788,38 @@ Begin
         end;
       AS_TYPE:
         begin
+          l:=0;
           Consume(AS_TYPE);
           if actasmtoken<>AS_ID then
            Message(asmr_e_type_without_identifier)
           else
            begin
-             getsym(actasmpattern,false);
+             tempstr:=actasmpattern;
              Consume(AS_ID);
-             if assigned(srsym) then
-              begin
-                l:=0;
-                case srsym^.typ of
-                  varsym :
-                    l:=pvarsym(srsym)^.getsize;
-                  typedconstsym :
-                    l:=ptypedconstsym(srsym)^.getsize;
-                  typesym :
-                    l:=ptypesym(srsym)^.restype.def^.size;
-                  else
-                    Message(asmr_e_wrong_sym_type);
-                end;
-                str(l,tempstr);
-                expr:=expr+tempstr;
-              end
+             if actasmtoken=AS_DOT then
+              BuildRecordOffsetSize(tempstr,k,l)
              else
-              Message1(sym_e_unknown_id,actasmpattern);
+              begin
+                getsym(tempstr,false);
+                if assigned(srsym) then
+                 begin
+                   case srsym^.typ of
+                     varsym :
+                       l:=pvarsym(srsym)^.getsize;
+                     typedconstsym :
+                       l:=ptypedconstsym(srsym)^.getsize;
+                     typesym :
+                       l:=ptypesym(srsym)^.restype.def^.size;
+                     else
+                       Message(asmr_e_wrong_sym_type);
+                   end;
+                 end
+                else
+                 Message1(sym_e_unknown_id,tempstr);
+              end;
            end;
-
+          str(l, tempstr);
+          expr:=expr + tempstr;
         end;
       AS_STRING:
         Begin
@@ -900,12 +905,17 @@ Begin
                 else
                  Message(asmr_e_only_add_relocatable_symbol);
               end;
-           end;
-          if actasmtoken=AS_DOT then
-           begin
-             BuildRecordOffsetSize(tempstr,l,k);
-             str(l, tempstr);
-             expr:=expr + tempstr;
+             if actasmtoken=AS_DOT then
+              begin
+                BuildRecordOffsetSize(tempstr,l,k);
+                str(l, tempstr);
+                expr:=expr + tempstr;
+              end
+             else
+              begin
+                if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
+                 delete(expr,length(expr),1);
+              end;
            end;
           { check if there are wrong operator used like / or mod etc. }
           if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
@@ -1889,7 +1899,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2000-06-14 16:52:09  peter
+  Revision 1.73  2000-06-14 19:02:41  peter
+    * fixed TYPE with records and fields
+    * added TYPE support for ATT reader else it wouldn't be possible to
+      get the size of a type/variable
+
+  Revision 1.72  2000/06/14 16:52:09  peter
     * fixed reference parsing
 
   Revision 1.71  2000/05/23 20:36:28  peter
