@@ -200,6 +200,7 @@ implementation
                      if (torddef(def_from).typ=torddef(def_to).typ) then
                       begin
                         case torddef(def_from).typ of
+                          uchar,uwidechar,
                           u8bit,u16bit,u32bit,u64bit,
                           s8bit,s16bit,s32bit,s64bit:
                             begin
@@ -207,9 +208,12 @@ implementation
                                  (torddef(def_from).high=torddef(def_to).high) then
                                 eq:=te_equal
                               else
-                                eq:=te_convert_l1;
+                                begin
+                                  doconv:=tc_int_2_int;
+                                  eq:=te_convert_l1;
+                                end;
                             end;
-                          uvoid,uchar,uwidechar,
+                          uvoid,
                           bool8bit,bool16bit,bool32bit:
                             eq:=te_equal;
                           else
@@ -1210,7 +1214,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-09-09 21:03:17  peter
+  Revision 1.29  2003-10-05 12:57:11  peter
+    * set correct conversion for subranges
+
+  Revision 1.28  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.27  2003/06/03 21:02:08  peter
