@@ -461,7 +461,7 @@ unit tree;
                  if assigned(p^.right) then
                    hp^.right:=getcopy(p^.right);
                  if assigned(p^.hightree) then
-                   hp^.left:=getcopy(p^.hightree);
+                   hp^.hightree:=getcopy(p^.hightree);
               end;
             dt_leftrightframe :
               begin
@@ -470,7 +470,7 @@ unit tree;
                  if assigned(p^.right) then
                    hp^.right:=getcopy(p^.right);
                  if assigned(p^.frametree) then
-                   hp^.left:=getcopy(p^.frametree);
+                   hp^.frametree:=getcopy(p^.frametree);
               end;
             dt_leftrightmethod :
               begin
@@ -479,7 +479,7 @@ unit tree;
                  if assigned(p^.right) then
                    hp^.right:=getcopy(p^.right);
                  if assigned(p^.methodpointer) then
-                   hp^.left:=getcopy(p^.methodpointer);
+                   hp^.methodpointer:=getcopy(p^.methodpointer);
               end;
             dt_nothing : ;
             dt_left    :
@@ -2121,7 +2121,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.121  2000-06-06 20:24:07  pierre
+  Revision 1.122  2000-06-29 13:49:39  jonas
+    * fixed copy/paste bugs in getcopy
+
+  Revision 1.121  2000/06/06 20:24:07  pierre
    Generate a warning if function result is a pointer and result^:=x; is used
 
   Revision 1.120  2000/05/17 17:10:06  peter
