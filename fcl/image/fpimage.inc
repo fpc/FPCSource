@@ -232,7 +232,7 @@ constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
 begin
   inherited create (AWidth,AHeight);
   UsePalette := True;
-  Palette.Add (clTransparent);
+  Palette.Add (colTransparent);
 end;
 
 destructor TFPMemoryImage.Destroy;
