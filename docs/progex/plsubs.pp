@@ -1,11 +1,12 @@
 program testsubs;
 
 Type
-  TSubStrFunc = function (const CString: PChar; FromPos, ToPos: longint): PChar;  cdecl;
+  TSubStrFunc = 
+    function(const CString:PChar;FromPos,ToPos: longint):PChar;cdecl;
 
-Function dlopen(name : pchar; mode : longint) : pointer; cdecl; external 'dl';
-Function dlsym(lib : pointer; name : pchar) : pointer; cdecl;external 'dl';
-Function dlclose(lib : pointer) : longint; cdecl; external 'dl';
+Function dlopen(name: pchar;mode: longint):pointer;cdecl;external 'dl';
+Function dlsym(lib: pointer; name: pchar):pointer;cdecl;external 'dl';
+Function dlclose(lib: pointer):longint;cdecl;external 'dl';
 
 var
   s: PChar;
