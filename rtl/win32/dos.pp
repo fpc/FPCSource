@@ -20,7 +20,7 @@ interface
 {$I win32.inc}
 
 Const
-  Max_Path = 255;
+  Max_Path = 260;
 
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
@@ -73,7 +73,7 @@ Type
   End;
 
   PWin32FindData = ^TWin32FindData;
-  TWin32FindData = packed record
+  TWin32FindData = record
     dwFileAttributes: Cardinal;
     ftCreationTime: TFileTime;
     ftLastAccessTime: TFileTime;
@@ -84,6 +84,8 @@ Type
     dwReserved1: Cardinal;
     cFileName: array[0..MAX_PATH - 1] of Char;
     cAlternateFileName: array[0..13] of Char;
+    // The structure should be 320 bytes long...
+    pad : system.integer;
   end;
 
   Searchrec = Packed Record
@@ -884,7 +886,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.17  1999-05-16 17:08:59  peter
+  Revision 1.18  1999-08-12 09:24:14  michael
+  Fixed win32finddata size; searchrec.excludeattr was overwritten.
+
+  Revision 1.17  1999/05/16 17:08:59  peter
     * fixed driveletter checking
 
   Revision 1.16  1999/05/08 19:47:27  peter
