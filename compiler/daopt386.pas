@@ -1544,19 +1544,21 @@ Begin
         With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
           Begin
             If (typ = Con_Ref) And
-               (Not(cs_UncertainOpts in aktglobalswitches) And
-                (NrOfMods <> 1)
-               ) Or
-               (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter]) And
-                ((Counter <> WhichReg) Or
-                 ((NrOfMods = 1) And
+               ((Not(cs_UncertainOpts in aktglobalswitches) And
+                 (NrOfMods <> 1)
+                ) Or
+                (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter]) And
+                 ((Counter <> WhichReg) Or
+                  ((NrOfMods <> 1) And
  {StarMod is always of the type ait_instruction}
-                  (Pai386(StartMod)^.oper[0].typ = top_ref) And
-                  RefsEqual(Pai386(StartMod)^.oper[0].ref^, Ref)
+                   (Pai386(StartMod)^.oper[0].typ = top_ref) And
+                   RefsEqual(Pai386(StartMod)^.oper[0].ref^, Ref)
+                  )
                  )
                 )
                )
-              Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
+              Then
+                DestroyReg(PPaiProp(p^.OptInfo), Counter)
           End
     Else
 {write something to a pointer location, so
@@ -2236,7 +2238,10 @@ End.
 
 {
  $Log$
- Revision 1.51  1999-08-02 12:12:53  jonas
+ Revision 1.52  1999-08-02 14:35:21  jonas
+   * bugfix in DestroyRefs
+
+ Revision 1.51  1999/08/02 12:12:53  jonas
    * also add arithmetic operations to instruction sequences contained in registers
      (compile with -darithopt, very nice!)
 
