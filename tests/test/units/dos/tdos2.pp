@@ -683,13 +683,26 @@ Begin
  TestSplit;
  RmDir(TestDir);
  PauseScreen;
+ 
+ { Cleanup }
+ {$I-}
+  assign(f,TestFName);
+  erase(f);
+  assign(f,TestFName1);
+  erase(f);
+ {$I+}  
+ if ioresult<>0 then;
+ 
  if has_errors then
    halt(1);
 end.
 
 {
   $Log$
-  Revision 1.11  2002-12-06 16:36:17  peter
+  Revision 1.12  2002-12-06 16:38:15  peter
+    * cleanup tempfiles
+
+  Revision 1.11  2002/12/06 16:36:17  peter
     * made more tests go32v2 specific because they expect (buggy?) Dos
       findfirst behaviour
 
