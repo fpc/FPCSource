@@ -3041,12 +3041,12 @@ implementation
          para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
-         fpu_used:=0;
          proctypeoption:=potype_none;
          proccalloptions:=[];
          procoptions:=[];
          rettype:=voidtype;
          symtablelevel:=0;
+         fpu_used:=0;
          savesize:=target_info.size_of_pointer;
       end;
 
@@ -3143,6 +3143,8 @@ implementation
          ppufile.puttype(rettype);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
+         if simplify_ppu then
+          fpu_used:=0;
          ppufile.putbyte(fpu_used);
          ppufile.putlongint(ord(proctypeoption));
          ppufile.putsmallset(proccalloptions);
@@ -3453,7 +3455,7 @@ implementation
          inherited write(ppufile);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
-   { set all registers to used for simplified compilation PM }
+         { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
 {$ifdef newcg}
@@ -3493,36 +3495,39 @@ implementation
          ppufile.putderef(_class);
          ppufile.putposinfo(fileinfo);
 
-         { inline stuff }
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
+         { inline stuff references to localsymtable, no influence
+           on the crc }
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
          if (pocall_inline in proccalloptions) then
            ppufile.putderef(funcretsym);
-         ppufile.do_interface_crc:=oldintfcrc;
+         ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
          ppufile.writeentry(ibprocdef);
 
-         { Save the para and local symtable, for easier reading
-           save both always, they don't influence the interface crc }
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
+         { Save the para symtable, this is taken from the interface }
          if not assigned(parast) then
           begin
             parast:=tparasymtable.create;
             parast.defowner:=self;
           end;
          tparasymtable(parast).write(ppufile);
+
+         { save localsymtable for inline procedures, this has no influence
+           on the crc }
          if (pocall_inline in proccalloptions) then
           begin
+            oldintfcrc:=ppufile.do_crc;
+            ppufile.do_crc:=false;
             if not assigned(localst) then
              begin
                localst:=tlocalsymtable.create;
                localst.defowner:=self;
              end;
             tlocalsymtable(localst).write(ppufile);
+            ppufile.do_crc:=oldintfcrc;
           end;
-         ppufile.do_interface_crc:=oldintfcrc;
       end;
 
 
@@ -5540,7 +5545,11 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.40  2001-08-06 21:40:48  peter
+  Revision 1.41  2001-08-12 20:04:33  peter
+    * fpu_used=0 when simplify_ppu is used
+    * small crc updating fixes for tprocdef
+
+  Revision 1.40  2001/08/06 21:40:48  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.39  2001/08/01 21:47:48  peter
