@@ -728,6 +728,7 @@ procedure CreateBrowserCol;
      end;}
     for I:=1 to symcount do
       begin
+        Symbol:=nil;
         Sym:=Table^.GetsymNr(I);
         if Sym=nil then Continue;
         ParamCount:=0;
@@ -822,8 +823,11 @@ procedure CreateBrowserCol;
             end;
         end;
         Ref:=Sym^.defref;
-        while Assigned(Symbol) and assigned(Ref) do
-          begin
+        If assigned(Symbol) then
+         begin
+          Owner^.Insert(Symbol);
+          while Assigned(Symbol) and assigned(Ref) do
+           begin
             inputfile:=get_source_file(ref^.moduleindex,ref^.posinfo.fileindex);
             if Assigned(inputfile) and Assigned(inputfile^.name) then
               begin
@@ -832,9 +836,8 @@ procedure CreateBrowserCol;
                 Symbol^.References^.Insert(Reference);
               end;
             Ref:=Ref^.nextref;
-          end;
-        if Assigned(Symbol) then
-        Owner^.Insert(Symbol);
+           end;
+         end;
       end;
   end;
 
@@ -900,7 +903,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-03-24 23:16:44  peter
+  Revision 1.10  1999-03-26 11:39:25  pierre
+   * avoid empty symbols
+
+  Revision 1.9  1999/03/24 23:16:44  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.8  1999/03/03 01:38:11  pierre
