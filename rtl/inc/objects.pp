@@ -218,7 +218,7 @@ TYPE
 {                        BIT SWITCHED TYPE CONSTANTS                        }
 {---------------------------------------------------------------------------}
 TYPE
-   Sw_Word    = LongInt;                              { Long integer now }
+   Sw_Word    = Cardinal;                             { Long Word now }
    Sw_Integer = LongInt;                              { Long integer now }
 
 {***************************************************************************}
@@ -262,24 +262,25 @@ TYPE
 {                        TPoint OBJECT - POINT OBJECT                       }
 {---------------------------------------------------------------------------}
 TYPE
+   PPoint = ^TPoint;
    TPoint = OBJECT
-      X, Y: Integer;
+      X, Y: Sw_Integer;
    END;
 
 {---------------------------------------------------------------------------}
 {                      TRect OBJECT - RECTANGLE OBJECT                      }
 {---------------------------------------------------------------------------}
    TRect = OBJECT
-         A, B: TPoint;                                { Corner points }
+      A, B: TPoint;                                { Corner points }
       FUNCTION Empty: Boolean;
       FUNCTION Equals (R: TRect): Boolean;
       FUNCTION Contains (P: TPoint): Boolean;
       PROCEDURE Copy (R: TRect);
       PROCEDURE Union (R: TRect);
       PROCEDURE Intersect (R: TRect);
-      PROCEDURE Move (ADX, ADY: Integer);
-      PROCEDURE Grow (ADX, ADY: Integer);
-      PROCEDURE Assign (XA, YA, XB, YB: Integer);
+      PROCEDURE Move (ADX, ADY: Sw_Integer);
+      PROCEDURE Grow (ADX, ADY: Sw_Integer);
+      PROCEDURE Assign (XA, YA, XB, YB: Sw_Integer);
    END;
 
 {---------------------------------------------------------------------------}
@@ -875,7 +876,7 @@ END;
 {--TRect--------------------------------------------------------------------}
 {  Move -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TRect.Move (ADX, ADY: Integer);
+PROCEDURE TRect.Move (ADX, ADY: Sw_Integer);
 BEGIN
    Inc(A.X, ADX);                                     { Adjust A.X }
    Inc(A.Y, ADY);                                     { Adjust A.Y }
@@ -886,7 +887,7 @@ END;
 {--TRect--------------------------------------------------------------------}
 {  Grow -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TRect.Grow (ADX, ADY: Integer);
+PROCEDURE TRect.Grow (ADX, ADY: Sw_Integer);
 BEGIN
    Dec(A.X, ADX);                                     { Adjust A.X }
    Dec(A.Y, ADY);                                     { Adjust A.Y }
@@ -898,7 +899,7 @@ END;
 {--TRect--------------------------------------------------------------------}
 {  Assign -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB               }
 {---------------------------------------------------------------------------}
-PROCEDURE TRect.Assign (XA, YA, XB, YB: Integer);
+PROCEDURE TRect.Assign (XA, YA, XB, YB: Sw_Integer);
 BEGIN
    A.X := XA;                                         { Hold A.X value }
    A.Y := YA;                                         { Hold A.Y value }
@@ -1843,26 +1844,33 @@ END;
 {  SetLimit -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TCollection.SetLimit (ALimit: Sw_Integer);
-VAR AItems: PItemList;
+VAR
+  AItems: PItemList;
 BEGIN
-   If (ALimit < Count) Then ALimit := Count;          { Stop underflow }
+   If (ALimit < Count) Then
+     ALimit := Count;
    If (ALimit > MaxCollectionSize) Then
-     ALimit := MaxCollectionSize;                     { Stop overflow }
-   If (ALimit <> Limit) Then Begin                    { Limits differ }
-     If (ALimit = 0) Then AItems := Nil Else Begin    { Alimit=0 nil entry }
-       GetMem(AItems, ALimit * SizeOf(Pointer));      { Allocate memory }
-       If (AItems<>Nil) Then FillChar(AItems^,
-         ALimit * SizeOf(Pointer), #0);               { Clear the memory }
+     ALimit := MaxCollectionSize;
+   If (ALimit <> Limit) Then
+     Begin
+       If (ALimit = 0) Then
+         AItems := Nil
+       Else
+         Begin
+           GetMem(AItems, ALimit * SizeOf(Pointer));
+           If (AItems<>Nil) Then
+             FillChar(AItems^,ALimit * SizeOf(Pointer), #0);
+         End;
+       If (AItems<>Nil) OR (ALimit=0) Then
+         Begin
+           If (AItems <>Nil) AND (Items <> Nil) Then
+             Move(Items^, AItems^, Count*SizeOf(Pointer));
+           If (Limit <> 0) AND (Items <> Nil) Then
+             FreeMem(Items, Limit * SizeOf(Pointer));
+         end;
+       Items := AItems;
+       Limit := ALimit;
      End;
-     If (AItems<>Nil) OR (ALimit=0) Then Begin        { Check success }
-       If (AItems <>Nil) AND (Items <> Nil) Then      { Check both valid }
-         Move(Items^, AItems^, Count*SizeOf(Pointer));{ Move existing items }
-       If (Limit <> 0) AND (Items <> Nil) Then        { Check old allocation }
-         FreeMem(Items, Limit * SizeOf(Pointer));     { Release memory }
-       Items := AItems;                               { Update items }
-       Limit := ALimit;                               { Set limits }
-     End;
-   End;
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2680,7 +2688,11 @@ END;
 END.
 {
   $Log$
-  Revision 1.15  1998-11-26 14:41:22  michael
+  Revision 1.16  1998-12-08 10:11:27  peter
+    * tpoint contains now sw_integer (needed to support 64k files in the
+      editor)
+
+  Revision 1.15  1998/11/26 14:41:22  michael
   + Fixed TREsourcefile.init
 
   Revision 1.14  1998/11/24 17:11:22  peter
