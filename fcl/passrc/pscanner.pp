@@ -563,6 +563,18 @@ begin
 	  Move(TokenStart^, FCurTokenString[1], SectionLength);
 	Result := tkNumber;
       end;
+    '%':
+      begin
+        TokenStart := TokenStr;
+	repeat
+	  Inc(TokenStr);
+	until not (TokenStr[0] in ['0','1']);
+	SectionLength := TokenStr - TokenStart;
+	SetLength(FCurTokenString, SectionLength);
+	if SectionLength > 0 then
+	  Move(TokenStart^, FCurTokenString[1], SectionLength);
+	Result := tkNumber;
+      end;
     '''':
       begin
         Inc(TokenStr);
@@ -1014,7 +1026,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-09-02 13:26:06  mattias
+  Revision 1.5  2003-10-25 16:24:29  michael
+  + FPC also accepts binary numbers starting with %
+
+  Revision 1.4  2003/09/02 13:26:06  mattias
   MG: added IF directive skipping
 
   Revision 1.3  2003/04/04 08:01:55  michael
