@@ -59,6 +59,7 @@ unit objpas;
 Type
    TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
+   Function Hash(S : AnsiString) : longint;
    Procedure ResetResourceTables;
    Procedure SetResourceStrings (SetFunction :  TResourceIterator);
    Function ResourceStringTableCount : Longint;
@@ -258,27 +259,27 @@ Type
 Var
   ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
 
-function CalcStringHashValue(Const N : ShortString) : longint;
+Function Hash(S : AnsiString) : longint;
 
-Var hash,g,I : longint;
+Var thehash,g,I : longint;
 
 begin
-   hash:=0;
-   For I:=1 to Length(N) do { 0 terminated }
+   thehash:=0;
+   For I:=1 to Length(S) do { 0 terminated }
      begin
-     hash:=hash shl 4;
-     inc(Hash,Ord(N[i]));
-     g:=hash and ($f shl 28);
+     thehash:=thehash shl 4;
+     inc(theHash,Ord(S[i]));
+     g:=thehash and ($f shl 28);
      if g<>0 then
        begin
-       hash:=hash xor (g shr 24);
-       hash:=hash xor g;
+       thehash:=thehash xor (g shr 24);
+       thehash:=thehash xor g;
        end;
      end;
-   If Hash=0 then
-     CalcStringHashValue:=Not(0)
+   If theHash=0 then
+     Hash:=Not(0)
    else
-     CalcStringHashValue:=Hash;
+     Hash:=TheHash;
 end;
 
 Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
@@ -411,7 +412,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-08-27 15:54:15  michael
+  Revision 1.39  1999-08-28 13:03:23  michael
+  + Added Hash function to interface
+
+  Revision 1.38  1999/08/27 15:54:15  michael
   + Added many resourcestring methods
 
   Revision 1.37  1999/08/25 16:41:08  peter
