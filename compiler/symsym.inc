@@ -29,7 +29,7 @@
          left:=nil;
          right:=nil;
 {$ifdef nextfield}
-          nextsym:=nil;
+         nextsym:=nil;
 {$endif nextfield}
          setname(n);
          typ:=abstractsym;
@@ -831,6 +831,10 @@
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
+{$ifdef VALUEPARA}
+         localaddress:=-1;
+         islocalcopy:=false;
+{$endif}
          refs:=0;
          is_valid := 1;
          var_options:=0;
@@ -864,6 +868,10 @@
            address:=readlong
          else
            address:=0;
+{$ifdef VALUEPARA}
+         localaddress:=-1;
+         islocalcopy:=false;
+{$endif}
          definition:=readdefref;
          refs := 0;
          is_valid := 1;
@@ -907,7 +915,7 @@
          writebyte(byte(varspez));
 
          if read_member then
-           writelong(address);
+          writelong(address);
 
          writedefref(definition);
          if (var_options and vo_is_C_var)<>0 then
@@ -944,6 +952,7 @@
          mangledname:=prefix+name;
       end;
 
+{$ifndef VALUEPARA}
     function tvarsym.getsize : longint;
       begin
          { only if the definition is set, we could determine the   }
@@ -989,6 +998,54 @@
          else
            getsize:=0;
       end;
+{$else}
+    function tvarsym.getsize : longint;
+      begin
+        if assigned(definition) and (varspez=vs_value) then
+          getsize:=definition^.size
+        else
+          getsize:=0;
+      end;
+
+
+    function tvarsym.getpushsize : longint;
+      begin
+         if assigned(definition) then
+           begin
+              case varspez of
+                vs_var :
+                  begin
+                    { open arrays push also the high valye }
+                    if is_open_array(definition) then
+                      getpushsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                    else
+                      getpushsize:=target_os.size_of_pointer;
+                  end;
+                vs_value,
+                vs_const :
+                  begin
+                    case definition^.deftype of
+                      setdef,
+                      stringdef,
+                      recorddef,
+                      objectdef :
+                        getpushsize:=target_os.size_of_pointer;
+                      arraydef :
+                        if is_open_array(definition) then
+                          getpushsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                        else
+                          getpushsize:=target_os.size_of_pointer;
+                      else
+                        getpushsize:=definition^.size;
+                    end;
+                 end;
+              end;
+           end
+         else
+           getpushsize:=0;
+      end;
+{$endif}
+
 
     procedure tvarsym.insert_in_data;
       var
@@ -1018,119 +1075,128 @@
 
              l:=getsize;
              case owner^.symtabletype of
-
-          stt_exceptsymtable:
-            { can contain only one symbol, address calculated later }
-            ;
-          localsymtable : begin
-                            is_valid := 0;
-                            modulo:=owner^.datasize and 3;
+               stt_exceptsymtable:
+                 { can contain only one symbol, address calculated later }
+                 ;
+               localsymtable :
+                 begin
+                   is_valid := 0;
+                   modulo:=owner^.datasize and 3;
 {$ifdef m68k}
-                          { word alignment required for motorola }
-                            if (l=1) then
-                             l:=2
-                            else
+                 { word alignment required for motorola }
+                   if (l=1) then
+                    l:=2
+                   else
 {$endif}
-                            if (l>=4) and (modulo<>0) then
-                             inc(l,4-modulo)
-                            else
-                             if (l>=2) and ((modulo and 1)<>0) then
-                              inc(l,2-(modulo and 1));
-                            inc(owner^.datasize,l);
-                            address:=owner^.datasize;
-                          end;
-         staticsymtable : begin
-                            if (cs_smartlink in aktmoduleswitches) then
-                              bsssegment^.concat(new(pai_cut,init));
-{$ifdef GDB}
-                            if cs_debuginfo in aktmoduleswitches then
-                               concatstabto(bsssegment);
-{$endif GDB}
-                            if (cs_smartlink in aktmoduleswitches) or
-                               ((var_options and vo_is_c_var)<>0) then
-                              bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
-                            else
-                              bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
-                            { increase datasize }
-                            inc(owner^.datasize,l);
-                            { this symbol can't be loaded to a register }
-                            var_options:=var_options and not vo_regable;
-                          end;
-         globalsymtable : begin
-                            if (cs_smartlink in aktmoduleswitches) then
-                              bsssegment^.concat(new(pai_cut,init));
-{$ifdef GDB}
-                            if cs_debuginfo in aktmoduleswitches then
-                              concatstabto(bsssegment);
-{$endif GDB}
-                            bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
-                            inc(owner^.datasize,l);
-                            { this symbol can't be loaded to a register }
-                            var_options:=var_options and not vo_regable;
-                          end;
-         recordsymtable,
-         objectsymtable : begin
-                          { this symbol can't be loaded to a register }
-                            var_options:=var_options and not vo_regable;
-                          { align record and object fields }
-                            if (l=1) or (aktpackrecords=1) then
-                             begin
-                               address:=owner^.datasize;
-                               inc(owner^.datasize,l)
-                             end
-                            else
-                             if (l=2) or (aktpackrecords=2) then
-                              begin
-                                owner^.datasize:=(owner^.datasize+1) and (not 1);
-                                address:=owner^.datasize;
-                                inc(owner^.datasize,l)
-                              end
-                            else
-                             if (l<=4) or (aktpackrecords=4) then
-                              begin
-                                owner^.datasize:=(owner^.datasize+3) and (not 3);
-                                address:=owner^.datasize;
-                                inc(owner^.datasize,l);
-                              end
-                            else
-                             if (l<=8) or (aktpackrecords=8) then
-                              begin
-                                owner^.datasize:=(owner^.datasize+7) and (not 7);
-                                address:=owner^.datasize;
-                                inc(owner^.datasize,l);
-                              end
-                            else
-                             if (l<=16) or (aktpackrecords=16) then
-                              begin
-                                owner^.datasize:=(owner^.datasize+15) and (not 15);
-                                address:=owner^.datasize;
-                                inc(owner^.datasize,l);
-                              end
-                            else
-                             if (l<=32) or (aktpackrecords=32) then
-                              begin
-                                owner^.datasize:=(owner^.datasize+31) and (not 31);
-                                address:=owner^.datasize;
-                                inc(owner^.datasize,l);
-                              end;
-                          end;
-           parasymtable : begin
-                            address:=owner^.datasize;
-                            owner^.datasize:=align(owner^.datasize+l,target_os.stackalignment);
-                          end
-             else
-               begin
-                  modulo:=owner^.datasize and 3 ;
-                  if (l>=4) and (modulo<>0) then
-                    inc(owner^.datasize,4-modulo)
-                  else
+                   if (l>=4) and (modulo<>0) then
+                    inc(l,4-modulo)
+                   else
                     if (l>=2) and ((modulo and 1)<>0) then
-                      inc(owner^.datasize);
-                  address:=owner^.datasize;
-                  inc(owner^.datasize,l);
+                     inc(l,2-(modulo and 1));
+                   inc(owner^.datasize,l);
+                   address:=owner^.datasize;
+                 end;
+               staticsymtable :
+                 begin
+                   if (cs_smartlink in aktmoduleswitches) then
+                     bsssegment^.concat(new(pai_cut,init));
+{$ifdef GDB}
+                   if cs_debuginfo in aktmoduleswitches then
+                      concatstabto(bsssegment);
+{$endif GDB}
+                   if (cs_smartlink in aktmoduleswitches) or
+                      ((var_options and vo_is_c_var)<>0) then
+                     bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
+                   else
+                     bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
+                   { increase datasize }
+                   inc(owner^.datasize,l);
+                   { this symbol can't be loaded to a register }
+                   var_options:=var_options and not vo_regable;
+                 end;
+               globalsymtable :
+                 begin
+                   if (cs_smartlink in aktmoduleswitches) then
+                     bsssegment^.concat(new(pai_cut,init));
+{$ifdef GDB}
+                   if cs_debuginfo in aktmoduleswitches then
+                     concatstabto(bsssegment);
+{$endif GDB}
+                   bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
+                   inc(owner^.datasize,l);
+                   { this symbol can't be loaded to a register }
+                   var_options:=var_options and not vo_regable;
+                 end;
+               recordsymtable,
+               objectsymtable :
+                 begin
+                 { this symbol can't be loaded to a register }
+                   var_options:=var_options and not vo_regable;
+                 { align record and object fields }
+                   if (l=1) or (aktpackrecords=1) then
+                    begin
+                      address:=owner^.datasize;
+                      inc(owner^.datasize,l)
+                    end
+                   else
+                    if (l=2) or (aktpackrecords=2) then
+                     begin
+                       owner^.datasize:=(owner^.datasize+1) and (not 1);
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l)
+                     end
+                   else
+                    if (l<=4) or (aktpackrecords=4) then
+                     begin
+                       owner^.datasize:=(owner^.datasize+3) and (not 3);
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l);
+                     end
+                   else
+                    if (l<=8) or (aktpackrecords=8) then
+                     begin
+                       owner^.datasize:=(owner^.datasize+7) and (not 7);
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l);
+                     end
+                   else
+                    if (l<=16) or (aktpackrecords=16) then
+                     begin
+                       owner^.datasize:=(owner^.datasize+15) and (not 15);
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l);
+                     end
+                   else
+                    if (l<=32) or (aktpackrecords=32) then
+                     begin
+                       owner^.datasize:=(owner^.datasize+31) and (not 31);
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l);
+                     end;
+                 end;
+               parasymtable :
+                 begin
+{$ifdef VALUEPARA}
+                   { here we need the size of a push instead of the
+                     size of the data }
+                   l:=getpushsize;
+{$endif}
+                   address:=owner^.datasize;
+                   owner^.datasize:=align(owner^.datasize+l,target_os.stackalignment);
+                 end
+               else
+                 begin
+                   modulo:=owner^.datasize and 3 ;
+                   if (l>=4) and (modulo<>0) then
+                     inc(owner^.datasize,4-modulo)
+                   else
+                     if (l>=2) and ((modulo and 1)<>0) then
+                       inc(owner^.datasize);
+                   address:=owner^.datasize;
+                   inc(owner^.datasize,l);
+                 end;
                end;
-             end;
-          end;
+        end;
       end;
 
 {$ifdef GDB}
@@ -1169,7 +1235,11 @@
             case varspez of
                vs_value : st := 'p';
                vs_var   : st := 'v';
+{$ifdef VALUEPARA}
+               vs_const : if push_addr_param(definition) then
+{$else}
                vs_const : if dont_copy_const_param(definition) then
+{$endif}
                             st := 'v'{ should be 'i' but 'i' doesn't work }
                           else
                             st := 'p';
@@ -1733,7 +1803,10 @@
 
 {
   $Log$
-  Revision 1.60  1998-11-16 10:13:51  peter
+  Revision 1.61  1998-11-18 15:44:18  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.60  1998/11/16 10:13:51  peter
     * label defines are checked at the end of the proc
 
   Revision 1.59  1998/11/13 12:09:11  peter

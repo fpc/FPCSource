@@ -405,7 +405,7 @@ implementation
                       stringdispose(p^.location.reference.symbol);
                       gettempofsizereference(p^.resulttype^.size,p^.location.reference);
                       del_reference(p^.left^.location.reference);
-                      copyshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+                      copyshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len,false);
                       ungetiftemp(p^.left^.location.reference);
                    end;
                  st_longstring:
@@ -579,7 +579,7 @@ implementation
 
          { generates the copy code      }
          { and we need the source never }
-         concatcopy(p^.left^.location.reference,p^.location.reference,l,true);
+         concatcopy(p^.left^.location.reference,p^.location.reference,l,true,false);
 
          { correct the string location }
          dec(p^.location.reference.offset);
@@ -1297,7 +1297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1998-11-17 00:36:39  peter
+  Revision 1.34  1998-11-18 15:44:08  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.33  1998/11/17 00:36:39  peter
     * more ansistring fixes
 
   Revision 1.32  1998/11/16 15:35:38  peter

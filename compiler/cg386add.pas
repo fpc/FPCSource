@@ -236,7 +236,7 @@ implementation
                              { release the registers }
                              del_reference(p^.left^.location.reference);
                              gettempofsizereference(256,href);
-                             copyshortstring(href,p^.left^.location.reference,255);
+                             copyshortstring(href,p^.left^.location.reference,255,false);
                              ungetiftemp(p^.left^.location.reference);
 
                              { does not hurt: }
@@ -363,7 +363,7 @@ implementation
                    { add a range or a single element? }
                      if p^.right^.treetype=setelementn then
                       begin
-                        concatcopy(p^.left^.location.reference,href,32,false);
+                        concatcopy(p^.left^.location.reference,href,32,false,false);
                         if assigned(p^.right^.right) then
                          begin
                            pushsetelement(p^.right^.right);
@@ -1364,7 +1364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1998-11-18 09:18:01  pierre
+  Revision 1.29  1998-11-18 15:44:05  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.28  1998/11/18 09:18:01  pierre
     + automatic loading of profile unit with -pg option
       in go32v2 mode (also defines FPC_PROFILE)
     * some memory leaks removed

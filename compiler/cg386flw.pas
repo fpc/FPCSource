@@ -242,7 +242,7 @@ implementation
                       newreference(temp1))));
                  end
               else
-                 concatcopy(p^.right^.location.reference,temp1,hs,false);
+                 concatcopy(p^.right^.location.reference,temp1,hs,false,false);
            end
          else temptovalue:=false;
 
@@ -754,7 +754,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.23  1998-11-12 16:43:32  florian
+  Revision 1.24  1998-11-18 15:44:09  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.23  1998/11/12 16:43:32  florian
     * functions with ansi strings as result didn't work, solved
 
   Revision 1.22  1998/10/29 15:42:44  florian

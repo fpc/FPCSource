@@ -70,6 +70,9 @@ unit types;
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
 
+    { true if p is a smallset def }
+    function is_smallset(p : pdef) : boolean;
+
     { returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : pdef) : boolean;
 
@@ -82,8 +85,13 @@ unit types;
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
 
+{$ifndef VALUEPARA}
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
+{$else}
+    function push_addr_param(def : pdef) : boolean;
+{$endif}
+
     { true if we must never copy this parameter }
     const
        never_copy_const_param : boolean = false;
@@ -318,6 +326,14 @@ unit types;
       end;
 
 
+    { true if p is a smallset def }
+    function is_smallset(p : pdef) : boolean;
+      begin
+        is_smallset:=(p^.deftype=setdef) and
+                     (psetdef(p)^.settype=smallset);
+      end;
+
+
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function ret_in_acc(def : pdef) : boolean;
 
@@ -341,7 +357,7 @@ unit types;
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
-
+{$ifndef VALUEPARA}
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
       begin
@@ -350,7 +366,16 @@ unit types;
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
-
+{$else}
+    { true if a parameter is too large to copy and only the address is pushed }
+    function push_addr_param(def : pdef) : boolean;
+      begin
+         push_addr_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
+           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
+           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
+      end;
+{$endif}
 
     { test if l is in the range of def, outputs error if out of range }
     procedure testrange(def : pdef;l : longint);
@@ -995,7 +1020,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.37  1998-11-13 10:15:50  peter
+  Revision 1.38  1998-11-18 15:44:24  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.37  1998/11/13 10:15:50  peter
     * fixed ptr() with constants
 
   Revision 1.36  1998/11/10 10:09:21  peter

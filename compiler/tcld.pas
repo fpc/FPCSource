@@ -103,11 +103,15 @@ implementation
                      p^.location.loc:=LOC_MEM;
                    { we need a register for call by reference parameters }
                    if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+{$ifndef VALUEPARA}
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                       dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)
                       ) or
                       { call by value open arrays are also indirect addressed }
                       is_open_array(pvarsym(p^.symtableentry)^.definition) then
+{$else}
+                      push_addr_param(pvarsym(p^.symtableentry)^.definition) then
+{$endif}
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      inc(p^.registers32);
@@ -423,7 +427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-17 00:36:49  peter
+  Revision 1.10  1998-11-18 15:44:23  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.9  1998/11/17 00:36:49  peter
     * more ansistring fixes
 
   Revision 1.8  1998/11/10 10:09:18  peter

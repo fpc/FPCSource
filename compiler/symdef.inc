@@ -1979,12 +1979,20 @@
          while assigned(pdc) do
           begin
             case pdc^.paratyp of
-              vs_value : inc(l,align(pdc^.data^.size,target_os.stackalignment));
               vs_var   : inc(l,target_os.size_of_pointer);
+{$ifndef VALUEPARA}
+              vs_value : inc(l,align(pdc^.data^.size,target_os.stackalignment));
               vs_const : if dont_copy_const_param(pdc^.data) then
                           inc(l,target_os.size_of_pointer)
                          else
                           inc(l,align(pdc^.data^.size,target_os.stackalignment));
+{$else}
+              vs_value,
+              vs_const : if push_addr_param(pdc^.data) then
+                          inc(l,target_os.size_of_pointer)
+                         else
+                          inc(l,align(pdc^.data^.size,target_os.stackalignment));
+{$endif}
             end;
             pdc:=pdc^.next;
           end;
@@ -3199,7 +3207,10 @@
 
 {
   $Log$
-  Revision 1.69  1998-11-10 17:54:56  peter
+  Revision 1.70  1998-11-18 15:44:16  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.69  1998/11/10 17:54:56  peter
     * removed warning
 
   Revision 1.68  1998/11/05 23:34:36  peter

@@ -173,6 +173,10 @@
        pvarsym = ^tvarsym;
        tvarsym = object(tsym)
           address      : longint;
+{$ifdef VALUEPARA}
+          localaddress : longint;  { address of the local copy of a value para, -1 means not used }
+          islocalcopy  : boolean;
+{$endif}
           definition   : pdef;
           refs         : longint;
           var_options  : byte;
@@ -188,6 +192,9 @@
           function mangledname : string;virtual;
           procedure insert_in_data;virtual;
           function getsize : longint;
+{$ifdef VALUEPARA}
+          function getpushsize : longint;
+{$endif}
           procedure write;virtual;
           procedure deref;virtual;
 {$ifdef GDB}
@@ -319,7 +326,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-11-16 10:13:50  peter
+  Revision 1.8  1998-11-18 15:44:19  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.7  1998/11/16 10:13:50  peter
     * label defines are checked at the end of the proc
 
   Revision 1.6  1998/11/13 10:18:12  peter

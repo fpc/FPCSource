@@ -403,26 +403,29 @@ implementation
                                   { call by reference/const ? }
                                   if (regvars[i]^.varspez=vs_var) or
                                      ((regvars[i]^.varspez=vs_const) and
-                                      dont_copy_const_param(regvars[i]^.definition)) then
+{$ifndef VALUEPARA}
+                                       dont_copy_const_param(regvars[i]^.definition)) then
+{$else}
+                                       push_addr_param(regvars[i]^.definition)) then
+{$endif}
                                     begin
                                        regvars[i]^.reg:=varregs[i];
                                        regsize:=S_L;
                                     end
                                   else
                                    if (regvars[i]^.definition^.deftype=orddef) and
-                                      (porddef(regvars[i]^.definition)^.typ in [bool8bit,uchar,u8bit,s8bit]) then
+                                      (porddef(regvars[i]^.definition)^.size=1) then
                                     begin
 {$ifdef i386}
-
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
 {$endif}
                                        regsize:=S_B;
                                     end
-                                  else if  (regvars[i]^.definition^.deftype=orddef) and
-                                           (porddef(regvars[i]^.definition)^.typ in [bool16bit,u16bit,s16bit]) then
+                                  else
+                                   if (regvars[i]^.definition^.deftype=orddef) and
+                                      (porddef(regvars[i]^.definition)^.size=2) then
                                     begin
 {$ifdef i386}
-
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
 {$endif}
                                        regsize:=S_W;
@@ -451,7 +454,6 @@ implementation
                                        procinfo.aktentrycode^.concat(new(pai68k,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif m68k}
-
                                        unused:=unused - [regvars[i]^.reg];
                                     end;
                                   { procedure uses this register }
@@ -461,7 +463,6 @@ implementation
 {$ifdef m68k}
                                   usedinproc:=usedinproc or ($800 shr word(varregs[i]));
 {$endif m68k}
-
                                end;
                              nextreg:
                                { dummy }
@@ -496,7 +497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-13 15:40:21  pierre
+  Revision 1.10  1998-11-18 15:44:14  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.9  1998/11/13 15:40:21  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

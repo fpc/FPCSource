@@ -137,7 +137,9 @@ implementation
 
       var
          size : longint;
+{$ifndef VALUEPARA}
          stackref : treference;
+{$endif}
          otlabel,hlabel,oflabel : plabel;
          { temporary variables: }
          tempdeftype : tdeftype;
@@ -221,8 +223,12 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
+{$ifndef VALUEPARA}
               if (defcoll^.paratyp=vs_const) and
                  dont_copy_const_param(p^.resulttype) then
+{$else}
+              if push_addr_param(p^.resulttype) then
+{$endif}
                 begin
                    maybe_push_open_array_high;
                    inc(pushedparasize,4);
@@ -493,20 +499,20 @@ implementation
                              { 32 bit type set ? }
                              if is_widestring(p^.resulttype) or
                                 is_ansistring(p^.resulttype) or
-                                ((p^.resulttype^.deftype=setdef) and
-                                 (psetdef(p^.resulttype)^.settype=smallset)) then
+                                is_smallset(p^.resulttype) then
                                begin
                                   inc(pushedparasize,4);
                                   if inlined then
                                     begin
                                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                      concatcopy(tempreference,r^,4,false);
+                                      concatcopy(tempreference,r^,4,false,false);
                                     end
                                   else
                                     emit_push_mem(tempreference);
                                end
                              { call by value open array ? }
                              else
+{$ifndef VALUEPARA}
                               if (p^.resulttype^.deftype=arraydef) and
                                  assigned(defcoll^.data) and
                                  is_open_array(defcoll^.data) then
@@ -554,14 +560,19 @@ implementation
                                   if is_shortstring(p^.resulttype) then
                                     begin
                                        copyshortstring(stackref,p^.left^.location.reference,
-                                         pstringdef(p^.resulttype)^.len);
+                                         pstringdef(p^.resulttype)^.len,false);
                                     end
                                   else
                                     begin
                                        concatcopy(p^.left^.location.reference,
-                                         stackref,p^.resulttype^.size,true);
+                                         stackref,p^.resulttype^.size,true,false);
                                     end;
                                end;
+{$else VALUEPARA}
+                              begin
+                                internalerror(8954);
+                              end;
+{$endif VALUEPARA}
                           end;
                         else
                           CGMessage(cg_e_illegal_expression);
@@ -1552,7 +1563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1998-11-16 15:35:36  peter
+  Revision 1.45  1998-11-18 15:44:07  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.44  1998/11/16 15:35:36  peter
     * rename laod/copystring -> load/copyshortstring
     * fixed int-bool cnv bug
     + char-ansistring conversion

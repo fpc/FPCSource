@@ -184,10 +184,14 @@ implementation
                            end;
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+{$ifndef VALUEPARA}
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                              dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
                              { call by value open arrays are also indirect addressed }
                              is_open_array(pvarsym(p^.symtableentry)^.definition) then
+{$else}
+                             push_addr_param(pvarsym(p^.symtableentry)^.definition) then
+{$endif}
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -228,8 +232,7 @@ implementation
                  begin
                     {!!!!! Be aware, work on virtual methods too }
                     stringdispose(p^.location.reference.symbol);
-                    p^.location.reference.symbol:=
-                      stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                    p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
                     maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                  end;
               typedconstsym :
@@ -435,7 +438,7 @@ implementation
 
                                 end;
                               concatcopy(p^.right^.location.reference,
-                                p^.left^.location.reference,p^.left^.resulttype^.size,false);
+                                p^.left^.location.reference,p^.left^.resulttype^.size,false,false);
                               ungetiftemp(p^.right^.location.reference);
                            end;
                       end;
@@ -686,7 +689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1998-11-17 11:32:44  peter
+  Revision 1.29  1998-11-18 15:44:11  peter
+    * VALUEPARA for tp7 compatible value parameters
+
+  Revision 1.28  1998/11/17 11:32:44  peter
     * optimize str:='' in H+ mode
     + -! to test ansistrings
 
