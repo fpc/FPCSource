@@ -23,6 +23,7 @@ ResourceString
   SForFile     = ' in file ';
   SForPackage  = ' in package ';
   SForModule   = ' in module ';
+  SForTopic    = ' in topic';
   SLinkTarget  = 'Link target';
   SLinkText    = 'Link text';
   STableRows   = 'Rows';
@@ -31,9 +32,11 @@ ResourceString
   SFileModified = 'Document "%s" was modified, would you like to save it?';
   SDeletePackage = 'Are you sure you want to delete package "%s" ?';
   SDeleteModule  = 'Are you sure you want to delete module "%s" ?';
+  SDeleteTopic  = 'Are you sure you want to delete topic "%s" ?';
   SDeleteElement = 'Are you sure you want to delete element "%s" ?';
   SRenamePackage = 'Rename package';
   SRenameModule  = 'Rename module';
+  SRenameTopic   = 'Rename topic';
   SRenameElement = 'Rename element';
   SNoElement = 'No element selected';
   SDataForElement = 'Documentation for element "%s":';
@@ -70,6 +73,7 @@ ResourceString
   SMenuInsert          = 'Insert';
   SMenuInsertPackage   = '_Package';
   SMenuInsertModule    = '_Module';
+  SMenuInsertTopic     = 'T_opic';
   SMenuInsertElement   = '_Element';
   SMenuInsertLink      = '_Link';
   SMenuInsertTable     = '_Table';
@@ -103,6 +107,7 @@ ResourceString
   
   SHintInsertPackage = 'New package';
   SHintInsertModule  = 'New module';
+  SHintInsertTopic   = 'New topic';
   SHintInsertElement = 'New element';
   SHintInsertLink    = 'Insert link';
   ShintInsertTable   = 'Insert table';
@@ -118,10 +123,12 @@ ResourceString
   
   
   SErrNoPackageForModule = 'No package found to insert module "%s"';
+  SErrNoNodeForTopic     = 'No parent node found to insert topic "%s"';
   SErrNoNodeForPackage   = 'No node found for package "%s"';
   SErrNoNodeForModule    = 'No node found for module "%s"';
   SErrNoModuleForElement = 'No module found to insert element "%s"';
   SErrNoNodeForElement   = 'No node found for element "%s"';
+  SErrUnknownDomElement  = 'Unknwon DOM element as parent for selected element: "%s"';
 
 
   SSaveFileTitle = 'Enter filename to save to';

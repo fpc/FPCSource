@@ -14,7 +14,7 @@ Const
   SFileTemplate = 'template.xml';
 
 Type
-  TNodeType = (ntfile,ntPackage,ntModule,ntElement);
+  TNodeType = (ntfile,ntPackage,ntModule,ntElement,ntTopic);
 
   TMainForm = Class(TFPGtkWindow)
   Private
@@ -28,6 +28,7 @@ Type
     FSaveAsImage,
     FNewPackageImage,
     FNewModuleImage,
+    FNewTopicImage,
     FNewElementImage,
     FBoldImage,
     FUnderlineImage,
@@ -56,6 +57,7 @@ Type
     FFileExit,
     FInsertPackage,
     FInsertModule,
+    FInsertTopic,
     FInsertElement,
     FInsertLink,
     FInsertTable,
@@ -113,7 +115,7 @@ Type
 
 Const
   NodeNames : Array[TNodeType] of String 
-            = ('file','package','module','element');
+            = ('file','package','module','element','topic');
 
 implementation
 
@@ -182,6 +184,7 @@ begin
   {  Insert menu }
   FInsertPackage:=NewMenuItem(SMenuInsertPackage,SHintInsertPackage,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_P,[amcontrol]),@InsertNodeClick,Pointer(ntpackage));
   FInsertModule:=NewMenuItem(SMenuInsertModule,SHintInsertModule,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_M,[amcontrol]),@InsertNodeClick,Pointer(ntmodule));
+  FInsertTopic:=NewMenuItem(SMenuInsertTopic,SHintInsertTopic,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_M,[amcontrol]),@InsertNodeClick,Pointer(ntTopic));
   FInsertElement:=NewMenuItem(SMenuInsertElement,SHintInsertElement,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_E,[amcontrol]),@InsertNodeClick,Pointer(ntElement));
   FinsertLink:=NewMenuItem(SMenuInsertLink,SHintInsertLink,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_L,[amcontrol]),@LinkClick,Nil);
   FinsertTable:=NewMenuItem(SMenuInsertTable,SHintInsertTable,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_T,[amcontrol]),@TableClick,Nil);
@@ -220,6 +223,7 @@ begin
   FSaveAsImage:=PixMapFromFile('saveas.xpm',ImgSaveAs);
   FNewPackageImage:=PixMapFromFile('newpackage.xpm',ImgNewPackage);
   FNewModuleImage:=PixMapFromFile('newmodule.xpm',ImgNewModule);
+  FNewTopicImage:=PixMapFromFile('newtopic.xpm',ImgNewTopic);
   FNewElementImage:=PixMapFromFile('newelement.xpm',ImgNewElement);
   FBoldImage:=PixMapFromFile('bold.xpm',ImgBold);
   FUnderlineImage:=PixMapFromFile('underline.xpm',ImgUnderline);
@@ -249,6 +253,7 @@ begin
     AppendSpace;
     AppendItem(SMenuInsertPackage,SHintInsertPackage,'',FNewPackageImage,@InsertNodeClick,Pointer(ntPackage));
     AppendItem(SMenuInsertModule,SHintInsertModule,'',FNewModuleImage,@InsertNodeClick,Pointer(ntModule));
+    AppendItem(SMenuInsertTopic,SHintInsertTopic,'',FNewTopicImage,@InsertNodeClick,Pointer(ntTopic));
     AppendItem(SMenuInsertEleMent,SHintInsertElement,'',FNewElementImage,@InsertNodeClick,Pointer(ntElement));
     AppendSpace;
     end;
@@ -698,6 +703,14 @@ begin
                    If Assigned(CurrentEditor.CurrentElement) then
                      FENodeName.Selection:=CurrentEditor.CurrentElement['name'];
                    end;   
+        ntTopic : begin
+                  if (CurrentEditor.CurrentTopic<>Nil) then
+                      S:=S+SForTopic+CurrentEditor.CurrentPackage['name']
+                  else if (CurrentEditor.CurrentModule<>Nil) then
+                     S:=S+SForModule+CurrentEditor.CurrentModule['name']
+                  else if (CurrentEditor.CurrentPackage<>Nil) then
+                      S:=S+SForPackage+CurrentEditor.CurrentPackage['name']
+                  end;             
       end;
       Title:=S;   
       S:='';
@@ -706,6 +719,7 @@ begin
           ntPackage : CurrentEditor.NewPackage(S);
           ntModule  : CurrentEditor.NewModule(S);
           ntElement : CurrentEditor.NewElement(S);
+          ntTopic   : CurrentEditor.NewTopic(S);
         end;
       end;  
     end;

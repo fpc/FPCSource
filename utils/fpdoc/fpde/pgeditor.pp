@@ -14,20 +14,16 @@ Type
 
   TNodeTreeItem = Class(TFPGtkTreeItem)
   Private
-    Fnode : TDomElement;
+    FNode : TDomElement;
   Public
     Constructor Create (ANode : TDomElement); virtual;
     Property Node : TDomElement Read Fnode;
+    Procedure CheckSubTree;
   end;
 
   TModuleTreeItem = Class(TNodeTreeItem);
-
-  TPackageTreeItem = Class(TNodeTreeItem)
-  Private
-    HaveSubTree : Boolean;
-  Public
-    Procedure CheckSubTree;
-  end;
+  TTopicTreeItem = Class(TNodeTreeItem);
+  TPackageTreeItem = Class(TNodeTreeItem);
 
   TNodeSelectEvent = Procedure (Sender : TObject; Node : TDomElement) Of Object;
   
@@ -35,9 +31,11 @@ Type
   Private
     FCurrentPackage,
     FCurrentElement,
-    FCurrentModule : TDomElement;
+    FCurrentModule,
+    FCurrentTopic : TDomElement;
     FOnSelectElement,
     FOnSelectPackage,
+    FOnSelectTopic,
     FOnSelectionChanged,
 //    FOnDeSelectElement,
     FOnSelectModule : TNodeSelectEvent;
@@ -46,13 +44,18 @@ Type
     FElementTree : TFPGtkScrollTree;
     FModuleNode : TNodeTreeItem;
     FModified : Boolean;
+    PTMenu,
     PMMenu : TFPgtkMenu;
     PMNode : TNodeTreeItem;
+    FTRenameMenu,
+    FTDeleteMenu,
     FRenameMenu,
     FDeleteMenu : TFPgtkMenuItem;
     Procedure MenuRenameClick(Sender : TFPGtkWidget; Data : Pointer);
     Procedure MenuDeleteClick(Sender : TFPGtkWidget; Data : Pointer);
     Function  PopupModuleMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
+    Function  PopupTopicMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
+    Procedure SelectTopic(Sender : TFPGtkWidget; Data : Pointer);
     Procedure SelectModule(Sender : TFPGtkWidget; Data : Pointer);
     Procedure SelectPackage(Sender : TFPGtkWidget; Data : Pointer);
     Procedure SelectElement(Sender : TFPGtkWidget; Data : Pointer);
@@ -63,14 +66,18 @@ Type
     Procedure SetCurrentPackage(Value : TDomElement);
     Function  FindPackageNode(P : TDomElement) : TNodeTreeItem;
     Function  FindModuleNodeInNode(M : TDomElement; N : TNodeTreeItem) : TNodeTreeItem;
+    Function  FindTopicNodeInNode(M : TDomElement; N : TNodeTreeItem) : TNodeTreeItem;
     Function  FindElementNode(E : TDomElement; N : TNodeTreeItem) : TNodeTreeItem;
     Procedure SetCurrentElement(E : TDomElement);
+    Procedure SetCurrentTopic(T : TDomElement);
     Function  CreateElementNode(E : TDomelement) : TNodeTreeItem;
     Procedure DeletePackage(N : TNodeTreeItem);
     Procedure DeleteModule(N : TNodeTreeItem);
+    Procedure DeleteTopic(N : TNodeTreeItem);
     Procedure DeleteElement(N : TNodeTreeItem);
     Procedure RenamePackage(N : TNodeTreeItem);
     Procedure RenameModule(N : TNodeTreeItem);
+    Procedure RenameTopic(N : TNodeTreeItem);
     Procedure RenameElement(N : TNodeTreeItem);
     Function  GetSelectedNode : TNodeTreeItem;
     Procedure GetNameData(Sender : TFPGtkWindow;Data : Pointer; Action : Integer;Initiator : TFPGtkObject);
@@ -84,19 +91,23 @@ Type
     Procedure DeletePackage(P : TDomElement);
     Procedure DeleteModule(M : TDomElement);
     Procedure DeleteElement(E : TDomElement);
+    Procedure DeleteTopic(T : TDomElement);
     Procedure RenamePackage(P : TDomElement);
     Procedure RenameModule(M : TDomElement);
     Procedure RenameElement(E : TDomElement);
+    Procedure RenameTopic(T : TDomElement);
     Property ModuleTree : TFPGtkScrollTree Read FModuleTree;
     Property ElementTree : TFPGtkScrollTree Read FElementTree;
     Property DescriptionNode : TDomNode Read FDescriptionNode Write SetDescriptionNode;
     Property OnSelectModule : TNodeSelectEvent Read FOnSelectModule Write FOnSelectmodule;
+    Property OnSelectTopic : TNodeSelectEvent Read FOnSelectTopic Write FOnSelectTopic;
     Property OnSelectPackage : TNodeSelectEvent Read FOnSelectPackage Write FOnSelectPackage;
 //    Property OnDeSelectElement : TNodeSelectEvent Read FOnDeSelectElement Write FOnDeSelectElement;
     Property OnSelectElement : TNodeSelectEvent Read FOnSelectElement Write FOnSelectElement;
 //    Property OnSelectionChanged : TNodeSelectEvent Read FOnSelectionChanged Write FOnSelectionChanged;
     Property CurrentPackage : TDomElement Read FCurrentPackage Write SetCurrentPackage;
     Property CurrentModule : TDomElement Read FCurrentModule Write SetCurrentModule;
+    Property CurrentTopic : TDomElement Read FCurrentTopic Write SetCurrentTopic;
     Property CurrentElement: TDomElement Read FCurrentElement  Write SetCurrentElement;
     Property Modified : Boolean Read FModified Write FModified;
   end;
@@ -147,13 +158,18 @@ Type
     FElement : TElementEditor;
     FFileNAme : String;
     Procedure ElementSelected(Sender : TObject; Node : TDomElement) ;
+    Procedure TopicSelected(Sender : TObject; Node : TDomElement) ;
+    Procedure ModuleSelected(Sender : TObject; Node : TDomElement) ;
+    Procedure PackageSelected(Sender : TObject; Node : TDomElement) ;
 //    Procedure SelectionChanged(Sender : TFPgtkWidget; Node : TDomElement) ;
 //    Procedure ElementDeSelected(Sender : TObject; Node : TDomElement) ;
     Function GetCurrentSelection : String;
     Function GetCurrentPackage : TDomElement;
     Function GetCurrentModule : TDomElement;
+    Function GetCurrentTopic : TDomElement;
     Function GetCurrentElement : TDomElement;
     Procedure SetCurrentModule(Value : TDomElement);
+    Procedure SetCurrentTopic(Value : TDomElement);
     Procedure SetCurrentPackage(Value : TDomElement);
     Procedure SetCurrentElement(Value : TDomElement);
     Procedure SetModified(Value : Boolean);
@@ -174,12 +190,14 @@ Type
     Procedure InsertTable(Cols,Rows : Integer; UseHeader : Boolean);
     Procedure NewPackage(APackageName : String);
     Procedure NewModule(AModuleName : String);
+    Procedure NewTopic(ATopicName : String);
     Procedure NewElement(AElementName : String);
     Procedure GetElementList(List : TStrings);
     Property FileName : String Read FFileName;
     Property CurrentSelection : String Read GetCurrentSelection;
     Property CurrentPackage : TDomElement Read GetCurrentPackage Write SetCurrentPackage;
     Property CurrentModule : TDomElement Read GetCurrentModule Write SetCurrentModule;
+    Property CurrentTopic : TDomElement Read GetCurrentTopic Write SetCurrentTopic;
     Property CurrentElement : TDomElement Read GetCurrentElement Write SetCurrentElement;
     Property FileNameLabel : TFPgtkLabel Read FFileNameLabel Write FFileNameLabel;
     Property Modified : Boolean Read GetModified Write SetModified;
@@ -211,7 +229,7 @@ Var
 begin
   Inherited Create;
   FLabel:=TFPgtkLabel.Create(SNoElement);
-  PackStart(FLabel,False,false,0);
+  PackStart(FLabel,False,False,0);
   L:=TFPGtkLabel.Create(SShortDescription);
   V:=TFPGtkVBox.Create;
   // Short
@@ -265,11 +283,19 @@ end;
 Procedure TElementEditor.SetElement (Value : TDomElement);
 
 begin
+//  Writeln('Setelement');
   If (Value<>FElement) then
     If not Modified or Save then
       begin
+      {
+      If (Value=Nil) then
+        Writeln('Setelement called with Nil')
+      else
+        Writeln('Setelement : ',Value['name']);}
       FElement:=Value;
+//      Writeln('Setelement : Refreshing');
       Refresh;
+//      Writeln('SetElement : Refreshed');
       end;
 end;
 
@@ -401,7 +427,7 @@ Function TElementEditor.Save : Boolean;
 Var
   SS : TStringStream;
   S : String;
-  
+  N,NN : TDomNode; 
 
 begin
   Result:=False;
@@ -412,14 +438,20 @@ begin
     SS:=TStringStream.Create(S);
     Try 
       // Free child nodes.
-      With FElement do
-        While FirstChild<>Nil do
-          RemoveChild(FirstChild);
+      N:=FElement.FirstChild;
+      While N<>Nil do
+        begin
+        NN:=N.NextSibling;
+        If not ((N is TDomElement) and (N.NodeName='element')) then
+          FElement.RemoveChild(N);
+        N:=NN;  
+        end;
       // Read them again from stream.  
       SS.Seek(0,soFromBeginning);
       ReadXMLFragment(FElement,SS);
       FModified:=False;
       Result:=True;
+//      Writeln('Data saved');
     Finally
       SS.Free;
     end;  
@@ -552,7 +584,7 @@ Function TElementEditor.GetCurrentSelection : String;
 begin
   If CurrentEditable=Nil then
     begin
-    Writeln('No current editable');
+//    Writeln('No current editable');
     Result:=''
     end
   else  
@@ -571,7 +603,7 @@ begin
   Text:=ANode['name'];
 end;
 
-Procedure TPackageTreeItem.CheckSubTree;
+Procedure TNodeTreeItem.CheckSubTree;
 
 begin
   If (SubTree=Nil) then
@@ -596,6 +628,11 @@ begin
   PMMenu.Append(FDeleteMenu);
   Add1(FModuleTree);
   Add2(FElementTree);
+  PTMenu:=TFPgtkMenu.Create;
+  FTRenameMenu:=NewMenuItem(SMenuRename,'','',@MenuRenameClick,Nil);
+  FTDeleteMenu:=NewMenuItem(SMenuDelete,'','',@MenuDeleteClick,Nil);
+  PTMenu.Append(FTRenameMenu);
+  PTMenu.Append(FTDeleteMenu);
 end;
 
 function TPackageEditor.PopupModuleMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
@@ -605,6 +642,15 @@ begin
   Result:=(event^.thetype=GDK_BUTTON_PRESS) and (event^.button=3);
   If Result then
     PMMenu.Popup(3);
+end;
+
+function TPackageEditor.PopupTopicMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
+
+begin
+  PMNode:=Sender as TNodeTreeItem;
+  Result:=(event^.thetype=GDK_BUTTON_PRESS) and (event^.button=3);
+  If Result then
+    PTMenu.Popup(3);
 end;
 
 Procedure TPackageEditor.SetDescriptionNode (Value : TDomNode);
@@ -641,6 +687,8 @@ Var
   W : TFPGtkWidget;
 
 begin
+  FCurrentElement:=Nil;
+  FCurrentTopic:=Nil;
   FCurrentModule:=TDomElement(Data);
   FCurrentPackage:=FCurrentModule.ParentNode as TDomElement;
   ShowModuleElements(FCurrentModule);
@@ -651,9 +699,32 @@ end;
 Procedure TPackageEditor.SelectPackage(Sender : TFPGtkWidget; Data : Pointer);
 
 begin
+  FCurrentElement:=Nil;
+  FCurrentModule:=Nil;
+  FCurrentTopic:=Nil;
   FCurrentPackage:=TDomElement(Data);
   If Assigned(FOnSelectPackage) then
     FOnSelectPackage(Self,FCurrentPackage);
+end;
+
+Procedure TPackageEditor.SelectTopic(Sender : TFPGtkWidget; Data : Pointer);
+
+Var
+  P : TDomElement;
+
+begin
+  FCurrentTopic:=TDomElement(Data);
+  P:=FCurrentTopic.ParentNode as TDomElement;
+  if P.NodeName='module' then
+    CurrentModule:=P
+  else if P.NodeName='topic' then
+    CurrentPackage:=P.ParentNode as TDomElement
+  else if P.NodeName='package' then
+    CurrentPackage:=p
+  else
+    Raise Exception.CreateFmt(SErrUnknownDomElement,[P.NodeName]);
+  If Assigned(FOnSelectTopic) then
+    FOnSelectPackage(Self,FCurrentTopic);
 end;
 
 Function  TPackageEditor.GetSelectedNode : TNodeTreeItem;
@@ -692,6 +763,8 @@ begin
       RenamePackage(N)
     Else if N.Node.NodeName='module' then
       RenameModule(N)
+    Else if N.Node.NodeName='topic' then
+      RenameTopic(N)
     else  if N.Node.NodeName='element' then
       RenameElement(N)
 end;
@@ -710,6 +783,8 @@ begin
       DeletePackage(N)
     Else if N.Node.NodeName='module' then
       DeleteModule(N)
+    Else if N.Node.NodeName='topic' then
+      DeleteTopic(N)
     else if N.Node.NodeName='element' then
       DeleteElement(N);
 end;
@@ -733,6 +808,18 @@ Procedure TPackageEditor.DeleteModule(N : TNodeTreeItem);
 begin
   If (Not ConfirmDelete) or 
      (MessageDlg(SDeleteModule,[N.Node['name']],mtConfirmation,mbYesNo,0)=mrYes) then
+    begin 
+    N.Node.ParentNode.RemoveChild(N.Node);
+    Refresh; 
+    FModified:=True;
+    end;
+end;
+
+Procedure TPackageEditor.DeleteTopic(N : TNodeTreeItem);
+
+begin
+  If (Not ConfirmDelete) or 
+     (MessageDlg(SDeleteTopic,[N.Node['name']],mtConfirmation,mbYesNo,0)=mrYes) then
     begin 
     N.Node.ParentNode.RemoveChild(N.Node);
     Refresh; 
@@ -797,6 +884,21 @@ begin
     end;
 end;
 
+Procedure TPackageEditor.RenameTopic(N : TNodeTreeItem);
+
+Var 
+  S : String;
+
+begin
+  S:=N.Node['name'];
+  If NewName(SRenameTopic,S) then
+    begin
+    N.Node['name']:=S;
+    N.Text:=S;
+    FModified:=True;
+    end;
+end;
+
 Procedure TPackageEditor.RenameElement(N : TNodeTreeItem);
 
 Var
@@ -812,7 +914,7 @@ begin
     end;
 end;
 
-Procedure TPackageEditor.SelectElement(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.SelectElement (Sender : TFPGtkWidget; Data : Pointer);
 
 
 begin
@@ -840,6 +942,8 @@ Function TPackageEditor.CreateElementNode(E : TDomelement) : TNodeTreeItem;
 begin
   Result:=TNodeTreeItem.Create(E);
   Result.ConnectSelect(@SelectElement,E);
+  if (E.NodeName='element') then
+    Result.ConnectButtonPressEvent(@PopupModuleMenu,Nil);
 //  Result.ConnectDeselect(@DeselectElement,E);
 end;
 
@@ -896,6 +1000,18 @@ begin
 end;
 
 
+Procedure TPackageEditor.DeleteTopic(T : TDomElement);
+
+Var
+  N : TNodeTreeItem;
+
+begin
+  N:=FindTopicNodeInNode(T,Nil);
+  If N<>NIl then
+    DeleteTopic(N);
+end;
+
+
 Procedure TPackageEditor.RenamePackage(P : TDomElement);
 
 Var
@@ -917,6 +1033,18 @@ begin
   N:=FindModuleNodeInNode(M,Nil);
   If N<>NIl then
     RenameModule(N);
+end;
+
+
+Procedure TPackageEditor.RenameTopic(T : TDomElement);
+
+Var
+  N : TNodeTreeItem;
+
+begin
+  N:=FindTopicNodeInNode(T,Nil);
+  If N<>NIl then
+    RenameTopic(N);
 end;
 
 
@@ -962,7 +1090,6 @@ begin
         If (Node.NodeType=ELEMENT_NODE) and (Node.NodeName='element') then
           begin
           ETreeNode:=CreateElementNode(TDomElement(Node));
-          ETreeNode.ConnectButtonPressEvent(@PopupModuleMenu,Nil);
           S.AddObject(TDomElement(Node)['name'],ETreeNode);
           end;
         Node:=Node.NextSibling;
@@ -981,15 +1108,35 @@ begin
     FElementTree.Tree.SelectChild(FModuleNode);
     end;
   FelementTree.Tree.SelectionMode:=GTK_SELECTION_BROWSE;  
-
 end;
 
 Procedure TPackageEditor.Refresh;
 
+  Procedure DoTopicNode(Node : TDomElement;Parent : TNodeTreeItem);
+  
+  Var
+    TTreeNode : TTopicTreeItem;
+    SubNode : TDomNode;
+  begin
+    TTreeNode:=TTopicTreeItem.Create(TDomElement(Node));
+    TTreeNode.ConnectSelect(@SelectTopic,Node);
+    TTreeNode.ConnectButtonPressEvent(@PopupTopicMenu,Nil);
+    Parent.CheckSubtree;
+    TFPGtkTree(Parent.SubTree).Append(TTreeNode);
+    TTreeNode.Show;
+    SubNode:=Node.FirstChild;
+    While (SubNode<>Nil) do
+      begin
+      If (SubNode.NodeType=ELEMENT_NODE) and (SubNode.NodeName='topic') then
+        DoTopicNode(SubNode as TDomElement,TtreeNode);
+      SubNode:=SubNode.NextSibling;
+      end;
+  end;
+
 var 
-  Node,SubNode : TDomNode;
+  Node,SubNode,SSnode : TDomNode;
   FTreeNode : TPackageTreeItem;
-  MTreeNode: TFPGtkTreeItem;
+  MTreeNode: TModuleTreeItem;
 
 begin
   FModuleTree.Tree.ClearItems(0,-1);
@@ -1016,6 +1163,17 @@ begin
             FTreeNode.CheckSubtree;
             TFPGtkTree(FTreeNode.SubTree).Append(MTreeNode);
             //MTreeNode.Show;
+            SSNode:=SubNode.FirstChild;
+            While (SSNode<>Nil) do
+              begin
+              if (SSNode.NodeType=ELEMENT_NODE) and (SSNode.NodeName='topic') then
+                DoTopicNode(SSNode as TDomElement,MTreeNode);
+              SSNode:=SSNode.NextSibling;
+              end;
+            end
+          else if (SubNode.NodeType=ELEMENT_NODE) and (SubNode.NodeName='topic') then  
+            begin
+            DoTopicNode(SubNode as TDomElement,FTreeNode);
             end;
           SubNode:=SubNode.NextSibling;  
           end;
@@ -1046,7 +1204,7 @@ begin
         Result:=TNodeTreeItem(G.items[i]);
       end
     else
-      Writeln('Child ',i,' of tee is not a node :',G.Items[i].ClassName);
+      Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
     Inc(I);  
     end;  
   If (Result=Nil) then
@@ -1066,6 +1224,51 @@ begin
     SN:=N
   else  
     SN:=FindPackageNode(M.ParentNode as TDomElement);
+  If Assigned(SN) and Assigned(SN.SubTree) Then  
+    begin
+    G:=(SN.SubTree as TFpGtkTree).Children;
+    I:=0;
+    While (Result=Nil) and (I<G.Count) do
+      begin
+      If G.Items[i] is TNodeTreeItem then
+        begin
+        If TNodeTreeItem(G.items[i]).Node=M then 
+          Result:=TNodeTreeItem(G.items[i]);
+        end
+      else
+        Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
+      Inc(I);  
+      end;  
+    end;   
+  If (Result=Nil) then
+    Raise Exception.CreateFmt(SErrNoNodeForModule,[M['name']]);
+end;
+
+Function TPackageEditor.FindTopicNodeInNode(M : TDomElement; N : TNodeTreeItem) : TNodeTreeItem;
+
+Var
+  SN : TNodeTreeItem;
+  G : TFPgtkWidgetGroup;
+  I : Integer;
+  E : TDomElement;
+  PN : String;
+  
+begin
+  Result:=Nil;
+  If (N<>Nil) then
+    SN:=N
+  else  
+    begin
+    E:=M.ParentNode as TDomElement;
+    PN:=(E.NodeName);
+    if PN='module' then
+      SN:=FindModuleNodeInNode(E,FindPackageNode(E.ParentNode as TDomElement))
+    else if PN='topic' then
+      // Assumes that we can only nest 2 deep inside package node.
+      SN:=FindTopicNodeInNode(E,FindPackageNode(E.ParentNode as TDomElement))
+    else if (PN='package') then
+      SN:=FindPackageNode(E);
+    end;
   If Assigned(SN) and Assigned(SN.SubTree) Then  
     begin
     G:=(SN.SubTree as TFpGtkTree).Children;
@@ -1153,8 +1356,9 @@ begin
       end;  
     CurrentModule:=E.ParentNode as TDomElement;
     N:=FindElementNode(E,Nil);
-    With (FModuleNode.Subtree as TFPgtkTree) do
-      SelectChild(N);
+    if Assigned(N) then
+      With (FModuleNode.Subtree as TFPgtkTree) do
+        SelectChild(N);
     end;
 end;
 
@@ -1180,6 +1384,62 @@ begin
     end;   
 end;
 
+Procedure TPackageEditor.SetCurrentTopic(T : TDomElement);
+
+Var
+  N  : TDomElement;
+  PI,NI : TNodeTreeItem;
+  
+begin
+  If (FCurrentTopic<>T) then
+    begin
+    FCurrentElement:=Nil;
+    FCurrentTopic:=T;
+    If Assigned(T) then
+      begin
+//      Writeln('clearing current element');
+      If (CurrentElement<>Nil) then
+        CurrentElement:=Nil;
+//      Writeln('checking parent node');
+      N:=T.ParentNode as TDomElement;
+      If N.NodeName='topic' then
+        begin
+//        Writeln('Parent is topic');
+        N:=N.ParentNode as TDomElement;
+        PI:=FindTopicNodeInNode(N,Nil);
+        end;
+      if N.NodeName='module' then
+        begin
+//        Writeln('Parent is module');
+        CurrentModule:=N;
+        N:=N.ParentNode as TDomElement;
+        PI:=FindModuleNodeInNode(N,Nil);
+        end
+      else if N.NodeName='package' then
+        begin
+//         Writeln('Parent is package ?');
+        CurrentModule:=Nil;  
+        CurrentPackage:=N;
+        PI:=FindPackageNode(N)
+        end
+{      else
+        Writeln('Unknown parent node')}
+      ;
+      NI:=FindTopicNodeInNode(T,PI);  
+      If Assigned(PI) then
+        begin
+//        Writeln('Expanding parent node');
+        PI.Expand;
+        If Assigned(PI.Subtree) and Assigned(NI) then
+          begin
+//          Writeln('Selecting subnode');
+          (PI.SubTree as TFPgtkTree).SelectChild(NI);
+          end;
+        end;  
+      end;
+    end;
+end;
+
 
 Procedure TPackageEditor.SetCurrentPackage(Value : TDomElement);
 
@@ -1194,6 +1454,7 @@ begin
 end;
 
 
+
 { ---------------------------------------------------------------------
   TPageEditor
   ---------------------------------------------------------------------}
@@ -1206,6 +1467,9 @@ begin
   FElement:=TElementEditor.Create;
 //  Fpackages.OnSelectionChanged:=@SelectionChanged;
   FPackages.OnSelectElement:=@ElementSelected;
+  FPackages.OnSelectModule:=@ModuleSelected;
+  FPackages.OnSelectPackage:=@PackageSelected;
+  FPackages.OnSelectTopic:=@TopicSelected;
 //  FPackages.OnDeselectElement:=@ElementDeSelected;
   Add1(FPackages);
   Add2(FElement);
@@ -1342,6 +1606,25 @@ begin
 }    end; 
 end;
 
+Procedure TEditorPage.PackageSelected(Sender : TObject; Node : TDomElement) ;
+
+begin
+  ElementSelected(Sender,Node);
+end;
+
+Procedure TEditorPage.ModuleSelected(Sender : TObject; Node : TDomElement) ;
+
+begin
+  ElementSelected(Sender,Node);
+end;
+
+Procedure TEditorPage.TopicSelected(Sender : TObject; Node : TDomElement) ;
+
+begin
+  ElementSelected(Sender,Node);
+end;
+
+
 {
 Procedure TEditorPage.ElementDeselected(Sender : TObject; Node : TDomElement) ;
 
@@ -1439,6 +1722,47 @@ begin
   CurrentModule:=M;
 end;
 
+Procedure TEditorPage.NewTopic(ATopicName : String);
+
+Var 
+  T,M,P : TDomElement;
+  
+begin
+  { 
+    If currently a topic is selected, make a subtopic, or a sibling topic.
+    If no topic is selected, then make a topic under the current module or 
+    package. A menu to move topics up/down is needed...
+  }
+  if (CurrentTopic<>Nil) then
+    begin
+    M:=CurrentTopic.ParentNode as TDomElement;
+    If M.NodeName='module' then
+      P:=M
+    else if M.NodeName='topic' then
+      P:=M
+    else   
+      P:=CurrentTopic;
+//    Writeln('Parent topic is ',P.NodeName)  
+    end
+  else if (CurrentModule<>Nil) then
+    P:=CurrentModule
+  else if (CurrentPackage<>Nil) then
+    P:=CurrentPackage
+  else
+    P:=FirstPackage;
+  If (P=Nil) then  
+    Raise Exception.CreateFmt(SErrNoNodeForTopic,[ATopicName]);
+//  Writeln('Parent node : ',P.NodeName);
+  T:=FDocument.CreateElement('topic');
+  T['name']:=ATopicName;
+  P.AppendChild(T);
+//  Writeln('Refreshing tree');
+  FPackages.Refresh;
+  FPackages.FModified:=True;
+//  Writeln('Setting current topic');
+  CurrentTopic:=T;
+end;
+
 Procedure TEditorPage.NewElement(AElementName : String);
 
 Var 
@@ -1460,7 +1784,7 @@ begin
     end;  
   If (M=Nil) then  
     Raise Exception.CreateFmt(SErrNoModuleForElement,[AElementName]);
-  E:=FDocument.CreateElement('module');
+  E:=FDocument.CreateElement('element');
   E['name']:=AElementName;
   M.AppendChild(E);
   FPackages.AddElement(E);
@@ -1480,6 +1804,13 @@ begin
 end;
 
 
+Function TEditorPage.GetCurrentTopic : TDomElement;
+
+begin
+  Result:=FPackages.CurrentTopic;
+end;
+
+
 Function TEditorPage.GetCurrentElement : TDomElement;
 begin
   Result:=FElement.Element;
@@ -1496,6 +1827,13 @@ Procedure TEditorPage.SetCurrentModule(Value : TDomElement);
 
 begin
   FPackages.CurrentModule:=Value;
+end;
+
+
+Procedure TEditorPage.SetCurrentTopic(Value : TDomElement);
+
+begin
+  FPackages.CurrentTopic:=Value;
 end;
 
 
