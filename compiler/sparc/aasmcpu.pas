@@ -48,8 +48,6 @@ uses
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_ref_reg(op:tasmop;_op1:TRegister;_op2:TReference;_op3:tregister);
          constructor op_reg_const_reg(op:tasmop;_op1:TRegister;_op2:aword;_op3:tregister);
-         constructor op_const_ref_reg(op:tasmop;_op1:aword;const _op2:treference;_op3:tregister);
-         constructor op_const_reg_ref(op:tasmop;_op1:aword;_op2:tregister;const _op3:treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -181,6 +179,9 @@ implementation
            internalerror(2003031214);
          if (_op3.enum = R_INTREGISTER) and (_op3.number = NR_NO) then
            internalerror(2003031215);
+         { only allowed to load the address }
+         if not(_op2.symaddr in [refs_lo,refs_hi]) then
+           internalerror(200305311);
          ops:=3;
          loadreg(0,_op1);
          loadref(1,_op2);
@@ -201,29 +202,6 @@ implementation
          loadreg(2,_op3);
       end;
 
-
-    constructor taicpu.op_const_ref_reg(op:tasmop;_op1:aword;const _op2:treference;_op3:tregister);
-      begin
-         inherited create(op);
-         if (_op3.enum = R_INTREGISTER) and (_op3.number = NR_NO) then
-           internalerror(2003031218);
-         ops:=3;
-         loadconst(0,_op1);
-         loadref(1,_op2);
-         loadreg(2,_op3);
-      end;
-
-
-    constructor taicpu.op_const_reg_ref(op:tasmop;_op1:aword;_op2:tregister;const _op3:treference);
-      begin
-         inherited create(op);
-         if (_op2.enum = R_INTREGISTER) and (_op2.number = NR_NO) then
-           internalerror(2003031219);
-         ops:=3;
-         loadconst(0,_op1);
-         loadreg(1,_op2);
-         loadref(2,_op3);
-      end;
 
     constructor taicpu.op_cond_sym(op:tasmop;cond:TAsmCond;_op1:tasmsymbol);
       begin
@@ -262,7 +240,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2003-05-30 23:57:08  peter
+  Revision 1.28  2003-06-01 01:03:41  peter
+    * remove unsupported combinations
+    * reg_ref_reg only allowed for refs_lo,refs_hi
+
+  Revision 1.27  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
