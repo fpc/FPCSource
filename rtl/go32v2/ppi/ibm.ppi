@@ -32,6 +32,10 @@ end;
 function GetVESAInfo( Mode : WORD ):Boolean;
 var Result_:longint;
     St : string;
+{$ifdef Test_linear}
+    Temp : longint;
+{$endif Test_linear}
+    
 begin
   Result_:=Global_dos_alloc($0200);
      Sel:=word(Result_);
@@ -329,7 +333,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1998-12-21 14:06:03  pierre
+  * var declaration was missing ??
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.7  1998/11/25 13:04:46  pierre
