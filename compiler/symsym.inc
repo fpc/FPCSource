@@ -1322,16 +1322,19 @@
                    if (aktpackrecords=packrecord_C) then
                     begin
                       varalign:=vartype.def^.alignment;
-                      if varalign=0 then
+                      if (owner^.dataalignment<4) then
                        begin
-                         if (owner^.dataalignment<4) then
+                         if varalign=0 then
                           begin
                             if (l>=4) then
                              owner^.dataalignment:=4
                             else
                              if (owner^.dataalignment<2) and (l>=2) then
                               owner^.dataalignment:=2;
-                          end;
+                          end
+                         else
+                          if varalign>owner^.dataalignment then
+                           owner^.dataalignment:=varalign;
                        end;
                     end
                    else
@@ -2163,7 +2166,13 @@
 
 {
   $Log$
-  Revision 1.148  2000-06-02 21:16:42  pierre
+  Revision 1.149  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.148  2000/06/02 21:16:42  pierre
    * vo_is_exported needs init_global also
 
   Revision 1.147  2000/06/01 19:09:56  peter

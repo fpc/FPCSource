@@ -326,7 +326,7 @@ unit pdecl;
          pconstsym : ptypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
-         maxsize,startvarrec : longint;
+         maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : ptree;
       begin
          old_block_type:=block_type;
@@ -649,6 +649,7 @@ unit pdecl;
          if is_record and (token=_CASE) then
            begin
               maxsize:=0;
+              maxalignment:=0;
               consume(_CASE);
               s:=pattern;
               getsym(s,false);
@@ -665,7 +666,8 @@ unit pdecl;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
-              startvarrec:=symtablestack^.datasize;
+              startvarrecsize:=symtablestack^.datasize;
+              startvarrecalign:=symtablestack^.dataalignment;
               repeat
                 repeat
                   pt:=comp_expr(true);
@@ -688,8 +690,10 @@ unit pdecl;
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,symtablestack^.datasize);
+                maxalignment:=max(maxalignment,symtablestack^.dataalignment);
                 { the items of the next variant are overlayed }
-                symtablestack^.datasize:=startvarrec;
+                symtablestack^.datasize:=startvarrecsize;
+                symtablestack^.dataalignment:=startvarrecalign;
                 if (token<>_END) and (token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
@@ -697,6 +701,7 @@ unit pdecl;
               until (token=_END) or (token=_RKLAMMER);
               { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
+              symtablestack^.dataalignment:=maxalignment;
            end;
          block_type:=old_block_type;
       end;
@@ -1208,7 +1213,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.185  2000-06-11 06:59:36  peter
+  Revision 1.186  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.185  2000/06/11 06:59:36  peter
     * support procvar directive without ; before the directives
 
   Revision 1.184  2000/06/09 21:34:40  peter

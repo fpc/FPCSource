@@ -114,7 +114,8 @@ type
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
-    po_saveregisters      { save all registers }
+    po_saveregisters,     { save all registers }
+    po_overload           { procedure is declared with overload directive }
   );
   tprocoptions=set of tprocoption;
 
@@ -214,7 +215,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-06-02 21:15:49  pierre
+  Revision 1.13  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.12  2000/06/02 21:15:49  pierre
    + vo_is_exported for bug0317 fix
 
   Revision 1.11  2000/03/19 14:56:38  florian

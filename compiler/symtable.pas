@@ -179,7 +179,7 @@ unit symtable;
           next      : psymtable;
           defowner  : pdef; { for records and objects }
           { alignment used in this symtable }
-          alignment : longint;
+{          alignment : longint; }
           { only used for parameter symtable to determine the offset relative }
           { to the frame pointer and for local inline }
           address_fixup : longint;
@@ -212,7 +212,7 @@ unit symtable;
           procedure check_forwards;
           procedure checklabels;
           { change alignment for args  only parasymtable }
-          procedure set_alignment(_alignment : byte);
+          procedure set_alignment(_alignment : longint);
           { find arg having offset  only parasymtable }
           function  find_at_offset(l : longint) : pvarsym;
 {$ifdef CHAINPROCSYMS}
@@ -1414,7 +1414,10 @@ implementation
          name:=nil;
          address_fixup:=0;
          datasize:=0;
-         dataalignment:=1;
+         if t=parasymtable then
+          dataalignment:=4
+         else
+          dataalignment:=1;
          new(symindex,init(indexgrowsize));
          new(defindex,init(indexgrowsize));
          if symtabletype<>withsymtable then
@@ -1424,7 +1427,6 @@ implementation
            end
          else
            symsearch:=nil;
-         alignment:=def_alignment;
       end;
 
 
@@ -1660,7 +1662,10 @@ implementation
        { reset }
          defowner:=nil;
          name:=nil;
-         alignment:=def_alignment;
+         if typ=parasymtable then
+          dataalignment:=4
+         else
+          dataalignment:=1;
          datasize:=0;
          address_fixup:= 0;
          unitid:=0;
@@ -1854,9 +1859,12 @@ implementation
           begin
             { in TP and Delphi you can have a local with the
               same name as the function, the function is then hidden for
-              the user. (Under delphi it can still be accessed using result) (PFV) }
-            if (hsym^.typ=funcretsym) and
-               (m_tp in aktmodeswitches) then
+              the user. (Under delphi it can still be accessed using result),
+              but don't allow hiding of RESULT }
+            if (m_tp in aktmodeswitches) and
+               (hsym^.typ=funcretsym) and
+               not((m_result in aktmodeswitches) and
+                   (hsym^.name='RESULT')) then
              hsym^.owner^.rename(hsym^.name,'hidden'+hsym^.name)
             else
              begin
@@ -1875,8 +1883,11 @@ implementation
                   if assigned(hsym) then
                    begin
                      { a parameter and the function can have the same
-                       name in TP and Delphi }
-                     if (sym^.typ=funcretsym) then
+                       name in TP and Delphi, but RESULT not }
+                     if (m_tp in aktmodeswitches) and
+                        (sym^.typ=funcretsym) and
+                        not((m_result in aktmodeswitches) and
+                            (sym^.name='RESULT')) then
                       sym^.setname('hidden'+sym^.name)
                      else
                       begin
@@ -2174,14 +2185,12 @@ implementation
          foreach({$ifndef TP}@{$endif}labeldefined);
       end;
 
-    procedure tsymtable.set_alignment(_alignment : byte);
+    procedure tsymtable.set_alignment(_alignment : longint);
       var
          sym : pvarsym;
          l : longint;
       begin
-        { this can not be done if there is an
-          hasharray ! }
-        alignment:=_alignment;
+        dataalignment:=_alignment;
         if (symtabletype<>parasymtable) then
           internalerror(1111);
         sym:=pvarsym(symindex^.first);
@@ -2191,7 +2200,7 @@ implementation
           begin
              l:=sym^.getpushsize;
              sym^.address:=datasize;
-             datasize:=align(datasize+l,alignment);
+             datasize:=align(datasize+l,dataalignment);
              sym:=pvarsym(sym^.next);
           end;
       end;
@@ -2925,7 +2934,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2000-06-14 19:00:58  peter
+  Revision 1.100  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.99  2000/06/14 19:00:58  peter
     * rename the result of a function to hide it instead of using setname
 
   Revision 1.98  2000/06/14 16:51:18  peter

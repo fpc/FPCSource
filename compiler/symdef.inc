@@ -2112,8 +2112,33 @@
 
 
     function trecorddef.alignment:longint;
+      var
+        l  : longint;
+        hp : pvarsym;
       begin
-        alignment:=symtable^.dataalignment;
+        { also check the first symbol for it's size, because a
+          packed record has dataalignment of 1, but the first
+          sym could be a longint which should be aligned on 4 bytes,
+          this is compatible with C record packing (PFV) }
+        hp:=pvarsym(symtable^.symindex^.first);
+        if assigned(hp) then
+         begin
+           l:=hp^.vartype.def^.size;
+           if l>symtable^.dataalignment then
+            begin
+              if l>=4 then
+               alignment:=4
+              else
+               if l>=2 then
+                alignment:=2
+              else
+               alignment:=1;
+            end
+           else
+            alignment:=symtable^.dataalignment;
+         end
+        else
+         alignment:=symtable^.dataalignment;
       end;
 
 {$ifdef GDB}
@@ -4061,7 +4086,13 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.200  2000-06-02 18:48:47  florian
+  Revision 1.201  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.200  2000/06/02 18:48:47  florian
     + fieldtable support for classes
 
   Revision 1.199  2000/04/01 14:17:08  peter

@@ -319,7 +319,13 @@
 
 {
   $Log$
-  Revision 1.50  2000-05-18 17:05:17  peter
+  Revision 1.51  2000-06-18 18:11:32  peter
+    * C record packing fixed to also check first entry of the record
+      if bigger than the recordalignment itself
+    * variant record alignment uses alignment per variant and saves the
+      highest alignment value
+
+  Revision 1.50  2000/05/18 17:05:17  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.49  2000/05/03 14:34:05  pierre
