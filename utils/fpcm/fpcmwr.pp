@@ -323,7 +323,8 @@ implementation
            exit;
          end;
         for t:=low(TTarget) to high(TTarget) do
-         if FInput.GetVariable(IniVar+TargetSuffix[t],false)<>'' then
+         if (t in FInput.IncludeTargets) and
+            (FInput.GetVariable(IniVar+TargetSuffix[t],false)<>'') then
           begin
             result:=true;
             exit;
@@ -346,15 +347,16 @@ implementation
         if s<>'' then
          FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
         for t:=low(TTarget) to high(TTarget) do
-         begin
-           s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
-           if s<>'' then
-            begin
-              FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-              FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-              FOutput.Add('endif');
-            end;
-         end;
+         if t in FInput.IncludeTargets then
+          begin
+            s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
+            if s<>'' then
+             begin
+               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+               FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
+               FOutput.Add('endif');
+             end;
+          end;
       end;
 
 
@@ -378,7 +380,7 @@ implementation
         result:='';
         s:=FInput.GetVariable(IniVar,false);
         repeat
-          name:=GetToken(s);
+          name:=GetToken(s,' ');
           if Name='' then
            break;
           { Remove (..) }
@@ -395,31 +397,32 @@ implementation
           AddStrNoDup(result,name);
         until false;
         for t:=low(TTarget) to high(TTarget) do
-         begin
-           s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
-           if s<>'' then
-            begin
-              FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-              repeat
-                Name:=GetToken(s);
-                if Name='' then
-                 break;
-                { Remove (..) }
-                k1:=pos('(',name);
-                if k1>0 then
-                 begin
-                   k2:=PosIdx(')',name,k1);
-                   if k2=0 then
-                    k2:=length(name)+1;
-                   Delete(Name,k1,k2);
-                 end;
-                FOutput.Add(prefix+VarName(name)+'=1');
-                { add to the list of dirs without duplicates }
-                AddStrNoDup(result,name);
-              until false;
-              FOutput.Add('endif');
-            end;
-         end;
+         if t in FInput.IncludeTargets then
+          begin
+            s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
+            if s<>'' then
+             begin
+               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+               repeat
+                 Name:=GetToken(s,' ');
+                 if Name='' then
+                  break;
+                 { Remove (..) }
+                 k1:=pos('(',name);
+                 if k1>0 then
+                  begin
+                    k2:=PosIdx(')',name,k1);
+                    if k2=0 then
+                     k2:=length(name)+1;
+                    Delete(Name,k1,k2);
+                  end;
+                 FOutput.Add(prefix+VarName(name)+'=1');
+                 { add to the list of dirs without duplicates }
+                 AddStrNoDup(result,name);
+               until false;
+               FOutput.Add('endif');
+             end;
+          end;
       end;
 
 
@@ -457,7 +460,7 @@ implementation
       begin
         hs:=FInput.GetVariable(inivar,false);
         repeat
-          Tool:=GetToken(hs);
+          Tool:=GetToken(hs,' ');
           if Tool='' then
            break;
           AddTool(FixVariable(Tool),Tool,'');
@@ -566,7 +569,7 @@ implementation
         prefix:=FixVariable(inivar)+'_';
         hs:=AddTargetDefines(inivar,prefix);
         repeat
-          Dir:=GetToken(hs);
+          Dir:=GetToken(hs,' ');
           if Dir='' then
            break;
           AddTargetDir(Dir,prefix);
@@ -629,23 +632,26 @@ implementation
         reqs:='';
         { Add target defines }
         for t:=low(ttarget) to high(ttarget) do
-         begin
-           sl:=FInput.GetTargetRequires(t);
-           if sl.count>0 then
-            begin
-              FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-              for i:=0 to sl.count-1 do
-               begin
-                 FOutput.Add(prefix+VarName(sl[i])+'=1');
-                 AddStrNoDup(reqs,sl[i]);
-               end;
-              FOutput.Add('endif');
-            end;
-           sl.Free;
-         end;
+         if t in FInput.IncludeTargets then
+          begin
+            sl:=FInput.GetTargetRequires(t);
+            { show info }
+            FInput.Verbose(FPCMakeInfo,TargetStr[t]+' requires: '+sl.CommaText);
+            if sl.count>0 then
+             begin
+               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+               for i:=0 to sl.count-1 do
+                begin
+                  FOutput.Add(prefix+VarName(sl[i])+'=1');
+                  AddStrNoDup(reqs,sl[i]);
+                end;
+               FOutput.Add('endif');
+             end;
+            sl.Free;
+          end;
         { Add all require packages }
         repeat
-          req:=GetToken(reqs);
+          req:=GetToken(reqs,' ');
           if Req='' then
            break;
           AddPackage(req,prefix);
@@ -716,8 +722,10 @@ implementation
               (not CheckTargetVariable('install_files')) and
               (not CheckTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_install]:=false;
+           { Package.fpc also needs to be cleaned }
            if (not CheckTargetVariable('clean_units')) and
-              (not CheckTargetVariable('clean_files')) then
+              (not CheckTargetVariable('clean_files')) and
+              (not CheckTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_clean]:=false;
          end;
       end;
@@ -763,6 +771,7 @@ implementation
            { Package }
            AddVariable('package_name');
            AddVariable('package_version');
+           AddVariable('package_targets');
            { First add the required packages sections }
 //           for i:=0 to FInput.RequireList.Count-1 do
 //            AddCustomSection(FInput.Requirelist[i]);
@@ -789,7 +798,7 @@ implementation
            AddVariable('install_basedir');
            AddVariable('install_datadir');
            AddVariable('install_fpcpackage');
-	   AddVariable('install_createpackagefpc');
+           AddVariable('install_createpackagefpc');
            { Dist }
            AddVariable('dist_zipname');
            AddVariable('dist_ziptarget');
@@ -865,7 +874,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-07-31 22:02:32  peter
+  Revision 1.15  2001-08-02 20:50:29  peter
+    * -T<target> support
+    * better error reporting for not found dirs
+    * some cleanups and nicer strings
+
+  Revision 1.14  2001/07/31 22:02:32  peter
     * install Package.fpc
 
   Revision 1.13  2001/07/13 21:01:59  peter

@@ -30,8 +30,8 @@ interface
       fpcmdic;
 
     const
-      Version='v1.99.0';
-      Title='fpcmake '+Version;
+      Version='1.1';
+      Title='FPCMake Version '+Version;
       TitleDate=Title+' ['+{$ifdef fpc}{$i %DATE}{$else}'n/a'{$endif}+']';
 
     type
@@ -107,7 +107,8 @@ interface
         FExportSec      : TFPCMakeSection;
         FIsPackage      : boolean;
         FPackageName,
-        FPackageVersion : string;
+        FPackageVersion,
+        FPackageTargets : string;
         FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
         FIncludeTargets : TTargetSet;
@@ -127,6 +128,7 @@ interface
         constructor CreateFromStream(s:TStream;const AFileName:string);
         destructor  Destroy;override;
         procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
+        procedure SetTargets(const s:string);
         procedure LoadSections;
         procedure LoadMakefileFPC;
         procedure LoadPackageSection;
@@ -153,7 +155,8 @@ interface
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
-    function GetToken(var s:string):string;
+    function GetToken(var s:string;sep:char):string;
+    procedure AddToken(var s:string;const tok:string;sep:char);
 
 
 implementation
@@ -167,6 +170,15 @@ implementation
       s_no_package_name='No package name set';
       s_no_package_version='No package version set';
       s_err_require_format='Wrong require format "%s"';
+      s_wrong_package_name='Package name "%s" expected, but "%s" found';
+      s_wrong_package_version='Package version "%s" expected, but version "%s" found';
+      s_directory_not_found='Directory "%s" not found';
+      s_makefilefpc_not_found='No Makefile.fpc found in directory "%s"';
+      s_package_not_found='Package "%s" not found';
+      s_fpcmake_version_required='FPCMake version "%s" is required';
+      s_no_targets_set='No targets set';
+      s_targets_info='Targets: "%s"';
+      s_globals='Globals:';
 
 
 {****************************************************************************
@@ -218,12 +230,12 @@ implementation
       end;
 
 
-    function GetToken(var s:string):string;
+    function GetToken(var s:string;sep:char):string;
       var
         i : integer;
       begin
         s:=Trim(s);
-        i:=pos(' ',s);
+        i:=pos(sep,s);
         if i=0 then
          begin
            Result:=s;
@@ -234,6 +246,17 @@ implementation
            Result:=Copy(s,1,i-1);
            Delete(s,1,i);
          end;
+      end;
+
+
+    procedure AddToken(var s:string;const tok:string;sep:char);
+      begin
+        if tok='' then
+         exit;
+        if s<>'' then
+         s:=s+sep+tok
+        else
+         s:=tok;
       end;
 
 
@@ -390,10 +413,7 @@ implementation
            p:=TKeyValueItem(FDictionary.Search(NewKey));
            { Concat values if key already exists }
            if assigned(p) then
-            begin
-              if Value<>'' then
-               p.Value:=p.Value+' '+Value
-            end
+            AddToken(p.FValue,Value,' ')
            else
             FDictionary.Add(NewKey,Value);
            inc(i);
@@ -579,9 +599,39 @@ implementation
       end;
 
 
+    procedure TFPCMake.SetTargets(const s:string);
+      var
+        hslst : string;
+        hs : string;
+        t  : TTarget;
+      begin
+        FIncludeTargets:=[];
+        hslst:=s;
+        repeat
+          hs:=LowerCase(GetToken(hslst,','));
+          if hs='' then
+           break;
+          for t:=low(TTarget) to high(TTarget) do
+           if hs=TargetStr[t] then
+            include(FIncludeTargets,t);
+        until false;
+        if FIncludeTargets=[] then
+         raise Exception.Create(s_no_targets_set)
+        else
+         begin
+           hs:='';
+           for t:=low(TTarget) to high(TTarget) do
+            if t in FIncludeTargets then
+             AddToken(hs,TargetStr[t],' ');
+           Verbose(FPCMakeDebug,Format(s_targets_info,[hs]));
+         end;
+      end;
+
+
     procedure TFPCMake.LoadPackageSection;
       var
-        s : string;
+        hs,s : string;
+        t : TTarget;
       begin
         { Get package info from package section }
         FPackageSec:=TFPCMakeSection(FSections['package']);
@@ -607,6 +657,20 @@ implementation
            if FPackageVersion='' then
             Raise Exception.Create(s_no_package_version);
            FIsPackage:=true;
+           { optional targets }
+           FPackageTargets:='';
+           s:=LowerCase(FPackageSec['targets']);
+           repeat
+             hs:=GetToken(s,' ');
+             if hs='' then
+              break;
+             for t:=low(TTarget) to high(TTarget) do
+              if hs=TargetStr[t] then
+               begin
+                 AddToken(FPackageTargets,hs,' ');
+                 break;
+               end;
+           until false;
            { Set the ExportSec }
            FExportSec:=TFPCMakeSection(FSections[Lowercase(FPackageName)]);
          end;
@@ -653,9 +717,9 @@ implementation
              ReqFPCMake.LoadPackageSection;
              { Check package name and version }
              if LowerCase(ReqFPCMake.PackageName)<>ReqName then
-              raise Exception.Create('s_wrong_package_name');
+              raise Exception.Create(Format(s_wrong_package_name,[ReqName,LowerCase(ReqFPCMake.PackageName)]));
              if (ReqVersion<>'') and (ReqFPCMake.PackageVersion<ReqVersion) then
-              raise Exception.Create('s_wrong_package_version');
+              raise Exception.Create(Format(s_wrong_package_version,[ReqVersion,ReqFPCMake.PackageVersion]));
              { First load the requirements of this package }
              LoadRequires(t,ReqFPCMake);
              { Get a copy of the package section }
@@ -684,7 +748,7 @@ implementation
         s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Package.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(UNITSDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(REQUIRE_UNITSDIR)))');
         if TryFile(s) then
          exit;
-        Raise Exception.Create('s_package_not_found '+Reqname);
+        Raise Exception.Create(Format(s_package_not_found,[Reqname]));
       end;
 
 
@@ -694,9 +758,16 @@ implementation
           s : string;
         begin
           VerboseIdent:=VerboseIdent+'  ';
-          Verbose(FPCMakeDebug,'Subdir: '+currdir+subdir+'/Makefile.fpc');
-          if not FileExists(currdir+subdir+'/Makefile.fpc') then
-           Raise Exception.Create('s_no_makefile.fpc_found');
+          s:=currdir+subdir;
+          Verbose(FPCMakeDebug,'Subdir: '+s+'/Makefile.fpc');
+          if not FileExists(s+'/Makefile.fpc') then
+           begin
+             { give better error what is wrong }
+             if not PathExists(s) then
+              Raise Exception.Create(Format(s_directory_not_found,[s]))
+             else
+              Raise Exception.Create(Format(s_makefilefpc_not_found,[s]));
+           end;
           { Process Makefile.fpc }
           ReqFPCMake:=TFPCMake.Create(currdir+subdir+'/Makefile.fpc');
           ReqFPCMake.LoadSections;
@@ -733,7 +804,7 @@ implementation
         s:=Trim(FromFPCMake.GetVariable('require_packages',true)+' '+FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true));
         Verbose(FPCMakeDebug,'Required packages for '+TargetStr[t]+': '+s);
         repeat
-          reqname:=GetToken(s);
+          reqname:=GetToken(s,' ');
           if reqname='' then
            break;
           i:=Pos('(',ReqName);
@@ -760,7 +831,7 @@ implementation
         s:=FromFPCMake.GetVariable('target_dirs',true)+' '+FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t],true);
         Verbose(FPCMakeDebug,'Required dirs for '+TargetStr[t]+': '+s);
         repeat
-          reqdir:=GetToken(s);
+          reqdir:=GetToken(s,' ');
           if reqdir='' then
            break;
           LoadRequiredDir(t,FromFPCMake.FPackageName,ExtractFilePath(FromFPCMake.FFileName),ReqDir)
@@ -795,6 +866,10 @@ implementation
         s : string;
         t : ttarget;
       begin
+        { Check FPCMake version }
+        s:=GetVariable('require_fpcmake',false);
+        if (s>version) then
+         raise Exception.Create(Format(s_fpcmake_version_required,[s]));
         { Maybe add an implicit rtl dependency if there is something
           to compile }
         s:=GetVariable('require_packages',false);
@@ -828,7 +903,7 @@ implementation
         begin
           s:=Sec['packages']+' '+Sec['packages'+TargetSuffix[t]];
           repeat
-            ReqName:=GetToken(s);
+            ReqName:=GetToken(s,' ');
             if ReqName='' then
              break;
             i:=Pos('(',ReqName);
@@ -852,7 +927,6 @@ implementation
         ReqSec:=TFPCMakeSection(FSections['require']);
         if assigned(ReqSec) then
          AddReqSec(t,ReqSec);
-        Verbose(FPCMakeInfo,TargetStr[t]+' requires: '+ReqList.CommaText);
         GetTargetRequires:=ReqList;
       end;
 
@@ -908,8 +982,17 @@ implementation
         if hs='' then
          begin
            s:=GetVariable('default_fpcdir',true);
+           { add the current subdir to relative paths }
            if s<>'' then
-            hs:=SubstVariables('$(wildcard $(addprefix '+s+'/,rtl units))');
+            begin
+{$ifdef UNIX}
+              if (s[1]<>'/') then
+{$else}
+              if (length(s)>2) and (s[2]<>':') then
+{$endif}
+               s:=ExtractFilePath(FFileName)+s;
+              hs:=SubstVariables('$(wildcard $(addprefix '+s+'/,rtl units))');
+            end
          end;
         { OS defaults }
         if hs='' then
@@ -962,7 +1045,7 @@ implementation
         if GetVariable('UNITSDIR',false)='' then
          SetVariable('UNITSDIR','$(FPCDIR)/units/$(TARGET)',false);
 
-        Verbose(FPCMakeDebug,'Globals:');
+        Verbose(FPCMakeDebug,s_globals);
         Variables.Foreach(@PrintDic);
       end;
 
@@ -1021,7 +1104,7 @@ implementation
                 Expect(s,')');
                 first:=true;
                 repeat
-                  tok:=GetToken(s1);
+                  tok:=GetToken(s1,' ');
                   if tok='' then
                    break;
                   if PathOrFileExists(tok) then
@@ -1046,7 +1129,7 @@ implementation
                  end;
                 first:=true;
                 repeat
-                  tok:=GetToken(s2);
+                  tok:=GetToken(s2,' ');
                   if tok='' then
                    break;
                   if not first then
@@ -1068,7 +1151,7 @@ implementation
                  end;
                 first:=true;
                 repeat
-                  tok:=GetToken(s2);
+                  tok:=GetToken(s2,' ');
                   if tok='' then
                    break;
                   if not first then
@@ -1160,11 +1243,8 @@ implementation
            p:=TKeyValueItem(Sec.Dictionary.Search(Key));
            if assigned(p) then
             begin
-              if Add and (p.Value<>'') then
-               begin
-                 if Value<>'' then
-                  p.Value:=p.Value+' '+Value;
-               end
+              if Add then
+               AddToken(p.FValue,Value,' ')
               else
                p.Value:=Value;
             end
@@ -1234,7 +1314,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-07-31 22:02:32  peter
+  Revision 1.11  2001-08-02 20:50:29  peter
+    * -T<target> support
+    * better error reporting for not found dirs
+    * some cleanups and nicer strings
+
+  Revision 1.10  2001/07/31 22:02:32  peter
     * install Package.fpc
 
   Revision 1.9  2001/07/24 09:06:40  pierre

@@ -16,6 +16,9 @@
 {$H+}
 program fpcmake;
 
+{ Define to not catch exceptions and output backtraces }
+{ define NOEXCEPT}
+
     uses
       getopts,
       sysutils,
@@ -33,8 +36,9 @@ program fpcmake;
       end;
 
     var
-      Mode : TMode;
-      VerboseLevel : TVerboseLevel;
+      ParaMode : TMode;
+      ParaVerboseLevel : TVerboseLevel;
+      ParaTargets : string;
 
 
 {*****************************************************************************
@@ -43,7 +47,7 @@ program fpcmake;
 
     procedure Show(lvl:TVerboseLevel;const s:string);
       begin
-        if VerboseLevel>=lvl then
+        if ParaVerboseLevel>=lvl then
          Writeln(s);
       end;
 
@@ -88,9 +92,13 @@ program fpcmake;
       begin
         Show(V_Default,'Processing '+fn);
         CurrFPCMake:=nil;
-//        try
+{$ifndef NOEXCEPT}
+        try
+{$endif NOEXCEPT}
           { Load Makefile.fpc }
           CurrFPCMake:=TFPCMakeConsole.Create(fn);
+          if ParaTargets<>'' then
+           CurrFPCMake.SetTargets(ParaTargets);
           CurrFPCMake.LoadMakefileFPC;
 //          CurrFPCMake.Print;
 
@@ -105,13 +113,17 @@ program fpcmake;
           CurrMakefile.WriteGenericMakefile;
           CurrMakefile.Free;
 
-//        except
-//          on e : exception do
-//           begin
-//             Error(e.message);
-//             Subdirs:='';
-//           end;
-//        end;
+{$ifndef NOEXCEPT}
+        except
+          on e : exception do
+           begin
+             Error(e.message);
+  {$ifdef SUBDIRS}
+             Subdirs:='';
+  {$endif SUBDIRS}
+           end;
+        end;
+{$endif NOEXCEPT}
         CurrFPCMake.Free;
 
 {$ifdef SUBDIRS}
@@ -138,9 +150,13 @@ program fpcmake;
       begin
         Show(V_Default,'Processing '+fn);
         CurrFPCMake:=nil;
-//        try
+{$ifndef NOEXCEPT}
+        try
+{$endif NOEXCEPT}
           { Load Makefile.fpc }
           CurrFPCMake:=TFPCMakeConsole.Create(fn);
+          if ParaTargets<>'' then
+           CurrFPCMake.SetTargets(ParaTargets);
           CurrFPCMake.LoadMakefileFPC;
 //          CurrFPCMake.Print;
 
@@ -149,20 +165,21 @@ program fpcmake;
           CurrPackageFpc.WritePackageFpc;
           CurrPackageFpc.Free;
 
-//        except
-//          on e : exception do
-//           begin
-//             Error(e.message);
-//             Subdirs:='';
-//           end;
-//        end;
+{$ifndef NOEXCEPT}
+        except
+          on e : exception do
+           begin
+             Error(e.message);
+           end;
+        end;
+{$endif NOEXCEPT}
         CurrFPCMake.Free;
       end;
 
 
     procedure ProcessFile(const fn:string);
       begin
-        case Mode of
+        case ParaMode of
           m_None :
             Error('No operation specified, see -h for help');
           m_Makefile :
@@ -205,9 +222,10 @@ begin
   writeln(' -w  Write Makefile');
   writeln('');
   writeln('Options:');
-  writeln(' -v  Be more verbose');
-  writeln(' -q  Be quiet');
-  writeln(' -h  This help screen');
+  writeln(' -T<target>[,target]   Support only specified targets');
+  writeln(' -v                    Be more verbose');
+  writeln(' -q                    Be quiet');
+  writeln(' -h                    This help screen');
   Halt(0);
 end;
 
@@ -218,23 +236,24 @@ Procedure ProcessOpts;
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqvh';
+  ShortOpts = 'pwqvhT:';
 var
   C : char;
 begin
   if paramcount=0 then
    usage;
 { Reset }
-  Mode:=m_none;
-  VerboseLevel:=v_default;
+  ParaMode:=m_none;
+  ParaVerboseLevel:=v_default;
   repeat
     c:=Getopt (ShortOpts);
     Case C of
       EndOfOptions : break;
-      'p' : Mode:=m_PackageFpc;
-      'w' : Mode:=m_Makefile;
-      'q' : VerboseLevel:=v_quiet;
-      'v' : VerboseLevel:=v_verbose;
+      'p' : ParaMode:=m_PackageFpc;
+      'w' : ParaMode:=m_Makefile;
+      'q' : ParaVerboseLevel:=v_quiet;
+      'v' : ParaVerboseLevel:=v_verbose;
+      'T' : ParaTargets:=OptArg;
       '?' : Usage;
       'h' : Usage;
     end;
@@ -251,7 +270,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-07-13 21:01:59  peter
+  Revision 1.6  2001-08-02 20:50:29  peter
+    * -T<target> support
+    * better error reporting for not found dirs
+    * some cleanups and nicer strings
+
+  Revision 1.5  2001/07/13 21:01:59  peter
     * cygdrive support
     * fixed cygwin detection
     * fixed some duplicate and extraeous spaces
