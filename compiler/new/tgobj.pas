@@ -31,6 +31,7 @@ unit tgobj;
 {$else i386}
       cpubase,
       cpuinfo,
+      cpuasm,
 {$endif i386}
        cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
@@ -694,7 +695,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-03 00:32:13  florian
+  Revision 1.4  1999-08-03 00:33:23  michael
+  + Added cpuasm for alpha
+
+  Revision 1.3  1999/08/03 00:32:13  florian
     * reg_vars and reg_pushes is now in tgobj
 
   Revision 1.2  1999/08/02 23:13:22  florian
