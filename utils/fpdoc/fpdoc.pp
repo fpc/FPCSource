@@ -38,6 +38,8 @@ type
 const
   CmdLineAction: TCmdLineAction = actionConvert;
   OutputFormat: TOutputFormat = fmtHTML;
+  OSTarget: String = {$I %FPCTARGETOS%};
+  CPUTarget: String = {$I %FPCTARGETCPU%};
 
 var
   InputFiles, DescrFiles: TStringList;
@@ -144,6 +146,10 @@ begin
       PackageName := Arg
     else if Cmd = '--html-search' then
       SearchPage := Arg
+    else if Cmd = '--ostarget' then
+      OSTarget := Arg
+    else if Cmd = '--cputarget' then
+      CPUTarget := Arg
     else if Cmd = '--latex-extension' then
       TexExtension:=Arg
     else
@@ -200,7 +206,7 @@ begin
     // Read all source files
     for i := 0 to InputFiles.Count - 1 do
       try
-        ParseSource(Engine, InputFiles[i]);
+        ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
       except
         on e: EParserError do
 	  WriteLn(StdErr, Format('%s(%d,%d): %s',
@@ -290,7 +296,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-18 19:28:44  michael
+  Revision 1.3  2003-03-27 17:14:13  sg
+  * Added --ostarget and --cputarget
+
+  Revision 1.2  2003/03/18 19:28:44  michael
   + Some changes to output handling, more suitable for tex output
 
   Revision 1.1  2003/03/17 23:03:20  michael
