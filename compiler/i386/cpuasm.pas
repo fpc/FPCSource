@@ -987,7 +987,7 @@ begin
   CheckIfValid:=false;
 { Things which may only be done once, not when a second pass is done to
   optimize }
-  if Insentry=nil then
+  if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
    begin
      { We need intel style operands }
      SetOperandOrder(op_intel);
@@ -1773,7 +1773,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:18  peter
+  Revision 1.15  2001-04-21 12:13:15  peter
+    * restore correct pass2 handling bug 1425 (merged)
+
+  Revision 1.14  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
