@@ -194,8 +194,7 @@ end;
 Procedure TStrings.Error(const Msg: string; Data: Integer);
 
 begin
-  //!! Need to get correct address !!
-  Raise EStringListError.CreateFmt(Msg,[Data]);
+  Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
 end;
 
 
@@ -957,7 +956,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-11-13 15:46:55  marco
+  Revision 1.4  2000-11-17 13:39:49  sg
+  * Extended Error methods so that exceptions are raised from the caller's
+    address instead of the Error method
+
+  Revision 1.3  2000/11/13 15:46:55  marco
    * Unix renamefest for defines.
 
   Revision 1.2  2000/07/13 11:33:01  michael

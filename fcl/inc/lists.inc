@@ -132,8 +132,7 @@ end;
 class procedure TList.Error(const Msg: string; Data: Integer);
 
 begin
-  //!! Find a way to get call  address
-  Raise EListError.CreateFmt(Msg,[Data]);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);
@@ -400,7 +399,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-14 18:39:31  michael
+  Revision 1.4  2000-11-17 13:39:49  sg
+  * Extended Error methods so that exceptions are raised from the caller's
+    address instead of the Error method
+
+  Revision 1.3  2000/09/14 18:39:31  michael
   + Fixed setcapacity
 
   Revision 1.2  2000/07/13 11:32:59  michael

@@ -23,13 +23,13 @@ ResourceString
 Procedure BitsError (Msg : string);
 
 begin
-  Raise EBitsError.Create(Msg);
+  Raise EBitsError.Create(Msg) at get_caller_addr(get_frame);
 end;
 
 Procedure BitsErrorFmt (Msg : string; Args : array of const);
 
 begin
-  Raise EBitsError.CreateFmt(Msg,args);
+  Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame);
 end;
 
 procedure TBits.CheckBitIndex (Bit : longint;CurrentSize : Boolean);
@@ -372,7 +372,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-10-15 10:04:39  peter
+  Revision 1.5  2000-11-17 13:39:49  sg
+  * Extended Error methods so that exceptions are raised from the caller's
+    address instead of the Error method
+
+  Revision 1.4  2000/10/15 10:04:39  peter
     + Capitalization of TBits interface fixed; CheckBitIndex now checks for
       size (merged)
 
