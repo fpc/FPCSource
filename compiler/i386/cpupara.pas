@@ -96,11 +96,12 @@ unit cpupara;
               case def.deftype of
                 recorddef :
                   begin
-                    if (calloption=pocall_stdcall) and (def.size<=8) then
+                    { This is not true for the WinAPI expects (PFV)
+                     if (calloption=pocall_stdcall) and (def.size<=8) then
                      begin
                        result:=false;
                        exit;
-                     end;
+                     end; }
                   end;
                 arraydef :
                   begin
@@ -249,7 +250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-09-08 18:28:51  peter
+  Revision 1.26  2003-09-09 15:55:05  peter
+    * winapi doesn't like pushing 8 byte record
+
+  Revision 1.25  2003/09/08 18:28:51  peter
     * fix compilerproc for default=oldfpccall
 
   Revision 1.24  2003/09/07 22:09:35  peter
