@@ -83,7 +83,7 @@ begin
   TextRec(SockOut).InOutFunc:=@IOSock;
   TextRec(SockOut).FlushFunc:=@FlushSock;
   TextRec(SockOut).CloseFunc:=@CloseSock;
-  TextRec(SockOut).Mode := fmAppend;
+  TextRec(SockOut).Mode := fmOutput;
 end;
 
 
@@ -172,7 +172,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.9  2003-11-22 10:59:58  marco
+  Revision 1.10  2003-11-22 21:58:09  marco
+   * johill changed his mind
+
+  Revision 1.9  2003/11/22 10:59:58  marco
    fix for last one
 
   Revision 1.8  2003/11/22 10:33:38  marco
