@@ -1,4 +1,5 @@
 {$mode Delphi}
+unit tw2739;
 
 interface
 
@@ -24,8 +25,10 @@ end;
 
 
 function JclAddExceptNotifier(const NotifyMethod: TJclExceptNotifyMethod): Boolean; overload;
-
+var
+  p : pointer;
 begin
+  p:=@NotifyMethod;
 end;
 
 
