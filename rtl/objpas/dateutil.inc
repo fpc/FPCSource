@@ -1513,18 +1513,18 @@ end;
 
 Function EncodeDateWeek(const AYear, AWeekOfYear: Word): TDateTime; //; const ADayOfWeek: Word = 1
 begin
-  EncodeDateWeek(AYear,AWeekOfYear,1);
+  Result := EncodeDateWeek(AYear,AWeekOfYear,1);
 end;
 
 
 Procedure DecodeDateWeek(const AValue: TDateTime; var AYear, AWeekOfYear, ADayOfWeek: Word);
-  
+
 var
   DOY : Integer;
   D: Word;
   YS : TDateTime;
   YSDOW, YEDOW: Word;
-  
+
 begin
   AYear:=YearOf(AValue);
   // Correct to ISO DOW
@@ -1535,7 +1535,7 @@ begin
   DOY:=Trunc(AValue-YS)+1;
   YSDOW:=DayOfTheWeek(YS);
   // Correct week if later than wednesday. First week never starts later than wednesday
-  if (YSDOW<5) then 
+  if (YSDOW<5) then
     Inc(DOY,YSDOW-1)
   else
     Dec(DOY,8-YSDOW);
@@ -1692,55 +1692,55 @@ Const
 Function RecodeYear(const AValue: TDateTime; const AYear: Word): TDateTime;
 
 begin
-  RecodeDateTime(AValue,AYear,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,AYear,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeMonth(const AValue: TDateTime; const AMonth: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,AMonth,LFAI,LFAI,LFAI,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,LFAI,AMonth,LFAI,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeDay(const AValue: TDateTime; const ADay: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,ADay,LFAI,LFAI,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,ADay,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeHour(const AValue: TDateTime; const AHour: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,LFAI,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeMinute(const AValue: TDateTime; const AMinute: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,AMinute,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,AMinute,LFAI,LFAI);
 end;
 
 
 Function RecodeSecond(const AValue: TDateTime; const ASecond: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,ASecond,LFAI);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,ASecond,LFAI);
 end;
 
 
 Function RecodeMilliSecond(const AValue: TDateTime; const AMilliSecond: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI,AMilliSecond);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI,AMilliSecond);
 end;
 
 
 Function RecodeDate(const AValue: TDateTime; const AYear, AMonth, ADay: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,AYear,AMonth,ADay,LFAI,LFAI,LFAI,LFAI);
+  Result := RecodeDateTime(AValue,AYear,AMonth,ADay,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeTime(const AValue: TDateTime; const AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
 begin
-  RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,AMinute,ASecond,AMilliSecond);
+  Result := RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,AMinute,ASecond,AMilliSecond);
 end;
 
 
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-08-12 12:26:34  michael
+  Revision 1.4  2004-09-19 19:25:52  armin
+  * fixed some compiler warnings
+
+  Revision 1.3  2004/08/12 12:26:34  michael
   + Implemented decodedateweek
 
   Revision 1.2  2004/01/10 19:35:17  michael
