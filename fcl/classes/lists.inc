@@ -359,6 +359,16 @@ begin
   QuickSort (Flist, 0, FCount-1,Compare);
 end;
 
+procedure TList.Assign(Obj:TList);
+// Principle copied from TCollection
+
+var i : Integer;
+begin
+  Clear;
+  For I:=0 To Obj.Count-1 Do
+    Add(Obj[i]);
+end;
+
 {****************************************************************************}
 {*                             TThreadList                                  *}
 {****************************************************************************}
@@ -440,7 +450,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.2  2003-10-07 14:30:57  marco
+   * 1.0 version of assign
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl
