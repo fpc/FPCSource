@@ -25,7 +25,7 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (1 shl 14)+0;
+       wordversion = (1 shl 14)+1;
 
        { version string }
        version_nr = '1';
@@ -94,7 +94,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-07-14 05:11:49  michael
+  Revision 1.5  2000-07-14 05:14:10  michael
+  + Adapted wordversion
+
+  Revision 1.4  2000/07/14 05:11:49  michael
   + Patch to 1.1
 
   Revision 1.3  2000/07/13 12:08:28  michael
