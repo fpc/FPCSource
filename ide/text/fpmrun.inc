@@ -180,7 +180,7 @@ begin
       LineNr:=W^.Editor^.CurPos.Y+1;
       If not assigned(Debugger) then
         InitDebugger;
-      Debugger^.Command('tbreak '+NameAndExtOf(FileName)+':'+IntToStr(LineNr));
+      Debugger^.Command('tbreak '+LowCaseStr(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
       Debugger^.Continue;
     end;
 {$else NODEBUG}
@@ -229,7 +229,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1999-08-31 16:20:37  pierre
+  Revision 1.20  1999-09-09 14:11:56  pierre
+   * GDB needs lowercase filenames for tbreak
+
+  Revision 1.19  1999/08/31 16:20:37  pierre
    * DoContUntilReturn call Step instead of UnitlReturn
 
   Revision 1.18  1999/08/16 18:25:23  peter
