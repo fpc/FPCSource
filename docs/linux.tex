@@ -723,7 +723,7 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 \end{description}
 
 \SeeAlso
-\seef{Chown}, \seef{Access}, \seem{Chmod}(2)
+\seef{Chown}, \seef{Access}, \seem{Chmod}(2), \seef{Octal}
 \end{function}
 
 \FPCexample{ex23}
@@ -791,7 +791,7 @@ Errors are returned in LinuxError.
 \end{function}
 For an example, see \seef{OpenDir}.
 
-\begin{function}{}
+\begin{function}{CreateShellArgV}
 \Declaration
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
@@ -1353,8 +1353,8 @@ filedescriptor (a longint)
 \item [LOCK\_SH] \ sets a shared lock.
 \item [LOCK\_EX] \ sets an exclusive lock.
 \item [LOCK\_UN] \ unlocks the file.
-\item [LOCK\_NB] \ This can be OR-ed together with the other. If this is done
-the application doesn't block when locking.
+\item [LOCK\_NB] \ This can be OR-ed together with the other. 
+If this is done the application doesn't block when locking.
 \end{description}
 
 The function returns \var{True} if successful, \var{False} otherwise.
@@ -1363,6 +1363,53 @@ If an error occurs, it is reported in \var{LinuxError}.
 \SeeAlso
 \seef{Fcntl}, \seem{flock}{2}
 \end{function}
+
+\begin{function}{FNMatch}
+\Declaration
+Function FNMatch(const Pattern,Name:string):Boolean;
+\Description
+\var{FNMatch} returns \var{True} if the filename in \var{Name}
+matches the wildcard pattern in \var{Pattern}, \var{False} otherwise.
+
+\var{Pattern} can contain the wildcards \var{*} (match zero or more 
+arbitrary characters) or \var{?} (match a single character).
+\Errors
+None.
+\SeeAlso
+\seef{FSearch}, \seef{FExpand}
+\end{function}
+
+\FPCexample{ex69}
+
+\begin{function}{FSearch}
+\Declaration
+Function FSearch (Path : pathstr;DirList : string) : Pathstr;
+\Description
+ Searches in \var{DirList}, a colon separated list of directories,
+for a file named \var{Path}. It then returns a path to the found file.
+\Errors
+An empty string if no such file was found.
+\SeeAlso
+\seef{BaseName}, \seef{DirName}, \seef{FExpand}, \seef{FNMatch}
+\end{function}
+
+\FPCexample{ex46}
+
+\begin{procedurel}{FSplit}{LFsplit}
+\Declaration
+Procedure FSplit(const Path:PathStr; \\
+Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
+\Description
+\var{FSplit} splits a full file name into 3 parts : A \var{Path}, a
+\var{Name} and an extension  (in \var{ext}). 
+The extension is taken to be all letters after the last dot (.).
+\Errors
+None.
+\SeeAlso
+\seef{FSearch}
+\end{procedurel}
+
+\FPCexample{ex67}
 
 \begin{function}{FSStat}
 \Declaration
@@ -1392,19 +1439,6 @@ was succesfull, \var{False} if the call failed.
 
 \FPCexample{ex30}
 
-\begin{function}{FSearch}
-\Declaration
-Function FSearch (Path : pathstr;DirList : string) : Pathstr;
-\Description
- Searches in \var{DirList}, a colon separated list of directories,
-for a file named \var{Path}. It then returns a path to the found file.
-\Errors
-An empty string if no such file was found.
-\SeeAlso
-\seef{BaseName}, \seef{DirName}, \seef{FExpand} 
-\end{function}
-
-\FPCexample{ex46}
 
 \begin{function}{FStat}
 \Declaration
@@ -2304,6 +2338,25 @@ do a priority increase.
 
 \FPCexample{ex15}
 
+\begin{function}{Octal}
+\Declaration
+Function Octal(l:longint):longint;
+\Description
+\var{Octal} will convert a number specified as an octal number to it's
+decimal value.
+
+This is useful for the \seef{Chmod} call, where permissions are specified
+as octal numbers.
+\Errors
+No checking is performed whether the given number is a correct Octal number.
+e.g. specifying \var{998} is possible; the result will be wrong in that
+case.
+\SeeAlso
+\seef{Chmod}.
+\end{function}
+
+\FPCexample{ex68}
+
 \begin{function}{OpenDir}
 \Declaration
 Function OpenDir (f:pchar) : pdir;
@@ -2428,6 +2481,95 @@ long.
 \end{function}
 
 \FPCexample{ex62}
+
+\begin{procedure}{ReadPort}
+\Declaration
+Procedure ReadPort (Port : Longint; Var Value : Byte);
+Procedure ReadPort (Port : Longint; Var Value : Word);
+Procedure ReadPort (Port : Longint; Var Value : Longint);
+\Description
+\var{ReadPort} reads one Byte, Word or Longint from port \var{Port} into
+\var{Value}.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the \seef{IOperm} call.
+\Errors
+In case of an error (not enough permissions read this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+
+\seef{IOperm}, \seep{ReadPortB}, \seep{ReadPortW}, \seep{ReadPortL},\seep{WritePort},
+\seep{WritePortB}, \seep{WritePortL}, \seep{WritePortW}
+\end{procedure}
+
+\begin{procedure}{ReadPortB}
+\Declaration
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
+Function  ReadPortB (Port : Longint): Byte;
+\Description
+The procedural form of \var{ReadPortB} reads \var{Count} bytes from port
+\var{Port} and stores them in \var{Buf}. There must be enough memory
+allocated at \var{Buf} to store \var{Count} bytes.
+
+The functional form of \var{ReadPortB} reads 1 byte from port \var{B}
+and returns the byte that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the \seef{IOperm} call.
+
+\Errors
+In case of an error (not enough permissions read this port), runtime 216 
+({\em Access Violation}) will occur.
+
+\SeeAlso
+\seef{IOperm}, \seep{ReadPort}, \seep{ReadPortW}, \seep{ReadPortL},\seep{WritePort},
+\seep{WritePortB}, \seep{WritePortL}, \seep{WritePortW}
+\end{procedure}
+
+\begin{procedure}{ReadPortL}
+\Declaration
+function  ReadPortL (Port : Longint): LongInt;
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
+\Description
+The procedural form of \var{ReadPortL} reads \var{Count} longints from port
+\var{Port} and stores them in \var{Buf}. There must be enough memory
+allocated at \var{Buf} to store \var{Count} Longints.
+
+The functional form of \var{ReadPortB} reads 1 longint from port \var{B}
+and returns the longint that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the \seef{IOperm} call.
+\Errors
+In case of an error (not enough permissions read this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{ReadPort}, \seep{ReadPortW}, \seep{ReadPortB},\seep{WritePort},
+\seep{WritePortB}, \seep{WritePortL}, \seep{WritePortW}
+\end{procedure}
+
+\begin{procedure}{ReadPortW}
+\Declaration
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
+function  ReadPortW (Port : Longint): Word;
+\Description
+The procedural form of \var{ReadPortB} reads \var{Count} words from port
+\var{Port} and stores them in \var{Buf}. There must be enough memory
+allocated at \var{Buf} to store \var{Count} words.
+
+The functional form of \var{ReadPortB} reads 1 word from port \var{B}
+and returns the word that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the \seef{IOperm} call.
+\Errors
+In case of an error (not enough permissions read this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{ReadPort}, \seep{ReadPortB}, \seep{ReadPortL},\seep{WritePort},
+\seep{WritePortB}, \seep{WritePortL}, \seep{WritePortW}
+\end{procedure}
+
 
 \begin{procedure}{ReadTimezoneFile}
 \Declaration
@@ -2709,6 +2851,31 @@ The return value for Signal is the old signal handler, or nil on error.
 \end{function}
 
 \FPCexample{ex58}
+
+\begin{function}{StringToPPchar}
+\Declaration
+Function StringToPPChar(Var S:STring):ppchar;
+\Description
+\var{StringToPPChar} splits the string \var{S} in words, replacing any
+whitespace with zero characters. It returns a pointer to an array of pchars
+that point to the first letters of the words in S. This array is terminated
+by a \var{Nil} pointer.
+
+The function does {\em not} add a zero character to the end of the string
+unless it ends on whitespace.
+
+The function reserves memory on the heap to store the array of \var{PChar};
+The caller is responsible for freeing this memory. 
+
+This function can be called to create arguments for the various \var{Exec}
+calls.
+\Errors
+None.
+\SeeAlso
+\seef{CreateShellArgV}, \seep{Execve}, \seep{Execv}
+\end{function}
+
+\FPCexample{ex70}
 
 \begin{function}{SymLink}
 \Declaration
@@ -3075,5 +3242,82 @@ Errors are returned in LinuxError.
 \SeeAlso
 \seef{Fork}, \seep{Execve}, \seem{waitpid}{2}
 \end{function}
-for an example, see \seef{Fork}.
+
+For an example, see \seef{Fork}.
+
+\begin{procedure}{WritePort}
+\Declaration
+Procedure WritePort (Port : Longint; Value : Byte);
+Procedure WritePort (Port : Longint; Value : Word);
+Procedure WritePort (Port : Longint; Value : Longint);
+\Description
+\var{WritePort} writes \var{Value} -- 1 byte, Word or longint -- 
+to port \var{Port}.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the \var{IOperm} call.
+\Errors
+In case of an error (not enough permissions to write to this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{WritePortB}, \seep{WritePortL}, \seep{WritePortW},
+\seep{ReadPortB}, \seep{ReadPortL}, \seep{ReadPortW}
+\end{procedure}
+
+
+\begin{procedure}{WritePortB}
+\Declaration
+Procedure WritePortB (Port : Longint; Value : Byte);
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
+\Description
+The first form of \var{WritePortB} writes 1 byte to port \var{Port}.
+The second form writes \var{Count} bytes from \var{Buf} to port \var{Port}.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the \var{IOperm} call.
+\Errors
+In case of an error (not enough permissions to write to this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{WritePort}, \seep{WritePortL}, \seep{WritePortW},
+\seep{ReadPortB}, \seep{ReadPortL}, \seep{ReadPortW}
+\end{procedure}
+
+
+\begin{procedure}{WritePortL}
+\Declaration
+Procedure WritePortL (Port : Longint; Value : Longint);
+Procedure WritePortL (Port : Longint; Var Buf; Count: longint);
+\Description
+The first form of \var{WritePortB} writes 1 byte to port \var{Port}.
+The second form writes \var{Count} bytes from \var{Buf} to port \var{Port}.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the \var{IOperm} call.
+\Errors
+In case of an error (not enough permissions to write to this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{WritePort}, \seep{WritePortB}, \seep{WritePortW},
+\seep{ReadPortB}, \seep{ReadPortL}, \seep{ReadPortW}
+\end{procedure}
+
+
+\begin{procedure}{WritePortW}
+\Declaration
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
+Procedure WritePortW (Port : Longint; Value : Word);
+\Description
+The first form of \var{WritePortB} writes 1 byte to port \var{Port}.
+The second form writes \var{Count} bytes from \var{Buf} to port \var{Port}.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the \var{IOperm} call.
+\Errors
+In case of an error (not enough permissions to write to this port), runtime 216 
+({\em Access Violation}) will occur.
+\SeeAlso
+\seef{IOperm}, \seep{WritePort}, \seep{WritePortL}, \seep{WritePortB},
+\seep{ReadPortB}, \seep{ReadPortL}, \seep{ReadPortW}
+\end{procedure}
 
