@@ -30,7 +30,6 @@ asm
 // decide what type it is
         movl    TypeInfo,%ebx
         movb    (%ebx),%al
-// This is MANIFESTLY wrong
         subb    $9,%al
         jz      .LDoAnsiStringInit
         decb    %al
@@ -55,8 +54,8 @@ asm
         jmp     .LExitInitialize
         // Interfaces
 .LDoInterfaceInit:
-        movl Data, %eax
-        movl $0,(%eax)
+        movl    Data, %eax
+        movl    $0,(%eax)
         jmp     .LExitInitialize
         // Variants
 .LDoVariantInit:
@@ -483,7 +482,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-11-14 22:59:11  michael
+  Revision 1.12  2001-11-17 16:56:08  florian
+    * init and final code in genrtti.inc updated
+
+  Revision 1.11  2001/11/14 22:59:11  michael
   + Initial variant support
 
   Revision 1.10  2001/08/01 15:00:10  jonas

@@ -40,7 +40,7 @@ Const
        tkBool          = 18;
        tkInt64         = 19;
        tkQWord         = 20;
-       tkDynArray = 21;
+       tkDynArray      = 21;
 
 { A record is designed as follows :
     1    : tkrecord
@@ -92,7 +92,10 @@ TArrayRec = record
 
 {
   $Log$
-  Revision 1.4  2001-04-23 18:25:45  peter
+  Revision 1.5  2001-11-17 16:56:08  florian
+    * init and final code in genrtti.inc updated
+
+  Revision 1.4  2001/04/23 18:25:45  peter
     * m68k updates
 
   Revision 1.3  2000/10/21 18:20:17  florian

@@ -23,7 +23,7 @@ Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias :
   already defined or not so define it locally to avoid problems PM }
 Type
     Pbyte = ^Byte;
-    
+
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -32,33 +32,36 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    tkAstring,tkWstring : PPchar(Data)^:=Nil;
-    tkArray :
+    tkAstring,tkWstring,tkInterface,tkDynArray:
+      PPchar(Data)^:=Nil;
+    tkArray:
       begin
-      temp:=Temp+1;
-      I:=temp^;
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info
-      For I:=0 to Count-1 do
-        int_Initialize (Data+(I*size),TInfo);
+         inc(temp);
+         I:=temp^;
+         inc(temp,(I+1));                // skip name string;
+         Size:=PArrayRec(Temp)^.Size;    // get element size
+         Count:=PArrayRec(Temp)^.Count;  // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+         For I:=0 to Count-1 do
+           int_Initialize (Data+(I*size),TInfo);
       end;
-    tkrecord :
+    tkRecord,tkClass,tkObject:
       begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count Do
-        With PRecRec(Temp)^.elements[I] do
-          int_Initialize (Data+Offset,Info);
+         inc(Temp);
+         I:=Temp^;
+         inc(temp,I+1);             // skip name string;
+         { if it isn't necessary, why should we load it ? FK
+           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+         }
+         Count:=PRecRec(Temp)^.Count;  // get element Count
+         For I:=1 to count Do
+           With PRecRec(Temp)^.elements[I] do
+             int_Initialize (Data+Offset,Info);
       end;
-{$ifdef HASVARIANTS}
+{$ifdef HASVARIANT}
     tkVariant:
       variant_init(Variant(PVarData(Data)^))
-{$endif HASVARIANTS}
+{$endif HASVARIANT}
   end;
 end;
 {$endif}
@@ -79,33 +82,42 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    tkAstring,tkWstring : fpc_AnsiStr_Decr_Ref(Data);
+    tkAstring,tkWstring:
+      fpc_AnsiStr_Decr_Ref(Data);
     tkArray :
       begin
-      Temp:=Temp+1;
-      I:=temp^;
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info
-      For I:=0 to Count-1 do
-        int_Finalize (Data+(I*size),TInfo);
+         inc(Temp);
+         I:=temp^;
+         inc(temp,I+1);                   // skip name string;
+         Size:=PArrayRec(Temp)^.Size;     // get element size
+         Count:=PArrayRec(Temp)^.Count;   // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;    // Get element info
+         For I:=0 to Count-1 do
+           int_Finalize (Data+(I*size),TInfo);
       end;
-    tkrecord :
+    tkRecord,tkObject,tkClass:
       begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count do
-        With PRecRec(Temp)^.elements[I] do
-          int_Finalize (Data+Offset,Info);
+         inc(Temp);
+         I:=Temp^;
+         inc(temp,I+1);                // skip name string;
+         { if it isn't necessary, why should we load it? FK
+           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+         }
+         Count:=PRecRec(Temp)^.Count;  // get element Count
+         For I:=1 to count do
+           With PRecRec(Temp)^.elements[I] do
+             int_Finalize (Data+Offset,Info);
       end;
-{$ifdef HASVARIANTS}
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Decr_Ref(Data);
+{$endif HASINTF}
+    tkDynArray:
+      fpc_dynarray_decr_ref(Data,TypeInfo);
+{$ifdef HASVARIANT}
     tkVariant:
       variant_clear(Variant(PVarData(Data)^))
-{$endif HASVARIANTS}
+{$endif HASVARIANT}
   end;
 end;
 {$endif}
@@ -177,19 +189,20 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     { see AddRef for comment about below construct (JM) }
-    tkAstring,tkWstring : fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-    tkArray :
+    tkAstring,tkWstring:
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+    tkArray:
       begin
-      Temp:=Temp+1;
-      I:=temp^;
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info
-      For I:=0 to Count-1 do
-        fpc_DecRef (Data+(I*size),TInfo);
+         inc(Temp);
+         I:=temp^;
+         inc(temp,I+1);               // skip name string;
+         Size:=PArrayRec(Temp)^.Size;     // get element size
+         Count:=PArrayRec(Temp)^.Count;  // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+         For I:=0 to Count-1 do
+           fpc_DecRef (Data+(I*size),TInfo);
       end;
-    tkrecord :
+    tkrecord:
       begin
       Temp:=Temp+1;
       I:=Temp^;
@@ -200,6 +213,12 @@ begin
         With PRecRec(Temp)^.elements[I] do
           fpc_DecRef (Data+Offset,Info);
       end;
+    tkDynArray:
+      fpc_dynarray_decr_ref(Data,TypeInfo);
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Decr_Ref(Data);
+{$endif HASINTF}
   end;
 end;
 {$endif}
@@ -216,7 +235,10 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.7  2001-11-17 10:29:48  florian
+ Revision 1.8  2001-11-17 16:56:08  florian
+   * init and final code in genrtti.inc updated
+
+ Revision 1.7  2001/11/17 10:29:48  florian
    * make cycle for win32 fixed
 
  Revision 1.6  2001/11/14 22:59:11  michael

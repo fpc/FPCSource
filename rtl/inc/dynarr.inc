@@ -249,7 +249,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.11  2001-09-27 08:59:13  jonas
+  Revision 1.12  2001-11-17 16:56:08  florian
+    * init and final code in genrtti.inc updated
+
+  Revision 1.11  2001/09/27 08:59:13  jonas
     * fixed bug in dynarr_decr_ref I introduced with my previous fixes
 
   Revision 1.10  2001/09/26 14:07:25  jonas
@@ -257,7 +260,7 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
       dynamical arrays
 
   Revision 1.9  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
       compiled
 
   Revision 1.8  2001/08/01 15:00:10  jonas
