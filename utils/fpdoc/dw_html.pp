@@ -607,6 +607,7 @@ var
   El: TDOMElement;
   DocInfo: TDocInfo;
   CSSName: String;
+
 begin
   Doc := TXHTMLDocument.Create;
   with TXHTMLDocument(Doc) do
@@ -865,12 +866,14 @@ end;
 
 procedure THTMLWriter.DescrBeginLink(const AId: DOMString);
 var
-  s: DOMString;
+  a,s: String;
 begin
-  s := ResolveLinkID(AId);
+  a:=AId;
+  s := ResolveLinkID(a);
   if Length(s) = 0 then
   begin
-    WriteLn(Format(SErrUnknownLinkID, [AId]));
+    
+    WriteLn(Format(SErrUnknownLinkID, [a]));
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
     PushOutputNode(CreateLink(CurOutputNode, s));
@@ -1675,7 +1678,7 @@ end;
 procedure THTMLWriter.AppendSourceRef(AElement: TPasElement);
 begin
   AppendText(CreatePara(BodyElement), Format(SDocSourcePosition,
-    [AElement.SourceFilename, AElement.SourceLinenumber]));
+    [ExtractFileName(AElement.SourceFilename), AElement.SourceLinenumber]));
 end;
 
 Procedure THTMLWriter.AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDocNode);
@@ -1981,9 +1984,12 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
     Decl: TPasElement;
     SortedList: TList;
     DocNode: TDocNode;
+    S : String;
+    
   begin
     AppendMenuBar(ASubpageIndex);
-    AppendTitle(Format(SDocUnitTitle + ': %s', [AModule.Name, ATitle]));
+    S:=ATitle;
+    AppendTitle(Format(SDocUnitTitle + ': %s', [AModule.Name, S]));
     SortedList := TList.Create;
     try
       for i := 0 to AList.Count - 1 do
@@ -2796,7 +2802,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-06-06 10:53:02  michael
+  Revision 1.7  2004-07-25 22:40:13  michael
+  + Strip path from sourcefilename in generated docs
+
+  Revision 1.6  2004/06/06 10:53:02  michael
   + Added Topic support
 
   Revision 1.5  2003/11/28 12:51:37  sg
