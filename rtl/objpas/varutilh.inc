@@ -43,7 +43,7 @@ function SafeArrayDestroy(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyData(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyDescriptor(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayGetDim(psa: PVarArray): Integer; stdcall;
-function SafeArrayGetElemSize(psa: PVarArray): LongWord; stdcall;
+function SafeArrayGetElemsize(psa: PVarArray): LongWord; stdcall;
 function SafeArrayGetElement(psa: PVarArray; Indices: PVarArrayCoorArray;  Data: Pointer): HRESULT; stdcall;
 function SafeArrayGetLBound(psa: PVarArray; Dim: Integer;  var LBound: Integer): HRESULT; stdcall;
 function SafeArrayGetUBound(psa: PVarArray; Dim: Integer;  var UBound: Integer): HRESULT; stdcall;
@@ -104,7 +104,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2003-11-26 20:00:19  florian
+  Revision 1.8  2004-04-16 10:07:44  michael
+  + Case change (bug 3050)
+
+  Revision 1.7  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.6  2002/09/07 16:01:23  peter
