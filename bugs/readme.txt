@@ -343,3 +343,4 @@ bug0244.pp   nested procedures can't have same name as global ones
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
 bug0246.pp   const para can be changed without error
 bug0249.pp   procedure of object cannot be assigned to property.
+bug0250.PP   error with Ansistrings and loops.
