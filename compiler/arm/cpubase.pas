@@ -153,7 +153,7 @@ unit cpubase;
     const
       cgsize2fpuoppostfix : array[OS_NO..OS_F128] of toppostfix = (
         PF_E,
-        PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
+        PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
         PF_S,PF_D,PF_E,PF_None,PF_None);
 
       oppostfix2str : array[TOpPostfix] of string[2] = ('',
@@ -566,7 +566,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.25  2004-01-29 17:09:14  florian
+  Revision 1.26  2004-02-12 13:24:44  florian
+    * small compilation fix
+
+  Revision 1.25  2004/01/29 17:09:14  florian
     * alignment issues fixed
 
   Revision 1.24  2004/01/22 20:13:18  florian
