@@ -174,13 +174,13 @@ cat <<EOFCFG > /etc/ppc386.cfg
 #IFDEF Linux
   # For statically, smartlinked units
   #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/static
-    -Fu$1/units/static
+    -Fu$1/rtl/linux/static
+    -Fu$1/units/linux/static
   #ENDIF
   # For Dynamically linked units
   #IFDEF FPC_LINK_DYNAMIC
-    -Fu$1/rtl/shared
-    -Fu$1/units/shared
+    -Fu$1/rtl/linux/shared
+    -Fu$1/units/linux/shared
   #ENDIF
   -Fu$1/rtl/linux
   -Fu$1/units/linux

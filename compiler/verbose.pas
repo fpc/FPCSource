@@ -249,7 +249,7 @@ end;
 
 procedure UpdateReplacement(var s:string);
 begin
-  Replace(s,'$FPCVER',version_string);
+  Replace(s,'$FPCVER',full_version_string);
   Replace(s,'$FPCDATE',date_string);
   Replace(s,'$FPCTARGET',target_cpu_string);
 end;
@@ -515,7 +515,11 @@ end.
 
 {
   $Log$
-  Revision 1.39  1999-05-08 19:52:42  peter
+  Revision 1.39.2.1  1999-06-18 10:55:32  peter
+    * version fixes
+    * EXTRAUNITS to set extra units that are build and needs to be cleaned
+
+  Revision 1.39  1999/05/08 19:52:42  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings

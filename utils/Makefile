@@ -28,6 +28,7 @@ DEFAULTFPCDIR=..
 EXEOBJECTS=ppudump ppumove ppdep ptop
 UNITOBJECTS=
 
+EXTRAUNITS=ppu ptopu
 
 #####################################################################
 # Common targets
@@ -41,7 +42,7 @@ UNITOBJECTS=
         
 all: testfpcmake fpc_all h2pas_all
 
-clean: testfpcmake fpc_clean extra_clean h2pas_clean
+clean: testfpcmake fpc_clean h2pas_clean
 
 install: testfpcmake fpc_install h2pas_install
 
@@ -120,12 +121,6 @@ ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
 ptopu$(PPUEXT): ptopu.pp
 
 #
-# Clean also the .ppu's
-#
-extra_clean:
-	$(DEL) ppu$(PPUEXT) ptopu$(PPUEXT)
-
-#
 # H2Pas
 #
 h2pas_all:
@@ -139,7 +134,11 @@ h2pas_install:
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 16:11:39  peter
+# Revision 1.1.2.1  1999-06-18 10:55:36  peter
+#   * version fixes
+#   * EXTRAUNITS to set extra units that are build and needs to be cleaned
+#
+# Revision 1.1  1999/05/12 16:11:39  peter
 #   * moved
 #
 # Revision 1.14  1999/05/03 18:03:13  peter
