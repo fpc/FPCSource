@@ -258,7 +258,7 @@ interface
          function  read(var d;len:integer):integer;
          procedure write(const d;len:integer);
          procedure writestr(const s:string);
-         procedure readstream(f:TCStream);
+         procedure readstream(f:TCStream;maxlen:longint);
          procedure writestream(f:TCStream);
          property  BlockSize : integer read FBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
@@ -1591,13 +1591,18 @@ end;
       end;
 
 
-    procedure tdynamicarray.readstream(f:TCStream);
+    procedure tdynamicarray.readstream(f:TCStream;maxlen:longint);
       var
         i,left : integer;
       begin
+        if maxlen=-1 then
+         maxlen:=maxlongint;
         repeat
           left:=blocksize-FPosnblock^.used;
+          if left>maxlen then
+           left:=maxlen;
           i:=f.Read(FPosnblock^.data[FPosnblock^.used],left);
+          dec(maxlen,i);
           inc(FPosnblock^.used,i);
           if FPosnblock^.used=blocksize then
            begin
@@ -1609,7 +1614,7 @@ end;
                 FPosnblock:=FLastblock;
               end;
            end;
-        until (i<left);
+        until (i<left) or (maxlen=0);
       end;
 
 
@@ -1629,7 +1634,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-12-29 21:57:27  peter
+  Revision 1.4  2001-03-05 21:40:01  peter
+    * fixed tdynamicarray.readstream
+
+  Revision 1.3  2000/12/29 21:57:27  peter
     * 'classified' tdictionary, but leave it within an define
 
   Revision 1.2  2000/12/25 00:07:25  peter
