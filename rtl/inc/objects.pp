@@ -104,7 +104,7 @@ CONST
 {                            MAXIUM DATA SIZES                              }
 {---------------------------------------------------------------------------}
 {$IFDEF FPC}
-   MaxBytes = 128*1024*1024;                          { Maximum data size }
+   MaxBytes = 128*1024*128;                               { Maximum data size }
 {$ELSE}
    MaxBytes = 16384;
 {$ENDIF}
@@ -313,6 +313,8 @@ TYPE
       PROCEDURE Open (OpenMode: Word);                               Virtual;
       PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
       PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+   private
+      FileInfo : File;
    END;
    PDosStream = ^TDosStream;
 
@@ -681,6 +683,8 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+Uses dos;
+
 {***************************************************************************}
 {                      HELPER ROUTINES FOR CALLING                          }
 {***************************************************************************}
@@ -786,9 +790,6 @@ CONST
 {***************************************************************************}
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
-
-{$I objinc.inc}
-
 {---------------------------------------------------------------------------}
 {  RegisterError -> Platforms DOS/DPMI/WINDOWS/OS2 - Checked 12Jun96 LdB    }
 {---------------------------------------------------------------------------}
@@ -1213,25 +1214,48 @@ END;
 {                         TDosStream OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+{$IFOPT I+}   
+{$DEFINE IO_CHECK_ON}
+{$I-}
+{$ENDIF}     
+
 {--TDosStream---------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TDosStream.Init (FileName: FNameStr; Mode: Word);
-VAR Success: Integer;
+VAR OldFileMode : Byte;
 BEGIN
    Inherited Init;                                    { Call ancestor }
    FileName := FileName+#0;                           { Make asciiz }
    Move(FileName[1], FName, Length(FileName));        { Create asciiz name }
-   Handle := FileOpen(FName, Mode);                   { Open the file }
-   If (Handle <> 0) Then Begin                        { Handle valid }
-     Success := SetFilePos(Handle, 0, 2, StreamSize); { Locate end of file }
-     If (Success = 0) Then
-       Success := SetFilePos(Handle, 0, 0, Position); { Reset to file start }
-   End Else Success := 103;                           { Open file failed }
-   If (Handle = 0) OR (Success <> 0) Then Begin       { Open failed }
-     Handle := InvalidHandle;                         { Reset invalid handle }
-     Error(stInitError, Success);                     { Call stream error }
-   End;
+   Handle := InvalidHandle;
+   Assign(FileInfo,FileName);
+   { Handle the mode }
+   if Mode =stCreate then
+     Begin        
+       Rewrite(FileInfo,1); 
+     end
+   else
+     Begin
+       OldFileMode := FileMode;
+       FileMode := Mode and 3;
+       System.Reset(FileInfo,1);
+       FileMode := OldFileMode;
+       { To use the correct mode we must reclose the file 
+         and open it again 
+       }
+     end;
+   Handle := FileRec(FileInfo).Handle;                { Set handle value   }
+   DosStreamError := IOResult;
+   If DosStreamError = 0 then
+     Begin
+       StreamSize := System.FileSize(FileInfo);
+     end;
+   If DosStreamError = 0 then
+       DosStreamError := IOResult;
+   If (DosStreamError <> 0) Then 
+     Error(stInitError, DosStreamError);              { Call stream error }
+   Status := StOK;  
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -1239,7 +1263,17 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TDosStream.Done;
 BEGIN
-   If (Handle <> InvalidHandle) Then FileClose(Handle);          { Close the file }
+   if Handle <> InvalidHandle then
+     Begin
+       System.Close(FileInfo);
+       DosStreamError := IOResult;
+       If DosStreamError = 0 then
+          Status := stOk
+       else
+          Error(stError, DosStreamError);
+     end;
+   Position := 0;                                     { Zero the position }
+   Handle := InvalidHandle;   
    Inherited Done;                                    { Call ancestor }
 END;
 
@@ -1248,55 +1282,91 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Close;
 BEGIN
-   If (Handle <> InvalidHandle) Then FileClose(Handle);          { Close the file }
+   if Handle <> InvalidHandle then                    { Is file closed ?   }
+     Begin
+       System.Close(FileInfo);                        { Close file         }
+       DosStreamError := IOResult;                    { Check for error    }
+       If DosStreamError = 0 then
+          Status := stOk
+       else
+          Error(stError, DosStreamError);             { Call error routine }
+     end;
    Position := 0;                                     { Zero the position }
-   Handle := invalidhandle;                           { Handle now invalid }
+   Handle := InvalidHandle;                           { Handle invalid    }
 END;
 
 {--TDosStream---------------------------------------------------------------}
 {  Truncate -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Truncate;
-VAR Success: Integer;
 BEGIN
-   If (Status=stOk) Then Begin                        { Check status okay }
-     Success := SetFileSize(Handle, Position);        { Truncate file }
-     If (Success = 0) Then StreamSize := Position     { Adjust size }
-       Else Error(stError, Success);                  { Identify error }
-   End;
+   If Status = stOk then
+     Begin
+       System.Truncate(FileInfo);
+       DosStreamError := IOResult;
+       If DosStreamError = 0 then
+         StreamSize := Position
+       else
+         Error(stError, DosStreamError);
+     end;
 END;
 
 {--TDosStream---------------------------------------------------------------}
 {  Seek -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TDosStream.Seek (Pos: LongInt);
-VAR Success: Integer; Li: LongInt;
+PROCEDURE TDosStream.Seek (Pos: Longint);
 BEGIN
-   If (Status=stOk) Then Begin                        { Check status okay }
-     If (Pos < 0) Then Pos := 0;                      { Negatives removed }
-     If (Handle = InvalidHandle) Then Success := 103 Else        { File not open }
-       Success := SetFilePos(Handle, Pos, 0, Li);     { Set file position }
-     If ((Success = -1) OR (Li <> Pos)) Then Begin    { We have an error }
-       If (Success = -1) Then Error(stSeekError, 0)   { General seek error }
-         Else Error(stSeekError, Success);            { Specific seek error }
-     End Else Position := Li;                         { Adjust position }
-   End;
+   If (Status=stOk) Then 
+     Begin                                  { Check status okay }
+       If (Pos < 0) Then 
+             Pos := 0;                      { Negatives removed }
+       System.Seek(FileInfo, Pos);      
+       DosStreamError := IOResult;
+       if DosStreamError <> 0 then
+          Error(stSeekError, DosStreamError){ Specific seek error }
+       Else Position := Pos;                 { Adjust position     }
+    End;
 END;
 
 {--TDosStream---------------------------------------------------------------}
 {  Open -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Open (OpenMode: Word);
+VAR OldFileMode : Byte;
 BEGIN
-   If (Status=stOk) Then Begin                        { Check status okay }
-     If (Handle = InvalidHandle) Then Begin                      { File not open }
-       Handle := FileOpen(FName, OpenMode);           { Open the file }
-       Position := 0;                                 { Reset position }
-       If (Handle=0) Then Begin                       { File open failed }
-         Handle := InvalidHandle;                                { Reset handle }
-         Error(stOpenError, 103);                     { Call stream error }
-       End;
-     End Else Error(stOpenError, 104);                { File already open }
+   If (Status=stOk) Then 
+     Begin                        { Check status okay }
+     If (Handle = InvalidHandle) Then 
+        Begin                      { File not open }
+          Assign(FileInfo,FName);
+          { Handle the mode }
+          if OpenMode =stCreate then
+            Begin        
+              System.Rewrite(FileInfo,1); 
+            end
+           else
+             Begin
+               OldFileMode := FileMode;
+               FileMode := OpenMode and 3;
+               System.Reset(FileInfo,1);
+               FileMode := OldFileMode;
+               { To use the correct mode we must reclose the file 
+                 and open it again 
+               }
+           end;
+           Handle := FileRec(FileInfo).Handle;                { Set handle value   }
+           DosStreamError := IOResult;
+           If DosStreamError = 0 then
+              StreamSize := System.FileSize(FileInfo);
+           If DosStreamError = 0 then
+              DosStreamError := IOResult;
+           If (DosStreamError <> 0) Then 
+              Error(stOpenError, DosStreamError);              { Call stream error }
+           Status := StOK;  
+           Position := 0;
+         end  
+      Else 
+          Error(stOpenError, 104);                { File already open }
    End;
 END;
 
@@ -1304,56 +1374,49 @@ END;
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Read (Var Buf; Count: Sw_Word);
-VAR Success: Integer; W, BytesMoved: Sw_Word; P: PByteArray;
+VAR BytesMoved: Sw_Word; 
 BEGIN
    If (Position + Count > StreamSize) Then            { Insufficient data }
      Error(stReadError, 0);                           { Read beyond end!!! }
-   If (Handle = InvalidHandle) Then Error(stReadError, 103);     { File not open }
-   P := @Buf;                                         { Transfer address }
-   While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
-     W := Count;                                      { Transfer read size }
-     If (Count>MaxReadBytes) Then
-       W := MaxReadBytes;                             { Cant read >64K bytes }
-     Success := FileRead(Handle, P^, W, BytesMoved);  { Read from file }
-     If ((Success<>0) OR (BytesMoved<>W)) Then Begin  { Error was detected }
-       BytesMoved := 0;                               { Clear bytes moved }
-       If (Success <> 0) Then
-         Error(stReadError, Success)                  { Specific read error }
-         Else Error(stReadError, 0);                  { Non specific error }
-     End;
-     Inc(Position, BytesMoved);                       { Adjust position }
-     P := Pointer(LongInt(P) + BytesMoved);           { Adjust buffer ptr }
-     Dec(Count, BytesMoved);                          { Adjust count left }
-   End;
-   If (Count<>0) Then FillChar(P^, Count, #0);        { Error clear buffer }
+   If (Handle = InvalidHandle) Then 
+     Error(stReadError, 103);                         { File not open }
+   BlockRead(FileInfo, Buf, Count, BytesMoved);       { Read from file }
+   DosStreamError := IOResult;
+   If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
+    Begin  { Error was detected }
+      BytesMoved := 0;                                { Clear bytes moved }
+      If (DosStreamError <> 0) Then
+         Error(stReadError, DosStreamError)           { Specific read error }
+      Else Error(stReadError, 0);                     { Non specific error }
+     FillChar(Buf, Count, #0);                        { Error clear buffer }
+    End;
+   Inc(Position, BytesMoved);                         { Adjust position }
 END;
 
 {--TDosStream---------------------------------------------------------------}
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
-VAR Success: Integer; W, BytesMoved: Sw_Word; P: PByteArray;
+VAR BytesMoved: Sw_Word; 
 BEGIN
-   If (Handle = InvalidHandle) Then Error(stWriteError, 103);    { File not open }
-   P := @Buf;                                         { Transfer address }
-   While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
-     W := Count;                                      { Transfer read size }
-     If (Count>MaxReadBytes) Then
-       W := MaxReadBytes;                             { Cant read >64K bytes }
-     Success := FileWrite(Handle, P^, W, BytesMoved); { Write to file }
-     If ((Success<>0) OR (BytesMoved<>W)) Then Begin  { Error was detected }
-       BytesMoved := 0;                               { Clear bytes moved }
-       If (Success<>0) Then
-         Error(stWriteError, Success)                 { Specific write error }
-         Else Error(stWriteError, 0);                 { Non specific error }
-     End;
-     Inc(Position, BytesMoved);                       { Adjust position }
-     P := Pointer(LongInt(P) + BytesMoved);           { Transfer address }
-     Dec(Count, BytesMoved);                          { Adjust count left }
-     If (Position > StreamSize) Then                  { File expanded }
-       StreamSize := Position;                        { Adjust stream size }
-   End;
+   If (Handle = InvalidHandle) Then 
+    Error(stWriteError, 103);                    { File not open }
+   BlockWrite(FileInfo, Buf, Count, BytesMoved); { Write to file }
+   DosStreamError := IOResult;
+   If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
+      Begin  { Error was detected }
+          BytesMoved := 0;                               { Clear bytes moved }
+          If (DosStreamError<>0) Then
+             Error(stWriteError, DOSStreamError)     { Specific write error }
+          Else 
+             Error(stWriteError, 0);                 { Non specific error }
+      End;
+   Inc(Position, BytesMoved);                       { Adjust position }
+   If (Position > StreamSize) Then                  { File expanded }
+     StreamSize := Position;                        { Adjust stream size }
 END;
+
+
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                         TBufStream OBJECT METHODS                         }
@@ -1393,15 +1456,18 @@ END;
 {  Flush -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Flush;
-VAR Success: Integer; W: Sw_Word;
+VAR W: Sw_Word;
 BEGIN
    If (LastMode=2) AND (BufPtr<>0) Then Begin         { Must update file }
-     If (Handle = InvalidHandle) Then Success := 103             { File is not open }
-       Else Success := FileWrite(Handle, Buffer^,
-         BufPtr, W);                                  { Write to file }
-     If (Success<>0) OR (W<>BufPtr) Then              { We have an error }
-       If (Success=0) Then Error(stWriteError, 0)     { Unknown write error }
-         Else Error(stError, Success);                { Specific write error }
+     If (Handle = InvalidHandle) Then DosStreamError := 103  { File is not open }
+       Else 
+         Begin
+           BlockWrite(FileInfo, Buffer^,BufPtr, W);     { Write to file }
+           DosStreamError := IOResult;
+         End;   
+     If (DosStreamError<>0) OR (W<>BufPtr) Then       { We have an error }
+       If (DosStreamError=0) Then Error(stWriteError, 0){ Unknown write error }
+         Else Error(stError, DosStreamError);         { Specific write error }
    End;
    BufPtr := 0;                                       { Reset buffer ptr }
    BufEnd := 0;                                       { Reset buffer end }
@@ -1458,10 +1524,11 @@ BEGIN
        If (Position + BufSize > StreamSize) Then
          Bw := StreamSize - Position                  { Amount of file left }
          Else Bw := BufSize;                          { Full buffer size }
-       Success := FileRead(Handle, Buffer^, Bw, W);   { Read from file }
-       If ((Success<>0) OR (Bw<>W)) Then Begin        { Error was detected }
-       If (Success<>0) Then
-         Error(stReadError, Success)                  { Specific read error }
+       BlockRead(FileInfo, Buffer^, Bw, W);
+       DosStreamError := IOResult;                    { Read from file }
+       If ((DosStreamError<>0) OR (Bw<>W)) Then Begin { Error was detected }
+       If (DosStreamError<>0) Then
+         Error(stReadError, DosStreamError)           { Specific read error }
          Else Error(stReadError, 0);                  { Non specific error }
        End Else Begin
          BufPtr := 0;                                 { Reset BufPtr }
@@ -1494,11 +1561,11 @@ BEGIN
    P := @Buf;                                         { Transfer address }
    While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
      If (BufPtr=BufSize) Then Begin                   { Buffer is full }
-       Success := FileWrite(Handle, Buffer^, BufSize,
-         W);                                          { Write to file }
-       If (Success<>0) OR (W<>BufSize) Then           { We have an error }
-         If (Success=0) Then Error(stWriteError, 0)   { Unknown write error }
-           Else Error(stError, Success);              { Specific write error }
+       BlockWrite(FileInfo, Buffer^, BufSize,W);      { Write to file }
+       DosStreamError := IOResult;
+       If (DosStreamError<>0) OR (W<>BufSize) Then           { We have an error }
+         If (DosStreamError=0) Then Error(stWriteError, 0)   { Unknown write error }
+           Else Error(stError, DosStreamError);              { Specific write error }
        BufPtr := 0;                                   { Reset BufPtr }
      End;
      If (Status=stOk) Then Begin                      { Status still okay }
@@ -1514,6 +1581,11 @@ BEGIN
      End;
    End;
 END;
+
+{$IFDEF IO_CHECK_ON}
+{$UNDEF IO_CHECK_ON}
+{$I+}
+{$ENDIF}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        TMemoryStream OBJECT METHODS                       }
@@ -2788,7 +2860,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.12  2002-09-07 21:15:25  carl
+  Revision 1.13  2002-10-09 16:10:14  carl
+    - removed OS depedencies
+
+  Revision 1.12  2002/09/07 21:15:25  carl
     - some cleanup (less ifdef)
 
   Revision 1.11  2002/09/07 15:07:45  peter
