@@ -18,20 +18,24 @@
    r4: src
 }
 asm
+        { nil? }
+        cmplwi   r4, 0
         {  load the begin of the string in the data cache }
         dcbt    0,r4
         { maxlength }
         li      r10,255
         mtctr   r10
-        lwz     r11,0(r3)
-        { save address for at the end }
-        mr      r3,r11
-        { no "subi r0,r0,1" because the first byte = length byte }
+        { at LStrPasDone, we set the length of the result to 255 - r10 - r4 }
+        { = 255 - 255 - 0 if the soure = nil -> perfect :)                  }
+        beq     LStrPasDone
+        { save address for at the end  and use r5 in loop }
+        mr      r5,r3
+        { no "subi r5,r5,1" because the first byte = length byte }
         subi    r4,r4,1
 LStrPasLoop:
         lbzu    r10,1(r4)
         cmplwi  cr0,r10,0
-        stbu    r10,1(r11)
+        stbu    r10,1(r5)
         bdnzf   cr0*4+eq, LStrPasLoop
 
         { if we stopped because of a terminating #0, decrease the length by 1 }
@@ -41,6 +45,7 @@ LStrPasLoop:
         { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
         { (32 leading zero bits) -> shr 5 = 1, otherwise this will be zero      }
         srwi    r4,r4,5
+LStrPasDone:
         subfic  r10,r10,255
         sub     r10,r10,r4
 
@@ -50,7 +55,10 @@ end ['R0','R3','R4','R10','R11','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.8  2002-10-17 10:14:46  jonas
+  Revision 1.9  2003-04-27 16:25:08  jonas
+    * support nil as parameter and some other fixes
+
+  Revision 1.8  2002/10/17 10:14:46  jonas
     * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
 
   Revision 1.7  2002/09/11 07:49:40  jonas
