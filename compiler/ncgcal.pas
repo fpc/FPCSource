@@ -701,6 +701,10 @@ implementation
 {$endif PASS2INLINE}
                              begin
 {$ifdef cputargethasfixedstack}
+                               { Can't have a data copied to the stack, every location
+                                 must contain a valid size field }
+                               if ppn.tempcgpara.size=OS_NO then
+                                 internalerror(200501281);
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
                                { copy parameters in case they were moved to a temp. location because we've a fixed stack }
                                case tmpparaloc^.loc of
@@ -709,7 +713,7 @@ implementation
                                      reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
                                      { use concatcopy, because it can also be a float which fails when
                                        load_ref_ref is used }
-                                     cg.g_concatcopy(exprasmlist,htempref,href,sizeleft);
+                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size]);
                                    end;
                                  LOC_REGISTER:
                                    cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
@@ -742,12 +746,15 @@ implementation
          ppn:=tcgcallparanode(left);
          while assigned(ppn) do
            begin
-             if
+             if (ppn.left.nodetype<>nothingn) then
+               begin
+                 if
 {$ifdef PASS2INLINE}
-                not assigned(inlinecode) or
+                    not assigned(inlinecode) or
 {$endif PASS2INLINE}
-                (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
-               paramanager.freeparaloc(exprasmlist,ppn.parasym.paraloc[callerside]);
+                    (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
+                   paramanager.freeparaloc(exprasmlist,ppn.parasym.paraloc[callerside]);
+               end;
              ppn:=tcgcallparanode(ppn.right);
            end;
        end;
@@ -1213,7 +1220,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.197  2005-01-20 17:47:01  peter
+  Revision 1.198  2005-01-29 11:36:52  peter
+    * update x86_64 with new cpupara
+
+  Revision 1.197  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.196  2005/01/18 22:19:20  peter

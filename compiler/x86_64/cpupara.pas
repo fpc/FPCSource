@@ -29,7 +29,7 @@ unit cpupara;
     uses
       globtype,
       cpubase,cgbase,
-      symconst,symbase,symtype,symsym,symdef,
+      symconst,symtype,symsym,symdef,
       aasmtai,
       parabase,paramgr;
 
@@ -164,6 +164,7 @@ unit cpupara;
       begin
         cgpara.reset;
         cgpara.size:=OS_INT;
+        cgpara.intsize:=tcgsize2size[OS_INT];
         cgpara.alignment:=get_para_align(calloption);
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -188,7 +189,6 @@ unit cpupara;
 
     procedure tx86_64paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       var
-        paraloc : pcgparalocation;
         retcgsize : tcgsize;
       begin
         { Constructors return self instead of a boolean }
@@ -248,16 +248,17 @@ unit cpupara;
     procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint);
       var
-        hp : tparavarsym;
-        paraloc,
-        paraloc2 : pcgparalocation;
-        subreg : tsubregister;
-        pushaddr : boolean;
+        hp         : tparavarsym;
+        paraloc    : pcgparalocation;
+        subreg     : tsubregister;
+        pushaddr   : boolean;
         paracgsize : tcgsize;
-        loc1,loc2 : tcgloc;
+        loc        : array[1..2] of tcgloc;
+        paralen,
+        locidx,
         l,i,
         varalign,
-        paraalign : longint;
+        paraalign  : longint;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
@@ -267,111 +268,106 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
             if pushaddr then
               begin
-                loc1:=LOC_REGISTER;
-                loc2:=LOC_INVALID;
+                loc[1]:=LOC_REGISTER;
+                loc[2]:=LOC_INVALID;
                 paracgsize:=OS_ADDR;
+                paralen:=sizeof(aint);
               end
             else
               begin
-                getvalueparaloc(hp.vartype.def,loc1,loc2);
+                getvalueparaloc(hp.vartype.def,loc[1],loc[2]);
+                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
                 paracgsize:=def_cgsize(hp.vartype.def);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
-            { First location }
-            paraloc:=hp.paraloc[side].add_location;
-            if (loc1=LOC_REGISTER) and
-               (intparareg<=high(paraintsupregs)) then
+            if paralen>0 then
               begin
-                if (paracgsize=OS_NO) or (loc2<>LOC_INVALID) then
+                locidx:=1;
+                while (paralen>0) do
                   begin
-                    paraloc^.size:=OS_INT;
-                    subreg:=R_SUBWHOLE;
-                  end
-                else
-                  begin
-                    paraloc^.size:=paracgsize;
-                    { s64comp is pushed in an int register }
-                    if paraloc^.size=OS_C64 then
-                      paraloc^.size:=OS_64;
-                    subreg:=cgsize2subreg(paraloc^.size);
+                    if locidx>2 then
+                      internalerror(200501283);
+                    { Enough registers free? }
+                    case loc[locidx] of
+                      LOC_REGISTER :
+                        begin
+                          if (intparareg>high(paraintsupregs)) then
+                            loc[locidx]:=LOC_REFERENCE;
+                        end;
+                      LOC_MMREGISTER :
+                        begin
+                          if (mmparareg>high(parammsupregs)) then
+                            loc[locidx]:=LOC_REFERENCE;
+                        end;
+                    end;
+                    { Allocate }
+                    case loc[locidx] of
+                      LOC_REGISTER :
+                        begin
+                          paraloc:=hp.paraloc[side].add_location;
+                          paraloc^.loc:=LOC_REGISTER;
+                          if (paracgsize=OS_NO) or (loc[2]<>LOC_INVALID) then
+                            begin
+                              paraloc^.size:=OS_INT;
+                              subreg:=R_SUBWHOLE;
+                            end
+                          else
+                            begin
+                              paraloc^.size:=paracgsize;
+                              { s64comp is pushed in an int register }
+                              if paraloc^.size=OS_C64 then
+                                paraloc^.size:=OS_64;
+                              subreg:=cgsize2subreg(paraloc^.size);
+                            end;
+                          paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
+                          inc(intparareg);
+                          dec(paralen,tcgsize2size[paraloc^.size]);
+                        end;
+                      LOC_MMREGISTER :
+                        begin
+                          paraloc:=hp.paraloc[side].add_location;
+                          paraloc^.loc:=LOC_MMREGISTER;
+                          paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
+                          if paracgsize=OS_F128 then
+                            paraloc^.size:=OS_F64
+                          else
+                            paraloc^.size:=paracgsize;
+                          inc(mmparareg);
+                          dec(paralen,tcgsize2size[paraloc^.size]);
+                        end;
+                      LOC_REFERENCE :
+                        begin
+                          { Extended needs a single location }
+                          if (paracgsize=OS_F80) or
+                             (paralen<=sizeof(aint)) then
+                            l:=paralen
+                          else
+                            l:=sizeof(aint);
+                          paraloc:=hp.paraloc[side].add_location;
+                          paraloc^.loc:=LOC_REFERENCE;
+                          paraloc^.size:=int_cgsize(l);
+                          if side=callerside then
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG
+                          else
+                            paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                          varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                          paraloc^.reference.offset:=parasize;
+                          parasize:=align(parasize+l,varalign);
+                          dec(paralen,l);
+                        end;
+                    end;
+                    if (locidx<2) and
+                       (loc[locidx+1]<>LOC_INVALID) then
+                      inc(locidx);
                   end;
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
-                inc(intparareg);
-              end
-            else if (loc1=LOC_MMREGISTER) and
-                    (mmparareg<=high(parammsupregs)) then
-              begin
-                paraloc^.loc:=LOC_MMREGISTER;
-                paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
-                if paracgsize=OS_F128 then
-                  paraloc^.size:=OS_F64
-                else
-                  paraloc^.size:=paracgsize;
-                inc(mmparareg);
               end
             else
               begin
-                paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.size:=paracgsize;
-                if side=callerside then
-                  paraloc^.reference.index:=NR_STACK_POINTER_REG
-                else
-                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                varalign:=size_2_align(l);
-                paraloc^.reference.offset:=parasize;
-                varalign:=used_align(varalign,paraalign,paraalign);
-                parasize:=align(parasize+l,varalign);
-              end;
-            { Second location }
-            if (loc2<>LOC_INVALID) then
-              begin
-                if (loc2=LOC_REGISTER) and
-                   (intparareg<=high(paraintsupregs)) then
-                  begin
-                    paraloc2:=hp.paraloc[side].add_location;
-                    paraloc2^.loc:=LOC_REGISTER;
-                    paraloc2^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],R_SUBWHOLE);
-                    paraloc2^.size:=OS_INT;
-                    inc(intparareg);
-                  end
-                else
-                 if (loc2=LOC_MMREGISTER) and
-                    (mmparareg<=high(parammsupregs)) then
-                  begin
-                    paraloc2:=hp.paraloc[side].add_location;
-                    paraloc2^.loc:=LOC_REGISTER;
-                    paraloc2^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
-                    if paracgsize=OS_F128 then
-                      paraloc2^.size:=OS_F64
-                    else
-                      paraloc2^.size:=paracgsize;
-                    inc(mmparareg);
-                  end
-                else
-                  begin
-                    { Release when location low has already registers
-                      assigned }
-                    if paraloc^.loc=LOC_REGISTER then
-                      dec(intparareg);
-                    if paraloc^.loc=LOC_MMREGISTER then
-                      dec(mmparareg);
-                    { Overwrite with LOC_REFERENCE }
-                    paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=paracgsize;
-                    if side=callerside then
-                      paraloc^.reference.index:=NR_STACK_POINTER_REG
-                    else
-                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                    varalign:=size_2_align(l);
-                    paraloc^.reference.offset:=parasize;
-                    varalign:=used_align(varalign,paraalign,paraalign);
-                    parasize:=align(parasize+l,varalign);
-                  end;
+                paraloc:=hp.paraloc[side].add_location;
+                paraloc^.loc:=LOC_VOID;
               end;
           end;
         { Register parameters are assigned from left-to-right, but the
@@ -430,7 +426,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-12-12 12:56:18  peter
+  Revision 1.14  2005-01-29 11:36:52  peter
+    * update x86_64 with new cpupara
+
+  Revision 1.13  2004/12/12 12:56:18  peter
     * compile fixes for x86_64
 
   Revision 1.12  2004/11/21 17:54:59  peter

@@ -651,6 +651,7 @@ implementation
 
            dec(compile_level);
            compiled_module:=olddata^.old_compiled_module;
+           SetCompileModule(compiled_module);
 
            dispose(olddata);
          end;
@@ -659,7 +660,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2005-01-26 16:23:28  peter
+  Revision 1.72  2005-01-29 11:36:52  peter
+    * update x86_64 with new cpupara
+
+  Revision 1.71  2005/01/26 16:23:28  peter
     * detect arithmetic overflows for constants at compile time
     * use try..except instead of setjmp
 
