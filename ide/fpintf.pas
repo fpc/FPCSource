@@ -42,6 +42,11 @@ implementation
 
 uses
   Compiler,Comphook,
+{$ifdef FPC}
+{$ifndef COMPILER_1_0}
+  sysutils,
+{$endif COMPILER_1_0}
+{$endif FPC}
 {$ifdef COMPILER_1_0}
   tpexcept,
 {$endif COMPILER_1_0}
@@ -233,6 +238,7 @@ begin
               CompilerMessageWindow^.AddMessage(V_Error,
                 e.message,'',0,0);
             end;
+      end;
 {$endif COMPILER_1_0}
     end;
 end;
@@ -288,7 +294,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-10-03 10:21:43  pierre
+  Revision 1.3  2001-10-03 20:46:34  pierre
+   * except syntax fix for 1.1 version
+
+  Revision 1.2  2001/10/03 10:21:43  pierre
    fix for bug 1487
 
   Revision 1.1  2001/08/04 11:30:23  peter
