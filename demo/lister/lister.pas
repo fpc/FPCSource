@@ -29,14 +29,12 @@ Uses Process,SysUtils,Video,Keyboard,FList
 Function Do_File_cmd(path:String):String;
 
 Const BufSize = 1024;
-
       TheProgram = 'file' {$IFDEF Win32}+'.exe' {$ENDIF};
 
 
 Var S : TProcess;
     Buf : Array[1..BUFSIZE] of char;
     I,Count : longint;
-
 
 begin
   S:=TProcess.Create(Nil);
@@ -82,6 +80,7 @@ Var
   Forced,
   ForcedFull: Boolean;
   C        : Char;
+  Editor,
   Pager : AnsiString;
 Procedure ReDraw;
 
@@ -92,6 +91,16 @@ Begin
     // Probably so much changed that diffing won't help?
     UpdateScreen(true);
 End;
+
+procedure loadutil(const envvar,default : string;var symbol : string);
+
+begin
+   Symbol:=GetEnvironmentVariable(envvar); 
+   if Symbol='' Then
+     Symbol:=default;
+   if Pos('/',Symbol)=0 Then
+     Symbol:=FileSearch(Symbol,GetEnvironmentVariable('PATH'));
+end;
 
 
 Begin
@@ -105,12 +114,11 @@ Begin
   ExitNow:=False;
   {$ifdef win32}
    Pager:='notepad.exe';
+   Editor:='notepad.exe';
   {$else}
-   Pager:=GetEnvironmentVariable('PAGER'); 
-   if Pos('/',Pager)=0 Then
-     Pager:=FileSearch(Pager,GetEnvironmentVariable('PATH'));
+   loadutil('EDITOR','joe' ,editor);
+   loadutil('PAGER' ,'less',pager);
   {$endif}
-
   If ParamCount()>0 Then
     FileSpec:=ParamStr(1);
   {$ifdef debug}
@@ -193,8 +201,10 @@ Begin
           #13      : Begin
                        If D.Cursor>=D.DirCount Then
                          Begin
-                           S:=ExtractFileExt(D[D.Cursor]);
-                           Delete(S,1,1);
+                           {$ifdef win32}  // try to get "open" action ?
+                             S:=ExtractFileExt(D[D.Cursor]);
+                             Delete(S,1,1);
+			   {$endif}
                            ExecuteProcess(Pager,[D.Directory+D[D.Cursor]]);
                            // TextOut(10,1,'                        ');
                            //TextOut(10,1,D[D.Cursor]);
@@ -218,6 +228,19 @@ Begin
 			   {$ENDIF}
                          End;
                      End;
+          'e','E'  : begin
+		       If D.Cursor>=D.DirCount Then
+                         Begin
+                           {$ifdef win32}  // try to get "edit" action ?
+                             S:=ExtractFileExt(D[D.Cursor]);
+                             Delete(S,1,1);
+			   {$endif}
+                           ExecuteProcess(Editor,[D.Directory+D[D.Cursor]]);
+                           // TextOut(10,1,'                        ');
+                           //TextOut(10,1,D[D.Cursor]);
+                           ForcedFull:=True;
+                         End	
+		     end;
           #27,'q'  : exitnow:=True;
           ' '      : Begin
                        D.Toggle(D.Cursor);
@@ -268,7 +291,10 @@ End.
 
 {
    $Log$
-   Revision 1.1  2005-04-06 08:54:16  marco
+   Revision 1.2  2005-04-06 18:45:47  marco
+    * editing added
+
+   Revision 1.1  2005/04/06 08:54:16  marco
     * new Unix demo: lister
 
 }
