@@ -27,7 +27,7 @@
 unit browcol;
 interface
 uses
-  cobjects,objects,symconst,symtable,cpuinfo;
+  cobjects,cutils,objects,symconst,symtable,cpuinfo;
 
 {$ifndef FPC}
   type
@@ -261,7 +261,7 @@ implementation
 uses
   Dos,Drivers,{Views,App,}{$ifndef FPC}strings,{$endif}
   WUtils,
-  aasm,globtype,globals,files,comphook;
+  aasm,globtype,globals,finput,fmodule,comphook;
 
 const
   RModuleNameCollection: TStreamRec = (
@@ -1820,7 +1820,7 @@ end;
 procedure BuildSourceList;
 var m: pmodule;
     s: pinputfile;
-    p: cobjects.pstring;
+    p: pstring;
     ppu,obj: string;
     source: string;
 begin
@@ -2094,7 +2094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-08-18 14:33:07  marco
+  Revision 1.7  2000-09-01 21:27:50  peter
+    * changed files to finput,fmodule
+
+  Revision 1.6  2000/08/18 14:33:07  marco
    + Fixed cast tconstsym.value with tpointerord
 
   Revision 1.5  2000/08/18 13:18:12  pierre
