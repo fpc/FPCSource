@@ -35,6 +35,8 @@
 
 	.global	___djgpp_exception_table
 ___djgpp_exception_table:
+EXCEPTION_ENTRY $18
+EXCEPTION_ENTRY $19
 EXCEPTION_ENTRY $0
 EXCEPTION_ENTRY $1
 EXCEPTION_ENTRY $2
@@ -481,4 +483,3 @@ already_forced:
 	.global ___djgpp_hw_lock_end
 ___djgpp_hw_lock_end:
         ret                                     /* LD does weird things */
-

@@ -725,7 +725,8 @@ end;
 function except_to_sig(excep : longint) : longint;
 begin
   case excep of
-    5,8,9,11,12,13,14 : exit(SIGSEGV);
+    5,8,9,11,12,13,14,
+    18, 19            : exit(SIGSEGV);
     0,4,16            : exit(SIGFPE);
     1,3               : exit(SIGTRAP);
     7                 : exit(SIGNOFP);
@@ -754,7 +755,7 @@ end;
 
 
 const
-  EXCEPTIONCOUNT = 18;
+  EXCEPTIONCOUNT = 20;
   exception_names : array[0..EXCEPTIONCOUNT-1] of pchar = (
    'Division by Zero',
    'Debug',
@@ -773,10 +774,12 @@ const
    'Page fault',
    ' ',
    'Coprocessor Error',
-   'Alignment Check');
+   'Alignment Check',
+   'Machine check',
+   'SIMD FP Error');
 
   has_error : array [0..EXCEPTIONCOUNT-1] of byte =
-   (0,0,0,0,0,0,0,0,1,0,1,1,1,1,1,0,0,1);
+   (0,0,0,0,0,0,0,0,1,0,1,1,1,1,1,0,0,1,0,0);
 
   cbrk_hooked    : boolean = false;
   old_video_mode : byte = 3;
@@ -1282,12 +1285,17 @@ begin
 { lock addresses which may see HW interrupts }
   lock_code(@djgpp_hw_lock_start,@djgpp_hw_lock_end-@djgpp_hw_lock_start);
   _except.segment:=get_cs;
-  _except.offset:=@djgpp_exception_table;
-  for i:=0 to ExceptionCount-1 do
+  { the first 18 exceptions start at offset +8 since exception
+    #18 and #19 had to be put in front of the table. }
+  _except.offset:=@djgpp_exception_table + 8;
+  for i:=0 to ExceptionCount-3 do
    begin
      except_ori[i] := _except;    { New value to set }
      inc(_except.offset,4);       { This is the size of push n, jmp }
    end;
+  except_ori[18].offset := @djgpp_exception_table;
+  except_ori[19].offset := @djgpp_exception_table + 4;
+
   kbd_ori.segment:=_except.segment;
   npx_ori.segment:=_except.segment;
   npx_ori.offset:=@djgpp_npx_hdlr;
@@ -1435,7 +1443,9 @@ begin
    13,                     {'General Protection Fault'}
    14,                     {'Page fault'}
    15,                     {' ',}
-   17,                     {'Alignment Check');}
+   17,                     {'Alignment Check',}
+   18,                     {'Machine Check',}
+   19,                     {'SSE FP error'}
    SIGSEGV,SIGTRAP,SIGTIMR,SIGINT,SIGQUIT
     : ErrorOfSig:=216;
   end;
@@ -1468,7 +1478,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.3  2000-08-13 19:23:26  peter
+  Revision 1.4  2000-10-05 21:56:45  pierre
+   + exceptions 18 and 19 contributed by Thomas Schatzl (merged)
+
+  Revision 1.3  2000/08/13 19:23:26  peter
     * fixed double declared ___exit() (merged)
 
   Revision 1.2  2000/07/13 11:33:39  michael
