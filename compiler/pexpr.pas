@@ -265,15 +265,19 @@ unit pexpr;
               p1:=comp_expr(true);
               Must_be_valid:=true;
               do_firstpass(p1);
-              case p1^.resulttype^.deftype of
-           pointerdef,
-           procvardef,
-          classrefdef : ;
-            objectdef : if not(pobjectdef(p1^.resulttype)^.is_class) then
-                         Message(parser_e_illegal_parameter_list);
-              else
-                Message(parser_e_illegal_parameter_list);
-              end;
+              if not codegenerror then
+               begin
+                 case p1^.resulttype^.deftype of
+                   pointerdef,
+                   procvardef,
+                   classrefdef : ;
+                   objectdef :
+                     if not(pobjectdef(p1^.resulttype)^.is_class) then
+                       Message(parser_e_illegal_parameter_list);
+                   else
+                     Message(parser_e_illegal_parameter_list);
+                 end;
+               end;
               p2:=gencallparanode(p1,nil);
               p2:=geninlinenode(in_assigned_x,false,p2);
               consume(_RKLAMMER);
@@ -2076,7 +2080,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.136  1999-08-15 22:47:45  peter
+  Revision 1.137  1999-09-01 22:08:58  peter
+    * fixed crash with assigned()
+
+  Revision 1.136  1999/08/15 22:47:45  peter
     * fixed property writeaccess which was buggy after my previous
       subscribed property access
 
