@@ -658,13 +658,9 @@ asm
 end ['EAX'];
 
 
-Function Sptr : Longint;
-begin
-  asm
-    movl %esp,%eax
-    addl $8,%eax
-    movl %eax,-4(%ebp)
-  end ['EAX'];
+Function Sptr : Longint;assembler;
+asm
+        movl    %esp,%eax
 end;
 
 
@@ -800,7 +796,10 @@ end;
 
 {
   $Log$
-  Revision 1.45  1999-04-22 10:52:40  peter
+  Revision 1.46  1999-05-31 12:49:19  peter
+    * smaller sptr function
+
+  Revision 1.45  1999/04/22 10:52:40  peter
     * nil check for strpas
 
   Revision 1.44  1999/04/19 06:13:28  florian
