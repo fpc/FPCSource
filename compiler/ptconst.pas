@@ -29,7 +29,7 @@ unit ptconst;
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
     { the assembler label is in the middle (PM) }
-    procedure readtypedconst(def : pdef;sym : ptypedconstsym);
+    procedure readtypedconst(def : pdef;sym : ptypedconstsym;no_change_allowed : boolean);
 
   implementation
 
@@ -56,7 +56,7 @@ unit ptconst;
 
 
     { this procedure reads typed constants }
-    procedure readtypedconst(def : pdef;sym : ptypedconstsym);
+    procedure readtypedconst(def : pdef;sym : ptypedconstsym;no_change_allowed : boolean);
 
       var
 {$ifdef m68k}
@@ -66,6 +66,7 @@ unit ptconst;
          p,hp      : ptree;
          i,l,offset,
          strlength : longint;
+         curconstsegment : paasmoutput;
          ll        : plabel;
          s         : string;
          ca        : pchar;
@@ -97,6 +98,10 @@ unit ptconst;
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
+         if no_change_allowed then
+           curconstsegment:=consts
+         else
+           curconstsegment:=datasegment;
          case def^.deftype of
             orddef:
               begin
@@ -110,7 +115,7 @@ unit ptconst;
                                  Message(cg_e_illegal_expression)
                                else
                                  begin
-                                    datasegment^.concat(new(pai_const,init_8bit(p^.value)));
+                                    curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
                                     check_range;
                                  end;
                             end;
@@ -119,7 +124,7 @@ unit ptconst;
                                   Message(cg_e_illegal_expression)
                                 else
                                   begin
-                                     datasegment^.concat(new(pai_const,init_32bit(p^.value)));
+                                     curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
                                      check_range;
                                   end;
                             end;
@@ -127,23 +132,23 @@ unit ptconst;
                                 if not is_constintnode(p) then
                                   Message(cg_e_illegal_expression)
                                 else
-                                   datasegment^.concat(new(pai_const,init_32bit(p^.value)));
+                                   curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
                              end;
                     bool8bit : begin
                                   if not is_constboolnode(p) then
                                     Message(cg_e_illegal_expression);
-                                  datasegment^.concat(new(pai_const,init_8bit(p^.value)));
+                                  curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
                                end;
                     uchar : begin
                                 if not is_constcharnode(p) then
                                   Message(cg_e_illegal_expression);
-                                datasegment^.concat(new(pai_const,init_8bit(p^.value)));
+                                curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
                             end;
                     u16bit,
                     s16bit : begin
                                 if not is_constintnode(p) then
                                   Message(cg_e_illegal_expression);
-                                datasegment^.concat(new(pai_const,init_16bit(p^.value)));
+                                curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
                                 check_range;
                             end;
                     s64bitint,
@@ -154,8 +159,8 @@ unit ptconst;
                          else
                            begin
                               {!!!!! hmmm, we can write yet only consts til 2^32-1 :( (FK) }
-                              datasegment^.concat(new(pai_const,init_32bit(p^.value)));
-                              datasegment^.concat(new(pai_const,init_32bit(0)));
+                              curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
+                              curconstsegment^.concat(new(pai_const,init_32bit(0)));
                            end;
                       end;
                  end;
@@ -173,11 +178,11 @@ unit ptconst;
                 Message(cg_e_illegal_expression);
 
               case pfloatdef(def)^.typ of
-                 s64real : datasegment^.concat(new(pai_double,init(value)));
-                 s32real : datasegment^.concat(new(pai_single,init(value)));
-                 s80real : datasegment^.concat(new(pai_extended,init(value)));
-                 s64bit  : datasegment^.concat(new(pai_comp,init(value)));
-                 f32bit : datasegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
+                 s64real : curconstsegment^.concat(new(pai_double,init(value)));
+                 s32real : curconstsegment^.concat(new(pai_single,init(value)));
+                 s80real : curconstsegment^.concat(new(pai_extended,init(value)));
+                 s64bit  : curconstsegment^.concat(new(pai_comp,init(value)));
+                 f32bit : curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
               else internalerror(18);
               end;
               disposetree(p);
@@ -204,7 +209,7 @@ unit ptconst;
                 end;
               { nil pointer ? }
               if p^.treetype=niln then
-                datasegment^.concat(new(pai_const,init_32bit(0)))
+                curconstsegment^.concat(new(pai_const,init_32bit(0)))
               { maybe pchar ? }
               else
                 if (ppointerdef(def)^.definition^.deftype=orddef) and
@@ -212,7 +217,7 @@ unit ptconst;
                    (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
-                    datasegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
+                    curconstsegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
                       begin
@@ -272,7 +277,9 @@ unit ptconst;
                              end;
                              hp:=hp^.left;
                           end;
-                        datasegment^.concat(new(pai_const_symbol,init_offset(hp^.symtableentry^.mangledname,offset)));
+                        if hp^.symtableentry^.typ=constsym then
+                          Message(type_e_variable_id_expected);
+                        curconstsegment^.concat(new(pai_const_symbol,init_offset(hp^.symtableentry^.mangledname,offset)));
                         (*if token=POINT then
                           begin
                              offset:=0;
@@ -289,12 +296,12 @@ unit ptconst;
                                     end;
                                   consume(ID);
                                end;
-                             datasegment^.concat(new(pai_const_symbol_offset,init(
+                             curconstsegment^.concat(new(pai_const_symbol_offset,init(
                                strpnew(p^.left^.symtableentry^.mangledname),offset)));
                           end
                         else
                           begin
-                             datasegment^.concat(new(pai_const,init_symbol(
+                             curconstsegment^.concat(new(pai_const,init_symbol(
                                strpnew(p^.left^.symtableentry^.mangledname))));
                           end;   *)
                         maybe_concat_external(hp^.symtableentry^.owner,
@@ -310,7 +317,7 @@ unit ptconst;
                   begin
                     if (p^.left^.treetype=typen) then
                       begin
-                        datasegment^.concat(new(pai_const_symbol,init(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
+                        curconstsegment^.concat(new(pai_const_symbol,init(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
                         if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
                           concat_external(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,EXT_NEAR);
                       end
@@ -334,7 +341,7 @@ unit ptconst;
                      begin
 {$ifdef i386}
                         for l:=0 to def^.savesize-1 do
-                          datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[l])));
+                          curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[l])));
 {$endif}
 {$ifdef m68k}
                         j:=0;
@@ -342,10 +349,10 @@ unit ptconst;
                         { HORRIBLE HACK because of endian        }
                         { now use intel endian for constant sets }
                          begin
-                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+3])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+2])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+1])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+3])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+2])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+1])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j])));
                            Inc(j,4);
                          end;
 {$endif}
@@ -362,7 +369,7 @@ unit ptconst;
               if p^.treetype=ordconstn then
                 begin
                    if is_equal(p^.resulttype,def) then
-                     datasegment^.concat(new(pai_const,init_32bit(p^.value)))
+                     curconstsegment^.concat(new(pai_const,init_32bit(p^.value)))
                    else
                      Message(cg_e_illegal_expression);
                 end
@@ -384,16 +391,16 @@ unit ptconst;
                              strlength:=def^.size-1
                            else
                              strlength:=p^.length;
-                           datasegment^.concat(new(pai_const,init_8bit(strlength)));
+                           curconstsegment^.concat(new(pai_const,init_8bit(strlength)));
                            { this can also handle longer strings }
                            getmem(ca,strlength+1);
                            move(p^.value_str^,ca^,strlength);
                            ca[strlength]:=#0;
-                           datasegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
+                           curconstsegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
                         end
                       else if is_constcharnode(p) then
                         begin
-                           datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
+                           curconstsegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
                            strlength:=1;
                         end
                       else Message(cg_e_illegal_expression);
@@ -406,7 +413,7 @@ unit ptconst;
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
                            { this can also handle longer strings }
-                           datasegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
+                           curconstsegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
                         end;
                    end;
 {$ifdef UseLongString}
@@ -417,9 +424,9 @@ unit ptconst;
                      else
                       strlength:=p^.length;
                      { first write the maximum size }
-                     datasegment^.concat(new(pai_const,init_32bit(strlength)))));
+                     curconstsegment^.concat(new(pai_const,init_32bit(strlength)))));
                      { fill byte }
-                     datasegment^.concat(new(pai_const,init_8bit(0)));
+                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
                      if p^.treetype=stringconstn then
                        begin
                          getmem(ca,strlength+1);
@@ -432,14 +439,14 @@ unit ptconst;
                           consts^.concat(new(pai_const,init_8bit(p^.value)));
                        end
                      else Message(cg_e_illegal_expression);
-                     datasegment^.concat(new(pai_const,init_8bit(0)));
+                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
                    end;
 {$endif UseLongString}
                  st_ansistring:
                    begin
                       { an empty ansi string is nil! }
                       if (p^.treetype=stringconstn) and (p^.length=0) then
-                        datasegment^.concat(new(pai_const,init_32bit(0)))
+                        curconstsegment^.concat(new(pai_const,init_32bit(0)))
                       else
                         begin
                            if is_constcharnode(p) then
@@ -447,7 +454,7 @@ unit ptconst;
                            else
                             strlength:=p^.length;
                            getdatalabel(ll);
-                           datasegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
+                           curconstsegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
                            { first write the maximum size }
                            consts^.concat(new(pai_const,init_32bit(strlength)));
                            { second write the real length }
@@ -481,10 +488,10 @@ unit ptconst;
                     consume(LKLAMMER);
                     for l:=parraydef(def)^.lowrange to parraydef(def)^.highrange-1 do
                       begin
-                         readtypedconst(parraydef(def)^.definition,nil);
+                         readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
                          consume(COMMA);
                       end;
-                    readtypedconst(parraydef(def)^.definition,nil);
+                    readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
                     consume(RKLAMMER);
                  end
               else
@@ -524,12 +531,12 @@ unit ptconst;
                      begin
                         if i+1-Parraydef(def)^.lowrange<=l then
                           begin
-                             datasegment^.concat(new(pai_const,init_8bit(byte(s[1]))));
+                             curconstsegment^.concat(new(pai_const,init_8bit(byte(s[1]))));
                              delete(s,1,1);
                           end
                         else
                           {Fill the remaining positions with #0.}
-                          datasegment^.concat(new(pai_const,init_8bit(0)));
+                          curconstsegment^.concat(new(pai_const,init_8bit(0)));
                      end;
                    if length(s)>0 then
                      Message(parser_e_string_larger_array);
@@ -546,7 +553,7 @@ unit ptconst;
               { under tp:  =nil or =var under fpc: =nil or =@var }
               if token=_NIL then
                 begin
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
+                   curconstsegment^.concat(new(pai_const,init_32bit(0)));
                    consume(_NIL);
                    exit;
                 end
@@ -590,7 +597,7 @@ unit ptconst;
                      end
                    else
                      Message(type_e_mismatch);
-                   datasegment^.concat(new(pai_const_symbol,init(pd^.mangledname)));
+                   curconstsegment^.concat(new(pai_const_symbol,init(pd^.mangledname)));
                    if pd^.owner^.symtabletype=unitsymtable then
                      concat_external(pd^.mangledname,EXT_NEAR);
                 end;
@@ -620,13 +627,13 @@ unit ptconst;
                         { if needed fill }
                         if pvarsym(srsym)^.address>aktpos then
                           for i:=1 to pvarsym(srsym)^.address-aktpos do
-                            datasegment^.concat(new(pai_const,init_8bit(0)));
+                            curconstsegment^.concat(new(pai_const,init_8bit(0)));
 
                         { new position }
                         aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
 
                         { read the data }
-                        readtypedconst(pvarsym(srsym)^.definition,nil);
+                        readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
 
                         if token=SEMICOLON then
                           consume(SEMICOLON)
@@ -634,7 +641,7 @@ unit ptconst;
                      end;
                 end;
               for i:=1 to def^.size-aktpos do
-                datasegment^.concat(new(pai_const,init_8bit(0)));
+                curconstsegment^.concat(new(pai_const,init_8bit(0)));
               consume(RKLAMMER);
            end;
          { reads a typed object }
@@ -682,13 +689,13 @@ unit ptconst;
                              { if needed fill }
                              if pvarsym(srsym)^.address>aktpos then
                                for i:=1 to pvarsym(srsym)^.address-aktpos do
-                                 datasegment^.concat(new(pai_const,init_8bit(0)));
+                                 curconstsegment^.concat(new(pai_const,init_8bit(0)));
 
                              { new position }
                              aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
 
                              { read the data }
-                             readtypedconst(pvarsym(srsym)^.definition,nil);
+                             readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
 
                              if token=SEMICOLON then
                                consume(SEMICOLON)
@@ -696,7 +703,7 @@ unit ptconst;
                           end;
                      end;
                    for i:=1 to def^.size-aktpos do
-                     datasegment^.concat(new(pai_const,init_8bit(0)));
+                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
                    consume(RKLAMMER);
                 end;
            end;
@@ -707,7 +714,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.39  1999-03-24 23:17:21  peter
+  Revision 1.40  1999-04-25 22:42:17  pierre
+   + code for initialized vars in Delphi mode
+
+  Revision 1.39  1999/03/24 23:17:21  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.38  1999/02/25 21:02:45  peter

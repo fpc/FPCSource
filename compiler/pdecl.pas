@@ -196,11 +196,21 @@ unit pdecl;
                    block_type:=bt_const;
                    storetokenpos:=tokenpos;
                    tokenpos:=filepos;
-                   sym:=new(ptypedconstsym,init(name,def));
+{$ifdef DELPHI_CONST_IN_RODATA}
+                   if m_delphi in aktmodeswitches then
+                     sym:=new(ptypedconstsym,init(name,def,true))
+                   else
+{$endif DELPHI_CONST_IN_RODATA}
+                     sym:=new(ptypedconstsym,init(name,def,false));
                    tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
                    consume(EQUAL);
-                   readtypedconst(def,ptypedconstsym(sym));
+{$ifdef DELPHI_CONST_IN_RODATA}
+                   if m_delphi in aktmodeswitches then
+                     readtypedconst(def,ptypedconstsym(sym),true)
+                   else
+{$endif DELPHI_CONST_IN_RODATA}
+                     readtypedconst(def,ptypedconstsym(sym),false);
                    consume(SEMICOLON);
                 end;
               else consume(EQUAL);
@@ -260,6 +270,8 @@ unit pdecl;
          C_name : string;
          { case }
          p,casedef : pdef;
+         { Delphi initialized vars }
+         pconstsym : ptypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize,startvarrec : longint;
@@ -290,7 +302,11 @@ unit pdecl;
                   consume(CSTRING);
                  Is_gpc_name:=true;
                end;
+             { this is needed for Delphi mode at least
+               but should be OK for all modes !! (PM) }
+             ignore_equal:=true;
              p:=read_type('');
+             ignore_equal:=false;
              symdone:=false;
              if is_gpc_name then
                begin
@@ -378,6 +394,26 @@ unit pdecl;
                  Message(parser_e_absolute_only_to_var_or_const);
                 symdone:=true;
               end;
+             { Handling of Delphi typed const = initialized vars ! }
+             { When should this be rejected ?
+               - in parasymtable
+               - in record or object
+               - ... (PM) }
+             if (m_delphi in aktmodeswitches) and (token=EQUAL) and
+                not (symtablestack^.symtabletype in [parasymtable]) and
+                not is_record and not is_object then
+               begin
+                  storetokenpos:=tokenpos;
+                  s:=sc^.get_with_tokeninfo(tokenpos);
+                  if not sc^.empty then
+                    Message(parser_e_initialized_only_one_var);
+                  pconstsym:=new(ptypedconstsym,init(s,p,false));
+                  tokenpos:=storetokenpos;
+                  symtablestack^.insert(pconstsym);
+                  consume(EQUAL);
+                  readtypedconst(p,pconstsym,false);
+                  symdone:=true;
+               end;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
                consume(SEMICOLON);
@@ -2222,7 +2258,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.109  1999-04-21 09:43:45  peter
+  Revision 1.110  1999-04-25 22:42:16  pierre
+   + code for initialized vars in Delphi mode
+
+  Revision 1.109  1999/04/21 09:43:45  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)
