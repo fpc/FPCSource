@@ -1407,6 +1407,50 @@ example \var{P1} will be decremented by 16 bytes, and
 \var{P2} will be incremented by 16.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Forward type declarations
+\section{Forward type declarations}
+Programs often need to maintain a linked list of records. Each record then
+contains a pointer to the next record (and possibly to the previous record
+as well). For type safety, it is best to define this pointer as a typed
+pointer, so the next record can be allocated on the heap using the \var{New}
+call. In order to do so, the record should be defined something like this:
+\begin{verbatim}
+Type
+  TListItem = Record
+    Data : Integer;
+    Next : ^TListItem;
+  end;
+\end{verbatim}  
+When trying to compile this, the compiler will complain that the
+\var{TListItem} type is not yet defined when it encounters the \var{Next}
+declaration: This is correct, as the definition is still being parsed.
+
+To be able to have the \var{Next} element as a typed pointer, a 'Forward
+type declaration' must be introduced:
+\begin{verbatim}
+Type
+  PListItem = ^TListItem;
+  TListItem = Record
+    Data : Integer;
+    Next : PTListItem;
+  end;
+\end{verbatim}  
+When the compiler encounters a typed pointer declaration where the
+referenced type is not yet known, it postpones resolving the reference later
+on: The pointer definition is a 'Forward type declaration'. The referenced
+type should be introduced later in the same \var{Type} block. No other block
+may come between the definition of the pointer type and the referenced type.
+Indeed, even the word \var{Type} itself may not re-appear: in effect it
+would start a new type-block, causing the compiler to resolve all pending
+declarations in the current block. In most cases, the definition of the
+referenced type will follow immediatly after the definition of the pointer
+type, as shown in the above listing. The forward defined type can be used in
+any type definition following its declaration.
+
+Note that a forward type declaration is only possible with pointer types and
+classes, not with other types.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedural types
 \section{Procedural types}
 \fpc has support for procedural types, although it differs a little from
