@@ -161,7 +161,7 @@ end;
                       Optimal AnsiString Conversion Routines
 *****************************************************************************}
 
-Function XY2Ansi(x,y,ox,oy:byte):String;
+Function XY2Ansi(x,y,ox,oy:longint):String;
 {
   Returns a string with the escape sequences to go to X,Y on the screen
 }
@@ -212,14 +212,14 @@ End;
 
 const
   AnsiTbl : string[8]='04261537';
-Function Attr2Ansi(Attr,OAttr:byte):string;
+Function Attr2Ansi(Attr,OAttr:longint):string;
 {
   Convert Attr to an Ansi String, the Optimal code is calculate
   with use of the old OAttr
 }
 var
   hstr : string[16];
-  OFg,OBg,Fg,Bg : byte;
+  OFg,OBg,Fg,Bg : longint;
 
   procedure AddSep(ch:char);
   begin
@@ -272,13 +272,13 @@ end;
 
 
 
-Function Ansi2Attr(Const HStr:String;oattr:byte):byte;
+Function Ansi2Attr(Const HStr:String;oattr:longint):longint;
 {
   Convert an Escape sequence to an attribute value, uses Oattr as the last
   color written
 }
 var
-  i,j : byte;
+  i,j : longint;
 begin
   i:=2;
   if (Length(HStr)<3) or (Hstr[1]<>#27) or (Hstr[2]<>'[') then
@@ -369,7 +369,7 @@ End;
 {Send String to Remote}
 procedure ttySendStr(const hstr:string);
 var
-  i : word;
+  i : longint;
 begin
   for i:=1to length(hstr) do
    ttySendChar(hstr[i]);
@@ -382,7 +382,7 @@ end;
 {Get Char from Remote}
 function ttyRecvChar:char;
 var
-  Readed,i : word;
+  Readed,i : longint;
 begin
 {Buffer Empty? Yes, Input from StdIn}
   if (InHead=InTail) then
@@ -418,7 +418,7 @@ end;
                        Screen Routines not Window Depended
 *****************************************************************************}
 
-procedure ttyGotoXY(x,y:byte);
+procedure ttyGotoXY(x,y:longint);
 {
   Goto XY on the Screen, if a value is 0 the goto the current
   postion of that value and always recalc the ansicode for it
@@ -435,13 +435,11 @@ begin
      CurrY:=$ff;
    end;
   if Redir then
-
    begin
      if longint(y)-longint(CurrY)=1 then
       ttySendStr(#10);
    end
   else
-
    ttySendStr(XY2Ansi(x,y,CurrX,CurrY));
   CurrX:=x;
   CurrY:=y;
@@ -449,7 +447,7 @@ end;
 
 
 
-procedure ttyColor(a:byte);
+procedure ttyColor(a:longint);
 {
   Set Attribute to A, only output if not the last attribute is set
 }
@@ -470,7 +468,7 @@ procedure ttyWrite(const s:string);
   Write a string to the output, memory copy and Current X&Y are also updated
 }
 var
-  i : word;
+  i : longint;
 begin
   ttySendStr(s);
 {Update MemCopy}
@@ -535,7 +533,7 @@ begin
 end;
 
 
-procedure LineWrite(temp:String);
+procedure LineWrite(const temp:String);
 {
   Write a Line to the screen, doesn't write on 80,25 under Dos
   the Current CurrX is set to WinMax. NO MEMORY UPDATE!
@@ -549,27 +547,31 @@ end;
 
 
 
-procedure DoEmptyLine(y,xl,xh:byte);
+procedure DoEmptyLine(y,xl,xh:longint);
 {
   Write an Empty line at Row Y from Col Xl to XH, Memory is also updated
 }
+var
+  len : longint;
 begin
   ttyGotoXY(xl,y);
-  LineWrite(Space(xh-xl+1));
-  FillChar(Scrn[y],ScreenWidth,' ');
-  FillChar(ScrnCol[y],ScreenWidth,TextAttr);
+  len:=xh-xl+1;
+  LineWrite(Space(len));
+  FillChar(Scrn[y,xl],len,' ');
+  FillChar(ScrnCol[y,xl],len,TextAttr);
 end;
 
 
 
-procedure DoScrollLine(y1,y2,xl,xh:byte);
+procedure DoScrollLine(y1,y2,xl,xh:longint);
 {
   Move Line y1 to y2, use only columns Xl-Xh, Memory is updated also
 }
 var
   Temp    : string;
+  len,
   OldAttr,
-  x,attr : byte;
+  x,attr  : longint;
 begin
   ttyGotoXY(xl,y2);
   OldAttr:=$ff;
@@ -590,8 +592,9 @@ begin
       end;
    End;
 {Update memory copy}
-  Move(Scrn[y1,1],Scrn[y2,1],ScreenWidth);
-  Move(ScrnCol[y1,1],ScrnCol[y2,1],ScreenWidth);
+  len:=xh-xl+1;
+  Move(Scrn[y1,xl],Scrn[y2,xl],len);
+  Move(ScrnCol[y1,xl],ScrnCol[y2,xl],len);
 end;
 
 
@@ -686,9 +689,9 @@ Var
   CY        : Integer;
   oldflush  : boolean;
   I : Integer;
-  
+
 Begin
-  { See if color has changed } 
+  { See if color has changed }
   if OldTextAttr<>TextAttr then
    begin
      i:=TextAttr;
@@ -720,25 +723,36 @@ Procedure ClrEol;
 {
   Clear from current position to end of line.
 }
-Var I : integer;
-
+var
+  len,i : longint;
+  IsLastLine : boolean;
 Begin
-  { See if color has changed } 
+  { See if color has changed }
   if OldTextAttr<>TextAttr then
    begin
      i:=TextAttr;
      TextAttr:=OldTextAttr;
      ttyColor(i);
    end;
-  if FullWin then
+  if FullWin or (WinMaxX = ScreenWidth) then
    begin
      if not Redir then
       ttySendStr(#27'[K');
    end
   else
    begin
-     ttySendStr(Space(WinMaxX-CurrX));
-     ttyGotoXY(0,CurrY);
+   { Tweak windmax so no scrolling happends }
+     len:=WinMaxX-CurrX+1;
+     IsLastLine:=false;
+     if CurrY=WinMaxY then
+      begin
+        inc(WindMax,$0203);
+        IsLastLine:=true;
+      end;
+     ttySendStr(Space(len));
+     if IsLastLine then
+      dec(WindMax,$0203);
+     ttyGotoXY(0,0);
    end;
 End;
 
@@ -764,7 +778,7 @@ End;
 
 
 
-Procedure ScrollScrnRegionUp(xl,yl,xh,yh, count: Byte);
+Procedure ScrollScrnRegionUp(xl,yl,xh,yh, count: longint);
 {
   Scroll the indicated region count lines up. The empty lines are filled
   with blanks in the current color. The screen position is restored
@@ -792,7 +806,7 @@ End;
 
 
 
-Procedure ScrollScrnRegionDown(xl,yl,xh,yh, count: Byte);
+Procedure ScrollScrnRegionDown(xl,yl,xh,yh, count: longint);
 {
   Scroll the indicated region count lines down. The empty lines are filled
   with blanks in the current color. The screen position is restored
@@ -820,24 +834,6 @@ End;
 
 
 
-Procedure ScrollWindow(xl,yl,xh,yh : Byte; count: LongInt);
-{
-  Scroll the indicated region up or down, depending on the sign
-  of count.
-}
-begin
-  If ((xl>xh) or (xh>ScreenWidth)) or
-     ((yl>yh) or (yl>ScreenHeight)) or
-     (abs(Count)>yh-yl+1) then
-   exit;
-  If count<0 then
-   ScrollScrnRegionDown (xl,yl,xh,yh,abs(count))
-  else
-   ScrollScrnRegionUp (xl,yl,xh,yh,count);
-end;
-
-
-
 {*************************************************************************
                             KeyBoard
 *************************************************************************}
@@ -847,7 +843,7 @@ Const
 var
   KeyBuffer : Array[0..KeyBufferSize-1] of Char;
   KeyPut,
-  KeySend   : Byte;
+  KeySend   : longint;
 
 Procedure PushKey(Ch:char);
 Var
@@ -894,7 +890,7 @@ const
                           #044#045#046#047#048#049#050#120#121#122#123#124#125#126#127#128#129#130#131;
 Function FAltKey(ch:char):byte;
 var
-  Idx : byte;
+  Idx : longint;
 Begin
   Idx:=Pos(ch,AltKeyStr);
   if Idx>0 then
@@ -925,7 +921,7 @@ Function ReadKey:char;
 Var
   ch       : char;
   OldState,
-  State    : Word;
+  State    : longint;
 Begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -1083,13 +1079,13 @@ Procedure DoWrite(const s:String);
 var
   found,
   OldFlush  : boolean;
-  x,y       : byte;
+  x,y,
   i,j,
-  SendBytes : word;
+  SendBytes : longint;
 
   function AnsiPara(var hstr:string):byte;
   var
-    k,j  : byte;
+    k,j  : longint;
     code : word;
   begin
     j:=pos(';',hstr);
@@ -1104,7 +1100,7 @@ var
 
   procedure SendText;
   var
-    LeftX : word;
+    LeftX : longint;
   begin
     while (SendBytes>0) do
      begin
@@ -1126,7 +1122,6 @@ var
 begin
   oldflush:=ttySetFlush(Flushing);
 { Support textattr:= changing }
-
   if OldTextAttr<>TextAttr then
    begin
      i:=TextAttr;
@@ -1134,7 +1129,6 @@ begin
      ttyColor(i);
    end;
 { write the stuff }
-
   SendBytes:=0;
   i:=1;
   while (i<=length(s)) do
@@ -1270,7 +1264,7 @@ Begin
    begin
      if (F.BufPtr^[i-1]=#13) and (F.BufPtr^[i]<>#10) then
       F.BufPtr^[i-1]:=#10;
-   end;  
+   end;
   F.BufPos:=F.BufEnd;
   CrtWrite(F);
   CrtRead:=0;
@@ -1465,7 +1459,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  1998-06-19 16:51:50  peter
+  Revision 1.7  1998-07-04 11:17:18  peter
+    * fixes for window (from "Heinz Ziegenhorn" <info@ziegenhorn.de>)
+
+  Revision 1.6  1998/06/19 16:51:50  peter
     * added #13 -> #10 translation for CrtRead to overcome readln probs
 
   Revision 1.5  1998/06/19 14:47:52  michael
