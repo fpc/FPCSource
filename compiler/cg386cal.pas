@@ -875,7 +875,8 @@ implementation
                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
                     end
-                else exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pushedparasize,R_ESP)));
+                else if pushedparasize<>0 then
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pushedparasize,R_ESP)));
              end;
       dont_call:
          pushedparasize:=oldpushedparasize;
@@ -1201,7 +1202,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-04-09 08:41:48  peter
+  Revision 1.73  1999-04-16 10:26:56  pierre
+   * no add $0,%esp for cdecl functions without parameters
+
+  Revision 1.72  1999/04/09 08:41:48  peter
     * define to get ansistring returns in ref instead of reg
 
   Revision 1.71  1999/03/31 13:55:04  peter
