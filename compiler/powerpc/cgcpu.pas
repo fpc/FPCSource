@@ -534,7 +534,7 @@ const
          c: tasmcond;
        begin
          c := flags_to_cond(f);
-         a_jmp(list,A_BC,c.cond,longint(c.cr),l);
+         a_jmp(list,A_BC,c.cond,ord(c.cr)-ord(R_CR0),l);
        end;
 
      procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister);
@@ -546,7 +546,7 @@ const
        begin
          { get the bit to extract from the conditional register + its }
          { requested value (0 or 1)                                   }
-         testbit := (longint(f.cr) * 4);
+         testbit := (ord(f.cr) * 4);
          case f.flag of
            F_EQ,F_NE:
              bitvalue := f.flag = F_EQ;
@@ -1098,7 +1098,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-12-30 17:24:48  jonas
+  Revision 1.11  2002-01-02 14:53:04  jonas
+    * fixed small bug in a_jmp_flags
+
+  Revision 1.10  2001/12/30 17:24:48  jonas
     * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
 
   Revision 1.9  2001/12/29 15:28:58  jonas
