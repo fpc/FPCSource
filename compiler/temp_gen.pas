@@ -125,6 +125,12 @@ interface
                        ':'+tostr(templist^.posinfo.column)+
                        ' at pos '+tostr(templist^.pos)+
                      ' not freed at the end of the procedure');
+             tt_widestring :
+               Comment(V_Warning,'temporary WIDE assignment of size '+
+                       tostr(templist^.size)+' from pos '+tostr(templist^.posinfo.line)+
+                       ':'+tostr(templist^.posinfo.column)+
+                       ' at pos '+tostr(templist^.pos)+
+                     ' not freed at the end of the procedure');
            end;
 {$endif}
            hp:=templist;
@@ -409,7 +415,7 @@ const
 
     function ungetiftempwidestr(const ref : treference) : boolean;
       begin
-        ungetiftempwidestr:=ungettemppointeriftype(ref,tt_widestring,tt_widestring);
+        ungetiftempwidestr:=ungettemppointeriftype(ref,tt_widestring,tt_freewidestring);
       end;
 
 
@@ -588,7 +594,9 @@ const
          if istemp(ref) then
            begin
               { first check if ansistring }
-              if ungetiftempansi(ref) then
+              if ungetiftempansi(ref) or
+                 ungetiftempwidestr(ref) or
+                 ungetiftempintfcom(ref) then
                 exit;
 {$ifndef EXTDEBUG}
               ungettemp(ref.offset,tt_normal);
@@ -614,7 +622,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-07-01 20:16:18  peter
+  Revision 1.17  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.16  2001/07/01 20:16:18  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

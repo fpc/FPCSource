@@ -43,6 +43,7 @@ interface
     procedure loadshortstring(source,dest : tnode);
     procedure loadlongstring(p:tbinarynode);
     procedure loadansi2short(source,dest : tnode);
+    procedure loadwide2short(source,dest : tnode);
     procedure loadinterfacecom(p: tbinarynode);
 
     procedure maketojumpbool(p : tnode);
@@ -1420,6 +1421,42 @@ implementation
          maybe_loadself;
       end;
 
+
+    procedure loadwide2short(source,dest : tnode);
+      var
+         pushed : tpushed;
+         regs_to_push: byte;
+      begin
+         { Find out which registers have to be pushed (JM) }
+         regs_to_push := $ff;
+         remove_non_regvars_from_loc(source.location,regs_to_push);
+         { Push them (JM) }
+         pushusedregisters(pushed,regs_to_push);
+         case source.location.loc of
+           LOC_REFERENCE,LOC_MEM:
+             begin
+                { Now release the location and registers (see cgai386.pas: }
+                { loadansistring for more info on the order) (JM)          }
+                ungetiftemp(source.location.reference);
+                del_reference(source.location.reference);
+                emit_push_mem(source.location.reference);
+             end;
+           LOC_REGISTER,LOC_CREGISTER:
+             begin
+                emit_reg(A_PUSH,S_L,source.location.register);
+                { Now release the register (JM) }
+                ungetregister32(source.location.register);
+             end;
+         end;
+         push_shortstring_length(dest);
+         emitpushreferenceaddr(dest.location.reference);
+         saveregvars($ff);
+         emitcall('FPC_WIDESTR_TO_SHORTSTR');
+         popusedregisters(pushed);
+         maybe_loadself;
+      end;
+
+
     procedure loadinterfacecom(p: tbinarynode);
     {
       copies an com interface from n.right to n.left, we
@@ -1472,7 +1509,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-07-01 20:16:20  peter
+  Revision 1.18  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.17  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

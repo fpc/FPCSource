@@ -86,8 +86,7 @@ implementation
          i       : longint;
          b       : boolean;
          s1,s2   : pchar;
-         ws1,ws2,
-         ws3     : tcompilerwidestring;
+         ws1,ws2 : pcompilerwidestring;
          l1,l2   : longint;
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
@@ -345,15 +344,13 @@ implementation
            begin
               initwidestring(ws1);
               initwidestring(ws2);
-              copywidestring(pcompilerwidestring(tstringconstnode(left).value_str)^,ws1);
-              copywidestring(pcompilerwidestring(tstringconstnode(right).value_str)^,ws2);
+              copywidestring(pcompilerwidestring(tstringconstnode(left).value_str),ws1);
+              copywidestring(pcompilerwidestring(tstringconstnode(right).value_str),ws2);
               case nodetype of
                  addn :
                    begin
-                      initwidestring(ws3);
-                      concatwidestrings(ws1,ws2,ws3);
-                      t:=cstringconstnode.createwstr(ws3);
-                      donewidestring(ws3);
+                      concatwidestrings(ws1,ws2);
+                      t:=cstringconstnode.createwstr(ws1);
                    end;
                  ltn :
                    t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype);
@@ -708,16 +705,10 @@ implementation
            end
 
          { if both are floatdefs, conversion is already done before constant folding }
-           else if (ld.deftype=floatdef) then
-            begin
-              { already converted }
-            end
-
-         else if (right.resulttype.def.deftype=floatdef) or (left.resulttype.def.deftype=floatdef) then
-          begin
-            inserttypeconv(right,pbestrealtype^);
-            inserttypeconv(left,pbestrealtype^);
-          end
+         else if (ld.deftype=floatdef) then
+           begin
+             { already converted }
+           end
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
@@ -1296,7 +1287,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-06-04 21:41:26  peter
+  Revision 1.31  2001-07-08 21:00:14  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.30  2001/06/04 21:41:26  peter
     * readded generic conversion to s32bit that i removed yesterday. It
       is still used for error recovery, added a small note about that
 

@@ -1271,8 +1271,16 @@ implementation
                 begin
                    hregister:=getexplicitregister32(R_EAX);
                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                   gettempansistringreference(hr);
-                   decrstringref(resulttype.def,hr);
+                   if tstringdef(resulttype.def).string_typ=st_widestring then
+                    begin
+                      gettempwidestringreference(hr);
+                      decrstringref(resulttype.def,hr);
+                    end
+                   else
+                    begin
+                      gettempansistringreference(hr);
+                      decrstringref(resulttype.def,hr);
+                    end;
                    emit_reg_ref(A_MOV,S_L,hregister,
                      newreference(hr));
                    ungetregister32(hregister);
@@ -1576,7 +1584,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-07-01 20:16:20  peter
+  Revision 1.27  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.26  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

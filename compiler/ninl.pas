@@ -569,12 +569,10 @@ implementation
                        goto myexit;
                     end;
 
-                  if is_ansistring(left.resulttype.def) or
-                      is_widestring(left.resulttype.def) or
-                      is_dynamic_array(left.resulttype.def) then
-                     resulttype:=s32bittype
+                  if is_shortstring(left.resulttype.def) then
+                     resulttype:=u8bittype
                    else
-                     resulttype:=u8bittype;
+                     resulttype:=s32bittype;
 
                    { check the type, must be string or char }
                    if (left.resulttype.def.deftype<>stringdef) and
@@ -826,7 +824,7 @@ implementation
                                    orddef :
                                      begin
                                        case torddef(tcallparanode(hp).left.resulttype.def).typ of
-                                         uchar,
+                                         uchar,uwidechar,
                                          u32bit,s32bit,
                                          u64bit,s64bit:
                                            ;
@@ -1750,7 +1748,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2001-06-04 11:48:01  peter
+  Revision 1.43  2001-07-08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.42  2001/06/04 11:48:01  peter
     * better const to var checking
 
   Revision 1.41  2001/06/03 20:12:53  peter

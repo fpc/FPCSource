@@ -102,7 +102,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
-function IndexChar(var buf;len:longint;b:char):longint;
+function IndexChar(Const buf;len:longint;b:char):longint;
 begin
   IndexChar:=IndexByte(Buf,Len,byte(B));
 end;
@@ -110,7 +110,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(var buf;len:longint;b:byte):longint;
+function IndexByte(Const buf;len:longint;b:byte):longint;
 type
   bytearray    = array [0..maxlongint] of byte;
 var
@@ -127,7 +127,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(var buf;len:longint;b:word):longint;
+function Indexword(Const buf;len:longint;b:word):longint;
 type
   wordarray    = array [0..maxlongint] of word;
 var
@@ -144,7 +144,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(var buf;len:longint;b:DWord):longint;
+function IndexDWord(Const buf;len:longint;b:DWord):longint;
 type
   longintarray = array [0..maxlongint] of longint;
 var
@@ -160,7 +160,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
-function CompareChar(var buf1,buf2;len:longint):longint;
+function CompareChar(Const buf1,buf2;len:longint):longint;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
@@ -168,7 +168,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(var buf1,buf2;len:longint):longint;
+function CompareByte(Const buf1,buf2;len:longint):longint;
 type
   bytearray    = array [0..maxlongint] of byte;
 var
@@ -197,7 +197,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(var buf1,buf2;len:longint):longint;
+function CompareWord(Const buf1,buf2;len:longint):longint;
 type
   wordarray    = array [0..maxlongint] of word;
 var
@@ -226,7 +226,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(var buf1,buf2;len:longint):longint;
+function CompareDWord(Const buf1,buf2;len:longint):longint;
 type
   longintarray    = array [0..maxlongint] of longint;
 var
@@ -255,7 +255,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_MOVECHAR0}
-procedure MoveChar0(var buf1,buf2;len:longint);
+procedure MoveChar0(Const buf1;var buf2;len:longint);
 var
   I : longint;
 begin
@@ -270,7 +270,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(var buf;len:longint;b:Char):longint;
+function IndexChar0(Const buf;len:longint;b:Char):longint;
 var
   I : longint;
 begin
@@ -286,7 +286,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
-function CompareChar0(var buf1,buf2;len:longint):longint;
+function CompareChar0(Const buf1,buf2;len:longint):longint;
 type
   bytearray    = array [0..maxlongint] of byte;
 
@@ -828,7 +828,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-05-28 20:43:17  peter
+  Revision 1.14  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.13  2001/05/28 20:43:17  peter
     * more saveregisters added (merged)
 
   Revision 1.12  2001/05/18 22:59:59  peter

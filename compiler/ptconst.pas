@@ -42,7 +42,7 @@ implementation
        strings,
 {$endif Delphi}
        globtype,systems,tokens,cpuinfo,
-       cutils,globals,scanner,
+       cutils,globals,widestr,scanner,
        symconst,symbase,symdef,aasm,types,verbose,
        { pass 1 }
        node,pass_1,
@@ -422,6 +422,9 @@ implementation
               { load strval and strlength of the constant tree }
               if p.nodetype=stringconstn then
                 begin
+                  { convert to the expected string type so that
+                    for widestrings strval is a pcompilerwidestring }
+                  inserttypeconv(p,t);
                   strlength:=tstringconstnode(p).len;
                   strval:=tstringconstnode(p).value_str;
                 end
@@ -468,20 +471,6 @@ implementation
                           curconstSegment.concat(Tai_string.Create_length_pchar(ca,t.def.size-strlength-1));
                         end;
                      end;
-{$ifdef UseLongString}
-                   st_longstring:
-                     begin
-                       { first write the maximum size }
-                       curconstSegment.concat(Tai_const.Create_32bit(strlength))));
-                       { fill byte }
-                       curconstSegment.concat(Tai_const.Create_8bit(0));
-                       getmem(ca,strlength+1);
-                       move(strval^,ca^,strlength);
-                       ca[strlength]:=#0;
-                       generate_pascii(consts,ca,strlength);
-                       curconstSegment.concat(Tai_const.Create_8bit(0));
-                     end;
-{$endif UseLongString}
                    st_ansistring:
                      begin
                         { an empty ansi string is nil! }
@@ -508,6 +497,34 @@ implementation
                             ca[strlength+1]:=#0;
                             Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
+                     end;
+                   st_widestring:
+                     begin
+                        { an empty ansi string is nil! }
+                        if (strlength=0) then
+                          curconstSegment.concat(Tai_const.Create_32bit(0))
+                        else
+                          begin
+                            getdatalabel(ll);
+                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            Consts.concat(Tai_const.Create_32bit(strlength));
+                            Consts.concat(Tai_const.Create_32bit(strlength));
+                            Consts.concat(Tai_const.Create_32bit(-1));
+                            Consts.concat(Tai_label.Create(ll));
+                            for i:=0 to strlength-1 do
+                              Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
+                          end;
+                     end;
+                   st_longstring:
+                     begin
+                       internalerror(200107081);
+                       {curconstSegment.concat(Tai_const.Create_32bit(strlength))));
+                       curconstSegment.concat(Tai_const.Create_8bit(0));
+                       getmem(ca,strlength+1);
+                       move(strval^,ca^,strlength);
+                       ca[strlength]:=#0;
+                       generate_pascii(consts,ca,strlength);
+                       curconstSegment.concat(Tai_const.Create_8bit(0));}
                      end;
                  end;
                end;
@@ -868,7 +885,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-06-29 14:16:57  jonas
+  Revision 1.27  2001-07-08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.26  2001/06/29 14:16:57  jonas
     * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
       required to assign the address of a procedure to a procvar, sometimes
       not. Now it is always required) (merged)

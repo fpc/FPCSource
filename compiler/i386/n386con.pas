@@ -342,14 +342,13 @@ implementation
 
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
-                                Consts.concat(Tai_const.Create_8bit(2));
+                                { Consts.concat(Tai_const.Create_8bit(2)); }
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(-1));
                                 Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
-                                  Consts.concat(Tai_const.Create_16bit(
-                                    pcompilerwidestring(value_str)^.data[i]));
+                                  Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -500,7 +499,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-04-13 01:22:18  peter
+  Revision 1.9  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.8  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

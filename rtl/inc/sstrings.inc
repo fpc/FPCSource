@@ -111,22 +111,27 @@ end;
 
 function pos(const substr : shortstring;const s : shortstring):StrLenInt;
 var
-  i,j : StrLenInt;
-  e   : boolean;
+  i,MaxLen : StrLenInt;
+  pc : pchar;
 begin
-  i := 0;
-  j := 0;
-  e:=(length(SubStr)>0);
-  while e and (i<=Length(s)-Length(SubStr)) do
+  Pos:=0;
+  if Length(SubStr)>0 then
    begin
-     inc(i);
-     if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
+     MaxLen:=Length(s)-Length(SubStr);
+     i:=0;
+     pc:=@s[1];
+     while (i<=MaxLen) do
       begin
-        j:=i;
-        e:=false;
+        inc(i);
+        if (SubStr[1]=pc^) and
+           (CompareChar(Substr[1],pc^,Length(SubStr))=0) then
+         begin
+           Pos:=i;
+           exit;
+         end;
+        inc(pc);
       end;
    end;
-  Pos:=j;
 end;
 
 
@@ -134,15 +139,21 @@ end;
 function pos(c:char;const s:shortstring):StrLenInt;
 var
   i : StrLenInt;
+  pc : pchar;
 begin
+  pc:=@s[1];
   for i:=1 to length(s) do
-   if s[i]=c then
-    begin
-      pos:=i;
-      exit;
-    end;
+   begin
+     if pc^=c then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
   pos:=0;
 end;
+
 
 function copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 begin
@@ -161,13 +172,6 @@ begin
    Pos:=0;
 end;
 
-
-{ removed must be internal to be accepted in const expr !! PM
-function length(c:char):StrLenInt;
-begin
-  Length:=1;
-end;
-}
 
 {$ifdef IBM_CHAR_SET}
 const
@@ -557,14 +561,6 @@ begin
 end;
 
 
-{$ifdef SUPPORT_FIXED}
-Function ValFixed(const s : shortstring;var code : ValSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SHORTSTR'];
-begin
-  ValFixed := Fixed(ValFloat(s,code));
-end;
-{$endif SUPPORT_FIXED}
-
-
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 begin
   Move (Buf[0],S[1],Len);
@@ -573,7 +569,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-07-04 12:02:14  jonas
+  Revision 1.14  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.13  2001/07/04 12:02:14  jonas
     * fixed bug in ValSignedInt (it accepted some values slightly larger than
       high(cardinal) such as 4294967297) (merged)
 

@@ -167,7 +167,7 @@ interface
         c              : char;
         orgpattern,
         pattern        : string;
-        patternw       : tcompilerwidestring;
+        patternw       : pcompilerwidestring;
 
         { token }
         token,                        { current token being parsed }
@@ -2274,9 +2274,8 @@ implementation
                            begin
                               if (m>=0) and (m<=65535) then
                                 begin
-                                   ascii2unicode(pattern,patternw);
-                                   concatwidestringchar(patternw,
-                                     tcompilerwidechar(m));
+                                   ascii2unicode(@pattern[1],length(pattern),patternw);
+                                   concatwidestringchar(patternw,tcompilerwidechar(m));
                                    iswidestring:=true;
                                 end
                               else
@@ -2304,8 +2303,7 @@ implementation
                                end;
                            end;
                            if iswidestring then
-                             concatwidestringchar(patternw,
-                               asciichar2unicode(c))
+                             concatwidestringchar(patternw,asciichar2unicode(c))
                            else
                              pattern:=pattern+c;
                          until false;
@@ -2320,8 +2318,7 @@ implementation
                           c:=chr(ord(c)-64);
 
                          if iswidestring then
-                           concatwidestringchar(patternw,
-                             asciichar2unicode(c))
+                           concatwidestringchar(patternw,asciichar2unicode(c))
                          else
                            pattern:=pattern+c;
 
@@ -2568,6 +2565,7 @@ exit_label:
 
     procedure InitScanner;
       begin
+        InitWideString(patternw);
         scannerdirectives:=TDictionary.Create;
         { Default directives }
         AddDirective('DEFINE',{$ifdef FPCPROCVAR}@{$endif}dir_define);
@@ -2587,13 +2585,18 @@ exit_label:
     procedure DoneScanner;
       begin
         scannerdirectives.Free;
+        DoneWideString(patternw);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.18  2001-06-03 21:57:38  peter
+  Revision 1.19  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.18  2001/06/03 21:57:38  peter
     + hint directive parsing support
 
   Revision 1.17  2001/05/27 14:30:55  florian

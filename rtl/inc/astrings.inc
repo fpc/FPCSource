@@ -269,10 +269,7 @@ begin
     Pointer(a):=nil
   else
     begin
-      //!! Horribly inneficient, but I see no other way...
-      L:=1;
-      While P[l]<>#0 do
-        inc (l);
+      l:=IndexChar(p^,-1,#0);
       Pointer(a):=NewAnsistring(L);
       SetLength(A,L);
       Move (P[0],Pointer(A)^,L)
@@ -283,22 +280,14 @@ end;
 Procedure CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];
 var
   i  : longint;
-  hp : pchar;
 begin
   if p[0]=#0 Then
     Pointer(a):=nil
   else
     begin
-      { p[0] <> #0, checked above (JM) }
-      hp:=p+1;
-      i:=1;
-      while (i<l) and (hp^<>#0) do
-       begin
-         inc(hp);
-         inc(i);
-       end;
+      i:=IndexChar(p^,L,#0);
       Pointer(a):=NewAnsistring(i);
-      SetLength(A,i);
+      SetLength(a,i);
       Move (P[0],Pointer(A)^,i);
     end;
 end;
@@ -313,19 +302,18 @@ Function AnsiStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSISTR_
    >0 if S1>S2
 }
 Var
-  i,MaxI,Temp : Longint;
+  MaxI,Temp : Longint;
 begin
-  i:=0;
+  if S1=S2 then
+   begin
+     AnsiStr_Compare:=0;
+     exit;
+   end;
   Maxi:=Length(AnsiString(S1));
   temp:=Length(AnsiString(S2));
   If MaxI>Temp then
    MaxI:=Temp;
-  Temp:=0;
-  While (i<MaxI) and (Temp=0) do
-   begin
-     Temp:= PByte(S1+I)^ - PByte(S2+i)^;
-     inc(i);
-   end;
+  Temp:=CompareByte(S1^,S2^,MaxI);
   if temp=0 then
    temp:=Length(AnsiString(S1))-Length(AnsiString(S2));
   AnsiStr_Compare:=Temp;
@@ -446,14 +434,16 @@ Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'
 }
 Var
   SNew : Pointer;
+  L    : Longint;
 begin
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
    begin
-     SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
-     Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
-     PAnsiRec(SNew-FirstOff)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+     L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+     SNew:=NewAnsiString (L);
+     Move (Pointer(S)^,SNew^,L+1);
+     PAnsiRec(SNew-FirstOff)^.len:=L;
      ansistr_decr_ref (Pointer(S));  { Thread safe }
      Pointer(S):=SNew;
    end;
@@ -491,33 +481,27 @@ end;
 
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 var
-  substrlen,
-  maxi,
-  i,j : longint;
-  e   : boolean;
-  S   : AnsiString;
-  se  : Pointer;
+  i,MaxLen : StrLenInt;
+  pc : pchar;
 begin
-  i := 0;
-  j := 0;
-  substrlen:=Length(SubStr);
-  maxi:=length(source)-substrlen;
-  e:=(substrlen>0);
-  while (e) and (i <= maxi) do
+  Pos:=0;
+  if Length(SubStr)>0 then
    begin
-     inc (i);
-     if Source[i]=SubStr[1] then
+     MaxLen:=Length(source)-Length(SubStr);
+     i:=0;
+     pc:=@source[1];
+     while (i<=MaxLen) do
       begin
-        S:=copy(Source,i,substrlen);
-        Se:=pointer(SubStr);
-        if AnsiStr_Compare(se,Pointer(S))=0 then
+        inc(i);
+        if (SubStr[1]=pc^) and
+           (CompareChar(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           j := i;
-           break;
+           Pos:=i;
+           exit;
          end;
+        inc(pc);
       end;
    end;
-  pos := j;
 end;
 
 
@@ -528,13 +512,18 @@ end;
 Function Pos (c : Char; Const s : AnsiString) : Longint;
 var
   i: longint;
+  pc : pchar;
 begin
+  pc:=@s[1];
   for i:=1 to length(s) do
-   if s[i]=c then
-    begin
-      pos:=i;
-      exit;
-    end;
+   begin
+     if pc^=c then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
   pos:=0;
 end;
 
@@ -599,16 +588,6 @@ begin
        ValAnsiSignedInt64 := valInt64(SS,Code);
     end;
 end;
-
-{$IfDef SUPPORT_FIXED}
-Function ValAnsiFixed(Const S : AnsiString; Var Code : ValSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
-Var
-  SS : String;
-begin
-  AnsiStr_To_ShortStr (SS,Pointer(S));
-  ValAnsiFixed := Fixed(ValFloat(SS,Code));
-end;
-{$EndIf SUPPORT_FIXED}
 
 
 procedure AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT'];
@@ -726,7 +705,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2001-07-04 12:17:09  jonas
+  Revision 1.13  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.12  2001/07/04 12:17:09  jonas
     * removed DestSize parameter from declaration of ValAnsiSignedInt64
       (merged)
 

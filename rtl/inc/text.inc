@@ -558,6 +558,30 @@ begin
 end;
 
 
+{$ifdef HASWIDESTRING}
+Procedure Write_Text_WideString (Len : Longint; Var f : TextRec; S : WideString);[Public,alias:'FPC_WRITE_TEXT_WIDESTR'];
+{
+ Writes a WideString to the Text file T
+}
+var
+  SLen : longint;
+begin
+  If (pointer(S)=nil) or (InOutRes<>0) then
+   exit;
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        SLen:=Length(s);
+        If Len>SLen Then
+          WriteBlanks(f,Len-SLen);
+        WriteBuffer(f,PChar(AnsiString(S))^,SLen);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
+end;
+{$endif HASWIDESTRING}
+
 Procedure Write_SInt(Len : Longint;var t : TextRec;l : ValSInt);[Public,Alias:'FPC_WRITE_TEXT_SINT'];
 var
   s : String;
@@ -643,6 +667,32 @@ Begin
   t.Bufptr^[t.BufPos]:=c;
   Inc(t.BufPos);
 End;
+
+
+{$ifdef HASWIDECHAR}
+Procedure Write_WideChar(Len : Longint;var t : TextRec;c : WideChar);[Public,Alias:'FPC_WRITE_TEXT_WIDECHAR'];
+var
+  ch : char;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  if (TextRec(t).mode<>fmOutput) Then
+   begin
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
+     exit;
+   end;
+  If Len>1 Then
+   WriteBlanks(t,Len-1);
+  If t.BufPos+1>=t.BufSize Then
+   FileFunc(t.InOutFunc)(t);
+  ch:=c;
+  t.Bufptr^[t.BufPos]:=ch;
+  Inc(t.BufPos);
+End;
+{$endif HASWIDECHAR}
 
 
 {*****************************************************************************
@@ -1049,7 +1099,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-06-27 21:37:38  peter
+  Revision 1.9  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.8  2001/06/27 21:37:38  peter
     * v10 merges
 
   Revision 1.7  2001/06/04 11:43:51  peter

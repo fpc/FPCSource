@@ -71,7 +71,7 @@ interface
           st_type : tstringtype;
           constructor createstr(const s : string;st:tstringtype);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
-          constructor createwstr(const w : tcompilerwidestring);virtual;
+          constructor createwstr(w : pcompilerwidestring);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -454,14 +454,13 @@ implementation
           st_type:=st;
       end;
 
-    constructor tstringconstnode.createwstr(const w : tcompilerwidestring);
+    constructor tstringconstnode.createwstr(w : pcompilerwidestring);
 
       begin
          inherited create(stringconstn);
          len:=getlengthwidestring(w);
-         new(pcompilerwidestring(value_str));
-         initwidestring(pcompilerwidestring(value_str)^);
-         copywidestring(w,pcompilerwidestring(value_str)^);
+         initwidestring(pcompilerwidestring(value_str));
+         copywidestring(w,pcompilerwidestring(value_str));
          lab_str:=nil;
          st_type:=st_widestring;
       end;
@@ -482,7 +481,10 @@ implementation
 
     destructor tstringconstnode.destroy;
       begin
-        ansistringdispose(value_str,len);
+        if st_type=st_widestring then
+         donewidestring(pcompilerwidestring(value_str))
+        else
+         ansistringdispose(value_str,len);
         inherited destroy;
       end;
 
@@ -497,7 +499,10 @@ implementation
          n.len:=len;
          n.lab_str:=lab_str;
          if st_type=st_widestring then
-           copywidestring(pcompilerwidestring(value_str)^,pcompilerwidestring(n.value_str)^)
+           begin
+             initwidestring(pcompilerwidestring(n.value_str));
+             copywidestring(pcompilerwidestring(value_str),pcompilerwidestring(n.value_str));
+           end
          else
            n.value_str:=getpcharcopy;
          getcopy:=n;
@@ -652,7 +657,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-05-08 21:06:30  florian
+  Revision 1.19  2001-07-08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.18  2001/05/08 21:06:30  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

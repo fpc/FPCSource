@@ -1269,10 +1269,8 @@ begin
 {$endif}
 
 { Temporary defines, until things settle down }
-{$ifdef SUPPORT_FIXED}
-  def_symbol('HASFIXED');
-{$endif SUPPORT_FIXED}
   def_symbol('HASWIDECHAR');
+  def_symbol('HASWIDESTRING');
   def_symbol('HASOUT');
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -1564,7 +1562,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.47  2001-07-01 20:16:16  peter
+  Revision 1.48  2001-07-08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.47  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -40,25 +40,25 @@ unit widestr;
        pcompilerwidechar = ^tcompilerwidechar;
 {$endif}
 
-       pcompilerwidestring = ^tcompilerwidestring;
-       tcompilerwidestring = record
+       pcompilerwidestring = ^_tcompilerwidestring;
+       _tcompilerwidestring = record
           data : pcompilerwidechar;
           maxlen,len : longint;
        end;
 
-    procedure initwidestring(var r : tcompilerwidestring);
-    procedure donewidestring(var r : tcompilerwidestring);
-    procedure setlengthwidestring(var r : tcompilerwidestring;l : longint);
-    function getlengthwidestring(const r : tcompilerwidestring) : longint;
-    procedure concatwidestringchar(var r : tcompilerwidestring;c : tcompilerwidechar);
-    procedure concatwidestrings(const s1,s2 : tcompilerwidestring;
-      var r : tcompilerwidestring);
-    function comparewidestrings(const s1,s2 : tcompilerwidestring) : shortint;
-    procedure copywidestring(const s : tcompilerwidestring;var d : tcompilerwidestring);
+    procedure initwidestring(var r : pcompilerwidestring);
+    procedure donewidestring(var r : pcompilerwidestring);
+    procedure setlengthwidestring(r : pcompilerwidestring;l : longint);
+    function getlengthwidestring(r : pcompilerwidestring) : longint;
+    procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
+    procedure concatwidestrings(s1,s2 : pcompilerwidestring);
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : longint;
+    procedure copywidestring(s,d : pcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
-    procedure ascii2unicode(const s : string;var r : tcompilerwidestring);
-    function getcharwidestring(const r : tcompilerwidestring;l : longint) : tcompilerwidechar;
+    procedure ascii2unicode(p:pchar; l:longint;r : pcompilerwidestring);
+    procedure unicode2ascii(r : pcompilerwidestring;p:pchar);
+    function getcharwidestring(r : pcompilerwidestring;l : longint) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
 
   implementation
@@ -69,82 +69,79 @@ unit widestr;
     uses
        globals;
 
-    procedure initwidestring(var r : tcompilerwidestring);
+    procedure initwidestring(var r : pcompilerwidestring);
 
       begin
-         r.data:=nil;
-         r.len:=0;
-         r.maxlen:=0;
+         new(r);
+         r^.data:=nil;
+         r^.len:=0;
+         r^.maxlen:=0;
       end;
 
-    procedure donewidestring(var r : tcompilerwidestring);
+    procedure donewidestring(var r : pcompilerwidestring);
 
       begin
-         if assigned(r.data) then
-           freemem(r.data);
-         r.data:=nil;
-         r.maxlen:=0;
-         r.len:=0;
+         if assigned(r^.data) then
+           freemem(r^.data);
+         dispose(r);
+         r:=nil;
       end;
 
-    function getcharwidestring(const r : tcompilerwidestring;l : longint) : tcompilerwidechar;
+    function getcharwidestring(r : pcompilerwidestring;l : longint) : tcompilerwidechar;
 
       begin
-         getcharwidestring:=r.data[l];
+         getcharwidestring:=r^.data[l];
       end;
 
-    function getlengthwidestring(const r : tcompilerwidestring) : longint;
+    function getlengthwidestring(r : pcompilerwidestring) : longint;
 
       begin
-         getlengthwidestring:=r.len;
+         getlengthwidestring:=r^.len;
       end;
 
-    procedure setlengthwidestring(var r : tcompilerwidestring;l : longint);
+    procedure setlengthwidestring(r : pcompilerwidestring;l : longint);
 
       begin
-         if r.maxlen>=l then
+         if r^.maxlen>=l then
            exit;
-         if assigned(r.data) then
-           reallocmem(r.data,sizeof(tcompilerwidechar)*l)
+         if assigned(r^.data) then
+           reallocmem(r^.data,sizeof(tcompilerwidechar)*l)
          else
-           getmem(r.data,sizeof(tcompilerwidechar)*l);
+           getmem(r^.data,sizeof(tcompilerwidechar)*l);
       end;
 
-    procedure concatwidestringchar(var r : tcompilerwidestring;c : tcompilerwidechar);
+    procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
 
       begin
-         if r.len>=r.maxlen then
-           setlengthwidestring(r,r.len+16);
-         r.data[r.len]:=c;
-         inc(r.len);
+         if r^.len>=r^.maxlen then
+           setlengthwidestring(r,r^.len+16);
+         r^.data[r^.len]:=c;
+         inc(r^.len);
       end;
 
-    procedure concatwidestrings(const s1,s2 : tcompilerwidestring;
-      var r : tcompilerwidestring);
-
+    procedure concatwidestrings(s1,s2 : pcompilerwidestring);
       begin
-         setlengthwidestring(r,s1.len+s2.len);
-         r.len:=s1.len+s2.len;
-         move(s1.data^,r.data^,s1.len*2);
-         move(s2.data^,r.data[s1.len],s2.len*2);
+         setlengthwidestring(s1,s1^.len+s2^.len);
+         inc(s1^.len,s2^.len);
+         move(s2^.data^,s1^.data[s1^.len],s2^.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestringwidestring(const s1,s2 : tcompilerwidestring) : longint;
+    function comparewidestringwidestring(s1,s2 : pcompilerwidestring) : longint;
 
       begin
         {$ifdef fpc}{$warning todo}{$endif}
         comparewidestringwidestring:=0;
       end;
 
-    procedure copywidestring(const s : tcompilerwidestring;var d : tcompilerwidestring);
+    procedure copywidestring(s,d : pcompilerwidestring);
 
       begin
-         setlengthwidestring(d,s.len);
-         d.len:=s.len;
-         move(s.data^,d.data^,s.len);
+         setlengthwidestring(d,s^.len);
+         d^.len:=s^.len;
+         move(s^.data^,d^.data^,s^.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestrings(const s1,s2 : tcompilerwidestring) : shortint;
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : longint;
 
       begin
          {!!!!!! FIXME }
@@ -169,9 +166,11 @@ unit widestr;
     function unicode2asciichar(c : tcompilerwidechar) : char;
 
       begin
+        {$ifdef fpc}{$warning todo}{$endif}
+        unicode2asciichar:=#0;
       end;
 
-    procedure ascii2unicode(const s : string;var r : tcompilerwidestring);
+    procedure ascii2unicode(p:pchar; l:longint;r : pcompilerwidestring);
 (*
       var
          m : punicodemap;
@@ -187,8 +186,61 @@ unit widestr;
            end;
       end;
 *)
+      var
+        source : pchar;
+        dest   : pcompilerwidechar;
+        i      : longint;
       begin
+        setlengthwidestring(r,l);
+        source:=p;
+        r^.len:=l;
+        dest:=r^.data;
+        for i:=1 to l do
+         begin
+           if byte(source^)<128 then
+            dest^:=tcompilerwidechar(byte(source^))
+           else
+            dest^:=32;
+           inc(dest);
+           inc(source);
+         end;
       end;
+
+
+    procedure unicode2ascii(r : pcompilerwidestring;p:pchar);
+(*
+      var
+         m : punicodemap;
+         i : longint;
+
+      begin
+         m:=getmap(aktsourcecodepage);
+         { should be a very good estimation :) }
+         setlengthwidestring(r,length(s));
+         // !!!! MBCS
+         for i:=1 to length(s) do
+           begin
+           end;
+      end;
+*)
+      var
+        source : pcompilerwidechar;
+        dest   : pchar;
+        i      : longint;
+      begin
+        source:=r^.data;
+        dest:=p;
+        for i:=1 to r^.len do
+         begin
+           if word(source^)<128 then
+            dest^:=char(word(source^))
+           else
+            dest^:=' ';
+           inc(dest);
+           inc(source);
+         end;
+      end;
+
 
     function cpavailable(const s : string) : boolean;
 {!!!!!!
@@ -204,7 +256,11 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.5  2001-05-27 14:30:55  florian
+  Revision 1.6  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.5  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.4  2001/05/08 21:06:33  florian

@@ -1309,7 +1309,8 @@ implementation
                  orddef :
                    begin
                    { char to string}
-                     if is_char(def_from) then
+                     if is_char(def_from) or
+                        is_widechar(def_from) then
                       begin
                         doconv:=tc_char_2_string;
                         b:=1;
@@ -1474,7 +1475,7 @@ implementation
                      { string constant (which can be part of array constructor)
                        to zero terminated string constant }
                      if (fromtreetype in [arrayconstructorn,stringconstn]) and
-                        is_pchar(def_to) then
+                        is_pchar(def_to) or is_pwidechar(def_to) then
                       begin
                         doconv:=tc_cstring_2_pchar;
                         b:=1;
@@ -1746,7 +1747,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-06-29 14:16:57  jonas
+  Revision 1.44  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.43  2001/06/29 14:16:57  jonas
     * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
       required to assign the address of a procedure to a procvar, sometimes
       not. Now it is always required) (merged)

@@ -47,6 +47,7 @@ interface
           function resulttype_int_to_real : tnode;
           function resulttype_real_to_real : tnode;
           function resulttype_cchar_to_pchar : tnode;
+          function resulttype_cstring_to_pchar : tnode;
           function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
@@ -425,10 +426,33 @@ implementation
 
 
     function ttypeconvnode.resulttype_string_to_string : tnode;
+      var
+        pw : pcompilerwidestring;
+        pc : pchar;
       begin
          result:=nil;
          if left.nodetype=stringconstn then
           begin
+             { convert ascii 2 unicode }
+             if (tstringdef(resulttype.def).string_typ=st_widestring) and
+                (tstringconstnode(left).st_type in [st_ansistring,st_shortstring,st_longstring]) then
+              begin
+                initwidestring(pw);
+                ascii2unicode(tstringconstnode(left).value_str,tstringconstnode(left).len,pw);
+                ansistringdispose(tstringconstnode(left).value_str,tstringconstnode(left).len);
+                pcompilerwidestring(tstringconstnode(left).value_str):=pw;
+              end
+             else
+             { convert unicode 2 ascii }
+             if (tstringconstnode(left).st_type=st_widestring) and
+                (tstringdef(resulttype.def).string_typ in [st_ansistring,st_shortstring,st_longstring]) then
+              begin
+                pw:=pcompilerwidestring(tstringconstnode(left).value_str);
+                getmem(pc,getlengthwidestring(pw)+1);
+                unicode2ascii(pw,pc);
+                donewidestring(pw);
+                tstringconstnode(left).value_str:=pc;
+              end;
              tstringconstnode(left).st_type:=tstringdef(resulttype.def).string_typ;
              tstringconstnode(left).resulttype:=resulttype;
              result:=left;
@@ -440,12 +464,20 @@ implementation
     function ttypeconvnode.resulttype_char_to_string : tnode;
       var
          hp : tstringconstnode;
+         ws : pcompilerwidestring;
       begin
          result:=nil;
          if left.nodetype=ordconstn then
            begin
-              hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),st_default);
-              hp.st_type:=tstringdef(resulttype.def).string_typ;
+              if tstringdef(resulttype.def).string_typ=st_widestring then
+               begin
+                 initwidestring(ws);
+                 concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value)));
+                 hp:=cstringconstnode.createwstr(ws);
+                 donewidestring(ws);
+               end
+              else
+               hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),tstringdef(resulttype.def).string_typ);
               resulttypepass(hp);
               result:=hp;
            end;
@@ -457,24 +489,28 @@ implementation
          hp : tordconstnode;
       begin
          result:=nil;
-         if (torddef(resulttype.def).typ=uchar) and
-           (torddef(left.resulttype.def).typ=uwidechar) then
+         if left.nodetype=ordconstn then
            begin
-              hp:=cordconstnode.create(
-                ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
-              resulttypepass(hp);
-              result:=hp;
-           end
-         else if (torddef(resulttype.def).typ=uwidechar) and
-           (torddef(left.resulttype.def).typ=uchar) then
-           begin
-              hp:=cordconstnode.create(
-                asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
-              resulttypepass(hp);
-              result:=hp;
-           end
-         else
-           internalerror(200105131);
+             if (torddef(resulttype.def).typ=uchar) and
+                (torddef(left.resulttype.def).typ=uwidechar) then
+              begin
+                hp:=cordconstnode.create(
+                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
+                resulttypepass(hp);
+                result:=hp;
+              end
+             else if (torddef(resulttype.def).typ=uwidechar) and
+                     (torddef(left.resulttype.def).typ=uchar) then
+              begin
+                hp:=cordconstnode.create(
+                      asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
+                resulttypepass(hp);
+                result:=hp;
+              end
+             else
+              internalerror(200105131);
+             exit;
+           end;
       end;
 
 
@@ -510,10 +546,22 @@ implementation
     function ttypeconvnode.resulttype_cchar_to_pchar : tnode;
       begin
          result:=nil;
-         inserttypeconv(left,cshortstringtype);
+         if is_pwidechar(resulttype.def) then
+          inserttypeconv(left,cwidestringtype)
+         else
+          inserttypeconv(left,cshortstringtype);
          { evaluate again, reset resulttype so the convert_typ
-           will be calculated again }
+           will be calculated again and cstring_to_pchar will
+           be used for futher conversion }
          result:=det_resulttype;
+      end;
+
+
+    function ttypeconvnode.resulttype_cstring_to_pchar : tnode;
+      begin
+         result:=nil;
+         if is_pwidechar(resulttype.def) then
+           inserttypeconv(left,cwidestringtype);
       end;
 
 
@@ -545,7 +593,7 @@ implementation
           { char_2_string } @ttypeconvnode.resulttype_char_to_string,
           { pchar_2_string } nil,
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
-          { cstring_2_pchar } nil,
+          { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
           { ansistring_2_pchar } nil,
           { string_2_chararray } nil,
           { chararray_2_string } nil,
@@ -1367,7 +1415,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-05-13 15:43:46  florian
+  Revision 1.29  2001-07-08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.28  2001/05/13 15:43:46  florian
     * made resultype_char_to_char a little bit robuster
 
   Revision 1.27  2001/05/08 21:06:30  florian

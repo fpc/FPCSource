@@ -43,7 +43,54 @@ Type
 
 Const
   WideRecLen = SizeOf(TWideRec);
-  WideFirstOff = SizeOf(TWideRec)-1;
+  WideFirstOff = SizeOf(TWideRec)-sizeof(WideChar);
+
+
+{
+  Default WideChar <-> Char conversion is to only convert the
+  lower 127 chars, all others are translated to spaces.
+
+  These routines can be overwritten for the Current Locale
+}
+
+procedure Wide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
+var
+  i : longint;
+begin
+  for i:=1to len do
+   begin
+     if word(source^)<128 then
+      dest^:=char(word(source^))
+     else
+      dest^:=' ';
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+
+procedure Ansi2WideMove(source:pchar;dest:pwidechar;len:longint);
+var
+  i : longint;
+begin
+  for i:=1to len do
+   begin
+     if byte(source^)<128 then
+      dest^:=widechar(byte(source^))
+     else
+      dest^:=' ';
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+
+Type
+  TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:longint);
+  TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:longint);
+Const
+  Wide2AnsiMoveProc:TWide2AnsiMove=@Wide2AnsiMove;
+  Ansi2WideMoveProc:TAnsi2WideMove=@Ansi2WideMove;
 
 (*
 Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
@@ -95,7 +142,7 @@ begin
      PWideRec(P)^.Len:=0;         { Initial length }
      PWideRec(P)^.Ref:=1;         { Set reference count }
      PWideRec(P)^.First:=#0;      { Terminating #0 }
-     P:=P+WideFirstOff;               { Points to string now }
+     inc(p,WideFirstOff);         { Points to string now }
    end;
   NewWideString:=P;
 end;
@@ -148,6 +195,7 @@ Begin
   inclocked(PWideRec(S-WideFirstOff)^.Ref);
 end;
 
+
 Procedure WideStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];
 {
   Converts a WideString to a ShortString;
@@ -159,13 +207,11 @@ begin
    S1:=''
   else
    begin
-     {!!!!! FIXME
      Size:=PAnsiRec(S2-FirstOff)^.Len;
      If Size>high(S1) then
       Size:=high(S1);
-     Move (S2^,S1[1],Size);
+     Wide2AnsiMoveProc(PWideChar(S2),PChar(@S1[1]),Size);
      byte(S1[0]):=Size;
-     }
    end;
 end;
 
@@ -180,25 +226,29 @@ begin
   Size:=Length(S2);
   Setlength (WideString(S1),Size);
   if Size>0 then
-   begin
-     {!!!! FIXME
-     Move (S2[1],Pointer(S1)^,Size);
-      Terminating Zero
-     PByte(Pointer(S1)+Size)^:=0;
-     }
-   end;
+   Ansi2WideMoveProc(PChar(@S2[1]),PWideChar(S1),Size);
 end;
+
 
 Procedure WideStr_To_AnsiStr (Var S1 : Pointer;S2 : Pointer);[Public, alias: 'FPC_WIDESTR_TO_ANSISTR'];
 {
   Converts a WideString to an AnsiString
 }
+Var
+  Size : Longint;
 begin
   if s2=nil then
     s1:=nil
   else
     begin
-       {!!!!! FIXME }
+       Size:=Length(WideString(S2));
+       Setlength (AnsiString(S1),Size);
+       if Size>0 then
+        begin
+          Wide2AnsiMoveProc(PWideChar(S2),PChar(S1),Size);
+          { Terminating Zero }
+          PChar(S1+Size)^:=#0;
+        end;
     end;
 end;
 
@@ -214,9 +264,17 @@ begin
      s1:=nil
    else
      begin
-        {!!!! FIXME }
+       Size:=Length(AnsiString(S2));
+       Setlength (WideString(S1),Size);
+       if Size>0 then
+        begin
+          Ansi2WideMoveProc(PChar(S2),PWideChar(S1),Size);
+          { Terminating Zero }
+          PWideChar(S1+Size*sizeof(WideChar))^:=#0;
+        end;
      end;
 end;
+
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
 Procedure WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_WIDESTR_ASSIGN'];
@@ -256,8 +314,8 @@ begin
        Size:=PWideRec(S2-WideFirstOff)^.Len;
        Location:=Length(WideString(S1));
        SetLength (WideString(S3),Size+Location);
-       Move (S1^,S3^,Location*2);
-       Move (S2^,(S3+location*2)^,(Size+1)*2);
+       Move (S1^,S3^,Location*sizeof(WideChar));
+       Move (S2^,(S3+location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
     end;
 end;
 
@@ -268,9 +326,9 @@ Procedure Char_To_WideStr(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_
 }
 begin
   Setlength (WideString(S1),1);
-  PByte(Pointer(S1))^:=byte(c);
+  PWideChar(S1)^:=c;
   { Terminating Zero }
-  PByte(Pointer(S1)+1)^:=0;
+  PWideChar(S1+sizeof(WideChar))^:=#0;
 end;
 
 
@@ -287,13 +345,10 @@ begin
     Pointer(a):=nil
   else
     begin
-      //!! Horribly inneficient, but I see no other way...
-      L:=1;
-      While P[l]<>#0 do
-        inc (l);
+      l:=IndexChar(p^,-1,#0);
       Pointer(a):=NewWidestring(L);
       SetLength(A,L);
-      Move (P[0],Pointer(A)^,L)
+      Ansi2WideMoveProc(P,PWideChar(A),L);
     end;
 end;
 
@@ -301,22 +356,15 @@ end;
 Procedure CharArray_To_WideStr(var a : widestring;p : pchar;l:longint);[Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];
 var
   i  : longint;
-  hp : pchar;
 begin
   if p[0]=#0 Then
     Pointer(a):=nil
   else
     begin
-      Pointer(a):=NewWidestring(L);
-      hp:=p;
-      i:=0;
-      while (i<l) and (hp^<>#0) do
-       begin
-         inc(hp);
-         inc(i);
-       end;
-      SetLength(A,i);
-      Move (P[0],Pointer(A)^,i)
+      i:=IndexChar(p^,L,#0);
+      Pointer(a):=NewWidestring(i);
+      SetLength(a,i);
+      Ansi2WideMoveProc(P,PWideChar(A),i);
     end;
 end;
 
@@ -330,19 +378,18 @@ Function WideStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_WIDESTR_
    >0 if S1>S2
 }
 Var
-  i,MaxI,Temp : Longint;
+  MaxI,Temp : Longint;
 begin
-  i:=0;
+  if S1=S2 then
+   begin
+     WideStr_Compare:=0;
+     exit;
+   end;
   Maxi:=Length(WideString(S1));
   temp:=Length(WideString(S2));
   If MaxI>Temp then
    MaxI:=Temp;
-  Temp:=0;
-  While (i<MaxI) and (Temp=0) do
-   begin
-     Temp:= PWord(S1+I)^ - PWord(S2+i)^;
-     inc(i);
-   end;
+  Temp:=CompareWord(S1^,S2^,MaxI);
   if temp=0 then
    temp:=Length(WideString(S1))-Length(WideString(S2));
   WideStr_Compare:=Temp;
@@ -388,19 +435,19 @@ begin
           { Reallocation is needed... }
           Temp:=Pointer(NewWideString(L));
           if Length(S)>0 then
-            Move(Pointer(S)^,Temp^,L+L);
-          ansistr_decr_ref(Pointer(S));
+            Move(Pointer(S)^,Temp^,L*sizeof(WideChar));
+          WideStr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
-      PByte(Pointer(S)+l)^:=0;
+      PWideChar(Pointer(S)+l*sizeof(WideChar))^:=#0;
       PWideRec(Pointer(S)-WideFirstOff)^.Len:=l;
     end
   else
     begin
       { Length=0 }
       if Pointer(S)<>nil then
-       ansistr_decr_ref (Pointer(S));
+       WideStr_decr_ref (Pointer(S));
       Pointer(S):=Nil;
     end;
 end;
@@ -432,15 +479,17 @@ Procedure UniqueString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'
 }
 Var
   SNew : Pointer;
+  L    : Longint;
 begin
   If Pointer(S)=Nil then
     exit;
   if PWideRec(Pointer(S)-WideFirstOff)^.Ref<>1 then
    begin
-     SNew:=NewWideString (PWideRec(Pointer(S)-WideFirstOff)^.len);
-     Move (Pointer(S)^,SNew^,(PWideRec(Pointer(S)-WideFirstOff)^.len+1)*2);
-     PWideRec(SNew-WideFirstOff)^.len:=PWideRec(Pointer(S)-WideFirstOff)^.len;
-     ansistr_decr_ref (Pointer(S));  { Thread safe }
+     L:=PWideRec(Pointer(S)-WideFirstOff)^.len;
+     SNew:=NewWideString (L);
+     Move (PWideChar(S)^,SNew^,(L+1)*sizeof(WideChar));
+     PWideRec(SNew-WideFirstOff)^.len:=L;
+     widestr_decr_ref (Pointer(S));  { Thread safe }
      Pointer(S):=SNew;
    end;
 end;
@@ -466,9 +515,9 @@ begin
      ResultAddress:=Pointer(NewWideString (Size));
      if ResultAddress<>Nil then
       begin
-        Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size*2);
+        Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
         PWideRec(ResultAddress-WideFirstOff)^.Len:=Size;
-        PWord(ResultAddress+Size*2)^:=0;
+        PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
       end;
    end;
   Pointer(Copy):=ResultAddress;
@@ -477,34 +526,74 @@ end;
 
 Function Pos (Const Substr : WideString; Const Source : WideString) : Longint;
 var
-  substrlen,
-  maxi,
-  i,j : longint;
-  e   : boolean;
-{  S   : WideString;
-  se  : Pointer; }
+  i,MaxLen : StrLenInt;
+  pc : pwidechar;
 begin
-  i := 0;
-  j := 0;
-  substrlen:=Length(SubStr);
-  maxi:=length(source)-substrlen;
-  e:=(substrlen>0);
-  while (e) and (i <= maxi) do
+  Pos:=0;
+  if Length(SubStr)>0 then
    begin
-     inc (i);
-{!!!:     if Source[i]=SubStr[1] then
+     MaxLen:=Length(source)-Length(SubStr);
+     i:=0;
+     pc:=@source[1];
+     while (i<=MaxLen) do
       begin
-        S:=copy(Source,i,substrlen);
-        Se:=pointer(SubStr);
-        if WideStr_Compare(se,Pointer(S))=0 then
+        inc(i);
+        if (SubStr[1]=pc^) and
+           (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           j := i;
-           break;
+           Pos:=i;
+           exit;
          end;
-      end;}
+        inc(pc);
+      end;
    end;
-  pos := j;
 end;
+
+
+{ Faster version for a widechar alone }
+Function Pos (c : WideChar; Const s : WideString) : Longint;
+var
+  i: longint;
+  pc : pwidechar;
+begin
+  pc:=@s[1];
+  for i:=1 to length(s) do
+   begin
+     if pc^=c then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
+  pos:=0;
+end;
+
+
+{ Faster version for a char alone. Must be implemented because   }
+{ pos(c: char; const s: shortstring) also exists, so otherwise   }
+{ using pos(char,pchar) will always call the shortstring version }
+{ (exact match for first argument), also with $h+ (JM)           }
+Function Pos (c : Char; Const s : WideString) : Longint;
+var
+  i: longint;
+  wc : widechar;
+  pc : pwidechar;
+begin
+  wc:=c;
+  pc:=@s[1];
+  for i:=1 to length(s) do
+   begin
+     if pc^=wc then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
+  pos:=0;
+end;
+
 
 
 Procedure Delete (Var S : WideString; Index,Size: Longint);
@@ -527,7 +616,7 @@ begin
      if Index+Size<=LS then
       begin
         Dec(Index);
-        Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],(LS-Index+1)*2);
+        Move(PWideChar(S)[Index+Size],PWideChar(S)[Index],(LS-Index+1)*sizeof(WideChar));
       end;
      Setlength(s,LS-Size);
    end;
@@ -550,10 +639,10 @@ begin
   Pointer(Temp) := NewWideString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
-    move (Pointer(S)^,Pointer(Temp)^,Index*2);
-  Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source)*2);
+    move (PWideChar(S)^,PWideChar(Temp)^,Index*sizeof(WideChar));
+  Move (PWideChar(Source)^,PWideChar(Temp)[Index],Length(Source)*sizeof(WideChar));
   If (LS-Index)>0 then
-    Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],(LS-Index)*2);
+    Move(PWideChar(S)[Index],PWideChar(temp)[Length(Source)+index],(LS-Index)*sizeof(WideChar));
   S:=Temp;
 end;
 
@@ -566,9 +655,104 @@ begin
 end;}
 
 
+Function ValWideFloat(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
+Var
+  SS : String;
+begin
+  WideStr_To_ShortStr(SS,Pointer(S));
+  ValWideFloat := ValFloat(SS,Code);
+end;
+
+
+Function ValWideUnsignedInt (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  WideStr_To_ShortStr(SS,Pointer(S));
+  ValWideUnsignedInt := ValUnsignedInt(SS,Code);
+end;
+
+
+Function ValWideSignedInt (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  ValWideSignedInt:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       WideStr_To_ShortStr (SS,Pointer(S));
+       ValWideSignedInt := ValSignedInt(DestSize,SS,Code);
+    end;
+end;
+
+Function ValWideUnsignedint64 (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  ValWideUnsignedInt64:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       WideStr_To_ShortStr(SS,Pointer(S));
+       ValWideUnsignedInt64 := ValQWord(SS,Code);
+    end;
+end;
+
+
+Function ValWideSignedInt64 (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  ValWideSignedInt64:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       WideStr_To_ShortStr (SS,Pointer(S));
+       ValWideSignedInt64 := valInt64(SS,Code);
+    end;
+end;
+
+
+procedure WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString);[public,alias:'FPC_WIDESTR_FLOAT'];
+var
+  ss : shortstring;
+begin
+  str_real(len,fr,d,treal_type(rt),ss);
+  s:=ss;
+end;
+
+
+Procedure WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString);[Public,Alias : 'FPC_WIDESTR_CARDINAL'];
+Var
+  SS : ShortString;
+begin
+  int_str_cardinal(C,Len,SS);
+  S:=SS;
+end;
+
+
+
+Procedure WideStr_Longint(L : Longint; Len : Longint; Var S : WideString);[Public,Alias : 'FPC_WIDESTR_LONGINT'];
+Var
+  SS : ShortString;
+begin
+  int_Str_Longint (L,Len,SS);
+  S:=SS;
+end;
+
+
+
 {
   $Log$
-  Revision 1.7  2001-05-27 14:28:03  florian
+  Revision 1.8  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.7  2001/05/27 14:28:03  florian
     + some procedures added
 
   Revision 1.6  2000/11/06 23:17:15  peter

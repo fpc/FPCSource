@@ -468,6 +468,8 @@ implementation
                                     emitcall(rdwrprefix[doread]+'UINT');
                                   uchar :
                                     emitcall(rdwrprefix[doread]+'CHAR');
+                                  uwidechar :
+                                    emitcall(rdwrprefix[doread]+'WIDECHAR');
                                   s64bit :
                                     emitcall(rdwrprefix[doread]+'INT64');
                                   u64bit :
@@ -1678,7 +1680,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:19  peter
+  Revision 1.15  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.14  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

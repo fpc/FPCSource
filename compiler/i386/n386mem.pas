@@ -525,8 +525,8 @@ implementation
                 begin
                    { in widestrings S[1] is pwchar(S)[0] !! }
                    dec(location.reference.offset,2);
-                   emit_const_reg(A_SHL,S_L,
-                     1,location.reference.base);
+//                   emit_const_reg(A_SHL,S_L,
+//                     1,location.reference.base);
                 end;
 
               { we've also to keep left up-to-date, because it is used   }
@@ -1055,7 +1055,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-18 22:02:03  peter
+  Revision 1.14  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.13  2001/04/18 22:02:03  peter
     * registration of targets and assemblers
 
   Revision 1.12  2001/04/13 01:22:19  peter

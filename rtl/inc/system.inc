@@ -177,9 +177,9 @@ End;
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
 {$i astrings.inc}
 
-{$ifdef haswidechar}
+{$ifdef HASWIDESTRING}
 {$i wstrings.inc}
-{$endif haswidechar}
+{$endif HASWIDESTRING}
 
 {*****************************************************************************
                         Dynamic Array support
@@ -656,7 +656,11 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-06-13 18:32:05  peter
+  Revision 1.16  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.15  2001/06/13 18:32:05  peter
     * big endian updates (merged)
 
   Revision 1.14  2001/06/03 15:15:58  peter

@@ -217,45 +217,20 @@ implementation
                    begin
                       gettempofsizereference(resulttype.def.size,location.reference);
                       copyshortstring(location.reference,left.location.reference,
-                        tstringdef(resulttype.def).len,false,true);
-{                      done by copyshortstring now (JM)          }
-{                      del_reference(left.location.reference); }
+                                      tstringdef(resulttype.def).len,false,true);
                       ungetiftemp(left.location.reference);
-                   end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
                    end;
                  st_ansistring:
                    begin
                       gettempofsizereference(resulttype.def.size,location.reference);
                       loadansi2short(left,self);
-                      { this is done in secondtypeconv (FK)
-                      removetemps(exprasmlist,temptoremove);
-                      destroys:=true;
-                      }
                    end;
                  st_widestring:
                    begin
-                      {!!!!!!!}
-                      internalerror(8888);
+                      gettempofsizereference(resulttype.def.size,location.reference);
+                      loadwide2short(left,self);
                    end;
-              end;
-
-            st_longstring:
-              case tstringdef(left.resulttype.def).string_typ of
-                 st_shortstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-                 st_ansistring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-                 st_widestring:
+                 st_longstring:
                    begin
                       {!!!!!!!}
                       internalerror(8888);
@@ -282,12 +257,25 @@ implementation
                       maybe_loadself;
                       popusedregisters(pushed);
                    end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
                  st_widestring:
+                   begin
+                      clear_location(location);
+                      location.loc:=LOC_REFERENCE;
+                      gettempansistringreference(location.reference);
+                      decrstringref(cansistringtype.def,location.reference);
+                      { We don't need the source regs anymore (JM) }
+                      regs_to_push := $ff;
+                      remove_non_regvars_from_loc(left.location,regs_to_push);
+                      pushusedregisters(pushed,regs_to_push);
+                      release_loc(left.location);
+                      emit_push_loc(left.location);
+                      emit_push_lea_loc(location,false);
+                      saveregvars(regs_to_push);
+                      emitcall('FPC_WIDESTR_TO_ANSISTR');
+                      maybe_loadself;
+                      popusedregisters(pushed);
+                   end;
+                 st_longstring:
                    begin
                       {!!!!!!!}
                       internalerror(8888);
@@ -298,10 +286,50 @@ implementation
               case tstringdef(left.resulttype.def).string_typ of
                  st_shortstring:
                    begin
+                      clear_location(location);
+                      location.loc:=LOC_REFERENCE;
+                      gettempwidestringreference(location.reference);
+                      decrstringref(cwidestringtype.def,location.reference);
+                      { We don't need the source regs anymore (JM) }
+                      regs_to_push := $ff;
+                      remove_non_regvars_from_loc(left.location,regs_to_push);
+                      pushusedregisters(pushed,regs_to_push);
+                      release_loc(left.location);
+                      emit_push_lea_loc(left.location,true);
+                      emit_push_lea_loc(location,false);
+                      saveregvars(regs_to_push);
+                      emitcall('FPC_SHORTSTR_TO_WIDESTR');
+                      maybe_loadself;
+                      popusedregisters(pushed);
+                   end;
+                 st_ansistring:
+                   begin
+                      clear_location(location);
+                      location.loc:=LOC_REFERENCE;
+                      gettempwidestringreference(location.reference);
+                      decrstringref(cwidestringtype.def,location.reference);
+                      { We don't need the source regs anymore (JM) }
+                      regs_to_push := $ff;
+                      remove_non_regvars_from_loc(left.location,regs_to_push);
+                      pushusedregisters(pushed,regs_to_push);
+                      release_loc(left.location);
+                      emit_push_loc(left.location);
+                      emit_push_lea_loc(location,false);
+                      saveregvars(regs_to_push);
+                      emitcall('FPC_ANSISTR_TO_WIDESTR');
+                      maybe_loadself;
+                      popusedregisters(pushed);
+                   end;
+                 st_longstring:
+                   begin
                       {!!!!!!!}
                       internalerror(8888);
                    end;
-                 st_longstring:
+              end;
+
+            st_longstring:
+              case tstringdef(left.resulttype.def).string_typ of
+                 st_shortstring:
                    begin
                       {!!!!!!!}
                       internalerror(8888);
@@ -356,8 +384,17 @@ implementation
              end;
            st_widestring:
              begin
-               {!!!!!!!}
-               internalerror(8888);
+               if (left.nodetype=stringconstn) and
+                  (str_length(left)=0) then
+                begin
+                  new(hr);
+                  reset_reference(hr^);
+                  hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  emit_ref_reg(A_LEA,S_L,hr,location.register);
+                end
+               else
+                emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
+                  location.register);
              end;
          end;
       end;
@@ -542,12 +579,23 @@ implementation
                popusedregisters(pushed);
                maybe_loadself;
              end;
-           st_longstring:
+           st_widestring :
              begin
-               {!!!!!!!}
-               internalerror(8888);
+               gettempwidestringreference(location.reference);
+               decrstringref(cwidestringtype.def,location.reference);
+               regstopush := $ff;
+               remove_non_regvars_from_loc(left.location,regstopush);
+               pushusedregisters(pushed,regstopush);
+               push_int(l);
+               emitpushreferenceaddr(left.location.reference);
+               release_loc(left.location);
+               emitpushreferenceaddr(location.reference);
+               saveregvars(regstopush);
+               emitcall('FPC_CHARARRAY_TO_WIDESTR');
+               popusedregisters(pushed);
+               maybe_loadself;
              end;
-           st_widestring:
+           st_longstring:
              begin
                {!!!!!!!}
                internalerror(8888);
@@ -579,6 +627,19 @@ implementation
                emitpushreferenceaddr(location.reference);
                saveregvars($ff);
                emitcall('FPC_CHAR_TO_ANSISTR');
+               popusedregisters(pushed);
+               maybe_loadself;
+             end;
+           st_widestring :
+             begin
+               gettempwidestringreference(location.reference);
+               decrstringref(cwidestringtype.def,location.reference);
+               release_loc(left.location);
+               pushusedregisters(pushed,$ff);
+               emit_pushw_loc(left.location);
+               emitpushreferenceaddr(location.reference);
+               saveregvars($ff);
+               emitcall('FPC_CHAR_TO_WIDESTR');
                popusedregisters(pushed);
                maybe_loadself;
              end;
@@ -1039,6 +1100,37 @@ implementation
                 maybe_loadself;
                 popusedregisters(pushed);
              end;
+           st_widestring:
+             begin
+                location.loc:=LOC_REFERENCE;
+                gettempwidestringreference(location.reference);
+                decrstringref(cwidestringtype.def,location.reference);
+                { Find out which regs have to be pushed (JM) }
+                regs_to_push := $ff;
+                remove_non_regvars_from_loc(left.location,regs_to_push);
+                pushusedregisters(pushed,regs_to_push);
+                case left.location.loc of
+                  LOC_REFERENCE,LOC_MEM:
+                    begin
+                      { Now release the registers (see cgai386.pas:     }
+                      { loadansistring for more info on the order) (JM) }
+                      del_reference(left.location.reference);
+                      emit_push_mem(left.location.reference);
+                    end;
+                  LOC_REGISTER,LOC_CREGISTER:
+                    begin
+                       { Now release the registers (see cgai386.pas:     }
+                       { loadansistring for more info on the order) (JM) }
+                      emit_reg(A_PUSH,S_L,left.location.register);
+                      ungetregister32(left.location.register);
+                   end;
+                end;
+                emitpushreferenceaddr(location.reference);
+                saveregvars(regs_to_push);
+                emitcall('FPC_PCHAR_TO_WIDESTR');
+                maybe_loadself;
+                popusedregisters(pushed);
+             end;
          else
           begin
             internalerror(12121);
@@ -1083,19 +1175,10 @@ implementation
 
 
     procedure ti386typeconvnode.second_char_to_char;
-      var
-         hreg : tregister;
       begin
-         case torddef(resulttype.def).typ of
-            uwidechar:
-              begin
-                 internalerror(200105021);
-              end;
-            uchar:
-              begin
-                 internalerror(200105022);
-              end;
-         end;
+        {$warning todo: add RTL routine for widechar-char conversion }
+        { Quick hack to atleast generate 'working' code (PFV) }
+        second_int_to_int;
       end;
 
 
@@ -1331,7 +1414,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-05-08 21:06:33  florian
+  Revision 1.16  2001-07-08 21:00:17  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.15  2001/05/08 21:06:33  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

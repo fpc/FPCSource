@@ -156,7 +156,7 @@ end ['EAX','ECX','EDX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(var buf;len:longint;b:byte):longint; assembler;
+function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
 asm
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
@@ -179,7 +179,7 @@ end ['EAX','EBX','ECX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(var buf;len:longint;b:word):longint; assembler;
+function Indexword(Const buf;len:longint;b:word):longint; assembler;
 asm
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
@@ -202,7 +202,7 @@ end ['EAX','EBX','ECX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(var buf;len:longint;b:DWord):longint; assembler;
+function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
 asm
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
@@ -225,7 +225,7 @@ end ['EAX','EBX','ECX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(var buf1,buf2;len:longint):longint; assembler;
+function CompareByte(Const buf1,buf2;len:longint):longint; assembler;
 asm
         cld
         movl    len,%eax
@@ -268,7 +268,7 @@ end ['ECX','EAX','ESI','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(var buf1,buf2;len:longint):longint; assembler;
+function CompareWord(Const buf1,buf2;len:longint):longint; assembler;
 asm
         cld
         movl    len,%eax
@@ -320,7 +320,7 @@ end ['EBX','EDX','ECX','EAX','ESI','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(var buf1,buf2;len:longint):longint; assembler;
+function CompareDWord(Const buf1,buf2;len:longint):longint; assembler;
 asm
         cld
         movl    len,%eax
@@ -370,7 +370,7 @@ end ['EBX','EDX','ECX','EAX','ESI','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(var buf;len:longint;b:Char):longint; assembler;
+function IndexChar0(Const buf;len:longint;b:Char):longint; assembler;
 asm
 // Can't use scasb, or will have to do it twice, think this
 //   is faster for small "len"
@@ -1115,7 +1115,11 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.12  2001-05-31 22:42:56  florian
+  Revision 1.13  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.12  2001/05/31 22:42:56  florian
     * some fixes for widestrings and variants
 
   Revision 1.11  2001/04/21 12:18:09  peter

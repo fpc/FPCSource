@@ -61,8 +61,6 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
 
-  { define SUPPORT_FIXED}
-
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Extended;
@@ -135,8 +133,10 @@ Type
 {$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
-  PWideString         = ^WideString;
 {$endif HASWIDECHAR}
+{$ifdef HASWIDESTRING}
+  PWideString         = ^WideString;
+{$endif HASWIDESTRING}
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
@@ -218,17 +218,17 @@ Procedure FillChar(Var x;count:Longint;Value:Byte);
 procedure FillByte(var x;count:longint;value:byte);
 Procedure FillWord(Var x;count:Longint;Value:Word);
 procedure FillDWord(var x;count:longint;value:DWord);
-function  IndexChar(var buf;len:longint;b:char):longint;
-function  IndexByte(var buf;len:longint;b:byte):longint;
-function  Indexword(var buf;len:longint;b:word):longint;
-function  IndexDWord(var buf;len:longint;b:DWord):longint;
-function  CompareChar(var buf1,buf2;len:longint):longint;
-function  CompareByte(var buf1,buf2;len:longint):longint;
-function  CompareWord(var buf1,buf2;len:longint):longint;
-function  CompareDWord(var buf1,buf2;len:longint):longint;
-procedure MoveChar0(var buf1,buf2;len:longint);
-function  IndexChar0(var buf;len:longint;b:char):longint;
-function  CompareChar0(var buf1,buf2;len:longint):longint;
+function  IndexChar(const buf;len:longint;b:char):longint;
+function  IndexByte(const buf;len:longint;b:byte):longint;
+function  Indexword(const buf;len:longint;b:word):longint;
+function  IndexDWord(const buf;len:longint;b:DWord):longint;
+function  CompareChar(const buf1,buf2;len:longint):longint;
+function  CompareByte(const buf1,buf2;len:longint):longint;
+function  CompareWord(const buf1,buf2;len:longint):longint;
+function  CompareDWord(const buf1,buf2;len:longint):longint;
+procedure MoveChar0(const buf1;var buf2;len:longint);
+function  IndexChar0(const buf;len:longint;b:char):longint;
+function  CompareChar0(const buf1,buf2;len:longint):longint;
 
 
 {****************************************************************************
@@ -340,7 +340,7 @@ function  lowercase(const s : ansistring) : ansistring;
                              WideString Handling
 ****************************************************************************}
 
-{$ifdef haswidechar}
+{$ifdef HASWIDESTRING}
 {$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : WideString; l : Longint);
 {$endif INTERNSETLENGTH}
@@ -348,9 +348,11 @@ Procedure UniqueString (Var S : WideString);
 Function  Length (Const S : WideString) : Longint;
 Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
 Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
+Function  Pos (c : Char; Const s : WideString) : Longint;
+Function  Pos (c : WideChar; Const s : WideString) : Longint;
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
 Procedure Delete (Var S : WideString; Index,Size: Longint);
-{$endif haswidechar}
+{$endif HASWIDESTRING}
 
 
 {****************************************************************************
@@ -502,7 +504,11 @@ const
 
 {
   $Log$
-  Revision 1.24  2001-06-04 11:43:51  peter
+  Revision 1.25  2001-07-08 21:00:18  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.24  2001/06/04 11:43:51  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 

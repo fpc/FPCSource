@@ -165,8 +165,16 @@ interface
                           still used for the push (PFV) }
                         clear_location(location);
                         location.loc:=LOC_MEM;
-                        gettempansistringreference(location.reference);
-                        decrstringref(cansistringtype.def,location.reference);
+                        if (tstringdef(left.resulttype.def).string_typ=st_widestring) then
+                         begin
+                           gettempwidestringreference(location.reference);
+                           decrstringref(cwidestringtype.def,location.reference);
+                         end
+                        else
+                         begin
+                           gettempansistringreference(location.reference);
+                           decrstringref(cansistringtype.def,location.reference);
+                         end;
                         { release used registers }
                         del_location(right.location);
                         del_location(left.location);
@@ -2285,7 +2293,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-06-25 14:11:37  jonas
+  Revision 1.16  2001-07-08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.15  2001/06/25 14:11:37  jonas
     * fixed set bug discovered by Carl (merged)
 
   Revision 1.14  2001/06/18 20:36:25  peter
