@@ -66,6 +66,9 @@
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
+  { MCBS functions }
+  {$i sysansi.inc}
+
   { CPU Specific code }
   {$i sysutilp.inc}
 
@@ -371,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-09-07 16:01:22  peter
+  Revision 1.12  2002-10-07 19:43:24  florian
+    + empty prototypes for the AnsiStr* multi byte functions added
+
+  Revision 1.11  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/07/16 13:57:39  florian

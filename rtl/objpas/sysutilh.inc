@@ -158,8 +158,11 @@ Type
   { Read internationalization settings }
   {$i sysinth.inc}
 
-  { Read pchar handling functions declration }
+  { Read pchar handling functions declaration }
   {$i syspchh.inc}
+
+  { MCBS functions }
+  {$i sysansih.inc}
 
   { Read filename handling functions declaration }
   {$i finah.inc}
@@ -182,7 +185,10 @@ Type
 
 {
   $Log$
-  Revision 1.17  2002-09-07 16:01:22  peter
+  Revision 1.18  2002-10-07 19:43:24  florian
+    + empty prototypes for the AnsiStr* multi byte functions added
+
+  Revision 1.17  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.16  2002/01/25 17:42:03  peter
