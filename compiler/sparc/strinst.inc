@@ -32,6 +32,7 @@
           'stba','stha','sta','stda',
           'sub','subcc','subx','subxcc',
           'swap','swapa','ticc','taddcc','tsubcc','taddcctv','tsubcctv',
+          'ta','t',
           'udiv','udivcc',
           'umul','umulcc',
           'unmp',
@@ -67,7 +68,10 @@
           'tst'
 {
         $Log$
-        Revision 1.8  2003-07-02 22:18:04  peter
+        Revision 1.9  2003-12-08 13:02:21  mazen
+        + support for native sparc assembler reader
+
+        Revision 1.8  2003/07/02 22:18:04  peter
           * paraloc splitted in callerparaloc,calleeparaloc
           * sparc calling convention updates
 

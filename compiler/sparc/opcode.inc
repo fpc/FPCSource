@@ -34,6 +34,7 @@ A_STC,A_STDC,A_STCSR,A_STDCQ,
 A_STBA,A_STHA,A_STA,A_STDA,
 A_SUB,A_SUBcc,A_SUBX,A_SUBXcc,
 A_SWAP,A_SWAPA,A_Ticc,A_TADDcc,A_TSUBcc,A_TADDccTV,A_TSUBccTV,
+A_TA,A_Txx,
 A_UDIV,A_UDIVcc,
 A_UMUL,A_UMULcc,
 A_UNMP,
@@ -69,7 +70,10 @@ A_skipz,A_skipnz,
 A_tst
 {
         $Log$
-        Revision 1.9  2003-07-02 22:18:04  peter
+        Revision 1.10  2003-12-08 13:02:21  mazen
+        + support for native sparc assembler reader
+
+        Revision 1.9  2003/07/02 22:18:04  peter
           * paraloc splitted in callerparaloc,calleeparaloc
           * sparc calling convention updates
 
