@@ -57,30 +57,25 @@ type
   end;
   PDir =^TDir;
 
+{ can't put definition in stat.inc because stat.inc is also included in }
+{ bunxtype.inc, which is used together with ptypes.inc, which defines   }
+{ def_t in another way :(                                               }
+{$ifdef i386}
   dev_t = word;
+{$else i386}
+{$ifdef m68k}
+  dev_t = word;
+{$else m68k}
+{$ifdef powerpc}
+  dev_t = cardinal;
+{$else powerpc}
+{$error dev_t unknown for this processor}
+{$endif powerpc}
+{$endif m68k}
+{$endif i386}
 
-  Stat = packed record
-    dev     : dev_t;
-    pad1    : word;
-    ino     : longint;
-    mode,
-    nlink,
-    uid,
-    gid     : word;
-    rdev    : dev_t;
-    pad2    : word;
-    size,
-    blksze,
-    blocks,
-    atime,
-    unused1,
-    mtime,
-    unused2,
-    ctime,
-    unused3,
-    unused4,
-    unused5 : longint;
-  end;
+{ definition of stat record type }
+{$i stat.inc}  
   PStat=^Stat;
   TStat=Stat;
 
@@ -131,10 +126,17 @@ type
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:20  peter
+  Revision 1.8  2003-05-15 22:50:50  jonas
+    * the stat type is processor-dependent
+    * the dev_t tpye is processor dependent. Don't use it in the stat type
+      however, as that one is also used at a time where dev_t is already
+      defined as qword
+
+  Revision 1.7  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/07/29 17:50:02  florian
     + added register location description for ppc
 
 }
+

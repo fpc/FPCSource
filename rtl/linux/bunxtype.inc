@@ -57,29 +57,13 @@ TYPE
   TUtsName   = UtsName;
   PUtsName   = TUtsName;
 
-  Stat 	     = Packed Record  // No unix typing because of differences
-			      // kernel <->libc
-                st_dev     : word;
-                pad1       : word;
-                st_ino     : longint;
-                st_mode,
-                nlink,
-                uid,
-                gid        : word;
-                rdev       : word;
-                pad2       : word;
-                st_size,
-                blksze,
-                blocks,
-                atime,
-                unused1,
-                mtime,
-                unused2,
-                ctime,
-                unused3,
-                unused4,
-                unused5   : longint;
-  	       end;
+
+{ Definition of (kernel) stat type }
+{ see kernel/include/asm-<cpu>/stat.h, include/linux/types.h and }
+{ include /include/asm-<cpu>/posix-types.h                       }
+
+{$i stat.inc}
+
   TStat	     = Stat;
   PStat	     = ^Stat;
 
@@ -262,7 +246,13 @@ CONST
 
 {
   $Log$
-  Revision 1.1  2002-12-18 16:43:26  marco
+  Revision 1.2  2003-05-15 22:50:50  jonas
+    * the stat type is processor-dependent
+    * the dev_t tpye is processor dependent. Don't use it in the stat type
+      however, as that one is also used at a time where dev_t is already
+      defined as qword
+
+  Revision 1.1  2002/12/18 16:43:26  marco
    * new unix rtl, linux part.....
 
   Revision 1.1  2002/11/12 14:37:59  marco
