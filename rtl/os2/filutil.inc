@@ -15,6 +15,10 @@
  **********************************************************************}
 
 
+{This is the correct way to call external assembler procedures.}
+procedure syscall;external name '___SYSCALL';
+
+
 const
  ofRead        = $0000;     {Open for reading}
  ofWrite       = $0001;     {Open for writing}
@@ -44,7 +48,7 @@ begin
          call syscall
 {$IFOPT H-}
     end;
-{$ELSE}
+{$ENDIF}
 end;
 
 
@@ -90,12 +94,12 @@ asm
 end;
 
 
-function FileSeek (Handle, Offset, Origin: longint): longint; assembler;
+function FileSeek (Handle, FOffset, Origin: longint): longint; assembler;
 asm
     mov eax, Origin
     mov ah, 42h
     mov ebx, Handle
-    mov edx, Offset
+    mov edx, FOffset
     call syscall
     jnc @FSeekEnd
     mov eax, -1
@@ -117,9 +121,14 @@ asm
     mov ebx, Handle
     mov edx, Size
     call syscall
-    mov eax, 0
     jc @FTruncEnd
-    inc eax
+    mov eax, 4202h
+    mov ebx, Handle
+    mov edx, 0
+    call syscall
+    mov eax, 0
+    jnc @FTruncEnd
+    dec eax
 @FTruncEnd:
 end;
 
@@ -185,7 +194,7 @@ procedure FindClose (var F: TSearchrec);
 begin
     if os_mode = osOS2 then
         begin
-           DosCalls.FindClose (F.FindHandle);
+           DosCalls.DosFindClose (F.FindHandle);
         end;
 end;
 
@@ -198,7 +207,7 @@ asm
     mov eax, -1
     jc @FGetDateEnd
     mov ax, dx
-    shld eax, cx, 16
+    shld eax, ecx, 16
 @FGetDateEnd:
 end;
 
@@ -297,7 +306,7 @@ asm
     mov eax, 0
     jc @FDeleteEnd
     inc eax
-@FExistsEnd:
+@FDeleteEnd:
 {$IFOPT H-}
 end;
 {$ENDIF}
@@ -361,7 +370,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-06-01 18:36:50  hajny
+  Revision 1.10  2000-06-04 14:22:02  hajny
+    * minor corrections
+
+  Revision 1.9  2000/06/01 18:36:50  hajny
     * FileGetDate added
 
   Revision 1.8  2000/05/29 17:59:58  hajny
