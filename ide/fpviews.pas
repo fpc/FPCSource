@@ -131,10 +131,11 @@ type
     TSourceEditor = object(TFileEditor)
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
-    public
       CompileStamp : longint;
-    public
       CodeCompleteTip: PFPToolTip;
+    private
+      ShouldHandleBreakpoints : boolean;
+    public
       { Syntax highlight }
       function  IsReservedWord(const S: string): boolean; virtual;
       function  IsAsmReservedWord(const S: string): boolean; virtual;
@@ -163,6 +164,10 @@ type
       procedure   PushInfo(Const st : string);virtual;
       procedure   PopInfo;virtual;
       procedure   DeleteLine(I: sw_integer); virtual;
+      procedure   BackSpace; virtual;
+      procedure   DelChar; virtual;
+      procedure   DelSelect; virtual;
+      function    InsertNewLine : Sw_integer;virtual;
       function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
       procedure   AddLine(const S: string); virtual;
     end;
@@ -1459,13 +1464,172 @@ end;
 procedure TSourceEditor.DeleteLine(I: sw_integer);
 begin
   inherited DeleteLine(I);
-  BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
+  If ShouldHandleBreakpoints then
+    BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
 end;
+
+procedure TSourceEditor.BackSpace;
+var
+  MoveBreakpointToPreviousLine,WasEnabled : boolean;
+  PBStart,PBEnd : PBreakpoint;
+  I : longint;
+begin
+  MoveBreakpointToPreviousLine:=(CurPos.X=0) and (CurPos.Y>0);
+  If MoveBreakpointToPreviousLine then
+    begin
+      ShouldHandleBreakpoints:=false;
+      I:=CurPos.Y+1;
+      PBEnd:=BreakpointsCollection^.FindBreakpointAt(@Self,I);
+      PBStart:=BreakpointsCollection^.FindBreakpointAt(@Self,I-1);
+    end;
+  inherited Backspace;
+  if MoveBreakpointToPreviousLine then
+    begin
+      ShouldHandleBreakpoints:=true;
+      if assigned(PBEnd) then
+        begin
+          if assigned(PBStart) then
+            begin
+              if PBEnd^.state=bs_enabled then
+                PBStart^.state:=bs_enabled;
+              BreakpointsCollection^.Free(PBEnd);
+            end
+          else
+            begin
+              WasEnabled:=PBEnd^.state=bs_enabled;
+              if WasEnabled then
+                begin
+                  PBEnd^.state:=bs_disabled;
+                  PBEnd^.UpdateSource;
+                end;
+              PBEnd^.line:=I-1;
+              if WasEnabled then
+                begin
+                  PBEnd^.state:=bs_enabled;
+                  PBEnd^.UpdateSource;
+                end;
+            end;
+        end;
+      BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
+    end;
+end;
+
+function TSourceEditor.InsertNewLine : Sw_integer;
+var
+  MoveBreakpointToNextLine : boolean;
+  I : longint;
+begin
+  ShouldHandleBreakpoints:=false;
+  MoveBreakpointToNextLine:=Cursor.x<Length(RTrim(GetDisplayText(CurPos.Y)));
+  I:=CurPos.Y+1;
+  InsertNewLine:=inherited InsertNewLine;
+  if MoveBreakpointToNextLine then
+    BreakpointsCollection^.AdaptBreakpoints(@Self,I-1,1)
+  else
+    BreakpointsCollection^.AdaptBreakpoints(@Self,I,1);
+  ShouldHandleBreakpoints:=true;
+end;
+
+procedure TSourceEditor.DelChar;
+var
+  S: string;
+  I,CI : sw_integer;
+  PBStart,PBEnd : PBreakpoint;
+  MoveBreakpointOneLineUp,WasEnabled : boolean;
+begin
+  if IsReadOnly then Exit;
+  S:=GetLineText(CurPos.Y);
+  I:=CurPos.Y+1;
+  CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+  if ((CI>length(S)) or (S='')) and (CurPos.Y<GetLineCount-1) then
+    begin
+      MoveBreakpointOneLineUp:=true;
+      ShouldHandleBreakpoints:=false;
+      PBEnd:=BreakpointsCollection^.FindBreakpointAt(@Self,I+1);
+      PBStart:=BreakpointsCollection^.FindBreakpointAt(@Self,I);
+    end
+  else
+    MoveBreakpointOneLineUp:=false;
+  Inherited DelChar;
+  if MoveBreakpointOneLineUp then
+    begin
+      ShouldHandleBreakpoints:=true;
+      if assigned(PBEnd) then
+        begin
+          if assigned(PBStart) then
+            begin
+              if PBEnd^.state=bs_enabled then
+                PBStart^.state:=bs_enabled;
+              BreakpointsCollection^.Free(PBEnd);
+            end
+          else
+            begin
+              WasEnabled:=PBEnd^.state=bs_enabled;
+              if WasEnabled then
+                begin
+                  PBEnd^.state:=bs_disabled;
+                  PBEnd^.UpdateSource;
+                end;
+              PBEnd^.line:=I;
+              if WasEnabled then
+                begin
+                  PBEnd^.state:=bs_enabled;
+                  PBEnd^.UpdateSource;
+                end;
+            end;
+        end;
+      BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
+    end;
+end;
+
+procedure TSourceEditor.DelSelect;
+var
+  MoveBreakpointToFirstLine,WasEnabled : boolean;
+  PBStart,PBEnd : PBreakpoint;
+  I,J : longint;
+begin
+  ShouldHandleBreakpoints:=false;
+  J:=SelEnd.Y-SelStart.Y;
+  MoveBreakpointToFirstLine:=J>0;
+  PBEnd:=BreakpointsCollection^.FindBreakpointAt(@Self,SelEnd.Y);
+  PBStart:=BreakpointsCollection^.FindBreakpointAt(@Self,SelEnd.Y);
+
+  I:=SelStart.Y;
+  inherited DelSelect;
+  if MoveBreakpointToFirstLine and assigned(PBEnd) then
+    begin
+      If assigned(PBStart) then
+        begin
+          if PBEnd^.state=bs_enabled then
+            PBStart^.state:=bs_enabled;
+          BreakpointsCollection^.Free(PBEnd);
+        end
+      else
+        begin
+          WasEnabled:=PBEnd^.state=bs_enabled;
+          if WasEnabled then
+            begin
+              PBEnd^.state:=bs_disabled;
+              PBEnd^.UpdateSource;
+            end;
+          PBEnd^.line:=I;
+          if WasEnabled then
+            begin
+              PBEnd^.state:=bs_enabled;
+              PBEnd^.UpdateSource;
+            end;
+        end;
+    end;
+  BreakpointsCollection^.AdaptBreakpoints(@Self,I,-J);
+  ShouldHandleBreakpoints:=true;
+end;
+
 
 function TSourceEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
 begin
   InsertLine := inherited InsertLine(LineNo,S);
-  BreakpointsCollection^.AdaptBreakpoints(@Self,LineNo,1);
+  If ShouldHandleBreakpoints then
+    BreakpointsCollection^.AdaptBreakpoints(@Self,LineNo,1);
 end;
 
 procedure TSourceEditor.AddLine(const S: string);
@@ -4395,7 +4559,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.38  2002-12-12 00:09:08  pierre
+  Revision 1.39  2002-12-16 15:16:15  pierre
+   * try to fix the moving of breakpoints
+
+  Revision 1.38  2002/12/12 00:09:08  pierre
    * move line breakpoints if lines added or deleted in editor window
 
   Revision 1.37  2002/11/30 01:56:52  pierre
