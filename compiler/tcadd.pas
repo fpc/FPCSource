@@ -1030,6 +1030,32 @@ implementation
             end
          else
 
+{$ifdef SUPPORT_MMX}
+           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
+             is_mmx_able_array(rd) and is_equal(ld,rd) then
+            begin
+              firstpass(p^.right);
+              firstpass(p^.left);
+              case p^.treetype of
+                addn,subn,xorn,orn,andn:
+                  ;
+                { mul is a little bit restricted }
+                muln:
+                  if not(mmx_type(p^.left^.resulttype) in
+                    [mmxu16bit,mmxs16bit,mmxfixed16]) then
+                    CGMessage(type_e_mismatch);
+                else
+                  CGMessage(type_e_mismatch);
+              end;
+              p^.location.loc:=LOC_MMXREGISTER;
+              calcregisters(p,0,0,1);
+              convdone:=true;
+            end
+          else
+{$endif SUPPORT_MMX}
+
+           { this is a little bit dangerous, also the left type }
+           { should be checked! This broke the mmx support      }
            if (rd^.deftype=pointerdef) or
              is_zero_based_array(rd) then
             begin
@@ -1110,30 +1136,6 @@ implementation
               convdone:=true;
             end
          else
-
-{$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
-             is_mmx_able_array(rd) and is_equal(ld,rd) then
-            begin
-              firstpass(p^.right);
-              firstpass(p^.left);
-              case p^.treetype of
-                addn,subn,xorn,orn,andn:
-                  ;
-                { mul is a little bit restricted }
-                muln:
-                  if not(mmx_type(p^.left^.resulttype) in
-                    [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    CGMessage(type_e_mismatch);
-                else
-                  CGMessage(type_e_mismatch);
-              end;
-              p^.location.loc:=LOC_MMXREGISTER;
-              calcregisters(p,0,0,1);
-              convdone:=true;
-            end
-          else
-{$endif SUPPORT_MMX}
 
            if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) and (is_equal(ld,rd)) then
             begin
@@ -1252,7 +1254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-12-11 18:53:31  jonas
+  Revision 1.62  2000-01-04 20:10:20  florian
+    * mmx support fixed
+
+  Revision 1.61  1999/12/11 18:53:31  jonas
     * fixed type conversions of results of operations with cardinals
       (between -dcardinalmulfix)
 
