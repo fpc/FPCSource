@@ -264,7 +264,7 @@ function WeekDay (y,m,d:longint):longint;
 var
   u,v : longint;
 begin
-  if (m<1) or (m>12) or (y<1600) or (y>4000) or 
+  if (m<1) or (m>12) or (y<1600) or (y>4000) or
      (d<1) or (d>30+((m+ord(m>7)) and 1)-ord(m=2)) or
      ((m*d=58) and (((y mod 4>0) or (y mod 100=0)) and (y mod 400>0))) then
    WeekDay:=-1
@@ -380,10 +380,10 @@ var
 {$IFDEF CRTLIB}
   Buf : Array[0..512] of Char;
   i   : Integer;
-{$ELSE}  
+{$ELSE}
   pid    : longint;
   status : integer;
-{$ENDIF}  
+{$ENDIF}
 Begin
 {$IFDEF CRTLIB}
   i:=Length(Path);
@@ -445,9 +445,16 @@ End;
   ! Use AddDisk() to Add new drives !
   They both return -1 when a failure occurs.
 }
+Const
+  FixDriveStr : array[0..3] of pchar=(
+    '.',
+    '/fd0/.',
+    '/fd1/.',
+    '/.'
+    );
 var
   Drives   : byte;
-  DriveStr : array[0..26] of pchar;
+  DriveStr : array[4..26] of pchar;
 
 Procedure AddDisk(const path:string);
 begin
@@ -469,7 +476,8 @@ var
 {$ENDIF}
 Begin
 {$IFNDEF CRTLIB}
-  if (not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    Diskfree:=fs.bavail*fs.bsize
   else
    Diskfree:=-1;
@@ -485,7 +493,8 @@ var
 {$ENDIF}
 Begin
 {$IFNDEF CRTLIB}
-  if (not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    DiskSize:=fs.blocks*fs.bsize
   else
    DiskSize:=-1;
@@ -522,21 +531,21 @@ Begin
      repeat
        if (RtlFindRecs[i].SearchNum=f.SearchNum) then
         break;
-       inc(i);  
+       inc(i);
      until (i>=RtlFindSize);
      If i<RtlFindSize Then
       Begin
         RtlFindRecs[i].SearchNum:=0;
         if f.dirptr>0 then
          begin
-         {$IFDEF CRTLIB}   
+         {$IFDEF CRTLIB}
            _rtl_closeDir(f.dirptr);
          {$ELSE}
            closedir(pdir(f.dirptr));
-         {$ENDIF}  
+         {$ENDIF}
          end;
       End;
-   end;      
+   end;
   f.dirptr:=0;
 End;
 
@@ -547,9 +556,9 @@ var
   Info : RtlInfoType;
 {$IFDEF CRTLIB}
   buf  : array[0..255] of char;
-{$ELSE}  
+{$ELSE}
   st   : stat;
-{$ENDIF}  
+{$ENDIF}
 begin
   FindGetFileInfo:=false;
 {$IFDEF CRTLIB}
@@ -624,7 +633,7 @@ Var
   Finished : boolean;
 {$IFNDEF CRTLIB}
   p        : PDirEnt;
-{$ENDIF}    
+{$ENDIF}
 Begin
   If f.SearchType=0 Then
    Begin
@@ -660,9 +669,9 @@ Begin
             Begin
             {$IFDEF CRTLIB}
               _rtl_closeDir(rtlfindrecs[arraypos].dirptr);
-            {$ELSE}        
+            {$ELSE}
               CloseDir(pdir(rtlfindrecs[arraypos].dirptr));
-            {$ENDIF}       
+            {$ENDIF}
             End;
            RtlFindRecs[ArrayPos].SearchNum := f.SearchNum;
            RtlFindRecs[ArrayPos].DirPtr := f.DirPtr;
@@ -670,15 +679,15 @@ Begin
             begin
             {$IFDEF CRTLIB}
               _rtl_seekdir(f.dirptr, f.searchpos);
-            {$ELSE}   
+            {$ELSE}
               seekdir(pdir(f.dirptr), f.searchpos);
-            {$ENDIF}  
+            {$ENDIF}
             end;
          end;
       End;
      RtlFindRecs[ArrayPos].LastUsed:=0;
    end;
-{Main loop}   
+{Main loop}
   SName:=Copy(f.SearchSpec,f.NamePos+1,255);
   Found:=False;
   Finished:=(f.dirptr=0);
@@ -706,7 +715,7 @@ Begin
          End;
       End;
    End;
-{Shutdown}   
+{Shutdown}
   If Found Then
    Begin
    {$IFDEF CRTLIB}
@@ -733,15 +742,15 @@ Begin
    begin
      DosError:=3;
      exit;
-   end;     
-{Create Info}   
+   end;
+{Create Info}
   f.SearchSpec := Path;
   f.SearchAttr := Attr;
   f.SearchPos:=0;
   f.NamePos := Length(f.SearchSpec);
   while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
    dec(f.NamePos);
-{Wildcards?}   
+{Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
    begin
      if FindGetFileInfo(Path,f) then
@@ -750,21 +759,21 @@ Begin
       begin
         if ErrNo=Sys_ENOENT then
          DosError:=3
-        else 
-         DosError:=18; 
-      end;       
+        else
+         DosError:=18;
+      end;
      f.DirPtr:=0;
      f.SearchType:=1;
      f.searchnum:=-1;
    end
   else
 {Find Entry}
-   begin 
+   begin
      Inc(CurrSearchNum);
      f.SearchNum:=CurrSearchNum;
      f.SearchType:=0;
      FindNext(f);
-   end;     
+   end;
 End;
 
 
@@ -816,7 +825,7 @@ Begin
    LinAttr:=Info.Mode;
   if S_ISDIR(LinAttr) then
    Attr:=$10
-  else 
+  else
    Attr:=$20;
   if not Access(strpas(@textrec(f).name),W_OK) then
    Attr:=Attr or $1;
@@ -1028,19 +1037,14 @@ End;
                             --- Initialization ---
 ******************************************************************************}
 
-Begin
-{$IFNDEF CRTLIB}
-{drivestr needs initialisation}
-  AddDisk('.');
-  AddDisk('/fd0/.');
-  AddDisk('/fd1/.');
-  AddDisk('/.');
-{$ENDIF}
 End.
 
 {
   $Log$
-  Revision 1.3  1998-05-06 12:35:26  michael
+  Revision 1.4  1998-11-04 10:15:54  peter
+    * don't use getmem in startup (necessary for heaptrc)
+
+  Revision 1.3  1998/05/06 12:35:26  michael
   + Removed log from before restored version.
 
   Revision 1.2  1998/05/04 17:40:43  peter
