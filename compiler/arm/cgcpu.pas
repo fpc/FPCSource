@@ -112,6 +112,8 @@ unit cgcpu;
 
     function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
 
+    function get_fpu_postfix(def : tdef) : toppostfix;
+
   implementation
 
 
@@ -121,6 +123,26 @@ unit cgcpu;
        tgobj,
        procinfo,cpupi,
        paramgr;
+
+
+    function get_fpu_postfix(def : tdef) : toppostfix;
+      begin
+        if def.deftype=floatdef then
+          begin
+            case tfloatdef(def).typ of
+              s32real:
+                result:=PF_S;
+              s64real:
+                result:=PF_D;
+              s80real:
+                result:=PF_E;
+              else
+                internalerror(200401272);
+            end;
+          end
+        else
+          internalerror(200401271);
+      end;
 
 
     procedure tcgarm.init_register_allocators;
@@ -276,6 +298,20 @@ unit cgcpu;
          tmpreg : tregister;
          so : tshifterop;
        begin
+          if is_shifter_const(dword(-a),shift) then
+            case op of
+              OP_ADD:
+                begin
+                  op:=OP_SUB;
+                  a:=dword(-a);
+                end;
+              OP_SUB:
+                begin
+                  op:=OP_SUB;
+                  a:=dword(-a);
+                end
+            end;
+
           if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
             case op of
               OP_NEG,OP_NOT,
@@ -518,11 +554,11 @@ unit cgcpu;
         if (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
           begin
             if tmpreg<>NR_NO then
-              list.concat(taicpu.op_reg_reg_const(A_ADD,tmpreg,tmpreg,ref.offset))
+              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg,tmpreg)
             else
               begin
                 tmpreg:=getintregister(list,OS_ADDR);
-                list.concat(taicpu.op_reg_reg_const(A_ADD,tmpreg,ref.base,ref.offset));
+                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,ref.base,tmpreg);
                 ref.base:=tmpreg;
               end;
             ref.offset:=0;
@@ -866,20 +902,16 @@ unit cgcpu;
             if tmpref.shiftmode<>SM_None then
               internalerror(200312021);
             if tmpref.signindex<0 then
-              list.concat(taicpu.op_reg_reg_reg(A_SUB,r,tmpref.base,tmpref.index))
+              a_op_reg_reg_reg(list,OP_SUB,OS_ADDR,tmpref.base,tmpref.index,r)
             else
-              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,tmpref.base,tmpref.index));
-            if tmpref.offset>0 then
-              list.concat(taicpu.op_reg_reg_const(A_ADD,r,r,tmpref.offset))
-            else if tmpref.offset<0 then
-              list.concat(taicpu.op_reg_reg_const(A_SUB,r,r,-tmpref.offset));
+              a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,tmpref.base,tmpref.index,r);
+            if tmpref.offset<>0 then
+              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,r,r);
           end
         else
           begin
-            if tmpref.offset>0 then
-              list.concat(taicpu.op_reg_reg_const(A_ADD,r,tmpref.base,tmpref.offset))
-            else if tmpref.offset<0 then
-              list.concat(taicpu.op_reg_reg_const(A_SUB,r,tmpref.base,-tmpref.offset))
+            if tmpref.offset<>0 then
+              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
             else
               begin
                 instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
@@ -1221,7 +1253,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-01-26 19:05:56  florian
+  Revision 1.41  2004-01-27 15:04:06  florian
+    * fixed code generation for math inl. nodes
+    * more code generator improvements
+
+  Revision 1.40  2004/01/26 19:05:56  florian
     * fixed several arm issues
 
   Revision 1.39  2004/01/24 20:19:46  florian

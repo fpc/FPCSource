@@ -34,9 +34,17 @@ interface
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
+        function first_arctan_real: tnode; override;
+        function first_ln_real: tnode; override;
+        function first_cos_real: tnode; override;
+        function first_sin_real: tnode; override;
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
+        procedure second_arctan_real; override;
+        procedure second_ln_real; override;
+        procedure second_cos_real; override;
+        procedure second_sin_real; override;
       private
         procedure load_fpu_location;
       end;
@@ -52,7 +60,7 @@ implementation
       cgbase,pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu;
 
 {*****************************************************************************
                               tarminlinenode
@@ -98,32 +106,101 @@ implementation
       end;
 
 
+    function tarminlinenode.first_arctan_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        registers32:=left.registers32;
+        registersfpu:=max(left.registersfpu,1);
+        result:=nil;
+      end;
+
+
+    function tarminlinenode.first_ln_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        registers32:=left.registers32;
+        registersfpu:=max(left.registersfpu,1);
+        result:=nil;
+      end;
+
+
+    function tarminlinenode.first_cos_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        registers32:=left.registers32;
+        registersfpu:=max(left.registersfpu,1);
+        result:=nil;
+      end;
+
+
+    function tarminlinenode.first_sin_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        registers32:=left.registers32;
+        registersfpu:=max(left.registersfpu,1);
+        result:=nil;
+      end;
+
+
     procedure tarminlinenode.second_abs_real;
       begin
         load_fpu_location;
-        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,location.register),PF_E));
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,location.register),get_fpu_postfix(resulttype.def)));
       end;
 
 
     procedure tarminlinenode.second_sqr_real;
       begin
         load_fpu_location;
-        exprasmlist.concat(taicpu.op_reg_reg(A_MUF,location.register,left.location.register));
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resulttype.def)));
       end;
 
 
     procedure tarminlinenode.second_sqrt_real;
       begin
         load_fpu_location;
-        exprasmlist.concat(taicpu.op_reg(A_SQT,location.register));
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,location.register),get_fpu_postfix(resulttype.def)));
       end;
+
+
+    procedure tarminlinenode.second_arctan_real;
+      begin
+        load_fpu_location;
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_ATN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+      end;
+
+
+    procedure tarminlinenode.second_ln_real;
+      begin
+        load_fpu_location;
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+      end;
+
+
+    procedure tarminlinenode.second_cos_real;
+      begin
+        load_fpu_location;
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_COS,location.register,location.register),get_fpu_postfix(resulttype.def)));
+      end;
+
+
+    procedure tarminlinenode.second_sin_real;
+      begin
+        load_fpu_location;
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+      end;
+
 
 begin
   cinlinenode:=tarminlinenode;
 end.
 {
   $Log$
-  Revision 1.3  2004-01-20 21:02:56  florian
+  Revision 1.4  2004-01-27 15:04:06  florian
+    * fixed code generation for math inl. nodes
+    * more code generator improvements
+
+  Revision 1.3  2004/01/20 21:02:56  florian
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 
