@@ -559,6 +559,7 @@ implementation
         linkothersharedlibs:=TLinkContainer.Create;
         uses_imports:=false;
         do_compile:=false;
+        do_reload:=false;
         interface_compiled:=false;
         in_interface:=true;
         in_global:=true;
@@ -570,8 +571,8 @@ implementation
           The following fields should not
           be reset:
            mainsource
-           loaded_from
            state
+           loaded_from
            sources_avail
         }
       end;
@@ -691,7 +692,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-11-23 17:23:49  peter
+  Revision 1.43  2003-12-08 22:33:43  peter
+    * don't allow duplicate uses
+    * fix wrong circular dependency
+
+  Revision 1.42  2003/11/23 17:23:49  peter
     * fixed memleak with derefdata
 
   Revision 1.41  2003/10/23 14:44:07  peter

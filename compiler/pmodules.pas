@@ -511,9 +511,10 @@ implementation
                   end;
                  pu:=tused_unit(pu.next);
                end;
-              { Need to register the unit? }
               if not assigned(hp2) then
-                hp2:=registerunit(current_module,sorg,fn);
+                hp2:=registerunit(current_module,sorg,fn)
+              else
+                Message1(sym_e_duplicate_id,s);
               { Create unitsym, we need to use the name as specified, we
                 can not use the modulename because that can be different
                 when -Un is used }
@@ -929,17 +930,19 @@ implementation
          write_gdb_info;
 {$endIf Def New_GDB}
 
+         { Our interface is compiled, generate CRC and switch to implementation }
          if not(cs_compilesystem in aktmoduleswitches) and
             (Errorcount=0) then
            tppumodule(current_module).getppucrc;
+         current_module.in_interface:=false;
+         current_module.interface_compiled:=true;
 
-         { we have a new interface loaded, reload all flagged units }
+         { First reload all units depending on our interface, we need to do this
+           in the implementation part to prevent errorneous circular references }
          reload_flagged_units;
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
-         current_module.in_interface:=false;
-         current_module.interface_compiled:=true;
 
          Message1(unit_u_loading_implementation_units,current_module.modulename^);
 
@@ -1422,7 +1425,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2003-11-29 20:13:25  florian
+  Revision 1.134  2003-12-08 22:33:43  peter
+    * don't allow duplicate uses
+    * fix wrong circular dependency
+
+  Revision 1.133  2003/11/29 20:13:25  florian
     * fixed several pi_do_call problems
 
   Revision 1.132  2003/10/29 19:48:51  peter
