@@ -49,6 +49,7 @@ LIBNAME=fprtl
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
 
 # Define Go32v2 Units
 SYSTEMUNIT=syslinux
@@ -251,8 +252,17 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 
+#
+# Graph
+#
+ifndef NEWGRAPH
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
-
+else
+include $(GRAPHDIR)/makefile.inc
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+graph$(PPUEXT) : $(GRAPHDIR)/graph.pp $(SYSTEMPPU) $(GRAPHINCDEPS) graph.inc
+	$(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
+endif
 #
 # Delphi Compatible Units
 #
@@ -297,7 +307,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.31  1999-08-04 11:30:05  michael
+# Revision 1.32  1999-11-07 16:57:26  michael
+# + Start of common graph implementation
+#
+# Revision 1.31  1999/08/04 11:30:05  michael
 # * moved gettext to fcl
 #
 # Revision 1.30  1999/07/29 01:39:09  peter
