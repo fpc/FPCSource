@@ -792,8 +792,6 @@ begin
                   Renumberfile(Infile,OutFile);
                 end;
         M_Tex : begin
-                  if pos('.tex',outfile)=0 then
-                   Outfile:=OutFile+'.tex';
                   WriteTexFile(InFile,Outfile);
                 end;
       M_Intel : begin
@@ -815,7 +813,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-06-06 15:39:49  karoly
+  Revision 1.13  2005-01-09 16:13:09  peter
+    * don't force to add .tex
+
+  Revision 1.12  2004/06/06 15:39:49  karoly
     * added support for morphos
 
   Revision 1.11  2003/03/16 23:10:04  pierre
