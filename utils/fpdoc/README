@@ -33,11 +33,21 @@ dwriter.pp
 dw_html.pp
   * HTML/XHTML output generator
 
+dwlinear.pp
+  * Abstract linear documentation generator.
+
 dw_latex.pp
-  * LaTeX output generator
+  * LaTeX output generator, based on linear documentation generator.
+
+dw_txt.pp
+  * Plain text output generator, based on linear documentation generator.
 
 dw_xml.pp
   * 'XML struct' output generator
+
+
+dw_man.pp
+  * 'Unix man page' output generator
 
 fpdoc.pp
   * Main program
@@ -45,9 +55,14 @@ fpdoc.pp
 makeskel.pp
   * Skeleton XML description file generator
 
+dw_template.pp
+  * template for implementing a new writer back-end.
+
+dw_lintmpl.pp
+  * template for implementing a new linear writer back-end.
+
+
 Contributors
 ------------
-French output strings by Pierre Muller
-Dutch output strings by Marco van de Voort
-
-Lots of input from Michael van Canneyt
+Initial French output strings by Pierre Muller
+Initial Dutch output strings by Marco van de Voort
