@@ -35,9 +35,6 @@ interface
  are written into temps for later release PM }
 
     function def_opsize(p1:tdef):topsize;
-    function def_getreg(p1:tdef):tregister;
-
-    procedure emitjmp(c : tasmcond;var l : tasmlabel);
 
     procedure emit_none(i : tasmop;s : topsize);
 
@@ -88,32 +85,9 @@ implementation
       end;
 
 
-    function def_getreg(p1:tdef):tregister;
-      begin
-{        def_getreg:=rg.makeregsize(rg.getregisterint(exprasmlist),int_cgsize(p1.size));}
-        def_getreg:=rg.getregisterint(exprasmlist,int_cgsize(p1.size));
-      end;
-
-
 {*****************************************************************************
                               Emit Assembler
 *****************************************************************************}
-
-    procedure emitjmp(c : tasmcond;var l : tasmlabel);
-      var
-        ai : taicpu;
-      begin
-        if c=C_None then
-          ai := Taicpu.Op_sym(A_JMP,S_NO,l)
-        else
-          begin
-            ai:=Taicpu.Op_sym(A_Jcc,S_NO,l);
-            ai.SetCondition(c);
-          end;
-        ai.is_jmp:=true;
-        exprasmList.concat(ai);
-      end;
-
 
     procedure emit_none(i : tasmop;s : topsize);
       begin
@@ -187,7 +161,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-09-03 15:55:02  peter
+  Revision 1.4  2003-09-28 21:49:39  peter
+    * removed emitjmp
+
+  Revision 1.3  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.2.2.1  2003/08/29 17:29:00  peter

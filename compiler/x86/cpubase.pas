@@ -226,7 +226,7 @@ uses
 *****************************************************************************}
 
     type
-      TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE);
+      TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE,F_S,F_NS);
 
 {*****************************************************************************
                                 Reference
@@ -474,7 +474,7 @@ implementation
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A);
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A,F_NS,F_S);
       begin
         f:=inv_flags[f];
       end;
@@ -483,7 +483,7 @@ implementation
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS);
       begin
         result := flags_2_cond[f];
       end;
@@ -558,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-09-25 21:29:23  peter
+  Revision 1.21  2003-09-28 21:49:39  peter
+    * removed emitjmp
+
+  Revision 1.20  2003/09/25 21:29:23  peter
     * remove sp_fixup
 
   Revision 1.19  2003/09/24 17:12:36  florian
