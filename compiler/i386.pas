@@ -38,7 +38,7 @@ unit i386;
          A_FILD,A_CMP,A_JZ,A_INC,A_DEC,A_SETE,A_SETNE,A_SETL,
          A_SETG,A_SETLE,A_SETGE,A_JE,A_JNE,A_JL,A_JG,A_JLE,A_JGE,
          A_OR,A_FLD,A_FADD,A_FMUL,A_FSUB,A_FDIV,A_FCHS,A_FLD1,
-         A_FIDIV,A_CLTD,A_JNZ,A_FSTP,A_AND,A_JNO,A_NOTH,A_NONE,
+         A_FIDIV,A_JNZ,A_FSTP,A_AND,A_JNO,A_NOTH,A_NONE,
          A_ENTER,A_LEAVE,A_CLD,A_MOVS,A_REP,A_SHL,A_SHR,A_BOUND,
          A_JNS,A_JS,A_JO,A_SAR,A_TEST,
          A_FCOM,A_FCOMP,A_FCOMPP,A_FXCH,A_FADDP,A_FMULP,A_FSUBP,A_FDIVP,
@@ -440,7 +440,7 @@ unit i386;
     const
        last_instruction_in_cache = A_EMMS;
     type
-    
+
        tins_cache = array[A_MOV..last_instruction_in_cache] of longint;
 
     var
@@ -924,14 +924,14 @@ unit i386;
         'fild','cmp','jz','inc','dec','sete','setne','setl',
         'setg','setle','setge','je','jne','jl','jg','jle','jge',
         'or','fld','fadd','fmul','fsub','fdiv','fchs','fld1',
-        'fidiv','cltd','jnz','fstp','and','jno','','',
+        'fidiv','jnz','fstp','and','jno','','',
         'enter','leave','cld','movs','rep','shl','shr','bound',
         'jns','js','jo','sar','test',
         'fcom','fcomp','fcompp','fxch','faddp','fmulp','fsubp','fdivp',
         'fnsts','sahf','fdivrp','fsubrp','setc','setnc','jc','jnc',
         'ja','jae','jb','jbe','seta','setae','setb','setbe',
-        'aaa','aad','aam','aas','cbw','cdq','clc','cli',
-        'clts','cmc','cwd','cwde','daa','das','hlt','iret','lahf',
+        'aaa','aad','aam','aas','cbtw','cltd','clc','cli',
+        'clts','cmc','cwtd','cwtl','daa','das','hlt','iret','lahf',
         'lods','lock','nop','pusha','pushf','pushfl',
         'stc','std','sti','stos','wait','xlat','xlatb','movsb',
         'movsbl','movsbw','movswl','movsb','movzwl','popa','in',
@@ -995,7 +995,7 @@ unit i386;
         'fild','cmp','jz','inc','dec','sete','setne','setl',
         'setg','setle','setge','je','jne','jl','jg','jle','jge',
         'or','fld','fadd','fmul','fsub','fdiv','fchs','fld1',
-        'fidiv','cltd','jnz','fstp','and','jno','','',
+        'fidiv','jnz','fstp','and','jno','','',
         'enter','leave','cld','movs','rep','shl','shr','bound',
         'jns','js','jo','sar','test',
         'fcom','fcomp','fcompp','fxch','faddp','fmulp','fsubrp','fdivp',
@@ -1731,7 +1731,12 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.17  1998-11-13 15:40:19  pierre
+  Revision 1.18  1998-11-26 21:45:30  jonas
+    - removed A_CLTD opcode (use A_CDQ instead)
+    * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
+    * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long
+
+  Revision 1.17  1998/11/13 15:40:19  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

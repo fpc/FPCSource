@@ -142,7 +142,7 @@ implementation
               if porddef(p^.left^.resulttype)^.typ=u32bit then
                  exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EDX,R_EDX)))
               else
-                 exprasmlist^.concat(new(pai386,op_none(A_CLTD,S_NO)));
+                 exprasmlist^.concat(new(pai386,op_none(A_CDQ,S_NO)));
 
               { division depends on the right type }
               if porddef(p^.right^.resulttype)^.typ=u32bit then
@@ -534,7 +534,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-11-05 14:26:02  peter
+  Revision 1.12  1998-11-26 21:45:29  jonas
+    - removed A_CLTD opcode (use A_CDQ instead)
+    * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
+    * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long
+
+  Revision 1.11  1998/11/05 14:26:02  peter
     * fixed shlshr which would push ecx when not needed
 
   Revision 1.10  1998/10/20 13:12:38  peter

@@ -264,7 +264,6 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {FCHS} (Ch: (C_FPU, C_None, C_None)),
   {FLD1} (Ch: (C_FPU, C_None, C_None)),
  {FIDIV} (Ch: (C_FPU, C_None, C_None)),
-  {CLTD} (Ch: (C_WEDX, C_REAX, C_None)),
    {JNZ} (Ch: (C_RFlags, C_None, C_None)),
   {FSTP} (Ch: (C_WOp1, C_FPU, C_None)),
    {AND} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
@@ -318,7 +317,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {CLI} (Ch: (C_WFlags, C_None, C_None)),
   {CLTS} (Ch: (C_None, C_None, C_None)),
    {CMC} (Ch: (C_WFlags, C_None, C_None)),
-   {CWD} (Ch: (C_RWEAX, C_None, C_None)),
+   {CWD} (Ch: (C_RWEAX, C_WEDX, C_None)),
   {CWDE} (Ch: (C_RWEAX, C_None, C_None)),
    {DAA} (Ch: (C_RWEAX, C_None, C_None)),
    {DAS} (Ch: (C_RWEAX, C_None, C_None)),
@@ -328,7 +327,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {LODS} (Ch: (C_WEAX, C_RWESI, C_None)),
   {LOCK} (Ch: (C_None, C_None, C_None)),
    {NOP} (Ch: (C_None, C_None, C_None)),
- {PUSHA} (Ch: (C_ALL, C_None, C_None)), {not true, but a pushall is usually followed by an instruction that does, so it won huert either}
+ {PUSHA} (Ch: (C_ALL, C_None, C_None)), {not true, but a pushall is usually followed by an instruction that does, so
+                                         it won hurt either}
  {PUSHF} (Ch: (C_RWESP, C_RFlags, C_None)),
 {PUSHFD} (Ch: (C_RWESP, C_RFlags, C_None)),
    {STC} (Ch: (C_WFlags, C_None, C_None)),
@@ -1531,7 +1531,6 @@ End;
 
 Procedure ReadReg(p: PPaiProp; Reg: TRegister);
 Begin
-//  if Reg in [R_EAX..R_EDI] then
     IncState(p^.Regs[Reg32(Reg)].RState)
 End;
 
@@ -2082,9 +2081,10 @@ End.
 
 {
  $Log$
- Revision 1.28  1998-11-26 15:43:24  jonas
-   * several small fixes in the AsmInstr table (concerning reading/writing from
-     regs/mem, doesn't affect current optimizer)
+ Revision 1.29  1998-11-26 21:45:31  jonas
+   - removed A_CLTD opcode (use A_CDQ instead)
+   * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
+   * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long
 
  Revision 1.27  1998/11/24 19:47:22  jonas
    * fixed problems posible with 3 operand instructions
