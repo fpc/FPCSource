@@ -1,0 +1,14 @@
+{$I gdkgldefs.inc}
+{$I gdkglversion.inc}
+{$I gdkgltokens.inc}
+{$I gdkgltypes.inc}
+{$I gdkglenumtypes.inc}
+{$I gdkglinit.inc}
+{$I gdkglquery.inc}
+{$I gdkglconfig.inc}
+{$I gdkglcontext.inc}
+{$I gdkgldrawable.inc}
+{$I gdkglpixmap.inc}
+{$I gdkglwindow.inc}
+{$I gdkglfont.inc}
+{$I gdkglshapes.inc}
