@@ -482,11 +482,7 @@ implementation
                     para.left:=p1;
                   end;
 
-                if not equal_defs(para.left.resulttype.def,tfiledef(filepara.resulttype.def).typedfiletype.def) then
-                  begin
-                    CGMessagePos(para.left.fileinfo,type_e_mismatch);
-                    found_error := true;
-                  end;
+                inserttypeconv(para.left,tfiledef(filepara.resulttype.def).typedfiletype);
 
                 if assigned(para.right) and
                    (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
@@ -2358,7 +2354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-12-08 21:17:12  jonas
+  Revision 1.125  2003-12-27 22:27:55  peter
+    * support type convs for write typed
+
+  Revision 1.124  2003/12/08 21:17:12  jonas
     * if there are assertions, include pi_do_call in procinfo.flags
 
   Revision 1.123  2003/11/29 16:19:54  peter
