@@ -244,8 +244,16 @@ type
       destructor  Done; virtual;
     end;
 
+  type
+     TIntRegs = record
+        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
+        cs,ds,es,ss,fs,gs : word;
+        eflags : dword;
+     end;
+
     PRegistersView = ^TRegistersView;
     TRegistersView = object(TView)
+      OldReg : TIntRegs;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -404,6 +412,8 @@ procedure UpdateDebugViews;
        StackWindow^.Update;
      If assigned(RegistersWindow) then
        RegistersWindow^.Update;
+     If assigned(Debugger) then
+       Debugger^.ReadWatches;
   end;
 
 constructor TDebugController.Init(const exefn:string);
@@ -433,6 +443,7 @@ begin
 end;
 
 procedure TDebugController.ReadWatches;
+
   procedure DoRead(PB : PWatch);
   begin
     PB^.Get_new_value;
@@ -578,7 +589,6 @@ begin
   if error then
     begin
        errornb:=error_num;
-       ReadWatches;
        UpdateDebugViews;
        ErrorBox(#3'Error within GDB'#13#3'Error code = %d',@errornb);
     end;
@@ -606,7 +616,6 @@ begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetDebuggerRow(Line);
-          ReadWatches;
           UpdateDebugViews;
 
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -624,7 +633,6 @@ begin
           W^.Editor^.SetDebuggerRow(Line);
           W^.Editor^.TrackCursor(true);
           UpdateDebugViews;
-          ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           LastSource:=W;
@@ -647,7 +655,6 @@ begin
               W:=TryToOpenFile(nil,fn,0,Line,true);
               W^.Editor^.SetDebuggerRow(Line);
               W^.Editor^.TrackCursor(true);
-              ReadWatches;
               UpdateDebugViews;
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
                 W^.Select;
@@ -2204,13 +2211,6 @@ end;
                          TRegistersView
 ****************************************************************************}
 
-  type
-     TIntRegs = record
-        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
-        cs,ds,es,ss,fs,gs : word;
-        eflags : dword;
-     end;
-
   function GetIntRegs(var rs : TIntRegs) : boolean;
 
     var
@@ -2262,7 +2262,8 @@ end;
                         rs.esp:=v
                       else if reg='ebp' then
                         rs.ebp:=v
-                      else if reg='eflags' then
+                      { under win32 flags are on a register named ps !! PM }
+                      else if (reg='eflags') or (reg='ps') then
                         rs.eflags:=v
                       else if reg='cs' then
                         rs.cs:=v
@@ -2307,6 +2308,15 @@ end;
 
     var
        rs : tintregs;
+       color :byte;
+
+    procedure SetColor(x,y : longint);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
 
     begin
        inherited draw;
@@ -2317,29 +2327,53 @@ end;
          end;
        if GetIntRegs(rs) then
          begin
-            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),7);
-            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),7);
-            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),7);
-            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),7);
-            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),7);
-            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),7);
-            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),7);
-            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),7);
-            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),7);
-            WriteStr(14,0,'CS '+HexStr(rs.cs,4),7);
-            WriteStr(14,1,'DS '+HexStr(rs.ds,4),7);
-            WriteStr(14,2,'ES '+HexStr(rs.es,4),7);
-            WriteStr(14,3,'FS '+HexStr(rs.fs,4),7);
-            WriteStr(14,4,'GS '+HexStr(rs.gs,4),7);
-            WriteStr(14,5,'SS '+HexStr(rs.ss,4),7);
-            WriteStr(22,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),7);
-            WriteStr(22,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),7);
-            WriteStr(22,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),7);
-            WriteStr(22,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),7);
-            WriteStr(22,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),7);
-            WriteStr(22,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),7);
-            WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),7);
-            WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),7);
+            SetColor(rs.eax,OldReg.eax);
+            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),color);
+            SetColor(rs.ebx,OldReg.ebx);
+            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),color);
+            SetColor(rs.ecx,OldReg.ecx);
+            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),color);
+            SetColor(rs.edx,OldReg.edx);
+            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),color);
+            SetColor(rs.eip,OldReg.eip);
+            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),color);
+            SetColor(rs.esi,OldReg.esi);
+            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),color);
+            SetColor(rs.edi,OldReg.edi);
+            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),color);
+            SetColor(rs.esp,OldReg.esp);
+            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),color);
+            SetColor(rs.ebp,OldReg.ebp);
+            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),color);
+            SetColor(rs.cs,OldReg.cs);
+            WriteStr(14,0,'CS '+HexStr(rs.cs,4),color);
+            SetColor(rs.ds,OldReg.ds);
+            WriteStr(14,1,'DS '+HexStr(rs.ds,4),color);
+            SetColor(rs.es,OldReg.es);
+            WriteStr(14,2,'ES '+HexStr(rs.es,4),color);
+            SetColor(rs.fs,OldReg.fs);
+            WriteStr(14,3,'FS '+HexStr(rs.fs,4),color);
+            SetColor(rs.gs,OldReg.gs);
+            WriteStr(14,4,'GS '+HexStr(rs.gs,4),color);
+            SetColor(rs.ss,OldReg.ss);
+            WriteStr(14,5,'SS '+HexStr(rs.ss,4),color);
+            SetColor(rs.eflags and $1,OldReg.eflags and $1);
+            WriteStr(22,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
+            SetColor(rs.eflags and $20,OldReg.eflags and $20);
+            WriteStr(22,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
+            SetColor(rs.eflags and $80,OldReg.eflags and $80);
+            WriteStr(22,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
+            SetColor(rs.eflags and $800,OldReg.eflags and $800);
+            WriteStr(22,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
+            SetColor(rs.eflags and $4,OldReg.eflags and $4);
+            WriteStr(22,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
+            SetColor(rs.eflags and $200,OldReg.eflags and $200);
+            WriteStr(22,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
+            SetColor(rs.eflags and $10,OldReg.eflags and $10);
+            WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
+            SetColor(rs.eflags and $400,OldReg.eflags and $400);
+            WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
+            OldReg:=rs;
          end
        else
          WriteStr(0,0,'<debugger error>',7);
@@ -2397,7 +2431,7 @@ end;
   procedure TRegistersWindow.Update;
 
     begin
-       DrawView;
+       ReDraw;
     end;
 
   destructor TRegistersWindow.Done;
@@ -2689,7 +2723,11 @@ end.
 
 {
   $Log$
-  Revision 1.41  2000-01-10 16:20:50  florian
+  Revision 1.42  2000-01-10 17:49:40  pierre
+   * Get RegisterView to Update correctly
+   * Write in white changed regs (keeping a copy of previous values)
+
+  Revision 1.41  2000/01/10 16:20:50  florian
     * working register window
 
   Revision 1.40  2000/01/10 13:20:57  pierre
