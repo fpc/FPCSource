@@ -23,7 +23,7 @@ unit SqliteDS;
 
 {$Mode ObjFpc}
 {$H+}
-{$Define DEBUG}
+{  $Define DEBUG}
 interface
 
 uses Classes, SysUtils, Db;
@@ -700,7 +700,7 @@ var
   SqlTemp:String;
   Counter:Integer;
 begin
-  if (FTableName <> '') and (FRowCount > 0) then
+  if (FTableName <> '') and (FFieldDefs.Count > 0) then
   begin
     FSqliteHandle:= sqlite_open(PChar(FFileName),0,FDBError);
     SqlTemp:='CREATE TABLE '+FTableName+' (';
