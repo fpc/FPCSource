@@ -498,7 +498,7 @@ implementation
            begin
               p:=comp_expr(true);
               { load strval and strlength of the constant tree }
-              if p.nodetype=stringconstn then
+              if (p.nodetype=stringconstn) or is_widestring(t.def) then
                 begin
                   { convert to the expected string type so that
                     for widestrings strval is a pcompilerwidestring }
@@ -994,7 +994,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-10-21 18:16:13  peter
+  Revision 1.73  2003-11-08 10:23:35  florian
+    * fixed parsing of typed widestring constants with length 1
+
+  Revision 1.72  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 
