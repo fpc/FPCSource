@@ -408,6 +408,8 @@ unit types;
                     l:=penumdef(def)^.min;
                     h:=penumdef(def)^.max;
                   end;
+        else
+          internalerror(987);
         end;
       end;
 
@@ -993,7 +995,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.36  1998-11-10 10:09:21  peter
+  Revision 1.37  1998-11-13 10:15:50  peter
+    * fixed ptr() with constants
+
+  Revision 1.36  1998/11/10 10:09:21  peter
     * va_list -> array of const
 
   Revision 1.35  1998/10/19 08:55:13  pierre

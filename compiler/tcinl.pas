@@ -50,7 +50,7 @@ implementation
 
     procedure firstinline(var p : ptree);
       var
-         vl      : longint;
+         vl,vl2  : longint;
          vr      : bestreal;
          hp,hpp  : ptree;
          store_count_ref,
@@ -128,19 +128,27 @@ implementation
             else
             { process constant expression with parameter }
              begin
-               if not(p^.left^.treetype in [realconstn,ordconstn]) then
-                begin
-                  CGMessage(cg_e_illegal_expression);
-                  vl:=0;
-                  vr:=0;
-                  isreal:=false;
-                end
-               else
-                begin
-                  isreal:=(p^.left^.treetype=realconstn);
-                  vl:=p^.left^.value;
-                  vr:=p^.left^.value_real;
-                end;
+               vl:=0;
+               vl2:=0; { second parameter Ex: ptr(vl,vl2) }
+               vr:=0;
+               isreal:=false;
+               case p^.left^.treetype of
+                 realconstn :
+                   begin
+                     isreal:=true;
+                     vr:=p^.left^.value_real;
+                   end;
+                 ordconstn :
+                   vl:=p^.left^.value;
+                 callparan :
+                   begin
+                     { both exists, else it was not generated }
+                     vl:=p^.left^.left^.value;
+                     vl2:=p^.left^.right^.left^.value;
+                   end;
+                 else
+                   CGMessage(cg_e_illegal_expression);
+               end;
                case p^.inlinenumber of
          in_const_trunc : begin
                             if isreal then
@@ -200,7 +208,7 @@ implementation
                             if isreal then
                              CGMessage(type_e_mismatch)
                             else
-                             hp:=genordinalconstnode(vl,voidpointerdef);
+                             hp:=genordinalconstnode((vl2 shl 16) or vl,voidpointerdef);
                           end;
           in_const_sqrt : begin
                             if isreal then
@@ -854,7 +862,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-11-05 12:03:05  peter
+  Revision 1.7  1998-11-13 10:15:52  peter
+    * fixed ptr() with constants
+
+  Revision 1.6  1998/11/05 12:03:05  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

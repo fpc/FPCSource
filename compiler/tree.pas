@@ -694,7 +694,8 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=def;
          p^.value:=v;
-         testrange(p^.resulttype,p^.value);
+         if p^.resulttype^.deftype=orddef then
+          testrange(p^.resulttype,p^.value);
          genordinalconstnode:=p;
       end;
 
@@ -1602,7 +1603,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.50  1998-11-10 10:09:20  peter
+  Revision 1.51  1998-11-13 10:15:53  peter
+    * fixed ptr() with constants
+
+  Revision 1.50  1998/11/10 10:09:20  peter
     * va_list -> array of const
 
   Revision 1.49  1998/11/05 12:03:07  peter
