@@ -178,7 +178,7 @@ rm32,imm              \321\300\2\x0F\xBA\205\25       386,SB
 
 [CALL,call]
 ; don't know value of any register
-(Ch_All, Ch_None, Ch_None)
+(Ch_ROp1, Ch_All, Ch_None)
 imm                   \322\1\xE8\64                   8086
 imm|near              \322\1\xE8\64                   8086
 imm|far               \322\1\x9A\34\37                8086,ND
@@ -965,7 +965,7 @@ imm                   \320\1\xE3\50                   8086
 imm                   \321\1\xE3\50                   386
 
 [JMP,jmpX]
-(Ch_None, Ch_None, Ch_None)
+(Ch_ROp1, Ch_None, Ch_None)
 imm|short             \1\xEB\50                       8086
 imm                   \322\1\xE9\64                   8086,PASS2
 imm|near              \322\1\xE9\64                   8086,ND,PASS2
@@ -1058,7 +1058,7 @@ reg32,mem             \321\301\2\x0F\xB5\110          386
 mem                   \300\2\x0F\x01\203              286,PRIV
 
 [LJMP,ljmp]
-(Ch_None, Ch_None, Ch_None)
+(Ch_ROp1, Ch_None, Ch_None)
 mem|far               \322\300\1\xFF\205              8086
 mem16|far             \320\300\1\xFF\205              8086
 mem32|far             \321\300\1\xFF\205              386

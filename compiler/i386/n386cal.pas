@@ -1038,8 +1038,8 @@ implementation
                      emit_ref(A_CALL,S_NO,newreference(right.location.reference))
                    else
                      begin
-                       ungetregister32(hregister);
                        emit_reg(A_CALL,S_NO,hregister);
+                       ungetregister32(hregister);
                      end;
 
                    del_reference(right.location.reference);
@@ -1584,7 +1584,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2001-08-29 12:18:08  jonas
+  Revision 1.32  2001-09-01 23:02:30  jonas
+    * i386*: call and jmp read their first operand
+    * cgcal: deallocate hlper register only after call statement (fixes bug
+      with "procedure of object" and optimizer reported to bugrep on
+      2001/08/30) ('merged')
+
+  Revision 1.31  2001/08/29 12:18:08  jonas
     + new createinternres() constructor for tcallnode to support setting a
       custom resulttype
     * compilerproc typeconversions now set the resulttype from the type
