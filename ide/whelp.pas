@@ -177,7 +177,7 @@ procedure DoneHelpFilesTypes;
 
 {$ifdef ENDIAN_BIG}
 Procedure SwapLong(var x : longint);
-Procedure SwapWord(x : word);
+Procedure SwapWord(var x : word);
 {$endif ENDIAN_BIG}
 
 
@@ -222,7 +222,7 @@ Begin
 End;
 
 
-Procedure SwapWord(x : word);
+Procedure SwapWord(var x : word);
 var
   z : byte;
 Begin
@@ -951,7 +951,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2002-11-22 12:21:16  pierre
+  Revision 1.9  2002-11-22 15:18:24  pierre
+   * fix SwapWord, arg must be of var type
+
+  Revision 1.8  2002/11/22 12:21:16  pierre
    + SwapLongint and SwapWord added for big endian machines
 
   Revision 1.7  2002/09/07 15:40:49  peter
