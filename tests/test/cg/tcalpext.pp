@@ -30,7 +30,11 @@ uses
 
 {$ifdef USE_PASCAL_OBJECT}
   {$ifdef win32}
-  {$L ptest.ow}
+    {$ifdef ver1_0}
+      {$L ptest.ow}
+    {$else}
+      {$L ptest.o}
+    {$endif}
   {$else}
   {$L ptest.o}
   {$endif not win32}
