@@ -109,6 +109,8 @@ type    {Some string types:}
         efdetach:      Detached. Function unknown. Info wanted!
         efpm:          Run as presentation manager program.
 
+ Not found info about execwinflags
+
         Determining the window state of the program:
         efdefault:     Run the pm program in it's default situation.
         efminimize:    Run the pm program minimized.
@@ -116,9 +118,7 @@ type    {Some string types:}
         effullscreen:  Run the non-pm program fullscreen.
         efwindowed:    Run the non-pm program in a window.
 
-        Other options are not implemented defined because lack of
-        knowledge about what they do.}
-
+}
         type    execrunflags=(efwait,efno_wait,efoverlay,efdebug,efsession,
                               efdetach,efpm);
                 execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
@@ -260,6 +260,7 @@ procedure getftime(var f;var time:longint);
 
 begin
     asm
+        pushl %ebx
         {Load handle}
         movl f,%ebx
         movl (%ebx),%ebx
@@ -272,6 +273,7 @@ begin
         movl %edx,(%ebx)
         xorb %ah,%ah
         movw %ax,doserror
+        popl %ebx
     end;
 end;
 
@@ -282,26 +284,27 @@ var FStat: PFileStatus3;
 
 begin
     if os_mode = osOS2 then
-        begin
-            New (FStat);
-            RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, FStat,
-                                                              SizeOf (FStat^));
-            if RC = 0 then
-                begin
-                    FStat^.DateLastAccess := Hi (Time);
-                    FStat^.DateLastWrite := Hi (Time);
-                    FStat^.TimeLastAccess := Lo (Time);
-                    FStat^.TimeLastWrite := Lo (Time);
-                    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
-                                                       FStat, SizeOf (FStat^));
+begin
+  New (FStat);
+  RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, FStat,
+                                                    SizeOf (FStat^));
+  if RC = 0 then
+  begin
+    FStat^.DateLastAccess := Hi (Time);
+    FStat^.DateLastWrite := Hi (Time);
+    FStat^.TimeLastAccess := Lo (Time);
+    FStat^.TimeLastWrite := Lo (Time);
+    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
+                                       FStat, SizeOf (FStat^));
 
 
-                end;
-            DosError := integer(RC);
-            Dispose (FStat);
+  end;
+  DosError := integer(RC);
+  Dispose (FStat);
         end
     else
         asm
+            pushl %ebx
             {Load handle}
             movl f,%ebx
             movl (%ebx),%ebx
@@ -312,6 +315,7 @@ begin
             call syscall
             xorb %ah,%ah
             movw %ax,doserror
+            popl %ebx
         end;
 end;
 
@@ -388,7 +392,7 @@ begin
     popl    %ebx            {Flags.}
     movl    %ebx,32(%eax)
     {FS and GS too}
-  end;
+  end ['eax','ebx','ecx','edx','esi','edi'];
 end;
 
 procedure exec(const path:pathstr;const comline:comstr);
@@ -498,7 +502,7 @@ begin
         stosb               {Store an extra 0 to finish. (AL is now 0).}
         incl %edx
         movw %dx,ES.SizeEnv    {Store environment size.}
-    end;
+    end ['eax','ebx','ecx','edx','esi','edi'];
 
     {Environment ready, now set-up exec structure.}
     es.argofs:=args;
@@ -580,12 +584,12 @@ procedure SetDate (Year, Month, Day: word);
 var DT: TDateTime;
 begin
     if os_mode = osOS2 then
-        begin
-            DosGetDateTime (DT);
-            DT.Year := Year;
-            DT.Month := byte (Month);
-            DT.Day := byte (Day);
-            DosSetDateTime (DT);
+begin
+  DosGetDateTime (DT);
+  DT.Year := Year;
+  DT.Month := byte (Month);
+  DT.Day := byte (Day);
+  DosSetDateTime (DT);
         end
     else
         asm
@@ -623,13 +627,13 @@ procedure SetTime (Hour, Minute, Second, Sec100: word);
 var DT: TDateTime;
 begin
     if os_mode = osOS2 then
-        begin
-            DosGetDateTime (DT);
-            DT.Hour := byte (Hour);
-            DT.Minute := byte (Minute);
-            DT.Second := byte (Second);
-            DT.Sec100 := byte (Sec100);
-            DosSetDateTime (DT);
+begin
+  DosGetDateTime (DT);
+  DT.Hour := byte (Hour);
+  DT.Minute := byte (Minute);
+  DT.Second := byte (Second);
+  DT.Sec100 := byte (Sec100);
+  DosSetDateTime (DT);
         end
     else
         asm
@@ -647,7 +651,7 @@ end;
 procedure getcbreak(var breakvalue:boolean);
 
 begin
-    breakvalue := True;
+  breakvalue := True;
 end;
 
 procedure setcbreak(breakvalue:boolean);
@@ -675,8 +679,8 @@ begin
          stosb
       end
   else
-      verify := true;
-  end;
+  verify := true;
+end;
 
 procedure setverify(verify:boolean);
 
@@ -700,6 +704,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
+            pushl %ebx
             movb Drive,%dl
             movb $0x36,%ah
             call syscall
@@ -711,23 +716,24 @@ begin
             movw %ax,%dx
             movl $0,%eax
             xchgl %edx,%eax
-            leave
-            ret
+            jmp .LDISKFREE2
          .LDISKFREE1:
             cltd
+         .LDISKFREE2:
+            popl %ebx
             leave
             ret
         end
     else
         {In OS/2, we use the filesystem information.}
         begin
-            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskFree := int64 (FI.Free_Clusters) *
-                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
-            else
-                DiskFree := -1;
-        end;
+  RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+  if RC = 0 then
+      DiskFree := int64 (FI.Free_Clusters) *
+         int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+  else
+      DiskFree := -1;
+end;
 end;
 
 function DiskSize (Drive: byte): int64;
@@ -739,6 +745,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
+            pushl %ebx
             movb Drive,%dl
             movb $0x36,%ah
             call syscall
@@ -751,23 +758,24 @@ begin
             movw %ax,%dx
             movl $0,%eax
             xchgl %edx,%eax
-            leave
-            ret
+            jmp .LDISKSIZE2
         .LDISKSIZE1:
             cltd
+        .LDISKSIZE2:
+            popl %ebx
             leave
             ret
         end
     else
         {In OS/2, we use the filesystem information.}
-        begin
-            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskSize := int64 (FI.Total_Clusters) *
-                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
-            else
-                DiskSize := -1;
-        end;
+begin
+  RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+  if RC = 0 then
+      DiskSize := int64 (FI.Total_Clusters) *
+         int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+  else
+      DiskSize := -1;
+end;
 end;
 
 
@@ -799,8 +807,8 @@ const NameSize=255;
 var L, I: longint;
 
 type    TRec = record
-            T, D: word;
-        end;
+    T, D: word;
+  end;
 
 begin
     if os_mode = osOS2 then with F do
@@ -850,17 +858,17 @@ var path0: array[0..255] of char;
     Count: cardinal;
 
 begin
-    {No error.}
-    DosError := 0;
+  {No error.}
+  DosError := 0;
     if os_mode = osOS2 then
     begin
-        New (F.FStat);
-        F.Handle := longint ($FFFFFFFF);
-        Count := 1;
-        DosError := integer (DosFindFirst (Path, F.Handle,
-                       Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
-                                                           Count, ilStandard));
-        if (DosError = 0) and (Count = 0) then DosError := 18;
+      New (F.FStat);
+      F.Handle := longint ($FFFFFFFF);
+      Count := 1;
+      DosError := integer (DosFindFirst (Path, F.Handle,
+                     Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
+                                                         Count, ilStandard));
+      if (DosError = 0) and (Count = 0) then DosError := 18;
     end else
     begin
         strPcopy(path0,path);
@@ -905,9 +913,9 @@ procedure FindClose (var F: SearchRec);
 begin
     if os_mode = osOS2 then
     begin
-        if F.Handle <> $FFFFFFFF then DosError := DosFindClose (F.Handle);
-        Dispose (F.FStat);
-    end;
+  if F.Handle <> $FFFFFFFF then DosError := DosFindClose (F.Handle);
+  Dispose (F.FStat);
+end;
 end;
 
 procedure swapvectors;
@@ -988,7 +996,7 @@ begin
   pop eax
   mov P, edi      { place pointer to variable contents in P }
 @End:
- end;
+ end ['eax','ebx','ecx','edx','esi','edi'];
  GetEnvPChar := P;
 end;
 {$ASMMODE ATT}
@@ -1115,6 +1123,7 @@ begin
   move(path[1],buffer,length(path));
   buffer[length(path)]:=#0;
  asm
+    pushl %ebx
     movw $0x4300,%ax
     leal buffer,%edx
     call syscall
@@ -1123,6 +1132,7 @@ begin
   .Lnoerror:
     movl attr,%ebx
     movw %cx,(%ebx)
+    popl %ebx
  end;
 end;
 
@@ -1139,7 +1149,7 @@ begin
   DosError := 0;
   path := StrPas(filerec(f).Name);
   { Takes care of slash and backslash support }
-  path:=FExPand(path);
+  path:=FExpand(path);
   move(path[1],buffer,length(path));
   buffer[length(path)]:=#0;
    asm
@@ -1222,7 +1232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-06-26 17:12:29  yuri
+  Revision 1.5  2003-10-04 17:53:08  hajny
+    * stdcall changes merged to EMX
+
+  Revision 1.4  2003/06/26 17:12:29  yuri
   * pmbidi added
   * some cosmetic changes
 
