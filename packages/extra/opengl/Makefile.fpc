@@ -11,6 +11,7 @@ packages_linux=x11
 packages_freebsd=x11
 packages_netbsd=x11
 packages_openbsd=x11
+packages_darwin=x11
 
 [target]
 units=gl glu glut glext
@@ -18,7 +19,7 @@ units_linux=dllfuncs glx
 units_freebsd=dllfuncs glx
 units_netbsd=dllfuncs glx
 units_openbsd=dllfuncs glx
-
+units_darwin=dllfuncs glx
 exampledirs=examples
 
 [install]
