@@ -319,7 +319,8 @@ Unit raarmgas;
 
 
       var
-        tempreg,ireg : tregister;
+        tempreg : tregister;
+        ireg : tsuperregister;
         hl : tasmlabel;
         ofs : longint;
         registerset : tcpuregisterset;
@@ -741,7 +742,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-12-08 17:43:57  florian
+  Revision 1.6  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.5  2003/12/08 17:43:57  florian
     * fixed ldm/stm arm assembler reading
     * fixed a_load_reg_reg with OS_8 on ARM
     * non supported calling conventions cause only a warning now

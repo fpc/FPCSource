@@ -257,9 +257,9 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
       writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
-      write(numfile,'NR_',names[i]);
+      writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
+      write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
@@ -293,7 +293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-09-03 20:35:06  peter
+  Revision 1.3  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.2  2003/09/03 20:35:06  peter
     * fixed number sorting
 
   Revision 1.1  2003/09/03 19:09:35  florian

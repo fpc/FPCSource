@@ -69,7 +69,7 @@ uses
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
          function is_nop: boolean; override;
-         function is_move:boolean; override;
+         function is_reg_move:boolean; override;
 
          { register spilling code }
          function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
@@ -286,11 +286,11 @@ implementation
     function taicpu.is_nop: boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
-        result:=is_move and (oper[0]^.reg=oper[1]^.reg);
+        result:=is_reg_move and (oper[0]^.reg=oper[1]^.reg);
       end;
 
 
-    function taicpu.is_move:boolean;
+    function taicpu.is_reg_move:boolean;
       begin
         result:=(opcode=A_MOV) and
                 (condition=C_None) and
@@ -374,7 +374,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-12-03 17:39:05  florian
+  Revision 1.18  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.17  2003/12/03 17:39:05  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg

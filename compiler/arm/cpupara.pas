@@ -173,7 +173,7 @@ unit cpupara;
     function tarmparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
 
       var
-         nextintreg,nextfloatreg,nextmmreg : tregister;
+         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
          paradef : tdef;
          paraloc : tparalocation;
          stack_offset : aword;
@@ -184,10 +184,10 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg<=NR_R3 then
+           if nextintreg<=ord(NR_R3) then
              begin
                 paraloc.loc:=LOC_REGISTER;
-                paraloc.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
+                paraloc.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                 inc(nextintreg);
              end
            else
@@ -336,7 +336,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-12-03 17:39:05  florian
+  Revision 1.11  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.10  2003/12/03 17:39:05  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg

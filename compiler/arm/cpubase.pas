@@ -117,7 +117,7 @@ unit cpubase;
         {$i rarmnum.inc}
       );
 
-      regstabs_table : array[tregisterindex] of tregister = (
+      regstabs_table : array[tregisterindex] of shortint = (
         {$i rarmsta.inc}
       );
 
@@ -569,7 +569,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.20  2003-11-29 17:36:56  peter
+  Revision 1.21  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.20  2003/11/29 17:36:56  peter
     * fixed is_move
 
   Revision 1.19  2003/11/21 16:29:26  florian

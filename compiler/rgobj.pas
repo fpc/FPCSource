@@ -198,12 +198,13 @@ unit rgobj;
         procedure add_move_instruction(instr:Taicpu);
         {# Do the register allocation.}
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
+        { Adds an interference edge.
+          don't move this to the protected section, the arm cg requires to access this (FK) }
+        procedure add_edge(u,v:Tsuperregister);
       protected
         regtype           : Tregistertype;
         { default subregister used }
         defaultsub        : tsubregister;
-        {# Adds an interference edge.}
-        procedure add_edge(u,v:Tsuperregister);
         procedure add_constraints(reg:Tregister);virtual;
       private
         {# First imaginary register.}
@@ -1673,7 +1674,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-12-17 21:59:05  peter
+  Revision 1.106  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.105  2003/12/17 21:59:05  peter
     * don't insert dealloc before alloc of the same register
 
   Revision 1.104  2003/12/16 09:41:44  daniel

@@ -37,23 +37,8 @@ unit cgcpu;
 
     type
       tcgarm = class(tcg)
-        rgint,
-        rgmm,
-        rgfpu : trgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
-
-        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
-        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        procedure add_move_instruction(instr:Taicpu);override;
-        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
-        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        function  uses_registers(rt:Tregistertype):boolean;override;
 
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
@@ -135,148 +120,26 @@ unit cgcpu;
        procinfo,cpupi;
 
 
-    procedure tcgarm.ungetreference(list:Taasmoutput;const r:Treference);
-      begin
-        if r.base<>NR_NO then
-          ungetregister(list,r.base);
-        if r.index<>NR_NO then
-          ungetregister(list,r.index);
-      end;
-
-
     procedure tcgarm.init_register_allocators;
       begin
-        rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+        rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
              RS_R9,RS_R10,RS_R12],first_int_imreg,[]);
-        rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
-        rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
+        rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
             [RS_S0,RS_S1,RS_R2,RS_R3,RS_R4,RS_S31],first_mm_imreg,[]);
       end;
 
 
     procedure tcgarm.done_register_allocators;
       begin
-        rgint.free;
-        rgfpu.free;
-        rgmm.free;
-      end;
-
-
-    function tcgarm.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgint.getregister(list,cgsize2subreg(size));
-      end;
-
-
-    function tcgarm.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgfpu.getregister(list,R_SUBWHOLE);
-      end;
-
-
-    function tcgarm.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgmm.getregister(list,R_SUBNONE);
-      end;
-
-
-    procedure tcgarm.getexplicitregister(list:Taasmoutput;r:Tregister);
-      begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.getexplicitregister(list,r);
-          R_MMREGISTER :
-            rgmm.getexplicitregister(list,r);
-          R_FPUREGISTER :
-            rgfpu.getexplicitregister(list,r);
-          else
-            internalerror(200310091);
-        end;
-      end;
-
-
-    procedure tcgarm.ungetregister(list:Taasmoutput;r:Tregister);
-      begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.ungetregister(list,r);
-          R_FPUREGISTER :
-            rgfpu.ungetregister(list,r);
-          R_MMREGISTER :
-            rgmm.ungetregister(list,r);
-          else
-            internalerror(200310091);
-        end;
-      end;
-
-
-    procedure tcgarm.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
-      begin
-        case rt of
-          R_INTREGISTER :
-            rgint.allocexplicitregisters(list,r);
-          R_FPUREGISTER :
-            rgfpu.allocexplicitregisters(list,r);
-          R_MMREGISTER :
-            rgmm.allocexplicitregisters(list,r);
-          else
-            internalerror(200310092);
-        end;
-      end;
-
-
-    procedure tcgarm.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
-      begin
-        case rt of
-          R_INTREGISTER :
-            rgint.deallocexplicitregisters(list,r);
-          R_FPUREGISTER :
-            rgfpu.deallocexplicitregisters(list,r);
-          R_MMREGISTER :
-            rgmm.deallocexplicitregisters(list,r);
-          else
-            internalerror(200310093);
-        end;
-      end;
-
-
-    function  tcgarm.uses_registers(rt:Tregistertype):boolean;
-      begin
-        case rt of
-          R_INTREGISTER :
-            result:=rgint.uses_registers;
-          R_MMREGISTER :
-            result:=rgmm.uses_registers;
-          R_FPUREGISTER :
-            result:=rgfpu.uses_registers;
-          else
-            internalerror(200310094);
-        end;
-      end;
-
-
-    procedure tcgarm.add_move_instruction(instr:Taicpu);
-      begin
-        rgint.add_move_instruction(instr);
-      end;
-
-
-    procedure tcgarm.do_register_allocation(list:Taasmoutput;headertai:tai);
-      begin
-        { Int }
-        rgint.check_unreleasedregs;
-        rgint.do_register_allocation(list,headertai);
-        rgint.translate_registers(list);
-        { FPU }
-        rgfpu.check_unreleasedregs;
-        rgfpu.do_register_allocation(list,headertai);
-        rgfpu.translate_registers(list);
-        { MM }
-        rgmm.check_unreleasedregs;
-        rgmm.do_register_allocation(list,headertai);
-        rgmm.translate_registers(list);
+        rg[R_INTREGISTER].free;
+        rg[R_INTREGISTER]:=nil;
+        rg[R_FPUREGISTER].free;
+        rg[R_FPUREGISTER]:=nil;
+        rg[R_MMREGISTER].free;
+        rg[R_MMREGISTER]:=nil;
       end;
 
 
@@ -503,21 +366,21 @@ unit cgcpu;
                  begin
                    if dst<>src1 then
                      begin
-                       rgint.add_edge(getsupreg(dst),getsupreg(src1));
+                       rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(src1));
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
                      end
                    else
                      begin
                        tmpreg:=getintregister(list,size);
                        a_load_reg_reg(list,size,size,src2,dst);
-                       rgint.add_edge(getsupreg(dst),getsupreg(tmpreg));
+                       rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(tmpreg));
                        ungetregister(list,tmpreg);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
                      end;
                  end
                else
                  begin
-                   rgint.add_edge(getsupreg(dst),getsupreg(src2));
+                   rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(src2));
                    list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
                  end;
              end;
@@ -913,7 +776,7 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_DB));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_DB));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
@@ -945,7 +808,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_DB));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_DB));
           end;
       end;
 
@@ -1336,7 +1199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-12-08 17:43:57  florian
+  Revision 1.28  2003-12-18 17:06:21  florian
+    * arm compiler compilation fixed
+
+  Revision 1.27  2003/12/08 17:43:57  florian
     * fixed ldm/stm arm assembler reading
     * fixed a_load_reg_reg with OS_8 on ARM
     * non supported calling conventions cause only a warning now
