@@ -33,6 +33,7 @@ var
   addr : pointer;
 begin
   res:=0;
+  addr:=nil;
   case sig of
     SIGFPE :
         begin
@@ -72,7 +73,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-02-05 23:45:38  peter
+  Revision 1.8  2005-02-05 23:46:12  peter
+    * set addr:=nil for other signals
+
+  Revision 1.7  2005/02/05 23:45:38  peter
     * sigcontext is invalid, use siginfo only
 
   Revision 1.6  2005/01/30 18:01:15  peter
