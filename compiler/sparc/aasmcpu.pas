@@ -65,6 +65,7 @@ uses
          function is_move:boolean;override;
 
          { register spilling code }
+         function spilling_get_operation_type(opnr: longint): topertype;override;
          function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
          function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;override;
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
@@ -235,6 +236,24 @@ implementation
                 (oper[1]^.typ=top_reg);
       end;
 
+      
+
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+    {$WARNING ******Check taicpu.spilling_get_operation_type******}
+      begin
+        result := operand_read;
+        case opcode of
+          A_STB..A_STDA:
+            begin
+              if opnr = 1 then
+                result := operand_write;
+            end;
+          else
+            if opnr = 0 then
+              result := operand_write;
+          end;
+      end;
+
 
     function taicpu.spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
       begin
@@ -335,7 +354,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-10-30 15:03:18  mazen
+  Revision 1.37  2003-12-10 13:16:35  mazen
+  * improve hadlign %hi and %lo operators
+
+  Revision 1.36  2003/10/30 15:03:18  mazen
   * now uses standard routines in rgHelper unit to search registers by number and by name
 
   Revision 1.35  2003/10/24 07:00:17  mazen
