@@ -500,7 +500,7 @@ begin
     exit;
   if not Debugger^.IsRunning then
     exit;
-  if (S^.typ<>varsym) or (GDBI=Debugger^.RunCount) then
+  if (S^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym]) or (GDBI=Debugger^.RunCount) then
     exit;
   If Assigned(St) then
     DisposeStr(St);
@@ -1368,7 +1368,7 @@ begin
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
   if {assigned(Debugger) and Debugger^.IsRunning and}
-     assigned(Sym) and (Sym^.typ=varsym) then
+     assigned(Sym) and (Sym^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym]) then
     begin
       New(DebuggerValue,Init(ATitle,Sym));
       New(ST, Init(R, ' '+DebuggerValue^.GetText));
@@ -1830,7 +1830,7 @@ begin
   PB:=New(PBrowserWindow, Init(R,
     st2,SearchFreeWindowNo,S,Line,st,
     Symbols,References,Inheritance,MemInfo));
-  if (assigned(S) and (S^.typ=varsym)) or
+  if (assigned(S) and (S^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym])) or
      (assigned(ParentBrowser) and ParentBrowser^.IsValid) then
     PB^.IsValid:=true;
 
@@ -1840,7 +1840,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2004-11-08 20:28:26  peter
+  Revision 1.8  2004-11-09 16:47:55  peter
+    * update for varsym changed
+
+  Revision 1.7  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
