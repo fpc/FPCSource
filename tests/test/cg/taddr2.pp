@@ -13,6 +13,9 @@
 {****************************************************************}
 program taddr;
 
+{$ifdef fpc}
+  {$mode tp}
+{$endif}
 
    procedure testprocvar;
      begin
@@ -51,7 +54,7 @@ var
  ptr: pointer;
 begin
  { Test procedure variable }
- procptr:={$ifdef FPC}@{$endif}testprocvar;
+ procptr:=testprocvar;
  Write('Value should be ''Hello world!''...');
  procptr;
  { Test normal variable }
@@ -72,7 +75,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2001-06-30 02:00:30  carl
+   Revision 1.1  2002-04-22 16:33:40  peter
+     * splitted in 2 files, one fpc mode and other tp mode
+
+   Revision 1.1  2001/06/30 02:00:30  carl
    + secondaddr() testing
 
 }
