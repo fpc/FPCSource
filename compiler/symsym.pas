@@ -886,17 +886,22 @@ implementation
         inc(procdef_count);
       end;
 
+
     function Tprocsym.getprocdef(nr:cardinal):Tprocdef;
-
-    var i:cardinal;
-        pd:Pprocdeflist;
-
-    begin
+      var
+        i : cardinal;
+        pd : Pprocdeflist;
+      begin
         pd:=defs;
         for i:=2 to nr do
+          begin
+            if not assigned(pd) then
+              internalerror(200209051);
             pd:=pd^.next;
+          end;
         getprocdef:=pd^.def;
-    end;
+      end;
+
 
     procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
 
@@ -1003,7 +1008,7 @@ implementation
         pd:=defs;
         while assigned(pd) do
             begin
-                if equal_paras(pd^.def.para,params,cp_value_equal_const) or 
+                if equal_paras(pd^.def.para,params,cp_value_equal_const) or
                    (allowconvert and convertable_paras(pd^.def.para,params,
                                                        cp_value_equal_const)) then
                     begin
@@ -2477,7 +2482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-09-03 16:26:27  daniel
+  Revision 1.60  2002-09-05 14:51:42  peter
+    * internalerror instead of crash in getprocdef
+
+  Revision 1.59  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.58  2002/09/01 08:01:16  daniel
