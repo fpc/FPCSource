@@ -16,8 +16,8 @@ type
      end;
    GNOME_MDI_CHILD = PGnomeMDIChild;
 
-   TGnomeMDIChildClass = ^TGnomeMDIChildClass;
-   PGnomeMDIChildClass = record
+   PGnomeMDIChildClass = ^TGnomeMDIChildClass;
+   TGnomeMDIChildClass = record
         parent_class : TGtkObjectClass;
         create_view : TGnomeMDIChildViewCreator;
         create_menus : TGnomeMDIChildMenuCreator;
