@@ -101,10 +101,13 @@ alltf : $(patsubst %.pp,%.ref,$(wildcard tf*.pp))
 allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 
 clean :
-	-rm *.re* *.o *.ppu *.exe log faillist
+	-rm *.re* *.o *.ppu ts*.exe tf*.exe log faillist
 
 # $Log$
-# Revision 1.3  1998-10-21 12:12:09  pierre
+# Revision 1.4  1998-10-21 12:14:30  pierre
+#  * stupid error removing getret.exe each time
+#
+# Revision 1.3  1998/10/21 12:12:09  pierre
 # Log inserted
 #
 
