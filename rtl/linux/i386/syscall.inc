@@ -31,6 +31,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -44,7 +55,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -62,6 +74,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -75,7 +98,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -94,6 +118,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -107,7 +142,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -127,6 +163,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -140,7 +187,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -161,6 +209,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -174,7 +233,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -196,6 +256,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -209,7 +280,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -233,6 +305,17 @@ asm
 {$ifdef VER1_0}
   movl  %eax,Errno
 {$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+.LThread:
+  movl  %eax,%ebx
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
   movl  %eax,%edx
   movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
@@ -246,7 +329,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-{$endif}
+{$endif REGCALL}
+{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -260,7 +344,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-02-06 23:06:16  florian
+  Revision 1.12  2004-03-03 22:03:10  peter
+    * regcall fix for threadvar
+
+  Revision 1.11  2004/02/06 23:06:16  florian
     - killed tsyscallregs
 
   Revision 1.10  2004/01/06 21:32:53  peter
