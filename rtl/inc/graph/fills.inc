@@ -14,264 +14,200 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$R-}   { No range checking here, because we do some special typecasts }
+
+{ simple descriptive name }
+function max(a, b : Longint) : Longint;
+begin
+  max := b;
+  if (a > b) then max := a;
+end;
+
+{ here too }
+function min(a, b : Longint) : Longint;
+begin
+  min := b;
+  if (a < b) then min := a;
+end;
+
+procedure fillpoly(numpoints : Word; var polypoints);
 
 type
-
-        pedge = ^edge;
-        edge = packed record    { an edge structure }
-                x,                                      { current x-coordinate on the edge }
-                dx : graph_float;       { deltax of the edge }
-                i : graph_int;          { index to which points this edge belongs to
-                                                          always [i] and [i+1] }
-        end;
-
-        { used for typecasting because TP/BP is more strict here than FPC }
-        pedgearray = ^edgearray;
-    { 0..0 }
-        edgearray = array[0..0] of edge;
-
-        pint = ^graph_int;
-
-        pintarray = ^intarray;
-    { 0..0 }
-        intarray = array[0..0] of graph_int;
-
-        ppointtype = ^pointtype;
-        ppointarray = ^pointarray;
-        pointarray = array[0..0] of pointtype;
-
-{ definition of the called compare routine for the sort process. Returns -1 if
- the two parameters should be swapped }
-type
-        compareproc = function (a, b : pointer) : graph_int;
-
-{ simple bubblesort, since it is expected that the edges themselves are not
-  too mixed, it is fastest (?). Rather than sorting the active edge table
-  this way, it is recommened to implement this using a linked list (not
-  nearly as much memory is transfered then) }
-   procedure bsort(p : pointer; number : smallint; sizeelem :
-      smallint; c : compareproc);
-   var    i : graph_int;
-           swap : boolean;
-       temp : pointer;
-
-           curp, nextp : pointer;
-   begin
-     getmem(temp, sizeelem);
-         repeat
-            curp := p;
-                nextp := pointer(longint(p) + sizeelem);
-                swap := false;
-                for i := 0 to (number-2) do begin
-                        if (c(curp, nextp)=1) then begin
-                                { swap elements, you can't do it slower ;( }
-                                move(curp^, temp^, sizeelem);
-                                move(nextp^, curp^, sizeelem);
-                                move(temp^, nextp^, sizeelem);
-                                swap := true;
-                        end;
-                        inc(longint(curp), sizeelem);
-                        inc(longint(nextp), sizeelem);
-                end;
-         until swap = false;
-         freemem(temp, sizeelem);
-   end;
-
-  { guess what this does }
-  function ceil(x : graph_float) : graph_int;
-    var t : graph_int;
-  begin
-        t:=Trunc(x);
-        If (frac(x)>0) then inc(t);
-        ceil := t;
+  pedge = ^tedge;
+  tedge = packed record
+    yMin, yMax, x, dX, dY, frac : Longint;
   end;
 
-  { guess what this does too }
-  function floor(x : graph_float) : graph_int;
-   var t : graph_int;
-  begin
-        t:=Trunc(x);
-        If (frac(x)<0) then dec(t);
-        floor := t;
+  pedgearray = ^tedgearray;
+  tedgearray = array[0..0] of tedge;
+
+  ppedgearray = ^tpedgearray;
+  tpedgearray = array[0..0] of pedge;
+
+var
+  nActive, nNextEdge : Longint;
+  p0, p1 : pointtype;
+  endy, i, j, gap, x0, x1, y, nEdges : Longint;
+  ET : pedgearray;
+  GET, AET : ppedgearray;
+  t : pedge;
+
+  ptable : ^pointtype;
+
+
+begin
+{ /********************************************************************
+  * Add entries to the global edge table.  The global edge table has a
+  * bucket for each scan line in the polygon. Each bucket contains all
+  * the edges whose yMin == yScanline.  Each bucket contains the yMax,
+  * the x coordinate at yMax, and the denominator of the slope (dX)
+*/}
+  getmem(et, sizeof(tedge) * numpoints);
+  getmem(get, sizeof(pedge) * numpoints);
+  getmem(aet, sizeof(pedge) * numpoints);
+
+  ptable := @polypoints;
+
+ { check for getmem success }
+  
+  nEdges := 0;
+  for i := 0 to (numpoints-1) do begin
+    p0 := ptable[i];
+    if (i+1) >= numpoints then p1 := ptable[0]
+    else p1 := ptable[i+1];
+   { ignore if this is a horizontal edge}
+    if (p0.y = p1.y) then continue;
+    {swap ptable if necessary to ensure p0 contains yMin}
+    if (p0.y > p1.y) then begin
+      p0 := p1;
+      p1 := ptable[i];
+    end;
+   { create the new edge }
+    et^[nEdges].ymin := p0.y;
+    et^[nEdges].ymax := p1.y;
+    et^[nEdges].x := p0.x;
+    et^[nEdges].dX := p1.x-p0.x;
+    et^[nEdges].dy := p1.y-p0.y;
+    et^[nEdges].frac := 0;
+    get^[nEdges] :=  @et^[nEdges];
+    inc(nEdges);
   end;
-(*
-  { simple descriptive name }
-  function max(a, b : graph_int) : graph_int;
-  begin
-         if (a >= b) then max := a
-          else max := b;
-  end;
-
-  { here too }
-  function min(a, b : graph_int) : graph_int;
-  begin
-        if (a <= b) then min := a
-        else min := b;
-  end;
-*)
-  { needed for the compare functions; should NOT be used for anything else }
-var
-        ptable : ppointarray; { pointer to points list }
-
-function compare_ind(u, v : pointer) : graph_int; {$ifndef fpc} far; {$endif fpc}
-begin
-        if (ptable^[pint(u)^].y <= ptable^[pint(v)^].y) then compare_ind := -1
-        else compare_ind := 1;
-end;
-
-function compare_active(u, v : pointer) : graph_int; {$ifndef fpc} far; {$endif fpc}
-begin
-        if (pedge(u)^.x <= pedge(v)^.x) then compare_active := -1
-        else compare_active := 1;
-end;
-
-procedure fillpoly(numpoints : word; var PolyPoints);
-{ variables needed within the helper procedures too }
-var
-        activetable : pedgearray; { active edge table, e.g. edges crossing current scanline }
-        activepoints : graph_int; { number of points in active edge table }
-
-{ remove edge i from active edge table }
-procedure cdelete(index : graph_int);
-var
-        j : graph_int;
-begin
-        j := 0;
-        while (j < activepoints) and (pedgearray(activetable)^[j].i <> index) do inc(j);
-        if (j >= activepoints) then exit;
-        dec(activepoints);
-        move(pedgearray(activetable)^[j+1], pedgearray(activetable)^[j],
-                (activepoints-j) * sizeof(edge));
-end;
-
-{ insert edge index into active edge table (at the last position) }
-procedure cinsert(index, y : graph_int);
-var
-        j : graph_int;
-        deltax : graph_float;
-        p, q : ppointtype;
-begin
-        if (index < (numpoints-1)) then j := index + 1 else j := 0;
-
-        if (ptable^[index].y < ptable^[j].y) then begin
-                p := @ptable^[index];
-                q := @ptable^[j];
-        end else begin
-                p := @ptable^[j];
-                q := @ptable^[index];
-        end;
-        deltax := (q^.x-p^.x) / (q^.y-p^.y);
-        with activetable^[activepoints] do begin
-                dx := deltax;
-                x := dx * (y { + 0.5} - p^.y) + p^.x;
-                i := index;
-        end;
-        inc(activepoints);
-end;
-
-{ variables for the main procedure }
-var
-        k, i, j : graph_int;
-        starty, endy, y, xl, xr : graph_int;
-    oldcolor : word;
-var
-        indextable : pintarray; { list of vertex indices, sorted by y }
-
-begin
-    oldcolor := CurrentColor;
-    CurrentColor := FillSettings.Color;
-        ptable := @PolyPoints;
-        if (numpoints<=0) then exit;
-
-        getmem(indextable, sizeof(graph_int) * numpoints);
-        getmem(activetable, sizeof(edge) * numpoints);
-    if (not assigned(activetable)) or (not assigned(indextable)) then
-      begin
-        _GraphResult := grNoScanMem;
-        exit;
+ { sort the GET on ymin }
+  gap := 1;
+  while (gap < nEdges) do gap := 3*gap+1;
+  gap := gap div 3;
+  while (gap > 0) do begin
+    for i := gap to (nEdges-1) do begin
+      j := i - gap;
+      while (j >= 0) do begin
+        if (GET^[j]^.ymin <= GET^[j+gap]^.yMin) then break;
+        t := GET^[j];
+        GET^[j] := GET^[j+gap];
+        GET^[j+gap] := t;
+        dec(j, gap);
       end;
-{$R-}
-        { create y-sorted array of indices indextable[k] into vertex list }
-        for k := 0 to (numpoints-1) do
-                indextable^[k] := k;
-        { sort the indextable by points[indextable[k]].y }
-{$ifndef fpc}
-        bsort(indextable, numpoints, sizeof(graph_int), compare_ind);
-{$else fpc}
-        bsort(indextable, numpoints, sizeof(graph_int), @compare_ind);
-{$endif fpc}
-        { start with empty active edge table }
-        activepoints := 0;
-        { indextable[k] is the next vertex to process }
-        k := 0;
-        { ymin of polygon }
-        starty := ceil(pointarray(polypoints)[indextable^[0]].y-0.5);
-        { ymax of polygon }
-        endy := floor(pointarray(polypoints)[indextable^[numpoints-1]].y-0.5);
+    end;
+    gap := gap div 3;
+  end;
+  { initialize the active edge table, and set y to first entering edge}
+  nActive := 0;
+  nNextEdge := 0;
 
-        { step through scanlines }
-        for y := starty to endy do begin
-                { check vertices between previous scanline and current one, if any }
-                while (k < numpoints) and
-           (pointarray(polypoints)[indextable^[k]].y<=(y+0.5)) do begin
-                        i := indextable^[k];
-                        { insert or delete edges before and after points[i] ((i-1) to i and
-                          i to (i+1)) from active edge table if they cross scanline y }
-                        { point previous to i }
-                        if (i > 0) then j := i-1 else j := numpoints-1;
-                        { old edge, remove from list }
-                        if (pointarray(polypoints)[j].y <= (y-0.5)) then cdelete(j)
-                        { new edge, add to active edges }
-                        else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(j, y);
+  y := GET^[nNextEdge]^.ymin;
+  { Now process the edges using the scan line algorithm.  Active edges
+  will be added to the Active Edge Table (AET), and inactive edges will
+  be deleted.  X coordinates will be updated with incremental integer
+  arithmetic using the slope (dY / dX) of the edges. }
+  while (nNextEdge < nEdges) or (nActive <> 0) do begin
+    {Move from the ET bucket y to the AET those edges whose yMin == y
+    (entering edges) }
+    while (nNextEdge < nEdges) and (GET^[nNextEdge]^.ymin = y) do begin
+      AET^[nActive] := GET^[nNextEdge];
+      inc(nActive);
+      inc(nNextEdge);
+    end;
+    { Remove from the AET those entries for which yMax == y (leaving
+    edges) }
+    i := 0;
+    while (i < nActive) do begin
+      if (AET^[i]^.yMax = y) then begin
+        dec(nActive);
+        move(AET^[i+1], AET^[i], (nActive-i)*sizeof(pedge));
+      end else
+        inc(i);
+    end;
 
-                        { point next after i }
-                        if (i < (numpoints-1)) then j := i+1 else j := 0;
-                        { old edge, remove from active edge table }
-                        if (pointarray(polypoints)[j].y <= (y - 0.5)) then cdelete(i)
-                        { new edge, add to active edges }
-                        else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(i, y);
-                        inc(k);
-                end;
-                { sort active edges list by active[j].x }
-{$ifndef fpc}
-                bsort(activetable, activepoints, sizeof(edge), compare_active);
-{$else fpc}
-                bsort(activetable, activepoints, sizeof(edge),@compare_active);
-{$endif fpc}
-                j := 0;
-                { draw horizontal segments for scanline y }
-                while (j < activepoints) do begin
-                        {xl := ceil(activetable^[j].x-0.5);}
-                        xl := trunc(activetable^[j].x-0.5);
-                        if frac(activetable^[j].x-0.5)>0 then inc(xl);
+    if (y >= 0) then begin
+    {Now sort the AET on x.  Since the list is usually quite small,
+    the sort is implemented as a simple non-recursive shell sort }
 
-                        xr := trunc(activetable^[j+1].x-0.5);
-                        if frac(activetable^[j+1].x-0.5)<0 then dec(xr);
+    gap := 1;
+    while (gap < nActive) do gap := 3*gap+1;
 
-                        if (xl < xr) then
-                          PatternLine(xl,xr,y);
-{                               line(xl, y, xr+1, y);}
-                        { increment both edges' coordinates }
-                        with activetable^[j] do begin
-                                x := x + dx;
-                        end;
-                        with activetable^[j+1] do begin
-                                x := x + dx;
-                        end;
-                        inc(j, 2);
-                end;
+    gap := gap div 3;
+    while (gap > 0) do begin
+      for i := gap to (nActive-1) do begin
+        j := i - gap;
+        while (j >= 0) do begin
+          if (AET^[j]^.x <= AET^[j+gap]^.x) then break;
+          t := AET^[j];
+          AET^[j] := AET^[j+gap];
+          AET^[j+gap] := t;
+          dec(j, gap);
         end;
-{$ifdef debug}
-{$R+,Q+}
-{$endif debug}
-        freemem(activetable, sizeof(edge) * numpoints);
-        freemem(indextable, sizeof(graph_int) * numpoints);
-    { restore the old color }
-    CurrentColor := OldColor;
-    { now let's draw the outline of this polygon }
-    DrawPoly(NumPoints, PolyPoints);
+      end;
+      gap := gap div 3;
+    end;
+
+    { Fill in desired pixels values on scan line y by using pairs of x
+    coordinates from the AET }
+    i := 0;
+    while (i < nActive) do begin
+      x0 := AET^[i]^.x;
+      x1 := AET^[i+1]^.x;
+      {Left edge adjustment for positive fraction.  0 is interior. }
+      if (AET^[i]^.frac > 0) then inc(x0);
+      {Right edge adjustment for negative fraction.  0 is exterior. }
+      if (AET^[i+1]^.frac <= 0) then dec(x1);
+
+      x0 := max(x0, 0);
+      x1 := min(x1, viewWidth);
+      { Draw interior spans}
+      if (x1 >= x0) then begin
+        PatternLine(x0, x1, y);
+      end;
+
+      inc(i, 2);
+    end;
+
+    end;
+
+    { Update all the x coordinates.  Edges are scan converted using a
+    modified midpoint algorithm (Bresenham's algorithm reduces to the
+    midpoint algorithm for two dimensional lines) }
+    for i := 0 to (nActive-1) do begin
+      t := AET^[i];
+      { update the fraction by dX}
+      inc(t^.frac, t^.dX);
+
+      if (t^.dX < 0) then
+        while ( -(t^.frac) >= t^.dY) do begin
+          inc(t^.frac, t^.dY);
+          dec(t^.x);
+        end
+      else
+        while (t^.frac >= t^.dY) do begin
+          dec(t^.frac, t^.dY);
+          inc(t^.x);
+        end;
+    end;
+    inc(y);
+    if (y >= ViewHeight) then break;
+  end;
+  freemem(et, sizeof(tedge) * numpoints);
+  freemem(get, sizeof(pedge) * numpoints);
+  freemem(aet, sizeof(pedge) * numpoints);
 end;
+
 
 { maximum supported Y resultion }
 const
@@ -288,7 +224,7 @@ type
     y  : smallint;
   end;
 
-  TDrawnList  = Array[0..(MaxYRes - 1) div 4] of PFloodLine;
+  TDrawnList  = Array[0..(MaxYRes - 1) div YResDiv] of PFloodLine;
 
 var
    DrawnList : TDrawnList;
@@ -414,6 +350,7 @@ var
           end;
       end;
   end;
+
 
   Procedure FloodFill (x, y : smallint; Border: word);
   {********************************************************}
@@ -545,7 +482,11 @@ var
 
 {
 $Log$
-Revision 1.16  2000-01-07 16:41:37  daniel
+Revision 1.17  2000-02-12 13:39:19  jonas
+  + new, faster fillpoly from Thomas Schatzl
+  * some logging commands in vesa.inc disabled
+
+Revision 1.16  2000/01/07 16:41:37  daniel
   * copyright 2000
 
 Revision 1.15  2000/01/07 16:32:25  daniel

@@ -1077,9 +1077,9 @@ end;
      { Get the current pattern }
      TmpFillPattern := FillPatternTable
        [FillSettings.Pattern][((y + startYViewPort) and $7)+1];
-     {$ifdef logging}
+     {$ifdef logging2}
      LogLn('patternline '+strf(x1)+' - '+strf(x2)+' on '+strf(y));
-     {$endif logging}
+     {$endif logging2}
      { how long is the line }
      amount := x2 - x1 + 1;
      { offset to start at }
@@ -1115,9 +1115,9 @@ end;
              Begin
                { position in the pattern where to start }
                patternPos := offs and 7;
-               {$ifdef logging}
+               {$ifdef logging2}
                LogLn('Aligning by drawing '+strf(8-(offs and 7))+' pixels');
-               {$endif logging}
+               {$endif logging2}
                for l := 1 to 8-(offs and 7) do
                  begin
                    Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
@@ -1126,9 +1126,9 @@ end;
              End;
            Dec(amount, l);
            inc(offs, l);
-           {$ifdef logging}
+           {$ifdef logging2}
            LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
-           {$endif logging}
+           {$endif logging2}
            { offs is now 8-bytes alligned }
            If amount <= ($10000-(Offs and $ffff)) Then
               bankrest := amount
@@ -1137,9 +1137,9 @@ end;
            { it is possible that by aligningm we ended up in a new }
            { bank, so set the correct bank again to make sure      }
            setwritebank(offs shr 16);
-           {$ifdef logging}
+           {$ifdef logging2}
            LogLn('Rest to be drawn in this window: '+strf(bankrest));
-           {$endif logging}
+           {$endif logging2}
            for l := 0 to (bankrest div 8)-1 Do
              begin
                MemL[WinWriteSeg:word(offs)+l*8] := fill.data1;
@@ -1147,15 +1147,15 @@ end;
              end;
            inc(offs,l*8+8);
            dec(amount,l*8+8);
-           {$ifdef logging}
+           {$ifdef logging2}
            LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
-           {$endif logging}
+           {$endif logging2}
          End
        Else
          Begin
-           {$ifdef logging}
+           {$ifdef logging2}
            LogLn('Drawing leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
-           {$endif logging}
+           {$endif logging2}
            patternPos := offs and 7;
            For l := 0 to amount - 1 do
              begin
@@ -2499,7 +2499,11 @@ end;
 
 (*
 $Log$
-Revision 1.18  2000-01-07 16:41:32  daniel
+Revision 1.19  2000-02-12 13:39:19  jonas
+  + new, faster fillpoly from Thomas Schatzl
+  * some logging commands in vesa.inc disabled
+
+Revision 1.18  2000/01/07 16:41:32  daniel
   * copyright 2000
 
 Revision 1.17  2000/01/07 16:32:24  daniel
