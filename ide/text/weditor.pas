@@ -2012,7 +2012,8 @@ var
         ccNumber :
           if (LastCC<>ccAlpha) then;
         ccSymbol :
-            if IsDirectivePrefix and {(InComment=false) and }(InDirective=false) then
+            if IsDirectivePrefix and (InComment=true) and (CurrentCommentType=1) and
+               (InDirective=false) then
                begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
             if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
                InDirective:=false else
@@ -5840,7 +5841,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.88  2000-04-25 08:42:34  pierre
+  Revision 1.89  2000-05-17 09:44:46  pierre
+   * fix the {$ifdef inside a comment problem
+
+  Revision 1.88  2000/04/25 08:42:34  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.87  2000/04/18 11:42:38  pierre
