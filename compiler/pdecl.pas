@@ -1121,7 +1121,6 @@ unit pdecl;
          oldparse_only : boolean;
          intmessagetable,strmessagetable,classnamelabel : pasmlabel;
          storetypeforwardsallowed : boolean;
-         pt : ptree;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -2116,12 +2115,18 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.129  1999-07-02 13:02:26  peter
+  Revision 1.130  1999-07-05 20:25:39  peter
+    * merged
+
+  Revision 1.129  1999/07/02 13:02:26  peter
     * merged
 
   Revision 1.128  1999/06/30 22:16:19  florian
     * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
     * small qword problems fixed
+
+  Revision 1.127.2.2  1999/07/05 20:03:27  peter
+    * removed warning/notes
 
   Revision 1.127.2.1  1999/07/02 12:59:49  peter
     * fixed parsing of message directive

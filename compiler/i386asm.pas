@@ -1524,17 +1524,23 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-07-05 11:56:55  jonas
+  Revision 1.16  1999-07-05 20:25:32  peter
     * merged
 
+  Revision 1.15  1999/07/05 11:56:55  jonas
+    * merged
+
+  Revision 1.12.2.4  1999/07/05 20:03:30  peter
+    * removed warning/notes
+
   Revision 1.12.2.3  1999/07/04 23:55:50  jonas
-    * changed {$ifdef jmpfix} to {$ifndef nojmpfix}
+    * changed $ifdef jmpfix to $ifndef nojmpfix
 
   Revision 1.14  1999/07/04 21:59:31  jonas
     * merged
 
   Revision 1.12.2.2  1999/07/04 21:50:16  jonas
-    * everything between {$ifdef jmpfix}:
+    * everything between $ifdef jmpfix:
       * when a jxx instruction is disposed, decrease the refcount of the label
         it referenced
       * for jmp instructions to a label, set is_jmp also to true (was only done

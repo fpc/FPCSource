@@ -268,7 +268,7 @@ implementation
          if is_constnode(p^.left) then
           begin
             aktfilepos:=p^.left^.fileinfo;
-            Comment(V_Error,'can''t get the address of constants')
+	    CGMessage(type_e_no_addr_of_constant);
           end
          else
            begin
@@ -582,8 +582,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-07-05 16:24:17  peter
+  Revision 1.20  1999-07-05 20:25:41  peter
     * merged
+
+  Revision 1.19  1999/07/05 16:24:17  peter
+    * merged
+
+  Revision 1.18.2.3  1999/07/05 20:06:47  peter
+    * give error instead of warning for ln(0) and sqrt(0)
 
   Revision 1.18.2.2  1999/07/05 16:22:56  peter
     * error if @constant

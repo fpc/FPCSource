@@ -123,6 +123,7 @@ implementation
          { handle intern constant functions in separate case }
          if p^.inlineconst then
           begin
+            hp:=nil;
             { no parameters? }
             if not assigned(p^.left) then
              begin
@@ -249,14 +250,16 @@ implementation
                      if isreal then
                        begin
                           if vr<0.0 then
-                            message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(sqrt(vr),bestrealdef^)
+                           CGMessage(type_e_wrong_math_argument)
+                          else
+                           hp:=genrealconstnode(sqrt(vr),bestrealdef^)
                        end
                      else
                        begin
                           if vl<0 then
-                            message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(sqrt(vl),bestrealdef^);
+                           CGMessage(type_e_wrong_math_argument)
+                          else
+                           hp:=genrealconstnode(sqrt(vl),bestrealdef^);
                        end;
                    end;
                  in_const_arctan :
@@ -292,14 +295,16 @@ implementation
                      if isreal then
                        begin
                           if vr<=0.0 then
-                            message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(ln(vr),bestrealdef^)
+                           CGMessage(type_e_wrong_math_argument)
+                          else
+                           hp:=genrealconstnode(ln(vr),bestrealdef^)
                        end
                      else
                        begin
                           if vl<=0 then
-                            message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(ln(vl),bestrealdef^);
+                           CGMessage(type_e_wrong_math_argument)
+                          else
+                           hp:=genrealconstnode(ln(vl),bestrealdef^);
                        end;
                    end;
                  else
@@ -307,6 +312,8 @@ implementation
                end;
              end;
             disposetree(p);
+            if hp=nil then
+             hp:=genzeronode(errorn);
             firstpass(hp);
             p:=hp;
           end
@@ -1116,7 +1123,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-07-05 20:13:18  peter
+  Revision 1.41  1999-07-05 20:25:40  peter
+    * merged
+
+  Revision 1.40  1999/07/05 20:13:18  peter
     * removed temp defines
 
   Revision 1.39  1999/07/03 14:14:31  florian
@@ -1132,6 +1142,9 @@ end.
 
   Revision 1.36  1999/06/15 18:58:36  peter
     * merged
+
+  Revision 1.35.2.2  1999/07/05 20:06:46  peter
+    * give error instead of warning for ln(0) and sqrt(0)
 
   Revision 1.35.2.1  1999/06/15 18:54:54  peter
     * more procvar fixes
