@@ -67,7 +67,7 @@ Unit SysPalm;
   implementation
 
     { mimic the C start code }
-    function _PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;export;
+    function _PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;
 
       begin
          cmd:=_cmd;
@@ -85,7 +85,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-08-22 10:23:59  florian
+  Revision 1.3  1998-08-31 12:18:37  peter
+    * export changed to public which is allowed in implementation
+
+  Revision 1.2  1998/08/22 10:23:59  florian
     + PilotMain implemented
 
   Revision 1.1  1998/08/05 17:19:07  florian
