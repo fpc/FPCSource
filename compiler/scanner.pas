@@ -686,40 +686,18 @@ implementation
 
 
       var
+        args,
         foundfile,
         hs    : string;
         path  : dirstr;
         name  : namestr;
         ext   : extstr;
         hp    : tinputfile;
-        i     : longint;
         found : boolean;
       begin
         current_scanner.skipspace;
-        hs:=Trimspace(current_scanner.readcomment);
-        if hs[1]='''' then
-         begin
-           i:=1;
-           while (i<length(hs)) do
-            begin
-              inc(i);
-              if hs[i]='''' then
-               begin
-                 { Remove double quote }
-                 if (i<length(hs)) and
-                    (hs[i+1]='''') then
-                  begin
-                    Delete(hs,i,1);
-                    inc(i);
-                  end
-                 else
-                  begin
-                    hs:=Copy(hs,2,i-2);
-                    break;
-                  end;
-               end;
-            end;
-         end;
+        args:=current_scanner.readcomment;
+        hs:=GetToken(args,' ');
         if hs='' then
          exit;
         if (hs[1]='%') then
@@ -2823,7 +2801,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.54  2002-12-27 16:45:50  peter
+  Revision 1.55  2002-12-27 18:05:58  peter
+    * use gettoken to get filename for include
+
+  Revision 1.54  2002/12/27 16:45:50  peter
     * fix delphi comment parsing when skipping preproc directive
 
   Revision 1.53  2002/12/27 15:26:43  peter
