@@ -286,16 +286,17 @@ Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compilerproc;
 
-{$ifdef CPUPOWERPC}
 function fpc_int64_to_double(i: int64): double; compilerproc;
 function fpc_qword_to_double(q: qword): double; compilerproc;
-{$endif CPUPOWERPC}
 
 {$endif hascompilerproc}
 
 {
   $Log$
-  Revision 1.46  2003-08-21 22:07:43  olle
+  Revision 1.47  2003-09-01 20:47:23  peter
+    * pcomp added for sparc
+
+  Revision 1.46  2003/08/21 22:07:43  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.45  2003/06/17 19:24:08  jonas

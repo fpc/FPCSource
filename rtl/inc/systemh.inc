@@ -144,6 +144,7 @@ Type
 
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
+  PComp = ^Comp;
 {$endif CPUSPARC}
 
 {$ifdef CPU64}
@@ -671,7 +672,10 @@ const
 
 {
   $Log$
-  Revision 1.69  2003-05-01 08:05:23  florian
+  Revision 1.70  2003-09-01 20:47:23  peter
+    * pcomp added for sparc
+
+  Revision 1.69  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.68  2003/04/30 16:36:39  florian
