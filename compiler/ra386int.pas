@@ -878,6 +878,11 @@ Begin
                        hs:=ptypedconstsym(srsym)^.mangledname;
                      procsym :
                        hs:=pprocsym(srsym)^.mangledname;
+                     typesym :
+                       begin
+                         if not(ptypesym(srsym)^.restype.def^.deftype in [recorddef,objectdef]) then
+                          Message(asmr_e_wrong_sym_type);
+                       end;
                      else
                        Message(asmr_e_wrong_sym_type);
                    end;
@@ -1897,7 +1902,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2000-06-18 18:07:06  peter
+  Revision 1.76  2000-06-18 19:09:30  peter
+    * fixed + record.field expressions
+
+  Revision 1.75  2000/06/18 18:07:06  peter
     * use new illegal_char method
 
   Revision 1.74  2000/06/15 18:07:08  peter
