@@ -756,8 +756,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          end;
          else
          internalerror(333);
-         p^.location.loc:=LOC_MEM;
         end;
+        p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -3359,7 +3359,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.48  1999-09-28 19:43:47  florian
+  Revision 1.49  1999-09-28 21:07:53  florian
+    * fixed bug 608
+
+  Revision 1.48  1999/09/28 19:43:47  florian
     * the maybe_push fix of Pierre wasn't 100%, the tree parameter
       must contain a valid location (which is saved if necessary)
 
