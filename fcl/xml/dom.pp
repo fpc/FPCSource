@@ -1499,10 +1499,18 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-09-12 14:07:58  sg
+  Revision 1.6  2001-03-08 19:37:12  michael
+  + Merged changes from fixbranch
+
+  Revision 1.5  2000/09/12 14:07:58  sg
   * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
 
   Revision 1.4  2000/07/29 14:52:24  sg
+  Revision 1.1.2.3  2001/01/23 17:46:06  sg
+  * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
+    (backport from main branch)
+
+  Revision 1.1.2.2  2000/07/29 14:20:54  sg
   * Modified the copyright notice to remove ambiguities
 
   Revision 1.3  2000/07/25 09:20:08  sg
@@ -1513,5 +1521,4 @@ end.
 
   Revision 1.2  2000/07/13 11:33:07  michael
   + removed logs
- 
 }
