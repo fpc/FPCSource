@@ -53,7 +53,8 @@ unit typinfo;
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,
                      ftFixed16,ftFixed32);
-       TMethodKind = (mkProcedure,mkFunction,mkSafeProcedure,mkSafeFunction);
+       TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
+                      mkClassProcedure, mkClassFunction);
        TParamFlags = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
        TIntfFlags = set of (ifHasGuid,ifDispInterface,ifDispatch);
 
@@ -111,7 +112,17 @@ unit typinfo;
                // here the properties follow as array of TPropInfo
               );
             tkMethod:
-              ({!!!!!!!}
+              (MethodKind : TMethodKind;
+               ParamCount : Byte;
+               ParamList : array[0..1023] of Char
+             {in reality ParamList is a array[1..ParamCount] of:
+                  record
+                    Flags : TParamFlags;
+                    ParamName : ShortString;
+                    TypeName : ShortString;
+                  end;
+              followed by
+                  ResultType : ShortString}
               );
             tkInterface:
               ({!!!!!!!}
@@ -763,7 +774,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  1999-06-04 12:48:37  michael
+  Revision 1.24  1999-08-06 13:21:40  michael
+  * Patch from Sebastian Guenther
+
+  Revision 1.23  1999/06/04 12:48:37  michael
   * Fix by Sebastian Guenther.
 
   Revision 1.22  1999/05/19 12:03:23  florian
