@@ -1027,6 +1027,7 @@ implementation
                      hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
                    procvardef :
                      hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
+                   stringdef,
                    variantdef,
                    pointerdef,
                    classrefdef,
@@ -1240,7 +1241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2003-11-23 17:39:33  peter
+  Revision 1.118  2003-11-26 14:25:26  michael
+  + Applied patch from peter to support ansistrings in array constructors
+
+  Revision 1.117  2003/11/23 17:39:33  peter
     * removed obsolete nf_cargs flag
 
   Revision 1.116  2003/10/28 15:36:01  peter
