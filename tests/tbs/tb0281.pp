@@ -1,9 +1,9 @@
 { Old file: tbs0333.pp }
 {  }
 
-{$ifdef cpu68k}
+{$ifndef CPUI386}
   {$define COMP_IS_INT64}
-{$endif cpu68k}
+{$endif CPUI386}
 
 
 var
