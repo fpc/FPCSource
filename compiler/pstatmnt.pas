@@ -1068,12 +1068,6 @@ implementation
          if not is_void(current_procinfo.procdef.rettype.def) then
            symtablestack.rename(current_procinfo.procdef.resultname,'$hiddenresult');
 
-         { assembler routines use stdcall instead of register }
-{$warning Temporary hack for force stdcall for assembler}
-         if (po_assembler in current_procinfo.procdef.procoptions) and
-            (current_procinfo.procdef.proccalloption=pocall_register) then
-           current_procinfo.procdef.proccalloption:=pocall_stdcall;
-
          { delphi uses register calling for assembler methods }
          if (m_delphi in aktmodeswitches) and
             (po_assembler in current_procinfo.procdef.procoptions) and
@@ -1130,7 +1124,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-11-10 22:02:52  peter
+  Revision 1.121  2003-11-11 21:10:12  peter
+    * remove temporary stdcall hack
+
+  Revision 1.120  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.119  2003/10/29 20:34:20  peter

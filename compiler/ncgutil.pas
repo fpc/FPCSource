@@ -289,8 +289,7 @@ implementation
         cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
-{$warning stdcall forced for SETJMP}
-        paraloc1:=paramanager.getintparaloc(pocall_stdcall,1);
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
@@ -1965,7 +1964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2003-11-10 22:02:52  peter
+  Revision 1.167  2003-11-11 21:10:12  peter
+    * remove temporary stdcall hack
+
+  Revision 1.166  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.165  2003/11/07 15:58:32  florian
