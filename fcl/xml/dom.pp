@@ -375,10 +375,10 @@ type
 
   TXMLDocument = class(TDOMDocument)
   public
-    function CreateCDATASection(const data: DOMString): TDOMCDATASection; virtual;
+    function CreateCDATASection(const data: DOMString): TDOMCDATASection; override;
     function CreateProcessingInstruction(const target, data: DOMString):
-      TDOMProcessingInstruction; virtual;
-    function CreateEntityReference(const name: DOMString): TDOMEntityReference; virtual;
+      TDOMProcessingInstruction; override;
+    function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
 
     // Extensions to DOM interface:
     XMLVersion, Encoding: String;
@@ -1139,7 +1139,7 @@ end;
 function TDOMDocument.CreateEntity(const data: DOMString): TDOMEntity;
 begin
   Result := TDOMEntity.Create(Self);
-  Result.FNodeValue := data;
+  Result.FNodeName := data;
 end;
 
 function TDOMDocument.GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
@@ -1499,7 +1499,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:07  michael
+  Revision 1.3  2000-07-25 09:20:08  sg
+  * Fixed some small bugs
+    - some methods where 'virtual' instead of 'override' in dom.pp
+    - corrections regaring wether NodeName or NodeValue is used, for
+      some node types (Entity, EntityReference)
+
+  Revision 1.2  2000/07/13 11:33:07  michael
   + removed logs
  
 }

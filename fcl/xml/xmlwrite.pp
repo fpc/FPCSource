@@ -261,7 +261,7 @@ end;
 
 procedure WriteEntityRef(node: TDOMNode);
 begin
-  wrt('&' + node.NodeValue + ';');
+  wrt('&' + node.NodeName + ';');
 end;
 
 procedure WriteEntity(node: TDOMNode);
@@ -398,7 +398,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:08  michael
+  Revision 1.3  2000-07-25 09:20:08  sg
+  * Fixed some small bugs
+    - some methods where 'virtual' instead of 'override' in dom.pp
+    - corrections regaring wether NodeName or NodeValue is used, for
+      some node types (Entity, EntityReference)
+
+  Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
  
 }
