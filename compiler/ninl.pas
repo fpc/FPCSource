@@ -1287,14 +1287,14 @@ implementation
                      if isreal then
                       hp:=crealconstnode.create(abs(vr),pbestrealtype^)
                      else
-                      hp:=cordconstnode.create(abs(vl),left.resulttype,true);
+                      hp:=genintconstnode(abs(vl));
                    end;
                  in_const_sqr :
                    begin
                      if isreal then
                       hp:=crealconstnode.create(sqr(vr),pbestrealtype^)
                      else
-                      hp:=cordconstnode.create(sqr(vl),left.resulttype,true);
+                      hp:=genintconstnode(sqr(vl));
                    end;
                  in_const_odd :
                    begin
@@ -2441,7 +2441,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2004-08-08 16:00:56  florian
+  Revision 1.143  2004-08-25 15:56:35  peter
+    * fix sqr() and abs() constant range check errors
+
+  Revision 1.142  2004/08/08 16:00:56  florian
     * constant floating point assignments etc. are now overflow checked
       if Q+ or R+ is turned on
 
