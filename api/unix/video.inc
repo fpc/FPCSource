@@ -25,13 +25,20 @@ const
 
 procedure SendEscapeSeqNdx(Ndx: Word);
 var
-  P: PChar;
+  P,pdelay: PChar;
 begin
   if not assigned(cur_term_Strings) then
     RunError(219);
   P:=cur_term_Strings^[Ndx];
   if assigned(p) then
-   fdWrite(TTYFd, P^, StrLen(P));
+   begin { Do not transmit the delays }
+     pdelay:=strpos(p,'$<');
+     if assigned(pdelay) then
+       pdelay^:=#0;
+     fdWrite(TTYFd, P^, StrLen(P));
+     if assigned(pdelay) then
+       pdelay^:='$';
+   end;
 end;
 
 
@@ -627,31 +634,100 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-10-15 09:17:20  peter
-    * merged more fixes
+  Revision 1.2  2000-10-26 23:08:48  peter
+    * merged freebsd from fixes
 
-  Revision 1.5  2000/10/04 11:53:31  pierre
-   Add TargetEntry and TargetExit (merged)
+  Revision 1.1.2.1  2000/10/25 12:23:20  marco
+   * Linux dir split up
 
-  Revision 1.4  2000/09/26 08:18:29  jonas
+  Revision 1.1.2.11  2000/10/19 07:28:18  pierre
+   * do not transmit the delay part in terminfo strings
+
+  Revision 1.1.2.10  2000/10/13 15:09:40  pierre
+   * Handle zero size for term correctly
+
+  Revision 1.1.2.9  2000/10/10 16:39:44  pierre
+   + transform low ascii chars by changing their colors and adding 48
+
+  Revision 1.1.2.8  2000/10/10 15:34:58  pierre
+   * fixe a bug in Attr2Ansi
+
+  Revision 1.1.2.7  2000/10/10 10:52:56  pierre
+   + FVMaxWidth to avoid too wide screens
+
+  Revision 1.1.2.6  2000/10/09 21:57:42  pierre
+   * Set LowAscii to false only if not on a local tty
+
+  Revision 1.1.2.5  2000/10/09 16:29:15  pierre
+   * more linux terminal fixes
+
+  Revision 1.1.2.4  2000/10/04 11:44:33  pierre
+   add TargetEntry and TargetExit procedures (needed for linux)
+
+  Revision 1.1.2.3  2000/10/03 22:31:29  pierre
+   * avoid invalid cur_term var
+
+  Revision 1.1.2.2  2000/09/25 13:21:19  jonas
     + added preserving of rawness of terminal when going though
       init/donevideo
     * del_term() is now called in donevideo
-    * if initvideo is called while the video is already initialized, the
+    * if initvideo is called while the video is already iniialized, the
       screen is cleared and the cursor is set home, instead of going
       through the whole donevideo and then initvideo
-    (merged from fixes branch)
 
-  Revision 1.3  2000/08/02 12:39:22  jonas
+  Revision 1.1.2.1  2000/08/02 12:29:06  jonas
     * fixed crashes under ncurses 4 by adding auto-detection for ncurses 4/5
     * cur_term is not directly usable anymore for the largest part because
       of a different record layout in ncurses 4/5, therefore the pointers
       cur_term_booleans, cur_term_numbers, cur_term_strings and
       cur_term_common are now available
     * adapted video.inc to use the new naming convention
-    (merged from fixes branch)
 
-  Revision 1.2  2000/07/13 11:32:25  michael
-  + removed logs
+  Revision 1.1  2000/07/13 06:29:39  michael
+  + Initial import
+
+  Revision 1.3  2000/06/30 12:28:57  jonas
+    * fixed termtype structure
+
+  Revision 1.2  2000/03/12 15:02:10  peter
+    * removed unused var
+
+  Revision 1.1  2000/01/06 01:20:31  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  1999/11/24 23:36:38  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/07/05 21:38:19  peter
+    * works now also on not /dev/tty* units
+    * if col,row is 0,0 then take 80x25 by default
+
+  Revision 1.4  1999/02/22 12:46:16  peter
+    + lowascii boolean if ascii < #32 is handled correctly
+
+  Revision 1.3  1999/02/08 10:34:26  peter
+    * cursortype futher implemented
+
+  Revision 1.2  1998/12/12 19:13:03  peter
+    * keyboard updates
+    * make test target, make all only makes units
+
+  Revision 1.1  1998/12/04 12:48:30  peter
+    * moved some dirs
+
+  Revision 1.6  1998/12/03 10:18:07  peter
+    * tty fixed
+
+  Revision 1.5  1998/12/01 15:08:17  peter
+    * fixes for linux
+
+  Revision 1.4  1998/11/01 20:29:12  peter
+    + lockupdatescreen counter to not let updatescreen() update
+
+  Revision 1.3  1998/10/29 12:49:50  peter
+    * more fixes
+
+  Revision 1.1  1998/10/26 11:31:47  peter
+    + inital include files
 
 }

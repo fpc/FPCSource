@@ -1,8 +1,9 @@
 {
    $Id$
-   Copyright (c) 1997 Balazs Scheidler (bazsi@balabit.hu)
 
    An interface unit for the terminfo database
+
+   Copyright (c) 1997 Balazs Scheidler (bazsi@balabit.hu)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -747,18 +748,47 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.3  2000-10-15 09:20:21  peter
-    * linux terminal fixes merged
+  Revision 1.2  2000-10-26 23:08:48  peter
+    * merged freebsd from fixes
 
-  Revision 1.2  2000/08/02 12:39:22  jonas
-    * fixed crashes under ncurses 4 by adding auto-detection for ncurses 4/5
-    * cur_term is not directly usable anymore for the largest part because
-      of a different record layout in ncurses 4/5, therefore the pointers
-      cur_term_booleans, cur_term_numbers, cur_term_strings and
-      cur_term_common are now available
-    * adapted video.inc to use the new naming convention
-    (merged from fixes branch)
+  Revision 1.1.2.1  2000/10/25 12:23:20  marco
+   * Linux dir split up
+
+  Revision 1.1.2.3  2000/10/09 16:29:14  pierre
+   * more linux terminal fixes
+
+  Revision 1.1.2.2  2000/08/02 12:30:36  jonas
+    * improved version check *slightly*
 
   Revision 1.1  2000/07/13 06:29:39  michael
   + Initial import
+
+  Revision 1.2  2000/06/30 12:28:57  jonas
+    * fixed termtype structure
+
+  Revision 1.1  2000/01/06 01:20:31  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  1999/11/24 23:36:38  peter
+    * moved to packages dir
+
+  Revision 1.3  1999/04/22 14:48:27  peter
+    * remove asm
+
+  Revision 1.2  1998/12/07 12:25:51  peter
+    * link with ncurses which is more available the curses
+
+  Revision 1.1  1998/12/04 12:48:30  peter
+    * moved some dirs
+
+  Revision 1.1  1998/10/26 11:31:47  peter
+    + inital include files
+
+  Revision 1.3  1998/10/26 09:36:26  peter
+    * fixed cdecl
+
+  Revision 1.2  1998/07/29 20:17:47  bazsi
+  some updates to Video, it now uses terminfo. Some modifications for FreeVision.
+
+  Revision 1.1  1998/06/13 12:38:54  bazsi
 }

@@ -66,7 +66,7 @@ endif
 # Default target
 #####################################################################
 
-override OS_TARGET:=linux
+override OS_TARGET:=freebsd
 
 #####################################################################
 # FPC version/target Detection
@@ -117,7 +117,6 @@ export FPC OS_TARGET OS_SOURCE CPU_TARGET CPU_SOURCE FPC_VERSION
 
 INC=../inc
 UNIXINC=../unix
-
 
 # Override defaults
 override PASEXT=.pas
@@ -194,7 +193,7 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=$(APIOBJECTS) terminfo
+override UNITOBJECTS+=terminfo $(APIOBJECTS)
 
 # Clean
 
@@ -1267,10 +1266,10 @@ endif
 #####################################################################
 
 
-keyboard$(PPUEXT): $(INC)/keyboard.pas $(UNIXINC)/keyboard.inc 
-
-mouse$(PPUEXT): $(INC)/mouse.pas $(UNIXINC)/mouse.inc 
-
-filectrl$(PPUEXT): $(INC)/filectrl.pas $(UNIXINC)/filectrl.inc  
-
 video$(PPUEXT): $(INC)/video.pas $(UNIXINC)/video.inc 
+
+keyboard$(PPUEXT): $(INC)/keyboard.pas $(UNIXINC)/keyboard.inc
+
+mouse$(PPUEXT): $(INC)/mouse.pas $(UNIXINC)/mouse.inc
+
+filectrl$(PPUEXT): $(INC)/filectrl.pas $(UNIXINC)/filectrl.inc

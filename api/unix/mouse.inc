@@ -23,6 +23,9 @@ var
   mousecurcell : TVideoCell;
 
 
+const
+  gpm_fs : longint = -1;
+
 procedure PlaceMouseCur(ofs:longint);
 {$ifndef NOMOUSE}
 var
@@ -62,14 +65,23 @@ begin
   PendingMouseTail:=@PendingMouseEvent;
   PendingMouseEvents:=0;
   FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
-{ open gpm }
-  connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
-  connect.DefaultMask:=0;
-  connect.MinMod:=0;
-  connect.MaxMod:=0;
-  Gpm_Open(connect,0);
-{ show mousepointer }
-  ShowMouse;
+  if gpm_fs=-1 then
+    begin
+    { open gpm }
+      connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
+      connect.DefaultMask:=0;
+      connect.MinMod:=0;
+      connect.MaxMod:=0;
+      gpm_fs:=Gpm_Open(connect,0);
+      if (gpm_fs=-2) and (getenv('TERM')<>'xterm') then
+        begin
+          gpm_fs:=-1;
+          Gpm_Close;
+        end;
+    end;
+  { show mousepointer }
+  if gpm_fs<>-1 then
+    ShowMouse;
 {$endif ndef NOMOUSE}
 end;
 
@@ -77,19 +89,51 @@ end;
 procedure DoneMouse;
 begin
 {$ifndef NOMOUSE}
-  HideMouse;
-  Gpm_Close;
+  If gpm_fs<>-1 then
+    begin
+      HideMouse;
+      Gpm_Close;
+      gpm_fs:=-1;
+    end;
 {$endif ndef NOMOUSE}
 end;
 
 
 function DetectMouse:byte;
+{$ifndef NOMOUSE}
+var
+  x : longint;
+  e : TGPMEvent;
+  connect : TGPMConnect;
+{$endif ndef NOMOUSE}
 begin
 {$ifdef NOMOUSE}
   DetectMouse:=0;
 {$else ndef NOMOUSE}
+  if gpm_fs=-1 then
+    begin
+      connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
+      connect.DefaultMask:=0;
+      connect.MinMod:=0;
+      connect.MaxMod:=0;
+      gpm_fs:=Gpm_Open(connect,0);
+      if (gpm_fs=-2) and (getenv('TERM')<>'xterm') then
+        begin
+          Gpm_Close;
+          gpm_fs:=-1;
+        end;
+    end;
 { always a mouse deamon present }
-  DetectMouse:=2;
+  if gpm_fs<>-1 then
+    begin
+      x:=Gpm_GetSnapshot(e);
+      if x<>-1 then
+        DetectMouse:=x
+      else
+        DetectMouse:=2;
+    end
+  else
+    DetectMouse:=0;
 {$endif ndef NOMOUSE}
 end;
 
@@ -173,6 +217,7 @@ begin
 {$ifdef NOMOUSE}
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
 {$else ndef NOMOUSE}
+  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
   if gpm_fd<0 then
    exit;
   Gpm_GetEvent(e);
@@ -213,11 +258,15 @@ begin
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
   exit(false);
 {$else ndef NOMOUSE}
+  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
   if gpm_fd<0 then
    exit(false);
-  FD_Zero(fds);
-  FD_Set(gpm_fd,fds);
-  if (Select(gpm_fd+1,@fds,nil,nil,1)>0) then
+  if gpm_fd>0 then
+    begin
+      FD_Zero(fds);
+      FD_Set(gpm_fd,fds);
+    end;
+  if (gpm_fd=-2) or (Select(gpm_fd+1,@fds,nil,nil,1)>0) then
    begin
      Gpm_GetSnapshot(e);
      MouseEvent.x:=e.x-1;
@@ -237,7 +286,10 @@ begin
      else
       MouseEvent.Action:=0;
      end;
-     PollMouseEvent:=true;
+     if (gpm_fd<>-2) or (MouseEvent.Action<>0) then
+       PollMouseEvent:=true
+     else
+       PollMouseEvent:=false;
    end
   else
    PollMouseEvent:=false;
@@ -246,7 +298,51 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:25  michael
-  + removed logs
- 
+  Revision 1.2  2000-10-26 23:08:48  peter
+    * merged freebsd from fixes
+
+  Revision 1.1.2.1  2000/10/25 12:23:20  marco
+   * Linux dir split up
+
+  Revision 1.1.2.1  2000/10/24 07:58:49  pierre
+   * get mouse to not crash on xterm, its now completely disabled
+
+  Revision 1.1  2000/07/13 06:29:39  michael
+  + Initial import
+
+  Revision 1.3  2000/06/30 09:00:33  jonas
+    * compiles again with -dnomouse
+
+  Revision 1.2  2000/04/17 08:51:38  pierre
+   + set conditional NOMOUSE to get dummy mouse unit
+
+  Revision 1.1  2000/01/06 01:20:31  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  1999/11/24 23:36:38  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/07/01 19:41:26  peter
+    * define OLDGPM to compile with old gpm (for v1.14) else the new
+      gpm unit from rtl will be used (v1.17)
+
+  Revision 1.4  1999/06/23 00:01:30  peter
+    * check for videobuf=nil
+
+  Revision 1.3  1999/03/31 20:20:18  michael
+  + Fixed probmem preventing IDE to run in x-term.
+
+  Revision 1.2  1998/12/11 00:13:20  peter
+    + SetMouseXY
+    * use far for exitproc procedure
+
+  Revision 1.1  1998/12/04 12:48:30  peter
+    * moved some dirs
+
+  Revision 1.3  1998/12/01 15:08:16  peter
+    * fixes for linux
+
+  Revision 1.2  1998/10/29 12:49:49  peter
+    * more fixes
+
 }

@@ -114,7 +114,13 @@ function Gpm_GetSnapshot(var Event: TGPMEvent): Longint; cdecl;external;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
+  Revision 1.2  2000-10-26 23:08:48  peter
+    * merged freebsd from fixes
+
+  Revision 1.1.2.1  2000/10/25 12:23:20  marco
+   * Linux dir split up
+
+  Revision 1.1  2000/07/13 06:29:39  michael
   + Initial import
 
   Revision 1.1  2000/01/06 01:20:31  peter

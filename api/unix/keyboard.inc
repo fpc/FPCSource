@@ -10,6 +10,10 @@ uses
 
 var
   OldIO : TermIos;
+{$ifdef logging}
+  f : text;
+{$endif logging}
+
 Procedure SetRawMode(b:boolean);
 Var
   Tio : Termios;
@@ -230,11 +234,40 @@ Begin
   Keypressed := (KeySend<>KeyPut) or sysKeyPressed;
 End;
 
+
+{$ifdef DEBUG}
+Function RawReadKey:char;
+Var
+  ch       : char;
+  OldState,
+  State    : longint;
+  is_delay : boolean;
+  fdsin    : fdSet;
+Begin
+{Check Buffer first}
+  if KeySend<>KeyPut then
+   begin
+     RawReadKey:=PopKey;
+     exit;
+   end;
+{Wait for Key}
+  if not sysKeyPressed then
+   begin
+     FD_Zero (fdsin);
+     FD_Set (StdInputHandle,fdsin);
+     Select (StdInputHandle+1,@fdsin,nil,nil,nil);
+   end;
+  RawReadKey:=ttyRecvChar;
+end;
+{$endif DEBUG}
+
+
 Function ReadKey:char;
 Var
   ch       : char;
   OldState,
   State    : longint;
+  is_delay : boolean;
   fdsin    : fdSet;
 Begin
 {Check Buffer first}
@@ -257,11 +290,20 @@ Begin
      FD_Zero(fdsin);
      fd_Set(StdInputHandle,fdsin);
      State:=1;
+{$ifdef logging}
+     write(f,'Esc');
+{$endif logging}
      if InCnt=0 then
       Select(StdInputHandle+1,@fdsin,nil,nil,10);
      while (State<>0) and (sysKeyPressed) do
       begin
         ch:=ttyRecvChar;
+{$ifdef logging}
+        if ord(ch)>31 then
+          write(f,ch)
+        else
+          write(f,'#',ord(ch):2);
+{$endif logging}
         OldState:=State;
         State:=0;
         case OldState of
@@ -277,8 +319,8 @@ Begin
                'O' : State:=6;
                else
                 begin
-                  PushKey(ch);
                   PushKey(#27);
+                  PushKey(ch);
                 end;
                end;
             end;
@@ -294,15 +336,16 @@ Begin
                'K' : PushExt(79);
                '1' : State:=4;
                '2' : State:=5;
-               '3' : PushExt(83);
+               '3' : State:=12;{PushExt(83)}
                '4' : PushExt(79);
                '5' : PushExt(73);
                '6' : PushExt(81);
+               '?' : State:=7;
               else
                begin
-                 PushKey(ch);
-                 PushKey('[');
                  PushKey(#27);
+                 PushKey('[');
+                 PushKey(ch);
                end;
               end;
               if ch in ['3'..'6'] then
@@ -315,30 +358,73 @@ Begin
                'C' : PushExt(61);
                'D' : PushExt(62);
                'E' : PushExt(63);
+              else
+               begin
+                 PushKey(#27);
+                 PushKey('[');
+                 PushKey('[');
+                 PushKey(ch);
+               end;
               end;
             end;
-        4 : begin
+        4 : begin {Esc[1}
               case ch of
                '~' : PushExt(71);
                '7' : PushExt(64);
                '8' : PushExt(65);
                '9' : PushExt(66);
+              else
+               begin
+                 PushKey(#27);
+                 PushKey('[');
+                 PushKey('1');
+                 PushKey(ch);
+               end;
               end;
               if (Ch<>'~') then
                State:=255;
             end;
-        5 : begin
+        5 : begin {Esc[2}
               case ch of
                '~' : PushExt(82);
                '0' : pushExt(67);
                '1' : PushExt(68);
-               '3' : PushExt(133);
-               '4' : PushExt(134);
+               '3' : PushExt($85){F11, but ShiftF1 also !!};
+               '4' : PushExt($86){F12, but Shift F2 also !!};
+               '5' : PushExt($56){ShiftF3};
+               '6' : PushExt($57){ShiftF4};
+               '8' : PushExt($58){ShiftF5};
+               '9' : PushExt($59){ShiftF6};
+              else
+               begin
+                 PushKey(#27);
+                 PushKey('[');
+                 PushKey('2');
+                 PushKey(ch);
+               end;
               end;
               if (Ch<>'~') then
                State:=255;
             end;
-        6 : begin {Esc0 Function keys in vt100 mode PM }
+        12 : begin {Esc[3}
+              case ch of
+               '~' : PushExt(83);
+               '1' : PushExt($5A){ShiftF7};
+               '2' : PushExt($5B){ShiftF8};
+               '3' : PushExt($5C){ShiftF9};
+               '4' : PushExt($5D){ShiftF10};
+              else
+               begin
+                 PushKey(#27);
+                 PushKey('[');
+                 PushKey('3');
+                 PushKey(ch);
+               end;
+              end;
+              if (Ch<>'~') then
+               State:=255;
+            end;
+        6 : begin {EscO Function keys in vt100 mode PM }
               case ch of
                'P' : {F1}PushExt(59);
                'Q' : {F2}PushExt(60);
@@ -350,15 +436,135 @@ Begin
                'l' : {F8}PushExt(66);
                'w' : {F9}PushExt(67);
                'x' : {F10}PushExt(68);
+               'D' : {keyLeft}PushExt($4B);
+               'C' : {keyRight}PushExt($4D);
+               'A' : {keyUp}PushExt($48);
+               'B' : {keyDown}PushExt($50);
+              else
+               begin
+                 PushKey(#27);
+                 PushKey('O');
+                 PushKey(ch);
+               end;
               end;
             end;
-      255 : ;
+        7 : begin {Esc[? keys in vt100 mode PM }
+              case ch of
+               '0' : State:=11;
+               '1' : State:=8;
+               '7' : State:=9;
+              else
+                begin
+                  PushKey(#27);
+                  PushKey('[');
+                  PushKey('?');
+                  PushKey(ch);
+                end;
+              end;
+            end;
+        8 : begin {Esc[?1 keys in vt100 mode PM }
+              case ch of
+               'l' : {local mode};
+               'h' : {transmit mode};
+               ';' : { 'Esc[1;0c seems to be sent by M$ telnet app
+                       for no hangup purposes }
+                     state:=10;
+              else
+                begin
+                  PushKey(#27);
+                  PushKey('[');
+                  PushKey('?');
+                  PushKey('1');
+                  PushKey(ch);
+                end;
+              end;
+            end;
+        9 : begin {Esc[?7 keys in vt100 mode PM }
+              case ch of
+               'l' : {exit_am_mode};
+               'h' : {enter_am_mode};
+              else
+                begin
+                  PushKey(#27);
+                  PushKey('[');
+                  PushKey('?');
+                  PushKey('7');
+                  PushKey(ch);
+                end;
+              end;
+            end;
+        10 : begin {Esc[?1; keys in vt100 mode PM }
+              case ch of
+               '0' : state:=11;
+              else
+                begin
+                  PushKey(#27);
+                  PushKey('[');
+                  PushKey('?');
+                  PushKey('1');
+                  PushKey(';');
+                  PushKey(ch);
+                end;
+              end;
+             end;
+        11 : begin {Esc[?1;0 keys in vt100 mode PM }
+              case ch of
+               'c' : ;
+              else
+                begin
+                  PushKey(#27);
+                  PushKey('[');
+                  PushKey('?');
+                  PushKey('1');
+                  PushKey(';');
+                  PushKey('0');
+                  PushKey(ch);
+                end;
+              end;
+             end;
+      255 : { just forget this trailing char };
         end;
         if (State<>0) and (InCnt=0) then
          Select(StdInputHandle+1,@fdsin,nil,nil,10);
       end;
      if State=1 then
       PushKey(ch);
+     if ch='$' then
+       begin { '$<XX>' means a delay of XX millisecs }
+         is_delay :=false;
+         Select(StdInputHandle+1,@fdsin,nil,nil,10);
+         if (sysKeyPressed) then
+           begin
+             ch:=ttyRecvChar;
+             is_delay:=(ch='<');
+             if not is_delay then
+               begin
+                 PushKey('$');
+                 PushKey(ch);
+               end
+             else
+               begin
+{$ifdef logging}
+                 write(f,'$<');
+{$endif logging}
+                 Select(StdInputHandle+1,@fdsin,nil,nil,10);
+                 while (sysKeyPressed) and (ch<>'>') do
+                   begin
+                     { Should we really repect this delay ?? }
+                     ch:=ttyRecvChar;
+{$ifdef logging}
+                     write(f,ch);
+{$endif logging}
+                     Select(StdInputHandle+1,@fdsin,nil,nil,10);
+                   end;
+               end;
+           end
+         else
+           PushKey('$');
+       end;
+{$ifdef logging}
+       writeln(f);
+{$endif logging}
    end
   else
    Begin
@@ -378,6 +584,7 @@ var
 begin
   arg:=6;
   shift:=0;
+  {$Ifndef BSD}
   if IOCtl(StdInputHandle,TIOCLINUX,@arg) then
    begin
      if (arg and (2 or 8))<>0 then
@@ -387,6 +594,7 @@ begin
      if (arg and 1)<>0 then
       inc(shift,3);
    end;
+ {$endif}
   ShiftState:=shift;
 end;
 
@@ -397,6 +605,10 @@ procedure InitKeyboard;
 begin
   SetRawMode(true);
   patchkeyboard;
+{$ifdef logging}
+     assign(f,'keyboard.log');
+     rewrite(f);
+{$endif logging}
 end;
 
 
@@ -404,6 +616,9 @@ procedure DoneKeyboard;
 begin
   unpatchkeyboard;
   SetRawMode(false);
+{$ifdef logging}
+  close(f);
+{$endif logging}
 end;
 
 
@@ -588,13 +803,56 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-10-15 09:18:22  peter
-    * vt100 keys support merged
+  Revision 1.2  2000-10-26 23:08:48  peter
+    * merged freebsd from fixes
 
-  Revision 1.3  2000/10/04 11:53:31  pierre
-   Add TargetEntry and TargetExit (merged)
+  Revision 1.1.2.1  2000/10/25 12:23:20  marco
+   * Linux dir split up
 
-  Revision 1.2  2000/07/13 11:32:25  michael
-  + removed logs
+  Revision 1.1.2.4  2000/10/19 07:41:35  pierre
+   + added testkeyb for linux for get Escape sequences easily
+
+  Revision 1.1.2.3  2000/10/19 07:29:01  pierre
+   * enhance special keys support both in linux and vt100 mode
+
+  Revision 1.1.2.2  2000/10/11 16:19:44  pierre
+   * add support of function keys for vt100
+
+  Revision 1.1.2.1  2000/09/25 13:18:37  jonas
+    * added missing restoring of part of the termios info (even though those
+      fields weren't changed, leaving them uninitialized when restoring
+      won't do much good :)
+
+  Revision 1.1  2000/07/13 06:29:39  michael
+  + Initial import
+
+  Revision 1.2  2000/06/30 09:00:33  jonas
+    * compiles again with -dnomouse
+
+  Revision 1.1  2000/01/06 01:20:31  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  1999/11/24 23:36:38  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/02/16 10:44:53  peter
+    * alt-f<x> support
+
+  Revision 1.4  1998/12/15 10:30:34  peter
+    + ctrl arrows support
+    * better backspace
+
+  Revision 1.3  1998/12/12 19:13:02  peter
+    * keyboard updates
+    * make test target, make all only makes units
+
+  Revision 1.1  1998/12/04 12:48:30  peter
+    * moved some dirs
+
+  Revision 1.3  1998/10/29 12:49:48  peter
+    * more fixes
+
+  Revision 1.1  1998/10/26 11:31:47  peter
+    + inital include files
 
 }
