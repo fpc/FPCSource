@@ -53,7 +53,7 @@ const
    {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
-   {J} (typesw:illegalsw; setsw:ord(cs_localnone)),
+   {J} (typesw:unsupportedsw; setsw:ord(cs_typed_const_not_changeable)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-02-22 13:07:06  pierre
+  Revision 1.21  1999-04-25 22:34:59  pierre
+   + cs_typed_const_not_changeable added but not implemented yet !
+
+  Revision 1.20  1999/02/22 13:07:06  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

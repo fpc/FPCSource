@@ -45,6 +45,7 @@ interface
          { support }
          cs_support_inline,cs_support_goto,cs_support_macro,
          cs_support_c_operators,cs_static_keyword,
+         cs_typed_const_not_changeable, 
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          { linking }
@@ -109,7 +110,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-04-16 11:49:42  peter
+  Revision 1.7  1999-04-25 22:34:58  pierre
+   + cs_typed_const_not_changeable added but not implemented yet !
+
+  Revision 1.6  1999/04/16 11:49:42  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 
