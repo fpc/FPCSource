@@ -98,6 +98,7 @@ implementation
       var
          b : byte;
          hd1,hd2 : pdef;
+         hct : tconverttype;
       begin
        { safety check }
          if not(assigned(def_from) and assigned(def_to)) then
@@ -244,6 +245,25 @@ implementation
                else
                 begin
                   case def_from^.deftype of
+                    arraydef :
+                      begin
+                        { array constructor -> open array }
+                        if is_open_array(def_to) and
+                           is_array_constructor(def_from) then
+                         begin
+                           if is_equal(parraydef(def_to)^.definition,parraydef(def_from)^.definition) then
+                            begin
+                              doconv:=tc_equal;
+                              b:=1;
+                            end
+                           else
+                            if isconvertable(parraydef(def_to)^.definition,parraydef(def_from)^.definition,hct,nothingn,false)<>0 then
+                             begin
+                               doconv:=hct;
+                               b:=2;
+                             end;
+                         end;
+                      end;
                     pointerdef :
                       begin
                         if is_zero_based_array(def_to) and
@@ -675,7 +695,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-08-06 12:49:36  jonas
+  Revision 1.37  1999-08-16 23:23:38  peter
+    * arrayconstructor -> openarray type conversions for element types
+
+  Revision 1.36  1999/08/06 12:49:36  jonas
     * vo_fpuregable is now also removed in make_not_regable
 
   Revision 1.35  1999/08/05 21:50:35  peter

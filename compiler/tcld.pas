@@ -380,7 +380,7 @@ implementation
            exit;
          end;
       { only pass left tree, right tree contains next construct if any }
-        pd:=nil;
+        pd:=p^.constructdef;
         len:=0;
         varia:=false;
         if assigned(p^.left) then
@@ -430,8 +430,12 @@ implementation
                  if ((p^.novariaallowed) or (not varia)) and
                     (not is_equal(pd,hp^.left^.resulttype)) then
                   begin
+                    { if both should be equal try inserting a conversion }
                     if p^.novariaallowed then
-                     CGMessage2(type_e_incompatible_types,hp^.left^.resulttype^.typename,pd^.typename);
+                     begin
+                       hp^.left:=gentypeconvnode(hp^.left,pd);
+                       firstpass(hp^.left);
+                     end;
                     varia:=true;
                   end;
                end;
@@ -487,7 +491,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-08-13 21:33:17  peter
+  Revision 1.41  1999-08-16 23:23:41  peter
+    * arrayconstructor -> openarray type conversions for element types
+
+  Revision 1.40  1999/08/13 21:33:17  peter
     * support for array constructors extended and more error checking
 
   Revision 1.39  1999/08/05 16:53:24  peter

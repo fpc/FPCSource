@@ -252,7 +252,10 @@ implementation
                            p^.left^.cargs:=true;
                        end
                       else
-                       p^.left^.novariaallowed:=true;
+                       begin
+                         p^.left^.novariaallowed:=true;
+                         p^.left^.constructdef:=parraydef(defcoll^.data)^.definition;
+                       end;
                       old_array_constructor:=allow_array_constructor;
                       allow_array_constructor:=true;
                       firstpass(p^.left);
@@ -1203,7 +1206,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-08-13 21:33:16  peter
+  Revision 1.60  1999-08-16 23:23:39  peter
+    * arrayconstructor -> openarray type conversions for element types
+
+  Revision 1.59  1999/08/13 21:33:16  peter
     * support for array constructors extended and more error checking
 
   Revision 1.58  1999/08/12 14:34:28  peter
