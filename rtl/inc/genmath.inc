@@ -284,6 +284,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     {*  to y.  Thus  x = y * 2**expn.                                    *}
     begin
       e :=0;
+      {!!!!!! fix me
       if (abs(x)<0.5) then
        While (abs(x)<0.5) do
        begin
@@ -296,6 +297,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          x := x/2;
          Inc(e);
        end;
+      }
       frexp := x;
     end;
 
@@ -1020,7 +1022,10 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:07:45  peter
+  Revision 1.7  2002-10-07 15:10:45  florian
+    + variant wrappers for cmp operators added
+
+  Revision 1.6  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/07/28 21:39:29  florian

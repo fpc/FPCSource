@@ -491,6 +491,31 @@ operator -(const op : variant) dest : variant;
      variantmanager.varneg(dest);
   end;
 
+operator =(const op1,op2 : variant) dest : boolean;
+  begin
+     dest:=variantmanager.cmpop(op1,op2,opcmpeq);
+  end;
+
+operator <(const op1,op2 : variant) dest : boolean;
+  begin
+     dest:=variantmanager.cmpop(op1,op2,opcmplt);
+  end;
+
+operator >(const op1,op2 : variant) dest : boolean;
+  begin
+     dest:=variantmanager.cmpop(op1,op2,opcmpgt);
+  end;
+
+operator >=(const op1,op2 : variant) dest : boolean;
+  begin
+     dest:=variantmanager.cmpop(op1,op2,opcmpge);
+  end;
+
+operator <=(const op1,op2 : variant) dest : boolean;
+  begin
+     dest:=variantmanager.cmpop(op1,op2,opcmplt);
+  end;
+
 
 {**********************************************************************
                       Variant manager functions
@@ -537,7 +562,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.7  2002-10-07 10:27:45  florian
+  Revision 1.8  2002-10-07 15:10:45  florian
+    + variant wrappers for cmp operators added
+
+  Revision 1.7  2002/10/07 10:27:45  florian
     + more variant wrappers added
 
   Revision 1.6  2002/10/06 22:13:55  florian

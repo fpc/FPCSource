@@ -269,11 +269,19 @@ operator /(const op1,op2 : variant) dest : variant;
 operator div(const op1,op2 : variant) dest : variant;
 operator mod(const op1,op2 : variant) dest : variant;
 operator -(const op : variant) dest : variant;
+operator =(const op1,op2 : variant) dest : boolean;
+operator <(const op1,op2 : variant) dest : boolean;
+operator >(const op1,op2 : variant) dest : boolean;
+operator >=(const op1,op2 : variant) dest : boolean;
+operator <=(const op1,op2 : variant) dest : boolean;
 
 
 {
   $Log$
-  Revision 1.8  2002-10-07 10:27:45  florian
+  Revision 1.9  2002-10-07 15:10:45  florian
+    + variant wrappers for cmp operators added
+
+  Revision 1.8  2002/10/07 10:27:45  florian
     + more variant wrappers added
 
   Revision 1.7  2002/10/06 22:13:55  florian
