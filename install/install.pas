@@ -20,13 +20,21 @@ program install;
 {$ifdef HEAPTRC}
      heaptrc,
 {$endif HEAPTRC}
-     app,dialogs,views,objects,menus,drivers,strings,msgbox,dos,unzip,ziptypes;
+     strings,dos,objects,drivers,
+     commands,app,dialogs,views,menus,msgbox,
+     unzip,ziptypes;
 
   const
      maxpackages=20;
      maxdefcfgs=200;
 
      cfgfile='install.dat';
+
+{$ifdef linux}
+     DirSep='/';
+{$else}
+     DirSep='\';
+{$endif}
 
   type
      tpackage=record
@@ -52,15 +60,47 @@ program install;
        mask     : word;
      end;
 
+     punzipdialog=^tunzipdialog;
+     tunzipdialog=object(tdialog)
+         filetext : pstatictext;
+         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+         procedure do_unzip(s,topath:string);
+     end;
+
+     penddialog = ^tenddialog;
+     tenddialog = object(tdialog)
+        constructor init;
+     end;
+
+     pinstalldialog = ^tinstalldialog;
+     tinstalldialog = object(tdialog)
+        constructor init;
+     end;
+
+     tapp = object(tapplication)
+         procedure initmenubar;virtual;
+         procedure handleevent(var event : tevent);virtual;
+         procedure do_installdialog;
+         procedure readcfg(const fn:string);
+     end;
+
   var
+     installapp  : tapp;
      startpath   : string;
      successfull : boolean;
      cfg         : cfgrec;
      data        : datarec;
 
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
+
+  procedure errorhalt;
+    begin
+      installapp.done;
+      halt(1);
+    end;
 
   function packagemask(i:longint):longint;
     begin
@@ -134,7 +174,7 @@ program install;
       dir : searchrec;
       params : array[0..0] of pointer;
     begin
-       if s[length(s)]='\' then
+       if s[length(s)]=DirSep then
         dec(s[0]);
        s:=lower(s);
        FindFirst(s,$ff,dir);
@@ -177,7 +217,7 @@ program install;
       if doserror=0 then
        begin
          params[0]:=@fn;
-         MessageBox('Config file %s already exists, default config not written',@params,mfinformation+mfokbutton);
+         MessageBox(#3'Default config not written.'#13#3'%s'#13#3'already exists',@params,mfinformation+mfokbutton);
          exit;
        end;
       assign(t,fn);
@@ -187,7 +227,7 @@ program install;
       if ioresult<>0 then
        begin
          params[0]:=@fn;
-         MessageBox('Can''t create %s, default config not written',@params,mfinformation+mfokbutton);
+         MessageBox(#3'Default config not written.'#13#3'%s'#13#3'couldn''t be created',@params,mfinformation+mfokbutton);
          exit;
        end;
       for i:=1to cfg.defcfgs do
@@ -204,16 +244,218 @@ program install;
 
 
 {*****************************************************************************
-                                   Cfg Read
+                               TUnZipDialog
 *****************************************************************************}
 
-  procedure readcfg(const fn:string);
+  constructor tunzipdialog.Init(var Bounds: TRect; ATitle: TTitleStr);
+    var
+      r : trect;
+    begin
+      inherited init(bounds,atitle);
+      R.Assign(11, 4, 38, 5);
+      filetext:=new(pstatictext,init(r,'File: '));
+      insert(filetext);
+    end;
+
+
+  procedure tunzipdialog.do_unzip(s,topath : string);
+    var
+      fn,dir,wild : string;
+    begin
+       Disposestr(filetext^.text);
+       filetext^.Text:=NewStr('File: '+s);
+       filetext^.drawview;
+       if not(file_exists(s,startpath)) then
+         begin
+            messagebox('File: '+s+' missed for the selected installation. '+
+                       'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
+            errorhalt;
+         end;
+       fn:=startpath+DirSep+s+#0;
+       dir:=topath+#0;
+       wild:='*.*'#0;
+       FileUnzipEx(@fn[1],@dir[1],@wild[1]);
+       if doserror<>0 then
+         begin
+            messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
+            errorhalt;
+         end;
+    end;
+
+
+{*****************************************************************************
+                               TEndDialog
+*****************************************************************************}
+
+  constructor tenddialog.init;
+    var
+      R       : TRect;
+      P       : PStaticText;
+      Control : PButton;
+    begin
+      R.Assign(6, 6, 74, 16);
+      inherited init(r,'Installation Successfull');
+
+      R.Assign(2, 2, 64, 5);
+      P:=new(pstatictext,init(r,'Extend your PATH variable with '''+data.basepath+cfg.binsub+''''));
+      insert(P);
+
+      R.Assign(2, 4, 64, 5);
+      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.ppc386+' [file]'''));
+      insert(P);
+
+      R.Assign (29, 7, 39, 9);
+      Control := New (PButton, Init (R,'~O~k', cmOK, bfDefault));
+      Insert (Control);
+    end;
+
+
+{*****************************************************************************
+                               TInstallDialog
+*****************************************************************************}
+
+  constructor tinstalldialog.init;
+    var
+       r : trect;
+       mask_components : longint;
+       i,line : integer;
+       items : psitem;
+       p,f : pview;
+
+    const
+       width = 76;
+       height = 20;
+       x1 = (79-width) div 2;
+       y1 = (23-height) div 2;
+       x2 = x1+width;
+       y2 = y1+height;
+
+    begin
+       r.assign(x1,y1,x2,y2);
+       inherited init(r,cfg.title+' Installation');
+
+       line:=2;
+       r.assign(3,line+1,28,line+2);
+
+       f:=new(pinputline,init(r,80));
+       insert(f);
+
+       r.assign(3,line,8,line+1);
+       insert(new(plabel,init(r,'~P~ath',f)));
+
+     { walk packages reverse and insert a newsitem for each, and set the mask }
+       items:=nil;
+       mask_components:=0;
+       for i:=cfg.packages downto 1 do
+        begin
+          if file_exists(cfg.package[i].zip,startpath) then
+           begin
+             items:=newsitem(cfg.package[i].name+diskspace(startpath+DirSep+cfg.package[i].zip),items);
+             mask_components:=mask_components or packagemask(i);
+           end
+          else
+           begin
+             items:=newsitem(cfg.package[i].name,items);
+           end;
+        end;
+
+     { If no component found abort }
+       if mask_components=0 then
+        begin
+          messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
+          errorhalt;
+        end;
+
+       inc(line,3);
+       r.assign(3,line+1,width-3,line+cfg.packages+1);
+       p:=new(pcheckboxes,init(r,items));
+       r.assign(3,line,14,line+1);
+       insert(new(plabel,init(r,'~C~omponents',p)));
+       pcluster(p)^.enablemask:=mask_components;
+       insert(p);
+
+       inc(line,cfg.packages+2);
+       r.assign((width div 2)-14,line,(width div 2)-4,line+2);
+       insert(new(pbutton,init(r,'~O~k',cmok,bfdefault)));
+       r.assign((width div 2)+4,line,(width div 2)+14,line+2);
+       insert(new(pbutton,init(r,'~C~ancel',cmcancel,bfnormal)));
+
+       f^.select;
+    end;
+
+
+{*****************************************************************************
+                                TApp
+*****************************************************************************}
+
+  const
+     cmstart = 1000;
+
+  procedure tapp.do_installdialog;
+    var
+       p    : pinstalldialog;
+       p2   : punzipdialog;
+       p3   : penddialog;
+       r    : trect;
+       result,
+       c    : word;
+       i    : longint;
+    begin
+      data.basepath:=cfg.basepath;
+      data.mask:=0;
+
+      repeat
+      { select components }
+        p:=new(pinstalldialog,init);
+        c:=executedialog(p,@data);
+        if (c=cmok) then
+          begin
+            if (data.mask>0) then
+             begin
+               if createdir(data.basepath) then
+                break;
+             end
+            else
+             begin
+               result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
+                 mferror+mfyesbutton+mfnobutton);
+               if result=cmYes then
+                exit;
+             end;
+          end
+        else
+          exit;
+      until false;
+
+    { extract }
+      r.assign(20,7,60,16);
+      p2:=new(punzipdialog,init(r,'Extracting files'));
+      desktop^.insert(p2);
+      for i:=1to cfg.packages do
+       begin
+         if data.mask and packagemask(i)<>0 then
+          p2^.do_unzip(cfg.package[i].zip,data.basepath);
+       end;
+      desktop^.delete(p2);
+      dispose(p2,done);
+
+    { write config }
+      writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
+
+    { show end message }
+      p3:=new(penddialog,init);
+      executedialog(p3,nil);
+    end;
+
+
+  procedure tapp.readcfg(const fn:string);
     var
       t    : text;
       i,j,
       line : longint;
       item,
       s    : string;
+      params : array[0..0] of pointer;
 
 {$ifndef FPC}
       procedure readln(var t:text;var s:string);
@@ -245,8 +487,9 @@ program install;
       {$I+}
       if ioresult<>0 then
        begin
-         writeln('error: ',fn,' not found!');
-         halt(1);
+         params[0]:=@fn;
+         messagebox('File %s not found!',@params,mferror+mfokbutton);
+         errorhalt;
        end;
       line:=0;
       while not eof(t) do
@@ -259,7 +502,7 @@ program install;
             if i>0 then
              begin
                item:=upper(Copy(s,1,i-1));
-               delete(s,1,i);
+               system.delete(s,1,i);
                if item='VERSION' then
                 cfg.version:=s
                else
@@ -301,217 +544,11 @@ program install;
                       cfg.package[cfg.packages].zip:=copy(s,1,j-1);
                       cfg.package[cfg.packages].name:=copy(s,j+1,255);
                     end;
-                 end
-               else
-                writeln('error in confg, unknown item "',item,'" skipping line ',line);
-             end
-            else
-             writeln('error in confg, skipping line ',line);
+                 end;
+             end;
           end;
        end;
       close(t);
-    end;
-
-
-{*****************************************************************************
-                               TUnZipDialog
-*****************************************************************************}
-
-  type
-     punzipdialog=^tunzipdialog;
-     tunzipdialog=object(tdialog)
-         filetext : pstatictext;
-         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
-         procedure do_unzip(s,topath:string);
-     end;
-
-
-  constructor tunzipdialog.Init(var Bounds: TRect; ATitle: TTitleStr);
-    var
-      r : trect;
-    begin
-      inherited init(bounds,atitle);
-      R.Assign(11, 4, 38, 5);
-      filetext:=new(pstatictext,init(r,'File: '));
-      insert(filetext);
-    end;
-
-
-  procedure tunzipdialog.do_unzip(s,topath : string);
-    var
-      fn,dir,wild : string;
-    begin
-       Disposestr(filetext^.text);
-       filetext^.Text:=NewStr('File: '+s);
-       filetext^.drawview;
-       if not(file_exists(s,startpath)) then
-         begin
-            messagebox('File: '+s+' missed for the selected installation. '+
-                       'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
-            halt(1);
-         end;
-       fn:=startpath+'\'+s+#0;
-       dir:=topath+#0;
-       wild:='*.*'#0;
-       FileUnzipEx(@fn[1],@dir[1],@wild[1]);
-       if doserror<>0 then
-         begin
-            messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
-            halt(1);
-         end;
-    end;
-
-
-{*****************************************************************************
-                               TInstallDialog
-*****************************************************************************}
-
-  type
-     pinstalldialog = ^tinstalldialog;
-     tinstalldialog = object(tdialog)
-        constructor init;
-     end;
-
-  type
-     tapp = object(tapplication)
-         procedure initmenubar;virtual;
-         procedure handleevent(var event : tevent);virtual;
-         procedure do_installdialog;
-     end;
-
-  var
-     installapp : tapp;
-
-
-  constructor tinstalldialog.init;
-    var
-       r : trect;
-       mask_components : longint;
-       i,line : integer;
-       items : psitem;
-       p,f : pview;
-
-    const
-       width = 76;
-       height = 20;
-       x1 = (79-width) div 2;
-       y1 = (23-height) div 2;
-       x2 = x1+width;
-       y2 = y1+height;
-
-    begin
-       r.assign(x1,y1,x2,y2);
-       inherited init(r,cfg.title+' Installation');
-
-       line:=2;
-       r.assign(3,line+1,28,line+2);
-
-       f:=new(pinputline,init(r,80));
-       insert(f);
-
-       r.assign(3,line,8,line+1);
-       insert(new(plabel,init(r,'~P~ath',f)));
-
-     { walk packages reverse and insert a newsitem for each, and set the mask }
-       items:=nil;
-       mask_components:=0;
-       for i:=cfg.packages downto 1 do
-        begin
-          if file_exists(cfg.package[i].zip,startpath) then
-           begin
-             items:=newsitem(cfg.package[i].name+diskspace(startpath+'\'+cfg.package[i].zip),items);
-             mask_components:=mask_components or packagemask(i);
-           end
-          else
-           begin
-             items:=newsitem(cfg.package[i].name,items);
-           end;
-        end;
-
-     { If no component found abort }
-       if mask_components=0 then
-        begin
-          messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
-          { this clears the screen at least PM }
-          installapp.done;
-          halt(1);
-        end;
-
-       inc(line,3);
-       r.assign(3,line+1,width-3,line+cfg.packages+1);
-       p:=new(pcheckboxes,init(r,items));
-       r.assign(3,line,14,line+1);
-       insert(new(plabel,init(r,'~C~omponents',p)));
-       pcluster(p)^.enablemask:=mask_components;
-       insert(p);
-
-       inc(line,cfg.packages+2);
-       r.assign((width div 2)-14,line,(width div 2)-4,line+2);
-       insert(new(pbutton,init(r,'~O~k',cmok,bfdefault)));
-       r.assign((width div 2)+4,line,(width div 2)+14,line+2);
-       insert(new(pbutton,init(r,'~C~ancel',cmcancel,bfnormal)));
-
-       f^.select;
-    end;
-
-
-{*****************************************************************************
-                                TApp
-*****************************************************************************}
-
-  const
-     cmstart = 1000;
-
-  procedure tapp.do_installdialog;
-    var
-       p    : pinstalldialog;
-       p2   : punzipdialog;
-       r    : trect;
-       result,
-       c    : word;
-       i    : longint;
-    begin
-      data.basepath:=cfg.basepath;
-      data.mask:=0;
-
-      repeat
-        p:=new(pinstalldialog,init);
-        { default settings }
-        c:=executedialog(p,@data);
-        if (c=cmok) then
-          begin
-            if (data.mask>0) then
-             begin
-               if createdir(data.basepath) then
-                break;
-             end
-            else
-             begin
-               result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
-                 mferror+mfyesbutton+mfnobutton);
-               if result=cmYes then
-                exit;
-             end;
-          end
-        else
-          exit;
-      until false;
-
-      r.assign(20,7,60,16);
-      p2:=new(punzipdialog,init(r,'Extracting files'));
-      desktop^.insert(p2);
-      for i:=1to cfg.packages do
-       begin
-         if data.mask and packagemask(i)<>0 then
-          p2^.do_unzip(cfg.package[i].zip,data.basepath);
-       end;
-      desktop^.delete(p2);
-      dispose(p2,done);
-
-      writedefcfg(data.basepath+cfg.binsub+'\'+cfg.defcfgfile);
-
-      messagebox('Installation successfull',nil,mfinformation+mfokbutton);
-      successfull:=true;
     end;
 
 
@@ -553,23 +590,18 @@ begin
    fillchar(cfg, SizeOf(cfg), 0);
    fillchar(data, SizeOf(data), 0);
 
-   readcfg(cfgfile);
-
    installapp.init;
+   installapp.readcfg(cfgfile);
    installapp.do_installdialog;
    installapp.done;
-
-   if successfull then
-     begin
-        writeln('Extend your PATH variable with ''',data.basepath+cfg.binsub+'''');
-        writeln;
-        writeln('To compile files enter ''',cfg.ppc386,' [file]''');
-        writeln;
-     end;
 end.
 {
   $Log$
-  Revision 1.11  1998-11-01 20:32:25  peter
+  Revision 1.12  1998-12-16 00:25:34  peter
+    * updated for 0.99.10
+    * new end dialogbox
+
+  Revision 1.11  1998/11/01 20:32:25  peter
     * packed record
 
   Revision 1.10  1998/10/25 23:38:35  peter

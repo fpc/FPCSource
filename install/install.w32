@@ -4,7 +4,7 @@
 # Win32 Install file
 #
 title=Free Pascal Compiler for Win32
-version=0.99.8
+version=0.99.10
 
 basepath=c:\pp
 binsub=\bin\win32
@@ -16,14 +16,14 @@ package=gdbw32.zip,GNU ~D~ebugger for Win32
 package=utilw32.zip,GNU ~U~tilities (required to recompile run time library)
 package=demo.zip,D~e~mos
 package=docs-htm.zip,Documentation (~H~TML)
-package=rl0998s.zip,~R~un time library sources
-package=pp0998s.zip,~C~ompiler sources
+package=rl09910s.zip,~R~un time library sources
+package=pp09910s.zip,~C~ompiler sources
 package=doc110s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.8
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.10
 #
 
 # ----------------------
@@ -81,10 +81,9 @@ defaultcfg=
 # -So   tries to be TP/BP 7.0 compatible
 # -Ss   constructor name must be init (destructor must be done)
 # -St   allows static keyword in objects
-# -Sv   allow CVAR variable directive
 
-# Allow goto, inline, C-operators, CVar directive
--Sgicv
+# Allow goto, inline, C-operators
+-Sgic
 
 # ---------------
 # Code generation
