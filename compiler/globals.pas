@@ -476,7 +476,10 @@ implementation
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',target_cpu_string);
          Replace(s,'$FPCOS',target_os_string);
-         Replace(s,'$FPCTARGET',target_full_string);
+         if tf_use_8_3 in Source_Info.Flags then
+           Replace(s,'$FPCTARGET',target_os_string)
+         else
+           Replace(s,'$FPCTARGET',target_full_string);
        end;
 
 
@@ -2145,7 +2148,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.154  2004-12-15 16:06:47  marco
+  Revision 1.155  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.154  2004/12/15 16:06:47  marco
    * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
 
   Revision 1.153  2004/11/05 13:14:30  florian

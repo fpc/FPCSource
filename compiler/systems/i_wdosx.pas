@@ -33,7 +33,7 @@ unit i_wdosx;
             system       : system_i386_wdosx;
             name         : 'WDOSX DOS extender';
             shortname    : 'WDOSX';
-            flags        : [];
+            flags        : [tf_use_8_3];
             cpu          : cpu_i386;
             unit_env     : 'WDOSXUNITS';
             extradefines : 'MSWINDOWS';
@@ -103,7 +103,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-10-25 15:38:41  peter
+  Revision 1.8  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.7  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

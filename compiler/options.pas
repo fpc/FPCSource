@@ -2026,9 +2026,15 @@ begin
   if not disable_configfile then
     begin
       if PathExists(FpcDir+'rtl') then
-        UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
+        if tf_use_8_3 in Source_Info.Flags then
+          UnitSearchPath.AddPath(FpcDir+'rtl/'+target_os_string,false)
+        else
+          UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
       else
-        UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
+        if tf_use_8_3 in Source_Info.Flags then
+          UnitSearchPath.AddPath(FpcDir+'units/'+target_os_string+'/rtl',false)
+        else
+          UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
     end;
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find
@@ -2095,7 +2101,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.156  2004-12-16 08:06:42  marco
+  Revision 1.157  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.156  2004/12/16 08:06:42  marco
    * slash typo
 
   Revision 1.155  2004/12/15 16:06:47  marco

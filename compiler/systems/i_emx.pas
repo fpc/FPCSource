@@ -41,7 +41,7 @@ unit i_emx;
             system       : system_i386_EMX;
             name         : 'OS/2 via EMX';
             shortname    : 'EMX';
-            flags        : [tf_need_export];
+            flags        : [tf_need_export,tf_use_8_3];
             cpu          : cpu_i386;
             unit_env     : 'EMXUNITS';
             extradefines : 'OS2';
@@ -115,7 +115,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-10-25 15:38:41  peter
+  Revision 1.6  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.5  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

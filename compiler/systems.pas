@@ -228,7 +228,8 @@ interface
             tf_code_small,tf_static_reg_based,
             tf_needs_symbol_size,
             tf_smartlink_sections,
-            tf_needs_dwarf_cfi
+            tf_needs_dwarf_cfi,
+            tf_use_8_3
        );
 
        psysteminfo = ^tsysteminfo;
@@ -715,7 +716,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.98  2004-12-12 00:35:19  florian
+  Revision 1.99  2004-12-28 20:43:00  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.98  2004/12/12 00:35:19  florian
     * check if the selected assembler supports current target improved
 
   Revision 1.97  2004/12/12 00:31:52  florian

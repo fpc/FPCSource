@@ -33,7 +33,7 @@ unit i_go32v2;
             system       : system_i386_GO32V2;
             name         : 'GO32 V2 DOS extender';
             shortname    : 'Go32v2';
-            flags        : [];
+            flags        : [tf_use_8_3];
             cpu          : cpu_i386;
             unit_env     : 'GO32V2UNITS';
             extradefines : 'DPMI';
@@ -101,7 +101,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-10-25 15:38:41  peter
+  Revision 1.5  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.4  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

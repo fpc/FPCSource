@@ -33,7 +33,7 @@ unit i_atari;
             system       : target_m68k_Atari;
             name         : 'Atari ST/STE';
             shortname    : 'atari';
-            flags        : [];
+            flags        : [tf_use_8_3];
             cpu          : cpu_m68k;
             short_name   : 'ATARI';
             unit_env     : '';
@@ -84,7 +84,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-10-25 15:38:41  peter
+  Revision 1.5  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.4  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

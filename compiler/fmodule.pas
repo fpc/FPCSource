@@ -27,6 +27,9 @@ unit fmodule;
 {$ifdef go32v2}
   {$define shortasmprefix}
 {$endif}
+{$ifdef watcom}
+  {$define shortasmprefix}
+{$endif}
 {$ifdef tos}
   {$define shortasmprefix}
 {$endif}
@@ -708,7 +711,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-11-04 23:59:13  peter
+  Revision 1.50  2004-12-28 20:43:01  hajny
+    * 8.3 fixes (short target name in paths)
+
+  Revision 1.49  2004/11/04 23:59:13  peter
   use filepos of main when generating the module stabs
 
   Revision 1.48  2004/10/14 18:16:17  mazen
