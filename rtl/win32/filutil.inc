@@ -370,18 +370,7 @@ begin
     begin
     ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
     LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
-{$ifdef SYSUTILSDEBUG}
-    Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]));
-    Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]));
-{$endif}
     end;
-{$ifdef SYSUTILSDEBUG}
-  for I := 1 to 12 do
-    begin
-    Writeln ('Month short : ',ShortMonthNames[I]);
-    Writeln ('Month long : ',LongMonthNames[I]);
-    end;
-{$endif}
   for I := 1 to 7 do
     begin
     Day := (I + 5) mod 7;
@@ -439,7 +428,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-03-16 21:01:00  peter
+  Revision 1.8  1999-03-18 16:15:59  michael
+  - Really removed debug statements
+
+  Revision 1.7  1999/03/16 21:01:00  peter
     * removed initernalization debug writeln's
 
   Revision 1.6  1999/03/03 15:22:40  michael
