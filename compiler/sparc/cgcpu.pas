@@ -421,6 +421,7 @@ implementation
     procedure TCgSparc.a_call_name(list:TAasmOutput;const s:string);
       begin
         list.concat(taicpu.op_sym(A_CALL,objectlibrary.newasmsymbol(s)));
+        { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
 
@@ -428,6 +429,8 @@ implementation
     procedure TCgSparc.a_call_reg(list:TAasmOutput;Reg:TRegister);
       begin
         list.concat(taicpu.op_reg(A_CALL,reg));
+        { Delay slot }
+        list.concat(taicpu.op_none(A_NOP));
      end;
 
 
@@ -562,11 +565,16 @@ implementation
            (ref.offset<simm13lo) or
            (ref.offset>simm13hi) then
           begin
-          {$ifdef newra}
-            hreg:=rg.getaddressregister(list);
-          {$else}
-            hreg:=get_scratch_reg_address(list);
-          {$endif}
+            if (ref.base.number<>r.number) and (ref.index.number<>r.number) then
+              hreg:=r
+            else
+              begin
+              {$ifdef newra}
+                hreg:=rg.getaddressregister(list);
+              {$else}
+                hreg:=get_scratch_reg_address(list);
+              {$endif}
+              end;
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.offset := ref.offset;
@@ -584,12 +592,20 @@ implementation
                   end
                 else
                   list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,r));
+              end
+            else
+              begin
+                if hreg.number<>r.number then
+                  list.Concat(taicpu.op_reg_reg(A_MOV,hreg,r));
               end;
-           {$ifdef newra}
-             rg.ungetaddressregister(list,hreg);
-           {$else}
-             free_scratch_reg(list,hreg);
-           {$endif}
+            if hreg.number<>r.number then
+              begin
+              {$ifdef newra}
+                rg.ungetaddressregister(list,hreg);
+              {$else}
+                free_scratch_reg(list,hreg);
+              {$endif}
+              end;
           end
         else
         { At least small offset, maybe base and maybe index }
@@ -599,18 +615,26 @@ implementation
                 begin
                   if ref.index.number<>NR_NO then
                     begin
-                    {$ifdef newra}
-                      hreg:=rg.getaddressregister(list);
-                    {$else}
-                      hreg:=get_scratch_reg_address(list);
-                    {$endif}
+                      if (ref.base.number<>r.number) and (ref.index.number<>r.number) then
+                        hreg:=r
+                      else
+                        begin
+                        {$ifdef newra}
+                          hreg:=rg.getaddressregister(list);
+                        {$else}
+                          hreg:=get_scratch_reg_address(list);
+                        {$endif}
+                        end;
                       list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,aword(ref.offset),hreg));
                       list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,r));
-                    {$ifdef newra}
-                      rg.ungetaddressregister(list,hreg);
-                    {$else}
-                      free_scratch_reg(list,hreg);
-                    {$endif}
+                      if hreg.number<>r.number then
+                        begin
+                        {$ifdef newra}
+                          rg.ungetaddressregister(list,hreg);
+                        {$else}
+                          free_scratch_reg(list,hreg);
+                        {$endif}
+                        end;
                     end
                   else
                     list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,r));
@@ -776,6 +800,8 @@ implementation
     procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
       begin
         List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
+        { Delay slot }
+        list.Concat(TAiCpu.Op_none(A_NOP));
       end;
 
 
@@ -786,6 +812,7 @@ implementation
         ai:=TAiCpu.Op_sym(A_Bxx,l);
         ai.SetCondition(TOpCmp2AsmCond[cond]);
         list.Concat(ai);
+        { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
 
@@ -797,6 +824,7 @@ implementation
         ai := Taicpu.op_sym(A_Bxx,l);
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
+        { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
 
@@ -811,6 +839,7 @@ implementation
 {$warning Need to retrieve the correct flag setting in reg}
 //        ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
+        { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
 
@@ -1212,7 +1241,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-07-02 22:18:04  peter
+  Revision 1.62  2003-07-03 21:09:53  peter
+    * delay slot NOPs and comments added
+    * a_loadaddr_ref_reg fixed and optimized to reuse passed register
+      if it is not used by the ref
+
+  Revision 1.61  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 
