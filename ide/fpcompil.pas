@@ -389,6 +389,13 @@ begin
   if AClass>=V_Info then
     Line:=0;
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
+  if (@Self=CompilerMessageWindow) and (AClass in [V_fatal,V_Error]) then
+    begin
+      if not GetState(sfVisible) then
+        Show;
+      if Desktop^.First<>PView(CompilerMessageWindow) then
+        MakeFirst;
+    end;
 end;
 
 
@@ -1022,7 +1029,7 @@ begin
 {$endif}
   PopStatus;
 { Set end status }
-  if CompilationPhase<>cpAborted then
+  if not (CompilationPhase in [cpAborted,cpFailed]) then
     if (status.errorCount=0) then
       CompilationPhase:=cpDone
     else
@@ -1248,7 +1255,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-09-18 11:33:26  pierre
+  Revision 1.5  2001-10-03 10:21:43  pierre
+   fix for bug 1487
+
+  Revision 1.4  2001/09/18 11:33:26  pierre
    * fix bug 1604
 
   Revision 1.3  2001/09/12 09:25:01  pierre

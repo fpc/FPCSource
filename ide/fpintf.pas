@@ -16,6 +16,13 @@
 {$i globdir.inc}
 
 unit FPIntf;
+
+{$ifdef FPC}
+{$ifndef COMPILER_1_0}
+{$mode objfpc}
+{$endif COMPILER_1_0}
+{$endif FPC}
+
 interface
 
 { Run }
@@ -34,11 +41,14 @@ function version_string : string;
 implementation
 
 uses
-  Compiler,
+  Compiler,Comphook,
+{$ifdef COMPILER_1_0}
+  tpexcept,
+{$endif COMPILER_1_0}
 {$ifndef NODEBUG}
   FPDebug,
 {$endif NODEBUG}
-  FPRedir,FPVars,
+  FPRedir,FPVars,FpCompil,
   FPUtils,FPSwitch,WUtils;
 
 {****************************************************************************
@@ -72,9 +82,19 @@ end;
                                    Compile
 ****************************************************************************}
 
+var
+  CatchErrorLongJumpBuffer : jmp_buf;
+
+procedure CatchCompilationErrors;
+begin
+  LongJmp(CatchErrorLongJumpBuffer,1);
+end;
+
 procedure Compile(const FileName, ConfigFile: string);
 var
   cmd : string;
+  ExitReason : integer;
+  ExitAddr,StoreExitProc : pointer;
 {$ifdef USE_EXTERNAL_COMPILER}
   CompilerOut : Text;
   CompilerOutputLine : longint;
@@ -177,7 +197,44 @@ begin
     end
   else
 {$endif USE_EXTERNAL_COMPILER}
-    Compiler.Compile(cmd);
+    begin
+{$ifdef COMPILER_1_0}
+      storeexitproc:=exitproc;
+      if SetJmp(CatchErrorLongJumpBuffer)=0 then
+        begin
+          exitproc:=@CatchCompilationErrors;
+{$else : not COMPILER_1_0}
+      try
+{$endif COMPILER_1_0}
+          Compiler.Compile(cmd);
+{$ifdef COMPILER_1_0}
+        end
+      else
+        begin
+          ExitReason:=ExitCode;
+          ExitCode:=0;
+          ErrorCode:=0;
+          ExitAddr:=ErrorAddr;
+          ErrorAddr:=nil;
+          CompilationPhase:=cpFailed;
+          { FIXME: this is not 64bit compatible PM }
+          CompilerMessageWindow^.AddMessage(V_Error,
+            'Compiler exited with error '+inttostr(ExitReason)+
+            ' at addr '+inttohex(longint(ExitAddr),8),'',0,0);
+        end;
+      exitproc:=storeexitproc;
+{$else : not COMPILER_1_0}
+      except
+          on e : exception do
+            begin
+              CompilationPhase:=cpFailed;
+              CompilerMessageWindow^.AddMessage(V_Error,
+                'Compiler exited','',0,0);
+              CompilerMessageWindow^.AddMessage(V_Error,
+                e.message,'',0,0);
+            end;
+{$endif COMPILER_1_0}
+    end;
 end;
 
 {$ifdef USE_EXTERNAL_COMPILER}
@@ -231,7 +288,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-10-03 10:21:43  pierre
+   fix for bug 1487
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.3  2001/03/08 16:40:07  pierre
