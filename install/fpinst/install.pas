@@ -74,11 +74,12 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox;
+     app,dialogs,views,menus,msgbox,tabs;
 
 
   const
      maxpackages=20;
+     maxsources=20;
      maxdefcfgs=1024;
 
      CfgExt = '.dat';
@@ -103,6 +104,8 @@ program install;
        ppc386   : string[12];
        packages : longint;
        package  : array[1..maxpackages] of tpackage;
+       sources  : longint;
+       source   : array[1..maxsources] of tpackage;
        defcfgfile : string[12];
        defcfgs  : longint;
        defcfg   : array[1..maxdefcfgs] of pstring;
@@ -110,7 +113,8 @@ program install;
 
      datarec=packed record
        basepath : DirStr;
-       mask     : word;
+       packmask : word;
+       srcmask  : word;
      end;
 
      punzipdialog=^tunzipdialog;
@@ -504,13 +508,6 @@ program install;
 *****************************************************************************}
 
   constructor tinstalldialog.init;
-    var
-       r : trect;
-       mask_components : longint;
-       i,line : integer;
-       items : psitem;
-       p,f : pview;
-
     const
        width = 76;
        height = 20;
@@ -518,20 +515,19 @@ program install;
        y1 = (23-height) div 2;
        x2 = x1+width;
        y2 = y1+height;
-
+    var
+       tabr,tabir,r : trect;
+       srcmask,
+       mask_components : longint;
+       i,line : integer;
+       srcitems,items : psitem;
+       f : pview;
+       okbut,cancelbut : pbutton;
+       packcbs,sourcecbs : pcheckboxes;
+       labpath : plabel;
+       ilpath : pinputline;
+       tab : ptab;
     begin
-       r.assign(x1,y1,x2,y2);
-       inherited init(r,cfg.title+' Installation');
-
-       line:=1;
-       r.assign(3,line+1,28,line+2);
-
-       f:=new(pinputline,init(r,high(DirStr)));
-       insert(f);
-
-       r.assign(3,line,8,line+1);
-       insert(new(plabel,init(r,'~P~ath',f)));
-
      { walk packages reverse and insert a newsitem for each, and set the mask }
        items:=nil;
        mask_components:=0;
@@ -543,33 +539,88 @@ program install;
              mask_components:=mask_components or packagemask(i);
            end
           else
+           items:=newsitem(cfg.package[i].name,items);
+        end;
+
+     { walk source packages reverse and insert a newsitem for each, and set the mask }
+       srcitems:=nil;
+       srcmask:=0;
+       for i:=cfg.sources downto 1 do
+        begin
+          if file_exists(cfg.source[i].zip,startpath) then
            begin
-             items:=newsitem(cfg.package[i].name,items);
-           end;
+             srcitems:=newsitem(cfg.source[i].name+diskspace(startpath+DirSep+cfg.source[i].zip),srcitems);
+             mask_components:=mask_components or packagemask(i);
+           end
+          else
+           srcitems:=newsitem(cfg.source[i].name,srcitems);
         end;
 
      { If no component found abort }
-       if mask_components=0 then
+       if (mask_components=0) and (srcmask=0) then
         begin
           messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
           errorhalt;
         end;
 
-       inc(line,3);
-       r.assign(3,line+1,width-3,line+cfg.packages+1);
-       p:=new(pcheckboxes,init(r,items));
-       r.assign(3,line,14,line+1);
-       insert(new(plabel,init(r,'~C~omponents',p)));
-       pcluster(p)^.enablemask:=mask_components;
-       insert(p);
+       r.assign(x1,y1,x2,y2);
+       inherited init(r,cfg.title+' Installation');
+       GetExtent(R);
+       R.Grow(-2,-1);
+       Dec(R.B.Y,2);
+       TabR.Copy(R);
+       TabIR.Copy(R);
+       TabIR.Grow(-2,-2);
+       TabIR.Move(-2,0);
 
-       inc(line,cfg.packages+2);
+       {-------- Sheet 1 ----------}
+       R.Copy(TabIR);
+       r.b.x:=r.a.x+6;
+       r.b.y:=r.a.y+1;
+       new(labpath,init(r,'~P~ath',f));
+
+       r.move(0,1);
+       r.b.x:=r.a.x+40;
+       new(ilpath,init(r,high(DirStr)));
+
+       {-------- Sheet 2 ----------}
+       R.Copy(TabIR);
+       new(packcbs,init(r,items));
+       data.packmask:=mask_components;
+       pcluster(packcbs)^.enablemask:=mask_components;
+
+       {-------- Sheet 3 ----------}
+       R.Copy(TabIR);
+       new(sourcecbs,init(r,srcitems));
+       data.srcmask:=srcmask;
+       pcluster(sourcecbs)^.enablemask:=srcmask;
+
+       {--------- Main ---------}
+       New(Tab, Init(TabR,
+         NewTabDef('~G~eneral',IlPath,
+           NewTabItem(LabPath,
+           NewTabItem(ILPath,
+           nil)),
+         NewTabDef('~P~ackages',PackCbs,
+           NewTabItem(PackCbs,
+           nil),
+         NewTabDef('~S~ources',SourceCbs,
+           NewTabItem(SourceCbs,
+           nil),
+         nil)))));
+       Tab^.GrowMode:=0;
+       Insert(Tab);
+
+       line:=tabr.b.y;
        r.assign((width div 2)-14,line,(width div 2)-4,line+2);
-       insert(new(pbutton,init(r,'~O~k',cmok,bfdefault)));
-       r.assign((width div 2)+4,line,(width div 2)+14,line+2);
-       insert(new(pbutton,init(r,'~C~ancel',cmcancel,bfnormal)));
+       new(okbut,init(r,'~O~k',cmok,bfdefault));
+       Insert(OkBut);
 
-       f^.select;
+       r.assign((width div 2)+4,line,(width div 2)+14,line+2);
+       new(cancelbut,init(r,'~C~ancel',cmcancel,bfnormal));
+       Insert(CancelBut);
+
+       Tab^.Select;
     end;
 
 
@@ -588,11 +639,15 @@ program install;
        r    : trect;
        result,
        c    : word;
-       i, DSize, Space : longint;
+       i    : longint;
+{$ifndef linux}
+       DSize,Space : longint;
        S: DirStr;
+{$endif}
     begin
       data.basepath:=cfg.basepath;
-      data.mask:=0;
+      data.srcmask:=0;
+      data.packmask:=0;
 
       repeat
       { select components }
@@ -604,13 +659,21 @@ program install;
               messagebox('Please, choose the directory for installation first.',nil,
                  mferror+mfokbutton) else
              begin
-              if (data.mask>0) then
+              if (data.srcmask>0) or (data.packmask>0) then
                begin
 (* TH - check the available disk space here *)
 {$IFNDEF LINUX}
                 DSize := 0;
                 for i:=1 to cfg.packages do
-                begin
+                 begin
+                   if data.packmask and packagemask(i)<>0 then
+                    Inc (DSize, DiskSpaceN(cfg.package[i].zip));
+                 end;
+                for i:=1 to cfg.sources do
+                 begin
+                   if data.srcmask and packagemask(i)<>0 then
+                    Inc (DSize, DiskSpaceN(cfg.source[i].zip));
+                 end;
                  if data.mask and packagemask(i)<>0 then
                  Inc (DSize, DiskSpaceN(cfg.package[i].zip));
                 end;
@@ -642,14 +705,26 @@ program install;
           exit;
       until false;
 
-    { extract }
+    { extract packages }
       r.assign(20,7,60,16);
-      p2:=new(punzipdialog,init(r,'Extracting files'));
+      p2:=new(punzipdialog,init(r,'Extracting Packages'));
       desktop^.insert(p2);
       for i:=1 to cfg.packages do
        begin
-         if data.mask and packagemask(i)<>0 then
+         if data.packmask and packagemask(i)<>0 then
           p2^.do_unzip(cfg.package[i].zip,data.basepath);
+       end;
+      desktop^.delete(p2);
+      dispose(p2,done);
+
+    { extract sources }
+      r.assign(20,7,60,16);
+      p2:=new(punzipdialog,init(r,'Extracting Sources'));
+      desktop^.insert(p2);
+      for i:=1 to cfg.sources do
+       begin
+         if data.srcmask and packagemask(i)<>0 then
+          p2^.do_unzip(cfg.source[i].zip,data.basepath);
        end;
       desktop^.delete(p2);
       dispose(p2,done);
@@ -766,6 +841,17 @@ program install;
                       inc(cfg.packages);
                       cfg.package[cfg.packages].zip:=copy(s,1,j-1);
                       cfg.package[cfg.packages].name:=copy(s,j+1,255);
+                    end;
+                 end
+               else
+                if item='SOURCE' then
+                 begin
+                   j:=pos(',',s);
+                   if (j>0) and (cfg.sources<maxsources) then
+                    begin
+                      inc(cfg.sources);
+                      cfg.source[cfg.sources].zip:=copy(s,1,j-1);
+                      cfg.source[cfg.sources].name:=copy(s,j+1,255);
                     end;
                  end;
              end;
@@ -913,7 +999,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-06-25 07:06:30  hajny
+  Revision 1.6  1999-06-29 22:20:19  peter
+    * updated to use tab pages
+
+  Revision 1.5  1999/06/25 07:06:30  hajny
     + searching for installation script updated
 
   Revision 1.4  1999/06/10 20:01:23  peter

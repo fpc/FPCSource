@@ -28,8 +28,13 @@ NEEDUNITDIR=../../api ../../fv
 #####################################################################
 
 UNITOBJECTS=ziptypes unzip
-EXEOBJECTS=install
 
+# this hack is needed to solve dup install target
+ifdef linux
+EXEOBJECTS=installer
+else
+EXEOBJECTS=install
+endif
 
 #####################################################################
 # Common targets
@@ -102,9 +107,17 @@ endif
 # Dependencies
 #####################################################################
 
+ifdef linux
+installer: install.pas
+	$(COMPILER) install.pas
+endif
+
 #
 # $Log$
-# Revision 1.4  1999-05-30 11:34:34  peter
+# Revision 1.5  1999-06-29 22:20:18  peter
+#   * updated to use tab pages
+#
+# Revision 1.4  1999/05/30 11:34:34  peter
 #   * updates to generate the installer
 #
 # Revision 1.3	1999/05/02 14:27:39  peter
