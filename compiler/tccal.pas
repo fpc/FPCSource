@@ -701,11 +701,22 @@ implementation
                           begin
                              if pt^.exact_match_found then
                                begin
-                                 while assigned(procs) and (procs^.nextpara^.data<>pt^.resulttype) do
+                                 hp:=procs;
+                                 procs:=nil;
+                                 while assigned(hp) do
                                    begin
-                                      hp:=procs^.next;
-                                      dispose(procs);
-                                      procs:=hp;
+                                      hp2:=hp^.next;
+                                      { keep the exact matches, dispose the others }
+                                      if (hp^.nextpara^.data=pt^.resulttype) then
+                                       begin
+                                         hp^.next:=procs;
+                                         procs:=hp;
+                                       end
+                                      else
+                                       begin
+                                         dispose(hp);
+                                       end;
+                                      hp:=hp2;
                                    end;
                                end;
                              { update nextpara for all procedures }
@@ -967,7 +978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-11-16 10:18:10  peter
+  Revision 1.13  1998-11-24 17:03:51  peter
+    * fixed exactmatch removings
+
+  Revision 1.12  1998/11/16 10:18:10  peter
     * fixes for ansistrings
 
   Revision 1.11  1998/11/10 10:09:17  peter
