@@ -29,6 +29,7 @@ type
     TExecType = (exNormal,exNoSwap,exDosShell);
 
     TIDEApp = object(TApplication)
+      IsRunning : boolean;
       constructor Init;
       procedure   InitDesktop; virtual;
       procedure   InitMenuBar; virtual;
@@ -257,6 +258,7 @@ begin
   inherited Init;
   InitAdvMsgBox;
   InsideDone:=false;
+  IsRunning:=true;
   MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
   New(ClockView, Init(R));
   ClockView^.GrowMode:=gfGrowLoX+gfGrowHiX;
@@ -391,14 +393,8 @@ begin
       NewLine(
       NewItem(menu_tools_grep,menu_key_tools_grep, kbShiftF2, cmGrep, hcGrep,
       NewItem(menu_tools_calculator, '', kbNoKey, cmCalculator, hcCalculator,
-{$ifndef FVISION}
       NewItem(menu_tools_asciitable, '', kbNoKey, cmAsciiTable, hcAsciiTable,
-{$endif}
-      nil))))))
-{$ifndef FVISION}
-      )
-{$endif}
-      ),
+      nil)))))))),
     NewSubMenu(menu_options, hcOptionsMenu, NewMenu(
       NewItem(menu_options_mode,'', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem(menu_options_compiler,'', kbNoKey, cmCompiler, hcCompiler,
@@ -1185,6 +1181,7 @@ end;
 destructor TIDEApp.Done;
 begin
   InsideDone:=true;
+  IsRunning:=false;
   inherited Done;
   RemoveBrowsersCollection;
   DoneHelpSystem;
@@ -1193,7 +1190,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2002-04-25 13:34:17  pierre
+  Revision 1.12  2002-05-29 22:38:13  pierre
+   Asciitab now in fvision
+
+  Revision 1.11  2002/04/25 13:34:17  pierre
    * fix the disappearing desktop for win32
 
   Revision 1.10  2002/04/12 08:58:22  pierre

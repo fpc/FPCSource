@@ -24,7 +24,6 @@ end;
 
 procedure TIDEApp.DoAsciiTable;
 begin
-{$ifndef FVISION}
   if ASCIIChart=nil then
     begin
       New(ASCIIChart, Init);
@@ -32,7 +31,6 @@ begin
     end
   else
     ASCIIChart^.Focus;
-{$endif FVISION}
 end;
 
 
@@ -354,7 +352,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-08-05 12:23:00  peter
+  Revision 1.3  2002-05-29 22:38:13  pierre
+   Asciitab now in fvision
+
+  Revision 1.2  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.1  2001/08/04 11:30:23  peter

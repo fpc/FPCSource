@@ -27,9 +27,7 @@ uses
   Commands,HelpCtx,
 {$endif FVISION}
   Views,Menus,Dialogs,App,Gadgets,
-{$ifndef FVISION}
   ASCIITAB,
-{$endif FVISION}
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
   Comphook,
@@ -392,7 +390,6 @@ type
       TitleST : PStaticText;
     end;
 
-{$ifndef FVISION}
     PFPASCIIChart = ^TFPASCIIChart;
     TFPASCIIChart = object(TASCIIChart)
       constructor Init;
@@ -401,7 +398,6 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       destructor  Done; virtual;
     end;
-{$endif FVISION}
 
     PVideoModeListBox = ^TVideoModeListBox;
     TVideoModeListBox = object(TDropDownListBox)
@@ -478,6 +474,7 @@ function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
 
 {$ifdef VESA}
 procedure InitVESAScreenModes;
+procedure DoneVESAScreenModes;
 {$endif}
 
 procedure NoDebugger;
@@ -577,14 +574,12 @@ const
      Load:    @TGDBWindow.Load;
      Store:   @TGDBWindow.Store
   );
-{$ifndef FVISION}
   RFPASCIIChart: TStreamRec = (
      ObjType: 1509;
      VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
      Load:    @TFPASCIIChart.Load;
      Store:   @TFPASCIIChart.Store
   );
-{$endif FVISION}
   RProgramInfoWindow: TStreamRec = (
      ObjType: 1510;
      VmtLink: Ofs(TypeOf(TProgramInfoWindow)^);
@@ -977,7 +972,7 @@ begin
       S:=UpcaseStr(S);
       _Is:=AsmReservedWords[Idx]^.Search(@S,Item);
 {$ifdef i386}
-      if not _Is then
+      if not _Is and (Length(S)>1) then
         begin
           LastC:=S[Length(S)];
           if LastC in ['B','D','L','Q','S','T','V','W'] then
@@ -986,7 +981,7 @@ begin
               Dec(Idx);
               if (AsmReservedWords[Idx]<>nil) and (AsmReservedWords[Idx]^.Count<>0) then
                 _Is:=AsmReservedWords[Idx]^.Search(@S,Item);
-              if not _Is then
+              if not _Is and (Length(S)>1) then
                 begin
                   LastTwo:=S[Length(S)]+LastC;
                   if (LastTwo='BL') or
@@ -3880,7 +3875,6 @@ begin
   inherited HandleEvent(Event);
 end;
 
-{$ifndef FVISION}
 constructor TFPASCIIChart.Init;
 begin
   inherited Init;
@@ -3933,7 +3927,6 @@ begin
   ASCIIChart:=nil;
   inherited Done;
 end;
-{$endif FVISION}
 
 function TVideoModeListBox.GetText(Item: pointer; MaxLen: sw_integer): string;
 var P: PVideoMode;
@@ -4180,6 +4173,11 @@ begin
           RegisterVesaVideoMode(ML.Modes[I]);
     end;
 end;
+
+procedure DoneVESAScreenModes;
+begin
+  FreeVesaModes;
+end;
 {$endif}
 
 procedure NoDebugger;
@@ -4209,7 +4207,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2002-05-24 21:15:31  pierre
+  Revision 1.17  2002-05-29 22:38:13  pierre
+   Asciitab now in fvision
+
+  Revision 1.16  2002/05/24 21:15:31  pierre
    * add FV suffix in About dialog if using FVision library
 
   Revision 1.15  2002/04/17 11:10:13  pierre

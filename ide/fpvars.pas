@@ -80,9 +80,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
-{$ifndef FVISION}
       ASCIIChart       : PFPASCIIChart = nil;
-{$endif FVISION}
       BackgroundPath   : string{$ifdef GABOR}[60]{$endif} = BackgroundName;
       DesktopPath      : string{$ifdef GABOR}[60]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
@@ -114,7 +112,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 12:23:01  peter
+  Revision 1.3  2002-05-29 22:33:23  pierre
+   Asciitab now in fvision
+
+  Revision 1.2  2001/08/05 12:23:01  peter
     * Automatically support for fvision or old fv
 
   Revision 1.1  2001/08/04 11:30:24  peter
