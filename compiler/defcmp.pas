@@ -395,8 +395,12 @@ implementation
                        eq:=te_equal
                      else
                        begin
-                         doconv:=tc_real_2_real;
-                         eq:=te_convert_l1;
+                         if not(explicit) or
+                           not(m_delphi in aktmodeswitches) then
+                           begin
+                             doconv:=tc_real_2_real;
+                             eq:=te_convert_l1;
+                           end;
                        end;
                    end;
                end;
@@ -1217,7 +1221,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-10-14 12:23:06  florian
+  Revision 1.34  2003-10-26 14:11:35  florian
+    * fixed web bug 2129: explicit float casts in Delphi mode must be handled by the default code
+
+  Revision 1.33  2003/10/14 12:23:06  florian
     * fixed 2729: overloading problem with methodvars and procvars
 
   Revision 1.32  2003/10/10 17:48:13  peter
