@@ -2,9 +2,9 @@
    $Id$
 
    Imlib library
- 
+
    Copyright (C) 1998 By The Rasterman (Carsten Haitzler)
- 
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
@@ -31,7 +31,11 @@ interface
 Uses X, Xlib, XUtil;
 
 const
- Imlibdll='Imlib';
+{$ifndef os2}
+  Imlibdll='Imlib';
+{$else}
+  Imlibdll='Imlib195';
+{$endif}
 
 Type
    PImlibBorder = ^TImlibBorder;
@@ -235,12 +239,12 @@ procedure Imlib_get_image_blue_curve(id:PImlibData; image:PImlibImage; mods:Pbyt
 procedure Imlib_apply_modifiers_to_rgb(id:PImlibData; image:PImlibImage);cdecl;external imlibdll name 'Imlib_apply_modifiers_to_rgb';
 procedure Imlib_changed_image(id:PImlibData; image:PImlibImage);cdecl;external imlibdll name 'Imlib_changed_image';
 procedure Imlib_apply_image(id:PImlibData; image:PImlibImage; p:TWindow);cdecl;external imlibdll name 'Imlib_apply_image';
-procedure Imlib_paste_image(id:PImlibData; image:PImlibImage; p:TWindow; x:longint; y:longint; 
+procedure Imlib_paste_image(id:PImlibData; image:PImlibImage; p:TWindow; x:longint; y:longint;
             w:longint; h:longint);cdecl;external imlibdll name 'Imlib_paste_image';
-procedure Imlib_paste_image_border(id:PImlibData; image:PImlibImage; p:TWindow; x:longint; y:longint; 
+procedure Imlib_paste_image_border(id:PImlibData; image:PImlibImage; p:TWindow; x:longint; y:longint;
             w:longint; h:longint);cdecl;external imlibdll name 'Imlib_paste_image_border';
 procedure Imlib_bevel_image(id:PImlibData; image:PImlibImage; bord:PImlibBorder; up:byte);cdecl;external imlibdll name 'Imlib_bevel_image';
-procedure Imlib_bevel_pixmap(id:PImlibData; p:TPixmap; w:longint; h:longint; bord:PImlibBorder; 
+procedure Imlib_bevel_pixmap(id:PImlibData; p:TPixmap; w:longint; h:longint; bord:PImlibBorder;
             up:byte);cdecl;external imlibdll name 'Imlib_bevel_pixmap';
 procedure Imlib_flip_image_horizontal(id:PImlibData; image:PImlibImage);cdecl;external imlibdll name 'Imlib_flip_image_horizontal';
 procedure Imlib_flip_image_vertical(id:PImlibData; image:PImlibImage);cdecl;external imlibdll name 'Imlib_flip_image_vertical';
@@ -255,12 +259,12 @@ function Imlib_get_colormap(id:PImlibData):TColormap;cdecl;external imlibdll nam
 function Imlib_get_sysconfig(id:PImlibData):Pchar;cdecl;external imlibdll name 'Imlib_get_sysconfig';
 function Imlib_create_image_from_xpm_data(id:PImlibData; data:PPchar):PImlibImage;cdecl;external imlibdll name 'Imlib_create_image_from_xpm_data';
 function Imlib_data_to_pixmap(id:PImlibData; data:PPchar; pmap:PPixmap; mask:PPixmap):longint;cdecl;external imlibdll name 'Imlib_data_to_pixmap';
-procedure Imlib_crop_image(id:PImlibData; image:PImlibImage; x:longint; y:longint; w:longint; 
+procedure Imlib_crop_image(id:PImlibData; image:PImlibImage; x:longint; y:longint; w:longint;
             h:longint);cdecl;external imlibdll name 'Imlib_crop_image';
 function Imlib_save_image(id:PImlibData; image:PImlibImage; thefile:Pchar; info:PImlibSaveInfo):longint;cdecl;external imlibdll name 'Imlib_save_image';
-function Imlib_crop_and_clone_image(id:PImlibData; image:PImlibImage; x:longint; y:longint; w:longint; 
+function Imlib_crop_and_clone_image(id:PImlibData; image:PImlibImage; x:longint; y:longint; w:longint;
            h:longint):PImlibImage;cdecl;external imlibdll name 'Imlib_crop_and_clone_image';
-function Imlib_create_image_from_drawable(id:PImlibData; win:TDrawable; mask:TPixmap; x:longint; y:longint; 
+function Imlib_create_image_from_drawable(id:PImlibData; win:TDrawable; mask:TPixmap; x:longint; y:longint;
            width:longint; height:longint):PImlibImage;cdecl;external imlibdll name 'Imlib_create_image_from_drawable';
 function Imlib_inlined_png_to_image(id:PImlibData; data:Pbyte; data_size:longint):PImlibImage;cdecl;external imlibdll name 'Imlib_inlined_png_to_image';
 

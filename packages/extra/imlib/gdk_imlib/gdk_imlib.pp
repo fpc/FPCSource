@@ -2,9 +2,9 @@
    $Id$
 
    gdk_imlib library
- 
+
    Copyright (C) 1998 By The Rasterman (Carsten Haitzler)
- 
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
@@ -31,7 +31,11 @@ interface
 Uses glib, gdk, gtk;
 
 const
- gdk_imlibdll='gdk_imlib';
+{$ifndef os2}
+  gdk_imlibdll='gdk_imlib';
+{$else}
+  gdk_imlibdll='gdkimlib';
+{$endif}
 
 Type
    PGdkImlibBorder = ^TGdkImlibBorder;
@@ -185,9 +189,9 @@ procedure gdk_imlib_get_image_blue_curve(image:PGdkImlibImage; mods:Pbyte);cdecl
 procedure gdk_imlib_apply_modifiers_to_rgb(image:PGdkImlibImage);cdecl;external gdk_imlibdll name 'gdk_imlib_apply_modifiers_to_rgb';
 procedure gdk_imlib_changed_image(image:PGdkImlibImage);cdecl;external gdk_imlibdll name 'gdk_imlib_changed_image';
 procedure gdk_imlib_apply_image(image:PGdkImlibImage; p:PGdkWindow);cdecl;external gdk_imlibdll name 'gdk_imlib_apply_image';
-procedure gdk_imlib_paste_image(image:PGdkImlibImage; p:PGdkWindow; x:gint; y:gint; w:gint; 
+procedure gdk_imlib_paste_image(image:PGdkImlibImage; p:PGdkWindow; x:gint; y:gint; w:gint;
             h:gint);cdecl;external gdk_imlibdll name 'gdk_imlib_paste_image';
-procedure gdk_imlib_paste_image_border(image:PGdkImlibImage; p:PGdkWindow; x:gint; y:gint; w:gint; 
+procedure gdk_imlib_paste_image_border(image:PGdkImlibImage; p:PGdkWindow; x:gint; y:gint; w:gint;
             h:gint);cdecl;external gdk_imlibdll name 'gdk_imlib_paste_image_border';
 procedure gdk_imlib_flip_image_horizontal(image:PGdkImlibImage);cdecl;external gdk_imlibdll name 'gdk_imlib_flip_image_horizontal';
 procedure gdk_imlib_flip_image_vertical(image:PGdkImlibImage);cdecl;external gdk_imlibdll name 'gdk_imlib_flip_image_vertical';
@@ -205,7 +209,7 @@ function gdk_imlib_data_to_pixmap(data:PPchar; pmap:PPGdkPixmap; mask:PPGdkBitma
 procedure gdk_imlib_crop_image(image:PGdkImlibImage; x:gint; y:gint; w:gint; h:gint);cdecl;external gdk_imlibdll name 'gdk_imlib_crop_image';
 function gdk_imlib_save_image(image:PGdkImlibImage; afile:Pchar; info:PGdkImlibSaveInfo):gint;cdecl;external gdk_imlibdll name 'gdk_imlib_save_image';
 function gdk_imlib_crop_and_clone_image(image:PGdkImlibImage; x:longint; y:longint; w:longint; h:longint):PGdkImlibImage;cdecl;external gdk_imlibdll name 'gdk_imlib_crop_and_clone_image';
-function gdk_imlib_create_image_from_drawable(gwin:PGdkWindow; gmask:PGdkBitmap; x:longint; y:longint; width:longint; 
+function gdk_imlib_create_image_from_drawable(gwin:PGdkWindow; gmask:PGdkBitmap; x:longint; y:longint; width:longint;
            height:longint):PGdkImlibImage;cdecl;external gdk_imlibdll name 'gdk_imlib_create_image_from_drawable';
 function gdk_imlib_inlined_png_to_image(data:Pbyte; data_size:longint):PGdkImlibImage;cdecl;external gdk_imlibdll name 'gdk_imlib_inlined_png_to_image';
 procedure gdk_imlib_get_cache_info(cache_pixmaps:Plongint; cache_images:Plongint);cdecl;external gdk_imlibdll name 'gdk_imlib_get_cache_info';
