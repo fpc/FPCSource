@@ -526,7 +526,7 @@ endif
 
 # Smartlinking
 ifeq ($(SMARTLINK),YES)
-override PPOPT+=-Cx
+override PPOPT+=-CX
 endif
 
 # Add defines from PPOPTDEF to PPOPT
@@ -1052,7 +1052,10 @@ endif
 
 #
 # $Log$
-# Revision 1.46  1999-08-30 12:07:43  pierre
+# Revision 1.47  1999-09-27 08:08:15  peter
+#   * fixed smartlinking switch
+#
+# Revision 1.46  1999/08/30 12:07:43  pierre
 #  * use unitdir only if existing and non empty
 #
 # Revision 1.45  1999/08/19 06:50:25  michael
