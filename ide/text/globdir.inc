@@ -68,8 +68,9 @@
   {$define NODEBUG}
 {$endif}
 
+{ include Undo/Redo code from Visa Harvey }
+{ let everybody try it out  PM }
+{$define Undo}
 {$ifdef DEBUG}
-  { include Undo/Redo code from Visa Harvey }
-  {$define Undo}
   {$define DebugUndo}
 {$endif DEBUG}
