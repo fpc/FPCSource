@@ -218,7 +218,7 @@ implementation
     function laststatement(block:tblocknode):tstatementnode;
       begin
         result:=tstatementnode(block.left);
-        while assigned(result) do
+        while assigned(result) and assigned(result.right) do
           result:=tstatementnode(result.right);
       end;
 
@@ -1026,7 +1026,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-12-03 16:04:47  peter
+  Revision 1.93  2005-01-31 16:15:17  peter
+    * fix laststatement()
+
+  Revision 1.92  2004/12/03 16:04:47  peter
     * use tlocation for tempnodes
 
   Revision 1.91  2004/11/28 19:16:53  jonas
