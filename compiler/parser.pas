@@ -275,6 +275,8 @@ implementation
          oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : tmodule;
+         oldaktexceptblock  : integer;
+         oldstatement_level : integer;
          prev_name          : pstring;
 {$ifdef USEEXCEPT}
 {$ifndef Delphi}
@@ -347,6 +349,8 @@ implementation
          oldaktinterfacetype:=aktinterfacetype;
          oldaktfilepos:=aktfilepos;
          oldaktmodeswitches:=aktmodeswitches;
+         oldstatement_level:=statement_level;
+         oldaktexceptblock:=aktexceptblock;
 {$ifdef newcg}
          oldcg:=cg;
 {$endif newcg}
@@ -365,6 +369,8 @@ implementation
          aktprocsym:=nil;
          procprefix:='';
          registerdef:=true;
+         statement_level:=0;
+         aktexceptblock:=0;
          aktmaxfpuregisters:=-1;
          fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
        { reset the unit or create a new program }
@@ -543,6 +549,8 @@ implementation
               aktinterfacetype:=oldaktinterfacetype;
               aktfilepos:=oldaktfilepos;
               aktmodeswitches:=oldaktmodeswitches;
+              statement_level:=oldstatement_level;
+              aktexceptblock:=oldaktexceptblock;
            end;
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
@@ -612,7 +620,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 18:08:37  peter
+  Revision 1.16  2001-04-15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.15  2001/04/13 18:08:37  peter
     * scanner object to class
 
   Revision 1.14  2001/04/13 01:22:10  peter

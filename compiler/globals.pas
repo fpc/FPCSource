@@ -138,15 +138,15 @@ interface
        block_type : tblock_type;
 
        in_args : boolean;                { arguments must be checked especially }
-       parsing_para_level : longint;     { parameter level, used to convert
-                                             proc calls to proc loads in firstcalln }
-       { Must_be_valid : boolean;           should the variable already have a value
-        obsolete replace by set_varstate function }
+       parsing_para_level : integer;     { parameter level, used to convert
+                                           proc calls to proc loads in firstcalln }
        compile_level : word;
        make_ref : boolean;
        resolving_forward : boolean;      { used to add forward reference as second ref }
        use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
        inlining_procedure : boolean;     { are we inlining a procedure }
+       statement_level : integer;
+       aktexceptblock : integer;         { each except block gets a number check gotos }
 
      { commandline values }
        initdefines        : tstringlist;
@@ -1312,7 +1312,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-04-13 01:22:07  peter
+  Revision 1.31  2001-04-15 09:48:29  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.30  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

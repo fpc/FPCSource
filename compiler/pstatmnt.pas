@@ -78,9 +78,6 @@ implementation
        ;
 
 
-    const
-      statement_level : longint = 0;
-
     function statement : tnode;forward;
 
 
@@ -525,6 +522,7 @@ implementation
          { read statements to try }
          consume(_TRY);
          first:=nil;
+         inc(aktexceptblock);
          inc(statement_level);
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
@@ -547,6 +545,7 @@ implementation
 
          if try_to_consume(_FINALLY) then
            begin
+              inc(aktexceptblock);
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
               dec(statement_level);
@@ -556,6 +555,7 @@ implementation
               consume(_EXCEPT);
               old_block_type:=block_type;
               block_type:=bt_except;
+              inc(aktexceptblock);
               ot:=generrortype;
               p_specific:=nil;
               if (idtoken=_ON) then
@@ -1076,6 +1076,8 @@ implementation
                  { the pointer to the following instruction }
                  { isn't a very clean way                   }
                  tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                 { be sure to have left also resulttypepass }
+                 resulttypepass(tlabelnode(p).left);
                end;
 
               if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln]) then
@@ -1215,7 +1217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-04-14 14:07:11  peter
+  Revision 1.26  2001-04-15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.25  2001/04/14 14:07:11  peter
     * moved more code from pass_1 to det_resulttype
 
   Revision 1.24  2001/04/13 01:22:13  peter

@@ -236,7 +236,6 @@ implementation
          { clear register count }
          clearregistercount;
          use_esp_stackframe:=false;
-         aktexceptblock:=nil;
          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
          if not(do_firstpass(p)) then
@@ -304,7 +303,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:10  peter
+  Revision 1.15  2001-04-15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.14  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

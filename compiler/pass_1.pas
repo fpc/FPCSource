@@ -39,9 +39,6 @@ interface
     procedure firstpass(var p : tnode);
     function  do_firstpass(var p : tnode) : boolean;
 
-    var
-       { the block node of the current exception block to check gotos }
-       aktexceptblock : tnode;
 
 implementation
 
@@ -104,7 +101,6 @@ implementation
 
     function do_resulttypepass(var p : tnode) : boolean;
       begin
-         aktexceptblock:=nil;
          codegenerror:=false;
          resulttypepass(p);
          do_resulttypepass:=codegenerror;
@@ -171,7 +167,6 @@ implementation
 
     function do_firstpass(var p : tnode) : boolean;
       begin
-         aktexceptblock:=nil;
          codegenerror:=false;
          firstpass(p);
          do_firstpass:=codegenerror;
@@ -180,7 +175,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:10  peter
+  Revision 1.14  2001-04-15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.13  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

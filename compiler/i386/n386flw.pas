@@ -773,9 +773,6 @@ do_jmp:
          oldaktexit2label,
          oldaktcontinuelabel,
          oldaktbreaklabel : tasmlabel;
-         oldexceptblock : tnode;
-
-
          oldflowcontrol,tryflowcontrol,
          exceptflowcontrol : tflowcontrol;
          tempbuf,tempaddr : treference;
@@ -843,12 +840,9 @@ do_jmp:
             aktbreaklabel:=breaktrylabel;
           end;
 
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=left;
          flowcontrol:=[];
          secondpass(left);
          tryflowcontrol:=flowcontrol;
-         aktexceptblock:=oldexceptblock;
          if codegenerror then
            goto errorexit;
 
@@ -878,12 +872,7 @@ do_jmp:
          flowcontrol:=[];
          { on statements }
          if assigned(right) then
-           begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
-              secondpass(right);
-              aktexceptblock:=oldexceptblock;
-           end;
+           secondpass(right);
 
          emitlab(lastonlabel);
          { default handling except handling }
@@ -918,13 +907,10 @@ do_jmp:
               exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               emitjmp(C_NE,doobjectdestroyandreraise);
 
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=t1;
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
               secondpass(t1);
               exceptflowcontrol:=flowcontrol;
-              aktexceptblock:=oldexceptblock;
 
               emitlab(doobjectdestroyandreraise);
               emitcall('FPC_POPADDRSTACK');
@@ -1041,7 +1027,6 @@ do_jmp:
          doobjectdestroy,
          oldaktbreaklabel : tasmlabel;
          ref : treference;
-         oldexceptblock : tnode;
          oldflowcontrol : tflowcontrol;
          tempbuf,tempaddr : treference;
 
@@ -1110,10 +1095,7 @@ do_jmp:
 
               { esi is destroyed by FPC_CATCHES }
               maybe_loadself;
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
               secondpass(right);
-              aktexceptblock:=oldexceptblock;
            end;
          getlabel(doobjectdestroy);
          emitlab(doobjectdestroyandreraise);
@@ -1200,7 +1182,6 @@ do_jmp:
          oldaktexit2label,
          oldaktcontinuelabel,
          oldaktbreaklabel : tasmlabel;
-         oldexceptblock : tnode;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
          tempbuf,tempaddr : treference;
@@ -1252,13 +1233,10 @@ do_jmp:
          { try code }
          if assigned(left) then
            begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=left;
               secondpass(left);
               tryflowcontrol:=flowcontrol;
               if codegenerror then
                 exit;
-              aktexceptblock:=oldexceptblock;
            end;
 
          emitlab(finallylabel);
@@ -1267,13 +1245,10 @@ do_jmp:
          ungetpersistanttempreference(tempbuf);
 
          { finally code }
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=right;
          flowcontrol:=[];
          secondpass(right);
          if flowcontrol<>[] then
            CGMessage(cg_e_control_flow_outside_finally);
-         aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
          { allocate eax }
@@ -1380,7 +1355,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-04-14 14:07:11  peter
+  Revision 1.12  2001-04-15 09:48:31  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.11  2001/04/14 14:07:11  peter
     * moved more code from pass_1 to det_resulttype
 
   Revision 1.10  2001/04/13 01:22:19  peter

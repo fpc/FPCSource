@@ -82,6 +82,7 @@ interface
        tgotonode = class(tnode)
           labelnr : tasmlabel;
           labsym : tlabelsym;
+          exceptionblock : integer;
           constructor create(p : tlabelsym);virtual;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
@@ -91,8 +92,8 @@ interface
 
        tlabelnode = class(tunarynode)
           labelnr : tasmlabel;
-          exceptionblock : tnode;
           labsym : tlabelsym;
+          exceptionblock : integer;
           constructor createcase(p : tasmlabel;l:tnode);virtual;
           constructor create(p : tlabelsym;l:tnode);virtual;
           function getcopy : tnode;override;
@@ -720,6 +721,10 @@ implementation
     constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
+        if statement_level>1 then
+         exceptionblock:=aktexceptblock
+        else
+         exceptionblock:=0;
         labsym:=p;
         labelnr:=p.lab;
       end;
@@ -738,7 +743,7 @@ implementation
          { check if }
          if assigned(labsym) and
             assigned(labsym.code) and
-            (aktexceptblock<>tlabelnode(labsym.code).exceptionblock) then
+            (exceptionblock<>tlabelnode(labsym.code).exceptionblock) then
            CGMessage(cg_e_goto_inout_of_exception_block);
       end;
 
@@ -750,6 +755,7 @@ implementation
         p:=tgotonode(inherited getcopy);
         p.labelnr:=labelnr;
         p.labsym:=labsym;
+        p.exceptionblock:=exceptionblock;
         result:=p;
      end;
 
@@ -767,7 +773,8 @@ implementation
     constructor tlabelnode.createcase(p : tasmlabel;l:tnode);
       begin
         inherited create(labeln,l);
-        exceptionblock:=nil;
+        { it shouldn't be possible to jump to case labels using goto }
+        exceptionblock:=-1;
         labsym:=nil;
         labelnr:=p;
       end;
@@ -776,7 +783,10 @@ implementation
     constructor tlabelnode.create(p : tlabelsym;l:tnode);
       begin
         inherited create(labeln,l);
-        exceptionblock:=nil;
+        if statement_level>1 then
+         exceptionblock:=aktexceptblock
+        else
+         exceptionblock:=0;
         labsym:=p;
         labelnr:=p.lab;
         { save the current labelnode in the labelsym }
@@ -787,8 +797,9 @@ implementation
     function tlabelnode.det_resulttype:tnode;
       begin
         result:=nil;
-        exceptionblock:=aktexceptblock;
-        resulttypepass(left);
+        { left could still be unassigned }
+        if assigned(left) then
+         resulttypepass(left);
         resulttype:=voidtype;
       end;
 
@@ -796,17 +807,20 @@ implementation
     function tlabelnode.pass_1 : tnode;
       begin
          result:=nil;
+         if assigned(left) then
+          begin
 {$ifdef newcg}
-         tg.cleartempgen;
+            tg.cleartempgen;
 {$else newcg}
-         cleartempgen;
+            cleartempgen;
 {$endif newcg}
-         firstpass(left);
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
+            firstpass(left);
+            registers32:=left.registers32;
+            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
+            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
+          end;
       end;
 
 
@@ -907,6 +921,7 @@ implementation
            end;
       end;
 
+
     function traisenode.docompare(p: tnode): boolean;
       begin
         docompare := false;
@@ -918,44 +933,26 @@ implementation
 *****************************************************************************}
 
     constructor ttryexceptnode.create(l,r,_t1 : tnode);
-
       begin
          inherited create(tryexceptn,l,r,_t1,nil);
       end;
 
 
     function ttryexceptnode.det_resulttype:tnode;
-      var
-        oldexceptblock : tnode;
       begin
          result:=nil;
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=left;
          resulttypepass(left);
-         aktexceptblock:=oldexceptblock;
          { on statements }
          if assigned(right) then
-           begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
-              resulttypepass(right);
-              aktexceptblock:=oldexceptblock;
-           end;
+           resulttypepass(right);
          { else block }
          if assigned(t1) then
-           begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=t1;
-              resulttypepass(t1);
-              aktexceptblock:=oldexceptblock;
-           end;
-        resulttype:=voidtype;
+           resulttypepass(t1);
+         resulttype:=voidtype;
       end;
 
 
     function ttryexceptnode.pass_1 : tnode;
-      var
-        oldexceptblock : tnode;
       begin
          result:=nil;
 {$ifdef newcg}
@@ -963,10 +960,7 @@ implementation
 {$else newcg}
          cleartempgen;
 {$endif newcg}
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=left;
          firstpass(left);
-         aktexceptblock:=oldexceptblock;
          { on statements }
          if assigned(right) then
            begin
@@ -975,10 +969,7 @@ implementation
 {$else newcg}
               cleartempgen;
 {$endif newcg}
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
               firstpass(right);
-              aktexceptblock:=oldexceptblock;
               registers32:=max(registers32,right.registers32);
               registersfpu:=max(registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -988,10 +979,7 @@ implementation
          { else block }
          if assigned(t1) then
            begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=t1;
               firstpass(t1);
-              aktexceptblock:=oldexceptblock;
               registers32:=max(registers32,t1.registers32);
               registersfpu:=max(registersfpu,t1.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -1012,29 +1000,19 @@ implementation
 
 
     function ttryfinallynode.det_resulttype:tnode;
-      var
-         oldexceptblock : tnode;
       begin
          result:=nil;
          resulttype:=voidtype;
 
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=left;
          resulttypepass(left);
-         aktexceptblock:=oldexceptblock;
          set_varstate(left,true);
 
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=right;
          resulttypepass(right);
-         aktexceptblock:=oldexceptblock;
          set_varstate(right,true);
       end;
 
 
     function ttryfinallynode.pass_1 : tnode;
-      var
-         oldexceptblock : tnode;
       begin
          result:=nil;
 {$ifdef newcg}
@@ -1042,22 +1020,14 @@ implementation
 {$else newcg}
          cleartempgen;
 {$endif newcg}
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=left;
          firstpass(left);
-         aktexceptblock:=oldexceptblock;
 
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
          cleartempgen;
 {$endif newcg}
-         oldexceptblock:=aktexceptblock;
-         aktexceptblock:=right;
          firstpass(right);
-         aktexceptblock:=oldexceptblock;
-         if codegenerror then
-           exit;
          left_right_max;
       end;
 
@@ -1094,8 +1064,6 @@ implementation
 
 
     function tonnode.det_resulttype:tnode;
-      var
-         oldexceptblock : tnode;
       begin
          result:=nil;
          resulttype:=voidtype;
@@ -1104,18 +1072,11 @@ implementation
          if assigned(left) then
            resulttypepass(left);
          if assigned(right) then
-           begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
-              resulttypepass(right);
-              aktexceptblock:=oldexceptblock;
-           end;
+           resulttypepass(right);
       end;
 
 
     function tonnode.pass_1 : tnode;
-      var
-         oldexceptblock : tnode;
       begin
          result:=nil;
 {$ifdef newcg}
@@ -1145,10 +1106,7 @@ implementation
 {$endif newcg}
          if assigned(right) then
            begin
-              oldexceptblock:=aktexceptblock;
-              aktexceptblock:=right;
               firstpass(right);
-              aktexceptblock:=oldexceptblock;
               registers32:=max(registers32,right.registers32);
               registersfpu:=max(registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -1210,7 +1168,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-04-14 14:07:10  peter
+  Revision 1.18  2001-04-15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.17  2001/04/14 14:07:10  peter
     * moved more code from pass_1 to det_resulttype
 
   Revision 1.16  2001/04/13 01:22:09  peter
