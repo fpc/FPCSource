@@ -198,9 +198,15 @@ uses
 {$endif NOOPT}
         {$O cgai386}
         {$O i386}
+{$IfNDef Nora386dir}
         {$O ra386dir}
+{$endif Nora386dir}
+{$IfNDef Nora386int}
         {$O ra386int}
+{$endif Nora386int}
+{$IfNDef Nora386att}
         {$O ra386att}
+{$endif Nora386att}
         {$O tgeni386}
 {$ifndef NoAg386Int}
         {$O ag386int}
@@ -399,7 +405,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1998-07-18 17:11:12  florian
+  Revision 1.22  1998-08-04 16:28:40  jonas
+  * added support for NoRa386* in the {$O ...} section
+
+  Revision 1.21  1998/07/18 17:11:12  florian
     + ansi string constants fixed
     + switch $H partial implemented
 
