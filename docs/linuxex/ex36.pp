@@ -12,16 +12,14 @@ begin
   assignpipe(pipi,pipo);
   if linuxerror<>0 then 
     Writeln('Error assigning pipes !');
-  Writeln ('Rewrite Output pipe');
-  rewrite (pipo);
-  Writeln ('Reset Input pipe ');
-  reset (pipi);
   Writeln ('Writing to pipe, and flushing.');
-  Writeln (pipo,'This is a textstring');flush(pipo);
+  Writeln (pipo,'This is a textstring');close(pipo);
   Writeln ('Reading from pipe.');
-  Readln (pipi,s);
-  Writeln ('Read from pipe : ',s);
-  close (pipo);
+  While not eof(pipi) do 
+    begin
+    Readln (pipi,s);
+    Writeln ('Read from pipe : ',s);
+    end;
   close (pipi);
   writeln ('Closed pipes.');
   writeln
