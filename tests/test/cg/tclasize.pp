@@ -95,6 +95,12 @@ begin
  Writeln('Sizeof(cb)=',basesize);
  if basesize<>expected_size_for_tbaseclass then
    Writeln('not the expected size : ',expected_size_for_tbaseclass);
+ Writeln('cb.InstanceSize=',Cb.InstanceSize);
+ if cb.InstanceSize<>expected_size_for_tbaseclass then
+   Writeln('not the expected size : ',expected_size_for_tbaseclass);
+ Writeln('Tbaseclass.InstanceSize=',Tbaseclass.InstanceSize);
+ if TBaseClass.InstanceSize<>expected_size_for_tbaseclass then
+   Writeln('not the expected size : ',expected_size_for_tbaseclass);
 
  derivedsize:=sizeof(cd);
  Writeln('Sizeof(ct)=',derivedsize);
