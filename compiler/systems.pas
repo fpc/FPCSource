@@ -899,7 +899,7 @@ implementation
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
-{$ifndef OLDASM}
+{$ifdef PECOFF}
             assem       : as_i386_pecoff;
 {$else}
             assem       : as_i386_asw;
@@ -1369,7 +1369,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  1999-05-01 13:24:44  peter
+  Revision 1.67  1999-05-01 14:18:12  peter
+    * win32 pecoff disabled because it's still not ok
+
+  Revision 1.66  1999/05/01 13:24:44  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
