@@ -382,8 +382,8 @@ end;
 
 function TLinkerBeOS.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : AnsiString;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -433,8 +433,8 @@ end;
 
 Function TLinkerBeOS.MakeSharedLibrary:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : AnsiString;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -505,7 +505,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-06-20 08:55:32  florian
+  Revision 1.11  2004-09-22 15:14:37  mazen
+  * use SysUtils unit instead of Dos Unit
+
+  Revision 1.10  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.9  2004/03/02 00:36:33  olle
