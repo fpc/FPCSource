@@ -15,6 +15,9 @@ interface
 
 implementation
 
+uses
+  windows;
+
 {$i textrec.inc}
 
 
@@ -53,7 +56,6 @@ const
    STD_OUTPUT_HANDLE = $fffffff5;
    STD_ERROR_HANDLE = $fffffff4;
 
-function GetStdHandle(nStdHandle:DWORD):longint;external 'kernel32' name 'GetStdHandle';
 
 procedure UpdateStdHandle(var t:TextRec;var stdHandle:longint;newHandle:longint);
 { Check if the stdHandle is the same as the one in the TextRec, then
@@ -69,12 +71,19 @@ begin
   longjmp(entryjmpbuf,1);
   entry:=0;
 end;
+var
+  ConsoleMode: DWORD;
+  ConsoleModeValid : boolean;
 
 initialization
+  ConsoleModeValid:=GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), @ConsoleMode);
   if setjmp(entryjmpbuf)=0 then
     begin
       cygwin_crt0(@entry);
     end;
+
+  if ConsoleModeValid then
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ConsoleMode);
 { Reinitialize std handles that can be changed }
   UpdateStdHandle(TextRec(Input),StdInputHandle,GetStdHandle(STD_INPUT_HANDLE));
   UpdateStdHandle(TextRec(Output),StdOutputHandle,GetStdHandle(STD_OUTPUT_HANDLE));
@@ -96,7 +105,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.5  2001-09-22 11:15:31  peter
+  Revision 1.6  2001-09-30 21:46:34  peter
+    * merged consolemode fix
+
+  Revision 1.5  2001/09/22 11:15:31  peter
     * merged v10 version for exit fixes
 
   Revision 1.1.2.4  2001/09/19 15:23:39  pierre
