@@ -103,11 +103,6 @@ uses
         {$i rspstab.inc}
       );
 
-      { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_G1];
-{$warning FIXME!!}
-      VOLATILE_FPUREGISTERS = [];
-
 
 {*****************************************************************************
                                 Conditions
@@ -626,7 +621,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-09-14 19:19:05  peter
+  Revision 1.51  2003-09-14 21:35:15  peter
+    * new volatile registers proc
+
+  Revision 1.50  2003/09/14 19:19:05  peter
     * updates for new ra
 
   Revision 1.49  2003/09/03 16:29:37  peter

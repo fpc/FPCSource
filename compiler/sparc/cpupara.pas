@@ -25,7 +25,7 @@ unit cpupara;
 interface
 
     uses
-      cpubase,
+      cpubase,cginfo,
       aasmtai,globtype,
       symconst,symbase,symtype,symdef,paramgr;
 
@@ -33,6 +33,8 @@ interface
       TSparcParaManager=class(TParaManager)
         function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;override;
         function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
+        function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
+        function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
@@ -48,7 +50,7 @@ implementation
 
     uses
       verbose,
-      cpuinfo,cginfo,cgbase,
+      cpuinfo,cgbase,
       defutil,rgobj;
 
     function tsparcparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
@@ -76,6 +78,18 @@ implementation
           setdef :
             push_addr_param:=(tsetdef(def).settype<>smallset);
         end;
+      end;
+
+
+    function tsparcparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[RS_G1];
+      end;
+
+
+    function tsparcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[first_fpu_supreg..last_fpu_supreg];;
       end;
 
 
@@ -271,7 +285,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-09-14 19:19:05  peter
+  Revision 1.30  2003-09-14 21:35:15  peter
+    * new volatile registers proc
+
+  Revision 1.29  2003/09/14 19:19:05  peter
     * updates for new ra
 
   Revision 1.28  2003/09/03 15:55:01  peter
