@@ -1,4 +1,6 @@
-{ Unit for handling the serial interfaces under Linux.
+{ $Id$
+
+  Unit for handling the serial interfaces under Linux.
   (c) 2000 Sebastian Guenther, sg@freepascal.org
 }
 
@@ -27,8 +29,8 @@ type
 
 
 { Open the serial device with the given device name, for example:
-    ttyS0, ttyS1... for normal serial ports
-    ttyI0, ttyI1... for ISDN emulated serial ports
+    /dev/ttyS0, /dev/ttyS1... for normal serial ports
+    /dev/ttyI0, /dev/ttyI1... for ISDN emulated serial ports
     other device names are possible; refer to your Linux documentation.
   Returns "0" if device could not be found }
 function SerOpen(const DeviceName: String): TSerialHandle;
@@ -204,3 +206,11 @@ end;
 
 
 end.
+
+
+{
+  $Log$
+  Revision 1.2  2000-07-10 07:00:20  sg
+  * Added ID and Log tags
+
+}
