@@ -2879,7 +2879,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
               exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,
-                parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size,R_EDI)));
+                parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
               { so we have to access every page first              }
@@ -2921,7 +2921,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
                    exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_IMUL,S_L,
-                     parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size,R_EDI)));
+                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
                 end
               else
 {$endif NOTARGETWIN32}
@@ -2960,7 +2960,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 op_reg(A_INC,S_L,R_ECX)));
 
               { calculate size }
-              len:=parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size;
+              len:=parraydef(pvarsym(p)^.vartype.def)^.elesize;
               opsize:=S_B;
               if (len and 3)=0 then
                begin
@@ -3855,7 +3855,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.91  2000-03-31 22:56:46  pierre
+  Revision 1.92  2000-04-01 14:18:45  peter
+    * use arraydef.elesize instead of elementtype.def.size
+
+  Revision 1.91  2000/03/31 22:56:46  pierre
     * fix the handling of value parameters in cdecl function
 
   Revision 1.90  2000/03/28 22:31:46  pierre

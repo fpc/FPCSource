@@ -377,7 +377,12 @@ implementation
             if p^.memindex then
              get_mul_size:=1
             else
-             get_mul_size:=p^.resulttype^.size;
+             begin
+               if (p^.left^.resulttype^.deftype=arraydef) then
+                get_mul_size:=parraydef(p^.left^.resulttype)^.elesize
+               else
+                get_mul_size:=p^.resulttype^.size;
+             end
           end;
 
           procedure calc_emit_mul;
@@ -942,7 +947,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2000-03-19 11:55:08  peter
+  Revision 1.74  2000-04-01 14:18:44  peter
+    * use arraydef.elesize instead of elementtype.def.size
+
+  Revision 1.73  2000/03/19 11:55:08  peter
     * fixed temp ansi handling within array constructor
 
   Revision 1.72  2000/02/18 20:53:14  pierre
