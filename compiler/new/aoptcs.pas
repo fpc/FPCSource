@@ -850,7 +850,13 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 01:14:51  peter
+  Revision 1.5  2000-02-28 17:23:58  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.4  2000/01/07 01:14:51  peter
     * updated copyright to 2000
 
   Revision 1.3  1999/08/25 12:00:10  jonas

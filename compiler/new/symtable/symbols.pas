@@ -29,19 +29,13 @@ unit symbols;
 
 interface
 
-uses    symtable,aasm,objects,cobjects,defs
-{$ifdef i386}
-        ,i386base
-{$endif}
-{$ifdef m68k}
-        ,m68k
-{$endif}
-{$ifdef alpha}
-        ,alpha
-{$endif};
+uses    symtable,aasm,objects,cobjects,defs,cpubase,tokens;
 
 {Note: It is forbidden to add the symtablt unit. A symbol should not now in
  which symtable it is.}
+
+{The tokens unit is only needed for the overloaded operators array. This
+ array can better be moved into another unit.}
 
 type    Ttypeprop=(sp_primary_typesym);
         Ttypepropset=set of Ttypeprop;
@@ -50,10 +44,13 @@ type    Ttypeprop=(sp_primary_typesym);
                    ppo_stored,ppo_published);
         Tproppropset=set of Tpropprop;
 
-        Tvarprop=(vo_regable,vo_is_C_var,vo_is_external,vo_is_dll_var,
-                  vo_is_thread_var);
+        Tvarprop=(vo_regable,vo_fpuregable,vo_is_C_var,vo_is_external,
+                  vo_is_dll_var,vo_is_thread_var);
         Tvarpropset=set of Tvarprop;
 
+        {State of a variable, if it's declared, assigned or used.}
+        Tvarstate=(vs_none,vs_declared,vs_declared_and_first_found,
+                   vs_set_but_first_not_passed,vs_assigned,vs_used);
 
         Plabelsym=^Tlabelsym;
         Tlabelsym=object(Tsym)
@@ -93,6 +90,7 @@ type    Ttypeprop=(sp_primary_typesym);
             _class:Pobjectdef;
             constructor init(const n:string;Asub_of:Pprocsym);
             constructor load(var s:Tstream);
+            function firstthat(action:pointer):Pprocdef;
             procedure foreach(action:pointer);
             procedure insert(def:Pdef);
             function mangledname:string;virtual; {Causes internalerror.}
@@ -135,7 +133,7 @@ type    Ttypeprop=(sp_primary_typesym);
 
         Pmacrosym=^Tmacrosym;
         Tmacrosym=object(Tsym)
-            defined:boolean;
+            defined,is_used:boolean;
             buftext:Pchar;
             buflen:longint;
             {Macros aren't written to PPU files !}
@@ -167,6 +165,7 @@ type    Ttypeprop=(sp_primary_typesym);
             definition:Pdef;
             refs:longint;
             properties:Tvarpropset;
+            state:Tvarstate;
             objprop:Tobjpropset;
             _mangledname:Pstring;
             reg:Tregister;  {If reg<>R_NO, then the variable is an register
@@ -259,6 +258,7 @@ type    Ttypeprop=(sp_primary_typesym);
         Tpropertysym=object(Tsym)
             properties:Tproppropset;
             definition:Pdef;
+            objprop:Tobjpropset;
             readaccesssym,writeaccesssym,storedsym:Psym;
             readaccessdef,writeaccessdef,storeddef:Pdef;
             index,default:longint;
@@ -268,12 +268,34 @@ type    Ttypeprop=(sp_primary_typesym);
             procedure deref;virtual;
         end;
 
-var current_object_option:Tobjpropset;
+const   {Last and first operators which can be overloaded.}
+        first_overloaded = _PLUS;
+        last_overloaded  = _ASSIGNMENT;
+        overloaded_names : array [first_overloaded..
+                                  last_overloaded] of string[16] =
+             ('plus','minus','star','slash',
+              'equal','greater','lower','greater_or_equal',
+              'lower_or_equal','sym_diff','starstar','as',
+              'is','in','or','and',
+              'div','mod','shl','shr',
+              'xor','assign');
+
+var current_object_option:Tobjprop;
     current_type_option:Ttypepropset;
+
+    aktprocsym:Pprocsym;    {Pointer to the symbol for the
+                             currently be parsed procedure.}
+    aktvarsym:Pvarsym;      {Pointer to the symbol for the
+                             currently read var, only used
+                             for variable directives.}
+
+    overloaded_operators:array[first_overloaded..
+                               last_overloaded] of Pprocsym;
+       { unequal is not equal}
 
 implementation
 
-uses    callspec,verbose,globals,systems,globtype;
+uses    {callspec,}verbose,globals,systems,globtype;
 
 {****************************************************************************
                                  Tlabelsym
@@ -334,6 +356,17 @@ begin
 {   definition:=Pprocdef(readdefref);}
 end;
 
+function Tprocsym.firstthat(action:pointer):Pprocdef;
+
+begin
+    firstthat:=nil;
+    if definitions<>nil then
+        if typeof(definitions^)=typeof(Tcollection) then
+            firstthat:=Pcollection(definitions)^.firstthat(action)
+        else
+            {***callpointer};
+end;
+
 procedure Tprocsym.foreach(action:pointer);
 
 begin
@@ -342,7 +375,7 @@ begin
             if typeof(definitions^)=typeof(Tcollection) then
                 Pcollection(definitions)^.foreach(action)
             else
-                callpointerlocal(action,previousframepointer,definitions);
+                {***callpointerlocal(action,previousframepointer,definitions)};
         end;
 end;
 
@@ -365,6 +398,10 @@ begin
 end;
 
 function Tprocsym.mangledname:string;
+
+{This function calls internalerror, because procsyms can be overloaded.
+ Procedures should use the foreach to check for the right overloaded procsym
+ and then call mangledname on that procsym.}
 
 begin
     internalerror($99080201);
@@ -934,36 +971,25 @@ var storefilepos:Tfileposinfo;
 
 begin
     storefilepos:=aktfilepos;
-    {Handle static variables of objects especially }
-    if read_member and (sp_static in objprop) then
-        begin
-            {The data field is generated in parser.pas
-             with a tobject_FIELDNAME variable, so we do
-             not need to do it in this procedure.}
-
-            {This symbol can't be loaded to a register.}
-            exclude(properties,vo_regable);
-        end
-    else
-        if not(read_member) then
-            pushaddress:=owner^.varsymtodata(@self,getpushsize);
-        if (varspez=vs_var) then
-            address:=0
-        else if (varspez=vs_value) then
-            if dp_pointer_param in definition^.properties then
-                begin
-                    {Allocate local space.}
-                    address:=owner^.datasize;
-                    inc(owner^.datasize,getsize);
-                end
-            else
-                address:=pushaddress
+    if not(read_member) then
+        pushaddress:=owner^.varsymtodata(@self,getpushsize);
+    if (varspez=vs_var) then
+        address:=0
+    else if (varspez=vs_value) then
+        if dp_pointer_param in definition^.properties then
+            begin
+                {Allocate local space.}
+                address:=owner^.datasize;
+                inc(owner^.datasize,getsize);
+            end
         else
-            {vs_const}
-            if dp_pointer_param in definition^.properties then
-                address:=0
-            else
-                address:=pushaddress;
+            address:=pushaddress
+    else
+        {vs_const}
+        if dp_pointer_param in definition^.properties then
+            address:=0
+        else
+            address:=pushaddress;
     aktfilepos:=storefilepos;
 end;
 

@@ -31,7 +31,7 @@ interface
 
 uses    symtable,objects,cobjects,symtablt,globtype
 {$ifdef i386}
-        ,i386base
+        ,cpubase
 {$endif}
 {$ifdef m68k}
         ,m68k
@@ -44,8 +44,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         Tvarspez=(vs_value,vs_const,vs_var);
 
-        Tobjprop=(sp_public,sp_private,sp_protected,
-                  sp_forwarddef,sp_static);
+        Tobjprop=(sp_public,sp_private,sp_protected,sp_published,sp_static);
         Tobjpropset=set of Tobjprop;
 
         Tobjoption=(oo_is_abstract,         {The object/class has
@@ -74,48 +73,59 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
                                              then a C++ compatible vmt.}
         Tobjoptionset=set of Tobjoption;
 
-        {Options for Tprocdef and Tprocvardef}
-        Tprocoption=(povirtualmethod,   {Procedure is a virtual method.}
-                     poclearstack,      {Use IBM flat calling convention.
-                                         (Used by GCC.)}
-                     poconstructor,     {Procedure is a constructor.}
-                     podestructor,      {Procedure is a destructor.}
-                     pointernproc,      {Procedure has compiler magic.}
-                     poexports,         {Procedure is exported.}
-                     poiocheck,         {IO checking should be done after
-                                         a call to the procedure.}
-                     poabstractmethod,  {Procedure is an abstract method.}
-                     pointerrupt,       {Procedure is an interrupt handler.}
-                     poinline,          {Procedure is an assembler macro.}
-                     poassembler,       {Procedure is written in assembler.}
-                     pooperator,        {Procedure defines an operator.}
-                     poexternal,        {Procedure is external (in other
-                                         object or lib)}
-                     poleftright,       {Push parameters from left to right.}
-                     poprocinit,        {Program initialization.}
-                     postaticmethod,    {Static method.}
-                     pooveridingmethod, {Method with override directive }
-                     poclassmethod,     {Class method.}
-                     pounitinit,        {Unit initialization }
-                     pomethodpointer,   {Method pointer, only in procvardef,
-                                         also used for 'with object do' }
-                     pocdecl,           {Procedure uses C styled calling }
-                     popalmossyscall,   {Procedure is a PalmOS system call }
-                     pointernconst,     {Procedure has constant evaluator
-                                         intern.}
-                     poregister,        {Procedure uses register (fastcall)
-                                         calling }
-                     pounitfinalize,    {Unit finalization }
-                     postdcall,         {Procedure uses stdcall
-                                         call.}
-                     pomsgstr,          {Method for string message
-                                         handling.}
-                     pomsgint,          {Method for int message handling.}
-                     posavestdregs,     {Save std regs cdecl and stdcall
-                                         need that !}
-                     pocontainsself,    {Self is passed explicit to the
-                                         compiler.}
-                     posafecall);       {Safe call calling conventions }
+        {Calling convention for tprocdef and Tprocvardef.}
+        Tproccalloption=(pocall_none,
+                         pocall_clearstack,     {Use IBM flat calling
+                                                 convention. (Used by GCC.)}
+                         pocall_leftright,      {Push parameters from left to
+                                                 right.}
+                         pocall_cdecl,          {Procedure uses C styled
+                                                 calling.}
+                         pocall_register,       {Procedure uses register
+                                                 (fastcall) calling.}
+                         pocall_stdcall,        {Procedure uses stdcall
+                                                 call.}
+                         pocall_safecall,       {Safe call calling
+                                                 conventions.}
+                         pocall_palmossyscall,  {Procedure is a PalmOS
+                                                 system call.}
+                         pocall_system,
+                         pocall_inline,         {Procedure is an assembler
+                                                 macro.}
+                         pocall_internproc,     {Procedure has compiler
+                                                 magic.}
+                         pocall_internconst);   {Procedure has constant
+                                                 evaluator intern.}
+        Tproccalloptionset=set of Tproccalloption;
+
+        {Basic type for tprocdef and tprocvardef }
+        Tproctypeoption=(potype_none,
+                         potype_proginit,       {Program initialization.}
+                         potype_unitinit,       {Unit initialization.}
+                         potype_unitfinalize,   {Unit finalization.}
+                         potype_constructor,    {Procedure is a constructor.}
+                         potype_destructor,     {Procedure is a destructor.}
+                         potype_operator);      {Procedure defines an
+                                                 operator.}
+
+        {Other options for Tprocdef and Tprocvardef.}
+        Tprocoption=(po_none,
+            poclassmethod,          {Class method.}
+            povirtualmethod,        {Procedure is a virtual method.}
+            poabstractmethod,       {Procedure is an abstract method.}
+            postaticmethod,         {Static method.}
+            pooverridingmethod,     {Method with override directive.}
+            pomethodpointer,        {Method pointer, only in procvardef, also used for 'with object do'.}
+            pocontainsself,         {Self is passed explicit to the compiler.}
+            pointerrupt,            {Procedure is an interrupt handler.}
+            poiocheck,              {IO checking should be done after a call to the procedure.}
+            poassembler,            {Procedure is written in assembler.}
+            pomsgstr,               {Method for string message handling.}
+            pomsgint,               {Method for int message handling.}
+            poexports,              {Procedure has export directive (needed for OS/2).}
+            poexternal,             {Procedure is external (in other object or lib).}
+            posavestdregs,          {Save std regs cdecl and stdcall need that !}
+            posaveregisters);       {Save all registers }
         Tprocoptionset=set of Tprocoption;
 
         Tarrayoption=(ap_variant,ap_constructor,ap_arrayofconst);
@@ -135,7 +145,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
         Pfiledef=^Tfiledef;
         Tfiledef=object(Tdef)
             filetype:Tfiletype;
-            typed_as:Pdef;
+            definition:Pdef;
             constructor init(Aowner:Pcontainingsymtable;
                              ft:Tfiletype;tas:Pdef);
             constructor load(var s:Tstream);
@@ -213,11 +223,11 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
              and no vmt field for objects without virtuals }
             vmt_offset:longint;
             constructor init(const n:string;Aowner:Pcontainingsymtable;
-                             parent:Pobjectdef);
+                             parent:Pobjectdef;isclass:boolean);
             constructor load(var s:Tstream);
             procedure check_forwards;
             procedure insertvmt;
-            function isrelated(d:Pobjectdef):boolean;
+            function is_related(d:Pobjectdef):boolean;
             function search(const s:string):Psym;
             function speedsearch(const s:string;
                                  speedvalue:longint):Psym;virtual;
@@ -309,8 +319,8 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
         Tbasetype=(uauto,uvoid,uchar,
                    u8bit,u16bit,u32bit,
                    s8bit,s16bit,s32bit,
-                   bool8bit,bool16bit,bool32bit { uwchar,bool1bit,bitfield},
-                   u64bit,s64bitint);
+                   bool8bit,bool16bit,bool32bit,
+                   s64bit,u64bit,s64bitint,uwidechar);
 
         Porddef=^Torddef;
         Torddef=object(Tdef)
@@ -367,7 +377,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         Psetdef=^Tsetdef;
         Tsetdef=object(Tdef)
-            setof:Pdef;
+            definition:Pdef;
             settype:Tsettype;
             constructor init(s:Pdef;high:longint;Aowner:Pcontainingsymtable);
             constructor load(var s:Tstream);
@@ -403,12 +413,49 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
             destructor done;virtual;
         end;
 
+        {String types}
+        Tstringtype=(st_default,st_shortstring,st_longstring,
+                     st_ansistring,st_widestring);
+
+        {This object needs to be splitted into multiple objects,
+         one for each stringtype. This is because all code in this
+         object is different for all string types.}
+        Pstringdef=^Tstringdef;
+        Tstringdef=object(Tdef)
+            string_typ:Tstringtype;
+            len:longint;
+            constructor shortinit(l:byte;Aowner:Pcontainingsymtable);
+            constructor shortload(var s:Tstream);
+            constructor longinit(l:longint;Aowner:Pcontainingsymtable);
+            constructor longload(var s:Tstream);
+            constructor ansiinit(l:longint;Aowner:Pcontainingsymtable);
+            constructor ansiload(var s:Tstream);
+            constructor wideinit(l:longint;Aowner:Pcontainingsymtable);
+            constructor wideload(var s:Tstream);
+            function  stringtypname:string;
+            function  size:longint;virtual;
+            procedure store(var s:Tstream);virtual;
+            function  gettypename:string;virtual;
+            function  is_publishable : boolean;virtual;
+            { debug }
+        {$ifdef GDB}
+            function  stabstring:Pchar;virtual;
+            procedure concatstabto(asmlist : Paasmoutput);virtual;
+        {$endif GDB}
+            { init/final }
+            function  needs_inittable : boolean;virtual;
+            { rtti }
+            procedure write_rtti_data;virtual;
+        end;
+
         Pabstractprocdef=^Pabstractprocdef;
         Tabstractprocdef=object(Tdef)
             {Saves a definition to the return type }
             retdef:Pdef;
             fpu_used:byte;              {How many stack fpu must be empty.}
+            proctype:Tproctypeoption;
             options:Tprocoptionset;     {Save the procedure options.}
+            calloptions:Tproccalloptionset;
             parameters:Pcollection;
             constructor init(Aowner:Pcontainingsymtable);
             constructor load(var s:Tstream);
@@ -424,7 +471,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
  {$endif GDB}
         end;
 
-        Pprocvardef=^Pprocvardef;
+        Pprocvardef=^Tprocvardef;
         Tprocvardef=object(Tabstractprocdef)
             function size:longint;virtual;
  {$ifdef GDB}
@@ -464,27 +511,74 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
            constructor init(Aowner:Pcontainingsymtable);
            constructor load(var s:Tstream);
            procedure store(var s:Tstream);virtual;
- {$ifdef GDB}
+{$ifdef GDB}
            function cplusplusmangledname : string;
            function stabstring : pchar;virtual;
            procedure concatstabto(asmlist : paasmoutput);virtual;
- {$endif GDB}
+{$endif GDB}
            procedure deref;virtual;
            function mangledname:string;
            procedure setmangledname(const s:string);
            procedure load_references;
-           function  write_references : boolean;
+           function  write_references:boolean;
            destructor done;virtual;
         end;
 
-var     cformaldef:Pformaldef;  {Unique formal definition.}
-        voiddef:Porddef;        {Pointer to void (procedure) type      }
-        cchardef:Porddef;       {Pointer to char type.}
-        booldef:Porddef;        {Pointer to boolean type.}
-        u8bitdef:Porddef;       {Pointer to 8-bit unsigned type.}
-        u16bitdef:Porddef;      {Pointer to 16-bit unsigned type.}
-        u32bitdef:Porddef;      {Pointer to 32-bit unsigned type.}
-        s32bitdef:Porddef;      {Pointer to 32-bit signed type.}
+        Pforwarddef=^Tforwarddef;
+        Tforwarddef=object(Tdef)
+           tosymname:string;
+           forwardpos:Tfileposinfo;
+           constructor init(Aowner:Pcontainingsymtable;
+                            const s:string;const pos:Tfileposinfo);
+           function gettypename:string;virtual;
+        end;
+
+        {Relevant options for assigning a proc or a procvar to a procvar.}
+const   po_compatibility_options=[
+          poclassmethod,
+          postaticmethod,
+          pomethodpointer,
+          pocontainsself,
+          pointerrupt,
+          poiocheck,
+          poexports
+        ];
+
+var     cformaldef:Pformaldef;      {Unique formal definition.}
+        voiddef:Porddef;            {Pointer to void (procedure) type.}
+        cchardef:Porddef;           {Pointer to char type.}
+        booldef:Porddef;            {Pointer to boolean type.}
+        u8bitdef:Porddef;           {Pointer to 8-bit unsigned type.}
+        u16bitdef:Porddef;          {Pointer to 16-bit unsigned type.}
+        u32bitdef:Porddef;          {Pointer to 32-bit unsigned type.}
+        s32bitdef:Porddef;          {Pointer to 32-bit signed type.}
+        cu64bitdef:Porddef;         {Pointer to 64 bit unsigned def.}
+        cs64bitdef:Porddef;         {Pointer to 64 bit signed def.}
+
+        voidpointerdef,             {Pointer for Void-Pointerdef.}
+        charpointerdef,             {Pointer for Char-Pointerdef.}
+        voidfarpointerdef:ppointerdef;
+
+
+        s32floatdef : pfloatdef;    {Pointer for realconstn.}
+        s64floatdef : pfloatdef;    {Pointer for realconstn.}
+        s80floatdef : pfloatdef;    {Pointer to type of temp. floats.}
+        s32fixeddef : pfloatdef;    {Pointer to type of temp. fixed.}
+
+        cshortstringdef,            {Pointer to type of short string const.}
+        openshortstringdef,         {Pointer to type of an openshortstring,
+                                     needed for readln().}
+        clongstringdef,             {Pointer to type of long string const.}
+        cansistringdef,             {Pointer to type of ansi string const.}
+        cwidestringdef:Pstringdef;  {Pointer to type of wide string const.}
+        openchararraydef:Parraydef; {Pointer to type of an open array of
+                                     char, needed for readln().}
+
+        cfiledef:Pfiledef;          {Get the same definition for all files
+                                     used for stabs.}
+
+        generrordef:Pdef;           {Jokersymbol for eine fehlerhafte
+                                     typdefinition.}
 
 implementation
 
@@ -538,7 +632,7 @@ constructor Tfiledef.init(Aowner:Pcontainingsymtable;ft:Tfiletype;tas:Pdef);
 begin
     inherited init(Aowner);
     filetype:=ft;
-    typed_as:=tas;
+    definition:=tas;
     setsize;
 end;
 
@@ -593,7 +687,7 @@ begin
         ft_untyped:
             gettypename:='File';
         ft_typed:
-            gettypename:='File Of '+typed_as^.typename;
+            gettypename:='File Of '+definition^.typename;
         ft_text:
             gettypename:='Text'
     end;
@@ -652,6 +746,7 @@ constructor Tabstractpointerdef.init(Aowner:Pcontainingsymtable;def:Pdef);
 
 begin
     inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
     definition:=def;
     savesize:=target_os.size_of_pointer;
 end;
@@ -728,7 +823,7 @@ end;
 ***************************************************************************}
 
 constructor Tobjectdef.init(const n:string;Aowner:Pcontainingsymtable;
-                            parent:Pobjectdef);
+                            parent:Pobjectdef;isclass:boolean);
 
 begin
     inherited init(Aowner);
@@ -737,6 +832,11 @@ begin
     publicsyms^.defowner:=@self;
     set_parent(parent);
     objname:=stringdup(n);
+    if isclass then
+        begin
+            include(properties,dp_ret_in_acc);
+            include(options,oo_is_class);
+        end;
 end;
 
 
@@ -823,7 +923,7 @@ begin
         begin
             {First round up to aktpakrecords.}
             publicsyms^.datasize:=align(publicsyms^.datasize,
-             aktpackrecords);
+             packrecordalignment[aktpackrecords]);
             vmt_offset:=publicsyms^.datasize;
             publicsyms^.datasize:=publicsyms^.datasize+
              target_os.size_of_pointer;
@@ -844,18 +944,18 @@ begin
 end;
 
 { true, if self inherits from d (or if they are equal) }
-function Tobjectdef.isrelated(d:Pobjectdef):boolean;
+function Tobjectdef.is_related(d:Pobjectdef):boolean;
 
 var hp:Pobjectdef;
 
 begin
     hp:=@self;
-    isrelated:=false;
+    is_related:=false;
     while assigned(hp) do
         begin
             if hp=d then
                 begin
-                    isrelated:=true;
+                    is_related:=true;
                     break;
                 end;
             hp:=hp^.childof;
@@ -1225,7 +1325,7 @@ end;
 function Tarraydef.getrangecheckstring:string;
 
 begin
-    if (cs_smartlink in aktmoduleswitches) then
+    if (cs_create_smart in aktmoduleswitches) then
         getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
     else
         getrangecheckstring:='R_'+tostr(rangenr);
@@ -1239,12 +1339,12 @@ begin
         begin
             {Generates the data for range checking }
             getlabelnr(rangenr);
-            if (cs_smartlink in aktmoduleswitches) then
+            if (cs_create_smart in aktmoduleswitches) then
                 datasegment^.concat(new(pai_symbol,
-                 initname_global(getrangecheckstring)))
+                 initname_global(getrangecheckstring,10)))
             else
                 datasegment^.concat(new(pai_symbol,
-                 initname(getrangecheckstring)));
+                 initname(getrangecheckstring,10)));
             datasegment^.concat(new(Pai_const,
              init_8bit(byte(lowrange.signed))));
             datasegment^.concat(new(Pai_const,
@@ -1388,6 +1488,7 @@ constructor Tenumdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
     new(symbols,init(8,8));
     calcsavesize;
 end;
@@ -1465,7 +1566,7 @@ end;
 
 function tenumdef.getrangecheckstring : string;
 begin
-   if (cs_smartlink in aktmoduleswitches) then
+   if (cs_create_smart in aktmoduleswitches) then
      getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
    else
      getrangecheckstring:='R_'+tostr(rangenr);
@@ -1478,10 +1579,12 @@ begin
      begin
         { generate two constant for bounds }
         getlabelnr(rangenr);
-        if (cs_smartlink in aktmoduleswitches) then
-          datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
+        if (cs_create_smart in aktmoduleswitches) then
+          datasegment^.concat(new(Pai_symbol,
+                              initname_global(getrangecheckstring,8)))
         else
-          datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
+          datasegment^.concat(new(Pai_symbol,
+                              initname(getrangecheckstring,8)));
         datasegment^.concat(new(pai_const,init_32bit(minval)));
         datasegment^.concat(new(pai_const,init_32bit(maxval)));
      end;
@@ -1561,6 +1664,7 @@ constructor Torddef.init(t:Tbasetype;l,h:Tconstant;
 
 begin
     inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
     low:=l;
     high:=h;
     typ:=t;
@@ -1618,7 +1722,7 @@ end;
 function Torddef.getrangecheckstring:string;
 
 begin
-    if (cs_smartlink in aktmoduleswitches) then
+    if (cs_create_smart in aktmoduleswitches) then
         getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
     else
         getrangecheckstring:='R_'+tostr(rangenr);
@@ -1631,12 +1735,12 @@ begin
         begin
             {Generate two constant for bounds.}
             getlabelnr(rangenr);
-            if (cs_smartlink in aktmoduleswitches) then
+            if (cs_create_smart in aktmoduleswitches) then
               datasegment^.concat(new(Pai_symbol,
-               initname_global(getrangecheckstring)))
+               initname_global(getrangecheckstring,10)))
             else
               datasegment^.concat(new(Pai_symbol,
-               initname(getrangecheckstring)));
+               initname(getrangecheckstring,10)));
             datasegment^.concat(new(Pai_const,init_8bit(byte(low.signed))));
             datasegment^.concat(new(Pai_const,init_32bit(low.values)));
             datasegment^.concat(new(Pai_const,init_8bit(byte(high.signed))));
@@ -1688,7 +1792,7 @@ function Torddef.gettypename:string;
 const   names:array[Tbasetype] of string[20]=('<unknown type>',
                 'untyped','char','byte','word','dword','shortInt',
                 'smallint','longInt','boolean','wordbool',
-                'longbool','qword','int64');
+                'longbool','qword','int64','card64','widechar');
 
 begin
     gettypename:=names[typ];
@@ -1702,6 +1806,8 @@ constructor Tfloatdef.init(t:Tfloattype;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    if t=f32bit then
+        include(properties,dp_ret_in_acc);
     typ:=t;
     setsize;
 end;
@@ -1786,11 +1892,12 @@ constructor Tsetdef.init(s:Pdef;high:longint;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
-    setof:=s;
+    definition:=s;
     if high<32 then
         begin
             settype:=smallset;
             savesize:=4;
+            include(properties,dp_ret_in_acc);
         end
     else if high<256 then
             begin
@@ -1851,14 +1958,14 @@ begin
     rttilist^.concat(new(pai_const,init_8bit(tkset)));
     write_rtti_name;
     rttilist^.concat(new(pai_const,init_8bit(otuLong)));
-    rttilist^.concat(new(pai_const_symbol,initname(setof^.get_rtti_label)));
+    rttilist^.concat(new(pai_const_symbol,initname(definition^.get_rtti_label)));
 end;
 
 
 procedure Tsetdef.write_child_rtti_data;
 
 begin
-    setof^.get_rtti_label;
+    definition^.get_rtti_label;
 end;
 
 
@@ -1871,7 +1978,7 @@ end;
 function Tsetdef.gettypename:string;
 
 begin
-   gettypename:='set of '+setof^.typename;
+   gettypename:='set of '+definition^.typename;
 end;
 {***************************************************************************
                                   Trecorddef
@@ -2072,6 +2179,234 @@ begin
 end;
 
 {***************************************************************************
+                             Tstringprocdef
+***************************************************************************}
+
+constructor Tstringdef.shortinit(l:byte;Aowner:Pcontainingsymtable);
+
+begin
+    inherited init(Aowner);
+    string_typ:=st_shortstring;
+    len:=l;
+    savesize:=len+1;
+end;
+
+
+constructor Tstringdef.shortload(var s:Tstream);
+
+begin
+    inherited load(s);
+    string_typ:=st_shortstring;
+{   len:=readbyte;
+    savesize:=len+1;}
+end;
+
+
+constructor Tstringdef.longinit(l:longint;Aowner:Pcontainingsymtable);
+
+begin
+    inherited init(Aowner);
+    string_typ:=st_longstring;
+    len:=l;
+    savesize:=target_os.size_of_pointer;
+end;
+
+
+constructor Tstringdef.longload(var s:Tstream);
+
+begin
+    inherited load(s);
+    string_typ:=st_longstring;
+{   len:=readlong;
+    savesize:=target_os.size_of_pointer;}
+end;
+
+
+constructor tstringdef.ansiinit(l:longint;Aowner:Pcontainingsymtable);
+
+begin
+    inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
+    string_typ:=st_ansistring;
+    len:=l;
+    savesize:=target_os.size_of_pointer;
+end;
+
+
+constructor Tstringdef.ansiload(var s:Tstream);
+
+begin
+    inherited load(s);
+    string_typ:=st_ansistring;
+{   len:=readlong;
+    savesize:=target_os.size_of_pointer;}
+end;
+
+
+constructor Tstringdef.wideinit(l:longint;Aowner:Pcontainingsymtable);
+begin
+    inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
+    string_typ:=st_widestring;
+    len:=l;
+    savesize:=target_os.size_of_pointer;
+end;
+
+
+constructor Tstringdef.wideload(var s:Tstream);
+
+begin
+    inherited load(s);
+    string_typ:=st_widestring;
+{   len:=readlong;
+    savesize:=target_os.size_of_pointer;}
+end;
+
+
+function Tstringdef.stringtypname:string;
+
+const   typname:array[tstringtype] of string[8]=
+            ('','SHORTSTR','LONGSTR','ANSISTR','WIDESTR');
+
+begin
+    stringtypname:=typname[string_typ];
+end;
+
+
+function tstringdef.size:longint;
+
+begin
+    size:=savesize;
+end;
+
+
+procedure Tstringdef.store(var s:Tstream);
+
+begin
+    inherited store(s);
+{   if string_typ=st_shortstring then
+        writebyte(len)
+    else
+        writelong(len);
+    case string_typ of
+        st_shortstring:
+            current_ppu^.writeentry(ibshortstringdef);
+        st_longstring:
+            current_ppu^.writeentry(iblongstringdef);
+        st_ansistring:
+            current_ppu^.writeentry(ibansistringdef);
+        st_widestring:
+            current_ppu^.writeentry(ibwidestringdef);
+    end;}
+end;
+
+
+{$ifdef GDB}
+function tstringdef.stabstring : pchar;
+var
+  bytest,charst,longst : string;
+begin
+  case string_typ of
+     st_shortstring:
+       begin
+         charst := typeglobalnumber('char');
+         { this is what I found in stabs.texinfo but
+           gdb 4.12 for go32 doesn't understand that !! }
+       {$IfDef GDBknowsstrings}
+         stabstring := strpnew('n'+charst+';'+tostr(len));
+       {$else}
+         bytest := typeglobalnumber('byte');
+         stabstring := strpnew('s'+tostr(len+1)+'length:'+bytest
+            +',0,8;st:ar'+bytest
+            +';1;'+tostr(len)+';'+charst+',8,'+tostr(len*8)+';;');
+       {$EndIf}
+       end;
+     st_longstring:
+       begin
+         charst := typeglobalnumber('char');
+         { this is what I found in stabs.texinfo but
+           gdb 4.12 for go32 doesn't understand that !! }
+       {$IfDef GDBknowsstrings}
+         stabstring := strpnew('n'+charst+';'+tostr(len));
+       {$else}
+         bytest := typeglobalnumber('byte');
+         longst := typeglobalnumber('longint');
+         stabstring := strpnew('s'+tostr(len+5)+'length:'+longst
+            +',0,32;dummy:'+bytest+',32,8;st:ar'+bytest
+            +';1;'+tostr(len)+';'+charst+',40,'+tostr(len*8)+';;');
+       {$EndIf}
+       end;
+     st_ansistring:
+       begin
+         { an ansi string looks like a pchar easy !! }
+         stabstring:=strpnew('*'+typeglobalnumber('char'));
+       end;
+     st_widestring:
+       begin
+         { an ansi string looks like a pchar easy !! }
+         stabstring:=strpnew('*'+typeglobalnumber('char'));
+       end;
+end;
+end;
+
+
+procedure tstringdef.concatstabto(asmlist : paasmoutput);
+begin
+  inherited concatstabto(asmlist);
+end;
+{$endif GDB}
+
+
+function tstringdef.needs_inittable : boolean;
+begin
+   needs_inittable:=string_typ in [st_ansistring,st_widestring];
+end;
+
+function tstringdef.gettypename : string;
+
+const
+   names : array[tstringtype] of string[20] = ('',
+     'ShortString','LongString','AnsiString','WideString');
+
+begin
+   gettypename:=names[string_typ];
+end;
+
+procedure tstringdef.write_rtti_data;
+begin
+   case string_typ of
+      st_ansistring:
+        begin
+           rttilist^.concat(new(pai_const,init_8bit(tkAString)));
+           write_rtti_name;
+        end;
+      st_widestring:
+        begin
+           rttilist^.concat(new(pai_const,init_8bit(tkWString)));
+           write_rtti_name;
+        end;
+      st_longstring:
+        begin
+           rttilist^.concat(new(pai_const,init_8bit(tkLString)));
+           write_rtti_name;
+        end;
+      st_shortstring:
+        begin
+           rttilist^.concat(new(pai_const,init_8bit(tkSString)));
+           write_rtti_name;
+           rttilist^.concat(new(pai_const,init_8bit(len)));
+        end;
+   end;
+end;
+
+
+function tstringdef.is_publishable : boolean;
+begin
+   is_publishable:=true;
+end;
+
+
+{***************************************************************************
                             Tabstractprocdef
 ***************************************************************************}
 
@@ -2079,6 +2414,7 @@ constructor Tabstractprocdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    include(properties,dp_ret_in_acc);
     retdef:=voiddef;
     savesize:=target_os.size_of_pointer;
 end;
@@ -2541,6 +2877,33 @@ function Tprocvardef.gettypename:string;
 
 begin
    gettypename:='<procedure variable type>'
+end;
+
+{****************************************************************************
+                                Tforwarddef
+****************************************************************************}
+
+constructor tforwarddef.init(Aowner:Pcontainingsymtable;
+                             const s:string;const pos:Tfileposinfo);
+
+var oldregisterdef:boolean;
+
+begin
+    { never register the forwarddefs, they are disposed at the
+      end of the type declaration block }
+{   oldregisterdef:=registerdef;
+    registerdef:=false;}
+    inherited init(Aowner);
+{   registerdef:=oldregisterdef;}
+    tosymname:=s;
+    forwardpos:=pos;
+end;
+
+
+function tforwarddef.gettypename:string;
+
+begin
+    gettypename:='unresolved forward to '+tosymname;
 end;
 
 end.

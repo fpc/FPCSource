@@ -28,8 +28,13 @@ unit tree;
   interface
 
     uses
-       globtype,cobjects,
-       symconst,symtable,aasm,cpubase;
+       globtype,cobjects
+       {$IFDEF NEWST}
+       ,objects,symtable,symbols,defs
+       {$ELSE}
+       ,symconst,symtable
+       {$ENDIF NEWST}
+       ,aasm,cpubase;
 
     type
        pconstset = ^tconstset;
@@ -226,7 +231,12 @@ unit tree;
              ordconstn : (value : longint);
              realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
-             funcretn : (funcretprocinfo : pointer;rettype : ttype;
+             funcretn : (funcretprocinfo : pointer;
+                       {$IFDEF NEWST}
+                       retsym:Psym;
+                       {$ELSE}
+                       rettype : ttype;
+                       {$ENDIF}
                        is_first_funcret : boolean);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
@@ -240,7 +250,16 @@ unit tree;
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
              labeln,goton : (labelnr : pasmlabel;exceptionblock : ptree;labsym : plabelsym);
-             withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
+        {$IFDEF NEWST}
+             withn : (withsymtables:Pcollection;
+                      withreference:preference;
+                      islocal:boolean);
+        {$ELSE}
+             withn : (withsymtable : pwithsymtable;
+                      tablecount : longint;
+                      withreference:preference;
+                      islocal:boolean);
+        {$ENDIF NEWST}
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap,forcevaria,novariaallowed: boolean;constructdef:pdef);
            end;
@@ -279,7 +298,11 @@ unit tree;
     function genloopnode(t : ttreetyp;l,r,n1: ptree;back : boolean) : ptree;
     function genasmnode(p_asm : paasmoutput) : ptree;
     function gencasenode(l,r : ptree;nodes : pcaserecord) : ptree;
-    function genwithnode(symtable : pwithsymtable;l,r : ptree;count : longint) : ptree;
+{$IFDEF NEWST}
+    function genwithnode(symtables:Pcollection;l,r : ptree) : ptree;
+{$ELSE}
+    function genwithnode(symtable:pwithsymtable;l,r : ptree;count : longint) : ptree;
+{$ENDIF NEWST}
 
     function getcopy(p : ptree) : ptree;
 
@@ -358,6 +381,9 @@ unit tree;
 {$else newcg}
        hcodegen
 {$endif newcg}
+{$IFDEF NEWST}
+       ,symtablt
+{$ENDIF}
        ;
 
     function getnode : ptree;
@@ -507,7 +533,7 @@ unit tree;
     procedure disposetree(p : ptree);
 
       var
-         symt : pwithsymtable;
+         symt : psymtable;
          i : longint;
 
       begin
@@ -594,6 +620,9 @@ unit tree;
                    disposetree(p^.left);
                  if assigned(p^.right) then
                    disposetree(p^.right);
+              {$IFDEF NEWST}
+                 dispose(p^.withsymtables,done);
+              {$ELSE}
                  symt:=p^.withsymtable;
                  for i:=1 to p^.tablecount do
                    begin
@@ -604,6 +633,7 @@ unit tree;
                         end;
                       symt:=p^.withsymtable;
                    end;
+              {$ENDIF NEWST}
               end;
             else internalerror(12);
          end;
@@ -622,6 +652,30 @@ unit tree;
         p^.fileinfo:=filepos;
      end;
 
+{$IFDEF NEWST}
+   function genwithnode(symtables:Pcollection;l,r : ptree) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_with;
+         p^.treetype:=withn;
+         p^.left:=l;
+         p^.right:=r;
+         p^.registers32:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=nil;
+         p^.withsymtables:=symtables;
+         p^.withreference:=nil;
+         p^.islocal:=false;
+         set_file_line(l,p);
+         genwithnode:=p;
+      end;
+{$ELSE}
    function genwithnode(symtable : pwithsymtable;l,r : ptree;count : longint) : ptree;
 
       var
@@ -634,9 +688,6 @@ unit tree;
          p^.left:=l;
          p^.right:=r;
          p^.registers32:=0;
-         { p^.registers16:=0;
-         p^.registers8:=0; }
-         p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
@@ -648,6 +699,7 @@ unit tree;
          set_file_line(l,p);
          genwithnode:=p;
       end;
+{$ENDIF NEWST}
 
     function genfixconstnode(v : longint;def : pdef) : ptree;
 
@@ -786,8 +838,13 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=def;
          p^.value:=v;
+      {$IFDEF NEWST}
+         if typeof(p^.resulttype^)=typeof(Torddef) then
+          testrange(p^.resulttype,p^.value);
+      {$ELSE NEWST}
          if p^.resulttype^.deftype=orddef then
           testrange(p^.resulttype,p^.value);
+      {$ENDIF}
          genordinalconstnode:=p;
       end;
 
@@ -1004,7 +1061,11 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
+      {$IFDEF NEWST}
+         p^.resulttype:=v^.definition;
+      {$ELSE}
          p^.resulttype:=v^.vartype.def;
+      {$ENDIF NEWST}
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
@@ -1029,7 +1090,12 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
          p^.left:=nil;
+      {$IFDEF NEWST}
+         p^.resulttype:=nil; {We don't know which overloaded procedure is
+                              wanted...}
+      {$ELSE}
          p^.resulttype:=v^.definition;
+      {$ENDIF}
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
@@ -1052,7 +1118,12 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
          p^.left:=nil;
+      {$IFDEF NEWST}
+         p^.resulttype:=nil; {We don't know which overloaded procedure is
+                              wanted...}
+      {$ELSE}
          p^.resulttype:=v^.definition;
+      {$ENDIF}
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
@@ -1078,7 +1149,11 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
          p^.left:=nil;
+      {$IFDEF NEWST}
+         p^.resulttype:=sym^.definition;
+      {$ELSE}
          p^.resulttype:=sym^.typedconsttype.def;
+      {$ENDIF NEWST}
          p^.symtableentry:=sym;
          p^.symtable:=st;
          p^.disposetyp:=dt_nothing;
@@ -1306,9 +1381,14 @@ unit tree;
          p^.inlineprocsym:=callp^.symtableprocentry;
          p^.retoffset:=-4; { less dangerous as zero (PM) }
          p^.para_offset:=0;
+      {$IFDEF NEWST}
+         {Fixme!!}
+         internalerror($00022801);
+      {$ELSE}
          p^.para_size:=p^.inlineprocsym^.definition^.para_size(target_os.stackalignment);
          if ret_in_param(p^.inlineprocsym^.definition^.rettype.def) then
            p^.para_size:=p^.para_size+target_os.size_of_pointer;
+      {$ENDIF NEWST}
          { copy args }
          p^.inlinetree:=code;
          p^.registers32:=code^.registers32;
@@ -1316,7 +1396,11 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
+      {$IFDEF NEWST}
+         {Fixme!!}
+      {$ELSE}
          p^.resulttype:=p^.inlineprocsym^.definition^.rettype.def;
+      {$ENDIF NEWST}
          genprocinlinenode:=p;
       end;
 
@@ -1708,10 +1792,18 @@ unit tree;
              set_varstate(p^.left,must_be_valid);
            vecn:
              begin
+             {$IFDEF NEWST}
+               if (typeof(p^.left^.resulttype^)=typeof(Tstringdef)) or
+                (typeof(p^.left^.resulttype^)=typeof(Tarraydef)) then
+                 set_varstate(p^.left,must_be_valid)
+               else
+                 set_varstate(p^.left,true);
+             {$ELSE}
                if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
                  set_varstate(p^.left,must_be_valid)
                else
                  set_varstate(p^.left,true);
+             {$ENDIF NEWST}
                set_varstate(p^.right,true);
              end;
            { do not parse calln }
@@ -1929,7 +2021,13 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.113  2000-02-20 20:49:46  florian
+  Revision 1.114  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.113  2000/02/20 20:49:46  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 

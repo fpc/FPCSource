@@ -29,7 +29,7 @@ unit symtable;
 
 interface
 
-uses    objects,cobjects,aasm,globtype,i386base;
+uses    objects,cobjects,aasm,globtype,cpubase;
 
 
 type    Tdefprop=(dp_regable,           {Can be stored into a register.}
@@ -162,6 +162,9 @@ type    Tdefprop=(dp_regable,           {Can be stored into a register.}
 
 const   systemunit:Psymtable            = nil; {Pointer to the system unit.}
         objpasunit:Psymtable            = nil; {Pointer to the objpas unit.}
+        macros:Psymtable                = nil; {Pointer to macro list.}
+
+const   defalignment=4;
 
 var     read_member : boolean;      {True, wenn Members aus einer PPU-
                                      Datei gelesen werden, d.h. ein
@@ -238,7 +241,7 @@ begin
     indexgrow:=index_growsize;
     new(defindex,init(2*indexgrow,indexgrow));
     new(symsearch,init);
-    alignment:=def_alignment;
+    alignment:=defalignment;
     index_growsize:=16;
 end;
 

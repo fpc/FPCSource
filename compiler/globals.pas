@@ -1038,7 +1038,11 @@ implementation
        CurrentDir,
        CurrPath : string;
        dir      : searchrec;
+   {$IFDEF NEWST}
+       hp       : PStringItem;
+   {$ELSE}
        hp       : PStringQueueItem;
+   {$ENDIF}
 
        procedure addcurrpath;
        begin
@@ -1130,7 +1134,11 @@ implementation
      var
        s : string;
        hl : TSearchPathList;
+     {$IFDEF NEWST}
+       hp,hp2 : PStringItem;
+     {$ELSE}
        hp,hp2 : PStringQueueItem;
+     {$ENDIF}
      begin
        if list.empty then
         exit;
@@ -1169,7 +1177,11 @@ implementation
 
    function TSearchPathList.FindFile(const f : string;var b : boolean) : string;
      Var
+     {$IFDEF NEWST}
+       p : PStringItem;
+     {$ELSE}
        p : PStringQueueItem;
+     {$ENDIF}
      begin
        FindFile:='';
        b:=false;
@@ -1525,7 +1537,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2000-02-14 20:58:44  marco
+  Revision 1.54  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.53  2000/02/14 20:58:44  marco
    * Basic structures for new sethandling implemented.
 
   Revision 1.52  2000/02/10 11:45:48  peter

@@ -164,6 +164,24 @@ interface
        pword      = ^word;
        plongint   = ^longint;
 
+    {$IFDEF TP}
+       Tconstant=record
+            case signed:boolean of
+                false:
+                    (valueu:longint);
+                true:
+                    (values:longint);
+       end;
+    {$ELSE}
+       Tconstant=record
+            case signed:boolean of
+                false:
+                    (valueu:cardinal);
+                true:
+                    (values:longint);
+       end;
+    {$ENDIF}
+
     const
        { link options }
        link_none    = $0;
@@ -180,7 +198,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2000-02-09 13:22:53  peter
+  Revision 1.29  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.28  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.27  2000/02/09 10:35:48  peter

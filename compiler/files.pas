@@ -47,8 +47,8 @@ unit files;
   interface
 
     uses
-       globtype,
-       cobjects,globals,ppu;
+       globtype,cobjects,globals,ppu
+       {$IFDEF NEWST},objects{$ENDIF};
 
     const
 {$ifdef FPC}
@@ -126,6 +126,15 @@ unit files;
           function  get_file_path(l :longint):string;
        end;
 
+    {$IFDEF NEWST}
+       Plinkitem=^Tlinkitem;
+       Tlinkitem=object(Tobject)
+          data     : pstring;
+          needlink : longint;
+          constructor init(const s:string;m:longint);
+          destructor  done;virtual;
+       end;
+    {$ELSE}
        plinkcontaineritem=^tlinkcontaineritem;
        tlinkcontaineritem=object(tcontaineritem)
           data     : pstring;
@@ -142,6 +151,7 @@ unit files;
           function getusemask(mask:longint) : string;
           function find(const s:string):boolean;
        end;
+    {$ENDIF NEWST}
 
 {$ifndef NEWMAP}
        tunitmap = array[0..maxunits-1] of pointer;
@@ -190,12 +200,21 @@ unit files;
           sourcefiles   : pfilemanager;
           resourcefiles : tstringcontainer;
 
+       {$IFDEF NEWST}
+          linkunitofiles,
+          linkunitstaticlibs,
+          linkunitsharedlibs,
+          linkotherofiles,           { objects,libs loaded from the source }
+          linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
+          linkotherstaticlibs  : Tcollection;
+       {$ELSE}
           linkunitofiles,
           linkunitstaticlibs,
           linkunitsharedlibs,
           linkotherofiles,           { objects,libs loaded from the source }
           linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
           linkotherstaticlibs  : tlinkcontainer;
+       {$ENDIF NEWST}
 
           used_units           : tlinkedlist;
           dependent_units      : tlinkedlist;
@@ -275,7 +294,7 @@ uses
    dos,
 {$endif Delphi}
   verbose,systems,
-  symtable,scanner;
+  symtable,scanner{$IFDEF NEWST},symtablt{$ENDIF};
 
 {****************************************************************************
                                   TINPUTFILE
@@ -703,6 +722,20 @@ uses
                              TLinkContainerItem
  ****************************************************************************}
 
+{$IFDEF NEWST}
+constructor TLinkItem.Init(const s:string;m:longint);
+begin
+  inherited Init;
+  data:=stringdup(s);
+  needlink:=m;
+end;
+
+
+destructor TLinkItem.Done;
+begin
+  stringdispose(data);
+end;
+{$ELSE}
 constructor TLinkContainerItem.Init(const s:string;m:longint);
 begin
   inherited Init;
@@ -715,12 +748,14 @@ destructor TLinkContainerItem.Done;
 begin
   stringdispose(data);
 end;
+{$ENDIF NEWST}
 
 
 {****************************************************************************
                            TLinkContainer
  ****************************************************************************}
 
+ {$IFNDEF NEWST}
     constructor TLinkContainer.Init;
       begin
         inherited init;
@@ -791,6 +826,7 @@ end;
            newnode:=plinkcontaineritem(newnode^.next);
          end;
       end;
+    {$ENDIF NEWST}
 
 
 
@@ -1034,7 +1070,11 @@ end;
 
          Function SearchPathList(list:TSearchPathList):boolean;
          var
+         {$IFDEF NEWST}
+           hp : PStringItem;
+         {$ELSE NEWST}
            hp : PStringQueueItem;
+         {$ENDIF NEWST}
            found : boolean;
          begin
            found:=false;
@@ -1131,17 +1171,17 @@ end;
         resourcefiles.done;
         resourcefiles.init;
         linkunitofiles.done;
-        linkunitofiles.init;
+        linkunitofiles.init{$IFDEF NEWST}(8,4){$ENDIF};
         linkunitstaticlibs.done;
-        linkunitstaticlibs.init;
+        linkunitstaticlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
         linkunitsharedlibs.done;
-        linkunitsharedlibs.init;
+        linkunitsharedlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
         linkotherofiles.done;
-        linkotherofiles.init;
+        linkotherofiles.init{$IFDEF NEWST}(8,4){$ENDIF};
         linkotherstaticlibs.done;
-        linkotherstaticlibs.init;
+        linkotherstaticlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
         linkothersharedlibs.done;
-        linkothersharedlibs.init;
+        linkothersharedlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
         uses_imports:=false;
         do_assemble:=false;
         do_compile:=false;
@@ -1200,12 +1240,12 @@ end;
         dependent_units.init;
         new(sourcefiles,init);
         resourcefiles.init;
-        linkunitofiles.init;
-        linkunitstaticlibs.init;
-        linkunitsharedlibs.init;
-        linkotherofiles.init;
-        linkotherstaticlibs.init;
-        linkothersharedlibs.init;
+        linkunitofiles.init{$IFDEF NEWST}(8,4){$ENDIF};
+        linkunitstaticlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
+        linkunitsharedlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
+        linkotherofiles.init{$IFDEF NEWST}(8,4){$ENDIF};
+        linkotherstaticlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
+        linkothersharedlibs.init{$IFDEF NEWST}(8,4){$ENDIF};
         ppufile:=nil;
         scanner:=nil;
         map:=nil;
@@ -1353,7 +1393,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.116  2000-02-24 18:41:38  peter
+  Revision 1.117  2000-02-28 17:23:56  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.116  2000/02/24 18:41:38  peter
     * removed warnings/notes
 
   Revision 1.115  2000/02/10 16:00:23  peter

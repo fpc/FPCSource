@@ -38,6 +38,7 @@ type    Pglobalsymtable=^Tglobalsymtable;
         Pprocsymtable=^Tprocsymtable;
         Punitsymtable=^Tunitsymtable;
         Pobjectsymtable=^Tobjectsymtable;
+        Pwithsymtable=^Twithsymtable;
 
         Tglobalsymtable=object(Tcontainingsymtable)
             constructor init;
@@ -63,13 +64,13 @@ type    Pglobalsymtable=^Tglobalsymtable;
         end;
 
         Precordsymtable=^Trecordsymtable;
-        Trecordsymtable=object(Tabstractsymtable)
+        Trecordsymtable=object(Tabstractrecordsymtable)
         end;
 
         Tobjectsymtable=object(Tabstractrecordsymtable)
             defowner:Pobjectsymtable;
-            function speedsearch(const s:stringid;
-                                 speedvalue:longint):Psym;virtual;
+{           function speedsearch(const s:stringid;
+                                 speedvalue:longint):Psym;virtual;}
         end;
 
         Tprocsymtable=object(Tcontainingsymtable)
@@ -101,6 +102,9 @@ type    Pglobalsymtable=^Tglobalsymtable;
 
         Twithsymtable=object(Tsymtable)
             link:Pcontainingsymtable;
+            {If with a^.b.c is encountered, withrefnode points to a tree
+             a^.b.c .}
+            withrefnode:pointer;
             constructor init(Alink:Pcontainingsymtable);
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
@@ -147,7 +151,7 @@ begin
         segment:=consts
     else
         segment:=datasegment;
-    if (cs_smartlink in aktmoduleswitches) then
+    if (cs_create_smart in aktmoduleswitches) then
         segment^.concat(new(Pai_cut,init));
     ali:=data_align(len);
     align(datasize,ali);
@@ -155,7 +159,7 @@ begin
     if cs_debuginfo in aktmoduleswitches then
         concatstabto(segment);
 {$endif GDB}
-    segment^.concat(new(Pai_symbol,initname_global(sym^.mangledname)));
+    segment^.concat(new(Pai_symbol,initname_global(sym^.mangledname,len)));
 end;
 
 function Tglobalsymtable.varsymtodata(sym:Psym;len:longint):longint;
@@ -163,7 +167,7 @@ function Tglobalsymtable.varsymtodata(sym:Psym;len:longint):longint;
 var ali:longint;
 
 begin
-    if (cs_smartlink in aktmoduleswitches) then
+    if (cs_create_smart in aktmoduleswitches) then
         bsssegment^.concat(new(Pai_cut,init));
     ali:=data_align(len);
     align(datasize,ali);
@@ -219,7 +223,8 @@ function Tabstractrecordsymtable.varsymtodata(sym:Psym;
                                              len:longint):longint;
 
 begin
-    datasize:=(datasize+(aktpackrecords-1)) and (not aktpackrecords-1);
+    datasize:=(datasize+(packrecordalignment[aktpackrecords]-1))
+     and (not packrecordalignment[aktpackrecords]-1);
     varsymtodata:=inherited varsymtodata(sym,len);
 end;
 
@@ -231,6 +236,10 @@ end;
                              Tobjectsymtable
 ****************************************************************************}
 
+{This is not going to work this way, because the definition isn't known yet
+ when the symbol hasn't been found. For procsyms the object properties
+ are stored in the definitions, because they can be overloaded.
+
 function Tobjectsymtable.speedsearch(const s:stringid;
                                      speedvalue:longint):Psym;
 
@@ -238,7 +247,7 @@ var r:Psym;
 
 begin
     r:=inherited speedsearch(s,speedvalue);
-    if (r<>nil) and (sp_static in Pprocdef(r)^.objprop) and
+    if (r<>nil) and (Pprocdef(r)^.objprop=sp_static) and
      allow_only_static then
         begin
             message(sym_e_only_static_in_static);
@@ -246,7 +255,7 @@ begin
         end
     else
         speedsearch:=r;
-end;
+end;}
 
 {****************************************************************************
                              Tprocsymsymtable
@@ -340,7 +349,7 @@ begin
         segment:=consts
     else
         segment:=datasegment;
-    if (cs_smartlink in aktmoduleswitches) then
+    if (cs_create_smart in aktmoduleswitches) then
         segment^.concat(new(Pai_cut,init));
     ali:=data_align(len);
     align(datasize,ali);
@@ -348,10 +357,12 @@ begin
     if cs_debuginfo in aktmoduleswitches then
         concatstabto(segment);
 {$endif GDB}
-    if (cs_smartlink in aktmoduleswitches) then
-        segment^.concat(new(Pai_symbol,initname_global(sym^.mangledname)))
+    if (cs_create_smart in aktmoduleswitches) then
+        segment^.concat(new(Pai_symbol,
+                        initname_global(sym^.mangledname,len)))
     else
-        segment^.concat(new(Pai_symbol,initname(sym^.mangledname)));
+        segment^.concat(new(Pai_symbol,
+                        initname(sym^.mangledname,len)));
 end;
 
 function Tunitsymtable.varsymprefix:string;

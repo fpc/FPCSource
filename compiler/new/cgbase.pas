@@ -25,7 +25,11 @@ unit cgbase;
   interface
 
     uses
-       globtype,cobjects,aasm,symconst,symtable,verbose,tree,cpuasm,cpubase;
+       globtype,cobjects,aasm,symconst,symtable,verbose,tree,
+       cpuasm,cpubase
+       {$IFDEF NEWST}
+       ,defs,symbols
+       {$ENDIF NEWST};
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -56,7 +60,9 @@ unit cgbase;
           { current class, if we are in a method }
           _class : pobjectdef;
           { return type }
+       {$IFNDEF NEWST}
           returntype : ttype;
+       {$ENDIF NEWST}
           { symbol of the function, and the sym for result variable }
           resultfuncretsym,
           funcretsym : pfuncretsym;
@@ -319,7 +325,9 @@ unit cgbase;
       begin
         parent:=nil;
         _class:=nil;
+        {$IFNDEF NEWST}
         returntype.reset;
+        {$ENDIF NEWST}
         resultfuncretsym:=nil;
         funcretsym:=nil;
         funcret_state:=vs_none;
@@ -515,7 +523,13 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.17  2000-02-20 20:49:46  florian
+  Revision 1.18  2000-02-28 17:23:58  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.17  2000/02/20 20:49:46  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 

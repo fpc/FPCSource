@@ -24,7 +24,10 @@ unit types;
 interface
 
     uses
-       cobjects,symtable;
+       cobjects,symtable
+       {$IFDEF NEWST}
+       ,defs
+       {$ENDIF NEWST};
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -1011,7 +1014,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2000-02-09 13:23:09  peter
+  Revision 1.98  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.97  2000/02/09 13:23:09  peter
     * log truncated
 
   Revision 1.96  2000/02/01 09:44:03  peter

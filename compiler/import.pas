@@ -23,7 +23,7 @@ unit import;
 interface
 
 uses
-  cobjects;
+  cobjects{$IFDEF NEWST},objects{$ENDIF NEWST};
 
 type
    pimported_item = ^timported_item;
@@ -250,7 +250,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-02-09 13:22:54  peter
+  Revision 1.19  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.18  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.17  2000/01/12 10:34:29  peter

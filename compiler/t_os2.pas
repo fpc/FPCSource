@@ -279,7 +279,12 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 begin
     seq_no:=1;
     if not (cs_create_smart in aktmoduleswitches) then
+{$IFDEF NEWST}
+      current_module^.linkotherstaticlibs.
+       insert(new(Plinkitem,init(s,link_allways)));
+{$ELSE}
       current_module^.linkotherstaticlibs.insert(s,link_allways);
+{$ENDIF NEWST}
     assign(out_file,current_module^.path^+s+'.ao2');
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
@@ -370,7 +375,11 @@ Function TLinkeros2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
+{$IFDEF NEWST}
+  HPath    : PStringItem;
+{$ELSE}
   HPath    : PStringQueueItem;
+{$ENDIF NEWST}
   s        : string;
 begin
   WriteResponseFile:=False;
@@ -486,7 +495,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-02-09 13:23:06  peter
+  Revision 1.10  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.9  2000/02/09 13:23:06  peter
     * log truncated
 
   Revision 1.8  2000/01/09 00:55:51  pierre

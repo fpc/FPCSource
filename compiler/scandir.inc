@@ -750,7 +750,13 @@ const
       begin
         current_scanner^.skipspace;
         s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.objext);
-        current_module^.linkotherofiles.insert(s,link_allways);
+      {$IFDEF NEWST}
+        current_module^.linkotherofiles.
+         insert(new(Plinkitem,init(s,link_allways)));
+      {$ELSE}
+        current_module^.linkotherofiles.
+         insert(s,link_allways);
+      {$ENDIF NEWST}
       end;
 
 
@@ -771,7 +777,13 @@ const
       begin
         current_scanner^.skipspace;
         current_scanner^.readstring;
-        current_module^.linkOtherSharedLibs.insert(orgpattern,link_allways);
+      {$IFDEF NEWST}
+        current_module^.linkOtherSharedLibs.
+         insert(new(Plinkitem,init(orgpattern,link_allways)));
+      {$ELSE}
+        current_module^.linkOtherSharedLibs.
+         insert(orgpattern,link_allways);
+      {$ENDIF}
       end;
 
 
@@ -1287,7 +1299,13 @@ const
 
 {
   $Log$
-  Revision 1.75  2000-02-14 20:58:43  marco
+  Revision 1.76  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.75  2000/02/14 20:58:43  marco
    * Basic structures for new sethandling implemented.
 
   Revision 1.74  2000/02/09 13:23:03  peter

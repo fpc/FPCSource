@@ -646,7 +646,11 @@ Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
+{$IFDEF NEWST}
+  HPath    : PStringItem;
+{$ELSE}
   HPath    : PStringQueueItem;
+{$ENDIF NEWST}
   s        : string;
   linklibc : boolean;
 begin
@@ -1083,7 +1087,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-02-24 18:41:39  peter
+  Revision 1.20  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.19  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.18  2000/01/12 10:31:45  peter

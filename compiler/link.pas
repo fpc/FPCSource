@@ -159,6 +159,30 @@ end;
 procedure TLinker.AddModuleFiles(hp:pmodule);
 var
   mask : longint;
+
+  {$IFDEF NEWST}
+  procedure addobj(action:pointer);{$IFDEF TP}far;{$ENDIF}
+
+  begin
+    if Plinkitem(action)^.needlink and mask<>0 then
+        addobject(Plinkitem(action)^.data^);
+  end;
+
+  procedure addstat(action:pointer);{$IFDEF TP}far;{$ENDIF}
+
+  begin
+    if Plinkitem(action)^.needlink and mask<>0 then
+        addstaticlibrary(Plinkitem(action)^.data^);
+  end;
+
+  procedure addshar(action:pointer);{$IFDEF TP}far;{$ENDIF}
+
+  begin
+    if Plinkitem(action)^.needlink and mask<>0 then
+        addsharedlibrary(Plinkitem(action)^.data^);
+  end;
+  {$ENDIF NEWST}
+
 begin
   with hp^ do
    begin
@@ -227,21 +251,39 @@ begin
            mask:=mask or link_static;
          end;
         { unit files }
+      {$IFDEF NEWST}
+        linkunitofiles.foreach(@addobj);
+        linkunitofiles.freeall;
+        linkunitstaticlibs.foreach(@addstat);
+        linkunitstaticlibs.freeall;
+        linkunitsharedlibs.foreach(@addshar);
+        linkunitsharedlibs.freeall;
+      {$ELSE}
         while not linkunitofiles.empty do
          AddObject(linkunitofiles.getusemask(mask));
         while not linkunitstaticlibs.empty do
          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
         while not linkunitsharedlibs.empty do
          AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
+      {$ENDIF NEWST}
       end;
    { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
+   {$IFDEF NEWST}
+     linkotherofiles.foreach(@addobj);
+     linkotherofiles.freeall;
+     linkotherstaticlibs.foreach(@addstat);
+     linkotherstaticlibs.freeall;
+     linkothersharedlibs.foreach(@addshar);
+     linkothersharedlibs.freeall;
+   {$ELSE}
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask));
      while not linkotherstaticlibs.empty do
       AddStaticLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
       AddSharedLibrary(linkothersharedlibs.Getusemask(mask));
+   {$ENDIF NEWST}
    end;
 end;
 
@@ -521,7 +563,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.84  2000-02-24 18:41:39  peter
+  Revision 1.85  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.84  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.83  2000/02/09 13:22:54  peter

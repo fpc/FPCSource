@@ -63,7 +63,7 @@ implementation
   uses
     verbose,strings,cobjects,systems,globtype,globals,
     symconst,script,
-    files,aasm,cpuasm,cpubase,symtable;
+    files,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
 
 {*****************************************************************************
                                TIMPORTLIBLINUX
@@ -77,26 +77,42 @@ end;
 procedure timportliblinux.importprocedure(const func,module : string;index : longint;const name : string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+{$IFDEF NEWST}
+  current_module^.linkothersharedlibs.
+   insert(new(Plinkitem,init(SplitName(module),link_allways)));
+{$ELSE}
+  current_module^.linkothersharedlibs.
+   insert(SplitName(module),link_allways);
+{$ENDIF NEWST}
   { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
+{  if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
   else
-    Message(parser_e_empty_import_name);
+    Message(parser_e_empty_import_name);}
 end;
 
 
 procedure timportliblinux.importvariable(const varname,module:string;const name:string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+{$IFDEF NEWST}
+  current_module^.linkothersharedlibs.
+   insert(new(Plinkitem,init(SplitName(module),link_allways)));
+{$ELSE}
+  current_module^.linkothersharedlibs.
+   insert(SplitName(module),link_allways);
+{$ENDIF NEWST}
   { reset the mangledname and turn off the dll_var option }
   aktvarsym^.setmangledname(name);
+{$IFDEF NEWST}
+  exclude(aktvarsym^.properties,vo_is_dll_var);
+{$ELSE}
 {$ifdef INCLUDEOK}
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
 {$else}
   aktvarsym^.varoptions:=aktvarsym^.varoptions-[vo_is_dll_var];
 {$endif}
+{$ENDIF NEWST}
 end;
 
 
@@ -235,7 +251,11 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
+{$IFDEF NEWST}
+  HPath        : PStringItem;
+{$ELSE}
   HPath        : PStringQueueItem;
+{$ENDIF NEWST}
   s            : string;
   found,
   linkdynamic,
@@ -447,7 +467,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-02-27 14:46:04  peter
+  Revision 1.11  2000-02-28 17:23:57  daniel
+  * Current work of symtable integration committed. The symtable can be
+    activated by defining 'newst', but doesn't compile yet. Changes in type
+    checking and oop are completed. What is left is to write a new
+    symtablestack and adapt the parser to use it.
+
+  Revision 1.10  2000/02/27 14:46:04  peter
     * check for ld-so.2.0.* then no glibc21 is used, else glibc21 is used
 
   Revision 1.9  2000/02/09 10:35:48  peter
