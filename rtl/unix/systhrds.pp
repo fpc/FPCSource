@@ -54,7 +54,7 @@ implementation
 
 
 {$ifndef BSD}
-{$i pthreads.inc}
+{$i pthread.inc}
 {$else}
 {$i ptypes.inc}
 
@@ -380,7 +380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-10-18 12:19:59  marco
+  Revision 1.3  2002-10-18 18:05:06  marco
+   * $I pthread.inc instead of pthreads.inc
+
+  Revision 1.2  2002/10/18 12:19:59  marco
    * Fixes to get the generic *BSD RTL compiling again + fixes for thread
      support. Still problems left in fexpand. (inoutres?) Therefore fixed
      sysposix not yet commited
