@@ -151,7 +151,7 @@
 {$ifndef ver1_0}
        IUnknown = interface
          ['{00000000-0000-0000-C000-000000000046}']
-         function QueryInterface(const iid: tguid; var {out} obj): LongInt; stdcall;
+         function QueryInterface(const iid: tguid; out obj): LongInt; stdcall;
          function _AddRef: LongInt; stdcall;
          function _Release: LongInt; stdcall;
        end;
@@ -159,9 +159,9 @@
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
          ['{00020400-0000-0000-C000-000000000046}']
-         function GetTypeInfoCount({out}var count: LongInt): LongInt; stdcall;
+         function GetTypeInfoCount(out count: LongInt): LongInt; stdcall;
          function GetTypeInfo(Index, LocaleID: LongInt;
-           var {out} TypeInfo): LongInt; stdcall;
+           out TypeInfo): LongInt; stdcall;
          function GetIDsOfNames(const iid: TGUID; names: Pointer;
            NameCount, LocaleID: LongInt; DispIDs: Pointer): LongInt; stdcall;
          function Invoke(DispID: LongInt; const iid: TGUID;
@@ -258,7 +258,10 @@
        end;
 {
   $Log$
-  Revision 1.5  2000-11-04 16:28:55  florian
+  Revision 1.6  2000-11-04 17:31:50  florian
+    * fixed some out declarations
+
+  Revision 1.5  2000/11/04 16:28:55  florian
     + interfaces support
 
   Revision 1.4  2000/09/30 07:38:07  sg
