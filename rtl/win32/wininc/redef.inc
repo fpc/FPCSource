@@ -173,12 +173,12 @@ function BackupRead(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToRead: DWORD
 function BackupSeek(hFile: THandle; dwLowBytesToSeek, dwHighBytesToSeek: DWORD; var lpdwLowByteSeeked, lpdwHighByteSeeked: DWORD; lpContext: Pointer): BOOL; external 'kernel32' name 'BackupSeek';
 function BackupWrite(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; bAbort, bProcessSecurity: BOOL; var lpContext: Pointer): BOOL; external 'kernel32' name 'BackupWrite';
 function BeginPaint(hWnd: HWND; var lpPaint: TPaintStruct): HDC; external 'user32' name 'BeginPaint';
-//function BuildCommDCB(lpDef: PChar; var lpDCB: TDCB): BOOL;external 'kernel32' name 'BuildCommDCBA';
-//function BuildCommDCBA(lpDef: LPCSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBA';
-//function BuildCommDCBAndTimeouts(lpDef: PChar; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL;external 'kernel32' name 'BuildCommDCBAndTimeouts';
-//function BuildCommDCBAndTimeoutsA(lpDef: LPCSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
-//function BuildCommDCBAndTimeoutsW(lpDef: LPWSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsW';
-//function BuildCommDCBW(lpDef: LPWSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBW';
+function BuildCommDCB(lpDef: PChar; var lpDCB: TDCB): BOOL;external 'kernel32' name 'BuildCommDCBA';
+function BuildCommDCBA(lpDef: LPCSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBA';
+function BuildCommDCBAndTimeouts(lpDef: PChar; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL;external 'kernel32' name 'BuildCommDCBAndTimeouts';
+function BuildCommDCBAndTimeoutsA(lpDef: LPCSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
+function BuildCommDCBAndTimeoutsW(lpDef: LPWSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsW';
+function BuildCommDCBW(lpDef: LPWSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBW';
 function CallMsgFilter(var lpMsg: TMsg; nCode: Integer): BOOL;external 'user32' name 'CallMsgFilterA';
 function CallMsgFilterA(var lpMsg: TMsg; nCode: Integer): BOOL; external 'user32' name 'CallMsgFilterA';
 function CallMsgFilterW(var lpMsg: TMsg; nCode: Integer): BOOL; external 'user32' name 'CallMsgFilterW';
@@ -715,8 +715,8 @@ function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPAR
 //function SetAclInformation(var pAcl: TACL; pAclInformation: Pointer; nAclInformationLength: DWORD; dwAclInformationClass: TAclInformationClass): BOOL; external 'advapi32' name 'SetAclInformation';
 //function SetColorAdjustment(DC: HDC; const p2: TColorAdjustment): BOOL; external 'gdi32' name 'SetColorAdjustment';
 function SetCommConfig(hCommDev: THandle; const lpCC: TCommConfig; dwSize: DWORD): BOOL; external 'kernel32' name 'SetCommConfig';
-//function SetCommState(hFile: THandle; const lpDCB: TDCB): BOOL; external 'kernel32' name 'SetCommState';
-//function SetCommTimeouts(hFile: THandle; const lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'SetCommTimeouts';
+function SetCommState(hFile: THandle; const lpDCB: TDCB): BOOL; external 'kernel32' name 'SetCommState';
+function SetCommTimeouts(hFile: THandle; const lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'SetCommTimeouts';
 function SetConsoleCursorInfo(hConsoleOutput: THandle; const lpConsoleCursorInfo: TConsoleCursorInfo): BOOL; external 'kernel32' name 'SetConsoleCursorInfo';
 //function SetConsoleWindowInfo(hConsoleOutput: THandle; bAbsolute: BOOL; const lpConsoleWindow: TSmallRect): BOOL; external 'kernel32' name 'SetConsoleWindowInfo';
 {$ifdef support_smartlink}
@@ -927,7 +927,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.12  2003-01-02 22:07:00  peter
+  Revision 1.13  2003-03-20 14:25:39  armin
+  + reactivated delphi compatible versions of SetCommTimeouts,SetCommState,BuildCommDCB*
+
+  Revision 1.12  2003/01/02 22:07:00  peter
     * missing items
 
   Revision 1.11  2002/12/27 18:13:38  peter
