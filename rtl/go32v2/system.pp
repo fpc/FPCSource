@@ -86,6 +86,19 @@ const
 {$endif RTLLITE}
 
 type
+   { the fields of this record are os dependent  }
+   { and they shouldn't be used in a program     }
+   { only the type TCriticalSection is important }
+   TRTLCriticalSection = packed record
+      DebugInfo : pointer;
+      LockCount : longint;
+      RecursionCount : longint;
+      OwningThread : DWord;
+      LockSemaphore : DWord;
+      Reserved : DWord;
+   end;
+
+type
 { Dos Extender info }
   p_stub_info = ^t_stub_info;
   t_stub_info = packed record
@@ -1549,7 +1562,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  2001-08-12 17:57:54  peter
+  Revision 1.14  2001-10-28 17:43:51  peter
+    * add trtlcriticalsection type
+
+  Revision 1.13  2001/08/12 17:57:54  peter
     * map sharing violation to rte 5
 
   Revision 1.12  2001/06/30 18:55:48  hajny
