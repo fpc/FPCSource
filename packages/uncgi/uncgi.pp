@@ -10,11 +10,12 @@ interface
 uses
   strings
 {$ifdef ver1_0}
+ {$ifdef FreeBSD}		{In 1.0 FreeBSD still defines Linux!}
+    ,Linux
+  {$else}
   {$ifdef linux}
     ,Linux
   {$endif}
-  {$ifdef freebsd}
-    ,Linux
   {$endif}
 {$else}
   {$ifdef Unix}
@@ -436,7 +437,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.6  2001-04-08 12:27:55  peter
+  Revision 1.7  2001-07-08 13:21:12  marco
+   * Unit linux was imported twice under FreeBSD (1.0 still defines Linux!)
+
+  Revision 1.6  2001/04/08 12:27:55  peter
     * made it compilable with both 1.0.x and 1.1
 
   Revision 1.5  2001/01/23 20:54:18  hajny
