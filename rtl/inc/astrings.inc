@@ -705,10 +705,7 @@ begin
   If Length(S)=0 then
    exit;
   if index<=0 then
-   begin
-     inc(Size,index-1);
-     index:=1;
-   end;
+   exit;
   LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
   if (Index<=LS) and (Size>0) then
    begin
@@ -785,7 +782,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2002-09-07 21:10:47  carl
+  Revision 1.28  2002-09-14 11:20:50  carl
+    * Delphi compatibility fix (with string routines)
+
+  Revision 1.27  2002/09/07 21:10:47  carl
     * cardinal -> longword
     - remove some unused routines
 

@@ -697,10 +697,7 @@ begin
   If Length(S)=0 then
    exit;
   if index<=0 then
-   begin
-     inc(Size,index-1);
-     index:=1;
-   end;
+   exit;
   LS:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
   if (Index<=LS) and (Size>0) then
    begin
@@ -853,7 +850,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2002-09-07 21:16:45  carl
+  Revision 1.21  2002-09-14 11:20:50  carl
+    * Delphi compatibility fix (with string routines)
+
+  Revision 1.20  2002/09/07 21:16:45  carl
     * cardinal -> longword
 
   Revision 1.19  2002/09/07 15:07:46  peter

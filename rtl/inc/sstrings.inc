@@ -48,10 +48,7 @@ end;
 procedure delete(var s : shortstring;index : StrLenInt;count : StrLenInt);
 begin
   if index<=0 then
-   begin
-     inc(count,index-1);
-     index:=1;
-   end;
+     exit;
   if (Index<=Length(s)) and (Count>0) then
    begin
      if Count>length(s)-Index then
@@ -662,7 +659,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2002-09-07 21:19:00  carl
+  Revision 1.23  2002-09-14 11:20:50  carl
+    * Delphi compatibility fix (with string routines)
+
+  Revision 1.22  2002/09/07 21:19:00  carl
     * cardinal -> longword
 
   Revision 1.21  2002/09/07 15:07:46  peter
