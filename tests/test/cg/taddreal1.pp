@@ -24,6 +24,13 @@
 {  LOC_FPU                                                      }
 {  LOC_REFERENCE / LOC_MEM                                      }
 
+{ Only m68k needs FPU emulation }
+{$ifdef m68k}
+  {$define NEEDFPUEMU}
+{$endif m68k}
+
+{$ifdef NEEDFPUEMU}
+
 {$E+}
 procedure fail;
 begin
@@ -264,10 +271,20 @@ Begin
 { RealTestComplex;}
 end.
 
+{$else NEEDFPUEMU}
+
+begin
+  writeln('No FPU emulation supported by this platform');
+end.
+
+{$endif NEEDFPUEMU}
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:49  peter
+  Revision 1.3  2002-12-06 15:49:36  peter
+    * FPU emu is only needed for m68k
+
+  Revision 1.2  2002/09/07 15:40:49  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/25 19:26:23  peter
