@@ -29,9 +29,9 @@ unit typinfo;
 // temporary types:
 
     type
-//{$ifndef HASVARIANT}
+{$ifndef HASVARIANT}
        Variant      = Pointer;
-//{$endif}
+{$endif}
 
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
@@ -1068,7 +1068,11 @@ end;
 Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
 begin
 {$warning GetVariantProp not implemented}
+{$ifdef HASVARIANT}
+  Result:=Null;
+{$else}
   Result:=nil;
+{$endif}
 end;
 
 
@@ -1303,7 +1307,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2003-12-24 22:27:13  peter
+  Revision 1.21  2004-02-20 15:55:26  peter
+    * enable variant again
+
+  Revision 1.20  2003/12/24 22:27:13  peter
     * removed assembler
     * cleanup
 
