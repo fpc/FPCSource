@@ -1165,11 +1165,16 @@ Begin
           Not(p1^.typ in SkipInstr);
   Until not(assigned(p1)) or
         (p1 = p2);
-  if assigned(p1) and lastRemovedWasDealloc then
+  if assigned(p1) then
     begin
-      hp := new(paiRegalloc,dealloc(reg));
-      insertLLItem(asmL,p1,p1^.next,hp);
-    end;
+      if assigned(p1^.optinfo) then
+        include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
+      if lastRemovedWasDealloc then
+        begin
+          hp := new(paiRegalloc,dealloc(reg));
+          insertLLItem(asmL,p1,p1^.next,hp);
+        end;
+   end;
 End;
 
 
@@ -2357,7 +2362,11 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:43  peter
+  Revision 1.2  2000-10-19 15:59:40  jonas
+    * fixed bug in allocregbetween (the register wasn't added to the
+      usedregs set of the last instruction of the chain) ("merged")
+
+  Revision 1.1  2000/10/15 09:47:43  peter
     * moved to i386/
 
   Revision 1.16  2000/10/14 10:14:47  peter
