@@ -329,7 +329,9 @@ implementation
     procedure firstarrayconstructrange(var p:ptree);
       begin
         firstpass(p^.left);
+        set_varstate(p^.left,true);
         firstpass(p^.right);
+        set_varstate(p^.right,true);
         calcregisters(p,0,0,0);
         p^.resulttype:=p^.left^.resulttype;
       end;
@@ -365,6 +367,7 @@ implementation
            while assigned(hp) do
             begin
               firstpass(hp^.left);
+              set_varstate(hp^.left,true);
               if (not get_para_resulttype) and (not p^.novariaallowed) then
                begin
                  case hp^.left^.resulttype^.deftype of
@@ -478,7 +481,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-12-31 14:26:27  peter
+  Revision 1.56  2000-01-06 01:08:59  pierre
+   * fix for web bug 776
+
+  Revision 1.55  1999/12/31 14:26:27  peter
     * fixed crash with empty array constructors
 
   Revision 1.54  1999/12/09 23:18:05  pierre
