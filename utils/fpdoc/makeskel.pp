@@ -201,37 +201,45 @@ begin
 end;
 
 procedure ParseCommandLine;
+
+Const
+{$IFDEF Unix}
+  MoFileTemplate = '/usr/local/share/locale/%s/LC_MESSAGES/makeskel.mo';
+{$ELSE}
+  MoFileTemplate ='intl/makeskel.%s.mo';
+{$ENDIF}
+
 var
+  MOFilename: string;
   i: Integer;
 begin
+  DocLang:='';
   for i := 1 to ParamCount do
     ParseOption(ParamStr(i));
+  If (DocLang<>'') then
+    begin
+    MOFilename:=Format(MOFileTemplate,[DocLang]);
+    if FileExists(MOFilename) then
+      gettext.TranslateResourceStrings(MoFileName)
+    else
+      writeln('NOTE: unable to find tranlation file ',MOFilename);
+    // Translate internal documentation strings
+    TranslateDocStrings(DocLang);
+    end;  
 end;
+
 
 
 var
   i: Integer;
   Module: TPasModule;
-  MOFilename: string;
+  
 begin
   InitOptions;
   ParseCommandLine;
-
-{$IFDEF Unix}
-  MOFilename:='/usr/local/share/locale/%s/LC_MESSAGES/makeskel.mo';
-{$ELSE}
-  MOFilename:='intl/makeskel.%s.mo';
-{$ENDIF}
-  if FileExists(MOFilename) then
-    gettext.TranslateResourceStrings(Format(MOFilename,[doclang]))
-  else
-    writeln('NOTE: unable to find tranlation file ',MOFilename);
-
   WriteLn(STitle);
   WriteLn(SCopyright);
   WriteLn;
-
-
   if CmdLineAction = actionHelp then
     WriteLn(SCmdLineHelp)
   else
@@ -243,11 +251,6 @@ begin
       WriteLn(SNoPackageNameProvided);
       Halt(2);
     end;
-
-
-    // Translate internal documentation strings
-    if Length(DocLang) > 0 then
-      TranslateDocStrings(DocLang);
 
     Assign(f, OutputName);
     Rewrite(f);
@@ -292,7 +295,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-08-24 14:48:25  michael
+  Revision 1.8  2004-08-25 07:16:43  michael
+  + Improved translation handling
+
+  Revision 1.7  2004/08/24 14:48:25  michael
   + Translate now called correctly...
 
   Revision 1.6  2004/05/01 20:13:40  marco
