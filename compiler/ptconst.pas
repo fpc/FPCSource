@@ -438,6 +438,11 @@ implementation
                             curconstSegment.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           labelsym :
                             curconstSegment.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_FUNCTION,offset));
+                          constsym :
+                            if tconstsym(srsym).consttyp=constresourcestring then
+                              curconstSegment.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),AT_DATA,tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
+                            else
+                              Message(type_e_variable_id_expected);
                           else
                             Message(type_e_variable_id_expected);
                         end;
@@ -1081,7 +1086,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2005-01-24 21:39:03  peter
+  Revision 1.101  2005-02-02 19:42:19  florian
+    + allow to take the address of a resourcestring in typed constants
+
+  Revision 1.100  2005/01/24 21:39:03  peter
     * remove multiple typeconvs for procvar
 
   Revision 1.99  2005/01/09 15:05:29  peter
