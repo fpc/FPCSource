@@ -278,6 +278,7 @@ bug0185.pp   missing range checking for Val and subrange types
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   array of char overloading problem with strings
+bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
 bug0207.pp   a class destructor doesn't release the memory
