@@ -373,8 +373,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-01-04 21:12:47  jonas
-  *** empty log message ***
+  Revision 1.40  2004-01-04 21:17:51  jonas
+    + added log message for last commit
+
+  Revision 1.39  2004/01/04 21:12:47  jonas
+    + as_darwin assembler type (labels start with L)
+    * never generate register->number mappings for Darwin
+    * always use real register names for Darwin
 
   Revision 1.38  2003/12/09 20:09:09  jonas
     * support writing of symbols with length 255
