@@ -55,6 +55,28 @@ begin
 end;
 {$ENDIF}
 
+function AcquireExceptionObject: Pointer;
+begin
+  If ExceptObjectStack=nil then begin
+    runerror(0); // which error?
+  end else begin
+    Inc(ExceptObjectStack^.refcount);
+    AcquireExceptionObject := ExceptObjectStack^.FObject;
+  end;
+end;
+
+procedure ReleaseExceptionObject;
+begin
+  If ExceptObjectStack=nil then begin
+    runerror(0); // which error?
+  end else begin
+    if ExceptObjectStack^.refcount = 0 then begin
+      runerror(0); // which error?
+    end;
+    Dec(ExceptObjectStack^.refcount);
+  end;
+end;
+
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
@@ -122,6 +144,7 @@ begin
   ExceptObjectStack^.FObject:=Obj;
   ExceptObjectStack^.Addr:=AnAddr;
   ExceptObjectStack^.Frame:=AFrame;
+  ExceptObjectStack^.refcount := 0;
 end;
 
 {$ifdef hascompilerproc}
@@ -197,7 +220,11 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       fpc_PopObjectStack:=ExceptObjectStack^.FObject;
+       if ExceptObjectStack^.refcount = 0 then begin
+         fpc_PopObjectStack:=ExceptObjectStack^.FObject;
+       end else begin
+         fpc_PopObjectStack:=nil;
+       end;
        hp:=ExceptObjectStack;
        ExceptObjectStack:=ExceptObjectStack^.next;
        dispose(hp);
@@ -236,6 +263,7 @@ begin
 {$endif}
   If ExceptAddrStack=Nil then
     DoUnHandledException;
+  ExceptObjectStack^.refcount := 0;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
@@ -283,7 +311,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.11  2003-09-06 21:56:29  marco
+  Revision 1.12  2003-10-06 15:59:20  florian
+    + applied patch for ref. counted exceptions by Johannes Berg
+
+  Revision 1.11  2003/09/06 21:56:29  marco
    * one VIRTUALPASCAL
 
   Revision 1.10  2003/05/01 08:05:23  florian

@@ -209,6 +209,7 @@
          Addr,
          Frame   : pointer;
          Next    : PExceptObject;
+         refcount: Longint;
        end;
 
     Const
@@ -216,6 +217,27 @@
        RaiseProc : TExceptProc = Nil;
 
     Function RaiseList : PExceptObject;
+
+    { @abstract(increase exception reference count)
+      When leaving an except block, the exception object is normally
+      freed automatically. To avoid this, call this function.
+      If within the exception object you decide that you don't need
+      the exception after all, call @link(ReleaseExceptionObject).
+      Otherwise, if the reference count is > 0, the exception object 
+      goes into your "property" and you need to free it manually.
+      The effect of this function is countered by re-raising an exception
+      via "raise;", this zeroes the reference count again.
+      Calling this method is only valid within an except block.
+      @return(pointer to the exception object) }
+    function AcquireExceptionObject: Pointer;
+
+    { @abstract(decrease exception reference count)
+      After calling @link(AcquireExceptionObject) you can call this method
+      to decrease the exception reference count again.
+      If the reference count is > 0, the exception object 
+      goes into your "property" and you need to free it manually.
+      Calling this method is only valid within an except block. }
+    procedure ReleaseExceptionObject;
 
 {*****************************************************************************
                               Array of const support
@@ -271,7 +293,10 @@
 
 {
   $Log$
-  Revision 1.16  2003-03-17 20:55:58  peter
+  Revision 1.17  2003-10-06 15:59:20  florian
+    + applied patch for ref. counted exceptions by Johannes Berg
+
+  Revision 1.16  2003/03/17 20:55:58  peter
     * ClassType changed to class method
 
   Revision 1.15  2002/09/26 14:43:24  florian
