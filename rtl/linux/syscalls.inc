@@ -99,6 +99,7 @@ asm
   lwz  r4, 8(r4)
 { Go ! }
   sc
+  bnslr
 { Put back the registers... }
   lwz    r0, tmp
   stw    r3, 4(r0)
@@ -582,7 +583,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-02 20:03:20  florian
+  Revision 1.10  2002-09-02 20:42:22  florian
+    * another ppc syscall fix
+
+  Revision 1.9  2002/09/02 20:03:20  florian
     * ppc syscall code fixed
 
   Revision 1.8  2002/08/19 18:24:05  jonas
