@@ -901,23 +901,36 @@ end;
 
     function fexpand(const path : pathstr) : pathstr;
        var
-         s,pa : string;
+         s,pa : pathstr;
          i,j  : longint;
        begin
           getdir(0,s);
-          pa:=upcase(path);
+          if LFNSupport then
+           begin
+             pa:=path;
+             { Always uppercase driveletter }
+             if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['a'..'z']) then
+              pa[1]:=CHR(ORD(Pa[1])-32);
+           end
+          else
+           pa:=upcase(path);
           { allow slash as backslash }
           for i:=1 to length(pa) do
            if pa[i]='/' then
             pa[i]:='\';
 
-          if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
+          if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z']) then
             begin
                { we must get the right directory }
                getdir(ord(pa[1])-ord('A')+1,s);
                if (ord(pa[0])>2) and (pa[3]<>'\') then
                  if pa[1]=s[1] then
-                   pa:=s+'\'+copy (pa,3,length(pa))
+                   begin
+                     { remove ending slash if it already exists }
+                     if s[length(s)]='\' then
+                      dec(s[0]);
+                     pa:=s+'\'+copy (pa,3,length(pa));
+                   end
                  else
                    pa:=pa[1]+':\'+copy (pa,3,length(pa))
             end
@@ -1162,7 +1175,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.18  1998-11-23 12:48:02  peter
+  Revision 1.19  1998-11-23 13:53:59  peter
+    * more fexpand fixes from marco van de voort
+
+  Revision 1.18  1998/11/23 12:48:02  peter
     * fexpand('o:') fixed to return o:\ (from the mailinglist)
 
   Revision 1.17  1998/11/22 09:33:21  florian
