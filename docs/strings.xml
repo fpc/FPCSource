@@ -36,7 +36,7 @@ platforms.
 <short>Allocate memory for a new null-terminated string on the heap</short>
 <descr>
 <var>StrAlloc</var> reserves memory on the heap for a string with length <var>Len</var>,
-terminating <var>\#0</var> included, and returns a pointer to it.
+terminating <var>#0</var> included, and returns a pointer to it.
 </descr>
 <errors>
 If there is not enough memory, a run-time error occurs.
