@@ -16,9 +16,9 @@ const
   SAssignError = '%s can not be assigned to %s';
   SFCreateError = 'File %s can not be created';
   SFOpenError = 'File %s can not be opened';
-  SReadError = 'Stream-Read-Error';
-  SWriteError = 'Stream-Write-Error';
-  SMemoryStreamError = 'Can not expand Memory Stream';
+  SReadError = 'Stream read error';
+  SWriteError = 'Stream write error';
+  SMemoryStreamError = 'Cannot expand memory stream';
   SCantWriteResourceStreamError = 'Can not write to read-only ResourceStream';
   SDuplicateReference = 'WriteObject was called twice for one instance';
   SClassNotFound = 'Class %s not found';
@@ -33,8 +33,8 @@ const
   SInvalidTabIndex = 'Registerindex out of bounds';
   SDuplicateName = 'A Component with name %s exists already';
   SInvalidName = '"%s" is not a valid identifier name';
-  SDuplicateClass = 'A Class with name %s exists already';
-  SNoComSupport = '%s is not registered as COM-Class';
+  SDuplicateClass = 'A class with name %s exists already';
+  SNoComSupport = '%s is not registered as COM Class';
   SLineTooLong = 'Line too long';
   SRangeError = 'Range error';
   SSeekNotImplemented = '64bit Seek not implemented for class %s';
@@ -275,7 +275,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2001-10-28 17:16:44  peter
+  Revision 1.6  2001-12-17 20:17:38  sg
+  *Fixed some typos
+
+  Revision 1.5  2001/10/28 17:16:44  peter
     * int64 file functions added
 
   Revision 1.4  2000/12/23 22:54:50  sg
