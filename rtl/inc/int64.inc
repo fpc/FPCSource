@@ -292,26 +292,26 @@
          l : longint;
 
       begin
-              fpc_mul_qword:=0;
-              bitpos:=1;
+        fpc_mul_qword:=0;
+        bitpos:=1;
 
-              // store f1 for overflow checking
-              _f1:=f1;
+        for l:=0 to 63 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_qword;
+                fpc_mul_qword:=fpc_mul_qword+f1;
 
-              for l:=0 to 63 do
-                begin
-                   if (f2 and bitpos)<>0 then
-                     fpc_mul_qword:=fpc_mul_qword+f1;
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if checkoverflow and (_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)) then
+                  HandleErrorFrame(215,get_frame);
+              end;
 
-                   f1:=f1 shl 1;
-                   bitpos:=bitpos shl 1;
-                end;
-
-              { if one of the operands is greater than the result an }
-              { overflow occurs                                      }
-              if checkoverflow and (_f1 <> 0) and (f2 <>0) and
-                 ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
-                HandleErrorFrame(215,get_frame);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_QWORD}
 
@@ -362,7 +362,10 @@
 
 {
   $Log$
-  Revision 1.26  2004-05-23 14:09:43  peter
+  Revision 1.27  2004-09-26 07:15:34  florian
+    * tried to fix overflow checking in qword multiplication
+
+  Revision 1.26  2004/05/23 14:09:43  peter
     * shr/shl use and 63 for the shift value
 
   Revision 1.25  2004/04/29 18:59:43  peter
