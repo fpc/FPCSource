@@ -559,43 +559,47 @@ do_jmp:
 
       var
          a : pasmlabel;
-
       begin
          if assigned(p^.left) then
            begin
-              { generate the address }
+              { multiple parameters? }
               if assigned(p^.right) then
                 begin
-                   secondpass(p^.right);
-                   if codegenerror then
-                     exit;
-                   emit_push_loc(p^.right^.location);
+                  { push frame }
+                  if assigned(p^.frametree) then
+                    begin
+                      secondpass(p^.frametree);
+                      if codegenerror then
+                       exit;
+                      emit_push_loc(p^.frametree^.location);
+                    end
+                  else
+                    emit_const(A_PUSH,S_L,0);
+                  { push address }
+                  secondpass(p^.right);
+                  if codegenerror then
+                   exit;
+                  emit_push_loc(p^.right^.location);
                 end
               else
                 begin
                    getlabel(a);
                    emitlab(a);
+                   emit_const(A_PUSH,S_L,0);
                    emit_sym(A_PUSH,S_L,a);
                 end;
+              { push object }
               secondpass(p^.left);
               if codegenerror then
                 exit;
-
-              case p^.left^.location.loc of
-                 LOC_MEM,LOC_REFERENCE:
-                   emit_ref(A_PUSH,S_L,
-                       newreference(p^.left^.location.reference));
-                 LOC_CREGISTER,LOC_REGISTER : emit_reg(A_PUSH,S_L,
-                       p^.left^.location.register);
-                 else CGMessage(type_e_mismatch);
-              end;
+              emit_push_loc(p^.left^.location);
               emitcall('FPC_RAISEEXCEPTION');
-             end
-           else
-             begin
-                emitcall('FPC_POPADDRSTACK');
-                emitcall('FPC_RERAISE');
-             end;
+           end
+         else
+           begin
+              emitcall('FPC_POPADDRSTACK');
+              emitcall('FPC_RERAISE');
+           end;
        end;
 
 
@@ -1210,7 +1214,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.72  2000-04-22 15:29:26  jonas
+  Revision 1.73  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.72  2000/04/22 15:29:26  jonas
     * cleaner register (de)allocation in secondfor (for optimizer)
 
   Revision 1.71  2000/04/16 08:08:44  jonas

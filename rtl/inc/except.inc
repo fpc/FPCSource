@@ -37,7 +37,8 @@ Type
   PExceptObject = ^TExceptObject;
   TExceptObject = record
     FObject : TObject;
-    Addr    : pointer;
+    Addr,
+    Frame   : pointer;
     Next    : PExceptObject;
   end;
 
@@ -77,7 +78,7 @@ begin
 end;
 
 
-Procedure PushExceptObj (Obj : TObject; AnAddr : Pointer); [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];
+Procedure PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];
 var
   Newobj : PExceptObject;
 begin
@@ -97,6 +98,7 @@ begin
     end;
   ExceptObjectStack^.FObject:=Obj;
   ExceptObjectStack^.Addr:=AnAddr;
+  ExceptObjectStack^.Frame:=AFrame;
 end;
 
 
@@ -104,18 +106,18 @@ Procedure DoUnHandledException;
 begin
   If ExceptProc<>Nil then
     If ExceptObjectStack<>Nil then
-      TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,ExceptObjectStack^.Addr);
+      TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,ExceptObjectStack^.Addr,ExceptObjectStack^.Frame);
   RunError(217);
 end;
 
 
-Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
+Function Raiseexcept (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
   Raiseexcept:=nil;
-  PushExceptObj(Obj,AnAddr);
+  PushExceptObj(Obj,AnAddr,AFrame);
   If ExceptAddrStack=Nil then
     DoUnhandledException;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
@@ -242,7 +244,13 @@ begin
 end;
 {
   $Log$
-  Revision 1.17  2000-02-09 22:16:50  florian
+  Revision 1.18  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.17  2000/02/09 22:16:50  florian
     + popsecondobjectstack added
 
   Revision 1.16  2000/02/09 16:59:29  peter

@@ -464,7 +464,7 @@ end;
 Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);
 begin
   If pointer(ErrorProc)<>Nil then
-    ErrorProc(Errno,pointer(addr));
+    ErrorProc(Errno,pointer(addr),pointer(frame));
   errorcode:=Errno;
   exitcode:=Errno;
   erroraddr:=pointer(addr);
@@ -621,7 +621,13 @@ end;
 
 {
   $Log$
-  Revision 1.87  2000-04-14 12:17:12  pierre
+  Revision 1.88  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.87  2000/04/14 12:17:12  pierre
    + get longer backtrace when redirected to file
 
   Revision 1.86  2000/04/02 09:39:25  florian

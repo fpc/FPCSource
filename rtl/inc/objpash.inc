@@ -146,10 +146,10 @@
           }
        end;
 
-       TExceptProc = Procedure (Obj : TObject; Addr: Pointer);
+       TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
 
        Const
-          ExceptProc : Pointer {TExceptProc} = Nil;
+          ExceptProc : TExceptProc = Nil;
 
 
 {*****************************************************************************
@@ -220,7 +220,13 @@
        end;
 {
   $Log$
-  Revision 1.8  2000-02-09 16:59:31  peter
+  Revision 1.9  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.8  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.7  2000/01/07 16:41:36  daniel

@@ -451,31 +451,35 @@ implementation
     procedure firstraise(var p : ptree);
       begin
          p^.resulttype:=voiddef;
-         {
-         p^.registersfpu:=0;
-         p^.registers32:=0;
-         }
          if assigned(p^.left) then
            begin
+              { first para must be a _class_ }
               firstpass(p^.left);
-
-              { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
                  not(pobjectdef(p^.left^.resulttype)^.is_class) then
                 CGMessage(type_e_mismatch);
-
-              p^.registersfpu:=p^.left^.registersfpu;
-              p^.registers32:=p^.left^.registers32;
-{$ifdef SUPPORT_MMX}
-              p^.registersmmx:=p^.left^.registersmmx;
-{$endif SUPPORT_MMX}
+              if codegenerror then
+               exit;
+              { insert needed typeconvs for addr,frame }
               if assigned(p^.right) then
-                begin
-                   firstpass(p^.right);
-                   p^.right:=gentypeconvnode(p^.right,s32bitdef);
-                   firstpass(p^.right);
-                   left_right_max(p);
-                end;
+               begin
+                 { addr }
+                 firstpass(p^.right);
+                 p^.right:=gentypeconvnode(p^.right,s32bitdef);
+                 firstpass(p^.right);
+                 if codegenerror then
+                  exit;
+                 { frame }
+                 if assigned(p^.frametree) then
+                  begin
+                    firstpass(p^.frametree);
+                    p^.frametree:=gentypeconvnode(p^.frametree,s32bitdef);
+                    firstpass(p^.frametree);
+                    if codegenerror then
+                     exit;
+                  end;
+               end;
+              left_right_max(p);
            end;
       end;
 
@@ -628,7 +632,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2000-03-19 14:17:05  florian
+  Revision 1.37  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.36  2000/03/19 14:17:05  florian
     * crash when using exception classes without sysutils unit fixed
 
   Revision 1.35  2000/02/17 14:53:43  florian

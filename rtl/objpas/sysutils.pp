@@ -192,7 +192,7 @@ type
 {$define STACKCHECK_WAS_ON}
 {$S-}
 {$endif OPT S }
-Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);
+Procedure CatchUnhandledException (Obj : TObject; Addr,Frame: Pointer);
 Var
   Message : String;
 begin
@@ -204,8 +204,11 @@ begin
    end
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
+  { to get a nice symify }
+  Writeln(stdout,BackTraceStrFunc(Longint(Addr)));
+  Dump_Stack(stdout,longint(frame));
   Writeln(stdout,'');
-  Runerror(217);
+  Halt(217);
 end;
 
 
@@ -213,7 +216,7 @@ Var OutOfMemory : EOutOfMemory;
     InValidPointer : EInvalidPointer;
 
 
-Procedure RunErrorToExcept (ErrNo : Longint; Address : Pointer);
+Procedure RunErrorToExcept (ErrNo : Longint; Address,Frame : Pointer);
 
 Var E : Exception;
     S : String;
@@ -257,7 +260,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-  Raise E at longint(Address);
+  Raise E at longint(Address),longint(Frame);
 end;
 
 
@@ -303,7 +306,13 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.43  2000-03-30 13:54:15  pierre
+    Revision 1.44  2000-04-24 11:11:50  peter
+      * backtraces for exceptions are now only generated from the place of the
+        exception
+      * frame is also pushed for exceptions
+      * raise statement enhanced with [,<frame>]
+
+    Revision 1.43  2000/03/30 13:54:15  pierre
      No stack check inside CatchUnhandledException
 
     Revision 1.42  2000/02/10 22:56:43  florian

@@ -156,7 +156,8 @@ unit tree;
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
                       dt_mbleft,dt_typeconv,dt_inlinen,dt_leftrightmethod,
-                      dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
+                      dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn,
+                      dt_leftrightframe);
 
       { different assignment types }
 
@@ -239,6 +240,7 @@ unit tree;
                        {$ENDIF}
                        is_first_funcret : boolean);
              subscriptn : (vs : pvarsym);
+             raisen : (frametree : ptree);
              vecn : (memindex,memseg:boolean;callunique : boolean);
              stringconstn : (value_str : pchar;length : longint; lab_str : pasmlabel;stringtype : tstringtype);
              typeconvn : (convtyp : tconverttype;explizit : boolean);
@@ -459,6 +461,15 @@ unit tree;
                  if assigned(p^.hightree) then
                    hp^.left:=getcopy(p^.hightree);
               end;
+            dt_leftrightframe :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 if assigned(p^.right) then
+                   hp^.right:=getcopy(p^.right);
+                 if assigned(p^.frametree) then
+                   hp^.left:=getcopy(p^.frametree);
+              end;
             dt_leftrightmethod :
               begin
                  if assigned(p^.left) then
@@ -561,6 +572,15 @@ unit tree;
                    disposetree(p^.right);
                  if assigned(p^.hightree) then
                    disposetree(p^.hightree);
+              end;
+            dt_leftrightframe :
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.frametree) then
+                   disposetree(p^.frametree);
               end;
             dt_leftrightmethod :
               begin
@@ -2090,7 +2110,13 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.117  2000-04-08 16:22:11  jonas
+  Revision 1.118  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.117  2000/04/08 16:22:11  jonas
     * fixed concat_string optimization and enabled it when
       -dnewoptimizations is used
 

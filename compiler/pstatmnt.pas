@@ -486,27 +486,32 @@ unit pstatmnt;
     function raise_statement : ptree;
 
       var
-         p1,p2 : ptree;
+         p,pobj,paddr,pframe : ptree;
 
       begin
-         p1:=nil;
-         p2:=nil;
+         pobj:=nil;
+         paddr:=nil;
+         pframe:=nil;
          consume(_RAISE);
          if not(token in [_SEMICOLON,_END]) then
            begin
-              p1:=comp_expr(true);
-              if (idtoken=_AT) then
+              { object }
+              pobj:=comp_expr(true);
+              if try_to_consume(_AT) then
                 begin
-                   consume(_ID);
-                   p2:=comp_expr(true);
+                   paddr:=comp_expr(true);
+                   if try_to_consume(_COMMA) then
+                     pframe:=comp_expr(true);
                 end;
            end
          else
            begin
               if (block_type<>bt_except) then
-               Message(parser_e_no_reraise_possible);
+                Message(parser_e_no_reraise_possible);
            end;
-         raise_statement:=gennode(raisen,p1,p2);
+         p:=gennode(raisen,pobj,paddr);
+         p^.frametree:=pframe;
+         raise_statement:=p;
       end;
 
 
@@ -1368,7 +1373,13 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.127  2000-03-19 14:17:05  florian
+  Revision 1.128  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.127  2000/03/19 14:17:05  florian
     * crash when using exception classes without sysutils unit fixed
 
   Revision 1.126  2000/03/19 11:16:44  peter

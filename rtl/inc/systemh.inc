@@ -413,7 +413,7 @@ Procedure SysAssert(Const Msg,FName:ShortString;LineNo,ErrorAddr:Longint);
 { Error handlers }
 Type
   TBackTraceStrFunc = Function (Addr: Longint): ShortString;
-  TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
+  TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno,erroraddr:longint);
 const
@@ -438,7 +438,13 @@ const
 
 {
   $Log$
-  Revision 1.80  2000-03-26 11:36:28  jonas
+  Revision 1.81  2000-04-24 11:11:50  peter
+    * backtraces for exceptions are now only generated from the place of the
+      exception
+    * frame is also pushed for exceptions
+    * raise statement enhanced with [,<frame>]
+
+  Revision 1.80  2000/03/26 11:36:28  jonas
     + $maxfpuregisters 0 for i386 in systemh (to avoid requiring too much
       empty FPU registers for sysstem routines
     * fixed bug in str_real when using :x:0
