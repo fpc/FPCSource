@@ -195,6 +195,7 @@
        vtInterface  = 14;
        vtWideString = 15;
        vtInt64      = 16;
+       vtQWord      = 17;
 
     Type
        PVarRec = ^TVarRec;
@@ -216,11 +217,15 @@
 //           vtVariant    : (VVariant: PVariant);
 //           vtInterface  : (VInterface: Pointer);
            vtWideString : (VWideString: Pointer);
-//           vtInt64      : (VInt64: PInt64);
+           vtInt64      : (VInt64: PInt64);
+           vtQWord      : (VQWord: PQWord);
        end;
 {
   $Log$
-  Revision 1.9  2000-04-24 11:11:50  peter
+  Revision 1.10  2000-05-14 18:47:53  florian
+    * TVarRec with Int64/QWord stuff extended
+
+  Revision 1.9  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
