@@ -115,6 +115,9 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
+{$ifndef decrrefnotnil}
+  s:=nil;
+{$endif}        
 end;
 
 {$ifdef hascompilerproc}
@@ -833,7 +836,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  2004-01-21 22:02:18  peter
+  Revision 1.41  2004-01-21 22:14:05  peter
+    * 1.0.x fix
+
+  Revision 1.40  2004/01/21 22:02:18  peter
     * decrref does not reset always to nil, only when string is disposed.
       the reset to nil for temps is done by the compiler
 
