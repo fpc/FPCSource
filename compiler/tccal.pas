@@ -20,7 +20,12 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
+
 unit tccal;
+
 interface
 
     uses
@@ -1231,7 +1236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2000-02-24 18:41:39  peter
+  Revision 1.82  2000-02-29 22:13:41  pierre
+   + use $GOTO ON
+
+  Revision 1.81  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.80  2000/02/17 14:53:43  florian
