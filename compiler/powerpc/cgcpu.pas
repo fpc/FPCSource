@@ -77,11 +77,9 @@ unit cgcpu;
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
 
-        procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
-        procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-        procedure g_restore_frame_pointer(list : taasmoutput);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
+        procedure g_restore_frame_pointer(list : taasmoutput);override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
@@ -101,8 +99,9 @@ unit cgcpu;
 
       private
 
-
+        procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
         procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
+        procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
 
@@ -871,6 +870,19 @@ const
         end;
       end;
 
+    procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
+
+      begin
+        case target_info.system of
+          system_powerpc_macos:
+            g_return_from_proc_mac(list,parasize);
+          system_powerpc_linux:
+            g_return_from_proc_sysv(list,parasize)
+          else
+            internalerror(2204001);
+        end;
+      end;
+
 
     procedure tcgppc.g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
      { generated the entry code of a procedure/function. Note: localsize is the }
@@ -1151,25 +1163,34 @@ const
         { now comes the AltiVec context save, not yet implemented !!! }
       end;
 
+    procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
+
+      var
+        regcounter: TRegister;
+        href : treference;
+      begin
+        { release parameter registers }
+        for regcounter := R_3 to R_10 do
+          a_reg_dealloc(list,regcounter);
+        { AltiVec context restore, not yet implemented !!! }
+
+        { restore SP }
+        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
+        { restore gprs }
+        reference_reset_base(href,STACK_POINTER_REG,-220);
+        list.concat(taicpu.op_reg_ref(A_LMW,R_13,href));
+        { restore return address ... }
+        reference_reset_base(href,STACK_POINTER_REG,8);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+        { ... and return from _restf14 }
+        list.concat(taicpu.op_sym_ofs(A_B,objectlibrary.newasmsymbol('_restf14'),0));
+      end;
+
 
     procedure tcgppc.g_restore_frame_pointer(list : taasmoutput);
 
       begin
          { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
-      end;
-
-
-    procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
-
-      begin
-        case target_info.system of
-          system_powerpc_macos:
-            g_return_from_proc_mac(list,parasize);
-          system_powerpc_linux:
-            g_return_from_proc_sysv(list,parasize)
-          else
-            internalerror(2204001);
-        end;
       end;
 
 
@@ -1408,31 +1429,6 @@ const
 
 
 {***************** This is private property, keep out! :) *****************}
-
-
-    procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
-
-      var
-        regcounter: TRegister;
-        href : treference;
-      begin
-        { release parameter registers }
-        for regcounter := R_3 to R_10 do
-          a_reg_dealloc(list,regcounter);
-        { AltiVec context restore, not yet implemented !!! }
-
-        { restore SP }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
-        { restore gprs }
-        reference_reset_base(href,STACK_POINTER_REG,-220);
-        list.concat(taicpu.op_reg_ref(A_LMW,R_13,href));
-        { restore return address ... }
-        reference_reset_base(href,STACK_POINTER_REG,8);
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
-        { ... and return from _restf14 }
-        list.concat(taicpu.op_sym_ofs(A_B,objectlibrary.newasmsymbol('_restf14'),0));
-      end;
-
 
     function tcgppc.issimpleref(const ref: treference): boolean;
 
@@ -1704,7 +1700,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-10-02 21:49:51  florian
+  Revision 1.61  2002-10-19 12:50:36  olle
+    * reorganized prologue and epilogue routines
+
+  Revision 1.60  2002/10/02 21:49:51  florian
     * all A_BL instructions replaced by calls to a_call_name
 
   Revision 1.59  2002/10/02 13:24:58  jonas
