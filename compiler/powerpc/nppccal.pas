@@ -57,10 +57,13 @@ implementation
       begin
         if assigned(varargsparas) then
           begin
-            if va_uses_float_reg in varargsparas.varargsinfo then
-              exprasmlist.concat(taicpu.op_const_const_const(A_CREQV,6,6,6))
-            else
-              exprasmlist.concat(taicpu.op_const_const_const(A_CRXOR,6,6,6));
+            if (target_info.abi = abi_powerpc_sysv) then
+              begin
+                if va_uses_float_reg in varargsparas.varargsinfo then
+                  exprasmlist.concat(taicpu.op_const_const_const(A_CREQV,6,6,6))
+                else
+                  exprasmlist.concat(taicpu.op_const_const_const(A_CRXOR,6,6,6));
+              end;
           end;
       end;
 
@@ -96,7 +99,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-10-15 09:30:13  mazen
+  Revision 1.31  2004-12-06 18:06:37  jonas
+    * only set/clear bit 6 of cr in case of varargs for the sysv abi
+
+  Revision 1.30  2004/10/15 09:30:13  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
