@@ -33,7 +33,11 @@ program fpc;
   {$ifdef AMIGA}
     exeext='';
   {$else}
-    exeext='.exe';
+    {$ifdef MORPHOS}
+      exeext='';
+    {$else}
+      exeext='.exe';
+    {$endif}
   {$endif}
 {$endif UNIX}
 
@@ -200,7 +204,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.14  2004-06-05 10:14:42  marco
+  Revision 1.15  2004-06-06 01:18:47  karoly
+   * morphos has no .exe just like amiga
+
+  Revision 1.14  2004/06/05 10:14:42  marco
    * fix for bug 3127
 
   Revision 1.13  2004/03/20 22:29:37  florian
