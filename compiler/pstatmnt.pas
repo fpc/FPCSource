@@ -1114,12 +1114,18 @@ unit pstatmnt;
                   dec(procinfo.call_offset,sizeof(pointer));
               end;
             assembler_block:=_asm_statement;
+          { becuase the END is already read we need to get the
+            last_endtoken_filepos here (PFV) }
+            last_endtoken_filepos:=tokenpos;
           end;
 
 end.
 {
   $Log$
-  Revision 1.11  1998-05-20 09:42:35  pierre
+  Revision 1.12  1998-05-21 19:33:33  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.11  1998/05/20 09:42:35  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

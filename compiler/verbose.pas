@@ -84,22 +84,12 @@ procedure Message3(w:tmsgconst;const s1,s2,s3:string);
 
 { Function redirecting for IDE support }
 type
-  tstopprocedure = procedure;
-  tcommentprocedure = procedure(Level:Longint;const s:string);
-{old handlers }
-  terrorfunction = function(w:tmsgconst) : boolean;
-  tinternalerrorfunction = function(i : longint) : boolean;
+  tstopprocedure         = procedure;
+  tcommentfunction       = function(Level:Longint;const s:string):boolean;
+  tinternalerrorfunction = function(i:longint):boolean;
 var
-{ this procedure is called to stop the compiler                 }
-{ e.g. this procedure has to restore the state before compiling }
-  do_stop : tstopprocedure;
-
-{ called when writing something to the screen, called with the level }
-{ of the comment }
-  do_comment : tcommentprocedure;
-
-{ only for compatibility }
-  do_note,do_warning,do_error,do_fatalerror : terrorfunction;
+  do_stop          : tstopprocedure;
+  do_comment       : tcommentfunction;
   do_internalerror : tinternalerrorfunction;
 
 
@@ -231,12 +221,13 @@ end;
 
 procedure Comment(l:longint;const s:string);
 var
-  msg : string;
+  dostop : boolean;
 begin
-  msg:=s;
-  Replace(msg,'$VER',version_string);
-  Replace(msg,'$TARGET',target_string);
-  do_comment(l,msg);
+  dostop:=((l and V_Fatal)<>0);
+  if (l and V_Error)<>0 then
+   inc(errorcount);
+  if do_comment(l,s) or dostop or (errorcount>=maxerrorcount) then
+   stop
 end;
 
 
@@ -265,7 +256,6 @@ begin
           'E' : begin
                   v:=v or V_Error;
                   inc(errorcount);
-                  dostop:=(errorcount>=maxerrorcount);
                 end;
           'O' : v:=v or V_Normal;
           'W' : v:=v or V_Warning;
@@ -285,8 +275,9 @@ begin
        end;
     end;
   Delete(s,1,idx);
-  Comment(v,s);
-  if dostop then
+  Replace(s,'$VER',version_string);
+  Replace(s,'$TARGET',target_string);
+  if do_comment(v,s) or dostop or (errorcount>=maxerrorcount) then
    stop;
 end;
 
@@ -323,7 +314,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-05-12 10:47:01  peter
+  Revision 1.7  1998-05-21 19:33:40  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.6  1998/05/12 10:47:01  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

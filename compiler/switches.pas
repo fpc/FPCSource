@@ -68,7 +68,7 @@ const
    {E} (typesw:programglobal; setsw:cs_fp_emulation; proc:nil),
    {F} (typesw:unsupported; setsw:cs_none; proc:nil),
    {G} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {H} (typesw:illegal; setsw:cs_none; proc:nil),
+   {H} (typesw:unsupported; setsw:cs_none; proc:nil),
    {I} (typesw:local; setsw:cs_iocheck; proc:nil),
    {J} (typesw:illegal; setsw:cs_none; proc:nil),
    {K} (typesw:unsupported; setsw:cs_none; proc:nil),
@@ -158,7 +158,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-01 07:43:56  florian
+  Revision 1.4  1998-05-21 19:33:36  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.3  1998/05/01 07:43:56  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 

@@ -238,7 +238,8 @@ implementation
                                    { make a reference }
                                    hp:=new_reference(procinfo.framepointer,
                                      procinfo.framepointer_offset);
-                                   
+
+
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
                                    simple_loadn:=false;
@@ -2846,6 +2847,9 @@ implementation
                        end
                      else
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,R_AX)));
+                        { this is also false !!!
+                        if not(R_EAX in unused) then
+                          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EAX,R_EDI)));}
                         if not(R_EAX in unused) then
                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EDI,R_EAX)));
                      end;
@@ -3318,9 +3322,11 @@ implementation
                      internalerror(25000);
                 end;
 
-              { exported methods should be never called direct }
+              { exported methods should be never called direct.
+                Why? Bp7 Allows it (PFV)
+
               if (p^.procdefinition^.options and poexports)<>0 then
-                Message(cg_e_dont_call_exported_direct);
+                Message(cg_e_dont_call_exported_direct);  }
 
               if (not inlined) and ((pushedparasize mod 4)<>0) then
                 begin
@@ -3620,7 +3626,8 @@ implementation
          if inlined then
            ungetpersistanttemp(inlinecode^.retoffset,4);
          disposetree(params);
-         
+
+
          { from now on the result can be freed normally }
          if inlined and ret_in_param(p^.resulttype) then
            persistanttemptonormal(funcretref.offset);
@@ -5060,7 +5067,8 @@ implementation
            secondpass(p^.left);
       end;
 
- 
+
+
     procedure second_while_repeatn(var p : ptree);
 
       var
@@ -6362,7 +6370,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.24  1998-05-20 09:42:33  pierre
+  Revision 1.25  1998-05-21 19:33:31  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.24  1998/05/20 09:42:33  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

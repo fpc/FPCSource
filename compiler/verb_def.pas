@@ -27,7 +27,7 @@ uses verbose;
 procedure SetRedirectFile(const fn:string);
 
 procedure _stop;
-procedure _comment(Level:Longint;const s:string);
+Function  _comment(Level:Longint;const s:string):boolean;
 function  _internalerror(i : longint) : boolean;
 
 implementation
@@ -88,10 +88,11 @@ begin
 end;
 
 
-Procedure _comment(Level:Longint;const s:string);
+Function _comment(Level:Longint;const s:string):boolean;
 var
   hs : string;
 begin
+  _comment:=false; { never stop }
   if (verbosity and Level)=Level then
    begin
    { Status info?, Called every line }
@@ -105,7 +106,6 @@ begin
      else
    { Message }
       begin
-
         hs:='';
         if not(use_rhide) then
           begin
@@ -151,15 +151,14 @@ begin
            else
             writeln(hs);
          end;
-      end;      
-
+      end;
    end;
 end;
 
 
 function _internalerror(i : longint) : boolean;
 begin
-  comment(V_Fatal,'Internal error '+tostr(i));
+  _comment(V_Fatal,'Internal error '+tostr(i));
   _internalerror:=true;
 end;
 
@@ -177,7 +176,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-05-12 10:47:01  peter
+  Revision 1.8  1998-05-21 19:33:38  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.7  1998/05/12 10:47:01  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

@@ -1373,10 +1373,18 @@ unit pexpr;
               begin
                  pd:=cfiledef;
                  consume(_FILE);
-                 consume(LKLAMMER);
-                 p1:=comp_expr(true);
-                 consume(RKLAMMER);
-                 p1:=gentypeconvnode(p1,pd);
+                 if token=LKLAMMER then
+                  begin
+                    consume(LKLAMMER);
+                    p1:=comp_expr(true);
+                    consume(RKLAMMER);
+                    p1:=gentypeconvnode(p1,pd);
+                  end
+                 else
+                  begin
+                    p1:=genzeronode(typen);
+                    p1^.resulttype:=pd;
+                  end;
                  p1^.explizit:=true;
                  { handle postfix operators here e.g. string(a)[10] }
                  again:=true;
@@ -1715,7 +1723,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-20 09:42:35  pierre
+  Revision 1.16  1998-05-21 19:33:32  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.15  1998/05/20 09:42:35  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)
