@@ -3295,7 +3295,7 @@
     ops     : 1;
     optypes : (ot_immediate or ot_short,ot_none,ot_none);
     code    : #1#235#40;
-    flags   : if_8086
+    flags   : if_8086 or if_pass2
   ),
   (
     opcode  : A_JMP;
@@ -3316,7 +3316,7 @@
     ops     : 1;
     optypes : (ot_immediate or ot_far,ot_none,ot_none);
     code    : #210#1#234#28#31;
-    flags   : if_8086
+    flags   : if_8086 or if_pass2
   ),
   (
     opcode  : A_JMP;

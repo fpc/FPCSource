@@ -979,10 +979,10 @@ imm                   \321\1\xE3\50                   386
 
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
-imm|short             \1\xEB\50                       8086
+imm|short             \1\xEB\50                       8086,PASS2
 imm                   \322\1\xE9\64                   8086,PASS2
 imm|near              \322\1\xE9\64                   8086,ND,PASS2
-imm|far               \322\1\xEA\34\37                8086,ND
+imm|far               \322\1\xEA\34\37                8086,ND,PASS2
 imm16                 \320\1\xE9\64                   8086,PASS2
 imm16|near            \320\1\xE9\64                   8086,ND,PASS2
 imm16|far             \320\1\xEA\34\37                8086,ND,PASS2
@@ -3422,7 +3422,10 @@ reg32,imm               \321\10\xB8\41                  X86_64
 
 ;
 ; $Log$
-; Revision 1.7  2004-01-15 14:01:32  florian
+; Revision 1.8  2004-02-03 16:53:37  peter
+; *** empty log message ***
+;
+; Revision 1.7  2004/01/15 14:01:32  florian
 ;   + x86 instruction tables for x86-64 extended
 ;
 ; Revision 1.6  2003/12/25 12:01:35  florian
