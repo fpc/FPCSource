@@ -232,7 +232,7 @@ end;
 function  RTLEventCreate :PRTLEvent;
 
 begin
-  result:=currenttm.rtleventcreate;
+  result:=currenttm.rtleventcreate();
 end;
 
 
@@ -461,7 +461,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-12-23 15:08:58  marco
+  Revision 1.15  2004-12-23 20:58:22  peter
+    * fix rtlcreateevent
+
+  Revision 1.14  2004/12/23 15:08:58  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 
