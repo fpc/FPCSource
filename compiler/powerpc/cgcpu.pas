@@ -76,6 +76,7 @@ unit cgcpu;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
+        procedure a_jmp_name(list : taasmoutput;const s : string); override;
         procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
@@ -847,6 +848,17 @@ const
        begin
          a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
        end;
+
+
+    procedure tcgppc.a_jmp_name(list : taasmoutput;const s : string);
+      var
+        p : taicpu;
+      begin
+        p := taicpu.op_sym(A_B,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION));
+        p.is_jmp := true;
+        list.concat(p)
+      end;
+
 
      procedure tcgppc.a_jmp_always(list : taasmoutput;l: tasmlabel);
 
@@ -2339,7 +2351,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.167  2004-03-02 17:48:32  florian
+  Revision 1.168  2004-03-06 21:37:45  florian
+    * fixed ppc compilation
+
+  Revision 1.167  2004/03/02 17:48:32  florian
     * got entry code fixed
 
   Revision 1.166  2004/03/02 17:32:12  florian
