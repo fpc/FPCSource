@@ -212,7 +212,7 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override TARGET_DIRS+=ftpapi mmtk
+override TARGET_DIRS+=ftpapi mmtk hwvideo
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
 ifdef REQUIRE_UNITSDIR
@@ -1031,6 +1031,7 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 TARGET_DIRS_FTPAPI=1
 TARGET_DIRS_MMTK=1
+TARGET_DIRS_HWVIDEO=1
 ifdef TARGET_DIRS_FTPAPI
 ftpapi_all:
 	$(MAKE) -C ftpapi all
@@ -1116,6 +1117,49 @@ mmtk_makefiles:
 mmtk:
 	$(MAKE) -C mmtk all
 .PHONY: mmtk_all mmtk_debug mmtk_smart mmtk_release mmtk_examples mmtk_shared mmtk_install mmtk_sourceinstall mmtk_exampleinstall mmtk_distinstall mmtk_zipinstall mmtk_zipsourceinstall mmtk_zipexampleinstall mmtk_zipdistinstall mmtk_clean mmtk_distclean mmtk_cleanall mmtk_info mmtk_makefiles mmtk
+endif
+ifdef TARGET_DIRS_HWVIDEO
+hwvideo_all:
+	$(MAKE) -C hwvideo all
+hwvideo_debug:
+	$(MAKE) -C hwvideo debug
+hwvideo_smart:
+	$(MAKE) -C hwvideo smart
+hwvideo_release:
+	$(MAKE) -C hwvideo release
+hwvideo_examples:
+	$(MAKE) -C hwvideo examples
+hwvideo_shared:
+	$(MAKE) -C hwvideo shared
+hwvideo_install:
+	$(MAKE) -C hwvideo install
+hwvideo_sourceinstall:
+	$(MAKE) -C hwvideo sourceinstall
+hwvideo_exampleinstall:
+	$(MAKE) -C hwvideo exampleinstall
+hwvideo_distinstall:
+	$(MAKE) -C hwvideo distinstall
+hwvideo_zipinstall:
+	$(MAKE) -C hwvideo zipinstall
+hwvideo_zipsourceinstall:
+	$(MAKE) -C hwvideo zipsourceinstall
+hwvideo_zipexampleinstall:
+	$(MAKE) -C hwvideo zipexampleinstall
+hwvideo_zipdistinstall:
+	$(MAKE) -C hwvideo zipdistinstall
+hwvideo_clean:
+	$(MAKE) -C hwvideo clean
+hwvideo_distclean:
+	$(MAKE) -C hwvideo distclean
+hwvideo_cleanall:
+	$(MAKE) -C hwvideo cleanall
+hwvideo_info:
+	$(MAKE) -C hwvideo info
+hwvideo_makefiles:
+	$(MAKE) -C hwvideo makefiles
+hwvideo:
+	$(MAKE) -C hwvideo all
+.PHONY: hwvideo_all hwvideo_debug hwvideo_smart hwvideo_release hwvideo_examples hwvideo_shared hwvideo_install hwvideo_sourceinstall hwvideo_exampleinstall hwvideo_distinstall hwvideo_zipinstall hwvideo_zipsourceinstall hwvideo_zipexampleinstall hwvideo_zipdistinstall hwvideo_clean hwvideo_distclean hwvideo_cleanall hwvideo_info hwvideo_makefiles hwvideo
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
