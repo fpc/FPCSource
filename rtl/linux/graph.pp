@@ -219,8 +219,8 @@ Const
     'G1600x1200x64K',
     'G1600x1200x16M',
     'G1600x1200x16M32');
-var
-  PhysicalScreen: PGraphicsContext;
+{var
+   PhysicalScreen: PGraphicsContext; }
 
  { vga functions }
  Function vga_init: Longint; Cdecl; External;
@@ -315,7 +315,7 @@ begin
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
     InitColors;
-  
+
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -545,7 +545,7 @@ end;
            HardwarePages := 0;
            // necessary hooks ...
            if (MaxColor = 16) and
-	     (LongInt(ModeInfo.Width) * LongInt(ModeInfo.Height) < 65536*4*2) then
+             (LongInt(ModeInfo.Width) * LongInt(ModeInfo.Height) < 65536*4*2) then
            begin
              // Use optimized graphics routines for 4 bit EGA/VGA modes
              ScrWidth := ModeInfo.Width div 8;
@@ -572,7 +572,7 @@ end;
            { These are not really implemented yet:
            PutImage       := @libvga_PutImageProc;
            GetImage       := @libvga_GetImageProc;}
-{          If you use the default getimage/putimage, you also need the default 
+{          If you use the default getimage/putimage, you also need the default
            imagesize! (JM)
             ImageSize      := @libvga_ImageSizeProc; }
            { Add later maybe ?
@@ -595,7 +595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-06-25 13:38:30  jonas
+  Revision 1.17  2000-06-30 22:14:44  peter
+    * removed unused var
+
+  Revision 1.16  2000/06/25 13:38:30  jonas
     * disabled libvga_imagesizeproc() because currently the default
       getimage and putimage are used (so the default imagesize should
       be used too)
