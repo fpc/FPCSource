@@ -1096,7 +1096,15 @@ Begin
           if not assigned(NNPT) then
             begin
               if ch<>#0 then
-                PushKey(ch);
+                begin
+                  { Put that unused char back into InBuf }
+                  InBuf[InHead]:=ch;
+                  inc(InCnt);
+                  inc(InHead);
+                  {Wrap if End has Reached}
+                  if InHead>=InSize then
+                   InHead:=0;
+                end;
               break;
             end;
         end;
@@ -1716,8 +1724,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-08-02 20:56:08  peter
-    * Regenerated
+  Revision 1.6  2001-08-04 11:05:21  peter
+    * unpush key fix
 
   Revision 1.4  2001/06/27 21:37:38  peter
     * v10 merges
