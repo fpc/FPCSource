@@ -16,6 +16,8 @@ Unit RTFPars;
 
  **********************************************************************}
 
+{$mode objfpc}
+
 interface
 
 Uses classes,sysutils;

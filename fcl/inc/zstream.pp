@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
+
 unit zstream;
 
 { ---------------------------------------------------------------------
@@ -447,7 +449,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-01-12 23:43:40  peter
+  Revision 1.16  2000-02-14 12:32:22  michael
+  + Added mode switch
+
+  Revision 1.15  2000/01/12 23:43:40  peter
     * fixed zstream, it works now correct with zlib/paszlib
 
   Revision 1.14  2000/01/12 23:29:49  peter

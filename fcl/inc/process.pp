@@ -25,7 +25,7 @@ Type
       FWindowLeft,
       FWindowRows,
       FWindowTop,
-      FWindowWidth : Cardinal;
+      FWindowWidth : Longint;
       FWindowRect  : TRect;
       FApplicationName : string;
       FChildErrorStream : TOutPutPipeStream;
@@ -74,7 +74,7 @@ Type
       Property DeskTop : String Read FDeskTop Write FDeskTop;
       Property Environment : Pointer Read FEnvironment Write FEnvironment;
       Property ExitStatus : Integer Read GetExitStatus;
-      Property FillAttribute : Cardinal Read FFillAttribute Write FFillAttribute;
+      Property FillAttribute : Longint Read FFillAttribute Write FFillAttribute;
       Property Handle : THandle Read FHandle;
       Property ThreadHandle : THandle Read FThreadHandle;
       Property PID : Longint;
@@ -84,12 +84,12 @@ Type
       Property Running : Boolean Read GetRunning;
       Property ShowWindow : Boolean Read FShowWindow Write FShowWindow;
       Property StdErr : TinputPipeStream Read FParentErrorStream;
-      Property WindowColumns : Cardinal Read FWindowColumns Write FWindowColumns;
-      Property WindowHeight : Cardinal Read FWindowHeight Write FWindowHeight;
-      Property WindowLeft : Cardinal Read FWindowLeft Write FWindowLeft;
-      Property WindowRows : Cardinal Read FWindowRows Write FWindowRows;
-      Property WindowTop : Cardinal Read FWindowTop  Write FWindowTop;
-      Property WindowWidth : Cardinal Read FWindowWidth Write FWindowWidth;
+      Property WindowColumns : Longint Read FWindowColumns Write FWindowColumns;
+      Property WindowHeight : Longint Read FWindowHeight Write FWindowHeight;
+      Property WindowLeft : Longint Read FWindowLeft Write FWindowLeft;
+      Property WindowRows : Longint Read FWindowRows Write FWindowRows;
+      Property WindowTop : Longint Read FWindowTop  Write FWindowTop;
+      Property WindowWidth : Longint Read FWindowWidth Write FWindowWidth;
       Property WindowRect : Trect Read GetWindowRect  Write SetWindowRect;
     end;
 
@@ -104,6 +104,13 @@ begin
   FCreateOptions:=Options;
   FCommandLine:=ACommandLine;
   FInheritHandles:=True;
+  FFillAttribute := -1;
+  FWindowColumns := -1;
+  FWindowHeight := -1;
+  FWindowLeft := -1;
+  FWindowRows := -1;
+  FWindowTop := -1;
+  FWindowWidth := -1;
   If poExecuteOnCreate in FCreateOptions then
     execute;
 end;
