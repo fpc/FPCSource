@@ -1449,7 +1449,8 @@ implementation
                  location.loc:=LOC_MEM;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
-                 procinfo^.flags:=procinfo^.flags or pi_do_call;
+                 if assigned(procinfo) then
+                    procinfo^.flags:=procinfo^.flags or pi_do_call;
               end;
            end
 
@@ -1466,14 +1467,16 @@ implementation
               if is_widestring(ld) then
                 begin
                    { we use reference counted widestrings so no fast exit here }
-                   procinfo^.no_fast_exit:=true;
+                   if assigned(procinfo) then
+                     procinfo^.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
               else if is_ansistring(ld) then
                 begin
                    { we use ansistrings so no fast exit here }
-                   procinfo^.no_fast_exit:=true;
+                   if assigned(procinfo) then
+                     procinfo^.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
@@ -1608,7 +1611,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2001-12-27 15:33:58  jonas
+  Revision 1.43  2002-03-30 23:12:09  carl
+  * avoid crash with procinfo ('merged')
+
+  Revision 1.42  2001/12/27 15:33:58  jonas
     * fixed fpuregister counting errors ("merged")
 
   Revision 1.41  2001/10/20 19:28:37  peter
