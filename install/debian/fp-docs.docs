@@ -1,1 +1,4 @@
-debian/tmp/usr/doc/fpc/0.99.12/
+debian/tmp/usr/doc/fpc/0.99.12/user.pdf
+debian/tmp/usr/doc/fpc/0.99.12/prog.pdf
+debian/tmp/usr/doc/fpc/0.99.12/ref.pdf
+debian/tmp/usr/doc/fpc/0.99.12/units.pdf
