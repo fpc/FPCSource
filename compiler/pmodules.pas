@@ -307,15 +307,6 @@ unit pmodules;
                begin
                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                  current_module^.do_compile:=true;
-{$ifdef STRANGERECOMPILE}
-                 { if the checksum was known but has changed then
-                   we should also recompile the loaded unit ! }
-                 if (pu^.checksum<>0) and (loaded_unit^.sources_avail) then
-                   begin
-                      Message2(unit_u_recompile_crc_change,loaded_unit^.modulename^,current_module^.modulename^);
-                      loaded_unit^.do_compile:=true;
-                   end;
-{$endif}
                  dispose(current_module^.map);
                  current_module^.map:=nil;
                  exit;
@@ -359,27 +350,14 @@ unit pmodules;
               pu^.loaded:=true;
 {$ifdef Double_checksum}
             { need to recompile the current unit ? }
-              if (loaded_unit^.interface_crc<>pu^.interface_checksum) then
-              { checksum change whereas it was already known
-                loade_unit was changed so we need to recompile this unit }
+              if loaded_unit^.crc<>pu^.checksum then
+{              if (loaded_unit^.interface_crc<>pu^.interface_checksum) then }
                 begin
-{$ifdef STRANGERECOMPILE}
-                  {if (loaded_unit^.sources_avail) then
-                   begin
-                      loaded_unit^.do_compile:=true;
-                   end;          }
-                  Message2(unit_u_recompile_crc_change,loaded_unit^.modulename^,current_module^.modulename^);
-                  loaded_unit^.do_compile:=true;
-                  if(pu^.interface_checksum<>0) then
-                    load_refs:=false;
-{$else}
-writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_checksum);
                   Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                   current_module^.do_compile:=true;
                   dispose(current_module^.map);
                   current_module^.map:=nil;
                   exit;
-{$endif}
                 end;
 {$endif def Double_checksum}
             { setup the map entry for deref }
@@ -467,6 +445,7 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
            end;
         end;
 
+
       begin
          old_current_module:=current_module;
          old_current_ppu:=current_ppu;
@@ -480,6 +459,10 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
            begin
               if hp^.modulename^=s then
                 begin
+{$ifdef Double_checksum}
+                   if hp^.do_reload_ppu then
+                    break;
+{$endif}
                    { the unit is already registered   }
                    { and this means that the unit     }
                    { is already compiled              }
@@ -505,40 +488,12 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
                        end;
                     end;
                    break;
-                end
-{$ifdef Double_checksum}
-            else if  hp^.do_reload_ppu then
-                begin
-                  { remove the old unit }
-                  loaded_units.remove(hp);
-                  scanner:=hp^.scanner;
-                  name:=hp^.modulename^;
-                  hp^.reset;
-                  hp^.do_reload_ppu:=false;
-                  hp^.scanner:=scanner;
-                  { try to reopen ppu }
-                  hp^.search_unit(name,false);
-                  { try to load the unit a second time first }
-                  current_module:=hp;
-                  current_module^.in_second_compile:=true;
-                  { now realy load the ppu }
-                  current_ppu:=current_module^.ppufile;
-                  loadppufile;
-                  { set compiled flag }
-                  current_module^.compiled:=true;
                 end;
-{$else Double_Checksum}
-               ;
-{$endif Double_checksum}
               { the next unit }
               hp:=pmodule(hp^.next);
            end;
        { the unit is not in the symtable stack }
-         if (not assigned(st))
-{$ifdef Double_checksum}
-            or (assigned(hp) and hp^.do_reload_ppu)
-{$endif Double_checksum}
-            then
+         if (not assigned(st)) then
           begin
             if assigned(hp) then
              begin
@@ -547,7 +502,16 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
                scanner:=hp^.scanner;
                hp^.reset;
 {$ifdef Double_checksum}
-               hp^.do_reload_ppu:=false;
+         hp2:=pmodule(loaded_units.first);
+         while assigned(hp2) do
+           begin
+            if hp2^.do_reload_ppu then
+             begin
+               hp2^.do_reload_ppu:=false;
+               loadunit(hp^.modulename^,false);
+             end;
+             hp2:=pmodule(hp2^.next);
+           end;
 {$endif Double_checksum}
                hp^.scanner:=scanner;
                { try to reopen ppu }
@@ -1398,7 +1362,10 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
 end.
 {
   $Log$
-  Revision 1.112  1999-04-25 15:08:38  peter
+  Revision 1.113  1999-04-25 17:32:14  peter
+    * fixed double_checksum
+
+  Revision 1.112  1999/04/25 15:08:38  peter
     * small fixes for double_checksum
 
   Revision 1.111  1999/04/21 09:43:46  peter
