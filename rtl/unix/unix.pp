@@ -115,7 +115,6 @@ const
 
 var
   tzdaylight : boolean;
-  tzseconds  : longint;
   tzname     : array[boolean] of pchar;
 
 { timezone support }
@@ -125,8 +124,6 @@ procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
 Function  GetEpochTime: longint;
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 procedure GetTime(var hour,min,sec,msec,usec:word);
 procedure GetTime(var hour,min,sec,sec100:word);
 procedure GetTime(var hour,min,sec:word);
@@ -584,50 +581,6 @@ end;
                        Date and Time related calls
 ******************************************************************************}
 
-Const
-{Date Translation}
-  C1970=2440588;
-  D0   =   1461;
-  D1   = 146097;
-  D2   =1721119;
-
-Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
-Var
-  Century,XYear: LongInt;
-Begin
-  If Month<=2 Then
-   Begin
-     Dec(Year);
-     Inc(Month,12);
-   End;
-  Dec(Month,3);
-  Century:=(longint(Year Div 100)*D1) shr 2;
-  XYear:=(longint(Year Mod 100)*D0) shr 2;
-  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
-End;
-
-
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Var
-  YYear,XYear,Temp,TempMonth : LongInt;
-Begin
-  Temp:=((JulianDN-D2) shl 2)-1;
-  JulianDN:=Temp Div D1;
-  XYear:=(Temp Mod D1) or 3;
-  YYear:=(XYear Div D0);
-  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
-  Day:=((Temp Mod 153)+5) Div 5;
-  TempMonth:=Temp Div 153;
-  If TempMonth>=10 Then
-   Begin
-     inc(YYear);
-     dec(TempMonth,12);
-   End;
-  inc(TempMonth,3);
-  Month := TempMonth;
-  Year:=YYear+(JulianDN*100);
-end;
-
 Function GetEpochTime: longint;
 {
   Get the number of seconds since 00:00, January 1 1970, GMT
@@ -636,33 +589,6 @@ Function GetEpochTime: longint;
 begin
   GetEpochTime:=fptime;
 end;
-
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-{
-  Transforms Epoch time into local time (hour, minute,seconds)
-}
-Var
-  DateNum: LongInt;
-Begin
-  inc(Epoch,TZSeconds);
-  Datenum:=(Epoch Div 86400) + c1970;
-  JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Abs(Epoch Mod 86400);
-  Hour:=Epoch Div 3600;
-  Epoch:=Epoch Mod 3600;
-  Minute:=Epoch Div 60;
-  Second:=Epoch Mod 60;
-End;
-
-Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-{
-  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
-   (seconds since 00:00, january 1 1970, corrected for local time zone)
-}
-Begin
-  LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-                (LongInt(Hour)*3600)+(Minute*60)+Second-TZSeconds;
-End;
 
 procedure GetTime(var hour,min,sec,msec,usec:word);
 {
@@ -1787,7 +1713,10 @@ End.
 
 {
   $Log$
-  Revision 1.36  2003-09-17 17:30:46  marco
+  Revision 1.37  2003-09-17 19:07:44  marco
+   * more fixes for Unix<->unixutil
+
+  Revision 1.36  2003/09/17 17:30:46  marco
    * Introduction of unixutil
 
   Revision 1.35  2003/09/16 21:46:27  marco

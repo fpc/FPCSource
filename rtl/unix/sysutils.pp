@@ -33,7 +33,7 @@ type
 
 implementation
 
-Uses Baseunix;
+Uses UnixUtil,Baseunix;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -493,7 +493,10 @@ end.
 {
 
   $Log$
-  Revision 1.20  2003-09-17 12:41:31  marco
+  Revision 1.21  2003-09-17 19:07:44  marco
+   * more fixes for Unix<->unixutil
+
+  Revision 1.20  2003/09/17 12:41:31  marco
    * Uses more baseunix, less unix now
 
   Revision 1.19  2003/09/14 20:15:01  marco
