@@ -85,7 +85,7 @@ Const
      { the difference to stdcall is only the name mangling }
      pocall_cppdecl,
      { this used by the PalmOS port only }
-     pocall_palmossyscall
+     pocall_syscall
    ];
 
    processorsstr : array[tprocessors] of string[5] = ('',
@@ -105,7 +105,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-04-28 15:19:03  florian
+  Revision 1.11  2004-05-01 23:29:01  florian
+    * continued to fix m68k compiler compilation
+
+  Revision 1.10  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.9  2004/04/18 21:13:59  florian

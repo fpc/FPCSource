@@ -29,11 +29,10 @@ unit cpupi;
   interface
 
     uses
-       cgbase;
+       procinfo,cgbase;
 
     type
        tm68kprocinfo = class(tprocinfo)
-          procedure allocate_interrupt_stackframe;override;
        end;
 
   implementation
@@ -41,22 +40,15 @@ unit cpupi;
     uses
        verbose;
 
-    procedure tm68kprocinfo.allocate_interrupt_stackframe;
-
-      begin
-         { we push Flags and CS as long
-           to cope with the IRETD
-           and we save 6 register + 4 selectors }
-         { i386 code: inc(procinfo.para_offset,8+6*4+4*2); }
-         internalerror(2002081601);
-      end;
-
 begin
    cprocinfo:=tm68kprocinfo;
 end.
 {
   $Log$
-  Revision 1.2  2002-08-18 09:02:12  florian
+  Revision 1.3  2004-05-01 23:29:01  florian
+    * continued to fix m68k compiler compilation
+
+  Revision 1.2  2002/08/18 09:02:12  florian
     * fixed compilation problems
 
   Revision 1.1  2002/08/17 09:23:48  florian

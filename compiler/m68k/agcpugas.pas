@@ -120,39 +120,43 @@ interface
           top_reg:
             getopstr:=gas_regname(o.reg);
           top_ref:
-            getopstr:=getreferencestring(o.ref^);
+            if o.ref^.refaddr=addr_full then
+              begin
+             if assigned(o.ref^.symbol) then
+               hs:='#'+o.ref^.symbol.name
+             else
+               hs:='#';
+               if o.ref^.offset>0 then
+                hs:=hs+'+'+tostr(o.ref^.offset)
+               else
+                if o.ref^.offset<0 then
+                 hs:=hs+tostr(o.ref^.offset)
+               else
+                if not(assigned(o.ref^.symbol)) then
+                  hs:=hs+'0';
+               getopstr:=hs;
+              end
+            else
+              getopstr:=getreferencestring(o.ref^);
           top_reglist:
             begin
               hs:='';
-              for i:=first_supreg to last_supreg do
+              for i:=RS_D0 to RS_D7 do
                 begin
-                  if i in o.registerlist then
-                   hs:=hs+supreg_name(i)+'/';
+                  if i in o.regset^ then
+                   hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
+                end;
+              for i:=RS_A0 to RS_SP do
+                begin
+                  if i in o.regset^ then
+                   hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               delete(hs,length(hs),1);
               getopstr := hs;
             end;
           top_const:
             getopstr:='#'+tostr(longint(o.val));
-          top_symbol:
-            { compare with i386, where a symbol is considered
-              a constant.                                     }
-            begin
-             if assigned(o.sym) then
-               hs:='#'+o.sym.name
-             else
-               hs:='#';
-               if o.symofs>0 then
-                hs:=hs+'+'+tostr(o.symofs)
-               else
-                if o.symofs<0 then
-                 hs:=hs+tostr(o.symofs)
-               else
-                if not(assigned(o.sym)) then
-                  hs:=hs+'0';
-               getopstr:=hs;
-            end;
-          else internalerror(10001);
+          else internalerror(200405021);
         end;
       end;
 
@@ -162,25 +166,30 @@ interface
         hs : string;
       begin
         case o.typ of
-          top_reg : getopstr_jmp:=gas_regname(o.reg);
-          top_ref : getopstr_jmp:=getreferencestring(o.ref^);
-          top_const : getopstr_jmp:=tostr(o.val);
-          top_symbol : begin
-                         if assigned(o.sym) then
-                           hs:=o.sym.name
-                         else
-                           hs:='';
-                           if o.symofs>0 then
-                            hs:=hs+'+'+tostr(o.symofs)
-                           else
-                            if o.symofs<0 then
-                             hs:=hs+tostr(o.symofs)
-                           else
-                            if not(assigned(o.sym)) then
-                              hs:=hs+'0';
-                         getopstr_jmp:=hs;
-                       end;
-          else internalerror(10001);
+          top_reg:
+            getopstr_jmp:=gas_regname(o.reg);
+          top_ref:
+            if o.ref^.refaddr=addr_no then
+              getopstr_jmp:=getreferencestring(o.ref^)
+            else
+              begin
+                if assigned(o.ref^.symbol) then
+                  hs:=o.ref^.symbol.name
+                else
+                  hs:='';
+                  if o.ref^.offset>0 then
+                   hs:=hs+'+'+tostr(o.ref^.offset)
+                  else
+                   if o.ref^.offset<0 then
+                    hs:=hs+tostr(o.ref^.offset)
+                  else
+                   if not(assigned(o.ref^.symbol)) then
+                     hs:=hs+'0';
+                getopstr_jmp:=hs;
+              end;
+          top_const:
+            getopstr_jmp:=tostr(o.val);
+          else internalerror(200405022);
         end;
       end;
 
@@ -215,51 +224,51 @@ interface
 
 
     procedure TM68kAssembler.WriteInstruction(hp: tai);
-    var
-      op       : tasmop;
-      s        : string;
-      sep      : char;
-      calljmp  : boolean;
-      i        : integer;
-     begin
-       if hp.typ <> ait_instruction then exit;
-       op:=taicpu(hp).opcode;
-       calljmp:=is_calljmp(op);
-       { call maybe not translated to call }
-       s:=#9+getopcodestring(hp);
-       { process operands }
-       if taicpu(hp).ops<>0 then
-         begin
-           { call and jmp need an extra handling                          }
-           { this code is only called if jmp isn't a labeled instruction  }
-           { quick hack to overcome a problem with manglednames=255 chars }
-           if calljmp then
-              begin
-                AsmWrite(s+#9);
-                s:=getopstr_jmp(taicpu(hp).oper[0]);
-              end
-            else
-              begin
-                for i:=0 to taicpu(hp).ops-1 do
-                  begin
-                    if i=0 then
-                      sep:=#9
-                    else
-                    if ((op = A_DIVSL) or
-                       (op = A_DIVUL) or
-                       (op = A_MULU) or
-                       (op = A_MULS) or
-                       (op = A_DIVS) or
-                       (op = A_DIVU)) and (i=1) then
-                      sep:=':'
-                    else
-                      sep:=',';
-                    s:=s+sep+getopstr(taicpu(hp).oper[i])
-                  end;
-              end;
-         end;
-         AsmWriteLn(s);
-     end;
+      var
+        op       : tasmop;
+        s        : string;
+        sep      : char;
+        calljmp  : boolean;
+        i        : integer;
+       begin
+         if hp.typ <> ait_instruction then exit;
+         op:=taicpu(hp).opcode;
+         calljmp:=is_calljmp(op);
+         { call maybe not translated to call }
+         s:=#9+getopcodestring(hp);
+         { process operands }
+         if taicpu(hp).ops<>0 then
+           begin
+             { call and jmp need an extra handling                          }
+             { this code is only called if jmp isn't a labeled instruction  }
+             { quick hack to overcome a problem with manglednames=255 chars }
+             if calljmp then
+                begin
+                  AsmWrite(s+#9);
+                  s:=getopstr_jmp(taicpu(hp).oper[0]^);
+                end
+              else
+                begin
+                  for i:=0 to taicpu(hp).ops-1 do
+                    begin
+                      if i=0 then
+                        sep:=#9
+                      else
+                      if ((op = A_DIVSL) or
+                         (op = A_DIVUL) or
+                         (op = A_MULU) or
+                         (op = A_MULS) or
+                         (op = A_DIVS) or
+                         (op = A_DIVU)) and (i=1) then
+                        sep:=':'
+                      else
+                        sep:=',';
+                      s:=s+sep+getopstr(taicpu(hp).oper[i]^)
+                    end;
+                end;
+           end;
+           AsmWriteLn(s);
+       end;
 
 
 {*****************************************************************************
@@ -291,7 +300,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-04-27 15:46:01  florian
+  Revision 1.11  2004-05-01 23:29:01  florian
+    * continued to fix m68k compiler compilation
+
+  Revision 1.10  2004/04/27 15:46:01  florian
     * several updates for compilation
 
   Revision 1.9  2004/04/27 15:00:37  florian
