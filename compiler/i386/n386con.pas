@@ -196,7 +196,7 @@ implementation
            begin
               { non int64 const. behaves as a memory reference }
               location.reference.is_immediate:=true;
-              location.reference.offset:=value;
+              location.reference.offset:=longint(value);
            end;
       end;
 
@@ -488,7 +488,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-13 14:44:36  jonas
+  Revision 1.4  2000-11-20 15:31:38  jonas
+  *  longint typecast to assignment of constant to offset field
+
+  Revision 1.3  2000/11/13 14:44:36  jonas
     * fixes so no more range errors with improved range checking code
 
   Revision 1.2  2000/10/31 22:02:56  peter
