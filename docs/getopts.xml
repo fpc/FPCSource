@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="getopts">
+<short>The GETOPTS unit.</short>
+<!-- \FPCexampledir{optex} -->
+<descr>
+<p>
+This document describes the GETOPTS unit for Free Pascal. It was written for
+linux by Michael Van Canneyt. It now also works for all supported platforms.
+</p>
+<p>
+The getopts unit provides a mechanism to handle command-line options in
+a structured way, much like the GNU getopts mechanism. It allows you to
+define the valid options for you program, and the unit will then parse the
+command-line options for you, and inform you of any errors.
+</p>
+</descr>
+
+<element name="OptSpecifier">
+<short>Character indicating an option on the command-line.</short>
+</element>
+
+<element name="Orderings">
+<short>Command-line ordering options.</short>
+</element>
+<element name="Orderings.require_order">
+<short>Don't touch the ordering of the command-line options</short>
+</element>
+<element name="Orderings.permute">
+<short>Change command-line options.</short>
+</element>
+<element name="Orderings.return_in_order">
+<short>Return options in the correct order.</short>
+</element>
+
+
+<element name="No_Argument">
+<short>Specifies that a long option does not take an argument.</short>
+</element>
+
+<element name="Required_Argument">
+<short>Specifies that a long option needs an argument.</short>
+</element>
+
+<element name="Optional_Argument">
+<short>Specifies that a long option optionally takes an argument.</short>
+</element>
+
+<element name="EndOfOptions">
+<short>Returned by <link id="getopt"/>,<link id="getlongopts"/> to indicate that
+there are no more options.</short>
+</element>
+
+<element name="TOption">
+<short>Long option description record</short>
+<descr>
+The <var>TOption</var> type is used to communicate the long options to
+<link id="GetLongOpts"/>.
+The <var>Name</var> field is the name of the option. <var>Has_arg</var>
+specifies if the option
+wants an argument, <var>Flag</var> is a pointer to a <var>char</var>, which
+is set to
+<var>Value</var>, if it is non-<var>nil</var>.
+</descr>
+</element>
+
+<element name="TOption.Name">
+<short>Long option name</short>
+</element>
+<element name="TOption.Has_arg">
+<short>Does the option have arguments (values)</short>
+</element>
+<element name="TOption.Flag">
+<short>Flag</short>
+</element>
+<element name="TOption.Value">
+<short>Value to return when option is encountered</short>
+</element>
+
+<element name="POption">
+<short>Pointer to <link id="TOption"/> record.</short>
+</element>
+
+<element name="OptArg">
+<short>Set to the argument of an option, if the option needs one.</short>
+</element>
+
+<element name="Optind">
+<short>Index of the current <var>paramstr()</var>.</short>
+<descr>
+when all options have been processed, <var>optind</var> is the index of the first
+non-option parameter. This is a read-only variable. Note that it can become
+equal to <var>paramcount+1</var>.
+</descr>
+</element>
+
+<element name="OptErr">
+<short>Indicates whether <var>getopt()</var> prints error messages.</short>
+</element>
+
+<element name="OptOpt">
+<short>In case of an error, contains the character causing the error.</short>
+</element>
+
+<element name="GetLongOpts">
+<short>Return next long option.</short>
+<descr>
+<p>
+Returns the next option found on the command-line, taking into account long
+options as well. If no more options are
+found, returns <var>EndOfOptions</var>. If the option requires an argument, it is
+returned in the <var>OptArg</var> variable.
+</p>
+<p>
+<var>ShortOptions</var> is a string containing all possible one-letter options.
+(see <link id="Getopt"/> for its description and use)
+<var>LongOpts</var> is a pointer to the first element of an array of <var>Option</var> 
+records, the last of which needs a name of zero length.  
+</p>
+<p>
+The function tries to match the names even partially (i.e. <var>--app</var> 
+will match e.g. the <var>append</var> option), but will report an error in case of
+ambiguity.
+If the option needs an argument, set <var>Has_arg</var> to
+<var>Required_argument</var>, if the option optionally has an argument, set
+<var>Has_arg</var> to <var>Optional_argument</var>. If the option needs no argument,
+set <var>Has_arg</var> to zero.
+</p>
+<p>
+Required arguments can be specified in two ways : 
+</p>
+<ol>
+<li>Pasted to the option : <var>--option=value</var></li>
+<li>As a separate argument : <var>--option value</var></li>
+</ol>
+<p>
+Optional arguments can only be specified through the first method.
+</p>
+</descr>
+<errors>
+see <link id="Getopt"/>.
+</errors>
+<seealso>
+<link id="Getopt"/>
+</seealso>
+</element>
+
+<element name="Getopt">
+<short>Get next short option.</short>
+<descr>
+<p>
+Returns the next option found on the command-line. If no more options are
+found, returns <var>EndOfOptions</var>. If the option requires an argument, it is
+returned in the <var>OptArg</var> variable.
+</p>
+<p>
+<var>ShortOptions</var> is a string containing all possible one-letter options.
+If a letter is followed by a colon (:), then that option needs an argument.
+If a letter is followed by 2 colons, the option has an optional argument.
+If the first character of <var>shortoptions</var> is a <var>'+'</var> then options following a non-option are
+regarded as non-options (standard Unix behavior). If it is a <var>'-'</var>,
+then all non-options are treated as arguments of a option with character
+<var>#0</var>. This is useful for applications that require their options in
+the exact order as they appear on the command-line.
+If the first character of <var>shortoptions</var> is none of the above, options
+and non-options are permuted, so all non-options are behind all options.
+This allows options and non-options to be in random order on the command
+line.
+</p>
+</descr>
+<errors>
+ Errors are reported through giving back a <var>'?'</var> character. <var>OptOpt</var>
+then gives the character which caused the error. If <var>OptErr</var> is
+<var>True</var> then getopt prints an error-message to <var>stdout</var>.
+</errors>
+<seealso>
+<link id="GetLongOpts"/>
+</seealso>
+<example file="optex/optex"/>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
