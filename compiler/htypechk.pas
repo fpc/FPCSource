@@ -77,7 +77,7 @@ interface
 
     { is overloading of this operator allowed for this
       binary operator }
-    function isbinaryoperatoroverloadable(ld, rd,dd : tdef; treetyp : tnodetype) : boolean;
+    function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
 
     { is overloading of this operator allowed for this
       unary operator }
@@ -134,7 +134,7 @@ implementation
       TValidAssigns=set of TValidAssign;
 
 
-    function isbinaryoperatoroverloadable(ld,rd,dd : tdef; treetyp : tnodetype) : boolean;
+    function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
       begin
         { everything is possible, the exceptions will be
           handled below }
@@ -211,7 +211,14 @@ implementation
                  isbinaryoperatoroverloadable:=false;
                  exit;
                end;
-
+              { dynamic array compare with niln }
+              if is_dynamic_array(ld) and
+                 (rt=niln) and
+                 (treetyp in [equaln,unequaln]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
               isbinaryoperatoroverloadable:=true;
             end;
           objectdef :
@@ -306,6 +313,14 @@ implementation
                   is_integer(ld) or
                   (ld.deftype=stringdef) or
                   is_chararray(ld)) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              { dynamic array compare with niln }
+              if is_dynamic_array(rd) and
+                 (lt=niln) and
+                 (treetyp in [equaln,unequaln]) then
                begin
                  isbinaryoperatoroverloadable:=false;
                  exit;
@@ -414,7 +429,7 @@ implementation
                       dd:=pf.rettype.def;
                       isoperatoracceptable:=
                         tok2node[i].op_overloading_supported and
-                        isbinaryoperatoroverloadable(ld,rd,dd,tok2node[i].nod);
+                        isbinaryoperatoroverloadable(tok2node[i].nod,ld,nothingn,rd,nothingn);
                       break;
                     end;
               end;
@@ -447,9 +462,9 @@ implementation
         isbinaryoverloaded:=false;
         operpd:=nil;
         { load easier access variables }
-        rd:=tbinarynode(t).right.resulttype.def;
         ld:=tbinarynode(t).left.resulttype.def;
-        if isbinaryoperatoroverloadable(ld,rd,voidtype.def,t.nodetype) then
+        rd:=tbinarynode(t).right.resulttype.def;
+        if isbinaryoperatoroverloadable(t.nodetype,ld,tbinarynode(t).left.nodetype,rd,tbinarynode(t).right.nodetype) then
           begin
              isbinaryoverloaded:=true;
              case t.nodetype of
@@ -1117,7 +1132,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-12-22 16:34:49  peter
+  Revision 1.55  2002-12-27 18:06:32  peter
+    * fix overload error for dynarr:=nil
+
+  Revision 1.54  2002/12/22 16:34:49  peter
     * proc-procvar crash fixed (tw2277)
 
   Revision 1.53  2002/12/11 22:39:24  peter
