@@ -94,7 +94,7 @@ implementation
             hregister1.number:=NR_R1;
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
-            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,procinfo.framepointer_offset));
+            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,procinfo.procdef.localst.address_fixup));
          end
        else if (aktprocdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -123,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-04-27 07:48:05  peter
+  Revision 1.9  2003-04-27 10:41:47  florian
+    * fixed nested procedures to get them working as before
+
+  Revision 1.8  2003/04/27 07:48:05  peter
     * updated for removed lexlevel
 
   Revision 1.7  2003/04/24 11:24:00  florian
