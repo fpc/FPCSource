@@ -1558,7 +1558,7 @@ end;
           s32real : p.concat(Tai_real_32bit.Create(value));
           s64real : p.concat(Tai_real_64bit.Create(value));
           s80real : p.concat(Tai_real_80bit.Create(value));
-          s64comp : p.concat(Tai_comp_64bit.Create(value));
+          s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
        end;
     end;
 
@@ -1625,7 +1625,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.79  2003-11-21 16:29:26  florian
+  Revision 1.80  2003-11-30 10:15:42  jonas
+    * fixed compilation for non-x86
+
+  Revision 1.79  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.78  2003/11/17 23:23:47  florian
