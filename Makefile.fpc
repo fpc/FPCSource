@@ -164,7 +164,7 @@ help:
         @$(ECHO)
         @$(ECHO) Packing targets are:
         @$(ECHO)
-        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip
+        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip
         @$(ECHO)
         @exit
 
@@ -296,6 +296,9 @@ ifeq ($(OS_TARGET),freebsd)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 ifeq ($(OS_TARGET),sunos)
+        $(MAKE) -C $(CVSINSTALL)/man installman
+endif
+ifeq ($(OS_TARGET),qnx)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 endif
@@ -447,6 +450,9 @@ os2zip: checkfpcdir
 sunoszip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
 
+qnxzip: checkfpcdir
+		$(MAKE) zipinstall OS_TARGET=qnx
+		
 ##########################################################################
 # Dos, OS/2 Short 8.3 Names
 ##########################################################################
