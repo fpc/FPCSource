@@ -26,18 +26,17 @@ unit pmodules;
 
   interface
 
-    uses
-      files;
-
     procedure loadsystemunit;
     procedure proc_unit;
     procedure proc_program(islibrary : boolean);
 
+
   implementation
 
     uses
-       cobjects,verbose,comphook,systems,globals,
-       symtable,aasm,hcodegen,
+       cobjects,comphook,systems,globals,
+       symtable,aasm,files,
+       hcodegen,verbose, { don't use hcodegen.message !! }
        link,assemble,import,gendef,ppu
 {$ifdef i386}
        ,i386
@@ -46,6 +45,7 @@ unit pmodules;
        ,m68k
 {$endif}
        ,scanner,pbase,psystem,pdecl,psub,parser;
+
 
     procedure create_objectfile;
       begin
@@ -167,12 +167,12 @@ unit pmodules;
                          datasegment^.concat(new(pai_const,init_32bit(stacksize)));
                        end;
 {$endif m68k}
-
         end;
       end;
 
 
     function loadunit(const s : string;compile_system:boolean) : pmodule;forward;
+
 
     procedure load_usedunits(compile_system:boolean);
       var
@@ -473,7 +473,8 @@ unit pmodules;
           aktprocsym:=oldprocsym;
       end;
 
-      procedure parse_implementation_uses(symt:Psymtable);
+
+    procedure parse_implementation_uses(symt:Psymtable);
       begin
          if token=_USES then
            begin
@@ -486,14 +487,13 @@ unit pmodules;
            end;
       end;
 
-    procedure proc_unit;
 
+    procedure proc_unit;
       var
          { unitname : stringid; }
          names  : Tstringcontainer;
          p      : psymtable;
          unitst : punitsymtable;
-         storedebuglist : paasmoutput;
          pu     : pused_unit;
          i      : longint;
          s1,s2  : ^string; {Saves stack space}
@@ -532,6 +532,8 @@ unit pmodules;
          consume(ID);
          consume(SEMICOLON);
          consume(_INTERFACE);
+         { global switches are read, so further changes aren't allowed }
+         current_module^.in_global:=false;
 
          { update status }
          status.currentmodule:=current_module^.modulename^;
@@ -645,7 +647,6 @@ unit pmodules;
          parse_implementation_uses(unitst);
 
          numberunits;
-
 
          { now we can change refsymtable }
          refsymtable:=p;
@@ -770,9 +771,7 @@ unit pmodules;
       end;
 
 
-
     procedure proc_program(islibrary : boolean);
-
       var
          st    : psymtable;
          names : Tstringcontainer;
@@ -802,7 +801,8 @@ unit pmodules;
                 end;
               consume(SEMICOLON);
             end;
-
+         { global switches are read, so further changes aren't allowed }
+         current_module^.in_global:=false;
          { set implementation flag }
          current_module^.in_implementation:=true;
 
@@ -916,7 +916,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.47  1998-09-09 11:50:55  pierre
+  Revision 1.48  1998-09-09 15:33:07  peter
+    * fixed in_global to allow directives also after interface token
+
+  Revision 1.47  1998/09/09 11:50:55  pierre
     * forward def are not put in record or objects
     + added check for forwards also in record and objects
     * dummy parasymtable for unit initialization removed from

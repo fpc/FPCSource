@@ -224,8 +224,6 @@ unit parser;
        { startup scanner }
          current_scanner:=new(pscannerfile,Init(filename));
          token:=current_scanner^.yylex;
-         { global switches are read, so further changes aren't allowed }
-         current_module^.in_global:=false;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -372,7 +370,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.42  1998-09-04 08:41:59  peter
+  Revision 1.43  1998-09-09 15:33:06  peter
+    * fixed in_global to allow directives also after interface token
+
+  Revision 1.42  1998/09/04 08:41:59  peter
     * updated some error messages
 
   Revision 1.41  1998/09/01 12:53:24  peter
