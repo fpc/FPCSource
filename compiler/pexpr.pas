@@ -190,6 +190,11 @@ implementation
                p1:=csubscriptnode.create(plist^.sym,p1);
              sl_typeconv :
                p1:=ctypeconvnode.create_explicit(p1,plist^.tt);
+             sl_absolutetype :
+               begin
+                 p1:=ctypeconvnode.create(p1,plist^.tt);
+                 include(p1.flags,nf_absolute);
+               end;
              sl_vec :
                p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32inttype,true));
              else
@@ -215,7 +220,10 @@ implementation
             typeconvn :
               begin
                 addnode(ttypeconvnode(p).left);
-                sl.addtype(sl_typeconv,ttypeconvnode(p).totype);
+                if nf_absolute in ttypeconvnode(p).flags then
+                  sl.addtype(sl_absolutetype,ttypeconvnode(p).totype)
+                else
+                  sl.addtype(sl_typeconv,ttypeconvnode(p).totype);
               end;
             vecn :
               begin
@@ -2478,7 +2486,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2004-10-25 15:38:41  peter
+  Revision 1.168  2004-11-01 10:33:01  peter
+    * symlist typeconv for absolute fixed
+
+  Revision 1.167  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

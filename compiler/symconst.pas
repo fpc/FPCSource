@@ -150,7 +150,8 @@ type
     sl_call,
     sl_subscript,
     sl_vec,
-    sl_typeconv
+    sl_typeconv,
+    sl_absolutetype
   );
 
   { base types for orddef }
@@ -408,7 +409,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.90  2004-10-24 20:01:08  peter
+  Revision 1.91  2004-11-01 10:33:01  peter
+    * symlist typeconv for absolute fixed
+
+  Revision 1.90  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.89  2004/10/08 17:09:43  peter
