@@ -201,10 +201,10 @@ override PACKAGE_VERSION=1.0.6
 override TARGET_DIRS+=xml db shedit
 override TARGET_UNITS+=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog
 ifeq ($(OS_TARGET),linux)
-override TARGET_UNITS+=process asyncio ssockets http resolve
+override TARGET_UNITS+=process asyncio resolve ssockets http
 endif
 ifeq ($(OS_TARGET),win32)
-override TARGET_UNITS+=process fileinfo resolve
+override TARGET_UNITS+=process fileinfo resolve ssockets
 endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_UNITS+=process asyncio ssockets http
@@ -802,6 +802,7 @@ endif
 ifeq ($(OS_TARGET),win32)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_IBASE=1
 endif
