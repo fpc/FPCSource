@@ -31,7 +31,7 @@ interface
 {$endif}
 
 uses
-  strings,cobjects,aasm;
+  globals,strings,cobjects,aasm;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -670,7 +670,8 @@ type
     LOC_FLAGS,       { boolean results only, flags are set }
     LOC_CREGISTER,   { Constant register which shouldn't be modified }
     LOC_MMXREGISTER, { MMX register }
-    LOC_CMMXREGISTER { Constant MMX register }
+    LOC_CMMXREGISTER,{ Constant MMX register }
+    LOC_CFPUREGISTER { if it is a FPU register variable on the fpu stack }
   );
 
   plocation = ^tlocation;
@@ -760,6 +761,8 @@ var
        varregs : array[1..maxvarregs] of tregister =
          (R_EBX,R_EDX,R_ECX,R_EAX);
 
+       maxfpuvarregs = 8;
+
     function imm_2_type(l:longint):longint;
 
     { the following functions allow to convert registers }
@@ -834,7 +837,10 @@ implementation
            'AX','CX','DX','BX','SP','BP','SI','DI',
            'AL','CL','DL','BL');
       begin
-         reg2str:=a[r];
+         if r in [R_ST0..R_ST7] then
+           reg2str:='ST('+tostr(longint(r)-longint(R_ST0))+')'
+         else
+           reg2str:=a[r];
       end;
 
 
@@ -1004,7 +1010,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-08-04 00:22:58  florian
+  Revision 1.2  1999-08-04 13:45:25  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.1  1999/08/04 00:22:58  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.10  1999/08/02 21:28:58  florian

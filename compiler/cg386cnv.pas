@@ -811,6 +811,11 @@ implementation
       begin
          case pfrom^.location.loc of
             LOC_FPU : ;
+            LOC_CFPUREGISTER:
+              begin
+                 pto^.location:=pfrom^.location;
+                 exit;
+              end;
             LOC_MEM,
             LOC_REFERENCE:
               begin
@@ -1463,7 +1468,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-08-04 00:22:43  florian
+  Revision 1.83  1999-08-04 13:45:19  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.82  1999/08/04 00:22:43  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.81  1999/08/03 22:02:36  peter

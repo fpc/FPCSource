@@ -71,12 +71,17 @@ unit tgeni386;
     procedure clearregistercount;
     procedure resetusableregisters;
 
+    { corrects the fpu stack register by ofs }
+    function correct_fpuregister(r : tregister;ofs : byte) : tregister;
+
     var
        unused,usableregs : tregisterset;
        c_usableregs : longint;
 
        { uses only 1 byte while a set uses in FPC 32 bytes }
        usedinproc : byte;
+
+       fpuvaroffset : byte;
 
        { count, how much a register must be pushed if it is used as register }
        { variable                                                           }
@@ -428,6 +433,7 @@ implementation
       begin
          unused:=usableregs;
          usablereg32:=c_usableregs;
+         fpuvaroffset:=0;
       end;
 
 
@@ -450,6 +456,12 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
+   function correct_fpuregister(r : tregister;ofs : byte) : tregister;
+
+     begin
+        correct_fpuregister:=tregister(longint(r)+ofs);
+     end;
+
    procedure resetusableregisters;
       begin
 {$ifdef SUPPORT_MMX}
@@ -460,6 +472,7 @@ implementation
         usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
         c_usableregs:=4;
 {$endif SUPPORT_MMX}
+        fpuvaroffset:=0;
       end;
 
 begin
@@ -467,7 +480,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1999-08-04 00:23:48  florian
+  Revision 1.30  1999-08-04 13:45:32  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.29  1999/08/04 00:23:48  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.28  1999/08/02 17:17:11  florian

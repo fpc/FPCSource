@@ -906,6 +906,13 @@
 {$else}
                  varoptions:=varoptions+[vo_regable];
 {$endif}
+           floatdef:
+             if not(pfloatdef(p)^.typ in [f32bit,f16bit]) then
+{$ifdef INCLUDEOK}
+               include(varoptions,vo_fpuregable);
+{$else}
+               varoptions:=varoptions+[vo_fpuregable];
+{$endif}
            else
 {$ifdef INCLUDEOK}
              exclude(varoptions,vo_regable);
@@ -1132,8 +1139,9 @@
             { this symbol can't be loaded to a register }
 {$ifdef INCLUDEOK}
             exclude(varoptions,vo_regable);
+            exclude(varoptions,vo_fpuregable);
 {$else}
-            varoptions:=varoptions-[vo_regable];
+            varoptions:=varoptions-[vo_regable,vo_fpuregable];
 {$endif}
          end
         else
@@ -1202,8 +1210,9 @@
                    { this symbol can't be loaded to a register }
 {$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
+                   exclude(varoptions,vo_fpuregable);
 {$else}
-                   varoptions:=varoptions-[vo_regable];
+                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
 {$endif}
                  end;
                globalsymtable :
@@ -1226,8 +1235,9 @@
                    { this symbol can't be loaded to a register }
 {$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
+                   exclude(varoptions,vo_fpuregable);
 {$else}
-                   varoptions:=varoptions-[vo_regable];
+                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
 {$endif}
                  end;
                recordsymtable,
@@ -1236,8 +1246,9 @@
                  { this symbol can't be loaded to a register }
 {$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
+                   exclude(varoptions,vo_fpuregable);
 {$else}
-                   varoptions:=varoptions-[vo_regable];
+                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
 {$endif}
                  { get the alignment size }
                    if (aktpackrecords=packrecord_C) then
@@ -2106,7 +2117,11 @@
 
 {
   $Log$
-  Revision 1.106  1999-08-03 22:03:19  peter
+  Revision 1.107  1999-08-04 13:45:30  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.106  1999/08/03 22:03:19  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -146,9 +146,17 @@ implementation
                          { in case it is a register variable: }
                          if pvarsym(p^.symtableentry)^.reg<>R_NO then
                            begin
-                              p^.location.loc:=LOC_CREGISTER;
-                              p^.location.register:=pvarsym(p^.symtableentry)^.reg;
-                              unused:=unused-[pvarsym(p^.symtableentry)^.reg];
+                              if pvarsym(p^.symtableentry)^.reg in [R_ST0..R_ST7] then
+                                begin
+                                   p^.location.loc:=LOC_CFPUREGISTER;
+                                   p^.location.register:=pvarsym(p^.symtableentry)^.reg;
+                                end
+                              else
+                                begin
+                                   p^.location.loc:=LOC_CREGISTER;
+                                   p^.location.register:=pvarsym(p^.symtableentry)^.reg;
+                                   unused:=unused-[pvarsym(p^.symtableentry)^.reg];
+                                end;
                            end
                          else
                            begin
@@ -358,6 +366,7 @@ implementation
          loc : tloc;
          r : preference;
          ai : pai386;
+         op : tasmop;
       begin
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -389,6 +398,8 @@ implementation
                                 end;
                               loc:=LOC_REFERENCE;
                            end;
+            LOC_CFPUREGISTER:
+              loc:=LOC_CFPUREGISTER;
             LOC_CREGISTER:
               loc:=LOC_CREGISTER;
             LOC_MMXREGISTER:
@@ -526,6 +537,14 @@ implementation
                                 end;
 
                            end
+                         else if loc=LOC_CFPUREGISTER then
+                           begin
+                              floatloadops(pfloatdef(p^.right^.resulttype)^.typ,op,opsize);
+                              exprasmlist^.concat(new(pai386,op_ref(op,opsize,
+                                newreference(p^.right^.location.reference))));
+                              exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
+                           end
                          else
                            begin
                               if (p^.right^.resulttype^.needs_inittable) and
@@ -638,11 +657,46 @@ implementation
                                 fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
                               else
                                 fputyp:=s32real;
-
-                              if loc<>LOC_REFERENCE then
-                                internalerror(10010)
+                              case loc of
+                                 LOC_CFPUREGISTER:
+                                   begin
+                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                                      dec(fpuvaroffset);
+                                   end;
+                                 LOC_REFERENCE:
+                                   floatstore(fputyp,p^.left^.location.reference);
+                                 else
+                                   internalerror(48991);
+                              end;
+                           end;
+            LOC_CFPUREGISTER: begin
+                              if (p^.left^.resulttype^.deftype=floatdef) then
+                               fputyp:=pfloatdef(p^.left^.resulttype)^.typ
                               else
-                                floatstore(fputyp,p^.left^.location.reference);
+                               if (p^.right^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.resulttype)^.typ
+                              else
+                               if (p^.right^.treetype=typeconvn) and
+                                  (p^.right^.left^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
+                              else
+                                fputyp:=s32real;
+                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                              inc(fpuvaroffset);
+                              case loc of
+                                 LOC_CFPUREGISTER:
+                                   begin
+                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                                      dec(fpuvaroffset);
+                                   end;
+                                 LOC_REFERENCE:
+                                   floatstore(fputyp,p^.left^.location.reference);
+                                 else
+                                   internalerror(48992);
+                              end;
                            end;
             LOC_JUMP     : begin
                               getlabel(hlabel);
@@ -875,7 +929,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-08-04 00:22:50  florian
+  Revision 1.70  1999-08-04 13:45:22  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.69  1999/08/04 00:22:50  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.68  1999/08/03 22:02:43  peter

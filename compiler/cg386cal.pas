@@ -995,7 +995,10 @@ implementation
                          end;
                     end;
                   else
-                    p^.location.loc:=LOC_FPU;
+                    begin
+                       p^.location.loc:=LOC_FPU;
+                       inc(fpuvaroffset);
+                    end;
                 end
               else if is_ansistring(p^.resulttype) or
                 is_widestring(p^.resulttype) then
@@ -1089,8 +1092,11 @@ implementation
                    ungetiftemp(p^.location.reference)
                 end
               else if p^.location.loc=LOC_FPU then
-                { release FPU stack }
-                exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,R_ST0)));
+                begin
+                  { release FPU stack }
+                  exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,R_ST0)));
+                  dec(fpuvaroffset);
+                end;
            end;
       end;
 
@@ -1172,7 +1178,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  1999-08-04 00:22:41  florian
+  Revision 1.97  1999-08-04 13:45:18  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.96  1999/08/04 00:22:41  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.95  1999/08/03 22:02:34  peter

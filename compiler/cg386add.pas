@@ -1803,9 +1803,25 @@ implementation
 
                     if (p^.right^.location.loc<>LOC_FPU) then
                       begin
-                         floatload(pfloatdef(p^.right^.resulttype)^.typ,p^.right^.location.reference);
+                         if p^.right^.location.loc=LOC_CFPUREGISTER then
+                           begin
+                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                              inc(fpuvaroffset);
+                            end
+                         else
+                           floatload(pfloatdef(p^.right^.resulttype)^.typ,p^.right^.location.reference);
                          if (p^.left^.location.loc<>LOC_FPU) then
-                           floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference)
+                           begin
+                              if p^.left^.location.loc=LOC_CFPUREGISTER then
+                                begin
+                                   exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                                     correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                                   inc(fpuvaroffset);
+                                end
+                              else
+                                floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference)
+                           end
                          { left was on the stack => swap }
                          else
                            p^.swaped:=not(p^.swaped);
@@ -1815,13 +1831,22 @@ implementation
                       end
                     { the nominator in st0 }
                     else if (p^.left^.location.loc<>LOC_FPU) then
-                      floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference)
+                      begin
+                         if p^.left^.location.loc=LOC_CFPUREGISTER then
+                           begin
+                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                              inc(fpuvaroffset);
+                           end
+                         else
+                           floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference)
+                      end
                     { fpu operands are always in the wrong order on the stack }
                     else
                       p^.swaped:=not(p^.swaped);
 
                     { releases the left reference }
-                    if (p^.left^.location.loc<>LOC_FPU) then
+                    if (p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                       del_reference(p^.left^.location.reference);
 
                     { if we swaped the tree nodes, then use the reverse operator }
@@ -1839,9 +1864,15 @@ implementation
                     }
                     { the Intel assemblers want operands }
                     if op<>A_FCOMPP then
-                       exprasmlist^.concat(new(pai386,op_reg_reg(op,S_NO,R_ST,R_ST1)))
+                      begin
+                         exprasmlist^.concat(new(pai386,op_reg_reg(op,S_NO,R_ST,R_ST1)));
+                         dec(fpuvaroffset);
+                      end
                     else
-                      exprasmlist^.concat(new(pai386,op_none(op,S_NO)));
+                      begin
+                         exprasmlist^.concat(new(pai386,op_none(op,S_NO)));
+                         dec(fpuvaroffset,2);
+                      end;
 
                     { on comparison load flags }
                     if cmpop then
@@ -2091,7 +2122,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-08-04 00:22:40  florian
+  Revision 1.72  1999-08-04 13:45:17  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.71  1999/08/04 00:22:40  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.70  1999/08/03 22:02:31  peter

@@ -1198,6 +1198,28 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                     end;
                   exprasmlist^.concat(new(pai386,op_ref(op,opsize,r)));
                end;
+             LOC_CFPUREGISTER:
+               begin
+                  exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,p^.location.register)));
+                  size:=align(pfloatdef(p^.resulttype)^.size,alignment);
+                  inc(pushedparasize,size);
+                  if not inlined then
+                   exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+{$ifdef GDB}
+                  if (cs_debuginfo in aktmoduleswitches) and
+                     (exprasmlist^.first=exprasmlist^.last) then
+                    exprasmlist^.concat(new(pai_force_line,init));
+{$endif GDB}
+                  r:=new_reference(R_ESP,0);
+                  floatstoreops(pfloatdef(p^.resulttype)^.typ,op,opsize);
+                  { this is the easiest case for inlined !! }
+                  if inlined then
+                    begin
+                       r^.base:=procinfo.framepointer;
+                       r^.offset:=para_offset-pushedparasize;
+                    end;
+                  exprasmlist^.concat(new(pai386,op_ref(op,opsize,r)));
+               end;
              LOC_REFERENCE,LOC_MEM:
                begin
                   tempreference:=p^.location.reference;
@@ -1545,6 +1567,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          floatloadops(t,op,s);
          exprasmlist^.concat(new(pai386,op_ref(op,s,
            newreference(ref))));
+         inc(fpuvaroffset);
       end;
 
 
@@ -1581,6 +1604,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          floatstoreops(t,op,s);
          exprasmlist^.concat(new(pai386,op_ref(op,s,
            newreference(ref))));
+         dec(fpuvaroffset);
       end;
 
 
@@ -3137,7 +3161,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.24  1999-08-04 00:22:55  florian
+  Revision 1.25  1999-08-04 13:45:24  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.24  1999/08/04 00:22:55  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.23  1999/08/03 22:02:49  peter

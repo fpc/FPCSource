@@ -736,6 +736,14 @@ implementation
                       p^.location.loc:=LOC_FPU;
                       exprasmlist^.concat(new(pai386,op_none(A_FCHS,S_NO)));
                    end;
+                 LOC_CFPUREGISTER:
+                   begin
+                      exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                        correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                      inc(fpuvaroffset);
+                      p^.location.loc:=LOC_FPU;
+                      exprasmlist^.concat(new(pai386,op_none(A_FCHS,S_NO)));
+                   end;
               end;
            end;
 { Here was a problem...     }
@@ -743,6 +751,7 @@ implementation
 { seems to be converted to signed  }
 { 32-bit before doing neg!!     }
 { So this is useless...     }
+{ that's not true: -2^31 gives an overflow error if it is negaded (FK) }
 {        emitoverflowcheck(p);}
       end;
 
@@ -930,7 +939,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-08-04 00:22:51  florian
+  Revision 1.30  1999-08-04 13:45:23  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.29  1999/08/04 00:22:51  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.28  1999/08/03 22:02:45  peter

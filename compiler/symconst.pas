@@ -153,7 +153,8 @@ type
     vo_is_C_var,
     vo_is_external,
     vo_is_dll_var,
-    vo_is_thread_var
+    vo_is_thread_var,
+    vo_fpuregable
   );
   tvaroptions=set of tvaroption;
 
@@ -179,7 +180,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 22:03:14  peter
+  Revision 1.2  1999-08-04 13:45:29  florian
+    + floating point register variables !!
+    * pairegalloc is now generated for register variables
+
+  Revision 1.1  1999/08/03 22:03:14  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 
