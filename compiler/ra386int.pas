@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit Rai386;
+Unit Ra386int;
 
 {**********************************************************************}
 { WARNING                                                              }
@@ -214,15 +214,6 @@ var
      for j:=firstreg to lastreg do
       iasmregs[j] := upper(int_reg2str[j]);
    end;
-
-
-    procedure rai386_exit;{$ifndef FPC}far;{$endif}
-
-      begin
-         if assigned(iasmops) then
-           dispose(iasmops);
-         exitproc:=old_exit;
-      end;
 
 
   {---------------------------------------------------------------------}
@@ -3370,13 +3361,25 @@ var
 end;
 
 
-Begin
+    procedure ra386int_exit;{$ifndef FPC}far;{$endif}
+
+      begin
+         if assigned(iasmops) then
+           dispose(iasmops);
+         exitproc:=old_exit;
+      end;
+
+
+begin
    old_exit:=exitproc;
-   exitproc:=@rai386_exit;
+   exitproc:=@ra386int_exit;
 end.
 {
   $Log$
-  Revision 1.1  1998-06-23 14:00:18  peter
+  Revision 1.2  1998-06-24 14:06:38  peter
+    * fixed the name changes
+
+  Revision 1.1  1998/06/23 14:00:18  peter
     * renamed RA* units
 
   Revision 1.11  1998/06/16 08:56:28  peter

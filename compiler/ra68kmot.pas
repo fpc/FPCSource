@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit Ra68k;
+Unit Ra68kMot;
 {**********************************************************************}
 { WARNING                                                              }
 {**********************************************************************}
@@ -136,13 +136,6 @@ var
       iasmregs[j] := upper(mot_reg2str[j]);
    end;
 
-
-    procedure ra68k_exit;far;
-      begin
-         if assigned(iasmops) then
-           dispose(iasmops);
-         exitproc:=old_exit;
-      end;
 
   {---------------------------------------------------------------------}
   {                     Routines for the tokenizing                     }
@@ -2166,13 +2159,25 @@ var
   Message(assem_d_finish_motorola);
 end;
 
+
+    procedure ra68kmot_exit;{$ifndef FPC}far;{$endif}
+      begin
+         if assigned(iasmops) then
+           dispose(iasmops);
+         exitproc:=old_exit;
+      end;
+
+
 Begin
    old_exit:=exitproc;
-   exitproc:=@ra68k_exit;
+   exitproc:=@ra68kmot_exit;
 end.
 {
   $Log$
-  Revision 1.1  1998-06-23 14:00:20  peter
+  Revision 1.2  1998-06-24 14:06:39  peter
+    * fixed the name changes
+
+  Revision 1.1  1998/06/23 14:00:20  peter
     * renamed RA* units
 
   Revision 1.5  1998/06/12 10:32:31  pierre

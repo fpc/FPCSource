@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit radi386;
+unit Ra386dir;
 
   interface
 
@@ -239,7 +239,10 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.1  1998-06-23 14:00:18  peter
+  Revision 1.2  1998-06-24 14:06:37  peter
+    * fixed the name changes
+
+  Revision 1.1  1998/06/23 14:00:18  peter
     * renamed RA* units
 
   Revision 1.5  1998/06/12 10:32:32  pierre

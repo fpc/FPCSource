@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit Ratti386;
+Unit Ra386att;
 {**********************************************************************}
 { WARNING                                                              }
 {**********************************************************************}
@@ -3673,7 +3673,7 @@ end;
 var
  old_exit: pointer;
 
-    procedure ratti386_exit;{$ifndef FPC}far;{$endif}
+    procedure ra386att_exit;{$ifndef FPC}far;{$endif}
 
       begin
          if assigned(iasmops) then
@@ -3686,12 +3686,15 @@ Begin
  line:=''; { Initialization of line variable.
              No 255 char coonst string in version 0.9.1 MVC}
  old_exit := exitproc;
- exitproc := @ratti386_exit;
+ exitproc := @ra386att_exit;
 end.
 
 {
   $Log$
-  Revision 1.1  1998-06-23 14:00:17  peter
+  Revision 1.2  1998-06-24 14:06:36  peter
+    * fixed the name changes
+
+  Revision 1.1  1998/06/23 14:00:17  peter
     * renamed RA* units
 
   Revision 1.13  1998/06/16 08:56:29  peter

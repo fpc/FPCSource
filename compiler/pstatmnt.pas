@@ -602,18 +602,18 @@ unit pstatmnt;
          case aktasmmode of
 {$ifdef i386}
   {$ifndef NoRA386Att}
-            I386_ATT : asmstat:=ratti386.assemble;
+            I386_ATT : asmstat:=ra386att.assemble;
   {$endif NoRA386Att}
   {$ifndef NoRA386Int}
-          I386_INTEL : asmstat:=rai386.assemble;
+          I386_INTEL : asmstat:=ra386int.assemble;
   {$endif NoRA386Int}
   {$ifndef NoRA386Dir}
-         I386_DIRECT : asmstat:=radi386.assemble;
+         I386_DIRECT : asmstat:=ra386dir.assemble;
   {$endif NoRA386Dir}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoRA68kMot}
-            M68K_MOT : asmstat:=ra68k.assemble;
+            M68K_MOT : asmstat:=ra68kmot.assemble;
   {$endif NoRA68kMot}
 {$endif}
          else
@@ -1136,7 +1136,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.20  1998-06-23 14:00:16  peter
+  Revision 1.21  1998-06-24 14:06:34  peter
+    * fixed the name changes
+
+  Revision 1.20  1998/06/23 14:00:16  peter
     * renamed RA* units
 
   Revision 1.19  1998/06/08 22:59:50  peter

@@ -177,6 +177,7 @@ uses
   {$O import}
   {$O os2_targ}
   {$O win_targ}
+  {$O asmutils}
   {$ifdef gdb}
         {$O gdb}
   {$endif gdb}
@@ -194,20 +195,21 @@ uses
         {$O aopt386}
         {$O cgai386}
         {$O i386}
-        {$O radi386}
-        {$O rai386}
-        {$O ratti386}
+        {$O ra386dir}
+        {$O ra386int}
+        {$O ra386att}
         {$O tgeni386}
         {$O ag386int}
         {$O ag386att}
         {$O ag386nsm}
-        {$O asmutils}
   {$endif}
   {$ifdef m68k}
         {$O opts68k}
         {$O cg68k}
-        {$O ra68k}
+        {$O ra68kmot}
         {$O ag68kgas}
+        {$O ag68kmot}
+        {$O ag68kmit}
   {$endif}
 {$endif useoverlay}
 
@@ -392,7 +394,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1998-06-23 08:59:22  daniel
+  Revision 1.18  1998-06-24 14:06:33  peter
+    * fixed the name changes
+
+  Revision 1.17  1998/06/23 08:59:22  daniel
   * Recommitted.
 
   Revision 1.16  1998/06/17 14:10:17  peter
