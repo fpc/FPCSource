@@ -1,7 +1,7 @@
 program BasicPM;
 
 uses
- Os2Def, PMWin;
+ Os2Def, PMWin, PMGpi;
 
 function ClientWindowProc (Window, Msg: cardinal; MP1, MP2: pointer): pointer;
                                                                  cdecl; export;
@@ -16,7 +16,7 @@ begin
  case Msg of
   wm_Paint: begin
              PS := WinBeginPaint(Window, 0, nil);
-{            GpiErase(PS);}
+             GpiErase(PS);
              WinEndPaint(PS);
             end;
   else ClientWindowProc := WinDefWindowProc (Window, Msg, MP1, MP2);
