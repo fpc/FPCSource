@@ -23,7 +23,7 @@
 unit cg386cal;
 interface
 
-{$define EXtdebug}
+{ $define AnsiStrRef}
 
     uses
       symtable,tree;
@@ -1023,6 +1023,11 @@ implementation
                             gettempansistringreference(hr);
                             exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                               newreference(hr))));
+{$ifdef AnsiStrRef}
+                            ungetregister(hregister);
+                            p^.location.loc:=LOC_REFERENCE;
+                            p^.location.reference:=hr;
+{$endif}
                             { unnessary ansi/wide strings are imm. disposed }
                             if not(p^.return_value_used) then
                               begin
@@ -1196,7 +1201,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-03-31 13:55:04  peter
+  Revision 1.72  1999-04-09 08:41:48  peter
+    * define to get ansistring returns in ref instead of reg
+
+  Revision 1.71  1999/03/31 13:55:04  peter
     * assembler inlining working for ag386bin
 
   Revision 1.70  1999/03/24 23:16:46  peter
