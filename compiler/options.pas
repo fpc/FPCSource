@@ -1099,6 +1099,8 @@ begin
                       include(initglobalswitches,cs_link_internal);
                     'm' :
                       include(initglobalswitches,cs_link_map);
+		    'f' :
+		      include(initglobalswitches,cs_link_pthread);
                     's' :
                       include(initglobalswitches,cs_link_strip);
                     'c' : Cshared:=TRUE;
@@ -1996,7 +1998,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.123  2004-02-03 00:42:08  florian
+  Revision 1.124  2004-02-15 16:34:18  marco
+   * pthread on -CURRENT related fixes.
+
+  Revision 1.123  2004/02/03 00:42:08  florian
     + FPC_PREFETCH defined
 
   Revision 1.122  2004/01/24 18:12:40  florian

@@ -74,8 +74,6 @@ implementation
 
     tlinkerbsd=class(texternallinker)
     private
-      Glibc2,
-      Glibc21,
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
@@ -460,6 +458,7 @@ Var
   prtobj       : string[80];
   HPath        : TStringListItem;
   s,s1,s2      : string;
+  linkpthread,
   linkdynamic,
   linklibc     : boolean;
   Fl1,Fl2      : Boolean;
@@ -471,21 +470,22 @@ begin
     begin
       linkdynamic:=not(SharedLibFiles.empty);
       linklibc:=(SharedLibFiles.Find('c')<>nil);
+      linkpthread:=(SharedLibFiles.Find('pthread')<>nil);
+      if (target_info.system =system_i386_freebsd) and linkpthread Then
+        Begin
+          if not (cs_link_pthread in aktglobalswitches) Then
+	    begin
+	      {delete pthreads from list, in this case it is in libc_r}
+	      SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
+	      LibrarySuffix:='r'; 	
+	    end;
+        End;
       prtobj:='prt0';
       cprtobj:='cprt0';
       gprtobj:='gprt0';
-      if glibc21 then
-       begin
-         cprtobj:='cprt21';
-         gprtobj:='gprt21';
-       end;
       if cs_profile in aktmoduleswitches then
        begin
          prtobj:=gprtobj;
-    {
-         if not glibc2 then
-          AddSharedLibrary('gmon');
-    }
          AddSharedLibrary('c');
          LibrarySuffix:='p';
          linklibc:=true;
@@ -505,6 +505,7 @@ begin
       else
         prtobj:='/usr/lib/gcrt1.o';
     end;
+
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -759,7 +760,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-01-21 20:53:51  marco
+  Revision 1.9  2004-02-15 16:34:18  marco
+   * pthread on -CURRENT related fixes.
+
+  Revision 1.8  2004/01/21 20:53:51  marco
    * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
 
   Revision 1.7  2004/01/05 08:13:30  jonas

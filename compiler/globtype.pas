@@ -80,7 +80,8 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,cs_link_map
+	 cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,
+	 cs_link_map,cs_link_pthread
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -234,7 +235,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-12-23 23:22:35  peter
+  Revision 1.49  2004-02-15 16:34:18  marco
+   * pthread on -CURRENT related fixes.
+
+  Revision 1.48  2003/12/23 23:22:35  peter
     * register calling is now default for i386
 
   Revision 1.47  2003/12/14 20:51:17  daniel
