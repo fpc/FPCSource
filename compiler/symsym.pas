@@ -1511,7 +1511,8 @@ implementation
       if (vo_is_self in varoptions) then
         begin
           case loc of
-            LOC_REGISTER:
+            LOC_REGISTER,
+            LOC_CREGISTER:
               regidx:=findreg_by_number(localloc.register);
             LOC_REFERENCE: ;
             else
@@ -2222,7 +2223,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2004-10-10 20:22:53  peter
+  Revision 1.183  2004-10-10 21:08:55  peter
+    * parameter regvar fixes
+
+  Revision 1.182  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters

@@ -1239,7 +1239,16 @@ implementation
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
-                  cg.a_load_ref_reg(list,paraloc.size,paraloc.size,href,reg);
+                  case getregtype(reg) of
+                    R_INTREGISTER :
+                      cg.a_load_ref_reg(list,paraloc.size,paraloc.size,href,reg);
+                    R_FPUREGISTER :
+                      cg.a_loadfpu_ref_reg(list,paraloc.size,href,reg);
+                    R_MMREGISTER :
+                      cg.a_loadmm_ref_reg(list,paraloc.size,paraloc.size,href,reg,mms_movescalar);
+                    else
+                      internalerror(2004101012);
+                  end;
                 end;
               else
                 internalerror(2002081302);
@@ -2207,7 +2216,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.224  2004-10-10 20:51:46  peter
+  Revision 1.225  2004-10-10 21:08:55  peter
+    * parameter regvar fixes
+
+  Revision 1.224  2004/10/10 20:51:46  peter
     * fixed sparc compile
     * fixed float regvar loading
 

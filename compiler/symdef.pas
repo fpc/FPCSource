@@ -1281,7 +1281,11 @@ implementation
 
    function tstoreddef.is_fpuregable : boolean;
      begin
-        is_fpuregable:=(deftype=floatdef);
+{$ifdef x86}
+       result:=false;
+{$else x86}
+       result:=(deftype=floatdef);
+{$endif x86}
      end;
 
 
@@ -6200,7 +6204,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.257  2004-10-04 21:23:15  florian
+  Revision 1.258  2004-10-10 21:08:55  peter
+    * parameter regvar fixes
+
+  Revision 1.257  2004/10/04 21:23:15  florian
     * rtti alignment fixed
 
   Revision 1.256  2004/09/21 23:36:51  hajny

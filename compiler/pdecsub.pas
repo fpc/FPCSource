@@ -136,9 +136,12 @@ implementation
             if pd.deftype=procdef then
              akttokenpos:=tprocdef(pd).fileinfo;
 
-            { Generate result variable accessing function result }
+            { Generate result variable accessing function result, it
+              can't be put in a register since it must be accessable
+              from the framepointer }
             vs:=tvarsym.create('$parentfp',vs_var,voidpointertype);
             include(vs.varoptions,vo_is_parentfp);
+            vs.varregable:=vr_none;
             pd.parast.insert(vs);
             pd.insertpara(vs.vartype,vs,nil,true);
 
@@ -2260,7 +2263,10 @@ const
 end.
 {
   $Log$
-  Revision 1.191  2004-10-08 17:09:43  peter
+  Revision 1.192  2004-10-10 21:08:55  peter
+    * parameter regvar fixes
+
+  Revision 1.191  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.190  2004/08/29 11:28:41  peter
