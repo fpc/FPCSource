@@ -1049,7 +1049,7 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Linux;
-            assem       : as_i386_elf;
+            assem       : as_i386_as;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
@@ -1660,7 +1660,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-07-14 21:29:38  michael
+  * Back to external assembler till peter fixes gdb
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:50  michael
