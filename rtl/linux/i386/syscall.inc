@@ -6,7 +6,7 @@
 
     The syscalls for the new RTL, moved to platform dependant dir.
     Old linux calling convention is stil kept.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,15 +23,28 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
 
 asm
 { load the registers... }
-  movl sysnr,%eax
-  int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
-end;     
+  movl  sysnr,%eax
+  int   $0x80
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  Errno+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
+end;
 
 function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 
@@ -40,12 +53,25 @@ asm
   movl sysnr,%eax
   movl param1,%ebx
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
 
 function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
@@ -56,13 +82,25 @@ asm
   movl param1,%ebx
   movl param2,%ecx
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
-
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
@@ -74,12 +112,25 @@ asm
   movl param2,%ecx
   movl param3,%edx
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
@@ -92,12 +143,25 @@ asm
   movl param3,%edx
   movl param4,%esi
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
@@ -111,14 +175,29 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
 
+{$ifdef notsupported}
+{ Only 5 params are pushed, so it'll not work as expected (PFV) }
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 
 asm
@@ -130,13 +209,27 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
-  test %eax,%eax
-  jae   .LSysc
-  negl %eax
-  mov  %eax,Errno
-  mov  $-1,%eax
-.LSysc:
+  testl %eax,%eax
+  jns   .LSyscEnd
+  negl  %eax
+  pushl %edx
+  pushl %eax
+  movl  FPC_THREADVAR_RELOCATE,%eax
+  testl %eax,%eax
+  jne   .LThread
+  leal  ErrNo+4,%eax
+  jmp   .LNoThread
+.LThread:
+  pushl Errno
+  call  *%eax
+.LNoThread:
+  popl  %edx
+  movl  %edx,(%eax)
+  popl  %edx
+  movl  $-1,%eax
+.LSyscEnd:
 end;
+{$endif notsupported}
 
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
@@ -227,7 +320,12 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-12-18 16:46:37  marco
+  Revision 1.4  2002-12-18 20:41:33  peter
+    * Threadvar support for Errno
+    * Fixed syscall error return check
+    * Uncommented Syscall with 6 parameters, only 5 were really set
+
+  Revision 1.3  2002/12/18 16:46:37  marco
    * Some mods.
 
   Revision 1.2  2002/11/16 15:37:47  marco

@@ -25,11 +25,11 @@
 Type
 
   TSysResult = longint; // all platforms, cint=32-bit.
-			// On platforms with off_t =64-bit, people should
-			// use int64, and typecast all calls that don't 
-			// return off_t to cint.
+                        // On platforms with off_t =64-bit, people should
+                        // use int64, and typecast all calls that don't
+                        // return off_t to cint.
 
-// I don't think this is going to work on several platforms 
+// I don't think this is going to work on several platforms
 // 64-bit machines don't have only 64-bit params.
 
   TSysParam  = Longint;
@@ -40,11 +40,18 @@ function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'F
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_SYSCALL3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+{$ifdef notsupported}
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+{$endif notsupported}
 
 {
   $Log$
-  Revision 1.2  2002-12-18 16:46:37  marco
+  Revision 1.3  2002-12-18 20:41:33  peter
+    * Threadvar support for Errno
+    * Fixed syscall error return check
+    * Uncommented Syscall with 6 parameters, only 5 were really set
+
+  Revision 1.2  2002/12/18 16:46:37  marco
    * Some mods.
 
   Revision 1.1  2002/11/16 15:37:47  marco
