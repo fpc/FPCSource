@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$ASMMODE ATT}
+
 {$IFDEF INT64}
 
 function DiskFree (Drive: byte): int64;
@@ -210,7 +212,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2000-05-28 18:21:51  hajny
+ Revision 1.6  2000-06-04 14:23:18  hajny
+   * asmmode fixed
+
+ Revision 1.5  2000/05/28 18:21:51  hajny
    + initial implementation
 
  Revision 1.4  2000/05/21 15:55:11  hajny
