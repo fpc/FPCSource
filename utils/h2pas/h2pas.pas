@@ -478,9 +478,16 @@ program h2pas;
                      end
                    else
                      begin
-                        write(outfile,'_para',para);
-                        { not exact but unimportant }
-                        length:=length+6;
+                       If removeUnderscore then
+                         begin
+                         Write (outfile,'para',para);
+                         Length:=(Length+5);
+                         end
+                       else
+                         begin
+                         write(outfile,'_para',para);
+                         length:=length+6;
+                         end;  
                      end;
                    write(outfile,':');
                    if varpara then
@@ -6599,7 +6606,10 @@ end.
 
 (*
  $Log$
- Revision 1.4  2000-03-27 21:39:19  peter
+ Revision 1.5  2000-03-28 06:55:42  michael
+ + RemoveUNderscore now also does not add underscores to generated parameter names
+
+ Revision 1.4  2000/03/27 21:39:19  peter
    + -S, -T, -c modes added
    * crash fixes
    * removed double opening of inputfile
