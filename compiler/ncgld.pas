@@ -893,12 +893,10 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 if not(
-                        is_ansistring(left.resulttype.def) or
-                        is_widestring(left.resulttype.def) or
-                        (left.resulttype.def.deftype=variantdef)
-                       ) then
-                   freetemp:=true;
+                 if (is_ansistring(left.resulttype.def) or
+                     is_widestring(left.resulttype.def) or
+                     (left.resulttype.def.deftype=variantdef)) then
+                   freetemp:=false;
                  case hp.left.location.loc of
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
@@ -953,7 +951,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2004-12-18 15:48:27  florian
+  Revision 1.135  2005-01-04 16:37:09  peter
+    * don't release temps for array of ansistring
+
+  Revision 1.134  2004/12/18 15:48:27  florian
     * fixed some alignment trouble
 
   Revision 1.133  2004/11/29 17:32:56  peter
