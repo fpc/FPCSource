@@ -378,10 +378,14 @@ implementation
                     begin
                       if Tprocsym(symtableentry).procdef_count>1 then
                        CGMessage(parser_e_no_overloaded_procvars);
-                      resulttype.setdef(tprocsym(symtableentry).first_procdef);
-                    end
+                      procdef:=tprocsym(symtableentry).first_procdef;
+                    end;
+
+                   { Delphi returns Pointer as type }
+                   if not(m_tp_procvar in aktmodeswitches) then
+                    resulttype.setdef(procdef)
                    else
-                    resulttype.setdef(procdef);
+                    resulttype:=voidpointertype;
 
                    { process methodpointer }
                    if assigned(left) then
@@ -474,6 +478,7 @@ implementation
                    { method pointer ? }
                    if assigned(left) then
                      begin
+                        expectloc:=LOC_CREFERENCE;
                         firstpass(left);
                         registers32:=max(registers32,left.registers32);
                         registersfpu:=max(registersfpu,left.registersfpu);
@@ -1259,7 +1264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-04-22 23:50:23  peter
+  Revision 1.85  2003-04-23 10:10:54  peter
+    * procvar is not compared in addrn
+
+  Revision 1.84  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

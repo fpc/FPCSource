@@ -401,9 +401,17 @@ implementation
             if not(m_tp_procvar in aktmodeswitches) then
               begin
                  if assigned(getprocvardef) then
-                  hp3:=getprocvardef
+                  begin
+                    hp3:=tprocsym(tloadnode(left).symtableentry).search_procdef_byprocvardef(getprocvardef);
+                    if not assigned(hp3)  then
+                     begin
+                       CGMessage2(type_e_incompatible_types,tprocsym(tloadnode(left).symtableentry).first_procdef.typename,getprocvardef.typename);
+                       exit;
+                     end;
+                  end
                  else
                   hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).first_procdef);
+
 
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create);
@@ -1052,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-22 23:50:23  peter
+  Revision 1.49  2003-04-23 10:10:54  peter
+    * procvar is not compared in addrn
+
+  Revision 1.48  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
