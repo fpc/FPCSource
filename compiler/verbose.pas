@@ -144,6 +144,8 @@ begin
        'D' : Verbosity:=Verbosity or V_Debug;
       end;
    end;
+  if Verbosity=0 then
+   Verbosity:=V_Default;
   setverbosity:=true;
 end;
 
@@ -290,7 +292,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-13 21:15:42  florian
+  Revision 1.4  1998-04-23 12:11:22  peter
+    * fixed -v0 to displayV_Default (=errors+fatals)
+
+  Revision 1.3  1998/04/13 21:15:42  florian
     * error handling of pass_1 and cgi386 fixed
     * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
       fixed, verified
