@@ -1171,6 +1171,8 @@ begin
         AddSection((userini.dirtarget<>''),'command_target');
         AddSection((userini.dirunittarget<>''),'command_unittarget');
         AddSection(true,'command_end');
+        AddSection(true,'command_win32env');
+        AddSection(true,'command_compiler');
       end;
 
    { add default rules }
@@ -1296,7 +1298,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2000-01-14 12:14:41  peter
+  Revision 1.27  2000-01-16 22:26:47  peter
+    * use environment variable again for win32, the file writing gives to
+      much trouble
+
+  Revision 1.26  2000/01/14 12:14:41  peter
     * sourceinstall updates
 
   Revision 1.25  2000/01/13 21:08:46  peter
