@@ -543,7 +543,7 @@ integer is 16 bit.
 
 <!-- pointer type Visibility: default -->
 <element name="PPointerArray">
-<short>Pointer to <link id="rtl.objpas.PointerArray">PointerArray</link></short>
+<short>Pointer to <link id="#rtl.objpas.PointerArray">PointerArray</link></short>
 </element>
 
 <!-- array type Visibility: default -->
