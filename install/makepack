@@ -5,7 +5,7 @@
 #
 
 # Version
-VERSION=1.0.4
+VERSION=1.0.6
 RELEASE=ELF
 
 unset FPCDIR
@@ -14,10 +14,30 @@ unset FPCDIR
 [ -d install ] || cd ..
 
 make linuxzip
-make sourcezip
-make docsrc
+if [ $? != 0 ]; then
+  echo Failed to make distribution archive.
+  exit 1
+fi
 make docs
+if [ $? != 0 ]; then
+  echo Failed to make documentation archive.
+  exit 1
+fi
+make sourcezip
+if [ $? != 0 ]; then
+  echo Failed to make source archive.
+  exit 1
+fi
+make docsrc
+if [ $? != 0 ]; then
+  echo Failed to make documentation source archive.
+  exit 1
+fi
 make demozip
+if [ $? != 0 ]; then
+  echo Failed to make demo source archive.
+  exit 1
+fi
 
 SOURCES=`/bin/ls *src.tar.gz`
 FILES=`/bin/ls *linux.tar.gz *exm.tar.gz`
@@ -25,11 +45,23 @@ RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz install.sh"
 
 echo Creating binary.tar
 tar cf binary.tar $FILES
+if [ $? != 0 ]; then
+  echo Failed to create binary.tar
+  exit 1
+fi
 echo Creating sources.tar
 tar cf sources.tar $SOURCES
+if [ $? != 0 ]; then
+  echo Failed to create sources.tar
+  exit 1
+fi
 echo Copying install.sh
 cp install/install.sh .
 chmod 755 install.sh
 
 echo Creating fpc-$VERSION.$RELEASE.tar
 tar cf fpc-$VERSION.$RELEASE.tar $RELFILES
+if [ $? != 0 ]; then
+  echo Failed to create fpc-$VERSION.$RELEASE.tar
+  exit 1
+fi
