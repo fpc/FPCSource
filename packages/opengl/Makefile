@@ -131,6 +131,12 @@ override TARGET_UNITS+=glx
 endif
 override TARGET_EXAMPLEDIRS+=examples
 override INSTALL_FPCPACKAGE=y
+ifeq ($(OS_TARGET),linux)
+override COMPILER_INCLUDEDIR+=unix
+endif
+ifeq ($(OS_TARGET),freebsd)
+override COMPILER_INCLUDEDIR+=unix
+endif
 override COMPILER_SOURCEDIR+=$(OS_TARGET)
 override COMPILER_TARGETDIR+=$(OS_TARGET)
 ifndef ECHO

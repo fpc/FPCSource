@@ -246,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-06-20 13:59:20  marco
+  Revision 1.2  2001-06-20 14:22:48  marco
+   * Introduced Unix dir structure for opengl.
+
+  Revision 1.3  2001/06/20 13:59:20  marco
    * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
 
   Revision 1.2  2000/10/01 22:17:59  peter
@@ -266,7 +269,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-06-20 13:59:20  marco
+  Revision 1.2  2001-06-20 14:22:48  marco
+   * Introduced Unix dir structure for opengl.
+
+  Revision 1.3  2001/06/20 13:59:20  marco
    * Fixed breaking of Freebsd. Still requires copying linux to freebsd dir.
 
   Revision 1.2  2000/10/01 22:17:59  peter

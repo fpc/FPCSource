@@ -21,6 +21,8 @@ exampledirs=examples
 [compiler]
 sourcedir=$(OS_TARGET)
 targetdir=$(OS_TARGET)
+includedir_freebsd=unix
+includedir_linux=unix
 
 [install]
 fpcpackage=y
