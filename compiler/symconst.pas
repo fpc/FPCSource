@@ -158,7 +158,8 @@ type
     vo_is_thread_var,
     vo_fpuregable,
     vo_is_local_copy,
-    vo_is_const  { variable is declared as const (parameter) and can't be written to }
+    vo_is_const,  { variable is declared as const (parameter) and can't be written to }
+    vo_is_exported
   );
   tvaroptions=set of tvaroption;
 
@@ -213,7 +214,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-03-19 14:56:38  florian
+  Revision 1.12  2000-06-02 21:15:49  pierre
+   + vo_is_exported for bug0317 fix
+
+  Revision 1.11  2000/03/19 14:56:38  florian
     * bug 873 fixed
     * some cleanup in objectdec
 
