@@ -213,7 +213,7 @@ implementation
 
 uses
   Video,
-  WViews;
+  WConsts,WViews;
 
 const CommentColor = Blue;
 
@@ -504,7 +504,7 @@ begin
 end;
 begin
   Lines^.FreeAll; Links^.FreeAll; NamedMarks^.FreeAll; ColorAreas^.FreeAll;
-  if Topic=nil then Lines^.Insert(NewStr('No help available for this topic.')) else
+  if Topic=nil then Lines^.Insert(NewStr(msg_nohelpavailabelforthistopic)) else
   begin
     LineStart:=0; NextLineStart:=0;
     TextPos:=0; ClearLine; CurWord:=''; Line:='';
@@ -1318,7 +1318,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2000-05-30 07:18:33  pierre
+  Revision 1.17  2000-06-16 08:50:45  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.16  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.15  2000/05/29 10:45:00  pierre

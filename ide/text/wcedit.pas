@@ -1218,6 +1218,7 @@ begin
               end;
           else
             { what the 'ell's an undefined action doing round 'ere mate! }
+            ;
           end; { once this lot is done paste into redo and modify to suit needs }
           { move item to redo stack }
           Core^.RedoList^.Insert(Core^.UndoList^.At(Idx));
@@ -1322,6 +1323,7 @@ begin
           end;
       else
         { what the 'ell's an undefined action doing round 'ere mate! }
+        ;
       end; { once this lot is done paste back into undo and modify to suit needs }
     { move item to undo stack }
       Core^.UndoList^.Insert(Core^.RedoList^.At(Idx));

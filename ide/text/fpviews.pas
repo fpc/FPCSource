@@ -354,8 +354,8 @@ type
       procedure   Store(var S: TStream);
     end;
 
-    PFPCodeMemo = ^TFPCodeMemo;
-    TFPCodeMemo = object(TCodeEditor)
+    PFPMemo = ^TFPMemo;
+    TFPMemo = object(TCodeEditor)
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
                     PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
@@ -364,10 +364,22 @@ type
       function    GetPalette: PPalette; virtual;
     end;
 
+    PFPCodeMemo = ^TFPCodeMemo;
+    TFPCodeMemo = object(TFPMemo)
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+                    PScrollBar; AIndicator: PIndicator);
+      function    IsReservedWord(const S: string): boolean; virtual;
+      function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+    end;
+
 function  SearchFreeWindowNo: integer;
 
+function IsWindow(P: PView): boolean;
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
+function IsThereAnyVisibleWindow: boolean;
+function IsThereAnyNumberedWindow: boolean;
 function FirstEditorWindow: PSourceWindow;
 function EditorWindowFile(const Name : String): PSourceWindow;
 
@@ -404,7 +416,7 @@ procedure NoDebugger;
 
 const
       SourceCmds  : TCommandSet =
-        ([cmSave,cmSaveAs,cmCompile]);
+        ([cmSave,cmSaveAs,cmCompile,cmHide]);
       EditorCmds  : TCommandSet =
         ([cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch]);
       CompileCmds : TCommandSet =
@@ -529,7 +541,6 @@ begin
 end;
 
 
-
 function IsThereAnyEditor: boolean;
 function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -544,12 +555,49 @@ begin
   IsThereAnyHelpWindow:=(HelpWindow<>nil) and (HelpWindow^.GetState(sfVisible));
 end;
 
-function IsThereAnyWindow: boolean;
+function IsThereAnyNumberedWindow: boolean;
 var _Is: boolean;
 begin
   _Is:=Message(Desktop,evBroadcast,cmSearchWindow,nil)<>nil;
   _Is:=_Is or ( (ClipboardWindow<>nil) and ClipboardWindow^.GetState(sfVisible));
-  IsThereAnyWindow:=_Is;
+  IsThereAnyNumberedWindow:=_Is;
+end;
+
+function IsWindow(P: PView): boolean;
+var OK: boolean;
+begin
+  OK:=false;
+  if (P^.HelpCtx=hcSourceWindow) or
+     (P^.HelpCtx=hcHelpWindow) or
+     (P^.HelpCtx=hcClipboardWindow) or
+     (P^.HelpCtx=hcCalcWindow) or
+     (P^.HelpCtx=hcInfoWindow) or
+     (P^.HelpCtx=hcBrowserWindow) or
+     (P^.HelpCtx=hcMessagesWindow) or
+     (P^.HelpCtx=hcGDBWindow) or
+     (P^.HelpCtx=hcBreakpointListWindow) or
+     (P^.HelpCtx=hcASCIITableWindow)
+   then
+     OK:=true;
+   IsWindow:=OK;
+end;
+
+function IsThereAnyWindow: boolean;
+function CheckIt(P: PView): boolean; {$ifndef FPC}far;{$endif}
+begin
+  CheckIt:=IsWindow(P);
+end;
+begin
+  IsThereAnyWindow:=Desktop^.FirstThat(@CheckIt)<>nil;
+end;
+
+function IsThereAnyVisibleWindow: boolean;
+function CheckIt(P: PView): boolean; {$ifndef FPC}far;{$endif}
+begin
+  CheckIt:=IsWindow(P) and P^.GetState(sfVisible);
+end;
+begin
+  IsThereAnyVisibleWindow:=Desktop^.FirstThat(@CheckIt)<>nil;
 end;
 
 function FirstEditorWindow: PSourceWindow;
@@ -755,17 +803,8 @@ begin
   { we have a crash here because of the TStatusLine
     that can also have one of these values
     but is not a Window object PM }
-  if (P^.HelpCtx=hcSourceWindow) or
-     (P^.HelpCtx=hcHelpWindow) or
-     (P^.HelpCtx=hcClipboardWindow) or
-     (P^.HelpCtx=hcCalcWindow) or
-     (P^.HelpCtx=hcInfoWindow) or
-     (P^.HelpCtx=hcBrowserWindow) or
-     (P^.HelpCtx=hcMessagesWindow) or
-     (P^.HelpCtx=hcGDBWindow) or
-     (P^.HelpCtx=hcBreakpointListWindow) or
-     (P^.HelpCtx=hcASCIITableWindow)
-    then W:=PWindow(P);
+  if IsWindow(P) then
+    W:=PWindow(P);
   OK:=(W<>nil);
   if OK then
   begin
@@ -1326,7 +1365,8 @@ var HSB,VSB: PScrollBar;
     PA : Array[1..2] of pointer;
     LoadFile: boolean;
 begin
-  inherited Init(Bounds,AFileName,SearchFreeWindowNo);
+  inherited Init(Bounds,AFileName,{SearchFreeWindowNo}0);
+  AutoNumber:=true;
   Options:=Options or ofTileAble;
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
@@ -1405,6 +1445,8 @@ begin
       begin
         DontClear:=false;
         case Event.Command of
+          cmHide :
+            Hide;
           cmSave :
             if Editor^.IsClipboard=false then
              if Editor^.FileName='' then
@@ -2106,8 +2148,7 @@ begin
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+3;
   C:=((Desktop^.GetColor(32+6) and $f0) or White)*256+Desktop^.GetColor(32+6);
-  New(InfoST, Init(R,'', C)); InfoST^.GrowMode:=gfGrowHiX;
-  InfoST^.DontWrap:=true;
+  New(InfoST, Init(R,'', C, false)); InfoST^.GrowMode:=gfGrowHiX;
   Insert(InfoST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,3); R.B.Y:=R.A.Y+1;
   New(ST, Init(R, CharStr('Ä', MaxViewWidth))); ST^.GrowMode:=gfGrowHiX; Insert(ST);
@@ -3290,17 +3331,39 @@ begin
   GetPalette:=@S;
 end;
 
-constructor TFPCodeMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+constructor TFPMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,nil);
   SetFlags(Flags and not (efPersistentBlocks) or efSyntaxHighlight);
 end;
 
-function TFPCodeMemo.GetPalette: PPalette;
-const P: string[length(CFPCodeMemo)] = CFPCodeMemo;
+function TFPMemo.GetPalette: PPalette;
+const P: string[length(CFPMemo)] = CFPMemo;
 begin
   GetPalette:=@P;
+end;
+
+function TFPMemo.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
+begin
+  GetSpecSymbolCount:=0;
+end;
+
+function TFPMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+begin
+  Abstract;
+  GetSpecSymbol:='';
+end;
+
+function TFPMemo.IsReservedWord(const S: string): boolean;
+begin
+  IsReservedWord:=false;
+end;
+
+constructor TFPCodeMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator);
 end;
 
 function TFPCodeMemo.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
@@ -3409,7 +3472,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.71  2000-05-29 10:44:57  pierre
+  Revision 1.72  2000-06-16 08:50:42  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.71  2000/05/29 10:44:57  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.70  2000/05/16 21:50:53  pierre

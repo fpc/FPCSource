@@ -36,6 +36,7 @@ const
       label_browsertab_reference = 'R';
       label_browsertab_inheritance = 'I';
       label_browsertab_memory = 'M';
+      label_browsertab_unit = 'U';
 
 {$ifdef USERESSTRINGS}
     resourcestring
@@ -144,6 +145,7 @@ const
       menu_window_zoom       = '~Z~oom';
       menu_window_next       = '~N~ext';
       menu_window_previous   = '~P~revious';
+      menu_window_hide       = '~H~ide';
       menu_window_close      = '~C~lose';
       menu_window_list       = '~L~ist...';
       menu_window_update     = '~R~efresh display';
@@ -230,6 +232,7 @@ const
       menu_key_window_previous = 'Shift+F6';
       menu_key_window_close  = 'Alt+F3';
       menu_key_window_list   = 'Alt+0';
+      menu_key_window_hide   = 'Ctrl+F6';
 
       menu_key_help_helpindex= menu_key_common_helpindex;
       menu_key_help_topicsearch = menu_key_common_topicsearch;
@@ -569,6 +572,8 @@ const
       dialog_windowlist = 'Window List';
       label_wndlist_windows = '~W~indows';
 
+      msg_windowlist_hidden = 'hidden';
+
       msg_userscreennotavailable = 'Sorry, user screen not available.';
 
       { Tools $PROMPT() dialog }
@@ -646,6 +651,10 @@ const
       { Symbol browser meminfo page }
       msg_sizeinmemory = 'Size in memory';
       msg_sizeonstack = 'Size on stack';
+
+      msg_usedfirstin = 'Used first in';
+      msg_mainsource = 'Main source';
+      msg_sourcefiles = 'Source files';
 
       { Help messages }
       msg_indexingfile = 'Indexing file %s';
@@ -795,6 +804,8 @@ const
       button_Edit        = '~E~dit';
       button_Delete      = '~D~elete';
       button_Close       = '~C~lose';
+      button_Show        = '~S~how';
+      button_Hide        = '~H~ide';
 
       { Compiler message classes }
       msg_class_normal   = '';
@@ -950,7 +961,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-05-30 07:18:33  pierre
+  Revision 1.4  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.3  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.2  2000/05/29 10:44:57  pierre

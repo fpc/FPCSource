@@ -272,7 +272,7 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
-  WViews,WHTMLHlp;
+  WConsts,WViews,WHTMLHlp;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -551,8 +551,12 @@ begin
     else
      begin
      {$ifdef DEBUGMSG}
-       ErrorBox('Uknown help record tag 0x'+IntToHex(R.SClass)+' encountered, offset 0x'+IntToHex(L)+
-         ', size '+IntToStr(R.Size),nil);
+       ClearFormatParams;
+       AddFormatParamInt(R.SClass);
+       AddFormatParamInt(L);
+       AddFormatParamInt(R.Size);
+       ErrorBox('Uknown help record tag %x encountered, '+
+                'offset %x, size %d',@FormatParams);
      {$else}
        {Skip};
      {$endif}
@@ -1081,10 +1085,10 @@ begin
   if HelpFiles^.Count=0 then
     begin
       AddLine('');
-      AddLine(' No help files installed.')
+      AddLine(' '+msg_nohelpfilesinstalled)
     end else
   begin
-    AddLine(' Help index');
+    AddLine(' '+msg_helpindex);
     KWCount:=0; Line:='';
     T^.LinkCount:=Keywords^.Count;
     GetMem(T^.Links,T^.LinkSize);
@@ -1130,7 +1134,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2000-05-31 20:42:02  pierre
+  Revision 1.23  2000-06-16 08:50:44  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.22  2000/05/31 20:42:02  pierre
    * fixthe TRect problem by 'using' windows before objects
 
   Revision 1.21  2000/05/30 07:18:33  pierre

@@ -44,7 +44,6 @@ uses
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp;
 
-
 procedure ProcessParams(BeforeINI: boolean);
 
   function IsSwitch(const Param: string): boolean;
@@ -76,8 +75,12 @@ begin
         if UpcaseStr(Param)='NOLFN' then
           begin
             LFNSupport:=false;
-           end else
+          end else
 {$endif go32v2}
+        if UpcaseStr(Param)='README' then
+          begin
+            ShowReadme:=true;
+          end else
         case Upcase(Param[1]) of
           'C' : { custom config file (BP compatiblity) }
            if BeforeINI then
@@ -128,6 +131,16 @@ begin
   end;
 end;
 
+procedure DelTempFiles;
+begin
+  DeleteFile(FPOutFileName);
+  DeleteFile(FPErrFileName);
+  DeleteFile(GDBOutFileName);
+  DeleteFile(GDBOutPutFileName);
+  DeleteFile(GREPOutName);
+  DeleteFile(GREPErrName);
+end;
+
 procedure RegisterIDEObjects;
 begin
   RegisterApp;
@@ -176,6 +189,8 @@ BEGIN
   RegisterIDEObjects;
   StreamError:=@MyStreamError;
 
+  ShowReadme:=ShowReadme or (LocateFile(INIFileName)='');
+
 {$ifdef win32}
   DosExecute(GetEnv('COMSPEC'),'/C echo This dummy call gets the mouse to become visible');
 {$endif win32}
@@ -213,6 +228,12 @@ BEGIN
 
   ProcessParams(false);
 
+  if ShowReadme then
+  begin
+    PutCommand(Application,evCommand,cmShowReadme,nil);
+    ShowReadme:=false; { do not show next time }
+  end;
+
   repeat
     IDEApp.Run;
     if (AutoSaveOptions and asEditorFiles)=0 then
@@ -225,6 +246,7 @@ BEGIN
 
   DoneDesktopFile;
 
+  DelTempFiles;
   IDEApp.Done;
   WriteSwitches(SwitchesPath);
 
@@ -248,7 +270,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.46  2000-05-29 10:44:56  pierre
+  Revision 1.47  2000-06-16 08:50:40  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.46  2000/05/29 10:44:56  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.45  2000/05/02 08:42:26  pierre

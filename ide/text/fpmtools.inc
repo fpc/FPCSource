@@ -138,8 +138,6 @@ end;
 
 procedure TIDEApp.DoGrep;
 Const
-  GrepOutName = 'grep$$.out';
-  GrepErrName = 'grep$$.err';
   GrepExeName = 'grep'+ExeExt;
 var
   PGrepDialog : PCenterDialog;
@@ -296,7 +294,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-05-02 08:42:28  pierre
+  Revision 1.21  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.20  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.19  2000/03/13 20:32:56  pierre

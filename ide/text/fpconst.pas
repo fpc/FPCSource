@@ -35,6 +35,7 @@ const
      DesktopName          = 'fp.dsk';
      BrowserName          = 'fp.brw';
      BackgroundName       = 'fp.ans';
+     ReadmeName           = 'readme.ide';
 
      ToolCaptureName      = '__tool__.out'; { all '$' signs replaces with '_'s }
      FilterCaptureName    = '_filter_.out';
@@ -43,6 +44,8 @@ const
      GDBOutFileName       = 'gdb___.out';
      GDBOutPutFileName    = 'gdb___.txt';
      DesktopTempName      = 'fp___.dsk';
+     GrepOutName          = 'grep$$.out';
+     GrepErrName          = 'grep$$.err';
 
      HTMLIndexExt         = '.htx';
      HTMLExt              = '.htm';
@@ -109,7 +112,7 @@ const
      cmPrimaryFile       = 216;
      cmClearPrimary      = 217;
      cmInformation       = 218;
-     cmWindowList        = 219;
+{     cmWindowList        = 219; defined in command.pas, too! - Gabor }
      cmHelpTopicSearch   = 220;
      cmMsgGotoSource     = 221;
      cmMsgTrackSource    = 222;
@@ -138,6 +141,7 @@ const
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
+     cmShowReadme        = 1002;
 
      cmSearchWindow      = 1500;
      cmSourceWndClosing  = 1601;
@@ -149,6 +153,8 @@ const
      cmAddItem           = 1620;
      cmEditItem          = 1621;
      cmDeleteItem        = 1622;
+     cmShowItem          = 1623;
+     cmHideItem          = 1624;
 
      cmUserScreen        = 1650;
      cmUserScreenWindow  = 1651;
@@ -369,7 +375,9 @@ const
 
      CFPToolTip     = #228;
 
-     CFPCodeMemo    = #26#26#26#28#26#29#26#26#26#27#26#26#26#26#26#26#26;
+     CFPMemo        = #26#26#26#28#26#29#26#26#26#27#26#26#26#26#26#26#26;
+
+     CFPSymbolMemo  = #9#9#9#9#9#9#9#9#9#9#9#9#9#9#9#9#9;
 
      CHTMLSectionAttrs = #229#230#231#232#233#234;
 
@@ -397,7 +405,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.39  2000-05-30 07:18:33  pierre
+  Revision 1.40  2000-06-16 08:50:40  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.39  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.38  2000/05/02 08:42:27  pierre

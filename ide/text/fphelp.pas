@@ -94,6 +94,8 @@ begin
   case AHelpCtx of
     hcNoContext     : S:='';
 
+    hcDragging      : S:='';
+
     hcSourceWindow  : S:='';
     hcHelpWindow    : S:='';
     hcCalcWindow    : S:='';
@@ -478,7 +480,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  2000-05-30 07:18:33  pierre
+  Revision 1.33  2000-06-16 08:50:40  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.32  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.31  2000/05/29 10:44:56  pierre

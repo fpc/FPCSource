@@ -118,6 +118,8 @@ function FormatPath(Path: string): string;
 function CompletePath(const Base, InComplete: string): string;
 function CompleteURL(const Base, URLRef: string): string;
 
+function DeleteFile(const FileName: string): integer;
+
 function EatIO: integer;
 
 function Now: longint;
@@ -878,6 +880,16 @@ begin
   FormatDateTime:=DateS;
 end;
 
+function DeleteFile(const FileName: string): integer;
+var f: file;
+begin
+{$I-}
+  Assign(f,FileName);
+  Erase(f);
+  DeleteFile:=EatIO;
+{$I+}
+end;
+
 procedure GiveUpTimeSlice;
 {$ifdef GO32V2}{$define DOS}{$endif}
 {$ifdef TP}{$define DOS}{$endif}
@@ -909,7 +921,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2000-05-29 11:09:14  pierre
+  Revision 1.23  2000-06-16 08:50:45  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.22  2000/05/29 11:09:14  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.21  2000/05/02 08:42:29  pierre

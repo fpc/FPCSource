@@ -1,3 +1,23 @@
+Gabors's log to 16/6/2000 commits
+========================= Already fixed ================================
+
+ [*] temporary files are now delete on exit
+ [*] Size/Move (Ctrl+F5) didn't work correctly with some windows, which
+     defined a different meaning for Enter (for ex. message windows)
+ [*] 'Open file at cursor' brings up an open dialog with a correct name
+     in it now, when it can't find the file itself
+ [*] TFileDialog treated filename-list (multiple names separated with
+     semicolons) as single filenames, whereas they're more like wildchar
+     masks
+ [*] TFileDialog treated paths ending with a dirsep (\) as filespecs,
+     however, they're actually dirspecs
+
+========================== Other improvements ============================
+
+ [+] editor windows can now be hidden temporarily
+ [+] unit info tab added to symbol browser
+ [+] strings constants from generic units moved to WCONSTS.PAS
+ [+] small info screen at first start
 Gabors's log to 29/5/2000 commits
 ========================= Already fixed ================================
 

@@ -47,6 +47,7 @@ type
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; {virtual;}
+      procedure   ShowReadme;
       destructor  Done; virtual;
       procedure   ShowUserScreen;
       procedure   ShowIDEScreen;
@@ -413,11 +414,12 @@ begin
       NewItem(menu_window_zoom,menu_key_window_zoom, kbF5, cmZoom, hcZoom,
       NewItem(menu_window_next,menu_key_window_next, kbF6, cmNext, hcNext,
       NewItem(menu_window_previous,menu_key_window_previous, kbShiftF6, cmPrev, hcPrev,
+      NewItem(menu_window_hide,menu_key_window_hide, kbCtrlF6, cmHide, hcHide,
       NewItem(menu_window_close,menu_key_window_close, kbAltF3, cmClose, hcClose,
       NewLine(
       NewItem(menu_window_list,menu_key_window_list, kbAlt0, cmWindowList, hcWindowList,
       NewItem(menu_window_update,'', kbNoKey, cmUpdate, hcUpdate,
-      nil))))))))))))),
+      nil)))))))))))))),
     NewSubMenu(menu_help, hcHelpMenu, NewMenu(
       NewItem(menu_help_contents,'', kbNoKey, cmHelpContents, hcHelpContents,
       NewItem(menu_help_index,menu_key_help_helpindex, kbShiftF1, cmHelpIndex, hcHelpIndex,
@@ -440,6 +442,14 @@ begin
   GetExtent(R);
   R.A.Y := R.B.Y - 1;
   StatusLine:=New(PIDEStatusLine, Init(R,
+    NewStatusDef(hcDragging, hcDragging,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      StdStatusKeys(
+      NewStatusKey('~'#24#25#26#27+'~ Move', kbNoKey, 65535,
+      NewStatusKey('~Shift+'#24#25#26#27+'~ Size', kbNoKey, 65535,
+      NewStatusKey('~'#17+'ды~ Done', kbNoKey, 65535,
+      NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
+      nil)))))),
     NewStatusDef(hcFirstCommand, hcLastCommand,
       NewStatusKey(status_help, kbF1, cmHelp,
       StdStatusKeys(
@@ -487,7 +497,7 @@ begin
       NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil)))))),
-    nil)))))))));
+    nil))))))))));
 end;
 
 procedure TIDEApp.Idle;
@@ -507,12 +517,16 @@ begin
   if Event.What<>evNothing then
     LastEvent:=GetDosTicks
   else
-    if abs(GetDosTicks-LastEvent)>SleepTimeOut then
-      GiveUpTimeSlice;
+    begin
+      if abs(GetDosTicks-LastEvent)>SleepTimeOut then
+        GiveUpTimeSlice;
+    end;
 end;
 
 procedure TIDEApp.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
+    TempS: string;
+    ForceDlg: boolean;
 {$ifdef HasSignal}
     CtrlCCatched : boolean;
 {$endif HasSignal}
@@ -530,6 +544,11 @@ begin
     CtrlCCatched:=false;
 {$endif HasSignal}
   case Event.What of
+       evKeyDown :
+         begin
+           DontClear:=true;
+           { just for debugging purposes }
+         end;
        evCommand :
          begin
            DontClear:=false;
@@ -539,9 +558,19 @@ begin
              cmNew           : NewEditor;
              cmNewFromTemplate: NewFromTemplate;
              cmOpen          : begin
+                                 ForceDlg:=false;
                                  if (DirOf(OpenFileName)='') or (Pos(ListSeparator,OpenFileName)<>0) then
-                                   OpenFileName:=LocateFile(OpenFileName);
-                                 Open(OpenFileName);
+                                   begin
+                                     TempS:=LocateFile(OpenFileName);
+                                     if TempS='' then
+                                       ForceDlg:=true
+                                     else
+                                       OpenFileName:=TempS;
+                                   end;
+                                 if ForceDlg then
+                                   OpenSearch(OpenFileName)
+                                 else
+                                   Open(OpenFileName);
                                  OpenFileName:='';
                                end;
              cmSaveAll       : SaveAll;
@@ -626,6 +655,7 @@ begin
              cmHelpUsingHelp : HelpUsingHelp;
              cmHelpFiles     : HelpFiles;
              cmAbout         : About;
+             cmShowReadme    : ShowReadme;
            else DontClear:=true;
            end;
            if DontClear=false then ClearEvent(Event);
@@ -807,7 +837,8 @@ end;
 procedure TIDEApp.Update;
 begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
-  SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
+  SetCmdState([cmCloseAll,cmWindowList],IsThereAnyWindow);
+  SetCmdState([cmTile,cmCascade],IsThereAnyVisibleWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol{,cmInformation}],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
   SetCmdState([cmResetDebugger,cmUntilReturn],assigned(debugger) and debugger^.debuggee_started);
@@ -926,6 +957,35 @@ begin
   DoExecute(GetEnv('COMSPEC'), '', '', '', exDosShell);
 end;
 
+procedure TIDEApp.ShowReadme;
+var R,R2: TRect;
+    D: PCenterDialog;
+    M: PFPMemo;
+    VSB: PScrollBar;
+    S: PBufStream;
+begin
+  New(S, Init(ReadmeName, stOpenRead, 4096));
+  if S^.Status=stOK then
+  begin
+    R.Assign(0,0,63,18);
+    New(D, Init(R, 'Free Pascal IDE'));
+    with D^ do
+    begin
+      GetExtent(R);
+      R.Grow(-2,-2); Inc(R.B.Y);
+      R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
+      New(VSB, Init(R2)); VSB^.GrowMode:=0; Insert(VSB);
+      New(M, Init(R,nil,VSB,nil));
+      M^.LoadFromStream(S);
+      M^.ReadOnly:=true;
+      Insert(M);
+    end;
+    InsertOK(D);
+    ExecuteDialog(D,nil);
+  end;
+  Dispose(S, Done);
+end;
+
 {$I FPMFILE.INC}
 
 {$I FPMEDIT.INC}
@@ -1000,7 +1060,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.62  2000-06-11 07:01:33  peter
+  Revision 1.63  2000-06-16 08:50:40  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.62  2000/06/11 07:01:33  peter
     * give watches window also a number
     * leave watches window in the bottom when cascading windows
 

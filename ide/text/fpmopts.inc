@@ -465,7 +465,7 @@ begin
     Insert(New(PLabel, Init(R2, label_debugger_profileswitches, CB)));
 
     {custom }
-    Inc(R2.A.Y,1+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+1;
+    Inc(R2.A.Y,1+DebugInfoSwitches^.ItemCount+1); R2.B.Y:=R2.A.Y+1;
     New(IL2, Init(R2, 255));
     IL2^.Data^:=CustomArg[SwitchesMode];
     Insert(IL2);
@@ -1214,7 +1214,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2000-05-30 07:18:33  pierre
+  Revision 1.35  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.34  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.33  2000/05/02 08:42:28  pierre

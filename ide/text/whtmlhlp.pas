@@ -1,3 +1,16 @@
+{
+    $Id$
+    This file is part of the Free Pascal Integrated Development Environment
+    Copyright (c) 1999-2000 by Berczi Gabor
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit WHTMLHlp;
 
 interface
@@ -124,7 +137,7 @@ const HTMLGetSectionColor : THTMLGetSectionColorProc = DefHTMLGetSectionColor;
 
 implementation
 
-uses WUtils,WHTMLScn,
+uses WConsts,WUtils,WViews,WHTMLScn,
      Dos;
 
 function DefHTMLGetSectionColor(Section: THTMLSection; var Color: byte): boolean;
@@ -642,10 +655,10 @@ begin
       if HTMLFile=nil then
         begin
           New(HTMLFile, Init);
-          HTMLFile^.AddLine('<HEAD><TITLE>Page not available</TITLE></HEAD>');
+          HTMLFile^.AddLine('<HEAD><TITLE>'+msg_pagenotavailable+'</TITLE></HEAD>');
           HTMLFile^.AddLine(
             '<BODY>'+
-            'Sorry, can''t access the URL: '+Name+'... <br><br>'+
+            FormatStrStr(msg_cantaccessurl,Name)+'<br><br>'+
             '</BODY>');
         end;
       OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
@@ -729,3 +742,9 @@ begin
 end;
 
 END.
+{
+  $Log$
+  Revision 1.14  2000-06-16 08:50:45  pierre
+   + new bunch of Gabor's changes
+
+}

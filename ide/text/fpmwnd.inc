@@ -41,7 +41,9 @@ type
     private
       LB: PWindowListBox;
       C : PCollection;
+      BtnShow,BtnHide: PNoUpdateButton;
       procedure  UpdateList;
+      procedure  UpdateButtons;
     end;
 
 constructor TWindowListBox.Init(var Bounds: TRect; AScrollBar: PScrollBar);
@@ -74,6 +76,10 @@ begin
   end;
   if PWindow(P)^.Number<>0 then
     S:=S+'('+IntToStr(PWindow(P)^.Number)+')';
+  if P^.GetState(sfVisible) then S:=' '+S else
+    begin
+      S:='*'+S+' - '+msg_windowlist_hidden;
+    end;
   GetText:=copy(S,1,MaxLen);
 end;
 
@@ -100,12 +106,19 @@ begin
 
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=R.B.X-13+1; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
-  R.Move(0,3);
+  R.Move(0,2);
   Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
-  R.Move(0,3);
+  R.Move(0,2);
+  New(BtnShow, Init(R, button_Show, cmShowItem, bfNormal));
+  Insert(BtnShow);
+  R.Move(0,2);
+  New(BtnHide, Init(R, button_Hide, cmHideItem, bfNormal));
+  Insert(BtnHide);
+  R.Move(0,2);
   Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
 
   LB^.Select;
+  PutCommand(@Self,evBroadcast,cmListFocusChanged,LB);
 end;
 
 procedure TWindowListDialog.UpdateList;
@@ -113,18 +126,39 @@ procedure AddIt(P: PView); {$ifndef FPC}far;{$endif}
 begin
   if (P<>pointer(Desktop^.Background)) and
      (P^.GetState(sfDisabled)=false) and
-     ((P^.Options and ofSelectable)<>0) and
-     (P^.GetState(sfVisible)) then
+     ((P^.Options and ofSelectable)<>0) {and
+     (P^.GetState(sfVisible)) }then
      C^.Insert(P);
 end;
 begin
   C^.DeleteAll;
   Desktop^.ForEach(@AddIt);
   LB^.SetRange(C^.Count);
+  UpdateButtons;
+  ReDraw;
+end;
+
+procedure TWindowListDialog.UpdateButtons;
+var W: PView;
+begin
+  if LB^.Range>0 then
+    begin
+      W:=LB^.List^.At(LB^.Focused);
+      if Assigned(BtnShow) then
+        BtnShow^.SetState(sfDisabled,W^.GetState(sfVisible));
+      if Assigned(BtnHide) then
+        BtnHide^.SetState(sfDisabled,not W^.GetState(sfVisible));
+    end
+  else
+    begin
+      BtnShow^.SetState(sfDisabled,true);
+      BtnHide^.SetState(sfDisabled,true);
+    end;
   ReDraw;
 end;
 
 procedure TWindowListDialog.HandleEvent(var Event: TEvent);
+var W: PWindow;
 begin
   case Event.What of
     evKeyDown :
@@ -135,6 +169,12 @@ begin
             ClearEvent(Event);
           end;
       end;
+    evBroadcast :
+      case Event.Command of
+        cmListFocusChanged :
+          if Event.InfoPtr=LB then
+            UpdateButtons;
+      end;
     evCommand :
       case Event.Command of
         cmDeleteItem :
@@ -144,9 +184,28 @@ begin
             UpdateList;
             ClearEvent(Event);
           end;
+        cmShowItem :
+          if C^.Count>0 then
+          begin
+            PWindow(C^.At(LB^.Focused))^.Show;
+            UpdateList;
+            ClearEvent(Event);
+          end;
+        cmHideItem :
+          if C^.Count>0 then
+          begin
+            PWindow(C^.At(LB^.Focused))^.Hide;
+            UpdateList;
+            ClearEvent(Event);
+          end;
         cmOK :
           if C^.Count>0 then
-            PView(C^.At(LB^.Focused))^.MakeFirst;
+          begin
+            W:=PWindow(C^.At(LB^.Focused));
+            if W^.GetState(sfVisible)=false then
+              W^.Show;
+            W^.MakeFirst;
+          end;
       end;
   end;
   inherited HandleEvent(Event);
@@ -168,7 +227,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2000-05-02 08:42:28  pierre
+  Revision 1.18  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.17  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.16  2000/04/18 11:42:37  pierre

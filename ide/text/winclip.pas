@@ -39,7 +39,7 @@ implementation
     {go32   sorry Gabor, but its still not compiling without that ! }
     {now it works. btw. you don't have to sorry - just to tell me... ;)) Gabor }
 {$endif go32v2}
-    strings,dos;
+    dos;
 {$endif DOS}
 
 {$ifdef win32}
@@ -234,7 +234,10 @@ end.
 
 {
  $Log$
- Revision 1.6  2000-04-25 08:42:35  pierre
+ Revision 1.7  2000-06-16 08:50:45  pierre
+  + new bunch of Gabor's changes
+
+ Revision 1.6  2000/04/25 08:42:35  pierre
   * New Gabor changes : see fixes.txt
 
  Revision 1.5  2000/04/18 11:42:39  pierre

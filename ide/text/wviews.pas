@@ -72,6 +72,11 @@ type
       procedure   Store(var S: TStream);
     end;
 
+    PNoUpdateButton = ^TNoUpdateButton;
+    TNoUpdateButton = object(TButton)
+      procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
     TLocalMenuListBox = object(TAdvancedListBox)
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   LocalMenu(P: TPoint); virtual;
@@ -86,7 +91,8 @@ type
       Color: word;
       DontWrap: boolean;
       Delta: TPoint;
-      constructor Init(var Bounds: TRect; AText: String; AColor: word);
+      constructor Init(var Bounds: TRect; AText: String; AColor: word; AWrap: boolean);
+      function    GetPalette: PPalette; virtual;
       procedure   Draw; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -169,6 +175,11 @@ type
       function GetPalette: PPalette; virtual;
     end;
 
+    PPanel = ^TPanel;
+    TPanel = object(TGroup)
+      constructor Init(var Bounds: TRect);
+    end;
+
 procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
@@ -193,6 +204,8 @@ function  GetMenuItemBefore(Menu:PMenu; BeforeOf: PMenuItem): PMenuItem;
 
 procedure NotImplemented;
 
+function ColorIndex(Color: byte): word;
+
 var  FormatParams     : array[1..20] of longint;
      FormatParamCount : integer;
      FormatParamStrs  : array[1..10] of string;
@@ -214,7 +227,7 @@ implementation
 
 uses Mouse,
      Commands,App,MsgBox,
-     WUtils;
+     WConsts,WUtils;
 
 {$ifndef NOOBJREG}
 const
@@ -246,6 +259,11 @@ const
 
 const
   MessageDialog  : PCenterDialog = nil;
+
+function ColorIndex(Color: byte): word;
+begin
+  ColorIndex:=(Color and $0f)+(Color and $0f) shl 4;
+end;
 
 {*****************************************************************************
                               TCenterDialog
@@ -1124,10 +1142,16 @@ begin
   inherited HandleEvent(Event);
 end;
 
-constructor TColorStaticText.Init(var Bounds: TRect; AText: String; AColor: word);
+constructor TColorStaticText.Init(var Bounds: TRect; AText: String; AColor: word; AWrap: boolean);
 begin
   inherited Init(Bounds,AText);
+  DontWrap:=not AWrap;
   Color:=AColor;
+end;
+
+function TColorStaticText.GetPalette: PPalette;
+begin
+  GetPalette:=nil;
 end;
 
 procedure TColorStaticText.Draw;
@@ -1188,9 +1212,11 @@ var
   TempS: string;
 begin
   if Size.X=0 then Exit;
+  C:=Color;
+  if (C and $0f)=((C and $f0) shr 4) then
+    C:=GetColor(C and $0f);
   if DontWrap=false then
  begin
-  C:=Color;
   GetText(S);
   L := Length(S);
   P := 1;
@@ -1235,7 +1261,6 @@ begin
   end;
  end { Wrap=false } else
  begin
-  C := Color;
   GetText(S);
   I:=1;
   for Y:=0 to Size.Y-1 do
@@ -1395,7 +1420,7 @@ end;
 
 procedure Bug(const S: string; Params: pointer);
 begin
-  ErrorBox('Bug check failed: '+S+#13+'Please report to author!',Params);
+  ErrorBox(FormatStrStr(msg_bugcheckfailed,S),Params);
 end;
 
 procedure ErrorBox(const S: string; Params: pointer);
@@ -1544,9 +1569,7 @@ end;
 
 procedure NotImplemented;
 begin
-  InformationBox( #3'This function is not'#13+
-  #3+'yet implemented...'#13+
-  #3+'Sorry',nil);
+  InformationBox(msg_functionnotimplemented,nil);
 end;
 
 procedure InsertButtons(ADialog: PDialog);
@@ -1562,9 +1585,9 @@ begin
     R.Assign(0,0,W,H+3); ChangeBounds(R);
     X:=W div 2; X1:=X div 2+1; X2:=X+X1-1;
     R.Assign(X1-3,H,X1+7,H+2);
-    Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
     R.Assign(X2-7,H,X2+3,H+2);
-    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
     SelectNext(true);
   end;
 end;
@@ -1580,7 +1603,7 @@ begin
     BW:=10;
     R.A.Y:=R.B.Y-2; R.B.Y:=R.A.Y+2;
     R.A.X:=R.A.X+(R.B.X-R.A.X-BW) div 2; R.B.X:=R.A.X+BW;
-    Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
     SelectNext(true);
   end;
 end;
@@ -2078,6 +2101,19 @@ begin
   S.Write(Default,SizeOf(Default));
 end;
 
+procedure TNoUpdateButton.HandleEvent(var Event: TEvent);
+begin
+  if (Event.What<>evBroadcast) or (Event.Command<>cmCommandSetChanged) then
+  inherited HandleEvent(Event);
+end;
+
+constructor TPanel.Init(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  Options:=Options or (ofSelectable+ofTopSelect);
+  GrowMode:=gfGrowHiX+gfGrowHiY;
+end;
+
 procedure ClearFormatParams;
 begin
   FormatParamCount:=0; FillChar(FormatParams,sizeof(FormatParams),0);
@@ -2153,7 +2189,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2000-05-02 08:42:29  pierre
+  Revision 1.14  2000-06-16 08:50:45  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.13  2000/05/02 08:42:29  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.12  2000/04/18 11:42:39  pierre

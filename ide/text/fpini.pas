@@ -48,6 +48,7 @@ const
   secTools       = 'Tools';
   secSourcePath  = 'SourcePath';
   secPreferences = 'Preferences';
+  secMisc        = 'Misc';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
@@ -89,6 +90,7 @@ const
   ieDesktopLocation  = 'DesktopLocation';
   ieDesktopFlags     = 'DesktopFileFlags';
   ieCenterDebuggerRow= 'CenterCurrentLineWhileDebugging';
+  ieShowReadme       = 'ShowReadme';
 
 procedure InitINIFile;
 var S: string;
@@ -380,6 +382,8 @@ begin
   AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   DesktopLocation:=INIFile^.GetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  { Misc }
+  ShowReadme:=INIFile^.GetIntEntry(secMisc,ieShowReadme,{integer(ShowReadme)}1)<>0;
   Dispose(INIFile, Done);
  end;
   ReadINIFile:=OK;
@@ -514,6 +518,8 @@ begin
   INIFile^.SetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   INIFile^.SetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   INIFile^.SetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  { Misc }
+  INIFile^.SetIntEntry(secMisc,ieShowReadme,integer(ShowReadme));
   OK:=INIFile^.Update;
   Dispose(INIFile, Done);
   WriteINIFile:=OK;
@@ -522,7 +528,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2000-03-21 23:30:22  pierre
+  Revision 1.29  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.28  2000/03/21 23:30:22  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.27  2000/03/13 20:38:02  pierre

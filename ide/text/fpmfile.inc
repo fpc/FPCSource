@@ -138,7 +138,7 @@ begin
    begin
      ClearFormatParams; AddFormatParamStr(FileName);
      FormatStr(S,label_lookingfor,FormatParams);
-     New(D, Init(FileName+'*',dialog_openafile,S,fdOpenButton,0));
+     New(D, Init(FileName,dialog_openafile,S,fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
@@ -199,7 +199,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-05-02 08:42:28  pierre
+  Revision 1.21  2000-06-16 08:50:41  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.20  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.19  2000/04/25 08:42:33  pierre

@@ -428,7 +428,7 @@ begin
   Insert(ST);
   GetExtent(R); R.B.Y:=11;
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
-  New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256));
+  New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256,true));
   Insert(KeyST);
 end;
 
@@ -658,6 +658,7 @@ begin
       ErrorBox(msg_cantcompileunsavedfile,nil);
       Exit;
     end;
+  PushStatus('Beginning compilation...');
 { Show Compiler Messages Window }
 {  if not CompilerMessageWindow^.GetState(sfVisible) then
    CompilerMessageWindow^.Show;
@@ -667,12 +668,15 @@ begin
   NeedRecompile(true);
 
   MainFile:=FileName;
+  SetStatus('Writing switches to file...');
   WriteSwitches(SwitchesPath);
   { leaving open browsers leads to crashes !! (PM) }
+  SetStatus('Preparing symbol info...');
   CloseAllBrowsers;
   if ((DesktopFileFlags and dfSymbolInformation)<>0) then
     WriteSymbolsFile(BrowserName);
 {  MainFile:=FixFileName(FExpand(FileName));}
+  SetStatus('Preparing to compile...');
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
   else
@@ -715,7 +719,9 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
+  SetStatus('Compiling...');
   FpIntF.Compile(FileName,SwitchesPath);
+  SetStatus('Finished compiling...');
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and IsExe and
@@ -724,6 +730,7 @@ begin
     begin
        CompilationPhase:=cpLinking;
        CompilerStatusDialog^.Update;
+       SetStatus('Linking...');
 {$ifndef redircompiler}
        { At least here we want to catch output
         of batch file PM }
@@ -737,6 +744,7 @@ begin
        DosExecute(GetEnv('COMSPEC'),'/C '+GetExePath+PpasFile+source_os.scriptext);
        Error:=DosError;
 {$endif}
+       SetStatus('Finished linking...');
 {$ifndef redircompiler}
        RestoreRedirOut;
        RestoreRedirError;
@@ -774,6 +782,7 @@ begin
   RestoreRedirOut;
   RestoreRedirError;
 {$endif}
+  PopStatus;
 { Set end status }
   if CompilationPhase<>cpAborted then
     if (status.errorCount=0) then
@@ -903,7 +912,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2000-05-29 10:44:56  pierre
+  Revision 1.59  2000-06-16 08:50:40  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.58  2000/05/29 10:44:56  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.57  2000/05/02 08:42:27  pierre

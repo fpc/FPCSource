@@ -664,7 +664,7 @@ uses
 {$ifdef WinClipSupported}
   Strings,WinClip,
 {$endif WinClipSupported}
-  WViews,WCEdit;
+  WConsts,WViews,WCEdit;
 
 type
      TFindDialogRec = packed record
@@ -2867,6 +2867,7 @@ begin
   if (E.What and (evMouse or evKeyboard))<>0 then
     CurEvent:=@E;
   if (InASCIIMode=false) or (Event.What<>evKeyDown) then
+   if (Event.What<>evKeyDown) or (Event.KeyCode<>kbEnter) or (IsReadOnly=false) then
    if (Event.What<>evKeyDown) or
       ((Event.KeyCode<>kbEnter) and (Event.KeyCode<>kbEsc)) or
       (GetCompleteState<>csOffering) then
@@ -2919,6 +2920,8 @@ begin
              kbAltF10 :
                Message(@Self,evCommand,cmLocalMenu,@Self);
              kbEnter  :
+               if IsReadOnly then
+                 DontClear:=true else
                if GetCompleteState=csOffering then
                  CodeCompleteApply
                else
@@ -3614,11 +3617,11 @@ end;
 procedure TCustomCodeEditor.JumpMark(MarkIdx: integer);
 begin
   if (MarkIdx<Low(Bookmarks)) or (MarkIdx>High(Bookmarks)) then
-    begin ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil); Exit; end;
+    begin ErrorBox(FormatStrInt(msg_invalidmarkindex,MarkIdx),nil); Exit; end;
 
   with Bookmarks[MarkIdx] do
   if Valid=false then
-    InformationBox('Mark '+IntToStr(MarkIdx)+' not set.',nil)
+    InformationBox(FormatStrInt(msg_marknotset,MarkIdx),nil)
   else
     SetCurPtr(Pos.X,Pos.Y);
 end;
@@ -3627,7 +3630,7 @@ procedure TCustomCodeEditor.DefineMark(MarkIdx: integer);
 begin
   if (MarkIdx<Low(Bookmarks)) or (MarkIdx>High(Bookmarks)) then
     begin
-      ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil);
+      ErrorBox(FormatStrInt(msg_invalidmarkindex,MarkIdx),nil);
       Exit;
     end;
   with Bookmarks[MarkIdx] do
@@ -5514,7 +5517,7 @@ var R,R1,R2: TRect;
     RB1,RB2,RB3: PRadioButtons;
 begin
   R.Assign(0,0,56,15);
-  New(D, Init(R, 'Find'));
+  New(D, Init(R, dialog_find));
   with D^ do
   begin
     Options:=Options or ofCentered;
@@ -5524,7 +5527,7 @@ begin
     New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
-    Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+    Insert(New(PLabel, Init(R1, label_find_texttofind, IL1)));
     R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
     Control := New(PHistory, Init(R1, IL1, TextFindId));
     Insert(Control);
@@ -5532,43 +5535,43 @@ begin
     R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(CB1, Init(R2,
-      NewSItem('~C~ase sensitive',
-      NewSItem('~W~hole words only',
+      NewSItem(label_find_casesensitive,
+      NewSItem(label_find_wholewordsonly,
       nil))));
     Insert(CB1);
-    Insert(New(PLabel, Init(R1, 'Options', CB1)));
+    Insert(New(PLabel, Init(R1, label_find_options, CB1)));
 
     R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB1, Init(R2,
-      NewSItem('Forwar~d~',
-      NewSItem('~B~ackward',
+      NewSItem(label_find_forward,
+      NewSItem(label_find_backward,
       nil))));
     Insert(RB1);
-    Insert(New(PLabel, Init(R1, 'Direction', RB1)));
+    Insert(New(PLabel, Init(R1, label_find_direction, RB1)));
 
     R1.Copy(R); Inc(R1.A.Y,6); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB2, Init(R2,
-      NewSItem('~G~lobal',
-      NewSItem('~S~elected text',
+      NewSItem(label_find_global,
+      NewSItem(label_find_selectedtext,
       nil))));
     Insert(RB2);
-    Insert(New(PLabel, Init(R1, 'Scope', RB2)));
+    Insert(New(PLabel, Init(R1, label_find_scope, RB2)));
 
     R1.Copy(R); Inc(R1.A.Y,6); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB3, Init(R2,
-      NewSItem('~F~rom cursor',
-      NewSItem('~E~ntire scope',
+      NewSItem(label_find_fromcursor,
+      NewSItem(label_find_entirescope,
       nil))));
     Insert(RB3);
-    Insert(New(PLabel, Init(R1, 'Origin', RB3)));
+    Insert(New(PLabel, Init(R1, label_find_origin, RB3)));
 
     GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, 'O~K', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
     R.Move(19,0);
-    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
   end;
   IL1^.Select;
   CreateFindDialog := D;
@@ -5583,7 +5586,7 @@ var R,R1,R2: TRect;
     RB1,RB2,RB3: PRadioButtons;
 begin
   R.Assign(0,0,56,18);
-  New(D, Init(R, 'Replace'));
+  New(D, Init(R, dialog_replace));
   with D^ do
   begin
     Options:=Options or ofCentered;
@@ -5593,7 +5596,7 @@ begin
     New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
-    Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+    Insert(New(PLabel, Init(R1, label_replace_texttofind, IL1)));
     R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
     Control := New(PHistory, Init(R1, IL1, TextFindId));
     Insert(Control);
@@ -5604,7 +5607,7 @@ begin
     New(IL2, Init(R2, FindStrSize));
     IL2^.Data^:=ReplaceStr;
     Insert(IL2);
-    Insert(New(PLabel, Init(R1, '    ~N~ew text', IL2)));
+    Insert(New(PLabel, Init(R1, label_replace_newtext, IL2)));
     R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
     Control := New(PHistory, Init(R1, IL2, TextReplaceId));
     Insert(Control);
@@ -5612,46 +5615,46 @@ begin
     R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+3;
     New(CB1, Init(R2,
-      NewSItem('~C~ase sensitive',
-      NewSItem('~W~hole words only',
-      NewSItem('~P~rompt on replace',
+      NewSItem(label_replace_casesensitive,
+      NewSItem(label_replace_wholewordsonly,
+      NewSItem(label_replace_promptonreplace,
       nil)))));
     Insert(CB1);
-    Insert(New(PLabel, Init(R1, 'Options', CB1)));
+    Insert(New(PLabel, Init(R1, label_replace_options, CB1)));
 
     R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB1, Init(R2,
-      NewSItem('Forwar~d~',
-      NewSItem('~B~ackward',
+      NewSItem(label_replace_forward,
+      NewSItem(label_replace_backward,
       nil))));
     Insert(RB1);
-    Insert(New(PLabel, Init(R1, 'Direction', RB1)));
+    Insert(New(PLabel, Init(R1, label_replace_direction, RB1)));
 
     R1.Copy(R); Inc(R1.A.Y,9); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB2, Init(R2,
-      NewSItem('~G~lobal',
-      NewSItem('~S~elected text',
+      NewSItem(label_replace_global,
+      NewSItem(label_replace_selectedtext,
       nil))));
     Insert(RB2);
-    Insert(New(PLabel, Init(R1, 'Scope', RB2)));
+    Insert(New(PLabel, Init(R1, label_replace_scope, RB2)));
 
     R1.Copy(R); Inc(R1.A.Y,9); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
     New(RB3, Init(R2,
-      NewSItem('~F~rom cursor',
-      NewSItem('~E~ntire scope',
+      NewSItem(label_replace_fromcursor,
+      NewSItem(label_replace_entirescope,
       nil))));
     Insert(RB3);
-    Insert(New(PLabel, Init(R1, 'Origin', RB3)));
+    Insert(New(PLabel, Init(R1, label_replace_origin, RB3)));
 
     GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10; R.Move(-10,0);
-    Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
     R.Move(11,0); R.B.X:=R.A.X+14;
-    Insert(New(PButton, Init(R, 'Change ~a~ll', cmYes, bfNormal)));
+    Insert(New(PButton, Init(R, btn_replace_changeall, cmYes, bfNormal)));
     R.Move(15,0); R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
   end;
   IL1^.Select;
   CreateReplaceDialog := D;
@@ -5664,7 +5667,7 @@ var D: PDialog;
     IL: PInputLine;
 begin
   R.Assign(0,0,40,7);
-  New(D, Init(R, 'Goto line'));
+  New(D, Init(R, dialog_gotoline));
   with D^ do
   begin
     Options:=Options or ofCentered;
@@ -5675,15 +5678,15 @@ begin
     with TGotoLineDialogRec(Info^) do
     IL^.SetValidator(New(PRangeValidator, Init(1, Lines)));
     Insert(IL);
-    Insert(New(PLabel, Init(R1, 'Enter new line ~n~umber', IL)));
+    Insert(New(PLabel, Init(R1, label_gotoline_linenumber, IL)));
     R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
     Control := New(PHistory, Init(R1, IL, GotoId));
     Insert(Control);
 
     GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, 'O~K', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
     R.Move(15,0);
-    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
   end;
   IL^.Select;
   CreateGotoLineDialog:=D;
@@ -5702,33 +5705,31 @@ var
 begin
   case Dialog of
     edOutOfMemory:
-      StdEditorDialog := MessageBox('Not enough memory for this operation.',
+      StdEditorDialog := MessageBox(msg_notenoughmemoryforthisoperation,
    nil, mfInsertInApp+ mfError + mfOkButton);
     edReadError:
-      StdEditorDialog := MessageBox('Error reading file %s.',
+      StdEditorDialog := MessageBox(msg_errorreadingfile,
    @Info, mfInsertInApp+ mfError + mfOkButton);
     edWriteError:
-      StdEditorDialog := MessageBox('Error writing file %s.',
+      StdEditorDialog := MessageBox(msg_errorwritingfile,
    @Info, mfInsertInApp+ mfError + mfOkButton);
     edSaveError:
-      StdEditorDialog := MessageBox('Error saving file %s.',
+      StdEditorDialog := MessageBox(msg_errorsavingfile,
    @Info, mfInsertInApp+ mfError + mfOkButton);
     edCreateError:
-      StdEditorDialog := MessageBox('Error creating file %s.',
+      StdEditorDialog := MessageBox(msg_errorcreatingfile,
    @Info, mfInsertInApp+ mfError + mfOkButton);
     edSaveModify:
-      StdEditorDialog := MessageBox('%s has been modified. Save?',
+      StdEditorDialog := MessageBox(msg_filehasbeenmodifiedsave,
    @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveUntitled:
-      StdEditorDialog := MessageBox('Save untitled file?',
+      StdEditorDialog := MessageBox(msg_saveuntitledfile,
    nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edChangedOnloading:
-      StdEditorDialog := MessageBox(#3'File %s had too long lines'#13#3+
-      'first such line is %d',
+      StdEditorDialog := MessageBox(msg_filehadtoolonglines,
    Info, mfInsertInApp+ mfOKButton + mfInformation);
     edFileOnDiskChanged:
-      StdEditorDialog := MessageBox(#3'File %s '#13#3+
-        'was modified by another program.'#13#3'Overwrite new version?',
+      StdEditorDialog := MessageBox(msg_filewasmodified,
    @info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs,edWriteBlock,edReadBlock:
       begin
@@ -5754,23 +5755,23 @@ begin
         case Dialog of
           edSaveAs     :
             begin
-              Title:='Save File As';
+              Title:=dialog_savefileas;
               DefExt:='*'+DefaultSaveExt;
             end;
           edWriteBlock :
             begin
-              Title:='Write Block to File';
+              Title:=dialog_writeblocktofile;
               DefExt:='';
             end;
           edReadBlock  :
             begin
-              Title:='Read Block from File';
+              Title:=dialog_readblockfromfile;
               DefExt:='';
             end;
         else begin Title:='???'; DefExt:=''; end;
         end;
         Re:=Application^.ExecuteDialog(New(PFileDialog, Init(DefExt,
-          Title, '~N~ame', fdOkButton, FileId)), @Name);
+          Title, label_name, fdOkButton, FileId)), @Name);
         case Dialog of
           edSaveAs     :
             begin
@@ -5809,7 +5810,7 @@ begin
       StdEditorDialog :=
    Application^.ExecuteDialog(CreateFindDialog, Info);
     edSearchFailed:
-      StdEditorDialog := MessageBox('Search string not found.',
+      StdEditorDialog := MessageBox(msg_searchstringnotfound,
    nil, mfInsertInApp+ mfError + mfOkButton);
     edReplace:
       StdEditorDialog :=
@@ -5823,12 +5824,12 @@ begin
    Inc(T.Y);
    if PPoint(Info)^.Y <= T.Y then
      R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
-   StdEditorDialog := MessageBoxRect(R, 'Replace this occurence?',
+   StdEditorDialog := MessageBoxRect(R, msg_replacethisoccourence,
      nil, mfInsertInApp+ mfYesNoCancel + mfInformation);
       end;
     edReplaceFile :
       StdEditorDialog :=
-   MessageBox('File %s already exists. Overwrite?',@Info,mfInsertInApp+mfConfirmation+
+   MessageBox(msg_fileexistsoverwrite,@Info,mfInsertInApp+mfConfirmation+
      mfYesButton+mfNoButton);
   end;
 end;
@@ -5842,7 +5843,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.92  2000-06-15 20:29:45  pierre
+  Revision 1.93  2000-06-16 08:50:43  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.92  2000/06/15 20:29:45  pierre
    * avoid RTE 211 on Ctrl K W
 
   Revision 1.91  2000/05/29 10:44:58  pierre

@@ -36,6 +36,7 @@ const
       label_browsertab_reference = 'R';
       label_browsertab_inheritance = 'I';
       label_browsertab_memory = 'M';
+      label_browsertab_unit = 'U';
 
 {$ifdef USERESSTRINGS}
     resourcestring
@@ -144,6 +145,7 @@ const
       menu_window_zoom       = '~N~agy¡t s';
       menu_window_next       = '~K~”vetkez‹';
       menu_window_previous   = '~E~l‹z‹';
+      menu_window_hide       = '~R~ejt‚s';
       menu_window_close      = 'Be~z~ r s';
       menu_window_list       = '~L~ista...';
       menu_window_update     = 'Megjelen¡t‹ ~f~riss¡t‚se';
@@ -230,6 +232,7 @@ const
       menu_key_window_previous = 'Shift+F6';
       menu_key_window_close  = 'Alt+F3';
       menu_key_window_list   = 'Alt+0';
+      menu_key_window_hide   = 'Ctrl+F6';
 
       menu_key_help_helpindex= menu_key_common_helpindex;
       menu_key_help_topicsearch = menu_key_common_topicsearch;
@@ -569,6 +572,8 @@ const
       dialog_windowlist = 'Ablakok list ja';
       label_wndlist_windows = '~A~blakok';
 
+      msg_windowlist_hidden = 'rejtett';
+
       msg_userscreennotavailable = 'A felhaszn l¢i k‚perny‹ nem el‚rhet‹.';
 
       { Tools $PROMPT() dialog }
@@ -646,6 +651,10 @@ const
       { Symbol browser meminfo page }
       msg_sizeinmemory = 'M‚ret a mem¢ri ban';
       msg_sizeonstack = 'M‚ret a vermen';
+
+      msg_usedfirstin = 'El‹sz”r haszn lva';
+      msg_mainsource = 'F‹ forr s';
+      msg_sourcefiles = 'Forr s-f jlok';
 
       { Help messages }
       msg_indexingfile = '%s f jl indexel‚se';
@@ -795,6 +804,8 @@ const
       button_Edit        = 'S~z~erk.';
       button_Delete      = '~T~”rl‚s';
       button_Close       = 'Be~z~ r';
+      button_Show        = '~M~utat';
+      button_Hide        = '~R~ejt';
 
       { Compiler message classes }
       msg_class_normal   = '';
@@ -950,7 +961,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-05-30 07:18:33  pierre
+  Revision 1.4  2000-06-16 08:50:42  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.3  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.2  2000/05/29 10:44:57  pierre

@@ -27,7 +27,7 @@ uses Objects,Views,App,
 
 type
     TRecentFileEntry = record
-      FileName  : string{$ifdef GABOR}[80]{$endif};
+      FileName  : string{$ifdef GABOR}[60]{$endif};
       LastPos   : TPoint;
     end;
 
@@ -41,18 +41,18 @@ const ClipboardWindow  : PClipboardWindow = nil;
       HighlightExts    : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
       TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*';
       SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
-      PrimaryFile      : string{$ifdef GABOR}[80]{$endif} = '';
-      PrimaryFileMain  : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
+      PrimaryFileMain  : string{$ifdef GABOR}[60]{$endif} = '';
       PrimaryFileSwitches : string{$ifdef GABOR}[80]{$endif} = '';
       PrimaryFilePara  : string{$ifdef GABOR}[80]{$endif} = '';
-      GDBOutputFile    : string{$ifdef GABOR}[80]{$endif} = GDBOutputFileName;
+      GDBOutputFile    : string{$ifdef GABOR}[50]{$endif} = GDBOutputFileName;
       IsEXECompiled    : boolean = false;
       LinkAfter        : boolean = true;
       MainHasDebugInfo : boolean = false;
       UseMouse         : boolean = true;
-      MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
-      PrevMainFile     : string{$ifdef GABOR}[80]{$endif} = '';
-      EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
+      MainFile         : string{$ifdef GABOR}[60]{$endif} = '';
+      PrevMainFile     : string{$ifdef GABOR}[60]{$endif} = '';
+      EXEFile          : string{$ifdef GABOR}[60]{$endif} = '';
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
@@ -63,17 +63,17 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ClockView        : PFPClockView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
-      StartupDir       : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
-      IDEDir           : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
+      StartupDir       : string{$ifdef GABOR}[60]{$endif} = '.'+DirSep;
+      IDEDir           : string{$ifdef GABOR}[60]{$endif} = '.'+DirSep;
       INIFileName      : string{$ifdef GABOR}[50]{$endif} = ININame;
-      SwitchesPath     : string{$ifdef GABOR}[80]{$endif} = SwitchesName;
+      SwitchesPath     : string{$ifdef GABOR}[60]{$endif} = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
-      BackgroundPath   : string{$ifdef GABOR}[80]{$endif} = BackgroundName;
-      DesktopPath      : string{$ifdef GABOR}[80]{$endif} = DesktopName;
+      BackgroundPath   : string{$ifdef GABOR}[60]{$endif} = BackgroundName;
+      DesktopPath      : string{$ifdef GABOR}[60]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
                                    dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
@@ -86,6 +86,8 @@ const ClipboardWindow  : PClipboardWindow = nil;
       UseExternalCompiler : boolean = true;
       ExternalCompilerExe : string = 'ppc386'+ExeExt;
 {$endif USE_EXTERNAL_COMPILER}
+      ShowReadme       : boolean = true;
+
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -100,7 +102,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.32  2000-04-25 08:42:33  pierre
+  Revision 1.33  2000-06-16 08:50:42  pierre
+   + new bunch of Gabor's changes
+
+  Revision 1.32  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.31  2000/04/18 11:42:37  pierre
