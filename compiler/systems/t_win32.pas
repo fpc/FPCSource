@@ -149,7 +149,8 @@ const
          NN  : longint;
       begin
          { force the current mangledname }
-         aprocdef.has_mangledname:=true;
+         if assigned(aprocdef) then
+           aprocdef.has_mangledname:=true;
          { append extension if required }
          GetDefExt(NN,PP);
          hs:=DllName(module,NN,PP);
@@ -1628,7 +1629,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2003-04-27 09:14:48  florian
+  Revision 1.16  2003-05-13 15:15:25  peter
+    * fixed import crash with explicit provided name
+
+  Revision 1.15  2003/04/27 09:14:48  florian
     * aprocdef instead of aktprocdef must be used
 
   Revision 1.14  2003/04/27 07:29:52  peter
