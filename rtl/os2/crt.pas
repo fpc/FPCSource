@@ -129,7 +129,7 @@ function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word; cdecl;
 function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word; cdecl;
                  external 'EMXWRAP' index 222;
 
-function dossleep(time:longint):word; cdecl;
+function dossleep(time:cardinal):word; cdecl;
                   external 'DOSCALLS' index 229;
 function vioscrollup(top,left,bottom,right,lines:longint;
                      var screl:word;viohandle:longint):word; cdecl;
@@ -596,7 +596,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-09-24 12:30:08  yuri
+  Revision 1.5  2003-10-18 16:53:21  hajny
+    * longint2cardinal
+
+  Revision 1.4  2003/09/24 12:30:08  yuri
   * Removed emx code from crt.pas
   - Removed doscalls.imp (not full and obsolete)
 
