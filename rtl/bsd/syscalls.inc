@@ -42,7 +42,7 @@ paste to and AS source). Ultimately I hope to design something like this}
 procedure actualsyscall; cdecl; EXTERNAL NAME '_actualsyscall';
 }
 
- procedure _actualsyscall; assembler;
+procedure actualsyscall; assembler;
     asm
          int $0x80
          jb .LErrorcode
@@ -51,7 +51,7 @@ procedure actualsyscall; cdecl; EXTERNAL NAME '_actualsyscall';
 .LErrorcode:
 	 mov %eax,%ebx
          mov $-1,%eax
-   end['EAX','EBX','ECX','EDX','ESI','EDI'];
+   end;
 
 
 function Do_SysCall(sysnr:LONGINT):longint; assembler;
@@ -62,23 +62,23 @@ asm
   movw  %bx,Errno
 end;
 
-function Do_SysCall(sysnr,param1:LONGINT):longint; assembler;
-
-asm
-  movl  sysnr,%eax
-  pushl Param1
-  call  actualsyscall
-  addl  $4,%esp
-  movw  %bx,Errno
-end;
-
-function Do_SysCall(sysnr:longint;param1:longint):longint; assembler;
+function Do_SysCall(sysnr,param1:longint):longint; assembler;
 
  asm
   movl  sysnr,%eax
   pushl Param1
   call  actualsyscall
   addl  $4,%esp
+  movw  %bx,Errno
+ end;
+
+function Do_SysCall(sysnr,param1:integer):longint; assembler;
+
+ asm
+  movl  sysnr,%eax
+  pushw Param1
+  call  actualsyscall
+  addw  $2,%esp
   movw  %bx,Errno
  end;
 
@@ -105,19 +105,6 @@ function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;
    addl  $12,%esp
    movw  %bx,Errno
  end;
-
-function Do_SysCall(sysnr,param1,param2:longint;param3:integer):longint; assembler;
-
- asm
-   movl  sysnr,%eax
-   pushw param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $10,%esp
-   movw  %bx,Errno
-end;
-
 
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;
 
@@ -298,6 +285,10 @@ begin
  sys_rmdir:=do_syscall(syscall_nr_rmdir,longint(filename));
 end;
 
+
+const DIRBLKSIZ=1024;
+
+
 { we need this for getcwd, NOT touched for BSD version }
 Function OpenDir(f:pchar):pdir;
 
@@ -322,20 +313,21 @@ begin
   new(ptr);
   if ptr=nil then
    exit;
-  new(ptr^.buf);
+  Getmem(ptr^.buf,2*DIRBLKSIZ);
   if ptr^.buf=nil then
    exit;
   ptr^.fd:=fd;
-  ptr^.loc:=0;
+  ptr^.loc:=-1;
+  ptr^.rewind:=longint(ptr^.buf);
   ptr^.size:=0;
-  ptr^.dd_max:=sizeof(ptr^.buf^);
+//  ptr^.dd_max:=sizeof(ptr^.buf^);
   opendir:=ptr;
 end;
 
 function CloseDir(p:pdir):integer;
 begin
   closedir:=sys_close(p^.fd);
-  dispose(p^.buf);
+  Freemem(p^.buf);
   dispose(p);
 end;
 
@@ -347,19 +339,58 @@ Getdents requires the buffer to be larger than the blocksize.
 This usually the sectorsize =512 bytes, but maybe tapedrives and harddisks
 with blockmode have this higher?}
 
-var
-    retval         : longint;
-    getdentsbuffer : array[0..4095] of byte;
+function readbuffer:longint;
+
+var retval :longint;
 
 begin
-
- retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(@getdentsbuffer),512 {sizeof(getdentsbuffer)});
- move(getdentsbuffer,p^.buf^,sizeof(dirent));
-  if retval=0 then
-   sys_readdir:=nil
-  else
-   sys_readdir:=p^.buf
+   retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(@p^.buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
+   p^.rewind:=longint(p^.buf);
+   if retval=0 then
+    begin
+     p^.rewind:=0;
+     p^.loc:=0;
+    end
+   else
+    P^.loc:=retval;
+ readbuffer:=retval;
 end;
+
+var
+    l              : pdirent;
+    novalid        : boolean;
+
+begin
+ if (p^.buf=nil) or (p^.loc=0) THEN
+  exit(nil);
+ if p^.loc=-1 then         {First readdir on this pdir. Initial fill of buffer}
+  begin
+   if readbuffer()=0 Then    {nothing to be read}
+    exit(nil)
+  end;
+ l:=nil;
+ repeat
+  novalid:=false;
+  if (pdirent(p^.rewind)^.reclen<>0) then
+   begin {valid direntry?}
+    if pdirent(P^.rewind)^.ino<>0 then
+     l:=pdirent(p^.rewind);       
+    inc(p^.rewind,pdirent(p^.rewind)^.reclen);
+    if p^.rewind>=(longint(p^.buf)+dirblksiz) then
+     novalid:=true;
+   end
+  else
+   novalid:=true;
+  if novalid then
+   begin {block entirely searched or reclen=0}
+    if p^.loc<>0 THEN             {blocks left?}
+     if readbuffer()<>0 then        {succesful read?}
+      novalid:=false;
+   end;
+ until (l<>nil) or novalid;
+ Sys_ReadDir:=l;
+end;
+
 
 {*****************************************************************************
         --- Process:Process & program handling - related calls ---
@@ -383,7 +414,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2000-04-14 17:04:13  marco
+  Revision 1.15  2000-04-16 16:08:53  marco
+   * Fixes (mainly opendir/Readdir/closedir)
+
+  Revision 1.14  2000/04/14 17:04:13  marco
    * Working!
 
   Revision 1.13  2000/04/10 15:46:52  marco
@@ -425,4 +459,3 @@ end;
    * Initial BSD version. Still needs a lot of work.
 
 }
-
