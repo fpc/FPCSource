@@ -34,16 +34,16 @@ type
    TPoint = record
       x,y : integer;
    end;
+   TRect = record
+      Case Integer of
+       0 : ( Left,Top,Right,Bottom : integer);
+       1 : ( TopLeft,BottomRight : TPoint);
+   end;
 
    TSmallPoint = record
       x,y : smallint;
    end;
 
-   TRect = record
-     case Boolean of
-       False: (Left,Top,Right,Bottom : Integer);
-       True: (TopLeft,BottomRight : TPoint);
-   end;
 
 const
 
@@ -100,10 +100,10 @@ type
     // Extra additions
     ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, ssScroll);
 
-  THelpContext = -MaxLongint..MaxLongint;
+//  THelpContext = -MaxLongint..MaxLongint;
   THelpType = (htKeyword, htContext);
 
-  TShortCut = Low(Word)..High(Word);
+//  TShortCut = Low(Word)..High(Word);
 
 { Standard events }
 
@@ -1294,7 +1294,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.13  2001-10-28 17:16:44  peter
+  Revision 1.14  2001-10-29 19:38:13  michael
+  + Added TRect definition
+
+  Revision 1.13  2001/10/28 17:16:44  peter
     * int64 file functions added
 
   Revision 1.12  2001/10/23 21:51:02  peter
