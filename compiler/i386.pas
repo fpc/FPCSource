@@ -24,6 +24,16 @@ unit i386;
 
   interface
 
+  { We Don't need the intel style opcodes if we don't have a intel
+    reader or generator (PFV) }
+  {$ifndef NORA386INT}
+    {$ifndef NOAG386NSM}
+      {$ifndef NOAG386INT}
+        {$define NOINTOP}
+      {$endif}
+    {$endif}
+  {$endif}
+
     uses
       cobjects,aasm;
 
@@ -994,6 +1004,7 @@ unit i386;
         '%mm0','%mm1','%mm2','%mm3',
         '%mm4','%mm5','%mm6','%mm7');
 
+{$ifdef NOINTOP}
       int_op2str : array[firstop..lastop] of string[9] =
        ('mov','movzx','movsx','','add',
         'call','idiv','imul','jmp','lea','mul','neg','not',
@@ -1064,6 +1075,7 @@ unit i386;
         '','cs','ds','es','fs','gs','ss',
         'st0','st0','st1','st2','st3','st4','st5','st6','st7',
         'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7');
+{$endif}
 
 
   implementation
@@ -1142,6 +1154,15 @@ unit i386;
     procedure reset_reference(var ref : treference);
 
       begin
+{$ifdef ver0_6}
+         ref.index:=R_NO;
+         ref.base:=R_NO;
+         ref.segment:=R_DEFAULT_SEG;
+         ref.offset:=0;
+         ref.scalefactor:=1;
+         ref.isintvalue:=false;
+         ref.symbol:=nil;
+{$else}
          with ref do
            begin
               index:=R_NO;
@@ -1152,6 +1173,7 @@ unit i386;
               isintvalue:=false;
               symbol:=nil;
            end;
+{$endif}
       end;
 
       function new_reference(base : tregister;offset : longint) : preference;
@@ -1741,8 +1763,8 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.21  1998-12-16 00:27:20  peter
-    * removed some obsolete version checks
+  Revision 1.22  1998-12-18 17:24:51  peter
+    * don't include intel list if not necessary
 
   Revision 1.20  1998/12/11 16:10:09  florian
     + shifting for 64 bit ints added
