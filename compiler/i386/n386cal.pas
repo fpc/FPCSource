@@ -833,6 +833,9 @@ implementation
                              cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,paramanager.getintparaloc(1));
                              if is_con_or_destructor then
                                begin
+                                  (*
+                                  The constructor/destructor is called from the class
+                                  itself, no need to push the VMT to create a new object
                                   if (procdefinition.proctypeoption=potype_constructor) then
                                     begin
                                       { it's no bad idea, to insert the VMT }
@@ -842,6 +845,7 @@ implementation
                                   { destructors haven't to dispose the instance, if this is }
                                   { a direct call                                           }
                                   else
+                                  *)
                                     cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(1));
                                end;
                           end
@@ -1307,7 +1311,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-09-07 15:25:10  peter
+  Revision 1.71  2002-09-16 19:07:37  peter
+    * push 0 instead of VMT when calling a constructor from a member
+
+  Revision 1.70  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.69  2002/09/01 18:43:27  peter
