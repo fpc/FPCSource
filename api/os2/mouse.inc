@@ -1,42 +1,45 @@
 {
   System independent mouse interface for OS/2
+
+  $Id$
 }
 
 uses
  Video,
-{$IFDEF VIRTUALPASCAL}
+{$IFDEF PPC_VIRTUAL}
  OS2Base;
 {$ELSE}
- {$IFDEF FPC}
+ {$IFDEF PPC_FPC}
  MouCalls, DosCalls;
  {$ELSE}
-  {$IFDEF SPEED}
+  {$IFDEF PPC_SPEED}
  BseSub, BseDos;
   {$ELSE}
+   {$IFDEF PPC_BPOS2}
  OS2Subs, DosProcs;
+   {$ENDIF}
   {$ENDIF}
  {$ENDIF}
 {$ENDIF}
 
+{$IFDEF PPC_VIRTUAL}
 type
-{$IFDEF FPC}
-(* This should disappear as soon as cardinal arithmetics works OK in FPC. *)
- cardinal = longint;
-{$ELSE}
- {$IFDEF VIRTUALPASCAL}
  cardinal = longint;
  TMouEventInfo = MouEventInfo;
  TNoPtrRect = NoPtrRect;
  TPtrLoc = PtrLoc;
  TMouQueInfo = MouQueInfo;
- {$ELSE}
-  {$IFDEF SPEED}
+{$ELSE}
+ {$IFDEF PPC_SPEED}
+type
  cardinal = longword;
  TMouEventInfo = MouEventInfo;
  TNoPtrRect = NoPtrRect;
  TPtrLoc = PtrLoc;
  TMouQueInfo = MouQueInfo;
-  {$ELSE}
+ {$ELSE}
+  {$IFDEF PPC_BPOS2}
+type
  cardinal = longint;
   {$ENDIF}
  {$ENDIF}
@@ -395,3 +398,10 @@ begin
   if MouseEventOrderTail = MouseEventBufSize then MouseEventOrderTail := 0;
  end;
 end;
+
+{
+  $Log$
+  Revision 1.2  2000-01-09 20:43:04  hajny
+    * cardinal = longint removed for FPC
+
+}
