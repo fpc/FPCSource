@@ -99,7 +99,8 @@ procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
 var
   tios: termios;
 begin
-  ioctl(Handle, TCGETS, @tios);
+  TcGetAttr(handle,tios);
+ // ioctl(Handle, TCGETS, @tios);
 
   case BitsPerSec of
     50: tios.c_cflag := B50;
@@ -119,7 +120,9 @@ begin
     57600: tios.c_cflag := B57600;
     115200: tios.c_cflag := B115200;
     230400: tios.c_cflag := B230400;
+{$ifndef BSD}
     460800: tios.c_cflag := B460800;
+{$endif}
     else tios.c_cflag := B9600;
   end;
 
@@ -142,20 +145,23 @@ begin
     tios.c_cflag := tios.c_cflag or CRTSCTS;
 
   tios.c_cflag := tios.c_cflag or CLOCAL or CREAD;
-
-  ioctl(Handle, TCSETS, @tios);
+  TCSetAttr(handle,TCSANOW,tios)
+//  ioctl(Handle, TCSETS, @tios);
 end;
 
 function SerSaveState(Handle: TSerialHandle): TSerialState;
 begin
   ioctl(Handle, TIOCMGET, @Result.LineState);
-  ioctl(Handle, TCGETS, @Result.tios);
+//  ioctl(Handle, TCGETS, @Result.tios);
+  TcGetAttr(handle,result.tios);
+
 end;
 
 procedure SerRestoreState(Handle: TSerialHandle; State: TSerialState);
 begin
-  ioctl(Handle, TCSETS, @State.tios);
-  ioctl(Handle, TIOCMSET, @State.LineState);
+//  ioctl(Handle, TCSETS, @State.tios);
+    TCSetAttr(handle,TCSANOW,State.tios);
+    ioctl(Handle, TIOCMSET, @State.LineState);
 end;
 
 procedure SerSetDTR(Handle: TSerialHandle; State: Boolean);
@@ -207,7 +213,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-10-10 14:12:36  sg
+  Revision 1.4  2000-12-28 20:50:04  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.3  2000/10/10 14:12:36  sg
   * Some cosmetic improvements (no changes in interface, only within the
     source itself (comments etc.)
 
@@ -216,5 +225,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
 }

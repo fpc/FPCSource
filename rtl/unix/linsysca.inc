@@ -914,6 +914,15 @@ begin
   LinuxError:=Errno;
 end;
 
+Function IoPL(Level : longint) : Boolean;
+
+Var
+  Sr : Syscallregs;
+begin
+  Sr.Reg2:=Level;
+  IOPL:=Syscall(Syscall_nr_iopl,sr)=0;
+  LinuxError:=Errno;
+end;
 
 {$IFDEF I386}
 
@@ -1184,7 +1193,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-10-26 22:51:12  peter
+  Revision 1.5  2000-12-28 20:50:04  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.4  2000/10/26 22:51:12  peter
     * nano sleep (merged)
 
   Revision 1.3  2000/10/02 17:57:37  peter

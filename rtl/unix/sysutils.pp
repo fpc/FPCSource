@@ -119,14 +119,14 @@ begin
 end;
 
 
-Function LinuxToWinAttr (FN : Char; Const Info : Stat) : Longint;
+Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
-  If FN='.' then
-    Result:=Result or faHidden;
   If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then
     Result:=Result or faDirectory;
+  If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
+    Result:=Result or faHidden;
   If (Info.Mode and STAT_IWUSR)=0 Then
      Result:=Result or faReadOnly;
   If (Info.Mode and
@@ -144,18 +144,16 @@ Type
   TGlobSearchRec = Record
     Path       : String;
     GlobHandle : PGlob;
-  end;  
+  end;
   PGlobSearchRec = ^TGlobSearchRec;
-      
+
 Function GlobToTSearchRec (Var Info : TSearchRec) : Boolean;
 
 Var SInfo : Stat;
     p     : Pglob;
-    TAttr : Longint;
     GlobSearchRec : PGlobSearchrec;
-    
+
 begin
-  TAttr:=longint($ffffffff);
   GlobSearchRec:=PGlobSearchrec(Info.FindHandle);
   P:=GlobSearchRec^.GlobHandle;
   Result:=P<>Nil;
@@ -165,8 +163,8 @@ begin
     Result:=Fstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo);
     If Result then
       begin
-      Info.Attr:=LinuxToWinAttr(p^.name[0],SInfo);
-      Result:=(Info.ExcludeAttr and TAttr)<>0;
+      Info.Attr:=LinuxToWinAttr(p^.name,SInfo);
+      Result:=(Info.ExcludeAttr and Info.Attr)=0;
       If Result Then
          With Info do
            begin
@@ -199,14 +197,14 @@ end;
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 
-Var 
+Var
   GlobSearchRec : PGlobSearchRec;
-  
+
 begin
   New(GlobSearchRec);
   GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
   GlobSearchRec^.GlobHandle:=Glob(Path);
-  Rslt.ExcludeAttr:=Attr; //!! Not correct !!
+  Rslt.ExcludeAttr:=Not Attr; //!! Not correct !!
   Rslt.FindHandle:=Longint(GlobSearchRec);
   Result:=DoFind (Rslt);
 end;
@@ -259,7 +257,7 @@ begin
   If Not FStat (FileName,Info) then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(FileName[1],Info);
+    Result:=LinuxToWinAttr(Pchar(FileName),Info);
 end;
 
 
@@ -458,7 +456,10 @@ end.
 {
 
   $Log$
-  Revision 1.4  2000-12-18 14:01:42  jonas
+  Revision 1.5  2000-12-28 20:50:04  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.4  2000/12/18 14:01:42  jonas
     * fixed constant range error
 
   Revision 1.3  2000/11/28 20:06:12  michael
