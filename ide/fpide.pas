@@ -556,6 +556,10 @@ begin
     begin
       Generate_SIGSEGV;
     end;
+  if (Event.What=evKeyDown) and (Event.KeyCode=kbCtrlF11) then
+    begin
+      RunError(250);
+    end;
 {$endif DEBUG}
   if (Event.What=evKeyDown) and (Event.KeyCode=kbAltF12) then
     begin
@@ -1183,7 +1187,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2002-03-20 14:52:01  pierre
+  Revision 1.10  2002-04-12 08:58:22  pierre
+   + add RTE(250) for Ctrl+F11 in DEBUG mode
+
+  Revision 1.9  2002/03/20 14:52:01  pierre
    + deliberatly generate a SIGSEGV if Alt+F11 is pressed (DEBUG code)
 
   Revision 1.8  2002/01/24 09:21:42  pierre
