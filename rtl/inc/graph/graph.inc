@@ -134,9 +134,7 @@ var
   DriverName: String;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
-{$ifndef nonewmodes}
   newModeList: TNewModeInfo;
-{$endif nonewmodes}
   DirectVideo : Boolean;  { Direct access to video memory? }
 
 
@@ -791,193 +789,7 @@ var
    Until j > (DeltaEnd);
   end;
 
-  {********************************************************}
-  { Procedure InternalEllipse()                            }
-  {--------------------------------------------------------}
-  { This routine first calculates all points required to   }
-  { draw a circle to the screen, and stores the points     }
-  { to display in a buffer before plotting them. The       }
-  { aspect ratio of the screen is taken into account when  }
-  { calculating the values.                                }
-  {--------------------------------------------------------}
-  { INPUTS: X,Y : Center coordinates of Ellipse.           }
-  {  XRadius - X-Axis radius of ellipse.                   }
-  {  YRadius - Y-Axis radius of ellipse.                   }
-  {  stAngle, EndAngle: Start angle and end angles of the  }
-  {  ellipse (used for partial ellipses and circles)       }
-  {--------------------------------------------------------}
-  { NOTE: - uses the current write mode.                   }
-  {       - Angles must both be between 0 and 360          }
-  {********************************************************}
-(*
-Procedure InternalEllipseDefault (x, y : smallint;
-    xradius, yradius, stAngle, EndAngle : Word; pl: PatternLineProc); {$ifndef fpc} far; {$endif fpc}
-{ Draw an ellipse arc. Crude but it works (anyone have a better one?) }
-Var
-  aSqr, bSqr, twoaSqr, twobSqr, xa, ya, twoXbSqr, twoYaSqr, error : LongInt;
-  Alpha, TempTerm : graph_float;
-  BackupColor: Word;
-  plxpyp, plxmyp, plxpym, plxmym: smallint;
-const
-  RadToDeg = 180/Pi;
 
-
-Procedure PlotPoints;
-
-var
- i,j: smallint;
- xm, ym: smallint;
- xp, yp: smallint;
-Begin
-   ym := y-ya;
-   yp := y+ya;
-   xm := x-xa;
-   xp := x+xa;
-   plxpyp := maxsmallint;
-   plxmyp := -maxsmallint-1;
-   plxpym := maxsmallint;
-   plxmym := -maxsmallint-1;
-   if LineInfo.Thickness = Normwidth then
-     Begin
-       If (Alpha+270>=StAngle) And (Alpha+270<=EndAngle) then
-          Begin
-            plxmym := xm;
-            PutPixel (xm,ym, CurrentColor);
-          End;
-       If ((180+270)-Alpha>=StAngle) And ((180+270)-Alpha<=EndAngle) then
-          Begin
-            plxmyp := xm;
-            PutPixel (xm,yp, CurrentColor);
-          End;
-       If ((180+270)+Alpha>=StAngle) And ((180+270)+Alpha<=EndAngle) then
-          Begin
-            plxpyp := xp;
-            PutPixel (xp,yp, CurrentColor);
-          End;
-       If ((360+270)-Alpha>=StAngle) And ((360+270)-Alpha<=EndAngle) then
-          Begin
-            plxpym := xp;
-            PutPixel (xp,ym, CurrentColor);
-          End;
-     end
-   else
-     Begin
-       If (Alpha+270>=StAngle) And (Alpha+270<=EndAngle) then
-         Begin
-           plxmym := xm + 1;
-           for i:=-1 to 1 do
-             for j:=-1 to 1 do
-               PutPixel (xm+i,ym+j, CurrentColor);
-         End;
-       If ((180+270)-Alpha>=StAngle) And ((180+270)-Alpha<=EndAngle) then
-         Begin
-           plxmyp := xm + 1;
-           for i:=-1 to 1 do
-             for j:=-1 to 1 do
-               PutPixel (xm+i,yp+j, CurrentColor);
-         End;
-       If ((180+270)+Alpha>=StAngle) And ((180+270)+Alpha<=EndAngle) then
-         Begin
-           plxpyp := xp - 1;
-           for i:=-1 to 1 do
-             for j:=-1 to 1 do
-               PutPixel (xp+i,yp+j, CurrentColor);
-         End;
-       If ((360+270)-Alpha>=StAngle) And ((360+270)-Alpha<=EndAngle) then
-         Begin
-           plxpym := xp - 1;
-           for i:=-1 to 1 do
-             for j:=-1 to 1 do
-               PutPixel (xp+i,ym+j, CurrentColor);
-         End;
-     end;
-     If (xp <> xm) then
-       begin
-         CurrentColor := FillSettings.Color;
-         pl(plxmyp+1,plxpyp-1,yp);
-         pl(plxmym+1,plxpym-1,ym);
-         CurrentColor := BackupColor;
-       end;
-End;
-
-Begin
-  { check for an ellipse with negligable x and y radius }
-  If (xradius <= 1) and (yradius <= 1) then
-    begin
-      putpixel(x,y,CurrentColor);
-      ArcCall.X := X;
-      ArcCall.Y := Y;
-      ArcCall.XStart := X;
-      ArcCall.YStart := Y;
-      ArcCall.XEnd := X;
-      ArcCall.YEnd := Y;
-      exit;
-    end;
-  { for restoring after PatternLine }
-  BackupColor := CurrentColor;
-  If xradius = 0 then inc(xradius);
-  if yradius = 0 then inc(yradius);
-  { store arccall info }
-  ArcCall.x := x;
-  ArcCall.y := y;
-  TempTerm := StAngle*RadToDeg;
-  ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
-  ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
-  TempTerm := EndAngle*RadToDeg;
-  ArcCall.XEnd := round(XRadius*Cos(TempTerm)) + X;
-  ArcCall.YEnd := round(YRadius*Sin(TempTerm+Pi)) + Y;
-
-  StAngle:=StAngle MOD 361;
-  EndAngle:=EndAngle MOD 361;
-  StAngle := StAngle + 270;
-  EndAngle := EndAngle + 270;
-  If StAngle>EndAngle then
-  Begin
-    StAngle:=StAngle Xor EndAngle; EndAngle:=EndAngle Xor StAngle; StAngle:=EndAngle Xor StAngle;
-  End;
-  { Adjust for screen aspect ratio }
-  XRadius:=(longint(XRadius)*10000) div XAspect;
-  YRadius:=(longint(YRadius)*10000) div YAspect;
-  aSqr:=LongInt (xradius)*LongInt (xradius);
-  bSqr:=LongInt (yradius)*LongInt (yradius);
-  twoaSqr:=2*aSqr;
-  twobSqr:=2*bSqr;
-  xa:=0;
-  ya:=yradius;
-  twoXbSqr:=0;
-  twoYaSqr:=ya*twoaSqr;
-  error:=-ya*aSqr;
-  While twoXbSqr<=twoYaSqr Do Begin
-    If ya=0 then Alpha:=90 Else Alpha:=RadToDeg*Arctan (xa/ya); { Crude but it works }
-    PlotPoints;
-    Inc (xa);
-    Inc (twoXbSqr,twobSqr);
-    Inc (error,twoXbSqr-bSqr);
-    If error>=0 then Begin
-      Dec (ya);
-      Dec (twoYaSqr,twoaSqr);
-      Dec (error,twoYaSqr);
-    End;
-  End;
-  xa:=xradius;
-  ya:=0;
-  twoXbSqr:=xa*twobSqr;
-  twoYaSqr:=0;
-  error:=-xa*bSqr;
-  While twoXbSqr>twoYaSqr Do Begin
-    If ya=0 then Alpha:=90 Else Alpha:=RadToDeg*Arctan (xa/ya);
-    PlotPoints;
-    Inc (ya);
-    Inc (twoYaSqr,twoaSqr);
-    Inc (error,twoYaSqr-aSqr);
-    If error>=0 then Begin
-      Dec (xa);
-      Dec (twoXbSqr,twobSqr);
-      Dec (error,twoXbSqr);
-    End;
-  End;
-End;
-*)
   procedure PatternLineDefault(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
@@ -1598,16 +1410,7 @@ end;
 
  procedure SectorPL(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
  var plx1, plx2: smallint;
-{$ifdef sectorpldebug}
-     t : text;
-{$endif sectorpldebug}
  begin
-{$ifdef sectorpldebug}
-   assign(t,'sector.log');
-   append(t);
-   writeln(t,'Got here for line ',y);
-   close(t);
-{$endif sectorpldebug}
    If (x1 = -maxsmallint) Then
      If (x2 = maxsmallint-1) Then
        { no ellipse points drawn on this line }
@@ -1620,26 +1423,8 @@ end;
          { use: y-y1=(y2-y1)/(x2-x1)*(x-x1) =>                           }
          { x = (y-y1)/(y2-y1)*(x2-x1)+x1                                 }
          Begin
-{$ifdef sectorpldebug}
-           If (ArcCall.YStart-ArcCall.Y) = 0 then
-             begin
-               append(t);
-               writeln(t,'bug1');
-               close(t);
-               runerror(202);
-             end;
-{$endif sectorpldebug}
            plx1 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
                    div (ArcCall.YStart-ArcCall.Y)+ArcCall.X;
-{$ifdef sectorpldebug}
-           If (ArcCall.YEnd-ArcCall.Y) = 0 then
-             begin
-               append(t);
-               writeln(t,'bug2');
-               close(t);
-               runerror(202);
-             end;
-{$endif sectorpldebug}
            plx2 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
                    div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X;
            If plx1 > plx2 then
@@ -1648,11 +1433,6 @@ end;
                plx2 := plx1 xor plx2;
                plx1 := plx1 xor plx2;
              end;
-{$ifdef sectorpldebug}
-           append(t);
-           writeln(t,'lines: ',plx1,' - ',plx2);
-           close(t);
-{$endif sectorpldebug}
          End
        { otherwise two points which have nothing to do with the sector }
        Else exit
@@ -1663,39 +1443,16 @@ end;
        Begin
          If (y < ArcCall.Y) then
            begin
-{$ifdef sectorpldebug}
-             If (ArcCall.YEnd-ArcCall.Y) = 0 then
-               begin
-                 append(t);
-                 writeln(t,'bug3');
-                 close(t);
-                 runerror(202);
-               end;
-{$endif sectorpldebug}
              plx1 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
                      div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X
            end
          else if (y > ArcCall.Y) then
            begin
-{$ifdef sectorpldebug}
-             If (ArcCall.YStart-ArcCall.Y) = 0 then
-               begin
-                 append(t);
-                 writeln(t,'bug4');
-                 close(t);
-                 runerror(202);
-               end;
-{$endif sectorpldebug}
              plx1 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
                      div (ArcCall.YStart-ArcCall.Y)+ArcCall.X
              end
          else plx1 := ArcCall.X;
          plx2 := x2;
-{$ifdef sectorpldebug}
-         append(t);
-         writeln(t,'right: ',plx1,' - ',plx2);
-         close(t);
-{$endif sectorpldebug}
        End
    Else
      If (x2 = maxsmallint-1) Then
@@ -1705,58 +1462,25 @@ end;
        Begin
          If (y < ArcCall.Y) then
            begin
-{$ifdef sectorpldebug}
-             If (ArcCall.YStart-ArcCall.Y) = 0 then
-               begin
-                 append(t);
-                 writeln(t,'bug5');
-                 close(t);
-                 runerror(202);
-               end;
-{$endif sectorpldebug}
              plx2 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
                      div (ArcCall.YStart-ArcCall.Y)+ArcCall.X
            end
          else if (y > ArcCall.Y) then
            begin
-{$ifdef sectorpldebug}
-             If (ArcCall.YEnd-ArcCall.Y) = 0 then
-               begin
-                 append(t);
-                 writeln(t,'bug6');
-                 close(t);
-                 runerror(202);
-               end;
-{$endif sectorpldebug}
              plx2 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
                      div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X
            end
          else plx2 := ArcCall.X;
          plx1 := x1;
-{$ifdef sectorpldebug}
-         append(t);
-         writeln(t,'left: ',plx1,' - ',plx2);
-         close(t);
-{$endif sectorpldebug}
        End
      Else
        { the arc is plotted at both sides }
        Begin
          plx1 := x1;
          plx2 := x2;
-{$ifdef sectorpldebug}
-         append(t);
-         writeln(t,'normal: ',plx1,' - ',plx2);
-         close(t);
-{$endif sectorpldebug}
        End;
    If plx2 > plx1 then
      Begin
-{$ifdef sectorpldebug}
-       append(t);
-       Writeln(t,'drawing...');
-       close(t);
-{$endif sectorpldebug}
        PatternLine(plx1,plx2,y);
      end;
  end;
@@ -2185,7 +1909,6 @@ end;
   begin
     HiMode := -1;
     LoMode := -1;
-{$ifndef nonewmodes}
     if not calledFromInitGraph or
        (graphDriver < lowNewDriver) or
        (graphDriver > highNewDriver) then
@@ -2236,33 +1959,6 @@ end;
         _GraphResult := grNotDetected;
         exit;
       end;
-{$else nonewmodes}
-    { We start at VGA }
-    GraphDriver := VGA;
-    CpyMode := 0;
-    { search all possible graphic drivers in ascending order...}
-    { usually the new driver numbers indicate newest hardware...}
-    { Internal driver numbers start at VGA=9 }
-    repeat
-       GetModeRange(GraphDriver,LoMode,HiMode);
-       { save the highest mode possible...}
-       {$ifdef logging}
-       logln('Found driver '+strf(graphdriver)+' with modes '+
-              strf(lomode)+' - '+strf(himode));
-       {$endif logging}
-       if HiMode = -1 then break;
-       CpyMode:=HiMode;
-       CpyDriver:=GraphDriver;
-       { go to next driver if it exists...}
-       Inc(GraphDriver);
-    until (CpyMode=-1);
-    { If this is equal to -1 then no graph mode possible...}
-    if CpyMode = -1 then
-      begin
-        _GraphResult := grNotDetected;
-        exit;
-      end;
-{$endif nonewmodes}
     _GraphResult := grOK;
     GraphDriver := CpyDriver;
     GraphMode := CpyMode;
@@ -2276,11 +1972,7 @@ end;
   procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
     const PathToDriver:String);
   const
-    {$IFDEF Unix}
-    dirchar = '/';
-    {$ELSE}
-    dirchar = '\';
-    {$ENDIF}
+    dirchar = System.DirectorySeparator;
   begin
     InitVars;
     { path to the fonts (where they will be searched)...}
@@ -2293,9 +1985,7 @@ end;
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
     if (Graphdriver=Detect)
-{$ifndef nonewmodes}
        or (GraphMode = detectMode)
-{$endif}
        then
       begin
         internDetectGraph(GraphDriver,GraphMode,true);
@@ -2361,7 +2051,7 @@ end;
   var
     list: PModeInfo;
     tmp : PModeInfo;
-    c: graph_int;
+    c: longint;
   begin
    { restore old exitproc! }
    exitproc := exitsave;
@@ -2380,7 +2070,6 @@ end;
        list:=list^.next;
        dispose(tmp);
      end;
-{$ifndef nonewmodes}
    for c := lowNewDriver to highNewDriver do
      begin
        list := newModeList.modeinfo[c];
@@ -2391,7 +2080,6 @@ end;
            dispose(tmp);
          end;
      end;
-{$endif nonewmodes}
 {$IFDEF DPMI}
   { We had copied the buffer of mode information }
   { and allocated it dynamically... now free it  }
@@ -2411,18 +2099,11 @@ begin
 {$endif logging}
  isgraphmode := false;
  ModeList := nil;
-{$ifndef nonewmodes}
  fillChar(newModeList.modeinfo,sizeof(newModeList.modeinfo),#0);
  { lo and hi modenumber are -1 currently (no modes supported) }
  fillChar(newModeList.loHiModeNr,sizeof(newModeList.loHiModeNr),#255);
-{$endif nonewmodes}
  SaveVideoState := nil;
  RestoreVideoState := nil;
-{$ifdef oldfont}
-{$ifdef go32v2}
- LoadFont8x8;
-{$endif go32v2}
-{$endif oldfont}
  { This must be called at startup... because GetGraphMode may }
  { be called even when not in graph mode.                     }
 {$ifdef logging}
@@ -2451,7 +2132,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  2002-06-01 19:42:02  marco
+  Revision 1.8  2002-09-07 12:43:02  carl
+    - unit cleanup (removed unused defines)
+
+  Revision 1.7  2002/06/01 19:42:02  marco
    * Renamefest
 
   Revision 1.6  2001/04/14 16:06:03  jonas

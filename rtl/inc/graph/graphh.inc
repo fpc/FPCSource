@@ -185,11 +185,6 @@
 {   + GetModeRange                                       }
 {--------------------------------------------------------}
 
-{ text.inc will crash on aligned requirement machines.          }
-{ (packed record for fontrec)                                   }
-{$ifndef fpc}
-  {$G+}
-{$endif}
 
 type
     smallint = -32768..32767;
@@ -330,7 +325,6 @@ type
        VGA           = 9;
        VESA          = 10;
 
-{$ifndef nonewmodes}
 
        D1bit = 11;
        D2bit = 12;
@@ -346,7 +340,6 @@ type
 
        lowNewDriver = 11;
        highNewDriver = 21;
-{$endif nonewmodes}
 
 
        { graph modes }
@@ -357,7 +350,6 @@ type
        VGAMed  = 1;
        VGAHi   = 2;
 
-{$ifndef nonewmodes}
        { They start at such a high number to make sure they don't clash     }
        { with the mode numbers returned by getmoderange (those mode numbers }
        { are about the same modes, but all supported modes must have a      }
@@ -400,7 +392,6 @@ type
         (x:1280;y:1024),
         (x:1600;y:1200),
         (x:2048;y:1536));
-{$endif nonewmodes}
 
 
        { Hercules mono card }
@@ -458,17 +449,7 @@ type
              xend,yend : smallint;
        end;
 
-{$IFDEF FPC}
-        graph_int = longint;      { platform specific smallint used for indexes;
-                                    should be 16 bits on TP/BP and 32 bits on every-
-                                    thing else for speed reasons }
         graph_float = single;   { the platform's preferred floating point size }
-{$ELSE}
-        graph_int = smallint;    { platform specific smallint used for indexes;
-                                  should be 16 bits on TP/BP and 32 bits on every-
-                                  thing else for speed reasons }
-        graph_float = real;     { the platform's preferred floating point size }
-{$ENDIF}
 
   const
        fillpatternTable : array[0..12] of FillPatternType = (
@@ -629,14 +610,12 @@ TYPE
       next: PModeInfo;
     end;
 
-{$ifndef nonewmodes}
     TNewModeInfo = record
       modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
       loHiModeNr: array[lowNewDriver..highNewDriver] of record
         lo,hi: smallint;
       end;
     end;
-{$endif nonewmodes}
 
 
 
@@ -808,7 +787,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.6  2002-07-18 07:11:11  pierre
+  Revision 1.7  2002-09-07 12:43:03  carl
+    - unit cleanup (removed unused defines)
+
+  Revision 1.6  2002/07/18 07:11:11  pierre
    merged from FIXES branch: DrawTextBackground support
 
   Revision 1.5  2001/06/01 11:13:22  jonas
