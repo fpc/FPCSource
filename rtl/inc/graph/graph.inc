@@ -1374,29 +1374,34 @@ end;
 
   procedure DirectPutPixelDefault(X,Y: smallint);
    begin
-     RunError(218);
+     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
+     Halt(1);
    end;
 
   function GetPixelDefault(X,Y: smallint): word;
    begin
-     RunError(218);
+     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
+     Halt(1);
      exit(0); { avoid warning }
    end;
 
   procedure PutPixelDefault(X,Y: smallint; Color: Word);
    begin
-     RunError(218);
+     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
+     Halt(1);
    end;
 
   procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: smallint);
    begin
-     RunError(218);
+     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
+     Halt(1);
    end;
 
   procedure GetRGBPaletteDefault(ColorNum: smallint; var
             RedValue, GreenValue, BlueValue: smallint);
    begin
-     RunError(218);
+     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
+     Halt(1);
    end;
 
 
@@ -2319,7 +2324,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.31  2000-04-02 12:13:36  florian
+  Revision 1.32  2000-06-07 07:33:42  jonas
+    * calling a graph function when initgraph is not yet called now prints
+      a nice error message instead of giving a Run Time Error
+
+  Revision 1.31  2000/04/02 12:13:36  florian
     * some more procedures can be now hooked by the OS specific implementation
 
   Revision 1.30  2000/03/24 18:16:32  florian
