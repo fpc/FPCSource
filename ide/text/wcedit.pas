@@ -150,6 +150,7 @@ type
     public
       procedure   UpdateIndicator; virtual;
       procedure   ModifiedChanged; virtual;
+      procedure   PositionChanged; virtual;
       procedure   LimitsChanged; virtual;
       function    IsClipboard: Boolean; virtual;
       function    LoadFromStream(Stream: PStream): boolean; virtual;
@@ -1099,6 +1100,11 @@ begin
   UpdateIndicator;
 end;
 
+procedure TCodeEditor.PositionChanged;
+begin
+  UpdateIndicator;
+end;
+
 procedure TCodeEditor.JumpToLastCursorPos;
 {$ifdef Undo}
 var
@@ -1177,7 +1183,7 @@ begin
             eaDeleteLine :
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
-                DelEnd;
+                {DelEnd;wrong for eaCut at least }
                 InsertNewLine;
                 SetCurPtr(StartPos.X,StartPos.Y);
                 SetLineText(StartPos.Y,GetStr(Text));

@@ -463,6 +463,7 @@ type
       procedure   ContentsChanged; virtual;
       procedure   LimitsChanged; virtual;
       procedure   ModifiedChanged; virtual;
+      procedure   PositionChanged; virtual;
       procedure   TabSizeChanged; virtual;
       procedure   SyntaxStateChanged; virtual;
       procedure   StoreUndoChanged; virtual;
@@ -2606,6 +2607,11 @@ begin
 end;
 
 procedure TCustomCodeEditor.ModifiedChanged;
+begin
+  { Abstract }
+end;
+
+procedure TCustomCodeEditor.PositionChanged;
 begin
   { Abstract }
 end;
@@ -4934,8 +4940,8 @@ begin
     SetHighlightRow(-1);}
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
     AddAction(eaMoveCursor,OldPos,CurPos,'');
-{  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
-    UpdateIndicator;}
+  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
+    PositionChanged;{UpdateIndicator;}
   UnLock;
 end;
 
@@ -5581,7 +5587,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.85  2000-03-21 23:17:47  pierre
+  Revision 1.86  2000-03-23 21:36:19  pierre
+   * get correct position in indicator again
+
+  Revision 1.85  2000/03/21 23:17:47  pierre
     + Gabor patch to add support for multiple windows
       of same file
       weditor has been splitted into weditor and wcedit units
