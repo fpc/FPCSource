@@ -5841,8 +5841,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.89  2000-05-17 09:44:46  pierre
-   * fix the {$ifdef inside a comment problem
+  Revision 1.90  2000-05-17 11:58:26  pierre
+   * remove openbrace because of multiple comment level problem
+
+  Revision 1.89  2000/05/17 09:44:46  pierre
+   * fix the $ifdef inside a comment problem
 
   Revision 1.88  2000/04/25 08:42:34  pierre
    * New Gabor changes : see fixes.txt
