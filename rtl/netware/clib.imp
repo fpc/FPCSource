@@ -1138,6 +1138,7 @@
  NCPVerifyBinderyObjectPassword,
  NCPWriteFile,
  NCSDSGlobals,
+ NetWareAlert,
  NITGlobals,
  NLMDEBUGDoneWithOFS,
  NLMDebugVar,

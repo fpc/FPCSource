@@ -36,6 +36,7 @@ TYPE
     fname : string;           { full pathname of found file }
   END;
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -678,6 +679,13 @@ begin
 end;
 
 
+procedure Sleep(milliseconds: Cardinal);
+begin
+  libc._delay (milliseconds);
+end;
+  
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -691,7 +699,11 @@ end.
 {
 
   $Log$
-  Revision 1.6  2004-12-14 19:23:22  armin
+  Revision 1.7  2004-12-16 12:42:55  armin
+  * added NetWare Alert
+  * added sysutils.sleep
+
+  Revision 1.6  2004/12/14 19:23:22  armin
   * dont copy imp files with a rule because this always builds system.pp
   * implemented GetEnvironmentVariableCount and GetEnvironmentString
   * removed dependency from dos unit

@@ -40,6 +40,10 @@ Type
   PPPChar   = ^PPChar;
   void      = pointer;
   cint      = longint;
+  TNLMHandle = Pointer;
+  
+const
+  NullNlmHandle = nil;
 
 {$PACKRECORDS C}
 
@@ -793,6 +797,7 @@ function sbrk(incr:intptr_t):pointer;cdecl;external libc_nlm name 'sbrk';
 function cancel(t_id:longint):longint;cdecl;external libc_nlm name 'cancel';
 function confstr(name:longint; buf:Pchar; len:size_t):size_t;cdecl;external libc_nlm name 'confstr';
 function delay(milliseconds:dword):longint;cdecl;external libc_nlm name 'delay';
+function _delay(milliseconds:dword):longint;cdecl;external libc_nlm name 'delay';
 function sethostid(hostid:longint):longint;cdecl;external libc_nlm name 'sethostid';
 function setmode(fildes:longint; oflag:longint):longint;cdecl;external libc_nlm name 'setmode';
 function sleep(seconds:dword):dword;cdecl;external libc_nlm name 'sleep';
@@ -4136,6 +4141,34 @@ const
      NOTIFY_QUEUE_MESSAGE = $10000000;
      NOTIFY_DONT_NOTIFY_NMAGENT = $80000000;
 
+type
+  TnwAlertDataFreeProc = procedure (nwAlertDataPtr:pointer);cdecl;
+  PNetWareAlertStructure  = ^TNetWareAlertStructure;
+  TNetWareAlertStructure = record
+    pNetworkManagementAttribute  : pointer;
+    nwAlertFlags,
+    nwTargetStation,
+    nwTargetNotificationBits,
+    nwAlertID,
+    nwAlertLocus,
+    nwAlertClass,
+    nwAlertSeverity              : longint;
+    nwAlertDataPtr               : pointer;
+    nwAlertDataFree              : TnwAlertDataFreeProc;
+    nwControlString              : pchar;
+    nwControlStringMessageNumber : longint;
+  end;
+
+{$ifndef INCLUDED_FROM_SYSTEM}
+procedure NetWareAlert(nlmHandle      : TNLMHandle;
+                       nwAlert        : PNetWareAlertStructure;
+		       parameterCount : longint;
+		       args           : array of const); cdecl; external system_nlm name 'NetWareAlert';
+{$endif}
+
+procedure NetWareAlert(nlmHandle      : TNLMHandle;
+                       nwAlert        : PNetWareAlertStructure;
+		       parameterCount : longint); cdecl; external system_nlm name 'NetWareAlert';
 
 type
 
@@ -4296,7 +4329,10 @@ function EventReport(_type:longint; parm:pointer):longint;cdecl;external system_
 
 procedure RestartServer(commandLine:Pchar);cdecl;external system_nlm name 'RestartServer';
 function ShutdownServer(scrID:scr_t; forceDown:byte; alternateMessage:Pchar; flags:dword):longint;cdecl;external system_nlm name 'ShutdownServer';
+function ShutdownServer(scrID:scr_t; forceDown:boolean; alternateMessage:Pchar; flags:dword):longint;cdecl;external system_nlm name 'ShutdownServer';
 function StopServer(scrID:scr_t; forceDown:byte; reserved1:dword; reserved2:pointer; alternateMessage:Pchar;
+           reserved3:dword):longint;cdecl;external system_nlm name 'StopServer';
+function StopServer(scrID:scr_t; forceDown:boolean; reserved1:dword; reserved2:pointer; alternateMessage:Pchar;
            reserved3:dword):longint;cdecl;external system_nlm name 'StopServer';
 
 { resource tag interfaces...  }
@@ -4320,7 +4356,7 @@ type
    rtag_info = record
         tag         : rtag_t;
         signature   : dword;
-        NLMHandle   : pointer;
+        NLMHandle   : TNLMHandle;
         use_count   : longint;
         description : array[0..(63 + 1)-1] of char;
      end;
@@ -4328,11 +4364,11 @@ type
    Prtag_info_t = ^rtag_info_t;
 
 
-function AllocateResourceTag(NLMHandle:pointer; description:Pchar; signature:dword):rtag_t;cdecl;external system_nlm name 'AllocateResourceTag';
-function GetModuleResourceTagInfo(rTag:rtag_t; NLMHandle:pointer; info:Prtag_info_t):longint;cdecl;external system_nlm name 'GetModuleResourceTagInfo';
+function AllocateResourceTag(NLMHandle:TNLMHandle; description:Pchar; signature:dword):rtag_t;cdecl;external system_nlm name 'AllocateResourceTag';
+function GetModuleResourceTagInfo(rTag:rtag_t; NLMHandle:TNLMHandle; info:Prtag_info_t):longint;cdecl;external system_nlm name 'GetModuleResourceTagInfo';
 function ReturnResourceTag(rTag:rtag_t; displayErrorsFlag:longint):longint;cdecl;external system_nlm name 'ReturnResourceTag';
-function RegisterTrackedResource(NLMHandle:pointer; signature:dword; cleanup:Cleanup_t; description:Pchar):longint;cdecl;external system_nlm name 'RegisterTrackedResource';
-function UnRegisterTrackedResource(NLMHandle:pointer; signature:dword):longint;cdecl;external system_nlm name 'UnRegisterTrackedResource';
+function RegisterTrackedResource(NLMHandle:TNLMHandle; signature:dword; cleanup:Cleanup_t; description:Pchar):longint;cdecl;external system_nlm name 'RegisterTrackedResource';
+function UnRegisterTrackedResource(NLMHandle:TNLMHandle; signature:dword):longint;cdecl;external system_nlm name 'UnRegisterTrackedResource';
 function AddPollingProcedureRTag(proc:TCDeclProcedure ; rTag:rtag_t):longint;cdecl;external system_nlm name 'AddPollingProcedureRTag';
 procedure RemovePollingProcedure(proc:TCDeclProcedure);cdecl;external system_nlm name 'RemovePollingProcedure';
 
@@ -4340,8 +4376,8 @@ procedure RemovePollingProcedure(proc:TCDeclProcedure);cdecl;external system_nlm
 const
   MAX_SYMBOL_NAME_LEN = 80;
 
-function ExportPublicObject(NLMHandle:pointer; name:Pchar; _object:pointer):longint;cdecl;external system_nlm name 'ExportPublicObject';
-function ImportPublicObject(NLMHandle:pointer; name:Pchar):pointer;cdecl;external system_nlm name 'ImportPublicObject';
+function ExportPublicObject(NLMHandle:TNLMHandle; name:Pchar; _object:pointer):longint;cdecl;external system_nlm name 'ExportPublicObject';
+function ImportPublicObject(NLMHandle:TNLMHandle; name:Pchar):pointer;cdecl;external system_nlm name 'ImportPublicObject';
 
     const
        LO_NORMAL = $00000000;
@@ -4375,17 +4411,17 @@ function ImportPublicObject(NLMHandle:pointer; name:Pchar):pointer;cdecl;externa
 type
   TLoadModulePath = record
     case longint of
-      0 : (NLMHandle : longint);
+      0 : (NLMHandle : TNLMHandle);
       1 : (path      : array [0..1024] of char);
     end;
 
 
-function GetNLMNames(NLMHandle:pointer; name:Pchar; description:Pchar):longint;cdecl;external system_nlm name 'GetNLMNames';
-procedure KillMe(NLMHandle:pointer);cdecl;external system_nlm name 'KillMe';
-function ReturnMessageInformation(NLMHandle:pointer; table:PPPchar; stringCount:Psize_t; languageID:Plongint; helpFile:pointer):longint;cdecl;external system_nlm name 'ReturnMessageInformation';
-function SetAutoUnloadFlag(NLMHandle:pointer):longint;cdecl;external system_nlm name 'SetAutoUnloadFlag';
+function GetNLMNames(NLMHandle:TNLMHandle; name:Pchar; description:Pchar):longint;cdecl;external system_nlm name 'GetNLMNames';
+procedure KillMe(NLMHandle:TNLMHandle);cdecl;external system_nlm name 'KillMe';
+function ReturnMessageInformation(NLMHandle:TNLMHandle; table:PPPchar; stringCount:Psize_t; languageID:Plongint; helpFile:pointer):longint;cdecl;external system_nlm name 'ReturnMessageInformation';
+function SetAutoUnloadFlag(NLMHandle:TNLMHandle):longint;cdecl;external system_nlm name 'SetAutoUnloadFlag';
 
-function UnImportPublicObject(NLMHandle:pointer; name:Pchar):longint;cdecl;external system_nlm name 'UnImportPublicObject';
+function UnImportPublicObject(NLMHandle:TNLMHandle; name:Pchar):longint;cdecl;external system_nlm name 'UnImportPublicObject';
 function AddSearchPathAtEnd(scrID:scr_t; path:Pchar):longint;cdecl;external system_nlm name 'AddSearchPathAtEnd';
 function DeleteSearchPath(scrID:scr_t; searchPathNumber:longint):longint;cdecl;external system_nlm name 'DeleteSearchPath';
 function GetSearchPathElement(index:longint; isDOSFlag:Pdword; path:Pchar):longint;cdecl;external system_nlm name 'GetSearchPathElement';
@@ -4402,7 +4438,7 @@ function _AllocSleepOK(size:size_t; rTag:rtag_t; slept:Plongint):pointer;cdecl;e
 function AllocSleepOK(size:size_t; rTag:rtag_t; slept:Plongint):pointer;cdecl;external system_nlm name 'AllocSleepOK';
 function _AllocSleepOK(size:size_t; rTag:rtag_t; var slept:longint):pointer;cdecl;external system_nlm name 'AllocSleepOK';
 function AllocSleepOK(size:size_t; rTag:rtag_t; var slept:longint):pointer;cdecl;external system_nlm name 'AllocSleepOK';
-procedure NWGarbageCollect(NLMHandle:pointer);cdecl;external system_nlm name 'NWGarbageCollect';
+procedure NWGarbageCollect(NLMHandle:TNLMHandle);cdecl;external system_nlm name 'NWGarbageCollect';
 function NWGetAvailableMemory:size_t;cdecl;external system_nlm name 'NWGetAvailableMemory';
 function NWGetPageSize:size_t;cdecl;external system_nlm name 'NWGetPageSize';
 function NWMemorySizeAddressable(addr:pointer; size:size_t):longint;cdecl;external system_nlm name 'NWMemorySizeAddressable';
@@ -4480,9 +4516,9 @@ type
    CommandHandler_t = function (funcCode:longint; scrID:pointer; command:Pchar; upperCaseCommand:Pchar; callerReference:pointer):longint;cdecl;
 
 
-function DeRegisterCommand(NLMHandle:pointer; rTag:rtag_t; keywordFlags:dword; keyword:Pchar):longint;cdecl;external system_nlm name 'DeRegisterCommand';
+function DeRegisterCommand(NLMHandle:TNLMHandle; rTag:rtag_t; keywordFlags:dword; keyword:Pchar):longint;cdecl;external system_nlm name 'DeRegisterCommand';
 
-function RegisterCommand(NLMHandle:pointer; rTag:rtag_t; keywordFlags:dword; keyword:Pchar; handlerFlags:dword;
+function RegisterCommand(NLMHandle:TNLMHandle; rTag:rtag_t; keywordFlags:dword; keyword:Pchar; handlerFlags:dword;
            insertionFlags:dword; handler:CommandHandler_t; callerReference:pointer):longint;cdecl;external system_nlm name 'RegisterCommand';
 { legacy command parsing; uses ConsoleCommandSignature...  }
 
@@ -4714,7 +4750,7 @@ function UnReserveABreakpoint(_para1:longint):longint;cdecl;external system_nlm 
 function _NonAppCheckUnload:longint;cdecl;external libc_nlm name '_NonAppCheckUnload';
 
 type TReadRoutine = function (conn:longint; fileHandle:pointer; offset,nbytes,bytesRead:Psize_t; buffer:pointer):longint; cdecl;
-function _NonAppStart(NLMHandle:pointer; errorScreen:pointer; commandLine:Pchar; loadDirPath:Pchar; uninitializedDataLength:size_t;
+function _NonAppStart(NLMHandle:TNLMHandle; errorScreen:pointer; commandLine:Pchar; loadDirPath:Pchar; uninitializedDataLength:size_t;
            NLMFileHandle:pointer; readRoutineP:TReadRoutine; customDataOffset:size_t; customDataSize:size_t; messageCount:longint;
            messages:PPchar):longint;cdecl;external libc_nlm name '_NonAppStart';
 procedure _NonAppStop;cdecl;external libc_nlm name '_NonAppStop';
@@ -7187,15 +7223,15 @@ function set_app_data(lib_id:longint; data_area:pointer):longint;cdecl;external 
 function unregister_library(lib_id:longint):longint;cdecl;external libc_nlm name 'unregister_library';
 { more prototypes for library creators, debugging and other uses...  }
 function cleardontunloadflag(handle:pointer):longint;cdecl;external libc_nlm name 'cleardontunloadflag';
-function findnlmhandle(name:Pchar; space:addrsp_t):pointer;cdecl;external libc_nlm name 'findnlmhandle';
+function findnlmhandle(name:Pchar; space:addrsp_t):TNLMHandle;cdecl;external libc_nlm name 'findnlmhandle';
 function getaddressspace:addrsp_t;cdecl;external libc_nlm name 'getaddressspace';
 function getaddressspacename(space:addrsp_t; name:Pchar):Pchar;cdecl;external libc_nlm name 'getaddressspacename';
 function getallocresourcetag:rtag_t;cdecl;external libc_nlm name 'getallocresourcetag';
 function getnativethread:pointer;cdecl;external libc_nlm name 'getnativethread';
 { (current process)  }
-function getnlmhandle:pointer;cdecl;external libc_nlm name 'getnlmhandle';
-function getnlmhandlefromthread(thread:pointer):pointer;cdecl;external libc_nlm name 'getnlmhandlefromthread';
-function getnlmname(handle:pointer; name:Pchar):Pchar;cdecl;external libc_nlm name 'getnlmname';
+function getnlmhandle:TNLMHandle;cdecl;external libc_nlm name 'getnlmhandle';
+function getnlmhandlefromthread(thread:pointer):TNLMHandle;cdecl;external libc_nlm name 'getnlmhandlefromthread';
+function getnlmname(handle:TNLMHandle; name:Pchar):Pchar;cdecl;external libc_nlm name 'getnlmname';
 function getnlmloadpath(loadpath:Pchar):Pchar;cdecl;external libc_nlm name 'getnlmloadpath';
 function getthreadname(threadid:pointer; name:Pchar; maxlen:size_t):longint;cdecl;external libc_nlm name 'getthreadname';
 function _getthreadid:pointer;cdecl;external libc_nlm name 'getthreadid';
@@ -9075,7 +9111,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-12-07 14:13:42  armin
+  Revision 1.7  2004-12-16 12:42:55  armin
+  * added NetWare Alert
+  * added sysutils.sleep
+
+  Revision 1.6  2004/12/07 14:13:42  armin
   * added syncobj for netwlibc
 
   Revision 1.5  2004/12/07 11:40:43  armin

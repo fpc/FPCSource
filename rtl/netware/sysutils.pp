@@ -26,6 +26,7 @@ uses DOS;
 
 {$I nwsys.inc}
 {$I errno.inc}
+{$DEFINE HAS_SLEEP}
 
 TYPE
   TNetwareFindData =
@@ -563,6 +564,10 @@ begin
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
 
+procedure Sleep(milliseconds: Cardinal);
+begin
+  _delay (milliseconds);
+end;
 
 
 {****************************************************************************
@@ -578,7 +583,11 @@ end.
 {
 
   $Log$
-  Revision 1.17  2004-12-11 11:32:44  michael
+  Revision 1.18  2004-12-16 12:42:55  armin
+  * added NetWare Alert
+  * added sysutils.sleep
+
+  Revision 1.17  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.16  2004/08/01 20:02:48  armin

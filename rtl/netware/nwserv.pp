@@ -46,6 +46,10 @@ type
    PPChar = ^PChar;
    PPPChar= ^PPChar;
    Tsigset_t = longint;
+   TNlmHandle = longint;
+
+const
+  NullNlmHandle = 0;
 
 {-time.h-----------------------------------------------------------------------}
 {$PACKRECORDS C}
@@ -59,26 +63,17 @@ type
 
    Ptime_t = ^Ttime_t;
    Ttime_t = dword;
-{ seconds after the minute--range [0, 59]      }
-{ minutes after the hour--range [0, 59]        }
-{ hours since midnight--range [0, 23]          }
-{ days of the month--range [1, 31]             }
-{ months since January--range [0, 11]          }
-{ years since 1900--range [0, 99]              }
-{ days since Sunday--range [0, 6]              }
-{ days since first of January--range [0, 365]  }
-{ Daylight Savings Time flag--set [-, 0, +]:   }
    Ptm = ^Ttm;
    Ttm = record
-        tm_sec : longint;
-        tm_min : longint;
-        tm_hour : longint;
-        tm_mday : longint;
-        tm_mon : longint;
-        tm_year : longint;
-        tm_wday : longint;
-        tm_yday : longint;
-        tm_isdst : longint;
+        tm_sec   : longint;    { seconds after the minute--range [0, 59]      }
+        tm_min   : longint;    { minutes after the hour--range [0, 59]        }
+        tm_hour  : longint;    { hours since midnight--range [0, 23]          }
+        tm_mday  : longint;    { days of the month--range [1, 31]             }
+        tm_mon   : longint;    { months since January--range [0, 11]          }
+        tm_year  : longint;    { years since 1900--range [0, 99]              }
+        tm_wday  : longint;    { days since Sunday--range [0, 6]              }
+        tm_yday  : longint;    { days since first of January--range [0, 365]  }
+        tm_isdst : longint;    { Daylight Savings Time flag--set [-, 0, +]:   }
      end;
 
 { ISO/ANSI C functions...  }
@@ -1969,7 +1964,7 @@ const
    ECFileWriteThroughBit = $00000040;
 {$include npackoff.inc}
 
-function AllocateResourceTag (NLMHandle:longint;
+function AllocateResourceTag (NLMHandle:TNlmHandle;
                               descriptionString:PChar;
                               resourceType:longint):longint;cdecl;external 'clib' name 'AllocateResourceTag';
 function DSAllocateEventTag (DSEventSignature:longint):pointer;cdecl;external 'clib' name 'DSAllocateEventTag';
@@ -1991,7 +1986,7 @@ function GetSettableParameterValue (connectionNumber:longint;
                                     setableParameterString:PBYTE;
                                     returnValue:pointer):longint;cdecl;external 'clib' name 'GetSetableParameterValue';  // use this define if the misspelling is too annoying
 function GetThreadDataAreaPtr:pointer;cdecl;external 'clib' name 'GetThreadDataAreaPtr';
-function ImportSymbol(NLMHandle:longint; symbolName:Pchar):pointer;cdecl;external 'clib' name 'ImportSymbol';
+function ImportSymbol(NLMHandle:TNlmHandle; symbolName:Pchar):pointer;cdecl;external 'clib' name 'ImportSymbol';
 function LoadLanguageMessageTable(messageTable:PPPchar; messageCount:Plongint; languageID:Plongint):longint;cdecl;external 'clib' name 'LoadLanguageMessageTable';
 function LoadLanguageMessageTable(var messageTable; var messageCount:longint; languageID:Plongint):longint;cdecl;external 'clib' name 'LoadLanguageMessageTable';
 function NWAddSearchPathAtEnd(searchPath:PChar; number:Plongint):longint;cdecl;external 'clib' name 'NWAddSearchPathAtEnd';
@@ -2034,7 +2029,7 @@ function SetSetableParameterValue (connectionNumber:longint;
                                    setableParameterString:PBYTE;
                                    newValue:pointer):longint;cdecl;external 'clib' name 'SetSetableParameterValue';
 procedure SynchronizeStart;cdecl;external 'clib' name 'SynchronizeStart';
-function UnimportSymbol (NLMHandle:longint;
+function UnimportSymbol (NLMHandle:TNlmHandle;
                          symbolName:Pchar):longint;cdecl;external 'clib' name 'UnimportSymbol';
 function UnRegisterConsoleCommand (commandParserToDelete:PcommandParserStructure):longint;cdecl;external 'clib' name 'UnRegisterConsoleCommand';
 function UnregisterForEvent (eventHandle:longint):longint;cdecl;external 'clib' name 'UnregisterForEvent';
@@ -2941,7 +2936,7 @@ function RegisterLibrary(cleanupFunc:TLibraryCleanupFunc):longint;cdecl;external
 function SaveDataAreaPtr(libraryHandle:longint; dataAreaPtr:pointer):longint;cdecl;external 'clib' name 'SaveDataAreaPtr';
 // function Thread_Data_Area : pointer;  Thread_Data_Area (*__get_thread_data_area_ptr())
 {-nwmalloc.h-------------------------------------------------------------------}
-procedure NWGarbageCollect (NLMHandle:longint);  cdecl; external 'clib' name 'NWGarbageCollect';
+procedure NWGarbageCollect (NLMHandle:TNlmHandle);  cdecl; external 'clib' name 'NWGarbageCollect';
 function  NWGetAllocPageOverhead (pageCount:longint):longint;cdecl; external 'clib' name 'NWGetAllocPageOverhead';
 function  NWGetAvailableMemory : longint;        cdecl; external 'clib' name 'NWGetAvailableMemory';
 function  NWGetPageSize : longint;               cdecl; external 'clib' name 'NWGetPageSize';
@@ -3191,8 +3186,8 @@ function _NWGetNWErrno:longint;cdecl;external 'clib' name '_NWGetNWErrno';
 function _NWGetNLMLevelLibDataPtr(NLMID:longint):pointer;cdecl;external 'clib' name '_NWGetNLMLevelLibDataPtr';
 function _NWGetThreadGroupLevelLibDataPtr(threadGroupID:longint):pointer;cdecl;external 'clib' name '_NWGetThreadGroupLevelLibDataPtr';
 function _NWGetThreadLevelLibDataPtr(threadID:longint):pointer;cdecl;external 'clib' name '_NWGetThreadLevelLibDataPtr';
-function _NWLoadNLMMessageTable(NLMHandle:longint; messageTable:PPPchar; messageCount:Plongint; languageID:Plongint):longint;cdecl;external 'clib' name '_NWLoadNLMMessageTable';
-function _NWRegisterNLMLibrary (NLMHandle:longint;
+function _NWLoadNLMMessageTable(NLMHandle:TNlmHandle; messageTable:PPPchar; messageCount:Plongint; languageID:Plongint):longint;cdecl;external 'clib' name '_NWLoadNLMMessageTable';
+function _NWRegisterNLMLibrary (NLMHandle:TNlmHandle;
                                 NLMFileHandle:longint;
                                 readFunc:TReadFunc;
                                 NLMBegin:TNLMBeginFunc;
@@ -3756,16 +3751,16 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   procedure ExitThread(action_code     :longint;
                        termination_code:longint);                        cdecl;external ThreadsNlm name 'ExitThread';
 
-  function FindNLMHandle(NLMFileName:Pchar):dword;                       cdecl;external ThreadsNlm name 'FindNLMHandle';
+  function FindNLMHandle(NLMFileName:Pchar):TNlmHandle;                  cdecl;external ThreadsNlm name 'FindNLMHandle';
   function getcmd(cmdLine:Pchar):Pchar;                                  cdecl;external ThreadsNlm name 'getcmd';
-  function GetNLMHandle:dword;                                           cdecl;external ThreadsNlm name 'GetNLMHandle';
+  function GetNLMHandle:TNlmHandle;                                      cdecl;external ThreadsNlm name 'GetNLMHandle';
   function GetNLMID:longint;                                             cdecl;external ThreadsNlm name 'GetNLMID';
   function GetNLMIDFromNLMHandle(NLMHandle:longint):longint;             cdecl;external ThreadsNlm name 'GetNLMIDFromNLMHandle';
   function GetNLMIDFromThreadID(threadID:longint;fileName:Pchar):longint;cdecl;external ThreadsNlm name 'GetNLMIDFromThreadID';
   function GetNLMNameFromNLMID(NLMID:longint;
                                fileName:Pchar;
 			       description:Pchar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
-  function GetNLMNameFromNLMHandle(NLMHandle:longint;
+  function GetNLMNameFromNLMHandle(NLMHandle:TNlmHandle;
                                    LDFileName:Pchar;
 				   LDName:Pchar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
   function GetThreadContextSpecifier(threadID:longint):longint;          cdecl;external ThreadsNlm name 'GetThreadContextSpecifier';
@@ -3775,7 +3770,7 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function GetThreadID:longint;                                          cdecl;external ThreadsNlm name 'GetThreadID';
   function GetThreadName(threadID:longint; tName:Pchar):longint;         cdecl;external ThreadsNlm name 'GetThreadName';
   function GetThreadName(threadID:longint; var tName):longint;           cdecl;external ThreadsNlm name 'GetThreadName';
-  function MapNLMIDToHandle(NLMID:longint):longint;                      cdecl;external ThreadsNlm name 'MapNLMIDToHandle';
+  function MapNLMIDToHandle(NLMID:longint):TNlmHandle;                   cdecl;external ThreadsNlm name 'MapNLMIDToHandle';
   function PopThreadCleanup(execute:longint):TCLEANUP;                   cdecl;external ThreadsNlm name 'PopThreadCleanup';
   function PopThreadGroupCleanup(execute:longint):TCLEANUP;              cdecl;external ThreadsNlm name 'PopThreadGroupCleanup';
   function PushThreadCleanup(func:TCLEANUP):longint;                     cdecl;external ThreadsNlm name 'PushThreadCleanup';
@@ -3797,10 +3792,10 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
 					copyrightString:pchar;
 					description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
 
-  function ReturnNLMVersionInformation(NLMHandle:longint;
+  function ReturnNLMVersionInformation(NLMHandle:TNlmHandle;
                                        majorVersion,minorVersion,revision,year,month,day:Plongint;
                                        copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
-  function ReturnNLMVersionInformation(NLMHandle:longint;
+  function ReturnNLMVersionInformation(NLMHandle:TNlmHandle;
                                        var majorVersion,minorVersion,revision,year,month,day:longint;
                                        copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
 
@@ -4764,6 +4759,493 @@ function stat_500(path:Pchar; var buf:Tstat):longint;cdecl;external 'clib' name 
 function stat (path:Pchar; buf:Pstat):longint;cdecl;external 'clib' name 'stat_500';
 function stat (path:Pchar; var buf:Tstat):longint;cdecl;external 'clib' name 'stat_500';
 {------------------------------------------------------------------------------}
+{definitions for netwareAlert, not documented, found that on the novell developer newsgroup}
+const
+// ModuleNumbers for 'nwAlertID' in TNetWareAlertStructure
+   ALERT_BINDERY            = $01020000;     // Bindery Subject
+   ALERT_OS                 = $01030000;     // OS Event Subject
+   ALERT_LLC                = $01040000;     // LLC
+   ALERT_SDLC               = $01050000;     // SDLC Stack
+   ALERT_REMOTE             = $01060000;     // RConsole
+   ALERT_MLID               = $01070000;     // MLID LAN Drivers
+   ALERT_QLLC               = $01080000;     // QLLC
+   ALERT_UPS                = $01090000;     // UPS Monitor
+   ALERT_DS                 = $010a0000;     // Directory Service
+   ALERT_RSPX               = $010c0000;     // RSPX
+   ALERT_R232               = $010d0000;     // R232
+   ALERT_TIME_SYNC          = $010e0000;     // TimeSync
+   ALERT_CLIB               = $010f0000;     // CLib
+   ALERT_PRINT              = $01100000;     // Print
+   ALERT_NRS                = $01200000;     // Novell Replication Services
+   ALERT_DNS                = $01300000;     // IP/Domain Name Services
+   ALERT_DHCP               = $01400000;     // DHCP Services
+   ALERT_MM                 = $01500000;     // Media Manager
+
+// OS-defined AlertNumber values for nwAlertID in TNetWareAlertStructure
+// starting with NetWare 4...
+   nmAllocFailed                           = 1;
+   nmErrWrtExtDir                          = 2;
+   nmSysErrWrtDSnoFN                       = 3;
+   nmStaErrWrtDSnoFN                       = 4;
+   nmSysErrWrtDSwithFN                     = 5;
+   nmStaErrWrtDSwithFN                     = 6;
+   nmSysErrRdDSnoFN                        = 7;
+   nmStaErrRdDSnoFN                        = 8;
+   nmSysErrRdDSwithFN                      = 9;
+   nmStaErrRdDSwithFN                      = 10;
+   nmSysWrtPreRDnoFN                       = 11;
+   nmStaWrtPreRDnoFN                       = 12;
+   nmSysWrtPreRDwithFN                     = 13;
+   nmStaWrtPreRDwithFN                     = 14;
+   nmCacheMemLimitExceded                  = 15;
+   nmCacheMemOutOfMem                      = 16;
+   nmCacheBufsGetLo                        = 17;
+   nmDskSpcNoDelFiles                      = 18;
+   nmDskSpcNoLimbo                         = 19;
+   nmVolSpcAlmostGone                      = 20;
+   nmFATWrtErr                             = 21;
+   nmDirWrtErr                             = 22;
+   nmDirCopyRdErr                          = 23;
+   nmDirDblRdErr                           = 24;
+   nmAllocDirWrtErr                        = 25;
+   nmDirExpansionErr                       = 26;
+   nmDirTooLarge                           = 27;
+   nmErrExpandingDir                       = 28;
+   nmErrExpandingMem                       = 29;
+   nmErrDirGetTooLarge                     = 30;
+   nmDskBottleneck                         = 31;
+   nmWDClearedConn                         = 32;
+   nmCpyrtViolation                        = 33;
+   nmReadFault                             = 35;
+   nmPktTooSmall                           = 36;
+   nmCreatingVolLog                        = 37;
+   nmWrtVolLog                             = 38;
+   nmVolDmtDevDeact                        = 39;
+   nmLoginDisabled                         = 40;
+   nmLoginEnabled                          = 41;
+   nmClrSta                                = 42;
+   nmClrStaByUsr                           = 43;
+   nmFSDownByUser                          = 44;
+   nmRIPAlreadyOpn                         = 45;
+   nmRouterConfigErr                       = 46;
+   nmLANLoopbackErr                        = 47;
+   nmRouterConfigErrNoInfo                 = 48;
+   nmIPXUnreachable                        = 49;
+   nmIPXUnbind                             = 50;
+   nmSAPAlreadyOpn                         = 51;
+   nmRouterConfigErrNameInfo               = 52;
+   nmSpuriousInt                           = 53;
+   nmChecksumInvalidAlert                  = 54;
+   nmPrimaryPicLostInt                     = 55;
+   nmSecondaryPicLostInt                   = 56;
+   nmCompErrHoleCountMismatch              = 57;
+   nmInvalidScreen                         = 58;
+   nmRelinquishControl                     = 59;
+   nmFSUserDeleted                         = 60;
+   nmAccDelByUser                          = 61;
+   nmInvalidRTag                           = 62;
+   nmDeactUnknown                          = 63;
+   nmDeactDriveUnld                        = 64;
+   nmDeactDevFailure                       = 65;
+   nmDeactUsrRequest                       = 66;
+   nmDeactMediaDismount                    = 67;
+   nmDeactMediaEject                       = 68;
+   nmDeactServerDown                       = 69;
+   nmDeactServerFailure                    = 70;
+   nmResourceRelErr                        = 71;
+   nmMirrorsNotSync                        = 72;
+   nmMirrorsSyncUp                         = 73;
+   nmPartMirrorSync                        = 74;
+   nmPartMirrorNotSync                     = 75;
+   nmReMirroringPart                       = 76;
+   nmReMirroringPartAborted                = 77;
+   nmLogPartMirrorInconsist                = 78;
+   nmSysFileLockThresh                     = 79;
+   nmStaFileLockThresh                     = 80;
+   nmSysRecLockThresh                      = 81;
+   nmStaRecLockThresh                      = 82;
+   nmOpnNETACCTFailed                      = 83;
+   nmNCPSearchLimitSys                     = 84;
+   nmNCPSearchLimitSta                     = 85;
+   nmInsMediaAck                           = 86;
+   nmInsMediaAborted                       = 87;
+   nmRemMediaAck                           = 88;
+   nmRemMediaAbort                         = 89;
+   nmInsMediaInto                          = 90;
+   nmRemMediaFrom                          = 91;
+   nmReDirectedBlockPart                   = 92;
+   nmReDirectedBlockPartErr                = 93;
+   nmOutOfHotFixBlocks                     = 94;
+   nmLowWarningHotFixBlocks                = 95;
+   nmReDirectInconsistNoFix                = 96;
+   nmReDirectInconsistFixed                = 97;
+   nmInvalidRTagHOptions                   = 98;
+   nmCheckAndAddHWNoGetRTag                = 99;
+   nmRemHWBadPtr                           = 100;
+   nmErrUnldNLM                            = 101;
+   nmIvldRTagCrProc                        = 102;
+   nmCrProcStkTooSmall                     = 103;
+   nmCrProcNoPCB                           = 104;
+   nmDelToLimboFileErr                     = 105;
+   nmDelToLimboNoSpace                     = 106;
+   nmMLIDResetLanBd                        = 107;
+   nmRouterReset                           = 108;
+   nmVolWrongDOSType                       = 109;
+   nmNoOwnerNSfound                        = 110;
+   nmRTDMDefSMchanged                      = 111;
+   nmErrOpnTTSLOG                          = 112;
+   nmErrWrtTTSLOG                          = 113;
+   nmTTSdownVolDismount                    = 114;
+   nmTTSdisableByStaUsr                    = 115;
+   nmTTSdisByOp                            = 116;
+   nmTTSdisErrRdBackFile                   = 117;
+   nmTTSdisErrWrBackFile                   = 118;
+   nmTTSdisTooManyDefVol                   = 119;
+   nmTTSdisWrtVolDefInfo                   = 120;
+   nmTTSdisErrRdBkFlRecGen                 = 121;
+   nmTTSdisGrowMemTables                   = 122;
+   nmTTSdisErrAllDiskSp                    = 123;
+   nmTTSdisDirErrOnBkFile                  = 124;
+   nmTTSEnableByStaUsr                     = 125;
+   nmTTStransAbortedForSta                 = 126;
+   nmTTStooManyTransDelaying               = 127;
+   nmTTSNoMemForExpTransNodes              = 128;
+   nmAuditEvent                            = 129;
+   nmAuditDisNoAuditCfg                    = 130;
+   nmInvldConnTypeToAllocConn              = 131;
+   nmInvldRTagToAllocConn                  = 132;
+   nmOutOfServerConns                      = 133;
+   nmConnTermAfter5Min                     = 134;
+   nmUsrAccDisableBySta                    = 135;
+   nmUnEncryptPwdNotAllowed                = 136;
+   nmSuperAccLockedByConsole               = 137;
+   nmSystemTimeChangedByCon                = 138;
+   nmSystemTimeChangedBySta                = 139;
+   nmVolStillActWithError                  = 140;
+   nmRouterFalsehood                       = 141;
+   nmServerAddressChanged                  = 142;
+   nmExtFileNoOwnerCharge                  = 143;
+   nmRouterConfigErrNode                   = 144;
+   nmRouterConfigErrMyAddr                 = 145;
+   nmNoMigratorLd                          = 146;
+   nmNoSMLd                                = 147;
+   nmNotEnoughRamForCompression            = 148;
+   nmDiskErrorCompressing                  = 149;
+   nmUnknownErrorCompressing               = 150;
+   nmInsufficientSpaceForDeCompression     = 151;
+   nmDecompressUnknownCompressionVersion   = 152;
+   nmUnknownDecompressError                = 153;
+   nmInsufficientRAMToDecompress           = 154;
+   nmCompressedFileIsCorrupt               = 155;
+   nmStaAttemptedToUseBadPckt              = 156;
+   nmStaUsedABadPckt                       = 157;
+   nmStaAttemptedToUseBadSFL               = 158;
+   nmStaUsedABadSFL                        = 159;
+   nmCorruptCompFileWithName               = 160;
+   nmCorruptCompFileWithNameAndStation     = 161;
+   nmLowPriThreadsNotRun                   = 162;
+   nmWorkToDoNotRun                        = 163;
+   nmCompressErrorTempFileError            = 164;
+   nmCompressErrorLengthTotalsMismatch     = 165;
+   nmCompressErrorOffsetTotalsMismatch     = 166;
+   nmCompressErrorDataCodeCountMismatch    = 167;
+   nmCompressErrorLengthCountMismatch      = 168;
+   nmCompressErrorLargeLengthCountMismatch = 169;
+   nmCompressErrorReadZeroBytesOrg         = 170;
+   nmCompressErrorTreeTooBig               = 171;
+   nmCompressErrorMatchSizeFail            = 172;
+   nmSignatureInvalidAlert                 = 173;
+   nmLicenseIsInvalid                      = 174;
+   nmDeactHotFixError                      = 175;
+   nmUnknownDecompressErrorFN              = 176;
+   nmInsufficientRAMToDecompressFN         = 177;
+   nmDecompressUnderFreePercentage         = 178;
+   nmNegPktTriedLargeBuffer                = 179;
+   nmLoginDisabledByConsole                = 180;
+   nmLoginEnabledByConsole                 = 181;
+   nmGrwStkNotAvail                        = 182;
+   nmLicenseFileIsMissing                  = 183;
+   nmFailedToDeletedMigratedFile           = 184;
+   nmNoMemForAuditing                      = 185;
+   nmAuditFileWriteError                   = 186;
+   nmAuditFileFull                         = 187;
+   nmAuditFileThresholdOverflow            = 188;
+   nmCompressErrorReadZeroBytesInt         = 189;
+   nmEASpaceLimit                          = 190;
+   nmThreadAreaNotEmpty                    = 191;
+   nmErrMovingLogToMSEngine                = 192;
+   nmFaultInConsoleCmdHandler              = 193;
+   nmServerToServerComLinkActivated        = 194;
+   nmServerToServerComLinkFailure          = 195;
+   nmServerToServerComLinkDeact            = 196;
+   nmOtherServerAttemptedToSync            = 197;
+   nmServerToServerComLinkBrokeOK          = 198;
+   nmServerSyncStartingIAmSecondary        = 199;
+   nmBadSvrInitMsgFromOtherSvr             = 200;
+   nmSvrToSvrCommLinkInitFailed            = 201;
+   nmFailedDuringSyncWithReason            = 202;
+   nmCommDrvLdDuringActivateWait           = 203;
+   nmErrWritingStatusDump                  = 204;
+   nmComDrvFailureOnPrimary                = 205;
+   nmComDrvFailureOnSecondary              = 206;
+   nmErrFinishingGenStatusDump             = 207;
+   nmSFTIIWhatToDoWithReasonString         = 208;
+   nmSFTIIErrorUnexpected                  = 209;
+   nmSyncErrFromCustomServerNLM            = 210;
+   nmSvrLinkHasPluggedPacket               = 211;
+   nmSvrToBeRevived                        = 212;
+   nmServersAreSyncPri                     = 213;
+   nmSvrCantRouteIPXSec                    = 214;
+   nmSrvIPXRouteInfoSec                    = 215;
+   nmErrGivingRAMtoMS                      = 216;
+   nmMoreRAMgivenToMS                      = 217;
+   nmServersAreSyncSec                     = 218;
+   nmSvrCantRouteIPXPri                    = 219;
+   nmSrvIPXRouteInfoPri                    = 220;
+   nmPriSvrFailedButSecDown                = 221;
+   nmPriSvrFailedNewPri                    = 222;
+   nmNumMemSegsExceedLimit                 = 223;
+   nmNumScreenExceedsLimit                 = 224;
+   nmIOVersionMismatch                     = 225;
+   nmOtherSvrProtectLvlNoMatch             = 226;
+   nmOtherSvrScrAddrMismatch               = 227;
+   nmIOEngNotAtSameAddr                    = 228;
+   nmBothSvrHaveMSEng                      = 229;
+   nmNoMSEngOnServers                      = 230;
+   nmSecSvrMissingRAM                      = 231;
+   nmBothSrvHaveSameIPXAddr                = 232;
+   nmIOEngIPXAddrMatchMSEng                = 233;
+   nmIOEngsMismatchRxSizes                 = 234;
+   nmIOEngsHaveSameName                    = 235;
+   nmNoMemForIOEngName                     = 236;
+   nmSrvToSvrLinkBeginSync                 = 237;
+   nmMSEngActivated                        = 238;
+   nmMSEngActNowSyncOther                  = 239;
+   nmIOtoMSComMisMatchUnload               = 240;
+   nmSFTIIIOutOfMsgCodes                   = 241;
+   nmErrXferDumpToSystem                   = 242;
+   nmFailureChkPrimary                     = 243;
+   nmNoMemForOtherIOEngScr                 = 244;
+   nmErrStarting2ndProc                    = 245;
+   nmSrvFailureMsg                         = 246;
+   nmSecIOEngSupModNotLd                   = 247;
+   nmMSLBdNumHasConn                       = 248;
+   nmSecSvrLANIsBetter                     = 249;
+   nmIPXrtnStatusPckts                     = 250;
+   nmIPXnotRtnStatChkPckts                 = 251;
+   nmIPXnotRtnStatLANJam                   = 252;
+   nmFailReasonByOtherSrv                  = 253;
+   nmIPXMayBeTooSlowForSecSrv              = 254;
+   nmIPXToOtherSrvTooManyHops              = 255;
+   nmIPXappearsDown                        = 256;
+   nmIPXFoundRouteToOtherSrv               = 257;
+   nmIPXLostRoute                          = 258;
+   nmSecSrvGoingToDie                      = 259;
+   nmPriSrcDyingTimerStart                 = 260;
+   nmPriSrvDying                           = 261;
+   nmIPXInternetIsJammed                   = 262;
+   nmIPXNewRouteToSecSvr                   = 263;
+   nmSrvsSyncing                           = 264;
+   nmFSHookRegistered                      = 265;
+   nmFSHookDeRegistered                    = 266;
+   nmIOEngCantBorrowMemory                 = 267;
+   nmDecompressNoCompressionOnVolume       = 268;
+   nmMkProcessUsingTooSmallStk             = 269;
+   nmQueueEventReportNoMemory              = 270;
+   nmServerPartMirrorNotSync               = 271;
+   nmStaWithoutRightsConsoleRPC            = 272;
+   nmAuditOverflowFileThreshold            = 273;
+   nmAuditOverflowFileFull                 = 274;
+   nmSwitchStacksGrwStk                    = 275;
+   nmConsoleCommandProcRestarted           = 276;
+   nmGrowableStackGrew                     = 278;
+   nmOtherSvrIOLogSpaceNoMatch             = 279;
+   nmDFSLogicalStackRead                   = 280;
+   nmDFSLogicalStackWrite                  = 281;
+   nmSecureEraseFailure                    = 282;
+   nmDropBadPktBurstConn                   = 283;
+   nmOutOfIPXSockets                       = 284;
+   nmVolumeObjectIDChanged                 = 285;
+   nmAbendRecovery                         = 286;
+   nmOpLockTimeout                         = 287;
+   nmAbendRecovered                        = 288;
+
+// starting with NetWare 5...
+   nmUnknownSetCmd                         = 289;
+   nmAddressSpaceProtectionFault           = 290;
+   nmAddressSpaceFailedToRestart           = 291;
+   nmAddressSpaceRestarted                 = 292;
+   nmCorruptMemoryNodeDetected             = 293;
+   nmAddressSpaceCleanupFailure            = 294;
+   nmInvalidParameter                      = 295;
+   nmInvalidObjectHandle                   = 296;
+   nmNullPointer                           = 297;
+   nmVolDmtMedDmt                          = 298;
+   nmVolDmtmedChgd                         = 299;
+   nmAccDelByUsrActConn                    = 300;
+   nmResourcesRelErr                       = 301;
+   nmDemoVersion                           = 302;
+   nmDemoVersionTooLong                    = 303;
+   nmLicenseReSellerFileIsMissing          = 304;
+   nmLicenseUpgradeIsMissing               = 305;
+   nmLicenseVersionInvalid                 = 306;
+   nmLicenseProductInvalid                 = 307;
+   nmLicenseNoMoreFiles                    = 308;
+   nmLicensePIDInvalid                     = 309;
+   nmLicenseContentInalid                  = 310;
+   nmLicenseBadUpgrade                     = 311;
+   nmLicensePrevMaxConnMisMatch            = 312;
+   nmLicenseContentResellerBad             = 313;
+   nmLicenseSNMisMatch                     = 314;
+   nmLicenseUIDMisMatch                    = 315;
+   nmLicenseOpenError                      = 316;
+   nmLicenseCompanionErr                   = 317;
+   nmLicenseSNUpgradeMisMatch              = 318;
+   nmLicenseUnableToRemMSL                 = 319;
+   nmLicenseUnableToRemULF                 = 320;
+   nmLicenseUnableToRemRLF                 = 321;
+   nmLicenseUnableToGetFileSize            = 322;
+   nmLicenseUnkLicenseType                 = 323;
+   nmLicenseReadErr                        = 324;
+   nmLicenseFileSizeMisMatch               = 325;
+   nmLicenseDupServerLic                   = 326;
+   nmLicenseNeedUpgrade                    = 327;
+   nmLicenseMirrorNeedUpgrade              = 328;
+   nmLicenseDupLicDiscovered               = 329;
+   nmLicenseDupLicDiscoveredDel            = 330;
+   nmLicenseCpyRightViolated               = 331;
+   nmLicenseExpired                        = 332;
+   nmVolDmtDevMedChgd                      = 333;
+   nmVolDmtDevMedDmt                       = 334;
+   nmInsMediaAckDS                         = 335;
+   nmInsMediaAckMag                        = 336;
+   nmInsMediaAbortedDS                     = 337;
+   nmInsMediaAbortedMag                    = 338;
+   nmRemMediaAckDS                         = 339;
+   nmRemMediaAckMag                        = 340;
+   nmRemMediaAbortDS                       = 341;
+   nmRemMediaAbortMag                      = 342;
+   nmInsMediaIntoDS                        = 343;
+   nmInsMediaIntoMag                       = 344;
+   nmRemMediaFromDS                        = 345;
+   nmRemMediaFromMag                       = 346;
+   nmServAddr                              = 347;
+   nmSwapInError                           = 348;
+   nmSwapOutError                          = 349;
+   nmAveragePageInThresholdExceeded        = 350;
+   nmIllegalRequest                        = 351;
+   nmTTSThrottleDelayError                 = 352;
+   nmTTSLackOfResourcesError               = 353;
+   nmTTSLackOfResourcesNoReason            = 354;
+   nmDelayedWTDNotRunning                  = 355;
+   nmInvalidCharacterInName                = 356;
+
+// starting with NetWare 6
+   nmMPKBadThreadState                     = 357;
+   nmPoolSeriousError                      = 358;
+   nmPoolSeriousReadError                  = 359;
+   nmVolSeriousError                       = 360;
+   nmVolSeriousReadError                   = 361;
+   nmVolDeactSeriousIOError                = 362;
+   nmVolDeactSeriousNonIOError             = 363;
+   nmPoolDeactSeriousIOError               = 364;
+   nmPoolDeactSeriousNonIOError            = 365;
+   nmTaskZeroCheck                         = 366;
+
+// Values for nwAlertLocus
+   LOCUS_UNKNOWN               = 0;
+   LOCUS_MEMORY                = 1;
+   LOCUS_FILESYSTEM            = 2;
+   LOCUS_DISKS                 = 3;
+   LOCUS_LANBOARDS             = 4;
+   LOCUS_COMSTACKS             = 5;
+   LOCUS_TTS                   = 7;
+   LOCUS_BINDERY               = 8;
+   LOCUS_STATION               = 9;
+   LOCUS_ROUTER                = 10;
+   LOCUS_LOCKS                 = 11;
+   LOCUS_KERNEL                = 12;
+   LOCUS_UPS                   = 13;
+   LOCUS_SERVICE_PROTOCOL      = 14;
+   LOCUS_SFT_III               = 15;
+   LOCUS_RESOURCE_TRACKING     = 16;
+   LOCUS_NLM                   = 17;
+   LOCUS_OS_INFORMATION        = 18;
+   LOCUS_CACHE                 = 19;
+
+   AlertIDValidMask         = $00000002;
+   AlertLocusValidMask      = $00000004;
+   NoDisplayAlertIDBit      = $20000000;
+
+   NOTIFY_CONNECTION_BIT      = $00000001;
+   NOTIFY_EVERYONE_BIT        = $00000002;
+   NOTIFY_ERROR_LOG_BIT       = $00000004;
+   NOTIFY_CONSOLE_BIT         = $00000008;
+   NOTIFY_QUEUE_MESSAGE       = $10000000;
+   NOTIFY_DONT_NOTIFY_NMAGENT = $80000000;
+
+// ERROR CLASSES
+   CLASS_UNKNOWN                 =  0;
+   CLASS_OUT_OF_RESOURCE         =  1;
+   CLASS_TEMP_SITUATION          =  2;
+   CLASS_AUTHORIZATION_FAILURE   =  3;
+   CLASS_INTERNAL_ERROR          =  4;
+   CLASS_HARDWARE_FAILURE        =  5;
+   CLASS_SYSTEM_FAILURE          =  6;
+   CLASS_REQUEST_ERROR           =  7;
+   CLASS_NOT_FOUND               =  8;
+   CLASS_BAD_FORMAT              =  9;
+   CLASS_LOCKED                  = 10;
+   CLASS_MEDIA_FAILURE           = 11;
+   CLASS_ITEM_EXISTS             = 12;
+   CLASS_STATION_FAILURE         = 13;
+   CLASS_LIMIT_EXCEEDED          = 14;
+   CLASS_CONFIGURATION_ERROR     = 15;
+   CLASS_LIMIT_ALMOST_EXCEEDED   = 16;
+   CLASS_SECURITY_AUDIT_INFO     = 17;
+   CLASS_DISK_INFORMATION        = 18;
+   CLASS_GENERAL_INFORMATION     = 19;
+   CLASS_FILE_COMPRESSION        = 20;
+   CLASS_PROTECTION_VIOLATION    = 21;
+   CLASS_VIRTUAL_MEMORY          = 22;
+
+   SEVERITY_INFORMATIONAL         = 0;
+   SEVERITY_WARNING               = 1;
+   SEVERITY_RECOVERABLE           = 2;
+   SEVERITY_CRITICAL              = 3;
+   SEVERITY_FATAL                 = 4;
+   SEVERITY_OPERATION_ABORTED     = 5;
+   SEVERITY_NONOS_UNRECOVERABLE   = 6;
+
+type
+     TnwAlertDataFreeProc = procedure (nwAlertDataPtr:pointer);cdecl;
+     PNetWareAlertStructure  = ^TNetWareAlertStructure;
+     TNetWareAlertStructure = record
+       pNetworkManagementAttribute  : pointer;
+       nwAlertFlags,
+       nwTargetStation,
+       nwTargetNotificationBits,
+       nwAlertID,
+       nwAlertLocus,
+       nwAlertClass,
+       nwAlertSeverity              : longint;
+       nwAlertDataPtr               : pointer;
+       nwAlertDataFree              : TnwAlertDataFreeProc;
+       nwControlString              : pchar;
+       nwControlStringMessageNumber : longint;
+     end;
+
+
+procedure NetWareAlert(nlmHandle      : TNlmHandle;
+                       nwAlert        : PNetWareAlertStructure;
+                       parameterCount : longint;
+                       args           : array of const); cdecl; external 'clib';
+
+procedure NetWareAlert(nlmHandle      : TNlmHandle;
+                       nwAlert        : PNetWareAlertStructure;
+                       parameterCount : longint); cdecl; external 'clib';
+
+{------------------------------------------------------------------------------}
 
 implementation
 
@@ -4892,7 +5374,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-11-06 19:57:06  armin
+  Revision 1.5  2004-12-16 12:42:55  armin
+  * added NetWare Alert
+  * added sysutils.sleep
+
+  Revision 1.4  2004/11/06 19:57:06  armin
   * added some fp* functions
 
   Revision 1.3  2004/09/26 19:25:49  armin

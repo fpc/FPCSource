@@ -60,6 +60,7 @@
  KillMe,
  LoadLanguageMessageTable,
  LoadModule,
+ NetWareAlert,
  NVMKernelLock,
  NVMKernelUnlock,
  NWGarbageCollect,
