@@ -383,13 +383,13 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add(maybequoted('-L'+HPath.Str));
+     LinkRes.Add('-L'+HPath.Str);
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add(maybequoted('-L'+HPath.Str));
+     LinkRes.Add('-L'+HPath.Str);
      HPath:=TStringListItem(HPath.Next);
    end;
 
@@ -399,7 +399,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(s);
    end;
 
   { Write staticlibraries }
@@ -407,7 +407,7 @@ begin
   While not StaticLibFiles.Empty do
    begin
      S:=StaticLibFiles.GetFirst;
-     LinkRes.AddFileName(maybequoted(s))
+     LinkRes.AddFileName(s)
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -516,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-12-22 16:32:46  peter
+  Revision 1.18  2004-12-28 20:39:12  hajny
+    * don't put quoted paths in link.res for OS/2
+
+  Revision 1.17  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.16  2004/12/05 12:25:48  hajny
