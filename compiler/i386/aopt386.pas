@@ -108,7 +108,10 @@ End;
 End.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:11  peter
+  Revision 1.1  2000-10-15 09:47:42  peter
+    * moved to i386/
+
+  Revision 1.5  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.4  2000/08/19 09:10:08  jonas

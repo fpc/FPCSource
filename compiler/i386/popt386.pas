@@ -1946,7 +1946,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2000-10-02 13:01:29  jonas
+  Revision 1.1  2000-10-15 09:47:43  peter
+    * moved to i386/
+
+  Revision 1.13  2000/10/02 13:01:29  jonas
     * fixed bug regarding removal of "test/or reg,reg": apparently, shr/shl
       doesn't set the zero flag according to the contents of the register
       after the shift :( (mergfed from fixes branch)

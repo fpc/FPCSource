@@ -1630,7 +1630,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2000-09-30 13:07:23  jonas
+  Revision 1.1  2000-10-15 09:47:43  peter
+    * moved to i386/
+
+  Revision 1.14  2000/09/30 13:07:23  jonas
     * fixed support for -Or with new features of CSE
 
   Revision 1.13  2000/09/29 23:14:45  jonas

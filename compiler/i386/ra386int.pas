@@ -1916,7 +1916,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 10:14:52  peter
+  Revision 1.1  2000-10-15 09:47:43  peter
+    * moved to i386/
+
+  Revision 1.8  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.7  2000/09/24 21:19:51  peter

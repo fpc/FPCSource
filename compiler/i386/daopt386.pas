@@ -2357,7 +2357,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2000-10-14 10:14:47  peter
+  Revision 1.1  2000-10-15 09:47:43  peter
+    * moved to i386/
+
+  Revision 1.16  2000/10/14 10:14:47  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.15  2000/09/30 13:07:23  jonas

@@ -2814,7 +2814,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.19  2000-10-14 10:14:46  peter
+  Revision 1.1  2000-10-15 09:47:42  peter
+    * moved to i386/
+
+  Revision 1.19  2000/10/14 10:14:46  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.18  2000/10/10 14:55:28  jonas

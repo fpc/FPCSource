@@ -772,7 +772,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:11  peter
+  Revision 1.1  2000-10-15 09:47:42  peter
+    * moved to i386/
+
+  Revision 1.6  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:49  peter
