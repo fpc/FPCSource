@@ -56,13 +56,18 @@ _ExecBase:
 	/* This symbol _MUST NOT_ be stripped out from the executable */
    /* or else... */
 	.globl	__abox__
-	.align 	4
+	.type	 __abox__,@object
+	.size	 __abox__,4
 __abox__:
 	.long 1
 
+
 /*
   $Log$
-  Revision 1.3  2004-04-09 02:58:15  karoly
+  Revision 1.4  2004-04-09 04:02:43  karoly
+   * abox id symbol fixed
+
+  Revision 1.3  2004/04/09 02:58:15  karoly
    * typo fixed.
 
   Revision 1.1  2004/03/16 10:29:22  karoly
