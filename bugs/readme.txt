@@ -345,6 +345,7 @@ Fixed bugs:
   bug0288.pp   crash with virtual method in except part             OK 0.99.13 (PFV)
   bug0291.pp   @procvar in tp mode bugs                             OK 0.99.13 (PFV)
   bug0292.pp   objects not finalized when disposed                  OK 0.99.13 (FK)
+  bug0295.pp   forward type definition is resolved wrong            OK 0.99.13 (PFV)
 
 
 Unproducable bugs:
@@ -367,6 +368,7 @@ bug0243.pp   Arguments of functions are computed from right to left this
 bug0290.pp   problem with storing hex numbers in integers
 bug0294.pp   parameter with the same name as function is allowed in tp7/delphi
 
+
 Wishlist bugs:
 --------------
 bug0275.pp   too many warnings
@@ -383,4 +385,3 @@ bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
 bug0293.pp   no error with variable name = type name
-bug0295.pp   forward type definition is resolved wrong
