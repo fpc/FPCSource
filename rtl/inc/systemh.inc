@@ -47,8 +47,13 @@ Type
   Longint  = +(-2147483647-1)..$7fffffff;
   Byte     = 0..255;
   Word     = 0..65535;
-  DWord    = Cardinal;
-  LongWord = Cardinal;
+{$ifndef ver1_0}  
+  DWord    = LongWord;
+  Cardinal = LongWord;
+{$else}
+  Longword = cardinal;
+  Dword = cardinal;
+{$endif}
   Integer  = SmallInt;
 
 {$ifdef i386}
@@ -205,11 +210,6 @@ const
 
 { Compatibility With  TP }
 const
-  { code to use comps in int64mul and div code is commented out! (JM) }
-  FPUInt64 : boolean = false; { set this to false if you don't want that }
-                              { the fpu does int64*int64 and             }
-                              { int64 div int64, if the * is overflow    }
-                              { checked, it is done in software          }
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
@@ -321,7 +321,7 @@ Function sqr(l:Longint):Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:Longint):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Cardinal):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longword):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:Int64):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:QWord):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 
@@ -587,7 +587,11 @@ const
 
 {
   $Log$
-  Revision 1.53  2002-09-07 15:07:46  peter
+  Revision 1.54  2002-09-07 21:20:50  carl
+    * cardinal -> longword
+    - remove FPUInt64 variable
+
+  Revision 1.53  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.52  2002/08/19 19:34:02  peter
