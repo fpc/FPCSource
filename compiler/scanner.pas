@@ -136,7 +136,7 @@ implementation
         first,last : ttoken;
       end;
     var
-      tokenidx:array[2..tokenidlen] of tokenidxrec;
+      tokenidx:array[2..tokenidlen,'A'..'Z'] of tokenidxrec;
 
     const
       { use any special name that is an invalid file name to avoid problems }
@@ -149,13 +149,14 @@ implementation
       var
         t : ttoken;
       begin
+        fillchar(tokenidx,sizeof(tokenidx),0);
         for t:=low(ttoken) to high(ttoken) do
          begin
            if not tokeninfo[t].special then
             begin
-              if ord(tokenidx[length(tokeninfo[t].str)].first)=0 then
-               tokenidx[length(tokeninfo[t].str)].first:=t;
-              tokenidx[length(tokeninfo[t].str)].last:=t;
+              if ord(tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].first)=0 then
+               tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].first:=t;
+              tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].last:=t;
             end;
          end;
       end;
@@ -170,8 +171,8 @@ implementation
            is_keyword:=false;
            exit;
          end;
-        low:=ord(tokenidx[length(s)].first);
-        high:=ord(tokenidx[length(s)].last);
+        low:=ord(tokenidx[length(s),s[1]].first);
+        high:=ord(tokenidx[length(s),s[1]].last);
         while low<high do
          begin
            mid:=(high+low+1) shr 1;
@@ -1036,11 +1037,12 @@ implementation
            readstring;
            token:=ID;
            idtoken:=ID;
-         { keyword or any other known token ? }
-           if length(pattern) in [2..tokenidlen] then
+         { keyword or any other known token,
+           pattern is always uppercased }
+           if (pattern[1]<>'_') and (length(pattern) in [2..tokenidlen]) then
             begin
-              low:=ord(tokenidx[length(pattern)].first);
-              high:=ord(tokenidx[length(pattern)].last);
+              low:=ord(tokenidx[length(pattern),pattern[1]].first);
+              high:=ord(tokenidx[length(pattern),pattern[1]].last);
               while low<high do
                begin
                  mid:=(high+low+1) shr 1;
@@ -1637,7 +1639,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  1999-04-01 22:05:59  peter
+  Revision 1.80  1999-04-06 11:20:59  peter
+    * more hashing for keyword table
+
+  Revision 1.79  1999/04/01 22:05:59  peter
     * '1.' is now parsed as a real
 
   Revision 1.78  1999/03/26 19:10:06  peter
