@@ -824,7 +824,7 @@ implementation
                        begin
                           if (
                               not(is_interface(pd._class)) and
-                              not(pd.forwarddef)
+                              pd.forwarddef
                              ) or
                              (m_repeat_forward in aktmodeswitches) then
                           begin
@@ -2238,7 +2238,10 @@ const
 end.
 {
   $Log$
-  Revision 1.178  2004-05-12 13:21:09  karoly
+  Revision 1.179  2004-05-23 19:06:26  peter
+    * expect : after function when it is a forwarddef
+
+  Revision 1.178  2004/05/12 13:21:09  karoly
     * few small changes to add syscall support to M68k/Amiga target
 
   Revision 1.177  2004/05/11 22:52:48  olle
