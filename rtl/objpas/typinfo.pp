@@ -139,7 +139,7 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         PropCount : Word;
-        PropList : record end;
+        PropList : record _alignmentdummy : ptrint; end;
       end;
 
       PPropInfo = ^TPropInfo;
@@ -1490,7 +1490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2004-10-10 19:18:31  florian
+  Revision 1.31  2004-11-24 22:27:24  florian
+    * fixed tpropdata record
+
+  Revision 1.30  2004/10/10 19:18:31  florian
     * fixed aligntoptr
 
   Revision 1.29  2004/10/04 21:26:16  florian
