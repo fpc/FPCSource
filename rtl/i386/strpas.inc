@@ -13,10 +13,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-begin
+var
+  saveres,saveebx,saveesi,saveedi : longint;
 asm
+        movl    %ebx,saveebx
+        movl    %esi,saveesi
+        movl    %edi,saveedi
 {$ifdef regcall}
-        movl    %eax,%esi
+        movl    p,%esi
+        movl    __RESULT,%edi
+        movl    __RESULT,saveres
 {$else}
         movl    p,%esi
 {$endif}
@@ -24,7 +30,9 @@ asm
         testl   %esi,%esi
         movl    %esi,%eax
         jz      .LStrPasDone
+{$ifndef REGCALL}
         movl    __RESULT,%edi
+{$endif}
         leal    3(%esi),%edx
         andl    $-4,%edx
         // skip length byte
@@ -87,16 +95,25 @@ asm
         incb    %cl
         jnz     .LStrPasEndLoop
 .LStrPasDone:
+{$ifdef REGCALL}
+        movl    saveres,%edi
+{$else}
         movl    __RESULT,%edi
+{$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
-end ['EAX','EBX','ECX','EDX','ESI','EDI'];
+        movl    %esi,saveesi
+        movl    %edi,saveedi
+        movl    %ebx,saveebx
 end;
 
 
 {
   $Log$
-  Revision 1.3  2003-11-11 21:08:17  peter
+  Revision 1.4  2003-11-19 16:58:44  peter
+    * make strpas assembler function
+
+  Revision 1.3  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.2  2002/09/07 16:01:19  peter

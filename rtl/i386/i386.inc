@@ -1151,7 +1151,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strpas.inc}
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
@@ -1426,7 +1426,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  2003-11-11 21:08:17  peter
+  Revision 1.54  2003-11-19 16:58:44  peter
+    * make strpas assembler function
+
+  Revision 1.53  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.52  2003/11/03 09:42:27  marco
