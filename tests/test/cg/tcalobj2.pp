@@ -2110,6 +2110,1177 @@ var
   end;
   
 
+  { same as testvmtherited, except uses with statement }  
+  procedure testwith;
+  var
+   vmtobject : theritedvmtobject;
+   failed : boolean;
+  begin
+    with vmtobject do
+     begin
+        {********************** CONSTRUCTOR TESTING ************************}  
+        {********************** DESTRUCTOR  TESTING ************************}  
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_CONSTANT) inherited constructor call...');
+        constructor_params_mixed_call_inherited(RESULT_U8BIT, RESULT_U16BIT, RESULT_BIGSTRING, 
+           RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_REFERENCE) inherited constructor call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        constructor_params_mixed_call_inherited(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/virtual call...');
+        constructor_params_mixed_call_virtual(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_REFERENCE) constructor call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        constructor_params_mixed_call_virtual(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/virtual call...');
+        constructor_params_mixed_call_overriden(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_REFERENCE) constructor call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        constructor_params_mixed_call_overriden(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/method call...');
+        constructor_params_mixed_call_normal(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_REFERENCE) constructor call w/method call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        constructor_params_mixed_call_normal(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/static call...');
+        constructor_params_mixed_call_static(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        Write('Testing mixed parameter (LOC_REFERENCE) constructor call w/static call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        constructor_params_mixed_call_static(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        {************************* METHOD TESTING **************************}  
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual method call...');
+        method_virtual_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual method call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual method call...');
+        method_virtual_overriden_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual method call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_overriden_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call...');
+        method_normal_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) static method call...');
+        method_static_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) static method call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_static_params_mixed(value_u8bit, 
+          value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        { ********************************************************************
+          This calls methods which in turn call other methods, or a constructor 
+          or a destructor.
+          *********************************************************************
+        }
+        clear_globals;
+        clear_values;
+        failed := false;
+        { Calls the ancestor virtual method }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/virtual call...');
+        method_normal_call_virtual_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_virtual_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        { The virtual method has been overriden by the object in this case }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/virtual call...');
+        method_normal_call_overriden_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_overriden_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/normal call...');
+        method_normal_call_normal_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/normal call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_normal_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        (* constructor call inside a normal method *)
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/constructor call...');
+        method_normal_call_constructor_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/constructor call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_constructor_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        { static method call }
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/static call...');
+        method_normal_call_static_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/static call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_static_params_mixed(value_u8bit, 
+          value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        (* calls the inherited method *)
+        clear_globals;
+        clear_values;
+        failed := false;
+        { Calls the ancestor virtual method }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) method call w/inherited call...');
+        method_normal_call_inherited_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) method call w/inherited call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_normal_call_inherited_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+    { ********************************************************************
+        This calls virtual methods which in turn call other methods, 
+        or a constructor  or a destructor.
+       *********************************************************************
+    }
+        clear_globals;
+        clear_values;
+        failed := false;
+        { Calls the ancestor virtual method }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/virtual call...');
+        method_virtual_call_virtual_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_virtual_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        { The virtual method has been overriden by the object in this case }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/virtual call...');
+        method_virtual_call_overriden_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/virtual call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_overriden_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/normal call...');
+        method_virtual_call_normal_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/normal call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_normal_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        (* constructor call inside a normal method *)
+
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/constructor call...');
+        method_virtual_call_constructor_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/constructor call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_constructor_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+          
+        { static virtual call }
+        clear_globals;
+        clear_values;
+        failed := false;
+    
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/static call...');
+        method_virtual_call_static_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+        
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/static call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_static_params_mixed(value_u8bit, 
+          value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if global_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if global_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if global_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if global_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if global_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+      
+        (* calls the inherited method *)
+        clear_globals;
+        clear_values;
+        failed := false;
+        { Calls the ancestor virtual method }
+        constructor_init;
+        Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/inherited call...');
+        method_virtual_call_inherited_params_mixed(RESULT_U8BIT, 
+           RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+        
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+    
+        clear_globals;
+        clear_values;
+        failed := false;
+        
+        constructor_init;
+        Write('Testing mixed parameter (LOC_REFERENCE) virtual call w/inherited call...');
+        value_u8bit := RESULT_U8BIT;
+        value_u16bit := RESULT_U16BIT;
+        value_bigstring := RESULT_BIGSTRING;
+        value_s32bit := RESULT_S32BIT;
+        value_s64bit := RESULT_S64BIT;
+        method_virtual_call_inherited_params_mixed(value_u8bit, 
+           value_u16bit, value_bigstring, value_s32bit, value_s64bit);
+        if object_u8bit <> RESULT_U8BIT then
+          failed := true;
+        if object_u16bit <> RESULT_U16BIT then
+          failed := true;
+        if object_s32bit <> RESULT_S32BIT then
+          failed := true;
+        if object_s64bit <> RESULT_S64BIT then
+          failed := true;
+        if object_bigstring <> RESULT_BIGSTRING then
+          failed := true;
+        destructor_params_done;
+    
+        if failed then
+          fail
+        else
+          Writeln('Passed!');
+   end; { end with }
+  end;
+    
+
 begin
   WriteLN('*********************** NO VMT OBJECT TESTS ********************');
   testnovmtobject;   
@@ -2118,11 +3289,16 @@ begin
   WriteLN('************************* VMT OBJECT TESTS *********************');
   testvmtobject;
   testheritedvmtobject;
+  WriteLN('**************** VMT OBJECT TESTS USING WITH *******************');
+  testwith;
 end.
 
 {
   $Log$
-  Revision 1.1  2002-05-05 13:58:50  carl
+  Revision 1.2  2002-05-05 19:13:19  carl
+  + withsymtable checking
+
+  Revision 1.1  2002/05/05 13:58:50  carl
   + finished procedural variable testsuit
   + finished method testsuit
 
