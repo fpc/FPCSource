@@ -104,7 +104,6 @@ implementation
             orddef:
               begin
                  p:=comp_expr(true);
-                 do_firstpass(p);
                  case porddef(t.def)^.typ of
                     bool8bit :
                       begin
@@ -195,7 +194,6 @@ implementation
          floatdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               if is_constrealnode(p) then
                 value:=trealconstnode(p).value_real
               else if is_constintnode(p) then
@@ -220,7 +218,6 @@ implementation
          classrefdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               case p.nodetype of
                  loadvmtn:
                    begin
@@ -239,7 +236,6 @@ implementation
          pointerdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               if (p.nodetype=typeconvn) and
                  (ttypeconvnode(p).left.nodetype in [addrn,niln]) and
                  is_equal(t.def,p.resulttype.def) then
@@ -301,7 +297,7 @@ implementation
                        (is_void(ppointerdef(t.def)^.pointertype.def))) and
                        (hp.nodetype=loadn) then
                       begin
-                        do_firstpass(taddrnode(p).left);
+                        do_resulttypepass(taddrnode(p).left);
                         hp:=taddrnode(p).left;
                         offset:=0;
                         while assigned(hp) and (hp.nodetype<>loadn) do
@@ -364,7 +360,6 @@ implementation
          setdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               if p.nodetype=setconstn then
                 begin
                    { we only allow const sets }
@@ -398,7 +393,6 @@ implementation
          enumdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               if p.nodetype=ordconstn then
                 begin
                   if is_equal(p.resulttype.def,t.def) or
@@ -420,7 +414,6 @@ implementation
          stringdef:
            begin
               p:=comp_expr(true);
-              do_firstpass(p);
               { load strval and strlength of the constant tree }
               if p.nodetype=stringconstn then
                 begin
@@ -533,7 +526,6 @@ implementation
                if is_char(parraydef(t.def)^.elementtype.def) then
                 begin
                    p:=comp_expr(true);
-                   do_firstpass(p);
                    if p.nodetype=stringconstn then
                     begin
                       len:=tstringconstnode(p).len;
@@ -593,7 +585,6 @@ implementation
               getprocvardef:=pprocvardef(t.def);
               p:=comp_expr(true);
               getprocvar:=false;
-              do_firstpass(p);
               if codegenerror then
                begin
                  p.free;
@@ -607,7 +598,7 @@ implementation
                     is_class(pdef(tcallnode(p).symtableprocentry^.owner^.defowner)) then
                   tloadnode(hp).set_mp(tcallnode(p).methodpointer.getcopy);
                  p.free;
-                 do_firstpass(hp);
+                 do_resulttypepass(hp);
                  p:=hp;
                  if codegenerror then
                   begin
@@ -624,7 +615,7 @@ implementation
                       is_class(pdef(tcallnode(taddrnode(p).left).symtableprocentry^.owner^.defowner)) then
                     tloadnode(hp).set_mp(tcallnode(taddrnode(p).left).methodpointer.getcopy);
                    p.free;
-                   do_firstpass(hp);
+                   do_resulttypepass(hp);
                    p:=hp;
                    if codegenerror then
                     begin
@@ -633,8 +624,7 @@ implementation
                     end;
                 end;
               { let type conversion check everything needed }
-              p:=ctypeconvnode.create(p,t);
-              do_firstpass(p);
+              inserttypeconv(p,t);
               if codegenerror then
                begin
                  p.free;
@@ -676,8 +666,7 @@ implementation
                  ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
                 begin
                   p:=comp_expr(true);
-                  p:=ctypeconvnode.create(p,cshortstringtype);
-                  do_firstpass(p);
+                  inserttypeconv(p,cshortstringtype);
                   if p.nodetype=stringconstn then
                     begin
                       s:=strpas(tstringconstnode(p).value_str);
@@ -748,7 +737,6 @@ implementation
               if is_class_or_interface(t.def) then
                 begin
                   p:=comp_expr(true);
-                  do_firstpass(p);
                   if p.nodetype<>niln then
                     begin
                       Message(parser_e_type_const_not_possible);
@@ -859,7 +847,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-04-02 21:20:34  peter
+  Revision 1.20  2001-04-04 22:43:53  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.19  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.18  2001/03/11 22:58:50  peter

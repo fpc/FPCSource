@@ -867,9 +867,7 @@ begin
     (token<>_SEMICOLON) then
     begin
        { any type of parameter is allowed here! }
-
        pt:=comp_expr(true);
-       do_firstpass(pt);
        if is_constintnode(pt) then
          begin
            include(aktprocsym^.definition^.procoptions,po_msgint);
@@ -912,7 +910,6 @@ begin
       (TParaItem(aktprocsym^.definition^.Para.first).paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
-  do_firstpass(pt);
   if pt.nodetype=stringconstn then
     begin
       include(aktprocsym^.definition^.procoptions,po_msgstr);
@@ -1889,7 +1886,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-04-02 21:20:33  peter
+  Revision 1.17  2001-04-04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.16  2001/04/02 21:20:33  peter
     * resulttype rewrite
 
   Revision 1.15  2001/03/24 12:18:11  florian

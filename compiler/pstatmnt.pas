@@ -223,8 +223,6 @@ implementation
            { may be an instruction has more case labels }
            repeat
              p:=expr;
-             cleartempgen;
-             do_firstpass(p);
              hl1:=0;
              hl2:=0;
              if (p.nodetype=rangen) then
@@ -1226,7 +1224,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-04-02 21:20:34  peter
+  Revision 1.23  2001-04-04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.22  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.21  2001/03/22 22:35:42  florian

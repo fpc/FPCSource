@@ -79,7 +79,6 @@ implementation
          internalerror(9584582);
         hp:=nil;
         p:=comp_expr(true);
-        do_firstpass(p);
         storetokenpos:=akttokenpos;
         akttokenpos:=filepos;
         case p.nodetype of
@@ -508,7 +507,6 @@ implementation
                 begin
                    consume(_EQUAL);
                    p:=comp_expr(true);
-                   do_firstpass(p);
                    storetokenpos:=akttokenpos;
                    akttokenpos:=filepos;
                    case p.nodetype of
@@ -546,7 +544,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-04-04 21:30:43  florian
+  Revision 1.28  2001-04-04 22:43:50  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.27  2001/04/04 21:30:43  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 

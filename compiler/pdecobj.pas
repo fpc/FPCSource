@@ -124,8 +124,9 @@ implementation
 
         begin
            { check for a class }
-           if not((is_class_or_interface(aktclass)) or ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then {MvdV: Ozerski 14.03.01}
-            Message(parser_e_syntax_error);
+           if not((is_class_or_interface(aktclass)) or
+              ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
+             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            propertyparas:=TParaLinkedList.Create;
            datacoll:=nil;
@@ -217,8 +218,8 @@ implementation
                        begin
                           consume(_INDEX);
                           pt:=comp_expr(true);
-                          do_firstpass(pt);
-                          if is_ordinal(pt.resulttype.def) and
+                          if is_constnode(pt) and
+                             is_ordinal(pt.resulttype.def) and
                              (not is_64bitint(pt.resulttype.def)) then
                             p^.index:=tordconstnode(pt).value
                           else
@@ -453,15 +454,13 @@ implementation
                      { Get the result of the default, the firstpass is
                        needed to support values like -1 }
                      pt:=comp_expr(true);
-                     do_firstpass(pt);
                      if (p^.proptype.def^.deftype=setdef) and
                         (pt.nodetype=arrayconstructorn) then
                        begin
                          arrayconstructor_to_set(tarrayconstructornode(pt));
-                         do_firstpass(pt);
+                         do_resulttypepass(pt);
                        end;
-                     pt:=ctypeconvnode.create(pt,p^.proptype);
-                     do_firstpass(pt);
+                     inserttypeconv(pt,p^.proptype);
                      if not(is_constnode(pt)) then
                        Message(parser_e_property_default_value_must_const);
 
@@ -860,7 +859,6 @@ implementation
           p : tnode;
         begin
           p:=comp_expr(true);
-          do_firstpass(p);
           if p.nodetype=stringconstn then
             begin
               aktclass^.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
@@ -1169,7 +1167,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-04-04 21:30:43  florian
+  Revision 1.20  2001-04-04 22:43:51  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.19  2001/04/04 21:30:43  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 

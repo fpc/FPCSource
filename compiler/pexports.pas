@@ -99,7 +99,6 @@ implementation
                     begin
                       consume(_INDEX);
                       pt:=comp_expr(true);
-                      do_firstpass(pt);
                       if pt.nodetype=ordconstn then
                        hp.index:=tordconstnode(pt).value
                       else
@@ -118,7 +117,6 @@ implementation
                     begin
                       consume(_NAME);
                       pt:=comp_expr(true);
-                      do_firstpass(pt);
                       if pt.nodetype=stringconstn then
                        hp.name:=stringdup(strpas(tstringconstnode(pt).value_str))
                       else
@@ -165,7 +163,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2001-03-11 22:58:50  peter
+  Revision 1.13  2001-04-04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.12  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.11  2001/01/03 13:12:50  jonas

@@ -256,13 +256,13 @@ implementation
              end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
-           do_firstpass(pt1);
+           do_resulttypepass(pt1);
            if (token=_POINTPOINT) then
              begin
                consume(_POINTPOINT);
                { get high value of range }
                pt2:=comp_expr(not(ignore_equal));
-               do_firstpass(pt2);
+               do_resulttypepass(pt2);
                { both must be evaluated to constants now }
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
@@ -371,7 +371,7 @@ implementation
                       setdefdecl(pt.resulttype)
                      else
                        begin
-                          do_firstpass(pt);
+                          do_resulttypepass(pt);
                           if (pt.nodetype=rangen) then
                            begin
                              if (trangenode(pt).left.nodetype=ordconstn) and
@@ -590,7 +590,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-04-02 21:20:34  peter
+  Revision 1.22  2001-04-04 22:43:53  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.21  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.20  2001/03/22 22:35:42  florian

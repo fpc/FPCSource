@@ -477,7 +477,6 @@ implementation
               repeat
                 repeat
                   pt:=comp_expr(true);
-                  do_firstpass(pt);
                   if not(pt.nodetype=ordconstn) then
                     Message(cg_e_illegal_expression);
                   pt.free;
@@ -530,7 +529,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-04-04 21:30:45  florian
+  Revision 1.14  2001-04-04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.13  2001/04/04 21:30:45  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 

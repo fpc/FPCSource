@@ -105,7 +105,6 @@ implementation
            begin
               consume(_LECKKLAMMER);
               p:=comp_expr(true);
-              do_firstpass(p);
               if not is_constintnode(p) then
                 begin
                   Message(cg_e_illegal_expression);
@@ -245,11 +244,8 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              {allow_type:=true;}
               p1:=comp_expr(true);
-              {allow_type:=false;}
               consume(_RKLAMMER);
-              do_resulttypepass(p1);
               if p1.resulttype.def^.deftype=objectdef then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
@@ -264,11 +260,8 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              {allow_type:=true;}
               p1:=comp_expr(true);
-              {allow_type:=false; }
               consume(_RKLAMMER);
-              do_resulttypepass(p1);
               if (p1.nodetype<>typen) and
                  (
                   ((p1.resulttype.def^.deftype=objectdef) and
@@ -309,7 +302,6 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              do_resulttypepass(p1);
               if not codegenerror then
                begin
                  case p1.resulttype.def^.deftype of
@@ -429,7 +421,6 @@ implementation
               while true do
                begin
                  p1:=comp_expr(true);
-                 do_resulttypepass(p1);
                  set_varstate(p1,true);
                  if not((p1.resulttype.def^.deftype=stringdef) or
                         ((p1.resulttype.def^.deftype=orddef) and
@@ -1377,7 +1368,8 @@ implementation
           while again do
            begin
              { we need the resulttype }
-             if do_resulttypepass(p1) then
+             do_resulttypepass(p1);
+             if codegenerror then
               begin
                 recoverconsume_postfixops;
                 exit;
@@ -2288,7 +2280,6 @@ implementation
       p:tnode;
     begin
       p:=comp_expr(true);
-      do_firstpass(p);
       if not codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
@@ -2310,7 +2301,6 @@ implementation
     begin
       get_stringconst:='';
       p:=comp_expr(true);
-      do_firstpass(p);
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resulttype.def) then
@@ -2326,7 +2316,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-04-02 21:20:33  peter
+  Revision 1.27  2001-04-04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.26  2001/04/02 21:20:33  peter
     * resulttype rewrite
 
   Revision 1.25  2001/03/11 22:58:50  peter
