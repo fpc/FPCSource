@@ -456,7 +456,7 @@ begin
   if assigned(procinfo^._class) then
    begin
      if (pos('_$$_',procprefix)=0) then
-      hs:=procprefix+'_$$_'+procinfo^._class^.objname^+'_$$_'+sp
+      hs:=procprefix+'_$$_'+upper(procinfo^._class^.objname^)+'_$$_'+sp
      else
       hs:=procprefix+'_$'+sp;
    end
@@ -1862,7 +1862,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-04 14:25:20  florian
+  Revision 1.7  2000-11-06 20:30:55  peter
+    * more fixes to get make cycle working
+
+  Revision 1.6  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.5  2000/11/01 23:04:37  peter

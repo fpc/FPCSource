@@ -1245,7 +1245,7 @@ implementation
                                      else
                                        begin
                                           { class reference ? }
-                                          if is_object(pd) then
+                                          if is_class(pd) then
                                             begin
                                                if getaddr and (token=_POINT) then
                                                  begin
@@ -2372,7 +2372,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.15  2000-11-04 14:25:20  florian
+  Revision 1.16  2000-11-06 20:30:55  peter
+    * more fixes to get make cycle working
+
+  Revision 1.15  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.14  2000/10/31 22:02:49  peter

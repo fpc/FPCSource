@@ -770,7 +770,7 @@ implementation
                          Message(parser_f_no_anonym_objects);
                        aktclass:=new(pobjectdef,init(classtype,n,nil));
                        if (cs_compilesystem in aktmoduleswitches) and
-                          (classtype=odt_interfacecom) and (n='IUNKNOWN') then
+                          (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
                          interface_iunknown:=aktclass;
                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_forward];
                      end;
@@ -1157,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-11-04 18:03:57  florian
+  Revision 1.8  2000-11-06 20:30:55  peter
+    * more fixes to get make cycle working
+
+  Revision 1.7  2000/11/04 18:03:57  florian
     * fixed upper/lower case problem
 
   Revision 1.6  2000/11/04 17:31:00  florian

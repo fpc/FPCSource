@@ -1222,6 +1222,9 @@ begin
 
 { Temporary defines, until things settle down }
   def_symbol('HASWIDECHAR');
+  def_symbol('HASOUT');
+  def_symbol('HASINTF');
+  def_symbol('INTERNSETLENGTH');
 
 {$ifdef SUPPORT_FIXED}
   def_symbol('HASFIXED');
@@ -1233,9 +1236,6 @@ begin
   def_symbol('CARDINALMULFIXED');
 {$endif cardinalmulfix}
   def_symbol('PACKENUMFIXED');
-
-{ New since 1.09 }
-  def_symbol('HASOUT');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1497,7 +1497,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-11-04 14:25:20  florian
+  Revision 1.13  2000-11-06 20:30:54  peter
+    * more fixes to get make cycle working
+
+  Revision 1.12  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.11  2000/09/26 10:50:41  jonas

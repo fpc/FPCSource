@@ -2957,9 +2957,9 @@ implementation
     procedure count_inittable_fields(sym : pnamedindexobject);
       begin
          if ((psym(sym)^.typ=varsym) and
-            pvarsym(sym)^.vartype.def^.needs_inittable)
-            and (pvarsym(sym)^.vartype.def^.deftype<>objectdef) or
-                  not(is_class(pdef(pvarsym(sym)^.vartype.def))) then
+             pvarsym(sym)^.vartype.def^.needs_inittable) {and
+             (pvarsym(sym)^.vartype.def^.deftype<>objectdef) or
+             not(is_class(pdef(pvarsym(sym)^.vartype.def)))} then
            inc(count);
       end;
 
@@ -4144,8 +4144,9 @@ Const local_symtable_index : longint = $8001;
             (objecttype=odt_class) and
             (upper(objname^)='TOBJECT') then
            class_tobject:=@self;
-         if (childof=nil) and (objecttype=odt_interfacecom) and
-           (objname^='IUNKNOWN') then
+         if (childof=nil) and
+            (objecttype=odt_interfacecom) and
+            (upper(objname^)='IUNKNOWN') then
            interface_iunknown:=@self;
 {$ifdef GDB}
          writing_stabs:=false;
@@ -5498,7 +5499,7 @@ Const local_symtable_index : longint = $8001;
         is_object:=
           assigned(def) and
           (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_class);
+          (pobjectdef(def)^.objecttype=odt_object);
       end;
 
     function is_cppclass(def: pdef): boolean;
@@ -5520,7 +5521,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.4  2000-11-04 14:25:22  florian
+  Revision 1.5  2000-11-06 20:30:55  peter
+    * more fixes to get make cycle working
+
+  Revision 1.4  2000/11/04 14:25:22  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.3  2000/11/02 12:04:10  pierre
