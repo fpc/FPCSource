@@ -49,7 +49,7 @@ begin
     RunError(status);
 end;
 
-procedure C_exit(status : longint);popstack;external name '_exit';
+procedure C_exit(status : longint);cdecl;external name '_exit';
 
 const
    STD_INPUT_HANDLE = $fffffff6;
@@ -105,7 +105,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:28  peter
+  Revision 1.8  2003-09-08 18:25:45  peter
+    * popstack to cdecl
+
+  Revision 1.7  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
 }
