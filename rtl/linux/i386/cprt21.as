@@ -54,9 +54,11 @@ main:
         popl    %eax
         movl    %eax,___fpc_ret
         movl    %ebx,___fpc_ret_ebx
+        movl    %ebp,___fpc_ret_ebp
         pushl   %eax
 
         /* start the program */
+        xorl    %ebp,%ebp
         call    PASCALMAIN
 
         .globl _haltproc
@@ -66,6 +68,7 @@ _haltproc:
         movw    U_SYSTEM_EXITCODE,%ax
 
         movl    ___fpc_ret,%edx         /* return to libc */
+        movl    ___fpc_ret_ebp,%ebp
         movl    ___fpc_ret_ebx,%ebx
         push    %edx
         ret
@@ -83,11 +86,17 @@ ___fpc_ret:                             /* return address to libc */
         .long   0
 ___fpc_ret_ebx:
         .long   0
+___fpc_ret_ebp:
+        .long   0
 
 
 #
 # $Log$
-# Revision 1.2  2000-10-15 09:09:23  peter
+# Revision 1.3  2001-02-14 22:36:21  sg
+# * Merged Pierre's fix for my problem with heaptrace unit (by setting EBP
+#   to zero before calling PASCALMAIN)
+#
+# Revision 1.2  2000/10/15 09:09:23  peter
 #   * startup code also needed syslinux->system updates
 #
 # Revision 1.1  2000/07/13 06:30:55  michael
