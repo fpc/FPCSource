@@ -2626,7 +2626,55 @@
 
     procedure write_property_info(sym : psym);{$ifndef fpc}far;{$endif}
 
+      var
+         proctypesinfo : byte;
+
+
+      procedure writeproc(sym : psym;def : pdef;shiftvalue : byte);
+
+        var
+           typvalue : byte;
+
+        begin
+           if sym^.typ=varsym then
+             begin
+                rttilist^.concat(new(pai_const,init_32bit(
+                  pvarsym(sym)^.address)));
+                typvalue:=0;
+             end
+           else
+             begin
+                if (pprocdef(def)^.options and povirtualmethod)=0 then
+                  begin
+                     rttilist^.concat(new(pai_const,init_symbol(strpnew(pprocdef(def)^.mangledname))));
+                     typvalue:=1;
+                  end
+                else
+                  begin
+                     { virtual method, write vmt offset }
+                     rttilist^.concat(new(pai_const,init_32bit(pprocdef(def)^.extnumber*4+12)));
+                     typvalue:=2;
+                  end;
+             end;
+           proctypesinfo:=proctypesinfo or (typvalue shl shiftvalue);
+        end;
+
       begin
+         proctypesinfo:=0;
+         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
+           begin
+              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(ppropertysym(sym)^.proptype^.get_rtti_label)))));
+              writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
+              writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
+              writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
+              rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
+              rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
+              rttilist^.concat(new(pai_const,init_16bit(count)));
+              inc(count);
+              rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
+              rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.name))));
+              rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.name)));
+           end;
       end;
 
     procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
@@ -2677,6 +2725,10 @@
          else
            rttilist^.concat(new(pai_const,init_8bit(0)));
 
+         { count is used to write nameindex   }
+         { but we need an offset of the owner }
+         { !!!!!!!!!!!!}
+         count:=$ffff;
          publicsyms^.foreach(write_property_info);
       end;
 
@@ -2699,7 +2751,10 @@
 
 {
   $Log$
-  Revision 1.34  1998-09-04 18:15:02  peter
+  Revision 1.35  1998-09-06 22:42:02  florian
+    + rtti genreation for properties added
+
+  Revision 1.34  1998/09/04 18:15:02  peter
     * filedef updated
 
   Revision 1.33  1998/09/03 17:08:49  pierre
