@@ -66,7 +66,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET);
 
   TOprRec = record
     case typ:TOprType of
@@ -81,7 +81,10 @@ type
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
-{$endif m68k}
+{$endif powerpc}
+{$ifdef arm}
+      OPR_REGSET      : (regset : tcpuregisterset);
+{$endif arm}
   end;
 
   TOperand = class
@@ -1121,6 +1124,10 @@ end;
                           operands[i].opr.localscale,operands[i].opr.localgetoffset);
            OPR_REFERENCE:
              ai.loadref(i-1,operands[i].opr.ref);
+{$ifdef ARM}
+           OPR_REGSET:
+             ai.loadregset(i-1,operands[i].opr.regset);
+{$endif ARM}
          end;
        end;
      ai.SetCondition(condition);
@@ -1618,7 +1625,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.78  2003-11-17 23:23:47  florian
+  Revision 1.79  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.78  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.77  2003/11/12 16:05:39  florian

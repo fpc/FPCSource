@@ -759,8 +759,8 @@ unit cgcpu;
                OS_32,OS_S32:
                  begin
                    instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
-                   add_move_instruction(instr);
                    list.concat(instr);
+                   add_move_instruction(instr);
                  end;
                else internalerror(2002090901);
              end;
@@ -954,8 +954,8 @@ unit cgcpu;
             else
               begin
                 instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
-                add_move_instruction(instr);
                 list.concat(instr);
+                add_move_instruction(instr);
               end;
           end;
         reference_release(list,tmpref);
@@ -1282,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-11-07 15:58:32  florian
+  Revision 1.23  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.22  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

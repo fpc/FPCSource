@@ -298,14 +298,17 @@ const
     procedure tcgppc.do_register_allocation(list:Taasmoutput;headertai:tai);
       begin
         { Int }
+        rgint.check_unreleasedregs;
         rgint.do_register_allocation(list,headertai);
         rgint.translate_registers(list);
 
         { FPU }
+        rgfpu.check_unreleasedregs;
         rgfpu.do_register_allocation(list,headertai);
         rgfpu.translate_registers(list);
 
         { MM }
+        rgmm.check_unreleasedregs;
         rgmm.do_register_allocation(list,headertai);
         rgmm.translate_registers(list);
       end;
@@ -2443,7 +2446,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2003-11-02 17:19:33  florian
+  Revision 1.137  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.136  2003/11/02 17:19:33  florian
     + copying of open array value parameters to the heap implemented
 
   Revision 1.135  2003/11/02 15:20:06  jonas

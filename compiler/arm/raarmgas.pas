@@ -384,9 +384,10 @@ Unit raarmgas;
 
 
       var
-        tempreg : tregister;
+        tempreg,ireg : tregister;
         hl : tasmlabel;
         ofs : longint;
+        registerset : tcpuregisterset;
       Begin
         expr:='';
         case actasmtoken of
@@ -396,6 +397,13 @@ Unit raarmgas;
               BuildReference(oper);
             end;
 
+          AS_HASH: { Constant expression  }
+            Begin
+              Consume(AS_HASH);
+              BuildConstantOperand(oper);
+            end;
+
+          (*
           AS_INTNUM,
           AS_MINUS,
           AS_PLUS:
@@ -413,7 +421,7 @@ Unit raarmgas;
               else
                 BuildReference(oper);
             end;
-
+          *)
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
               { Local Label ? }
@@ -519,7 +527,8 @@ Unit raarmgas;
                 BuildReference(oper);
             end;
 
-          AS_REGISTER: { Register, a variable reference or a constant reference  }
+          { Register, a variable reference or a constant reference  }
+          AS_REGISTER:
             Begin
               { save the type of register used. }
               tempreg:=actasmregister;
@@ -533,6 +542,38 @@ Unit raarmgas;
                 end
               else
                 Message(asmr_e_syn_operand);
+            end;
+
+          { Registerset }
+          AS_LSBRACKET:
+            begin
+              consume(AS_LSBRACKET);
+              registerset:=[];
+              while true do
+                begin
+                  if actasmtoken=AS_REGISTER then
+                    begin
+                      include(registerset,actasmregister);
+                      tempreg:=actasmregister;
+                      consume(AS_REGISTER);
+                      if actasmtoken=AS_MINUS then
+                        begin
+                          consume(AS_MINUS);
+                          for ireg:=tempreg to actasmregister do
+                            include(registerset,ireg);
+                          consume(AS_REGISTER);
+                        end;
+                    end
+                  else
+                    consume(AS_REGISTER);
+                  if actasmtoken=AS_COMMA then
+                    consume(AS_COMMA)
+                  else
+                    break;
+                end;
+              consume(AS_RSBRACKET);
+              oper.opr.typ:=OPR_REGSET;
+              oper.opr.regset:=registerset;
             end;
           AS_END,
           AS_SEPARATOR,
@@ -586,13 +627,7 @@ Unit raarmgas;
                 if operandnum>Max_Operands then
                   Message(asmr_e_too_many_operands)
                 else
-                  begin
-                    { condition operands doesn't set the operand but write to the
-                      condition field of the instruction
-                    }
-                    if instr.Operands[operandnum].opr.typ<>OPR_NONE then
-                      Inc(operandnum);
-                  end;
+                  Inc(operandnum);
                 Consume(AS_COMMA);
               end;
             AS_SEPARATOR,
@@ -604,8 +639,6 @@ Unit raarmgas;
             BuildOperand(instr.Operands[operandnum] as tarmoperand);
           end; { end case }
         until false;
-        if (operandnum=1) and (instr.Operands[operandnum].opr.typ=OPR_NONE) then
-          dec(operandnum);
         instr.Ops:=operandnum;
       end;
 
@@ -662,7 +695,7 @@ Unit raarmgas;
           begin
             for icond:=low(tasmcond) to high(tasmcond) do
               begin
-                if copy(hs,1,2)=cond2str[icond] then
+                if copy(hs,1,2)=uppercond2str[icond] then
                   begin
                     actcondition:=icond;
                     { strip condition }
@@ -750,6 +783,9 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-11-17 23:23:47  florian
+  Revision 1.2  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.1  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 }

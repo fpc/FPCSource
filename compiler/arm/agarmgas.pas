@@ -187,6 +187,7 @@ unit agarmgas;
         end;
       end;
 
+
     Procedure TARMGNUAssembler.WriteInstruction(hp : tai);
     var op: TAsmOp;
         s: string;
@@ -226,7 +227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-11-17 23:23:47  florian
+  Revision 1.15  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.14  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.13  2003/11/07 15:58:32  florian

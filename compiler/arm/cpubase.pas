@@ -181,6 +181,11 @@ unit cpubase;
         'ge','lt','gt','le','al','nv'
       );
 
+      uppercond2str : array[TAsmCond] of string[2]=('',
+        'EQ','NE','CS','CC','MI','PL','VS','VC','HI','LS',
+        'GE','LT','GT','LE','AL','NV'
+      );
+
       inverse_cond : array[TAsmCond] of TAsmCond=(C_None,
         C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
         C_LT,C_GE,C_LE,C_GT,C_None,C_None
@@ -564,7 +569,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.18  2003-11-17 23:23:47  florian
+  Revision 1.19  2003-11-21 16:29:26  florian
+    * fixed reading of reg. sets in the arm assembler reader
+
+  Revision 1.18  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.17  2003/11/02 14:30:03  florian
