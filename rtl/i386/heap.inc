@@ -57,7 +57,7 @@
 
     var
        _memavail : longint;
-       _heapsize : longint;
+       _internal_heapsize : longint;
 
     type
        tblocks   = array[1..maxblock] of pointer;
@@ -128,6 +128,11 @@
          end ['EAX'];
       end;
 
+    function heapsize : longint;
+
+	  begin
+		 heapsize:=_internal_heapsize;
+      end;
 
 {$IfDef CHECKHEAP}
     procedure call_stack(p : pointer);
@@ -1015,9 +1020,9 @@ begin
         movl %eax,HEAPSIZE
         end;
         GrowHeap:=2;{ try again }
-        _Heapsize:=size+_heapsize;
+        _internal_heapsize:=size+_internal_heapsize;
 {$IfDef CHECKHEAP}
-        writeln('Call to GrowHeap succedeed : HeapSize = ',_HeapSize,' MemAvail = ',memavail);
+        writeln('Call to GrowHeap succedeed : HeapSize = ',_internal_heapsize,' MemAvail = ',memavail);
         writeln('New heap part begins at ',Newpos,' with size ',size);
         if growheapstop then
           readln;
@@ -1049,7 +1054,7 @@ begin
   _memavail := GetHeapSize;
   HeapEnd := HeapOrg + _memavail;
   HeapError := @GrowHeap;
-  _heapsize:=longint(heapend)-longint(heaporg);
+  _internal_heapsize:=longint(heapend)-longint(heaporg);
   Freelist := nil;
 end;
 
@@ -1057,8 +1062,8 @@ end;
 
 {
   $Log$
-  Revision 1.12  1998-07-02 12:18:46  carl
-    - removed function heapsize, CAUSED conflicts with HEAPSIZE var
+  Revision 1.13  1998-07-02 14:24:09  michael
+  Undid carls changes, but renamed _heapsize to _internal_heapsize. Make cycle now works
 
   Revision 1.11  1998/06/25 09:26:10  daniel
   * Removed some more tabs

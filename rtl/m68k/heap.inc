@@ -55,7 +55,7 @@
 
     var
        _memavail : longint;
-       _heapsize : longint;
+       _internal_heapsize : longint;
 
     type
 {$ifdef UseBlocks}
@@ -1020,9 +1020,9 @@ begin
           move.l d1,HEAPSIZE
         end;
         GrowHeap:=2;{ try again }
-        _Heapsize:=size+_heapsize;
+        _internal_heapsize:=size+_internal_heapsize;
 {$IfDef CHECKHEAP}
-        writeln('Call to GrowHeap succedeed : HeapSize = ',_HeapSize,' MemAvail = ',memavail);
+        writeln('Call to GrowHeap succedeed : HeapSize = ',_internal_heapsize,' MemAvail = ',memavail);
         writeln('New heap part begins at ',Newpos,' with size ',size);
         if growheapstop then
           readln;
@@ -1058,13 +1058,16 @@ begin
   _memavail := GetHeapSize;
   HeapEnd := HeapOrg + _memavail;
   HeapError := @GrowHeap;
-  _heapsize:=longint(heapend)-longint(heaporg);
+  _internal_heapsize:=longint(heapend)-longint(heaporg);
   Freelist := nil;
 end;
 
 {
   $Log$
-  Revision 1.2  1998-07-02 12:22:38  carl
+  Revision 1.3  1998-07-02 14:24:08  michael
+  Undid carls changes, but renamed _heapsize to _internal_heapsize. Make cycle now works
+
+  Revision 1.2  1998/07/02 12:22:38  carl
     - removed heapsize function, would cause conflicts with HEAPSIZE var
     * GetHeapstart was misplaced
 
