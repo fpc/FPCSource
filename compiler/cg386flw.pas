@@ -202,19 +202,23 @@ implementation
          cleartempgen;
          secondpass(p^.t2);
          hs:=p^.t2^.resulttype^.size;
-         cmp32:=getregister32;
+         if p^.t2^.location.loc <> LOC_CREGISTER then
+           cmp32:=getregister32;
          case hs of
             1 : begin
                    opsize:=S_B;
-                   cmpreg:=reg32toreg8(cmp32);
+                   if p^.t2^.location.loc <> LOC_CREGISTER then
+                     cmpreg:=reg32toreg8(cmp32);
                 end;
             2 : begin
                    opsize:=S_W;
-                   cmpreg:=reg32toreg16(cmp32);
+                   if p^.t2^.location.loc <> LOC_CREGISTER then
+                     cmpreg:=reg32toreg16(cmp32);
                 end;
             4 : begin
                    opsize:=S_L;
-                   cmpreg:=cmp32;
+                   if p^.t2^.location.loc <> LOC_CREGISTER then
+                     cmpreg:=cmp32;
                 end;
          end;
 
@@ -258,6 +262,8 @@ implementation
                      cmpreg);
                    emit_ref_reg(A_CMP,opsize,newreference(temp1),
                      cmpreg);
+                   { temp register not necessary anymore currently (JM) }
+                   ungetregister32(cmp32);
                 end;
            end
          else
@@ -302,19 +308,16 @@ implementation
          { makes no problems there }
          cleartempgen;
 
-         { demand help register again }
-         cmp32:=getregister32;
-         case hs of
-            1 : begin
-                   opsize:=S_B;
-                   cmpreg:=reg32toreg8(cmp32);
-                end;
-            2 : begin
-                   opsize:=S_W;
-                   cmpreg:=reg32toreg16(cmp32);
-                end;
-            4 : opsize:=S_L;
-         end;
+         if (p^.t2^.location.loc <> LOC_CREGISTER) then
+           begin
+             { demand help register again }
+             cmp32:=getregister32;
+             case hs of
+                1 : cmpreg:=reg32toreg8(cmp32);
+                2 : cmpreg:=reg32toreg16(cmp32);
+                4 : cmpreg:=cmp32;
+             end;
+           end;
 
          { produce comparison and the corresponding }
          { jump                              }
@@ -366,11 +369,12 @@ implementation
            emit_ref(hop,opsize,newreference(p^.t2^.location.reference));
          emitjmp(C_None,l3);
 
-         { this is the break label: }
-         ungetregister32(cmp32);
+         if (p^.t2^.location.loc <> LOC_CREGISTER) then
+           ungetregister32(cmp32);
          if temptovalue then
            ungetiftemp(temp1);
 
+         { this is the break label: }
          emitlab(aktbreaklabel);
 
          aktcontinuelabel:=oldclabel;
@@ -1206,7 +1210,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.71  2000-04-16 08:08:44  jonas
+  Revision 1.72  2000-04-22 15:29:26  jonas
+    * cleaner register (de)allocation in secondfor (for optimizer)
+
+  Revision 1.71  2000/04/16 08:08:44  jonas
     * release register used in for-loop before end label (for better
       optimizations)
 
