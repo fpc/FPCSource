@@ -174,7 +174,8 @@ endif
 
 clean : execlean fpc_cleanall
 
-ppuclean: fpc_cleanall
+ppuclean:
+        -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
         -$(DEL) $(EXENAME)
