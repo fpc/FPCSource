@@ -472,6 +472,9 @@ begin
   asm
      pushal
   end;
+  if p=nil then
+    goto _exit;
+
   pp:=heap_mem_root;
   i:=0;
 
@@ -688,7 +691,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-05-12 16:49:29  pierre
+  Revision 1.14  1999-05-16 23:56:09  pierre
+   * allow nil pointer in FPC_CHECKPOINTER !!
+
+  Revision 1.13  1999/05/12 16:49:29  pierre
    + with EXTRA memory is filled with $F0 and checked at end
 
   Revision 1.12  1999/05/11 12:52:42  pierre
