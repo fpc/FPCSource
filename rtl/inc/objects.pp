@@ -790,6 +790,8 @@ CONST
 
 {$I objinc.inc}
 
+{$ASMMODE ATT}
+
 {---------------------------------------------------------------------------}
 {  RegisterError -> Platforms DOS/DPMI/WINDOWS/OS2 - Checked 12Jun96 LdB    }
 {---------------------------------------------------------------------------}
@@ -2729,7 +2731,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.3  1998-05-25 09:50:04  peter
+  Revision 1.4  1998-05-30 14:24:42  peter
+    * ATT asmparsing always
+
+  Revision 1.3  1998/05/25 09:50:04  peter
     * Platform.inc -> platform.inc
 
   Revision 1.2  1998/05/21 19:30:58  peter
