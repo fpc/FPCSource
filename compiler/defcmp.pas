@@ -410,10 +410,14 @@ implementation
                      else
                        begin
                          if not(explicit) or
-                           not(m_delphi in aktmodeswitches) then
+                            not(m_delphi in aktmodeswitches) then
                            begin
                              doconv:=tc_real_2_real;
-                             eq:=te_convert_l1;
+                             { do we loose precision? }
+                             if def_to.size<def_from.size then
+                               eq:=te_convert_l2
+                             else
+                               eq:=te_convert_l1;
                            end;
                        end;
                    end;
@@ -1258,7 +1262,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2004-01-06 02:17:44  florian
+  Revision 1.42  2004-01-14 21:44:16  peter
+    * give penalty in float-float conversion when precision is lost
+
+  Revision 1.41  2004/01/06 02:17:44  florian
     * fixed webbug 2878
 
   Revision 1.40  2004/01/02 17:19:04  jonas
