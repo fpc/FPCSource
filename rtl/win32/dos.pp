@@ -16,9 +16,6 @@
 unit dos;
 interface
 
-{ Include Win32 Consts,Types }
-{$I win32.inc}
-
 Const
   Max_Path = 260;
 
@@ -72,12 +69,20 @@ Type
     Sec   : word;
   End;
 
+  TWin32Handle = longint;
+
+  PWin32FileTime = ^TWin32FileTime;
+  TWin32FileTime = record
+    dwLowDateTime,
+    dwHighDateTime : DWORD;
+  end;
+
   PWin32FindData = ^TWin32FindData;
   TWin32FindData = record
     dwFileAttributes: Cardinal;
-    ftCreationTime: TFileTime;
-    ftLastAccessTime: TFileTime;
-    ftLastWriteTime: TFileTime;
+    ftCreationTime: TWin32FileTime;
+    ftLastAccessTime: TWin32FileTime;
+    ftLastWriteTime: TWin32FileTime;
     nFileSizeHigh: Cardinal;
     nFileSizeLow: Cardinal;
     dwReserved0: Cardinal;
@@ -89,7 +94,7 @@ Type
   end;
 
   Searchrec = Packed Record
-    FindHandle  : THandle;
+    FindHandle  : TWin32Handle;
     W32FindData : TWin32FindData;
     ExcludeAttr : longint;
     time : longint;
@@ -167,10 +172,21 @@ Const
     now set to true by default because
     other OS also pass open handles to childs
     finally reset to false after Florian's response PM }
-  ExecInheritsHandles : BOOL = false;
+  ExecInheritsHandles : Longbool = false;
+
 
 implementation
-uses strings;
+
+uses
+   strings;
+
+const
+   INVALID_HANDLE_VALUE = longint($ffffffff);
+
+   VER_PLATFORM_WIN32s = 0;
+   VER_PLATFORM_WIN32_WINDOWS = 1;
+   VER_PLATFORM_WIN32_NT = 2;
+
 type
    OSVERSIONINFO = record
         dwOSVersionInfoSize : DWORD;
@@ -181,11 +197,9 @@ type
         szCSDVersion : array[0..127] of char;
      end;
 
-   LPOSVERSIONINFO = ^OSVERSIONINFO;
-
 var
    versioninfo : OSVERSIONINFO;
-   kernel32dll : THandle;
+   kernel32dll : TWin32Handle;
 
 {******************************************************************************
                            --- Conversion ---
@@ -193,13 +207,13 @@ var
 
    function GetLastError : DWORD;
      external 'kernel32' name 'GetLastError';
-   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : longbool;
+   function FileTimeToDosDateTime(const ft :TWin32FileTime;var data,time : word) : longbool;
      external 'kernel32' name 'FileTimeToDosDateTime';
-   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : longbool;
+   function DosDateTimeToFileTime(date,time : word;var ft :TWin32FileTime) : longbool;
      external 'kernel32' name 'DosDateTimeToFileTime';
-   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : longbool;
+   function FileTimeToLocalFileTime(const ft : TWin32FileTime;var lft : TWin32FileTime) : longbool;
      external 'kernel32' name 'FileTimeToLocalFileTime';
-   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : longbool;
+   function LocalFileTimeToFileTime(const lft : TWin32FileTime;var ft : TWin32FileTime) : longbool;
      external 'kernel32' name 'LocalFileTimeToFileTime';
 
 type
@@ -230,18 +244,18 @@ begin
 end;
 
 
-Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
+Function DosToWinTime (DTime:longint;Var Wtime : TWin32FileTime):longbool;
 var
-  lft : TFileTime;
+  lft : TWin32FileTime;
 begin
   DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,lft) and
                 LocalFileTimeToFileTime(lft,Wtime);
 end;
 
 
-Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):longbool;
+Function WinToDosTime (Const Wtime : TWin32FileTime;var DTime:longint):longbool;
 var
-  lft : TFileTime;
+  lft : TWin32FileTime;
 begin
   WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
                 FileTimeToDosDateTime(lft,longrec(dtime).hi,longrec(dtime).lo);
@@ -266,6 +280,18 @@ end;
 {******************************************************************************
                         --- Info / Date / Time ---
 ******************************************************************************}
+
+type
+  TSystemTime = record
+    wYear,
+    wMonth,
+    wDayOfWeek,
+    wDay,
+    wHour,
+    wMinute,
+    wSecond,
+    wMilliseconds: Word;
+  end;
 
    function GetVersion : longint;
      external 'kernel32' name 'GetVersion';
@@ -360,17 +386,26 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+type
+  PProcessInformation = ^TProcessInformation;
+  TProcessInformation = record
+    hProcess: TWin32Handle;
+    hThread: TWin32Handle;
+    dwProcessId: DWORD;
+    dwThreadId: DWORD;
+  end;
+
    function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar;
-               lpProcessAttributes, lpThreadAttributes: PSecurityAttributes;
-               bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer;
+               lpProcessAttributes, lpThreadAttributes: Pointer;
+               bInheritHandles: Longbool; dwCreationFlags: DWORD; lpEnvironment: Pointer;
                lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
                var lpProcessInformation: TProcessInformation): longbool;
      external 'kernel32' name 'CreateProcessA';
-   function getExitCodeProcess(h:THandle;var code:longint):longbool;
+   function getExitCodeProcess(h:TWin32Handle;var code:longint):longbool;
      external 'kernel32' name 'GetExitCodeProcess';
-   function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
+   function WaitForSingleObject(hHandle: TWin32Handle; dwMilliseconds: DWORD): DWORD;
      external 'kernel32' name 'WaitForSingleObject';
-   function CloseHandle(h : THandle) : longint;
+   function CloseHandle(h : TWin32Handle) : longint;
      external 'kernel32' name 'CloseHandle';
 
 var
@@ -380,7 +415,7 @@ procedure exec(const path : pathstr;const comline : comstr);
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
-  Proc : THandle;
+  Proc : TWin32Handle;
   l    : Longint;
   CommandLine : array[0..511] of char;
   AppParam : array[0..255] of char;
@@ -415,7 +450,7 @@ begin
    end;
   Proc:=PI.hProcess;
   CloseHandle(PI.hThread);
-  if WaitForSingleObject(Proc, dword(Infinite)) <> $ffffffff then
+  if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
     GetExitCodeProcess(Proc,l)
   else
     l:=-1;
@@ -551,11 +586,11 @@ end;
 
 { Needed kernel calls }
 
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
+   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): TWin32Handle;
      external 'kernel32' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): LongBool;
+   function FindNextFile  (hFindFile: TWin32Handle; var lpFindFileData: TWIN32FindData): LongBool;
      external 'kernel32' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: THandle): LongBool;
+   function FindCloseFile (hFindFile: TWin32Handle): LongBool;
      external 'kernel32' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
@@ -650,9 +685,9 @@ end;
                                --- File ---
 ******************************************************************************}
 
-   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : longbool;
+   function GeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
      external 'kernel32' name 'GetFileTime';
-   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : longbool;
+   function SeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
      external 'kernel32' name 'SetFileTime';
    function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
      external 'kernel32' name 'SetFileAttributesA';
@@ -816,10 +851,10 @@ end;
 
 procedure getftime(var f;var time : longint);
 var
-   ft : TFileTime;
+   ft : TWin32FileTime;
 begin
   doserror:=0;
-  if GetFileTime(filerec(f).Handle,nil,nil,@ft) and
+  if GeTWin32FileTime(filerec(f).Handle,nil,nil,@ft) and
      WinToDosTime(ft,time) then
     exit
   else
@@ -832,11 +867,11 @@ end;
 
 procedure setftime(var f;time : longint);
 var
-  ft : TFileTime;
+  ft : TWin32FileTime;
 begin
   doserror:=0;
   if DosToWinTime(time,ft) and
-     SetFileTime(filerec(f).Handle,nil,nil,@ft) then
+     SeTWin32FileTime(filerec(f).Handle,nil,nil,@ft) then
    exit
   else
    DosError:=Last2DosError(GetLastError);
@@ -1012,13 +1047,13 @@ Procedure setintvec(intno : byte;vector : pointer);
 Begin
 End;
 
-function FreeLibrary(hLibModule : THANDLE) : longbool;
+function FreeLibrary(hLibModule : TWin32Handle) : longbool;
   external 'kernel32' name 'FreeLibrary';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
   external 'kernel32' name 'GetVersionExA';
-function LoadLibrary(lpLibFileName : pchar):THandle;
+function LoadLibrary(lpLibFileName : pchar):TWin32Handle;
   external 'kernel32' name 'LoadLibraryA';
-function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
+function GetProcAddress(hModule : TWin32Handle;lpProcName : pchar) : pointer;
   external 'kernel32' name 'GetProcAddress';
 
 var
@@ -1050,7 +1085,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-12-24 15:35:15  peter
+  Revision 1.19  2003-06-10 11:16:15  jonas
+    * fix from Peter
+
+  Revision 1.18  2002/12/24 15:35:15  peter
     * error code fixes
 
   Revision 1.17  2002/12/15 20:23:53  peter
