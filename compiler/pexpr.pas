@@ -118,7 +118,6 @@ unit pexpr;
     procedure check_tp_procvar(var p : ptree);
       var
          p1 : ptree;
-         Store_valid : boolean;
 
       begin
          if (m_tp_procvar in aktmodeswitches) and
@@ -127,10 +126,8 @@ unit pexpr;
             (p^.treetype=loadn) then
             begin
                { support if procvar then for tp7 and many other expression like this }
-               Store_valid:=Must_be_valid;
-               Must_be_valid:=false;
                do_firstpass(p);
-               Must_be_valid:=Store_valid;
+               set_varstate(p,false);
                if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
                     p1:=gencallnode(nil,nil);
@@ -147,16 +144,13 @@ unit pexpr;
       var
         p1,p2,paras  : ptree;
         prev_in_args : boolean;
-        Store_valid  : boolean;
       begin
         prev_in_args:=in_args;
-        Store_valid:=Must_be_valid;
         case l of
           in_ord_x :
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              Must_be_valid:=true;
               p1:=comp_expr(true);
               consume(_RKLAMMER);
               do_firstpass(p1);
@@ -210,8 +204,8 @@ unit pexpr;
                end
               else { not a type node }
                begin
-                 Must_be_valid:=false;
                  do_firstpass(p1);
+                 set_varstate(p1,false);
                  if (p1^.resulttype=nil) then
                   begin
                     Message(type_e_mismatch);
@@ -247,7 +241,6 @@ unit pexpr;
                end
               else
                begin
-                 Must_be_valid:=false;
                  do_firstpass(p1);
                  if ((p1^.resulttype^.deftype=objectdef) and
                      (oo_has_constructor in pobjectdef(p1^.resulttype)^.objectoptions)) or
@@ -268,7 +261,6 @@ unit pexpr;
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              Must_be_valid:=true;
               do_firstpass(p1);
               if not codegenerror then
                begin
@@ -296,8 +288,8 @@ unit pexpr;
               in_args:=true;
               p1:=comp_expr(true);
               p1:=gensinglenode(addrn,p1);
-              Must_be_valid:=false;
               do_firstpass(p1);
+
               { Ofs() returns a longint, not a pointer }
               p1^.resulttype:=u32bitdef;
               pd:=p1^.resulttype;
@@ -311,7 +303,6 @@ unit pexpr;
               in_args:=true;
               p1:=comp_expr(true);
               p1:=gensinglenode(addrn,p1);
-              Must_be_valid:=false;
               do_firstpass(p1);
               pd:=p1^.resulttype;
               consume(_RKLAMMER);
@@ -324,10 +315,10 @@ unit pexpr;
               in_args:=true;
               p1:=comp_expr(true);
               do_firstpass(p1);
+              set_varstate(p1,false);
               if p1^.location.loc<>LOC_REFERENCE then
                 Message(cg_e_illegal_expression);
               p1:=genordinalconstnode(0,s32bitdef);
-              Must_be_valid:=false;
               pd:=s32bitdef;
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -344,7 +335,6 @@ unit pexpr;
               do_firstpass(p1);
               if p1^.treetype=typen then
                 p1^.resulttype:=p1^.typenodetype;
-              Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               pd:=s32bitdef;
@@ -358,7 +348,6 @@ unit pexpr;
               in_args:=true;
               p1:=comp_expr(true);
               do_firstpass(p1);
-              Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               pd:=p1^.resulttype;
@@ -371,7 +360,6 @@ unit pexpr;
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              Must_be_valid:=false;
               if token=_COMMA then
                begin
                  consume(_COMMA);
@@ -393,8 +381,8 @@ unit pexpr;
               while true do
                begin
                  p1:=comp_expr(true);
-                 Must_be_valid:=true;
                  do_firstpass(p1);
+                 set_varstate(p1,true);
                  if not((p1^.resulttype^.deftype=stringdef) or
                         ((p1^.resulttype^.deftype=orddef) and
                          (porddef(p1^.resulttype)^.typ=uchar))) then
@@ -420,7 +408,6 @@ unit pexpr;
                begin
                  consume(_LKLAMMER);
                  in_args:=true;
-                 Must_be_valid:=false;
                  paras:=parse_paras(false,false);
                  consume(_RKLAMMER);
                end
@@ -439,7 +426,6 @@ unit pexpr;
                begin
                  consume(_LKLAMMER);
                  in_args:=true;
-                 Must_be_valid:=true;
                  paras:=parse_paras(true,false);
                  consume(_RKLAMMER);
                end
@@ -468,7 +454,6 @@ unit pexpr;
               consume(_LKLAMMER);
               in_args := true;
               p1:= gencallparanode(comp_expr(true), nil);
-              Must_be_valid := False;
               consume(_COMMA);
               p2 := gencallparanode(comp_expr(true),p1);
               if (token = _COMMA) then
@@ -489,7 +474,6 @@ unit pexpr;
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              Must_be_valid:=false;
               consume(_COMMA);
               p2:=comp_expr(true);
               statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
@@ -522,7 +506,6 @@ unit pexpr;
 
         end;
         in_args:=prev_in_args;
-        Must_be_valid:=Store_valid;
       end;
 
 
@@ -531,7 +514,6 @@ unit pexpr;
       var
          prev_in_args : boolean;
          prevafterassn : boolean;
-         Store_valid : boolean;
       begin
          prev_in_args:=in_args;
          prevafterassn:=afterassignment;
@@ -550,12 +532,10 @@ unit pexpr;
               else p1^.left:=nil;
               { do firstpass because we need the  }
               { result type                       }
-              Store_valid:=Must_be_valid;
-              Must_be_valid:=false;
               do_firstpass(p1);
-              Must_be_valid:=Store_valid;
+              {set_var_state is handled inside firstcalln }
            end
-         else
+        else
            begin
               { address operator @: }
               p1^.left:=nil;
@@ -1854,7 +1834,7 @@ _LECKKLAMMER : begin
       _MINUS : begin
                  consume(_MINUS);
                  p1:=factor(false);
-                 p1:=gensinglenode(umminusn,p1);
+                 p1:=gensinglenode(unaryminusn,p1);
                end;
         _NOT : begin
                  consume(_NOT);
@@ -2118,7 +2098,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.160  1999-11-17 17:05:01  pierre
+  Revision 1.161  1999-11-18 15:34:47  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.160  1999/11/17 17:05:01  pierre
    * Notes/hints changes
 
   Revision 1.159  1999/11/15 17:52:59  pierre

@@ -167,7 +167,6 @@ implementation
       var
          hp  : ptree;
          hp2 : pparaitem;
-         store_valid : boolean;
          hp3 : pabstractprocdef;
       begin
          make_not_regable(p^.left);
@@ -305,10 +304,11 @@ implementation
                    end;
                 end;
            end;
-         store_valid:=must_be_valid;
-         must_be_valid:=false;
          firstpass(p^.left);
-         must_be_valid:=store_valid;
+         { this is like the function addr }
+         inc(parsing_para_level);
+         set_varstate(p^.left,false);
+         dec(parsing_para_level);
          if codegenerror then
            exit;
 
@@ -348,6 +348,9 @@ implementation
       begin
          make_not_regable(p^.left);
          firstpass(p^.left);
+         inc(parsing_para_level);
+         set_varstate(p^.left,false);
+         dec(parsing_para_level);
          if p^.resulttype=nil then
            p^.resulttype:=voidpointerdef;
          if codegenerror then
@@ -375,12 +378,9 @@ implementation
 *****************************************************************************}
 
     procedure firstderef(var p : ptree);
-      var store_valid : boolean;
       begin
-         store_valid:=must_be_valid;
-         must_be_valid:=true;
          firstpass(p^.left);
-         must_be_valid:=store_valid;
+         set_varstate(p^.left,true);
          if codegenerror then
            begin
              p^.resulttype:=generrordef;
@@ -446,7 +446,6 @@ implementation
       var
          harr : pdef;
          ct : tconverttype;
-         store_valid : boolean;
 {$ifdef consteval}
          tcsym : ptypedconstsym;
 {$endif}
@@ -486,13 +485,13 @@ implementation
                 harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
                 parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
                 p^.left:=gentypeconvnode(p^.left,harr);
-                store_valid:=must_be_valid;
-                must_be_valid:=true;
+
                 firstpass(p^.left);
-                must_be_valid:=store_valid;
 
                 if codegenerror then
-                  exit;
+                  begin
+                    exit;
+                  end;
                 p^.resulttype:=parraydef(harr)^.definition
              end
            else if p^.left^.resulttype^.deftype=stringdef then
@@ -572,7 +571,6 @@ implementation
            p^.location.loc:=LOC_REFERENCE
          else
            p^.location.loc:=LOC_MEM;
-
       end;
 
 
@@ -604,6 +602,10 @@ implementation
          if assigned(p^.left) and assigned(p^.right) then
             begin
                firstpass(p^.left);
+               { is this correct ?  At least after is like if used }
+               inc(parsing_para_level);
+               set_varstate(p^.left,false);
+               dec(parsing_para_level);
                if codegenerror then
                  exit;
                symtable:=p^.withsymtable;
@@ -634,7 +636,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-11-17 17:05:07  pierre
+  Revision 1.34  1999-11-18 15:34:51  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.33  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.32  1999/11/06 14:34:30  peter

@@ -42,7 +42,8 @@ unit pmodules;
 
     uses
        globtype,version,systems,tokens,
-       cobjects,comphook,globals,verbose,files,
+       cobjects,comphook,compiler,
+       globals,verbose,files,
        symconst,symtable,aasm,
 {$ifdef newcg}
        cgbase,
@@ -938,6 +939,9 @@ unit pmodules;
          s1,s2  : ^string; {Saves stack space}
       begin
          consume(_UNIT);
+         if Compile_Level=1 then
+           IsExe:=false;
+
          if token=_ID then
           begin
           { create filenames and unit name }
@@ -1188,7 +1192,10 @@ unit pmodules;
          aktprocsym^.definition^.forwarddef:=false;
          { test static symtable }
          if (Errorcount=0) then
-           st^.allsymbolsused;
+           begin
+             st^.allsymbolsused;
+             st^.allprivatesused;
+           end;
 
          { size of the static data }
          datasize:=st^.datasize;
@@ -1219,7 +1226,10 @@ unit pmodules;
 
          { tests, if all (interface) forwards are resolved }
          if (Errorcount=0) then
-           symtablestack^.check_forwards;
+           begin
+             symtablestack^.check_forwards;
+             symtablestack^.allprivatesused;
+           end;
 
          { now we have a correct unit, change the symtable type }
          current_module^.in_implementation:=false;
@@ -1313,6 +1323,7 @@ unit pmodules;
          names : Tstringcontainer;
       begin
          DLLsource:=islibrary;
+         IsExe:=true;
          parse_only:=false;
          { relocation works only without stabs !! PM }
          if RelocSection then
@@ -1447,6 +1458,13 @@ unit pmodules;
             exit;
           end;
 
+         { test static symtable }
+         if (Errorcount=0) then
+           begin
+             st^.allsymbolsused;
+             st^.allprivatesused;
+           end;
+
          { generate imports }
          if current_module^.uses_imports then
           importlib^.generatelib;
@@ -1507,7 +1525,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.166  1999-11-17 17:05:02  pierre
+  Revision 1.167  1999-11-18 15:34:47  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.166  1999/11/17 17:05:02  pierre
    * Notes/hints changes
 
   Revision 1.165  1999/11/15 15:03:47  pierre

@@ -211,8 +211,8 @@ implementation
              secondnothing,     {callparan}
              secondrealconst,   {realconstn}
              secondfixconst,    {fixconstn}
-             secondumminus,     {umminusn}
-             secondasm,  {asmn}
+             secondunaryminus,  {unaryminusn}
+             secondasm,         {asmn}
              secondvecn,        {vecn}
              secondpointerconst, {pointerconstn}
              secondstringconst, {stringconstn}
@@ -697,7 +697,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-11-09 23:06:45  peter
+  Revision 1.43  1999-11-18 15:34:47  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.42  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

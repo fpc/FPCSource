@@ -78,7 +78,13 @@ procedure def_halt(i : longint);
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:string):boolean;
 function  def_internalerror(i:longint):boolean;
-
+{$ifdef DEBUG}
+{ allow easy stopping in GDB
+  using
+  b DEF_GDB_STOP
+  cond 1 LEVEL <= 8 }
+procedure def_gdb_stop(level : longint);
+{$endif DEBUG}
 { Function redirecting for IDE support }
 type
   tstopprocedure         = procedure;
@@ -152,6 +158,17 @@ begin
   Halt(1);
 {$endif USEEXCEPT}
 end;
+
+{$ifdef DEBUG}
+{ allow easy stopping in GDB
+  using
+  b DEF_GDB_STOP
+  cond 1 LEVEL <= 8 }
+procedure def_gdb_stop(level : longint);
+begin
+  { Its only a dummy for GDB }
+end;
+{$endif DEBUG}
 
 procedure def_halt(i : longint);
 begin
@@ -261,6 +278,9 @@ begin
         else
          writeln(hs);
       end;
+{$ifdef DEBUG}
+     def_gdb_stop(level);
+{$endif DEBUG}
    end;
 end;
 
@@ -275,7 +295,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-09-07 14:03:48  pierre
+  Revision 1.19  1999-11-18 15:34:45  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.18  1999/09/07 14:03:48  pierre
    + added do_halt procedure
 
   Revision 1.17  1999/08/05 16:52:53  peter

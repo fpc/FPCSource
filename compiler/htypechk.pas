@@ -28,7 +28,9 @@ interface
 
     const
     { firstcallparan without varspez we don't count the ref }
+{$ifdef extdebug}
        count_ref : boolean = true;
+{$endif def extdebug}
        get_para_resulttype : boolean = false;
        allow_array_constructor : boolean = false;
 
@@ -840,7 +842,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-11-09 14:47:03  peter
+  Revision 1.49  1999-11-18 15:34:45  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.48  1999/11/09 14:47:03  peter
     * pointer->array is allowed for all pointer types in FPC, fixed assign
       check for it.
 

@@ -29,7 +29,7 @@ interface
 
     procedure gen_high_tree(p:ptree;openstring:boolean);
 
-    procedure firstcallparan(var p : ptree;defcoll : pparaitem);
+    procedure firstcallparan(var p : ptree;defcoll : pparaitem;do_count : boolean);
     procedure firstcalln(var p : ptree);
     procedure firstprocinline(var p : ptree);
 
@@ -123,21 +123,30 @@ implementation
       end;
 
 
-    procedure firstcallparan(var p : ptree;defcoll : pparaitem);
+    procedure firstcallparan(var p : ptree;defcoll : pparaitem;do_count : boolean);
       var
         old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
-        store_valid : boolean;
         oldtype     : pdef;
+{$ifdef extdebug}
+        store_count_ref : boolean;
+{$endif def extdebug}
         {convtyp     : tconverttype;}
       begin
          inc(parsing_para_level);
+{$ifdef extdebug}
+         if do_count then
+           begin
+             store_count_ref:=count_ref;
+             count_ref:=true;
+           end;
+{$endif def extdebug}
          if assigned(p^.right) then
            begin
               if defcoll=nil then
-                firstcallparan(p^.right,nil)
+                firstcallparan(p^.right,nil,do_count)
               else
-                firstcallparan(p^.right,pparaitem(defcoll^.next));
+                firstcallparan(p^.right,pparaitem(defcoll^.next),do_count);
               p^.registers32:=p^.right^.registers32;
               p^.registersfpu:=p^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -150,9 +159,7 @@ implementation
               old_get_para_resulttype:=get_para_resulttype;
               get_para_resulttype:=true;
               allow_array_constructor:=true;
-              if not(assigned(p^.resulttype)) or
-                 (p^.left^.treetype=typeconvn) then
-                firstpass(p^.left);
+              firstpass(p^.left);
               get_para_resulttype:=old_get_para_resulttype;
               allow_array_constructor:=old_array_constructor;
               if codegenerror then
@@ -173,18 +180,17 @@ implementation
                  (defcoll^.data^.deftype=setdef) then
                 p^.left:=gentypeconvnode(p^.left,defcoll^.data);
 
-              if count_ref then
+              if do_count then
                begin
                  { not completly proper, but avoids some warnings }
                  if (defcoll^.paratyp=vs_var) then
                    set_funcret_is_valid(p^.left);
 
-                 store_valid:=must_be_valid;
                  { protected has nothing to do with read/write
                  if (defcoll^.paratyp=vs_var) then
                    test_protected(p^.left);
                  }
-                 must_be_valid:=(defcoll^.paratyp<>vs_var);
+                 set_varstate(p^.left,defcoll^.paratyp<>vs_var);
                  { only process typeconvn and arrayconstructn, else it will
                    break other trees }
                  { But this is need to get correct varstate !! PM }
@@ -192,14 +198,12 @@ implementation
                  old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
                  get_para_resulttype:=false;
-                 { if (p^.left^.treetype in [arrayconstructn,typeconvn]) or
-                    not assigned(p^.resulttype) then  }
+                  if (p^.left^.treetype in [arrayconstructn,typeconvn]) then
                    firstpass(p^.left);
                  if not assigned(p^.resulttype) then
                    p^.resulttype:=p^.left^.resulttype;
                  get_para_resulttype:=old_get_para_resulttype;
                  allow_array_constructor:=old_array_constructor;
-                 must_be_valid:=store_valid;
                end;
               { check if local proc/func is assigned to procvar }
               if p^.left^.resulttype^.deftype=procvardef then
@@ -313,17 +317,21 @@ implementation
               if (defcoll^.data=pdef(cformaldef)) then
                 begin
                   if defcoll^.paratyp=vs_var then
-                    if not valid_for_formal_var(p^.left) then
-                      begin
-                         aktfilepos:=p^.left^.fileinfo;
-                         CGMessage(parser_e_illegal_parameter_list);
-                      end;
+                    begin
+                      if not valid_for_formal_var(p^.left) then
+                        begin
+                           aktfilepos:=p^.left^.fileinfo;
+                           CGMessage(parser_e_illegal_parameter_list);
+                        end;
+                    end;
                   if defcoll^.paratyp=vs_const then
-                    if not valid_for_formal_const(p^.left) then
-                      begin
-                         aktfilepos:=p^.left^.fileinfo;
-                         CGMessage(parser_e_illegal_parameter_list);
-                      end;
+                    begin
+                      if not valid_for_formal_const(p^.left) then
+                        begin
+                           aktfilepos:=p^.left^.fileinfo;
+                           CGMessage(parser_e_illegal_parameter_list);
+                        end;
+                    end;
                 end;
 
               if defcoll^.paratyp=vs_var then
@@ -343,6 +351,10 @@ implementation
            p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
          dec(parsing_para_level);
+{$ifdef extdebug}
+         if do_count then
+           count_ref:=store_count_ref;
+{$endif def extdebug}
       end;
 
 
@@ -377,7 +389,7 @@ implementation
          { only Dummy }
          hcvt : tconverttype;
          regi : tregister;
-         store_valid, old_count_ref : boolean;
+         method_must_be_valid : boolean;
       label
         errorexit;
 
@@ -447,8 +459,6 @@ implementation
          { at least we can avoid the overloaded search !! }
          procs:=nil;
          { made this global for disposing !! }
-         store_valid:=must_be_valid;
-         must_be_valid:=false;
 
          oldcallprocsym:=aktcallprocsym;
          aktcallprocsym:=nil;
@@ -491,16 +501,12 @@ implementation
               { calculate the type of the parameters }
               if assigned(p^.left) then
                 begin
-                   old_count_ref:=count_ref;
-                   count_ref:=false;
-                   firstcallparan(p^.left,nil);
-                   count_ref:=old_count_ref;
+                   firstcallparan(p^.left,nil,false);
                    if codegenerror then
                      goto errorexit;
                 end;
-              must_be_valid:=true;
               firstpass(p^.right);
-              must_be_valid:=false;
+              set_varstate(p^.right,true);
 
               { check the parameters }
               pdc:=pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first);
@@ -519,10 +525,7 @@ implementation
               { insert type conversions }
               if assigned(p^.left) then
                 begin
-                   old_count_ref:=count_ref;
-                   count_ref:=true;
-                   firstcallparan(p^.left,pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first));
-                   count_ref:=old_count_ref;
+                   firstcallparan(p^.left,pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first),true);
                    if codegenerror then
                      goto errorexit;
                 end;
@@ -538,16 +541,7 @@ implementation
               { determine the type of the parameters }
               if assigned(p^.left) then
                 begin
-                   old_count_ref:=count_ref;
-                   count_ref:=false;
-                   { must be valid is already false!
-                   store_valid:=must_be_valid;
-                   must_be_valid:=false; }
-                   firstcallparan(p^.left,nil);
-                   count_ref:=old_count_ref;
-                   {
-                   must_be_valid:=store_valid;
-                   }
+                   firstcallparan(p^.left,nil,false);
                    if codegenerror then
                      goto errorexit;
                 end;
@@ -1054,10 +1048,7 @@ implementation
               { !!! done now after internproc !! (PM) }
               if assigned(p^.left) then
                 begin
-                   old_count_ref:=count_ref;
-                   count_ref:=true;
-                   firstcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first));
-                   count_ref:=old_count_ref;
+                   firstcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),true);
                 end;
 {$ifdef i386}
               for regi:=R_EAX to R_EDI do
@@ -1134,7 +1125,6 @@ implementation
                      p^.location.loc:=LOC_MEM;
                 end;
            end;
-         must_be_valid:=store_valid;
          { a fpu can be used in any procedure !! }
          p^.registersfpu:=p^.procdefinition^.fpu_used;
          { if this is a call to a method calc the registers }
@@ -1162,12 +1152,16 @@ implementation
                      if (p^.procdefinition^.proctypeoption=potype_constructor) or
                         ((p^.methodpointer^.treetype=loadn) and
                         (not(oo_has_virtual in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions))) then
-                       must_be_valid:=false
+                       method_must_be_valid:=false
                      else
-                       must_be_valid:=true;
-                     count_ref:=true;
+                       method_must_be_valid:=true;
                      firstpass(p^.methodpointer);
-                     must_be_valid:=store_valid;
+                     set_varstate(p^.methodpointer,method_must_be_valid);
+                     { The object is already used ven if it is called once }
+                     if (p^.methodpointer^.treetype=loadn) and
+                        (p^.methodpointer^.symtableentry^.typ=varsym) then
+                       pvarsym(p^.methodpointer^.symtableentry)^.varstate:=vs_used;
+
                      p^.registersfpu:=max(p^.methodpointer^.registersfpu,p^.registersfpu);
                      p^.registers32:=max(p^.methodpointer^.registers32,p^.registers32);
 {$ifdef SUPPORT_MMX}
@@ -1227,7 +1221,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-11-17 17:05:07  pierre
+  Revision 1.73  1999-11-18 15:34:49  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.72  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.71  1999/11/06 14:34:29  peter

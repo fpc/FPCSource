@@ -313,7 +313,7 @@ begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   p:=@InBuf;
-  for i:=1to InLen do
+  for i:=1 to InLen do
    begin
      InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
      inc(longint(p));
@@ -1000,7 +1000,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  1999-11-17 17:05:02  pierre
+  Revision 1.49  1999-11-18 15:34:48  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.48  1999/11/17 17:05:02  pierre
    * Notes/hints changes
 
   Revision 1.47  1999/11/06 14:34:23  peter

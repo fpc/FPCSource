@@ -55,6 +55,7 @@ implementation
     procedure firstsetelement(var p : ptree);
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          if codegenerror then
           exit;
 
@@ -115,6 +116,7 @@ implementation
          p^.resulttype:=booldef;
 
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if codegenerror then
           exit;
 
@@ -148,6 +150,7 @@ implementation
            end;
 
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          if codegenerror then
            exit;
 
@@ -202,7 +205,9 @@ implementation
          ct : tconverttype;
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -235,8 +240,8 @@ implementation
       begin
          { evalutes the case expression }
          cleartempgen;
-         must_be_valid:=true;
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          if codegenerror then
            exit;
          p^.registers32:=p^.left^.registers32;
@@ -301,7 +306,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-09-27 23:45:02  peter
+  Revision 1.15  1999-11-18 15:34:51  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.14  1999/09/27 23:45:02  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

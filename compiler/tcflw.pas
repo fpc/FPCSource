@@ -69,8 +69,8 @@ implementation
            t_times:=t_times*8;
 
          cleartempgen;
-         must_be_valid:=true;
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          if codegenerror then
            exit;
          if not is_boolean(p^.left^.resulttype) then
@@ -118,8 +118,9 @@ implementation
       begin
          old_t_times:=t_times;
          cleartempgen;
-         must_be_valid:=true;
          firstpass(p^.left);
+         set_varstate(p^.left,true);
+
          { Only check type if no error, we can't leave here because
            the p^.right also needs to be firstpassed }
          if not codegenerror then
@@ -243,8 +244,8 @@ implementation
            CGMessage(cg_e_illegal_expression);
 
          cleartempgen;
-         must_be_valid:=false;
          firstpass(p^.left);
+         set_varstate(p^.left,false);
 
          cleartempgen;
          if assigned(p^.t1) then
@@ -269,9 +270,9 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
-         must_be_valid:=true;
          cleartempgen;
          firstpass(p^.t2);
+         set_varstate(p^.t2,true);
          if codegenerror then
           exit;
 
@@ -300,6 +301,7 @@ implementation
 
          cleartempgen;
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if p^.right^.treetype<>ordconstn then
            begin
               p^.right:=gentypeconvnode(p^.right,p^.t2^.resulttype);
@@ -460,12 +462,12 @@ implementation
       begin
          p^.resulttype:=voiddef;
          cleartempgen;
-         must_be_valid:=true;
          firstpass(p^.left);
+         set_varstate(p^.left,true);
 
          cleartempgen;
-         must_be_valid:=true;
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
          left_right_max(p);
@@ -512,7 +514,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-11-17 17:05:07  pierre
+  Revision 1.26  1999-11-18 15:34:49  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.25  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.24  1999/11/06 14:34:30  peter

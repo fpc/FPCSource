@@ -126,7 +126,8 @@ unit globals;
        in_args : boolean;                { arguments must be checked especially }
        parsing_para_level : longint;     { parameter level, used to convert
                                              proc calls to proc loads in firstcalln }
-       Must_be_valid : boolean;          { should the variable already have a value }
+       { Must_be_valid : boolean;           should the variable already have a value
+        obsolete replace by set_varstate function }
        compile_level : word;
        make_ref : boolean;
        resolving_forward : boolean;      { used to add forward reference as second ref }
@@ -1289,6 +1290,7 @@ end;
 {$ifdef tp}
         use_big:=false;
 {$endif tp}
+       compile_level:=0;
 
       { Output }
         OutputFile:='';
@@ -1339,7 +1341,7 @@ end;
 
       { compile state }
         in_args:=false;
-        must_be_valid:=true;
+        { must_be_valid:=true; obsolete PM }
         not_unit_proc:=true;
 
         apptype:=at_cui;
@@ -1355,7 +1357,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1999-11-17 17:04:59  pierre
+  Revision 1.36  1999-11-18 15:34:45  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.35  1999/11/17 17:04:59  pierre
    * Notes/hints changes
 
   Revision 1.34  1999/11/15 17:42:41  pierre

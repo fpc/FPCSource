@@ -28,7 +28,7 @@ interface
 
     procedure firstmoddiv(var p : ptree);
     procedure firstshlshr(var p : ptree);
-    procedure firstumminus(var p : ptree);
+    procedure firstunaryminus(var p : ptree);
     procedure firstnot(var p : ptree);
 
 
@@ -52,7 +52,9 @@ implementation
 
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
 
@@ -150,7 +152,9 @@ implementation
          regs : longint;
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
 
@@ -194,15 +198,16 @@ implementation
 
 
 {*****************************************************************************
-                             FirstUmMinus
+                             FirstUnaryMinus
 *****************************************************************************}
 
-    procedure firstumminus(var p : ptree);
+    procedure firstunaryminus(var p : ptree);
       var
          t : ptree;
          minusdef : pprocdef;
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -327,6 +332,7 @@ implementation
          t : ptree;
       begin
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          if codegenerror then
            exit;
 
@@ -408,7 +414,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-11-06 14:34:30  peter
+  Revision 1.23  1999-11-18 15:34:50  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.22  1999/11/06 14:34:30  peter
     * truncated log to 20 revs
 
   Revision 1.21  1999/10/26 12:30:46  peter

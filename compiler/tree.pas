@@ -68,7 +68,7 @@ unit tree;
           callparan,       {Represents a parameter.}
           realconstn,      {Represents a real value.}
           fixconstn,       {Represents a fixed value.}
-          umminusn,     {Represents a sign change (i.e. -2).}
+          unaryminusn,     {Represents a sign change (i.e. -2).}
           asmn,     {Represents an assembler node }
           vecn,     {Represents array indexing.}
           pointerconstn,
@@ -183,7 +183,8 @@ unit tree;
           disposetyp : tdisposetyp;
           { is true, if the right and left operand are swaped }
           swaped : boolean;
-
+          { do we need to parse childs to set var state }
+          varstateset : boolean;
           { the location of the result of this node }
           location : tlocation;
 
@@ -305,6 +306,14 @@ unit tree;
 
     { sets funcret_is_valid to true, if p contains a funcref node }
     procedure set_funcret_is_valid(p : ptree);
+
+    {
+    type
+    tvarstaterequire = (vsr_can_be_undefined,vsr_must_be_valid,
+      vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
+
+    { sets varsym varstate field correctly }
+    procedure set_varstate(p : ptree;must_be_valid : boolean);
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
@@ -1595,7 +1604,7 @@ unit tree;
                       equal_trees:=(equal_trees(t1^.left,t2^.left) and
                                     equal_trees(t1^.right,t2^.right));
                    end;
-                 umminusn,
+                 unaryminusn,
                  notn,
                  derefn,
                  addrn:
@@ -1655,6 +1664,99 @@ unit tree;
               end;
            end;
       end;
+
+    procedure set_varstate(p : ptree;must_be_valid : boolean);
+
+      begin
+         if not assigned(p) then
+           exit
+         else
+           begin
+             if p^.varstateset then
+               exit;
+              case p^.treetype of
+           typeconvn,subscriptn :
+             set_varstate(p^.left,must_be_valid);
+           vecn:
+             begin
+               if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
+                 set_varstate(p^.left,must_be_valid)
+               else
+                 set_varstate(p^.left,true);
+               set_varstate(p^.right,true);
+             end;
+           { do not parse calln }
+           calln : ;
+           callparan:
+             begin
+               set_varstate(p^.left,must_be_valid);
+               set_varstate(p^.right,must_be_valid);
+             end;
+           loadn :
+         if (p^.symtableentry^.typ=varsym) then
+          begin
+            if must_be_valid and p^.is_first then
+              begin
+                if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
+                   (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
+                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
+                    assigned(aktprocsym) and
+                    (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
+                  begin
+                    if p^.symtable^.symtabletype=localsymtable then
+                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
+                    else
+                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
+                  end;
+              end;
+          if (p^.is_first) then
+           begin
+             if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
+             { this can only happen at left of an assignment, no ? PM }
+              if (parsing_para_level=0) and not must_be_valid then
+               pvarsym(p^.symtableentry)^.varstate:=vs_assigned
+              else
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             p^.is_first:=false;
+           end
+         else
+           begin
+             if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
+                (must_be_valid or (parsing_para_level>0) or
+                 (p^.resulttype^.deftype=procvardef)) then
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
+                (must_be_valid or (parsing_para_level>0) or
+                (p^.resulttype^.deftype=procvardef)) then
+               pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
+           end;
+         end;
+         funcretn:
+         begin
+         { no claim if setting higher return value_str }
+         if must_be_valid and
+            (procinfo=pprocinfo(p^.funcretprocinfo)) and
+            ((procinfo^.funcret_state=vs_declared) or
+            ((p^.is_first_funcret) and
+             (procinfo^.funcret_state=vs_declared_and_first_found))) then
+           begin
+             CGMessage(sym_w_function_result_not_set);
+             { avoid multiple warnings }
+             procinfo^.funcret_state:=vs_assigned;
+           end;
+         if p^.is_first_funcret and not must_be_valid then
+           pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
+         end;
+         else
+           begin
+             {internalerror(565656);}
+           end;
+         end;{case }
+         p^.varstateset:=true;
+      end;
+    end;
 
     procedure clear_location(var loc : tlocation);
 
@@ -1795,7 +1897,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.102  1999-11-17 17:05:07  pierre
+  Revision 1.103  1999-11-18 15:34:51  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.102  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.101  1999/11/06 14:34:31  peter

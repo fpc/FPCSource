@@ -372,15 +372,13 @@ unit pstatmnt;
       var
          right,hp,p : ptree;
          i,levelcount : longint;
-         store_valid : boolean;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
 
       begin
-         Store_valid := Must_be_valid;
-         Must_be_valid:=false;
          p:=comp_expr(true);
          do_firstpass(p);
+         set_varstate(p,false);
          right:=nil;
          if (not codegenerror) and
             (p^.resulttype^.deftype in [objectdef,recorddef]) then
@@ -474,7 +472,6 @@ unit pstatmnt;
              end;
             _with_statement:=nil;
           end;
-         Must_be_valid:=Store_valid;
       end;
 
 
@@ -829,7 +826,6 @@ unit pstatmnt;
           sym : psym;
           classh : pobjectdef;
           pd,pd2 : pdef;
-          store_valid : boolean;
           destructorpos,storepos : tfileposinfo;
           tt : ttreetyp;
         begin
@@ -843,19 +839,13 @@ unit pstatmnt;
             end;
           consume(_LKLAMMER);
 
-          { displaced here to avoid warnings in BP mode (PM) }
-          Store_valid := Must_be_valid;
-          if tt=hnewn then
-            Must_be_valid := False
-          else
-            Must_be_valid:=true;
 
           p:=comp_expr(true);
 
           { calc return type }
           cleartempgen;
           do_firstpass(p);
-          Must_be_valid := Store_valid;
+          set_varstate(p,tt=hdisposen);
 
   {var o:Pobject;
            begin
@@ -1328,7 +1318,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.110  1999-11-17 17:05:02  pierre
+  Revision 1.111  1999-11-18 15:34:48  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.110  1999/11/17 17:05:02  pierre
    * Notes/hints changes
 
   Revision 1.109  1999/11/15 22:00:48  peter

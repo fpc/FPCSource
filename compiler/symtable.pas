@@ -173,6 +173,7 @@ unit symtable;
           function  speedsearch(const s : stringid;speedvalue : longint) : psym;
           procedure registerdef(p : pdef);
           procedure allsymbolsused;
+          procedure allprivatesused;
           procedure allunitsused;
           procedure check_forwards;
           procedure checklabels;
@@ -871,7 +872,8 @@ implementation
     procedure varsymbolused(p : pnamedindexobject);
       begin
          if (psym(p)^.typ=varsym) and
-            ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
+            ((psym(p)^.owner^.symtabletype in
+             [parasymtable,localsymtable,objectsymtable,staticsymtable])) then
           begin
            { unused symbol should be reported only if no }
            { error is reported                     }
@@ -888,6 +890,8 @@ implementation
                   begin
                     MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name);
                   end
+                else if (psym(p)^.owner^.symtabletype=objectsymtable) then
+                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_not_used,psym(p)^.owner^.name^,p^.name)
                 else
                   MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_not_used,p^.name);
              end
@@ -903,18 +907,37 @@ implementation
                     if (pvarsym(p)^.varspez<>vs_var) then
                       MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name);
                   end
+                else if (psym(p)^.owner^.symtabletype=objectsymtable) then
+                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_only_set,psym(p)^.owner^.name^,p^.name)
                 else if (psym(p)^.owner^.symtabletype<>parasymtable) then
                   MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,p^.name);
              end;
          end
-      else if ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
+      else if ((psym(p)^.owner^.symtabletype in
+              [objectsymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
            if (Errorcount<>0) then
              exit;
+           if (psym(p)^.refs=0) and (psym(p)^.owner^.symtabletype=objectsymtable) then
+             MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
            { units references are problematic }
-           if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
+           else if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
              MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],p^.name);
           end;
+      end;
+
+    procedure TestPrivate(p : pnamedindexobject);
+      begin
+        if sp_private in psym(p)^.symoptions then
+          varsymbolused(p);
+      end;
+
+    procedure objectprivatesymbolused(p : pnamedindexobject);
+      begin
+         if (psym(p)^.typ=typesym) and
+            (ptypesym(p)^.definition^.deftype=objectdef) then
+           pobjectdef(ptypesym(p)^.definition)^.symtable^.foreach(
+             {$ifndef TP}@{$endif}TestPrivate);
       end;
 
 {$ifdef GDB}
@@ -1862,6 +1885,11 @@ implementation
          foreach({$ifndef TP}@{$endif}varsymbolused);
       end;
 
+    procedure tsymtable.allprivatesused;
+      begin
+         foreach({$ifndef TP}@{$endif}objectprivatesymbolused);
+      end;
+
 {$ifdef CHAINPROCSYMS}
     procedure tsymtable.chainprocsyms;
       begin
@@ -2533,7 +2561,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-11-17 17:05:06  pierre
+  Revision 1.64  1999-11-18 15:34:48  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.63  1999/11/17 17:05:06  pierre
    * Notes/hints changes
 
   Revision 1.62  1999/11/15 22:00:48  peter

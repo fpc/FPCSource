@@ -28,7 +28,7 @@ interface
 
     procedure secondmoddiv(var p : ptree);
     procedure secondshlshr(var p : ptree);
-    procedure secondumminus(var p : ptree);
+    procedure secondunaryminus(var p : ptree);
     procedure secondnot(var p : ptree);
 
 
@@ -279,10 +279,10 @@ implementation
       end;
 
 {*****************************************************************************
-                             SecondUmMinus
+                             Secondunaryminus
 *****************************************************************************}
 
-    procedure secondumminus(var p : ptree);
+    procedure secondunaryminus(var p : ptree);
 
       begin
          secondpass(p^.left);
@@ -449,7 +449,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-09-16 23:05:51  florian
+  Revision 1.6  1999-11-18 15:34:44  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.5  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.4  1998/12/11 00:03:05  peter

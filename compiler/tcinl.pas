@@ -54,11 +54,9 @@ implementation
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : ptree;
 {$endif ndef NOCOLONCHECK}
-         store_count_ref,
          extra_register,
          isreal,
          dowrite,
-         store_valid,
          file_is_typed : boolean;
 
       procedure do_lowhigh(adef : pdef);
@@ -125,13 +123,14 @@ implementation
         begin
            p^.location.loc:=LOC_FPU;
            p^.resulttype:=s80floatdef;
+           { redo firstpass for varstate status PM }
+           set_varstate(p^.left,true);
            if (p^.left^.resulttype^.deftype<>floatdef) or
              (pfloatdef(p^.left^.resulttype)^.typ<>s80real) then
              begin
                 p^.left:=gentypeconvnode(p^.left,s80floatdef);
+                firstpass(p^.left);
              end;
-           { redo firstpass for varstate status PM }
-           firstpass(p^.left);
            p^.registers32:=p^.left^.registers32;
            p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -140,26 +139,17 @@ implementation
         end;
 
       begin
-         store_valid:=must_be_valid;
-         store_count_ref:=count_ref;
-         count_ref:=false;
-         if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
-            in_typeof_x,in_ord_x,in_str_x_string,in_val_x,
-            in_reset_typedfile,in_rewrite_typedfile]) then
-           must_be_valid:=true
-         else
-           must_be_valid:=false;
          { if we handle writeln; p^.left contains no valid address }
          if assigned(p^.left) then
            begin
               if p^.left^.treetype=callparan then
-                firstcallparan(p^.left,nil)
+                firstcallparan(p^.left,nil,false)
               else
                 firstpass(p^.left);
               left_right_max(p);
               set_location(p^.location,p^.left^.location);
            end;
-         count_ref:=true;
+         inc(parsing_para_level);
          { handle intern constant functions in separate case }
          if p^.inlineconst then
           begin
@@ -368,6 +358,7 @@ implementation
              in_hi_word:
 
                begin
+                  set_varstate(p^.left,true);
                   if p^.registers32<1 then
                     p^.registers32:=1;
                   if p^.inlinenumber in [in_lo_word,in_hi_word] then
@@ -410,6 +401,7 @@ implementation
 
              in_sizeof_x:
                begin
+                 set_varstate(p^.left,false);
                  if push_high_param(p^.left^.resulttype) then
                   begin
                     getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
@@ -430,6 +422,7 @@ implementation
 
              in_typeof_x:
                begin
+                  set_varstate(p^.left,false);
                   if p^.registers32<1 then
                     p^.registers32:=1;
                   p^.location.loc:=LOC_REGISTER;
@@ -438,6 +431,7 @@ implementation
 
              in_ord_x:
                begin
+                  set_varstate(p^.left,true);
                   if (p^.left^.treetype=ordconstn) then
                     begin
                        hp:=genordinalconstnode(p^.left^.value,s32bitdef);
@@ -496,6 +490,7 @@ implementation
 
              in_chr_byte:
                begin
+                  set_varstate(p^.left,true);
                   hp:=gentypeconvnode(p^.left,cchardef);
                   putnode(p);
                   p:=hp;
@@ -505,6 +500,7 @@ implementation
 
              in_length_string:
                begin
+                  set_varstate(p^.left,true);
                   if is_ansistring(p^.left^.resulttype) then
                     p^.resulttype:=s32bitdef
                   else
@@ -543,16 +539,21 @@ implementation
 
              in_assigned_x:
                begin
+                  set_varstate(p^.left,true);
                   p^.resulttype:=booldef;
                   p^.location.loc:=LOC_FLAGS;
                end;
 
+             in_ofs_x,
+             in_seg_x :
+               set_varstate(p^.left,false);
              in_pred_x,
              in_succ_x:
                begin
                   inc(p^.registers32);
                   p^.resulttype:=p^.left^.resulttype;
                   p^.location.loc:=LOC_REGISTER;
+                  set_varstate(p^.left,true);
                   if not is_ordinal(p^.resulttype) then
                     CGMessage(type_e_ordinal_expr_expected)
                   else
@@ -580,8 +581,8 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
-                      p^.left^.resulttype:=nil;
-                      firstcallparan(p^.left,nil);
+                      firstcallparan(p^.left,nil,true);
+                      set_varstate(p^.left,true);
                       if codegenerror then
                        exit;
                       { first param must be var }
@@ -636,8 +637,8 @@ implementation
                   if assigned(p^.left) then
                     begin
                        dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
-                       p^.left^.resulttype:=nil;
-                       firstcallparan(p^.left,nil);
+                       firstcallparan(p^.left,nil,true);
+                       set_varstate(p^.left,dowrite);
                        { now we can check }
                        hp:=p^.left;
                        while assigned(hp^.right) do
@@ -789,9 +790,8 @@ implementation
                        { pass all parameters again for the typeconversions }
                        if codegenerror then
                          exit;
-                       must_be_valid:=true;
-                       p^.left^.resulttype:=nil;
-                       firstcallparan(p^.left,nil);
+                       firstcallparan(p^.left,nil,true);
+                       set_varstate(p^.left,true);
                        { calc registers }
                        left_right_max(p);
                        if extra_register then
@@ -822,9 +822,8 @@ implementation
              in_rewrite_typedfile :
                begin
                   procinfo^.flags:=procinfo^.flags or pi_do_call;
-                  { to be sure the right definition is loaded }
-                  p^.left^.resulttype:=nil;
                   firstpass(p^.left);
+                  set_varstate(p^.left,true);
                   p^.resulttype:=voiddef;
                end;
 
@@ -841,18 +840,14 @@ implementation
                    end;
                   { first pass just the string for first local use }
                   hp:=p^.left^.right;
-                  must_be_valid:=false;
-                  count_ref:=true;
                   p^.left^.right:=nil;
-                  p^.left^.resulttype:=nil;
-                  firstcallparan(p^.left,nil);
+                  firstcallparan(p^.left,nil,true);
+                  set_varstate(p^.left,false);
                   { remove warning when result is passed }
                   set_funcret_is_valid(p^.left^.left);
-                  must_be_valid:=true;
                   p^.left^.right:=hp;
-                  { force second parsing }
-                  hp^.resulttype:=nil;
-                  firstcallparan(p^.left^.right,nil);
+                  firstcallparan(p^.left^.right,nil,true);
+                  set_varstate(p^.left^.right,true);
                   hp:=p^.left;
                   { valid string ? }
                   if not assigned(hp) or
@@ -900,6 +895,8 @@ implementation
                   hpp:=p^.left^.right;
                   if assigned(hpp) and hpp^.is_colon_para then
                     begin
+                      firstpass(hpp^.left);
+                      set_varstate(hpp^.left,true);
                       if (not is_integer(hpp^.resulttype)) then
                         CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
                       else
@@ -912,22 +909,22 @@ implementation
                              if (not is_integer(hpp^.resulttype)) then
                                CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
                              else
-                               hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                               begin
+                                 firstpass(hpp^.left);
+                                 set_varstate(hpp^.left,true);
+
+                                 hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                               end;
                            end
                           else
                            CGMessage(parser_e_illegal_colon_qualifier);
                         end;
                     end;
 
-                  { for first local use }
-                  must_be_valid:=false;
-                  count_ref:=true;
                   { pass all parameters again for the typeconversions }
                   if codegenerror then
                     exit;
-                  must_be_valid:=true;
-                  p^.left^.resulttype:=nil;
-                  firstcallparan(p^.left,nil);
+                  firstcallparan(p^.left,nil,true);
                   { calc registers }
                   left_right_max(p);
                end;
@@ -949,11 +946,9 @@ implementation
                   { first pass just the code parameter for first local use}
                        hp := p^.left^.right;
                        p^.left^.right := nil;
-                       must_be_valid := false;
-                       count_ref := true;
                        make_not_regable(p^.left^.left);
-                       p^.left^.resulttype:=nil;
-                       firstcallparan(p^.left, nil);
+                       firstcallparan(p^.left, nil,true);
+                       set_varstate(p^.left,false);
                        if codegenerror then exit;
                        p^.left^.right := hp;
                      {code has to be a var parameter}
@@ -970,13 +965,12 @@ implementation
                   {now hpp = the destination value tree}
                   { first pass just the destination parameter for first local use}
                   hp:=hpp^.right;
-                  must_be_valid:=false;
-                  count_ref:=true;
                   hpp^.right:=nil;
                   {hpp = destination}
                   make_not_regable(hpp^.left);
-                  hpp^.resulttype:=nil;
-                  firstcallparan(hpp,nil);
+                  firstcallparan(hpp,nil,true);
+                  set_varstate(hpp,false);
+
                   if codegenerror then
                     exit;
                   { remove warning when result is passed }
@@ -991,12 +985,10 @@ implementation
                                u8bit,s8bit,u16bit,s16bit,s64bit,u64bit]))) Then
                        CGMessage(type_e_mismatch);
                    end;
-                  must_be_valid:=true;
                  {hp = source (String)}
                   { count_ref := false; WHY ?? }
-                  must_be_valid := true;
-                  hp^.resulttype:=nil;
-                  firstcallparan(hp,nil);
+                  firstcallparan(hp,nil,true);
+                  set_varstate(hp,true);
                   if codegenerror then
                     exit;
                   { if not a stringdef then insert a type conv which
@@ -1023,8 +1015,8 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
-                      p^.left^.resulttype:=nil;
-                      firstcallparan(p^.left,nil);
+                      firstcallparan(p^.left,nil,true);
+                      set_varstate(p^.left,true);
                       p^.registers32:=p^.left^.registers32;
                       p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1062,6 +1054,7 @@ implementation
              in_low_x,
              in_high_x:
                begin
+                  set_varstate(p^.left,false);
                   if p^.left^.treetype in [typen,loadn,subscriptn] then
                     begin
                        case p^.left^.resulttype^.deftype of
@@ -1235,8 +1228,8 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
-                      p^.left^.resulttype:=nil;
-                      firstcallparan(p^.left,nil);
+                      firstcallparan(p^.left,nil,true);
+                      set_varstate(p^.left,true);
                       p^.registers32:=p^.left^.registers32;
                       p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1272,15 +1265,18 @@ implementation
            { generate an error if no resulttype is set }
            if not assigned(p^.resulttype) then
              p^.resulttype:=generrordef;
-           must_be_valid:=store_valid;
-           count_ref:=store_count_ref;
+         dec(parsing_para_level);
        end;
 
 
 end.
 {
   $Log$
-  Revision 1.59  1999-11-17 17:05:07  pierre
+  Revision 1.60  1999-11-18 15:34:49  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.59  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.58  1999/11/06 14:34:30  peter

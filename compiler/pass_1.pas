@@ -78,7 +78,7 @@ implementation
          { no temps over several statements }
          cleartempgen;
          { right is the statement itself calln assignn or a complex one }
-         must_be_valid:=true;
+         {must_be_valid:=true; obsolete PM }
          firstpass(p^.right);
          if (not (cs_extsyntax in aktmoduleswitches)) and
             assigned(p^.right^.resulttype) and
@@ -230,10 +230,10 @@ implementation
              firstnothing,     {callparan}
              firstrealconst,   {realconstn}
              firstfixconst,    {fixconstn}
-             firstumminus,     {umminusn}
-             firstasm,   {asmn}
-             firstvec,   {vecn}
-             firstpointerconst, {pointerconstn}
+             firstunaryminus,  {unaryminusn}
+             firstasm,         {asmn}
+             firstvec,         {vecn}
+             firstpointerconst,{pointerconstn}
              firststringconst, {stringconstn}
              firstfuncret,     {funcretn}
              firstself, {selfn}
@@ -371,7 +371,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  1999-11-17 17:05:01  pierre
+  Revision 1.109  1999-11-18 15:34:47  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.108  1999/11/17 17:05:01  pierre
    * Notes/hints changes
 
   Revision 1.107  1999/10/26 12:30:43  peter

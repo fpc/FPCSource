@@ -28,7 +28,7 @@ interface
 
     procedure secondmoddiv(var p : ptree);
     procedure secondshlshr(var p : ptree);
-    procedure secondumminus(var p : ptree);
+    procedure secondunaryminus(var p : ptree);
     procedure secondnot(var p : ptree);
 
 
@@ -594,10 +594,10 @@ implementation
 
 
 {*****************************************************************************
-                             SecondUmMinus
+                             SecondUnaryMinus
 *****************************************************************************}
 
-    procedure secondumminus(var p : ptree);
+    procedure secondunaryminus(var p : ptree);
 
 {$ifdef SUPPORT_MMX}
       procedure do_mmx_neg;
@@ -940,7 +940,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-11-06 14:34:18  peter
+  Revision 1.36  1999-11-18 15:34:44  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.35  1999/11/06 14:34:18  peter
     * truncated log to 20 revs
 
   Revision 1.34  1999/09/28 19:43:47  florian

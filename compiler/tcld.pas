@@ -148,46 +148,6 @@ implementation
 
                    { count variable references }
 
-                   if must_be_valid and p^.is_first then
-                     begin
-                       if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
-                          (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
-                        if (assigned(pvarsym(p^.symtableentry)^.owner) and
-                           assigned(aktprocsym) and
-                           (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                         begin
-                           if p^.symtable^.symtabletype=localsymtable then
-                            CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
-                           else
-                            CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
-                         end;
-                     end;
-                   if count_ref then
-                     begin
-                        if (p^.is_first) then
-                          begin
-                            if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
-                            { this can only happen at left of an assignment, no ? PM }
-                             if (parsing_para_level=0) and not must_be_valid then
-                              pvarsym(p^.symtableentry)^.varstate:=vs_assigned
-                             else
-                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
-                            if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
-                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
-                            p^.is_first:=false;
-                          end
-                        else
-                          begin
-                            if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
-                               (must_be_valid or (parsing_para_level>0) or
-                                (p^.resulttype^.deftype=procvardef)) then
-                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
-                            if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
-                               (must_be_valid or (parsing_para_level>0) or
-                               (p^.resulttype^.deftype=procvardef)) then
-                              pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
-                          end;
-                     end;
                      { this will create problem with local var set by
                      under_procedures
                      if (assigned(pvarsym(p^.symtableentry)^.owner) and assigned(aktprocsym)
@@ -236,12 +196,8 @@ implementation
 
     procedure firstassignment(var p : ptree);
       var
-         store_valid : boolean;
          hp : ptree;
       begin
-         store_valid:=must_be_valid;
-         must_be_valid:=false;
-
          { must be made unique }
          set_unique(p^.left);
 
@@ -249,6 +205,7 @@ implementation
          set_funcret_is_valid(p^.left);
 
          firstpass(p^.left);
+         set_varstate(p^.left,false);
          if codegenerror then
            exit;
 
@@ -285,9 +242,8 @@ implementation
                 end;
            end;
 {$endif i386}
-         must_be_valid:=true;
          firstpass(p^.right);
-         must_be_valid:=store_valid;
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
 
@@ -361,16 +317,6 @@ implementation
          if ret_in_param(p^.retdef) or
             (procinfo<>pprocinfo(p^.funcretprocinfo)) then
            p^.registers32:=1;
-         { no claim if setting higher return value_str }
-         if must_be_valid and
-            (procinfo=pprocinfo(p^.funcretprocinfo)) and
-            ((procinfo^.funcret_state=vs_declared) or
-            (p^.is_first_funcret)) then
-           begin
-             CGMessage(sym_w_function_result_not_set);
-             { avoid multiple warnings }
-             procinfo^.funcret_state:=vs_assigned;
-           end;
       end;
 
 
@@ -521,7 +467,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-11-17 17:05:07  pierre
+  Revision 1.51  1999-11-18 15:34:50  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.50  1999/11/17 17:05:07  pierre
    * Notes/hints changes
 
   Revision 1.49  1999/11/06 14:34:30  peter

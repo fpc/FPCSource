@@ -102,6 +102,10 @@ implementation
          if is_array_constructor(p^.right^.resulttype) then
            arrayconstructor_to_set(p^.right);
 
+         { both left and right need to be valid }
+         set_varstate(p^.left,true);
+         set_varstate(p^.right,true);
+
          { load easier access variables }
          lt:=p^.left^.treetype;
          rt:=p^.right^.treetype;
@@ -277,8 +281,20 @@ implementation
                  addn : t:=genrealconstnode(lvd+rvd,bestrealdef^);
                  subn : t:=genrealconstnode(lvd-rvd,bestrealdef^);
                  muln : t:=genrealconstnode(lvd*rvd,bestrealdef^);
-               caretn : t:=genrealconstnode(exp(ln(lvd)*rvd),bestrealdef^);
-               slashn : begin
+               starstarn,
+               caretn : begin
+                          if lvd<0 then
+                           begin
+                             Message(parser_e_invalid_float_operation);
+                             t:=genrealconstnode(0,bestrealdef^);
+                           end
+                          else if lvd=0 then
+                            t:=genrealconstnode(1.0,bestrealdef^)
+                          else
+                            t:=genrealconstnode(exp(ln(lvd)*rvd),bestrealdef^);
+                        end;
+               slashn :
+                        begin
                           if rvd=0 then
                            begin
                              Message(parser_e_invalid_float_operation);
@@ -1159,7 +1175,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-11-17 17:05:06  pierre
+  Revision 1.56  1999-11-18 15:34:48  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.55  1999/11/17 17:05:06  pierre
    * Notes/hints changes
 
   Revision 1.54  1999/11/16 23:45:28  pierre

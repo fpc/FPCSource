@@ -593,7 +593,7 @@ implementation
      begin
        aprocdef:=nil;
        { if explicite type cast, then run firstpass }
-       if p^.explizit then
+       if (p^.explizit) or not assigned(p^.left^.resulttype) then
          firstpass(p^.left);
        if (p^.left^.treetype=typen) and (p^.left^.resulttype=generrordef) then
          begin
@@ -893,14 +893,11 @@ implementation
 *****************************************************************************}
 
     procedure firstis(var p : ptree);
-      var
-         Store_valid : boolean;
       begin
-         Store_valid:=Must_be_valid;
-         Must_be_valid:=true;
          firstpass(p^.left);
+         set_varstate(p^.left,true);
          firstpass(p^.right);
-         Must_be_valid:=Store_valid;
+         set_varstate(p^.right,true);
          if codegenerror then
            exit;
 
@@ -931,14 +928,11 @@ implementation
 *****************************************************************************}
 
     procedure firstas(var p : ptree);
-      var
-         Store_valid : boolean;
       begin
-         Store_valid:=Must_be_valid;
-         Must_be_valid:=true;
          firstpass(p^.right);
+         set_varstate(p^.right,true);
          firstpass(p^.left);
-         Must_be_valid:=Store_valid;
+         set_varstate(p^.left,true);
          if codegenerror then
            exit;
 
@@ -967,7 +961,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-11-06 14:34:29  peter
+  Revision 1.53  1999-11-18 15:34:49  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.52  1999/11/06 14:34:29  peter
     * truncated log to 20 revs
 
   Revision 1.51  1999/11/05 13:15:00  florian

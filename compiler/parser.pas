@@ -329,6 +329,7 @@ unit parser;
             oldrecoverpos:=recoverpospointer;
             recoverpospointer:=@recoverpos;
 {$endif USEEXCEPT}
+
             if (token=_UNIT) or (compile_level>1) then
               begin
                 current_module^.is_unit:=true;
@@ -500,7 +501,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.91  1999-11-09 23:48:47  pierre
+  Revision 1.92  1999-11-18 15:34:46  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.91  1999/11/09 23:48:47  pierre
    * some DBX work, still does not work
 
   Revision 1.90  1999/11/06 14:34:21  peter
