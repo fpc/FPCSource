@@ -893,63 +893,125 @@ end;
 { ---------------------------------------------------------------------
   Float properties
   ---------------------------------------------------------------------}
-
 Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
 
 var
-         Index,Ivalue : longint;
-         Value : Extended;
+  Index,Ivalue : longint;
+  Value : Extended;
 
 begin
-         SetIndexValues(PropInfo,Index,Ivalue);
-         case (PropInfo^.PropProcs) and 3 of
-            ptfield:
-              Case GetTypeData(PropInfo^.PropType)^.FloatType of
-               ftSingle:
-                 Value:=PSingle(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-               ftDouble:
-                 Value:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-               ftExtended:
-                 Value:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+  SetIndexValues(PropInfo,Index,Ivalue);
+  case (PropInfo^.PropProcs) and 3 of
+    ptField:
+      Case GetTypeData(PropInfo^.PropType)^.FloatType of
+       ftSingle:
+         Value:=PSingle(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+       ftDouble:
+         Value:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+       ftExtended:
+         Value:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
 {$ifndef m68k}
-               ftcomp:
-                 Value:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+       ftcomp:
+         Value:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
 {$endif m68k}
-               end;
-            ptstatic:
-              Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
-            ptvirtual:
-              Value:=CallExtendedFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
-         end;
-         Result:=Value;
+       end;
+
+    ptStatic:
+      Case GetTypeData(PropInfo^.PropType)^.FloatType of
+       ftSingle:
+         Value:=CallSingleFunc(Instance,PropInfo^.GetProc,Index,IValue);
+       ftDouble:
+         Value:=CallDoubleFunc(Instance,PropInfo^.GetProc,Index,IValue);
+       ftExtended:
+         Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
+      end;
+
+    ptVirtual:
+      Case GetTypeData(PropInfo^.PropType)^.FloatType of
+       ftSingle:
+         Value:=CallSingleFunc(Instance,
+              PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
+              Index,IValue);
+       ftDouble:
+         Value:=CallDoubleFunc(Instance,
+              PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
+              Index,IValue);
+       ftExtended:
+         Value:=CallExtendedFunc(Instance,
+              PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
+              Index,IValue);
+      end;
+  end;
+  Result:=Value;
 end;
 
 Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
-      Value : Extended);
+  Value : Extended);
 
-       Var IValue,Index : longint;
+type
+  TSetExtendedProc = procedure(const AValue: Extended) of object;
+  TSetExtendedProcIndex = procedure(Index: integer; const AValue: Extended) of object;
+  TSetDoubleProc = procedure(const AValue: Double) of object;
+  TSetDoubleProcIndex = procedure(Index: integer; const AValue: Double) of object;
+  TSetSingleProc = procedure(const AValue: Single) of object;
+  TSetSingleProcIndex = procedure(Index: integer; const AValue: Single) of object;
+
+Var IValue,Index : longint;
+  AMethod: TMethod;
 
 begin
-         SetIndexValues(PropInfo,Index,Ivalue);
-         case (PropInfo^.PropProcs shr 2) and 3 of
-            ptfield:
-              Case GetTypeData(PropInfo^.PropType)^.FloatType of
-               ftSingle:
-                 PSingle(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
-               ftDouble:
-                 PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
-               ftExtended:
-                 PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+  SetIndexValues(PropInfo,Index,Ivalue);
+  case (PropInfo^.PropProcs shr 2) and 3 of
+
+    ptfield:
+      Case GetTypeData(PropInfo^.PropType)^.FloatType of
+        ftSingle:
+          PSingle(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+        ftDouble:
+          PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+        ftExtended:
+          PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
 {$ifndef m68k}
-               ftcomp:
-                 PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Comp(Value);
+       ftcomp:
+          PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Comp(Value);
 {$endif m68k}
-               end;
-            ptstatic:
-              CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
-            ptvirtual:
-              CallExtendedProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
-         end;
+        { Uncommenting this code results in a internal error!!
+       ftFixed16:
+         PFixed16(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+       ftfixed32:
+         PFixed32(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+       }
+       end;
+
+    ptStatic, ptVirtual:
+      begin
+        if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+          AMethod.Code:=PropInfo^.SetProc
+        else
+          AMethod.Code:=
+            PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+        AMethod.Data:=Instance;
+        Case GetTypeData(PropInfo^.PropType)^.FloatType of
+          ftSingle:
+            if Index=0 then
+              TSetSingleProc(AMethod)(Value)
+            else
+              TSetSingleProcIndex(AMethod)(IValue,Value);
+
+          ftDouble:
+            if Index=0 then
+              TSetDoubleProc(AMethod)(Value)
+            else
+              TSetDoubleProcIndex(AMethod)(IValue,Value);
+
+          ftExtended:
+            if Index=0 then
+              TSetExtendedProc(AMethod)(Value)
+            else
+              TSetExtendedProcIndex(AMethod)(IValue,Value);
+        end;
+      end;
+  end;
 end;
 
 Function GetFloatProp(Instance: TObject; const PropName: string): Extended;
@@ -1151,7 +1213,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-09-07 16:01:22  peter
+  Revision 1.15  2003-03-29 16:55:56  michael
+  + Patch from Mattias Gaertner for single typeinfo
+
+  Revision 1.14  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.13  2002/04/04 18:32:59  peter

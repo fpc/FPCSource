@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$packrecords C}
+
 const
   SI_PAD_SIZE   = ((128/sizeof(longint)) - 3);
 
@@ -130,6 +131,7 @@ Procedure SigAction(Signum:Integer;Act,OldAct:PSigActionRec );
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
+
 Var
   sr : Syscallregs;
 begin
@@ -141,7 +143,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:20  peter
+  Revision 1.4  2003-03-29 16:55:56  michael
+  + Patch from Mattias Gaertner for single typeinfo
+
+  Revision 1.3  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
 }

@@ -58,7 +58,8 @@ Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IV
      call %edi
   end;
 
-Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
+Function CallSingleFunc(s : Pointer; Address : Pointer;
+  Index, IValue : Longint) : Single; assembler;
   asm
      movl S,%esi
      movl Address,%edi
@@ -74,24 +75,37 @@ Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint)
      //
   end;
 
-Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
+Function CallDoubleFunc(s : Pointer; Address : Pointer;
+  Index, IValue : Longint) : Double; assembler;
   asm
      movl S,%esi
      movl Address,%edi
-     // Push value to set
-     leal Value,%eax
-     pushl (%eax)
-     pushl 4(%eax)
-     pushl 8(%eax)
-     // ? Indexed Procedure
+     // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
-     je .LIPNoPush
+     je .LINoPush
      movl IValue,%eax
      pushl %eax
-  .LIPNoPush:
+  .LINoPush:
      push %esi
      call %edi
+     //
+  end;
+
+Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
+  asm
+     movl S,%esi
+     movl Address,%edi
+     // ? Indexed Function
+     movl Index,%eax
+     testl %eax,%eax
+     je .LINoPush
+     movl IValue,%eax
+     pushl %eax
+  .LINoPush:
+     push %esi
+     call %edi
+     //
   end;
 
 Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
@@ -153,7 +167,10 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:19  peter
+  Revision 1.5  2003-03-29 16:55:56  michael
+  + Patch from Mattias Gaertner for single typeinfo
+
+  Revision 1.4  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }
