@@ -1028,9 +1028,6 @@ const
         a_reg_alloc(list,NR_STACK_POINTER_REG);
         a_reg_alloc(list,NR_R0);
 
-        if current_procinfo.procdef.parast.symtablelevel>1 then
-          a_reg_alloc(list,NR_R11);
-
         usesfpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
@@ -1103,7 +1100,8 @@ const
           end;
 
 
-        if (localsize <> 0) then
+        if (not nostackframe) and
+           (localsize <> 0) then
           begin
             if (localsize <= high(smallint)) then
               begin
@@ -1223,6 +1221,7 @@ const
                                   internalerror(2004070910);
                               end;
                             end;
+{
                           LOC_CREGISTER:
                             begin
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
@@ -1235,6 +1234,7 @@ const
                             end;
                           else
                             internalerror(2004070911);
+}
                         end;
                       end;
                     hp := tparaitem(hp.next);
@@ -1403,7 +1403,8 @@ const
              { (register allocator is no longer valid at this time and an add of 0   }
              { is translated into a move, which is then registered with the register }
              { allocator, causing a crash                                            }
-             if (localsize <> 0) then
+             if (not nostackframe) and
+                (localsize <> 0) then
                a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
              { load link register? }
              if not (po_assembler in current_procinfo.procdef.procoptions) then
@@ -2372,7 +2373,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.179  2004-10-11 07:13:14  jonas
+  Revision 1.180  2004-10-20 07:32:42  jonas
+    + support for nostackframe directive
+
+  Revision 1.179  2004/10/11 07:13:14  jonas
     * include pi_do_call if we generate a call instead of internalerroring
       (workaround)
 
