@@ -308,7 +308,6 @@ implementation
         right_small:=(p^.right^.resulttype^.deftype=setdef) and (psetdef(p^.right^.resulttype)^.settype=smallset);
 
         { handle operations }
-        reset_reference(href2);
         case p^.treetype of
           equaln,
         unequaln : begin
@@ -316,7 +315,7 @@ implementation
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
-                     emitpushreferenceaddr(exprasmlist,href2);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                      emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      emitcall('SET_COMP_SETS',true);
                      maybe_loadesi;
@@ -1237,7 +1236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-08-18 09:24:35  pierre
+  Revision 1.7  1998-08-19 14:56:59  peter
+    * forgot to removed some unused code in addset for set<>set
+
+  Revision 1.6  1998/08/18 09:24:35  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected
