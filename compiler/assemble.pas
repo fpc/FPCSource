@@ -386,43 +386,13 @@ end;
 
 {Touch Assembler and object time to ppu time is there is a ppufilename}
 procedure TAsmList.Synchronize;
-var
-  f : file;
-  l : longint;
 begin
 {Touch Assembler time to ppu time is there is a ppufilename}
   if Assigned(current_module^.ppufilename) then
    begin
-     Assign(f,current_module^.ppufilename^);
-     {$I-}
-      reset(f,1);
-     {$I+}
-     if ioresult=0 then
-      begin
-        getftime(f,l);
-        close(f);
-        assign(f,asmfile);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        if ioresult=0 then
-         begin
-           setftime(f,l);
-           close(f);
-         end;
-        if not(cs_asm_extern in aktglobalswitches) then
-         begin
-           assign(f,objfile);
-           {$I-}
-            reset(f,1);
-           {$I+}
-           if ioresult=0 then
-            begin
-              setftime(f,l);
-              close(f);
-            end;
-         end;
-      end;
+     SynchronizeFileTime(current_module^.ppufilename^,asmfile);
+     if not(cs_asm_extern in aktglobalswitches) then
+       SynchronizeFileTime(current_module^.ppufilename^,objfile);
    end;
 end;
 
@@ -498,6 +468,8 @@ begin
          end;
          b^.WriteBin;
          dispose(b,done);
+         if assigned(current_module^.ppufilename) then
+           SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
          exit;
        end;
   {$endif Ag386Bin}
@@ -562,7 +534,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-02-26 00:48:15  peter
+  Revision 1.39  1999-03-01 15:43:48  peter
+    * synchronize also the objfile for ag386bin
+
+  Revision 1.38  1999/02/26 00:48:15  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.37  1999/02/24 00:59:11  peter
