@@ -149,7 +149,6 @@ type
     _LIBRARY,
     _PRIVATE,
     _PROGRAM,
-    _VA_LIST,
     _VIRTUAL,
     _ABSOLUTE,
     _ABSTRACT,
@@ -308,7 +307,6 @@ const
       (str:'LIBRARY'       ;special:false;keyword:m_all),
       (str:'PRIVATE'       ;special:false;keyword:m_none),
       (str:'PROGRAM'       ;special:false;keyword:m_all),
-      (str:'VA_LIST'       ;special:false;keyword:m_fpc),
       (str:'VIRTUAL'       ;special:false;keyword:m_none),
       (str:'ABSOLUTE'      ;special:false;keyword:m_none),
       (str:'ABSTRACT'      ;special:false;keyword:m_none),
@@ -336,7 +334,10 @@ const
 
 {
   $Log$
-  Revision 1.4  1998-11-09 11:44:42  peter
+  Revision 1.5  1998-11-10 10:09:19  peter
+    * va_list -> array of const
+
+  Revision 1.4  1998/11/09 11:44:42  peter
     + va_list for printf support
 
   Revision 1.3  1998/10/16 14:21:05  daniel

@@ -340,6 +340,8 @@ implementation
     procedure firstarrayconstruct(var p : ptree);
       var
         pd : pdef;
+        thp,
+        chp,
         hp : ptree;
         len : longint;
         varia : boolean;
@@ -366,6 +368,13 @@ implementation
                             hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
                             firstpass(hp^.left);
                           end;
+              stringdef : begin
+                            if p^.cargs then
+                             begin
+                               hp^.left:=gentypeconvnode(hp^.left,charpointerdef);
+                               firstpass(hp^.left);
+                             end;
+                          end;
               end;
               if (pd=nil) then
                pd:=hp^.left^.resulttype
@@ -374,6 +383,22 @@ implementation
                 varia:=true;
               inc(len);
               hp:=hp^.right;
+            end;
+         { swap the tree for cargs }
+           if p^.cargs and (not p^.cargswap) then
+            begin
+              chp:=nil;
+              hp:=p;
+              while assigned(hp) do
+               begin
+                 thp:=hp^.right;
+                 hp^.right:=chp;
+                 chp:=hp;
+                 hp:=thp;
+               end;
+              p:=chp;
+              p^.cargs:=true;
+              p^.cargswap:=true;
             end;
          end;
         calcregisters(p,0,0,0);
@@ -398,7 +423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-11-05 14:26:48  peter
+  Revision 1.8  1998-11-10 10:09:18  peter
+    * va_list -> array of const
+
+  Revision 1.7  1998/11/05 14:26:48  peter
     * fixed variant warning with was sometimes said with sets
 
   Revision 1.6  1998/10/19 08:55:12  pierre

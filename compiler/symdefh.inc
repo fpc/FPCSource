@@ -94,7 +94,7 @@
 
        targconvtyp = (act_convertable,act_equal,act_exact);
 
-       tvarspez = (vs_value,vs_const,vs_var,vs_va_list);
+       tvarspez = (vs_value,vs_const,vs_var);
 
        pdefcoll = ^tdefcoll;
        tdefcoll = record
@@ -483,7 +483,10 @@
 
 {
   $Log$
-  Revision 1.8  1998-11-09 11:44:37  peter
+  Revision 1.9  1998-11-10 10:09:14  peter
+    * va_list -> array of const
+
+  Revision 1.8  1998/11/09 11:44:37  peter
     + va_list for printf support
 
   Revision 1.7  1998/11/05 12:02:59  peter

@@ -66,12 +66,7 @@ implementation
               if defcoll=nil then
                 firstcallparan(p^.right,nil)
               else
-                begin
-                  if defcoll^.paratyp=vs_va_list then
-                    firstcallparan(p^.right,defcoll)
-                  else
-                   firstcallparan(p^.right,defcoll^.next);
-                end;
+                firstcallparan(p^.right,defcoll^.next);
               p^.registers32:=p^.right^.registers32;
               p^.registersfpu:=p^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -97,12 +92,12 @@ implementation
          { conversions are inserted                              }
          else
            begin
-               if count_ref then
+              if count_ref then
                  begin
                     store_valid:=must_be_valid;
                     if (defcoll^.paratyp=vs_var) then
                       test_protected(p^.left);
-                    if not(defcoll^.paratyp in [vs_var,vs_va_list]) then
+                    if (defcoll^.paratyp<>vs_var) then
                       must_be_valid:=true
                     else
                       must_be_valid:=false;
@@ -158,10 +153,22 @@ implementation
                          ) and
                      not(is_equal(p^.left^.resulttype,defcoll^.data))) then
                        CGMessage(parser_e_call_by_ref_without_typeconv);
+                   { process cargs arrayconstructor }
+                   if is_array_constructor(p^.left^.resulttype) and
+                      (aktcallprocsym^.definition^.options and pocdecl<>0) and
+                      (aktcallprocsym^.definition^.options and poexternal<>0) then
+                    begin
+                      p^.left^.cargs:=true;
+                      old_array_constructor:=allow_array_constructor;
+                      allow_array_constructor:=true;
+                      firstpass(p^.left);
+                      allow_array_constructor:=old_array_constructor;
+                    end;
                    { don't generate an type conversion for open arrays   }
                    { else we loss the ranges                             }
                    if is_open_array(defcoll^.data) then
                     begin
+                      { insert type conv but hold the ranges of the array }
                       oldtype:=p^.left^.resulttype;
                       p^.left:=gentypeconvnode(p^.left,defcoll^.data);
                       firstpass(p^.left);
@@ -185,15 +192,8 @@ implementation
                  (defcoll^.paratyp=vs_var) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
                  CGMessage(type_e_strict_var_string_violation);
-              { va_list always uses pchars }
-              if (defcoll^.paratyp=vs_va_list) and
-                 is_shortstring(p^.left^.resulttype) then
-                begin
-                  p^.left:=gentypeconvnode(p^.left,charpointerdef);
-                  firstpass(p^.left);
-                end;
-              { Variablen, die call by reference Åbergeben werden, }
-              { kînnen nicht in ein Register kopiert werden       }
+              { Variablen for call by reference may not be copied }
+              { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
               if defcoll^.paratyp=vs_var then
@@ -202,8 +202,7 @@ implementation
                    make_not_regable(p^.left);
                 end;
 
-              if defcoll^.paratyp<>vs_va_list then
-               p^.resulttype:=defcoll^.data;
+              p^.resulttype:=defcoll^.data;
            end;
          if p^.left^.registers32>p^.registers32 then
            p^.registers32:=p^.left^.registers32;
@@ -233,7 +232,7 @@ implementation
       var
          hp,procs,hp2 : pprocdefcoll;
          pd : pprocdef;
-         actprocsym : pprocsym;
+         oldcallprocsym : pprocsym;
          nextprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
          pt,inlinecode : ptree;
@@ -299,6 +298,9 @@ implementation
          { made this global for disposing !! }
          store_valid:=must_be_valid;
          must_be_valid:=false;
+
+         oldcallprocsym:=aktcallprocsym;
+         aktcallprocsym:=nil;
 
          inlined:=false;
          if assigned(p^.procdefinition) and
@@ -381,10 +383,11 @@ implementation
                      exit;
                 end;
 
+              aktcallprocsym:=pprocsym(p^.symtableprocentry);
+
               { do we know the procedure to call ? }
               if not(assigned(p^.procdefinition)) then
                 begin
-                   actprocsym:=pprocsym(p^.symtableprocentry);
 {$ifdef TEST_PROCSYMS}
                  if (p^.unit_specific) or
                     assigned(p^.methodpointer) then
@@ -422,7 +425,7 @@ implementation
                      end;
 
                    { link all procedures which have the same # of parameters }
-                   pd:=actprocsym^.definition;
+                   pd:=aktcallprocsym^.definition;
                    while assigned(pd) do
                      begin
                         { we should also check that the overloaded function
@@ -447,7 +450,7 @@ implementation
                                   pdc:=pdc^.next;
                                end;
                              { only when the # of parameter are equal }
-                             if (l=paralength) or ((l=1) and (pd^.para1^.paratyp=vs_va_list)) then
+                             if (l=paralength) then
                                begin
                                   new(hp);
                                   hp^.data:=pd;
@@ -467,102 +470,97 @@ implementation
                       (nextprocsym=nil) then
                     begin
                        CGMessage(parser_e_wrong_parameter_size);
-                       actprocsym^.write_parameter_lists;
+                       aktcallprocsym^.write_parameter_lists;
                        exit;
                     end;
 
-                   { now we can compare parameter after parameter }
-                   if assigned(procs) and 
-		      (not assigned(procs^.nextpara) or
-                       (procs^.nextpara^.paratyp<>vs_va_list)) then
-                    begin
-                      pt:=p^.left;
-                      while assigned(pt) do
-                        begin
-                           { matches a parameter of one procedure exact ? }
-                           exactmatch:=false;
-                           hp:=procs;
-                           while assigned(hp) do
-                             begin
-                                if is_equal(hp^.nextpara^.data,pt^.resulttype) then
-                                  begin
-                                     if hp^.nextpara^.data=pt^.resulttype then
-                                       begin
-                                          pt^.exact_match_found:=true;
-                                          hp^.nextpara^.argconvtyp:=act_exact;
-                                       end
-                                     else
-                                       hp^.nextpara^.argconvtyp:=act_equal;
-                                     exactmatch:=true;
-                                  end
-                                else
-                                  hp^.nextpara^.argconvtyp:=act_convertable;
-                                hp:=hp^.next;
-                             end;
+                { now we can compare parameter after parameter }
+                   pt:=p^.left;
+                   while assigned(pt) do
+                     begin
+                        { matches a parameter of one procedure exact ? }
+                        exactmatch:=false;
+                        hp:=procs;
+                        while assigned(hp) do
+                          begin
+                             if is_equal(hp^.nextpara^.data,pt^.resulttype) then
+                               begin
+                                  if hp^.nextpara^.data=pt^.resulttype then
+                                    begin
+                                       pt^.exact_match_found:=true;
+                                       hp^.nextpara^.argconvtyp:=act_exact;
+                                    end
+                                  else
+                                    hp^.nextpara^.argconvtyp:=act_equal;
+                                  exactmatch:=true;
+                               end
+                             else
+                               hp^.nextpara^.argconvtyp:=act_convertable;
+                             hp:=hp^.next;
+                          end;
 
-                           { .... if yes, del all the other procedures }
-                           if exactmatch then
-                             begin
-                                { the first .... }
-                                while (assigned(procs)) and not(is_equal(procs^.nextpara^.data,pt^.resulttype)) do
-                                  begin
-                                     hp:=procs^.next;
-                                     dispose(procs);
-                                     procs:=hp;
-                                  end;
-                                { and the others }
-                                hp:=procs;
-                                while (assigned(hp)) and assigned(hp^.next) do
-                                  begin
-                                     if not(is_equal(hp^.next^.nextpara^.data,pt^.resulttype)) then
-                                       begin
-                                          hp2:=hp^.next^.next;
-                                          dispose(hp^.next);
-                                          hp^.next:=hp2;
-                                       end
-                                     else
-                                       hp:=hp^.next;
-                                  end;
-                             end
-                           { when a parameter matches exact, remove all procs
-                             which need typeconvs }
-                           else
-                             begin
-                                { the first... }
-                                while (assigned(procs)) and
-                                  not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
-                                    hcvt,pt^.left^.treetype,false)) do
-                                  begin
-                                     hp:=procs^.next;
-                                     dispose(procs);
-                                     procs:=hp;
-                                  end;
-                                { and the others }
-                                hp:=procs;
-                                while (assigned(hp)) and assigned(hp^.next) do
-                                  begin
-                                     if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
-                                       hcvt,pt^.left^.treetype,false)) then
-                                       begin
-                                          hp2:=hp^.next^.next;
-                                          dispose(hp^.next);
-                                          hp^.next:=hp2;
-                                       end
-                                     else
-                                       hp:=hp^.next;
-                                  end;
-                             end;
-                           { update nextpara for all procedures }
-                           hp:=procs;
-                           while assigned(hp) do
-                             begin
-                                hp^.nextpara:=hp^.nextpara^.next;
-                                hp:=hp^.next;
-                             end;
-                           { load next parameter }
-                           pt:=pt^.right;
-                        end;
-                    end;
+                        { .... if yes, del all the other procedures }
+                        if exactmatch then
+                          begin
+                             { the first .... }
+                             while (assigned(procs)) and not(is_equal(procs^.nextpara^.data,pt^.resulttype)) do
+                               begin
+                                  hp:=procs^.next;
+                                  dispose(procs);
+                                  procs:=hp;
+                               end;
+                             { and the others }
+                             hp:=procs;
+                             while (assigned(hp)) and assigned(hp^.next) do
+                               begin
+                                  if not(is_equal(hp^.next^.nextpara^.data,pt^.resulttype)) then
+                                    begin
+                                       hp2:=hp^.next^.next;
+                                       dispose(hp^.next);
+                                       hp^.next:=hp2;
+                                    end
+                                  else
+                                    hp:=hp^.next;
+                               end;
+                          end
+                        { when a parameter matches exact, remove all procs
+                          which need typeconvs }
+                        else
+                          begin
+                             { the first... }
+                             while (assigned(procs)) and
+                               not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
+                                 hcvt,pt^.left^.treetype,false)) do
+                               begin
+                                  hp:=procs^.next;
+                                  dispose(procs);
+                                  procs:=hp;
+                               end;
+                             { and the others }
+                             hp:=procs;
+                             while (assigned(hp)) and assigned(hp^.next) do
+                               begin
+                                  if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
+                                    hcvt,pt^.left^.treetype,false)) then
+                                    begin
+                                       hp2:=hp^.next^.next;
+                                       dispose(hp^.next);
+                                       hp^.next:=hp2;
+                                    end
+                                  else
+                                    hp:=hp^.next;
+                               end;
+                          end;
+                        { update nextpara for all procedures }
+                        hp:=procs;
+                        while assigned(hp) do
+                          begin
+                             hp^.nextpara:=hp^.nextpara^.next;
+                             hp:=hp^.next;
+                          end;
+                        { load next parameter }
+                        pt:=pt^.right;
+                     end;
 
                    if not assigned(procs) then
                     begin
@@ -572,7 +570,7 @@ implementation
                          (nextprocsym=nil) then
                        begin
                           CGMessage(parser_e_wrong_parameter_type);
-                          actprocsym^.write_parameter_lists;
+                          aktcallprocsym^.write_parameter_lists;
                           exit;
                        end
                       else
@@ -698,7 +696,7 @@ implementation
                    if assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
-                        actprocsym^.write_parameter_lists;
+                        aktcallprocsym^.write_parameter_lists;
                      end;
 {$ifdef TEST_PROCSYMS}
                    if (procs=nil) and assigned(nextprocsym) then
@@ -736,7 +734,7 @@ implementation
                         p^.methodpointer:=nil;
                      end;
 {$endif CHAINPROCSYMS}
-               end;{ end of procedure to call determination }
+               end; { end of procedure to call determination }
 
               is_const:=((p^.procdefinition^.options and pointernconst)<>0) and
                         ((block_type=bt_const) or
@@ -923,6 +921,7 @@ implementation
            end;
          if assigned(procs) then
            dispose(procs);
+         aktcallprocsym:=oldcallprocsym;
          must_be_valid:=store_valid;
       end;
 
@@ -942,7 +941,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-09 11:44:41  peter
+  Revision 1.11  1998-11-10 10:09:17  peter
+    * va_list -> array of const
+
+  Revision 1.10  1998/11/09 11:44:41  peter
     + va_list for printf support
 
   Revision 1.9  1998/10/28 18:26:22  pierre

@@ -152,8 +152,13 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(p^.left);
+         { filter array constructor with c styled args }
+         if is_array_constructor(p^.left^.resulttype) and p^.left^.cargs then
+           begin
+             { nothing, everything is already pushed }
+           end
          { in codegen.handleread.. defcoll^.data is set to nil }
-         if assigned(defcoll^.data) and
+         else if assigned(defcoll^.data) and
            (defcoll^.data^.deftype=formaldef) then
            begin
               { allow @var }
@@ -173,8 +178,7 @@ implementation
                 end
               else
                 begin
-                   if (defcoll^.paratyp<>vs_va_list) and
-                      not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+                   if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                      CGMessage(type_e_mismatch)
                    else
                      begin
@@ -640,12 +644,7 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
-           begin
-             if defcoll^.paratyp=vs_va_list then
-               secondcallparan(p^.right,defcoll,push_from_left_to_right,inlined,para_offset)
-             else
-               secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
-           end;
+           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
       end;
 
 
@@ -1521,7 +1520,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1998-11-09 11:44:33  peter
+  Revision 1.40  1998-11-10 10:09:08  peter
+    * va_list -> array of const
+
+  Revision 1.39  1998/11/09 11:44:33  peter
     + va_list for printf support
 
   Revision 1.38  1998/10/21 15:12:49  pierre

@@ -49,22 +49,25 @@ unit types;
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
-    { true if o is an ansi string def }
+    { true, if p points to an array of const def }
+    function is_array_constructor(p : pdef) : boolean;
+
+    { true if p is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
 
-    { true if o is a long string def }
+    { true if p is a long string def }
     function is_longstring(p : pdef) : boolean;
 
-    { true if o is a wide string def }
+    { true if p is a wide string def }
     function is_widestring(p : pdef) : boolean;
 
-    { true if o is a short string def }
+    { true if p is a short string def }
     function is_shortstring(p : pdef) : boolean;
 
     { true if p is a char array def }
     function is_chararray(p : pdef) : boolean;
 
-    { true if o is a pchar def }
+    { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
 
     { returns true, if def defines a signed data type (only for ordinal types) }
@@ -256,6 +259,14 @@ unit types;
          is_open_array:=(p^.deftype=arraydef) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1);
+      end;
+
+
+    { true, if p points to an array of const def }
+    function is_array_constructor(p : pdef) : boolean;
+      begin
+         is_array_constructor:=(p^.deftype=arraydef) and
+                        (parraydef(p)^.IsConstructor);
       end;
 
 
@@ -982,7 +993,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.35  1998-10-19 08:55:13  pierre
+  Revision 1.36  1998-11-10 10:09:21  peter
+    * va_list -> array of const
+
+  Revision 1.35  1998/10/19 08:55:13  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

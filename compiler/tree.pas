@@ -228,6 +228,7 @@ unit tree;
              labeln,goton : (labelnr : plabel);
              withn : (withsymtable : psymtable;tablecount : longint);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
+             arrayconstructn : (cargs,cargswap: boolean);
            end;
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
@@ -1601,7 +1602,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.49  1998-11-05 12:03:07  peter
+  Revision 1.50  1998-11-10 10:09:20  peter
+    * va_list -> array of const
+
+  Revision 1.49  1998/11/05 12:03:07  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

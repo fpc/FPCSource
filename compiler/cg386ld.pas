@@ -49,7 +49,7 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      cgai386,tgeni386;
+      cgai386,tgeni386,cg386cnv;
 
 {*****************************************************************************
                              SecondLoad
@@ -585,6 +585,7 @@ implementation
          LOC_CREGISTER : begin
                            exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                              t.register,newreference(ref))));
+                           ungetregister32(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
@@ -598,6 +599,29 @@ implementation
                                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
+                           ungetiftemp(t.reference);
+                         end;
+        else
+         internalerror(330);
+        end;
+      end;
+
+
+    procedure emit_push_loc(const t:tlocation);
+      begin
+        case t.loc of
+          LOC_REGISTER,
+         LOC_CREGISTER : begin
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,t.register)));
+                           ungetregister32(t.register); { the register is not needed anymore }
+                         end;
+               LOC_MEM,
+         LOC_REFERENCE : begin
+                           if t.reference.isintvalue then
+                             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,t.reference.offset)))
+                           else
+                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(t.reference))));
+                           ungetiftemp(t.reference);
                          end;
         else
          internalerror(330);
@@ -622,7 +646,6 @@ implementation
       end;
 
 
-
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
       begin
         case t.loc of
@@ -637,6 +660,28 @@ implementation
                                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
+                           ungetiftemp(t.reference);
+                         end;
+        else
+         internalerror(332);
+        end;
+      end;
+
+
+    procedure emit_push_lea_loc(const t:tlocation);
+      begin
+        case t.loc of
+               LOC_MEM,
+         LOC_REFERENCE : begin
+                           if t.reference.isintvalue then
+                             internalerror(331)
+                           else
+                             begin
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                                 newreference(t.reference),R_EDI)));
+                               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                             end;
+                           ungetiftemp(t.reference);
                          end;
         else
          internalerror(332);
@@ -652,10 +697,13 @@ implementation
         vaddr : boolean;
         vtype : longint;
       begin
-        clear_reference(p^.location.reference);
-        gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
+        if not p^.cargs then
+         begin
+           clear_reference(p^.location.reference);
+           gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
+           href:=p^.location.reference;
+         end;
         hp:=p;
-        href:=p^.location.reference;
         while assigned(hp) do
          begin
            secondpass(hp^.left);
@@ -706,19 +754,33 @@ implementation
            end;
            if vtype=$ff then
             internalerror(14357);
-           { update href to the vtype field and write it }
-           exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-             vtype,newreference(href))));
-           inc(href.offset,4);
-           { write changing field update href to the next element }
-           if vaddr then
+           { write C style pushes or an pascal array }
+           if p^.cargs then
             begin
-              emit_to_reference(hp^.left);
-              emit_lea_loc_ref(hp^.left^.location,href)
+              if vaddr then
+               begin
+                 emit_to_reference(hp^.left);
+                 emit_push_lea_loc(hp^.left^.location);
+               end
+              else
+               emit_push_loc(hp^.left^.location);
             end
            else
-            emit_mov_loc_ref(hp^.left^.location,href);
-           inc(href.offset,4);
+            begin
+              { update href to the vtype field and write it }
+              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                vtype,newreference(href))));
+              inc(href.offset,4);
+              { write changing field update href to the next element }
+              if vaddr then
+               begin
+                 emit_to_reference(hp^.left);
+                 emit_lea_loc_ref(hp^.left^.location,href);
+               end
+              else
+               emit_mov_loc_ref(hp^.left^.location,href);
+              inc(href.offset,4);
+            end;
            { load next entry }
            hp:=hp^.right;
          end;
@@ -728,7 +790,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1998-11-05 12:02:35  peter
+  Revision 1.26  1998-11-10 10:09:10  peter
+    * va_list -> array of const
+
+  Revision 1.25  1998/11/05 12:02:35  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

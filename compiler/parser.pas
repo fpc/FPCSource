@@ -157,7 +157,7 @@ unit parser;
          oldaktoutputformat : tasm;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
-
+         oldaktmodeswitches : tmodeswitches;
 {$ifdef USEEXCEPT}
   recoverpos : jmp_buf;
   oldrecoverpos : pjmp_buf;
@@ -209,6 +209,7 @@ unit parser;
          oldaktoptprocessor:=aktoptprocessor;
          oldaktasmmode:=aktasmmode;
          oldaktfilepos:=aktfilepos;
+         oldaktmodeswitches:=aktmodeswitches;
 
        { show info }
          Message1(parser_i_compiling,filename);
@@ -371,6 +372,7 @@ unit parser;
               aktoptprocessor:=oldaktoptprocessor;
               aktasmmode:=oldaktasmmode;
               aktfilepos:=oldaktfilepos;
+              aktmodeswitches:=oldaktmodeswitches;
            end;
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
@@ -422,7 +424,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.60  1998-10-28 18:26:14  pierre
+  Revision 1.61  1998-11-10 10:09:11  peter
+    * va_list -> array of const
+
+  Revision 1.60  1998/10/28 18:26:14  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 
