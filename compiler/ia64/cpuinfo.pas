@@ -29,11 +29,6 @@ Interface
 Type
    AWord = QWord;
 
-   { the ordinal type used when evaluating constant integer expressions }
-   TConstExprInt = int64;
-   { ... the same unsigned }
-   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
-
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
@@ -54,7 +49,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-01-05 17:36:58  florian
+  Revision 1.3  2002-04-07 13:42:40  carl
+  - moved type constant
+
+  Revision 1.2  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 

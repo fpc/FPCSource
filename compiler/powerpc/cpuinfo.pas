@@ -22,11 +22,6 @@ Type
    AWord = Dword;
 
 Type
-   { the ordinal type used when evaluating constant integer expressions }
-   TConstExprInt = int64;
-   { ... the same unsigned }
-   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
-
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
@@ -45,7 +40,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-12-29 15:28:58  jonas
+  Revision 1.3  2002-04-07 13:43:11  carl
+  - moved type constant
+
+  Revision 1.2  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

@@ -30,11 +30,6 @@ Type
    AWord = Cardinal;
    PAWord = ^AWord;
 
-   { the ordinal type used when evaluating constant integer expressions }
-   TConstExprInt = int64;
-   { ... the same unsigned }
-   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
-
    { this must be an ordinal type with the same size as a pointer }
    { Note: must be unsigned!! Otherwise, ugly code like           }
    { pointer(-1) will result in a pointer with the value          }
@@ -51,7 +46,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-04-02 17:11:34  peter
+  Revision 1.6  2002-04-07 13:41:50  carl
+  - moved type constant
+
+  Revision 1.5  2002/04/02 17:11:34  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
