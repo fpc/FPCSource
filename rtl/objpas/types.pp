@@ -35,7 +35,21 @@ unit types;
        PDouble = System.PDouble;
        PByte = System.PByte;
 
-{$ifdef Win32}
+       TIntegerDynArray = array of Integer;
+       TCardinalDynArray = array of Cardinal;
+       TWordDynArray = array of Word;
+       TSmallIntDynArray = array of SmallInt;
+       TByteDynArray = array of Byte;
+       TShortIntDynArray = array of ShortInt;
+       TInt64DynArray = array of Int64;
+       TQWordDynArray = array of QWord;
+       TLongWordDynArray = array of LongWord;
+       TSingleDynArray = array of Single;
+       TDoubleDynArray = array of Double;
+       TBooleanDynArray = array of Boolean;
+       TStringDynArray = array of AnsiString;
+       TWideStringDynArray   = array of WideString;
+       {$ifdef Win32}
        TPoint = Windows.TPoint;
 {$else}
        TPoint = packed record
@@ -71,6 +85,10 @@ unit types;
        end;
        PSmallPoint = ^TSmallPoint;
 
+    type
+      TOleChar = WideChar;
+      POleStr = PWideChar;
+      PPOleStr = ^POleStr;
 
 {$ifndef win32}
     const
@@ -135,10 +153,6 @@ unit types;
       GUID_NULL: TGUID = '{00000000-0000-0000-0000-000000000000}';
 
     type
-       TOleChar = WideChar;
-       POleStr = PWideChar;
-       PPOleStr = ^POleStr;
-
        PCLSID = PGUID;
        TCLSID = TGUID;
 
@@ -333,7 +347,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.4  2003-04-24 11:09:36  florian
+  Revision 1.5  2003-10-05 19:10:03  florian
+    * fixed some delphi compatibilty issues
+
+  Revision 1.4  2003/04/24 11:09:36  florian
     * check included, if the compiler supports interfaces
 
   Revision 1.3  2003/01/02 22:22:12  peter
