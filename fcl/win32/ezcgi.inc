@@ -20,7 +20,7 @@ begin
    hp:=p;
    while hp^<>#0 do
      begin
-        s:=AnsiString(hp);
+        s:=StrPas(hp);
         i:=pos('=',s);
         if upcase(copy(s,1,i-1))=upcase(envvar) then
           begin
