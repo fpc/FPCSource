@@ -81,10 +81,12 @@ const
     end;
 
 
-   function getu32bit : longint;
+{$ifndef tp}
+   function getu32bit : longword;
     begin
       getu32bit := GETU32BIT_RESULT;
     end;
+{$endif tp}
 
 var
  s8bit : shortint;
@@ -413,7 +415,10 @@ end.
 {
 
  $Log$
- Revision 1.3  2002-09-07 15:40:55  peter
+ Revision 1.4  2002-09-08 20:27:37  jonas
+   * getu32bit() now has a longword result instead of a longint
+
+ Revision 1.3  2002/09/07 15:40:55  peter
    * old logs removed and tabs fixed
 
  Revision 1.2  2002/05/13 13:45:38  peter
