@@ -1037,7 +1037,7 @@ end;
 
 procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
 begin
-  SetStrProp(Instance,FindPropInfo(Instance,PropName),Value);
+  SetWideStrProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
@@ -1496,7 +1496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2004-12-28 15:30:04  florian
+  Revision 1.34  2004-12-30 18:11:43  michael
+  + Fix for WideString props
+
+  Revision 1.33  2004/12/28 15:30:04  florian
     * fixed raw mode for non i386 targets
     * fixed some alignment issues
 
