@@ -720,7 +720,7 @@ implementation
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
-           asmmode_none : ; { just be there to allow to a compile without
+           asmmode_none : ; { just be there to allow to compile a compiler without
                               any assembler readers }
 {$ifdef i386}
   {$ifndef NoRA386Att}
@@ -1131,7 +1131,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-04-27 11:21:34  peter
+  Revision 1.95  2003-04-30 22:15:59  florian
+    * some 64 bit adaptions in ncgadd
+    * x86-64 now uses ncgadd
+    * tparamanager.ret_in_acc doesn't return true anymore for a void-def
+
+  Revision 1.94  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -118,7 +118,8 @@ unit paramgr;
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function tparamanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
       begin
-         ret_in_acc:=(def.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
+         ret_in_acc:=(def.deftype in [pointerdef,enumdef,classrefdef]) or
+                     ((def.deftype=orddef) and (torddef(def).typ<>uvoid)) or
                      ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_ansistring,st_widestring])) or
                      ((def.deftype=procvardef) and not(po_methodpointer in tprocvardef(def).procoptions)) or
                      ((def.deftype=objectdef) and not is_object(def)) or
@@ -402,7 +403,12 @@ end.
 
 {
    $Log$
-   Revision 1.36  2003-04-27 11:21:33  peter
+   Revision 1.37  2003-04-30 22:15:59  florian
+     * some 64 bit adaptions in ncgadd
+     * x86-64 now uses ncgadd
+     * tparamanager.ret_in_acc doesn't return true anymore for a void-def
+
+   Revision 1.36  2003/04/27 11:21:33  peter
      * aktprocdef renamed to current_procdef
      * procinfo renamed to current_procinfo
      * procinfo will now be stored in current_module so it can be

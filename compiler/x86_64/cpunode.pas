@@ -39,7 +39,8 @@ unit cpunode;
        ncgcon,
        ncgld,
        ncgcal,
-       // n386add,n386con,n386flw,n386mat,n386mem,
+       ncgadd,
+       // n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { this not really a node }
        // n386obj
@@ -51,7 +52,12 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.3  2003-04-30 20:53:32  florian
+  Revision 1.4  2003-04-30 22:15:59  florian
+    * some 64 bit adaptions in ncgadd
+    * x86-64 now uses ncgadd
+    * tparamanager.ret_in_acc doesn't return true anymore for a void-def
+
+  Revision 1.3  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

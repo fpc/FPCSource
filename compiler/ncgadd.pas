@@ -66,7 +66,13 @@ interface
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,
-      ncon,nset,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncon,nset,ncgutil,tgobj,rgobj,rgcpu,cgobj,
+{$ifdef cpu64bit}
+      cg64f64
+{$else cpu64bit}
+      cg64f32
+{$endif cpu64bit}
+      ;
 
 
 
@@ -816,7 +822,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-04-23 20:16:04  peter
+  Revision 1.9  2003-04-30 22:15:59  florian
+    * some 64 bit adaptions in ncgadd
+    * x86-64 now uses ncgadd
+    * tparamanager.ret_in_acc doesn't return true anymore for a void-def
+
+  Revision 1.8  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors
