@@ -444,7 +444,11 @@ uses
             LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
             LOC_CONSTANT : (
               case longint of
+{$ifdef FPC_BIG_ENDIAN}
+                1 : (_valuedummy,value : AWord);
+{$else FPC_BIG_ENDIAN}
                 1 : (value : AWord);
+{$endif FPC_BIG_ENDIAN}
                 { can't do this, this layout depends on the host cpu. Use }
                 { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
@@ -852,7 +856,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-05-16 16:26:05  jonas
+  Revision 1.52  2003-05-24 16:02:01  jonas
+    * fixed endian problem with tlocation.value/valueqword fields
+
+  Revision 1.51  2003/05/16 16:26:05  jonas
     * adapted for Peter's regvar fixes
 
   Revision 1.50  2003/05/15 22:14:43  florian
