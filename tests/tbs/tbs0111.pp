@@ -3,7 +3,7 @@ var
   i : word;
   buf : string;
 begin
-  assign(f,'test');
+  assign(f,'tbs0111.pp');
   reset(f);
   blockread(f,buf[1],sizeof(buf),i);    { This is not allowed in BP7 }
   buf[0]:=chr(i);
