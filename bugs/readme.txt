@@ -271,3 +271,6 @@ bug0204.pp   can typecast the result var in an assignment
 bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error)
 bug0206.pp   sets with variable ranges doesn't work
 bug0207.pp   a class destructor doesn't release the memory
+bug0208.pp   implicit conversion from boolean to longint should not be allowed
+             (this is the reason of bug0205 !)
+bug0209.pp   problem with boolean expressions of different store sizes
