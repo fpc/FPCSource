@@ -38,10 +38,10 @@
   function TStream.GetSize: Int64;
 
     var
-       p : longint;
+       p : int64;
 
     begin
-       p:=GetPosition;
+       p:=Seek(0,soCurrent);
        GetSize:=Seek(0,soEnd);
        Seek(p,soBeginning);
     end;
@@ -803,7 +803,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-01-18 22:31:44  michael
+  Revision 1.5  2005-01-19 09:09:50  michael
+    * Patch from Peter to fix 64bit issue in tstream.seek()
+
+  Revision 1.4  2005/01/18 22:31:44  michael
   + Patch from Mattias Gaertner to fix CopyFrom
 
   Revision 1.3  2005/01/09 13:15:37  michael
