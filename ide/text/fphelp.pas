@@ -129,6 +129,7 @@ begin
     hcRun           : S:='Run the current program';
     hcParameters    : S:='Set command-line parameters passed to program at execution';
     hcResetDebugger : S:='Reset Program';
+    hcContToCursor  : S:='Go on until Cursor position';
     hcUserScreen    : S:='Switch to the full-screen user output';
 
     hcCompileMenu   : S:='Compile, build & make';
@@ -355,7 +356,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-02-08 10:37:43  peter
+  Revision 1.7  1999-02-08 17:40:01  pierre
+   + cmContToCursor added
+
+  Revision 1.6  1999/02/08 10:37:43  peter
     + html helpviewer
 
   Revision 1.5  1999/02/04 12:23:44  pierre

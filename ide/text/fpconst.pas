@@ -76,6 +76,7 @@ const
      cmTraceInto         = 226;
      cmStepOver          = 227;
      cmResetDebugger     = 228;
+     cmContToCursor      = 229;
      
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -198,6 +199,7 @@ const
      hcRun               = hcShift+cmRun;
      hcParameters        = hcShift+cmParameters;
      hcResetDebugger     = hcShift+cmResetDebugger;
+     hcContToCursor      = hcShift+cmContToCursor;
      hcCompile           = hcShift+cmCompile;
      hcMake              = hcShift+cmMake;
      hcBuild             = hcShift+cmBuild;
@@ -267,7 +269,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.8  1999-02-04 12:23:43  pierre
+  Revision 1.9  1999-02-08 17:40:00  pierre
+   + cmContToCursor added
+
+  Revision 1.8  1999/02/04 12:23:43  pierre
     + cmResetDebugger and cmGrep
     * Avoid StatusStack overflow
 
