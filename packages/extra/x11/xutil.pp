@@ -1,7 +1,9 @@
 unit xutil;
 interface
 uses
-  x,xlib;
+  x,xlib,keysym;
+
+{$define MACROS}
 
 {$ifndef os2}
   {$LinkLib c}
@@ -142,15 +144,6 @@ type
         res_name : Pchar;
         res_class : Pchar;
      end;
-{$ifdef MACROS}
-function XGetPixel(ximage,x,y : longint) : longint;
-
-function XPutPixel(ximage,x,y,pixel : longint) : longint;
-
-function XSubImage(ximage,x,y,width,height : longint) : longint;
-
-function XAddPixel(ximage,value : longint) : longint;
-{$endif MACROS}
 
 type
 
@@ -159,19 +152,6 @@ type
         compose_ptr : TXPointer;
         chars_matched : longint;
      end;
-{$ifdef MACROS}
-function IsKeypadKey(keysym : longint) : longint;
-
-function IsPrivateKeypadKey(keysym : longint) : longint;
-
-function IsCursorKey(keysym : longint) : longint;
-
-function IsPFKey(keysym : longint) : longint;
-
-function IsFunctionKey(keysym : longint) : longint;
-
-function IsMiscFunctionKey(keysym : longint) : longint;
-{$endif MACROS}
 
 type
 
@@ -230,10 +210,6 @@ type
         killid : TXID;
      end;
 
-{$ifdef MACROS}
-function ReleaseByFreeingColormap : TXID;
-{$endif MACROS}
-
 const
    BitmapSuccess = 0;
    BitmapOpenFailed = 1;
@@ -242,15 +218,11 @@ const
    XCSUCCESS = 0;
    XCNOMEM = 1;
    XCNOENT = 2;
-type
+   ReleaseByFreeingColormap : TXID = TXID(1);
 
+type
    PXContext = ^TXContext;
    TXContext = longint;
-{$ifdef MACROS}
-function XUniqueContext : TXContext;
-
-function XStringToContext(_string : longint) : TXContext;
-{$endif MACROS}
 
 function XAllocClassHint:PXClassHint;cdecl;external libX11;
 function XAllocIconSize:PXIconSize;cdecl;external libX11;
@@ -326,73 +298,99 @@ function XWMGeometry(para1:PDisplay; para2:longint; para3:Pchar; para4:Pchar; pa
            para11:Plongint):longint;cdecl;external libX11;
 function XXorRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
 
+{$ifdef MACROS}
+function XDestroyImage(ximage : PXImage) : longint;
+function XGetPixel(ximage : PXImage; x, y : longint) : dword;
+function XPutPixel(ximage : PXImage; x, y : longint; pixel : dword) : longint;
+function XSubImage(ximage : PXImage; x, y : longint; width, height : dword) : PXImage;
+function XAddPixel(ximage : PXImage; value : longint) : longint;
+function IsKeypadKey(keysym : TKeySym) : Boolean;
+function IsPrivateKeypadKey(keysym : TKeySym) : Boolean;
+function IsCursorKey(keysym : TKeySym) : Boolean;
+function IsPFKey(keysym : TKeySym) : Boolean;
+function IsFunctionKey(keysym : TKeySym) : Boolean;
+function IsMiscFunctionKey(keysym : TKeySym) : Boolean;
+function IsModifierKey(keysym : TKeySym) : Boolean;
+{function XUniqueContext : TXContext;
+function XStringToContext(_string : Pchar) : TXContext;}
+{$endif MACROS}
+
 implementation
 
 {$ifdef MACROS}
-function XGetPixel(ximage,x,y : longint) : longint;
+
+function XDestroyImage(ximage : PXImage) : longint;
+
 begin
-   XGetPixel:=ximage^.(f.get_pixel)(ximagexy);
+  XDestroyImage := ximage^.f.destroy_image(ximage);
 end;
 
-function XPutPixel(ximage,x,y,pixel : longint) : longint;
+function XGetPixel(ximage : PXImage; x, y : longint) : dword;
 begin
-   XPutPixel:=ximage^.(f.put_pixel)(ximagexypixel);
+   XGetPixel:=ximage^.f.get_pixel(ximage, x, y);
 end;
 
-function XSubImage(ximage,x,y,width,height : longint) : longint;
+function XPutPixel(ximage : PXImage; x, y : longint; pixel : dword) : longint;
 begin
-   XSubImage:=ximage^.(f.sub_image)(ximagexywidthheight);
+   XPutPixel:=ximage^.f.put_pixel(ximage, x, y, pixel);
 end;
 
-function XAddPixel(ximage,value : longint) : longint;
+function XSubImage(ximage : PXImage; x, y : longint; width, height : dword) : PXImage;
 begin
-   XAddPixel:=ximage^.(f.add_pixel)(ximagevalue);
+   XSubImage:=ximage^.f.sub_image(ximage, x, y, width, height);
 end;
 
-function IsKeypadKey(keysym : longint) : longint;
+function XAddPixel(ximage : PXImage; value : longint) : longint;
 begin
-   IsKeypadKey:=((TKeySym(keysym)) >= XK_KP_Space) and (@((TKeySym(keysym)) <= XK_KP_Equal));
+   XAddPixel:=ximage^.f.add_pixel(ximage, value);
 end;
 
-function IsPrivateKeypadKey(keysym : longint) : longint;
+function IsKeypadKey(keysym : TKeySym) : Boolean;
 begin
-   IsPrivateKeypadKey:=((TKeySym(keysym)) >= $11000000) and (@((TKeySym(keysym)) <= $1100FFFF));
+   IsKeypadKey:=(keysym >= XK_KP_Space) and (keysym <= XK_KP_Equal);
 end;
 
-function IsCursorKey(keysym : longint) : longint;
+function IsPrivateKeypadKey(keysym : TKeySym) : Boolean;
 begin
-   IsCursorKey:=((TKeySym(keysym)) >= XK_Home) and (@((TKeySym(keysym)) < XK_Select));
+   IsPrivateKeypadKey:=(keysym >= $11000000) and (keysym <= $1100FFFF);
 end;
 
-function IsPFKey(keysym : longint) : longint;
+function IsCursorKey(keysym : TKeySym) : Boolean;
 begin
-   IsPFKey:=((TKeySym(keysym)) >= XK_KP_F1) and (@((TKeySym(keysym)) <= XK_KP_F4));
+   IsCursorKey:=(keysym >= XK_Home) and (keysym < XK_Select);
 end;
 
-function IsFunctionKey(keysym : longint) : longint;
+function IsPFKey(keysym : TKeySym) : Boolean;
 begin
-   IsFunctionKey:=((TKeySym(keysym)) >= XK_F1) and (@((TKeySym(keysym)) <= XK_F35));
+   IsPFKey:=(keysym >= XK_KP_F1) and (keysym <= XK_KP_F4);
 end;
 
-function IsMiscFunctionKey(keysym : longint) : longint;
+function IsFunctionKey(keysym : TKeySym) : Boolean;
 begin
-   IsMiscFunctionKey:=((TKeySym(keysym)) >= XK_Select) and (@((TKeySym(keysym)) <= XK_Break));
+   IsFunctionKey:=(keysym >= XK_F1) and (keysym <= XK_F35);
 end;
 
-function ReleaseByFreeingColormap : TXID;
-  begin
-     ReleaseByFreeingColormap:=TXID(1);
-  end;
+function IsMiscFunctionKey(keysym : TKeySym) : Boolean;
+begin
+   IsMiscFunctionKey:=(keysym >= XK_Select) and (keysym <= XK_Break);
+end;
 
+function IsModifierKey(keysym : TKeySym) : Boolean;
+begin
+  IsModifierKey := ((keysym >= XK_Shift_L) And (keysym <= XK_Hyper_R)) Or
+                   (keysym = XK_Mode_switch) Or (keysym = XK_Num_Lock);
+end;
+
+{...needs xresource
 function XUniqueContext : TXContext;
 begin
    XUniqueContext:=TXContext(XrmUniqueQuark);
 end;
 
-function XStringToContext(string : longint) : TXContext;
+function XStringToContext(_string : Pchar) : TXContext;
 begin
    XStringToContext:=TXContext(XrmStringToQuark(_string));
-end;
+end;}
 {$endif MACROS}
 
 end.

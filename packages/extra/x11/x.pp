@@ -225,12 +225,8 @@ const
    ReplayKeyboard = 5;
    AsyncBoth = 6;
    SyncBoth = 7;
-function RevertToNone : longint;
-
-function RevertToPointerRoot : longint;
-
-
-const
+   RevertToNone = 0;
+   RevertToPointerRoot = 1;
    RevertToParent = 2;
    Success = 0;
    BadRequest = 1;
@@ -435,16 +431,4 @@ const
    MSBFirst = 1;
 
 implementation
-
-function RevertToNone : longint;
-  begin
-     RevertToNone:=longint(None);
-  end;
-
-function RevertToPointerRoot : longint;
-  begin
-     RevertToPointerRoot:=longint(PointerRoot);
-  end;
-
-
 end.
