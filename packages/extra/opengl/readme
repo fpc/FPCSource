@@ -1,58 +1,22 @@
-Free Pascal GL* (GL, GLU, GLUT, GLX) Units
-(c) 1999-2000 Sebastian Guenther, sg@freepascal.org
+New Free Pascal OpenGL (GL, GLU, GLUT, GLX) Units
+GLX unit (c) 1999-2002 Sebastian Guenther, sg@freepascal.org
+other units adapted to Free Pascal from the delphi3d.net units
+by Tom Nuydens (tom@delphi3d.net), see http://www.delphi3d.net/
+
+You might have a look at the original readme, glunits.txt, as well 
 
 
-subdirectory "build"
---------------------
-This directory contains tools which create the sources of the real GL* units
-based on some template files. It contains its own README file, look there for
-further informations.
-
-
-subdirectory "linux"
---------------------
-Contains the GL* units for Linux; currently you can use all GL, GLU and GLX
-functions as well as most GLUT functions. Automatic loading of GL extensions
-is not supported yet, but is planned for the future.
-Under Linux, the GL* units try to locate the underlying libraries at run-time;
-they search for the libraries in the following order:
-
-GL: (includes GLX)
-    1. libGL.so
-    2. libGL.so.1
-    3. libMesaGL.so.3
-
-GLU:
-    1. libGLU.so
-    2. libGLU.so.1
-    3. libMesaGLU.so.3
-
-GLUT:
-    1. libglut.so
-    2. libglut.so.3
-
-This should work on all more recent Linux installations.
-
-
-The GL unit has a variable called "GLDumpUnresolvedFunctions", and the GLUT
-unit one called "GLUTDumpUnresolvedFunctions". Set them to True in your
-applications if you want to get all function names dumped to the console
-which couldn't be resolved, i.e. which are not available in the loaded
-libraries.
-
-
-=== gtkglarea: ===
-
-Additionally, there is an adaption for the gtkglarea (GTK GL area widget)
-available; as gtkglarea uses the XLib it is only available for Linux here.
-
-
-subdirectory "examples"
------------------------
-Only contains a test program called "glutdemo" at the moment, which
-demonstrates the use of the GL and GLUT units.
-
-
-
-Have fun,
-Sebastian
+Some remarks:
+* The new OpenGL units are not 100% compatible to the old ones; the new units
+  use exactly the same function declarations as their C counterpart.
+* Platform compatiblity: You can work on all targets exactly as on Win32;
+  for example, you can use wglGetProcAddress for loading OpenGL extensions even
+  on Unix based systems. A future release of the glext unit might have helper
+  functions for loading specific extensions. (There is a small problem with
+  Free Pascal: In FPC mode, you cannot assign a pointer, as returned by
+  wglGetProcAddress, to a variable which holds a function pointer. Currently
+  you have to compile your programs in Delphi mode, if they are using OpenGL
+  extensions)
+* GLUT on Win32: Get the glut32.dll from here:
+  http://www.xmission.com/~nate/glut.html
+* GTKGLArea: The GL Area widget for GTK is available in the GTK package
