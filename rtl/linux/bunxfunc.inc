@@ -187,7 +187,7 @@ begin
                 fpseterrno(oerrno);
                 exit(cuint(-1));
               End;
-            if oact.sa_handler=signalhandler(SIG_IGN) Then
+            if oact.sa_handler=SigActionhandler(SIG_IGN) Then
              Begin
                fpsleep:=fpnanosleep(@time_to_sleep, @time_remaining);
                oerrno:=fpgeterrno;
@@ -565,7 +565,12 @@ end;
 
 {
  $Log$
- Revision 1.14  2004-11-19 13:15:14  marco
+ Revision 1.15  2005-01-30 18:01:15  peter
+   * signal cleanup for linux
+   * sigactionhandler instead of tsigaction for bsds
+   * sigcontext moved to cpu dir
+
+ Revision 1.14  2004/11/19 13:15:14  marco
   * external rework. Mostly done.
 
  Revision 1.13  2004/11/14 12:21:08  marco

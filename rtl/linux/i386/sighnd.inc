@@ -20,7 +20,7 @@
 const
   FPU_All = $7f;
 
-function GetFPUState(const SigContext : SigContextRec) : longint;
+function GetFPUState(const SigContext : TSigContext) : longint;
 begin
   if assigned(SigContext.fpstate) then
     GetfpuState:=SigContext.fpstate^.sw;
@@ -32,8 +32,8 @@ begin
 {$endif SYSTEM_DEBUG}
 end;
 
-procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
 
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res,fpustate : word;
 begin
@@ -44,7 +44,7 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext);
+          fpustate:=GetFPUState(SigContext^);
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
@@ -70,12 +70,17 @@ begin
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext.eip),pointer(SigContext.ebp));
+    HandleErrorAddrFrame(res,pointer(SigContext^.eip),pointer(SigContext^.ebp));
 end;
 
 {
   $Log$
-  Revision 1.4  2004-08-08 09:36:09  florian
+  Revision 1.5  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.4  2004/08/08 09:36:09  florian
     * fixed runerror for invalid operation
 
   Revision 1.3  2004/02/05 01:16:12  florian

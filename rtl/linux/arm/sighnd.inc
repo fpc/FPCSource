@@ -17,7 +17,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(Sig: longint; _a2,_a3,_a4 : dword; SigContext: PSigInfoRec; uContext : PuContext); cdecl;
+procedure SignalToRunerror(Sig: longint; _a2,_a3,_a4 : dword; SigContext: PSigInfo; uContext : PuContext); cdecl;
 
 var
   res,fpustate : word;
@@ -41,7 +41,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-03-27 19:20:11  florian
+  Revision 1.3  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.2  2004/03/27 19:20:11  florian
     * signal handling fixed
 
   Revision 1.1  2003/11/21 00:40:06  florian

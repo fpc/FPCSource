@@ -17,8 +17,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(Sig: longint; SigContext: PSigContextRec); cdecl;
-
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res : word;
 {  fpustate: longint; }
@@ -47,14 +46,19 @@ begin
     SIGSEGV :
         res:=216;
   end;
-{ give runtime error at the position where the signal was raised }
+  { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,pointer(SigContext^.pt_regs^.nip),pointer(SigContext^.pt_regs^.gpr[1]));
 end;
 
 {
   $Log$
-  Revision 1.4  2004-01-02 17:57:16  jonas
+  Revision 1.5  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.4  2004/01/02 17:57:16  jonas
     * re-enable fpu exceptions in signal handler, they're turned off by the
       kernel
 

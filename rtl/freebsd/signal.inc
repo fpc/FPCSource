@@ -158,7 +158,7 @@ type sigset_t = array[0..3] of Longint;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  TSigAction = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
+  sigActionHandler = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
 
   TSigset=sigset_t;
   sigset=tsigset;
@@ -170,7 +170,7 @@ type sigset_t = array[0..3] of Longint;
         0: (Sh: SignalHandler);
         1: (Sa: TSigAction);
       end;}
-    sa_handler  : tsigAction;
+    sa_handler  : sigActionHandler;
     Sa_Flags    : Longint;
     Sa_Mask     : TSigSet;
   end;
@@ -196,7 +196,12 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-12-30 12:52:43  marco
+  Revision 1.10  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.9  2004/12/30 12:52:43  marco
    * tsignalhandler added"
 
   Revision 1.8  2003/10/27 17:12:45  marco

@@ -190,7 +190,7 @@
     PSignalHandler  = ^SignalHandler;
     SignalRestorer  = Procedure;cdecl;
     PSignalRestorer = ^SignalRestorer;
-    TSigAction = procedure (Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+    SigActionHandler = procedure (Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
 
 
     SigActionRec = packed record
@@ -199,7 +199,7 @@
         0: (Sh: SignalHandler; Sa_Flags: longint; Sa_Mask: SigSet);
         1: (sa_handler: TSigAction);
 }
-      Sa_Handler: TSigAction;
+      Sa_Handler: SigActionHandler;
       Sa_Mask: sigset_t;
       Sa_Flags: cint;
    end;
@@ -271,7 +271,12 @@ const
 
 {
   $Log$
-  Revision 1.5  2004-01-08 21:52:34  jonas
+  Revision 1.6  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.5  2004/01/08 21:52:34  jonas
     * fixed signal handling under 10.3.2, still have to verify whether it's
       backwards compatible
 

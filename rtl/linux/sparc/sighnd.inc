@@ -27,8 +27,7 @@ const
   FPE_FLTSUB = 8;
 
 
-procedure SignalToRunerror(Sig: longint; siginfo : psiginfo); cdecl;
-
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res : word;
 begin
@@ -61,15 +60,19 @@ begin
     SIGSEGV :
         res:=216;
   end;
-{ give runtime error at the position where the signal was raised }
+  { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleError(res);
-//    HandleErrorAddrFrame(res,pointer(SigContext.uc.uc_mcontext.pt_regs^.nip),pointer(SigContext.uc.uc_mcontext.pt_regs^.gpr[1]));
+    HandleErrorAddrFrame(res,pointer(SigContext^.sigc_pc),pointer(SigContext^.sigc_wbuf[SigContext^.sigc_oswins-1].ins[6]));
 end;
 
 {
   $Log$
-  Revision 1.5  2004-11-06 22:48:16  florian
+  Revision 1.6  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.5  2004/11/06 22:48:16  florian
     * fixed errno setting in mt sparc/linux mt programs
 
   Revision 1.4  2004/08/04 19:27:10  florian

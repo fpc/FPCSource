@@ -138,11 +138,7 @@ Function FpSignal(signum:longint;Handler:signalhandler):signalhandler;
 var sa,osa : sigactionrec;
 
 begin
-     {$Ifdef BSD}
-     sa.sa_handler:=tsigaction(handler);
-     {$else}
-     sa.sa_handler:=handler;
-     {$endif}
+     sa.sa_handler:=SigActionHandler(handler);
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
 {     if (sigintr and signum) =0 then
@@ -160,11 +156,7 @@ begin
      if fpgetErrNo<>0 then
        fpsignal:=NIL
      else
-      {$ifdef BSD}
        fpsignal:=signalhandler(osa.sa_handler);
-      {$else}
-       fpsignal:=osa.sa_handler;
-      {$endif}
 end;
 
 {$ifdef FPC_USE_LIBC} // can't remember why this is the case. Might be legacy.
@@ -380,7 +372,12 @@ end;
 
 {
  $Log$
- Revision 1.16  2004-11-25 12:18:35  jonas
+ Revision 1.17  2005-01-30 18:01:15  peter
+   * signal cleanup for linux
+   * sigactionhandler instead of tsigaction for bsds
+   * sigcontext moved to cpu dir
+
+ Revision 1.16  2004/11/25 12:18:35  jonas
    * fixed invalid type conversion
 
  Revision 1.15  2004/11/23 08:40:34  michael

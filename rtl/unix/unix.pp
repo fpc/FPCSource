@@ -512,11 +512,7 @@ var
 
 begin { Changes as above }
   if command='' then exit(1); 
-  {$ifdef FreeBSD}
-  ign.sa_handler:=TSigAction(SIG_IGN);
-  {$else}
-  ign.sa_handler:=SignalHandler(SIG_IGN);
-  {$endif}
+  ign.sa_handler:=SigActionHandler(SIG_IGN);
   fpsigemptyset(ign.sa_mask);
   ign.sa_flags:=0;
   fpsigaction(SIGINT, @ign, @intact);
@@ -1255,7 +1251,12 @@ End.
 
 {
   $Log$
-  Revision 1.79  2005-01-22 20:56:11  michael
+  Revision 1.80  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.79  2005/01/22 20:56:11  michael
   + Patch for intFpExecVEMaybeP to use the right path (From Colin Western)
 
   Revision 1.78  2004/11/21 11:28:21  peter

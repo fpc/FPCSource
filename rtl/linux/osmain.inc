@@ -491,7 +491,7 @@ begin
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler := signalhandler(@SignalToRunError);
+  act.sa_handler := @SignalToRunError;
 {$ifdef RTSIGACTION}
   act.sa_flags:=SA_SIGINFO
 {$ifdef cpux86_64}
@@ -565,7 +565,12 @@ end;
 
 {
  $Log$
- Revision 1.22  2004-11-02 14:49:48  florian
+ Revision 1.23  2005-01-30 18:01:15  peter
+   * signal cleanup for linux
+   * sigactionhandler instead of tsigaction for bsds
+   * sigcontext moved to cpu dir
+
+ Revision 1.22  2004/11/02 14:49:48  florian
    * fixed baseunix.signal for CPU using rt_sigaction
    * fixed it for x86_64 too
 

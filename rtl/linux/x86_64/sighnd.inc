@@ -20,7 +20,7 @@
 const
   FPU_All = $7f;
 
-function GetFPUState(const SigContext : SigContextRec) : word;
+function GetFPUState(const SigContext : TSigContext) : word;
   begin
     if assigned(SigContext.fpstate) then
       GetfpuState:=SigContext.fpstate^.swd;
@@ -47,7 +47,7 @@ begin
   reenable_signal:=geterrno=0;
 end;
 
-procedure SignalToRunerror(sig : longint; SigContext: SigContextRec); cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext); cdecl;
   var
     res,fpustate : word;
   begin
@@ -58,7 +58,7 @@ procedure SignalToRunerror(sig : longint; SigContext: SigContextRec); cdecl;
           { this is not allways necessary but I don't know yet
             how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext);
+          fpustate:=GetFPUState(SigContext^);
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
@@ -86,12 +86,17 @@ procedure SignalToRunerror(sig : longint; SigContext: SigContextRec); cdecl;
     end;
     reenable_signal(sig);
     if res<>0 then
-      HandleErrorAddrFrame(res,pointer(SigContext.rip),pointer(SigContext.rbp));
+      HandleErrorAddrFrame(res,pointer(SigContext^.rip),pointer(SigContext^.rbp));
   end;
 
 {
   $Log$
-  Revision 1.2  2004-05-01 15:59:17  florian
+  Revision 1.3  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.2  2004/05/01 15:59:17  florian
     * x86_64 exception handling fixed
 
   Revision 1.1  2004/02/05 01:16:12  florian

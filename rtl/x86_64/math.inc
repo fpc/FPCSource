@@ -173,7 +173,7 @@
             fstp %st(1)
             fclex
             fldcw -4(%rbp)
-      end ['ECX'];
+      end;
 
 
     {$define FPC_SYSTEM_HAS_INT}
@@ -195,7 +195,7 @@
             frndint
             fclex
             fldcw -4(%rbp)
-      end ['ECX'];
+      end;
 
 
 
@@ -220,8 +220,9 @@
             fldt d
             fistpq res
             movq res,%rax
+            fclex
             fldcw oldcw
-      end ['RAX','RCX'];
+      end;
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
@@ -244,13 +245,15 @@
             fnstcw oldcw
             fwait
             movw $0x1372,newcw
+            fclex
             fldcw newcw
             fwait
             fldt d
             fistpq res
             movq res,%rax
+            fclex
             fldcw oldcw
-      end ['RAX'];
+      end;
 
 
     {$define FPC_SYSTEM_HAS_POWER}
@@ -275,7 +278,12 @@
 
 {
   $Log$
-  Revision 1.6  2004-12-12 14:30:27  peter
+  Revision 1.7  2005-01-30 18:01:15  peter
+    * signal cleanup for linux
+    * sigactionhandler instead of tsigaction for bsds
+    * sigcontext moved to cpu dir
+
+  Revision 1.6  2004/12/12 14:30:27  peter
     * x86_64 updates
 
   Revision 1.5  2004/12/12 12:41:46  peter
