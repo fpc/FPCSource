@@ -6,6 +6,15 @@
 
 set -e
 
+# Al
+unset FPCDIR
+
+# Goto the toplevel if necessary
+[ -d install ] || cd ..
+
+# Retrieve version from compiler/Makefile.fpc
+VERSION=`grep '^version' compiler/Makefile.fpc | sed 's+[^=]*= *\(.*\)+\1+'`
+
 # Retrieve current system info by calling FPC. We need
 # to use the | head -n1 to fix a bug in fpc 1.9.4 and earlier
 # that uses exitcode 1 also when printing info resulting in
@@ -14,41 +23,41 @@ SOURCECPU=`fpc -iSP | head -n1`
 SOURCEOS=`fpc -iSO | head -n1`
 
 if [ $# -ne 0 ]; then
-  if [ $# -ne 2 ]; then
-    echo "Usage: makepack [<cpu> <os>]"
+  if [ $# -ne 1 ]; then
+    echo "Usage: makepack [<cpu>-<os>]"
     exit 1
   fi
-  TARGETCPU=$1
-  TARGETOS=$2
+  TARGETCPU=`echo $1 | sed 's+\([^-]*\)-.*+\1+'`
+  TARGETOS=`echo $1 | sed 's+[^-]*-\(.*\)+\1+'`
 else
   TARGETCPU=$SOURCECPU
   TARGETOS=$SOURCEOS
 fi
 
 FULLTARGET=$TARGETCPU-$TARGETOS
+FULLSOURCE=$SOURCECPU-$SOURCEOS
 
-if [ "$TARGETCPU" != "$SOURCECPU" ] || [ "$TARGETOS" != "$SOURCEOS" ]; then
+echo "FPC Source: $FULLSOURCE"
+echo "FPC Target: $FULLTARGET"
+
+if [ "$FULLTARGET" != "$FULLSOURCE" ]; then
    CROSS="cross"
+   CROSSPREFIX=$FULLTARGET-
+else
+   CROSS=
+   CROSSPREFIX=
 fi
-
-unset FPCDIR
-
-# Goto the toplevel if necessary
-[ -d install ] || cd ..
 
 # Build everything using the makefiles
 make distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
-make ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS SNAPSHOT=1
+make ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
 if [ $? != 0 ]; then
   echo "Failed to make distribution archive."
   exit 1
 fi
 
-# Retrieve version info before it gets cleaned below
-VERSION=`cd compiler && ./utils/fpc -iV`
-
 if [ "$CROSS" == "" ]; then
-  make docs
+  make makepackdocs
   if [ $? != 0 ]; then
     echo "Failed to make documentation archive."
     exit 1
@@ -60,44 +69,46 @@ if [ "$CROSS" == "" ]; then
   fi
   make docsrc
   if [ $? != 0 ]; then
-    echo Failed to make documentation source archive.
+    echo "Failed to make documentation source archive."
     exit 1
   fi
   make demozip
   if [ $? != 0 ]; then
-    echo Failed to make demo source archive.
+    echo "Failed to make demo source archive."
     exit 1
   fi
 fi
 
-# Build filename
-if [ "$CROSS" == "" ]; then
-  TARNAME=fpc-$VERSION.$FULLTARGET.tar
-else
-  TARNAME=fpc-$FULLTARGET-$VERSION.$SOURCECPU-$SOURCEOS.tar
-fi
-BINARYTAR=binary-$FULLTARGET.tar
-
-SOURCES=`/bin/ls *src.tar.gz`
-FILES=`/bin/ls *linux.tar.gz`
-RELFILES="binary.$FULLTARGET.tar sources.tar demo.tar.gz docs.tar.gz install.sh"
-
+# binary.*.tar
+BINARYTAR=${CROSSPREFIX}binary.$FULLTARGET.tar
 echo "Creating $BINARYTAR"
-tar cf $BINARYTAR $FILES
+BINPACKAGES="base ide units utils"
+BINFILES=
+for p in $BINPACKAGES; do
+  BINFILES="$BINFILES ${CROSSPREFIX}$p*.$FULLSOURCE.tar.gz"
+done
+tar cf $BINARYTAR $BINFILES
 if [ $? != 0 ]; then
   echo "Failed to create $BINARYTAR"
   exit 1
 fi
+
+# sources.tar
 echo "Creating sources.tar"
-tar cf sources.tar $SOURCES
+tar cf sources.tar *.source.tar.gz
 if [ $? != 0 ]; then
   echo "Failed to create sources.tar"
   exit 1
 fi
+
+# install.sh
 echo "Copying install.sh"
 sed s+%version%+$VERSION+ install/install.sh > install.sh
 chmod 755 install.sh
 
+# Files to be added to the .tar
+RELFILES="$BINARYTAR sources.tar demo.tar.gz docs.tar.gz install.sh"
+TARNAME=${CROSSPREFIX}fpc-$VERSION.$FULLSOURCE.tar
 echo "Creating $TARNAME"
 tar cf $TARNAME $RELFILES
 if [ $? != 0 ]; then

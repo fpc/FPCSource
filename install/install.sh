@@ -89,12 +89,21 @@ checkpath ()
 
 # Install files from binary-*.tar
 #  $1 = cpu-target
+#  $2 = cross prefix
 installbinary ()
 {
-  BINARYTAR=binary.$1.tar
+  if [ "$2" == "" ]; then
+    FPCTARGET=$1
+    CROSSPREFIX=
+  else
+    FPCTARGET=`echo $2 | sed 's/-$//'`
+    CROSSPREFIX=$2
+  fi  
+  
+  BINARYTAR=${CROSSPREFIX}binary.$1.tar
   
   # conversion from long to short archname for ppc<x>
-  case $1 in
+  case $FPCTARGET in
     m68k*)
       PPCSUFFIX=68k;;
     sparc*) 
@@ -110,31 +119,30 @@ installbinary ()
   esac
 
   # Install compiler/RTL. Mandatory.
-  echo Installing compiler and RTL for $1...
-  unztarfromtar $BINARYTAR base${OSNAME}.tar.gz $PREFIX
+  echo "Installing compiler and RTL for $FPCTARGET..."
+  unztarfromtar $BINARYTAR ${CROSSPREFIX}base.$1.tar.gz $PREFIX
   
   # Install symlink
   rm -f $EXECDIR/ppc${PPCSUFFIX}
   ln -sf $LIBDIR/ppc${PPCSUFFIX} $EXECDIR/ppc${PPCSUFFIX}
   
-  echo Installing utilities...
-  unztarfromtar $BINARYTAR util${OSNAME}.tar.gz $PREFIX
+  echo "Installing utilities..."
+  unztarfromtar $BINARYTAR ${CROSSPREFIX}utils.$1.tar.gz $PREFIX
   if yesno "Install FCL"; then
-      unztarfromtar $BINARYTAR unitsfcl${OSNAME}.tar.gz $PREFIX
+      unztarfromtar $BINARYTAR ${CROSSPREFIX}units-fcl.$1.tar.gz $PREFIX
   fi
   if yesno "Install packages"; then
     listtarfiles $BINARYTAR packages units
     for f in $packages 
     do
-      if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
-        basename $f .tar.gz |\
-        sed -e s/units// -e s/${OSNAME}// |\
-        xargs echo Installing 
+      if [ $f != ${CROSSPREFIX}units-fcl.$1.tar.gz ]; then
+        p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
+	echo "Installing $p"
         unztarfromtar $BINARYTAR $f $PREFIX
       fi
     done
   fi
-  rm -f *${OSNAME}.tar.gz
+  rm -f *.$1.tar.gz
 }
 
 
@@ -182,10 +190,11 @@ DOCDIR=$PREFIX/share/doc/fpc-$VERSION
 DEMODIR=$DOCDIR/examples
 
 # Install all binary releases
-for f in binary*.tar
+for f in *binary*.tar
 do
-  a=`echo $f | sed "s+binary.\(.*\).tar+\1+"`
-  installbinary $a
+  target=`echo $f | sed 's+^.*binary\.\(.*\)\.tar$+\1+'`
+  cross=`echo $f | sed 's+binary\..*\.tar$++'`
+  installbinary $target $cross
 done
 
 echo Done.
@@ -194,33 +203,32 @@ echo
 # Install the sources. Optional.
 if yesno "Install sources"; then
   echo Installing sources in $SRCDIR ...
-  unztarfromtar sources.tar  basesrc.tar.gz $PREFIX
+  unztarfromtar sources.tar  base.source.tar.gz $PREFIX
   if yesno "Install compiler source"; then
-    unztarfromtar sources.tar compilersrc.tar.gz $PREFIX
+    unztarfromtar sources.tar compiler.source.tar.gz $PREFIX
   fi    
   if yesno "Install RTL source"; then
-    unztarfromtar sources.tar rtlsrc.tar.gz $PREFIX
+    unztarfromtar sources.tar rtl.source.tar.gz $PREFIX
   fi    
   if yesno "Install FCL source"; then
-    unztarfromtar sources.tar fclsrc.tar.gz $PREFIX
+    unztarfromtar sources.tar fcl.source.tar.gz $PREFIX
   fi    
   if yesno "Install IDE source"; then
-    unztarfromtar sources.tar idesrc.tar.gz $PREFIX
+    unztarfromtar sources.tar ide.source.tar.gz $PREFIX
   fi    
   if yesno "Install installer source"; then
-    unztarfromtar sources.tar installersrc.tar.gz $PREFIX
+    unztarfromtar sources.tar installer.source.tar.gz $PREFIX
   fi    
   if yesno "Install Packages source"; then
     listtarfiles sources.tar packages units
     for f in $packages
     do
-      basename $f .tar.gz |\
-      sed -e s/units// -e s/src// |\
-      xargs echo Installing sources for 
+      p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
+      echo "Installing sources for $p"
       unztarfromtar sources.tar $f $PREFIX
     done
   fi    
-  # rm -f *src.tar.gz
+  rm -f *.source.tar.gz
   echo Done.
 fi
 echo
