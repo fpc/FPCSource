@@ -91,6 +91,9 @@ Uses
 {$ifdef netwlibc}
   Libc,
 {$endif netwlibc}
+{$ifdef win32}
+  windows,
+{$endif win32}
 {$ifdef unix}
   {$ifdef ver1_0}
     linux,
@@ -971,7 +974,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.7  2004-09-19 14:51:03  armin
+  Revision 1.8  2004-09-21 14:55:45  armin
+  * added uses windows for win32 (deleted that with my last change)
+
+  Revision 1.7  2004/09/19 14:51:03  armin
   * added support for target netwlibc
 
   Revision 1.6  2003/10/14 08:29:29  peter
