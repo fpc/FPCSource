@@ -171,7 +171,7 @@ var
 {$endif ndef NOMOUSE}
 begin
 {$ifdef NOMOUSE}
-  fillchar(@MouseEvent,SizeOf(TMouseEvent),#0);
+  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
 {$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit;
@@ -210,7 +210,7 @@ var
 {$endif ndef NOMOUSE}
 begin
 {$ifdef NOMOUSE}
-  fillchar(@MouseEvent,SizeOf(TMouseEvent),#0);
+  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
   exit(false);
 {$else ndef NOMOUSE}
   if gpm_fd<0 then
@@ -246,7 +246,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-04-17 08:51:38  pierre
+  Revision 1.3  2000-06-30 09:00:33  jonas
+    * compiles again with -dnomouse
+
+  Revision 1.2  2000/04/17 08:51:38  pierre
    + set conditional NOMOUSE to get dummy mouse unit
 
   Revision 1.1  2000/01/06 01:20:31  peter

@@ -211,20 +211,27 @@ Begin
 End;
 
 
-Function KeyPressed:Boolean;
+{ This one doesn't care about keypresses already processed by readkey  }
+{ and waiting in the KeyBuffer, only about waiting keypresses at the   }
+{ TTYLevel (including ones that are waiting in the TTYRecvChar buffer) }
+function sysKeyPressed: boolean;
 var
   fdsin : fdSet;
-Begin
-  if (KeySend<>KeyPut) or (InCnt>0) then
-   KeyPressed:=true
+begin
+  if (InCnt>0) then
+   sysKeyPressed:=true
   else
    begin
      FD_Zero(fdsin);
      fd_Set(StdInputHandle,fdsin);
-     Keypressed:=(Select(StdInputHandle+1,@fdsin,nil,nil,1)>0);
+     sysKeypressed:=(Select(StdInputHandle+1,@fdsin,nil,nil,0)>0);
    end;
-End;
+end;
 
+Function KeyPressed:Boolean;
+Begin
+  Keypressed := (KeySend<>KeyPut) or sysKeyPressed;
+End;
 
 Function ReadKey:char;
 Var
@@ -240,8 +247,12 @@ Begin
      exit;
    end;
 {Wait for Key}
-  repeat
-  until keypressed;
+  if not sysKeyPressed then
+   begin
+     FD_Zero (fdsin);
+     FD_Set (StdInputHandle,fdsin);
+     Select (StdInputHandle+1,@fdsin,nil,nil,nil);
+   end;
   ch:=ttyRecvChar;
 {Esc Found ?}
   If (ch=#27) then
@@ -251,7 +262,7 @@ Begin
      State:=1;
      if InCnt=0 then
       Select(StdInputHandle+1,@fdsin,nil,nil,10);
-     while (State<>0) and (KeyPressed) do
+     while (State<>0) and (sysKeyPressed) do
       begin
         ch:=ttyRecvChar;
         OldState:=State;
@@ -565,7 +576,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-06-30 09:00:33  jonas
+    * compiles again with -dnomouse
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
