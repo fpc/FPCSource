@@ -36,6 +36,9 @@ Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
 
 begin
   Inherited Create(AOwner);
+{$ifdef dsdebug }
+  Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
+{$endif}  
   FName:=Aname;
   FDatatype:=ADatatype;
   FSize:=ASize;
@@ -48,6 +51,7 @@ begin
     end
   else If FDataType in [ftWord,ftsmallint,ftinteger] Then
     If Not (FSize in [1,2,4]) then FSize:=4;
+  
   FFieldNo:=AFieldNo;
   AOwner.FItems.Add(Self);
 end;
@@ -65,7 +69,7 @@ Function TFieldDef.CreateField(AOwner: TComponent): TField;
 Var TheField : TFieldClass;
 
 begin
-  Writeln ('Creating field');
+  Writeln ('Creating field'+FNAME);
   TheField:=GetFieldClass;
   if TheField=Nil then
     DatabaseErrorFmt(SUnknownFieldType,[FName]);
@@ -74,8 +78,14 @@ begin
     Result.Size:=FSize;
     Result.Required:=FRequired;
     Result.FieldName:=FName;
+    Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
-    Writeln ('Trying to set dataset');
+{$ifdef dsdebug}
+    Writeln ('TFieldDef.CReateField : Trying to set dataset');
+{$endif dsdebug}    
+{$ifdef dsdebug}
+    Writeln ('TFieldDef.CReateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
+{$endif dsdebug}    
     Result.Dataset:=TFieldDefs(Owner).FDataset;
     If Result is TFloatField then
       TFloatField(Result).Precision:=FPrecision;
@@ -83,6 +93,7 @@ begin
     Result.Free;
     Raise;
   end;
+  
 end;
 
 Function TFieldDef.GetFieldClass : TFieldClass;
@@ -112,12 +123,11 @@ procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word
   ARequired: Boolean);
 
 begin
-  Writeln ('Adding fielddef');
-  If Length(Name)=0 Then 
+  If Length(AName)=0 Then 
     DatabaseError(SNeedFieldName);
   // the fielddef will register itself here as a owned component.
   // fieldno is 1 based !
-  FItems.Add(TFieldDef.Create(Self,AName,ADataType,ASize,Arequired,FItems.Count+1));
+  TFieldDef.Create(Self,AName,ADataType,ASize,Arequired,FItems.Count+1);
 end;
 
 function TFieldDefs.GetCount: Longint;
@@ -453,7 +463,9 @@ end;
 Procedure TField.SetDataset (Value : TDataset);
 
 begin
+{$ifdef dsdebug}
   Writeln ('Setting dataset');
+{$endif}  
   If Value=FDataset then exit;
   If Assigned(FDataset) Then FDataset.CheckInactive;
   If Assigned(Value) then
@@ -465,10 +477,7 @@ begin
   If Assigned(FDataset) then
     FDataset.FFieldList.Remove(Self);
   If Assigned(Value) then 
-    begin
-    Writeln('Adding field to list..');
     Value.FFieldList.Add(Self);
-    end;
   FDataset:=Value;    
 end;
 
@@ -1764,7 +1773,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-12-23 23:27:25  sg
+  Revision 1.1.2.3  2001-01-16 23:00:00  michael
+  + Fixes to get dbf to work
+
+  Revision 1.1.2.2  2000/12/23 23:27:25  sg
   * Added TField.DisplayText, and accordingly changed all arguments called
     DisplayText to ADisplayText
 

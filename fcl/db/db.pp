@@ -34,6 +34,8 @@ const
   YesNoChars : Array[Boolean] of char = ('Y','N');
 
 type
+{LargeInt}
+  LargeInt = Int64;
 
 { Auxiliary type }
   TStringFieldBuffer = Array[0..dsMaxStringSize] of Char;
@@ -69,10 +71,20 @@ type
 
   TFieldClass = class of TField;
 
+{
   TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
     ftBoolean, ftFloat, ftDate, ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic,
     ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor);
+}    
+    
+  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord, 
+    ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime, 
+    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, 
+    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, 
+    ftWideString, ftLargeint, ftADT, ftArray, ftReference, 
+    ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface, 
+    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd);
 
   TFieldDef = class(TComponent)
   Private
@@ -1189,7 +1201,47 @@ type
 
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
-    ( 'Unknown',
+    (
+      'Unknown', 
+      'String', 
+      'Smallint', 
+      'Integer', 
+      'Word', 
+      'Boolean', 
+      'Float', 
+      'Currency', 
+      'BCD', 
+      'Date',  
+      'Time', 
+      'DateTime', 
+      'Bytes', 
+      'VarBytes', 
+      'AutoInc', 
+      'Blob', 
+      'Memo', 
+      'Graphic', 
+      'FmtMemo', 
+      'ParadoxOle', 
+      'DBaseOle', 
+      'TypedBinary', 
+      'Cursor', 
+      'FixedChar', 
+      'WideString', 
+      'Largeint', 
+      'ADT', 
+      'Array', 
+      'Reference', 
+      'DataSet', 
+      'OraBlob', 
+      'OraClob', 
+      'Variant', 
+      'Interface', 
+      'IDispatch', 
+      'Guid', 
+      'TimeStamp', 
+      'FMTBcd'
+    );
+    { 'Unknown',
       'String',
       'Smallint',
       'Integer',
@@ -1210,7 +1262,7 @@ Const
       'DBaseOle',
       'TypedBinary',
       'Cursor'
-    );
+    );}
 
    dsEditModes = [dsEdit, dsInsert];
 { Auxiliary functions }
@@ -1405,7 +1457,10 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.4  2001-01-11 23:46:28  sg
+  Revision 1.1.2.5  2001-01-16 23:00:25  michael
+  + Fixes to get dbf to work
+
+  Revision 1.1.2.4  2001/01/11 23:46:28  sg
   * Some bugfixes... :)
 
   Revision 1.1.2.3  2000/12/23 23:26:45  sg

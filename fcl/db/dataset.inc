@@ -72,9 +72,10 @@ begin
      Here some magic will be needed later; for now just simply set
      Just set fieldno from listindex...
      Later we should take it from the fielddefs.
-  }
+     // ATM Set by CreateField ...
   For I:=0 to FFieldList.Count-1 do
     FFieldList[i].FFieldNo:=I;
+  }  
 end;
 
 Function TDataset.BookmarkAvailable: Boolean;
@@ -141,11 +142,17 @@ Var I : longint;
 begin
 {$ifdef DSDebug}
   Writeln ('Creating fields');
+  Writeln ('Count : ',fielddefs.Count);
+  For I:=0 to FieldDefs.Count-1 do
+    Writeln('Def ',I,' : ',Fielddefs.items[i].Name,'(',Fielddefs.items[i].FieldNo,')');
 {$endif}
   For I:=0 to fielddefs.Count-1 do
     With Fielddefs.Items[I] do
       If DataType<>ftUnknown then
+        begin
+        Writeln('About to create field',FieldDefs.Items[i].Name);
         CreateField(self);
+        end;
 end;
 
 Procedure TDataset.DataEvent(Event: TDataEvent; Info: Longint);
@@ -1586,7 +1593,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.4  2001-01-11 23:46:28  sg
+  Revision 1.1.2.5  2001-01-16 22:59:59  michael
+  + Fixes to get dbf to work
+
+  Revision 1.1.2.4  2001/01/11 23:46:28  sg
   * Some bugfixes... :)
 
   Revision 1.1.2.3  2000/12/23 23:23:49  sg
