@@ -1,4 +1,4 @@
- {
+{
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
@@ -1636,6 +1636,7 @@ Begin
                 End;
           End;}
       End;
+      updateUsedRegs(UsedRegs,p);
       p:=Tai(p.next);
     end;
 end;
@@ -2043,7 +2044,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2002-05-18 13:34:25  peter
+  Revision 1.28  2002-06-09 12:55:23  jonas
+    * fixed detection of register usage
+
+  Revision 1.27  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.26  2002/05/16 19:46:52  carl
