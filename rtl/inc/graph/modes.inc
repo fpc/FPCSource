@@ -247,6 +247,12 @@
          Hline := modeinfo^.Hline;
       if assigned(modeinfo^.Vline) then
          VLine := modeinfo^.VLine;
+      if assigned(modeInfo^.SetVisualPage) then
+         SetVisualPage := modeInfo^.SetVisualPage;
+      if assigned(modeInfo^.SetActivePage) then
+         SetActivePage := modeInfo^.SetActivePage;
+
+
       IntCurrentMode := modeinfo^.ModeNumber;
       IntCurrentDriver := modeinfo^.DriverNumber;
       XAspect := modeinfo^.XAspect;
@@ -262,10 +268,13 @@
           exit;
         end;
       modeinfo^.InitMode;
+      if _GraphResult <> grOk then exit;
       { It is very important that this call be made }
       { AFTER the other variables have been setup.  }
       { Since it calls some routines which rely on  }
       { those variables.                            }
+      SetActivePage(0);
+      SetVisualPage(0);
       GraphDefaults;
       SetViewPort(0,0,MaxX,MaxY,TRUE);
     end;
