@@ -176,7 +176,6 @@ Implementation
 
     var r:Tregister;
         rs:Tsuperregister;
-        i:longint;
 
       begin
          if unusedscratchregisters=[] then
@@ -201,12 +200,11 @@ Implementation
 
     var r:Tregister;
         rs:Tsuperregister;
-        i:longint;
 
       begin
          if unusedscratchregisters=[] then
            internalerror(68996);
-        
+
          if RS_A0 in unusedscratchregisters then
            rs:=RS_A0
          else if RS_A1 in unusedscratchregisters then
@@ -227,8 +225,6 @@ Implementation
 {****************************************************************************}
     function tcg68k.fixref(list: taasmoutput; var ref: treference): boolean;
 
-       var
-         tmpreg: tregister;
        begin
          result := false;
          { The Coldfire and MC68020+ have extended
@@ -1030,9 +1026,6 @@ Implementation
               reference_release(list,hp2);
            end;
 
-           { loading SELF-reference again }
-           g_maybe_loadself(list);
-
            if delsource then
                tg.ungetiftemp(list,source);
 
@@ -1048,9 +1041,9 @@ Implementation
       end;
 
     procedure tcg68k.g_stackframe_entry(list : taasmoutput;localsize : longint);
-    
+
     var r,r2,rsp:Tregister;
-    
+
       begin
         r.enum:=frame_pointer_reg;
         rsp.enum:=stack_pointer_reg;
@@ -1072,9 +1065,9 @@ Implementation
       end;
 
     procedure tcg68k.g_restore_frame_pointer(list : taasmoutput);
-    
+
     var r:Tregister;
-    
+
       begin
         r.enum:=frame_pointer_reg;
         list.concat(taicpu.op_reg(A_UNLK,S_NO,r));
@@ -1137,7 +1130,7 @@ Implementation
 
     var tosave:Tsupregset;
         r:Tregister;
-         
+
     begin
       tosave:=std_saved_registers;
       { only save the registers which are not used and must be saved }
@@ -1344,7 +1337,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2003-02-19 22:00:16  daniel
+  Revision 1.19  2003-04-23 13:40:33  peter
+    * fix m68k compile
+
+  Revision 1.18  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

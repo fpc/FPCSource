@@ -174,6 +174,9 @@ uses
       first_supreg    = $01;
       last_supreg     = $10;
 
+      first_imreg     = $11;
+      last_imreg      = $ff;
+
       {# First register in the tregister enumeration }
       firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
@@ -706,7 +709,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-04-23 12:35:35  florian
+  Revision 1.20  2003-04-23 13:40:33  peter
+    * fix m68k compile
+
+  Revision 1.19  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

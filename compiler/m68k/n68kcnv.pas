@@ -164,7 +164,7 @@ implementation
       begin
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
-         if (nf_explizit in flags) and
+         if (nf_explicit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
@@ -296,7 +296,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-02-19 22:00:16  daniel
+  Revision 1.9  2003-04-23 13:40:33  peter
+    * fix m68k compile
+
+  Revision 1.8  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

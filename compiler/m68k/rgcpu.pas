@@ -35,9 +35,6 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-          unusedregsaddr,usableregsaddr:Tsupregset;
-          countunusedregsaddr,
-          countusableregsaddr : byte;
           procedure saveStateForInline(var state: pointer);override;
           procedure restoreStateAfterInline(var state: pointer);override;
           procedure saveUnusedState(var state: pointer);override;
@@ -78,11 +75,11 @@ unit rgcpu;
                                 usedintinproc,
                                 unusedregsint,
                                 countunusedregsint);
- 
+
     end;
-     
+
     function trgcpu.isaddressregister(reg: tregister): boolean;
-    
+
     begin
       isaddressregister := reg.enum in addrregs;
     end;
@@ -215,7 +212,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-04-22 10:09:35  daniel
+  Revision 1.9  2003-04-23 13:40:33  peter
+    * fix m68k compile
+
+  Revision 1.8  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used
