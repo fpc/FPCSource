@@ -208,7 +208,11 @@ const
  k=1;
  
 type
+{$if defined(CPUSPARC) and defined(LINUX)}
+  CORE_ADDR = qword;
+{$else}
   CORE_ADDR = ptrint; { might be target dependent PM }
+{$endif}
   streamtype = (afile,astring);
   C_FILE     = ptrint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
@@ -2464,7 +2468,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2005-01-02 12:40:42  florian
+  Revision 1.28  2005-01-07 18:47:33  florian
+    * sparc/linux uses 64 bit CORE_ADDR always it seems
+
+  Revision 1.27  2005/01/02 12:40:42  florian
     * set default GDB version to 6
 
   Revision 1.26  2004/12/19 21:00:00  florian
