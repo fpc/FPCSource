@@ -60,6 +60,7 @@ begin
     on EAccessViolation do WriteLn('Access Violation');
   else
     WriteLn('Problem');
+    halt(1);
   end;
 end.
 
