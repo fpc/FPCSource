@@ -16,17 +16,18 @@
 {****************************************************************************}
 
 const
- Priorities: array [TThreadPriority] of word = ($100, $200, $207, $20F, $217
+ Priorities: array [TThreadPriority] of word = ($100, $200, $207, $20F, $217,
   $21F, $300);
+ ThreadCount: longint = 0;
 
 
-procedure AddThread;
+procedure AddThread (T: TThread);
 begin
  Inc (ThreadCount);
 end;
 
 
-procedure RemoveThread;
+procedure RemoveThread (T: TThread);
 begin
  Dec (ThreadCount);
 end;
@@ -89,9 +90,10 @@ begin
 end;
 
 
-function ThreadProc(Thread: TThread): Integer; cdecl;
+function ThreadProc(Args: pointer): Integer; cdecl;
 var
   FreeThread: Boolean;
+  Thread: TThread absolute Args;
 begin
   Thread.Execute;
   FreeThread := Thread.FFreeOnTerminate;
@@ -109,7 +111,7 @@ begin
   inherited Create;
   AddThread (Self);
   FSuspended := CreateSuspended;
-  Flags := dtStack_Committed;
+  Flags := dtStack_Commited;
   if FSuspended then Flags := Flags or dtSuspended;
   if DosCreateThread (FThreadID, @ThreadProc, pointer (Self), Flags, 16384)
                                                                       <> 0 then
@@ -159,7 +161,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
+  Revision 1.3  2000-12-19 00:43:07  hajny
+    + FCL made compilable under OS/2
+
+  Revision 1.2  2000/07/13 11:33:02  michael
   + removed logs
  
 }

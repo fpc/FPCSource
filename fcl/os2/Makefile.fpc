@@ -5,6 +5,7 @@
 [targets]
 dirs=../xml ../shedit
 units=classes $(INCUNITS)
+rst=classes cachecls
 
 [defaults]
 defaulttarget=os2

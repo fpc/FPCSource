@@ -1,5 +1,6 @@
 {
     $Id$
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
@@ -14,6 +15,12 @@
 
  **********************************************************************}
 
+uses
+ DosCalls;
+
+const
+ PipeBufSize = 1024;
+
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
@@ -21,7 +28,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2000-08-25 17:33:44  hajny
+  Revision 1.4  2000-12-19 00:43:07  hajny
+    + FCL made compilable under OS/2
+
+  Revision 1.3  2000/08/25 17:33:44  hajny
     * Made compilable again (missing bracket at the begin of logs)
 
   Revision 1.2  2000/07/13 11:33:01  michael
