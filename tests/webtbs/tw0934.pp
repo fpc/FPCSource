@@ -1,4 +1,7 @@
 { %OPT=-Or }
+{ %CPU=i386 }
+{ -Or option is not recognized by m68k compiler }
+
 {$mode objfpc}
  Type
       t = class(TObject)

@@ -1,4 +1,6 @@
 { %OPT=-Or }
+{ %CPU=i386 }
+{ m68k compiler does not recognize -Or option }
 { Source provided for Free Pascal Bug Report 2110 }
 { Submitted by "Alex" on  2002-09-05 }
 { e-mail: bjer@freemail.hu }
