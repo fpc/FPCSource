@@ -592,7 +592,10 @@ QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 The \var{integer} type maps to the smallint type in the default
 \fpc mode. It maps to either a longint or int64 in either Delphi or ObjFPC
 mode. The \var{cardinal} type is currently always mapped to the 
-longword type.
+longword type. The definition of the \var{cardinal} and \var{integer}
+types may change from one architecture to another and from one
+compiler mode to another. They usually have the same size as the
+underlying target architecture.
 
 %  This IS NOT TRUE, this is a 32-bit compiler, so the integer type
 % will always be the same independently the CPU type.
