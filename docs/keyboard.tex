@@ -111,19 +111,21 @@ var
 
 \begin{procedure}{DoneKeyboard}
 \Declaration
-Procedure DoneKeyboard
+Procedure DoneKeyboard;
 \Description
 \var{DoneKeyboard} de-initializes the keyboard interface. 
 It clears up any allocated memory, or restores the console or terminal 
 the program was running in to its initial state. This function should 
-be called on program exit. Failing to do so may leave the terminal in 
-unusable state. Its exact action depends on the platform on which the 
-program is running.
+be called on program exit. Failing to do so may leave the terminal or
+console window in an unusable state. Its exact action depends on the 
+platform on which the program is running.
 \Errors
 None.
 \SeeAlso
 \seep{InitKeyBoard}
 \end{procedure}
+
+For an example, see most other functions.
 
 \begin{function}{GetKeyEvent}
 \Declaration
@@ -133,20 +135,31 @@ function GetKeyEvent: TKeyEvent;
 \var{PendingKeyEvent}, or waits for one if none is available.
 A non-blocking version is available in \seef{PollKeyEvent}.
 
-The returned key is encoded as a \var{TKeyEvent} type variable. 
-See the types section for a description of how the key is described.
+The returned key is encoded as a \var{TKeyEvent} type variable, and
+is normally the physical key code, which can be translated with one
+of the translation functions \seef{TranslateKeyEvent} or
+\seef{TranslateKeyEventUniCode}. See the types section for a 
+description of how the key is described.
 \Errors
 If no key became available, 0 is returned.
 \SeeAlso
-\seep{PutKeyEvent}, \seef{PollKeyEvent}
+\seep{PutKeyEvent}, \seef{PollKeyEvent}, \ßeef{TranslateKeyEvent},
+\seef{TranslateKeyEventUniCode}
 \end{function}
+
+\FPCexample{ex1}
 
 \begin{function}{GetKeyEventChar}
 \Declaration
 function GetKeyEventChar(KeyEvent: TKeyEvent): Char;
 \Description
 \var{GetKeyEventChar} returns the charcode part of the given 
-\var{KeyEvent}, if it contains a translated keycode.
+\var{KeyEvent}, if it contains a translated character key 
+keycode. The charcode is simply the ascii code of the 
+character key that was pressed.
+
+It returns the null character if the key was not a character key, but e.g. a
+function key.
 \Errors
 None.
 \SeeAlso
@@ -157,12 +170,16 @@ None.
 \seef{GetKeyEvent}
 \end{function}
 
+For an example, see \seef{GetKeyEvent}
+
 \begin{function}{GetKeyEventCode}
 \Declaration
 function GetKeyEventCode(KeyEvent: TKeyEvent): Word;
 \Description
 \var{GetKeyEventCode} returns the translated function keycode part of 
-the given KeyEvent, if it contains a translated function keycode.
+the given KeyEvent, if it contains a translated function key.
+
+If the key pressed was not a function key, the null character is returned.
 \Errors
 None.
 \SeeAlso
@@ -172,6 +189,8 @@ None.
 \seef{GetKeyEventChar},
 \seef{GetKeyEvent}
 \end{function}
+
+\FPCexample{ex2}
 
 \begin{function}{GetKeyEventFlags}
 \Declaration
@@ -189,13 +208,21 @@ None.
 \seef{GetKeyEvent}
 \end{function}
 
+For an example, see \seef{GetKeyEvent}
+
 \begin{function}{GetKeyEventShiftState}
 \Declaration
 function GetKeyEventShiftState(KeyEvent: TKeyEvent): Byte;
 \Description
 \var{GetKeyEventShiftState} returns the shift-state values of 
-the given \var{KeyEvent}.
+the given \var{KeyEvent}. This can be used to detect which of the modifier
+keys \var{Shift}, \var{Alt} or \var{Ctrl} were pressed. If none were
+pressed, zero is returned.
+
+Note that this function does not always return expected results;
+In a unix X-Term, the modifier keys do not always work.
 \Errors
+None.
 \SeeAlso
 \seef{GetKeyEventUniCode},
 \seef{GetKeyEventFlags}, 
@@ -203,6 +230,8 @@ the given \var{KeyEvent}.
 \seef{GetKeyEventChar},
 \seef{GetKeyEvent}
 \end{function}
+
+\FPCexample{ex3}
 
 \begin{function}{GetKeyEventUniCode}
 \Declaration
@@ -221,6 +250,8 @@ None.
 \seef{GetKeyEvent}
 \end{function}
 
+No example yet.
+
 \begin{procedure}{InitKeyBoard}
 \Declaration
 procedure InitKeyboard;
@@ -236,6 +267,8 @@ None.
 \SeeAlso
 \seep{DoneKeyBoard}
 \end{procedure}
+
+For an example, see most other functions.
 
 \begin{function}{IsFunctionKey}
 \Declaration
