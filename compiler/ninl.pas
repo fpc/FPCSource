@@ -1480,7 +1480,21 @@ implementation
                                                      s32bittype);
                             result:=hp;
                             goto myexit;
-                          end;
+                          end
+                        else
+                          begin
+                            { can't use inserttypeconv because we need }
+                            { an explicit type conversion (JM)         }
+                            hp := ctypeconvnode.create(left,voidpointertype);
+                            hp.toggleflag(nf_explizit);
+                            hp := ccallparanode.create(hp,nil);
+                            result := ccallnode.createintern('fpc_dynarray_length',hp);
+                            { make sure the left node doesn't get disposed, since it's }
+                            { reused in the new node (JM)                              }
+                            left:=nil;
+                            resulttypepass(result);
+                            exit;
+                          end;  
                       end;
                     else
                       CGMessage(type_e_mismatch);
@@ -1748,6 +1762,7 @@ implementation
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
+                                resulttypepass(result);
                               end
                            else
                             begin
@@ -2293,7 +2308,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2001-10-24 16:17:36  jonas
+  Revision 1.64  2001-12-03 14:21:34  jonas
+    * fixed web bug 1693 (dynarray support for length)
+
+  Revision 1.63  2001/10/24 16:17:36  jonas
     * fixed web bug 1621 (write(typed_file,function_call) works again)
     * allow write(typed_file,procvar_call) too (it was already allowed for
       text file writes)
