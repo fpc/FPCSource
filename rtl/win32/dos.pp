@@ -776,6 +776,7 @@ procedure getfattr(var f;var attr : word);
 var
    l : longint;
 begin
+  doserror:=0;
   l:=GetFileAttributes(filerec(f).name);
   if l=$ffffffff then
    doserror:=getlasterror;
@@ -895,7 +896,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.24  1999-10-12 08:56:48  pierre
+  Revision 1.25  1999-10-14 08:57:51  peter
+    * getfattr resets doserror
+
+  Revision 1.24  1999/10/12 08:56:48  pierre
    * fix form bug660
 
   Revision 1.23  1999/09/22 12:34:05  pierre
