@@ -26,7 +26,7 @@ interface
 implementation
 
 uses
-  Linux,Video
+  Unix,Video
 {$ifndef NOGPM}
   ,gpm
 {$endif ndef NOGPM}
@@ -418,7 +418,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-09-15 17:52:30  peter
+  Revision 1.9  2002-10-14 18:37:15  peter
+    * use Unix unit
+
+  Revision 1.8  2002/09/15 17:52:30  peter
     * Updates from the fixes branch
 
   Revision 1.2.2.9  2002/09/11 06:49:59  pierre
