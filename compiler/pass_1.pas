@@ -995,6 +995,30 @@ unit pass_1;
                         end;
              unequaln,
           equaln,xorn : begin
+                          { this forces a better code generation (TEST }
+                          { instead of CMP)                            }
+                          if p^.treetype<>xorn then
+                            begin
+                               if (p^.left^.treetype=ordconstn) and
+                                 (p^.left^.value<>0) then
+                                 begin
+                                    p^.left^.value:=0;
+                                    if p^.treetype=equaln then
+                                      p^.treetype:=unequaln
+                                    else
+                                      p^.treetype:=equaln;
+                                 end;
+                               if (p^.right^.treetype=ordconstn) and
+                                 (p^.right^.value<>0) then
+                                 begin
+                                    p^.right^.value:=0;
+                                    if p^.treetype=equaln then
+                                      p^.treetype:=unequaln
+                                    else
+                                      p^.treetype:=equaln;
+                                 end;
+                            end;
+
                           make_bool_equal_size(p);
                           calcregisters(p,1,0,0);
                         end
@@ -5417,7 +5441,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.72  1998-09-05 22:11:01  florian
+  Revision 1.73  1998-09-05 22:29:57  florian
+    + the boolean comparision a=true generates now the same code as only a,
+      (a=1 was compiled to cmp 1,a now it is compiled to cmp 0,a)
+
+  Revision 1.72  1998/09/05 22:11:01  florian
     + switch -vb
     * while/repeat loops accept now also word/longbool conditions
     * makebooltojump did an invalid ungetregister32, fixed
