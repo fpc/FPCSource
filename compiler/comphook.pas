@@ -297,7 +297,7 @@ begin
      {MPW style error}
      if status.currentcolumn>0 then
        hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+
-         ' # (' + tostr(status.currentcolumn) + ')' +hs+' '+s
+         ' # (' + tostr(status.currentcolumn) + ') ' +hs+' '+s
      else
        hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+' #'+hs+' '+s;
      {$endif}
@@ -398,7 +398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2004-12-28 01:39:07  olle
+  Revision 1.34  2004-12-28 22:02:05  olle
+    * fixed typo in MPW error msg
+
+  Revision 1.33  2004/12/28 01:39:07  olle
     + added support for MPW error messages
     + added support for cooperative multitasking under MPW
 
