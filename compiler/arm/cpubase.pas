@@ -314,7 +314,7 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      max_operands = 3;
+      max_operands = 4;
 
       {# Constant defining possibly all registers which might require saving }
       ALL_OTHERREGISTERS = [];
@@ -570,7 +570,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.28  2004-03-13 18:45:40  florian
+  Revision 1.29  2004-03-23 21:03:50  florian
+    * arm assembler instructions can have 4 operands
+    * qword comparisations fixed
+
+  Revision 1.28  2004/03/13 18:45:40  florian
     * floating compares fixed
     * unary minus for floats fixed
 

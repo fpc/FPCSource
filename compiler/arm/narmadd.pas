@@ -261,8 +261,8 @@ interface
         { operation requiring proper N, Z and C flags ? }
         if unsigned or (nodetype in [equaln,unequaln]) then
           begin
-            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-            exprasmlist.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi),C_EQ));
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+            exprasmlist.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
           end
         { operation requiring proper N, V and C flags ? }
         else if nodetype in [gten,ltn] then
@@ -343,7 +343,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-03-13 18:45:40  florian
+  Revision 1.14  2004-03-23 21:03:50  florian
+    * arm assembler instructions can have 4 operands
+    * qword comparisations fixed
+
+  Revision 1.13  2004/03/13 18:45:40  florian
     * floating compares fixed
     * unary minus for floats fixed
 
