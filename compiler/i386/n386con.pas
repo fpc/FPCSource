@@ -51,11 +51,11 @@ implementation
          result:=nil;
          if (value_real=1.0) or (value_real=0.0) then
            begin
-              location.loc:=LOC_FPU;
+              location.loc:=LOC_FPUREGISTER;
               registersfpu:=1;
            end
          else
-           location.loc:=LOC_MEM;
+           location.loc:=LOC_CREFERENCE;
       end;
 
     procedure ti386realconstnode.pass_2;
@@ -64,14 +64,14 @@ implementation
          if (value_real=1.0) then
            begin
               emit_none(A_FLD1,S_NO);
-              location.loc:=LOC_FPU;
+              location.loc:=LOC_FPUREGISTER;
               location.register:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else if (value_real=0.0) then
            begin
               emit_none(A_FLDZ,S_NO);
-              location.loc:=LOC_FPU;
+              location.loc:=LOC_FPUREGISTER;
               location.register:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
@@ -85,7 +85,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-03-31 20:26:38  jonas
+  Revision 1.13  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.12  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -144,12 +144,6 @@ interface
       s     : string;
       first : boolean;
     begin
-      if ref.is_immediate then
-       begin
-         getreferencestring:=tostr(ref.offset);
-         exit;
-       end
-      else
       with ref do
         begin
           first:=true;
@@ -233,9 +227,9 @@ interface
           top_const :
             begin
               if (ops=1) and (opcode<>A_RET) then
-               getopstr:=sizestr(s,dest)+tostr(o.val)
+               getopstr:=sizestr(s,dest)+tostr(longint(o.val))
               else
-               getopstr:=tostr(o.val);
+               getopstr:=tostr(longint(o.val));
             end;
           top_symbol :
             begin
@@ -282,7 +276,7 @@ interface
           top_ref :
             getopstr_jmp:=getreferencestring(o.ref^);
           top_const :
-            getopstr_jmp:=tostr(o.val);
+            getopstr_jmp:=tostr(longint(o.val));
           top_symbol :
             begin
               hs:=o.sym.name;
@@ -867,7 +861,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-12-29 15:29:58  jonas
+  Revision 1.13  2002-04-02 17:11:33  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.12  2001/12/29 15:29:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

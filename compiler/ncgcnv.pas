@@ -41,9 +41,11 @@ interface
          procedure second_cord_to_pointer;override;
          procedure second_proc_to_procvar;override;
          procedure second_bool_to_int;override;
+         procedure second_bool_to_bool;override;
          procedure second_ansistring_to_pchar;override;
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
+         procedure second_nothing;override;
        end;
 
   implementation
@@ -54,7 +56,7 @@ interface
       ncon,ncal,
       cpubase,cpuinfo,
       pass_2,
-      cgbase,
+      cginfo,cgbase,
       cga,cgobj,cgcpu,
 {$ifdef i386}
       n386util,
@@ -69,33 +71,29 @@ interface
         hr : treference;
 
       begin
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
+         location_release(exprasmlist,left.location);
+         location_reset(location,LOC_REGISTER,OS_ADDR);
          case tstringdef(left.resulttype.def).string_typ of
            st_shortstring :
              begin
                inc(left.location.reference.offset);
-               rg.del_reference(exprasmlist,left.location.reference);
                location.register:=rg.getregisterint(exprasmlist);
-               cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
-                 location.register);
+               cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
            st_ansistring :
              begin
                if (left.nodetype=stringconstn) and
                   (str_length(left)=0) then
                 begin
-                  reset_reference(hr);
+                  reference_reset(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
                   location.register:=rg.getregisterint(exprasmlist);
-                  cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
+                  cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  rg.del_reference(exprasmlist,left.location.reference);
                   location.register:=rg.getregisterint(exprasmlist);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
-                    location.register);
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
                 end;
              end;
            st_longstring:
@@ -108,17 +106,16 @@ interface
                if (left.nodetype=stringconstn) and
                   (str_length(left)=0) then
                 begin
-                  reset_reference(hr);
+                  reference_reset(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
                   location.register:=rg.getregisterint(exprasmlist);
-                  cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
+                  cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  rg.del_reference(exprasmlist,left.location.reference);
                   location.register:=rg.getregisterint(exprasmlist);
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
-                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
                     location.register);
                 end;
              end;
@@ -139,6 +136,7 @@ interface
             (tstringconstnode(left).len+1 >= arrsize) and
             (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
            begin
+             location_copy(location,left.location);
              inc(location.reference.offset);
              exit;
            end
@@ -151,46 +149,43 @@ interface
     procedure tcgtypeconvnode.second_array_to_pointer;
 
       begin
-         rg.del_reference(exprasmlist,left.location.reference);
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
+         location_release(exprasmlist,left.location);
+         location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=rg.getregisterint(exprasmlist);
-         cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
-           location.register);
+         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
       end;
 
 
     procedure tcgtypeconvnode.second_pointer_to_array;
 
       begin
-        clear_location(location);
-        location.loc:=LOC_REFERENCE;
-        reset_reference(location.reference);
+        location_reset(location,LOC_REFERENCE,OS_NO);
         case left.location.loc of
           LOC_REGISTER :
             location.reference.base:=left.location.register;
           LOC_CREGISTER :
             begin
               location.reference.base:=rg.getregisterint(exprasmlist);
-              cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
-                location.reference.base);
-            end
-         else
-            begin
-              rg.del_reference(exprasmlist,left.location.reference);
-              location.reference.base:=rg.getregisterint(exprasmlist);
-              cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
+              cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
                 location.reference.base);
             end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              location_release(exprasmlist,left.location);
+              location.reference.base:=rg.getregisterint(exprasmlist);
+              cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
+                location.reference.base);
+            end;
+          else
+            internalerror(2002032216);
         end;
       end;
 
 
     procedure tcgtypeconvnode.second_char_to_string;
-
       begin
-         clear_location(location);
-         location.loc:=LOC_MEM;
+         location_reset(location,LOC_REFERENCE,OS_NO);
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
@@ -206,25 +201,25 @@ interface
 
     procedure tcgtypeconvnode.second_real_to_real;
       begin
-         clear_location(location);
-         location.loc:=LOC_FPU;
+         location_reset(location,LOC_FPUREGISTER,OS_NO);
          case left.location.loc of
-            LOC_FPU : ;
+            LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
               begin
-                 location:=left.location;
-                 exit;
+                location_copy(location,left.location);
+                exit;
               end;
-            LOC_MEM,
+            LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
+                 location_release(exprasmlist,left.location);
                  location.register := rg.getregisterfpu(exprasmlist);
                  cg.a_loadfpu_ref_reg(exprasmlist,
                    def_cgsize(left.resulttype.def),
                    left.location.reference,location.register);
-                 { we have to free the reference }
-                 rg.del_reference(exprasmlist,left.location.reference);
               end;
+            else
+              internalerror(2002032215);
          end;
       end;
 
@@ -243,16 +238,14 @@ interface
         { method pointer ? }
         if assigned(tcallnode(left).left) then
           begin
-             set_location(location,left.location);
+             location_copy(location,left.location);
           end
         else
           begin
-             clear_location(location);
-             location.loc:=LOC_REGISTER;
-             rg.del_reference(exprasmlist,left.location.reference);
+             location_release(exprasmlist,left.location);
+             location_reset(location,LOC_REGISTER,OS_ADDR);
              location.register:=rg.getregisterint(exprasmlist);
-             cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
-               location.register);
+             cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
           end;
       end;
 
@@ -274,22 +267,21 @@ interface
          { be accepted for var parameters                            }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
-              set_location(location,left.location);
+              location_copy(location,left.location);
               truelabel:=oldtruelabel;
               falselabel:=oldfalselabel;
               exit;
            end;
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         rg.del_location(exprasmlist,left.location);
-         location.register:=rg.getregisterint(exprasmlist);
          { size of the boolean we're converting }
          opsize := def_cgsize(left.resulttype.def);
          { size of the destination }
          newsize := def_cgsize(resulttype.def);
-         { the the source size is bigger than the destination, we can }
+         { reset location for destination }
+         location_reset(location,LOC_REGISTER,newsize);
+         location.register:=rg.getregisterint(exprasmlist);
+         { if the source size is bigger than the destination, we can }
          { simply decrease the sources size (since wordbool(true) =   }
          { boolean(true) etc... (JM)                                  }
          case newsize of
@@ -318,32 +310,48 @@ interface
              end;
          end;
          case left.location.loc of
-            LOC_MEM,
-      LOC_REFERENCE :
-           cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,
-             location.register);
-       LOC_REGISTER,
-      LOC_CREGISTER :
-           if left.location.register<>location.register then
-             cg.a_load_reg_reg(exprasmlist,opsize,left.location.register,
-               location.register);
-          LOC_FLAGS :
-            cg.g_flags2reg(exprasmlist,left.location.resflags,location.register);
-           LOC_JUMP :
-             begin
-               getlabel(hlabel);
-               cg.a_label(exprasmlist,truelabel);
-               cg.a_load_const_reg(exprasmlist,newsize,1,location.register);
-               cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
-               cg.a_label(exprasmlist,falselabel);
-               cg.a_load_const_reg(exprasmlist,newsize,0,location.register);
-               cg.a_label(exprasmlist,hlabel);
-             end;
-         else
-           internalerror(10061);
+            LOC_CREFERENCE,
+            LOC_REFERENCE :
+              cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,
+                location.register);
+            LOC_REGISTER,
+            LOC_CREGISTER :
+              if left.location.register<>location.register then
+                cg.a_load_reg_reg(exprasmlist,opsize,left.location.register,
+                  location.register);
+            LOC_FLAGS :
+              cg.g_flags2reg(exprasmlist,left.location.resflags,location.register);
+            LOC_JUMP :
+              begin
+                getlabel(hlabel);
+                cg.a_label(exprasmlist,truelabel);
+                cg.a_load_const_reg(exprasmlist,newsize,1,location.register);
+                cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
+                cg.a_label(exprasmlist,falselabel);
+                cg.a_load_const_reg(exprasmlist,newsize,0,location.register);
+                cg.a_label(exprasmlist,hlabel);
+              end;
+            else
+              internalerror(10061);
          end;
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
+      end;
+
+
+    procedure tcgtypeconvnode.second_bool_to_bool;
+      begin
+        { we can reuse the conversion already available
+          in bool_to_int to resize the value. But when the
+          size of the new boolean is smaller we need to calculate
+          the value as is done in int_to_bool. This is needed because
+          the bits that define the true status can be outside the limits
+          of the new size and truncating the register can result in a 0
+          value }
+        if resulttype.def.size<left.resulttype.def.size then
+          second_int_to_bool
+        else
+          second_bool_to_int;
       end;
 
 
@@ -352,62 +360,58 @@ interface
          l1 : tasmlabel;
          hr : treference;
       begin
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
+         location_reset(location,LOC_REGISTER,OS_ADDR);
          getlabel(l1);
          case left.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
               location.register:=left.location.register;
-            LOC_MEM,LOC_REFERENCE:
+            LOC_CREFERENCE,LOC_REFERENCE:
               begin
-                rg.del_reference(exprasmlist,left.location.reference);
+                location_release(exprasmlist,left.location);
                 location.register:=rg.getregisterint(exprasmlist);
-                cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
-                  location.register);
+                cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,location.register);
               end;
+            else
+              internalerror(2002032214);
          end;
-         cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_NE,0,location.register,
-           l1);
-         reset_reference(hr);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_NE,0,location.register,l1);
+         reference_reset(hr);
          hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-         cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
+         cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
          cg.a_label(exprasmlist,l1);
       end;
 
 
     procedure tcgtypeconvnode.second_class_to_intf;
       var
-         hreg : tregister;
          l1 : tasmlabel;
       begin
+         location_reset(location,LOC_REGISTER,OS_ADDR);
          case left.location.loc of
-            LOC_MEM,
+            LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 rg.del_reference(exprasmlist,left.location.reference);
-                 hreg:=rg.getregisterint(exprasmlist);
-                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
-                   hreg);
+                 location_release(exprasmlist,left.location);
+                 location.register:=rg.getregisterint(exprasmlist);
+                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
               end;
             LOC_CREGISTER:
               begin
-                 hreg:=rg.getregisterint(exprasmlist);
-                 cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
-                   hreg);
+                 location.register:=rg.getregisterint(exprasmlist);
+                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,location.register);
               end;
             LOC_REGISTER:
-              hreg:=left.location.register;
-            else internalerror(121120001);
+              location.register:=left.location.register;
+            else
+              internalerror(121120001);
          end;
          getlabel(l1);
-         cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_EQ,0,hreg,l1);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,location.register,l1);
          cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
            tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
            tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(
-           resulttype.def))^),hreg);
+           resulttype.def))^),location.register);
          cg.a_label(exprasmlist,l1);
-         location.loc:=LOC_REGISTER;
-         location.register:=hreg;
       end;
 
 
@@ -418,13 +422,34 @@ interface
         second_int_to_int;
       end;
 
+
+    procedure tcgtypeconvnode.second_nothing;
+      begin
+        { we reuse the old value }
+        location_copy(location,left.location);
+        { but use the new size, but we don't know the size of all arrays }
+        location.size:=def_cgsize_ref(resulttype.def)
+      end;
+
+
 begin
   ctypeconvnode := tcgtypeconvnode;
 end.
 
 {
   $Log$
-  Revision 1.5  2002-03-31 20:26:34  jonas
+  Revision 1.6  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.5  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

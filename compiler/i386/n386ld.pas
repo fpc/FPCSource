@@ -52,10 +52,10 @@ implementation
       systems,
       verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cga,tgobj,n386cnv,n386util,regvars,cgobj,rgobj,rgcpu;
+      cga,tgobj,n386cnv,n386util,regvars,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
                              SecondLoad
@@ -66,15 +66,15 @@ implementation
          hregister : tregister;
          symtabletype : tsymtabletype;
          i : longint;
-         hp : preference;
+         href : treference;
          s : tasmsymbol;
+         newsize : tcgsize;
          popeax : boolean;
-         //pushed : tpushed;
-         //hr : treference;
-
       begin
          simple_loadn:=true;
-         reset_reference(location.reference);
+         { we don't know the size of all arrays }
+         newsize:=def_cgsize_ref(resulttype.def);
+         location_reset(location,LOC_REFERENCE,newsize);
          case symtableentry.typ of
               { this is only for toasm and toaddr }
               absolutesym :
@@ -93,7 +93,7 @@ implementation
                 begin
                    if tconstsym(symtableentry).consttyp=constresourcestring then
                      begin
-                        location.loc:=LOC_MEM;
+                        location_reset(location,LOC_CREFERENCE,OS_ADDR);
                         location.reference.symbol:=newasmsymbol(tconstsym(symtableentry).owner.name^+'_RESOURCESTRINGLIST');
                         location.reference.offset:=tconstsym(symtableentry).resstrindex*16+8;
                      end
@@ -113,7 +113,7 @@ implementation
                       begin
                          hregister:=rg.getregisterint(exprasmlist);
                          location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
-                         emit_ref_reg(A_MOV,S_L,newreference(location.reference),hregister);
+                         emit_ref_reg(A_MOV,S_L,location.reference,hregister);
                          location.reference.symbol:=nil;
                          location.reference.base:=hregister;
                       end
@@ -128,13 +128,12 @@ implementation
                          popeax:=not(R_EAX in rg.unusedregsint);
                          if popeax then
                            emit_reg(A_PUSH,S_L,R_EAX);
-                         location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
-                         emit_ref(A_PUSH,S_L,newreference(location.reference));
+                         reference_reset_symbol(href,newasmsymbol(tvarsym(symtableentry).mangledname),0);
+                         emit_ref(A_PUSH,S_L,href);
                          { the called procedure isn't allowed to change }
                          { any register except EAX                    }
                          emitcall('FPC_RELOCATE_THREADVAR');
 
-                         reset_reference(location.reference);
                          location.reference.base:=rg.getregisterint(exprasmlist);
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.reference.base);
                          if popeax then
@@ -150,21 +149,23 @@ implementation
                            begin
                               if tvarsym(symtableentry).reg in [R_ST0..R_ST7] then
                                 begin
-                                   location.loc:=LOC_CFPUREGISTER;
+                                   location_reset(location,LOC_CFPUREGISTER,OS_NO);
                                    location.register:=tvarsym(symtableentry).reg;
                                 end
                               else
                                 if not(makereg32(tvarsym(symtableentry).reg) in [R_EAX..R_EBX]) or
                                    rg.regvar_loaded[makereg32(tvarsym(symtableentry).reg)] then
                                 begin
-                                   location.loc:=LOC_CREGISTER;
+                                   location_reset(location,LOC_REGISTER,
+                                       cg.reg_cgsize(tvarsym(symtableentry).reg));
                                    location.register:=tvarsym(symtableentry).reg;
                                    exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
                                 end
                               else
                                 begin
                                   load_regvar(exprasmlist,tvarsym(symtableentry));
-                                  location.loc:=LOC_CREGISTER;
+                                  location_reset(location,LOC_REGISTER,
+                                      cg.reg_cgsize(tvarsym(symtableentry).reg));
                                   location.register:=tvarsym(symtableentry).reg;
                                   exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
                                 end
@@ -192,23 +193,22 @@ implementation
                                         else
                                           location.reference.offset:=-location.reference.offset;
                                      end;
-                                   if (lexlevel>(symtable.symtablelevel)) then
+                                   if (lexlevel>symtable.symtablelevel) then
                                      begin
                                         hregister:=rg.getregisterint(exprasmlist);
 
                                         { make a reference }
-                                        hp:=new_reference(procinfo^.framepointer,
-                                          procinfo^.framepointer_offset);
+                                        reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
 
-                                        emit_ref_reg(A_MOV,S_L,hp,hregister);
+                                        emit_ref_reg(A_MOV,S_L,href,hregister);
 
                                         simple_loadn:=false;
                                         i:=lexlevel-1;
-                                        while i>(symtable.symtablelevel) do
+                                        while (i>symtable.symtablelevel) do
                                           begin
                                              { make a reference }
-                                             hp:=new_reference(hregister,8);
-                                             emit_ref_reg(A_MOV,S_L,hp,hregister);
+                                             reference_reset_base(href,hregister,8);
+                                             emit_ref_reg(A_MOV,S_L,href,hregister);
                                              dec(i);
                                           end;
                                         location.reference.base:=hregister;
@@ -245,21 +245,21 @@ implementation
                                         { symtable datasize field
                                           contains the offset of the temp
                                           stored }
-{                                       hp:=new_reference(procinfo^.framepointer,
+{                                       hp:=reference_new_base(procinfo^.framepointer,
                                           symtable.datasize);
 
                                         emit_ref_reg(A_MOV,S_L,hp,hregister);}
 
                                         if nf_islocal in tnode(twithsymtable(symtable).withnode).flags then
                                          begin
-                                           location.reference:=twithnode(twithsymtable(symtable).withnode).withreference^;
+                                           location.reference:=twithnode(twithsymtable(symtable).withnode).withreference;
                                          end
                                         else
                                          begin
                                            hregister:=rg.getregisterint(exprasmlist);
                                            location.reference.base:=hregister;
                                            emit_ref_reg(A_MOV,S_L,
-                                             newreference(twithnode(twithsymtable(symtable).withnode).withreference^),
+                                             twithnode(twithsymtable(symtable).withnode).withreference,
                                              hregister);
                                          end;
                                         inc(location.reference.offset,tvarsym(symtableentry).address);
@@ -277,19 +277,16 @@ implementation
                               simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=rg.getregisterint(exprasmlist);
-                              if location.loc=LOC_CREGISTER then
-                                begin
-                                   emit_reg_reg(A_MOV,S_L,
-                                     location.register,hregister);
-                                   location.loc:=LOC_REFERENCE;
-                                end
-                              else
-                                begin
-                                   emit_ref_reg(A_MOV,S_L,
-                                     newreference(location.reference),
-                                     hregister);
-                                end;
-                              reset_reference(location.reference);
+                              case location.loc of
+                                LOC_CREGISTER :
+                                   emit_reg_reg(A_MOV,S_L,location.register,hregister);
+                                LOC_REFERENCE,
+                                LOC_CREFERENCE :
+                                   emit_ref_reg(A_MOV,S_L,location.reference,hregister);
+                                else
+                                  internalerror(2002032218);
+                              end;
+                              location_reset(location,LOC_REFERENCE,newsize);
                               location.reference.base:=hregister;
                           end;
                       end;
@@ -298,15 +295,13 @@ implementation
                  begin
                     if assigned(left) then
                       begin
-                         location.loc:=LOC_MEM;
+                         location_reset(location,LOC_CREFERENCE,OS_64);
                          tg.gettempofsizereference(exprasmlist,8,location.reference);
                          if left.nodetype=typen then
                           begin
                             if left.resulttype.def.deftype<>objectdef then
                              internalerror(200103261);
-                            rg.getexplicitregisterint(exprasmlist,R_EDI);
-                            hregister:=R_EDI;
-                            new(hp);
+                            hregister:=rg.getexplicitregisterint(exprasmlist,R_EDI);
                             emit_sym_ofs_reg(A_MOV,S_L,
                               newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,R_EDI);
                           end
@@ -321,67 +316,53 @@ implementation
                                LOC_REGISTER:
                                  begin
                                     hregister:=left.location.register;
-                                    rg.ungetregisterint(exprasmlist,left.location.register);
                                     if is_object(left.resulttype.def) then
                                       CGMessage(cg_e_illegal_expression);
                                  end;
 
-                               LOC_MEM,
+                               LOC_CREFERENCE,
                                LOC_REFERENCE:
                                  begin
                                     rg.getexplicitregisterint(exprasmlist,R_EDI);
                                     hregister:=R_EDI;
                                     if is_class_or_interface(left.resulttype.def) then
-                                      emit_ref_reg(A_MOV,S_L,
-                                        newreference(left.location.reference),R_EDI)
+                                      emit_ref_reg(A_MOV,S_L,left.location.reference,R_EDI)
                                     else
-                                      emit_ref_reg(A_LEA,S_L,
-                                        newreference(left.location.reference),R_EDI);
-                                    rg.del_reference(exprasmlist,left.location.reference);
-                                    tg.ungetiftemp(exprasmlist,left.location.reference);
+                                      emit_ref_reg(A_LEA,S_L,left.location.reference,R_EDI);
                                  end;
                                else internalerror(26019);
                             end;
+                            location_release(exprasmlist,left.location);
+                            location_freetemp(exprasmlist,left.location);
                           end;
 
                          { store the class instance address }
-                         new(hp);
-                         hp^:=location.reference;
-                         inc(hp^.offset,4);
-                         emit_reg_ref(A_MOV,S_L,
-                           hregister,hp);
+                         href:=location.reference;
+                         inc(href.offset,4);
+                         emit_reg_ref(A_MOV,S_L,hregister,href);
 
                          { virtual method ? }
                          if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
                            begin
-                              new(hp);
-                              reset_reference(hp^);
-                              hp^.base:=hregister;
+                              reference_reset_base(href,hregister,0);
                               { load vmt pointer }
-                              emit_ref_reg(A_MOV,S_L,
-                                hp,R_EDI);
+                              emit_ref_reg(A_MOV,S_L,href,R_EDI);
 {$IfDef regallocfix}
                               rg.del_reference(exprasmlist,hp^);
 {$EndIf regallocfix}
                               { load method address }
-                              new(hp);
-                              reset_reference(hp^);
-                              hp^.base:=R_EDI;
-                              hp^.offset:=tprocdef(resulttype.def)._class.vmtmethodoffset(
-                                 tprocdef(resulttype.def).extnumber);
-                              emit_ref_reg(A_MOV,S_L,
-                                hp,R_EDI);
+                              reference_reset_base(href,R_EDI,tprocdef(resulttype.def)._class.vmtmethodoffset(
+                                                   tprocdef(resulttype.def).extnumber));
+                              emit_ref_reg(A_MOV,S_L,href,R_EDI);
                               { ... and store it }
-                              emit_reg_ref(A_MOV,S_L,
-                                R_EDI,newreference(location.reference));
+                              emit_reg_ref(A_MOV,S_L,R_EDI,location.reference);
                               rg.ungetregisterint(exprasmlist,R_EDI);
                            end
                          else
                            begin
                               rg.ungetregisterint(exprasmlist,R_EDI);
                               s:=newasmsymbol(tprocdef(resulttype.def).mangledname);
-                              emit_sym_ofs_ref(A_MOV,S_L,s,0,
-                                newreference(location.reference));
+                              emit_sym_ofs_ref(A_MOV,S_L,s,0,location.reference);
                            end;
                       end
                     else
@@ -406,385 +387,343 @@ implementation
     procedure ti386assignmentnode.pass_2;
       var
          regs_to_push: tregisterset;
-         opsize : topsize;
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
          loc : tloc;
-         r : preference;
+         href : treference;
          ai : taicpu;
-         op : tasmop;
+         releaseright,
          pushed : boolean;
          regspushed : tpushedsaved;
-         ungettemp : boolean;
+         cgsize : tcgsize;
 
       begin
-         otlabel:=truelabel;
-         oflabel:=falselabel;
-         getlabel(truelabel);
-         getlabel(falselabel);
-         { calculate left sides }
-         { don't do it yet if it's a crgister (JM) }
-         if not(nf_concat_string in flags) then
-           secondpass(left);
+        otlabel:=truelabel;
+        oflabel:=falselabel;
+        getlabel(truelabel);
+        getlabel(falselabel);
 
-         if codegenerror then
-           exit;
+        {
+          in most cases we can process first the right node which contains
+          the most complex code. But not when the result is in the flags, then
+          loading the left node afterwards can destroy the flags.
 
-         if not(left.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
-           LOC_CREGISTER,LOC_CMMXREGISTER]) then
-           begin
-              CGMessage(cg_e_illegal_expression);
-              exit;
-           end;
+          when the right node returns as LOC_JUMP then we will generate
+          the following code:
 
+          rightnode
+          true:
+            leftnode
+            assign 1
+          false:
+            leftnode
+            assign 0
+        }
 
-         loc:=left.location.loc;
-         { lets try to optimize this (PM)            }
-         { define a dest_loc that is the location      }
-         { and a ptree to verify that it is the right }
-         { place to insert it                    }
+        { Try to determine which side to calculate first,  }
+        if (right.location.loc<>LOC_FLAGS) and
+           ((right.location.loc=LOC_JUMP) or
+            (right.registers32>=left.registers32)) then
+         begin
+           secondpass(right);
+           if codegenerror then
+             exit;
+
+           { We skip the generation of the left node when it's a jump, see
+             explanation above }
+           if (right.location.loc<>LOC_JUMP) and
+              not(nf_concat_string in flags) then
+            begin
+              { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
+              { can be false                                             }
+              pushed:=maybe_push(left.registers32,right,false);
+              secondpass(left);
+              if pushed then
+                restore(right,false);
+              if codegenerror then
+                exit;
+            end;
+         end
+        else
+         begin
+           { calculate left sides }
+           { don't do it yet if it's a crgister (JM) }
+           if not(nf_concat_string in flags) then
+            begin
+              secondpass(left);
+              if codegenerror then
+               exit;
+            end;
+
 {$ifdef test_dest_loc}
-         if (aktexprlevel<4) then
-           begin
-              dest_loc_known:=true;
-              dest_loc:=left.location;
-              dest_loc_tree:=right;
-           end;
+           { lets try to optimize this (PM)            }
+           { define a dest_loc that is the location      }
+           { and a ptree to verify that it is the right }
+           { place to insert it                    }
+           if (aktexprlevel<4) then
+             begin
+                dest_loc_known:=true;
+                dest_loc:=left.location;
+                dest_loc_tree:=right;
+             end;
 {$endif test_dest_loc}
 
-         { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
-         { can be false                                             }
-         pushed:=maybe_push(right.registers32,left,false);
-         secondpass(right);
+           { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
+           { can be false                                             }
+           pushed:=maybe_push(right.registers32,left,is_64bitint(right.resulttype.def));
+           secondpass(right);
+           if pushed  then
+             restore(left,false);
 
-         { restoring here is nonsense for LOC_JMP !! }
-         { This generated code that was after a jmp and before any
-           label => unreachable !!
-           Could this be tested somehow ?? PM }
-         if pushed and (right.location.loc <>LOC_JUMP) then
-           restore(left,false);
-
-         if codegenerror then
-           exit;
+           if codegenerror then
+             exit;
 
 {$ifdef test_dest_loc}
-         dest_loc_known:=false;
-         if in_dest_loc then
-           begin
-              truelabel:=otlabel;
-              falselabel:=oflabel;
-              in_dest_loc:=false;
-              exit;
-           end;
+           dest_loc_known:=false;
+           if in_dest_loc then
+             begin
+                truelabel:=otlabel;
+                falselabel:=oflabel;
+                in_dest_loc:=false;
+                exit;
+             end;
 {$endif test_dest_loc}
-         if left.resulttype.def.deftype=stringdef then
-           begin
-              if is_ansistring(left.resulttype.def) or
+         end;
+
+        if not(left.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
+                                     LOC_CREGISTER,LOC_CMMXREGISTER]) then
+          begin
+             CGMessage(cg_e_illegal_expression);
+             exit;
+          end;
+
+        loc:=left.location.loc;
+
+        if left.resulttype.def.deftype=stringdef then
+          begin
+             if is_ansistring(left.resulttype.def) or
                 is_widestring(left.resulttype.def) then
-                begin
-                  { before pushing any parameter, we have to save all used      }
-                  { registers, but before that we have to release the       }
-                  { registers of that node to save uneccessary pushed       }
-                  { so be careful, if you think you can optimize that code (FK) }
+               begin
+                 { before pushing any parameter, we have to save all used      }
+                 { registers, but before that we have to release the       }
+                 { registers of that node to save uneccessary pushed       }
+                 { so be careful, if you think you can optimize that code (FK) }
 
-                  { nevertheless, this has to be changed, because otherwise the }
-                  { register is released before it's contents are pushed ->     }
-                  { problems with the optimizer (JM)                            }
-                  ungettemp:=false;
-                  { Find out which registers have to be pushed (JM) }
-                  regs_to_push := all_registers;
-                  remove_non_regvars_from_loc(right.location,regs_to_push);
-                  remove_non_regvars_from_loc(left.location,regs_to_push);
-                  { And push them (JM) }
-                  rg.saveusedregisters(exprasmlist,regspushed,regs_to_push);
-                  case right.location.loc of
-                     LOC_REGISTER,LOC_CREGISTER:
+                 { nevertheless, this has to be changed, because otherwise the }
+                 { register is released before it's contents are pushed ->     }
+                 { problems with the optimizer (JM)                            }
+                 { Find out which registers have to be pushed (JM) }
+                 regs_to_push := all_registers;
+                 remove_non_regvars_from_loc(right.location,regs_to_push);
+                 remove_non_regvars_from_loc(left.location,regs_to_push);
+                 { And push them (JM) }
+                 rg.saveusedregisters(exprasmlist,regspushed,regs_to_push);
+
+                 location_release(exprasmlist,right.location);
+                 cg.a_param_loc(exprasmlist,OS_INT,right.location,2);
+                 location_release(exprasmlist,left.location);
+                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
+                 rg.saveregvars(exprasmlist,all_registers);
+                 if is_ansistring(left.resulttype.def) then
+                   emitcall('FPC_ANSISTR_ASSIGN')
+                 else
+                   emitcall('FPC_WIDESTR_ASSIGN');
+                 maybe_loadself;
+                 rg.restoreusedregisters(exprasmlist,regspushed);
+                 location_freetemp(exprasmlist,right.location);
+               end
+             else if is_shortstring(left.resulttype.def) and
+                     not (nf_concat_string in flags) then
+               begin
+                 if is_ansistring(right.resulttype.def) then
+                   begin
+                     if (right.nodetype=stringconstn) and
+                        (tstringconstnode(right).len=0) then
                        begin
-                          exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,right.location.register));
-                          rg.ungetregisterint(exprasmlist,right.location.register);
-                       end;
-                     LOC_REFERENCE,LOC_MEM:
-                       begin
-                          { First release the registers because emit_push_mem may  }
-                          { load the reference in edi before pushing and then the  }
-                          { dealloc is too late (and optimizations are missed (JM) }
-                          rg.del_reference(exprasmlist,right.location.reference);
-                          { This one doesn't need extra registers (JM) }
-                          emit_push_mem(right.location.reference);
-                          ungettemp:=true;
-                       end;
-                  end;
-                  emitpushreferenceaddr(left.location.reference);
-                  rg.del_reference(exprasmlist,left.location.reference);
-                  rg.saveregvars(exprasmlist,all_registers);
-                  if is_ansistring(left.resulttype.def) then
-                    emitcall('FPC_ANSISTR_ASSIGN')
-                  else
-                    emitcall('FPC_WIDESTR_ASSIGN');
-                  maybe_loadself;
-                  rg.restoreusedregisters(exprasmlist,regspushed);
-                  if ungettemp then
-                    tg.ungetiftemp(exprasmlist,right.location.reference);
-                end
-              else
-              if is_shortstring(left.resulttype.def) and
-                not (nf_concat_string in flags) then
-                begin
-                  if is_ansistring(right.resulttype.def) then
-                    begin
-                      if (right.nodetype=stringconstn) and
-                         (tstringconstnode(right).len=0) then
-                        begin
-                          emit_const_ref(A_MOV,S_B,
-                            0,newreference(left.location.reference));
-                          rg.del_reference(exprasmlist,left.location.reference);
-                        end
-                      else
-                        loadansi2short(right,left);
-                    end
-                  else
-                    begin
-                       { we do not need destination anymore }
-                       rg.del_reference(exprasmlist,left.location.reference);
-                       {rg.del_reference(exprasmlist,right.location.reference);
-                        done in loadshortstring }
-                       loadshortstring(right,left);
-                       tg.ungetiftemp(exprasmlist,right.location.reference);
-                    end;
-                end
-              else if is_longstring(left.resulttype.def) then
-                begin
-                   internalerror(200105261);
-                end
-              else
-                begin
-                  { its the only thing we have to do }
-                  rg.del_reference(exprasmlist,right.location.reference);
-                end
-           end
+                         emit_const_ref(A_MOV,S_B,0,left.location.reference);
+                         location_release(exprasmlist,left.location);
+                       end
+                     else
+                       loadansi2short(right,left);
+                   end
+                 else
+                   begin
+                      { we do not need destination anymore }
+                      location_release(exprasmlist,left.location);
+                      {del_reference(right.location.reference);
+                       done in loadshortstring }
+                      loadshortstring(right,left);
+                      location_freetemp(exprasmlist,right.location);
+                   end;
+               end
+             else if is_longstring(left.resulttype.def) then
+               begin
+                  internalerror(200105261);
+               end
+             else
+               begin
+                 { its the only thing we have to do }
+                 location_release(exprasmlist,right.location);
+               end
+          end
         else if is_interfacecom(left.resulttype.def) then
           begin
              loadinterfacecom(self);
           end
-        else case right.location.loc of
-            LOC_REFERENCE,
-            LOC_MEM : begin
-                         { extra handling for ordinal constants }
-                         if (right.nodetype in [ordconstn,pointerconstn,niln]) or
-                            (loc=LOC_CREGISTER) then
-                           begin
-                              case left.resulttype.def.size of
-                                 1 : opsize:=S_B;
-                                 2 : opsize:=S_W;
-                                 4 : opsize:=S_L;
-                                 { S_L is correct, the copy is done }
-                                 { with two moves                   }
-                                 8 : opsize:=S_L;
-                              end;
-                              if loc=LOC_CREGISTER then
-                                begin
-                                  emit_ref_reg(A_MOV,opsize,
-                                    newreference(right.location.reference),
-                                    left.location.register);
-                                  if left.resulttype.def.size=8 then
-                                    begin
-                                       r:=newreference(right.location.reference);
-                                       inc(r^.offset,4);
-                                       emit_ref_reg(A_MOV,opsize,r,
-                                         left.location.registerhigh);
-                                    end;
-{$IfDef regallocfix}
-                                  rg.del_reference(exprasmlist,right.location.reference);
-{$EndIf regallocfix}
-                                end
-                              else
-                                begin
-                                  if left.resulttype.def.size=8 then
-                                    begin
-                                       emit_const_ref(A_MOV,opsize,
-                                         longint(lo(tordconstnode(right).value)),
-                                         newreference(left.location.reference));
-                                       r:=newreference(left.location.reference);
-                                       inc(r^.offset,4);
-                                       emit_const_ref(A_MOV,opsize,
-                                         longint(hi(tordconstnode(right).value)),r);
-                                    end
-                                  else
-                                    begin
-                                       emit_const_ref(A_MOV,opsize,
-                                         right.location.reference.offset,
-                                         newreference(left.location.reference));
-                                    end;
-{$IfDef regallocfix}
-                                  rg.del_reference(exprasmlist,left.location.reference);
-{$EndIf regallocfix}
-                                {emit_const_loc(A_MOV,opsize,
-                                    right.location.reference.offset,
-                                    left.location);}
-                                end;
-
-                           end
-                         else if loc=LOC_CFPUREGISTER then
-                           begin
-                              cg.a_loadfpu_ref_reg(exprasmlist,
-                                def_cgsize(right.resulttype.def),
-                                right.location.reference,
-                                left.location.register);
-                           end
-                         else
-                           begin
-                              if (right.resulttype.def.needs_inittable) then
-                                begin
-                                   { this would be a problem }
-                                   if not(left.resulttype.def.needs_inittable) then
-                                     internalerror(3457);
-
-                                   { increment source reference counter }
-                                   new(r);
-                                   reset_reference(r^);
-                                   r^.symbol:=tstoreddef(right.resulttype.def).get_rtti_label(initrtti);
-                                   emitpushreferenceaddr(r^);
-
-                                   emitpushreferenceaddr(right.location.reference);
-                                   emitcall('FPC_ADDREF');
-                                   { decrement destination reference counter }
-                                   new(r);
-                                   reset_reference(r^);
-                                   r^.symbol:=tstoreddef(left.resulttype.def).get_rtti_label(initrtti);
-                                   emitpushreferenceaddr(r^);
-                                   emitpushreferenceaddr(left.location.reference);
-                                   emitcall('FPC_DECREF');
-                                end;
-
-                              concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype.def.size,true,false);
-                              rg.del_reference(exprasmlist,left.location.reference);
-                              { done by concatcopy
-                              rg.del_reference(exprasmlist,right.location.reference);
-                              tg.ungetiftemp(exprasmlist,right.location.reference); }
-                           end;
+        else
+          begin
+            releaseright:=true;
+            case right.location.loc of
+              LOC_CONSTANT :
+                begin
+                  if right.location.size in [OS_64,OS_S64] then
+                   tcg64f32(cg).a_load64_const_ref(exprasmlist,
+                       right.location.valuelow,right.location.valuehigh,left.location.reference)
+                  else
+                   cg.a_load_const_ref(exprasmlist,right.location.size,right.location.value,left.location.reference);
+                end;
+              LOC_REFERENCE,
+              LOC_CREFERENCE :
+                begin
+                  case loc of
+                    LOC_CREGISTER :
+                      begin
+                        cgsize:=def_cgsize(left.resulttype.def);
+                        if cgsize in [OS_64,OS_S64] then
+                         tcg64f32(cg).a_load64_ref_reg(exprasmlist,
+                             right.location.reference,left.location.registerlow,left.location.registerhigh)
+                        else
+                         cg.a_load_ref_reg(exprasmlist,cgsize,
+                             right.location.reference,left.location.register);
+                        location_release(exprasmlist,right.location);
                       end;
-{$ifdef SUPPORT_MMX}
-            LOC_CMMXREGISTER,
-            LOC_MMXREGISTER:
-              begin
-                 if loc=LOC_CMMXREGISTER then
-                   emit_reg_reg(A_MOVQ,S_NO,
-                   right.location.register,left.location.register)
-                 else
-                   emit_reg_ref(A_MOVQ,S_NO,
-                     right.location.register,newreference(left.location.reference));
-              end;
-{$endif SUPPORT_MMX}
-            LOC_REGISTER,
-            LOC_CREGISTER : begin
-                              case right.resulttype.def.size of
-                                 1 : opsize:=S_B;
-                                 2 : opsize:=S_W;
-                                 4 : opsize:=S_L;
-                                 8 : opsize:=S_L;
-                              end;
-                              { simplified with op_reg_loc       }
-                              if loc=LOC_CREGISTER then
-                                begin
-                                  emit_reg_reg(A_MOV,opsize,
-                                    right.location.register,
-                                    left.location.register);
-                                 rg.ungetregister(exprasmlist,right.location.register);
-                                end
-                              else
-                                Begin
-                                  emit_reg_ref(A_MOV,opsize,
-                                    right.location.register,
-                                    newreference(left.location.reference));
-                                  rg.ungetregister(exprasmlist,right.location.register);
-{$IfDef regallocfix}
-                                  rg.del_reference(exprasmlist,left.location.reference);
-{$EndIf regallocfix}
-                                end;
-                              if is_64bitint(right.resulttype.def) then
-                                begin
-                                   { simplified with op_reg_loc  }
-                                   if loc=LOC_CREGISTER then
-                                     emit_reg_reg(A_MOV,opsize,
-                                       right.location.registerhigh,
-                                       left.location.registerhigh)
-                                   else
-                                     begin
-                                        r:=newreference(left.location.reference);
-                                        inc(r^.offset,4);
-                                        emit_reg_ref(A_MOV,opsize,
-                                          right.location.registerhigh,r);
-                                     end;
-                                end;
-                              {emit_reg_loc(A_MOV,opsize,
-                                  right.location.register,
-                                  left.location);      }
+                    LOC_CFPUREGISTER :
+                      begin
+                        cg.a_loadfpu_ref_reg(exprasmlist,
+                            def_cgsize(right.resulttype.def),
+                            right.location.reference,
+                            left.location.register);
+                      end;
+                    LOC_REFERENCE,
+                    LOC_CREFERENCE :
+                      begin
+                        if (right.resulttype.def.needs_inittable) then
+                          begin
+                             { this would be a problem }
+                             if not(left.resulttype.def.needs_inittable) then
+                               internalerror(3457);
+                             { increment source reference counter }
+                             reference_reset_symbol(href,tstoreddef(right.resulttype.def).get_rtti_label(initrtti),0);
+                             cg.a_paramaddr_ref(exprasmlist,href,2);
+                             cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
+                             emitcall('FPC_ADDREF');
+                             { decrement destination reference counter }
+                             reference_reset_symbol(href,tstoreddef(left.resulttype.def).get_rtti_label(initrtti),0);
+                             cg.a_paramaddr_ref(exprasmlist,href,2);
+                             cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
+                             emitcall('FPC_DECREF');
+                          end;
 
-                            end;
-            LOC_FPU, LOC_CFPUREGISTER :
-                            begin
-                              if (left.resulttype.def.deftype=floatdef) then
-                               fputyp:=tfloatdef(left.resulttype.def).typ
-                              else
-                               if (right.resulttype.def.deftype=floatdef) then
-                                fputyp:=tfloatdef(right.resulttype.def).typ
-                              else
-                               if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
-                                fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
-                              else
-                                fputyp:=s32real;
-                              cg.a_loadfpu_reg_loc(exprasmlist,
-                                tfloat2tcgsize[fputyp],
-                                right.location.register,left.location);
-                           end;
-            LOC_JUMP     : begin
-                              opsize:=def_opsize(left.resulttype.def);
-                              getlabel(hlabel);
-                              emitlab(truelabel);
-                              if pushed then
-                                restore(left,false);
-                              if loc=LOC_CREGISTER then
-                                emit_const_reg(A_MOV,opsize,
-                                  1,left.location.register)
-                              else
-                                emit_const_ref(A_MOV,opsize,
-                                  1,newreference(left.location.reference));
-                              emitjmp(C_None,hlabel);
-                              emitlab(falselabel);
-                              if pushed then
-                                restore(left,false);
-                              if loc=LOC_CREGISTER then
-                                emit_reg_reg(A_XOR,opsize,
-                                  left.location.register,
-                                  left.location.register)
-                              else
-                                begin
-                                  emit_const_ref(A_MOV,opsize,
-                                    0,newreference(left.location.reference));
-{$IfDef regallocfix}
-                                  rg.del_reference(exprasmlist,left.location.reference);
-{$EndIf regallocfix}
-                                 end;
-                              emitlab(hlabel);
-                           end;
-            LOC_FLAGS    : begin
-                              if loc=LOC_CREGISTER then
-                                emit_flag2reg(right.location.resflags,left.location.register)
-                              else
-                                begin
-                                  ai:=Taicpu.Op_ref(A_Setcc,S_B,newreference(left.location.reference));
-                                  ai.SetCondition(flags_to_cond(right.location.resflags));
-                                  exprasmList.concat(ai);
-                                end;
-{$IfDef regallocfix}
-                              rg.del_reference(exprasmlist,left.location.reference);
-{$EndIf regallocfix}
-                           end;
+                        concatcopy(right.location.reference,
+                                   left.location.reference,left.resulttype.def.size,true,false);
+                        { right.location is already released by concatcopy }
+                        releaseright:=false;
+                      end;
+                    else
+                      internalerror(200203284);
+                  end;
+                end;
+{$ifdef SUPPORT_MMX}
+              LOC_CMMXREGISTER,
+              LOC_MMXREGISTER:
+                begin
+                  if loc=LOC_CMMXREGISTER then
+                   emit_reg_reg(A_MOVQ,S_NO,right.location.register,left.location.register)
+                  else
+                   emit_reg_ref(A_MOVQ,S_NO,right.location.register,left.location.reference);
+                end;
+{$endif SUPPORT_MMX}
+              LOC_REGISTER,
+              LOC_CREGISTER :
+                begin
+                  cgsize:=def_cgsize(left.resulttype.def);
+                  if cgsize in [OS_64,OS_S64] then
+                   tcg64f32(cg).a_load64_reg_loc(exprasmlist,
+                       right.location.registerlow,right.location.registerhigh,left.location)
+                  else
+                   cg.a_load_reg_loc(exprasmlist,cgsize,
+                       right.location.register,left.location);
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER :
+                begin
+                  if (left.resulttype.def.deftype=floatdef) then
+                   fputyp:=tfloatdef(left.resulttype.def).typ
+                  else
+                   if (right.resulttype.def.deftype=floatdef) then
+                    fputyp:=tfloatdef(right.resulttype.def).typ
+                  else
+                   if (right.nodetype=typeconvn) and
+                      (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
+                    fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
+                  else
+                    fputyp:=s32real;
+                  cg.a_loadfpu_reg_loc(exprasmlist,
+                      tfloat2tcgsize[fputyp],
+                      right.location.register,left.location);
+                end;
+              LOC_JUMP :
+                begin
+                  cgsize:=def_cgsize(left.resulttype.def);
+                  getlabel(hlabel);
+                  { generate the leftnode for the true case, and
+                    release the location }
+                  emitlab(truelabel);
+                  pushed:=maybe_push(left.registers32,right,false);
+                  secondpass(left);
+                  if pushed then
+                    restore(right,false);
+                  if codegenerror then
+                    exit;
+                  cg.a_load_const_loc(exprasmlist,cgsize,1,left.location);
+                  emitjmp(C_None,hlabel);
+                  if not(left.location.loc in [LOC_CREGISTER{$ifdef SUPPORT_MMX},LOC_CMMXREGISTER{$endif SUPPORT_MMX}]) then
+                   location_release(exprasmlist,left.location);
+                  { generate the leftnode for the false case }
+                  emitlab(falselabel);
+                  pushed:=maybe_push(left.registers32,right,false);
+                  secondpass(left);
+                  if pushed then
+                    restore(right,false);
+                  if codegenerror then
+                    exit;
+                  cg.a_load_const_loc(exprasmlist,cgsize,0,left.location);
+                  emitlab(hlabel);
+                end;
+              LOC_FLAGS :
+                begin
+                  if loc=LOC_CREGISTER then
+                    emit_flag2reg(right.location.resflags,left.location.register)
+                  else
+                    begin
+                      if not(loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                       internalerror(200203273);
+                      ai:=Taicpu.Op_ref(A_Setcc,S_B,left.location.reference);
+                      ai.SetCondition(flags_to_cond(right.location.resflags));
+                      exprasmList.concat(ai);
+                    end;
+                end;
+            end;
+
+           { we don't need the locations anymore. Only for
+             CREGISTER we need to keep the new location available }
+           if releaseright then
+            location_release(exprasmlist,right.location);
+           if not(left.location.loc in [LOC_CREGISTER{$ifdef SUPPORT_MMX},LOC_CMMXREGISTER{$endif SUPPORT_MMX}]) then
+            location_release(exprasmlist,left.location);
          end;
-         truelabel:=otlabel;
-         falselabel:=oflabel;
+
+        truelabel:=otlabel;
+        falselabel:=oflabel;
       end;
 
 
@@ -794,33 +733,33 @@ implementation
 
     procedure ti386funcretnode.pass_2;
       var
-         hr : tregister;
-         hp : preference;
+         hreg : tregister;
+         href : treference;
          pp : pprocinfo;
          hr_valid : boolean;
          i : integer;
       begin
-         reset_reference(location.reference);
+         location_reset(location,LOC_REFERENCE,OS_INT);
          hr_valid:=false;
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
            begin
-              hr:=rg.getregisterint(exprasmlist);
+              hreg:=rg.getregisterint(exprasmlist);
               hr_valid:=true;
-              hp:=new_reference(procinfo^.framepointer,procinfo^.framepointer_offset);
-              emit_ref_reg(A_MOV,S_L,hp,hr);
+              reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
+              emit_ref_reg(A_MOV,S_L,href,hreg);
 
               { walk up the stack frame }
               pp:=procinfo^.parent;
               i:=lexlevel-1;
               while i>funcretsym.owner.symtablelevel do
                begin
-                 hp:=new_reference(hr,pp^.framepointer_offset);
-                 emit_ref_reg(A_MOV,S_L,hp,hr);
+                 reference_reset_base(href,hreg,pp^.framepointer_offset);
+                 emit_ref_reg(A_MOV,S_L,href,hreg);
                  pp:=pp^.parent;
                  dec(i);
                end;
-              location.reference.base:=hr;
+              location.reference.base:=hreg;
               location.reference.offset:=pp^.return_offset;
            end
          else
@@ -831,9 +770,9 @@ implementation
          if ret_in_param(resulttype.def) then
            begin
               if not hr_valid then
-                hr:=rg.getregisterint(exprasmlist);
-              emit_ref_reg(A_MOV,S_L,newreference(location.reference),hr);
-              location.reference.base:=hr;
+                hreg:=rg.getregisterint(exprasmlist);
+              emit_ref_reg(A_MOV,S_L,location.reference,hreg);
+              location.reference.base:=hreg;
               location.reference.offset:=0;
            end;
       end;
@@ -881,14 +820,14 @@ implementation
          elesize:=tarraydef(resulttype.def).elesize;
         if not(nf_cargs in flags) then
          begin
-           reset_reference(location.reference);
+           location_reset(location,LOC_CREFERENCE,OS_NO);
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
             if tarraydef(resulttype.def).highrange=-1 then
               tg.gettempofsizereference(exprasmlist,elesize,location.reference)
             else
               tg.gettempofsizereference(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
-           href:=location.reference;
+            href:=location.reference;
          end;
         hp:=self;
         while assigned(hp) do
@@ -981,7 +920,7 @@ implementation
                      begin
                        emit_to_mem(hp.left.location,hp.left.resulttype.def);
                        emit_push_lea_loc(hp.left.location,freetemp);
-                       rg.del_reference(exprasmlist,hp.left.location.reference);
+                       location_release(exprasmlist,hp.left.location);
                      end
                     else
                      emit_push_loc(hp.left.location);
@@ -998,11 +937,12 @@ implementation
                      end
                     else
                      begin
-                       emit_mov_loc_ref(hp.left.location,href,S_L,freetemp);
+                       location_release(exprasmlist,left.location);
+                       cg.a_load_loc_ref(exprasmlist,OS_32,hp.left.location,href);
                      end;
                     { update href to the vtype field and write it }
                     dec(href.offset,4);
-                    emit_const_ref(A_MOV,S_L,vtype,newreference(href));
+                    emit_const_ref(A_MOV,S_L,vtype,href);
                     { goto next array element }
                     inc(href.offset,8);
                   end;
@@ -1011,20 +951,19 @@ implementation
               { normal array constructor of the same type }
                begin
                  case elesize of
-                   1 :
-                     emit_mov_loc_ref(hp.left.location,href,S_B,freetemp);
-                   2 :
-                     emit_mov_loc_ref(hp.left.location,href,S_W,freetemp);
-                   4 :
-                     emit_mov_loc_ref(hp.left.location,href,S_L,freetemp);
+                   1,2,4 :
+                     begin
+                       location_release(exprasmlist,left.location);
+                       cg.a_load_loc_ref(exprasmlist,int_cgsize(elesize),hp.left.location,href);
+                     end;
                    8 :
                      begin
                        if hp.left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                         begin
-                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerlow,newreference(href));
+                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerlow,href);
                           { update href to the high bytes and write it }
                           inc(href.offset,4);
-                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerhigh,newreference(href));
+                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerhigh,href);
                           dec(href.offset,4)
                         end
                        else
@@ -1033,7 +972,7 @@ implementation
                    else
                      begin
                        { concatcopy only supports reference }
-                       if not(hp.left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+                       if not(hp.left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                         internalerror(200108012);
                        concatcopy(hp.left.location.reference,href,elesize,freetemp,false);
                      end;
@@ -1054,7 +993,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-03-31 20:26:39  jonas
+  Revision 1.31  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.30  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

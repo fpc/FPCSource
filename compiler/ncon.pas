@@ -342,7 +342,7 @@ implementation
     function trealconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_MEM;
+         location.loc:=LOC_CREFERENCE;
          { needs to be loaded into an FPU register }
          registersfpu:=1;
       end;
@@ -388,7 +388,10 @@ implementation
     function tordconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_MEM;
+         if is_64bitint(resulttype.def) then
+          location.loc:=LOC_CREFERENCE
+         else
+          location.loc:=LOC_CONSTANT;
       end;
 
     function tordconstnode.docompare(p: tnode): boolean;
@@ -431,7 +434,7 @@ implementation
     function tpointerconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_MEM;
+         location.loc:=LOC_CONSTANT;
       end;
 
     function tpointerconstnode.docompare(p: tnode): boolean;
@@ -543,7 +546,7 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_MEM;
+        location.loc:=LOC_CREFERENCE;
       end;
 
     function tstringconstnode.getpcharcopy : pchar;
@@ -622,7 +625,10 @@ implementation
     function tsetconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_MEM;
+         if tsetdef(resulttype.def).settype=smallset then
+          location.loc:=LOC_CONSTANT
+         else
+          location.loc:=LOC_CREFERENCE;
       end;
 
     function tsetconstnode.docompare(p: tnode): boolean;
@@ -662,7 +668,7 @@ implementation
     function tnilnode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_MEM;
+        location.loc:=LOC_CONSTANT;
       end;
 
 {*****************************************************************************
@@ -696,7 +702,7 @@ implementation
     function tguidconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_MEM;
+         location.loc:=LOC_CREFERENCE;
       end;
 
     function tguidconstnode.docompare(p: tnode): boolean;
@@ -718,7 +724,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-03-04 19:10:11  peter
+  Revision 1.26  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.25  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.24  2001/10/20 19:28:38  peter

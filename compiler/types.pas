@@ -48,7 +48,7 @@ interface
     function is_ordinal(def : tdef) : boolean;
 
     { returns the min. value of the type }
-    function get_min_value(def : tdef) : longint;
+    function get_min_value(def : tdef) : TConstExprInt;
 
     { returns basetype of the specified range }
     function range_to_basetype(low,high:TConstExprInt):tbasetype;
@@ -560,7 +560,7 @@ implementation
 
 
     { returns the min. value of the type }
-    function get_min_value(def : tdef) : longint;
+    function get_min_value(def : tdef) : TConstExprInt;
       begin
          case def.deftype of
            orddef:
@@ -1955,7 +1955,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-04-01 20:57:14  jonas
+  Revision 1.66  2002-04-02 17:11:32  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.65  2002/04/01 20:57:14  jonas
     * fixed web bug 1907
     * fixed some other procvar related bugs (all related to accepting procvar
         constructs with either too many or too little parameters)

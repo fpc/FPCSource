@@ -40,10 +40,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,fmodule,
       symconst,symtype,symdef,aasm,types,
-      cgbase,pass_1,pass_2,
+      cginfo,cgbase,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,n386util,ncgutil,cgobj,rgobj,rgcpu;
+      cga,tgobj,n386util,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -56,8 +56,7 @@ implementation
          {tfloattype = (s32real,s64real,s80real,s64bit,f16bit,f32bit);}
 {        float_name: array[tfloattype] of string[8]=
            ('S32REAL','S64REAL','S80REAL','S64BIT','F16BIT','F32BIT'); }
-         incdecop:array[in_inc_x..in_dec_x] of tasmop=(A_INC,A_DEC);
-         addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
+         addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
        var
          opsize : topsize;
          op,
@@ -69,19 +68,19 @@ implementation
          hp : tnode;
 
       var
-         r : preference;
-         //hp : tcallparanode;
+         href,href2 : treference;
          hp2 : tstringconstnode;
          dummycoll  : tparaitem;
          l : longint;
          ispushed : boolean;
+         hregisterhi,
          hregister : tregister;
          lengthlab,
          otlabel,oflabel{,l1}   : tasmlabel;
          oldpushedparasize : longint;
          def : tdef;
-         hr,hr2 : treference;
-
+         cgop : TOpCG;
+         cgsize : TCGSize;
       begin
       { save & reset pushedparasize }
          oldpushedparasize:=pushedparasize;
@@ -123,6 +122,7 @@ implementation
             in_sizeof_x,
             in_typeof_x :
               begin
+                 location_reset(location,LOC_REGISTER,OS_ADDR);
                  { for both cases load vmt }
                  if left.nodetype=typen then
                    begin
@@ -134,186 +134,97 @@ implementation
                  else
                    begin
                       secondpass(left);
-                      rg.del_reference(exprasmlist,left.location.reference);
-                      location.loc:=LOC_REGISTER;
+                      location_release(exprasmlist,left.location);
                       location.register:=rg.getregisterint(exprasmlist);
                       { load VMT pointer }
                       inc(left.location.reference.offset,
                         tobjectdef(left.resulttype.def).vmt_offset);
-                      emit_ref_reg(A_MOV,S_L,
-                      newreference(left.location.reference),
-                        location.register);
+                      emit_ref_reg(A_MOV,S_L,left.location.reference,location.register);
                    end;
                  { in sizeof load size }
                  if inlinenumber=in_sizeof_x then
                    begin
-                      new(r);
-                      reset_reference(r^);
-                      r^.base:=location.register;
-                      emit_ref_reg(A_MOV,S_L,r,
-                        location.register);
+                      reference_reset_base(href,location.register,0);
+                      emit_ref_reg(A_MOV,S_L,href,location.register);
                    end;
               end;
             in_length_x :
               begin
                  secondpass(left);
-                 set_location(location,left.location);
                  { length in ansi strings is at offset -8 }
                  if is_ansistring(left.resulttype.def) or
                     is_widestring(left.resulttype.def) then
                   begin
                     if left.location.loc<>LOC_REGISTER then
                      begin
-                       rg.del_location(exprasmlist,left.location);
+                       location_release(exprasmlist,left.location);
                        hregister:=rg.getregisterint(exprasmlist);
-                       emit_mov_loc_reg(left.location,hregister);
+                       cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,hregister);
                      end
                     else
                      hregister:=left.location.register;
-                    reset_reference(hr);
-                    hr.base:=hregister;
-                    hr.offset:=-8;
+                    reference_reset_base(href,hregister,-8);
                     getlabel(lengthlab);
                     emit_reg_reg(A_OR,S_L,hregister,hregister);
                     emitjmp(C_Z,lengthlab);
-                    emit_ref_reg(A_MOV,S_L,newreference(hr),hregister);
+                    emit_ref_reg(A_MOV,S_L,href,hregister);
                     emitlab(lengthlab);
-                    location.loc:=LOC_REGISTER;
+                    location_reset(location,LOC_REGISTER,OS_INT);
                     location.register:=hregister;
+                  end
+                 else
+                  begin
+                    location_copy(location,left.location);
+                    location.size:=OS_8;
                   end;
               end;
             in_pred_x,
             in_succ_x:
               begin
                  secondpass(left);
-                 if not (cs_check_overflow in aktlocalswitches) then
-                   if inlinenumber=in_pred_x then
-                     asmop:=A_DEC
-                   else
-                     asmop:=A_INC
+                 if inlinenumber=in_pred_x then
+                  cgop:=OP_SUB
                  else
-                   if inlinenumber=in_pred_x then
-                     asmop:=A_SUB
-                   else
-                     asmop:=A_ADD;
-                 case resulttype.def.size of
-                   8 : opsize:=S_L;
-                   4 : opsize:=S_L;
-                   2 : opsize:=S_W;
-                   1 : opsize:=S_B;
-                 else
-                   internalerror(10080);
-                 end;
-                 location.loc:=LOC_REGISTER;
-                 if resulttype.def.size=8 then
-                   begin
-                      if left.location.loc<>LOC_REGISTER then
-                        begin
-                           if left.location.loc=LOC_CREGISTER then
-                             begin
-                                location.registerlow:=rg.getregisterint(exprasmlist);
-                                location.registerhigh:=rg.getregisterint(exprasmlist);
-                                emit_reg_reg(A_MOV,opsize,left.location.registerlow,
-                                  location.registerlow);
-                                emit_reg_reg(A_MOV,opsize,left.location.registerhigh,
-                                  location.registerhigh);
-                             end
-                           else
-                             begin
-                                rg.del_reference(exprasmlist,left.location.reference);
-                                location.registerlow:=rg.getregisterint(exprasmlist);
-                                location.registerhigh:=rg.getregisterint(exprasmlist);
-                                emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),
-                                  location.registerlow);
-                                r:=newreference(left.location.reference);
-                                inc(r^.offset,4);
-                                emit_ref_reg(A_MOV,opsize,r,
-                                  location.registerhigh);
-                             end;
-                        end
-                      else
-                        begin
-                           location.registerhigh:=left.location.registerhigh;
-                           location.registerlow:=left.location.registerlow;
-                        end;
-                      if inlinenumber=in_succ_x then
-                        begin
-                           emit_const_reg(A_ADD,opsize,1,
-                             location.registerlow);
-                           emit_const_reg(A_ADC,opsize,0,
-                             location.registerhigh);
-                        end
-                      else
-                        begin
-                           emit_const_reg(A_SUB,opsize,1,
-                             location.registerlow);
-                           emit_const_reg(A_SBB,opsize,0,
-                             location.registerhigh);
-                        end;
-                   end
-                 else
-                   begin
-                      if left.location.loc<>LOC_REGISTER then
-                        begin
-                           { first, we've to release the source location ... }
-                           if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                             rg.del_reference(exprasmlist,left.location.reference);
+                  cgop:=OP_ADD;
+                 cgsize:=def_cgsize(resulttype.def);
 
-                           location.register:=rg.getregisterint(exprasmlist);
-                           if (resulttype.def.size=2) then
-                             location.register:=reg32toreg16(location.register);
-                           if (resulttype.def.size=1) then
-                             location.register:=reg32toreg8(location.register);
-                           if left.location.loc=LOC_CREGISTER then
-                             emit_reg_reg(A_MOV,opsize,left.location.register,
-                               location.register)
-                           else
-                           if left.location.loc=LOC_FLAGS then
-                             emit_flag2reg(left.location.resflags,location.register)
-                           else
-                             emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),
-                               location.register);
-                        end
-                      else location.register:=left.location.register;
-                      if not (cs_check_overflow in aktlocalswitches) then
-                        emit_reg(asmop,opsize,
-                        location.register)
-                      else
-                        emit_const_reg(asmop,opsize,1,
-                        location.register);
-                   end;
+                 { we need a value in a register }
+                 location_copy(location,left.location);
+                 location_force_reg(location,cgsize,false);
+
+                 if cgsize in [OS_64,OS_S64] then
+                  tcg64f32(cg).a_op64_const_reg(exprasmlist,cgop,1,0,
+                      location.registerlow,location.registerhigh)
+                 else
+                  cg.a_op_const_reg(exprasmlist,cgop,1,location.register);
+
                  emitoverflowcheck(self);
                  cg.g_rangecheck(exprasmlist,self,resulttype.def);
               end;
             in_dec_x,
             in_inc_x :
               begin
-              { set defaults }
-                addvalue:=1;
+                { set defaults }
                 addconstant:=true;
-              { load first parameter, must be a reference }
+                { load first parameter, must be a reference }
                 secondpass(tcallparanode(left).left);
+                cgsize:=def_cgsize(tcallparanode(left).left.resulttype.def);
+                { get addvalue }
                 case tcallparanode(left).left.resulttype.def.deftype of
                   orddef,
-                 enumdef : begin
-                             case tcallparanode(left).left.resulttype.def.size of
-                              1 : opsize:=S_B;
-                              2 : opsize:=S_W;
-                              4 : opsize:=S_L;
-                              8 : opsize:=S_L;
-                             end;
-                           end;
-              pointerdef : begin
-                             opsize:=S_L;
-                             if is_void(tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def) then
-                              addvalue:=1
-                             else
-                              addvalue:=tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def.size;
-                           end;
-                else
-                 internalerror(10081);
+                  enumdef :
+                    addvalue:=1;
+                  pointerdef :
+                    begin
+                      if is_void(tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def) then
+                       addvalue:=1
+                      else
+                       addvalue:=tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def.size;
+                    end;
+                  else
+                    internalerror(10081);
                 end;
-              { second argument specified?, must be a s32bit in register }
+                { second argument specified?, must be a s32bit in register }
                 if assigned(tcallparanode(left).right) then
                  begin
                    ispushed:=maybe_push(tcallparanode(tcallparanode(left).right).left.registers32,
@@ -321,76 +232,39 @@ implementation
                    secondpass(tcallparanode(tcallparanode(left).right).left);
                    if ispushed then
                      restore(tcallparanode(left).left,false);
-                 { when constant, just multiply the addvalue }
+                   { when constant, just multiply the addvalue }
                    if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                     addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
                    else
                     begin
-                      case tcallparanode(tcallparanode(left).right).left.location.loc of
-                   LOC_REGISTER,
-                  LOC_CREGISTER : hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-                        LOC_MEM,
-                  LOC_REFERENCE : begin
-                                    rg.del_reference(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference);
-                                    hregister:=rg.getregisterint(exprasmlist);
-                                    emit_ref_reg(A_MOV,S_L,
-                                      newreference(tcallparanode(tcallparanode(left).right).left.location.reference),hregister);
-                                  end;
-                       else
-                        internalerror(10082);
-                       end;
-                    { insert multiply with addvalue if its >1 }
+                      location_force_reg(tcallparanode(tcallparanode(left).right).left.location,cgsize,false);
+                      hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
+                      hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
+                      { insert multiply with addvalue if its >1 }
                       if addvalue>1 then
-                       emit_const_reg(A_IMUL,opsize,
-                         addvalue,hregister);
+                        cg.a_op_const_reg(exprasmlist,OP_IMUL,addvalue,hregister);
                       addconstant:=false;
                     end;
                  end;
               { write the add instruction }
                 if addconstant then
                  begin
-                   if (addvalue=1) and not(cs_check_overflow in aktlocalswitches) then
-                     begin
-                        if tcallparanode(left).left.location.loc=LOC_CREGISTER then
-                          emit_reg(incdecop[inlinenumber],opsize,
-                            tcallparanode(left).left.location.register)
-                        else
-                          emit_ref(incdecop[inlinenumber],opsize,
-                            newreference(tcallparanode(left).left.location.reference))
-                     end
+                   if cgsize in [OS_64,OS_S64] then
+                    tcg64f32(cg).a_op64_const_loc(exprasmlist,addsubop[inlinenumber],
+                       addvalue,0,tcallparanode(left).left.location)
                    else
-                     begin
-                        if tcallparanode(left).left.location.loc=LOC_CREGISTER then
-                          emit_const_reg(addsubop[inlinenumber],opsize,
-                            addvalue,tcallparanode(left).left.location.register)
-                        else
-                          emit_const_ref(addsubop[inlinenumber],opsize,
-                            addvalue,newreference(tcallparanode(left).left.location.reference));
-                     end
+                    cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],cgsize,
+                       addvalue,tcallparanode(left).left.location);
                  end
                 else
                  begin
-                    { BUG HERE : detected with nasm :
-                      hregister is allways 32 bit
-                      it should be converted to 16 or 8 bit depending on op_size  PM }
-                    { still not perfect :
-                      if hregister is already a 16 bit reg ?? PM }
-                    { makeregXX is the solution (FK) }
-                    case opsize of
-                      S_B : hregister:=makereg8(hregister);
-                      S_W : hregister:=makereg16(hregister);
-                    end;
-                    if tcallparanode(left).left.location.loc=LOC_CREGISTER then
-                      emit_reg_reg(addsubop[inlinenumber],opsize,
-                        hregister,tcallparanode(left).left.location.register)
-                    else
-                      emit_reg_ref(addsubop[inlinenumber],opsize,
-                        hregister,newreference(tcallparanode(left).left.location.reference));
-                    case opsize of
-                      S_B : hregister:=reg8toreg32(hregister);
-                      S_W : hregister:=reg16toreg32(hregister);
-                    end;
-                   rg.ungetregisterint(exprasmlist,hregister);
+                   if cgsize in [OS_64,OS_S64] then
+                    tcg64f32(cg).a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
+                       hregister,hregisterhi,tcallparanode(left).left.location)
+                   else
+                    cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],cgsize,
+                       hregister,tcallparanode(left).left.location);
+                   location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
                  end;
                 emitoverflowcheck(tcallparanode(left).left);
                 cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
@@ -398,11 +272,10 @@ implementation
 
             in_typeinfo_x:
                begin
+                  location_reset(location,LOC_REGISTER,OS_ADDR);
                   location.register:=rg.getregisterint(exprasmlist);
-                  new(r);
-                  reset_reference(r^);
-                  r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti);
-                  emit_ref_reg(A_LEA,S_L,r,location.register);
+                  reference_reset_symbol(href,tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti),0);
+                  emit_ref_reg(A_LEA,S_L,href,location.register);
                end;
 
              in_finalize_x:
@@ -419,9 +292,8 @@ implementation
                     end;
 
                   { generate a reference }
-                  reset_reference(hr);
-                  hr.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(initrtti);
-                  emitpushreferenceaddr(hr);
+                  reference_reset_symbol(href,tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(initrtti),0);
+                  emitpushreferenceaddr(href);
 
                   { data to finalize }
                   secondpass(tcallparanode(left).left);
@@ -439,20 +311,18 @@ implementation
             in_assigned_x :
               begin
                  secondpass(tcallparanode(left).left);
-                 location.loc:=LOC_FLAGS;
+                 location_release(exprasmlist,tcallparanode(left).left.location);
                  if (tcallparanode(left).left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                    begin
                       emit_reg_reg(A_OR,S_L,
                         tcallparanode(left).left.location.register,
                         tcallparanode(left).left.location.register);
-                      rg.ungetregisterint(exprasmlist,tcallparanode(left).left.location.register);
                    end
                  else
                    begin
-                      emit_const_ref(A_CMP,S_L,0,
-                        newreference(tcallparanode(left).left.location.reference));
-                      rg.del_reference(exprasmlist,tcallparanode(left).left.location.reference);
+                      emit_const_ref(A_CMP,S_L,0,tcallparanode(left).left.location.reference);
                    end;
+                 location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_NE;
               end;
             in_setlength_x:
@@ -471,17 +341,17 @@ implementation
                   if is_dynamic_array(def) then
                     begin
                        { get temp. space }
-                       tg.gettempofsizereference(exprasmlist,l*4,hr);
+                       tg.gettempofsizereference(exprasmlist,l*4,href);
                        { keep data start }
-                       hr2:=hr;
+                       href2:=href;
                        { copy dimensions }
                        hp:=left;
                        while assigned(tcallparanode(hp).right) do
                          begin
                             secondpass(tcallparanode(hp).left);
-                            emit_mov_loc_ref(tcallparanode(hp).left.location,hr,
-                              S_L,true);
-                            inc(hr.offset,4);
+                            location_release(exprasmlist,tcallparanode(hp).left.location);
+                            cg.a_load_loc_ref(exprasmlist,OS_INT,tcallparanode(hp).left.location,href);
+                            inc(href.offset,4);
                             hp:=tcallparanode(hp).right;
                          end;
                     end
@@ -507,15 +377,14 @@ implementation
                   else secondpass(tcallparanode(hp).left);
                   if is_dynamic_array(def) then
                     begin
-                       emitpushreferenceaddr(hr2);
+                       emitpushreferenceaddr(href2);
                        push_int(l);
-                       reset_reference(hr2);
-                       hr2.symbol:=tstoreddef(def).get_rtti_label(initrtti);
-                       emitpushreferenceaddr(hr2);
+                       reference_reset_symbol(href2,tstoreddef(def).get_rtti_label(initrtti),0);
+                       emitpushreferenceaddr(href2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
                        rg.saveregvars(exprasmlist,all_registers);
                        emitcall('FPC_DYNARR_SETLENGTH');
-                       tg.ungetiftemp(exprasmlist,hr);
+                       tg.ungetiftemp(exprasmlist,href);
                     end
                   else
                     { must be string }
@@ -546,6 +415,7 @@ implementation
             in_include_x_y,
             in_exclude_x_y:
               begin
+                 location_copy(location,left.location);
                  secondpass(tcallparanode(left).left);
                  if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
                    begin
@@ -564,9 +434,8 @@ implementation
                         begin
                            inc(tcallparanode(left).left.location.reference.offset,
                              (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
-                           emit_const_ref(asmop,S_L,
-                             l,newreference(tcallparanode(left).left.location.reference));
-                           rg.del_reference(exprasmlist,tcallparanode(left).left.location.reference);
+                           emit_const_ref(asmop,S_L,l,tcallparanode(left).left.location.reference);
+                           location_release(exprasmlist,tcallparanode(left).left.location);
                         end
                       else
                         { LOC_CREGISTER }
@@ -613,25 +482,22 @@ implementation
                             op:=A_MOV
                            else
                             op:=A_MOVZX;
-                           emit_ref_reg(op,opsize,
-                             newreference(
-                               tcallparanode(tcallparanode(left).right).left.location.reference),R_EDI);
+                           emit_ref_reg(op,opsize,tcallparanode(tcallparanode(left).right).left.location.reference,R_EDI);
                         end;
                       if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                        emit_reg_ref(asmop,S_L,hregister,
-                          newreference(tcallparanode(left).left.location.reference))
+                        emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
                       else
-                        emit_reg_reg(asmop,S_L,hregister,
-                          tcallparanode(left).left.location.register);
+                        emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
                       if hregister = R_EDI then
                         rg.ungetregisterint(exprasmlist,R_EDI);
                    end;
               end;
             in_pi:
               begin
+                location_reset(location,LOC_FPUREGISTER,OS_NO);
                 emit_none(A_FLDPI,S_NO);
                 inc(trgcpu(rg).fpuvaroffset);
-                location.register := R_ST;
+                location.register:=R_ST;
               end;
             in_sin_extended,
             in_arctan_extended,
@@ -641,22 +507,23 @@ implementation
             in_ln_extended,
             in_cos_extended:
               begin
-                 secondpass(left);
+                 location_reset(location,LOC_FPUREGISTER,OS_NO);
                  location.register := R_ST;
+                 secondpass(left);
                  case left.location.loc of
-                    LOC_FPU:
+                    LOC_FPUREGISTER:
                       ;
                     LOC_CFPUREGISTER:
                       begin
                          cg.a_loadfpu_reg_reg(exprasmlist,
                            left.location.register,location.register);
                       end;
-                    LOC_REFERENCE,LOC_MEM:
+                    LOC_REFERENCE,LOC_CREFERENCE:
                       begin
                          cg.a_loadfpu_ref_reg(exprasmlist,
                            def_cgsize(left.resulttype.def),
                            left.location.reference,location.register);
-                         rg.del_reference(exprasmlist,left.location.reference);
+                         location_release(exprasmlist,left.location);
                       end
                     else
                       internalerror(309991);
@@ -707,6 +574,7 @@ implementation
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
+                 location_reset(location,LOC_MMXREGISTER,OS_NO);
                  if left.location.loc=LOC_REGISTER then
                    begin
                       {!!!!!!!}
@@ -732,7 +600,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-03-31 20:26:39  jonas
+  Revision 1.34  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.33  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

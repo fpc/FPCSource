@@ -47,7 +47,7 @@ implementation
       globtype,systems,cpuinfo,
       verbose,globals,
       symconst,symdef,aasm,types,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       ncon,
       cpubase,
       cga,tgobj,n386util,regvars,rgobj;
@@ -82,7 +82,7 @@ implementation
            end;
 
          { we doesn't modify the left side, we check only the type }
-         set_location(location,left.location);
+         location_copy(location,left.location);
        end;
 
 
@@ -103,6 +103,7 @@ implementation
          ranges     : boolean;
          hr,hr2,
          pleftreg   : tregister;
+         href       : treference;
          opsize     : topsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
@@ -238,12 +239,11 @@ implementation
                { load the value in a register }
                pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
                opsize := S_L;
-               emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),
-                            pleftreg);
+               emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
              end;
 
             { Get a label to jump to the end }
-            location.loc:=LOC_FLAGS;
+            location_reset(location,LOC_FLAGS,OS_NO);
 
             { It's better to use the zero flag when there are
               no ranges }
@@ -276,8 +276,8 @@ implementation
                         begin
                           rg.ungetregister(exprasmlist,pleftreg);
                           rg.getexplicitregisterint(exprasmlist,R_EDI);
-                          emit_ref_reg(A_LEA,S_L,
-                            new_reference(pleftreg,-setparts[i].start),R_EDI);
+                          reference_reset_base(href,pleftreg,-setparts[i].start);
+                          emit_ref_reg(A_LEA,S_L,href,R_EDI);
                           { only now change pleftreg since previous value is }
                           { still used in previous instruction               }
                           pleftreg := R_EDI;
@@ -337,39 +337,44 @@ implementation
              { Now place the end label }
              emitlab(l);
              case left.location.loc of
-            LOC_REGISTER,
-           LOC_CREGISTER : rg.ungetregister(exprasmlist,pleftreg);
-             else
-               begin
-                rg.del_reference(exprasmlist,left.location.reference);
-                rg.ungetregister(exprasmlist,R_EDI);
-               end
-             end
+               LOC_REGISTER,
+               LOC_CREGISTER :
+                 rg.ungetregister(exprasmlist,pleftreg);
+               else
+                 begin
+                   reference_release(exprasmlist,left.location.reference);
+                   rg.ungetregister(exprasmlist,R_EDI);
+                 end;
+             end;
           end
          else
           begin
-          { We will now generated code to check the set itself, no jmps,
-            handle smallsets separate, because it allows faster checks }
+            location_reset(location,LOC_FLAGS,OS_NO);
+
+            { We will now generated code to check the set itself, no jmps,
+              handle smallsets separate, because it allows faster checks }
             if use_small then
              begin
                if left.nodetype=ordconstn then
                 begin
                   location.resflags:=F_NE;
                   case right.location.loc of
-                     LOC_REGISTER,
-                     LOC_CREGISTER:
+                    LOC_REGISTER,
+                    LOC_CREGISTER:
                       begin
                          emit_const_reg(A_TEST,S_L,
                            1 shl (tordconstnode(left).value and 31),right.location.register);
-                         rg.ungetregisterint(exprasmlist,right.location.register);
-                       end
-                  else
-                   begin
-                     emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
-                       newreference(right.location.reference));
-                     rg.del_reference(exprasmlist,right.location.reference);
-                   end;
+                      end;
+                    LOC_REFERENCE,
+                    LOC_CREFERENCE :
+                      begin
+                        emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
+                           right.location.reference);
+                      end;
+                    else
+                      internalerror(200203312);
                   end;
+                  location_release(exprasmlist,right.location);
                 end
                else
                 begin
@@ -386,10 +391,9 @@ implementation
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
                       rg.getexplicitregisterint(exprasmlist,R_EDI);
-                      emit_ref_reg(A_MOVZX,S_BL,
-                        newreference(left.location.reference),R_EDI);
+                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,R_EDI);
                       hr:=R_EDI;
-                      rg.del_reference(exprasmlist,left.location.reference);
+                      location_release(exprasmlist,left.location);
                     end;
                   end;
 
@@ -400,24 +404,25 @@ implementation
                             emit_reg_reg(A_BT,S_L,hr,
                               right.location.register);
                             rg.ungetregisterint(exprasmlist,right.location.register);
-                          end
-                  else
-                    begin
-                      rg.del_reference(exprasmlist,right.location.reference);
-                      if right.location.reference.is_immediate then
+                          end;
+                   LOC_CONSTANT :
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
                          hr2:=rg.getregisterint(exprasmlist);
                          emit_const_reg(A_MOV,S_L,
-                           right.location.reference.offset,hr2);
+                           right.location.value,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
                          rg.ungetregisterint(exprasmlist,hr2);
-                       end
-                      else
-                        emit_reg_ref(A_BT,S_L,hr,
-                          newreference(right.location.reference));
-                    end;
+                       end;
+                   LOC_CREFERENCE,
+                   LOC_REFERENCE :
+                       begin
+                         location_release(exprasmlist,right.location);
+                         emit_reg_ref(A_BT,S_L,hr,right.location.reference);
+                       end;
+                     else
+                       internalerror(2002032210);
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
                   rg.ungetregisterint(exprasmlist,hr);
@@ -427,7 +432,7 @@ implementation
              end
             else
              begin
-               if right.location.reference.is_immediate then
+               if right.location.loc=LOC_CONSTANT then
                 begin
                   location.resflags:=F_C;
                   getlabel(l);
@@ -457,7 +462,7 @@ implementation
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=rg.getregisterint(exprasmlist);
-                          emit_const_reg(A_MOV,S_L,right.location.reference.offset,hr2);
+                          emit_const_reg(A_MOV,S_L,right.location.value,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
                           rg.ungetregisterint(exprasmlist,hr2);
                        end;
@@ -466,46 +471,42 @@ implementation
 {$ifdef CORRECT_SET_IN_FPC}
                           if m_tp in aktmodeswitches then
                             begin
-                            {***WARNING only correct if
-                              reference is 32 bits (PM) *****}
-                               emit_const_ref(A_CMP,S_L,
-                                 31,newreference(left.location.reference));
+                              {***WARNING only correct if
+                                reference is 32 bits (PM) *****}
+                               emit_const_ref(A_CMP,S_L,31,reference_copy(left.location.reference));
                             end
                           else
 {$endif CORRECT_SET_IN_FPC}
                             begin
-                               emit_const_ref(A_CMP,S_B,
-                                 31,newreference(left.location.reference));
+                               emit_const_ref(A_CMP,S_B,31,left.location.reference);
                             end;
                        emitjmp(C_NA,l);
                      { reset carry flag }
                        emit_none(A_CLC,S_NO);
                        emitjmp(C_NONE,l2);
                        emitlab(l);
-                       rg.del_reference(exprasmlist,left.location.reference);
+                       location_release(exprasmlist,left.location);
                        hr:=rg.getregisterint(exprasmlist);
-                       emit_ref_reg(A_MOV,S_L,
-                         newreference(left.location.reference),hr);
+                       emit_ref_reg(A_MOV,S_L,left.location.reference,hr);
                      { We have to load the value into a register because
                        btl does not accept values only refs or regs (PFV) }
                        hr2:=rg.getregisterint(exprasmlist);
                        emit_const_reg(A_MOV,S_L,
-                         right.location.reference.offset,hr2);
+                         right.location.value,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
                        rg.ungetregisterint(exprasmlist,hr2);
                     end;
                   end;
                   emitlab(l2);
-                end { of right.location.reference.is_immediate }
+                end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
                else if left.nodetype=ordconstn then
                 begin
                   location.resflags:=F_NE;
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                  emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),
-                    newreference(right.location.reference));
-                  rg.del_reference(exprasmlist,right.location.reference);
+                  emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
+                  location_release(exprasmlist,right.location);
                 end
                else
                 begin
@@ -514,11 +515,11 @@ implementation
                       pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
                       opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
                       if opsize = S_L then
-                        emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),pleftreg)
+                        emit_ref_reg(A_MOV,opsize,left.location.reference,pleftreg)
                       else
-                        emit_ref_reg(A_MOVZX,opsize,newreference(left.location.reference),pleftreg);
-                      tg.ungetiftemp(exprasmlist,left.location.reference);
-                      rg.del_reference(exprasmlist,left.location.reference);
+                        emit_ref_reg(A_MOVZX,opsize,left.location.reference,pleftreg);
+                      location_freetemp(exprasmlist,left.location);
+                      location_release(exprasmlist,left.location);
                     end
                   else
                     begin
@@ -531,17 +532,15 @@ implementation
                          { any problem (JM)                                         }
                          emit_to_reg32(pleftreg)
                     end;
-                  emit_reg_ref(A_BT,S_L,pleftreg,newreference(right.location.reference));
+                  emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
                   rg.ungetregister(exprasmlist,pleftreg);
-                  rg.del_reference(exprasmlist,right.location.reference);
+                  location_release(exprasmlist,right.location);
                   { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
-                  location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
              end;
           end;
-          if (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-            tg.ungetiftemp(exprasmlist,right.location.reference);
+          location_freetemp(exprasmlist,right.location);
        end;
 
 
@@ -781,7 +780,7 @@ implementation
         var
            table : tasmlabel;
            last : TConstExprInt;
-           hr : preference;
+           href : treference;
 
         procedure genitem(t : pcaserecord);
 
@@ -832,13 +831,11 @@ implementation
                     reg8toreg32(hregister));
                 hregister:=reg8toreg32(hregister);
              end;
-           new(hr);
-           reset_reference(hr^);
-           hr^.symbol:=table;
-           hr^.offset:=(-longint(min_))*4;
-           hr^.index:=hregister;
-           hr^.scalefactor:=4;
-           emit_ref(A_JMP,S_NO,hr);
+           reference_reset_symbol(href,table,0);
+           href.offset:=(-longint(min_))*4;
+           href.index:=hregister;
+           href.scalefactor:=4;
+           emit_ref(A_JMP,S_NO,href);
            { !!!!! generate tables
              if not(cs_littlesize in aktlocalswitches) then
              jumpSegment.concat(Taicpu.Op_const(A_ALIGN,S_NO,4));
@@ -863,7 +860,7 @@ implementation
 {$else Delphi}
          dist : dword;
 {$endif Delphi}
-         hr : preference;
+         href : treference;
 
       begin
          getlabel(endlabel);
@@ -934,17 +931,17 @@ implementation
                  if opsize=S_Q then
                    begin
                       emit_reg_reg(A_MOV,S_L,left.location.registerlow,hregister);
-                      hr:=newreference(left.location.reference);
-                      inc(hr^.offset,4);
+                      href:=left.location.reference;
+                      inc(href.offset,4);
                       emit_reg_reg(A_MOV,S_L,left.location.registerhigh,hregister2);
                    end
                  else
                    emit_reg_reg(A_MOV,opsize,
                      left.location.register,hregister);
               end;
-            LOC_MEM,LOC_REFERENCE:
+            LOC_CREFERENCE,LOC_REFERENCE:
               begin
-                 rg.del_reference(exprasmlist,left.location.reference);
+                 location_release(exprasmlist,left.location);
                  hregister:=rg.getregisterint(exprasmlist);
                  case opsize of
                     S_B:
@@ -956,15 +953,13 @@ implementation
                  end;
                  if opsize=S_Q then
                    begin
-                      emit_ref_reg(A_MOV,S_L,newreference(
-                        left.location.reference),hregister);
-                      hr:=newreference(left.location.reference);
-                      inc(hr^.offset,4);
-                      emit_ref_reg(A_MOV,S_L,hr,hregister2);
+                      emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
+                      href:=left.location.reference;
+                      inc(href.offset,4);
+                      emit_ref_reg(A_MOV,S_L,href,hregister2);
                    end
                  else
-                   emit_ref_reg(A_MOV,opsize,newreference(
-                     left.location.reference),hregister);
+                   emit_ref_reg(A_MOV,opsize,left.location.reference,hregister);
               end;
             else internalerror(2002);
          end;
@@ -1092,7 +1087,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-03-31 20:26:39  jonas
+  Revision 1.21  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.20  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

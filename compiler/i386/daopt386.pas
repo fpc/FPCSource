@@ -739,26 +739,20 @@ End;
 
 Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
 Begin
-  If R1.is_immediate Then
-    RefsEquivalent := R2.is_immediate and (R1.Offset = R2.Offset)
-  Else
-    RefsEquivalent := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-                      RegsEquivalent(R1.Base, R2.Base, RegInfo, OpAct) And
-                      RegsEquivalent(R1.Index, R2.Index, RegInfo, OpAct) And
-                      (R1.Segment = R2.Segment) And (R1.ScaleFactor = R2.ScaleFactor) And
-                      (R1.Symbol = R2.Symbol);
+  RefsEquivalent := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
+                    RegsEquivalent(R1.Base, R2.Base, RegInfo, OpAct) And
+                    RegsEquivalent(R1.Index, R2.Index, RegInfo, OpAct) And
+                    (R1.Segment = R2.Segment) And (R1.ScaleFactor = R2.ScaleFactor) And
+                    (R1.Symbol = R2.Symbol);
 End;
 
 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
-  If R1.is_immediate Then
-    RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
-  Else
-    RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-                 (R1.Segment = R2.Segment) And (R1.Base = R2.Base) And
-                 (R1.Index = R2.Index) And (R1.ScaleFactor = R2.ScaleFactor) And
-                 (R1.Symbol=R2.Symbol);
+  RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
+               (R1.Segment = R2.Segment) And (R1.Base = R2.Base) And
+               (R1.Index = R2.Index) And (R1.ScaleFactor = R2.ScaleFactor) And
+               (R1.Symbol=R2.Symbol);
 End;
 
 Function IsGP32Reg(Reg: TRegister): Boolean;
@@ -1617,7 +1611,7 @@ Begin
 End;
 
 
-Procedure ReadRef(p: PTaiProp; Ref: PReference);
+Procedure ReadRef(p: PTaiProp; Const Ref: POperReference);
 Begin
   If Ref^.Base <> R_NO Then
     ReadReg(p, Ref^.Base);
@@ -2592,7 +2586,18 @@ End.
 
 {
   $Log$
-  Revision 1.27  2002-03-31 20:26:38  jonas
+  Revision 1.28  2002-04-02 17:11:34  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.27  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

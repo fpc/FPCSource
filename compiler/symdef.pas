@@ -1753,10 +1753,9 @@ implementation
         u64bit    : stabstring := strpnew('-32;');
         s64bit    : stabstring := strpnew('-31;');
 {$endif not Use_integer_types_for_boolean}
-         { u32bit : stabstring := strpnew('r'+
-              s32bittype^.numberstring+';0;-1;'); }
+         {u32bit : stabstring := tstoreddef(s32bittype.def).numberstring+';0;-1;'); }
         else
-          stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';'+tostr(low)+';'+tostr(high)+';');
+          stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';'+tostr(longint(low))+';'+tostr(longint(high))+';');
         end;
       end;
 {$endif GDB}
@@ -1775,8 +1774,8 @@ implementation
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
-          rttiList.concat(Tai_const.Create_32bit(low));
-          rttiList.concat(Tai_const.Create_32bit(high));
+          rttiList.concat(Tai_const.Create_32bit(longint(low)));
+          rttiList.concat(Tai_const.Create_32bit(longint(high)));
         end;
 
       begin
@@ -2643,7 +2642,7 @@ implementation
         cachedsize := elesize;
         If (cachedsize>0) and
            (
-            (TConstExprInt(highrange)-TConstExprInt(lowrange) >= $7fffffff) or
+            (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
             { () are needed around elesize-1 to avoid a possible
               integer overflow for elesize=1 !! PM }
             (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
@@ -2652,7 +2651,7 @@ implementation
             Message(sym_e_segment_too_large);
             size := 4
           End
-        Else size:=(highrange-lowrange+1)*cachedsize;
+        Else size:=longint((highrange-lowrange+1)*cachedsize);
       end;
 
 
@@ -5420,7 +5419,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-03-31 20:26:36  jonas
+  Revision 1.68  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.67  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -30,18 +30,41 @@ unit cg64f32;
   interface
 
     uses
-       aasm, cgobj, cpubase,node,symtype;
+       aasm,
+       cpuinfo, cpubase,
+       cginfo, cgobj,
+       node,symtype;
 
     type
       tcg64f32 = class(tcg)
+        procedure a_load64_const_ref(list : taasmoutput;valuelo, valuehi : AWord;const ref : treference);
         procedure a_load64_reg_ref(list : taasmoutput;reglo, reghi : tregister;const ref : treference);
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reglo,reghi : tregister);
         procedure a_load64_reg_reg(list : taasmoutput;reglosrc,reghisrc,reglodst,reghidst : tregister);
+        procedure a_load64_const_reg(list : taasmoutput;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);
         procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reglo,reghi : tregister);
+        procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
+        procedure a_load64_reg_loc(list : taasmoutput;reglo, reghi : tregister;const l : tlocation);
         procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
         procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
         procedure a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
         procedure a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
+        procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+        procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reghi : tregister);virtual;abstract;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;reglosrc,reghisrc,reglodst,reghidst : tregister);virtual;abstract;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;reglosrc,reghisrc : tregister;const ref : treference);virtual;abstract;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);virtual;abstract;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;const ref : treference);virtual;abstract;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:aword;const l: tlocation);
+        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reglo,reghi : tregister;const l : tlocation);
+        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reglo,reghi : tregister);
+
+        procedure a_param64_reg(list : taasmoutput;reglo,reghi : tregister;nr : longint);
+        procedure a_param64_const(list : taasmoutput;valuelo,valuehi : aword;nr : longint);
+        procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);
 
         { override to catch 64bit rangechecks }
         procedure g_rangecheck(list: taasmoutput; const p: tnode;
@@ -60,8 +83,7 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,types,
-       cpuinfo;
+       symbase,symconst,symdef,types;
 
     procedure tcg64f32.a_load64_reg_ref(list : taasmoutput;reglo, reghi : tregister;const ref : treference);
       var
@@ -80,10 +102,29 @@ unit cg64f32;
         a_load_reg_ref(list,OS_32,reghi,tmpref);
       end;
 
+    procedure tcg64f32.a_load64_const_ref(list : taasmoutput;valuelo, valuehi : AWord;const ref : treference);
+      var
+        tmpvalue: AWord;
+        tmpref: treference;
+      begin
+        if target_info.endian = endian_big then
+          begin
+            tmpvalue := valuelo;
+            valuelo := valuehi;
+            valuehi := tmpvalue;
+          end;
+        a_load_const_ref(list,OS_32,valuelo,ref);
+        tmpref := ref;
+        inc(tmpref.offset,4);
+        a_load_const_ref(list,OS_32,valuehi,tmpref);
+      end;
+
+
     procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reglo,reghi : tregister);
       var
         tmpreg: tregister;
         tmpref: treference;
+        got_scratch: boolean;
       begin
         if target_info.endian = endian_big then
           begin
@@ -91,11 +132,30 @@ unit cg64f32;
             reglo := reghi;
             reghi := tmpreg;
           end;
-        a_load_ref_reg(list,OS_32,ref,reglo);
+        got_scratch:=false;
         tmpref := ref;
+        if (tmpref.base=reglo) then
+         begin
+           tmpreg := get_scratch_reg(list);
+           got_scratch:=true;
+           a_load_reg_reg(list,OS_ADDR,tmpref.base,tmpreg);
+           tmpref.base:=tmpreg;
+         end
+        else
+         if (tmpref.index=reglo) then
+          begin
+            tmpreg := get_scratch_reg(list);
+            got_scratch:=true;
+            a_load_reg_reg(list,OS_ADDR,tmpref.index,tmpreg);
+            tmpref.index:=tmpreg;
+          end;
+        a_load_ref_reg(list,OS_32,tmpref,reglo);
         inc(tmpref.offset,4);
         a_load_ref_reg(list,OS_32,tmpref,reghi);
+        if got_scratch then
+         free_scratch_reg(list,tmpreg);
       end;
+
 
     procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;reglosrc,reghisrc,reglodst,reghidst : tregister);
 
@@ -104,19 +164,55 @@ unit cg64f32;
         a_load_reg_reg(list,OS_32,reghisrc,reghidst);
       end;
 
+    procedure tcg64f32.a_load64_const_reg(list : taasmoutput;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);
+
+      begin
+        a_load_const_reg(list,OS_32,valuelosrc,reglodst);
+        a_load_const_reg(list,OS_32,valuehisrc,reghidst);
+      end;
 
     procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reglo,reghi : tregister);
 
       begin
         case l.loc of
-          LOC_REFERENCE, LOC_MEM:
+          LOC_REFERENCE, LOC_CREFERENCE:
             a_load64_ref_reg(list,l.reference,reglo,reghi);
           LOC_REGISTER,LOC_CREGISTER:
             a_load64_reg_reg(list,l.registerlow,l.registerhigh,reglo,reghi);
+          LOC_CONSTANT :
+            a_load64_const_reg(list,l.valuelow,l.valuehigh,reglo,reghi);
           else
             internalerror(200112292);
         end;
       end;
+
+
+    procedure tcg64f32.a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
+      begin
+        case l.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load64_reg_ref(list,l.registerlow,l.registerhigh,ref);
+          LOC_CONSTANT :
+            a_load64_const_ref(list,l.valuelow,l.valuehigh,ref);
+          else
+            internalerror(200203288);
+        end;
+      end;
+
+
+    procedure tcg64f32.a_load64_reg_loc(list : taasmoutput;reglo,reghi : tregister;const l : tlocation);
+
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load64_reg_ref(list,reglo,reghi,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load64_reg_reg(list,reglo,reghi,l.registerlow,l.registerhigh);
+          else
+            internalerror(200112293);
+        end;
+      end;
+
 
 
     procedure tcg64f32.a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
@@ -174,6 +270,121 @@ unit cg64f32;
             a_load_ref_reg(list,OS_32,tmpref,reg)
           end;
       end;
+
+    procedure tcg64f32.a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+      begin
+        case l.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            a_load64low_ref_reg(list,l.reference,reg);
+          LOC_REGISTER :
+            a_load_reg_reg(list,OS_32,l.registerlow,reg);
+          LOC_CONSTANT :
+            a_load_const_reg(list,OS_32,l.valuelow,reg);
+          else
+            internalerror(200203244);
+        end;
+      end;
+
+    procedure tcg64f32.a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+      begin
+        case l.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            a_load64high_ref_reg(list,l.reference,reg);
+          LOC_REGISTER :
+            a_load_reg_reg(list,OS_32,l.registerhigh,reg);
+          LOC_CONSTANT :
+            a_load_const_reg(list,OS_32,l.valuehigh,reg);
+          else
+            internalerror(200203244);
+        end;
+      end;
+
+
+    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:aword;const l: tlocation);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op64_const_reg(list,op,valuelosrc,valuehisrc,l.registerlow,l.registerhigh);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_const_ref(list,op,valuelosrc,valuehisrc,l.reference);
+          else
+            internalerror(200203292);
+        end;
+      end;
+
+
+    procedure tcg64f32.a_op64_reg_loc(list : taasmoutput;op:TOpCG;reglo,reghi : tregister;const l : tlocation);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op64_reg_ref(list,op,reglo,reghi,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_reg_reg(list,op,reglo,reghi,l.registerlow,l.registerhigh);
+          else
+            internalerror(2002032422);
+        end;
+      end;
+
+
+
+    procedure tcg64f32.a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reglo,reghi : tregister);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op64_ref_reg(list,op,l.reference,reglo,reghi);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_reg_reg(list,op,l.registerlow,l.registerhigh,reglo,reghi);
+          LOC_CONSTANT :
+            a_op64_const_reg(list,op,l.valuelow,l.valuehigh,reglo,reghi);
+          else
+            internalerror(200203242);
+        end;
+      end;
+
+
+    procedure tcg64f32.a_param64_reg(list : taasmoutput;reglo,reghi : tregister;nr : longint);
+      begin
+         a_param_reg(list,OS_32,reghi,nr);
+         a_param_reg(list,OS_32,reglo,nr+1);
+      end;
+
+
+    procedure tcg64f32.a_param64_const(list : taasmoutput;valuelo,valuehi : aword;nr : longint);
+      begin
+         a_param_const(list,OS_32,valuehi,nr);
+         a_param_const(list,OS_32,valuelo,nr+1);
+      end;
+
+
+    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;nr : longint);
+      var
+        tmpref: treference;
+      begin
+        a_param_ref(list,OS_32,r,nr);
+        tmpref := r;
+        inc(tmpref.offset,4);
+        a_param_ref(list,OS_32,tmpref,nr+1);
+      end;
+
+
+    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;nr : longint);
+      begin
+        case l.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            a_param64_reg(list,l.registerlow,l.registerhigh,nr);
+          LOC_CONSTANT :
+            a_param64_const(list,l.valuelow,l.valuehigh,nr);
+          LOC_CREFERENCE,
+          LOC_REFERENCE :
+            a_param64_ref(list,l.reference,nr);
+        else
+          internalerror(200203287);
+        end;
+      end;
+
 
 
     procedure tcg64f32.g_rangecheck(list: taasmoutput; const p: tnode;
@@ -358,7 +569,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-03-04 19:10:11  peter
+  Revision 1.5  2002-04-02 17:11:27  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.4  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.3  2002/01/24 12:33:52  jonas

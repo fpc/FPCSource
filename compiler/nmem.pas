@@ -115,9 +115,9 @@ interface
        tselfnodeclass = class of tselfnode;
 
        twithnode = class(tbinarynode)
-          withsymtable : twithsymtable;
-          tablecount : longint;
-          withreference : preference;
+          withsymtable  : twithsymtable;
+          tablecount    : longint;
+          withreference : treference;
           constructor create(symtable : twithsymtable;l,r : tnode;count : longint);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -551,7 +551,7 @@ implementation
           end;
 
          { we should allow loc_mem for @string }
-         if not(left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
            begin
              aktfilepos:=left.fileinfo;
              CGMessage(cg_e_illegal_expression);
@@ -714,10 +714,10 @@ implementation
            end
          else
            begin
-              if (left.location.loc<>LOC_MEM) and
-                (left.location.loc<>LOC_REFERENCE) then
+              if (left.location.loc<>LOC_CREFERENCE) and
+                 (left.location.loc<>LOC_REFERENCE) then
                 CGMessage(cg_e_illegal_expression);
-              set_location(location,left.location);
+              location.loc:=left.location.loc;
            end;
       end;
 
@@ -885,7 +885,7 @@ implementation
          if left.location.loc in [LOC_CREGISTER,LOC_REFERENCE] then
            location.loc:=LOC_REFERENCE
          else
-           location.loc:=LOC_MEM;
+           location.loc:=LOC_CREFERENCE;
       end;
 
 
@@ -927,7 +927,7 @@ implementation
          inherited create(withn,l,r);
          withsymtable:=symtable;
          tablecount:=count;
-         withreference:=nil;
+         FillChar(withreference,sizeof(withreference),0);
          set_file_line(l);
       end;
 
@@ -1040,7 +1040,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-04-01 20:57:13  jonas
+  Revision 1.27  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.26  2002/04/01 20:57:13  jonas
     * fixed web bug 1907
     * fixed some other procvar related bugs (all related to accepting procvar
         constructs with either too many or too little parameters)

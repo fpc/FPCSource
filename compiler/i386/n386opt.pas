@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, cgbase, cpubase, cga,
+uses pass_1, types, htypechk, cginfo, cgbase, cpubase, cga,
      tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj;
 
 
@@ -71,7 +71,7 @@ begin
   firstpass(right);
   if codegenerror then
     exit;
-  location.loc := LOC_MEM;
+  location.loc := LOC_CREFERENCE;
   if not is_constcharnode(right) then
     { it's not sure we need the register, but we can't know it here yet }
     calcregisters(self,2,0,0)
@@ -83,8 +83,7 @@ end;
 procedure ti386addsstringcharoptnode.pass_2;
 var
   l: tasmlabel;
-  href2: preference;
-  href:  treference;
+  href,href2 :  treference;
   hreg, lengthreg: tregister;
   checklength: boolean;
 begin
@@ -100,8 +99,7 @@ begin
        { release the registers }
        tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
-       clear_location(left.location);
-       left.location.loc:=LOC_MEM;
+       location_reset(left.location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -114,14 +112,13 @@ begin
   { is it a constant char? }
   if not is_constcharnode(right) then
     { no, make sure it is in a register }
-    if right.location.loc in [LOC_REFERENCE,LOC_MEM] then
+    if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
       begin
         { free the registers of right }
-        rg.del_reference(exprasmlist,right.location.reference);
+        reference_release(exprasmlist,right.location.reference);
         { get register for the char }
         hreg := reg32toreg8(rg.getregisterint(exprasmlist));
-        emit_ref_reg(A_MOV,S_B,
-          newreference(right.location.reference),hreg);
+        emit_ref_reg(A_MOV,S_B,right.location.reference,hreg);
        { I don't think a temp char exists, but it won't hurt (JM) }
        tg.ungetiftemp(exprasmlist,right.location.reference);
       end
@@ -129,7 +126,7 @@ begin
 
   { load the current string length }
   lengthreg := rg.getregisterint(exprasmlist);
-  emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),lengthreg);
+  emit_ref_reg(A_MOVZX,S_BL,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
   if tg.istemp(left.location.reference) then
@@ -148,31 +145,31 @@ begin
     end;
 
   { no, so increase the length and add the new character }
-  href2 := newreference(left.location.reference);
+  href2 := left.location.reference;
 
   { we need a new reference to store the character }
   { at the end of the string. Check if the base or }
   { index register is still free                   }
-  if (href2^.base <> R_NO) and
-     (href2^.index <> R_NO) then
+  if (href2.base <> R_NO) and
+     (href2.index <> R_NO) then
     begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
       { have a scalefactor) and use lengthreg as base  }
-      emit_reg_reg(A_ADD,S_L,href2^.base,lengthreg);
-      href2^.base := lengthreg;
+      emit_reg_reg(A_ADD,S_L,href2.base,lengthreg);
+      href2.base := lengthreg;
     end
   else
     { at least one is still free, so put EDI there }
-    if href2^.base = R_NO then
-      href2^.base := lengthreg
+    if href2.base = R_NO then
+      href2.base := lengthreg
     else
       begin
-        href2^.index := lengthreg;
-        href2^.scalefactor := 1;
+        href2.index := lengthreg;
+        href2.scalefactor := 1;
       end;
   { we need to be one position after the last char }
-  inc(href2^.offset);
+  inc(href2.offset);
   { store the character at the end of the string }
   if (right.nodetype <> ordconstn) then
     begin
@@ -185,12 +182,11 @@ begin
     emit_const_ref(A_MOV,S_B,tordconstnode(right).value,href2);
   { increase the string length }
   emit_reg(A_INC,S_B,reg32toreg8(lengthreg));
-  emit_reg_ref(A_MOV,S_B,reg32toreg8(lengthreg),
-                 newreference(left.location.reference));
+  emit_reg_ref(A_MOV,S_B,reg32toreg8(lengthreg),left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     emitlab(l);
-  set_location(location,left.location);
+  location_copy(location,left.location);
 end;
 
 procedure ti386addsstringcsstringoptnode.pass_2;
@@ -211,8 +207,7 @@ begin
        { release the registers }
        tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
-       clear_location(left.location);
-       left.location.loc:=LOC_MEM;
+       location_reset(left.location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -222,8 +217,7 @@ begin
   { because emitpushreferenceaddr doesn't need extra }
   { registers) (JM)                                  }
   regstopush := all_registers;
-  remove_non_regvars_from_loc(right.location,
-    regstopush);
+  remove_non_regvars_from_loc(right.location,regstopush);
   rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
   { push the maximum possible length of the result }
   emitpushreferenceaddr(left.location.reference);
@@ -231,14 +225,14 @@ begin
   { deallocations in the right place if it happens }
   { too early than when it happens too late (if    }
   { the pushref needs a "lea (..),edi; push edi")  }
-  rg.del_reference(exprasmlist,right.location.reference);
+  reference_release(exprasmlist,right.location.reference);
   emitpushreferenceaddr(right.location.reference);
   rg.saveregvars(exprasmlist,regstopush);
   emitcall('FPC_SHORTSTR_CONCAT');
   tg.ungetiftemp(exprasmlist,right.location.reference);
   maybe_loadself;
   rg.restoreusedregisters(exprasmlist,pushedregs);
-  set_location(location,left.location);
+  location_copy(location,left.location);
 end;
 
 begin
@@ -248,7 +242,18 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-03-31 20:26:39  jonas
+  Revision 1.8  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.7  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
@@ -266,7 +271,7 @@ end.
       and can cause hard-to-find bugs
 
   Revision 1.6  2001/12/31 09:53:15  jonas
-    * changed remaining "getregister32" calls to "getregisterint"
+    * changed remaining "getregister32" calls to ":=rg.getregisterint(exprasmlist);"
 
   Revision 1.5  2001/08/26 13:37:00  florian
     * some cg reorganisation

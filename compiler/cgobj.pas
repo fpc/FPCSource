@@ -28,7 +28,9 @@ unit cgobj;
   interface
 
     uses
-       cclasses,aasm,symtable,cpuasm,cpubase,cgbase,cpuinfo,
+       cclasses,aasm,symtable,
+       cpuasm,cpubase,cpuinfo,
+       cginfo,
        symconst,symbase,symtype,node;
 
     type
@@ -96,6 +98,7 @@ unit cgobj;
           procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual; abstract;
           procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
           procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_param_loc(list : taasmoutput;size : tcgsize;const l : tlocation;nr : longint);
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
 
           {**********************************}
@@ -124,9 +127,11 @@ unit cgobj;
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
           procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
+          procedure a_load_const_loc(list : taasmoutput;size : tcgsize;a : aword;const loc : tlocation);
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
-          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+          procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
+          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_loc_reg(list : taasmoutput;size : tcgsize;const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;size : tcgsize;const loc: tlocation; const ref : treference);
           procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
@@ -174,6 +179,7 @@ unit cgobj;
             l : tasmlabel);
           procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
           procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
+          procedure a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
@@ -182,7 +188,7 @@ unit cgobj;
 
           procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
 
-          procedure a_loadaddress_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
+          procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
           { restores the frame pointer at procedure exit, for the }
           { i386 it generates a simple leave                      }
@@ -235,7 +241,7 @@ unit cgobj;
   implementation
 
     uses
-       strings,globals,globtype,options,gdb,systems,
+       strings,globals,globtype,options,gdb,systems,cgbase,
        ppu,verbose,types,tgobj,symdef,symsym,cga,tainst,rgobj;
 
     const
@@ -357,6 +363,25 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
+
+    procedure tcg.a_param_loc(list : taasmoutput;size : tcgsize;const l:tlocation;nr : longint);
+
+      begin
+        case l.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            a_param_reg(list,size,l.register,nr);
+          LOC_CONSTANT :
+            a_param_const(list,size,l.value,nr);
+          LOC_CREFERENCE,
+          LOC_REFERENCE :
+            a_param_ref(list,size,l.reference,nr);
+        else
+          internalerror(2002032211);
+        end;
+      end;
+
+
     procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
 
       var
@@ -364,10 +389,11 @@ unit cgobj;
 
       begin
          hr:=get_scratch_reg(list);
-         a_loadaddress_ref_reg(list,r,hr);
+         a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,nr);
          free_scratch_reg(list,hr);
       end;
+
 
     procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
 
@@ -1077,14 +1103,43 @@ unit cgobj;
 
       begin
         case loc.loc of
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,size,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
             a_load_reg_reg(list,size,loc.register,reg);
+          LOC_CONSTANT:
+            a_load_const_reg(list,size,loc.value,reg);
           else
             internalerror(200109092);
         end;
       end;
+
+
+    procedure tcg.a_load_const_loc(list : taasmoutput;size : tcgsize;a : aword;const loc: tlocation);
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_load_const_ref(list,size,a,loc.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_const_reg(list,size,a,loc.register);
+          else
+            internalerror(200203272);
+        end;
+      end;
+
+
+    procedure tcg.a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_load_reg_ref(list,size,reg,loc.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_reg_reg(list,size,reg,loc.register);
+          else
+            internalerror(200203271);
+        end;
+      end;
+
 
     procedure tcg.a_load_loc_ref(list : taasmoutput;size : tcgsize;const loc: tlocation; const ref : treference);
 
@@ -1093,7 +1148,7 @@ unit cgobj;
 
       begin
         case loc.loc of
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             begin
 {$ifdef i386}
               case size of
@@ -1118,6 +1173,8 @@ unit cgobj;
             end;
           LOC_REGISTER,LOC_CREGISTER:
             a_load_reg_ref(list,size,loc.register,ref);
+          LOC_CONSTANT:
+            a_load_const_ref(list,size,loc.value,ref);
           else
             internalerror(200109302);
         end;
@@ -1128,9 +1185,9 @@ unit cgobj;
 
       begin
         case loc.loc of
-          LOC_REFERENCE, LOC_MEM:
+          LOC_REFERENCE, LOC_CREFERENCE:
             a_loadfpu_ref_reg(list,size,loc.reference,reg);
-          LOC_FPU, LOC_CFPUREGISTER:
+          LOC_FPUREGISTER, LOC_CFPUREGISTER:
             a_loadfpu_reg_reg(list,loc.register,reg);
           else
             internalerror(200203301);
@@ -1142,9 +1199,9 @@ unit cgobj;
 
       begin
         case loc.loc of
-          LOC_REFERENCE, LOC_MEM:
+          LOC_REFERENCE, LOC_CREFERENCE:
             a_loadfpu_reg_ref(list,size,reg,loc.reference);
-          LOC_FPU, LOC_CFPUREGISTER:
+          LOC_FPUREGISTER, LOC_CFPUREGISTER:
             a_loadfpu_reg_reg(list,reg,loc.register);
           else
             internalerror(48991);
@@ -1172,7 +1229,7 @@ unit cgobj;
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
             a_op_const_reg(list,op,a,loc.register);
-          LOC_REFERENCE, LOC_MEM:
+          LOC_REFERENCE, LOC_CREFERENCE:
             a_op_const_ref(list,op,size,a,loc.reference);
           else
             internalerror(200109061);
@@ -1224,7 +1281,7 @@ unit cgobj;
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
             a_op_reg_reg(list,op,size,reg,loc.register);
-          LOC_REFERENCE, LOC_MEM:
+          LOC_REFERENCE, LOC_CREFERENCE:
             a_op_reg_ref(list,op,size,reg,loc.reference);
           else
             internalerror(200109061);
@@ -1241,7 +1298,7 @@ unit cgobj;
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_op_ref_reg(list,op,size,ref,loc.register);
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             begin
               tmpreg := get_scratch_reg(list);
 {$ifdef i386}
@@ -1292,7 +1349,7 @@ unit cgobj;
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_cmp_const_reg_label(list,size,cmp_op,a,loc.register,l);
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             a_cmp_const_ref_label(list,size,cmp_op,a,loc.reference,l);
           else
             internalerror(200109061);
@@ -1311,6 +1368,23 @@ unit cgobj;
         free_scratch_reg(list,tmpreg);
       end;
 
+    procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
+      begin
+        case loc.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER:
+            a_cmp_reg_reg_label(list,size,cmp_op,loc.register,reg,l);
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            a_cmp_ref_reg_label(list,size,cmp_op,loc.reference,reg,l);
+          LOC_CONSTANT:
+            a_cmp_const_reg_label(list,size,cmp_op,loc.value,reg,l);
+          else
+            internalerror(200203231);
+        end;
+      end;
+
+
     procedure tcg.a_cmp_ref_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
       l : tasmlabel);
 
@@ -1321,7 +1395,7 @@ unit cgobj;
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_cmp_ref_reg_label(list,size,cmp_op,ref,loc.register,l);
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             begin
 {$ifdef i386}
               { the following is done with defines to avoid a speed penalty,  }
@@ -1356,6 +1430,12 @@ unit cgobj;
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
     { the check is also insert (needed for succ,pref,inc,dec)                }
+      const
+{$ifdef ver1_0}
+        awordsignedmax=high(longint);
+{$else}
+        awordsignedmax=high(aword) div 2;
+{$endif}
       var
         neglabel : tasmlabel;
         hreg : tregister;
@@ -1415,7 +1495,7 @@ unit cgobj;
               { if high(from) < 0 -> always range error }
               if (hfrom < 0) or
                  { if low(to) > maxlongint also range error }
-                 (lto > (high(aword) div 2)) then
+                 (lto > awordsignedmax) then
                 begin
                   a_call_name(list,'FPC_RANGEERROR',0);
                   exit
@@ -1423,13 +1503,13 @@ unit cgobj;
               { from is signed and to is unsigned -> when looking at from }
               { as an unsigned value, it must be < maxlongint (otherwise  }
               { it's negative, which is invalid since "to" is unsigned)   }
-              if hto > (high(aword) div 2) then
-                hto := (high(aword) div 2);
+              if hto > awordsignedmax then
+                hto := awordsignedmax;
             end
           else
             { from is unsigned, to is signed }
             begin
-              if (lfrom > (high(aword) div 2)) or
+              if (lfrom > awordsignedmax) or
                  (hto < 0) then
                 begin
                   a_call_name(list,'FPC_RANGEERROR',0);
@@ -1445,15 +1525,15 @@ unit cgobj;
         hreg := get_scratch_reg(list);
         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
-           aword(lto),p.location.register,hreg)
+           aword(longint(lto and $ffffffff)),p.location.register,hreg)
         else
           begin
             a_load_ref_reg(list,def_cgsize(p.resulttype.def),
               p.location.reference,hreg);
-            a_op_const_reg(list,OP_SUB,aword(lto),hreg);
+            a_op_const_reg(list,OP_SUB,aword(longint(lto and $ffffffff)),hreg);
           end;
         getlabel(neglabel);
-        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
+        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(longint((hto-lto) and $ffffffff)),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
         free_scratch_reg(list,hreg);
         a_call_name(list,'FPC_RANGEERROR',0);
@@ -1473,7 +1553,18 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2002-03-31 20:26:33  jonas
+  Revision 1.9  2002-04-02 17:11:27  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.8  2002/03/31 20:26:33  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
@@ -1494,9 +1585,10 @@ end.
     * removed compiler warnings
 
   Revision 1.6  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in
-      cg64f32) and should work correctly again (it needed some changes after
-      the changes of the low and high of tordef's to int64)
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
     * maketojumpbool() is now processor independent (in ncgutil)
     * getregister32 is now called getregisterint
 

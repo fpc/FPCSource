@@ -94,12 +94,13 @@ interface
           procedure second_proc_to_procvar;virtual;abstract;
           procedure second_bool_to_int;virtual;abstract;
           procedure second_int_to_bool;virtual;abstract;
+          procedure second_bool_to_bool;virtual;abstract;
           procedure second_load_smallset;virtual;abstract;
           procedure second_ansistring_to_pchar;virtual;abstract;
           procedure second_pchar_to_string;virtual;abstract;
           procedure second_class_to_intf;virtual;abstract;
           procedure second_char_to_char;virtual;abstract;
-          procedure second_nothing; virtual;
+          procedure second_nothing; virtual;abstract;
 
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
@@ -135,7 +136,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,
-      cgbase,
+      cginfo,cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
 
@@ -606,8 +607,6 @@ implementation
             exit;
           end;
         result := nil;
-        { a chararray with 1 element is the same as a char }
-        set_location(location,left.location);
       end;
 
 
@@ -823,21 +822,19 @@ implementation
                ((tsetdef(resulttype.def).settype = smallset) xor
                 (tsetdef(left.resulttype.def).settype = smallset)) then
               begin
-              { try to define the set as a normalset if it's a constant set }
+                { constant sets can be converted by changing the type only }
+                if (left.nodetype=setconstn) then
+                 begin
+                   tsetdef(left.resulttype.def).changesettype(tsetdef(resulttype.def).settype);
+                   result:=left;
+                   left:=nil;
+                   exit;
+                 end;
+
                 if (tsetdef(resulttype.def).settype <> smallset) then
-                  begin
-                    if (left.nodetype=setconstn) then
-                      begin
-                        tsetdef(left.resulttype.def).changesettype(normset);
-                        result:=left;
-                        left:=nil;
-                        exit;
-                      end
-                     else
-                      convtype:=tc_load_smallset;
-                  end
+                 convtype:=tc_load_smallset
                 else
-                  convtype := tc_normal_2_smallset;
+                 convtype := tc_normal_2_smallset;
                 exit;
               end
             else
@@ -1098,8 +1095,12 @@ implementation
             left:=hp;
           end;
 
-        { remove typeconv after niln }
-        if (left.nodetype=niln) then
+        { remove typeconv after niln, but not when the result is a
+          methodpointer. The typeconv of the methodpointer will then
+          take care of updateing size of niln to OS_64 }
+        if (left.nodetype=niln) and
+           not((resulttype.def.deftype=procvardef) and
+               (po_methodpointer in tprocvardef(resulttype.def).procoptions)) then
           begin
             left.resulttype:=resulttype;
             result:=left;
@@ -1185,14 +1186,14 @@ implementation
 
       begin
          first_char_to_string:=nil;
-         location.loc:=LOC_MEM;
+         location.loc:=LOC_CREFERENCE;
       end;
 
 
     function ttypeconvnode.first_nothing : tnode;
       begin
          first_nothing:=nil;
-         location.loc:=LOC_MEM;
+         location.loc:=LOC_CREFERENCE;
       end;
 
 
@@ -1224,7 +1225,7 @@ implementation
          if registersfpu<1 then
           registersfpu:=1;
 {$endif not m68k}
-        location.loc:=LOC_FPU;
+        location.loc:=LOC_FPUREGISTER;
       end;
 
 
@@ -1240,7 +1241,7 @@ implementation
 {$endif}
          if registersfpu<1 then
            registersfpu:=1;
-         location.loc:=LOC_FPU;
+         location.loc:=LOC_FPUREGISTER;
       end;
 
 
@@ -1270,7 +1271,7 @@ implementation
          be accepted for var parameters }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
          { when converting to 64bit, first convert to a 32bit int and then   }
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
@@ -1297,7 +1298,7 @@ implementation
          be accepted for var parameters }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
          location.loc:=LOC_REGISTER;
          { need if bool to bool !!
@@ -1454,7 +1455,7 @@ implementation
  {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
  {$endif}
-        set_location(location,left.location);
+        location.loc:=left.location.loc;
 
         if nf_explizit in flags then
          begin
@@ -1487,11 +1488,6 @@ implementation
         docompare :=
           inherited docompare(p) and
           (convtype = ttypeconvnode(p).convtype);
-      end;
-
-
-    procedure ttypeconvnode.second_nothing;
-      begin
       end;
 
 
@@ -1688,7 +1684,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2002-02-03 09:30:03  peter
+  Revision 1.49  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.48  2002/02/03 09:30:03  peter
     * more fixes for protected handling
 
   Revision 1.47  2001/12/10 14:34:04  jonas

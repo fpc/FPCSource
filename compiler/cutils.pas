@@ -26,9 +26,6 @@ unit cutils;
 
 interface
 
-uses
-  cpuinfo;
-
 {$ifdef delphi}
     type
        dword = cardinal;
@@ -60,7 +57,7 @@ uses
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
     function is_number(const s : string) : boolean;
-    function ispowerof2(value : TConstExprInt;var power : longint) : boolean;
+    function ispowerof2(value : int64;var power : longint) : boolean;
     function maybequoted(const s:string):string;
     function CompareText(S1, S2: string): longint;
 
@@ -482,12 +479,12 @@ uses
       end;
 
 
-    function ispowerof2(value : TConstExprInt;var power : longint) : boolean;
+    function ispowerof2(value : int64;var power : longint) : boolean;
     {
       return if value is a power of 2. And if correct return the power
     }
       var
-         hl : TConstExprInt;
+         hl : int64;
          i : longint;
       begin
          if value and (value - 1) <> 0 then
@@ -750,7 +747,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-11-18 18:43:13  peter
+  Revision 1.13  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.12  2001/11/18 18:43:13  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

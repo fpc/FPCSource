@@ -68,12 +68,12 @@ implementation
     uses
       verbose,globals,systems,globtype,
       symconst,symdef,symsym,aasm,types,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       cpubase,cpuasm,cpuinfo,
       nld,ncon,
       cga,tgobj,rgobj,
       ncgutil,
-      tainst,regvars,cgobj,cgcpu;
+      tainst,regvars,cgobj,cgcpu,cg64f32;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -433,26 +433,10 @@ implementation
          {op : tasmop;
          s : topsize;}
          otlabel,oflabel : tasmlabel;
-         r : treference;
-         is_mem,
+         cgsize : tcgsize;
+         hreg : tregister;
          allocated_acc,
          allocated_acchigh: boolean;
-
-      procedure cleanleft;
-        begin
-          if is_mem then
-            begin
-              rg.del_reference(exprasmlist,left.location.reference);
-              tg.ungetiftemp(exprasmlist,left.location.reference);
-            end
-          else
-            begin
-              rg.ungetregister(exprasmlist,left.location.register);
-              if left.location.registerhigh <> R_NO then
-                rg.ungetregister(exprasmlist,left.location.registerhigh);
-            end;
-        end;
-
       label
          do_jmp;
       begin
@@ -474,110 +458,84 @@ implementation
               getlabel(truelabel);
               getlabel(falselabel);
               secondpass(left);
+              { the result of left is not needed anymore after this
+                node }
+              location_freetemp(exprasmlist,left.location);
+              location_release(exprasmlist,left.location);
               case left.location.loc of
-                 LOC_FPU : goto do_jmp;
-                 LOC_MEM,
-           LOC_REFERENCE : is_mem:=true;
-           LOC_CREGISTER,
-            LOC_REGISTER : is_mem:=false;
-               LOC_FLAGS : begin
-                             cg.a_reg_alloc(exprasmlist,accumulator);
-                             allocated_acc := true;
-                             cg.g_flags2reg(exprasmlist,left.location.resflags,accumulator);
-                             goto do_jmp;
-                           end;
-                LOC_JUMP : begin
-                             cg.a_reg_alloc(exprasmlist,accumulator);
-                             allocated_acc := true;
-                             cg.a_label(exprasmlist,truelabel);
+                LOC_FPUREGISTER :
+                  goto do_jmp;
+                LOC_FLAGS :
+                  begin
+                    cg.a_reg_alloc(exprasmlist,accumulator);
+                    allocated_acc := true;
+                    cg.g_flags2reg(exprasmlist,left.location.resflags,accumulator);
+                    goto do_jmp;
+                  end;
+                LOC_JUMP :
+                  begin
+                    cg.a_reg_alloc(exprasmlist,accumulator);
 {$ifdef i386}
-                             cg.a_load_const_reg(exprasmlist,OS_8,1,
-                               makereg8(accumulator));
+                    hreg:=makereg8(accumulator);
 {$else i386}
-                             cg.a_load_const_reg(exprasmlist,OS_8,1,
-                               accumulator);
+                    hreg:=accumulator;
 {$endif i386}
-                             cg.a_jmp_cond(exprasmlist,OC_NONE,aktexit2label);
-                             cg.a_label(exprasmlist,falselabel);
-{$ifdef i386}
-                             cg.a_load_const_reg(exprasmlist,OS_8,0,
-                               makereg8(accumulator));
-{$else i386}
-                             cg.a_load_const_reg(exprasmlist,OS_8,0,
-                               accumulator);
-{$endif i386}
-                             goto do_jmp;
-                           end;
-              else
-                internalerror(2001);
+                    allocated_acc := true;
+                    cg.a_label(exprasmlist,truelabel);
+                    cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
+                    cg.a_jmp_cond(exprasmlist,OC_NONE,aktexit2label);
+                    cg.a_label(exprasmlist,falselabel);
+                    cg.a_load_const_reg(exprasmlist,OS_8,0,hreg);
+                    goto do_jmp;
+                  end;
               end;
               case aktprocdef.rettype.def.deftype of
-           pointerdef,
-           procvardef : begin
-                          cleanleft;
-                          cg.a_reg_alloc(exprasmlist,accumulator);
-                          allocated_acc := true;
-                          cg.a_load_loc_reg(exprasmlist,OS_ADDR,
-                            left.location,accumulator);
-                        end;
-             floatdef : begin
+                pointerdef,
+                procvardef :
+                  begin
+                    cg.a_reg_alloc(exprasmlist,accumulator);
+                    allocated_acc := true;
+                    cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,accumulator);
+                  end;
+                floatdef :
+                  begin
 {$ifndef i386}
-                          cg.a_reg_alloc(exprasmlist,fpuresultreg);
+                    cg.a_reg_alloc(exprasmlist,fpuresultreg);
 {$endif not i386}
-                          cg.a_loadfpu_loc_reg(exprasmlist,
-                            def_cgsize(aktprocdef.rettype.def),
-                            left.location,fpuresultreg);
-                          cleanleft;
-                        end;
-              { orddef,
-              enumdef : }
-              else
-              { it can be anything shorter than 4 bytes PM
-              this caused form bug 711 }
-                begin
-                   cleanleft;
-                   cg.a_reg_alloc(exprasmlist,accumulator);
-                   allocated_acc := true;
-                   case aktprocdef.rettype.def.size of
-                    { it can be a qword/int64 too ... }
-                    8 :
-                      if is_mem then
+                    cg.a_loadfpu_loc_reg(exprasmlist,
+                        def_cgsize(aktprocdef.rettype.def),
+                        left.location,fpuresultreg);
+                  end;
+                else
+                  begin
+                    cgsize:=def_cgsize(aktprocdef.rettype.def);
+                    cg.a_reg_alloc(exprasmlist,accumulator);
+                    allocated_acc := true;
+                    case cgsize of
+                      OS_64,OS_S64 :
                         begin
-                           cg.a_load_ref_reg(exprasmlist,OS_32,
-                             left.location.reference,accumulator);
-                           r:=left.location.reference;
-                           inc(r.offset,4);
-                           cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                           allocated_acchigh := true;
-                           cg.a_load_ref_reg(exprasmlist,OS_32,r,accumulatorhigh);
+                          cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                          allocated_acchigh := true;
+                          tcg64f32(cg).a_load64_loc_reg(exprasmlist,left.location,
+                              accumulator,accumulatorhigh);
                         end
                       else
                         begin
-                           cg.a_load_reg_reg(exprasmlist,OS_32,left.location.registerlow,accumulator);
-                           cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                           allocated_acchigh := true;
-                           cg.a_load_reg_reg(exprasmlist,OS_32,left.location.registerhigh,accumulatorhigh);
-                        end;
-                   { if its 3 bytes only we can still
-                     copy one of garbage ! PM }
 {$ifdef i386}
-                    4,3 :
-                      cg.a_load_loc_reg(exprasmlist,OS_32,left.location,
-                        accumulator);
-                    2 :
-                      cg.a_load_loc_reg(exprasmlist,OS_16,left.location,
-                        makereg16(accumulator));
-                    1 :
-                      cg.a_load_loc_reg(exprasmlist,OS_8,left.location,
-                        makereg8(accumulator));
-{$else i386}
-                    4,3,2,1:
-                      cg.a_load_loc_reg(exprasmlist,
-                        def_cgsize(aktprocdef.rettype.def.size),left.location,
-                        accumulator));
-{$endif i386}
-                    else internalerror(605001);
-                   end;
+                          case cgsize of
+                            OS_8,OS_S8 :
+                              hreg:=makereg8(accumulator);
+                            OS_16,OS_S16 :
+                              hreg:=makereg16(accumulator);
+                            else
+                              hreg:=accumulator;
+                          end;
+{$else}
+                          hreg:=accumulator;
+{$endif}
+                          cg.a_load_loc_reg(exprasmlist,cgsize,left.location,hreg);
+                        end;
+                    end;
                  end;
               end;
 do_jmp:
@@ -587,14 +545,14 @@ do_jmp:
               if allocated_acc then
                 cg.a_reg_dealloc(exprasmlist,accumulator);
               if allocated_acchigh then
-                cg.a_reg_dealloc(exprasmlist,accumulator);
+                cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
 {$ifndef i386}
-             if (aktprocdef.rettype.def.deftype = floatdef) then
-               cg.a_reg_dealloc(exprasmlist,fpuresultreg);
+              if (aktprocdef.rettype.def.deftype = floatdef) then
+                cg.a_reg_dealloc(exprasmlist,fpuresultreg);
 {$endif not i386}
            end
          else
-            cg.a_jmp_cond(exprasmlist,OC_None,aktexitlabel);
+           cg.a_jmp_cond(exprasmlist,OC_None,aktexitlabel);
        end;
 
 
@@ -669,7 +627,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-03-31 20:26:34  jonas
+  Revision 1.10  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.9  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

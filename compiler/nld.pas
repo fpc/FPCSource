@@ -124,7 +124,7 @@ implementation
       cutils,verbose,globtype,globals,systems,
       symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,ncal,cpubase,rgobj,cgbase
+      ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
 
 
@@ -312,7 +312,7 @@ implementation
                       { we use ansistrings so no fast exit here }
                       if assigned(procinfo) then
                         procinfo^.no_fast_exit:=true;
-                      location.loc:=LOC_MEM;
+                      location.loc:=LOC_CREFERENCE;
                    end;
               end;
             varsym :
@@ -331,7 +331,7 @@ implementation
                         end;
                      end;
                    if (tvarsym(symtableentry).varspez=vs_const) then
-                     location.loc:=LOC_MEM;
+                     location.loc:=LOC_CREFERENCE;
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
@@ -604,7 +604,7 @@ implementation
       begin
         firstpass(left);
         firstpass(right);
-        location.loc := LOC_MEM;
+        location.loc := LOC_CREFERENCE;
         calcregisters(self,0,0,0);
         result:=nil;
       end;
@@ -711,7 +711,7 @@ implementation
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         result:=nil;
-      { only pass left tree, right tree contains next construct if any }
+        { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
            hp:=self;
@@ -784,14 +784,19 @@ implementation
                end;
               chp.flags := chp.flags+orgflags;
               include(chp.flags,nf_cargswap);
-              chp.location.loc:=LOC_MEM;
+              chp.location.loc:=LOC_CREFERENCE;
               calcregisters(chp,0,0,0);
               chp.resulttype:=htype;
               result:=chp;
               exit;
             end;
          end;
-        location.loc:=LOC_MEM;
+        { C Arguments are pushed on the stack and
+          are not accesible after the push }
+        if not(nf_cargs in flags) then
+         location.loc:=LOC_CREFERENCE
+        else
+         location.loc:=LOC_INVALID;
         calcregisters(self,0,0,0);
       end;
 
@@ -879,7 +884,7 @@ implementation
     function trttinode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_MEM;
+        location.loc:=LOC_CREFERENCE;
       end;
 
 
@@ -894,8 +899,7 @@ implementation
 
     procedure trttinode.pass_2;
       begin
-        reset_reference(location.reference);
-        location.loc:=LOC_MEM;
+        location_reset(location,LOC_CREFERENCE,OS_NO);
         location.reference.symbol:=rttidef.get_rtti_label(rttitype);
       end;
 
@@ -911,7 +915,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-03-31 20:26:34  jonas
+  Revision 1.34  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.33  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

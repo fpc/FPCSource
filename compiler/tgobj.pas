@@ -340,7 +340,7 @@ unit tgobj;
     procedure ttgobj.gettempofsizereference(list: taasmoutput; l : longint;var ref : treference);
       begin
          { do a reset, because the reference isn't used }
-         reset_reference(ref);
+         FillChar(ref,sizeof(treference),0);
          ref.offset:=gettempofsize(list,l);
          ref.base:=procinfo^.framepointer;
       end;
@@ -348,7 +348,7 @@ unit tgobj;
     procedure ttgobj.gettempofsizereferencepersistant(list: taasmoutput; l : longint;var ref : treference);
       begin
          { do a reset, because the reference isn't used }
-         reset_reference(ref);
+         FillChar(ref,sizeof(treference),0);
          ref.offset:=gettempofsizepersistant(list,l);
          ref.base:=procinfo^.framepointer;
       end;
@@ -359,7 +359,7 @@ unit tgobj;
          foundslot,tl : ptemprecord;
       begin
          { do a reset, because the reference isn't used }
-         reset_reference(ref);
+         FillChar(ref,sizeof(treference),0);
          ref.base:=procinfo^.framepointer;
          { Reuse old slot ? }
          foundslot:=nil;
@@ -642,7 +642,18 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2002-03-31 20:26:37  jonas
+  Revision 1.2  2002-04-02 17:11:32  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.1  2002/03/31 20:26:37  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

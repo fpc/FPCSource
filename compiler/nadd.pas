@@ -140,7 +140,7 @@ implementation
              begin
                { insert explicit typecast to s32bit }
                left:=ctypeconvnode.create(left,s32bittype);
-               include(left.flags,nf_explizit);
+               left.toggleflag(nf_explizit);
                resulttypepass(left);
              end
             else
@@ -167,9 +167,9 @@ implementation
          { are converted to widestring. This must be done before constant }
          { folding to allow char+widechar etc.                            }
          if is_widestring(right.resulttype.def) or
-           is_widestring(left.resulttype.def) or
-           is_widechar(right.resulttype.def) or
-           is_widechar(left.resulttype.def) then
+            is_widestring(left.resulttype.def) or
+            is_widechar(right.resulttype.def) or
+            is_widechar(left.resulttype.def) then
            begin
               inserttypeconv(right,cwidestringtype);
               inserttypeconv(left,cwidestringtype);
@@ -554,15 +554,17 @@ implementation
               begin
                 if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
-                   inserttypeconv(right,left.resulttype);
+                   right:=ctypeconvnode.create(right,left.resulttype);
                    ttypeconvnode(right).convtype:=tc_bool_2_int;
-                   include(right.flags,nf_explizit);
+                   right.toggleflag(nf_explizit);
+                   resulttypepass(right);
                  end
                 else if torddef(left.resulttype.def).size<torddef(right.resulttype.def).size then
                  begin
-                   inserttypeconv(left,right.resulttype);
+                   left:=ctypeconvnode.create(left,right.resulttype);
                    ttypeconvnode(left).convtype:=tc_bool_2_int;
-                   include(left.flags,nf_explizit);
+                   left.toggleflag(nf_explizit);
+                   resulttypepass(left);
                  end;
                 case nodetype of
                   xorn,
@@ -749,23 +751,11 @@ implementation
                inserttypeconv(left,htype);
              end;
 
-            { if the destination is not a smallset then insert a typeconv
-              which loads a smallset into a normal set }
-            if (tsetdef(ld).settype<>smallset) and
-               (tsetdef(rd).settype=smallset) then
-             begin
-               if (right.nodetype=setconstn) then
-                 begin
-                    t:=csetconstnode.create(tsetconstnode(right).value_set,left.resulttype);
-                    tsetconstnode(t).left:=tsetconstnode(right).left;
-                    tsetconstnode(right).left := nil;
-                    right.free;
-                    right:=t;
-                 end
-               else
-                 inserttypeconv(right,left.resulttype);
-               resulttypepass(right);
-             end;
+            { if the right side is also a setdef then the settype must
+              be the same as the left setdef }
+            if (rd.deftype=setdef) and
+               (tsetdef(ld).settype<>tsetdef(rd).settype) then
+              inserttypeconv(right,left.resulttype);
           end
 
          { compare pchar to char arrays by addresses like BP/Delphi }
@@ -805,7 +795,7 @@ implementation
                    inserttypeconv(right,clongstringtype);
                  if not(is_longstring(ld)) then
                    inserttypeconv(left,clongstringtype);
-                 location.loc:=LOC_MEM;
+                 location.loc:=LOC_CREFERENCE;
               end
             else
               begin
@@ -1342,11 +1332,11 @@ implementation
          { int/int gives real/real! }
          if nodetype=slashn then
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              { maybe we need an integer register to save }
              { a reference                               }
-             if ((left.location.loc<>LOC_FPU) or
-                 (right.location.loc<>LOC_FPU)) and
+             if ((left.location.loc<>LOC_FPUREGISTER) or
+                 (right.location.loc<>LOC_FPUREGISTER)) and
                 (left.registers32=right.registers32) then
                calcregisters(self,1,1,0)
              else
@@ -1356,10 +1346,10 @@ implementation
               { calcregisters(0,2,0) will overestimate the number of    }
               { necessary registers (it will make it 3 in case one of   }
               { the operands is already in the fpu) (JM)                }
-              if ((left.location.loc <> LOC_FPU) or
-                  (right.location.loc <> LOC_FPU)) and
+              if ((left.location.loc <> LOC_FPUREGISTER) or
+                  (right.location.loc <> LOC_FPUREGISTER)) and
                  (registersfpu < 2) then
-                inc(registersfpu);  
+                inc(registersfpu);
            end
 
          { if both are orddefs then check sub types }
@@ -1446,7 +1436,7 @@ implementation
                  result := first_addset;
                  if assigned(result) then
                    exit;
-                 location.loc:=LOC_MEM;
+                 location.loc:=LOC_CREFERENCE;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
                  if assigned(procinfo) then
@@ -1483,7 +1473,7 @@ implementation
               else if is_longstring(ld) then
                 begin
                    { this is only for add, the comparisaion is handled later }
-                   location.loc:=LOC_MEM;
+                   location.loc:=LOC_CREFERENCE;
                 end
               else
                 begin
@@ -1519,17 +1509,17 @@ implementation
          { is one a real float ? }
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
-              location.loc:=LOC_FPU;
+              location.loc:=LOC_FPUREGISTER;
               calcregisters(self,0,1,0);
               { an add node always first loads both the left and the    }
               { right in the fpu before doing the calculation. However, }
               { calcregisters(0,2,0) will overestimate the number of    }
               { necessary registers (it will make it 3 in case one of   }
               { the operands is already in the fpu) (JM)                }
-              if ((left.location.loc <> LOC_FPU) or
-                  (right.location.loc <> LOC_FPU)) and
+              if ((left.location.loc <> LOC_FPUREGISTER) or
+                  (right.location.loc <> LOC_FPUREGISTER)) and
                  (registersfpu < 2) then
-                inc(registersfpu);  
+                inc(registersfpu);
             end
 
          { pointer comperation and subtraction }
@@ -1611,7 +1601,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-03-30 23:12:09  carl
+  Revision 1.44  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.43  2002/03/30 23:12:09  carl
   * avoid crash with procinfo ('merged')
 
   Revision 1.42  2001/12/27 15:33:58  jonas

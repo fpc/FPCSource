@@ -42,7 +42,7 @@ interface
 uses
   cclasses,tainst,
   aasm,globals,verbose,
-  cpubase;
+  cpuinfo,cpubase;
 
 const
   MaxPrefixes=4;
@@ -63,26 +63,26 @@ type
      constructor op_none(op : tasmop;_size : topsize);
 
      constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
-     constructor op_const(op : tasmop;_size : topsize;_op1 : longint);
-     constructor op_ref(op : tasmop;_size : topsize;_op1 : preference);
+     constructor op_const(op : tasmop;_size : topsize;_op1 : aword);
+     constructor op_ref(op : tasmop;_size : topsize;const _op1 : treference);
 
      constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
-     constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
-     constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+     constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;const _op2 : treference);
+     constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
 
-     constructor op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
-     constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
-     constructor op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
+     constructor op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
+     constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
+     constructor op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
 
-     constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
+     constructor op_ref_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2 : tregister);
      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
-     constructor op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
+     constructor op_ref_ref(op : tasmop;_size : topsize;const _op1,_op2 : treference);
 
      constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
-     constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
-     constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
-     constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : preference);
-     constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+     constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;_op3 : tregister);
+     constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
+     constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; const _op3 : treference);
+     constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -90,7 +90,7 @@ type
      constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
      constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
-     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
+     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
      procedure changeopsize(siz:topsize);
 
@@ -222,7 +222,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : longint);
+    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : aword);
       begin
          inherited create(op);
          init(_size);
@@ -231,7 +231,7 @@ uses
       end;
 
 
-    constructor taicpu.op_ref(op : tasmop;_size : topsize;_op1 : preference);
+    constructor taicpu.op_ref(op : tasmop;_size : topsize;const _op1 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -250,7 +250,7 @@ uses
       end;
 
 
-    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
       begin
          inherited create(op);
          init(_size);
@@ -260,7 +260,7 @@ uses
       end;
 
 
-    constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
+    constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;const _op2 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -270,7 +270,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
+    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -280,7 +280,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
+    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
       begin
          inherited create(op);
          init(_size);
@@ -290,7 +290,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
+    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -300,7 +300,7 @@ uses
       end;
 
 
-    constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
+    constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -310,7 +310,7 @@ uses
       end;
 
 
-    constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
+    constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;const _op1,_op2 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -330,7 +330,7 @@ uses
          loadreg(2,_op3);
       end;
 
-    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -340,7 +340,7 @@ uses
          loadreg(2,_op3);
       end;
 
-    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
+    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -351,7 +351,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
+    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -362,7 +362,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -411,7 +411,7 @@ uses
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -611,7 +611,7 @@ begin
           end;
         top_const :
           begin
-            if (opsize<>S_W) and (val>=-128) and (val<=127) then
+            if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
               ot:=OT_IMM8 or OT_SIGNED
             else
               ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
@@ -1289,7 +1289,7 @@ var
         end;
       top_const :
         begin
-          currval:=oper[opidx].val;
+          currval:=longint(oper[opidx].val);
           currsym:=nil;
         end;
       top_symbol :
@@ -1593,7 +1593,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2001-12-31 16:59:43  peter
+  Revision 1.18  2002-04-02 17:11:33  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.17  2001/12/31 16:59:43  peter
     * protected/private symbols parsing fixed
 
   Revision 1.16  2001/12/29 15:29:59  jonas

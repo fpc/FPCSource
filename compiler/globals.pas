@@ -1443,8 +1443,8 @@ implementation
         not_unit_proc:=true;
 
         apptype:=app_cui;
-	
-	have_local_threadvars := false;
+
+        have_local_threadvars := false;
      end;
 
 {$ifdef EXTDEBUG}
@@ -1456,7 +1456,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-03-28 16:07:52  armin
+  Revision 1.53  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.52  2002/03/28 16:07:52  armin
   + initialize threadvars defined local in units
 
   Revision 1.51  2002/01/24 18:25:48  peter

@@ -1541,7 +1541,7 @@ Begin
                begin
                  l:=opr.val;
                  opr.typ:=OPR_REFERENCE;
-                 reset_reference(opr.Ref);
+                 Fillchar(opr.ref,sizeof(treference),0);
                  opr.Ref.Offset:=l;
                end;
               BuildReference;
@@ -1964,7 +1964,18 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2002-01-24 18:25:53  peter
+  Revision 1.21  2002-04-02 17:11:39  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.20  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

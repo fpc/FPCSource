@@ -27,7 +27,7 @@ Unit CSOpt386;
 
 Interface
 
-Uses aasm, cpubase, cpuasm;
+Uses aasm, cpuinfo, cpubase, cpuasm;
 
 function CSE(asmL: TAAsmoutput; first, last: Tai; pass: longint): boolean;
 
@@ -1263,7 +1263,7 @@ begin
 {$endif replaceregdebug}
 End;
 
-Function FindRegWithConst(p: Tai; size: topsize; l: longint; Var Res: TRegister): Boolean;
+Function FindRegWithConst(p: Tai; size: topsize; l: aword; Var Res: TRegister): Boolean;
 {Finds a register which contains the constant l}
 Var Counter: TRegister;
 {$ifdef testing}
@@ -1394,9 +1394,9 @@ begin
 end;
 
 procedure removeLocalStores(const t1: tai);
-var
+{var
   p: tai;
-  regcount: tregister;
+  regcount: tregister; }
 begin
 {
   for regcount := LoGPReg to HiGPReg do
@@ -1812,7 +1812,7 @@ Begin
                                   insertllitem(asml,p,p.next,hp1);
                                   hp1 := taicpu.op_reg_ref(A_MOV,
                                     regsize(regcounter),regcounter,
-                                    newreference(taicpu(p).oper[0].ref^));
+                                    taicpu(p).oper[0].ref^);
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
@@ -1865,7 +1865,7 @@ Begin
                                   insertllitem(asml,p,p.next,hp1);
                                   hp1 := taicpu.op_reg_ref(A_MOV,
                                     regsize(regcounter),regcounter,
-                                    newreference(taicpu(p).oper[1].ref^));
+                                    taicpu(p).oper[1].ref^);
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
@@ -1981,7 +1981,18 @@ End.
 
 {
   $Log$
-  Revision 1.25  2002-03-31 20:26:38  jonas
+  Revision 1.26  2002-04-02 17:11:34  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.25  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -49,9 +49,9 @@ Type
     Constructor Create(op : tasmop);
     Destructor Destroy;override;
     function getcopy:tlinkedlistitem;override;
-    procedure loadconst(opidx:longint;l:longint);
+    procedure loadconst(opidx:longint;l:aword);
     procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-    procedure loadref(opidx:longint;p:preference);
+    procedure loadref(opidx:longint;const r:treference);
     procedure loadreg(opidx:longint;r:tregister);
     procedure loadoper(opidx:longint;o:toper);
     procedure SetCondition(const c:TAsmCond);
@@ -123,14 +123,14 @@ implementation
 
 
 
-    procedure tainstruction.loadconst(opidx:longint;l:longint);
+    procedure tainstruction.loadconst(opidx:longint;l:aword);
       begin
         if opidx>=ops then
          ops:=opidx+1;
         with oper[opidx] do
          begin
            if typ=top_ref then
-            disposereference(ref);
+            dispose(ref);
            val:=l;
            typ:=top_const;
          end;
@@ -145,7 +145,7 @@ implementation
         with oper[opidx] do
          begin
            if typ=top_ref then
-            disposereference(ref);
+            dispose(ref);
            sym:=s;
            symofs:=sofs;
            typ:=top_symbol;
@@ -157,37 +157,25 @@ implementation
 
 
 
-    procedure tainstruction.loadref(opidx:longint;p:preference);
+    procedure tainstruction.loadref(opidx:longint;const r:treference);
       begin
         if opidx>=ops then
          ops:=opidx+1;
         with oper[opidx] do
          begin
-           if typ=top_ref then
-            disposereference(ref);
-           if p^.is_immediate then
-             begin
-{$ifdef REF_IMMEDIATE_WARN}
-               Comment(V_Warning,'Reference immediate');
-{$endif}
-               val:=p^.offset;
-               disposereference(p);
-               typ:=top_const;
-             end
-           else
-             begin
-               ref:=p;
-      { We allow this exception for i386, since overloading this would be
-        too much of a a speed penalty}
+           if typ<>top_ref then
+            new(ref);
+           ref^:=r;
 {$ifdef i386}
-               if not(ref^.segment in [R_DS,R_NO]) then
-                 segprefix:=ref^.segment;
+           { We allow this exception for i386, since overloading this would be
+             too much of a a speed penalty}
+           if not(ref^.segment in [R_DS,R_NO]) then
+            segprefix:=ref^.segment;
 {$endif}
-               typ:=top_ref;
-               { mark symbol as used }
-               if assigned(ref^.symbol) then
-                 inc(ref^.symbol.refs);
-             end;
+           typ:=top_ref;
+           { mark symbol as used }
+           if assigned(ref^.symbol) then
+             inc(ref^.symbol.refs);
          end;
       end;
 
@@ -200,7 +188,7 @@ implementation
         with oper[opidx] do
          begin
            if typ=top_ref then
-            disposereference(ref);
+            dispose(ref);
            reg:=r;
            typ:=top_reg;
          end;
@@ -213,11 +201,14 @@ implementation
         if opidx>=ops then
          ops:=opidx+1;
         if oper[opidx].typ=top_ref then
-          disposereference(oper[opidx].ref);
+         dispose(oper[opidx].ref);
         oper[opidx]:=o;
         { copy also the reference }
         if oper[opidx].typ=top_ref then
-         oper[opidx].ref:=newreference(o.ref^);
+         begin
+           new(oper[opidx].ref);
+           oper[opidx].ref^:=o.ref^;
+         end;
       end;
 
 
@@ -251,7 +242,18 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-12-29 16:29:08  jonas
+  Revision 1.4  2002-04-02 17:11:32  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.3  2001/12/29 16:29:08  jonas
     * fixed stupid copy-paste bug
 
   Revision 1.2  2001/12/29 15:28:57  jonas

@@ -628,7 +628,7 @@ implementation
 {$endif SUPPORT_MMX}
          if is_boolean(resulttype.def) then
            begin
-             if (location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
               begin
                 location.loc:=LOC_REGISTER;
                 if (registers32<1) then
@@ -654,7 +654,7 @@ implementation
 {$endif SUPPORT_MMX}
            if is_64bitint(left.resulttype.def) then
              begin
-                if (location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+                if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                  begin
                    location.loc:=LOC_REGISTER;
                    if (registers32<2) then
@@ -678,7 +678,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-03-04 19:10:11  peter
+  Revision 1.30  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.29  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.28  2002/02/11 11:45:51  michael

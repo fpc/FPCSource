@@ -30,7 +30,7 @@ interface
        aasm,
        node,
        symsym,
-       cpubase, tgobj, rgobj;
+       cpubase, cginfo, tgobj, rgobj;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
@@ -284,7 +284,7 @@ implementation
                 { possible that it's been modified  (JM)                  }
                 if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                   begin
-                    reset_reference(hr);
+                    reference_reset(hr);
                     if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
                       hr.offset:=-vsym.address+vsym.owner.address_fixup
                     else hr.offset:=vsym.address+vsym.owner.address_fixup;
@@ -306,7 +306,7 @@ implementation
       if not rg.regvar_loaded[makereg32(vsym.reg)] then
         begin
           asml.concat(Tairegalloc.alloc(makereg32(vsym.reg)));
-          reset_reference(hr);
+          reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr.offset:=-vsym.address+vsym.owner.address_fixup
           else hr.offset:=vsym.address+vsym.owner.address_fixup;
@@ -459,7 +459,18 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-03-31 20:26:36  jonas
+  Revision 1.24  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.23  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

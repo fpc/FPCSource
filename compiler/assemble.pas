@@ -1095,8 +1095,6 @@ Implementation
                            end;
                          top_symbol :
                            begin
-                             if sym=nil then
-                              sym:=sym;
                              UsedAsmSymbolListInsert(sym);
                            end;
                        end;
@@ -1553,7 +1551,18 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-11-06 14:53:48  jonas
+  Revision 1.30  2002-04-02 17:11:27  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.29  2001/11/06 14:53:48  jonas
     * compiles again with -dmemdebug
 
   Revision 1.28  2001/09/18 11:30:47  michael

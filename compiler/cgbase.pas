@@ -34,31 +34,24 @@ unit cgbase;
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
-      aasm,cpubase, cpuinfo
+      aasm,cpubase,cpuinfo,cginfo
       ;
 
-    type
-       TOpCg = (OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
-                   OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR);
-
-       TOpCmp = (OC_NONE,OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
-                 OC_AE,OC_A);
-
-       TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64,
-                { single,double,extended,comp }
-                  OS_F32,OS_F64,OS_F80,OS_C64,
-                { multi-media sizes: split in byte, word, dword, ... }
-                { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
-                  OS_MS64,OS_MS128);
 
     const
-      tfloat2tcgsize: array[tfloattype] of tcgsize =
-        (OS_F32,OS_F64,OS_F80,OS_C64);
+       TCGSize2Size: Array[tcgsize] of longint = (0,
+          8,16,32,64,8,16,32,64,
+          32,64,80,64,
+          8,16,32,64,128,8,16,32,64,128);
 
-      tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
-        (s32real,s64real,s80real,s64comp);
+       tfloat2tcgsize: array[tfloattype] of tcgsize =
+         (OS_F32,OS_F64,OS_F80,OS_C64);
 
+       tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
+         (s32real,s64real,s80real,s64comp);
+
+
+    const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
        pi_is_global = $2;       { set, if the procedure is exported by an unit }
        pi_do_call   = $4;       { set, if the procedure does a call }
@@ -70,41 +63,6 @@ unit cgbase;
                                   => don't optimize}
        pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
                                         { needs to be finalized              }
-
-       { defines the default address size for a processor, }
-       { the natural int size for a processor,             }
-       { the maximum float size for a processor,           }
-       { the size of a vector register for a processor     }
-{$ifdef i386}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F80;
-       OS_VECTOR = OS_M64;
-{$endif i386}
-{$ifdef m68k}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F??; { processor supports 64bit, but does the compiler? }
-       OS_VECTOR = OS_NO;
-{$endif m68k}
-{$ifdef alpha}
-       OS_ADDR = OS_64;
-       OS_INT = OS_64;
-       OS_FLOAT = OS_F??;
-       OS_VECTOR = OS_NO;
-{$endif alpha}
-{$ifdef powerpc}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F64;
-       OS_VECTOR = OS_M128;
-{$endif powercc}
-{$ifdef ia64}
-       OS_ADDR = OS_64;
-       OS_INT = OS_64;
-       OS_FLOAT = OS_F??;
-       OS_VECTOR = OS_NO; { the normal registers can also be used as vectors }
-{$endif ia64}
 
     type
        pprocinfo = ^tprocinfo;
@@ -211,7 +169,7 @@ unit cgbase;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
-
+    function def_cgsize_ref(const p1: tdef): tcgsize;
     function def_cgsize(const p1: tdef): tcgsize;
     function int_cgsize(const l: aword): tcgsize;
 
@@ -471,19 +429,56 @@ implementation
          ResourceStrings.free;
       end;
 
+    function def_cgsize_ref(const p1: tdef): tcgsize;
+      begin
+        { return always SO_NO for arraydef, becuase for
+          some array types (open array) the size can not be determined }
+        if p1.deftype=arraydef then
+         result:=OS_NO
+        else
+         begin
+           case p1.size of
+             1    : result := OS_8;
+             2    : result := OS_16;
+             3,4  : result := OS_32;
+             5..8 : result := OS_64;
+             else   result := OS_NO;
+           end;
+           if is_signed(p1) then
+             result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+         end;
+      end;
 
     function def_cgsize(const p1: tdef): tcgsize;
 
       begin
         case p1.deftype of
-          orddef, enumdef, setdef:
+          orddef,
+          enumdef,
+          setdef:
             begin
               result := int_cgsize(p1.size);
               if is_signed(p1) then
                 result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
-          pointerdef, procvardef:
+          classrefdef,
+          pointerdef,
+          procvardef:
             result := OS_ADDR;
+          stringdef :
+            begin
+              if is_ansistring(p1) or is_widestring(p1) then
+                result := OS_ADDR
+              else
+                internalerror(200203314);
+            end;
+          objectdef :
+            begin
+              if is_class_or_interface(p1) then
+                result := OS_ADDR
+              else
+                internalerror(200203313);
+            end;
           floatdef:
             result := tfloat2tcgsize[tfloatdef(p1).typ];
           else
@@ -517,7 +512,7 @@ implementation
     function commutativeop(op: topcg): boolean;
       const
         list: array[topcg] of boolean =
-          (true,true,false,false,true,true,false,false,
+          (true,true,true,false,false,true,true,false,false,
            true,false,false,false,false,true);
       begin
         commutativeop := list[op];
@@ -547,7 +542,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-03-31 20:26:33  jonas
+  Revision 1.8  2002-04-02 17:11:27  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.7  2002/03/31 20:26:33  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

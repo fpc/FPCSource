@@ -137,7 +137,7 @@ end;
 function taddsstringoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
-  location.loc := LOC_MEM;
+  location.loc := LOC_CREFERENCE;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
   procinfo^.flags:=procinfo^.flags or pi_do_call;
@@ -278,7 +278,18 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-09-02 21:12:07  peter
+  Revision 1.6  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.5  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.4  2001/08/26 13:36:43  florian

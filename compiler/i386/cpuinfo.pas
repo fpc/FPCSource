@@ -28,6 +28,7 @@ Interface
 
 Type
    AWord = Cardinal;
+   PAWord = ^AWord;
 
    { the ordinal type used when evaluating constant integer expressions }
    TConstExprInt = int64;
@@ -50,7 +51,18 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2001-09-02 21:18:29  peter
+  Revision 1.5  2002-04-02 17:11:34  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.4  2001/09/02 21:18:29  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

@@ -60,10 +60,10 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       cpubase,cpuasm,
-      nmem,nld,
-      tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu;
+      nmem,nld,ncnv,
+      tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu,cg64f32;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -89,7 +89,8 @@ implementation
          otlabel,oflabel : tasmlabel;
          { temporary variables: }
          tempdeftype : tdeftype;
-         r : preference;
+         href   : treference;
+         cgsize : tcgsize;
 
       begin
          { set default para_alignment to target_info.stackalignment }
@@ -119,7 +120,7 @@ implementation
                begin
                  inc(pushedparasize,4);
                  emitpushreferenceaddr(left.location.reference);
-                 rg.del_reference(exprasmlist,left.location.reference);
+                 location_release(exprasmlist,left.location);
                end
              else
                push_value_para(left,inlined,is_cdecl,para_offset,para_alignment);
@@ -131,7 +132,7 @@ implementation
            end
          { in codegen.handleread.. defcoll.data is set to nil }
          else if assigned(defcoll.paratype.def) and
-           (defcoll.paratype.def.deftype=formaldef) then
+                 (defcoll.paratype.def.deftype=formaldef) then
            begin
               { allow @var }
               inc(pushedparasize,4);
@@ -141,9 +142,8 @@ implementation
                 { always a register }
                   if inlined then
                     begin
-                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                       emit_reg_ref(A_MOV,S_L,
-                         left.location.register,r);
+                       reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                       emit_reg_ref(A_MOV,S_L,left.location.register,href);
                     end
                   else
                     emit_reg(A_PUSH,S_L,left.location.register);
@@ -151,30 +151,55 @@ implementation
                 end
               else
                 begin
-                   if not(left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+                   { get temp for constants }
+                   if left.location.loc=LOC_CONSTANT then
+                    begin
+                      cgsize:=def_cgsize(left.resulttype.def);
+                      tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
+                      cg.a_load_loc_ref(exprasmlist,cgsize,left.location,href);
+                      location_reset(left.location,LOC_REFERENCE,cgsize);
+                      left.location.reference:=href;
+                    end;
+
+                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                      CGMessage(type_e_mismatch)
                    else
                      begin
                        if inlined then
                          begin
                            rg.getexplicitregisterint(exprasmlist,R_EDI);
-                           emit_ref_reg(A_LEA,S_L,
-                             newreference(left.location.reference),R_EDI);
-                           r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                           emit_reg_ref(A_MOV,S_L,R_EDI,r);
+                           emit_ref_reg(A_LEA,S_L,left.location.reference,R_EDI);
+                           reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                           emit_reg_ref(A_MOV,S_L,R_EDI,href);
                            rg.ungetregisterint(exprasmlist,R_EDI);
                          end
-                      else
-                        emitpushreferenceaddr(left.location.reference);
-                        rg.del_reference(exprasmlist,left.location.reference);
+                       else
+                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,-1);
+                       location_release(exprasmlist,left.location);
                      end;
                 end;
            end
          { handle call by reference parameter }
          else if (defcoll.paratyp in [vs_var,vs_out]) then
            begin
+              { get temp for constants }
+              if left.location.loc=LOC_CONSTANT then
+               begin
+                 cgsize:=def_cgsize(left.resulttype.def);
+                 tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
+                 cg.a_load_loc_ref(exprasmlist,cgsize,left.location,href);
+                 location_reset(left.location,LOC_REFERENCE,cgsize);
+                 left.location.reference:=href;
+               end;
+
               if (left.location.loc<>LOC_REFERENCE) then
-                internalerror(200106041);
+               begin
+                 { passing self to a var parameter is allowed in
+                   TP and delphi }
+                 if not((left.location.loc=LOC_CREFERENCE) and
+                        (left.nodetype=selfn)) then
+                  internalerror(200106041);
+               end;
               maybe_push_high;
               if (defcoll.paratyp=vs_out) and
                  assigned(defcoll.paratype.def) and
@@ -185,15 +210,14 @@ implementation
               if inlined then
                 begin
                    rg.getexplicitregisterint(exprasmlist,R_EDI);
-                   emit_ref_reg(A_LEA,S_L,
-                     newreference(left.location.reference),R_EDI);
-                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                   emit_reg_ref(A_MOV,S_L,R_EDI,r);
+                   emit_ref_reg(A_LEA,S_L,left.location.reference,R_EDI);
+                   reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                   emit_reg_ref(A_MOV,S_L,R_EDI,href);
                    rg.ungetregisterint(exprasmlist,R_EDI);
                 end
               else
-                emitpushreferenceaddr(left.location.reference);
-              rg.del_reference(exprasmlist,left.location.reference);
+                cg.a_paramaddr_ref(exprasmlist,left.location.reference,-1);
+              location_release(exprasmlist,left.location);
            end
          else
            begin
@@ -212,20 +236,35 @@ implementation
                   not is_cdecl
                  ) then
                 begin
+                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                    begin
+                      { allow passing nil to a procvardef (methodpointer) }
+                      if (left.nodetype=typeconvn) and
+                         (left.resulttype.def.deftype=procvardef) and
+                         (ttypeconvnode(left).left.nodetype=niln) then
+                       begin
+                         tg.gettempofsizereference(exprasmlist,tcgsize2size[left.location.size],href);
+                         cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href);
+                         location_reset(left.location,LOC_REFERENCE,left.location.size);
+                         left.location.reference:=href;
+                       end
+                      else
+                       internalerror(200204011);
+                    end;
+
                    maybe_push_high;
                    inc(pushedparasize,4);
                    if inlined then
                      begin
                         rg.getexplicitregisterint(exprasmlist,R_EDI);
-                        emit_ref_reg(A_LEA,S_L,
-                          newreference(left.location.reference),R_EDI);
-                        r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                        emit_reg_ref(A_MOV,S_L,R_EDI,r);
+                        emit_ref_reg(A_LEA,S_L,left.location.reference,R_EDI);
+                        reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                        emit_reg_ref(A_MOV,S_L,R_EDI,href);
                         rg.ungetregisterint(exprasmlist,R_EDI);
                      end
                    else
-                     emitpushreferenceaddr(left.location.reference);
-                   rg.del_reference(exprasmlist,left.location.reference);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,-1);
+                   location_release(exprasmlist,left.location);
                 end
               else
                 begin
@@ -258,7 +297,7 @@ implementation
          unusedstate: pointer;
          pushed : tpushedsaved;
          funcretref,refcountedtemp : treference;
-         hregister,hregister2 : tregister;
+         hregister : tregister;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
          loadesi : boolean;
@@ -273,7 +312,7 @@ implementation
          { lexlevel count }
          i : longint;
          { help reference pointer }
-         r : preference;
+         href : treference;
          hp : tnode;
          pp : tbinarynode;
          params : tnode;
@@ -292,13 +331,14 @@ implementation
          push_size : longint;
 {$endif OPTALIGN}
          pop_allowed : boolean;
+         cgsize : tcgsize;
          constructorfailed : tasmlabel;
 
       label
          dont_call;
 
       begin
-         reset_reference(location.reference);
+         location_reset(location,LOC_REFERENCE,def_cgsize_ref(resulttype.def));
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
@@ -467,7 +507,7 @@ implementation
 {$endif test_dest_loc}
                 if inlined then
                   begin
-                     reset_reference(funcretref);
+                     reference_reset(funcretref);
                      funcretref.offset:=tg.gettempofsizepersistant(exprasmlist,resulttype.def.size);
                      funcretref.base:=procinfo^.framepointer;
 {$ifdef extdebug}
@@ -514,10 +554,9 @@ implementation
               if inlined then
                 begin
                    rg.getexplicitregisterint(exprasmlist,R_EDI);
-                   emit_ref_reg(A_LEA,S_L,
-                     newreference(funcretref),R_EDI);
-                   r:=new_reference(procinfo^.framepointer,inlinecode.retoffset);
-                   emit_reg_ref(A_MOV,S_L,R_EDI,r);
+                   emit_ref_reg(A_LEA,S_L,funcretref,R_EDI);
+                   reference_reset_base(href,procinfo^.framepointer,inlinecode.retoffset);
+                   emit_reg_ref(A_MOV,S_L,R_EDI,href);
                    rg.ungetregisterint(exprasmlist,R_EDI);
                 end
               else
@@ -544,24 +583,13 @@ implementation
                    methodpointer.resulttype:=
                      twithnode(twithsymtable(symtableproc).withnode).left.resulttype;
                    { make a reference }
-                   new(r);
-                   reset_reference(r^);
-                   { if assigned(ptree(twithsymtable(symtable).withnode)^.pref) then
-                     begin
-                        r^:=ptree(twithsymtable(symtable).withnode)^.pref^;
-                     end
-                   else
-                     begin
-                        r^.offset:=symtable.datasize;
-                        r^.base:=procinfo^.framepointer;
-                     end; }
-                   r^:=twithnode(twithsymtable(symtableproc).withnode).withreference^;
+                   href:=twithnode(twithsymtable(symtableproc).withnode).withreference;
                    if ((not(nf_islocal in twithnode(twithsymtable(symtableproc).withnode).flags)) and
                        (not twithsymtable(symtableproc).direct_with)) or
                       is_class_or_interface(methodpointer.resulttype.def) then
-                     emit_ref_reg(A_MOV,S_L,r,R_ESI)
+                     emit_ref_reg(A_MOV,S_L,href,R_ESI)
                    else
-                     emit_ref_reg(A_LEA,S_L,r,R_ESI);
+                     emit_ref_reg(A_LEA,S_L,href,R_ESI);
                 end;
 
               { push self }
@@ -674,9 +702,8 @@ implementation
                                     { destructor with extended syntax called from dispose }
                                     { hdisposen always deliver LOC_REFERENCE          }
                                     rg.getexplicitregisterint(exprasmlist,R_ESI);
-                                    emit_ref_reg(A_LEA,S_L,
-                                      newreference(methodpointer.location.reference),R_ESI);
-                                    rg.del_reference(exprasmlist,methodpointer.location.reference);
+                                    emit_ref_reg(A_LEA,S_L,methodpointer.location.reference,R_ESI);
+                                    reference_release(exprasmlist,methodpointer.location.reference);
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     emit_sym(A_PUSH,S_L,
                                       newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname));
@@ -699,12 +726,10 @@ implementation
                                               begin
                                                  if (methodpointer.resulttype.def.deftype=classrefdef) or
                                                     is_class_or_interface(methodpointer.resulttype.def) then
-                                                   emit_ref_reg(A_MOV,S_L,
-                                                     newreference(methodpointer.location.reference),R_ESI)
+                                                   emit_ref_reg(A_MOV,S_L,methodpointer.location.reference,R_ESI)
                                                  else
-                                                   emit_ref_reg(A_LEA,S_L,
-                                                     newreference(methodpointer.location.reference),R_ESI);
-                                                 rg.del_reference(exprasmlist,methodpointer.location.reference);
+                                                   emit_ref_reg(A_LEA,S_L,methodpointer.location.reference,R_ESI);
+                                                 reference_release(exprasmlist,methodpointer.location.reference);
                                               end;
                                          end;
                                       end;
@@ -717,11 +742,8 @@ implementation
                                           begin
                                              { class method needs current VMT }
                                              rg.getexplicitregisterint(exprasmlist,R_ESI);
-                                             new(r);
-                                             reset_reference(r^);
-                                             r^.base:=R_ESI;
-                                             r^.offset:= tprocdef(procdefinition)._class.vmt_offset;
-                                             emit_ref_reg(A_MOV,S_L,r,R_ESI);
+                                             reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
+                                             emit_ref_reg(A_MOV,S_L,href,R_ESI);
                                           end;
 
                                         { direct call to destructor: remove data }
@@ -778,11 +800,8 @@ implementation
                           begin
                              { class method needs current VMT }
                              rg.getexplicitregisterint(exprasmlist,R_ESI);
-                             new(r);
-                             reset_reference(r^);
-                             r^.base:=R_ESI;
-                             r^.offset:= tprocdef(procdefinition)._class.vmt_offset;
-                             emit_ref_reg(A_MOV,S_L,r,R_ESI);
+                             reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
+                             emit_ref_reg(A_MOV,S_L,href,R_ESI);
                           end
                         else
                           begin
@@ -836,16 +855,11 @@ implementation
                    (right=nil)) then
                   begin
                      emit_reg(A_PUSH,S_L,R_ESI);
-                     new(r);
-                     reset_reference(r^);
-                     r^.base:=R_ESI;
+                     reference_reset_base(href,R_ESI,0);
                      rg.getexplicitregisterint(exprasmlist,R_EDI);
-                     emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                     new(r);
-                     reset_reference(r^);
-                     r^.offset:=72;
-                     r^.base:=R_EDI;
-                     emit_ref(A_CALL,S_NO,r);
+                     emit_ref_reg(A_MOV,S_L,href,R_EDI);
+                     reference_reset_base(href,R_EDI,72);
+                     emit_ref(A_CALL,S_NO,href);
                      rg.ungetregisterint(exprasmlist,R_EDI);
                   end;
 
@@ -869,11 +883,8 @@ implementation
                      }
                      if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
                        begin
-                          new(r);
-                          reset_reference(r^);
-                          r^.offset:=procinfo^.framepointer_offset;
-                          r^.base:=procinfo^.framepointer;
-                          emit_ref(A_PUSH,S_L,r)
+                          reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
+                          emit_ref(A_PUSH,S_L,href)
                        end
                        { this is only true if the difference is one !!
                          but it cannot be more !! }
@@ -884,20 +895,14 @@ implementation
                      else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
                        begin
                           hregister:=rg.getregisterint(exprasmlist);
-                          new(r);
-                          reset_reference(r^);
-                          r^.offset:=procinfo^.framepointer_offset;
-                          r^.base:=procinfo^.framepointer;
-                          emit_ref_reg(A_MOV,S_L,r,hregister);
+                          reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
+                          emit_ref_reg(A_MOV,S_L,href,hregister);
                           for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
                             begin
-                               new(r);
-                               reset_reference(r^);
                                {we should get the correct frame_pointer_offset at each level
                                how can we do this !!! }
-                               r^.offset:=procinfo^.framepointer_offset;
-                               r^.base:=hregister;
-                               emit_ref_reg(A_MOV,S_L,r,hregister);
+                               reference_reset_base(href,hregister,procinfo^.framepointer_offset);
+                               emit_ref_reg(A_MOV,S_L,href,hregister);
                             end;
                           emit_reg(A_PUSH,S_L,hregister);
                           rg.ungetregisterint(exprasmlist,hregister);
@@ -932,22 +937,15 @@ implementation
                         { ESI is loaded earlier }
                         (po_classmethod in procdefinition.procoptions) then
                          begin
-                            new(r);
-                            reset_reference(r^);
-                            r^.base:=R_ESI;
+                            reference_reset_base(href,R_ESI,0);
                          end
                        else
                          begin
-                            new(r);
-                            reset_reference(r^);
-                            r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
-                            r^.offset:= tprocdef(procdefinition)._class.vmt_offset;
+                            reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
                             rg.getexplicitregisterint(exprasmlist,R_EDI);
-                            emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                            new(r);
-                            reset_reference(r^);
-                            r^.base:=R_EDI;
+                            emit_ref_reg(A_MOV,S_L,href,R_EDI);
+                            reference_reset_base(href,R_EDI,0);
                          end;
                      end
                    else
@@ -966,7 +964,7 @@ implementation
                    }
                    if tprocdef(procdefinition).extnumber=-1 then
                      internalerror(44584);
-                   r^.offset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
+                   href.offset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
                    if not(is_interface(tprocdef(procdefinition)._class)) and
                      not(is_cppclass(tprocdef(procdefinition)._class)) then
                      begin
@@ -974,16 +972,16 @@ implementation
                           begin
                              emit_sym(A_PUSH,S_L,
                                newasmsymbol(tprocdef(procdefinition)._class.vmt_mangledname));
-                             emit_reg(A_PUSH,S_L,r^.base);
+                             emit_reg(A_PUSH,S_L,href.base);
                              emitcall('FPC_CHECK_OBJECT_EXT');
                           end
                         else if (cs_check_range in aktlocalswitches) then
                           begin
-                             emit_reg(A_PUSH,S_L,r^.base);
+                             emit_reg(A_PUSH,S_L,href.base);
                              emitcall('FPC_CHECK_OBJECT');
                           end;
                      end;
-                   emit_ref(A_CALL,S_NO,r);
+                   emit_ref(A_CALL,S_NO,href);
                    rg.ungetregisterint(exprasmlist,R_EDI);
                 end
               else if not inlined then
@@ -1028,10 +1026,9 @@ implementation
                    if (right.location.reference.base=R_ESI) or
                       (right.location.reference.index=R_ESI) then
                      begin
-                        rg.del_reference(exprasmlist,right.location.reference);
+                        reference_release(exprasmlist,right.location.reference);
                         rg.getexplicitregisterint(exprasmlist,R_EDI);
-                        emit_ref_reg(A_MOV,S_L,
-                          newreference(right.location.reference),R_EDI);
+                        emit_ref_reg(A_MOV,S_L,right.location.reference,R_EDI);
                         hregister:=R_EDI;
                      end;
 
@@ -1041,8 +1038,7 @@ implementation
                        { load ESI }
                        inc(right.location.reference.offset,4);
                        rg.getexplicitregisterint(exprasmlist,R_ESI);
-                       emit_ref_reg(A_MOV,S_L,
-                         newreference(right.location.reference),R_ESI);
+                       emit_ref_reg(A_MOV,S_L,right.location.reference,R_ESI);
                        dec(right.location.reference.offset,4);
                        { push self pointer }
                        emit_reg(A_PUSH,S_L,R_ESI);
@@ -1050,30 +1046,27 @@ implementation
 
                    rg.saveregvars(exprasmlist,ALL_REGISTERS);
                    if hregister=R_NO then
-                     emit_ref(A_CALL,S_NO,newreference(right.location.reference))
+                     emit_ref(A_CALL,S_NO,right.location.reference)
                    else
                      begin
                        emit_reg(A_CALL,S_NO,hregister);
                        rg.ungetregisterint(exprasmlist,hregister);
                      end;
 
-                   rg.del_reference(exprasmlist,right.location.reference);
+                   reference_release(exprasmlist,right.location.reference);
                 end
               else
                 begin
                    rg.saveregvars(exprasmlist,ALL_REGISTERS);
                    case right.location.loc of
                       LOC_REGISTER,LOC_CREGISTER:
-                         begin
-                             emit_reg(A_CALL,S_NO,right.location.register);
-                             rg.ungetregisterint(exprasmlist,right.location.register);
-                         end
+                        emit_reg(A_CALL,S_NO,right.location.register);
+                      LOC_REFERENCE,LOC_CREFERENCE :
+                        emit_ref(A_CALL,S_NO,right.location.reference);
                       else
-                         begin
-                           emit_ref(A_CALL,S_NO,newreference(right.location.reference));
-                           rg.del_reference(exprasmlist,right.location.reference);
-                         end;
+                        internalerror(200203311);
                    end;
+                   location_release(exprasmlist,right.location);
                 end;
            end;
 
@@ -1144,16 +1137,11 @@ implementation
               getlabel(constructorfailed);
               emitjmp(C_Z,constructorfailed);
               emit_reg(A_PUSH,S_L,R_ESI);
-              new(r);
-              reset_reference(r^);
-              r^.base:=R_ESI;
+              reference_reset_base(href,R_ESI,0);
               rg.getexplicitregisterint(exprasmlist,R_EDI);
-              emit_ref_reg(A_MOV,S_L,r,R_EDI);
-              new(r);
-              reset_reference(r^);
-              r^.offset:=68;
-              r^.base:=R_EDI;
-              emit_ref(A_CALL,S_NO,r);
+              emit_ref_reg(A_MOV,S_L,href,R_EDI);
+              reference_reset_base(href,R_EDI,68);
+              emit_ref(A_CALL,S_NO,href);
               rg.ungetregisterint(exprasmlist,R_EDI);
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emitlab(constructorfailed);
@@ -1165,7 +1153,7 @@ implementation
          { needed also when result_no_used !! }
          if (not is_void(resulttype.def)) and ret_in_param(resulttype.def) then
            begin
-              location.loc:=LOC_MEM;
+              location.loc:=LOC_CREFERENCE;
               location.reference.symbol:=nil;
               location.reference:=funcretref;
            end;
@@ -1181,11 +1169,6 @@ implementation
                  { quick'n'dirty check if it is a class or an object }
                  (resulttype.def.deftype=orddef) then
                 begin
-                   { this fails if popsize > 0 PM }
-                   location.loc:=LOC_FLAGS;
-                   location.resflags:=F_NE;
-
-
                    if extended_new then
                      begin
 {$ifdef test_dest_loc}
@@ -1197,8 +1180,15 @@ implementation
                              cg.a_reg_alloc(exprasmlist,R_EAX);
                              hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
                              emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                             location_reset(location,LOC_REGISTER,OS_NO);
                              location.register:=hregister;
                           end;
+                     end
+                   else
+                     begin
+                       { this fails if popsize > 0 PM }
+                       location_reset(location,LOC_FLAGS,OS_NO);
+                       location.resflags:=F_NE;
                      end;
                 end
                { structed results are easy to handle.... }
@@ -1213,92 +1203,69 @@ implementation
                 begin
                    if (resulttype.def.deftype in [orddef,enumdef]) then
                      begin
-                        location.loc:=LOC_REGISTER;
                         cg.a_reg_alloc(exprasmlist,R_EAX);
-                        case resulttype.def.size of
-                          4 :
-                            begin
-{$ifdef test_dest_loc}
-                               if dest_loc_known and (dest_loc_tree=p) then
-                                 mov_reg_to_dest(p,S_L,R_EAX)
-                               else
-{$endif test_dest_loc}
-                                 begin
-                                    hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                                    location.register:=hregister;
-                                 end;
-                            end;
-                          1 :
-                            begin
-{$ifdef test_dest_loc}
-                                 if dest_loc_known and (dest_loc_tree=p) then
-                                   mov_reg_to_dest(p,S_B,R_AL)
-                                 else
-{$endif test_dest_loc}
-                                   begin
-                                      hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                                      emit_reg_reg(A_MOV,S_B,R_AL,reg32toreg8(hregister));
-                                      location.register:=reg32toreg8(hregister);
-                                   end;
-                              end;
-                          2 :
-                            begin
-{$ifdef test_dest_loc}
-                               if dest_loc_known and (dest_loc_tree=p) then
-                                 mov_reg_to_dest(p,S_W,R_AX)
-                               else
-{$endif test_dest_loc}
-                                 begin
-                                    hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                                    emit_reg_reg(A_MOV,S_W,R_AX,reg32toreg16(hregister));
-                                    location.register:=reg32toreg16(hregister);
-                                 end;
-                            end;
-                           8 :
+                        cgsize:=def_cgsize(resulttype.def);
+                        location_reset(location,LOC_REGISTER,cgsize);
+                        if cgsize in [OS_64,OS_S64] then
+                         begin
+                           cg.a_reg_alloc(exprasmlist,R_EDX);
+                           if R_EDX in rg.unusedregsint then
                              begin
+                                location.registerhigh:=rg.getexplicitregisterint(exprasmlist,R_EDX);
+                                location.registerlow:=rg.getexplicitregisterint(exprasmlist,R_EAX);
+                             end
+                           else
+                             begin
+                                location.registerhigh:=rg.getexplicitregisterint(exprasmlist,R_EDX);
+                                location.registerlow:=rg.getexplicitregisterint(exprasmlist,R_EAX);
+                             end;
+                           tcg64f32(cg).a_load64_reg_reg(exprasmlist,R_EAX,R_EDX,location.registerlow,location.registerhigh);
+                         end
+                        else
+                         begin
+                           location.register:=rg.getexplicitregisterint(exprasmlist,R_EAX);
+                           case cgsize of
+                             OS_8,OS_S8 :
+                               begin
+                                 hregister:=R_AL;
+                                 location.register:=makereg8(location.register);
+                               end;
+                             OS_16,OS_S16 :
+                               begin
+                                 hregister:=R_AX;
+                                 location.register:=makereg16(location.register);
+                               end;
+                             OS_32,OS_S32 :
+                               hregister:=R_EAX;
+                             else
+                               internalerror(200203281);
+                           end;
 {$ifdef test_dest_loc}
 {$error Don't know what to do here}
+                               if dest_loc_known and (dest_loc_tree=p) then
+                                 mov_reg_to_dest(p,S_L,R_EAX)
 {$endif test_dest_loc}
-                                cg.a_reg_alloc(exprasmlist,R_EDX);
-                                if R_EDX in rg.unusedregsint then
-                                  begin
-                                     hregister2:=rg.getexplicitregisterint(exprasmlist,R_EDX);
-                                     hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                                  end
-                                else
-                                  begin
-                                     hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                                     hregister2:=rg.getexplicitregisterint(exprasmlist,R_EDX);
-                                  end;
-                                emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                                emit_reg_reg(A_MOV,S_L,R_EDX,hregister2);
-                                location.registerlow:=hregister;
-                                location.registerhigh:=hregister2;
-                             end;
-                        else internalerror(7);
+                           cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
+                         end
                      end
-
-                end
               else if (resulttype.def.deftype=floatdef) then
                 begin
-                  location.loc:=LOC_FPU;
+                  location_reset(location,LOC_FPUREGISTER,OS_NO);
                   location.register:=R_ST;
                   inc(trgcpu(rg).fpuvaroffset);
                 end
               else if is_ansistring(resulttype.def) or
-                is_widestring(resulttype.def) then
+                      is_widestring(resulttype.def) then
                 begin
-                   cg.a_reg_alloc(exprasmlist,R_EAX);
-                   emit_reg_ref(A_MOV,S_L,R_EAX,
-                     newreference(refcountedtemp));
-                   cg.a_reg_dealloc(exprasmlist,R_EAX);
-                   location.loc:=LOC_MEM;
+                   location_reset(location,LOC_CREFERENCE,OS_ADDR);
                    location.reference:=refcountedtemp;
+                   cg.a_reg_alloc(exprasmlist,R_EAX);
+                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,R_EAX,location.reference);
+                   cg.a_reg_dealloc(exprasmlist,R_EAX);
                 end
               else
                 begin
-                   location.loc:=LOC_REGISTER;
+                   location_reset(location,LOC_REGISTER,OS_INT);
 {$ifdef test_dest_loc}
                    if dest_loc_known and (dest_loc_tree=p) then
                      mov_reg_to_dest(p,S_L,R_EAX)
@@ -1306,9 +1273,8 @@ implementation
 {$endif test_dest_loc}
                     begin
                        cg.a_reg_alloc(exprasmlist,R_EAX);
-                       hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                       emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                       location.register:=hregister;
+                       location.register:=rg.getexplicitregisterint(exprasmlist,R_EAX);
+                       cg.a_load_reg_reg(exprasmlist,OS_INT,R_EAX,location.register);
                     end;
                 end;
              end;
@@ -1334,7 +1300,7 @@ implementation
            begin
               if assigned(pp.left) then
                 begin
-                  if (pp.left.location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                  if (pp.left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                     tg.ungetiftemp(exprasmlist,pp.left.location.reference);
                 { process also all nodes of an array of const }
                   if pp.left.nodetype=arrayconstructorn then
@@ -1344,7 +1310,7 @@ implementation
                          hp:=pp.left;
                          while assigned(hp) do
                           begin
-                            if (tarrayconstructornode(tunarynode(hp).left).location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                            if (tarrayconstructornode(tunarynode(hp).left).location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                               tg.ungetiftemp(exprasmlist,tarrayconstructornode(hp).left.location.reference);
                             hp:=tbinarynode(hp).right;
                           end;
@@ -1369,7 +1335,7 @@ implementation
          { if return value is not used }
          if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
            begin
-              if location.loc in [LOC_MEM,LOC_REFERENCE] then
+              if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
                    { data which must be finalized ? }
                    if (resulttype.def.needs_inittable) then
@@ -1377,7 +1343,7 @@ implementation
                    { release unused temp }
                    tg.ungetiftemp(exprasmlist,location.reference)
                 end
-              else if location.loc=LOC_FPU then
+              else if location.loc=LOC_FPUREGISTER then
                 begin
                   { release FPU stack }
                   emit_reg(A_FSTP,S_NO,R_ST);
@@ -1569,7 +1535,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-03-31 20:26:38  jonas
+  Revision 1.43  2002-04-02 17:11:35  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.42  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -1560,7 +1560,7 @@ implementation
          else
          { not a procedure variable }
            begin
-              location.loc:=LOC_MEM;
+              location.loc:=LOC_CREFERENCE;
 
               { calc the correture value for the register }
               { handle predefined procedures }
@@ -1640,13 +1640,13 @@ implementation
                         if is_widestring(resulttype.def) or
                            is_ansistring(resulttype.def) then
                           begin
-                             location.loc:=LOC_MEM;
+                             location.loc:=LOC_CREFERENCE;
                              registers32:=1;
                           end;
                      end
                    else if (resulttype.def.deftype=floatdef) then
                      begin
-                       location.loc:=LOC_FPU;
+                       location.loc:=LOC_FPUREGISTER;
 {$ifdef m68k}
                        if (cs_fp_emulation in aktmoduleswitches) or
                           (tfloatdef(resulttype.def).typ=s32real) then
@@ -1658,7 +1658,7 @@ implementation
 {$endif not m68k}
                      end
                    else
-                     location.loc:=LOC_MEM;
+                     location.loc:=LOC_CREFERENCE;
                 end;
            end;
          { a fpu can be used in any procedure !! }
@@ -1827,7 +1827,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-03-31 20:26:33  jonas
+  Revision 1.67  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.66  2002/03/31 20:26:33  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

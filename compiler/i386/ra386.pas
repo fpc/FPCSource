@@ -57,7 +57,7 @@ implementation
 uses
   globtype,globals,systems,verbose,
   symconst,symdef,symsym,
-  cgbase,
+  cpuinfo,cgbase,
   types,cpuasm;
 
 {$define ATTOP}
@@ -247,7 +247,7 @@ begin
                s:=operands[i].opr.symbol;
                so:=operands[i].opr.symofs;
                operands[i].opr.typ:=OPR_REFERENCE;
-               reset_reference(operands[i].opr.ref);
+               Fillchar(operands[i].opr.ref,sizeof(treference),0);
                operands[i].opr.ref.symbol:=s;
                operands[i].opr.ref.offset:=so;
              end;
@@ -575,14 +575,14 @@ begin
    begin
      case operands[i].opr.typ of
        OPR_CONSTANT :
-         ai.loadconst(i-1,operands[i].opr.val);
+         ai.loadconst(i-1,aword(operands[i].opr.val));
        OPR_REGISTER:
          ai.loadreg(i-1,operands[i].opr.reg);
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_REFERENCE:
          begin
-           ai.loadref(i-1,newreference(operands[i].opr.ref));
+           ai.loadref(i-1,operands[i].opr.ref);
            if operands[i].size<>S_NO then
              begin
                asize:=0;
@@ -631,7 +631,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-01-24 18:25:53  peter
+  Revision 1.15  2002-04-02 17:11:39  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.14  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

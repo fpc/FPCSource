@@ -59,7 +59,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
       cgobj,cga,tgobj,n386util,rgobj;
@@ -72,15 +72,17 @@ implementation
       var
          pushed : tpushedsaved;
          regstopush: tregisterset;
-         r : preference;
+         href : treference;
       begin
          if assigned(left) then
            begin
               secondpass(left);
-              location.register:=left.location.register;
+              location_copy(location,left.location);
            end
          else
            begin
+              location_reset(location,LOC_REFERENCE,OS_ADDR);
+
               regstopush := all_registers;
               remove_non_regvars_from_loc(location,regstopush);
               rg.saveusedregisters(exprasmlist,pushed,regstopush);
@@ -95,11 +97,9 @@ implementation
 
               if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
                 begin
-                   new(r);
-                   reset_reference(r^);
-                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
-                   emitpushreferenceaddr(r^);
-                   dispose(r);
+                   reference_reset_symbol(href,tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
+                   emitpushreferenceaddr(href);
+
                    { push pointer we just allocated, we need to initialize the
                      data located at that pointer not the pointer self (PFV) }
                    emit_push_loc(location);
@@ -109,8 +109,6 @@ implementation
               { may be load ESI }
               maybe_loadself;
            end;
-         if codegenerror then
-           exit;
       end;
 
 
@@ -136,26 +134,23 @@ implementation
       var
          regstopush: tregisterset;
          pushed : tpushedsaved;
+         href : treference;
          lefttemp: treference;
-         r : preference;
          left_needs_initfinal: boolean;
 
-        procedure saveleft;
-          begin
-            tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,
-              lefttemp);
-            cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,lefttemp);
-            rg.del_location(exprasmlist,left.location);
-          end;
-
+         procedure saveleft;
+         begin
+           tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,lefttemp);
+           cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,lefttemp);
+           location_release(exprasmlist,left.location);
+         end;
 
       begin
          secondpass(left);
          if codegenerror then
            exit;
 
-         left_needs_initfinal :=
-           tpointerdef(left.resulttype.def).pointertype.def.needs_inittable;
+         left_needs_initfinal:=tpointerdef(left.resulttype.def).pointertype.def.needs_inittable;
 
          regstopush := all_registers;
          remove_non_regvars_from_loc(left.location,regstopush);
@@ -168,11 +163,8 @@ implementation
              begin
                 if left_needs_initfinal then
                   begin
-                     new(r);
-                     reset_reference(r^);
-                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
-                     emitpushreferenceaddr(r^);
-                     dispose(r);
+                     reference_reset_symbol(href,tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
+                     emitpushreferenceaddr(href);
                      { push pointer adress }
                      emit_push_loc(left.location);
                      { save left and free its registers }
@@ -185,7 +177,7 @@ implementation
                 else
                   begin
                     emit_push_loc(left.location);
-                    rg.del_location(exprasmlist,left.location);
+                    location_release(exprasmlist,left.location);
                   end;
                 emitcall('FPC_FREEMEM');
              end;
@@ -200,11 +192,8 @@ implementation
                 emitcall('FPC_GETMEM');
                 if left_needs_initfinal then
                   begin
-                     new(r);
-                     reset_reference(r^);
-                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
-                     emitpushreferenceaddr(r^);
-                     dispose(r);
+                     reference_reset_symbol(href,tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
+                     emitpushreferenceaddr(href);
                      emit_push_mem(lefttemp);
                      tg.ungetiftemp(exprasmlist,lefttemp);
                      emitcall('FPC_INITIALIZE');
@@ -245,8 +234,6 @@ implementation
     procedure ti386vecnode.pass_2;
       var
         is_pushed : boolean;
-        ind,hr : tregister;
-        //_p : tnode;
 
           function get_mul_size:longint;
           begin
@@ -271,9 +258,9 @@ implementation
             else
               begin
                  if ispowerof2(l1,l2) then
-                   emit_const_reg(A_SHL,S_L,l2,ind)
+                   emit_const_reg(A_SHL,S_L,l2,right.location.register)
                  else
-                   emit_const_reg(A_IMUL,S_L,l1,ind);
+                   emit_const_reg(A_IMUL,S_L,l1,right.location.register);
               end;
             end;
           end;
@@ -285,22 +272,24 @@ implementation
          { because in constant nodes which constant index              }
          { the left tree is removed                                  }
          t   : tnode;
-         hp  : preference;
          href : treference;
-         tai : Taicpu;
          srsym : tsym;
          pushed : tpushedsaved;
          hightree : tnode;
-         hl,otl,ofl : tasmlabel;
+         isjump  : boolean;
+         otl,ofl : tasmlabel;
+         newsize : tcgsize;
       begin
+         newsize:=def_cgsize_ref(resulttype.def);
+         location_reset(location,LOC_REFERENCE,newsize);
+
          secondpass(left);
          { we load the array reference to location }
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resulttype.def) or
-           is_widestring(left.resulttype.def) then
+            is_widestring(left.resulttype.def) then
            begin
-              reset_reference(location.reference);
               if nf_callunique in flags then
                 begin
                    if left.location.loc<>LOC_REFERENCE then
@@ -319,18 +308,21 @@ implementation
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
-              if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                begin
-                   location.reference.base:=left.location.register;
-                end
-              else
-                begin
-                   rg.del_reference(exprasmlist,left.location.reference);
-                   location.reference.base:=rg.getregisterint(exprasmlist);
-                   emit_ref_reg(A_MOV,S_L,
-                     newreference(left.location.reference),
-                     location.reference.base);
-                end;
+              case left.location.loc of
+                LOC_REGISTER,
+                LOC_CREGISTER :
+                  location.reference.base:=left.location.register;
+                LOC_CREFERENCE,
+                LOC_REFERENCE :
+                  begin
+                    location_release(exprasmlist,left.location);
+                    location.reference.base:=rg.getregisterint(exprasmlist);
+                    emit_ref_reg(A_MOV,S_L,
+                      left.location.reference,location.reference.base);
+                  end;
+                else
+                  internalerror(2002032218);
+              end;
 
               { check for a zero length string,
                 we can use the ansistring routine here }
@@ -344,38 +336,35 @@ implementation
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
+              { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resulttype.def) then
-                { in ansistrings S[1] is pchar(S)[0] !! }
                 dec(location.reference.offset)
               else
-                begin
-                   { in widestrings S[1] is pwchar(S)[0] !! }
-                   dec(location.reference.offset,2);
-//                   emit_const_reg(A_SHL,S_L,
-//                     1,location.reference.base);
-                end;
+                dec(location.reference.offset,2);
 
               { we've also to keep left up-to-date, because it is used   }
               { if a constant array index occurs, subject to change (FK) }
-              set_location(left.location,location);
+              location_copy(left.location,location);
            end
          else if is_dynamic_array(left.resulttype.def) then
          { ... also a dynamic string }
            begin
-              reset_reference(location.reference);
+              case left.location.loc of
+                LOC_REGISTER,
+                LOC_CREGISTER :
+                  location.reference.base:=left.location.register;
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  begin
+                     location_release(exprasmlist,left.location);
+                     location.reference.base:=rg.getregisterint(exprasmlist);
+                     emit_ref_reg(A_MOV,S_L,
+                       left.location.reference,location.reference.base);
+                  end;
+                else
+                  internalerror(2002032219);
+              end;
 
-              if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                begin
-                   location.reference.base:=left.location.register;
-                end
-              else
-                begin
-                   rg.del_reference(exprasmlist,left.location.reference);
-                   location.reference.base:=rg.getregisterint(exprasmlist);
-                   emit_ref_reg(A_MOV,S_L,
-                     newreference(left.location.reference),
-                     location.reference.base);
-                end;
 {$warning FIXME}
               { check for a zero length string,
                 we can use the ansistring routine here }
@@ -391,10 +380,10 @@ implementation
 
               { we've also to keep left up-to-date, because it is used   }
               { if a constant array index occurs, subject to change (FK) }
-              set_location(left.location,location);
+              location_copy(left.location,location);
            end
          else
-           set_location(location,left.location);
+           location_copy(location,left.location);
 
          { offset can only differ from 0 if arraydef }
          if (left.resulttype.def.deftype=arraydef) and
@@ -441,9 +430,9 @@ implementation
                           begin
                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
                              push_int(tordconstnode(right).value);
-                             hp:=newreference(location.reference);
-                             dec(hp^.offset,7);
-                             emit_ref(A_PUSH,S_L,hp);
+                             href:=location.reference;
+                             dec(href.offset,7);
+                             emit_ref(A_PUSH,S_L,href);
                              rg.saveregvars(exprasmlist,all_registers);
                              emitcall('FPC_ANSISTR_RANGECHECK');
                              rg.restoreusedregisters(exprasmlist,pushed);
@@ -472,7 +461,7 @@ implementation
               putnode(p);
               p:=_p;
               }
-              set_location(location,left.location);
+              location_copy(location,left.location);
            end
          else
          { not nodetype=ordconstn }
@@ -538,10 +527,10 @@ implementation
                        get_mul_size*extraoffset);
                 end;
               { calculate from left to right }
-              if (location.loc<>LOC_REFERENCE) and
-                 (location.loc<>LOC_MEM) then
+              if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 CGMessage(cg_e_illegal_expression);
-              if (right.location.loc=LOC_JUMP) then
+              isjump:=(right.location.loc=LOC_JUMP);
+              if isjump then
                begin
                  otl:=truelabel;
                  getlabel(truelabel);
@@ -564,8 +553,8 @@ implementation
                      if is_open_array(left.resulttype.def) or
                         is_array_of_const(left.resulttype.def) then
                       begin
-                        reset_reference(href);
                         tarraydef(left.resulttype.def).genrangecheck;
+                        reference_reset(href);
                         href.symbol:=newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring);
                         href.offset:=4;
                         srsym:=searchsymonlyin(tloadnode(left).symtable,
@@ -573,7 +562,8 @@ implementation
                         hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                         firstpass(hightree);
                         secondpass(hightree);
-                        emit_mov_loc_ref(hightree.location,href,S_L,true);
+                        location_release(exprasmlist,hightree.location);
+                        cg.a_load_loc_ref(exprasmlist,OS_INT,hightree.location,href);
                         hightree.free;
                         hightree:=nil;
                       end;
@@ -581,72 +571,13 @@ implementation
                    end;
                end;
 
-              case right.location.loc of
-                 LOC_REGISTER:
-                   begin
-                      ind:=right.location.register;
-                      case right.resulttype.def.size of
-                         1:
-                           begin
-                              hr:=reg8toreg32(ind);
-                              emit_reg_reg(A_MOVZX,S_BL,ind,hr);
-                              ind:=hr;
-                           end;
-                         2:
-                           begin
-                              hr:=reg16toreg32(ind);
-                              emit_reg_reg(A_MOVZX,S_WL,ind,hr);
-                              ind:=hr;
-                           end;
-                      end;
-                   end;
-                 LOC_CREGISTER:
-                   begin
-                      ind:=rg.getregisterint(exprasmlist);
-                      case right.resulttype.def.size of
-                         1:
-                           emit_reg_reg(A_MOVZX,S_BL,right.location.register,ind);
-                         2:
-                           emit_reg_reg(A_MOVZX,S_WL,right.location.register,ind);
-                         4:
-                           emit_reg_reg(A_MOV,S_L,right.location.register,ind);
-                      end;
-                   end;
-                 LOC_FLAGS:
-                   begin
-                      ind:=rg.getregisterint(exprasmlist);
-                      emit_flag2reg(right.location.resflags,reg32toreg8(ind));
-                      emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
-                   end;
-                 LOC_JUMP :
-                   begin
-                     ind:=rg.getregisterint(exprasmlist);
-                     emitlab(truelabel);
-                     truelabel:=otl;
-                     emit_const_reg(A_MOV,S_L,1,ind);
-                     getlabel(hl);
-                     emitjmp(C_None,hl);
-                     emitlab(falselabel);
-                     falselabel:=ofl;
-                     emit_reg_reg(A_XOR,S_L,ind,ind);
-                     emitlab(hl);
-                   end;
-                 LOC_REFERENCE,LOC_MEM :
-                   begin
-                      rg.del_reference(exprasmlist,right.location.reference);
-                      ind:=rg.getregisterint(exprasmlist);
-                      { Booleans are stored in an 8 bit memory location, so
-                        the use of MOVL is not correct }
-                      case right.resulttype.def.size of
-                       1 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,newreference(right.location.reference),ind);
-                       2 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_WL,newreference(right.location.reference),ind);
-                       4 : tai:=Taicpu.Op_ref_reg(A_MOV,S_L,newreference(right.location.reference),ind);
-                      end;
-                      exprasmList.concat(tai);
-                   end;
-                 else
-                   internalerror(5913428);
-                end;
+              location_force_reg(right.location,OS_32,false);
+
+              if isjump then
+               begin
+                 truelabel:=otl;
+                 falselabel:=ofl;
+               end;
 
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
@@ -663,10 +594,10 @@ implementation
                          st_ansistring:
                            begin
                               rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                              emit_reg(A_PUSH,S_L,ind);
-                              hp:=newreference(location.reference);
-                              dec(hp^.offset,7);
-                              emit_ref(A_PUSH,S_L,hp);
+                              emit_reg(A_PUSH,S_L,right.location.register);
+                              href:=location.reference;
+                              dec(href.offset,7);
+                              emit_ref(A_PUSH,S_L,href);
                               rg.saveregvars(exprasmlist,all_registers);
                               emitcall('FPC_ANSISTR_RANGECHECK');
                               rg.restoreusedregisters(exprasmlist,pushed);
@@ -686,7 +617,7 @@ implementation
 
               if location.reference.index=R_NO then
                begin
-                 location.reference.index:=ind;
+                 location.reference.index:=right.location.register;
                  calc_emit_mul;
                end
               else
@@ -700,13 +631,11 @@ implementation
                     end;
                     calc_emit_mul;
                     location.reference.base:=location.reference.index;
-                    location.reference.index:=ind;
+                    location.reference.index:=right.location.register;
                   end
                  else
                   begin
-                    emit_ref_reg(
-                      A_LEA,S_L,newreference(location.reference),
-                      location.reference.index);
+                    emit_ref_reg(A_LEA,S_L,location.reference,location.reference.index);
                     rg.ungetregisterint(exprasmlist,location.reference.base);
                     { the symbol offset is loaded,             }
                     { so release the symbol name and set symbol  }
@@ -715,13 +644,15 @@ implementation
                     location.reference.offset:=0;
                     calc_emit_mul;
                     location.reference.base:=location.reference.index;
-                    location.reference.index:=ind;
+                    location.reference.index:=right.location.register;
                   end;
                end;
 
               if nf_memseg in flags then
                 location.reference.segment:=R_FS;
            end;
+
+        location.size:=newsize;
       end;
 
 
@@ -734,7 +665,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-04-01 09:44:04  jonas
+  Revision 1.23  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.22  2002/04/01 09:44:04  jonas
     * better fix for new/dispose bug with init/final data
 
   Revision 1.21  2002/03/31 20:26:39  jonas

@@ -46,7 +46,7 @@ implementation
     types,
     aasm,cgbase,regvars,
     ncon,
-    cpubase,cpuinfo,tgobj,cgobj,cgcpu,cg64f32,rgobj;
+    cpubase,cpuinfo,tgobj,cginfo,cgobj,cgcpu,cg64f32,rgobj;
 
 
 {$ifdef TEMPS_NOT_PUSH}
@@ -185,14 +185,14 @@ implementation
                 begin
                    opsize:=def_cgsize(p.resulttype.def);
                    case p.location.loc of
-                     LOC_CREGISTER,LOC_REGISTER,LOC_MEM,LOC_REFERENCE :
+                     LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
                          if (p.location.loc = LOC_CREGISTER) then
                            load_regvar_reg(exprasmlist,p.location.register);
                          cg.a_cmp_const_loc_label(exprasmlist,opsize,OC_NE,
                            0,p.location,truelabel);
                          { !!! should happen right after cmp (JM) }
-                         rg.del_location(exprasmlist,p.location);
+                         location_release(exprasmlist,p.location);
                          cg.a_jmp_cond(exprasmlist,OC_NONE,falselabel);
                        end;
                      LOC_FLAGS :
@@ -213,7 +213,18 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-03-31 20:26:34  jonas
+  Revision 1.4  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.3  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

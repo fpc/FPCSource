@@ -1993,7 +1993,7 @@ implementation
               else
                 firstpass(left);
               left_max;
-              set_location(location,left.location);
+              location.loc:=left.location.loc;
            end;
          inc(parsing_para_level);
          { intern const should already be handled }
@@ -2162,7 +2162,7 @@ implementation
                       begin
                          { need we an additional register ? }
                          if not(is_constintnode(tcallparanode(tcallparanode(left).right).left)) and
-                           (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+                           (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
                            (tcallparanode(tcallparanode(left).right).left.registers32<=1) then
                            inc(registers32);
 
@@ -2219,7 +2219,7 @@ implementation
 
          in_cos_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -2229,7 +2229,7 @@ implementation
 
          in_sin_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -2239,7 +2239,7 @@ implementation
 
          in_arctan_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
@@ -2249,13 +2249,13 @@ implementation
 
          in_pi:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registersfpu:=1;
            end;
 
          in_abs_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -2265,7 +2265,7 @@ implementation
 
          in_sqr_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -2275,7 +2275,7 @@ implementation
 
          in_sqrt_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -2285,7 +2285,7 @@ implementation
 
          in_ln_extended:
            begin
-             location.loc:=LOC_FPU;
+             location.loc:=LOC_FPUREGISTER;
              registers32:=left.registers32;
              registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
@@ -2341,7 +2341,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-03-31 20:26:34  jonas
+  Revision 1.71  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.70  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

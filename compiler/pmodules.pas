@@ -214,10 +214,10 @@ implementation
         dataSegment.concatlist(ResourceStringTables);
         ResourceStringTables.free;
       end;
-      
-      
-      
-      
+
+
+
+
 
     procedure InsertInitFinalTable;
       var
@@ -675,7 +675,7 @@ implementation
            procdef:=aktprocdef;
          end;
       end;
-      
+
     procedure insertLocalThreadvarsTablesTable;
       var
         hp : tused_unit;
@@ -703,39 +703,37 @@ implementation
           dataSegment.concat(Tai_cut.Create);
         dataSegment.concatlist(ltvTables);
         ltvTables.free;
-	if count > 0 then
-  	  have_local_threadvars := true;
+        if count > 0 then
+          have_local_threadvars := true;
       end;
-      
-      
-      
+
+
+
     var ltvTable : taasmoutput;
-      
+
     procedure addToLocalThreadvarTab(p:tnamedindexitem);
       var
-        vs   : tvarsym;
-        s    : string;
-	asym : tasmsymbol;
+        asym : tasmsymbol;
       begin
         with tvarsym(p) do
          begin
-	   if (typ=varsym) and (vo_is_thread_var IN varoptions) then
-	   begin
-	     if ltvTable = nil then
-	     begin   { first threadvar }
-	       ltvTable := TAAsmOutput.Create;
-	       ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
-	     end;
-	     asym := getasmsymbol(mangledname);
-	     if asym <> nil then
-	     begin
-	       ltvTable.concat(tai_const_symbol.create(asym));    { address of threadvar }
-	       ltvTable.concat(tai_const.create_32bit(getsize));  { size of threadvar }
-	     end;
-	   end;
+           if (typ=varsym) and (vo_is_thread_var IN varoptions) then
+           begin
+             if ltvTable = nil then
+             begin   { first threadvar }
+               ltvTable := TAAsmOutput.Create;
+               ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
+             end;
+                 asym := getasmsymbol(mangledname);
+             if asym <> nil then
+             begin
+               ltvTable.concat(tai_const_symbol.create(asym));    { address of threadvar }
+               ltvTable.concat(tai_const.create_32bit(getsize));  { size of threadvar }
+             end;
+           end;
          end;
       end;
-      
+
 
 
     procedure proc_unit;
@@ -752,7 +750,7 @@ implementation
           ((resourcestringlist=nil) or resourcestringList.empty)
         );
       end;
-      
+
       var
          main_file: tinputfile;
          st     : tsymtable;
@@ -1013,20 +1011,20 @@ implementation
                 codeSegment.concat(Tai_cut.Create);
               genimplicitunitfinal(codesegment);
            end;
-	 
-	 { generate a list of local threadvars }  
-	 ltvTable := nil;
-	 st.foreach_static (@addToLocalThreadvarTab);
-	 if ltvTable <> nil then
-	 begin
-	   ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
-	   ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
-	   if (cs_create_smart in aktmoduleswitches) then
-             dataSegment.concat(Tai_cut.Create);
-	   dataSegment.concatlist(ltvTable);
-	   ltvTable.Free;
-	   current_module.flags:=current_module.flags or uf_local_threadvars;
-	 end;
+
+         { generate a list of local threadvars }
+         ltvTable := nil;
+         st.foreach_static (@addToLocalThreadvarTab);
+         if ltvTable <> nil then
+         begin
+           ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
+           ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
+           if (cs_create_smart in aktmoduleswitches) then
+            dataSegment.concat(Tai_cut.Create);
+           dataSegment.concatlist(ltvTable);
+           ltvTable.Free;
+           current_module.flags:=current_module.flags or uf_local_threadvars;
+         end;
 
          { the last char should always be a point }
          consume(_POINT);
@@ -1301,7 +1299,7 @@ implementation
             aktprocdef.aliasnames.insert('PASCALMAIN');
             aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
-	 insertLocalThreadvarsTablesTable;
+         insertLocalThreadvarsTablesTable;
          compile_proc_body(true,false);
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -1373,13 +1371,13 @@ implementation
 
          if islibrary or
             (target_info.target=target_i386_WIN32) or
-	    (target_info.target=target_i386_NETWARE) then
+            (target_info.target=target_i386_NETWARE) then
            exportlib.generatelib;
 
 
          { insert heap }
          insertResourceTablesTable;
-	 
+
          insertinitfinaltable;
          insertheap;
          inserttargetspecific;
@@ -1430,7 +1428,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-04-01 13:43:32  armin
+  Revision 1.56  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.55  2002/04/01 13:43:32  armin
   addToLocalThreadvarList used '_'+name instead of mangledname to find asm symbol
 
   Revision 1.54  2002/03/29 17:19:50  armin

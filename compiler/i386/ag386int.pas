@@ -119,12 +119,6 @@ interface
       s     : string;
       first : boolean;
     begin
-      if ref.is_immediate then
-       begin
-         getreferencestring:=tostr(ref.offset);
-         exit;
-       end
-      else
       with ref do
         begin
           first:=true;
@@ -179,7 +173,7 @@ interface
         top_reg :
           getopstr:=int_reg2str[o.reg];
         top_const :
-          getopstr:=tostr(o.val);
+          getopstr:=tostr(longint(o.val));
         top_symbol :
           begin
             if assigned(o.sym) then
@@ -242,7 +236,7 @@ interface
         top_reg :
           getopstr_jmp:=int_reg2str[o.reg];
         top_const :
-          getopstr_jmp:=tostr(o.val);
+          getopstr_jmp:=tostr(longint(o.val));
         top_symbol :
           begin
             hs:=o.sym.name;
@@ -828,7 +822,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2001-06-18 20:36:25  peter
+  Revision 1.15  2002-04-02 17:11:33  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.14  2001/06/18 20:36:25  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

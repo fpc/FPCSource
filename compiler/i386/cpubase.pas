@@ -31,7 +31,7 @@ unit cpubase;
 interface
 
 uses
-  globals,cutils,cclasses,aasm;
+  globals,cutils,cclasses,aasm,cpuinfo,cginfo;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -429,9 +429,8 @@ type
   trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
   { immediate/reference record }
-  preference = ^treference;
+  poperreference = ^treference;
   treference = packed record
-     is_immediate : boolean; { is this used as reference or immediate }
      segment,
      base,
      index       : tregister;
@@ -457,8 +456,8 @@ type
           case typ : toptype of
            top_none   : ();
            top_reg    : (reg:tregister);
-           top_ref    : (ref:preference);
-           top_const  : (val:longint);
+           top_ref    : (ref:poperreference);
+           top_const  : (val:aword);
            top_symbol : (sym:tasmsymbol;symofs:longint);
         end;
 
@@ -487,38 +486,43 @@ type
 type
   TLoc=(
     LOC_INVALID,      { added for tracking problems}
-    LOC_FPU,          { FPU stack }
-    LOC_REGISTER,     { in a processor register }
-    LOC_MEM,          { in memory }
-    LOC_REFERENCE,    { like LOC_MEM, but lvalue }
+    LOC_CONSTANT,     { constant value }
     LOC_JUMP,         { boolean results only, jump to false or true label }
     LOC_FLAGS,        { boolean results only, flags are set }
+    LOC_CREFERENCE,   { in memory constant value }
+    LOC_REFERENCE,    { in memory value }
+    LOC_REGISTER,     { in a processor register }
     LOC_CREGISTER,    { Constant register which shouldn't be modified }
+    LOC_FPUREGISTER,  { FPU stack }
+    LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
     LOC_MMXREGISTER,  { MMX register }
     LOC_CMMXREGISTER, { MMX register variable }
-    LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
     LOC_SSEREGISTER,
     LOC_CSSEREGISTER
   );
 
   plocation = ^tlocation;
   tlocation = packed record
-     case loc : tloc of
-        LOC_MEM,LOC_REFERENCE : (reference : treference);
-        LOC_FPU : ();
-        LOC_JUMP : ();
+     loc  : TLoc;
+     size : TCGSize;
+     case TLoc of
         LOC_FLAGS : (resflags : tresflags);
-        LOC_INVALID : ();
-
-        { it's only for better handling }
-        LOC_MMXREGISTER : (mmxreg : tregister);
+        LOC_CONSTANT : (
+          case longint of
+            1 : (value : AWord);
+            2 : (valuelow, valuehigh:AWord);
+          );
+        LOC_CREFERENCE,
+        LOC_REFERENCE : (reference : treference);
         { segment in reference at the same place as in loc_register }
         LOC_REGISTER,LOC_CREGISTER : (
-        case longint of
-          1 : (register,segment,registerhigh : tregister);
-          { overlay a registerlow }
-          2 : (registerlow : tregister);
-        );
+          case longint of
+            1 : (register,segment,registerhigh : tregister);
+            { overlay a registerlow }
+            2 : (registerlow : tregister);
+          );
+        { it's only for better handling }
+        LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
   end;
 
 {*****************************************************************************
@@ -718,31 +722,21 @@ const
     { returns the operand prefix for a given register }
     function regsize(reg : tregister) : topsize;
 
-    { resets all values of ref to defaults }
-    procedure reset_reference(var ref : treference);
-    { set mostly used values of a new reference }
-    function new_reference(base : tregister;offset : longint) : preference;
-
-    function newreference(const r : treference) : preference;
-    procedure disposereference(var r : preference);
-
     function reg2str(r : tregister) : string;
 
     function is_calljmp(o:tasmop):boolean;
 
-    procedure clear_location(var loc : tlocation);
-    procedure set_location(var destloc,sourceloc : tlocation);
-    procedure swap_location(var destloc,sourceloc : tlocation);
-
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
 
+
 implementation
 
-{$ifdef heaptrc}
   uses
-      ppheap;
+{$ifdef heaptrc}
+      ppheap,
 {$endif heaptrc}
+      verbose;
 
 {*****************************************************************************
                                   Helpers
@@ -796,23 +790,6 @@ implementation
           else
             is_calljmp:=false;
         end;
-      end;
-
-
-    procedure disposereference(var r : preference);
-      begin
-         dispose(r);
-         r:=nil;
-      end;
-
-
-    function newreference(const r : treference) : preference;
-      var
-         p : preference;
-      begin
-         new(p);
-         p^:=r;
-         newreference:=p;
       end;
 
 
@@ -877,91 +854,18 @@ implementation
         regtoreg64:=R_NO;
      end;
 
-function regsize(reg : tregister) : topsize;
-begin
-   if reg in regset8bit then
-     regsize:=S_B
-   else if reg in regset16bit then
-     regsize:=S_W
-   else if reg in regset32bit then
-     regsize:=S_L;
-end;
-
-
-procedure reset_reference(var ref : treference);
-begin
-  FillChar(ref,sizeof(treference),0);
-end;
-
-
-function new_reference(base : tregister;offset : longint) : preference;
-var
-  r : preference;
-begin
-  new(r);
-  FillChar(r^,sizeof(treference),0);
-  r^.base:=base;
-  r^.offset:=offset;
-  new_reference:=r;
-end;
-
-    procedure clear_location(var loc : tlocation);
-
+    function regsize(reg : tregister) : topsize;
       begin
-        loc.loc:=LOC_INVALID;
+         if reg in regset8bit then
+           regsize:=S_B
+         else if reg in regset16bit then
+           regsize:=S_W
+         else if reg in regset32bit then
+           regsize:=S_L
+         else
+           internalerror(200203261);
       end;
 
-    {This is needed if you want to be able to delete the string with the nodes !!}
-    procedure set_location(var destloc,sourceloc : tlocation);
-
-      begin
-        destloc:= sourceloc;
-      end;
-
-    procedure swap_location(var destloc,sourceloc : tlocation);
-
-      var
-         swapl : tlocation;
-
-      begin
-         swapl := destloc;
-         destloc := sourceloc;
-         sourceloc := swapl;
-      end;
-
-
-{*****************************************************************************
-                              Instruction table
-*****************************************************************************}
-
-procedure DoneCpu;
-begin
-  {exitproc:=saveexit; }
-{$ifndef NOAG386BIN}
-  if assigned(instabcache) then
-    dispose(instabcache);
-{$endif NOAG386BIN}
-end;
-
-
-procedure BuildInsTabCache;
-{$ifndef NOAG386BIN}
-var
-  i : longint;
-{$endif}
-begin
-{$ifndef NOAG386BIN}
-  new(instabcache);
-  FillChar(instabcache^,sizeof(tinstabcache),$ff);
-  i:=0;
-  while (i<InsTabEntries) do
-   begin
-     if InsTabCache^[InsTab[i].OPcode]=-1 then
-      InsTabCache^[InsTab[i].OPcode]:=i;
-     inc(i);
-   end;
-{$endif NOAG386BIN}
-end;
 
     procedure inverse_flags(var f: TResFlags);
       const
@@ -972,6 +876,7 @@ end;
         f := flagsinvers[f];
       end;
 
+
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
@@ -980,18 +885,63 @@ end;
         result := flags_2_cond[f];
       end;
 
-procedure InitCpu;
-begin
+
+{*****************************************************************************
+                              Instruction table
+*****************************************************************************}
+
+    procedure BuildInsTabCache;
 {$ifndef NOAG386BIN}
-  if not assigned(instabcache) then
-    BuildInsTabCache;
+      var
+        i : longint;
+{$endif}
+      begin
+{$ifndef NOAG386BIN}
+        new(instabcache);
+        FillChar(instabcache^,sizeof(tinstabcache),$ff);
+        i:=0;
+        while (i<InsTabEntries) do
+         begin
+           if InsTabCache^[InsTab[i].OPcode]=-1 then
+            InsTabCache^[InsTab[i].OPcode]:=i;
+           inc(i);
+         end;
 {$endif NOAG386BIN}
-end;
+      end;
+
+
+    procedure InitCpu;
+      begin
+{$ifndef NOAG386BIN}
+        if not assigned(instabcache) then
+          BuildInsTabCache;
+{$endif NOAG386BIN}
+      end;
+
+
+    procedure DoneCpu;
+      begin
+{$ifndef NOAG386BIN}
+        if assigned(instabcache) then
+         dispose(instabcache);
+{$endif NOAG386BIN}
+      end;
 
 end.
 {
   $Log$
-  Revision 1.11  2002-03-31 20:26:37  jonas
+  Revision 1.12  2002-04-02 17:11:34  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.11  2002/03/31 20:26:37  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -43,7 +43,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif}
-       import,export,link;
+       import,export,link,rgobj;
 
   type
     timportlibwin32=class(timportlib)
@@ -207,12 +207,14 @@ implementation
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
+{$ifdef GDB}
          importname : string;
          suffix : integer;
+{$endif GDB}
          hp2 : timported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : tasmlabel;
-         r : preference;
+         href : treference;
       begin
          if (aktoutputformat<>as_i386_asw) and
             (aktoutputformat<>as_i386_pecoff) then
@@ -260,9 +262,7 @@ implementation
                  if not hp2.is_var then
                   begin
                     getlabel(lcode);
-                    new(r);
-                    reset_reference(r^);
-                    r^.symbol:=lcode;
+                    reference_reset_symbol(href,lcode,0);
                     { place jump in codesegment, insert a code section in the
                       importsection to reduce the amount of .s files (PFV) }
                     importsSection.concat(Tai_section.Create(sec_code));
@@ -271,7 +271,7 @@ implementation
                      importsSection.concat(Tai_stab_function_name.Create(nil));
 {$EndIf GDB}
                     importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
-                    importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,r));
+                    importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
                   end;
                  { create head link }
@@ -352,7 +352,7 @@ implementation
          l1,l2,l3,l4 : tasmlabel;
          importname : string;
          suffix : integer;
-         r : preference;
+         href : treference;
       begin
          if (aktoutputformat<>as_i386_asw) and
             (aktoutputformat<>as_i386_pecoff) then
@@ -411,13 +411,11 @@ implementation
                     begin
                       getlabel(l4);
                       { create indirect jump }
-                      new(r);
-                      reset_reference(r^);
-                      r^.symbol:=l4;
+                      reference_reset_symbol(href,l4,0);
                       { place jump in codesegment }
                       importsSection.concat(Tai_section.Create(sec_code));
                       importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
-                      importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,r));
+                      importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
                       { add jump field to importsection }
                       importsSection.concat(Tai_section.Create(sec_idata5));
@@ -1606,7 +1604,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-01-29 21:27:34  peter
+  Revision 1.24  2002-04-02 17:11:39  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.23  2002/01/29 21:27:34  peter
     * default alignment changed to 4 bytes for locals and static const,var
 
   Revision 1.22  2002/01/19 11:53:07  peter

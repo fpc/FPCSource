@@ -60,7 +60,7 @@ implementation
    uses
       verbose,systems,
       symconst,symdef,aasm,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       ncon,ncal,
       cpubase,
       cgobj,cga,tgobj,rgobj,rgcpu,n386util;
@@ -72,12 +72,12 @@ implementation
 
     procedure ti386typeconvnode.second_int_to_int;
       var
-        op      : tasmop;
-        opsize    : topsize;
-        hregister,
-        hregister2 : tregister;
-
+        newsize,
+        oldsize    : tcgsize;
       begin
+        newsize:=def_cgsize(resulttype.def);
+        oldsize:=def_cgsize(left.resulttype.def);
+
         { insert range check if not explicit conversion }
         if not(nf_explizit in flags) then
           cg.g_rangecheck(exprasmlist,left,resulttype.def);
@@ -85,105 +85,42 @@ implementation
         { is the result size smaller ? }
         if resulttype.def.size<left.resulttype.def.size then
           begin
-            { only need to set the new size of a register }
-            if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+            { reuse the left location by default }
+            location_copy(location,left.location);
+            location.size:=newsize;
+
+            { update the register to use }
+            if (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
              begin
-               case resulttype.def.size of
-                1 : location.register:=makereg8(left.location.register);
-                2 : location.register:=makereg16(left.location.register);
-                4 : location.register:=makereg32(left.location.register);
+               if oldsize in [OS_64,OS_S64] then
+                begin
+                  { we can release the upper register }
+                  rg.ungetregisterint(exprasmlist,location.registerhigh);
+                  location.registerhigh:=R_NO;
+                end;
+               case newsize of
+                 OS_8,OS_S8 :
+                   location.register:=makereg8(location.register);
+                 OS_16,OS_S16 :
+                   location.register:=makereg16(location.register);
+                 OS_32,OS_S32 :
+                   location.register:=makereg32(location.register);
                end;
-               { we can release the upper register }
-               if is_64bitint(left.resulttype.def) then
-                 rg.ungetregisterint(exprasmlist,left.location.registerhigh);
              end;
           end
 
         { is the result size bigger ? }
         else if resulttype.def.size>left.resulttype.def.size then
           begin
-            { remove reference }
-            if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              begin
-                rg.del_reference(exprasmlist,left.location.reference);
-                { we can do this here as we need no temp inside }
-                tg.ungetiftemp(exprasmlist,left.location.reference);
-              end;
-
-            { get op and opsize, handle separate for constants, because
-              movz doesn't support constant values }
-            if (left.location.loc=LOC_MEM) and (left.location.reference.is_immediate) then
-             begin
-               if is_64bitint(resulttype.def) then
-                 opsize:=S_L
-               else
-                 opsize:=def_opsize(resulttype.def);
-               op:=A_MOV;
-             end
-            else
-             begin
-               opsize:=def2def_opsize(left.resulttype.def,resulttype.def);
-               if opsize in [S_B,S_W,S_L] then
-                op:=A_MOV
-               else
-                if is_signed(left.resulttype.def) then
-                 op:=A_MOVSX
-                else
-                 op:=A_MOVZX;
-             end;
-            { load the register we need }
-            if left.location.loc<>LOC_REGISTER then
-              hregister:=rg.getregisterint(exprasmlist)
-            else
-              hregister:=left.location.register;
-
-            { set the correct register size and location }
-            clear_location(location);
-            location.loc:=LOC_REGISTER;
-
-            { do we need a second register for a 64 bit type ? }
-            if is_64bitint(resulttype.def) then
-              begin
-                 hregister2:=rg.getregisterint(exprasmlist);
-                 location.registerhigh:=hregister2;
-              end;
-            case resulttype.def.size of
-             1:
-               location.register:=makereg8(hregister);
-             2:
-               location.register:=makereg16(hregister);
-             4,8:
-               location.register:=makereg32(hregister);
-            end;
-            { insert the assembler code }
-            if left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-              emit_reg_reg(op,opsize,left.location.register,location.register)
-            else
-              emit_ref_reg(op,opsize,
-                newreference(left.location.reference),location.register);
-
-            { do we need a sign extension for int64? }
-            if is_64bitint(resulttype.def) then
-              { special case for constants (JM) }
-              if is_constintnode(left) then
-                begin
-                  if tordconstnode(left).value >= 0 then
-                    emit_reg_reg(A_XOR,S_L,
-                      hregister2,hregister2)
-                  else
-                    emit_const_reg(A_MOV,S_L,longint($ffffffff),hregister2);
-                end
-              else
-                begin
-                  if (torddef(resulttype.def).typ=s64bit) and
-                     is_signed(left.resulttype.def) then
-                    begin
-                      emit_reg_reg(A_MOV,S_L,location.register,hregister2);
-                      emit_const_reg(A_SAR,S_L,31,hregister2);
-                    end
-                   else
-                     emit_reg_reg(A_XOR,S_L,hregister2,hregister2);
-                end;
+            { we need to load the value in a register }
+            location_copy(location,left.location);
+            location_force_reg(location,newsize,false);
+          end
+        else
+          begin
+            { no special loading is required, reuse current location }
+            location_copy(location,left.location);
+            location.size:=newsize;
           end;
       end;
 
@@ -191,68 +128,75 @@ implementation
     procedure ti386typeconvnode.second_int_to_real;
 
       var
-         r : preference;
+         r : treference;
          hregister : tregister;
          l1,l2 : tasmlabel;
 
       begin
+         location_reset(location,LOC_FPUREGISTER,OS_NO);
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
          hregister:=R_EDI;
          if torddef(left.resulttype.def).typ=u32bit then
             push_int(0);
-         if (left.location.loc=LOC_REGISTER) or
-            (left.location.loc=LOC_CREGISTER) then
-           begin
-              if not (torddef(left.resulttype.def).typ in [u32bit,s32bit,u64bit,s64bit]) then
+
+         case left.location.loc of
+           LOC_REGISTER,
+           LOC_CREGISTER :
+             begin
+                if not (torddef(left.resulttype.def).typ in [u32bit,s32bit,u64bit,s64bit]) then
+                  rg.getexplicitregisterint(exprasmlist,R_EDI);
+                case torddef(left.resulttype.def).typ of
+                   s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
+                   u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
+                   s16bit : emit_reg_reg(A_MOVSX,S_WL,left.location.register,R_EDI);
+                   u16bit : emit_reg_reg(A_MOVZX,S_WL,left.location.register,R_EDI);
+                   u32bit,s32bit:
+                     hregister:=left.location.register;
+                   u64bit,s64bit:
+                     begin
+                        emit_reg(A_PUSH,S_L,left.location.registerhigh);
+                        hregister:=left.location.registerlow;
+                     end;
+                end;
+              end;
+            LOC_REFERENCE,
+            LOC_CREFERENCE :
+              begin
+                r:=left.location.reference;
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-              case torddef(left.resulttype.def).typ of
-                 s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
-                 u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
-                 s16bit : emit_reg_reg(A_MOVSX,S_WL,left.location.register,R_EDI);
-                 u16bit : emit_reg_reg(A_MOVZX,S_WL,left.location.register,R_EDI);
-                 u32bit,s32bit:
-                   hregister:=left.location.register;
-                 u64bit,s64bit:
-                   begin
-                      emit_reg(A_PUSH,S_L,left.location.registerhigh);
-                      hregister:=left.location.registerlow;
-                   end;
-              end;
-              rg.ungetregister(exprasmlist,left.location.register);
-           end
-         else
-           begin
-              r:=newreference(left.location.reference);
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
-              case torddef(left.resulttype.def).typ of
-                 s8bit:
-                   emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
-                 u8bit:
-                   emit_ref_reg(A_MOVZX,S_BL,r,R_EDI);
-                 s16bit:
-                   emit_ref_reg(A_MOVSX,S_WL,r,R_EDI);
-                 u16bit:
-                   emit_ref_reg(A_MOVZX,S_WL,r,R_EDI);
-                 u32bit,s32bit:
-                   emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                 u64bit,s64bit:
-                   begin
-                      inc(r^.offset,4);
-                      emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                      emit_reg(A_PUSH,S_L,R_EDI);
-                      r:=newreference(left.location.reference);
-                      emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                   end;
-              end;
-              rg.del_reference(exprasmlist,left.location.reference);
-              tg.ungetiftemp(exprasmlist,left.location.reference);
-           end;
+                case torddef(left.resulttype.def).typ of
+                   s8bit:
+                     emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
+                   u8bit:
+                     emit_ref_reg(A_MOVZX,S_BL,r,R_EDI);
+                   s16bit:
+                     emit_ref_reg(A_MOVSX,S_WL,r,R_EDI);
+                   u16bit:
+                     emit_ref_reg(A_MOVZX,S_WL,r,R_EDI);
+                   u32bit,s32bit:
+                     emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                   u64bit,s64bit:
+                     begin
+                        inc(r.offset,4);
+                        emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                        emit_reg(A_PUSH,S_L,R_EDI);
+                        r:=left.location.reference;
+                        emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                     end;
+                end;
+             end;
+           else
+             internalerror(2002032218);
+         end;
+         location_release(exprasmlist,left.location);
+         location_freetemp(exprasmlist,left.location);
+
          { for 64 bit integers, the high dword is already pushed }
          emit_reg(A_PUSH,S_L,hregister);
          if hregister = R_EDI then
            rg.ungetregisterint(exprasmlist,R_EDI);
-         r:=new_reference(R_ESP,0);
+         reference_reset_base(r,R_ESP,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
              begin
@@ -270,14 +214,14 @@ implementation
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
-                inc(r^.offset,4);
+                inc(r.offset,4);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                 emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                r:=new_reference(R_ESP,4);
+                reference_reset_base(r,R_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,r);
                 emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
                 rg.ungetregisterint(exprasmlist,R_EDI);
-                r:=new_reference(R_ESP,0);
+                reference_reset_base(r,R_ESP,0);
                 emit_ref(A_FILD,S_IQ,r);
                 getdatalabel(l1);
                 getlabel(l2);
@@ -286,8 +230,7 @@ implementation
                 { I got this constant from a test progtram (FK) }
                 Consts.concat(Tai_const.Create_32bit(0));
                 Consts.concat(Tai_const.Create_32bit(1138753536));
-                r:=new_reference(R_NO,0);
-                r^.symbol:=l1;
+                reference_reset_symbol(r,l1,0);
                 emit_ref(A_FADD,S_FL,r);
                 emitlab(l2);
                 emit_const_reg(A_ADD,S_L,8,R_ESP);
@@ -301,8 +244,6 @@ implementation
              end;
          end;
          inc(trgcpu(rg).fpuvaroffset);
-         clear_location(location);
-         location.loc:=LOC_FPU;
          location.register:=R_ST;
       end;
 
@@ -310,68 +251,104 @@ implementation
     procedure ti386typeconvnode.second_int_to_bool;
       var
         hregister : tregister;
-        resflags  : tresflags;
+        leftopsize,
         opsize    : topsize;
-        pref      : preference;
+        pref      : treference;
+        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
       begin
-         clear_location(location);
+         oldtruelabel:=truelabel;
+         oldfalselabel:=falselabel;
+         getlabel(truelabel);
+         getlabel(falselabel);
+         secondpass(left);
+         if codegenerror then
+          exit;
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
-              set_location(location,left.location);
+              location_copy(location,left.location);
+              truelabel:=oldtruelabel;
+              falselabel:=oldfalselabel;
               exit;
            end;
-         location.loc:=LOC_REGISTER;
-         rg.del_location(exprasmlist,left.location);
-         opsize:=def_opsize(left.resulttype.def);
+         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+         location_release(exprasmlist,left.location);
+
+         opsize:=def_opsize(resulttype.def);
+         leftopsize:=def_opsize(left.resulttype.def);
          case left.location.loc of
-            LOC_MEM,LOC_REFERENCE :
+            LOC_CREFERENCE,LOC_REFERENCE :
               begin
                 if is_64bitint(left.resulttype.def) then
                  begin
                    hregister:=rg.getregisterint(exprasmlist);
-                   emit_ref_reg(A_MOV,opsize,
-                     newreference(left.location.reference),hregister);
-                   pref:=newreference(left.location.reference);
-                   inc(pref^.offset,4);
-                   emit_reg_ref(A_OR,opsize,
-                     hregister,pref);
+                   emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
+                   pref:=left.location.reference;
+                   inc(pref.offset,4);
+                   emit_ref_reg(A_OR,S_L,pref,hregister);
                  end
                 else
                  begin
                    hregister:=def_getreg(left.resulttype.def);
-                   emit_ref_reg(A_MOV,opsize,
-                     newreference(left.location.reference),hregister);
-                   emit_reg_reg(A_OR,opsize,hregister,hregister);
+                   emit_ref_reg(A_MOV,leftopsize,left.location.reference,hregister);
                  end;
-                resflags:=F_NE;
+              end;
+            LOC_CONSTANT :
+              begin
+                if is_64bitint(left.resulttype.def) then
+                 begin
+                   hregister:=def_getreg(left.resulttype.def);
+                   emit_const_reg(A_MOV,S_L,left.location.valuelow,hregister);
+                   emit_const_reg(A_OR,S_L,left.location.valuehigh,hregister);
+                 end
+                else
+                 begin
+                   hregister:=def_getreg(left.resulttype.def);
+                   emit_const_reg(A_MOV,leftopsize,left.location.value,hregister);
+                 end;
               end;
             LOC_FLAGS :
               begin
-                hregister:=rg.getregisterint(exprasmlist);
-                resflags:=left.location.resflags;
+                hregister:=def_getreg(left.resulttype.def);
+                emit_flag2reg(left.location.resflags,hregister);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hregister:=left.location.register;
-                emit_reg_reg(A_OR,opsize,hregister,hregister);
-                resflags:=F_NE;
+              end;
+            LOC_JUMP :
+              begin
+                hregister:=def_getreg(left.resulttype.def);
+                getlabel(hlabel);
+                cg.a_label(exprasmlist,truelabel);
+                cg.a_load_const_reg(exprasmlist,def_cgsize(left.resulttype.def),1,hregister);
+                cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
+                cg.a_label(exprasmlist,falselabel);
+                cg.a_load_const_reg(exprasmlist,def_cgsize(left.resulttype.def),0,hregister);
+                cg.a_label(exprasmlist,hlabel);
               end;
             else
               internalerror(10062);
          end;
-         case resulttype.def.size of
-          1 : location.register:=makereg8(hregister);
-          2 : location.register:=makereg16(hregister);
-          4 : location.register:=makereg32(hregister);
-         else
-          internalerror(10064);
+         emit_reg(A_NEG,leftopsize,hregister);
+         case opsize of
+           S_B :
+             location.register:=makereg8(hregister);
+           S_W :
+             location.register:=makereg16(hregister);
+           S_L :
+             location.register:=makereg32(hregister);
+           else
+            internalerror(10064);
          end;
-         emit_flag2reg(resflags,location.register);
-      end;
+         emit_reg_reg(A_SBB,opsize,location.register,location.register);
+         emit_reg(A_NEG,opsize,location.register);
+         truelabel:=oldtruelabel;
+         falselabel:=oldfalselabel;
+       end;
 
 
 {****************************************************************************
@@ -397,7 +374,7 @@ implementation
            @second_pointer_to_array,
            @second_int_to_int,
            @second_int_to_bool,
-           @second_bool_to_int, { bool_to_bool }
+           @second_bool_to_bool,
            @second_bool_to_int,
            @second_real_to_real,
            @second_int_to_real,
@@ -436,18 +413,16 @@ implementation
          nillabel : plabel;
 {$endif TESTOBJEXT2}
       begin
+        { the boolean routines can be called with LOC_JUMP and
+          call secondpass themselves in the helper }
+        if not(convtype in [tc_bool_2_int,tc_bool_2_bool,tc_int_2_bool]) then
+         begin
+           secondpass(left);
+           if codegenerror then
+            exit;
+         end;
 
-         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                 }
-
-         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
-           begin
-              secondpass(left);
-              set_location(location,left.location);
-              if codegenerror then
-               exit;
-           end;
-         second_call_helper(convtype);
+        second_call_helper(convtype);
 
 {$ifdef TESTOBJEXT2}
                   { Check explicit conversions to objects pointers !! }
@@ -493,7 +468,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-03-31 20:26:38  jonas
+  Revision 1.32  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.31  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

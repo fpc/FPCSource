@@ -132,60 +132,52 @@ interface
     var
       s : string;
     begin
-      if ref.is_immediate then
+      with ref do
        begin
-         internalerror(1000101);
-         exit;
-       end
-      else
-       begin
-         with ref do
-          begin
-            inc(offset,offsetfixup);
-            offsetfixup:=0;
-          { have we a segment prefix ? }
-          { These are probably not correctly handled under GAS }
-          { should be replaced by coding the segment override  }
-          { directly! - DJGPP FAQ                              }
-            if segment<>R_NO then
-             s:=att_reg2str[segment]+':'
-            else
-             s:='';
-            if assigned(symbol) then
-             s:=s+symbol.name;
-            if offset<0 then
-             s:=s+tostr(offset)
-            else
-             if (offset>0) then
-              begin
-                if assigned(symbol) then
-                 s:=s+'+'+tostr(offset)
-                else
-                 s:=s+tostr(offset);
-              end
-            else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
-              s:=s+'0';
-            if (index<>R_NO) and (base=R_NO) then
-             begin
-               s:=s+'(,'+att_reg2str[index];
-               if scalefactor<>0 then
-                s:=s+','+tostr(scalefactor)+')'
-               else
-                s:=s+')';
-             end
-            else
-             if (index=R_NO) and (base<>R_NO) then
-              s:=s+'('+att_reg2str[base]+')'
+         inc(offset,offsetfixup);
+         offsetfixup:=0;
+       { have we a segment prefix ? }
+       { These are probably not correctly handled under GAS }
+       { should be replaced by coding the segment override  }
+       { directly! - DJGPP FAQ                              }
+         if segment<>R_NO then
+          s:=att_reg2str[segment]+':'
+         else
+          s:='';
+         if assigned(symbol) then
+          s:=s+symbol.name;
+         if offset<0 then
+          s:=s+tostr(offset)
+         else
+          if (offset>0) then
+           begin
+             if assigned(symbol) then
+              s:=s+'+'+tostr(offset)
              else
-              if (index<>R_NO) and (base<>R_NO) then
-               begin
-                 s:=s+'('+att_reg2str[base]+','+att_reg2str[index];
-                 if scalefactor<>0 then
-                  s:=s+','+tostr(scalefactor)+')'
-                 else
-                  s := s+')';
-               end;
-          end;
+              s:=s+tostr(offset);
+           end
+         else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+           s:=s+'0';
+         if (index<>R_NO) and (base=R_NO) then
+          begin
+            s:=s+'(,'+att_reg2str[index];
+            if scalefactor<>0 then
+             s:=s+','+tostr(scalefactor)+')'
+            else
+             s:=s+')';
+          end
+         else
+          if (index=R_NO) and (base<>R_NO) then
+           s:=s+'('+att_reg2str[base]+')'
+          else
+           if (index<>R_NO) and (base<>R_NO) then
+            begin
+              s:=s+'('+att_reg2str[base]+','+att_reg2str[index];
+              if scalefactor<>0 then
+               s:=s+','+tostr(scalefactor)+')'
+              else
+               s := s+')';
+            end;
        end;
       getreferencestring:=s;
     end;
@@ -200,7 +192,7 @@ interface
         top_ref :
           getopstr:=getreferencestring(o.ref^);
         top_const :
-          getopstr:='$'+tostr(o.val);
+          getopstr:='$'+tostr(longint(o.val));
         top_symbol :
           begin
             if assigned(o.sym) then
@@ -232,7 +224,7 @@ interface
         top_ref :
           getopstr_jmp:='*'+getreferencestring(o.ref^);
         top_const :
-          getopstr_jmp:=tostr(o.val);
+          getopstr_jmp:=tostr(longint(o.val));
         top_symbol :
           begin
             hs:=o.sym.name;
@@ -949,7 +941,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-12-29 15:29:58  jonas
+  Revision 1.13  2002-04-02 17:11:33  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.12  2001/12/29 15:29:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

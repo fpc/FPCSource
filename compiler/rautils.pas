@@ -1030,7 +1030,7 @@ Begin
       Message(asmr_e_invalid_operand_type);
   end;
   opr.typ := OPR_REFERENCE;
-  reset_reference(opr.ref);
+  Fillchar(opr.ref,sizeof(treference),0);
 end;
 
 
@@ -1585,7 +1585,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2002-01-29 21:32:03  peter
+  Revision 1.28  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.27  2002/01/29 21:32:03  peter
     * allow accessing locals in other lexlevel when the current assembler
       routine doesn't have locals.
 

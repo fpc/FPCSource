@@ -420,7 +420,7 @@ implementation
                 internalerror(200110101);
 
               if (abs(p.left.registers32-p.right.registers32)<r32) or
-                 ((p.location.loc = LOC_FPU) and
+                 ((p.location.loc = LOC_FPUREGISTER) and
                   (p.right.registersfpu <= p.left.registersfpu) and
                   ((p.right.registersfpu <> 0) or (p.left.registersfpu <> 0)) and
                   (p.left.registers32   < p.right.registers32)) then
@@ -440,8 +440,8 @@ implementation
               if (p.left.registers32=p.right.registers32) and
                  (p.registers32=p.left.registers32) and
                  (p.registers32>0) and
-                (p.left.location.loc in [LOC_REFERENCE,LOC_MEM]) and
-                (p.right.location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                (p.left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+                (p.right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 inc(p.registers32);
             end
            else
@@ -938,7 +938,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-01-16 09:33:46  jonas
+  Revision 1.42  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.41  2002/01/16 09:33:46  jonas
     * no longer allow assignments to pointer expressions (unless there's a
       deref), reported by John Lee
 

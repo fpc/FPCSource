@@ -37,7 +37,7 @@ uses
   fmodule,
   nobj,
   cpubase,
-  cga, tgobj;
+  cga,tgobj,rgobj;
 
    type
      ti386classheader=class(tclassheader)
@@ -108,40 +108,56 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   end;
 
   procedure adjustselfvalue(ioffset: longint);
+  var
+    href : treference;
   begin
     { sub $ioffset,offset(%esp) }
-    emit_const_ref(A_SUB,S_L,ioffset,new_reference(R_ESP,getselfoffsetfromsp(procdef)));
+    reference_reset_base(href,R_ESP,getselfoffsetfromsp(procdef));
+    emit_const_ref(A_SUB,S_L,ioffset,href);
   end;
 
   procedure getselftoeax(offs: longint);
+  var
+    href : treference;
   begin
     { mov offset(%esp),%eax }
-    emit_ref_reg(A_MOV,S_L,new_reference(R_ESP,getselfoffsetfromsp(procdef)),R_EAX);
+    reference_reset_base(href,R_ESP,getselfoffsetfromsp(procdef));
+    emit_ref_reg(A_MOV,S_L,href,R_EAX);
   end;
 
   procedure loadvmttoeax;
+  var
+    href : treference;
   begin
     checkvirtual;
     { mov  0(%eax),%eax ; load vmt}
-    emit_ref_reg(A_MOV,S_L,new_reference(R_EAX,0),R_EAX);
+    reference_reset_base(href,R_EAX,0);
+    emit_ref_reg(A_MOV,S_L,href,R_EAX);
   end;
 
   procedure op_oneaxmethodaddr(op: TAsmOp);
+  var
+    href : treference;
   begin
     { call/jmp  vmtoffs(%eax) ; method offs }
-    emit_ref(op,S_L,new_reference(R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber)));
+    reference_reset_base(href,R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+    emit_ref(op,S_L,href);
   end;
 
   procedure loadmethodoffstoeax;
+  var
+    href : treference;
   begin
     { mov  vmtoffs(%eax),%eax ; method offs }
-    emit_ref_reg(A_MOV,S_L,new_reference(R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber)),R_EAX);
+    reference_reset_base(href,R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+    emit_ref_reg(A_MOV,S_L,href,R_EAX);
   end;
 
 var
   oldexprasmlist: TAAsmoutput;
   lab : tasmsymbol;
   make_global : boolean;
+  href : treference;
 begin
   if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
@@ -194,7 +210,8 @@ begin
       loadvmttoeax;
       loadmethodoffstoeax;
       { mov %eax,4(%esp) }
-      emit_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,4));
+      reference_reset_base(href,R_ESP,4);
+      emit_reg_ref(A_MOV,S_L,R_EAX,href);
       { pop  %eax }
       emit_reg(A_POP,S_L,R_EAX);
       { ret  ; jump to the address }
@@ -222,7 +239,18 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2002-03-31 20:26:39  jonas
+  Revision 1.6  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.5  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

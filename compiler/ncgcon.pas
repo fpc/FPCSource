@@ -66,8 +66,8 @@ implementation
       globtype,widestr,systems,
       verbose,globals,
       symconst,symdef,aasm,types,
-      cpubase,
-      tgobj;
+      cpuinfo,cpubase,
+      cginfo,cgbase,tgobj,rgobj;
 
 
 {*****************************************************************************
@@ -88,6 +88,7 @@ implementation
          realait : tait;
 
       begin
+        location_reset(location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resulttype.def).typ];
         { const already used ? }
@@ -141,9 +142,7 @@ implementation
                   end;
                end;
           end;
-        reset_reference(location.reference);
         location.reference.symbol:=lab_real;
-        location.loc:=LOC_MEM;
       end;
 
 {*****************************************************************************
@@ -155,26 +154,9 @@ implementation
          l : tasmlabel;
 
       begin
-         location.loc:=LOC_MEM;
-         { still needs to be made more generic (and optimal), this is for }
-         { when Peter implements LOC_ORDCONST (JM)                        }
-         if is_64bitint(resulttype.def) then
-           begin
-              getdatalabel(l);
-              if (cs_create_smart in aktmoduleswitches) then
-                Consts.concat(Tai_cut.Create);
-              Consts.concat(Tai_label.Create(l));
-              Consts.concat(Tai_const.Create_32bit(longint(value)));
-              Consts.concat(Tai_const.Create_32bit(longint(value shr 32)));
-              reset_reference(location.reference);
-              location.reference.symbol:=l;
-           end
-         else
-           begin
-              { non int64 const. behaves as a memory reference }
-              location.reference.is_immediate:=true;
-              location.reference.offset:=longint(value);
-           end;
+         location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
+         location.valuelow:=AWord(value);
+         location.valuehigh:=AWord(value shr 32);
       end;
 
 
@@ -185,9 +167,8 @@ implementation
     procedure tcgpointerconstnode.pass_2;
       begin
          { an integer const. behaves as a memory reference }
-         location.loc:=LOC_MEM;
-         location.reference.is_immediate:=true;
-         location.reference.offset:=longint(value);
+         location_reset(location,LOC_CONSTANT,OS_ADDR);
+         location.value:=AWord(value);
       end;
 
 
@@ -202,19 +183,24 @@ implementation
          lastlabel   : tasmlabel;
          pc       : pchar;
          same_string : boolean;
+         size : tcgsize;
          l,j,
          i,mylength  : longint;
       begin
          { for empty ansistrings we could return a constant 0 }
-         if (is_ansistring(resulttype.def) or
-             is_widestring(resulttype.def)) and
+         if (st_type in [st_ansistring,st_widestring]) and
             (len=0) then
           begin
-            location.loc:=LOC_MEM;
-            location.reference.is_immediate:=true;
-            location.reference.offset:=0;
+            location_reset(location,LOC_CONSTANT,OS_ADDR);
+            location.value:=0;
             exit;
           end;
+         { return a constant reference in memory }
+         if (st_type in [st_ansistring,st_widestring]) then
+          size:=OS_ADDR
+         else
+          size:=def_cgsize_ref(resulttype.def);
+         location_reset(location,LOC_CREFERENCE,size);
          { const already used ? }
          lastlabel:=nil;
          if not assigned(lab_str) then
@@ -367,9 +353,7 @@ implementation
                    end;
                 end;
            end;
-         reset_reference(location.reference);
          location.reference.symbol:=lab_str;
-         location.loc:=LOC_MEM;
       end;
 
 
@@ -387,11 +371,11 @@ implementation
         { small sets are loaded as constants }
         if tsetdef(resulttype.def).settype=smallset then
          begin
-           location.loc:=LOC_MEM;
-           location.reference.is_immediate:=true;
-           location.reference.offset:=plongint(value_set)^;
+           location_reset(location,LOC_CONSTANT,OS_32);
+           location.value:=PAWord(value_set)^;
            exit;
          end;
+        location_reset(location,LOC_CREFERENCE,OS_NO);
         neededtyp:=ait_const_8bit;
         lastlabel:=nil;
         { const already used ? }
@@ -464,9 +448,7 @@ implementation
                   end;
                end;
           end;
-        reset_reference(location.reference);
         location.reference.symbol:=lab_set;
-        location.loc:=LOC_MEM;
       end;
 
 
@@ -476,9 +458,8 @@ implementation
 
     procedure tcgnilnode.pass_2;
       begin
-         location.loc:=LOC_MEM;
-         location.reference.is_immediate:=true;
-         location.reference.offset:=0;
+         location_reset(location,LOC_CONSTANT,OS_ADDR);
+         location.value:=0;
       end;
 
 
@@ -491,7 +472,7 @@ implementation
         tmplabel : TAsmLabel;
         i : integer;
       begin
-        location.loc:=LOC_MEM;
+        location_reset(location,LOC_CREFERENCE,OS_NO);
         { label for GUID }
         getdatalabel(tmplabel);
         consts.concat(Tai_label.Create(tmplabel));
@@ -500,7 +481,6 @@ implementation
         consts.concat(Tai_const.Create_16bit(value.D3));
         for i:=Low(value.D4) to High(value.D4) do
           consts.concat(Tai_const.Create_8bit(value.D4[i]));
-        reset_reference(location.reference);
         location.reference.symbol:=tmplabel;
       end;
 
@@ -516,7 +496,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-03-31 20:26:34  jonas
+  Revision 1.6  2002-04-02 17:11:28  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.5  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -440,8 +440,7 @@ implementation
          if assigned(exceptsymtable) then
            tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
 
-         emit_reg_ref(A_MOV,S_L,
-           R_EAX,newreference(ref));
+         emit_reg_ref(A_MOV,S_L,R_EAX,ref);
          { deallocate eax }
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
 
@@ -737,7 +736,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-03-31 20:26:38  jonas
+  Revision 1.21  2002-04-02 17:11:36  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.20  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

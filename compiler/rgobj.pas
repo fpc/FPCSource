@@ -32,7 +32,7 @@ unit rgobj;
       cpuinfo,
       cpuasm,
       tainst,
-      cclasses,globtype,cgbase,aasm,node;
+      cclasses,globtype,cginfo,cgbase,aasm,node;
 
     type
        regvar_longintarray = array[firstreg..lastreg] of longint;
@@ -97,17 +97,11 @@ unit rgobj;
           { deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
 
+          { deallocate any kind of register }
+          procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
+
           { reset the register allocator information (usable registers etc) }
           procedure cleartempgen;virtual;
-
-          { deallocate the registers of a reference }
-          procedure del_reference(list: taasmoutput; const ref : treference);virtual;
-
-          { deallocate the registers of a location if it's a reference }
-          procedure del_locref(list: taasmoutput; const location : tlocation);
-
-          { deallocate the registers of a location }
-          procedure del_location(list: taasmoutput; const l : tlocation);
 
           { saves register variables (restoring happens automatically) }
           procedure saveregvars(list: taasmoutput; const s: tregisterset);
@@ -153,6 +147,19 @@ unit rgobj;
 
      var
        rg: trgobj;
+
+     { trerefence handling }
+     procedure reference_reset(var ref : treference);
+     procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
+     procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+     procedure reference_release(list: taasmoutput; const ref : treference);
+
+     { tlocation handling }
+     procedure location_reset(var l : tlocation;lt:TLoc;lsize:TCGSize);
+     procedure location_release(list: taasmoutput; const l : tlocation);
+     procedure location_freetemp(list: taasmoutput; const l : tlocation);
+     procedure location_copy(var destloc,sourceloc : tlocation);
+     procedure location_swap(var destloc,sourceloc : tlocation);
 
 
   implementation
@@ -390,32 +397,11 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.del_reference(list : taasmoutput; const ref : treference);
+    procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
 
       begin
          ungetregister(list,ref.base);
          ungetregister(list,ref.index);
-      end;
-
-
-    procedure trgobj.del_locref(list : taasmoutput; const location : tlocation);
-
-      begin
-         if (location.loc<>LOC_MEM) and (location.loc<>LOC_REFERENCE) then
-           exit;
-         del_reference(list,location.reference);
-      end;
-
-
-    procedure trgobj.del_location(list : taasmoutput; const l : tlocation);
-
-      begin
-         case l.loc of
-           LOC_REGISTER :
-             ungetregister(list,l.register);
-           LOC_MEM,LOC_REFERENCE :
-             del_reference(list,l.reference);
-         end;
       end;
 
 
@@ -534,9 +520,7 @@ unit rgobj;
             begin
               if saved[r].ofs <> reg_not_saved then
                 begin
-                  reset_reference(hr);
-                  hr.base:=frame_pointer;
-                  hr.offset:=saved[r].ofs;
+                  reference_reset_base(hr,frame_pointer,saved[r].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadmm_ref_reg(list,hr,r);
                   if not (r in unusedregsmm) then
@@ -558,9 +542,7 @@ unit rgobj;
             begin
               if saved[r].ofs <> reg_not_saved then
                 begin
-                  reset_reference(hr);
-                  hr.base:=frame_pointer;
-                  hr.offset:=saved[r].ofs;
+                  reference_reset_base(hr,frame_pointer,saved[r].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
                   if not (r in unusedregsfpu) then
@@ -581,9 +563,7 @@ unit rgobj;
           begin
             if saved[r].ofs <> reg_not_saved then
               begin
-                reset_reference(hr);
-                hr.base:=frame_pointer;
-                hr.offset:=saved[r].ofs;
+                reference_reset_base(hr,frame_pointer,saved[r].ofs);
                 cg.a_reg_alloc(list,r);
                 cg.a_load_ref_reg(list,OS_INT,hr,r);
                 if not (r in unusedregsint) then
@@ -773,13 +753,107 @@ unit rgobj;
         state := nil;
       end;
 
+
+{****************************************************************************
+                                  TReference
+****************************************************************************}
+
+    procedure reference_reset(var ref : treference);
+      begin
+        FillChar(ref,sizeof(treference),0);
+      end;
+
+
+    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
+      begin
+        FillChar(ref,sizeof(treference),0);
+        ref.base:=base;
+        ref.offset:=offset;
+      end;
+
+
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+      begin
+        FillChar(ref,sizeof(treference),0);
+        ref.symbol:=sym;
+        ref.offset:=offset;
+      end;
+
+
+    procedure reference_release(list: taasmoutput; const ref : treference);
+      begin
+        rg.ungetreference(list,ref);
+      end;
+
+
+{****************************************************************************
+                                  TLocation
+****************************************************************************}
+
+    procedure location_reset(var l : tlocation;lt:TLoc;lsize:TCGSize);
+      begin
+        FillChar(l,sizeof(tlocation),0);
+        l.loc:=lt;
+        l.size:=lsize;
+      end;
+
+
+    procedure location_release(list: taasmoutput; const l : tlocation);
+      begin
+        case l.loc of
+          LOC_REGISTER,LOC_CREGISTER :
+            begin
+              rg.ungetregisterint(list,l.register);
+              if l.size in [OS_64,OS_S64] then
+               rg.ungetregisterint(list,l.registerhigh);
+            end;
+          LOC_CREFERENCE,LOC_REFERENCE :
+            rg.ungetreference(list, l.reference);
+        end;
+      end;
+
+
+    procedure location_freetemp(list:taasmoutput; const l : tlocation);
+      begin
+        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         tg.ungetiftemp(list,l.reference);
+      end;
+
+
+    procedure location_copy(var destloc,sourceloc : tlocation);
+      begin
+        destloc:=sourceloc;
+      end;
+
+
+    procedure location_swap(var destloc,sourceloc : tlocation);
+      var
+        swapl : tlocation;
+      begin
+        swapl := destloc;
+        destloc := sourceloc;
+        sourceloc := swapl;
+      end;
+
+
 finalization
   rg.free;
 end.
 
 {
   $Log$
-  Revision 1.2  2002-04-01 19:24:25  jonas
+  Revision 1.3  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.2  2002/04/01 19:24:25  jonas
     * fixed different parameter name in interface and implementation
       declaration of a method (only 1.0.x detected this)
 

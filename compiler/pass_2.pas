@@ -53,7 +53,7 @@ implementation
      globtype,systems,verbose,
      cclasses,globals,
      symconst,symbase,symtype,symsym,aasm,
-     pass_1,cgbase,regvars,nflw,rgobj;
+     pass_1,cpubase,cgbase,regvars,nflw,rgobj;
 
 {*****************************************************************************
                               SecondPass
@@ -163,6 +163,9 @@ implementation
 {$ifdef TEMPREGDEBUG}
          prevp : pptree;
 {$endif TEMPREGDEBUG}
+{$ifdef EXTDEBUG}
+         oldloc : tloc;
+{$endif EXTDEBUG}
       begin
          if not(nf_error in p.flags) then
           begin
@@ -178,6 +181,10 @@ implementation
             aktfilepos:=p.fileinfo;
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
+{$ifdef EXTDEBUG}
+            oldloc:=p.location.loc;
+            p.location.loc:=LOC_INVALID;
+{$endif EXTDEBUG}
 {$ifdef logsecondpass}
             logsecond(p.nodetype,true);
 {$endif logsecondpass}
@@ -185,6 +192,12 @@ implementation
 {$ifdef logsecondpass}
             logsecond(p.nodetype,false);
 {$endif logsecondpass}
+{$ifdef EXTDEBUG}
+            if (not codegenerror) and
+               (oldloc<>LOC_INVALID) and
+               (p.location.loc=LOC_INVALID) then
+             Comment(V_Fatal,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
+{$endif EXTDEBUG}
             if codegenerror then
               include(p.flags,nf_error);
 
@@ -311,7 +324,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-03-31 20:26:35  jonas
+  Revision 1.23  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.22  2002/03/31 20:26:35  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

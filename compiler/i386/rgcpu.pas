@@ -46,7 +46,7 @@ unit rgcpu;
           function getregisterfpu(list: taasmoutput) : tregister; override;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
 
-          procedure del_reference(list: taasmoutput; const ref : treference); override;
+          procedure ungetreference(list: taasmoutput; const ref : treference); override;
 
           { pushes and restores registers }
           procedure pushusedregisters(list: taasmoutput;
@@ -179,11 +179,9 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.del_reference(list: taasmoutput; const ref : treference);
+    procedure trgcpu.ungetreference(list: taasmoutput; const ref : treference);
 
       begin
-         if ref.is_immediate then
-           exit;
          ungetregisterint(list,ref.base);
          ungetregisterint(list,ref.index);
       end;
@@ -194,7 +192,7 @@ unit rgcpu;
 
       var
         r: tregister;
-        hr: preference;
+        hr: treference;
       begin
         usedinproc:=usedinproc + s;
         for r:=R_EAX to R_EBX do
@@ -224,9 +222,7 @@ unit rgcpu;
                not(r in unusedregsmm) then
               begin
                 list.concat(Taicpu.Op_const_reg(A_SUB,S_L,8,R_ESP));
-                new(hr);
-                reset_reference(hr^);
-                hr^.base:=R_ESP;
+                reference_reset_base(hr,R_ESP,0);
                 list.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r,hr));
                 include(unusedregsmm,r);
                 inc(countunusedregsmm);
@@ -246,7 +242,7 @@ unit rgcpu;
       var
         r : tregister;
 {$ifdef SUPPORT_MMX}
-        hr : preference;
+        hr : treference;
 {$endif SUPPORT_MMX}
       begin
         { restore in reverse order: }
@@ -254,9 +250,7 @@ unit rgcpu;
         for r:=R_MM6 downto R_MM0 do
           if pushed[r].pushed then
             begin
-              new(hr);
-              reset_reference(hr^);
-              hr^.base:=R_ESP;
+              reference_reset_base(hr,R_ESP,0);
               list.concat(Taicpu.Op_ref_reg(
                 A_MOVQ,S_NO,hr,r));
               list.concat(Taicpu.Op_const_reg(
@@ -334,7 +328,18 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-31 20:26:40  jonas
+  Revision 1.2  2002-04-02 17:11:39  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.1  2002/03/31 20:26:40  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

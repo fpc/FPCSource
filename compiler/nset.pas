@@ -160,7 +160,7 @@ implementation
          if codegenerror then
           exit;
 
-         set_location(location,left.location);
+         location_copy(location,left.location);
          calcregisters(self,0,0,0);
       end;
 
@@ -176,6 +176,8 @@ implementation
 
 
     function tinnode.det_resulttype:tnode;
+      type
+        byteset = set of byte;
       var
         t : tnode;
         pst : pconstset;
@@ -246,28 +248,12 @@ implementation
          { type conversion/check }
          if assigned(tsetdef(right.resulttype.def).elementtype.def) then
           inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
-      end;
-
-
-    function tinnode.pass_1 : tnode;
-      type
-        byteset = set of byte;
-      var
-        t : tnode;
-      begin
-         result:=nil;
-         location.loc:=LOC_FLAGS;
-
-         firstpass(right);
-         firstpass(left);
-         if codegenerror then
-           exit;
 
          { empty set then return false }
          if not assigned(tsetdef(right.resulttype.def).elementtype.def) then
           begin
             t:=cordconstnode.create(0,booltype);
-            firstpass(t);
+            resulttypepass(t);
             result:=t;
             exit;
           end;
@@ -276,10 +262,22 @@ implementation
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
             t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
-            firstpass(t);
+            resulttypepass(t);
             result:=t;
             exit;
           end;
+      end;
+
+
+    function tinnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         location.loc:=LOC_FLAGS;
+
+         firstpass(right);
+         firstpass(left);
+         if codegenerror then
+           exit;
 
          left_right_max;
          { this is not allways true due to optimization }
@@ -343,7 +341,7 @@ implementation
          if codegenerror then
            exit;
         left_right_max;
-        set_location(location,left.location);
+        location_copy(location,left.location);
       end;
 
 
@@ -576,7 +574,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-03-31 20:26:35  jonas
+  Revision 1.19  2002-04-02 17:11:29  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.18  2002/03/31 20:26:35  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

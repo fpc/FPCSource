@@ -130,7 +130,7 @@ begin
       end;
     A_INC,A_DEC:
       begin
-        reset_reference(tmpref);
+        reference_reset(tmpref);
         tmpref.base := reg1;
         case p.opcode of
           A_INC:
@@ -141,11 +141,11 @@ begin
         p.ops := 2;
         p.opcode := A_LEA;
         p.loadreg(1,reg2);
-        p.loadref(0,newreference(tmpref));
+        p.loadref(0,tmpref);
       end;
     A_SUB,A_ADD:
       begin
-        reset_reference(tmpref);
+        reference_reset(tmpref);
         tmpref.base := reg1;
         case p.oper[0].typ of
           top_const:
@@ -164,16 +164,16 @@ begin
           else internalerror(200010031);
         end;
         p.opcode := A_LEA;
-        p.loadref(0,newreference(tmpref));
+        p.loadref(0,tmpref);
         p.loadreg(1,reg2);
       end;
     A_SHL:
       begin
-        reset_reference(tmpref);
+        reference_reset(tmpref);
         tmpref.index := reg1;
         tmpref.scalefactor := 1 shl p.oper[0].val;
         p.opcode := A_LEA;
-        p.loadref(0,newreference(tmpref));
+        p.loadref(0,tmpref);
         p.loadreg(1,reg2);
       end;
     else internalerror(200010032);
@@ -344,7 +344,18 @@ End.
 
 {
   $Log$
-  Revision 1.9  2002-03-31 20:26:41  jonas
+  Revision 1.10  2002-04-02 17:11:39  peter
+    * tlocation,treference update
+    * LOC_CONSTANT added for better constant handling
+    * secondadd splitted in multiple routines
+    * location_force_reg added for loading a location to a register
+      of a specified size
+    * secondassignment parses now first the right and then the left node
+      (this is compatible with Kylix). This saves a lot of push/pop especially
+      with string operations
+    * adapted some routines to use the new cg methods
+
+  Revision 1.9  2002/03/31 20:26:41  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
