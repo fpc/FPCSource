@@ -220,13 +220,9 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifndef VER0_99_5}  
-  {$ifdef linux}
+{$ifndef VER0_99_5}
+  {$ifndef TP}
     heapblocks:=true;
-  {$else}
-    {$ifdef go32v2}
-      heapblocks:=true;
-    {$endif}
   {$endif}
 {$endif}
 {$ifdef UseOverlay}
@@ -238,7 +234,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1998-08-11 00:00:00  peter
+  Revision 1.28  1998-08-26 15:31:17  peter
+    * heapblocks for >0.99.5
+
+  Revision 1.27  1998/08/11 00:00:00  peter
     * fixed dup log
 
   Revision 1.26  1998/08/10 15:49:40  peter
