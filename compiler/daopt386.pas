@@ -802,6 +802,7 @@ Begin
             new_one^.next := foll;
             prev^.next := new_one;
             foll^.previous := new_one;
+            Pai(new_one)^.fileinfo := Pai(foll)^.fileinfo;
           End;
       End
     Else AsmL^.Concat(new_one)
@@ -1640,6 +1641,7 @@ p: pai386; reg: TRegister);
 var hp: pai;
 {$endif statedebug}
 Begin
+  Reg := Reg32(Reg);
   With PPaiProp(p^.optinfo)^.Regs[reg] Do
     If (Typ = Con_Ref)
       Then
@@ -2235,7 +2237,10 @@ End.
 
 {
  $Log$
- Revision 1.53  1999-08-04 00:22:59  florian
+ Revision 1.54  1999-08-05 15:01:52  jonas
+   * fix in -darithopt code (sometimes crashed on 8/16bit regs)
+
+ Revision 1.53  1999/08/04 00:22:59  florian
    * renamed i386asm and i386base to cpuasm and cpubase
 
  Revision 1.52  1999/08/02 14:35:21  jonas
