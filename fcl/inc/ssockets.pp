@@ -43,10 +43,10 @@ type
     FSocketOptions : TSocketOptions;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
-  Public  
+  Public
     Constructor Create (AHandle : Longint);virtual;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    Property SocketOptions : TSocketOptions Read FSocketOptions 
+    Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
   end;
 
@@ -54,7 +54,7 @@ type
   TConnectQuery = Procedure (Sender : TObject; ASocket : Longint; Var Allow : Boolean) of Object;
 
   TSocketServer = Class(TObject)
-  Private 
+  Private
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
     FSocket : longint;
@@ -65,7 +65,7 @@ type
     FOnConnect : TConnectEvent;
     FOnConnectQuery : TConnectQuery;
     Procedure DoOnIdle;
-  Protected 
+  Protected
     FSockType : Longint;
     FBound : Boolean;
     Procedure DoConnect(ASocket : TSocketStream); Virtual;
@@ -74,7 +74,7 @@ type
     Function  Accept: Longint;Virtual;Abstract;
     Function  SockToStream (ASocket : Longint) : TSocketStream;Virtual;Abstract;
     Procedure Close; Virtual;
-  Public  
+  Public
     Constructor Create(ASocket : Longint);
     Destructor Destroy; Override;
     Procedure Listen;
@@ -91,7 +91,7 @@ type
     Property Socket : Longint Read FSocket;
     Property SockType : Longint Read FSockType;
   end;
-                                  
+
   TInetServer = Class(TSocketServer)
   Protected
     FAddr : TINetSockAddr;
@@ -103,9 +103,9 @@ type
     Procedure Bind; Override;
     Property Port : Word Read FPort;
   end;
-  
+
   TUnixServer = Class(TSocketServer)
-  Private 
+  Private
     FUnixAddr : TUnixSockAddr;
     FFileName : String;
   Protected
@@ -116,26 +116,26 @@ type
     Constructor Create(AFileName : String);
     Procedure Bind; Override;
     Property FileName : String Read FFileName;
-  end;     
+  end;
 
   TInetSocket = Class(TSocketStream)
   Private
     FHost : String;
     FPort : Word;
   Protected
-    Procedure DoConnect(ASocket : longint); Virtual;  
+    Procedure DoConnect(ASocket : longint); Virtual;
   Public
     Constructor Create(ASocket : longint); Override;
     Constructor Create(const AHost: String; APort: Word);
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
   end;
-    
+
   TUnixSocket = Class(TSocketStream)
   Private
     FFileName : String;
   Protected
-    Procedure DoConnect(ASocket : longint); Virtual;  
+    Procedure DoConnect(ASocket : longint); Virtual;
   Public
     Constructor Create(ASocket : Longint);
     Constructor Create(AFileName : String);
@@ -144,13 +144,29 @@ type
 
 Implementation
 
-uses inet,Unix;
+uses
+{$ifdef linux}
+  {$ifdef ver1_0}
+    Linux,
+  {$else}
+    Unix,
+  {$endif}
+{$endif}
+{$ifdef freebsd}
+  {$ifdef ver1_0}
+    Linux,
+  {$else}
+    Unix,
+  {$endif}
+{$endif}
+  inet
+  ;
 
 Const
   SocketWouldBlock = -2;
 
 { ---------------------------------------------------------------------
-  ESocketError  
+  ESocketError
   ---------------------------------------------------------------------}
 
 resourcestring
@@ -161,7 +177,7 @@ resourcestring
   strSocketConnectFailed = 'Connect to %s failed.';
   strSocketAcceptFailed = 'Could not accept a client connection: %s';
   strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
-  
+
 constructor ESocketError.Create(ACode: TSocketErrorType; const MsgArgs: array of const);
 var
   s: String;
@@ -203,13 +219,13 @@ end;
 Function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
-  Result:=0; 
+  Result:=0;
 end;
 
 { ---------------------------------------------------------------------
     TSocketServer
   ---------------------------------------------------------------------}
-  
+
 Constructor TSocketServer.Create(ASocket : Longint);
 
 begin
@@ -228,7 +244,7 @@ Procedure TSocketServer.Close;
 begin
   If FSocket<>-1 Then
     FileClose(FSocket);
-  FSocket:=-1;  
+  FSocket:=-1;
 end;
 
 Procedure TSocketServer.Listen;
@@ -246,12 +262,12 @@ Var
  NoConnections,
  NewSocket : longint;
  Stream : TSocketStream;
- 
+
 begin
   Listen;
   Repeat
     Repeat
-      Try 
+      Try
         NewSocket:=Accept;
         If NewSocket>=0 then
           begin
@@ -270,9 +286,9 @@ begin
             NewSocket:=-1;
             end;
           else
-            Raise;  
-       end;     
-    Until (NewSocket>=0) or (Not NonBlocking);      
+            Raise;
+       end;
+    Until (NewSocket>=0) or (Not NonBlocking);
   Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
 end;
 
@@ -285,7 +301,7 @@ end;
 Procedure TSocketServer.DoOnIdle;
 
 begin
-  If Assigned(FOnIdle) then 
+  If Assigned(FOnIdle) then
     FOnIdle(Self);
 end;
 
@@ -324,20 +340,20 @@ begin
   S:=Sockets.Socket(AF_INET,SOCK_STREAM,0);
   If S=-1 Then
     Raise ESocketError.Create(seCreationFailed,[Format('%d',[APort])]);
-  Inherited Create(S);  
+  Inherited Create(S);
 end;
 
 
 Procedure TInetServer.Bind;
 
-    
+
 begin
   Faddr.family := AF_INET;
   Faddr.port := ShortHostToNet(FPort);
   Faddr.addr := 0;
   if not Sockets.Bind(FSocket, FAddr, Sizeof(FAddr)) then
     raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
-  FBound:=True;    
+  FBound:=True;
 end;
 
 Function  TInetServer.SockToStream (ASocket : Longint) : TSocketStream;
@@ -356,7 +372,7 @@ begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
-    If SocketError=Sys_EWOULDBLOCK then 
+    If SocketError=Sys_EWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
       Raise ESocketError.Create(seAcceptFailed,[socket]);
@@ -365,36 +381,36 @@ end;
 { ---------------------------------------------------------------------
     TUnixServer
   ---------------------------------------------------------------------}
-  
+
 Constructor TUnixServer.Create(AFileName : String);
 
 Var S : Longint;
-   
+
 begin
   FFileName:=AFileName;
   S:=Sockets.Socket(AF_UNIX,SOCK_STREAM,0);
-  If S=-1 then  
+  If S=-1 then
     Raise ESocketError.Create(seCreationFailed,[AFileName])
   else
-    Inherited Create(S);  
+    Inherited Create(S);
 end;
-    
-Procedure TUnixServer.Close; 
+
+Procedure TUnixServer.Close;
 begin
   Inherited Close;
   DeleteFile(FFileName);
   FFileName:='';
 end;
-    
+
 Procedure TUnixServer.Bind;
-    
+
 var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
   If Not Sockets.Bind(Socket,FUnixAddr,AddrLen) then
     Raise ESocketError.Create(seBindFailed,[FFileName]);
-  FBound:=True;  
+  FBound:=True;
 end;
 
 Function TUnixServer.Accept : Longint;
@@ -405,7 +421,7 @@ begin
   L:=Length(FFileName);
   Result:=Sockets.Accept(Socket,FUnixAddr,L);
   If Result<0 then
-    If SocketError=Sys_EWOULDBLOCK then 
+    If SocketError=Sys_EWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
       Raise ESocketError.Create(seAcceptFailed,[socket]);
@@ -427,7 +443,7 @@ Constructor TInetSocket.Create(ASocket : Longint);
 begin
   Inherited Create(ASocket);
 end;
-  
+
 Constructor TInetSocket.Create(const AHost: String; APort: Word);
 
 Var
@@ -470,7 +486,7 @@ Constructor TUnixSocket.Create(ASocket : Longint);
 begin
   Inherited Create(ASocket);
 end;
-      
+
 Constructor TUnixSocket.Create(AFileName : String);
 
 Var S : Longint;
@@ -492,12 +508,15 @@ begin
   If Not Connect(ASocket,UnixAddr,AddrLen) then
     Raise ESocketError.Create(seConnectFailed,[FFilename]);
 end;
-                                          
+
 end.
 
 {
   $Log$
-  Revision 1.4  2001-01-21 20:45:09  marco
+  Revision 1.5  2001-04-08 11:26:03  peter
+    * update so it can be compiled by both 1.0.x and 1.1
+
+  Revision 1.4  2001/01/21 20:45:09  marco
    * Rename fest II  FCL version.
 
   Revision 1.3  2000/11/17 13:40:53  sg

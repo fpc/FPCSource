@@ -217,7 +217,7 @@ var
   P: Integer;
   I: TThreadPriority;
 begin
-  P := Unix.GetPriority(Prio_Process,FHandle);
+  P := {$ifdef ver1_0}Linux{$else}Unix{$endif}.GetPriority(Prio_Process,FHandle);
   Result := tpNormal;
   for I := Low(TThreadPriority) to High(TThreadPriority) do
     if Priorities[I] = P then
@@ -227,7 +227,7 @@ end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
-  Unix.SetPriority(Prio_Process,FHandle, Priorities[Value]);
+  {$ifdef ver1_0}Linux{$else}Unix{$endif}.SetPriority(Prio_Process,FHandle, Priorities[Value]);
 end;
 
 
@@ -283,10 +283,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-01-21 20:45:09  marco
+  Revision 1.4  2001-04-08 11:26:03  peter
+    * update so it can be compiled by both 1.0.x and 1.1
+
+  Revision 1.3  2001/01/21 20:45:09  marco
    * Rename fest II  FCL version.
 
   Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
- 
+
 }

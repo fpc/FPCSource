@@ -14,7 +14,13 @@
 
  **********************************************************************}
 
-uses Unix;
+uses
+{$ifdef ver1_0}
+  Linux
+{$else}
+  Unix
+{$endif}
+  ;
 
 Function TProcess.GetRunning : Boolean;
 
@@ -42,10 +48,10 @@ begin
     end
   else
     CreatePipeStreams (FParentErrorStream,FChildErrorStream);
-  If FCurrentDirectory<>'' then 
+  If FCurrentDirectory<>'' then
     Chdir(FCurrentDirectory);
   FHandle:=fork();
-  if FHandle=0 then 
+  if FHandle=0 then
    begin
    // Child
    fdClose(0);
@@ -54,14 +60,14 @@ begin
    dup2(FChildInputStream.Handle,0);
    dup2(FCHildOutputStream.Handle,1);
    dup2(FChildErrorStream.Handle,2);
-   execl(FCommandline);  
+   execl(FCommandline);
    halt(127);
    end
   else
     begin
     // Parent
     FPID:=FHandle;
-    FThreadHandle:=FHandle; 
+    FThreadHandle:=FHandle;
     fdclose(FChildOutputStream.Handle);
     fdclose(FChildInputStream.Handle);
     fdclose(FChildErrorStream.Handle);
@@ -106,7 +112,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-01-21 20:45:09  marco
+  Revision 1.4  2001-04-08 11:26:03  peter
+    * update so it can be compiled by both 1.0.x and 1.1
+
+  Revision 1.3  2001/01/21 20:45:09  marco
    * Rename fest II  FCL version.
 
   Revision 1.2  2000/10/26 22:30:21  peter

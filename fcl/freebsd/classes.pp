@@ -32,7 +32,12 @@ uses
 implementation
 
 uses
-  Unix;
+{$ifdef ver1_0}
+  linux
+{$else}
+  unix
+{$endif}
+  ;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
@@ -50,7 +55,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2001-01-21 20:45:09  marco
+  Revision 1.4  2001-04-08 11:26:03  peter
+    * update so it can be compiled by both 1.0.x and 1.1
+
+  Revision 1.3  2001/01/21 20:45:09  marco
    * Rename fest II  FCL version.
 
   Revision 1.2  2000/10/26 22:30:21  peter
