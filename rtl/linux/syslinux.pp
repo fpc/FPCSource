@@ -186,75 +186,30 @@ end ['D0'];
 {$endif}
 
 
-{ ___fpc_brk_addr is defined and allocated in prt1.as }
-
-Function Get_Brk_addr : longint;assembler;
-{$ifdef i386}
-asm
-        movl    ___fpc_brk_addr,%eax
-end ['EAX'];
-{$else}
-asm
-        move.l  ___fpc_brk_addr,d0
-end ['D0'];
-{$endif}
-
-
-Procedure Set_brk_addr (NewAddr : longint);assembler;
-{$ifdef i386}
-asm
-        movl    NewAddr,%eax
-        movl    %eax,___fpc_brk_addr
-end ['EAX'];
-{$else}
-asm
-        move.l  NewAddr,d0
-        move.l  d0,___fpc_brk_addr
-end ['D0'];
-{$endif}
-
-{$ifdef i386}
-  {$ASMMODE ATT}
-{$endif}
-
-Function brk(Location : longint) : Longint;
-{ set end of data segment to location }
+Function sbrk(size : longint) : Longint;
+type
+  tmmapargs=packed record
+    address : longint;
+    size    : longint;
+    prot    : longint;
+    flags   : longint;
+    fd      : longint;
+    offset  : longint;
+  end;
 var
   t     : syscallregs;
-  dummy : longint;
+  mmapargs : tmmapargs;
 begin
-  t.reg2:=Location;
-  dummy:=syscall(syscall_nr_brk,t);
-  set_brk_addr(dummy);
-  brk:=dummy;
-end;
-
-
-Function init_brk : longint;
-begin
-  if Get_Brk_addr=0 then
-   begin
-     Set_brk_addr(brk(0));
-     if Get_brk_addr=0 then
-      exit(-1);
-   end;
-  init_brk:=0;
-end;
-
-
-Function sbrk(size : longint) : Longint;
-var
-  Temp  : longint;
-begin
-  if init_brk=0 then
-   begin
-     Temp:=Get_Brk_Addr+size;
-     if brk(temp)=-1 then
-      exit(-1);
-     if Get_brk_addr=temp then
-      exit(temp-size);
-   end;
-  exit(-1);
+  mmapargs.address:=0;
+  mmapargs.size:=Size;
+  mmapargs.prot:=3;
+  mmapargs.flags:=$22;
+  mmapargs.fd:=-1;
+  mmapargs.offset:=0;
+  t.reg2:=longint(@mmapargs);
+  Sbrk:=syscall(syscall_nr_mmap,t);
+  if ErrNo<>0 then
+   Sbrk:=0;
 end;
 
 
@@ -725,7 +680,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  1999-09-10 15:40:35  peter
+  Revision 1.28  1999-10-28 09:50:06  peter
+    * use mmap instead of brk
+
+  Revision 1.27  1999/09/10 15:40:35  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
   Revision 1.26  1999/09/08 16:14:43  peter
