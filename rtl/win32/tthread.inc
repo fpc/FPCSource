@@ -105,9 +105,10 @@ end;
 
 { TThread }
 
-function ThreadProc(Thread: TThread): Integer; Stdcall;
+function ThreadProc(ThreadObjPtr: Pointer): Integer;
 var
   FreeThread: Boolean;
+  Thread: TThread absolute ThreadObjPtr;
 begin
   try
     Thread.Execute;
@@ -119,7 +120,6 @@ begin
   Thread.FFinished := True;
   Thread.DoTerminate;
   if FreeThread then Thread.Free;
-  ExitThread(Result);
 end;
 
 constructor TThread.Create(CreateSuspended: Boolean);
@@ -131,8 +131,7 @@ begin
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
-  IsMultiThread := TRUE;
-  FHandle := CreateThread(nil, 0, @ThreadProc, Pointer(self), Flags, DWord(FThreadID));
+  FHandle := BeginThread(nil, 0, @ThreadProc, pointer(self), Flags, FThreadID);
   FFatalException := nil;
 end;
 
@@ -266,7 +265,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2004-12-23 09:42:42  marco
+  Revision 1.4  2004-12-26 13:46:45  peter
+    * tthread uses systhrds
+
+  Revision 1.3  2004/12/23 09:42:42  marco
    * first tthread.synchronize support (merged neli's patches)
 
   Revision 1.2  2004/01/29 16:58:28  marco

@@ -169,7 +169,7 @@ CONST
       end;
 
 
-    function ThreadMain(param : pointer) : pointer;cdecl;
+    function ThreadMain(param : pointer) : integer; stdcall;
       var
         ti : tthreadinfo;
       begin
@@ -190,7 +190,7 @@ CONST
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
 {$endif DEBUG_MT}
-        ThreadMain:=pointer(ti.f(ti.p));
+        ThreadMain:=ti.f(ti.p);
       end;
 
 
@@ -371,9 +371,9 @@ Const
         wrError    = 3;
 
 type Tbasiceventstate=record
-			fhandle    : THandle;
-	                flasterror : longint;
-      		       end;
+                        fhandle    : THandle;
+                        flasterror : longint;
+                       end;
      plocaleventrec= ^tbasiceventstate;
 
 function intBasicEventCreate(EventAttributes : Pointer;
@@ -445,7 +445,7 @@ end;
 
 
 Var
-  WinThreadManager : TThreadManager; 
+  WinThreadManager : TThreadManager;
 
 Procedure SetWinThreadManager;
 
@@ -494,9 +494,12 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-12-22 21:29:24  marco
+  Revision 1.13  2004-12-26 13:46:45  peter
+    * tthread uses systhrds
+
+  Revision 1.12  2004/12/22 21:29:24  marco
    * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
+        Check work: ask Neli.
 
   Revision 1.11  2004/05/23 15:30:13  marco
    * first try
