@@ -21,4 +21,5 @@ begin
 end;
 
 begin
+  myexec('',['','']);
 end.
