@@ -667,8 +667,8 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
-         Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
-         Ret: PWord;                   // Ret code from if numeric
+         Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
+         Ret: PInteger;                // Ret code from if numeric
          RetVal: PRXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
     external REXX name 'RexxStart';
 
@@ -678,8 +678,8 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
-         Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
-     var Ret: Word;                    // Ret code from if numeric
+         Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
+     var Ret: integer;                 // Ret code from if numeric
      var RetVal: RXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
     external REXX name 'RexxStart';
 
@@ -872,7 +872,10 @@ End.
 
 {
 $Log$
-Revision 1.1  2003-02-15 11:44:58  hajny
+Revision 1.2  2003-11-07 20:43:23  hajny
+  * incorrect type (integer x word) fixed
+
+Revision 1.1  2003/02/15 11:44:58  hajny
   + REXX SAA interface added
 
 }
