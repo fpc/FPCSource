@@ -63,11 +63,18 @@ type    {Some string types:}
 
         {Search record which is used by findfirst and findnext:}
         searchrec=record
-            fill:array[1..21] of byte;
-            attr:byte;
-            time:longint;
-            size:longint;
-            name:string;            {Filenames can be long in OS/2!}
+            case boolean of
+             false: (handle:longint;     {Used in os_OS2 mode}
+                     fill2:array[1..21-SizeOf(longint)] of byte;
+                     attr2:byte;
+                     time2:longint;
+                     size2:longint;
+                     name2:string);      {Filenames can be long in OS/2!}
+             true:  (fill:array[1..21] of byte;
+                     attr:byte;
+                     time:longint;
+                     size:longint;
+                     name:string);       {Filenames can be long in OS/2!}
         end;
 
 {$i filerec.inc}
@@ -109,12 +116,16 @@ type    {Some string types:}
         efwindowed:    Run the non-pm program in a window.
 
         Other options are not implemented defined because lack of
-        knowledge abou what they do.}
+        knowledge about what they do.}
 
         type    execrunflags=(efwait,efno_wait,efoverlay,efdebug,efsession,
                               efdetach,efpm);
                 execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
                               efwindowed);
+
+const
+(* For compatibility with VP/2, used for runflags in Exec procedure. *)
+    ExecFlags: cardinal = ord (efwait);
 
 var doserror:integer;
     dosexitcode:word;
@@ -165,7 +176,12 @@ function getenv(const envvar:string): string;
 
 implementation
 
-uses    doscalls;
+uses    DosCalls;
+
+var     LastSR: SearchRec;
+
+type    TBA = array [1..SizeOf (SearchRec)] of byte;
+        PBA = ^TBA;
 
 {Import syscall to call it nicely from assembler procedures.}
 
@@ -175,33 +191,27 @@ procedure syscall;external name '___SYSCALL';
 function fsearch(path:pathstr;dirlist:string):pathstr;
 
 var i,p1:longint;
-    s:searchrec;
     newdir:pathstr;
-    Handle: cardinal;
-    RC, Count: longint;
-    FStat: PFileFindBuf3;
-    ND: PathStr;
+
+{$ASMMODE INTEL}
+function CheckFile (FN: ShortString):boolean; assembler;
+asm
+ mov ax, 4300h
+ mov edx, FN
+ inc edx
+ call syscall
+ mov ax, 0
+ jc @LCFstop
+ test cx, 18h
+ jnz @LCFstop
+ inc ax
+@LCFstop:
+end;
+{$ASMMODE ATT}
 
 begin
 { check if the file specified exists }
-    if OS_Mode = osOS2 then
-        begin
-            New (FStat);
-            ND := NewDir + Path;
-            Handle := $FFFFFFFF;
-            Count := 1;
-            RC := DosFindFirst (ND, Handle, $37, FStat, SizeOf (FStat^),
-                                                            Count, ilStandard);
-            DosFindClose (Handle);
-            Dispose (FStat);
-        end
-    else
-        begin
-            FindFirst (path,anyfile,s);
-            FindClose (s);
-            RC := DosError;
-        end;
-    if RC = 0 then
+    if CheckFile (Path + #0) then
         FSearch := Path
     else
         begin
@@ -228,28 +238,12 @@ begin
                         if (newdir<>'') and
                          not (newdir[length(newdir)] in ['\',':']) then
                             newdir:=newdir+'\';
-                        if OS_Mode = osOS2 then
-                        begin
-                         New (FStat);
-                         ND := NewDir + Path;
-                         Handle := $FFFFFFFF;
-                         Count := 1;
-                         RC := DosFindFirst (ND, Handle, $37, FStat,
-                                           SizeOf (FStat^), Count, ilStandard);
-                         DosFindClose (Handle);
-                         Dispose (FStat);
-                        end else
-                        begin
-                         FindFirst (newdir+path,anyfile,s);
-                         RC := DosError;
-                         FindClose (S);
-                        end;
-                        if RC = 0 then
-                            newdir:=newdir+path
+                        if CheckFile (NewDir + Path + #0) then
+                            NewDir := NewDir + Path
                         else
-                            newdir:='';
-                    until (dirlist='') or (newdir<>'');
-                    fsearch:=newdir;
+                            NewDir := '';
+                    until (DirList = '') or (NewDir <> '');
+                    FSearch := NewDir;
                 end;
         end;
 end;
@@ -366,7 +360,7 @@ procedure exec(const path:pathstr;const comline:comstr);
 {Execute a program.}
 
 begin
-    dosexitcode:=exec(path,efwait,efdefault,comline);
+    dosexitcode:=exec(path,execrunflags(ExecFlags),efdefault,comline);
 end;
 
 function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
@@ -549,8 +543,10 @@ begin
         movb 12(%ebp),%dl
         movb $0x2b,%ah
         call syscall
+(* SetDate isn't supposed to change DosError!!!
         xorb %ah,%ah
         movw %ax,doserror
+*)
     end;
 end;
 
@@ -586,8 +582,10 @@ begin
         movb 14(%ebp),%dl
         movb $0x2d,%ah
         call syscall
+(* SetTime isn't supposed to change DosError!!!
         xorb %ah,%ah
         movw %ax,doserror
+*)
     end;
 end;
 
@@ -642,6 +640,7 @@ end;
 function diskfree(drive:byte):int64;
 
 var fi:TFSinfo;
+    rc:longint;
 
 begin
     if (os_mode=osDOS) or (os_mode = osDPMI) then
@@ -667,8 +666,8 @@ begin
     else
         {In OS/2, we use the filesystem information.}
         begin
-            doserror:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
-            if doserror=0 then
+            RC:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
+            if RC=0 then
                 diskfree:=FI.free_clusters*FI.sectors_per_cluster*
                  FI.bytes_per_sector
             else
@@ -679,6 +678,7 @@ end;
 function disksize(drive:byte):int64;
 
 var fi:TFSinfo;
+    RC:longint;
 
 begin
     if (os_mode=osDOS) or (os_mode = osDPMI) then
@@ -705,8 +705,8 @@ begin
     else
         {In OS/2, we use the filesystem information.}
         begin
-            doserror:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
-            if doserror=0 then
+            RC:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
+            if RC=0 then
                 disksize:=FI.total_clusters*FI.sectors_per_cluster*
                  FI.bytes_per_sector
             else
@@ -714,38 +714,61 @@ begin
         end;
 end;
 
-procedure searchrec2dossearchrec(var f:searchrec);
+procedure SearchRec2DosSearchRec (var F: SearchRec);
 
-const   namesize=255;
+const   NameSize = 255;
 
-var l,i:longint;
-
-begin
-    l:=length(f.name);
-    for i:=1 to namesize do
-        f.name[i-1]:=f.name[i];
-    f.name[l]:=#0;
-end;
-
-procedure dossearchrec2searchrec(var f : searchrec);
-
-const namesize=255;
-
-var l,i : longint;
+var L, I: longint;
 
 begin
-    for i:=0 to namesize do
-        if f.name[i]=#0 then
-            begin
-                l:=i;
-                break;
-            end;
-    for i:=namesize-1 downto 0 do
-        f.name[i+1]:=f.name[i];
-    f.name[0]:=char(l);
+    if os_mode <> osOS2 then
+    begin
+        I := 1;
+        while (I <= SizeOf (LastSR))
+                           and (PBA (@F)^ [I] = PBA (@LastSR)^ [I]) do Inc (I);
+{ Raise "Invalid file handle" RTE if nested FindFirst calls were used. }
+        if I <= SizeOf (LastSR) then RunError (6);
+        l:=length(f.name);
+        for i:=1 to namesize do
+            f.name[i-1]:=f.name[i];
+        f.name[l]:=#0;
+    end;
 end;
 
-procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
+procedure DosSearchRec2SearchRec (var F: SearchRec; FStat: PFileFindBuf3);
+
+const NameSize=255;
+
+var L, I: longint;
+
+type    TRec = record
+            T, D: word;
+        end;
+
+begin
+    if os_mode = osOS2 then with F do
+    begin
+        Name := FStat^.Name;
+        Size := FStat^.FileSize;
+        Attr := FStat^.AttrFile;
+        TRec (Time).T := FStat^.TimeLastWrite;
+        TRec (Time).D := FStat^.DateLastWrite;
+    end else
+    begin
+        for i:=0 to namesize do
+            if f.name[i]=#0 then
+                begin
+                    l:=i;
+                    break;
+                end;
+        for i:=namesize-1 downto 0 do
+            f.name[i+1]:=f.name[i];
+        f.name[0]:=char(l);
+        Move (F, LastSR, SizeOf (LastSR));
+    end;
+end;
+
+procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
     procedure _findfirst(path:pchar;attr:word;var f:searchrec);
 
@@ -763,17 +786,35 @@ procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
         end;
     end;
 
-var path0:array[0..255] of char;
+const
+    FStat: PFileFindBuf3 = nil;
+
+var path0: array[0..255] of char;
+    Count: longint;
 
 begin
     {No error.}
-    doserror:=0;
-    strPcopy(path0,path);
-    _findfirst(path0,attr,f);
-    dossearchrec2searchrec(f);
+    DosError := 0;
+    if os_mode = osOS2 then
+    begin
+        New (FStat);
+        F.Handle := $FFFFFFFF;
+        Count := 1;
+        DosError := DosFindFirst (Path, F.Handle, Attr, FStat,
+                                           SizeOf (FStat^), Count, ilStandard);
+        if (DosError = 0) and (Count = 0) then DosError := 18;
+    end else
+    begin
+        strPcopy(path0,path);
+        _findfirst(path0,attr,f);
+    end;
+    DosSearchRec2SearchRec (F, FStat);
+    if os_mode = osOS2 then Dispose (FStat);
 end;
 
-procedure findnext(var f:searchRec);
+procedure FindNext (var F: SearchRec);
+var FStat: PFileFindBuf3;
+    Count: longint;
 
     procedure _findnext(var f : searchrec);
 
@@ -790,14 +831,25 @@ procedure findnext(var f:searchRec);
 
 begin
     {No error}
-    doserror:=0;
-    searchrec2dossearchrec(f);
-    _findnext(f);
-    dossearchrec2searchrec(f);
+    DosError := 0;
+    SearchRec2DosSearchRec (F);
+    if os_mode = osOS2 then
+    begin
+        New (FStat);
+        Count := 1;
+        DosError := DosFindNext (F.Handle, FStat, SizeOf (FStat), Count);
+        if (DosError = 0) and (Count = 0) then DosError := 18;
+    end else _findnext (F);
+    DosSearchRec2SearchRec (F, FStat);
+    if os_mode = osOS2 then Dispose (FStat);
 end;
 
-procedure findclose(var f:searchRec);
+procedure FindClose (var F: SearchRec);
 begin
+    if os_mode = osOS2 then
+    begin
+        DosError := DosFindClose (F.Handle);
+    end;
 end;
 
 procedure swapvectors;
@@ -914,7 +966,10 @@ var s,pa:string;
 
 begin
     getdir(0,s);
-    pa:=upcase(path);
+    if FileNameCaseSensitive then
+        pa := path
+    else
+        pa:=upcase(path);
     {Allow slash as backslash}
     for i:=1 to length(pa) do
         if pa[i]='/' then
@@ -1009,6 +1064,8 @@ asm
     call syscall
     movl attr,%ebx
     movw %cx,(%ebx)
+    xorb %ah,%ah
+    movw %ax,doserror
 end;
 
 procedure setfattr(var f;attr : word);assembler;
@@ -1020,12 +1077,17 @@ asm
     addl $60,%edx
     movw attr,%cx
     call syscall
+    xorb %ah,%ah
+    movw %ax,doserror
 end;
 
 end.
 {
   $Log$
-  Revision 1.23  2000-04-18 20:30:02  hajny
+  Revision 1.24  2000-05-21 16:06:38  hajny
+    + FSearch and Find* reworked
+
+  Revision 1.23  2000/04/18 20:30:02  hajny
     * FSearch with given path corrected
 
   Revision 1.22  2000/03/12 18:32:17  hajny
