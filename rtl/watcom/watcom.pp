@@ -1137,7 +1137,7 @@ interface
        begin
           if len>tb_size then
             runerror(217);
-          seg_move(get_ds,longint(@addr),dosmemselector,transfer_buffer,len);
+          seg_move(get_ds,longint(@addr),dosmemselector,tb,len);
        end;
 
 
@@ -1145,7 +1145,7 @@ interface
        begin
           if len>tb_size then
             runerror(217);
-          seg_move(dosmemselector,transfer_buffer,get_ds,longint(@addr),len);
+          seg_move(dosmemselector,tb,get_ds,longint(@addr),len);
        end;
 
 
@@ -1156,7 +1156,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-10-03 21:59:28  peter
+  Revision 1.4  2003-10-05 11:16:26  peter
+    * rename transfer_buffer to tb
+
+  Revision 1.3  2003/10/03 21:59:28  peter
     * stdcall fixes
 
   Revision 1.2  2003/09/07 22:29:26  hajny
