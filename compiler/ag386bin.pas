@@ -343,9 +343,11 @@ unit ag386bin;
     procedure ti386binasmlist.EndFileLineInfo;
       var
         hp : pasmsymbol;
+        store_sec : tsection;
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
           exit;
+        store_sec:=objectalloc^.currsec;
         objectalloc^.setsection(sec_code);
         hp:=newasmsymbol('Letext');
         if currpass=1 then
@@ -357,6 +359,7 @@ unit ag386bin;
           objectoutput^.writesymbol(hp);
         EmitStabs('"",'+tostr(n_sourcefile)+
              ',0,0,Letext');
+        objectalloc^.setsection(store_sec);
       end;
 {$endif GDB}
 
@@ -963,7 +966,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.38  2000-02-18 21:54:07  pierre
+  Revision 1.39  2000-03-09 10:07:18  pierre
+   * fix a problem with smartlink and stabs
+
+  Revision 1.38  2000/02/18 21:54:07  pierre
    * avoid LeText if no stabs info
 
   Revision 1.37  2000/02/18 12:31:07  pierre
