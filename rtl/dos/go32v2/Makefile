@@ -168,7 +168,7 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
 
 SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
 	$(COPY) $(OBJPASDIR)/sysutils.pp .
 	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
 	$(DEL) sysutils.pp
@@ -285,7 +285,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.6  1998-10-11 12:21:48  michael
+# Revision 1.7  1998-10-11 13:45:05  michael
+# + Added disk.inc to sysutils dependencies
+#
+# Revision 1.6  1998/10/11 12:21:48  michael
 # + Further sysutils implementations.
 #
 # Revision 1.5  1998/10/06 22:10:30  peter
