@@ -27,7 +27,7 @@
 {$i textrec.inc}
 
 Procedure HandleError (Errno : Longint); forward;
-Procedure HandleError (Errno : longint;frame : longint); forward;
+Procedure HandleErrorFrame (Errno : longint;frame : longint); forward;
 
 type
   FileFunc = Procedure(var t : TextRec);
@@ -277,7 +277,7 @@ end;
 
 procedure int_overflow;[public,alias:'FPC_OVERFLOW'];
 begin
-  HandleError(215,get_frame);
+  HandleErrorFrame(215,get_frame);
 end;
 
 
@@ -298,7 +298,7 @@ end;
                           Init / Exit / ExitProc
 *****************************************************************************}
 
-Procedure HandleError (Errno : longint;frame : longint);
+Procedure HandleErrorFrame (Errno : longint;frame : longint);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -324,7 +324,7 @@ Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
   Internal function should ALWAYS call HandleError instead of RunError.
 }
 begin
-  HandleError(Errno,get_frame);
+  HandleErrorFrame(Errno,get_frame);
 end;
 
 
@@ -468,7 +468,12 @@ end;
 
 {
   $Log$
-  Revision 1.48  1998-12-18 17:21:33  peter
+  Revision 1.49  1998-12-21 14:28:21  pierre
+    * HandleError -> HandleErrorFrame to avoid problem in
+      assembler code in i386.inc
+      (call to overloaded function in assembler block !)
+
+  Revision 1.48  1998/12/18 17:21:33  peter
     * fixed io-error handling
 
   Revision 1.47  1998/12/15 22:43:03  peter

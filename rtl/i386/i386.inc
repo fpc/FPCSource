@@ -688,7 +688,7 @@ begin
    begin
      l:=InOutRes;
      InOutRes:=0;
-     HandleError(l,get_frame);
+     HandleErrorFrame(l,get_frame);
    end;
   asm
         popal
@@ -699,7 +699,12 @@ end;
 
 {
   $Log$
-  Revision 1.36  1998-12-18 17:21:32  peter
+  Revision 1.37  1998-12-21 14:28:20  pierre
+    * HandleError -> HandleErrorFrame to avoid problem in
+      assembler code in i386.inc
+      (call to overloaded function in assembler block !)
+
+  Revision 1.36  1998/12/18 17:21:32  peter
     * fixed io-error handling
 
   Revision 1.35  1998/12/15 22:42:53  peter

@@ -863,33 +863,33 @@ type pexception_record = ^exception_record;
        syswin32_i386_exception_handler:=ExceptionContinueSearch;
        case excep^.ExceptionRecord^.ExceptionCode of
          EXCEPTION_ACCESS_VIOLATION :
-           Handleerror(216,frame);
+           HandleErrorFrame(216,frame);
          { EXCEPTION_BREAKPOINT = $80000003;
          EXCEPTION_DATATYPE_MISALIGNMENT = $80000002;
          EXCEPTION_SINGLE_STEP = $80000004; }
          EXCEPTION_ARRAY_BOUNDS_EXCEEDED :
-           Handleerror(201,frame);
+           HandleErrorFrame(201,frame);
          { EXCEPTION_FLT_DENORMAL_OPERAND = $c000008d; }
          EXCEPTION_FLT_DIVIDE_BY_ZERO :
-           Handleerror(200,frame);
+           HandleErrorFrame(200,frame);
          {EXCEPTION_FLT_INEXACT_RESULT = $c000008f;
          EXCEPTION_FLT_INVALID_OPERATION = $c0000090;}
          EXCEPTION_FLT_OVERFLOW :
-           Handleerror(205,frame);
+           HandleErrorFrame(205,frame);
          EXCEPTION_FLT_STACK_CHECK :
-           Handleerror(207,frame);
+           HandleErrorFrame(207,frame);
          { EXCEPTION_FLT_UNDERFLOW :
-           Handleerror(206,frame); should be accepted as zero !! }
+           HandleErrorFrame(206,frame); should be accepted as zero !! }
          EXCEPTION_INT_DIVIDE_BY_ZERO :
-           Handleerror(200,frame);
+           HandleErrorFrame(200,frame);
          EXCEPTION_INT_OVERFLOW :
-           Handleerror(215,frame);
+           HandleErrorFrame(215,frame);
          {EXCEPTION_INVALID_HANDLE = $c0000008;
          EXCEPTION_PRIV_INSTRUCTION = $c0000096;
          EXCEPTION_NONCONTINUABLE_EXCEPTION = $c0000025;
          EXCEPTION_NONCONTINUABLE = $1;}
          EXCEPTION_STACK_OVERFLOW :
-           Handleerror(202,frame);
+           HandleErrorFrame(202,frame);
          {EXCEPTION_INVALID_DISPOSITION = $c0000026;}
          end;
     end;
@@ -951,7 +951,12 @@ end.
 
 {
   $Log$
-  Revision 1.29  1998-12-15 22:43:14  peter
+  Revision 1.30  1998-12-21 14:28:23  pierre
+    * HandleError -> HandleErrorFrame to avoid problem in
+      assembler code in i386.inc
+      (call to overloaded function in assembler block !)
+
+  Revision 1.29  1998/12/15 22:43:14  peter
     * removed temp symbols
 
   Revision 1.28  1998/12/09 17:57:33  pierre
@@ -960,7 +965,7 @@ end.
   Revision 1.27  1998/12/01 14:00:08  pierre
     + added conversion from exceptions into run time error
       (only if syswin32 compiled with -ddebug for now !)
-    * added HandleError(errno,frame)
+    * added HandleErrorFrame(errno,frame)
       where you specify the frame
       needed for win32 exception handling
 
