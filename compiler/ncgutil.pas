@@ -1187,6 +1187,7 @@ implementation
         p : tsymtable;
         stackalloclist : taasmoutput;
         hp : tparaitem;
+        paraloc : tparalocation;
 
       begin
         stackalloclist:=taasmoutput.Create;
@@ -1230,13 +1231,37 @@ implementation
              cg.a_load_ref_reg(list,OS_ADDR,href,self_pointer_reg);
           end;
 
-        { initialize return value }
-        if (not is_void(aktprocdef.rettype.def)) and
-           (aktprocdef.rettype.def.needs_inittable) then
+
+        if not is_void(aktprocdef.rettype.def) then
           begin
-             procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
-             reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-             cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
+             { for now the pointer to the result can't be a register }
+             if not(paramanager.ret_in_reg(aktprocdef.rettype.def)) then
+               begin
+                  paraloc:=paramanager.getfuncretparaloc(aktprocdef);
+                  reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
+                  case paraloc.loc of
+                     LOC_CREGISTER,
+                     LOC_REGISTER:
+                       if not(paraloc.size in [OS_64,OS_S64]) then
+                         cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
+                       else
+                         cg64.a_load64_reg_ref(list,paraloc.register64,href);
+                     LOC_CFPUREGISTER,
+                     LOC_FPUREGISTER:
+                       cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
+                     LOC_CMMREGISTER,
+                     LOC_MMREGISTER:
+                       cg.a_loadmm_reg_ref(list,paraloc.register,href);
+                  end;
+               end;
+
+             { initialize return value }
+             if (aktprocdef.rettype.def.needs_inittable) then
+               begin
+                  procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                  reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
+                  cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
+               end;
           end;
 
         { initialisize local data like ansistrings }
@@ -1272,20 +1297,34 @@ implementation
              hp:=tparaitem(procinfo.procdef.para.first);
              while assigned(hp) do
                begin
-                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
-                    (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
+                  if (tvarsym(hp.parasym).reg<>R_NO) then
+                    case hp.paraloc.loc of
+                       LOC_CREGISTER,
+                       LOC_REGISTER:
+//                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                           cg.a_load_reg_reg(list,hp.paraloc.size,hp.paraloc.register,tvarsym(hp.parasym).reg);
+//                         else
+//                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
+                       LOC_CFPUREGISTER,
+                       LOC_FPUREGISTER:
+                         cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                    end
+                  else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                    LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
+                    (tvarsym(hp.parasym).reg=R_NO) then
                     begin
+                       reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address+
+                         tvarsym(hp.parasym).owner.address_fixup);
                        case hp.paraloc.loc of
+                          LOC_CREGISTER,
                           LOC_REGISTER:
-                            begin
-                               reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address);
-                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
-                            end;
-                          LOC_FPUREGISTER:
-                            begin
-                               reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address);
-                               cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
-                            end;
+                           if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                              cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
+                           else
+                              cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
+                          LOC_FPUREGISTER,
+                          LOC_CFPUREGISTER:
+                            cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
                           else
                             internalerror(2002081302);
                        end;
@@ -1792,7 +1831,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-09-07 15:25:03  peter
+  Revision 1.49  2002-09-10 21:48:30  florian
+    * improved handling of procedures with register calling conventions
+
+  Revision 1.48  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.47  2002/09/02 18:44:48  peter
