@@ -743,15 +743,17 @@ Begin
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;
-   If f.BufPos>=f.BufEnd Then
-     begin
-       FileFunc(f.InOutFunc)(f);
-       if (f.BufPos>=f.BufEnd) and
+    if f.BufPos>=f.BufEnd Then
+      begin
+        FileFunc(f.InOutFunc)(f);
+        if (f.BufPos>=f.BufEnd) then
           { Flush if set }
-          (f.FlushFunc<>nil) then
-         FileFunc(f.FlushFunc)(f);
-       exit;
-     end;
+          begin
+           if (f.FlushFunc<>nil) then
+             FileFunc(f.FlushFunc)(f);
+           exit;
+         end;
+      end;
    if (prev=#13) then
      { is there also a #10 after it? }
      begin
@@ -1064,7 +1066,10 @@ end;
 
 {
   $Log$
-  Revision 1.67  2000-01-31 10:15:43  pierre
+  Revision 1.68  2000-01-31 12:11:53  jonas
+    * committed the rest of my fix :)
+
+  Revision 1.67  2000/01/31 10:15:43  pierre
    * Jonas' fix for bug811
 
   Revision 1.66  2000/01/23 12:22:37  florian
