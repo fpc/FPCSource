@@ -291,7 +291,10 @@
 
 {
   $Log$
-  Revision 1.1  2000-02-21 08:45:26  michael
+  Revision 1.1  2000-02-24 18:40:42  peter
+    * moved to new/
+
+  Revision 1.1  2000/02/21 08:45:26  michael
   Committed for Florian.
 
   Revision 1.1  2000/02/20 20:49:45  florian
