@@ -661,8 +661,15 @@ implementation
            found:=false;
            foundfile:='';
            if path<>'' then
-             path:=path+';';
-           found:=FindFile(name+ext,path+current_scanner.inputfile.path^+';.'+DirSep,foundfile);
+             begin
+               if not path_absolute(path) then
+                 path:=current_scanner.inputfile.path^+path
+               else
+                 path:=path+';'+current_scanner.inputfile.path^;
+             end
+           else
+             path:=current_scanner.inputfile.path^;
+           found:=FindFile(name+ext,path+';.'+DirSep,foundfile);
            if (not found) then
             found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
            if (not found) then
@@ -2592,7 +2599,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.19  2001-07-08 21:00:16  peter
+  Revision 1.20  2001-07-15 11:56:21  peter
+    * merged fixed relative path fix
+
+  Revision 1.19  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
