@@ -1,3 +1,4 @@
+/* $Id$ */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 /* Translated from tasm to GAS by C. Sandmann */
 /* One comment displaced to get it compiled by as.exe directly  !!! */
@@ -39,7 +40,7 @@ __detect_80387:                         /* returns 1 if 387 (or more), else 0 */
         andw    $0x0fffa,(%esi)
 /* enable invalid operation exception */
         fldcw   (%esi)
-        movw    $1,%eax
+        movw    $1,%ax
         jmp     Lexit
 Lno_387:
         xorl    %eax,%eax
@@ -47,3 +48,9 @@ Lexit:
         popl    %esi                    /* Fix stack first */
         popl    %esi
         ret
+/*
+  $Log$
+  Revision 1.2  2001-04-08 16:49:42  florian
+    * fixed a wrong prefix
+
+*/
