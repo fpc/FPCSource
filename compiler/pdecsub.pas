@@ -1960,11 +1960,11 @@ const
 
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
-                   po_comp:=[];
                    if (m_fpc in aktmodeswitches) then
-                     po_comp:=[po_varargs,po_methodpointer,po_containsself,po_interrupt]
-                   else if (m_delphi in aktmodeswitches) then
+                     po_comp:=[po_varargs,po_methodpointer,po_containsself,po_interrupt,po_clearstack]
+                   else
                      po_comp:=[po_classmethod,po_methodpointer,po_containsself];
+
                    if ((po_comp * hd.procoptions)<>(po_comp * aprocdef.procoptions)) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
@@ -2129,7 +2129,10 @@ const
 end.
 {
   $Log$
-  Revision 1.113  2003-04-23 10:12:51  peter
+  Revision 1.114  2003-04-23 13:12:26  peter
+    * fix po_comp setting for fpc mode
+
+  Revision 1.113  2003/04/23 10:12:51  peter
     * don't check po_varargs for delphi
 
   Revision 1.112  2003/04/22 13:47:08  peter
