@@ -21,8 +21,10 @@
  ****************************************************************************}
 program fpc;
 
+{$mode objfpc}{$H+}
+
   uses
-     dos;
+     Sysutils,dos;
 
   const
 {$ifdef UNIX}
@@ -43,7 +45,7 @@ program fpc;
     end;
 
 
-  function SplitPath(Const HStr:ShortString):ShortString;
+  function SplitPath(Const HStr:String):String;
     var
       i : longint;
     begin
@@ -54,7 +56,7 @@ program fpc;
     end;
 
 
-  function FileExists ( Const F : ShortString) : Boolean;
+  function FileExists ( Const F : String) : Boolean;
     var
       Info : SearchRec;
     begin
@@ -85,11 +87,11 @@ program fpc;
 
 
   var
-     s,
+     s		    : ansistring;
      processorname,
      ppcbin,
      versionStr,
-     processorstr   : shortstring;
+     processorstr   : string;
      ppccommandline : ansistring;
      i : longint;
   begin
@@ -162,7 +164,11 @@ program fpc;
 
      { call ppcXXX }
      swapvectors;
-     exec(ppcbin,ppccommandline);
+     {$ifdef unix}
+     SysUtils.exec(ppcbin,ppccommandline);
+     {$else}
+     Dos.exec(ppcbin,ppccommandline);
+     {$endif}
      swapvectors;
      if doserror<>0 then
        error(ppcbin+' can''t be executed');
@@ -170,7 +176,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.8  2003-10-08 19:16:50  peter
+  Revision 1.9  2004-01-03 09:12:23  marco
+   * unix does ansistring exec
+
+  Revision 1.8  2003/10/08 19:16:50  peter
     * -Q back to -P, -L back to -V
 
   Revision 1.7  2003/09/30 17:25:01  marco
