@@ -58,12 +58,14 @@ CONST TheWidth  = 11; {Watch out, also correct RowMask!}
       PosYField = 3;
       MaxFigures= 16; {Maximum # figures place is reserved for.}
       NrLevels  = 12; {Number of levels currenty defined}
-      FieldSpace= 177;
+{      FieldSpace= 177;}
 
+{$IFDEF UseGraphics}
       DisplGrX=110;
       DisplGrY=90;
       DisplGrScale=16;
       HelpY=130;
+{$ENDIF}
 
       {$IFDEF UseGraphics}
        BaseX     =300;   {Coordinates of highscores}
@@ -76,7 +78,7 @@ CONST TheWidth  = 11; {Watch out, also correct RowMask!}
 TYPE TetrisFieldType = ARRAY [0..25] OF LONGINT;
      LevelInfoType   = ARRAY [0..NrLevels-1] OF LONGINT;
      FigureType      = LONGINT;    { actually array[0..4][0..4] of bit rounded up to a longint}
-     CHARSET         = SET OF CHAR;
+{     CHARSET         = SET OF CHAR;}
 
 {The figures, are converted to binary bitmaps on startup.}
 
@@ -812,7 +814,10 @@ END.
 
 {
   $Log$
-  Revision 1.5  2000-01-21 00:44:51  peter
+  Revision 1.6  2000-02-22 03:10:39  alex
+  fixed the warnings
+
+  Revision 1.5  2000/01/21 00:44:51  peter
     * remove unused vars
     * renamed to .pp
 
