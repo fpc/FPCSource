@@ -2,7 +2,7 @@ Program Example3;
 
 { Program to demonstrate the GetKeyEventShiftState function. }
 
-Uses keyboard,KeybUtil;
+Uses keyboard;
 
 Var
   K : TKeyEvent;

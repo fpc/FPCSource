@@ -2,7 +2,7 @@ program example4;
 
 { This program demonstrates the PollKeyEvent function }
 
-uses keyboard, keybutil;
+uses keyboard;
 
 Var
   K : TKeyEvent;

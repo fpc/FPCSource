@@ -2,7 +2,7 @@ program example1;
 
 { This program demonstrates the GetKeyEvent function }
 
-uses keyboard, keybutil;
+uses keyboard;
 
 Var
   K : TKeyEvent;

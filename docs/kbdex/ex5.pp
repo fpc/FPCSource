@@ -2,7 +2,7 @@ program example5;
 
 { This program demonstrates the PutKeyEvent function }
 
-uses keyboard, keybutil;
+uses keyboard;
 
 Var
   K,k2 : TKeyEvent;

@@ -1,7 +1,5 @@
 This directory contains the examples for the Keyboard unit
 
-keybutil.pp contains some routines to convert keyevents to readable strings.
-
 ex1.pp contains an example of the GetKeyEvent function.
 ex2.pp contains an example of the GetKeyEventCode function.
 ex3.pp contains an example of the GetKeyEventShiftState function.

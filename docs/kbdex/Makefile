@@ -46,7 +46,7 @@ onetex : tex
 	$(MAKETEX) $(TEXOBJECTS)
 
 clean : 
-	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) keybutil.ppu
+	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*

@@ -2,7 +2,7 @@ program example6;
 
 { This program demonstrates the PollShiftStateEvent function }
 
-uses keyboard, keybutil;
+uses keyboard;
 
 Var
   K : TKeyEvent;
