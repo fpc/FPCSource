@@ -920,7 +920,12 @@ implementation
                                   op:=A_AND;
                                   mboverflow:=false;
                                   unsigned:=false;
-                                  extra_not:=true;
+{$IfDef setConstNot}
+                                  If (p^.right^.treetype = setconstn) then
+                                    p^.right^.location.reference.offset := not(p^.right^.location.reference.offset)
+                                  Else
+{$EndIf setConstNot}
+                                    extra_not:=true;
                                 end
                                else
                                 begin
@@ -997,24 +1002,40 @@ implementation
                        clear_location(p^.location);
                        p^.location.register:=getregister32;
                        p^.location.loc:=LOC_REGISTER;
-                       if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
-                        begin
-                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-                          popeax:=true;
-                        end;
-                       if not(R_EDX in unused) and (p^.location.register<>R_EDX)  then
-                        begin
-                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
-                          popedx:=true;
-                        end;
-                       emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
-                       emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
-                       exprasmlist^.concat(new(pai386,op_reg(A_MUL,S_L,R_EDI)));
-                       emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
-                       if popedx then
-                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
-                       if popeax then
-                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+{$IfDef ShlMul}
+                       if p^.right^.treetype=ordconstn then
+                        swaptree(p);
+                       If (p^.left^.treetype = ordconstn) and
+                          ispowerof2(p^.left^.value, power) and
+                          not(cs_check_overflow in aktlocalswitches) then
+                         Begin
+                           emitloadord2reg(p^.right^.location,u32bitdef,p^.location.register,true);
+                           exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,power,p^.location.register)))
+                         End
+                       Else
+                        Begin
+{$EndIf ShlMul}
+                         if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
+                          begin
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                           popeax:=true;
+                          end;
+                         if not(R_EDX in unused) and (p^.location.register<>R_EDX)  then
+                          begin
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
+                           popedx:=true;
+                          end;
+                         emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
+                         emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
+                         exprasmlist^.concat(new(pai386,op_reg(A_MUL,S_L,R_EDI)));
+                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
+                         if popedx then
+                          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+                         if popeax then
+                          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+{$IfDef ShlMul}
+                        End;
+{$endif ShlMul}
                        SetResultLocation(false,true,p);
                        exit;
                      end;
@@ -2034,7 +2055,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-05-01 13:24:01  peter
+  Revision 1.54  1999-05-09 17:58:42  jonas
+    + change "MUL <power of 2>, reg" to SHL (-d ShlMul)
+    * do the NOT of a constant set when it's substracted internally
+      (-dsetconstnot)
+
+  Revision 1.53  1999/05/01 13:24:01  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
