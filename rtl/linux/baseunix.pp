@@ -49,14 +49,34 @@ implementation
 {$i bunxmain.inc}	{ implementation}
 {$i bunxovl.inc}	{ redefs and overloads implementation}
 
+{$ifdef ver1_0}
+// MvdV 1.0 is buggy in calling externals it seems. dunno what exactly
+function intfpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure intfpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+
+function fpgeterrno:longint; 
+
+begin
+  fpgeterrno:=intfpgeterrno;
+end;
+
+procedure fpseterrno(err:longint); 
+begin
+   intfpseterrno(err);
+end;
+{$else}
 function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 
+{$endif}
 end.
 
 {
   $Log$
-  Revision 1.6  2003-12-30 12:36:56  marco
+  Revision 1.7  2003-12-31 20:01:00  marco
+   * workaround for buggy 1.0 building
+
+  Revision 1.6  2003/12/30 12:36:56  marco
    * FPC_USE_LIBC
 
   Revision 1.5  2003/12/11 18:20:50  florian
