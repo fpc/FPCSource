@@ -211,6 +211,13 @@ begin
  begin
   OldExit := ExitProc;
   ExitProc := @NewExit;
+  if GetEnv ('TZ') = '' then
+  begin
+   WriteLn (#13#10'TZ variable was not found in your environment.');
+   WriteLn ('This variable is necessary for setting correct date/time of unpacked files.');
+   WriteLn ('Please, add it to your environment and restart this program afterwards.');
+   Halt (1);
+  end;
  end else
  begin
   WriteLn (#13#10'Dynamic library UNZIP32.DLL from InfoZip is needed to unpack archives.');
@@ -232,7 +239,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-07 08:22:17  hajny
+  Revision 1.3  2002-07-07 17:58:09  hajny
+    * check for TZ variable added
+
+  Revision 1.2  2002/07/07 08:22:17  hajny
     * warning message modified to be more general
 
   Revision 1.1  2002/01/29 17:55:23  peter
