@@ -55,62 +55,51 @@ implementation
 
     procedure second_while_repeatn(var p : ptree);
       var
-         l1,l2,l3,oldclabel,oldblabel : plabel;
+         lcont,lbreak,lloop,
+         oldclabel,oldblabel : plabel;
          otlabel,oflabel : plabel;
       begin
-         getlabel(l1);
-         getlabel(l2);
+         getlabel(lloop);
+         getlabel(lcont);
+         getlabel(lbreak);
          { arrange continue and breaklabels: }
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
-         if p^.treetype=repeatn then
-           begin
-              emitl(A_LABEL,l1);
-              aktcontinuelabel:=l1;
-              aktbreaklabel:=l2;
-              cleartempgen;
-              if assigned(p^.right) then
-                secondpass(p^.right);
 
-              otlabel:=truelabel;
-              oflabel:=falselabel;
-              truelabel:=l2;
-              falselabel:=l1;
-              cleartempgen;
-              secondpass(p^.left);
-              maketojumpbool(p^.left);
-              emitl(A_LABEL,l2);
-              truelabel:=otlabel;
-              falselabel:=oflabel;
-           end
+         { handling code at the end as it is much more efficient, and makes
+           while equal to repeat loop, only the end true/false is swapped (PFV) }
+         if p^.treetype=whilen then
+          emitl(A_JMP,lcont);
+
+         emitl(A_LABEL,lloop);
+
+         aktcontinuelabel:=lcont;
+         aktbreaklabel:=lbreak;
+         cleartempgen;
+         if assigned(p^.right) then
+          secondpass(p^.right);
+
+         emitl(A_LABEL,lcont);
+         otlabel:=truelabel;
+         oflabel:=falselabel;
+         if p^.treetype=whilen then
+          begin
+            truelabel:=lloop;
+            falselabel:=lbreak;
+          end
+         { repeatn }
          else
-           begin
-              { handling code at the end as it is much more efficient }
-              emitl(A_JMP,l2);
+          begin
+            truelabel:=lbreak;
+            falselabel:=lloop;
+          end;
+         cleartempgen;
+         secondpass(p^.left);
+         maketojumpbool(p^.left);
+         emitl(A_LABEL,lbreak);
+         truelabel:=otlabel;
+         falselabel:=oflabel;
 
-              emitl(A_LABEL,l1);
-              cleartempgen;
-
-              getlabel(l3);
-              aktcontinuelabel:=l2;
-              aktbreaklabel:=l3;
-
-              if assigned(p^.right) then
-                secondpass(p^.right);
-
-              emitl(A_LABEL,l2);
-              otlabel:=truelabel;
-              oflabel:=falselabel;
-              truelabel:=l1;
-              falselabel:=l3;
-              cleartempgen;
-              secondpass(p^.left);
-              maketojumpbool(p^.left);
-
-              emitl(A_LABEL,l3);
-              truelabel:=otlabel;
-              falselabel:=oflabel;
-           end;
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -735,7 +724,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.18  1998-09-26 15:03:04  florian
+  Revision 1.19  1998-09-28 12:13:53  peter
+    * fixed repeat continue until true;
+
+  Revision 1.18  1998/09/26 15:03:04  florian
     * small problems with DOM and excpetions fixed (code generation
       of raise was wrong and self was sometimes destroyed :()
 

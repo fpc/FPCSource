@@ -182,6 +182,7 @@ Fixed bugs:
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
+  bug0162.pp   continue in repeat ... until loop doesn't work correct OK 0.99.8 (PFV)
   bug0164.pp   crash when using undeclared array index in with statement OK 0.99.8 (PFV)
 
 Unproducable bugs:
@@ -216,7 +217,6 @@ bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0161.pp   internal error when trying to create a set with another set as
              its element (instead of a syntax error)
-bug0162.pp   continue in repeat ... until loop doesn't work correct
 bug0163.pp   missing <= and >= operators for sets.
 bug0165.pp   missing range check code for enumerated types.
 bug0166.pp   forward type used in declaration crashes instead of error
