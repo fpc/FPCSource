@@ -25,7 +25,9 @@ uses
 {$ifdef ver1_0}
   Linux
 {$else}
-  Unix
+  baseunix,
+  Unix,
+  unixutil
 {$endif}
   ;
 
@@ -505,12 +507,12 @@ var info : stat;
 
 begin
   FileName:=Copy(Filename,1,Length(Filename)-3)+'.pp';
-  fstat(FileName,info);
+  {$ifdef ver1_0}fstat{$else}fpstat{$endif}(FileName,info);
   if linuxerror=0 then
     begin
     { File exists, move to .bak}
-    link (FileName,FileName+'.bak');
-    unlink (FileName);
+    {$ifdef ver1_0}link{$else}fplink{$endif} (FileName,FileName+'.bak');
+    {$ifdef ver1_0}unlink{$else}fpunlink{$endif} (FileName);
     end;
   assign(outfile,filename);
 {$i-}
@@ -725,7 +727,7 @@ begin
     writeln (OutFile);
     writeln (OutFile,'Begin');
     writeln (OutFile,'  fl_initialize (@argc,argv,''',
-                     BaseName(Filename,'.pp'),''',nil,0);');
+                     basename(Filename,'.pp'),''',nil,0);');
     if Not(OptionsSet[3]) then
       EmitMain
     else
@@ -1124,7 +1126,10 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:54  peter
+end.  Revision 1.3  2003-09-27 12:12:50  peter
+end.    * fixed for unix
+end.
+end.  Revision 1.2  2002/09/07 15:42:54  peter
 end.    * old logs removed and tabs fixed
 end.
 end.  Revision 1.1  2002/01/29 17:54:59  peter

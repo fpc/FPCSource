@@ -6,6 +6,7 @@ uses
 {$ifdef ver1_0}
   Linux
 {$else}
+  BaseUnix,
   Unix
 {$endif}
   ;
@@ -246,7 +247,7 @@ var
     S : Stat;
 
   begin
-    FStat(Utmp_file, S);
+    {$ifdef ver1_0}FStat{$else}fpstat{$endif}(Utmp_file, S);
     Number_of_utmp_entries := S.Size div System.SizeOf(tLL_Utmp);
   end;
 
@@ -325,7 +326,10 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.2  2002-09-07 15:43:06  peter
+  Revision 1.3  2003-09-27 12:13:50  peter
+    * fixed for unix
+
+  Revision 1.2  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:23  peter
