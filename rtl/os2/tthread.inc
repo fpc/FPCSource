@@ -60,7 +60,7 @@ const
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
               PAPIB: PPProcessInfoBlock); cdecl; external 'DOSCALLS' index 312;
 
-function DosSetPriority (Scope, TrClass: cardinal; Delta: longing;
+function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
               PortID: cardinal): longint; cdecl; external 'DOSCALLS' index 236;
 
 procedure DosExit (Action, Result: longint); cdecl;
@@ -188,8 +188,8 @@ begin
   FSuspended := CreateSuspended;
   Flags := dtStack_Commited;
   if FSuspended then Flags := Flags or dtSuspended;
-  if DosCreateThread (FThreadID, @ThreadProc, pointer (Self), Flags, 16384)
-                                                                      <> 0 then
+  if DosCreateThread (cardinal (FThreadID), @ThreadProc, pointer (Self),
+                                                        Flags, 16384) <> 0 then
   begin
    FFinished := true;
    Destroy;
@@ -206,7 +206,7 @@ begin
   Terminate;
   WaitFor;
  end;
- if FHandle <> -1 then DosKillThread (FHandle);
+ if FHandle <> -1 then DosKillThread (cardinal (FHandle));
  FFatalException.Free;
  FFatalException := nil;
  inherited Destroy;
@@ -215,13 +215,13 @@ end;
 
 procedure TThread.Resume;
 begin
- FSuspended := not (DosResumeThread (FHandle) = 0);
+ FSuspended := not (DosResumeThread (cardinal (FHandle)) = 0);
 end;
 
 
 procedure TThread.Suspend;
 begin
- FSuspended := DosSuspendThread (FHandle) = 0;
+ FSuspended := DosSuspendThread (cardinal (FHandle)) = 0;
 end;
 
 
@@ -234,13 +234,16 @@ end;
 function TThread.WaitFor: Integer;
 
 begin
- WaitFor := DosWaitThread (FHandle, dtWait);
+ WaitFor := DosWaitThread (cardinal (FHandle), dtWait);
 end;
 
 
 {
   $Log$
-  Revision 1.2  2003-10-13 21:17:31  hajny
+  Revision 1.3  2003-10-14 21:19:12  hajny
+    * another longint2cardinal fix
+
+  Revision 1.2  2003/10/13 21:17:31  hajny
     * longint to cardinal corrections
 
   Revision 1.1  2003/10/06 21:01:07  peter
