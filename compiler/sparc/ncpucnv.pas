@@ -74,8 +74,13 @@ implementation
         fname: string[19];
       begin
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bitint(left.resulttype.def) or
+          is_currency(left.resulttype.def) then
           begin
+            { hack to avoid double division by 10000, as it's
+              already done by resulttypepass.resulttype_int_to_real }
+            if is_currency(left.resulttype.def) then
+              left.resulttype := s64inttype;
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_double'
             else
@@ -292,7 +297,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2004-10-03 19:21:56  florian
+  Revision 1.34  2004-10-15 22:54:53  florian
+    * fixed currency to float conversion
+
+  Revision 1.33  2004/10/03 19:21:56  florian
     * fixed dword->single/double on sparc
 
   Revision 1.32  2004/09/25 14:23:55  peter
