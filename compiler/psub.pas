@@ -24,7 +24,6 @@ unit psub;
 
 {$i fpcdefs.inc}
 
-{$define NOOPT}
 
 interface
 
@@ -752,14 +751,6 @@ implementation
             if not(cs_no_regalloc in aktglobalswitches) then
               begin
                 cg.do_register_allocation(aktproccode,headertai);
-(*
-{$ifndef NoOpt}
-                if (cs_optimize in aktglobalswitches) and
-                { do not optimize pure assembler procedures }
-                   not(pi_is_assembler in current_procinfo.flags)  then
-                  optimize(aktproccode);
-{$endif NoOpt}
-*)
               end;
 
             { Add save and restore of used registers }
@@ -776,6 +767,17 @@ implementation
             aktfilepos:=exitpos;
             gen_stackfree_code(templist,usesacc,usesacchi);
             aktproccode.concatlist(templist);
+
+{$ifndef NoOpt}
+            if not(cs_no_regalloc in aktglobalswitches) then
+              begin
+                if (cs_optimize in aktglobalswitches) and
+                { do not optimize pure assembler procedures }
+                    not(pi_is_assembler in current_procinfo.flags)  then
+                    optimize(aktproccode);
+              end;
+{$endif NoOpt}
+
             { Add end symbol and debug info }
             aktfilepos:=exitpos;
             gen_proc_symbol_end(templist);
@@ -1312,7 +1314,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2003-11-10 22:02:52  peter
+  Revision 1.172  2003-11-22 00:40:19  jonas
+    * fixed optimiser so it compiles again
+    * fixed several bugs which were in there already for a long time, but
+      which only popped up now :) -O2/-O3 will now optimise less than in
+      the past (and correctly so), but -O2u/-O3u will optimise a bit more
+    * some more small improvements for -O3 are still possible
+
+  Revision 1.171  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.170  2003/11/07 15:58:32  florian

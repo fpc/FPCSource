@@ -18,26 +18,26 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    Foundation, inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************
 }
-Unit DAOpt386;
+unit daopt386;
 
 {$i fpcdefs.inc}
 
-Interface
+interface
 
-Uses
-  GlobType,
-  CClasses,Aasmbase,aasmtai,aasmcpu,
+uses
+  globtype,
+  cclasses,aasmbase,aasmtai,aasmcpu,cgbase,
   cpubase,optbase;
 
 {******************************* Constants *******************************}
 
-Const
+const
 
-{Possible register content types}
+{ Possible register content types }
   con_Unknown = 0;
   con_ref = 1;
   con_const = 2;
@@ -53,27 +53,27 @@ Const
 {********************************* Types *********************************}
 
 type
-  TRegArray = Array[R_EAX..R_BL] of TRegister;
-  TRegSet = Set of R_EAX..R_BL;
-  TRegInfo = Record
+  TRegArray = Array[RS_EAX..RS_ESP] of tsuperregister;
+  TRegSet = Set of RS_EAX..RS_ESP;
+  toptreginfo = Record
                 NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
                 regsStillUsedAfterSeq: TRegSet;
-                lastReload: array[R_EAX..R_EDI] of Tai;
+                lastReload: array[RS_EAX..RS_ESP] of tai;
                 New2OldReg: TRegArray;
-              End;
+              end;
 
 {possible actions on an operand: read, write or modify (= read & write)}
   TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
 {the possible states of a flag}
-  TFlagContents = (F_Unknown, F_NotSet, F_Set);
+  TFlagContents = (F_Unknown, F_notSet, F_Set);
 
   TContent = Packed Record
       {start and end of block instructions that defines the
        content of this register.}
-               StartMod: Tai;
-               MemWrite: Taicpu;
+               StartMod: tai;
+               MemWrite: taicpu;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
       {the type of the content of the register: unknown, memory, constant}
@@ -85,13 +85,13 @@ type
                        RState: Byte);
       { to compare both states in one operation }
                  2: (state: word);
-             End;
+             end;
 
 {Contents of the integer registers}
-  TRegContent = Array[R_EAX..R_EDI] Of TContent;
+  TRegContent = Array[RS_EAX..RS_ESP] Of TContent;
 
 {contents of the FPU registers}
-  TRegFPUContent = Array[R_ST..R_ST7] Of TContent;
+//  TRegFPUContent = Array[RS_ST..RS_ST7] Of TContent;
 
 {$ifdef tempOpts}
 { linked list which allows searching/deleting based on value, no extra frills}
@@ -116,9 +116,9 @@ type
   end;
 {$endif tempOpts}
 
-{information record with the contents of every register. Every Tai object
+{information record with the contents of every register. Every tai object
  gets one of these assigned: a pointer to it is stored in the OptInfo field}
-  TTaiProp = Record
+  TtaiProp = Record
                Regs: TRegContent;
 {               FPURegs: TRegFPUContent;} {currently not yet used}
     { allocated Registers }
@@ -133,69 +133,67 @@ type
                CanBeRemoved: Boolean;
                { are the resultflags set by this instruction used? }
                FlagsUsed: Boolean;
-             End;
+             end;
 
-  PTaiProp = ^TTaiProp;
+  ptaiprop = ^TtaiProp;
 
-  TTaiPropBlock = Array[1..250000] Of TTaiProp;
-  PTaiPropBlock = ^TTaiPropBlock;
+  TtaiPropBlock = Array[1..250000] Of TtaiProp;
+  PtaiPropBlock = ^TtaiPropBlock;
 
-  TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
+  TInstrSinceLastMod = Array[RS_EAX..RS_ESP] Of Byte;
 
   TLabelTableItem = Record
-                      TaiObj: Tai;
-{$IfDef JumpAnal}
+                      taiObj: tai;
+{$ifDef JumpAnal}
                       InstrNr: Longint;
                       RefsFound: Word;
                       JmpsProcessed: Word
-{$EndIf JumpAnal}
-                    End;
+{$endif JumpAnal}
+                    end;
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
   PLabelTable = ^TLabelTable;
 
 
-{*********************** Procedures and Functions ************************}
+{*********************** procedures and functions ************************}
 
-Procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
+procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
 
 
-function changeregsize(r:tregister;size:topsize):tregister;
-Function Reg32(Reg: TRegister): TRegister;
-Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
-Function RefsEqual(Const R1, R2: TReference): Boolean;
-Function IsGP32Reg(Reg: TRegister): Boolean;
-Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
-function RegReadByInstruction(reg: TRegister; hp: Tai): boolean;
-function RegModifiedByInstruction(Reg: TRegister; p1: Tai): Boolean;
-function RegInInstruction(r: ToldRegister; p1: Tai): Boolean;
-function RegInOp(Reg: TRegister; const o:toper): Boolean;
-function instrWritesFlags(p: Tai): boolean;
-function instrReadsFlags(p: Tai): boolean;
+function RefsEquivalent(const R1, R2: TReference; var RegInfo: toptreginfo; OpAct: TOpAction): Boolean;
+function RefsEqual(const R1, R2: TReference): Boolean;
+function IsGP32Reg(reg: TRegister): Boolean;
+function reginref(supreg: tsuperregister; const ref: treference): boolean;
+function RegReadByInstruction(supreg: tsuperregister; hp: tai): boolean;
+function RegModifiedByInstruction(supreg: tsuperregister; p1: tai): boolean;
+function RegInInstruction(supreg: tsuperregister; p1: tai): boolean;
+function reginop(supreg: tsuperregister; const o:toper): boolean;
+function instrWritesFlags(p: tai): boolean;
+function instrReadsFlags(p: tai): boolean;
 
-function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
-  reg: tregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
-function writeToRegDestroysContents(destReg: tregister; reg: tregister;
+function writeToMemDestroysContents(regWritten: tsuperregister; const ref: treference;
+  supreg: tsuperregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
+function writeToRegDestroysContents(destReg, supreg: tsuperregister;
   const c: tcontent): boolean;
-function writeDestroysContents(const op: toper; reg: tregister;
+function writeDestroysContents(const op: toper; supreg: tsuperregister;
   const c: tcontent): boolean;
 
 
-Function GetNextInstruction(Current: Tai; Var Next: Tai): Boolean;
-Function GetLastInstruction(Current: Tai; Var Last: Tai): Boolean;
-Procedure SkipHead(var P: Tai);
-function labelCanBeSkipped(p: Tai_label): boolean;
+function GetNextInstruction(Current: tai; var Next: tai): Boolean;
+function GetLastInstruction(Current: tai; var Last: tai): Boolean;
+    procedure SkipHead(var p: tai);
+function labelCanBeSkipped(p: tai_label): boolean;
 
-Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
-Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
-           hp: Tai): boolean;
-Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Tai);
-Procedure AllocRegBetween(AsmL: TAAsmOutput; Reg: TRegister; p1, p2: Tai);
-function FindRegDealloc(reg: tregister; p: Tai): boolean;
+procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: tai);
+function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
+           hp: tai): boolean;
+procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
+procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai);
+function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
-Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
-Function InstructionsEquivalent(p1, p2: Tai; Var RegInfo: TRegInfo): Boolean;
+//function RegsEquivalent(OldReg, NewReg: tregister; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
+function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
 function sizescompatible(loadsize,newsize: topsize): boolean;
-Function OpsEqual(const o1,o2:toper): Boolean;
+function OpsEqual(const o1,o2:toper): Boolean;
 
 
 type
@@ -222,10 +220,10 @@ type
     { current part of the asm list }
     blockstart, blockend: tai;
 
-    { the amount of TaiObjects in the current part of the assembler list }
+    { the amount of taiObjects in the current part of the assembler list }
     nroftaiobjs: longint;
 
-    { Array which holds all TTaiProps }
+    { Array which holds all TtaiProps }
     taipropblock: ptaipropblock;
 
     { all labels in the current block: their value mapped to their location }
@@ -234,28 +232,28 @@ type
   end;
 
 
-Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
+function FindLabel(L: tasmlabel; var hp: tai): Boolean;
 
-Procedure IncState(Var S: Byte; amount: longint);
+procedure incState(var S: Byte; amount: longint);
 
 {******************************* Variables *******************************}
 
 var
   dfa: tdfaobj;
 
-{*********************** End of Interface section ************************}
+{*********************** end of Interface section ************************}
 
 
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, cginfo, cgobj,
-   rgobj;
+  globals, systems, verbose, cgbase, symconst, symsym, cgobj,
+   rgobj, procinfo;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
 
-Var
+var
  {How many instructions are between the current instruction and the last one
   that modified the register}
   NrOfInstrSinceLastMod: TInstrSinceLastMod;
@@ -305,84 +303,84 @@ Var
       end;
   end;
 
-Procedure updateTempAllocs(Var UsedRegs: TRegSet; p: Tai);
-{updates UsedRegs with the RegAlloc Information coming after P}
-Begin
-  Repeat
-    While Assigned(p) And
+procedure updateTempAllocs(var UsedRegs: TRegSet; p: tai);
+{updates UsedRegs with the RegAlloc Information coming after p}
+begin
+  repeat
+    while assigned(p) and
           ((p.typ in (SkipInstr - [ait_RegAlloc])) or
-           ((p.typ = ait_label) And
-            labelCanBeSkipped(Tai_label(current)))) Do
-         p := Tai(p.next);
-    While Assigned(p) And
+           ((p.typ = ait_label) and
+            labelCanBeSkipped(tai_label(current)))) Do
+         p := tai(p.next);
+    while assigned(p) and
           (p.typ=ait_RegAlloc) Do
-      Begin
+      begin
         if tai_regalloc(p).allocation then
-          UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
+          UsedRegs := UsedRegs + [tai_regalloc(p).reg]
         else
-          UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
-        p := Tai(p.next);
-      End;
-  Until Not(Assigned(p)) Or
-        (Not(p.typ in SkipInstr) And
-         Not((p.typ = ait_label) And
-             labelCanBeSkipped(Tai_label(current))));
-End;
+          UsedRegs := UsedRegs - [tai_regalloc(p).reg];
+        p := tai(p.next);
+      end;
+  until not(assigned(p)) or
+        (not(p.typ in SkipInstr) and
+         not((p.typ = ait_label) and
+             labelCanBeSkipped(tai_label(current))));
+end;
 
 {$endif tempOpts}
 
 {************************ Create the Label table ************************}
 
-Function FindRegAlloc(Reg: Tregister; StartTai: Tai; alloc: boolean): Boolean;
-{ Returns true if a ait_alloc object for Reg is found in the block of Tai's }
-{ starting with StartTai and ending with the next "real" instruction        }
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  FindRegAlloc := false;
-  Repeat
-    While Assigned(StartTai) And
-          ((StartTai.typ in (SkipInstr - [ait_regAlloc])) Or
-           ((StartTai.typ = ait_label) and
-            labelCanBeSkipped(Tai_label(startTai)))) Do
-      StartTai := Tai(StartTai.Next);
-    If Assigned(StartTai) and
-       (StartTai.typ = ait_regAlloc) then
+function findregalloc(reg: tregister; starttai: tai; alloc: boolean): boolean;
+{ Returns true if a ait_alloc object for reg is found in the block of tai's }
+{ starting with Starttai and ending with the next "real" instruction        }
+var
+  supreg: tsuperregister;
+begin
+  findregalloc := false;
+  supreg := getsupreg(reg);
+  repeat
+    while assigned(starttai) and
+          ((starttai.typ in (skipinstr - [ait_regalloc])) or
+           ((starttai.typ = ait_label) and
+            labelcanbeskipped(tai_label(starttai)))) do
+      starttai := tai(starttai.next);
+    if assigned(starttai) and
+       (starttai.typ = ait_regalloc) then
       begin
-        if Tai_regalloc(startTai).reg.enum>lastreg then
-          internalerror(200301081);
-        if (tai_regalloc(StartTai).allocation = alloc) and
-           (tai_regalloc(StartTai).Reg.enum = Reg.enum) then
+        if (tai_regalloc(Starttai).allocation = alloc) and
+           (getsupreg(tai_regalloc(Starttai).reg) = supreg) then
           begin
-            FindRegAlloc:=true;
+            findregalloc:=true;
             break;
           end;
-        StartTai := Tai(StartTai.Next);
+        starttai := tai(starttai.next);
       end
     else
       break;
-  Until false;
-End;
+  until false;
+end;
 
-Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
+procedure RemoveLastDeallocForFuncRes(asml: taasmoutput; p: tai);
 
-  Procedure DoRemoveLastDeallocForFuncRes(asmL: TAAsmOutput; reg: ToldRegister);
+  procedure DoRemoveLastDeallocForFuncRes(asml: taasmoutput; supreg: tsuperregister);
   var
-    hp2: Tai;
+    hp2: tai;
   begin
     hp2 := p;
     repeat
-      hp2 := Tai(hp2.previous);
+      hp2 := tai(hp2.previous);
       if assigned(hp2) and
          (hp2.typ = ait_regalloc) and
          not(tai_regalloc(hp2).allocation) and
-         (tai_regalloc(hp2).reg.enum = reg) then
+         (getregtype(tai_regalloc(hp2).reg) = R_INTREGISTER) and
+         (getsupreg(tai_regalloc(hp2).reg) = supreg) then
         begin
           asml.remove(hp2);
           hp2.free;
           break;
         end;
-    until not(assigned(hp2)) or regInInstruction(reg,hp2);
+    until not(assigned(hp2)) or regInInstruction(supreg,hp2);
   end;
 
 begin
@@ -391,73 +389,76 @@ begin
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
-        DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
+        DoRemoveLastDeallocForFuncRes(asml,RS_EAX);
       orddef:
         if current_procinfo.procdef.rettype.def.size <> 0 then
           begin
-            DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
+            DoRemoveLastDeallocForFuncRes(asml,RS_EAX);
             { for int64/qword }
             if current_procinfo.procdef.rettype.def.size = 8 then
-              DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
+              DoRemoveLastDeallocForFuncRes(asml,RS_EDX);
           end;
     end;
 end;
 
-procedure getNoDeallocRegs(var regs: TRegSet);
-var regCounter: ToldRegister;
+procedure getNoDeallocRegs(var regs: tregset);
+var
+  regCounter: TSuperRegister;
 begin
   regs := [];
-    case current_procinfo.procdef.rettype.def.deftype of
-      arraydef,recorddef,pointerdef,
-         stringdef,enumdef,procdef,objectdef,errordef,
-         filedef,setdef,procvardef,
-         classrefdef,forwarddef:
-       regs := [R_EAX];
-      orddef:
-        if current_procinfo.procdef.rettype.def.size <> 0 then
-          begin
-            regs := [R_EAX];
-            { for int64/qword }
-            if current_procinfo.procdef.rettype.def.size = 8 then
-              regs := regs + [R_EDX];
-          end;
-    end;
-  for regCounter := R_EAX to R_EBX do
+  case current_procinfo.procdef.rettype.def.deftype of
+    arraydef,recorddef,pointerdef,
+       stringdef,enumdef,procdef,objectdef,errordef,
+       filedef,setdef,procvardef,
+       classrefdef,forwarddef:
+     regs := [RS_EAX];
+    orddef:
+      if current_procinfo.procdef.rettype.def.size <> 0 then
+        begin
+          regs := [RS_EAX];
+          { for int64/qword }
+          if current_procinfo.procdef.rettype.def.size = 8 then
+            regs := regs + [RS_EDX];
+        end;
+  end;
+  for regCounter := RS_EAX to RS_EBX do
 {    if not(regCounter in rg.usableregsint) then}
-      include(regs,regCounter);
+      include(regs,regcounter);
 end;
 
-Procedure AddRegDeallocFor(asmL: TAAsmOutput; reg: TRegister; p: Tai);
-var hp1: Tai;
-    funcResRegs: TRegset;
-    funcResReg: boolean;
-begin
 
-  if reg.enum>lastreg then
-    internalerror(200301081);
-{ if not(reg.enum in rg.usableregsint) then
+procedure AddRegDeallocFor(asml: taasmoutput; reg: tregister; p: tai);
+var
+  hp1: tai;
+  funcResRegs: tregset;
+  funcResReg: boolean;
+begin
+{ if not(supreg in rg.usableregsint) then
     exit;}
- if not(reg.enum in [R_EDI]) then
-    exit;
-  getNoDeallocRegs(funcResRegs);
+{ if not(supreg in [RS_EDI]) then
+    exit;}
+  getNoDeallocRegs(funcresregs);
 {  funcResRegs := funcResRegs - rg.usableregsint;}
-{  funcResRegs := funcResRegs - [R_EDI];}
-  funcResRegs := funcResRegs - [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI];
-  funcResReg := reg.enum in funcResRegs;
+{  funcResRegs := funcResRegs - [RS_EDI];}
+{  funcResRegs := funcResRegs - [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI]; }
+  funcResReg := getsupreg(reg) in funcresregs;
+
   hp1 := p;
-{  while not(funcResReg and
+{
+  while not(funcResReg and
             (p.typ = ait_instruction) and
-            (Taicpu(p).opcode = A_JMP) and
-            (tasmlabel(Taicpu(p).oper[0].sym) = aktexit2label)) and
-        getLastInstruction(p, p) And
-        not(regInInstruction(reg.enum, p)) Do
-    hp1 := p; }
+            (taicpu(p).opcode = A_JMP) and
+            (tasmlabel(taicpu(p).oper[0]^.sym) = aktexit2label)) and
+        getLastInstruction(p, p) and
+        not(regInInstruction(supreg, p)) do
+    hp1 := p; 
+}
   { don't insert a dealloc for registers which contain the function result }
   { if they are followed by a jump to the exit label (for exit(...))       }
-  {if not(funcResReg) or
+{  if not(funcResReg) or
      not((hp1.typ = ait_instruction) and
-         (Taicpu(hp1).opcode = A_JMP) and
-         (tasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then }
+         (taicpu(hp1).opcode = A_JMP) and
+         (tasmlabel(taicpu(hp1).oper[0]^.sym) = aktexit2label)) then }
     begin
       p := tai_regalloc.deAlloc(reg);
       insertLLItem(AsmL, hp1.previous, hp1, p);
@@ -468,7 +469,7 @@ end;
 
 {************************ Search the Label table ************************}
 
-Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
+function findlabel(l: tasmlabel; var hp: tai): boolean;
 
 {searches for the specified label starting from hp as long as the
  encountered instructions are labels, to be able to optimize constructs like
@@ -478,248 +479,134 @@ Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
  l1:                 l2:
  l2:}
 
-Var TempP: Tai;
+var
+  p: tai;
 
-Begin
-  TempP := hp;
-  While Assigned(TempP) and
-       (Tempp.typ In SkipInstr + [ait_label,ait_align]) Do
-    If (Tempp.typ <> ait_Label) Or
-       (Tai_label(Tempp).l <> L)
-      Then GetNextInstruction(TempP, TempP)
-      Else
-        Begin
-          hp := TempP;
-          FindLabel := True;
+begin
+  p := hp;
+  while assigned(p) and
+       (p.typ in SkipInstr + [ait_label,ait_align]) Do
+    if (p.typ <> ait_Label) or
+       (tai_label(p).l <> l) then
+      GetNextInstruction(p, p)
+    else
+       begin
+          hp := p;
+          findlabel := true;
           exit
-        End;
-  FindLabel := False;
-End;
+        end;
+  findlabel := false;
+end;
 
 {************************ Some general functions ************************}
 
-  const
-    reg2reg32 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg16 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg8 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    { convert a register to a specfied register size }
-    function changeregsize(r:tregister;size:topsize):tregister;
-      var
-        reg : tregister;
-      begin
-        case size of
-          S_B :
-            reg.enum:=reg2reg8[r.enum];
-          S_W :
-            reg.enum:=reg2reg16[r.enum];
-          S_L :
-            reg.enum:=reg2reg32[r.enum];
-          else
-            internalerror(200204101);
-        end;
-        if reg.enum=R_NO then
-         internalerror(200204102);
-        changeregsize:=reg;
-      end;
-
-Function TCh2Reg(Ch: TInsChange): ToldRegister;
+function tch2reg(ch: tinschange): tsuperregister;
 {converts a TChange variable to a TRegister}
-Begin
-  If (Ch <= Ch_REDI) Then
-    TCh2Reg := ToldRegister(Byte(Ch))
-  Else
-    If (Ch <= Ch_WEDI) Then
-      TCh2Reg := ToldRegister(Byte(Ch) - Byte(Ch_REDI))
-    Else
-      If (Ch <= Ch_RWEDI) Then
-        TCh2Reg := ToldRegister(Byte(Ch) - Byte(Ch_WEDI))
-      Else
-        If (Ch <= Ch_MEDI) Then
-          TCh2Reg := ToldRegister(Byte(Ch) - Byte(Ch_RWEDI))
-        Else InternalError($db)
-End;
+const
+  ch2reg: array[CH_REAX..CH_REDI] of tsuperregister = (RS_EAX,RS_ECX,RS_EDX,RS_EBX,RS_ESP,RS_EBP,RS_ESI,RS_EDI);
+begin
+  if (ch <= CH_REDI) then
+    tch2reg := ch2reg[ch]
+  else if (ch <= CH_WEDI) then
+    tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_REDI))]
+  else if (ch <= CH_RWEDI) then
+    tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_WEDI))]
+  else if (ch <= CH_MEDI) then
+    tch2reg := ch2reg[tinschange(ord(ch) - ord(CH_RWEDI))]
+  else
+    InternalError($db)
+end;
 
-Function Reg32(Reg: TRegister): TRegister;
-{Returns the 32 bit component of Reg if it exists, otherwise Reg is returned}
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  Reg32 := Reg;
-  If (Reg.enum >= R_AX)
-    Then
-      If (Reg.enum <= R_DI)
-        Then Reg32 := changeregsize(Reg,S_L)
-        Else
-          If (Reg.enum <= R_BL)
-            Then Reg32 := changeregsize(Reg,S_L);
-End;
 
 { inserts new_one between prev and foll }
-Procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
-Begin
-  If Assigned(prev) Then
-    If Assigned(foll) Then
-      Begin
-        If Assigned(new_one) Then
-          Begin
+procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
+begin
+  if assigned(prev) then
+    if assigned(foll) then
+      begin
+        if assigned(new_one) then
+          begin
             new_one.previous := prev;
             new_one.next := foll;
             prev.next := new_one;
             foll.previous := new_one;
             { shgould we update line information }
-            if (not (Tai(new_one).typ in SkipLineInfo)) and
-               (not (Tai(foll).typ in SkipLineInfo)) then
-            Tailineinfo(new_one).fileinfo := Tailineinfo(foll).fileinfo;
-          End;
-      End
-    Else asml.Concat(new_one)
-  Else If Assigned(Foll) Then asml.Insert(new_one)
-End;
+            if (not (tai(new_one).typ in SkipLineInfo)) and
+               (not (tai(foll).typ in SkipLineInfo)) then
+            tailineinfo(new_one).fileinfo := tailineinfo(foll).fileinfo;
+          end;
+      end
+    else
+      asml.Concat(new_one)
+  else
+    if assigned(foll) then
+      asml.Insert(new_one)
+end;
 
-{********************* Compare parts of Tai objects *********************}
+{********************* Compare parts of tai objects *********************}
 
-Function RegsSameSize(Reg1, Reg2: TRegister): Boolean;
+function regssamesize(reg1, reg2: tregister): boolean;
 {returns true if Reg1 and Reg2 are of the same size (so if they're both
  8bit, 16bit or 32bit)}
-Begin
-  if reg1.enum>lastreg then
-    internalerror(200301081);
-  if reg2.enum>lastreg then
-    internalerror(200301081);
-  If (Reg1.enum <= R_EDI)
-    Then RegsSameSize := (Reg2.enum <= R_EDI)
-    Else
-      If (Reg1.enum <= R_DI)
-        Then RegsSameSize := (Reg2.enum in [R_AX..R_DI])
-        Else
-          If (Reg1.enum <= R_BL)
-            Then RegsSameSize := (Reg2.enum in [R_AL..R_BL])
-            Else RegsSameSize := False
-End;
+begin
+  if (reg1 = NR_NO) or (reg2 = NR_NO) then
+    internalerror(2003111602);
+  regssamesize := getsubreg(reg1) = getsubreg(reg2);
+end;
 
-Procedure AddReg2RegInfo(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo);
-{updates the ???RegsEncountered and ???2???Reg fields of RegInfo. Assumes that
+
+procedure AddReg2RegInfo(OldReg, NewReg: TRegister; var RegInfo: toptreginfo);
+{updates the ???RegsEncountered and ???2???reg fields of RegInfo. Assumes that
  OldReg and NewReg have the same size (has to be chcked in advance with
- RegsSameSize) and that neither equals R_NO}
-Begin
-  With RegInfo Do
-    Begin
-      if newreg.enum>lastreg then
-        internalerror(200301081);
-      if oldreg.enum>lastreg then
-        internalerror(200301081);
-      NewRegsEncountered := NewRegsEncountered + [NewReg.enum];
-      OldRegsEncountered := OldRegsEncountered + [OldReg.enum];
-      New2OldReg[NewReg.enum] := OldReg;
-      Case OldReg.enum Of
-        R_EAX..R_EDI:
-          Begin
-            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_W).enum];
-            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_W).enum];
-            New2OldReg[changeregsize(NewReg,S_W).enum] := changeregsize(OldReg,S_W);
-            If (NewReg.enum in [R_EAX..R_EBX]) And
-               (OldReg.enum in [R_EAX..R_EBX]) Then
-              Begin
-                NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_B).enum];
-                OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_B).enum];
-                New2OldReg[changeregsize(NewReg,S_B).enum] := changeregsize(OldReg,S_B);
-              End;
-          End;
-        R_AX..R_DI:
-          Begin
-            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_L).enum];
-            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_L).enum];
-            New2OldReg[changeregsize(NewReg,S_L).enum] := changeregsize(OldReg,S_L);
-            If (NewReg.enum in [R_AX..R_BX]) And
-               (OldReg.enum in [R_AX..R_BX]) Then
-              Begin
-                NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_B).enum];
-                OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_B).enum];
-                New2OldReg[changeregsize(NewReg,S_B).enum] := changeregsize(OldReg,S_B);
-              End;
-          End;
-        R_AL..R_BL:
-          Begin
-            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_L).enum]
-                               + [changeregsize(NewReg,S_W).enum];
-            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_L).enum]
-                               + [changeregsize(OldReg,S_B).enum];
-            New2OldReg[changeregsize(NewReg,S_L).enum] := changeregsize(OldReg,S_L);
-          End;
-      End;
-    End;
-End;
+ RegsSameSize) and that neither equals RS_INVALID}
+var
+  newsupreg, oldsupreg: tsuperregister;
+begin
+  if (newreg = NR_NO) or (oldreg = NR_NO) then
+    internalerror(2003111601);
+  newsupreg := getsupreg(newreg);
+  oldsupreg := getsupreg(oldreg);
+  with RegInfo Do
+    begin
+      NewRegsEncountered := NewRegsEncountered + [newsupreg];
+      OldRegsEncountered := OldRegsEncountered + [oldsupreg];
+      New2OldReg[newsupreg] := oldsupreg;
+    end;
+end;
 
-Procedure AddOp2RegInfo(const o:Toper; Var RegInfo: TRegInfo);
-Begin
-  Case o.typ Of
-    Top_Reg:
-      If (o.reg.enum <> R_NO) Then
+
+procedure AddOp2RegInfo(const o:toper; var reginfo: toptreginfo);
+begin
+  case o.typ Of
+    top_reg:
+      if (o.reg <> NR_NO) then
         AddReg2RegInfo(o.reg, o.reg, RegInfo);
-    Top_Ref:
-      Begin
-        If o.ref^.base.enum <> R_NO Then
+    top_ref:
+      begin
+        if o.ref^.base <> NR_NO then
           AddReg2RegInfo(o.ref^.base, o.ref^.base, RegInfo);
-        If o.ref^.index.enum <> R_NO Then
+        if o.ref^.index <> NR_NO then
           AddReg2RegInfo(o.ref^.index, o.ref^.index, RegInfo);
-      End;
-  End;
-End;
+      end;
+  end;
+end;
 
 
-Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OPAct: TOpAction): Boolean;
-Begin
-  if oldreg.enum>lastreg then
-    internalerror(200301081);
-  if newreg.enum>lastreg then
-    internalerror(200301081);
-  If Not((OldReg.enum = R_NO) Or (NewReg.enum = R_NO)) Then
-    If RegsSameSize(OldReg, NewReg) Then
-      With RegInfo Do
+function RegsEquivalent(oldreg, newreg: tregister; var reginfo: toptreginfo; opact: topaction): Boolean;
+begin
+  if not((oldreg = NR_NO) or (newreg = NR_NO)) then
+    if RegsSameSize(oldreg, newreg) then
+      with reginfo do
 {here we always check for the 32 bit component, because it is possible that
  the 8 bit component has not been set, event though NewReg already has been
  processed. This happens if it has been compared with a register that doesn't
- have an 8 bit component (such as EDI). In that case the 8 bit component is
- still set to R_NO and the comparison in the Else-part will fail}
-        If (Reg32(OldReg).enum in OldRegsEncountered) Then
-          If (Reg32(NewReg).enum in NewRegsEncountered) Then
-            RegsEquivalent := (OldReg.enum = New2OldReg[NewReg.enum].enum)
+ have an 8 bit component (such as EDI). in that case the 8 bit component is
+ still set to RS_NO and the comparison in the else-part will fail}
+        if (getsupreg(oldReg) in OldRegsEncountered) then
+          if (getsupreg(NewReg) in NewRegsEncountered) then
+            RegsEquivalent := (getsupreg(oldreg) = New2OldReg[getsupreg(newreg)])
 
- { If we haven't encountered the new register yet, but we have encountered the
+ { if we haven't encountered the new register yet, but we have encountered the
    old one already, the new one can only be correct if it's being written to
    (and consequently the old one is also being written to), otherwise
 
@@ -728,120 +615,136 @@ Begin
 
    are considered equivalent}
 
-          Else
-            If (OpAct = OpAct_Write) Then
-              Begin
-                AddReg2RegInfo(OldReg, NewReg, RegInfo);
-                RegsEquivalent := True
-              End
-            Else Regsequivalent := False
-        Else
-           If Not(Reg32(NewReg).enum in NewRegsEncountered) and
-              ((OpAct = OpAct_Write) or
-               (newReg.enum = oldReg.enum)) Then
-             Begin
-               AddReg2RegInfo(OldReg, NewReg, RegInfo);
-               RegsEquivalent := True
-             End
-           Else RegsEquivalent := False
-    Else RegsEquivalent := False
-  Else RegsEquivalent := OldReg.enum = NewReg.enum
-End;
-
-Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
-Begin
-  RefsEquivalent := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-                    RegsEquivalent(R1.Base, R2.Base, RegInfo, OpAct) And
-                    RegsEquivalent(R1.Index, R2.Index, RegInfo, OpAct) And
-                    (R1.Segment.enum = R2.Segment.enum) And (R1.ScaleFactor = R2.ScaleFactor) And
-                    (R1.Symbol = R2.Symbol);
-End;
+          else
+            if (opact = opact_write) then
+              begin
+                AddReg2RegInfo(oldreg, newreg, reginfo);
+                RegsEquivalent := true
+              end
+            else
+              Regsequivalent := false
+        else
+           if not(getsupreg(newreg) in NewRegsEncountered) and
+              ((opact = opact_write) or
+               (newreg = oldreg)) then
+             begin
+               AddReg2RegInfo(oldreg, newreg, reginfo);
+               RegsEquivalent := true
+             end
+           else
+             RegsEquivalent := false
+    else
+      RegsEquivalent := false
+  else
+    RegsEquivalent := oldreg = newreg
+end;
 
 
-Function RefsEqual(Const R1, R2: TReference): Boolean;
-Begin
-  RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-               (R1.Segment.enum = R2.Segment.enum) And (R1.Base.enum = R2.Base.enum) And
-               (R1.Index.enum = R2.Index.enum) And (R1.ScaleFactor = R2.ScaleFactor) And
-               (R1.Symbol=R2.Symbol);
-End;
-
-Function IsGP32Reg(Reg: TRegister): Boolean;
-{Checks if the register is a 32 bit general purpose register}
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  If (Reg.enum >= R_EAX) and (Reg.enum <= R_EBX)
-    Then IsGP32Reg := True
-    Else IsGP32reg := False
-End;
-
-Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
-Begin {checks whether Ref contains a reference to Reg}
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  Reg := Reg32(Reg);
-  RegInRef := (Ref.Base.enum = Reg.enum) Or (Ref.Index.enum = Reg.enum)
-End;
-
-function RegReadByInstruction(reg: TRegister; hp: Tai): boolean;
-var p: Taicpu;
-    opCount: byte;
+function RefsEquivalent(const r1, r2: treference; var regInfo: toptreginfo; opact: topaction): boolean;
 begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
+  RefsEquivalent :=
+    (r1.offset = r2.offset) and
+    RegsEquivalent(r1.base, r2.base, reginfo, opact) and
+    RegsEquivalent(r1.index, r2.index, reginfo, opact) and
+    (r1.segment = r2.segment) and (r1.scalefactor = r2.scalefactor) and
+    (r1.symbol = r2.symbol);
+end;
+
+
+function refsequal(const r1, r2: treference): boolean;
+begin
+  refsequal :=
+    (r1.offset = r2.offset) and
+    (r1.segment = r2.segment) and (r1.base = r2.base) and
+    (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+    (r1.symbol=r2.symbol);
+end;
+
+
+function isgp32reg(reg: tregister): boolean;
+{Checks if the register is a 32 bit general purpose register}
+var
+  supreg: tsuperregister;
+begin
+  isgp32reg := false;
+  if (reg = NR_NO) or
+     (getregtype(reg) <> R_INTREGISTER) then
+    exit;
+  supreg := getsupreg(reg);
+  if (supreg >= RS_EAX) and (supreg <= RS_EBX) then
+    isgp32reg := true
+end;
+
+
+function reginref(supreg: tsuperregister; const ref: treference): boolean;
+begin {checks whether ref contains a reference to reg}
+  reginref :=
+     ((ref.base <> NR_NO) and
+      (getsupreg(ref.base) = supreg)) or
+     ((ref.index <> NR_NO) and
+      (getsupreg(ref.index) = supreg))
+end;
+
+
+function RegReadByInstruction(supreg: tsuperregister; hp: tai): boolean;
+var
+  p: taicpu;
+  opcount: longint;
+begin
   RegReadByInstruction := false;
-  reg := reg32(reg);
   if hp.typ <> ait_instruction then
     exit;
-  p := Taicpu(hp);
+  p := taicpu(hp);
   case p.opcode of
     A_IMUL:
       case p.ops of
-        1: regReadByInstruction := (reg.enum = R_EAX) or reginOp(reg,p.oper[0]);
+        1:
+          regReadByInstruction :=
+             (supreg = RS_EAX) or reginop(supreg,p.oper[0]^);
         2,3:
-          regReadByInstruction := regInOp(reg,p.oper[0]) or
-            regInOp(reg,p.oper[1]);
+          regReadByInstruction :=
+            reginop(supreg,p.oper[0]^) or
+            reginop(supreg,p.oper[1]^);
       end;
     A_IDIV,A_DIV,A_MUL:
       begin
         regReadByInstruction :=
-          regInOp(reg,p.oper[0]) or (reg.enum in [R_EAX,R_EDX]);
+          reginop(supreg,p.oper[0]^) or (supreg in [RS_EAX,RS_EDX]);
       end;
     else
       begin
-        for opCount := 0 to 2 do
-          if (p.oper[opCount].typ = top_ref) and
-             RegInRef(reg,p.oper[opCount].ref^) then
+        for opcount := 0 to p.ops-1 do
+          if (p.oper[opCount]^.typ = top_ref) and
+             reginref(supreg,p.oper[opcount]^.ref^) then
             begin
               RegReadByInstruction := true;
               exit
             end;
-        for opCount := 1 to MaxCh do
-          case InsProp[p.opcode].Ch[opCount] of
-            Ch_REAX..CH_REDI,CH_RWEAX..Ch_MEDI:
-              if reg.enum = TCh2Reg(InsProp[p.opcode].Ch[opCount]) then
+        for opcount := 1 to maxch do
+          case insprop[p.opcode].ch[opcount] of
+            CH_REAX..CH_REDI,CH_RWEAX..CH_MEDI:
+              if supreg = tch2reg(insprop[p.opcode].ch[opcount]) then
                 begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp1,Ch_ROp1,Ch_MOp1:
-              if (p.oper[0].typ = top_reg) and
-                 (reg32(p.oper[0].reg).enum = reg.enum) then
+            CH_RWOP1,CH_ROP1,CH_MOP1:
+              if //(p.oper[0]^.typ = top_reg) and
+                 reginop(supreg,p.oper[0]^) then
                 begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp2,Ch_ROp2,Ch_MOp2:
-              if (p.oper[1].typ = top_reg) and
-                 (reg32(p.oper[1].reg).enum = reg.enum) then
+            Ch_RWOP2,Ch_ROP2,Ch_MOP2:
+              if //(p.oper[1]^.typ = top_reg) and
+                 reginop(supreg,p.oper[1]^) then
                 begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp3,Ch_ROp3,Ch_MOp3:
-              if (p.oper[2].typ = top_reg) and
-                 (reg32(p.oper[2].reg).enum = reg.enum) then
+            Ch_RWOP3,Ch_ROP3,Ch_MOP3:
+              if //(p.oper[2]^.typ = top_reg) and
+                 reginop(supreg,p.oper[2]^) then
                 begin
                   RegReadByInstruction := true;
                   exit
@@ -851,56 +754,60 @@ begin
   end;
 end;
 
-function regInInstruction(r: ToldRegister; p1: Tai): Boolean;
-{ Checks if Reg is used by the instruction p1                              }
+
+function regInInstruction(supreg: tsuperregister; p1: tai): boolean;
+{ Checks if reg is used by the instruction p1                              }
 { Difference with "regReadBysinstruction() or regModifiedByInstruction()": }
 { this one ignores CH_ALL opcodes, while regModifiedByInstruction doesn't  }
-var p: Taicpu;
-    opCount: byte;
-    reg:Tregister;
+var
+  p: taicpu;
+  opcount: byte;
 begin
-  reg.enum:=r;
-  reg := reg32(reg);
   regInInstruction := false;
   if p1.typ <> ait_instruction then
     exit;
-  p := Taicpu(p1);
+  p := taicpu(p1);
   case p.opcode of
     A_IMUL:
       case p.ops of
-        1: regInInstruction := (reg.enum = R_EAX) or reginOp(reg,p.oper[0]);
+        1:
+          regInInstruction :=
+            (supreg = RS_EAX) or reginop(supreg,p.oper[0]^);
         2,3:
-          regInInstruction := regInOp(reg,p.oper[0]) or
-            regInOp(reg,p.oper[1]) or regInOp(reg,p.oper[2]);
+          regInInstruction :=
+            reginop(supreg,p.oper[0]^) or
+            reginop(supreg,p.oper[1]^) or
+            (assigned(p.oper[2]) and
+             reginop(supreg,p.oper[2]^));
       end;
     A_IDIV,A_DIV,A_MUL:
       regInInstruction :=
-        regInOp(reg,p.oper[0]) or
-         (reg.enum in [R_EAX,R_EDX])
+        reginop(supreg,p.oper[0]^) or
+         (supreg in [RS_EAX,RS_EDX])
     else
       begin
-        for opCount := 1 to MaxCh do
-          case InsProp[p.opcode].Ch[opCount] of
+        for opcount := 1 to MaxCh do
+          case insprop[p.opcode].Ch[opCount] of
             CH_REAX..CH_MEDI:
-              if tch2reg(InsProp[p.opcode].Ch[opCount]) = reg.enum then
+              if tch2reg(InsProp[p.opcode].Ch[opCount]) = supreg then
                 begin
                   regInInstruction := true;
                   exit;
                 end;
-            Ch_ROp1..Ch_MOp1:
-              if regInOp(reg,p.oper[0]) then
+            CH_ROp1..CH_MOp1:
+              if reginop(supreg,p.oper[0]^) then
                 begin
                   regInInstruction := true;
                   exit
                 end;
             Ch_ROp2..Ch_MOp2:
-              if regInOp(reg,p.oper[1]) then
+              if reginop(supreg,p.oper[1]^) then
                 begin
                   regInInstruction := true;
                   exit
                 end;
             Ch_ROp3..Ch_MOp3:
-              if regInOp(reg,p.oper[2]) then
+              if reginop(supreg,p.oper[2]^) then
                 begin
                   regInInstruction := true;
                   exit
@@ -910,68 +817,76 @@ begin
   end;
 end;
 
-Function RegInOp(Reg: TRegister; const o:toper): Boolean;
-Begin
-  RegInOp := False;
-  reg := reg32(reg);
-  Case o.typ Of
-    top_reg: RegInOp := Reg.enum = reg32(o.reg).enum;
-    top_ref: RegInOp := (Reg.enum = o.ref^.Base.enum) Or
-                        (Reg.enum = o.ref^.Index.enum);
-  End;
-End;
 
-Function RegModifiedByInstruction(Reg: TRegister; p1: Tai): Boolean;
-Var InstrProp: TInsProp;
-    TmpResult: Boolean;
-    Cnt: Byte;
-Begin
+function reginop(supreg: tsuperregister; const o:toper): boolean;
+begin
+  reginop := false;
+  case o.typ Of
+    top_reg:
+      reginop :=
+        (getregtype(o.reg) = R_INTREGISTER) and
+        (supreg = getsupreg(o.reg));
+    top_ref:
+      reginop :=
+        ((o.ref^.base <> NR_NO) and
+         (supreg = getsupreg(o.ref^.base))) or
+        ((o.ref^.index <> NR_NO) and
+         (supreg = getsupreg(o.ref^.index)));
+  end;
+end;
+
+
+function RegModifiedByInstruction(supreg: tsuperregister; p1: tai): boolean;
+var
+  InstrProp: TInsProp;
+  TmpResult: Boolean;
+  Cnt: Byte;
+begin
   TmpResult := False;
-  Reg := Reg32(Reg);
-  If (p1.typ = ait_instruction) Then
-    Case Taicpu(p1).opcode of
+  if (p1.typ = ait_instruction) then
+    case taicpu(p1).opcode of
       A_IMUL:
-        With Taicpu(p1) Do
+        With taicpu(p1) Do
           TmpResult :=
-            ((ops = 1) and (reg.enum in [R_EAX,R_EDX])) or
-            ((ops = 2) and (Reg32(oper[1].reg).enum = reg.enum)) or
-            ((ops = 3) and (Reg32(oper[2].reg).enum = reg.enum));
+            ((ops = 1) and (supreg in [RS_EAX,RS_EDX])) or
+            ((ops = 2) and (getsupreg(oper[1]^.reg) = supreg)) or
+            ((ops = 3) and (getsupreg(oper[2]^.reg) = supreg));
       A_DIV, A_IDIV, A_MUL:
-        With Taicpu(p1) Do
+        With taicpu(p1) Do
           TmpResult :=
-            (Reg.enum in [R_EAX,R_EDX]);
-      Else
-        Begin
+            (supreg in [RS_EAX,RS_EDX]);
+      else
+        begin
           Cnt := 1;
-          InstrProp := InsProp[Taicpu(p1).OpCode];
-          While (Cnt <= MaxCh) And
-                (InstrProp.Ch[Cnt] <> Ch_None) And
-                Not(TmpResult) Do
-            Begin
-              Case InstrProp.Ch[Cnt] Of
+          InstrProp := InsProp[taicpu(p1).OpCode];
+          while (Cnt <= MaxCh) and
+                (InstrProp.Ch[Cnt] <> Ch_None) and
+                not(TmpResult) Do
+            begin
+              case InstrProp.Ch[Cnt] Of
                 Ch_WEAX..Ch_MEDI:
-                  TmpResult := Reg.enum = TCh2Reg(InstrProp.Ch[Cnt]);
+                  TmpResult := supreg = tch2reg(InstrProp.Ch[Cnt]);
                 Ch_RWOp1,Ch_WOp1,Ch_Mop1:
-                  TmpResult := (Taicpu(p1).oper[0].typ = top_reg) and
-                               (Reg32(Taicpu(p1).oper[0].reg).enum = reg.enum);
+                  TmpResult := (taicpu(p1).oper[0]^.typ = top_reg) and
+                               reginop(supreg,taicpu(p1).oper[0]^);
                 Ch_RWOp2,Ch_WOp2,Ch_Mop2:
-                  TmpResult := (Taicpu(p1).oper[1].typ = top_reg) and
-                               (Reg32(Taicpu(p1).oper[1].reg).enum = reg.enum);
+                  TmpResult := (taicpu(p1).oper[1]^.typ = top_reg) and
+                               reginop(supreg,taicpu(p1).oper[1]^);
                 Ch_RWOp3,Ch_WOp3,Ch_Mop3:
-                  TmpResult := (Taicpu(p1).oper[2].typ = top_reg) and
-                               (Reg32(Taicpu(p1).oper[2].reg).enum = reg.enum);
-                Ch_FPU: TmpResult := Reg.enum in [R_ST..R_ST7,R_MM0..R_MM7];
+                  TmpResult := (taicpu(p1).oper[2]^.typ = top_reg) and
+                               reginop(supreg,taicpu(p1).oper[2]^);
+                Ch_FPU: TmpResult := false; // supreg is supposed to be an intreg!! supreg in [RS_ST..RS_ST7,RS_MM0..RS_MM7];
                 Ch_ALL: TmpResult := true;
-              End;
-              Inc(Cnt)
-            End
-        End
-    End;
+              end;
+              inc(Cnt)
+            end
+        end
+    end;
   RegModifiedByInstruction := TmpResult
-End;
+end;
 
 
-function instrWritesFlags(p: Tai): boolean;
+function instrWritesFlags(p: tai): boolean;
 var
   l: longint;
 begin
@@ -980,17 +895,17 @@ begin
     ait_instruction:
       begin
         for l := 1 to MaxCh do
-          if InsProp[Taicpu(p).opcode].Ch[l] in [Ch_WFlags,Ch_RWFlags,Ch_All] then
+          if InsProp[taicpu(p).opcode].Ch[l] in [Ch_WFlags,Ch_RWFlags,Ch_All] then
             exit;
       end;
     ait_label:
       exit;
-    else
-      instrWritesFlags := false;
   end;
+  instrWritesFlags := false;
 end;
 
-function instrReadsFlags(p: Tai): boolean;
+
+function instrReadsFlags(p: tai): boolean;
 var
   l: longint;
 begin
@@ -999,195 +914,199 @@ begin
     ait_instruction:
       begin
         for l := 1 to MaxCh do
-          if InsProp[Taicpu(p).opcode].Ch[l] in [Ch_RFlags,Ch_RWFlags,Ch_All] then
+          if InsProp[taicpu(p).opcode].Ch[l] in [Ch_RFlags,Ch_RWFlags,Ch_All] then
             exit;
       end;
     ait_label:
       exit;
-    else
-      instrReadsFlags := false;
   end;
+  instrReadsFlags := false;
 end;
 
 
 {********************* GetNext and GetLastInstruction *********************}
-Function GetNextInstruction(Current: Tai; Var Next: Tai): Boolean;
+function GetNextInstruction(Current: tai; var Next: tai): Boolean;
 { skips ait_regalloc, ait_regdealloc and ait_stab* objects and puts the }
-{ next Tai object in Next. Returns false if there isn't any             }
-Begin
-  Repeat
-    If (Current.typ = ait_marker) And
-       (Tai_Marker(current).Kind = AsmBlockStart) Then
-      Begin
+{ next tai object in Next. Returns false if there isn't any             }
+begin
+  repeat
+    if (Current.typ = ait_marker) and
+       (tai_Marker(current).Kind = AsmBlockStart) then
+      begin
         GetNextInstruction := False;
         Next := Nil;
         Exit
-      End;
-    Current := Tai(current.Next);
-    While Assigned(Current) And
-          ((current.typ In skipInstr) or
+      end;
+    Current := tai(current.Next);
+    while assigned(Current) and
+          ((current.typ in skipInstr) or
            ((current.typ = ait_label) and
-            labelCanBeSkipped(Tai_label(current)))) do
-      Current := Tai(current.Next);
-{    If Assigned(Current) And
-       (current.typ = ait_Marker) And
-       (Tai_Marker(current).Kind = NoPropInfoStart) Then
-      Begin
-        While Assigned(Current) And
-              ((current.typ <> ait_Marker) Or
-               (Tai_Marker(current).Kind <> NoPropInfoEnd)) Do
-          Current := Tai(current.Next);
-      End;}
-  Until Not(Assigned(Current)) Or
-        (current.typ <> ait_Marker) Or
-        not(Tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoEnd]);
+            labelCanBeSkipped(tai_label(current)))) do
+      Current := tai(current.Next);
+{    if assigned(Current) and
+       (current.typ = ait_Marker) and
+       (tai_Marker(current).Kind = NoPropInfoStart) then
+      begin
+        while assigned(Current) and
+              ((current.typ <> ait_Marker) or
+               (tai_Marker(current).Kind <> NoPropInfoend)) Do
+          Current := tai(current.Next);
+      end;}
+  until not(assigned(Current)) or
+        (current.typ <> ait_Marker) or
+        not(tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoend]);
   Next := Current;
-  If Assigned(Current) And
-     Not((current.typ In SkipInstr) or
-         ((current.typ = ait_label) And
-          labelCanBeSkipped(Tai_label(current))))
-    Then
+  if assigned(Current) and
+     not((current.typ in SkipInstr) or
+         ((current.typ = ait_label) and
+          labelCanBeSkipped(tai_label(current))))
+    then
       GetNextInstruction :=
          not((current.typ = ait_marker) and
-             (Tai_marker(current).kind = asmBlockStart))
-    Else
-      Begin
+             (tai_marker(current).kind = asmBlockStart))
+    else
+      begin
         GetNextInstruction := False;
         Next := nil;
-      End;
-End;
+      end;
+end;
 
-Function GetLastInstruction(Current: Tai; Var Last: Tai): Boolean;
-{skips the ait-types in SkipInstr puts the previous Tai object in
+
+function GetLastInstruction(Current: tai; var Last: tai): boolean;
+{skips the ait-types in SkipInstr puts the previous tai object in
  Last. Returns false if there isn't any}
-Begin
-  Repeat
-    Current := Tai(current.previous);
-    While Assigned(Current) And
-          (((current.typ = ait_Marker) And
-            Not(Tai_Marker(current).Kind in [AsmBlockEnd{,NoPropInfoEnd}])) or
-           (current.typ In SkipInstr) or
-           ((current.typ = ait_label) And
-            labelCanBeSkipped(Tai_label(current)))) Do
-      Current := Tai(current.previous);
-{    If Assigned(Current) And
-       (current.typ = ait_Marker) And
-       (Tai_Marker(current).Kind = NoPropInfoEnd) Then
-      Begin
-        While Assigned(Current) And
-              ((current.typ <> ait_Marker) Or
-               (Tai_Marker(current).Kind <> NoPropInfoStart)) Do
-          Current := Tai(current.previous);
-      End;}
-  Until Not(Assigned(Current)) Or
-        (current.typ <> ait_Marker) Or
-        not(Tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoEnd]);
-  If Not(Assigned(Current)) or
-     (current.typ In SkipInstr) or
-     ((current.typ = ait_label) And
-      labelCanBeSkipped(Tai_label(current))) or
-     ((current.typ = ait_Marker) And
-      (Tai_Marker(current).Kind = AsmBlockEnd))
-    Then
-      Begin
+begin
+  repeat
+    Current := tai(current.previous);
+    while assigned(Current) and
+          (((current.typ = ait_Marker) and
+            not(tai_Marker(current).Kind in [AsmBlockend{,NoPropInfoend}])) or
+           (current.typ in SkipInstr) or
+           ((current.typ = ait_label) and
+            labelCanBeSkipped(tai_label(current)))) Do
+      Current := tai(current.previous);
+{    if assigned(Current) and
+       (current.typ = ait_Marker) and
+       (tai_Marker(current).Kind = NoPropInfoend) then
+      begin
+        while assigned(Current) and
+              ((current.typ <> ait_Marker) or
+               (tai_Marker(current).Kind <> NoPropInfoStart)) Do
+          Current := tai(current.previous);
+      end;}
+  until not(assigned(Current)) or
+        (current.typ <> ait_Marker) or
+        not(tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoend]);
+  if not(assigned(Current)) or
+     (current.typ in SkipInstr) or
+     ((current.typ = ait_label) and
+      labelCanBeSkipped(tai_label(current))) or
+     ((current.typ = ait_Marker) and
+      (tai_Marker(current).Kind = AsmBlockend))
+    then
+      begin
         Last := nil;
         GetLastInstruction := False
-      End
-    Else
-      Begin
+      end
+    else
+      begin
         Last := Current;
         GetLastInstruction := True;
-      End;
-End;
+      end;
+end;
 
-Procedure SkipHead(var P: Tai);
-Var OldP: Tai;
-Begin
-  Repeat
-    OldP := P;
-    If (p.typ in SkipInstr) Or
-       ((p.typ = ait_marker) And
-        (Tai_Marker(p).Kind in [AsmBlockEnd,inlinestart,inlineend])) Then
-      GetNextInstruction(P, P)
-    Else If ((p.Typ = Ait_Marker) And
-        (Tai_Marker(p).Kind = nopropinfostart)) Then
+
+procedure SkipHead(var p: tai);
+var
+ oldp: tai;
+begin
+  repeat
+    oldp := p;
+    if (p.typ in SkipInstr) or
+       ((p.typ = ait_marker) and
+        (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend])) then
+      GetNextInstruction(p,p)
+    else if ((p.Typ = Ait_Marker) and
+        (tai_Marker(p).Kind = nopropinfostart)) then
    {a marker of the NoPropInfoStart can't be the first instruction of a
     TAAsmoutput list}
-      GetNextInstruction(Tai(p.Previous),P);
-    Until P = OldP
-End;
+      GetNextInstruction(tai(p.previous),p);
+    until p = oldp
+end;
 
-function labelCanBeSkipped(p: Tai_label): boolean;
+
+function labelCanBeSkipped(p: tai_label): boolean;
 begin
   labelCanBeSkipped := not(p.l.is_used) or p.l.is_addr;
 end;
 
 {******************* The Data Flow Analyzer functions ********************}
 
-function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
-           hp: Tai): boolean;
+function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
+           hp: tai): boolean;
 { assumes reg is a 32bit register }
-var p: Taicpu;
+var
+  p: taicpu;
 begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
   if not assigned(hp) or
      (hp.typ <> ait_instruction) then
    begin
      regLoadedWithNewValue := false;
      exit;
    end;
-  p := Taicpu(hp);
+  p := taicpu(hp);
   regLoadedWithNewValue :=
     (((p.opcode = A_MOV) or
       (p.opcode = A_MOVZX) or
       (p.opcode = A_MOVSX) or
       (p.opcode = A_LEA)) and
-     (p.oper[1].typ = top_reg) and
-     (Reg32(p.oper[1].reg).enum = reg.enum) and
+     (p.oper[1]^.typ = top_reg) and
+     (getsupreg(p.oper[1]^.reg) = supreg) and
      (canDependOnPrevValue or
-      (p.oper[0].typ <> top_ref) or
-      not regInRef(reg,p.oper[0].ref^)) or
+      (p.oper[0]^.typ <> top_ref) or
+      not regInRef(supreg,p.oper[0]^.ref^)) or
      ((p.opcode = A_POP) and
-      (Reg32(p.oper[0].reg).enum = reg.enum)));
+      (getsupreg(p.oper[0]^.reg) = supreg)));
 end;
 
-Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Tai);
-{updates UsedRegs with the RegAlloc Information coming after P}
-Begin
-  Repeat
-    While Assigned(p) And
+procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
+{updates UsedRegs with the RegAlloc Information coming after p}
+begin
+  repeat
+    while assigned(p) and
           ((p.typ in (SkipInstr - [ait_RegAlloc])) or
-           ((p.typ = ait_label) And
-            labelCanBeSkipped(Tai_label(p)))) Do
-         p := Tai(p.next);
-    While Assigned(p) And
+           ((p.typ = ait_label) and
+            labelCanBeSkipped(tai_label(p)))) Do
+         p := tai(p.next);
+    while assigned(p) and
           (p.typ=ait_RegAlloc) Do
-      Begin
-        if tai_regalloc(p).allocation then
-          UsedRegs := UsedRegs + [tai_regalloc(p).Reg.enum]
-        else
-          UsedRegs := UsedRegs - [tai_regalloc(p).Reg.enum];
-        p := Tai(p.next);
-      End;
-  Until Not(Assigned(p)) Or
-        (Not(p.typ in SkipInstr) And
-         Not((p.typ = ait_label) And
-             labelCanBeSkipped(Tai_label(p))));
-End;
+      begin
+        if (getregtype(tai_regalloc(p).reg) = R_INTREGISTER) then
+          if tai_regalloc(p).allocation then
+            UsedRegs := UsedRegs + [getsupreg(tai_regalloc(p).reg)]
+          else
+            UsedRegs := UsedRegs - [getsupreg(tai_regalloc(p).reg)];
+        p := tai(p.next);
+      end;
+  until not(assigned(p)) or
+        (not(p.typ in SkipInstr) and
+         not((p.typ = ait_label) and
+             labelCanBeSkipped(tai_label(p))));
+end;
 
-Procedure AllocRegBetween(AsmL: TAAsmOutput; Reg: TRegister; p1, p2: Tai);
-{ allocates register Reg between (and including) instructions p1 and p2 }
+
+procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai);
+{ allocates register reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
 var
-  hp, start: Tai;
+  hp, start: tai;
   lastRemovedWasDealloc, firstRemovedWasAlloc, first: boolean;
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-{ If not(reg.enum in rg.usableregsint+[R_EDI,R_ESI]) or
+  supreg: tsuperregister;
+begin
+  supreg := getsupreg(reg);
+{ if not(supreg in rg.usableregsint+[RS_EDI,RS_ESI]) or
      not(assigned(p1)) then}
- If not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI]) or
+ if not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_EDI,RS_ESI]) or
      not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
@@ -1199,47 +1118,47 @@ Begin
   firstRemovedWasAlloc := false;
   first := true;
 {$ifdef allocregdebug}
-  hp := tai_comment.Create(strpnew('allocating '+std_reg2str[reg.enum]+
+  hp := tai_comment.Create(strpnew('allocating '+std_reg2str[supreg]+
     ' from here...')));
   insertllitem(asml,p1.previous,p1,hp);
-  hp := tai_comment.Create(strpnew('allocated '+std_reg2str[reg.enum]+
+  hp := tai_comment.Create(strpnew('allocated '+std_reg2str[supreg]+
     ' till here...')));
   insertllitem(asml,p2,p1.next,hp);
 {$endif allocregdebug}
   start := p1;
-  Repeat
-    If Assigned(p1.OptInfo) Then
-      Include(PTaiProp(p1.OptInfo)^.UsedRegs,Reg.enum);
-    p1 := Tai(p1.next);
-    Repeat
-      While assigned(p1) and
+  repeat
+    if assigned(p1.OptInfo) then
+      include(ptaiprop(p1.OptInfo)^.UsedRegs,supreg);
+    p1 := tai(p1.next);
+    repeat
+      while assigned(p1) and
             (p1.typ in (SkipInstr-[ait_regalloc])) Do
-        p1 := Tai(p1.next);
+        p1 := tai(p1.next);
 { remove all allocation/deallocation info about the register in between }
-      If assigned(p1) and
-         (p1.typ = ait_regalloc) Then
-        If (tai_regalloc(p1).Reg.enum = Reg.enum) Then
-          Begin
+      if assigned(p1) and
+         (p1.typ = ait_regalloc) then
+        if (getsupreg(tai_regalloc(p1).reg) = supreg) then
+          begin
             if first then
               begin
                 firstRemovedWasAlloc := tai_regalloc(p1).allocation;
                 first := false;
               end;
             lastRemovedWasDealloc := not tai_regalloc(p1).allocation;
-            hp := Tai(p1.Next);
+            hp := tai(p1.Next);
             asml.Remove(p1);
             p1.free;
             p1 := hp;
-          End
-        Else p1 := Tai(p1.next);
-    Until not(assigned(p1)) or
-          Not(p1.typ in SkipInstr);
-  Until not(assigned(p1)) or
+          end
+        else p1 := tai(p1.next);
+    until not(assigned(p1)) or
+          not(p1.typ in SkipInstr);
+  until not(assigned(p1)) or
         (p1 = p2);
   if assigned(p1) then
     begin
       if assigned(p1.optinfo) then
-        include(PTaiProp(p1.OptInfo)^.UsedRegs,Reg.enum);
+        include(ptaiprop(p1.OptInfo)^.UsedRegs,supreg);
       if lastRemovedWasDealloc then
         begin
           hp := tai_regalloc.DeAlloc(reg);
@@ -1251,26 +1170,24 @@ Begin
       hp := tai_regalloc.Alloc(reg);
       insertLLItem(asmL,start.previous,start,hp);
     end;
-End;
+end;
 
-function FindRegDealloc(reg: tregister; p: Tai): boolean;
-{ assumes reg is a 32bit register }
+
+function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 var
-  hp: Tai;
+  hp: tai;
   first: boolean;
 begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
   findregdealloc := false;
   first := true;
   while assigned(p.previous) and
-        ((Tai(p.previous).typ in (skipinstr+[ait_align])) or
-         ((Tai(p.previous).typ = ait_label) and
-          labelCanBeSkipped(Tai_label(p.previous)))) do
+        ((tai(p.previous).typ in (skipinstr+[ait_align])) or
+         ((tai(p.previous).typ = ait_label) and
+          labelCanBeSkipped(tai_label(p.previous)))) do
     begin
-      p := Tai(p.previous);
+      p := tai(p.previous);
       if (p.typ = ait_regalloc) and
-         (tai_regalloc(p).reg.enum = reg.enum) then
+         (getsupreg(tai_regalloc(p).reg) = supreg) then
         if not(tai_regalloc(p).allocation) then
           if first then
             begin
@@ -1281,7 +1198,7 @@ begin
             begin
               findRegDealloc :=
                 getNextInstruction(p,hp) and
-                 regLoadedWithNewValue(reg,false,hp);
+                 regLoadedWithNewValue(supreg,false,hp);
               break
             end
         else
@@ -1291,102 +1208,102 @@ end;
 
 
 
-Procedure IncState(Var S: Byte; amount: longint);
-{Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
+procedure incState(var S: Byte; amount: longint);
+{increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
  errors}
-Begin
+begin
   if (s <= $ff - amount) then
     inc(s, amount)
   else s := longint(s) + amount - $ff;
-End;
+end;
 
-Function sequenceDependsonReg(Const Content: TContent; seqReg, Reg: TRegister): Boolean;
+
+function sequenceDependsonReg(const Content: TContent; seqreg: tsuperregister; supreg: tsuperregister): Boolean;
 { Content is the sequence of instructions that describes the contents of   }
-{ seqReg. Reg is being overwritten by the current instruction. If the      }
+{ seqReg. reg is being overwritten by the current instruction. if the      }
 { content of seqReg depends on reg (ie. because of a                       }
 { "movl (seqreg,reg), seqReg" instruction), this function returns true     }
-Var p: Tai;
-    Counter: Byte;
-    TmpResult: Boolean;
-    RegsChecked: TRegSet;
-Begin
+var
+  p: tai;
+  Counter: Byte;
+  TmpResult: Boolean;
+  RegsChecked: TRegSet;
+begin
   RegsChecked := [];
   p := Content.StartMod;
   TmpResult := False;
   Counter := 1;
-  While Not(TmpResult) And
+  while not(TmpResult) and
         (Counter <= Content.NrOfMods) Do
-    Begin
-      If (p.typ = ait_instruction) and
-         ((Taicpu(p).opcode = A_MOV) or
-          (Taicpu(p).opcode = A_MOVZX) or
-          (Taicpu(p).opcode = A_MOVSX) or
-          (Taicpu(p).opcode = A_LEA)) and
-         (Taicpu(p).oper[0].typ = top_ref) Then
-        With Taicpu(p).oper[0].ref^ Do
-          If ((Base.enum = current_procinfo.FramePointer.enum) or
-              (assigned(symbol) and (base.enum = R_NO))) And
-             (Index.enum = R_NO) Then
-            Begin
-              RegsChecked := RegsChecked + [Reg32(Taicpu(p).oper[1].reg).enum];
-              If Reg.enum = Reg32(Taicpu(p).oper[1].reg).enum Then
-                Break;
-            End
-          Else
+    begin
+      if (p.typ = ait_instruction) and
+         ((taicpu(p).opcode = A_MOV) or
+          (taicpu(p).opcode = A_MOVZX) or
+          (taicpu(p).opcode = A_MOVSX) or
+          (taicpu(p).opcode = A_LEA)) and
+         (taicpu(p).oper[0]^.typ = top_ref) then
+        With taicpu(p).oper[0]^.ref^ Do
+          if ((base = current_procinfo.FramePointer) or
+              (assigned(symbol) and (base = NR_NO))) and
+             (index = NR_NO) then
+            begin
+              RegsChecked := RegsChecked + [getsupreg(taicpu(p).oper[1]^.reg)];
+              if supreg = getsupreg(taicpu(p).oper[1]^.reg) then
+                break;
+            end
+          else
             tmpResult :=
-              regReadByInstruction(reg,p) and
+              regReadByInstruction(supreg,p) and
               regModifiedByInstruction(seqReg,p)
-      Else
+      else
         tmpResult :=
-          regReadByInstruction(reg,p) and
+          regReadByInstruction(supreg,p) and
           regModifiedByInstruction(seqReg,p);
-      Inc(Counter);
+      inc(Counter);
       GetNextInstruction(p,p)
-    End;
+    end;
   sequenceDependsonReg := TmpResult
-End;
+end;
 
-procedure invalidateDependingRegs(p1: pTaiProp; reg: tregister);
+
+procedure invalidateDependingRegs(p1: ptaiprop; supreg: tsuperregister);
 var
-  counter: Tregister;
+  counter: tsuperregister;
 begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  for counter.enum := R_EAX to R_EDI do
-    if counter.enum <> reg.enum then
-      with p1^.regs[counter.enum] Do
+  for counter := RS_EAX to RS_EDI do
+    if counter <> supreg then
+      with p1^.regs[counter] Do
         begin
           if (typ in [con_ref,con_noRemoveRef]) and
-             sequenceDependsOnReg(p1^.Regs[counter.enum],counter,reg) then
-            if typ in [con_ref,con_invalid] then
+             sequenceDependsOnReg(p1^.Regs[counter],counter,supreg) then
+            if typ in [con_ref, con_invalid] then
               typ := con_invalid
-            { con_invalid and con_noRemoveRef = con_unknown }
-            else typ := con_unknown;
+            { con_noRemoveRef = con_unknown }
+            else
+              typ := con_unknown;
           if assigned(memwrite) and
-             regInRef(counter,memwrite.oper[1].ref^) then
+             regInRef(counter,memwrite.oper[1]^.ref^) then
             memwrite := nil;
         end;
 end;
 
-Procedure DestroyReg(p1: PTaiProp; Reg: TRegister; doIncState:Boolean);
-{Destroys the contents of the register Reg in the PTaiProp p1, as well as the
- contents of registers are loaded with a memory location based on Reg.
- doIncState is false when this register has to be destroyed not because
+
+procedure DestroyReg(p1: ptaiprop; supreg: tsuperregister; doincState:Boolean);
+{Destroys the contents of the register reg in the ptaiprop p1, as well as the
+ contents of registers are loaded with a memory location based on reg.
+ doincState is false when this register has to be destroyed not because
  it's contents are directly modified/overwritten, but because of an indirect
  action (e.g. this register holds the contents of a variable and the value
  of the variable in memory is changed) }
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  Reg := Reg32(Reg);
+begin
   { the following happens for fpu registers }
-  if (reg.enum < low(NrOfInstrSinceLastMod)) or
-     (reg.enum > high(NrOfInstrSinceLastMod)) then
+  if (supreg < low(NrOfInstrSinceLastMod)) or
+     (supreg > high(NrOfInstrSinceLastMod)) then
     exit;
-  NrOfInstrSinceLastMod[Reg.enum] := 0;
-  with p1^.regs[reg.enum] do
+  NrOfInstrSinceLastMod[supreg] := 0;
+  with p1^.regs[supreg] do
     begin
-      if doIncState then
+      if doincState then
         begin
           incState(wstate,1);
           typ := con_unknown;
@@ -1395,71 +1312,72 @@ Begin
       else
         if typ in [con_ref,con_const,con_invalid] then
           typ := con_invalid
-        { con_invalid and con_noRemoveRef = con_unknown }
-        else typ := con_unknown;
+        { con_noRemoveRef = con_unknown }
+        else
+          typ := con_unknown;
       memwrite := nil;
     end;
-  invalidateDependingRegs(p1,reg);
-End;
+  invalidateDependingRegs(p1,supreg);
+end;
 
-{Procedure AddRegsToSet(p: Tai; Var RegSet: TRegSet);
-Begin
-  If (p.typ = ait_instruction) Then
-    Begin
-      Case Taicpu(p).oper[0].typ Of
+{procedure AddRegsToSet(p: tai; var RegSet: TRegSet);
+begin
+  if (p.typ = ait_instruction) then
+    begin
+      case taicpu(p).oper[0]^.typ Of
         top_reg:
-          If Not(Taicpu(p).oper[0].reg in [R_NO,R_ESP,current_procinfo.FramePointer]) Then
-            RegSet := RegSet + [Taicpu(p).oper[0].reg];
+          if not(taicpu(p).oper[0]^.reg in [RS_NO,RS_ESP,current_procinfo.FramePointer]) then
+            RegSet := RegSet + [taicpu(p).oper[0]^.reg];
         top_ref:
-          With TReference(Taicpu(p).oper[0]^) Do
-            Begin
-              If Not(Base in [current_procinfo.FramePointer,R_NO,R_ESP])
-                Then RegSet := RegSet + [Base];
-              If Not(Index in [current_procinfo.FramePointer,R_NO,R_ESP])
-                Then RegSet := RegSet + [Index];
-            End;
-      End;
-      Case Taicpu(p).oper[1].typ Of
+          With TReference(taicpu(p).oper[0]^) Do
+            begin
+              if not(base in [current_procinfo.FramePointer,RS_NO,RS_ESP])
+                then RegSet := RegSet + [base];
+              if not(index in [current_procinfo.FramePointer,RS_NO,RS_ESP])
+                then RegSet := RegSet + [index];
+            end;
+      end;
+      case taicpu(p).oper[1]^.typ Of
         top_reg:
-          If Not(Taicpu(p).oper[1].reg in [R_NO,R_ESP,current_procinfo.FramePointer]) Then
-            If RegSet := RegSet + [TRegister(TwoWords(Taicpu(p).oper[1]).Word1];
+          if not(taicpu(p).oper[1]^.reg in [RS_NO,RS_ESP,current_procinfo.FramePointer]) then
+            if RegSet := RegSet + [TRegister(TwoWords(taicpu(p).oper[1]^).Word1];
         top_ref:
-          With TReference(Taicpu(p).oper[1]^) Do
-            Begin
-              If Not(Base in [current_procinfo.FramePointer,R_NO,R_ESP])
-                Then RegSet := RegSet + [Base];
-              If Not(Index in [current_procinfo.FramePointer,R_NO,R_ESP])
-                Then RegSet := RegSet + [Index];
-            End;
-      End;
-    End;
-End;}
+          With TReference(taicpu(p).oper[1]^) Do
+            begin
+              if not(base in [current_procinfo.FramePointer,RS_NO,RS_ESP])
+                then RegSet := RegSet + [base];
+              if not(index in [current_procinfo.FramePointer,RS_NO,RS_ESP])
+                then RegSet := RegSet + [index];
+            end;
+      end;
+    end;
+end;}
 
-Function OpsEquivalent(const o1, o2: toper; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
-Begin {checks whether the two ops are equivalent}
+function OpsEquivalent(const o1, o2: toper; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
+begin {checks whether the two ops are equivalent}
   OpsEquivalent := False;
   if o1.typ=o2.typ then
-    Case o1.typ Of
-      Top_Reg:
+    case o1.typ Of
+      top_reg:
         OpsEquivalent :=RegsEquivalent(o1.reg,o2.reg, RegInfo, OpAct);
-      Top_Ref:
+      top_ref:
         OpsEquivalent := RefsEquivalent(o1.ref^, o2.ref^, RegInfo, OpAct);
       Top_Const:
         OpsEquivalent := o1.val = o2.val;
       Top_None:
         OpsEquivalent := True
-    End;
-End;
+    end;
+end;
 
 
-Function OpsEqual(const o1,o2:toper): Boolean;
-Begin {checks whether the two ops are equal}
+function OpsEqual(const o1,o2:toper): Boolean;
+begin {checks whether the two ops are equal}
   OpsEqual := False;
   if o1.typ=o2.typ then
-    Case o1.typ Of
-      Top_Reg :
-        OpsEqual:=o1.reg.enum=o2.reg.enum;
-      Top_Ref :
+    case o1.typ Of
+      top_reg :
+        OpsEqual:=o1.reg=o2.reg;
+      top_ref :
         OpsEqual := RefsEqual(o1.ref^, o2.ref^);
       Top_Const :
         OpsEqual:=o1.val=o2.val;
@@ -1467,8 +1385,8 @@ Begin {checks whether the two ops are equal}
         OpsEqual:=(o1.sym=o2.sym) and (o1.symofs=o2.symofs);
       Top_None :
         OpsEqual := True
-    End;
-End;
+    end;
+end;
 
 
 function sizescompatible(loadsize,newsize: topsize): boolean;
@@ -1484,7 +1402,7 @@ function sizescompatible(loadsize,newsize: topsize): boolean;
   end;
 
 
-function opscompatible(p1,p2: Taicpu): boolean;
+function opscompatible(p1,p2: taicpu): boolean;
 begin
   case p1.opcode of
     A_MOVZX,A_MOVSX:
@@ -1494,115 +1412,126 @@ begin
     else
       opscompatible :=
         (p1.opcode = p2.opcode) and
+        (p1.ops = p2.ops) and
         (p1.opsize = p2.opsize);
   end;
 end;
 
-Function InstructionsEquivalent(p1, p2: Tai; Var RegInfo: TRegInfo): Boolean;
+
+function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
 {$ifdef csdebug}
 var
-  hp: Tai;
+  hp: tai;
 {$endif csdebug}
-Begin {checks whether two Taicpu instructions are equal}
-  If Assigned(p1) And Assigned(p2) And
-     (Tai(p1).typ = ait_instruction) And
-     (Tai(p2).typ = ait_instruction) And
-     opscompatible(Taicpu(p1),Taicpu(p2)) and
-     (Taicpu(p1).oper[0].typ = Taicpu(p2).oper[0].typ) And
-     (Taicpu(p1).oper[1].typ = Taicpu(p2).oper[1].typ) And
-     (Taicpu(p1).oper[2].typ = Taicpu(p2).oper[2].typ)
-    Then
+begin {checks whether two taicpu instructions are equal}
+  if assigned(p1) and assigned(p2) and
+     (tai(p1).typ = ait_instruction) and
+     (tai(p2).typ = ait_instruction) and
+     opscompatible(taicpu(p1),taicpu(p2)) and
+     (not(assigned(taicpu(p1).oper[0])) or
+      (taicpu(p1).oper[0]^.typ = taicpu(p2).oper[0]^.typ)) and
+     (not(assigned(taicpu(p1).oper[1])) or
+      (taicpu(p1).oper[1]^.typ = taicpu(p2).oper[1]^.typ)) and
+     (not(assigned(taicpu(p1).oper[2])) or
+      (taicpu(p1).oper[2]^.typ = taicpu(p2).oper[2]^.typ)) then
  {both instructions have the same structure:
   "<operator> <operand of type1>, <operand of type 2>"}
-      If ((Taicpu(p1).opcode = A_MOV) or
-          (Taicpu(p1).opcode = A_MOVZX) or
-          (Taicpu(p1).opcode = A_MOVSX)  or
-          (Taicpu(p1).opcode = A_LEA)) And
-         (Taicpu(p1).oper[0].typ = top_ref) {then .oper[1]t = top_reg} Then
-        If Not(RegInRef(Taicpu(p1).oper[1].reg, Taicpu(p1).oper[0].ref^)) Then
+    if ((taicpu(p1).opcode = A_MOV) or
+        (taicpu(p1).opcode = A_MOVZX) or
+        (taicpu(p1).opcode = A_MOVSX)  or
+        (taicpu(p1).opcode = A_LEA)) and
+       (taicpu(p1).oper[0]^.typ = top_ref) {then .oper[1]^t = top_reg} then
+      if not(RegInRef(getsupreg(taicpu(p1).oper[1]^.reg), taicpu(p1).oper[0]^.ref^)) then
  {the "old" instruction is a load of a register with a new value, not with
   a value based on the contents of this register (so no "mov (reg), reg")}
-          If Not(RegInRef(Taicpu(p2).oper[1].reg, Taicpu(p2).oper[0].ref^)) And
-             RefsEqual(Taicpu(p1).oper[0].ref^, Taicpu(p2).oper[0].ref^)
-            Then
+        if not(RegInRef(getsupreg(taicpu(p2).oper[1]^.reg), taicpu(p2).oper[0]^.ref^)) and
+           RefsEqual(taicpu(p1).oper[0]^.ref^, taicpu(p2).oper[0]^.ref^) then
  {the "new" instruction is also a load of a register with a new value, and
   this value is fetched from the same memory location}
-              Begin
-                With Taicpu(p2).oper[0].ref^ Do
-                  Begin
-                    If Not(Base.enum in [current_procinfo.FramePointer.enum, R_NO, R_ESP]) Then
-                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base.enum];
-                    If Not(Index.enum in [current_procinfo.FramePointer.enum, R_NO, R_ESP]) Then
-                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index.enum];
-                  End;
- {add the registers from the reference (.oper[0]) to the RegInfo, all registers
+          begin
+            With taicpu(p2).oper[0]^.ref^ Do
+              begin
+                if (base <> NR_NO) and
+                    (not(getsupreg(base) in [getsupreg(current_procinfo.FramePointer), RS_ESP])) then
+                  include(RegInfo.RegsLoadedForRef, getsupreg(base));
+                if (index <> NR_NO) and
+                    (not(getsupreg(index) in [getsupreg(current_procinfo.FramePointer), RS_ESP])) then
+                  include(RegInfo.RegsLoadedForRef, getsupreg(index));
+              end;
+ {add the registers from the reference (.oper[0]^) to the RegInfo, all registers
   from the reference are the same in the old and in the new instruction
   sequence}
-                AddOp2RegInfo(Taicpu(p1).oper[0], RegInfo);
- {the registers from .oper[1] have to be equivalent, but not necessarily equal}
-                InstructionsEquivalent :=
-                  RegsEquivalent(reg32(Taicpu(p1).oper[1].reg),
-                    reg32(Taicpu(p2).oper[1].reg), RegInfo, OpAct_Write);
-              End
- {the registers are loaded with values from different memory locations. If
+            AddOp2RegInfo(taicpu(p1).oper[0]^, RegInfo);
+ {the registers from .oper[1]^ have to be equivalent, but not necessarily equal}
+            InstructionsEquivalent :=
+              RegsEquivalent(taicpu(p1).oper[1]^.reg,
+                taicpu(p2).oper[1]^.reg, RegInfo, OpAct_Write);
+          end
+ {the registers are loaded with values from different memory locations. if
   this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
   would be considered equivalent}
-            Else InstructionsEquivalent := False
-        Else
+        else
+          InstructionsEquivalent := False
+      else
  {load register with a value based on the current value of this register}
-          Begin
-            With Taicpu(p2).oper[0].ref^ Do
-              Begin
-                If Not(Base.enum in [current_procinfo.FramePointer.enum,
-                     Reg32(Taicpu(p2).oper[1].reg).enum,R_NO,R_ESP]) Then
+        begin
+          With taicpu(p2).oper[0]^.ref^ Do
+            begin
+              if (base <> NR_NO) and
+                 (not(getsupreg(base) in [getsupreg(current_procinfo.FramePointer),
+                   getsupreg(taicpu(p2).oper[1]^.reg),RS_ESP])) then
  {it won't do any harm if the register is already in RegsLoadedForRef}
-                  Begin
-                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base.enum];
+                begin
+                  include(RegInfo.RegsLoadedForRef, getsupreg(base));
 {$ifdef csdebug}
-                    Writeln(std_reg2str[base], ' added');
-{$endif csdebug}
-                  end;
-                If Not(Index.enum in [current_procinfo.FramePointer.enum,
-                     Reg32(Taicpu(p2).oper[1].reg).enum,R_NO,R_ESP]) Then
-                  Begin
-                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index.enum];
-{$ifdef csdebug}
-                    Writeln(std_reg2str[index.enum], ' added');
-{$endif csdebug}
-                  end;
-
-              End;
-            If Not(Reg32(Taicpu(p2).oper[1].reg).enum In [current_procinfo.FramePointer.enum,R_NO,R_ESP])
-              Then
-                Begin
-                  RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
-                                                 [Reg32(Taicpu(p2).oper[1].reg).enum];
-{$ifdef csdebug}
-                  Writeln(std_reg2str[Reg32(Taicpu(p2).oper[1].reg)], ' removed');
+                  Writeln(std_reg2str[base], ' added');
 {$endif csdebug}
                 end;
-            InstructionsEquivalent :=
-               OpsEquivalent(Taicpu(p1).oper[0], Taicpu(p2).oper[0], RegInfo, OpAct_Read) And
-               OpsEquivalent(Taicpu(p1).oper[1], Taicpu(p2).oper[1], RegInfo, OpAct_Write)
-          End
-      Else
+              if (index <> NR_NO) and
+                 (not(getsupreg(index) in [getsupreg(current_procinfo.FramePointer),
+                   getsupreg(taicpu(p2).oper[1]^.reg),RS_ESP])) then
+                begin
+                  include(RegInfo.RegsLoadedForRef, getsupreg(index));
+{$ifdef csdebug}
+                  Writeln(std_reg2str[index], ' added');
+{$endif csdebug}
+                end;
+
+            end;
+          if (taicpu(p2).oper[1]^.reg <> NR_NO) and
+             (not(getsupreg(taicpu(p2).oper[1]^.reg) in [getsupreg(current_procinfo.FramePointer),RS_ESP])) then
+            begin
+              RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
+                                              [getsupreg(taicpu(p2).oper[1]^.reg)];
+{$ifdef csdebug}
+              Writeln(std_reg2str[getsupreg(taicpu(p2).oper[1]^.reg)], ' removed');
+{$endif csdebug}
+            end;
+          InstructionsEquivalent :=
+             OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, RegInfo, OpAct_Read) and
+             OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, RegInfo, OpAct_Write)
+        end
+    else
  {an instruction <> mov, movzx, movsx}
-       begin
+      begin
   {$ifdef csdebug}
-         hp := tai_comment.Create(strpnew('checking if equivalent'));
-         hp.previous := p2;
-         hp.next := p2^.next;
-         p2^.next^.previous := hp;
-         p2^.next := hp;
+        hp := tai_comment.Create(strpnew('checking if equivalent'));
+        hp.previous := p2;
+        hp.next := p2^.next;
+        p2^.next^.previous := hp;
+        p2^.next := hp;
   {$endif csdebug}
-         InstructionsEquivalent :=
-           OpsEquivalent(Taicpu(p1).oper[0], Taicpu(p2).oper[0], RegInfo, OpAct_Unknown) And
-           OpsEquivalent(Taicpu(p1).oper[1], Taicpu(p2).oper[1], RegInfo, OpAct_Unknown) And
-           OpsEquivalent(Taicpu(p1).oper[2], Taicpu(p2).oper[2], RegInfo, OpAct_Unknown)
+        InstructionsEquivalent :=
+          (not(assigned(taicpu(p1).oper[0])) or
+           OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, RegInfo, OpAct_Unknown)) and
+          (not(assigned(taicpu(p1).oper[1])) or
+           OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, RegInfo, OpAct_Unknown)) and
+          (not(assigned(taicpu(p1).oper[2])) or
+           OpsEquivalent(taicpu(p1).oper[2]^, taicpu(p2).oper[2]^, RegInfo, OpAct_Unknown))
        end
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
-    Else
+    else
       begin
   {$ifdef csdebug}
         hp := tai_comment.Create(strpnew('different opcodes/format'));
@@ -1620,99 +1549,105 @@ Begin {checks whether two Taicpu instructions are equal}
     p2^.next^.previous := hp;
     p2^.next := hp;
   {$endif csdebug}
-End;
+end;
 
 (*
-Function InstructionsEqual(p1, p2: Tai): Boolean;
-Begin {checks whether two Taicpu instructions are equal}
+function InstructionsEqual(p1, p2: tai): Boolean;
+begin {checks whether two taicpu instructions are equal}
   InstructionsEqual :=
-    Assigned(p1) And Assigned(p2) And
-    ((Tai(p1).typ = ait_instruction) And
-     (Tai(p1).typ = ait_instruction) And
-     (Taicpu(p1).opcode = Taicpu(p2).opcode) And
-     (Taicpu(p1).oper[0].typ = Taicpu(p2).oper[0].typ) And
-     (Taicpu(p1).oper[1].typ = Taicpu(p2).oper[1].typ) And
-     OpsEqual(Taicpu(p1).oper[0].typ, Taicpu(p1).oper[0], Taicpu(p2).oper[0]) And
-     OpsEqual(Taicpu(p1).oper[1].typ, Taicpu(p1).oper[1], Taicpu(p2).oper[1]))
-End;
+    assigned(p1) and assigned(p2) and
+    ((tai(p1).typ = ait_instruction) and
+     (tai(p1).typ = ait_instruction) and
+     (taicpu(p1).opcode = taicpu(p2).opcode) and
+     (taicpu(p1).oper[0]^.typ = taicpu(p2).oper[0]^.typ) and
+     (taicpu(p1).oper[1]^.typ = taicpu(p2).oper[1]^.typ) and
+     OpsEqual(taicpu(p1).oper[0]^.typ, taicpu(p1).oper[0]^, taicpu(p2).oper[0]^) and
+     OpsEqual(taicpu(p1).oper[1]^.typ, taicpu(p1).oper[1]^, taicpu(p2).oper[1]^))
+end;
 *)
 
-Procedure ReadReg(p: PTaiProp; Reg: TRegister);
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  Reg := Reg32(Reg);
-  If Reg.enum in [R_EAX..R_EDI] Then
-    incState(p^.regs[Reg.enum].rstate,1)
-End;
+procedure readreg(p: ptaiprop; supreg: tsuperregister);
+begin
+  if supreg in [RS_EAX..RS_EDI] then
+    incState(p^.regs[supreg].rstate,1)
+end;
 
 
-Procedure ReadRef(p: PTaiProp; Const Ref: PReference);
-Begin
-  If Ref^.Base.enum <> R_NO Then
-    ReadReg(p, Ref^.Base);
-  If Ref^.Index.enum <> R_NO Then
-    ReadReg(p, Ref^.Index);
-End;
+procedure readref(p: ptaiprop; const ref: preference);
+begin
+  if ref^.base <> NR_NO then
+    readreg(p, getsupreg(ref^.base));
+  if ref^.index <> NR_NO then
+    readreg(p, getsupreg(ref^.index));
+end;
 
-Procedure ReadOp(P: PTaiProp;const o:toper);
-Begin
-  Case o.typ Of
-    top_reg: ReadReg(P, o.reg);
-    top_ref: ReadRef(P, o.ref);
+
+procedure ReadOp(p: ptaiprop;const o:toper);
+begin
+  case o.typ Of
+    top_reg: readreg(p, getsupreg(o.reg));
+    top_ref: readref(p, o.ref);
     top_symbol : ;
-  End;
-End;
+  end;
+end;
 
 
-Function RefInInstruction(Const Ref: TReference; p: Tai;
+function RefInInstruction(const ref: TReference; p: tai;
            RefsEq: TRefCompare): Boolean;
-{checks whehter Ref is used in P}
-Var TmpResult: Boolean;
-Begin
+{checks whehter ref is used in p}
+var TmpResult: Boolean;
+begin
   TmpResult := False;
-  If (p.typ = ait_instruction) Then
-    Begin
-      If (Taicpu(p).oper[0].typ = Top_Ref) Then
-        TmpResult := RefsEq(Ref, Taicpu(p).oper[0].ref^);
-      If Not(TmpResult) And (Taicpu(p).oper[1].typ = Top_Ref) Then
-        TmpResult := RefsEq(Ref, Taicpu(p).oper[1].ref^);
-      If Not(TmpResult) And (Taicpu(p).oper[2].typ = Top_Ref) Then
-        TmpResult := RefsEq(Ref, Taicpu(p).oper[2].ref^);
-    End;
+  if (p.typ = ait_instruction) then
+    begin
+      if (taicpu(p).ops >= 1) and
+         (taicpu(p).oper[0]^.typ = top_ref) then
+        TmpResult := RefsEq(ref, taicpu(p).oper[0]^.ref^);
+      if not(TmpResult) and
+         (taicpu(p).ops >= 2) and
+         (taicpu(p).oper[1]^.typ = top_ref) then
+        TmpResult := RefsEq(ref, taicpu(p).oper[1]^.ref^);
+      if not(TmpResult) and
+         (taicpu(p).ops >= 3) and
+         (taicpu(p).oper[2]^.typ = top_ref) then
+        TmpResult := RefsEq(ref, taicpu(p).oper[2]^.ref^);
+    end;
   RefInInstruction := TmpResult;
-End;
+end;
 
-Function RefInSequence(Const Ref: TReference; Content: TContent;
+
+function RefInSequence(const ref: TReference; Content: TContent;
            RefsEq: TRefCompare): Boolean;
 {checks the whole sequence of Content (so StartMod and and the next NrOfMods
- Tai objects) to see whether Ref is used somewhere}
-Var p: Tai;
+ tai objects) to see whether ref is used somewhere}
+var p: tai;
     Counter: Byte;
     TmpResult: Boolean;
-Begin
+begin
   p := Content.StartMod;
   TmpResult := False;
   Counter := 1;
-  While Not(TmpResult) And
+  while not(TmpResult) and
         (Counter <= Content.NrOfMods) Do
-    Begin
-      If (p.typ = ait_instruction) And
-         RefInInstruction(Ref, p, RefsEq)
-        Then TmpResult := True;
-      Inc(Counter);
+    begin
+      if (p.typ = ait_instruction) and
+         RefInInstruction(ref, p, RefsEq)
+        then TmpResult := True;
+      inc(Counter);
       GetNextInstruction(p,p)
-    End;
+    end;
   RefInSequence := TmpResult
-End;
+end;
 
-Function ArrayRefsEq(const r1, r2: TReference): Boolean;
-Begin
-  ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-                 (R1.Segment.enum = R2.Segment.enum) And
-                 (R1.Symbol=R2.Symbol) And
-                 (R1.Base.enum = R2.Base.enum)
-End;
+
+function ArrayRefsEq(const r1, r2: TReference): Boolean;
+begin
+  ArrayRefsEq := (R1.Offset = R2.Offset) and
+                 (R1.Segment = R2.Segment) and
+                 (R1.Symbol=R2.Symbol) and
+                 (R1.base = R2.base)
+end;
+
 
 function isSimpleRef(const ref: treference): boolean;
 { returns true if ref is reference to a local or global variable, to a  }
@@ -1721,24 +1656,25 @@ function isSimpleRef(const ref: treference): boolean;
 begin
   isSimpleRef :=
     assigned(ref.symbol) or
-    (ref.base.enum = current_procinfo.framepointer.enum);
+    (ref.base = current_procinfo.framepointer);
 end;
 
-function containsPointerRef(p: Tai): boolean;
+
+function containsPointerRef(p: tai): boolean;
 { checks if an instruction contains a reference which is a pointer location }
 var
-  hp: Taicpu;
+  hp: taicpu;
   count: longint;
 begin
   containsPointerRef := false;
   if p.typ <> ait_instruction then
     exit;
-  hp := Taicpu(p);
-  for count := low(hp.oper) to high(hp.oper) do
+  hp := taicpu(p);
+  for count := 0 to hp.ops-1 do
     begin
-      case hp.oper[count].typ of
+      case hp.oper[count]^.typ of
         top_ref:
-          if not isSimpleRef(hp.oper[count].ref^) then
+          if not isSimpleRef(hp.oper[count]^.ref^) then
             begin
               containsPointerRef := true;
               exit;
@@ -1753,7 +1689,7 @@ end;
 function containsPointerLoad(c: tcontent): boolean;
 { checks whether the contents of a register contain a pointer reference }
 var
-  p: Tai;
+  p: tai;
   count: longint;
 begin
   containsPointerLoad := false;
@@ -1769,20 +1705,19 @@ begin
     end;
 end;
 
-function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
-  reg: tregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
+
+function writeToMemDestroysContents(regWritten: tsuperregister; const ref: treference;
+  supreg: tsuperregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to ref                                                     }
 var
   refsEq: trefCompare;
 begin
-  reg := reg32(reg);
-  regWritten := reg32(regWritten);
   if isSimpleRef(ref) then
     begin
-      if (ref.index.enum <> R_NO) or
+      if (ref.index <> NR_NO) or
          (assigned(ref.symbol) and
-          (ref.base.enum <> R_NO)) then
+          (ref.base <> NR_NO)) then
         { local/global variable or parameter which is an array }
         refsEq := {$ifdef fpc}@{$endif}arrayRefsEq
       else
@@ -1792,7 +1727,7 @@ begin
         assigned(c.memwrite) and
         ((not(cs_uncertainOpts in aktglobalswitches) and
           containsPointerRef(c.memwrite)) or
-         refsEq(c.memwrite.oper[1].ref^,ref));
+         refsEq(c.memwrite.oper[1]^.ref^,ref));
       if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
         begin
           writeToMemDestroysContents := false;
@@ -1802,10 +1737,10 @@ begin
      { write something to a parameter, a local or global variable, so          }
      {  * with uncertain optimizations on:                                     }
      {    - destroy the contents of registers whose contents have somewhere a  }
-     {      "mov?? (Ref), %reg". WhichReg (this is the register whose contents }
+     {      "mov?? (ref), %reg". WhichReg (this is the register whose contents }
      {      are being written to memory) is not destroyed if it's StartMod is  }
      {      of that form and NrOfMods = 1 (so if it holds ref, but is not a    }
-     {      expression based on Ref)                                           }
+     {      expression based on ref)                                           }
      {  * with uncertain optimizations off:                                    }
      {    - also destroy registers that contain any pointer                    }
       with c do
@@ -1815,11 +1750,11 @@ begin
             containsPointerLoad(c)
            ) or
            (refInSequence(ref,c,refsEq) and
-            ((reg.enum <> regWritten.enum) or
+            ((supreg <> regWritten) or
              not((nrOfMods = 1) and
                  {StarMod is always of the type ait_instruction}
-                 (Taicpu(StartMod).oper[0].typ = top_ref) and
-                 refsEq(Taicpu(StartMod).oper[0].ref^, ref)
+                 (taicpu(StartMod).oper[0]^.typ = top_ref) and
+                 refsEq(taicpu(StartMod).oper[0]^.ref^, ref)
                 )
             )
            )
@@ -1847,161 +1782,158 @@ begin
           (typ in [con_ref,con_noRemoveRef]) and
           (not(cs_UncertainOpts in aktglobalswitches) or
          { for movsl }
-           ((ref.base.enum = R_EDI) and (ref.index.enum = R_EDI)) or
+           ((ref.base = RS_EDI) and (ref.index = RS_EDI)) or
          { don't destroy if reg contains a parameter, local or global variable }
            containsPointerLoad(c)
           );
     end;
 end;
 
-function writeToRegDestroysContents(destReg: tregister; reg: tregister;
+
+function writeToRegDestroysContents(destReg, supreg: tsuperregister;
   const c: tcontent): boolean;
 { returns whether the contents c of reg are invalid after destReg is }
 { modified                                                           }
 begin
   writeToRegDestroysContents :=
     (c.typ in [con_ref,con_noRemoveRef,con_invalid]) and
-    sequenceDependsOnReg(c,reg,reg32(destReg));
+    sequenceDependsOnReg(c,supreg,destReg);
 end;
 
-function writeDestroysContents(const op: toper; reg: tregister;
+
+function writeDestroysContents(const op: toper; supreg: tsuperregister;
   const c: tcontent): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to op                                                      }
 var
   dummy: boolean;
-  r:Tregister;
 begin
-  reg := reg32(reg);
-  r.enum:=R_NO;
   case op.typ of
     top_reg:
       writeDestroysContents :=
-        writeToRegDestroysContents(op.reg,reg,c);
+        writeToRegDestroysContents(getsupreg(op.reg),supreg,c);
     top_ref:
       writeDestroysContents :=
-        writeToMemDestroysContents(r,op.ref^,reg,c,dummy);
+        writeToMemDestroysContents(RS_INVALID,op.ref^,supreg,c,dummy);
   else
     writeDestroysContents := false;
   end;
 end;
 
-procedure destroyRefs(p: Tai; const ref: treference; regWritten: tregister);
-{ destroys all registers which possibly contain a reference to Ref, regWritten }
+
+procedure destroyRefs(p: tai; const ref: treference; regwritten: tsuperregister);
+{ destroys all registers which possibly contain a reference to ref, regWritten }
 { is the register whose contents are being written to memory (if this proc     }
 { is called because of a "mov?? %reg, (mem)" instruction)                      }
 var
-  counter: TRegister;
+  counter: tsuperregister;
   destroymemwrite: boolean;
 begin
-  for counter.enum := R_EAX to R_EDI Do
+  for counter := RS_EAX to RS_EDI Do
     begin
-      if writeToMemDestroysContents(regWritten,ref,counter,
-           pTaiProp(p.optInfo)^.regs[counter.enum],destroymemwrite) then
-        destroyReg(pTaiProp(p.optInfo), counter, false)
+      if writeToMemDestroysContents(regwritten,ref,counter,
+           ptaiprop(p.optInfo)^.regs[counter],destroymemwrite) then
+        destroyReg(ptaiprop(p.optInfo), counter, false)
       else if destroymemwrite then
-        pTaiProp(p.optinfo)^.regs[counter.enum].MemWrite := nil;
+        ptaiprop(p.optinfo)^.regs[counter].MemWrite := nil;
     end;
-End;
+end;
 
-Procedure DestroyAllRegs(p: PTaiProp; read, written: boolean);
-Var Counter: TRegister;
-Begin {initializes/desrtoys all registers}
-  For Counter.enum := R_EAX To R_EDI Do
-    Begin
+
+procedure DestroyAllRegs(p: ptaiprop; read, written: boolean);
+var Counter: tsuperregister;
+begin {initializes/desrtoys all registers}
+  For Counter := RS_EAX To RS_EDI Do
+    begin
       if read then
-        ReadReg(p, Counter);
+        readreg(p, Counter);
       DestroyReg(p, Counter, written);
-      p^.regs[counter.enum].MemWrite := nil;
-    End;
+      p^.regs[counter].MemWrite := nil;
+    end;
   p^.DirFlag := F_Unknown;
-End;
+end;
 
-Procedure DestroyOp(TaiObj: Tai; const o:Toper);
-var
+
+procedure DestroyOp(taiObj: tai; const o:Toper);
 {$ifdef statedebug}
-    hp: Tai;
+var
+    hp: tai;
 {$endif statedebug}
-    r:Tregister;
-
-Begin
-  Case o.typ Of
+begin
+  case o.typ Of
     top_reg:
       begin
 {$ifdef statedebug}
         hp := tai_comment.Create(strpnew('destroying '+std_reg2str[o.reg]));
-        hp.next := Taiobj^.next;
-        hp.previous := Taiobj;
-        Taiobj^.next := hp;
+        hp.next := taiobj^.next;
+        hp.previous := taiobj;
+        taiobj^.next := hp;
         if assigned(hp.next) then
           hp.next^.previous := hp;
 {$endif statedebug}
-        DestroyReg(PTaiProp(TaiObj.OptInfo), reg32(o.reg), true);
+        DestroyReg(ptaiprop(taiObj.OptInfo), getsupreg(o.reg), true);
       end;
     top_ref:
-      Begin
-        ReadRef(PTaiProp(TaiObj.OptInfo), o.ref);
-        r.enum:=R_NO;
-        DestroyRefs(TaiObj, o.ref^, r);
-      End;
+      begin
+        readref(ptaiprop(taiObj.OptInfo), o.ref);
+        DestroyRefs(taiObj, o.ref^, RS_INVALID);
+      end;
     top_symbol:;
-  End;
-End;
+  end;
+end;
 
 
-Procedure AddInstr2RegContents({$ifdef statedebug} asml: TAAsmoutput; {$endif}
-p: Taicpu; reg: TRegister);
+procedure AddInstr2RegContents({$ifdef statedebug} asml: taasmoutput; {$endif}
+p: taicpu; supreg: tsuperregister);
 {$ifdef statedebug}
-var hp: Tai;
+var
+  hp: tai;
 {$endif statedebug}
-Begin
-  if reg.enum>lastreg then
-    internalerror(200301081);
-  Reg := Reg32(Reg);
-  With PTaiProp(p.optinfo)^.Regs[reg.enum] Do
-    if (typ in [con_ref,con_noRemoveRef])
-      Then
-        Begin
-          incState(wstate,1);
- {also store how many instructions are part of the sequence in the first
-  instructions PTaiProp, so it can be easily accessed from within
-  CheckSequence}
-          Inc(NrOfMods, NrOfInstrSinceLastMod[Reg.enum]);
-          PTaiProp(Tai(StartMod).OptInfo)^.Regs[Reg.enum].NrOfMods := NrOfMods;
-          NrOfInstrSinceLastMod[Reg.enum] := 0;
-          invalidateDependingRegs(p.optinfo,reg);
-          pTaiprop(p.optinfo)^.regs[reg.enum].memwrite := nil;
+begin
+  With ptaiprop(p.optinfo)^.regs[supreg] Do
+    if (typ in [con_ref,con_noRemoveRef]) then
+      begin
+        incState(wstate,1);
+        { also store how many instructions are part of the sequence in the first }
+        { instructions ptaiprop, so it can be easily accessed from within        }
+        { CheckSequence}
+        inc(NrOfMods, NrOfInstrSinceLastMod[supreg]);
+        ptaiprop(tai(StartMod).OptInfo)^.Regs[supreg].NrOfMods := NrOfMods;
+        NrOfInstrSinceLastMod[supreg] := 0;
+        invalidateDependingRegs(p.optinfo,supreg);
+        ptaiprop(p.optinfo)^.regs[supreg].memwrite := nil;
 {$ifdef StateDebug}
-          hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
-                + ' -- ' + tostr(PTaiProp(p.optinfo)^.Regs[reg].nrofmods))));
-          InsertLLItem(AsmL, p, p.next, hp);
+        hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(ptaiprop(p.optinfo)^.Regs[reg].WState)
+              + ' -- ' + tostr(ptaiprop(p.optinfo)^.Regs[reg].nrofmods))));
+        InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
-        End
-      Else
-        Begin
+      end
+    else
+      begin
 {$ifdef statedebug}
-          hp := tai_comment.Create(strpnew('destroying '+std_reg2str[reg]));
-          insertllitem(asml,p,p.next,hp);
+        hp := tai_comment.Create(strpnew('destroying '+std_reg2str[reg]));
+        insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-          DestroyReg(PTaiProp(p.optinfo), Reg, true);
+        DestroyReg(ptaiprop(p.optinfo), supreg, true);
 {$ifdef StateDebug}
-          hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg.enum].WState)));
-          InsertLLItem(AsmL, p, p.next, hp);
+        hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(ptaiprop(p.optinfo)^.Regs[supreg].WState)));
+        InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
-        End
-End;
+      end
+end;
 
-Procedure AddInstr2OpContents({$ifdef statedebug} asml: TAAsmoutput; {$endif}
-p: Taicpu; const oper: TOper);
-Begin
-  If oper.typ = top_reg Then
-    AddInstr2RegContents({$ifdef statedebug} asml, {$endif}p, oper.reg)
-  Else
-    Begin
-      ReadOp(PTaiProp(p.optinfo), oper);
+
+procedure AddInstr2OpContents({$ifdef statedebug} asml: TAAsmoutput; {$endif}
+p: taicpu; const oper: TOper);
+begin
+  if oper.typ = top_reg then
+    AddInstr2RegContents({$ifdef statedebug} asml, {$endif}p, getsupreg(oper.reg))
+  else
+    begin
+      ReadOp(ptaiprop(p.optinfo), oper);
       DestroyOp(p, oper);
-    End
-End;
+    end
+end;
 
 
 {*************************************************************************************}
@@ -2026,7 +1958,7 @@ procedure tdfaobj.initlabeltable;
 var
   labelfound: boolean;
   p, prev: tai;
-  hp1, hp2: Tai;
+  hp1, hp2: tai;
 {$ifdef i386}
   regcounter: tregister;
 {$endif i386}
@@ -2064,7 +1996,7 @@ begin
     begin
       getmem(labeltable, labdif*sizeof(tlabeltableitem));
       fillchar(labeltable^, labdif*sizeof(tlabeltableitem), 0);
-    End;
+    end;
   p := blockstart;
   prev := p;
   while (p <> blockend) do
@@ -2075,32 +2007,28 @@ begin
             labeltable^[tai_label(p).l.labelnr-lolab].taiobj := p;
 {$ifdef i386}
         ait_regalloc:
-          { EDI is (de)allocated manually, don't mess with it }
-          if not(tai_regalloc(p).reg.enum in [R_EDI]) then
+          if tai_regalloc(p).allocation then
             begin
-              if tai_regalloc(p).allocation then
-                begin
-                  if not(tai_regalloc(p).reg.enum in usedregs) then
-                    usedregs := usedregs + [tai_regalloc(p).reg.enum]
-                  else
-                    addregdeallocfor(list, tai_regalloc(p).reg, p);
-                end
+              if not(getsupreg(tai_regalloc(p).reg) in usedregs) then
+                include(usedregs, getsupreg(tai_regalloc(p).reg))
               else
+                addregdeallocfor(list, tai_regalloc(p).reg, p);
+            end
+          else
+            begin
+              exclude(usedregs, getsupreg(tai_regalloc(p).reg));
+              hp1 := p;
+              hp2 := nil;
+              while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
+                    getnextinstruction(hp1, hp1) and
+                    regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
+                hp2 := hp1;
+              if hp2 <> nil then
                 begin
-                  usedregs := Usedregs - [tai_regalloc(p).reg.enum];
-                  hp1 := p;
-                  hp2 := nil;
-                  while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
-                        getnextinstruction(hp1, hp1) and
-                        regininstruction(tai_regalloc(p).reg.enum, hp1) Do
-                    hp2 := hp1;
-                  if hp2 <> nil then
-                    begin
-                      hp1 := tai(p.previous);
-                      list.remove(p);
-                      insertllitem(list, hp2, tai(hp2.next), p);
-                      p := hp1;
-                    end;
+                  hp1 := tai(p.previous);
+                  list.remove(p);
+                  insertllitem(list, hp2, tai(hp2.next), p);
+                  p := hp1;
                 end;
             end;
 {$endif i386}
@@ -2115,8 +2043,8 @@ begin
   { don't add deallocation for function result variable or for regvars}
   getNoDeallocRegs(noDeallocRegs);
   usedRegs := usedRegs - noDeallocRegs;
-  for regCounter.enum := R_EAX to R_EDI do
-    if regCounter.enum in usedRegs then
+  for regCounter := RS_EAX to RS_EDI do
+    if regCounter in usedRegs then
       addRegDeallocFor(list,regCounter,prev);
 {$endif i386}
 end;
@@ -2132,11 +2060,11 @@ end;
 
 
 function tdfaobj.initdfapass2: boolean;
-{reserves memory for the PTaiProps in one big memory block when not using
+{reserves memory for the PtaiProps in one big memory block when not using
  TP, returns False if not enough memory is available for the optimizer in all
  cases}
 var
-  p: Tai;
+  p: tai;
   count: Longint;
 {    TmpStr: String; }
 begin
@@ -2145,36 +2073,36 @@ begin
   nroftaiobjs := 0;
   while (p <> blockend) do
     begin
-{$IfDef JumpAnal}
+{$ifDef JumpAnal}
       case p.typ of
         ait_label:
           begin
             if not labelcanbeskipped(tai_label(p)) then
               labeltable^[tai_label(p).l.labelnr-lolab].instrnr := nroftaiobjs
-          End;
+          end;
         ait_instruction:
           begin
             if taicpu(p).is_jmp then
              begin
-               if (tasmlabel(taicpu(p).oper[0].sym).labelnr >= lolab) And
-                  (tasmlabel(taicpu(p).oper[0].sym).labelnr <= hilab) Then
-                 inc(labeltable^[tasmlabel(taicpu(p).oper[0].sym).labelnr-lolab].refsfound);
+               if (tasmlabel(taicpu(p).oper[0]^.sym).labelnr >= lolab) and
+                  (tasmlabel(taicpu(p).oper[0]^.sym).labelnr <= hilab) then
+                 inc(labeltable^[tasmlabel(taicpu(p).oper[0]^.sym).labelnr-lolab].refsfound);
              end;
           end;
 {        ait_instruction:
-          Begin
-           If (Taicpu(p).opcode = A_PUSH) And
-              (Taicpu(p).oper[0].typ = top_symbol) And
-              (PCSymbol(Taicpu(p).oper[0])^.offset = 0) Then
-             Begin
-               TmpStr := StrPas(PCSymbol(Taicpu(p).oper[0])^.symbol);
-               If}
-      End;
-{$EndIf JumpAnal}
-      inc(NrOfTaiObjs);
+          begin
+           if (taicpu(p).opcode = A_PUSH) and
+              (taicpu(p).oper[0]^.typ = top_symbol) and
+              (PCSymbol(taicpu(p).oper[0]^)^.offset = 0) then
+             begin
+               TmpStr := StrPas(PCSymbol(taicpu(p).oper[0]^)^.symbol);
+               if}
+      end;
+{$endif JumpAnal}
+      inc(NrOftaiObjs);
       getnextinstruction(p,p);
-    End;
-  if nroftaiobjs <> 0 Then
+    end;
+  if nroftaiobjs <> 0 then
     begin
       initdfapass2 := True;
       getmem(taipropblock, nroftaiobjs*sizeof(ttaiprop));
@@ -2194,307 +2122,305 @@ end;
 
 procedure tdfaobj.dodfapass2;
 {Analyzes the Data Flow of an assembler list. Starts creating the reg
- contents for the instructions starting with p. Returns the last Tai which has
+ contents for the instructions starting with p. Returns the last tai which has
  been processed}
-Var
-    CurProp, LastFlagsChangeProp: PTaiProp;
+var
+    curprop, LastFlagsChangeProp: ptaiprop;
     Cnt, InstrCnt : Longint;
     InstrProp: TInsProp;
     UsedRegs: TRegSet;
-    prev,p  : Tai;
-    TmpRef: TReference;
-    TmpReg: TRegister;
+    prev,p  : tai;
+    tmpref: TReference;
+    tmpsupreg: tsuperregister;
 {$ifdef AnalyzeLoops}
-    hp : Tai;
+    hp : tai;
     TmpState: Byte;
 {$endif AnalyzeLoops}
-Begin
+begin
   p := BlockStart;
   LastFlagsChangeProp := nil;
   prev := nil;
   UsedRegs := [];
   UpdateUsedregs(UsedRegs, p);
-  SkipHead(P);
+  SkipHead(p);
   BlockStart := p;
   InstrCnt := 1;
-  FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
-  While (P <> BlockEnd) Do
-    Begin
-      CurProp := @TaiPropBlock^[InstrCnt];
-      If assigned(prev)
-        Then
-          Begin
+  fillchar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
+  while (p <> Blockend) Do
+    begin
+      curprop := @taiPropBlock^[InstrCnt];
+      if assigned(prev)
+        then
+          begin
 {$ifdef JumpAnal}
-            If (p.Typ <> ait_label) Then
+            if (p.Typ <> ait_label) then
 {$endif JumpAnal}
-              Begin
-                CurProp^.regs := PTaiProp(prev.OptInfo)^.Regs;
-                CurProp^.DirFlag := PTaiProp(prev.OptInfo)^.DirFlag;
-                CurProp^.FlagsUsed := false;
-              End
-          End
-        Else
-          Begin
-            FillChar(CurProp^, SizeOf(CurProp^), 0);
-{            For TmpReg := R_EAX to R_EDI Do
-              CurProp^.regs[TmpReg].WState := 1;}
-          End;
-      CurProp^.UsedRegs := UsedRegs;
-      CurProp^.CanBeRemoved := False;
-      UpdateUsedRegs(UsedRegs, Tai(p.Next));
-      For TmpReg.enum := R_EAX To R_EDI Do
-        if NrOfInstrSinceLastMod[TmpReg.enum] < 255 then
-          Inc(NrOfInstrSinceLastMod[TmpReg.enum])
+              begin
+                curprop^.regs := ptaiprop(prev.OptInfo)^.Regs;
+                curprop^.DirFlag := ptaiprop(prev.OptInfo)^.DirFlag;
+                curprop^.FlagsUsed := false;
+              end
+          end
         else
           begin
-            NrOfInstrSinceLastMod[TmpReg.enum] := 0;
-            curprop^.regs[TmpReg.enum].typ := con_unknown;
+            fillchar(curprop^, SizeOf(curprop^), 0);
+{            For tmpreg := RS_EAX to RS_EDI Do
+              curprop^.regs[tmpreg].WState := 1;}
           end;
-      Case p.typ Of
+      curprop^.UsedRegs := UsedRegs;
+      curprop^.CanBeRemoved := False;
+      UpdateUsedRegs(UsedRegs, tai(p.Next));
+      For tmpsupreg := RS_EAX To RS_EDI Do
+        if NrOfInstrSinceLastMod[tmpsupreg] < 255 then
+          inc(NrOfInstrSinceLastMod[tmpsupreg])
+        else
+          begin
+            NrOfInstrSinceLastMod[tmpsupreg] := 0;
+            curprop^.regs[tmpsupreg].typ := con_unknown;
+          end;
+      case p.typ Of
         ait_marker:;
         ait_label:
-{$Ifndef JumpAnal}
-          if not labelCanBeSkipped(Tai_label(p)) then
-            DestroyAllRegs(CurProp,false,false);
-{$Else JumpAnal}
-          Begin
-           If not labelCanBeSkipped(Tai_label(p)) Then
-             With LTable^[Tai_Label(p).l^.labelnr-LoLab] Do
-{$IfDef AnalyzeLoops}
-              If (RefsFound = Tai_Label(p).l^.RefCount)
-{$Else AnalyzeLoops}
-              If (JmpsProcessed = Tai_Label(p).l^.RefCount)
-{$EndIf AnalyzeLoops}
-                Then
+{$ifndef JumpAnal}
+          if not labelCanBeSkipped(tai_label(p)) then
+            DestroyAllRegs(curprop,false,false);
+{$else JumpAnal}
+          begin
+           if not labelCanBeSkipped(tai_label(p)) then
+             With LTable^[tai_Label(p).l^.labelnr-LoLab] Do
+{$ifDef AnalyzeLoops}
+              if (RefsFound = tai_Label(p).l^.RefCount)
+{$else AnalyzeLoops}
+              if (JmpsProcessed = tai_Label(p).l^.RefCount)
+{$endif AnalyzeLoops}
+                then
 {all jumps to this label have been found}
-{$IfDef AnalyzeLoops}
-                  If (JmpsProcessed > 0)
-                    Then
-{$EndIf AnalyzeLoops}
+{$ifDef AnalyzeLoops}
+                  if (JmpsProcessed > 0)
+                    then
+{$endif AnalyzeLoops}
  {we've processed at least one jump to this label}
-                      Begin
-                        If (GetLastInstruction(p, hp) And
-                           Not(((hp.typ = ait_instruction)) And
-                                (Taicpu_labeled(hp).is_jmp))
-                          Then
+                      begin
+                        if (GetLastInstruction(p, hp) and
+                           not(((hp.typ = ait_instruction)) and
+                                (taicpu_labeled(hp).is_jmp))
+                          then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
-                            For TmpReg.enum := R_EAX to R_EDI Do
-                              Begin
-                                If (CurProp^.regs[TmpReg.enum].WState <>
-                                    PTaiProp(hp.OptInfo)^.Regs[TmpReg.enum].WState)
-                                  Then DestroyReg(CurProp, TmpReg.enum, true)
-                              End
-                      End
-{$IfDef AnalyzeLoops}
-                    Else
+                            For tmpsupreg := RS_EAX to RS_EDI Do
+                              begin
+                                if (curprop^.regs[tmpsupreg].WState <>
+                                    ptaiprop(hp.OptInfo)^.Regs[tmpsupreg].WState)
+                                  then DestroyReg(curprop, tmpsupreg, true)
+                              end
+                      end
+{$ifDef AnalyzeLoops}
+                    else
  {a label from a backward jump (e.g. a loop), no jump to this label has
   already been processed}
-                      If GetLastInstruction(p, hp) And
-                         Not(hp.typ = ait_instruction) And
-                            (Taicpu_labeled(hp).opcode = A_JMP))
-                        Then
+                      if GetLastInstruction(p, hp) and
+                         not(hp.typ = ait_instruction) and
+                            (taicpu_labeled(hp).opcode = A_JMP))
+                        then
   {previous instruction not a jmp, so keep all the registers' contents from the
    previous instruction}
-                          Begin
-                            CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
-                            CurProp.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
-                          End
-                        Else
+                          begin
+                            curprop^.regs := ptaiprop(hp.OptInfo)^.Regs;
+                            curprop.DirFlag := ptaiprop(hp.OptInfo)^.DirFlag;
+                          end
+                        else
   {previous instruction a jmp and no jump to this label processed yet}
-                          Begin
+                          begin
                             hp := p;
                             Cnt := InstrCnt;
      {continue until we find a jump to the label or a label which has already
       been processed}
-                            While GetNextInstruction(hp, hp) And
-                                  Not((hp.typ = ait_instruction) And
-                                      (Taicpu(hp).is_jmp) and
-                                      (tasmlabel(Taicpu(hp).oper[0].sym).labelnr = Tai_Label(p).l^.labelnr)) And
-                                  Not((hp.typ = ait_label) And
-                                      (LTable^[Tai_Label(hp).l^.labelnr-LoLab].RefsFound
-                                       = Tai_Label(hp).l^.RefCount) And
-                                      (LTable^[Tai_Label(hp).l^.labelnr-LoLab].JmpsProcessed > 0)) Do
-                              Inc(Cnt);
-                            If (hp.typ = ait_label)
-                              Then
+                            while GetNextInstruction(hp, hp) and
+                                  not((hp.typ = ait_instruction) and
+                                      (taicpu(hp).is_jmp) and
+                                      (tasmlabel(taicpu(hp).oper[0]^.sym).labelnr = tai_Label(p).l^.labelnr)) and
+                                  not((hp.typ = ait_label) and
+                                      (LTable^[tai_Label(hp).l^.labelnr-LoLab].RefsFound
+                                       = tai_Label(hp).l^.RefCount) and
+                                      (LTable^[tai_Label(hp).l^.labelnr-LoLab].JmpsProcessed > 0)) Do
+                              inc(Cnt);
+                            if (hp.typ = ait_label)
+                              then
    {there's a processed label after the current one}
-                                Begin
-                                  CurProp^.regs := TaiPropBlock^[Cnt].Regs;
-                                  CurProp.DirFlag := TaiPropBlock^[Cnt].DirFlag;
-                                End
-                              Else
+                                begin
+                                  curprop^.regs := taiPropBlock^[Cnt].Regs;
+                                  curprop.DirFlag := taiPropBlock^[Cnt].DirFlag;
+                                end
+                              else
    {there's no label anymore after the current one, or they haven't been
     processed yet}
-                                Begin
+                                begin
                                   GetLastInstruction(p, hp);
-                                  CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
-                                  CurProp.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
-                                  DestroyAllRegs(PTaiProp(hp.OptInfo),true,true)
-                                End
-                          End
-{$EndIf AnalyzeLoops}
-                Else
+                                  curprop^.regs := ptaiprop(hp.OptInfo)^.Regs;
+                                  curprop.DirFlag := ptaiprop(hp.OptInfo)^.DirFlag;
+                                  DestroyAllRegs(ptaiprop(hp.OptInfo),true,true)
+                                end
+                          end
+{$endif AnalyzeLoops}
+                else
 {not all references to this label have been found, so destroy all registers}
-                  Begin
+                  begin
                     GetLastInstruction(p, hp);
-                    CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
-                    CurProp.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
-                    DestroyAllRegs(CurProp,true,true)
-                  End;
-          End;
-{$EndIf JumpAnal}
+                    curprop^.regs := ptaiprop(hp.OptInfo)^.Regs;
+                    curprop.DirFlag := ptaiprop(hp.OptInfo)^.DirFlag;
+                    DestroyAllRegs(curprop,true,true)
+                  end;
+          end;
+{$endif JumpAnal}
 
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
         ait_align: ; { may destroy flags !!! }
         ait_instruction:
-          Begin
-            if Taicpu(p).is_jmp or
-               (Taicpu(p).opcode = A_JMP) then
+          begin
+            if taicpu(p).is_jmp or
+               (taicpu(p).opcode = A_JMP) then
              begin
-{$IfNDef JumpAnal}
-                for tmpReg.enum := R_EAX to R_EDI do
-                  with curProp^.regs[tmpReg.enum] do
+{$ifNDef JumpAnal}
+                for tmpsupreg := RS_EAX to RS_EDI do
+                  with curprop^.regs[tmpsupreg] do
                     case typ of
                       con_ref: typ := con_noRemoveRef;
                       con_const: typ := con_noRemoveConst;
                       con_invalid: typ := con_unknown;
                     end;
-{$Else JumpAnal}
-          With LTable^[tasmlabel(Taicpu(p).oper[0].sym).labelnr-LoLab] Do
-            If (RefsFound = tasmlabel(Taicpu(p).oper[0].sym).RefCount) Then
-              Begin
-                If (InstrCnt < InstrNr)
-                  Then
+{$else JumpAnal}
+          With LTable^[tasmlabel(taicpu(p).oper[0]^.sym).labelnr-LoLab] Do
+            if (RefsFound = tasmlabel(taicpu(p).oper[0]^.sym).RefCount) then
+              begin
+                if (InstrCnt < InstrNr)
+                  then
                 {forward jump}
-                    If (JmpsProcessed = 0) Then
+                    if (JmpsProcessed = 0) then
                 {no jump to this label has been processed yet}
-                      Begin
-                        TaiPropBlock^[InstrNr].Regs := CurProp^.regs;
-                        TaiPropBlock^[InstrNr].DirFlag := CurProp.DirFlag;
-                        Inc(JmpsProcessed);
-                      End
-                    Else
-                      Begin
-                        For TmpReg := R_EAX to R_EDI Do
-                          If (TaiPropBlock^[InstrNr].Regs[TmpReg].WState <>
-                             CurProp^.regs[TmpReg].WState) Then
-                            DestroyReg(@TaiPropBlock^[InstrNr], TmpReg, true);
-                        Inc(JmpsProcessed);
-                      End
+                      begin
+                        taiPropBlock^[InstrNr].Regs := curprop^.regs;
+                        taiPropBlock^[InstrNr].DirFlag := curprop.DirFlag;
+                        inc(JmpsProcessed);
+                      end
+                    else
+                      begin
+                        For tmpreg := RS_EAX to RS_EDI Do
+                          if (taiPropBlock^[InstrNr].Regs[tmpreg].WState <>
+                             curprop^.regs[tmpreg].WState) then
+                            DestroyReg(@taiPropBlock^[InstrNr], tmpreg, true);
+                        inc(JmpsProcessed);
+                      end
 {$ifdef AnalyzeLoops}
-                  Else
+                  else
 {                backward jump, a loop for example}
-{                    If (JmpsProcessed > 0) Or
-                       Not(GetLastInstruction(TaiObj, hp) And
-                           (hp.typ = ait_labeled_instruction) And
-                           (Taicpu_labeled(hp).opcode = A_JMP))
-                      Then}
+{                    if (JmpsProcessed > 0) or
+                       not(GetLastInstruction(taiObj, hp) and
+                           (hp.typ = ait_labeled_instruction) and
+                           (taicpu_labeled(hp).opcode = A_JMP))
+                      then}
 {instruction prior to label is not a jmp, or at least one jump to the label
  has yet been processed}
-                        Begin
-                          Inc(JmpsProcessed);
-                          For TmpReg := R_EAX to R_EDI Do
-                            If (TaiPropBlock^[InstrNr].Regs[TmpReg].WState <>
-                                CurProp^.regs[TmpReg].WState)
-                              Then
-                                Begin
-                                  TmpState := TaiPropBlock^[InstrNr].Regs[TmpReg].WState;
+                        begin
+                          inc(JmpsProcessed);
+                          For tmpreg := RS_EAX to RS_EDI Do
+                            if (taiPropBlock^[InstrNr].Regs[tmpreg].WState <>
+                                curprop^.regs[tmpreg].WState)
+                              then
+                                begin
+                                  TmpState := taiPropBlock^[InstrNr].Regs[tmpreg].WState;
                                   Cnt := InstrNr;
-                                  While (TmpState = TaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
-                                    Begin
-                                      DestroyReg(@TaiPropBlock^[Cnt], TmpReg, true);
-                                      Inc(Cnt);
-                                    End;
-                                  While (Cnt <= InstrCnt) Do
-                                    Begin
-                                      Inc(TaiPropBlock^[Cnt].Regs[TmpReg].WState);
-                                      Inc(Cnt)
-                                    End
-                                End;
-                        End
-{                      Else }
+                                  while (TmpState = taiPropBlock^[Cnt].Regs[tmpreg].WState) Do
+                                    begin
+                                      DestroyReg(@taiPropBlock^[Cnt], tmpreg, true);
+                                      inc(Cnt);
+                                    end;
+                                  while (Cnt <= InstrCnt) Do
+                                    begin
+                                      inc(taiPropBlock^[Cnt].Regs[tmpreg].WState);
+                                      inc(Cnt)
+                                    end
+                                end;
+                        end
+{                      else }
 {instruction prior to label is a jmp and no jumps to the label have yet been
  processed}
-{                        Begin
-                          Inc(JmpsProcessed);
-                          For TmpReg := R_EAX to R_EDI Do
-                            Begin
-                              TmpState := TaiPropBlock^[InstrNr].Regs[TmpReg].WState;
+{                        begin
+                          inc(JmpsProcessed);
+                          For tmpreg := RS_EAX to RS_EDI Do
+                            begin
+                              TmpState := taiPropBlock^[InstrNr].Regs[tmpreg].WState;
                               Cnt := InstrNr;
-                              While (TmpState = TaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
-                                Begin
-                                  TaiPropBlock^[Cnt].Regs[TmpReg] := CurProp^.regs[TmpReg];
-                                  Inc(Cnt);
-                                End;
-                              TmpState := TaiPropBlock^[InstrNr].Regs[TmpReg].WState;
-                              While (TmpState = TaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
-                                Begin
-                                  DestroyReg(@TaiPropBlock^[Cnt], TmpReg, true);
-                                  Inc(Cnt);
-                                End;
-                              While (Cnt <= InstrCnt) Do
-                                Begin
-                                  Inc(TaiPropBlock^[Cnt].Regs[TmpReg].WState);
-                                  Inc(Cnt)
-                                End
-                            End
-                        End}
+                              while (TmpState = taiPropBlock^[Cnt].Regs[tmpreg].WState) Do
+                                begin
+                                  taiPropBlock^[Cnt].Regs[tmpreg] := curprop^.regs[tmpreg];
+                                  inc(Cnt);
+                                end;
+                              TmpState := taiPropBlock^[InstrNr].Regs[tmpreg].WState;
+                              while (TmpState = taiPropBlock^[Cnt].Regs[tmpreg].WState) Do
+                                begin
+                                  DestroyReg(@taiPropBlock^[Cnt], tmpreg, true);
+                                  inc(Cnt);
+                                end;
+                              while (Cnt <= InstrCnt) Do
+                                begin
+                                  inc(taiPropBlock^[Cnt].Regs[tmpreg].WState);
+                                  inc(Cnt)
+                                end
+                            end
+                        end}
 {$endif AnalyzeLoops}
-          End;
-{$EndIf JumpAnal}
+          end;
+{$endif JumpAnal}
           end
           else
            begin
-            InstrProp := InsProp[Taicpu(p).opcode];
-            Case Taicpu(p).opcode Of
+            InstrProp := InsProp[taicpu(p).opcode];
+            case taicpu(p).opcode Of
               A_MOV, A_MOVZX, A_MOVSX:
-                Begin
-                  Case Taicpu(p).oper[0].typ Of
+                begin
+                  case taicpu(p).oper[0]^.typ Of
                     top_ref, top_reg:
-                      case Taicpu(p).oper[1].typ Of
+                      case taicpu(p).oper[1]^.typ Of
                         top_reg:
-                          Begin
+                          begin
 {$ifdef statedebug}
                             hp := tai_comment.Create(strpnew('destroying '+
-                              std_reg2str[Taicpu(p).oper[1].reg])));
+                              std_reg2str[taicpu(p).oper[1]^.reg])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
 
-                            readOp(curprop, Taicpu(p).oper[0]);
-                            tmpreg := reg32(Taicpu(p).oper[1].reg);
-                            if tmpreg.enum>lastreg then
-                              internalerror(200301081);
-                            if regInOp(tmpreg, Taicpu(p).oper[0]) and
-                               (curProp^.regs[tmpReg.enum].typ in [con_ref,con_noRemoveRef]) then
+                            readOp(curprop, taicpu(p).oper[0]^);
+                            tmpsupreg := getsupreg(taicpu(p).oper[1]^.reg);
+                            if reginop(tmpsupreg, taicpu(p).oper[0]^) and
+                               (curprop^.regs[tmpsupreg].typ in [con_ref,con_noRemoveRef]) then
                               begin
-                                with curprop^.regs[tmpreg.enum] Do
+                                with curprop^.regs[tmpsupreg] Do
                                   begin
                                     incState(wstate,1);
  { also store how many instructions are part of the sequence in the first }
- { instruction's PTaiProp, so it can be easily accessed from within       }
+ { instruction's ptaiprop, so it can be easily accessed from within       }
  { CheckSequence                                                          }
-                                    inc(nrOfMods, nrOfInstrSinceLastMod[tmpreg.enum]);
-                                    pTaiprop(startmod.optinfo)^.regs[tmpreg.enum].nrOfMods := nrOfMods;
-                                    nrOfInstrSinceLastMod[tmpreg.enum] := 0;
+                                    inc(nrOfMods, nrOfInstrSinceLastMod[tmpsupreg]);
+                                    ptaiprop(startmod.optinfo)^.regs[tmpsupreg].nrOfMods := nrOfMods;
+                                    nrOfInstrSinceLastMod[tmpsupreg] := 0;
                                    { Destroy the contents of the registers  }
                                    { that depended on the previous value of }
                                    { this register                          }
-                                    invalidateDependingRegs(curprop,tmpreg);
-                                    curprop^.regs[tmpreg.enum].memwrite := nil;
+                                    invalidateDependingRegs(curprop,tmpsupreg);
+                                    curprop^.regs[tmpsupreg].memwrite := nil;
                                 end;
                             end
                           else
                             begin
 {$ifdef statedebug}
-                              hp := tai_comment.Create(strpnew('destroying & initing '+std_reg2str[tmpreg.enum]));
+                              hp := tai_comment.Create(strpnew('destroying & initing '+std_reg2str[tmpsupreg]));
                               insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-                              destroyReg(curprop, tmpreg, true);
-                              if not(reginop(tmpreg, Taicpu(p).oper[0])) then
-                                with curprop^.regs[tmpreg.enum] Do
+                              destroyReg(curprop, tmpsupreg, true);
+                              if not(reginop(tmpsupreg, taicpu(p).oper[0]^)) then
+                                with curprop^.regs[tmpsupreg] Do
                                   begin
                                     typ := con_ref;
                                     startmod := p;
@@ -2502,116 +2428,109 @@ Begin
                                   end
                             end;
 {$ifdef StateDebug}
-                  hp := tai_comment.Create(strpnew(std_reg2str[TmpReg.enum]+': '+tostr(CurProp^.regs[TmpReg.enum].WState)));
-                  InsertLLItem(AsmL, p, p.next, hp);
+                            hp := tai_comment.Create(strpnew(std_reg2str[tmpsupreg]+': '+tostr(curprop^.regs[tmpsupreg].WState)));
+                            InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
-                          End;
-                        Top_Ref:
-                          Begin
-                            tmpreg.enum:=R_NO;
-                            ReadRef(CurProp, Taicpu(p).oper[1].ref);
-                            if taicpu(p).oper[0].typ = top_reg then
+                          end;
+                        top_ref:
+                          begin
+                            readref(curprop, taicpu(p).oper[1]^.ref);
+                            if taicpu(p).oper[0]^.typ = top_reg then
                               begin
-                                ReadReg(CurProp, Taicpu(p).oper[0].reg);
-                                DestroyRefs(p, Taicpu(p).oper[1].ref^, Taicpu(p).oper[0].reg);
-                                pTaiProp(p.optinfo)^.regs[reg32(Taicpu(p).oper[0].reg).enum].memwrite :=
-                                  Taicpu(p);
+                                readreg(curprop, getsupreg(taicpu(p).oper[0]^.reg));
+                                DestroyRefs(p, taicpu(p).oper[1]^.ref^, getsupreg(taicpu(p).oper[0]^.reg));
+                                ptaiprop(p.optinfo)^.regs[getsupreg(taicpu(p).oper[0]^.reg)].memwrite :=
+                                  taicpu(p);
                               end
                             else
-                              DestroyRefs(p, Taicpu(p).oper[1].ref^, tmpreg);
-                          End;
-                      End;
+                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID);
+                          end;
+                      end;
                     top_symbol,Top_Const:
-                      Begin
-                        Case Taicpu(p).oper[1].typ Of
-                          Top_Reg:
-                            Begin
-                              TmpReg := Reg32(Taicpu(p).oper[1].reg);
+                      begin
+                        case taicpu(p).oper[1]^.typ Of
+                          top_reg:
+                            begin
+                              tmpsupreg := getsupreg(taicpu(p).oper[1]^.reg);
 {$ifdef statedebug}
-          hp := tai_comment.Create(strpnew('destroying '+std_reg2str[tmpreg]));
-          insertllitem(asml,p,p.next,hp);
+                              hp := tai_comment.Create(strpnew('destroying '+std_reg2str[tmpsupreg]));
+                              insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-                              With CurProp^.regs[TmpReg.enum] Do
-                                Begin
-                                  DestroyReg(CurProp, TmpReg, true);
+                              With curprop^.regs[tmpsupreg] Do
+                                begin
+                                  DestroyReg(curprop, tmpsupreg, true);
                                   typ := Con_Const;
                                   StartMod := p;
-                                End
-                            End;
-                          Top_Ref:
-                            Begin
-                              tmpreg.enum:=R_NO;
-                              ReadRef(CurProp, Taicpu(p).oper[1].ref);
-                              DestroyRefs(P, Taicpu(p).oper[1].ref^, tmpreg);
-                            End;
-                        End;
-                      End;
-                  End;
-                End;
+                                end
+                            end;
+                          top_ref:
+                            begin
+                              readref(curprop, taicpu(p).oper[1]^.ref);
+                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID);
+                            end;
+                        end;
+                      end;
+                  end;
+                end;
               A_DIV, A_IDIV, A_MUL:
-                Begin
-                  ReadOp(Curprop, Taicpu(p).oper[0]);
-                  tmpreg.enum:=R_EAX;
-                  ReadReg(CurProp,tmpreg);
-                  If (Taicpu(p).OpCode = A_IDIV) or
-                     (Taicpu(p).OpCode = A_DIV) Then
+                begin
+                  ReadOp(curprop, taicpu(p).oper[0]^);
+                  readreg(curprop,RS_EAX);
+                  if (taicpu(p).OpCode = A_IDIV) or
+                     (taicpu(p).OpCode = A_DIV) then
                     begin
-                      tmpreg.enum:=R_EDX;
-                      ReadReg(CurProp,tmpreg);
+                      readreg(curprop,RS_EDX);
                     end;
 {$ifdef statedebug}
                   hp := tai_comment.Create(strpnew('destroying eax and edx'));
                   insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-{                  DestroyReg(CurProp, R_EAX, true);}
-                  tmpreg.enum:=R_EAX;
+{                  DestroyReg(curprop, RS_EAX, true);}
                   AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
-                    Taicpu(p), tmpreg);
-                  tmpreg.enum:=R_EDX;
-                  DestroyReg(CurProp, tmpreg, true)
-                End;
+                    taicpu(p), RS_EAX);
+                  DestroyReg(curprop, RS_EDX, true)
+                end;
               A_IMUL:
-                Begin
-                  ReadOp(CurProp,Taicpu(p).oper[0]);
-                  ReadOp(CurProp,Taicpu(p).oper[1]);
-                  If (Taicpu(p).oper[2].typ = top_none) Then
-                    If (Taicpu(p).oper[1].typ = top_none) Then
-                      Begin
-                        tmpreg.enum:=R_EAX;
-                        ReadReg(CurProp,tmpreg);
+                begin
+                  ReadOp(curprop,taicpu(p).oper[0]^);
+                  if (taicpu(p).ops >= 2) then
+                    ReadOp(curprop,taicpu(p).oper[1]^);
+                  if (taicpu(p).ops <= 2) then
+                    if (taicpu(p).oper[1]^.typ = top_none) then
+                      begin
+                        readreg(curprop,RS_EAX);
 {$ifdef statedebug}
                         hp := tai_comment.Create(strpnew('destroying eax and edx'));
                         insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-{                        DestroyReg(CurProp, R_EAX, true); }
+{                        DestroyReg(curprop, RS_EAX, true); }
                         AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
-                          Taicpu(p), tmpreg);
-                        tmpreg.enum:=R_EDX;
-                        DestroyReg(CurProp,tmpreg, true)
-                      End
-                    Else
+                          taicpu(p), RS_EAX);
+                        DestroyReg(curprop,RS_EDX, true)
+                      end
+                    else
                       AddInstr2OpContents(
                         {$ifdef statedebug}asml,{$endif}
-                          Taicpu(p), Taicpu(p).oper[1])
-                  Else
+                          taicpu(p), taicpu(p).oper[1]^)
+                  else
                     AddInstr2OpContents({$ifdef statedebug}asml,{$endif}
-                      Taicpu(p), Taicpu(p).oper[2]);
-                End;
+                      taicpu(p), taicpu(p).oper[2]^);
+                end;
               A_LEA:
                 begin
-                  readop(curprop,Taicpu(p).oper[0]);
-                  if reginref(Taicpu(p).oper[1].reg,Taicpu(p).oper[0].ref^) then
+                  readop(curprop,taicpu(p).oper[0]^);
+                  if reginref(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^.ref^) then
                     AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
-                      Taicpu(p), Taicpu(p).oper[1].reg)
+                      taicpu(p), getsupreg(taicpu(p).oper[1]^.reg))
                   else
                     begin
 {$ifdef statedebug}
                       hp := tai_comment.Create(strpnew('destroying & initing'+
-                        std_reg2str[Taicpu(p).oper[1].reg])));
+                        std_reg2str[taicpu(p).oper[1]^.reg])));
                       insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-                      destroyreg(curprop,Taicpu(p).oper[1].reg,true);
-                      with curprop^.regs[Taicpu(p).oper[1].reg.enum] Do
+                      destroyreg(curprop,getsupreg(taicpu(p).oper[1]^.reg),true);
+                      with curprop^.regs[getsupreg(taicpu(p).oper[1]^.reg)] Do
                          begin
                            typ := con_ref;
                            startmod := p;
@@ -2619,130 +2538,128 @@ Begin
                          end
                     end;
                 end;
-              Else
-                Begin
+              else
+                begin
                   Cnt := 1;
-                  While (Cnt <= MaxCh) And
+                  while (Cnt <= MaxCh) and
                         (InstrProp.Ch[Cnt] <> Ch_None) Do
-                    Begin
-                      Case InstrProp.Ch[Cnt] Of
+                    begin
+                      case InstrProp.Ch[Cnt] Of
                         Ch_REAX..Ch_REDI:
                           begin
-                            tmpreg.enum:=TCh2Reg(InstrProp.Ch[Cnt]);
-                            ReadReg(CurProp,tmpreg);
+                            tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
+                            readreg(curprop,tmpsupreg);
                           end;
                         Ch_WEAX..Ch_RWEDI:
-                          Begin
-                            If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
+                          begin
+                            if (InstrProp.Ch[Cnt] >= Ch_RWEAX) then
                               begin
-                                tmpreg.enum:=TCh2Reg(InstrProp.Ch[Cnt]);
-                                ReadReg(CurProp,tmpreg);
+                                tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
+                                readreg(curprop,tmpsupreg);
                               end;
 {$ifdef statedebug}
                             hp := tai_comment.Create(strpnew('destroying '+
-                              std_reg2str[TCh2Reg(InstrProp.Ch[Cnt])])));
+                              std_reg2str[tch2reg(InstrProp.Ch[Cnt])])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
-                            tmpreg.enum:=TCh2Reg(InstrProp.Ch[Cnt]);
-                            DestroyReg(CurProp,tmpreg, true);
-                          End;
+                            tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
+                            DestroyReg(curprop,tmpsupreg, true);
+                          end;
                         Ch_MEAX..Ch_MEDI:
                           begin
-                            tmpreg.enum:=TCh2Reg(InstrProp.Ch[Cnt]);
+                            tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
                             AddInstr2RegContents({$ifdef statedebug} asml,{$endif}
-                                                 Taicpu(p),tmpreg);
+                                                 taicpu(p),tmpsupreg);
                           end;
-                        Ch_CDirFlag: CurProp^.DirFlag := F_NotSet;
-                        Ch_SDirFlag: CurProp^.DirFlag := F_Set;
-                        Ch_Rop1: ReadOp(CurProp, Taicpu(p).oper[0]);
-                        Ch_Rop2: ReadOp(CurProp, Taicpu(p).oper[1]);
-                        Ch_ROp3: ReadOp(CurProp, Taicpu(p).oper[2]);
+                        Ch_CDirFlag: curprop^.DirFlag := F_notSet;
+                        Ch_SDirFlag: curprop^.DirFlag := F_Set;
+                        Ch_Rop1: ReadOp(curprop, taicpu(p).oper[0]^);
+                        Ch_Rop2: ReadOp(curprop, taicpu(p).oper[1]^);
+                        Ch_ROp3: ReadOp(curprop, taicpu(p).oper[2]^);
                         Ch_Wop1..Ch_RWop1:
-                          Begin
-                            If (InstrProp.Ch[Cnt] in [Ch_RWop1]) Then
-                              ReadOp(CurProp, Taicpu(p).oper[0]);
-                            DestroyOp(p, Taicpu(p).oper[0]);
-                          End;
+                          begin
+                            if (InstrProp.Ch[Cnt] in [Ch_RWop1]) then
+                              ReadOp(curprop, taicpu(p).oper[0]^);
+                            DestroyOp(p, taicpu(p).oper[0]^);
+                          end;
                         Ch_Mop1:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Taicpu(p), Taicpu(p).oper[0]);
+                            taicpu(p), taicpu(p).oper[0]^);
                         Ch_Wop2..Ch_RWop2:
-                          Begin
-                            If (InstrProp.Ch[Cnt] = Ch_RWop2) Then
-                              ReadOp(CurProp, Taicpu(p).oper[1]);
-                            DestroyOp(p, Taicpu(p).oper[1]);
-                          End;
+                          begin
+                            if (InstrProp.Ch[Cnt] = Ch_RWop2) then
+                              ReadOp(curprop, taicpu(p).oper[1]^);
+                            DestroyOp(p, taicpu(p).oper[1]^);
+                          end;
                         Ch_Mop2:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Taicpu(p), Taicpu(p).oper[1]);
+                            taicpu(p), taicpu(p).oper[1]^);
                         Ch_WOp3..Ch_RWOp3:
-                          Begin
-                            If (InstrProp.Ch[Cnt] = Ch_RWOp3) Then
-                              ReadOp(CurProp, Taicpu(p).oper[2]);
-                            DestroyOp(p, Taicpu(p).oper[2]);
-                          End;
+                          begin
+                            if (InstrProp.Ch[Cnt] = Ch_RWOp3) then
+                              ReadOp(curprop, taicpu(p).oper[2]^);
+                            DestroyOp(p, taicpu(p).oper[2]^);
+                          end;
                         Ch_Mop3:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Taicpu(p), Taicpu(p).oper[2]);
+                            taicpu(p), taicpu(p).oper[2]^);
                         Ch_WMemEDI:
-                          Begin
-                            tmpreg.enum:=R_EDI;
-                            ReadReg(CurProp, tmpreg);
-                            FillChar(TmpRef, SizeOf(TmpRef), 0);
-                            TmpRef.Base.enum := R_EDI;
-                            tmpRef.index.enum := R_EDI;
-                            tmpreg.enum:=R_NO;
-                            DestroyRefs(p, TmpRef,tmpreg)
-                          End;
+                          begin
+                            readreg(curprop, RS_EDI);
+                            fillchar(tmpref, SizeOf(tmpref), 0);
+                            tmpref.base := NR_EDI;
+                            tmpref.index := NR_EDI;
+                            DestroyRefs(p, tmpref,RS_INVALID)
+                          end;
                         Ch_RFlags:
                           if assigned(LastFlagsChangeProp) then
                             LastFlagsChangeProp^.FlagsUsed := true;
                         Ch_WFlags:
-                          LastFlagsChangeProp := CurProp;
+                          LastFlagsChangeProp := curprop;
                         Ch_RWFlags:
                           begin
                             if assigned(LastFlagsChangeProp) then
                               LastFlagsChangeProp^.FlagsUsed := true;
-                            LastFlagsChangeProp := CurProp;
+                            LastFlagsChangeProp := curprop;
                           end;
                          Ch_FPU:;
-                        Else
-                          Begin
+                        else
+                          begin
 {$ifdef statedebug}
                             hp := tai_comment.Create(strpnew(
                               'destroying all regs for prev instruction')));
                             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
-                            DestroyAllRegs(CurProp,true,true);
-                            LastFlagsChangeProp := CurProp;
-                          End;
-                      End;
-                      Inc(Cnt);
-                    End
-                End;
+                            DestroyAllRegs(curprop,true,true);
+                            LastFlagsChangeProp := curprop;
+                          end;
+                      end;
+                      inc(Cnt);
+                    end
+                end;
               end;
-            End;
-          End
-        Else
-          Begin
+            end;
+          end
+        else
+          begin
 {$ifdef statedebug}
             hp := tai_comment.Create(strpnew(
-              'destroying all regs: unknown Tai: '+tostr(ord(p.typ)))));
+              'destroying all regs: unknown tai: '+tostr(ord(p.typ)))));
             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
-            DestroyAllRegs(CurProp,true,true);
-          End;
-      End;
-      Inc(InstrCnt);
+            DestroyAllRegs(curprop,true,true);
+          end;
+      end;
+      inc(InstrCnt);
       prev := p;
       GetNextInstruction(p, p);
-    End;
-End;
+    end;
+end;
 
 
 function tdfaobj.pass_2: boolean;
 begin
-  if initdfapass2 Then
+  if initdfapass2 then
     begin
       dodfapass2;
       pass_2 := true
@@ -2751,7 +2668,10 @@ begin
     pass_2 := false;
 end;
 
-
+{$ifopt r+}
+{$define rangewason}
+{$r-}
+{$endif}
 function tdfaobj.getlabelwithsym(sym: tasmlabel): tai;
 begin
   if (sym.labelnr >= lolab) and
@@ -2760,7 +2680,10 @@ begin
   else
     getlabelwithsym := nil;
 end;
-
+{$ifdef rangewason}
+{$r+}
+{$undef rangewason}
+{$endif}
 
 
 procedure tdfaobj.clear;
@@ -2782,7 +2705,14 @@ end.
 
 {
   $Log$
-  Revision 1.53  2003-06-13 21:19:31  peter
+  Revision 1.54  2003-11-22 00:40:19  jonas
+    * fixed optimiser so it compiles again
+    * fixed several bugs which were in there already for a long time, but
+      which only popped up now :) -O2/-O3 will now optimise less than in
+      the past (and correctly so), but -O2u/-O3u will optimise a bit more
+    * some more small improvements for -O3 are still possible
+
+  Revision 1.53  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.52  2003/06/08 18:48:03  jonas
@@ -2894,7 +2824,7 @@ end.
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
 
   Revision 1.30  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> pointeRS_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)
@@ -2928,7 +2858,7 @@ end.
       also better optimizable)
     * fixed and optimized register saving/restoring for new/dispose nodes
     * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+      RS_ST, not RS_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
 
