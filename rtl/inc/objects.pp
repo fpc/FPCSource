@@ -1,6 +1,19 @@
 {
-  $Id$
-}
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1997-98 by the Free Pascal development team.
+
+    Objects.pas clone for Free Pascal
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 {************[ SOURCE FILE OF FREE VISION ]****************}
 {                                                          }
 {    System independent clone of objects.pas               }
@@ -21,83 +34,24 @@
 {    Free Vision project coordinator Balazs Scheidler      }
 {    bazsi@tas.vein.hu                                     }
 {                                                          }
-{    Download FV at ftp site                               }
-{    ftp://ftp.tolna.hungary.net/pub/fpk-pascal            }
-{                                                          }
-{****************[ THIS CODE IS FREEWARE ]*****************}
-{                                                          }
-{     This sourcecode is released for the purpose to       }
-{   promote the pascal language on all platforms. You may  }
-{   redistribute it and/or modify with the following       }
-{   DISCLAIMER.                                            }
-{                                                          }
-{     This sourcecode is distributed "AS IS" without       }
-{   warranty, express, implied or statutory, including     }
-{   but not limited to any implied warranties of any       }
-{   merchantability and fitness for a particular purpose.  }
-{   In no event shall anyone involved with the creation    }
-{   and production of this product be liable for indirect, }
-{   special, or consequential damages, arising out of any  }
-{   use thereof or breach of any warranty.                 }
-{                                                          }
-{**********************************************************}
-
-{*****************[ SUPPORTED PLATFORMS ]******************}
-{    16 and 32 Bit compilers                               }
-{       DOS      - Turbo Pascal 7.0 +      (16 Bit)        }
-{                - FPK Pascal 0.92 +       (32 Bit)        }
-{       DPMI     - Turbo Pascal 7.0 +      (16 Bit)        }
-{       WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)        }
-{       WIN95    - Turbo Pascal 7.0 +      (16 Bit)        }
-{       OS2      - Virtual Pascal 0.3 +    (32 Bit)        }
-{                - C'T patch to BP         (16 Bit)        }
-{                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     12 Jun 96   First multi platform release       }
-{  1.01     20 Jun 96   Fixes to TCollection               }
-{  1.02     07 Aug 96   Fix TStringCollection.Compare      }
-{  1.10     18 Jul 97   Windows 95 support added.          }
-{  1.11     21 Aug 97   FPK pascal 0.92 implemented        }
-{  1.15     26 Aug 97   TXMSStream compatability added     }
-{                       TEMSStream compatability added     }
-{  1.30     29 Aug 97   Platform.inc sort added.           }
-{  1.32     02 Sep 97   RegisterTypes completed.           }
-{  1.37     04 Sep 97   TStream.Get & Put completed.       }
-{  1.40     04 Sep 97   LongMul & LongDiv added.           }
-{  1.45     04 Sep 97   Refined and passed all tests.      }
-{                       FPK - bug on register records!     }
-{  1.50     05 May 98   Fixed DOS Access to files, one     }
-{                       version for all intel platforms    }
-{                       (CEC)                              }
-{**********************************************************}
-{ STLL LEFT TO DO:                                         }
-{   -> Port TResourceFile.Init to non-dos systems          }
-{   -> fix problem with Constant Registries                }
-{**********************************************************}
 UNIT Objects;
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-{====Include file to sort compiler platform out =====================}
-{$I platform.inc}
-{====================================================================}
-
-
-{==== Compiler directives ===========================================}
-{$IFDEF FPC}
-  {$H-} { No ansistrings }
-{$ELSE}
-{ FPC doesn't support these switches in 0.99.5 }
-  {$F+} { Force far calls }
-  {$A+} { Word Align Data }
-  {$B-} { Allow short circuit boolean evaluations }
+{==== Select assembler ==============================================}
+{$IFDEF CPU86}
+  {$ASMMODE ATT}
 {$ENDIF}
 
-{$E+} {  Emulation is on }
+{$IFDEF CPU68}
+  {$ASMMODE MOT}
+{$ENDIF}
+
+{==== Compiler directives ===========================================}
+{$H-} { No ansistrings }
+{$E+} { Emulation is on }
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$ifndef Linux}
@@ -193,59 +147,66 @@ TYPE
    PString = ^String;                                 { String pointer }
 
 {---------------------------------------------------------------------------}
-{                            DOS FILENAME STRING                            }
+{                    OS dependent File type / consts                        }
 {---------------------------------------------------------------------------}
-TYPE
-{$IFDEF OS_DOS}                                       { DOS/DPMI DEFINE }
-   FNameStr = String[79];                             { DOS filename }
+{$IFDEF GO32V1}
+type
+   FNameStr = String[79];
+   THandle = Integer;
+const
+   MaxReadBytes = $fffe;
 {$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WINDOWS DEFINE }
-   FNameStr = String;                                 { Windows filename }
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 DEFINE }
-   FNameStr = String;                                 { OS2 filename }
-{$ENDIF}
-{$IFDEF OS_LINUX}
-   FNameStr = String;                                 { OS2 filename }
-{$ENDIF}
-{$IFDEF OS_AMIGA}
+{$IFDEF GO32V2}
+type
    FNameStr = String;
-{$ENDIF}
-{$IFDEF OS_ATARI}
-   FNameStr = String[79];                             { DOS filename }
-{$ENDIF}
-{$IFDEF OS_MAC}
-    FNameStr = String;
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{                                 HANDLE SIZE                               }
-{---------------------------------------------------------------------------}
-
-{$IFDEF OS_DOS}
    THandle = Integer;
+const
+   MaxReadBytes = $fffe;
 {$ENDIF}
-{$IFDEF OS_ATARI}
+{$IFDEF Win32}
+type
+   FNameStr = String;
+   THandle = Longint;
+const
+   MaxReadBytes = $fffe;
+{$ENDIF}
+{$IFDEF OS2}
+type
+   FNameStr = String;
+   THandle = Word;
+const
+   MaxReadBytes = $7fffffff;
+{$ENDIF}
+{$IFDEF LINUX}
+type
+   FNameStr = String;
+   { values are words, though the OS calls return 32-bit values }
+   { to check (CEC)                                             }
+   THandle = Longint;
+const
+   MaxReadBytes = $7fffffff;
+{$ENDIF}
+{$IFDEF AMIGA}
+type
+   FNameStr = String;
+   THandle = Longint;
+const
+   MaxReadBytes = $fffe;
+{$ENDIF}
+{$IFDEF ATARI}
+type
+   FNameStr = String[79];
    THandle = Integer;
+const
+   MaxReadBytes = $fffe;
 {$ENDIF}
-{$IFDEF OS_LINUX}
- { values are words, though the OS calls return 32-bit values }
- { to check (CEC)                                             }
-  THandle = Longint;
+{$IFDEF MAC}
+type
+   FNameStr = String;
+   THandle = ???????
+const
+   MaxReadBytes = $fffe;
 {$ENDIF}
-{$IFDEF OS_AMIGA}
-  THandle = Longint;
-{$ENDIF}
-{$IFDEF OS_WINDOWS}
-  THandle = Longint;
-{$ENDIF}
-{$IFDEF OS_OS2}
-  THandle = Word;
-{$ENDIF}
-{$IFDEF OS_MAC}
-  ???????
-{$ENDIF}
-
 
 {---------------------------------------------------------------------------}
 {                            DOS ASCIIZ FILENAME                            }
@@ -259,18 +220,6 @@ TYPE
 TYPE
    Sw_Word    = LongInt;                              { Long integer now }
    Sw_Integer = LongInt;                              { Long integer now }
-
-{---------------------------------------------------------------------------}
-{                          FUNCTION POINTER DEFINED                         }
-{---------------------------------------------------------------------------}
-TYPE
-   FuncPtr = FUNCTION (Item: Pointer; _EBP: Sw_Word): Boolean;
-
-{---------------------------------------------------------------------------}
-{                         PROCEDURE POINTER DEFINED                         }
-{---------------------------------------------------------------------------}
-TYPE
-   ProcPtr = PROCEDURE (Item: Pointer; _EBP: Sw_Word);
 
 {***************************************************************************}
 {                        PUBLIC RECORD DEFINITIONS                          }
@@ -766,19 +715,64 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{***************************************************************************}
+{                      HELPER ROUTINES FOR CALLING                          }
+{***************************************************************************}
+
+type
+  FramePointer = pointer;
+  PointerLocal = function(_EBP: FramePointer; Param1: pointer): pointer;
+  PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
+  PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
+
+function CurrentFramePointer: FramePointer;assembler;
+asm
+{$ifdef i386}
+    movl (%ebp), %eax
+{$endif}
+{$ifdef m68k}
+    move.l a6,d0
+{$endif}
+end ['EAX'];
+
+
+function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
+begin
+  asm
+{$ifdef i386}
+        movl Obj, %esi
+{$endif}
+{$ifdef m68k}
+        move.l Obj, a5
+{$endif}
+  end;
+  CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
+end;
+
+
+function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
+begin
+  asm
+{$ifdef i386}
+        movl Obj, %esi
+{$endif}
+{$ifdef m68k}
+        move.l Obj, a5
+{$endif}
+  end;
+  CallPointerMethod := PointerMethod(Method)(Obj, Param1)
+end;
+
+
+function CallPointerLocal(Func: pointer; Frame: FramePointer; Param1: pointer): pointer;
+begin
+  CallPointerLocal := PointerLocal(Func)(Frame, Param1)
+end;
+
 
 {***************************************************************************}
 {                      PRIVATE INITIALIZED VARIABLES                        }
 {***************************************************************************}
-
-{$IFDEF OS_DOS}                                       { DOS CODE }
-{---------------------------------------------------------------------------}
-{                    INITIALIZED DOS PRIVATE VARIABLES                      }
-{---------------------------------------------------------------------------}
-CONST
-   InitRun: Boolean = False;                          { Init check run }
-   Win95  : Boolean = False;                          { If Win 95 active }
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {               INITIALIZED DOS/DPMI/WIN/OS2 PRIVATE VARIABLES              }
@@ -791,10 +785,6 @@ CONST
 {***************************************************************************}
 
 {$I objinc.inc}
-
-{$IFDEF CPU86}
-  {$ASMMODE ATT}
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  RegisterError -> Platforms DOS/DPMI/WINDOWS/OS2 - Checked 12Jun96 LdB    }
@@ -965,9 +955,6 @@ END;
 {  Get -> Platforms DOS/DPMI/WIN/OS2 - Checked 02Sep97 LdB                  }
 {---------------------------------------------------------------------------}
 FUNCTION TStream.Get: PObject;
-
-TYPE LoadPtr = FUNCTION (Var S: TStream; Link: pointer; Iv: Pointer): PObject;
-
 VAR ObjType: Sw_Word; P: PStreamRec;
 BEGIN
    Read(ObjType, SizeOf(ObjType));                    { Read object type }
@@ -978,8 +965,9 @@ BEGIN
      If (P=Nil) Then Begin                            { Not registered }
        Error(stGetError, ObjType);                    { Obj not registered }
        Get := Nil;                                    { Return nil pointer }
-     End Else Get := LoadPtr(P^.Load)(Self,
-       P^.VMTLink, Nil)                               { Call constructor }
+     End Else
+       Get :=PObject(
+         CallPointerConstructor(P^.Load,Nil,P^.VMTLink, @Self))  { Call constructor }
    End Else Get := Nil;                               { Return nil pointer }
 END;
 
@@ -1070,8 +1058,6 @@ END;
 {  Get -> Platforms DOS/DPMI/WIN/OS2 - Checked 02Sep97 LdB                  }
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.Put (P: PObject);
-TYPE StorePtr = PROCEDURE (Var S: TStream; AnObject: PObject);
-
 VAR ObjType: Sw_Word; Link: pointer; Q: PStreamRec; VmtPtr: ^pointer;
 BEGIN
    VmtPtr := Pointer(P);                              { Xfer object to ptr }
@@ -1088,7 +1074,7 @@ BEGIN
    End;
    Write(ObjType, SizeOf(ObjType));                   { Write object type }
    If (ObjType<>0) Then                               { Registered object }
-     StorePtr(Q^.Store)(Self, P);                     { Store object }
+     CallPointerMethod(Q^.Store, P, @Self);
 END;
 
 {--TStream------------------------------------------------------------------}
@@ -1279,9 +1265,8 @@ BEGIN
    P := @Buf;                                         { Transfer address }
    While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
      W := Count;                                      { Transfer read size }
-     {$IFNDEF OS_OS2}                                 { DOS/DPMI/WINDOWS }
-     If (Count>$FFFE) Then W := $FFFE;                { Cant read >64K bytes }
-     {$ENDIF}
+     If (Count>MaxReadBytes) Then
+       W := MaxReadBytes;                             { Cant read >64K bytes }
      Success := FileRead(Handle, P^, W, BytesMoved);  { Read from file }
      If ((Success<>0) OR (BytesMoved<>W)) Then Begin  { Error was detected }
        BytesMoved := 0;                               { Clear bytes moved }
@@ -1306,9 +1291,8 @@ BEGIN
    P := @Buf;                                         { Transfer address }
    While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
      W := Count;                                      { Transfer read size }
-     {$IFNDEF OS_OS2}                                 { DOS/DPMI/WINDOWS }
-     If (Count>$FFFF) Then W := $FFFF;                { Cant read >64K bytes }
-     {$ENDIF}
+     If (Count>MaxReadBytes) Then
+       W := MaxReadBytes;                             { Cant read >64K bytes }
      Success := FileWrite(Handle, P^, W, BytesMoved); { Write to file }
      If ((Success<>0) OR (BytesMoved<>W)) Then Begin  { Error was detected }
        BytesMoved := 0;                               { Clear bytes moved }
@@ -1718,25 +1702,15 @@ END;
 {  LastThat -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
 {---------------------------------------------------------------------------}
 FUNCTION TCollection.LastThat (Test: Pointer): Pointer;
-VAR I: LongInt; P: FuncPtr; Hold_EBP: Sw_Word;
+VAR I: LongInt;
 
 BEGIN
-   ASM
-    {$IFDEF CPU86}
-     MOVL (%EBP), %EAX;                               { Load EBP }
-     MOVL %EAX, Hold_EBP;                    { Store to global }
-    {$ENDIF}
-    {$IFDEF CPU68}
-     move.l (a6), d0
-     move.l d0, Hold_EBP
-    {$ENDIF}
-   END;
-   P := FuncPtr(Test);                                { Set function ptr }
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
+       IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
-       LastThat := Items^[I-1];                       { Return item }
-       Exit;                                          { Now exit }
+         LastThat := Items^[I-1];                     { Return item }
+         Exit;                                        { Now exit }
        End;
      End;
    LastThat := Nil;                                   { None passed test }
@@ -1746,20 +1720,10 @@ END;
 {  FirstThat -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB            }
 {---------------------------------------------------------------------------}
 FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
-VAR I: LongInt; P: FuncPtr;  Hold_EBP: Sw_Word;
+VAR I: LongInt;
 BEGIN
-   ASM
-    {$IFDEF CPU86}
-     MOVL (%EBP), %EAX;                               { Load EBP }
-     MOVL %EAX, HOLD_EBP;                             { Store to global }
-    {$ENDIF}
-    {$IFDEF CPU68}
-     move.l (a6), d0
-     move.l d0, Hold_EBP
-    {$ENDIF}
-   END;
-   P := FuncPtr(Test);                                { Set function ptr }
    For I := 1 To Count Do Begin                       { Up from first item }
+     IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -1869,22 +1833,10 @@ END;
 {  ForEach -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TCollection.ForEach (Action: Pointer);
-VAR I: LongInt; Hold_BP: Sw_Word; P: ProcPtr;
+VAR I: LongInt;
 BEGIN
-   ASM
-   {$IFDEF CPU86}
-     MOVL (%EBP), %EAX;                               { Load EBP }
-     MOVL %EAX, HOLD_BP;                    { Store to global }
-   {$ENDIF}
-   {$IFDEF CPU68}
-     move.l (a6),d0
-     move.l  d0, Hold_BP
-   {$ENDIF}
-   END;
-   P := ProcPtr(Action);                              { Set procedure ptr }
    For I := 1 To Count Do                             { Up from first item }
-       P(Items^[I-1], Hold_BP);                       { Call with each item }
-
+    CallPointerLocal(Action,CurrentFramePointer,Items^[I-1]);   { Call with each item }
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2728,7 +2680,12 @@ END;
 END.
 {
   $Log$
-  Revision 1.13  1998-11-16 10:21:24  peter
+  Revision 1.14  1998-11-24 17:11:22  peter
+    * made a real fpc only version, no platform.inc
+    * applied fixes from the mailinglist
+    + included some routines from callspec
+
+  Revision 1.13  1998/11/16 10:21:24  peter
     * fixes for H+
 
   Revision 1.12  1998/11/12 11:54:50  peter
