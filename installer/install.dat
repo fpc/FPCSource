@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 1.9.2
-version=1.9.2
+title=Free Pascal Compiler 1.9.4
+version=1.9.4
 
 #
 # General
@@ -54,6 +54,8 @@ package=unetdbgo32.zip[undbgo32.zip],NetDB units
 # Dos 13
 package=uuncgigo32.zip[ucgigo32.zip],Uncgi unit
 # Dos 14
+package=upasjpeggo32.zip[upjpgo32.zip],Pas~J~PEG units
+# Dos 15
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -117,6 +119,8 @@ package=unetdbw32.zip,NetDB units
 # Win32-2 13
 package=uuncgiw32.zip,Uncgi unit
 # Win32-2 14
+package=upasjpegw32.zip,Pas~J~PEG units
+# Win32-2 15
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -154,7 +158,7 @@ package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
 # OS/2 11
 package=ulvmos2.zip,LVM interface unit
 # OS/2 12
-package=upasjpegos2.zip[upjpgos2.zip],PasJPEG units
+package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 
 
 #
@@ -230,7 +234,7 @@ package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
 # EMX 11
 package=ulvmemx.zip,LVM interface unit
 # EMX 12
-package=upasjpegemx.zip[upjpgemx.zip],PasJPEG units
+package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
 
 
 #
@@ -348,7 +352,7 @@ package=uclkdllsrc.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
 package=ulvmsrc.zip,LVM interface unit
 # Source-2 11
-package=upasjpegsrc.zip[upjpgsrc.zip],PasJPEG units
+package=upasjpegsrc.zip[upjpsrc.zip],PasJPEG units
 
 
 defaultcfg=
