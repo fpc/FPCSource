@@ -548,6 +548,7 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.register,r);
+              location_release(exprasmlist,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -560,8 +561,10 @@ implementation
                cg64.a_load64_loc_ref(list,l,r)
               else
                cg.a_load_loc_ref(list,l,r);
+              location_release(exprasmlist,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
+
             end;
           LOC_CREFERENCE,
           LOC_REFERENCE : ;
@@ -1900,7 +1903,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.71  2002-12-24 15:56:50  peter
+  Revision 1.72  2002-12-29 23:51:43  florian
+    * web bug 2214 fixed: ie 10 in const array constructors
+
+  Revision 1.71  2002/12/24 15:56:50  peter
     * stackpointer_alloc added for adjusting ESP. Win32 needs
       this for the pageprotection
 
