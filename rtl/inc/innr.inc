@@ -71,9 +71,14 @@ const
    in_const_exp        = 114;
    in_const_ln         = 115;
    in_const_sin        = 116;
+   in_lo_qword         = 117;
+   in_hi_qword         = 118;
 {
   $Log$
-  Revision 1.7  1999-04-17 13:10:23  peter
+  Revision 1.8  1999-07-02 18:06:40  florian
+    + qword/int64: lo/hi/swap
+
+  Revision 1.7  1999/04/17 13:10:23  peter
     * addr() internal
 
   Revision 1.10  1998/10/05 12:32:45  peter
@@ -88,6 +93,5 @@ const
 
   Revision 1.3  1998/09/01 17:36:19  peter
     + internconst
-
 }
 
