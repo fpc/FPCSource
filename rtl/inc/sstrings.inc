@@ -350,7 +350,7 @@ end;
 
 Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
 var
-  u, temp, prev: ValUInt;
+  u, temp, prev, maxValue: ValUInt;
   base : byte;
   negative : boolean;
 begin
@@ -359,6 +359,7 @@ begin
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
    exit;
+  maxValue := ValUInt(MaxUIntValue) div ValUInt(Base);
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -375,7 +376,7 @@ begin
          (MaxSIntValue-temp+ord(negative) < u)) or
         ((base <> 10) and
          (ValUInt(MaxUIntValue-Temp) < u)) or
-        (prev > ValUInt(MaxUIntValue) div ValUInt(Base)) Then
+        (prev > maxValue) Then
        Begin
          ValSignedInt := 0;
          Exit
@@ -390,20 +391,17 @@ begin
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
     Case DestSize of
-      1: If (ValSignedInt > High(ShortInt)) and (ValSignedInt <= High(Byte)) Then
-           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Byte));
-      2: If (ValSignedInt > High(Integer)) and (ValSignedInt <= High(Word)) Then
-           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Word));
+      1: ValSignedInt := shortint(ValSignedInt);
+      2: ValSignedInt := smallint(ValSignedInt);
 {     Uncomment the folling once full 64bit support is in place
-      4: If (ValSignedInt > High(Longint)) and (ValSignedInt <= High(Cardinal)) Then
-           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Cardinal));}
+      4: ValSignedInt := longint(ValSignedInt);}
     End;
 end;
 
 
 Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
-  u, prev: ValUInt;
+  u, prev, maxValue: ValUInt;
   base : byte;
   negative : boolean;
 begin
@@ -552,7 +550,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-12-09 20:52:41  florian
+  Revision 1.9  2001-03-03 12:38:53  jonas
+    * made val for longints a bit faster
+
+  Revision 1.8  2000/12/09 20:52:41  florian
     * val for dword and qword didn't handle the max values
       correctly
     * val for qword works again
