@@ -124,7 +124,7 @@ UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 else
-SYSTEMUNIT=syslinux
+SYSTEMUNIT=sysos2
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
