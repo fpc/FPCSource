@@ -135,19 +135,6 @@ interface
 {$endif GDB}
        end;
 
-{************************************************
-                    TDeref
-************************************************}
-
-      tderef = class
-        dereftype : tdereftype;
-        index     : word;
-        next      : tderef;
-        constructor create(typ:tdereftype;i:word);
-        destructor  destroy;override;
-      end;
-
-
     var
        registerdef : boolean;      { true, when defs should be registered }
 
@@ -155,6 +142,7 @@ interface
        symtablestack     : tsymtable;     { linked list of symtables }
        aktrecordsymtable : tsymtable;     { current record read from ppu symtable }
        aktstaticsymtable : tsymtable;     { current static for local ppu symtable }
+       aktglobalsymtable : tsymtable;     { current global for local ppu symtable }
        aktlocalsymtable  : tsymtable;     { current proc local for local ppu symtable }
 
 
@@ -328,26 +316,14 @@ implementation
 {$endif GDB}
 
 
-{****************************************************************************
-                               TDeref
-****************************************************************************}
-
-    constructor tderef.create(typ:tdereftype;i:word);
-      begin
-        dereftype:=typ;
-        index:=i;
-        next:=nil;
-      end;
-
-
-    destructor tderef.destroy;
-      begin
-      end;
-
 end.
 {
   $Log$
-  Revision 1.12  2003-04-27 11:21:34  peter
+  Revision 1.13  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.12  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

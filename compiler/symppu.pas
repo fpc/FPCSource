@@ -40,7 +40,7 @@ interface
          function  getexprint:tconstexprint;
          function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
-         function  getderef : pointer;
+         procedure getderef(var d:tderef);
          function  getsymlist:tsymlist;
          procedure gettype(var t:ttype);
          function  getasmsymbol:tasmsymbol;
@@ -48,7 +48,7 @@ interface
          procedure putexprint(v:tconstexprint);
          procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
-         procedure putderef(p : tsymtableentry);
+         procedure putderef(s:tsymtableentry;const d:tderef);
          procedure putsymlist(p:tsymlist);
          procedure puttype(const t:ttype);
          procedure putasmsymbol(s:tasmsymbol);
@@ -164,50 +164,22 @@ implementation
       end;
 
 
-    function tcompilerppufile.getderef : pointer;
-      var
-        hp,p : tderef;
-        b : tdereftype;
+    procedure tcompilerppufile.getderef(var d:tderef);
       begin
-        p:=nil;
-        repeat
-          hp:=p;
-          b:=tdereftype(getbyte);
-          case b of
-            derefnil :
-              break;
-            derefunit,
-            derefaktrecordindex,
-            derefaktlocal,
-            derefaktstaticindex :
-              begin
-                p:=tderef.create(b,getword);
-                p.next:=hp;
-                break;
-              end;
-            derefindex,
-            dereflocal,
-            derefpara,
-            derefrecord :
-              begin
-                p:=tderef.create(b,getword);
-                p.next:=hp;
-              end;
-          end;
-        until false;
-        getderef:=p;
+        d.len:=getbyte;
+        getdata(d.data,d.len);
       end;
 
 
     function tcompilerppufile.getsymlist:tsymlist;
       var
-        sym : tsym;
+        symderef : tderef;
         slt : tsltype;
         idx : longint;
         p   : tsymlist;
       begin
         p:=tsymlist.create;
-        p.def:=tdef(getderef);
+        getderef(p.defderef);
         repeat
           slt:=tsltype(getbyte);
           case slt of
@@ -217,8 +189,8 @@ implementation
             sl_load,
             sl_subscript :
               begin
-                sym:=tsym(getderef);
-                p.addsym(slt,sym);
+                getderef(symderef);
+                p.addsymderef(slt,symderef);
               end;
             sl_vec :
               begin
@@ -226,7 +198,7 @@ implementation
                 p.addconst(slt,idx);
               end;
             else
-             internalerror(200110204);
+              internalerror(200110204);
           end;
         until false;
         getsymlist:=tsymlist(p);
@@ -235,8 +207,9 @@ implementation
 
     procedure tcompilerppufile.gettype(var t:ttype);
       begin
-        t.def:=tdef(getderef);
-        t.sym:=tsym(getderef);
+        getderef(t.deref);
+        t.def:=nil;
+        t.sym:=nil;
       end;
 
 
@@ -359,83 +332,11 @@ implementation
       end;
 
 
-    procedure tcompilerppufile.putderef(p : tsymtableentry);
+    procedure tcompilerppufile.putderef(s:tsymtableentry;const d:tderef);
       begin
-        if p=nil then
-         putbyte(ord(derefnil))
-        else
-         begin
-           { Static symtable ? }
-           if p.owner.symtabletype=staticsymtable then
-            begin
-              putbyte(ord(derefaktstaticindex));
-              putword(p.indexnr);
-            end
-           { Local record/object symtable ? }
-           else if (p.owner=aktrecordsymtable) then
-            begin
-              putbyte(ord(derefaktrecordindex));
-              putword(p.indexnr);
-            end
-           { Local local/para symtable ? }
-           else if (p.owner=aktlocalsymtable) then
-            begin
-              putbyte(ord(derefaktlocal));
-              putword(p.indexnr);
-            end
-           else
-            begin
-              putbyte(ord(derefindex));
-              putword(p.indexnr);
-              { Current unit symtable ? }
-              repeat
-                if not assigned(p) then
-                 internalerror(556655);
-                case p.owner.symtabletype of
-                 { when writing the pseudo PPU file
-                   to get CRC values the globalsymtable is not yet
-                   a unitsymtable PM }
-                  globalsymtable :
-                    begin
-                      { check if the unit is available in the uses
-                        clause, else it's an error }
-                      if p.owner.unitid=$ffff then
-                       internalerror(55665566);
-                      putbyte(ord(derefunit));
-                      putword(p.owner.unitid);
-                      break;
-                    end;
-                  staticsymtable :
-                    begin
-                      putbyte(ord(derefaktstaticindex));
-                      putword(p.indexnr);
-                      break;
-                    end;
-                  localsymtable :
-                    begin
-                      p:=p.owner.defowner;
-                      putbyte(ord(dereflocal));
-                      putword(p.indexnr);
-                    end;
-                  parasymtable :
-                    begin
-                      p:=p.owner.defowner;
-                      putbyte(ord(derefpara));
-                      putword(p.indexnr);
-                    end;
-                  objectsymtable,
-                  recordsymtable :
-                    begin
-                      p:=p.owner.defowner;
-                      putbyte(ord(derefrecord));
-                      putword(p.indexnr);
-                    end;
-                  else
-                    internalerror(556656);
-                end;
-              until false;
-            end;
-         end;
+        d.build(s);
+        putbyte(d.len);
+        putdata(d.data,d.len);
       end;
 
 
@@ -443,7 +344,7 @@ implementation
       var
         hp : psymlistitem;
       begin
-        putderef(p.def);
+        putderef(p.def,p.defderef);
         hp:=p.firstsym;
         while assigned(hp) do
          begin
@@ -452,7 +353,7 @@ implementation
              sl_call,
              sl_load,
              sl_subscript :
-               putderef(hp^.sym);
+               putderef(hp^.sym,hp^.symderef);
              sl_vec :
                putlongint(hp^.value);
              else
@@ -476,13 +377,11 @@ implementation
              (t.sym.owner.unitid<>1))
            ) then
          begin
-           putderef(nil);
-           putderef(t.sym);
+           putderef(t.sym,t.deref);
          end
         else
          begin
-           putderef(t.def);
-           putderef(nil);
+           putderef(t.def,t.deref);
          end;
       end;
 
@@ -506,7 +405,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-12-21 13:07:34  peter
+  Revision 1.19  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.18  2002/12/21 13:07:34  peter
     * type redefine fix for tb0437
 
   Revision 1.17  2002/10/05 12:43:29  carl

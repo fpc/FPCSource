@@ -132,6 +132,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
+          procedure addprocdef_deref(const d:tderef);
           procedure add_para_match_to(Aprocsym:Tprocsym);
           procedure concat_procdefs_to(s:Tprocsym);
           procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
@@ -213,6 +214,7 @@ interface
        tpropertysym = class(tstoredsym)
           propoptions   : tpropertyoptions;
           propoverriden : tpropertysym;
+          propoverridenderef : tderef;
           proptype,
           indextype     : ttype;
           index,
@@ -276,7 +278,7 @@ interface
        tconstsym = class(tstoredsym)
           consttype   : ttype;
           consttyp    : tconsttyp;
-          value : tconstvalue;
+          value       : tconstvalue;
           resstrindex  : longint;     { needed for resource strings }
           constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint);
           constructor create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
@@ -298,6 +300,7 @@ interface
        tenumsym = class(tstoredsym)
           value      : longint;
           definition : tenumdef;
+          definitionderef : tderef;
           nextenum   : tenumsym;
           constructor create(const n : string;def : tenumdef;v : longint);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -472,6 +475,7 @@ implementation
 
     function tstoredsym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       var
+        d : tderef;
         ref   : tref;
         symref_written,move_last : boolean;
       begin
@@ -482,6 +486,7 @@ implementation
         move_last:=true;
         symref_written:=false;
       { write symbol refs }
+        d.reset;
         if assigned(lastwritten) then
           ref:=lastwritten
         else
@@ -493,7 +498,7 @@ implementation
               { write address to this symbol }
                 if not symref_written then
                   begin
-                     ppufile.putderef(self);
+                     ppufile.putderef(self,d);
                      symref_written:=true;
                   end;
                 ppufile.putposinfo(ref.posinfo);
@@ -803,19 +808,20 @@ implementation
 
     constructor tprocsym.ppuload(ppufile:tcompilerppufile);
       var
-         pd : tprocdef;
+         pdderef : tderef;
+         i,n : longint;
       begin
          inherited loadsym(ppufile);
          typ:=procsym;
          pdlistfirst:=nil;
          pdlistlast:=nil;
          procdef_count:=0;
-         repeat
-           pd:=tprocdef(ppufile.getderef);
-           if pd=nil then
-            break;
-           addprocdef(pd);
-         until false;
+         n:=ppufile.getword;
+         for i:=1to n do
+          begin
+            ppufile.getderef(pdderef);
+            addprocdef_deref(pdderef);
+          end;
 {$ifdef GDB}
          is_global:=false;
 {$endif GDB}
@@ -836,6 +842,38 @@ implementation
               p:=hp;
            end;
          inherited destroy;
+      end;
+
+
+    procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+         p : pprocdeflist;
+         n : word;
+      begin
+         inherited writesym(ppufile);
+         { count procdefs }
+         n:=0;
+         p:=pdlistfirst;
+         while assigned(p) do
+           begin
+             { only write the proc definitions that belong
+               to this procsym }
+             if (p^.def.procsym=self) then
+              inc(n);
+             p:=p^.next;
+           end;
+         ppufile.putword(n);
+         { write procdefs }
+         p:=pdlistfirst;
+         while assigned(p) do
+           begin
+             { only write the proc definitions that belong
+               to this procsym }
+             if (p^.def.procsym=self) then
+               ppufile.putderef(p^.def,p^.defderef);
+             p:=p^.next;
+           end;
+         ppufile.writeentry(ibprocsym);
       end;
 
 
@@ -879,7 +917,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-             resolvedef(pointer(p^.def));
+             p^.def:=tprocdef(p^.defderef.resolve);
              p:=p^.next;
            end;
       end;
@@ -891,6 +929,31 @@ implementation
       begin
         new(pd);
         pd^.def:=p;
+        pd^.defderef.reset;
+        pd^.next:=nil;
+        { Add at end of list to keep always
+          a correct order, also after loading from ppu }
+        if assigned(pdlistlast) then
+         begin
+           pdlistlast^.next:=pd;
+           pdlistlast:=pd;
+         end
+        else
+         begin
+           pdlistfirst:=pd;
+           pdlistlast:=pd;
+         end;
+        inc(procdef_count);
+      end;
+
+
+    procedure tprocsym.addprocdef_deref(const d:tderef);
+      var
+        pd : pprocdeflist;
+      begin
+        new(pd);
+        pd^.def:=nil;
+        pd^.defderef:=d;
         pd^.next:=nil;
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
@@ -1226,25 +1289,6 @@ implementation
       end;
 
 
-    procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
-      var
-         p : pprocdeflist;
-      begin
-         inherited writesym(ppufile);
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-             { only write the proc definitions that belong
-               to this procsym }
-             if (p^.def.procsym=self) then
-              ppufile.putderef(p^.def);
-             p:=p^.next;
-           end;
-         ppufile.putderef(nil);
-         ppufile.writeentry(ibprocsym);
-      end;
-
-
     function tprocsym.write_references(ppufile:tcompilerppufile;locals:boolean) : boolean;
       var
         p : pprocdeflist;
@@ -1352,7 +1396,7 @@ implementation
          ppufile.getsmallset(propoptions);
          if (ppo_is_override in propoptions) then
           begin
-            propoverriden:=tpropertysym(ppufile.getderef);
+            ppufile.getderef(propoverridenderef);
             { we need to have these objects initialized }
             readaccess:=tsymlist.create;
             writeaccess:=tsymlist.create;
@@ -1379,16 +1423,18 @@ implementation
          inherited destroy;
       end;
 
+
     function tpropertysym.gettypedef:tdef;
       begin
         gettypedef:=proptype.def;
       end;
 
+
     procedure tpropertysym.deref;
       begin
         if (ppo_is_override in propoptions) then
          begin
-           resolvesym(pointer(propoverriden));
+           propoverriden:=tpropertysym(propoverridenderef.resolve);
            dooverride(propoverriden);
          end
         else
@@ -1413,7 +1459,7 @@ implementation
         inherited writesym(ppufile);
         ppufile.putsmallset(propoptions);
         if (ppo_is_override in propoptions) then
-         ppufile.putderef(propoverriden)
+         ppufile.putderef(propoverriden,propoverridenderef)
         else
          begin
            ppufile.puttype(proptype);
@@ -2271,7 +2317,7 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=enumsym;
-         definition:=tenumdef(ppufile.getderef);
+         ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
          nextenum := Nil;
       end;
@@ -2279,7 +2325,7 @@ implementation
 
     procedure tenumsym.deref;
       begin
-         resolvedef(pointer(definition));
+         definition:=tenumdef(definitionderef.resolve);
          order;
       end;
 
@@ -2314,7 +2360,7 @@ implementation
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
-         ppufile.putderef(definition);
+         ppufile.putderef(definition,definitionderef);
          ppufile.putlongint(value);
          ppufile.writeentry(ibenumsym);
       end;
@@ -2391,7 +2437,10 @@ implementation
 
 
     function ttypesym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
+      var
+        d : tderef;
       begin
+        d.reset;
         if not inherited write_references(ppufile,locals) then
          begin
          { write address of this symbol if record or object
@@ -2399,7 +2448,7 @@ implementation
            because we need it for the symtable }
            if (restype.def.deftype in [recorddef,objectdef]) then
             begin
-              ppufile.putderef(self);
+              ppufile.putderef(self,d);
               ppufile.writeentry(ibsymref);
             end;
          end;
@@ -2613,7 +2662,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-06-05 17:53:30  peter
+  Revision 1.109  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.108  2003/06/05 17:53:30  peter
     * fix to compile without gdb
 
   Revision 1.107  2003/06/02 22:59:17  florian

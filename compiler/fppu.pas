@@ -54,6 +54,7 @@ interface
           procedure getppucrc;
           procedure writeppu;
           procedure loadppu;
+          function  needrecompile:boolean;
        private
           function  search_unit(onlysource,shortname:boolean):boolean;
           procedure load_interface;
@@ -1028,9 +1029,7 @@ uses
         if current_module<>self then
          internalerror(200212284);
         load_refs:=true;
-        { init the map }
-        new(map);
-        fillchar(map^,sizeof(tunitmap),#0);
+        { Add current unit to the map }
         map^[0]:=self;
         nextmapentry:=1;
         { load the used units from interface }
@@ -1058,8 +1057,6 @@ uses
                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^);
                  recompile_reason:=rr_crcchanged;
                  do_compile:=true;
-                 dispose(map);
-                 map:=nil;
                  exit;
                end;
               { setup the map entry for deref }
@@ -1076,6 +1073,7 @@ uses
          internalerror(200208187);
         globalsymtable:=tglobalsymtable.create(modulename^);
         tstoredsymtable(globalsymtable).ppuload(ppufile);
+        interface_compiled:=true;
 
         { now only read the implementation uses }
         in_interface:=false;
@@ -1096,8 +1094,6 @@ uses
                   Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^+' {impl}');
                   recompile_reason:=rr_crcchanged;
                   do_compile:=true;
-                  dispose(map);
-                  map:=nil;
                   exit;
                 end;
               { setup the map entry for deref }
@@ -1119,10 +1115,31 @@ uses
             internalerror(200208188);
            load_symtable_refs;
          end;
+      end;
 
-        { remove the map, it's not needed anymore }
-        dispose(map);
-        map:=nil;
+
+    function tppumodule.needrecompile:boolean;
+      var
+        pu : tused_unit;
+      begin
+        result:=false;
+        pu:=tused_unit(used_units.first);
+        while assigned(pu) do
+         begin
+           { need to recompile the current unit, check the interface
+             crc. And when not compiled with -Ur then check the complete
+             crc }
+           if (pu.u.interface_crc<>pu.interface_checksum) or
+              (
+               (pu.in_interface) and
+               (pu.u.crc<>pu.checksum)
+              ) then
+             begin
+               result:=true;
+               exit;
+             end;
+           pu:=tused_unit(pu.next);
+         end;
       end;
 
 
@@ -1130,6 +1147,7 @@ uses
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
+        do_load,
         second_time : boolean;
         hp,
         old_current_module : tmodule;
@@ -1138,154 +1156,189 @@ uses
         Message3(unit_u_load_unit,old_current_module.modulename^,
                  ImplIntf[old_current_module.in_interface],
                  modulename^);
+
+if modulename^='NCGUTIL' then
+ do_load:=do_load;
+
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
-        if do_reload then
-         begin
-           Message(unit_u_forced_reload);
-           do_reload:=false;
-         end
-        else
-         begin
-           if assigned(globalsymtable) then
-            exit;
-         end;
+        if (not do_reload) and
+           assigned(globalsymtable) then
+           exit;
+
         { reset }
+        do_load:=true;
         second_time:=false;
         current_module:=self;
         SetCompileModule(current_module);
         Fillchar(aktfilepos,0,sizeof(aktfilepos));
 
-        { we are loading a new module, save the state of the scanner
-          and reset scanner+module }
-        if assigned(current_scanner) then
-          current_scanner.tempcloseinputfile;
-        current_scanner:=nil;
-
-        { loading the unit for a second time? }
-        if state=ms_registered then
-         state:=ms_load
-        else
+        { A force reload }
+        if do_reload then
          begin
-           { try to load the unit a second time first }
-           Message1(unit_u_second_load_unit,modulename^);
-           Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
-           { Flag modules to reload }
-           flagdependent(old_current_module);
-           { Reset the module }
-           reset;
-           if state=ms_compile then
+           Message(unit_u_forced_reload);
+           do_reload:=false;
+           { When the unit is already loaded or being loaded
+             we can maybe skip a complete reload/recompile }
+           if assigned(globalsymtable) and
+              (not needrecompile) then
              begin
-               Message1(unit_u_second_compile_unit,modulename^);
-               state:=ms_second_compile;
-               do_compile:=true;
-             end
-           else
-             state:=ms_second_load;
-           second_time:=true;
+               { When we don't have any data stored yet there
+                 is nothing to resolve }
+               if interface_compiled then
+                 begin
+                   Comment(V_Used,'Re-resolving unit');
+                   aktglobalsymtable:=tstoredsymtable(globalsymtable);
+                   tstoredsymtable(globalsymtable).deref;
+                   tstoredsymtable(globalsymtable).derefimpl;
+                   if assigned(localsymtable) then
+                    begin
+                      aktstaticsymtable:=tstoredsymtable(localsymtable);
+                      tstoredsymtable(localsymtable).deref;
+                      tstoredsymtable(localsymtable).derefimpl;
+                    end;
+                 end
+               else
+                 Comment(V_Used,'Skipping re-resolving, still loading used units');
+               do_load:=false;
+             end;
          end;
 
-        { close old_current_ppu on system that are
-          short on file handles like DOS PM }
+        if do_load then
+         begin
+           { we are loading a new module, save the state of the scanner
+             and reset scanner+module }
+           if assigned(current_scanner) then
+             current_scanner.tempcloseinputfile;
+           current_scanner:=nil;
+
+           { loading the unit for a second time? }
+           if state=ms_registered then
+            state:=ms_load
+           else
+            begin
+              { try to load the unit a second time first }
+              Message1(unit_u_second_load_unit,modulename^);
+              Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
+              { Flag modules to reload }
+              flagdependent(old_current_module);
+              { Reset the module }
+              reset;
+              if state=ms_compile then
+                begin
+                  Message1(unit_u_second_compile_unit,modulename^);
+                  state:=ms_second_compile;
+                  do_compile:=true;
+                end
+              else
+                state:=ms_second_load;
+              second_time:=true;
+            end;
+
+           { close old_current_ppu on system that are
+             short on file handles like DOS PM }
 {$ifdef SHORT_ON_FILE_HANDLES}
-        if old_current_module.is_unit and
-           assigned(tppumodule(old_current_module).ppufile) then
-          tppumodule(old_current_module).ppufile.tempclose;
+           if old_current_module.is_unit and
+              assigned(tppumodule(old_current_module).ppufile) then
+             tppumodule(old_current_module).ppufile.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
 
-        { try to opening ppu, skip this when we already
-          know that we need to compile the unit }
-        if not do_compile then
-         begin
-           Message1(unit_u_loading_unit,modulename^);
-           search_unit(false,false);
+           { try to opening ppu, skip this when we already
+             know that we need to compile the unit }
            if not do_compile then
             begin
-              load_interface;
+              Message1(unit_u_loading_unit,modulename^);
+              search_unit(false,false);
               if not do_compile then
                begin
-                 load_usedunits;
+                 load_interface;
                  if not do_compile then
-                   Message1(unit_u_finished_loading_unit,modulename^);
+                  begin
+                    load_usedunits;
+                    if not do_compile then
+                      Message1(unit_u_finished_loading_unit,modulename^);
+                  end;
+               end;
+              { PPU is not needed anymore }
+              if assigned(ppufile) then
+               begin
+                  ppufile.closefile;
+                  ppufile.free;
+                  ppufile:=nil;
                end;
             end;
-           { PPU is not needed anymore }
-           if assigned(ppufile) then
-            begin
-               ppufile.closefile;
-               ppufile.free;
-               ppufile:=nil;
-            end;
-         end;
 
-        { Do we need to recompile the unit }
-        if do_compile then
-         begin
-           { recompile the unit or give a fatal error if sources not available }
-           if not(sources_avail) then
+           { Do we need to recompile the unit }
+           if do_compile then
             begin
-              if (not search_unit(true,false)) and
-                 (length(modulename^)>8) then
-                search_unit(true,true);
+              { recompile the unit or give a fatal error if sources not available }
               if not(sources_avail) then
                begin
-                 if recompile_reason=rr_noppu then
-                   Message1(unit_f_cant_find_ppu,modulename^)
-                 else
-                   Message1(unit_f_cant_compile_unit,modulename^);
+                 if (not search_unit(true,false)) and
+                    (length(modulename^)>8) then
+                   search_unit(true,true);
+                 if not(sources_avail) then
+                  begin
+                    if recompile_reason=rr_noppu then
+                      Message1(unit_f_cant_find_ppu,modulename^)
+                    else
+                      Message1(unit_f_cant_compile_unit,modulename^);
+                  end;
                end;
+              { Flag modules to reload }
+              flagdependent(old_current_module);
+              { Reset the module }
+              reset;
+              { compile this module }
+              if not(state in [ms_compile,ms_second_compile]) then
+                state:=ms_compile;
+              compile(mainsource^);
             end;
-           { Flag modules to reload }
-           flagdependent(old_current_module);
-           { Reset the module }
-           reset;
-           { compile this module }
-           if not(state in [ms_compile,ms_second_compile]) then
-             state:=ms_compile;
-           compile(mainsource^);
-         end;
 
-        { set compiled flag }
-        if current_module<>self then
-          internalerror(200212282);
-        state:=ms_compiled;
+           { set compiled flag }
+           if current_module<>self then
+             internalerror(200212282);
+           state:=ms_compiled;
 
-        if in_interface then
-          internalerror(200212283);
+           if in_interface then
+             internalerror(200212283);
 
-        { for a second_time recompile reload all dependent units,
-          for a first time compile register the unit _once_ }
-        if second_time then
-         begin
-           { now reload all dependent units }
-           hp:=tmodule(loaded_units.first);
-           while assigned(hp) do
+           { for a second_time recompile reload all dependent units,
+             for a first time compile register the unit _once_ }
+           if second_time then
             begin
-              if hp.do_reload then
-                tppumodule(hp).loadppu;
-              hp:=tmodule(hp.next);
-            end;
-         end
-        else
-         usedunits.concat(tused_unit.create(self,true,false));
+              { now reload all dependent units }
+              hp:=tmodule(loaded_units.first);
+              while assigned(hp) do
+               begin
+                 if hp.do_reload then
+                   tppumodule(hp).loadppu;
+                 hp:=tmodule(hp.next);
+               end;
+            end
+           else
+            usedunits.concat(tused_unit.create(self,true,false));
 
-        { reopen the old module }
+           { reopen the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
-        if old_current_module.is_unit and
-           assigned(tppumodule(old_current_module).ppufile) then
-          tppumodule(old_current_module).ppufile.tempopen;
+           if old_current_module.is_unit and
+              assigned(tppumodule(old_current_module).ppufile) then
+             tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
 
-        { we are back, restore current_module and current_scanner }
+           { reload old scanner }
+           current_scanner:=tscannerfile(old_current_module.scanner);
+           if assigned(current_scanner) then
+            begin
+              current_scanner.tempopeninputfile;
+              current_scanner.gettokenpos
+            end
+           else
+            fillchar(aktfilepos,sizeof(aktfilepos),0);
+         end;
+
+        { we are back, restore current_module }
         current_module:=old_current_module;
-        current_scanner:=tscannerfile(current_module.scanner);
-        if assigned(current_scanner) then
-         begin
-           current_scanner.tempopeninputfile;
-           current_scanner.gettokenpos;
-         end
-        else
-         fillchar(aktfilepos,sizeof(aktfilepos),0);
         SetCompileModule(current_module);
       end;
 
@@ -1359,7 +1412,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.35  2003-05-25 10:27:12  peter
+  Revision 1.36  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.35  2003/05/25 10:27:12  peter
     * moved Comment calls to messge file
 
   Revision 1.34  2003/05/23 17:04:37  peter

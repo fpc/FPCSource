@@ -50,9 +50,12 @@ interface
 ************************************************}
 
        tstoreddef = class(tdef)
+          typesymderef  : tderef;
           { persistent (available across units) rtti and init tables }
           rttitablesym,
           inittablesym  : tsym; {trttisym}
+          rttitablesymderef,
+          inittablesymderef : tderef;
           { local (per module) rtti and init tables }
           localrttilab  : array[trttitype] of tasmlabel;
           { linked list of global definitions }
@@ -100,7 +103,9 @@ interface
        tparaitem = class(TLinkedListItem)
           paratype     : ttype; { required for procvar }
           parasym      : tsym;
+          parasymderef : tderef;
           defaultvalue : tsym; { tconstsym }
+          defaultvaluederef : tderef;
           paratyp      : tvarspez; { required for procvar }
           paraloc      : tparalocation;
           is_hidden    : boolean; { is this a hidden (implicit) parameter }
@@ -250,6 +255,7 @@ interface
           procedure writefields(sym:tnamedindexitem;arg:pointer);
        public
           childof  : tobjectdef;
+          childofderef  : tderef;
           objname,
           objrealname   : pstring;
           objectoptions : tobjectoptions;
@@ -306,13 +312,14 @@ interface
 
           function  count: longint;
           function  interfaces(intfindex: longint): tobjectdef;
+          function  interfacesderef(intfindex: longint): tderef;
           function  ioffsets(intfindex: longint): plongint;
           function  searchintf(def: tdef): longint;
           procedure addintf(def: tdef);
 
           procedure deref;
           { add interface reference loaded from ppu }
-          procedure addintfref(def: pointer);
+          procedure addintf_deref(const d:tderef);
 
           procedure clearmappings;
           procedure addmappings(intfindex: longint; const name, newname: string);
@@ -485,17 +492,20 @@ interface
           symoptions : tsymoptions;
           { symbol owning this definition }
           procsym : tsym;
+          procsymderef : tderef;
           { alias names }
           aliasnames : tstringlist;
           { symtables }
           localst : tsymtable;
           funcretsym : tsym;
+          funcretsymderef : tderef;
           { browser info }
           lastref,
           defref,
           lastwritten : tref;
           refcount : longint;
           _class : tobjectdef;
+          _classderef : tderef;
           { it's a tree, but this not easy to handle }
           { used for inlined procs                   }
           code : tnode;
@@ -549,6 +559,7 @@ interface
        pprocdeflist = ^tprocdeflist;
        tprocdeflist = record
          def  : tprocdef;
+         defderef : tderef;
          next : pprocdeflist;
        end;
 
@@ -587,6 +598,7 @@ interface
           has_jumps : boolean;
           firstenum : tsym;  {tenumsym}
           basedef   : tenumdef;
+          basedefderef : tderef;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:longint);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -877,12 +889,12 @@ implementation
          fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
          indexnr:=ppufile.getword;
-         typesym:=ttypesym(pointer(ppufile.getderef));
+         ppufile.getderef(typesymderef);
          ppufile.getsmallset(defoptions);
          if df_has_rttitable in defoptions then
-          rttitablesym:=tsym(ppufile.getderef);
+          ppufile.getderef(rttitablesymderef);
          if df_has_inittable in defoptions then
-          inittablesym:=tsym(ppufile.getderef);
+          ppufile.getderef(inittablesymderef);
       end;
 
 
@@ -922,12 +934,12 @@ implementation
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
       begin
         ppufile.putword(indexnr);
-        ppufile.putderef(typesym);
+        ppufile.putderef(typesym,typesymderef);
         ppufile.putsmallset(defoptions);
         if df_has_rttitable in defoptions then
-         ppufile.putderef(rttitablesym);
+         ppufile.putderef(rttitablesym,rttitablesymderef);
         if df_has_inittable in defoptions then
-         ppufile.putderef(inittablesym);
+         ppufile.putderef(inittablesym,inittablesymderef);
 {$ifdef GDB}
         if globalnb = 0 then
           begin
@@ -945,9 +957,11 @@ implementation
 
     procedure tstoreddef.deref;
       begin
-        resolvesym(pointer(typesym));
-        resolvesym(pointer(rttitablesym));
-        resolvesym(pointer(inittablesym));
+        typesym:=ttypesym(typesymderef.resolve);
+        if df_has_rttitable in defoptions then
+          rttitablesym:=trttisym(rttitablesymderef.resolve);
+        if df_has_inittable in defoptions then
+          inittablesym:=trttisym(inittablesymderef.resolve);
       end;
 
 
@@ -1473,7 +1487,7 @@ implementation
       begin
          inherited ppuloaddef(ppufile);
          deftype:=enumdef;
-         basedef:=tenumdef(ppufile.getderef);
+         ppufile.getderef(basedefderef);
          minval:=ppufile.getlongint;
          maxval:=ppufile.getlongint;
          savesize:=ppufile.getlongint;
@@ -1523,7 +1537,7 @@ implementation
     procedure tenumdef.deref;
       begin
         inherited deref;
-        resolvedef(pointer(basedef));
+        basedef:=tenumdef(basedefderef.resolve);
       end;
 
 
@@ -1536,7 +1550,7 @@ implementation
     procedure tenumdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
-         ppufile.putderef(basedef);
+         ppufile.putderef(basedef,basedefderef);
          ppufile.putlongint(min);
          ppufile.putlongint(max);
          ppufile.putlongint(savesize);
@@ -3177,8 +3191,8 @@ implementation
          while assigned(hp) do
           begin
             hp.paratype.resolve;
-            resolvesym(pointer(hp.defaultvalue));
-            resolvesym(pointer(hp.parasym));
+            hp.defaultvalue:=tsym(hp.defaultvaluederef.resolve);
+            hp.parasym:=tvarsym(hp.parasymderef.resolve);
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -3208,8 +3222,10 @@ implementation
             hp:=TParaItem.Create;
             hp.paratyp:=tvarspez(ppufile.getbyte);
             ppufile.gettype(hp.paratype);
-            hp.defaultvalue:=tsym(ppufile.getderef);
-            hp.parasym:=tsym(ppufile.getderef);
+            ppufile.getderef(hp.defaultvaluederef);
+            hp.defaultvalue:=nil;
+            ppufile.getderef(hp.parasymderef);
+            hp.parasym:=nil;
             hp.is_hidden:=boolean(ppufile.getbyte);
             { later, we'll gerate this on the fly (FK) }
             paraloclen:=ppufile.getbyte;
@@ -3252,8 +3268,8 @@ implementation
           begin
             ppufile.putbyte(byte(hp.paratyp));
             ppufile.puttype(hp.paratype);
-            ppufile.putderef(hp.defaultvalue);
-            ppufile.putderef(hp.parasym);
+            ppufile.putderef(hp.defaultvalue,hp.defaultvaluederef);
+            ppufile.putderef(hp.parasym,hp.parasymderef);
             ppufile.putbyte(byte(hp.is_hidden));
             { write the length of tparalocation so ppudump can
               parse the .ppu without knowing the tparalocation size }
@@ -3435,14 +3451,14 @@ implementation
           _mangledname:=nil;
          overloadnumber:=ppufile.getword;
          extnumber:=ppufile.getword;
-         _class := tobjectdef(ppufile.getderef);
-         procsym := tsym(ppufile.getderef);
+         ppufile.getderef(_classderef);
+         ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
          ppufile.getsmallset(symoptions);
          { inline stuff }
          if proccalloption=pocall_inline then
           begin
-            funcretsym:=tsym(ppufile.getderef);
+            ppufile.getderef(funcretsymderef);
             code:=ppuloadnode(ppufile);
           end
          else
@@ -3553,8 +3569,8 @@ implementation
           ppufile.putstring(mangledname);
          ppufile.putword(overloadnumber);
          ppufile.putword(extnumber);
-         ppufile.putderef(_class);
-         ppufile.putderef(procsym);
+         ppufile.putderef(_class,_classderef);
+         ppufile.putderef(procsym,procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putsmallset(symoptions);
 
@@ -3565,7 +3581,7 @@ implementation
          { inline stuff }
          if proccalloption=pocall_inline then
           begin
-            ppufile.putderef(funcretsym);
+            ppufile.putderef(funcretsym,funcretsymderef);
             ppuwritenode(ppufile,code);
           end;
          ppufile.do_crc:=oldintfcrc;
@@ -3749,14 +3765,16 @@ implementation
         ref : tref;
         pdo : tobjectdef;
         move_last : boolean;
+        d : tderef;
       begin
+        d.reset;
         move_last:=lastwritten=lastref;
         if move_last and
            (((current_module.flags and uf_local_browser)=0) or
             not locals) then
           exit;
       { write address of this symbol }
-        ppufile.putderef(self);
+        ppufile.putderef(self,d);
       { write refs }
         if assigned(lastwritten) then
           ref:=lastwritten
@@ -3920,10 +3938,10 @@ implementation
     procedure tprocdef.deref;
       begin
          inherited deref;
-         resolvedef(pointer(_class));
+         _class:=tobjectdef(_classderef.resolve);
          { procsym that originaly defined this definition, should be in the
            same symtable }
-         resolvesym(pointer(procsym));
+         procsym:=tprocsym(procsymderef.resolve);
       end;
 
 
@@ -3942,7 +3960,7 @@ implementation
             tlocalsymtable(localst).derefimpl;
             aktlocalsymtable:=oldlocalsymtable;
             { funcretsym, this is always located in the localst }
-            resolvesym(pointer(funcretsym));
+            funcretsym:=tsym(funcretsymderef.resolve);
           end
          else
           begin
@@ -4325,6 +4343,7 @@ implementation
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
          i,implintfcount: longint;
+         d : tderef;
       begin
          inherited ppuloaddef(ppufile);
          deftype:=objectdef;
@@ -4333,7 +4352,7 @@ implementation
          vmt_offset:=ppufile.getlongint;
          objrealname:=stringdup(ppufile.getstring);
          objname:=stringdup(upper(objrealname^));
-         childof:=tobjectdef(ppufile.getderef);
+         ppufile.getderef(childofderef);
          ppufile.getsmallset(objectoptions);
 
          { load guid }
@@ -4353,7 +4372,8 @@ implementation
              implintfcount:=ppufile.getlongint;
              for i:=1 to implintfcount do
                begin
-                  implementedinterfaces.addintfref(ppufile.getderef);
+                  ppufile.getderef(d);
+                  implementedinterfaces.addintf_deref(d);
                   implementedinterfaces.ioffsets(i)^:=ppufile.getlongint;
                end;
            end
@@ -4408,7 +4428,7 @@ implementation
          ppufile.putlongint(size);
          ppufile.putlongint(vmt_offset);
          ppufile.putstring(objrealname^);
-         ppufile.putderef(childof);
+         ppufile.putderef(childof,childofderef);
          ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
@@ -4423,7 +4443,7 @@ implementation
               ppufile.putlongint(implintfcount);
               for i:=1 to implintfcount do
                 begin
-                   ppufile.putderef(implementedinterfaces.interfaces(i));
+                   ppufile.putderef(implementedinterfaces.interfaces(i),implementedinterfaces.interfacesderef(i));
                    ppufile.putlongint(implementedinterfaces.ioffsets(i)^);
                 end;
            end;
@@ -4439,7 +4459,7 @@ implementation
          oldrecsyms : tsymtable;
       begin
          inherited deref;
-         resolvedef(pointer(childof));
+         childof:=tobjectdef(childofderef.resolve);
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          tstoredsymtable(symtable).deref;
@@ -5299,10 +5319,12 @@ implementation
     type
       timplintfentry = class(TNamedIndexItem)
         intf: tobjectdef;
+        intfderef : tderef;
         ioffs: longint;
         namemappings: tdictionary;
         procdefs: TIndexArray;
         constructor create(aintf: tobjectdef);
+        constructor create_deref(const d:tderef);
         destructor  destroy; override;
       end;
 
@@ -5314,6 +5336,18 @@ implementation
         namemappings:=nil;
         procdefs:=nil;
       end;
+
+
+    constructor timplintfentry.create_deref(const d:tderef);
+      begin
+        inherited create;
+        intf:=nil;
+        intfderef:=d;
+        ioffs:=-1;
+        namemappings:=nil;
+        procdefs:=nil;
+      end;
+
 
     destructor  timplintfentry.destroy;
       begin
@@ -5352,6 +5386,12 @@ implementation
         interfaces:=timplintfentry(finterfaces.search(intfindex)).intf;
       end;
 
+    function  timplementedinterfaces.interfacesderef(intfindex: longint): tderef;
+      begin
+        checkindex(intfindex);
+        interfacesderef:=timplintfentry(finterfaces.search(intfindex)).intfderef;
+      end;
+
     function  timplementedinterfaces.ioffsets(intfindex: longint): plongint;
       begin
         checkindex(intfindex);
@@ -5376,12 +5416,12 @@ implementation
       begin
         for i:=1 to count do
           with timplintfentry(finterfaces.search(i)) do
-            resolvedef(pointer(intf));
+            intf:=tobjectdef(intfderef.resolve);
       end;
 
-    procedure timplementedinterfaces.addintfref(def: pointer);
+    procedure timplementedinterfaces.addintf_deref(const d:tderef);
       begin
-        finterfaces.insert(timplintfentry.create(tobjectdef(def)));
+        finterfaces.insert(timplintfentry.create_deref(d));
       end;
 
     procedure timplementedinterfaces.addintf(def: tdef);
@@ -5726,7 +5766,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2003-06-05 20:05:55  peter
+  Revision 1.150  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.149  2003/06/05 20:05:55  peter
     * removed changesettype because that will change the definition
       of the setdef forever and can result in a different between
       original interface and current implementation definition

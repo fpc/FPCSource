@@ -36,8 +36,10 @@ interface
     type
        tloadnode = class(tunarynode)
           symtableentry : tsym;
+          symtableentryderef : tderef;
           symtable : tsymtable;
           procdef : tprocdef;
+          procdefderef : tderef;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -105,6 +107,7 @@ interface
           l1,l2  : longint;
           rttitype : trttitype;
           rttidef : tstoreddef;
+          rttidefderef : tderef;
           constructor create(def:tstoreddef;rt:trttitype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -313,26 +316,26 @@ implementation
     constructor tloadnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        symtableentry:=tsym(ppufile.getderef);
+        ppufile.getderef(symtableentryderef);
         symtable:=nil;
-        procdef:=tprocdef(ppufile.getderef);
+        ppufile.getderef(procdefderef);
       end;
 
 
     procedure tloadnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(symtableentry);
-        ppufile.putderef(procdef);
+        ppufile.putderef(symtableentry,symtableentryderef);
+        ppufile.putderef(procdef,procdefderef);
       end;
 
 
     procedure tloadnode.derefimpl;
       begin
         inherited derefimpl;
-        resolvesym(pointer(symtableentry));
+        symtableentry:=tsym(symtableentryderef.resolve);
         symtable:=symtableentry.owner;
-        resolvedef(pointer(procdef));
+        procdef:=tprocdef(procdefderef.resolve);
       end;
 
 
@@ -1181,7 +1184,7 @@ implementation
     constructor trttinode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        rttidef:=tstoreddef(ppufile.getderef);
+        ppufile.getderef(rttidefderef);
         rttitype:=trttitype(ppufile.getbyte);
       end;
 
@@ -1189,7 +1192,7 @@ implementation
     procedure trttinode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(rttidef);
+        ppufile.putderef(rttidef,rttidefderef);
         ppufile.putbyte(byte(rttitype));
       end;
 
@@ -1197,7 +1200,7 @@ implementation
     procedure trttinode.derefimpl;
       begin
         inherited derefimpl;
-        resolvedef(pointer(rttidef));
+        rttidef:=tstoreddef(rttidefderef.resolve);
       end;
 
 
@@ -1253,7 +1256,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-06-07 18:57:04  jonas
+  Revision 1.99  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.98  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

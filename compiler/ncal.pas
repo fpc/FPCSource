@@ -73,10 +73,12 @@ interface
           { the symbol containing the definition of the procedure }
           { to call                                               }
           symtableprocentry : tprocsym;
+          symtableprocentryderef : tderef;
           { symtable where the entry was found, needed for with support }
           symtableproc   : tsymtable;
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
+          procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
           { function return node, this is used to pass the data for a
@@ -970,12 +972,12 @@ type
     constructor tcallnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        symtableprocentry:=tprocsym(ppufile.getderef);
+        ppufile.getderef(symtableprocentryderef);
 {$ifdef fpc}
 {$warning FIXME: No withsymtable support}
 {$endif}
         symtableproc:=nil;
-        procdefinition:=tprocdef(ppufile.getderef);
+        ppufile.getderef(procdefinitionderef);
         restypeset:=boolean(ppufile.getbyte);
         methodpointer:=ppuloadnode(ppufile);
         funcretnode:=ppuloadnode(ppufile);
@@ -986,8 +988,8 @@ type
     procedure tcallnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(symtableprocentry);
-        ppufile.putderef(procdefinition);
+        ppufile.putderef(symtableprocentry,symtableprocentryderef);
+        ppufile.putderef(procdefinition,procdefinitionderef);
         ppufile.putbyte(byte(restypeset));
         ppuwritenode(ppufile,methodpointer);
         ppuwritenode(ppufile,funcretnode);
@@ -998,9 +1000,9 @@ type
     procedure tcallnode.derefimpl;
       begin
         inherited derefimpl;
-        resolvesym(pointer(symtableprocentry));
+        symtableprocentry:=tprocsym(symtableprocentryderef.resolve);
         symtableproc:=symtableprocentry.owner;
-        resolvedef(pointer(procdefinition));
+        procdefinition:=tprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
         if assigned(funcretnode) then
@@ -2589,7 +2591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.164  2003-06-03 21:05:48  peter
+  Revision 1.165  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.164  2003/06/03 21:05:48  peter
     * fix check for procedure without parameters
     * calling constructor as member will not allocate memory
 

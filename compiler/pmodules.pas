@@ -948,6 +948,7 @@ implementation
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
          current_module.in_interface:=false;
+         current_module.interface_compiled:=true;
 
          Message1(unit_u_loading_implementation_units,current_module.modulename^);
 
@@ -1270,6 +1271,7 @@ implementation
 
          { set implementation flag }
          current_module.in_interface:=false;
+         current_module.interface_compiled:=true;
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                             }
@@ -1459,7 +1461,11 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.111  2003-06-03 20:21:45  mazen
+  Revision 1.112  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.111  2003/06/03 20:21:45  mazen
   - removed unneeded ifdefs
   - removed unneeded cases for sparc and x86_64
 

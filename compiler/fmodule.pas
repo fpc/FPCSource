@@ -83,6 +83,7 @@ interface
         do_reload,                { force reloading of the unit }
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
+        interface_compiled,       { if the interface section has been parsed/compiled/loaded }
         is_unit,
         in_interface,             { processing the implementation part? }
         in_global     : boolean;  { allow global settings }
@@ -372,7 +373,7 @@ uses
         interface_crc:=0;
         flags:=0;
         scanner:=nil;
-        map:=nil;
+        new(map);
         globalsymtable:=nil;
         localsymtable:=nil;
         loaded_from:=LoadedFrom;
@@ -400,8 +401,7 @@ uses
 {$endif}
         hpi : tprocinfo;
       begin
-        if assigned(map) then
-         dispose(map);
+        dispose(map);
         if assigned(imports) then
          imports.free;
         if assigned(_exports) then
@@ -509,11 +509,7 @@ uses
             localsymtable.free;
             localsymtable:=nil;
           end;
-        if assigned(map) then
-         begin
-           dispose(map);
-           map:=nil;
-         end;
+        fillchar(map^,sizeof(tunitmap),#0);
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         librarydata.free;
@@ -544,6 +540,7 @@ uses
         linkothersharedlibs:=TLinkContainer.Create;
         uses_imports:=false;
         do_compile:=false;
+        interface_compiled:=false;
         in_interface:=true;
         in_global:=true;
         crc:=0;
@@ -625,12 +622,14 @@ uses
           no globalsymtable }
         if assigned(globalsymtable) then
           globalsymtable.unitid:=0;
-        { number units }
+        map^[0]:=self;
+        { number units and map }
         counter:=1;
         hp:=tused_unit(used_units.first);
         while assigned(hp) do
          begin
            tsymtable(hp.u.globalsymtable).unitid:=counter;
+           map^[counter]:=hp.u;
            inc(counter);
            hp:=tused_unit(hp.next);
          end;
@@ -651,7 +650,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.35  2003-05-25 10:27:12  peter
+  Revision 1.36  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.35  2003/05/25 10:27:12  peter
     * moved Comment calls to messge file
 
   Revision 1.34  2003/05/23 14:27:35  peter

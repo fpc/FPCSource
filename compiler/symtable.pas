@@ -161,6 +161,8 @@ interface
           destructor  destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insert(sym : tsymentry);override;
           procedure insertvardata(sym : tsymentry);override;
 {$ifdef GDB}
@@ -433,6 +435,7 @@ implementation
     procedure tstoredsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         b     : byte;
+        d     : tderef;
         sym   : tstoredsym;
         prdef : tstoreddef;
       begin
@@ -444,15 +447,15 @@ implementation
            case b of
              ibsymref :
                begin
-                 sym:=tstoredsym(ppufile.getderef);
-                 resolvesym(pointer(sym));
+                 ppufile.getderef(d);
+                 sym:=tstoredsym(d.resolve);
                  if assigned(sym) then
                    sym.load_references(ppufile,locals);
                end;
              ibdefref :
                begin
-                 prdef:=tstoreddef(ppufile.getderef);
-                 resolvedef(pointer(prdef));
+                 ppufile.getderef(d);
+                 prdef:=tstoreddef(d.resolve);
                  if assigned(prdef) then
                    begin
                      if prdef.deftype<>procdef then
@@ -1746,6 +1749,8 @@ implementation
            end;
 {$endif GDB}
 
+         aktglobalsymtable:=self;
+
          next:=symtablestack;
          symtablestack:=self;
 
@@ -1784,6 +1789,8 @@ implementation
 
     procedure tglobalsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
+        aktglobalsymtable:=self;
+
         { write the symtable entries }
         inherited ppuwrite(ppufile);
 
@@ -1800,6 +1807,22 @@ implementation
            ppufile.do_crc:=true;
          end;
 {$endif GDB}
+      end;
+
+
+    procedure tglobalsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
+      begin
+        aktglobalsymtable:=self;
+
+        inherited load_references(ppufile,locals);
+      end;
+
+
+    procedure tglobalsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
+      begin
+        aktglobalsymtable:=self;
+
+        inherited write_references(ppufile,locals);
       end;
 
 
@@ -2429,7 +2452,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-05-25 11:34:17  peter
+  Revision 1.104  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.103  2003/05/25 11:34:17  peter
     * methodpointer self pushing fixed
 
   Revision 1.102  2003/05/23 14:27:35  peter

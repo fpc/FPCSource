@@ -94,12 +94,13 @@ type
   tdereftype = (derefnil,
     derefaktrecordindex,
     derefaktstaticindex,
+    derefaktglobalindex,
+    derefaktlocalindex,
     derefunit,
     derefrecord,
     derefindex,
     dereflocal,
-    derefpara,
-    derefaktlocal
+    derefpara
   );
 
   { symbol options }
@@ -352,7 +353,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-05-22 21:31:35  peter
+  Revision 1.57  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.56  2003/05/22 21:31:35  peter
     * defer codegeneration for nested procedures
 
   Revision 1.55  2003/05/15 21:10:32  peter

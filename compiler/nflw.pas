@@ -117,6 +117,7 @@ interface
 
        tgotonode = class(tnode)
           labsym : tlabelsym;
+          labsymderef : tderef;
           exceptionblock : integer;
 //          internlab : tinterngotolabel;
           constructor create(p : tlabelsym);virtual;
@@ -134,6 +135,7 @@ interface
        tlabelnode = class(tunarynode)
           labelnr : tasmlabel;
           labsym : tlabelsym;
+          labsymderef : tderef;
           exceptionblock : integer;
           constructor createcase(p : tasmlabel;l:tnode);virtual;
           constructor create(p : tlabelsym;l:tnode);virtual;
@@ -948,7 +950,7 @@ implementation
     constructor tgotonode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        labsym:=tlabelsym(ppufile.getderef);
+        ppufile.getderef(labsymderef);
         exceptionblock:=ppufile.getbyte;
       end;
 
@@ -956,7 +958,7 @@ implementation
     procedure tgotonode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(labsym);
+        ppufile.putderef(labsym,labsymderef);
         ppufile.putbyte(exceptionblock);
       end;
 
@@ -964,7 +966,7 @@ implementation
     procedure tgotonode.derefimpl;
       begin
         inherited derefimpl;
-        resolvesym(pointer(labsym));
+        labsym:=tlabelsym(labsymderef.resolve);
       end;
 
 
@@ -1036,7 +1038,7 @@ implementation
     constructor tlabelnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        labsym:=tlabelsym(ppufile.getderef);
+        ppufile.getderef(labsymderef);
         labelnr:=tasmlabel(ppufile.getasmsymbol);
         exceptionblock:=ppufile.getbyte;
       end;
@@ -1045,7 +1047,7 @@ implementation
     procedure tlabelnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(labsym);
+        ppufile.putderef(labsym,labsymderef);
         ppufile.putasmsymbol(labelnr);
         ppufile.putbyte(exceptionblock);
       end;
@@ -1054,7 +1056,7 @@ implementation
     procedure tlabelnode.derefimpl;
       begin
         inherited derefimpl;
-        resolvesym(pointer(labsym));
+        labsym:=tlabelsym(labsymderef.resolve);
         objectlibrary.derefasmsymbol(tasmsymbol(labelnr));
       end;
 
@@ -1427,7 +1429,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-06-07 18:57:04  jonas
+  Revision 1.77  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.76  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

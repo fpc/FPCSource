@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=35;
+  CurrentPPUVersion=36;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -983,7 +983,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2003-05-26 19:39:51  peter
+  Revision 1.39  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.38  2003/05/26 19:39:51  peter
     * removed systems unit
 
   Revision 1.37  2003/05/26 15:49:54  jonas

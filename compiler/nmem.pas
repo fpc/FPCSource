@@ -41,6 +41,7 @@ interface
 
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
+          getprocvardefderef : tderef;
           constructor create(l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -69,6 +70,7 @@ interface
 
        tsubscriptnode = class(tunarynode)
           vs : tvarsym;
+          vsderef : tderef;
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -176,14 +178,14 @@ implementation
     constructor taddrnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        getprocvardef:=tprocvardef(ppufile.getderef);
+        ppufile.getderef(getprocvardefderef);
       end;
 
 
     procedure taddrnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(getprocvardef);
+        ppufile.putderef(getprocvardef,getprocvardefderef);
       end;
 
     procedure Taddrnode.mark_write;
@@ -196,7 +198,7 @@ implementation
     procedure taddrnode.derefimpl;
       begin
         inherited derefimpl;
-        resolvedef(pointer(getprocvardef));
+        getprocvardef:=tprocvardef(getprocvardefderef.resolve);
       end;
 
 
@@ -516,21 +518,21 @@ implementation
     constructor tsubscriptnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        vs:=tvarsym(ppufile.getderef);
+        ppufile.getderef(vsderef);
       end;
 
 
     procedure tsubscriptnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(vs);
+        ppufile.putderef(vs,vsderef);
       end;
 
 
     procedure tsubscriptnode.derefimpl;
       begin
         inherited derefimpl;
-        resolvesym(pointer(vs));
+        vs:=tvarsym(vsderef.resolve);
       end;
 
 
@@ -902,7 +904,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-06-07 18:57:04  jonas
+  Revision 1.57  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.56  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

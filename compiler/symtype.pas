@@ -99,12 +99,28 @@ interface
       end;
 
 {************************************************
+                   TDeref
+************************************************}
+
+      tderefdata = array[0..31] of byte;
+
+      tderef = object
+        len  : longint;
+        data : tderefdata;
+        procedure reset;
+        procedure setdata(l:longint;var d);
+        procedure build(s:tsymtableentry);
+        function resolve:tsymtableentry;
+      end;
+
+{************************************************
                    TType
 ************************************************}
 
       ttype = object
         def : tdef;
         sym : tsym;
+        deref : tderef;
         procedure reset;
         procedure setdef(p:tdef);
         procedure setsym(p:tsym);
@@ -119,12 +135,14 @@ interface
       tsymlistitem = record
         sltype : tsltype;
         sym    : tsym;
+        symderef : tderef;
         value  : longint;
         next   : psymlistitem;
       end;
 
       tsymlist = class
         def      : tdef;
+        defderef : tderef;
         firstsym,
         lastsym  : psymlistitem;
         constructor create;
@@ -132,16 +150,13 @@ interface
         function  empty:boolean;
         procedure setdef(p:tdef);
         procedure addsym(slt:tsltype;p:tsym);
+        procedure addsymderef(slt:tsltype;const d:tderef);
         procedure addconst(slt:tsltype;v:longint);
         procedure clear;
         function  getcopy:tsymlist;
         procedure resolve;
       end;
 
-
-    { resolving }
-    procedure resolvesym(var sym:pointer);
-    procedure resolvedef(var def:pointer);
 
 {$ifdef MEMDEBUG}
     var
@@ -315,22 +330,27 @@ implementation
 
 
     procedure ttype.resolve;
+      var
+        p : tsymtableentry;
       begin
-        if assigned(sym) then
-         begin
-           resolvesym(pointer(sym));
-           setsym(sym);
-           if not assigned(def) then
-            internalerror(200212271);
-         end
-        else
-         if assigned(def) then
+        p:=deref.resolve;
+        if assigned(p) then
           begin
-            resolvedef(pointer(def));
-            if not assigned(def) then
-             internalerror(200212272);
-          end;
+            if p is tsym then
+              begin
+                setsym(tsym(p));
+                if not assigned(def) then
+                 internalerror(200212272);
+              end
+            else
+              begin
+                setdef(tdef(p));
+              end;
+          end
+        else
+          reset;
       end;
+
 
 {****************************************************************************
                                  TSymList
@@ -387,6 +407,25 @@ implementation
         new(hp);
         hp^.sltype:=slt;
         hp^.sym:=p;
+        hp^.symderef.reset;
+        hp^.value:=0;
+        hp^.next:=nil;
+        if assigned(lastsym) then
+         lastsym^.next:=hp
+        else
+         firstsym:=hp;
+        lastsym:=hp;
+      end;
+
+
+    procedure tsymlist.addsymderef(slt:tsltype;const d:tderef);
+      var
+        hp : psymlistitem;
+      begin
+        new(hp);
+        hp^.sltype:=slt;
+        hp^.sym:=nil;
+        hp^.symderef:=d;
         hp^.value:=0;
         hp^.next:=nil;
         if assigned(lastsym) then
@@ -404,6 +443,7 @@ implementation
         new(hp);
         hp^.sltype:=slt;
         hp^.sym:=nil;
+        hp^.symderef.reset;
         hp^.value:=v;
         hp^.next:=nil;
         if assigned(lastsym) then
@@ -443,113 +483,261 @@ implementation
       var
         hp : psymlistitem;
       begin
-        resolvedef(pointer(def));
+        def:=tdef(defderef.resolve);
         hp:=firstsym;
         while assigned(hp) do
          begin
-           if assigned(hp^.sym) then
-            resolvesym(pointer(hp^.sym));
+           hp^.sym:=tsym(hp^.symderef.resolve);
            hp:=hp^.next;
          end;
       end;
 
 
-{*****************************************************************************
-                        Symbol / Definition Resolving
-*****************************************************************************}
+{****************************************************************************
+                                Tderef
+****************************************************************************}
 
-    procedure resolvederef(var p:tderef;var st:tsymtable;var idx:word);
-      var
-        hp : tderef;
-        pd : tdef;
-        pm : tmodule;
+
+    procedure tderef.reset;
       begin
-        st:=nil;
-        idx:=0;
-        while assigned(p) do
+        len:=0;
+      end;
+
+
+    procedure tderef.setdata(l:longint;var d);
+      begin
+        len:=l;
+        if l>sizeof(tderefdata) then
+          internalerror(200306068);
+        move(d,data,len);
+      end;
+
+
+    procedure tderef.build(s:tsymtableentry);
+
+        procedure addowner(s:tsymtableentry);
+        var
+          typ : tdereftype;
+          idx : word;
+        begin
+          if not assigned(s.owner) then
+            internalerror(200306063);
+          case s.owner.symtabletype of
+            globalsymtable :
+              begin
+                { check if the unit is available in the uses
+                  clause, else it's an error }
+                if s.owner.unitid=$ffff then
+                  internalerror(200306063);
+                data[len]:=ord(derefunit);
+                typ:=derefunit;
+                idx:=s.owner.unitid;
+              end;
+            localsymtable :
+              begin
+                addowner(s.owner.defowner);
+                typ:=dereflocal;
+                idx:=s.owner.defowner.indexnr;
+              end;
+            parasymtable :
+              begin
+                addowner(s.owner.defowner);
+                typ:=derefpara;
+                idx:=s.owner.defowner.indexnr;
+              end;
+            objectsymtable,
+            recordsymtable :
+              begin
+                addowner(s.owner.defowner);
+                typ:=derefrecord;
+                idx:=s.owner.defowner.indexnr;
+              end;
+            else
+              internalerror(200306065);
+          end;
+          if len+3>sizeof(tderefdata) then
+            internalerror(200306062);
+          data[len]:=ord(typ);
+          data[len+1]:=idx shr 8;
+          data[len+2]:=idx and $ff;
+          inc(len,3);
+        end;
+
+      begin
+        len:=0;
+        if assigned(s) then
          begin
-           case p.dereftype of
-             derefaktrecordindex :
-               begin
-                 st:=aktrecordsymtable;
-                 idx:=p.index;
-               end;
-             derefaktstaticindex :
-               begin
-                 st:=aktstaticsymtable;
-                 idx:=p.index;
-               end;
-             derefaktlocal :
-               begin
-                 st:=aktlocalsymtable;
-                 idx:=p.index;
-               end;
-             derefunit :
-               begin
-                 pm:=current_module.map^[p.index];
-                 if not assigned(pm) then
-                  internalerror(200212273);
-                 st:=pm.globalsymtable;
-               end;
-             derefrecord :
-               begin
-                 pd:=tdef(st.getdefnr(p.index));
-                 st:=pd.getsymtable(gs_record);
-                 if not assigned(st) then
-                  internalerror(200212274);
-               end;
-             dereflocal :
-               begin
-                 pd:=tdef(st.getdefnr(p.index));
-                 st:=pd.getsymtable(gs_local);
-                 if not assigned(st) then
-                  internalerror(200212275);
-               end;
-             derefpara :
-               begin
-                 pd:=tdef(st.getdefnr(p.index));
-                 st:=pd.getsymtable(gs_para);
-                 if not assigned(st) then
-                  internalerror(200212276);
-               end;
-             derefindex :
-               begin
-                 idx:=p.index;
-               end;
-             else
-               internalerror(200212277);
-           end;
-           hp:=p;
-           p:=p.next;
-           hp.free;
+           { symtableentry type }
+           if s is tsym then
+             data[len]:=1
+           else
+             data[len]:=2;
+           inc(len);
+           { Static symtable of current unit ? }
+           if (s.owner.symtabletype=staticsymtable) and
+              (s.owner.unitid=0) then
+            begin
+              data[len]:=ord(derefaktstaticindex);
+              data[len+1]:=s.indexnr shr 8;
+              data[len+2]:=s.indexnr and $ff;
+              inc(len,3);
+            end
+           { Global symtable of current unit ? }
+           else if (s.owner.symtabletype=globalsymtable) and
+                   (s.owner.unitid=0) then
+            begin
+              data[len]:=ord(derefaktglobalindex);
+              data[len+1]:=s.indexnr shr 8;
+              data[len+2]:=s.indexnr and $ff;
+              inc(len,3);
+            end
+           { Local record/object symtable ? }
+           else if (s.owner=aktrecordsymtable) then
+            begin
+              data[len]:=ord(derefaktrecordindex);
+              data[len+1]:=s.indexnr shr 8;
+              data[len+2]:=s.indexnr and $ff;
+              inc(len,3);
+            end
+           { Local local/para symtable ? }
+           else if (s.owner=aktlocalsymtable) then
+            begin
+              data[len]:=ord(derefaktlocalindex);
+              data[len+1]:=s.indexnr shr 8;
+              data[len+2]:=s.indexnr and $ff;
+              inc(len,3);
+            end
+           else
+            begin
+              addowner(s);
+              data[len]:=ord(derefindex);
+              data[len+1]:=s.indexnr shr 8;
+              data[len+2]:=s.indexnr and $ff;
+              inc(len,3);
+            end;
+         end
+        else
+         begin
+           { nil pointer }
+           data[len]:=0;
+           inc(len);
          end;
       end;
 
 
-    procedure resolvedef(var def:pointer);
+    function tderef.resolve:tsymtableentry;
       var
-        st   : tsymtable;
-        idx  : word;
+        pd     : tdef;
+        pm     : tmodule;
+        typ    : tdereftype;
+        st     : tsymtable;
+        idx,
+        symidx : word;
+        issym  : boolean;
+        i      : longint;
       begin
-        resolvederef(tderef(pointer(def)),st,idx);
+        result:=nil;
+        { not initialized }
+        if len=0 then
+          internalerror(200306067);
+        st:=nil;
+        symidx:=0;
+        issym:=false;
+        i:=0;
+        case data[i] of
+          0 :
+            begin
+              { nil pointer }
+              exit;
+            end;
+          1 :
+            begin
+              { tsym }
+              issym:=true;
+            end;
+          2 :
+            begin
+              { tdef }
+            end;
+          else
+            internalerror(200306066);
+        end;
+        inc(i);
+        while (i<len) do
+          begin
+            typ:=tdereftype(data[i]);
+            idx:=(data[i+1] shl 8) or data[i+2];
+            inc(i,3);
+            case typ of
+              derefaktrecordindex :
+                begin
+                  st:=aktrecordsymtable;
+                  symidx:=idx;
+                end;
+              derefaktstaticindex :
+                begin
+                  st:=aktstaticsymtable;
+                  symidx:=idx;
+                end;
+              derefaktglobalindex :
+                begin
+                  st:=aktglobalsymtable;
+                  symidx:=idx;
+                end;
+              derefaktlocalindex :
+                begin
+                  st:=aktlocalsymtable;
+                  symidx:=idx;
+                end;
+              derefunit :
+                begin
+                  pm:=current_module.map^[idx];
+                  if not assigned(pm) then
+                    internalerror(200212273);
+                  st:=pm.globalsymtable;
+                end;
+              derefrecord :
+                begin
+                  if not assigned(st) then
+                    internalerror(200306068);
+                  pd:=tdef(st.getdefnr(idx));
+                  st:=pd.getsymtable(gs_record);
+                  if not assigned(st) then
+                    internalerror(200212274);
+                end;
+              dereflocal :
+                begin
+                  if not assigned(st) then
+                    internalerror(200306069);
+                  pd:=tdef(st.getdefnr(idx));
+                  st:=pd.getsymtable(gs_local);
+                  if not assigned(st) then
+                    internalerror(200212275);
+                end;
+              derefpara :
+                begin
+                  if not assigned(st) then
+                    internalerror(2003060610);
+                  pd:=tdef(st.getdefnr(idx));
+                  st:=pd.getsymtable(gs_para);
+                  if not assigned(st) then
+                    internalerror(200212276);
+                end;
+              derefindex :
+                symidx:=idx;
+              else
+                internalerror(200212277);
+            end;
+          end;
         if assigned(st) then
-         def:=tdef(st.getdefnr(idx))
-        else
-         def:=nil;
+          begin
+            if issym then
+              result:=st.getsymnr(symidx)
+            else
+              result:=st.getdefnr(symidx);
+          end;
       end;
 
-
-    procedure resolvesym(var sym:pointer);
-      var
-        st   : tsymtable;
-        idx  : word;
-      begin
-        resolvederef(tderef(pointer(sym)),st,idx);
-        if assigned(st) then
-         sym:=tsym(st.getsymnr(idx))
-        else
-         sym:=nil;
-      end;
 
 {$ifdef MEMDEBUG}
 initialization
@@ -578,7 +766,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2002-12-29 18:26:31  peter
+  Revision 1.25  2003-06-07 20:26:32  peter
+    * re-resolving added instead of reloading from ppu
+    * tderef object added to store deref info for resolving
+
+  Revision 1.24  2002/12/29 18:26:31  peter
     * also use gettypename for procdef always
 
   Revision 1.23  2002/12/29 14:57:50  peter
