@@ -1517,17 +1517,19 @@ unit pass_1;
               p:=t;
               exit;
            end;
-         { the resulttype depends on the right side, because the left becomes }
-         { always 64 bit                                                      }
          if not(p^.right^.resulttype^.deftype=orddef) or
            not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
            p^.right:=gentypeconvnode(p^.right,s32bitdef);
 
          if not(p^.left^.resulttype^.deftype=orddef) or
-           not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
-           p^.right:=gentypeconvnode(p^.right,s32bitdef);
+           not(porddef(p^.left^.resulttype)^.typ in [s32bit,u32bit]) then
+           p^.left:=gentypeconvnode(p^.left,s32bitdef);
+
          firstpass(p^.left);
          firstpass(p^.right);
+
+         { the resulttype depends on the right side, because the left becomes }
+         { always 64 bit                                                      }
          p^.resulttype:=p^.right^.resulttype;
 
          if codegenerror then
@@ -5493,7 +5495,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.81  1998-09-09 14:37:39  florian
+  Revision 1.82  1998-09-09 15:54:42  florian
+    * my last fix was buggy, corrected
+
+  Revision 1.81  1998/09/09 14:37:39  florian
     * mod/div for cardinal type fixed
 
   Revision 1.80  1998/09/08 14:10:11  pierre
