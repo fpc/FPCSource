@@ -240,10 +240,10 @@ implementation
                              { string in register would be funny    }
                              { therefore produce a temporary string }
 
-                             { release the registers }
-                             del_reference(p^.left^.location.reference);
                              gettempofsizereference(256,href);
                              copyshortstring(href,p^.left^.location.reference,255,false);
+                             { release the registers }
+                             del_reference(p^.left^.location.reference);
                              ungetiftemp(p^.left^.location.reference);
 
                              { does not hurt: }
@@ -2145,11 +2145,6 @@ implementation
                              if p^.right^.location.loc=LOC_CMMXREGISTER then
                                begin
                                   emit_reg_reg(A_MOVQ,S_NO,p^.right^.location.register,R_MM7);
-{$ifndef noAllocEdi}
-                 { where does the result of this (R_EDI) get used?? No    }
-                 { allocinfo for EDI added, because it doesn't seem to be }
-                 { used anyway                                            }
-{$endif noAllocEdi}
                                   emit_reg_reg(op,S_NO,p^.location.register,R_MM0);
                                   emit_reg_reg(A_MOVQ,S_NO,R_MM7,p^.location.register);
                                end
@@ -2210,7 +2205,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2000-01-09 19:44:53  florian
+  Revision 1.89  2000-01-13 16:52:47  jonas
+    * moved deallocation of registers used in reference that points to string after
+      copyshortstring (this routine doesn't require extra regs)
+
+  Revision 1.88  2000/01/09 19:44:53  florian
     * bug in secondadd(subn) with swaped mmx operands fixed
 
   Revision 1.87  2000/01/09 16:35:39  jonas

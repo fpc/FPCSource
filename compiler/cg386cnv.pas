@@ -363,9 +363,9 @@ implementation
                  st_shortstring:
                    begin
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-                      del_reference(pfrom^.location.reference);
                       copyshortstring(pto^.location.reference,pfrom^.location.reference,
                         pstringdef(pto^.resulttype)^.len,false);
+                      del_reference(pfrom^.location.reference);
                       ungetiftemp(pfrom^.location.reference);
                    end;
                  st_longstring:
@@ -1533,7 +1533,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-01-09 12:35:00  jonas
+  Revision 1.101  2000-01-13 16:52:48  jonas
+    * moved deallocation of registers used in reference that points to string after
+      copyshortstring (this routine doesn't require extra regs)
+
+  Revision 1.100  2000/01/09 12:35:00  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
