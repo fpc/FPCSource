@@ -1424,12 +1424,12 @@ implementation
               case varspez of
                 vs_out,
                 vs_var :
-                  getpushsize:=target_info.size_of_pointer;
+                  getpushsize:=pointer_size;
                 vs_value,
                 vs_const :
                   begin
                       if push_addr_param(vartype.def) then
-                        getpushsize:=target_info.size_of_pointer
+                        getpushsize:=pointer_size
                       else
                         getpushsize:=vartype.def.size;
                   end;
@@ -1471,7 +1471,7 @@ implementation
              storefilepos:=aktfilepos;
              aktfilepos:=akttokenpos;
              if (vo_is_thread_var in varoptions) then
-               l:=target_info.size_of_pointer
+               l:=pointer_size
              else
                l:=getvaluesize;
              case owner.symtabletype of
@@ -2514,7 +2514,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-04-07 13:37:29  carl
+  Revision 1.33  2002-04-15 19:08:22  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+
+  Revision 1.32  2002/04/07 13:37:29  carl
   + change unit use
 
   Revision 1.31  2002/02/03 09:30:04  peter

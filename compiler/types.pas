@@ -271,7 +271,7 @@ interface
 implementation
 
     uses
-       globtype,systems,tokens,verbose,
+       globtype,cpubase,tokens,verbose,
        symtable;
 
 
@@ -879,9 +879,9 @@ implementation
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(def.size>target_info.size_of_pointer);
+               push_addr_param:=(def.size>pointer_size);
              arraydef :
-               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>target_info.size_of_pointer)) or
+               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>pointer_size)) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
@@ -1970,7 +1970,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-04-07 13:40:29  carl
+  Revision 1.68  2002-04-15 19:08:22  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+
+  Revision 1.67  2002/04/07 13:40:29  carl
   + update documentation
 
   Revision 1.66  2002/04/02 17:11:32  peter

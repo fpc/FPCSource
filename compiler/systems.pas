@@ -240,7 +240,6 @@ interface
           script       : tscripttype;
           endian       : tendian;
           alignment    : talignmentinfo;
-          size_of_pointer : byte;
           size_of_longint : byte;
           heapsize,
           maxheapsize,
@@ -680,7 +679,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2002-04-14 16:56:30  carl
+  Revision 1.39  2002-04-15 19:08:22  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+
+  Revision 1.38  2002/04/14 16:56:30  carl
   - remove duplicate comment
 
   Revision 1.37  2002/04/07 10:20:15  carl

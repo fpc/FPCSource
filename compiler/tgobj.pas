@@ -420,13 +420,13 @@ unit tgobj;
           end
          else
           begin
-            ref.offset:=newtempofsize(target_info.size_of_pointer);
+            ref.offset:=newtempofsize(pointer_size);
 {$ifdef EXTDEBUG}
             templist^.posinfo:=aktfilepos;
 {$endif}
             templist^.temptype:=usedtype;
           end;
-         list.concat(Taitempalloc.alloc(ref.offset,target_info.size_of_pointer));
+         list.concat(Taitempalloc.alloc(ref.offset,pointer_size));
       end;
 
     function ttgobj.ungettemppointeriftype(list: taasmoutput; const ref : treference; const usedtype, freetype: ttemptype) : boolean;
@@ -677,7 +677,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2002-04-07 13:38:48  carl
+  Revision 1.6  2002-04-15 19:08:22  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+
+  Revision 1.5  2002/04/07 13:38:48  carl
   + update documentation
 
   Revision 1.4  2002/04/07 09:17:17  carl
