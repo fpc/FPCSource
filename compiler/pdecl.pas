@@ -909,7 +909,14 @@ unit pdecl;
              consume(_ID)
            else
              begin
-                getlabel(hl);
+                if (cs_create_smart in aktmoduleswitches) then
+                  begin
+                    getdatalabel(hl);
+                    { we still want a warning if unused }
+                    hl^.refs:=0;
+                  end
+                else
+                  getlabel(hl);
                 symtablestack^.insert(new(plabelsym,init(pattern,hl)));
                 consume(token);
              end;
@@ -1250,7 +1257,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.188  2000-06-23 21:34:09  pierre
+  Revision 1.189  2000-07-03 13:26:48  pierre
+   * fix for bug 1023
+
+  Revision 1.188  2000/06/23 21:34:09  pierre
    * align all variants to same start address
 
   Revision 1.187  2000/06/23 20:14:39  peter
