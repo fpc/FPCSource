@@ -158,7 +158,7 @@ Function  Shell(const Command:AnsiString):Longint;
 
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+Function  WaitProcess(Pid:longint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
 Function WIFSTOPPED(Status: Integer): Boolean;
 Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
@@ -191,13 +191,13 @@ function  TellDir(p:pdir):longint;
     Pipe/Fifo/Stream
 ***************************}
 
-Function  AssignPipe(var pipe_in,pipe_out:longint):boolean;
-Function  AssignPipe(var pipe_in,pipe_out:text):boolean;
-Function  AssignPipe(var pipe_in,pipe_out:file):boolean;
-Function  PClose(Var F:text) : longint;
-Function  PClose(Var F:file) : longint;
-Procedure POpen(var F:text;const Prog:String;rw:char);
-Procedure POpen(var F:file;const Prog:String;rw:char);
+Function  AssignPipe(var pipe_in,pipe_out:longint):cint;
+Function  AssignPipe(var pipe_in,pipe_out:text):cint;
+Function  AssignPipe(var pipe_in,pipe_out:file):cint;
+Function  PClose(Var F:text) : cint;
+Function  PClose(Var F:file) : cint;
+Function  POpen(var F:text;const Prog:String;rw:char):cint;
+Function  POpen(var F:file;const Prog:String;rw:char):cint;
 
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
@@ -297,7 +297,7 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 ******************************************************************************}
 
 { Most calls of WaitPID do not handle the result correctly, this funktion treats errors more correctly }
-Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+Function  WaitProcess(Pid:longint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 var     r,s     : LongInt;
 begin
   repeat
@@ -305,7 +305,7 @@ begin
     r:=fpWaitPid(Pid,@s,0);
   until (r<>-1) or (LinuxError<>ESysEINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
-    WaitProcess:=-1 // return -1 to indicate an error
+    WaitProcess:=-1 // return -1 to indicate an error.  fpwaitpid updated it.
   else
    begin
 {$ifndef Solaris}
@@ -851,7 +851,7 @@ begin
   ClosePipe:=fpclose(textrec(f).handle);
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:text):boolean;
+Function AssignPipe(var pipe_in,pipe_out:text):cint;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -860,11 +860,8 @@ Function AssignPipe(var pipe_in,pipe_out:text):boolean;
 var
   f_in,f_out : longint;
 begin
-  if not AssignPipe(f_in,f_out) then
-   begin
-     AssignPipe:=false;
-     exit;
-   end;
+  if AssignPipe(f_in,f_out)=-1 then
+     exit(-1);
 { Set up input }
   Assign(Pipe_in,'');
   Textrec(Pipe_in).Handle:=f_in;
@@ -883,10 +880,10 @@ begin
   TextRec(Pipe_out).InOutFunc:=@IOPipe;
   TextRec(Pipe_out).FlushFunc:=@FlushPipe;
   TextRec(Pipe_out).CloseFunc:=@ClosePipe;
-  AssignPipe:=true;
+  AssignPipe:=0;
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:file):boolean;
+Function AssignPipe(var pipe_in,pipe_out:file):cint;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -895,11 +892,8 @@ Function AssignPipe(var pipe_in,pipe_out:file):boolean;
 var
   f_in,f_out : longint;
 begin
-  if not AssignPipe(f_in,f_out) then
-   begin
-     AssignPipe:=false;
-     exit;
-   end;
+  if AssignPipe(f_in,f_out)=-1 then
+     exit(-1);
 { Set up input }
   Assign(Pipe_in,'');
   Filerec(Pipe_in).Handle:=f_in;
@@ -912,18 +906,20 @@ begin
   Filerec(Pipe_out).Mode:=fmoutput;
   Filerec(Pipe_out).recsize:=1;
   Filerec(Pipe_out).userdata[1]:=P_OUT;
-  AssignPipe:=true;
+  AssignPipe:=0;
 end;
 
-Procedure PCloseText(Var F:text);
+
+Function PCloseText(Var F:text):cint;
 {
   May not use @PClose due overloading
 }
 begin
-  PClose(f);
+  PCloseText:=PClose(f);
 end;
 
-Procedure POpen(var F:text;const Prog:String;rw:char);
+
+function POpen(var F:text;const Prog:String;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -934,26 +930,25 @@ Procedure POpen(var F:text;const Prog:String;rw:char);
 var
   pipi,
   pipo : text;
-  pid  : longint;
-  pl   : ^longint;
+  pid  : pid_t;
+  pl   : ^cint;
   pp   : ppchar;
+  ret  : cint;
 begin
-  LinuxError:=0;
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=ESysEnoent;
-     exit;
+     FpSetErrno(ESysEnoent);
+     exit(-1);
    end;
-  AssignPipe(pipi,pipo);
-  if Linuxerror<>0 then
-   exit;
+  if AssignPipe(pipi,pipo)=-1 Then
+    Exit(-1);
   pid:=fpfork;
-  if linuxerror<>0 then
+  if pid=-1 then
    begin
      close(pipi);
      close(pipo);
-     exit;
+     exit(-1);
    end;
   if pid=0 then
    begin
@@ -961,17 +956,17 @@ begin
      if rw='W' then
       begin
         close(pipo);
-        fpdup2(pipi,input);
+        ret:=fpdup2(pipi,input);
         close(pipi);
-        if linuxerror<>0 then
+        if ret=-1 then
          halt(127);
       end
      else
       begin
         close(pipi);
-        fpdup2(pipo,output);
+        ret:=fpdup2(pipo,output);
         close(pipo);
-        if linuxerror<>0 then
+        if ret=-1 then
          halt(127);
       end;
      pp:=createshellargv(prog);
@@ -998,9 +993,10 @@ begin
      pl^:=pid;
      textrec(f).closefunc:=@PCloseText;
    end;
+ ret:=0;
 end;
 
-Procedure POpen(var F:file;const Prog:String;rw:char);
+Function POpen(var F:file;const Prog:String;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -1015,23 +1011,24 @@ var
   pl   : ^longint;
   p,pp : ppchar;
   temp : string[255];
+  ret  : cint;
 begin
-  LinuxError:=0;
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=ESysEnoent;
-     exit;
+     FpSetErrno(ESysEnoent);
+     exit(-1);
    end;
-  AssignPipe(pipi,pipo);
-  if Linuxerror<>0 then
-   exit;
+  ret:=AssignPipe(pipi,pipo);
+
+  if ret=-1 then
+   exit(-1);
   pid:=fpfork;
-  if linuxerror<>0 then
+  if pid=-1 then
    begin
      close(pipi);
      close(pipo);
-     exit;
+     exit(-1);
    end;
   if pid=0 then
    begin
@@ -1039,17 +1036,17 @@ begin
      if rw='W' then
       begin
         close(pipo);
-        fpdup2(filerec(pipi).handle,stdinputhandle);
+        ret:=fpdup2(filerec(pipi).handle,stdinputhandle);
         close(pipi);
-        if linuxerror<>0 then
+        if ret=-1 then
          halt(127);
       end
      else
       begin
         close(pipi);
-        fpdup2(filerec(pipo).handle,stdoutputhandle);
+        ret:=fpdup2(filerec(pipo).handle,stdoutputhandle);
         close(pipo);
-        if linuxerror<>0 then
+        if ret=1 then
          halt(127);
       end;
      getmem(pp,sizeof(pchar)*4);
@@ -1082,6 +1079,7 @@ begin
      pl:=@(filerec(f).userdata[2]);
      pl^:=pid;
    end;
+ POpen:=0;
 end;
 
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
@@ -1261,9 +1259,9 @@ Function GetDomainName:String;  { linux only!}
 Var
   Sysn : utsname;
 begin
-  fpUname(Sysn);
-  linuxerror:=fpgeterrno;;
-  If linuxerror<>0 then
+//  fpUname(Sysn);
+//  linuxerror:=fpgeterrno;;
+  If fpUname(sysn)<>0 then
    getdomainname:=''
   else
    getdomainname:=strpas(@Sysn.domain[0]);
@@ -1481,8 +1479,8 @@ var
     while (d<>nil) do
      begin
        name:=n+'/'+strpas(@(d^.d_name));
-       fpstat(name,st);
-       if linuxerror=0 then
+     //  fpstat(name,st);
+       if fpstat(name,st)=0 then
         begin
           if (fpS_ISDIR(st.st_mode)) and  { if it is a directory }
              (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
@@ -1737,7 +1735,10 @@ End.
 
 {
   $Log$
-  Revision 1.44  2003-11-12 22:19:45  marco
+  Revision 1.45  2003-11-13 18:44:06  marco
+   * small fi
+
+  Revision 1.44  2003/11/12 22:19:45  marco
    * more linuxeror fixes
 
   Revision 1.43  2003/11/03 09:42:28  marco
