@@ -95,7 +95,7 @@ unit i_os2;
             first_parm_offset : 8;
             heapsize     : 256*1024;
             stacksize    : 256*1024;
-            DllScanSupported:true;
+            DllScanSupported: false;
             use_function_relative_addresses : false
           );
 
@@ -116,7 +116,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-10-03 22:09:49  peter
+  Revision 1.4  2004-05-16 20:41:19  hajny
+    * fix for IE
+
+  Revision 1.3  2003/10/03 22:09:49  peter
     * removed paraalign
 
   Revision 1.2  2003/03/23 23:31:54  hajny
