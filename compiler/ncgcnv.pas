@@ -62,7 +62,7 @@ interface
 
     uses
       cutils,verbose,
-      aasmbase,aasmtai,aasmcpu,symconst,symdef,
+      aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
       cpubase,cpuinfo,cpupara,
       pass_2,
@@ -450,10 +450,10 @@ interface
            { instance to check }
            secondpass(left);
            rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,getintparaloc(2));
+           cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(2));
            { type information }
            secondpass(right);
-           cg.a_paramaddr_ref(exprasmlist,right.location.reference,getintparaloc(1));
+           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
            location_release(exprasmlist,right.location);
            { call helper }
            if is_class(left.resulttype.def) then
@@ -468,10 +468,10 @@ interface
            { instance to check }
            secondpass(left);
            rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,getintparaloc(2));
+           cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(2));
            { type information }
            secondpass(right);
-           cg.a_param_loc(exprasmlist,right.location,getintparaloc(1));
+           cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(1));
            location_release(exprasmlist,right.location);
            { call helper }
            cg.a_call_name(exprasmlist,'FPC_DO_AS');
@@ -490,7 +490,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2002-07-07 09:52:32  florian
+  Revision 1.20  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.19  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

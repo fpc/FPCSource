@@ -57,7 +57,7 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symtype,symdef,symsym,symtable,types,
+      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,types,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
       cpubase,tgobj,cgbase
@@ -1951,7 +1951,7 @@ implementation
             end;
           in_sizeof_x:
             begin
-              if push_high_param(left.resulttype.def) then
+              if paramanager.push_high_param(left.resulttype.def) then
                begin
                  srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
                  hp:=caddnode.create(addn,cloadnode.create(srsym,tloadnode(left).symtable),
@@ -2265,7 +2265,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-06-06 18:53:53  jonas
+  Revision 1.78  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.77  2002/06/06 18:53:53  jonas
     * fixed fpu stack overflow in compiler when compiled with -Or
 
   Revision 1.76  2002/05/18 13:34:10  peter

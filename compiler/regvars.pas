@@ -48,7 +48,7 @@ implementation
     uses
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
-      symconst,symbase,symtype,symdef,types,
+      symconst,symbase,symtype,symdef,paramgr,types,
       cgbase,cgobj,cgcpu,rgcpu;
 
 
@@ -178,7 +178,7 @@ implementation
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           push_addr_param(regvarinfo^.regvars[i].vartype.def)) then
+                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def)) then
                         begin
                            regvarinfo^.regvars[i].reg:=varregs[i];
                         end
@@ -311,7 +311,7 @@ implementation
           hr.base:=procinfo^.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
-               push_addr_param(vsym.vartype.def)) then
+               paramanager.push_addr_param(vsym.vartype.def)) then
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
@@ -464,7 +464,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  2002-07-01 18:46:25  peter
+  Revision 1.36  2002-07-11 14:41:30  florian
+    * start of the new generic parameter handling
+
+  Revision 1.35  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

@@ -178,7 +178,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtable,types,htypechk,pass_1,
+      symconst,symtable,paramgr,types,htypechk,pass_1,
       ncon,nmem,nld,ncnv,nbas,rgobj,
       cgbase
       ;
@@ -607,7 +607,7 @@ implementation
            if assigned(left) then
             begin
               inserttypeconv(left,aktprocdef.rettype);
-              if ret_in_param(aktprocdef.rettype.def) or
+              if paramanager.ret_in_param(aktprocdef.rettype.def) or
                  (procinfo^.no_fast_exit) or
                  ((procinfo^.flags and pi_uses_exceptions)<>0) then
                begin
@@ -1113,7 +1113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-07-01 18:46:23  peter
+  Revision 1.34  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.33  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

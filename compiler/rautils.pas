@@ -217,7 +217,7 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,
-  symsym,symtable,
+  symsym,symtable,paramgr,
   aasmcpu,
   cpuinfo,cgbase;
 
@@ -736,7 +736,7 @@ Begin
   if (not is_void(aktprocdef.rettype.def)) then
    begin
      if (m_tp7 in aktmodeswitches) and
-        ret_in_acc(aktprocdef.rettype.def) then
+        paramanager.ret_in_acc(aktprocdef.rettype.def) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -874,7 +874,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
-                 push_addr_param(tvarsym(sym).vartype.def)) then
+                 paramanager.push_addr_param(tvarsym(sym).vartype.def)) then
                 SetSize(pointer_size,false);
             end;
           localsymtable :
@@ -914,7 +914,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  push_addr_param(tvarsym(sym).vartype.def)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def)) then
                 SetSize(pointer_size,false);
             end;
         end;
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2002-07-01 18:46:25  peter
+  Revision 1.37  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.36  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

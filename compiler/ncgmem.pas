@@ -74,7 +74,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,symsym,
+      symconst,symdef,symsym,paramgr,
       aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       nld,ncon,nadd,
@@ -246,7 +246,7 @@ implementation
          if (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
           begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,getintparaloc(1));
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
           end;
       end;
@@ -466,7 +466,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-07-07 09:52:32  florian
+  Revision 1.17  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.16  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

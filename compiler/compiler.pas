@@ -64,7 +64,7 @@ unit compiler;
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
-   
+
    {$ifdef SPARC}
    {$ifndef CPUOK}
    {$DEFINE CPUOK}
@@ -123,6 +123,8 @@ uses
 {$endif}
   { cpu targets }
   ,cputarg
+  { cpu parameter handling }
+  ,cpupara
   ;
 
 function Compile(const cmd:string):longint;
@@ -347,7 +349,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2002-07-04 19:00:23  florian
+  Revision 1.32  2002-07-11 14:41:27  florian
+    * start of the new generic parameter handling
+
+  Revision 1.31  2002/07/04 19:00:23  florian
     + x86_64 define added
 
   Revision 1.30  2002/07/01 18:46:22  peter

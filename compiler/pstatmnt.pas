@@ -46,7 +46,7 @@ implementation
        { aasm }
        cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,types,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,paramgr,
        { pass 1 }
        pass_1,htypechk,
        nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -1208,7 +1208,7 @@ implementation
               if not haslocals then
                symtablestack.datasize:=0;
               { set the used flag for the return }
-              if ret_in_acc(aktprocdef.rettype.def) then
+              if paramanager.ret_in_acc(aktprocdef.rettype.def) then
                  include(rg.usedinproc,accumulator);
             end;
          { force the asm statement }
@@ -1232,7 +1232,7 @@ implementation
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(ret_in_param(aktprocdef.rettype.def)) and
+            not(paramanager.ret_in_param(aktprocdef.rettype.def)) and
             (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
 {$ifdef CHECKFORPUSH}
             and not(UsesPush(tasmnode(p)))
@@ -1244,7 +1244,7 @@ implementation
           accumulator or on the fpu stack }
         if assigned(aktprocdef.funcretsym) and
            (is_fpu(aktprocdef.rettype.def) or
-           ret_in_acc(aktprocdef.rettype.def)) then
+           paramanager.ret_in_acc(aktprocdef.rettype.def)) then
           tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
 
         { because the END is already read we need to get the
@@ -1257,7 +1257,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-07-04 20:43:01  florian
+  Revision 1.61  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.60  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.59  2002/07/01 18:46:25  peter

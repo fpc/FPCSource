@@ -53,7 +53,7 @@ implementation
     uses
       systems,
       verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,types,
+      symconst,symtype,symdef,symsym,symtable,types,paramgr,
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
@@ -132,7 +132,7 @@ implementation
                     begin
                        rg.saveusedregisters(exprasmlist,pushed,[accumulator]);
                        reference_reset_symbol(href,newasmsymbol(tvarsym(symtableentry).mangledname),0);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,getintparaloc(1));
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
@@ -248,7 +248,7 @@ implementation
                           is_open_array(tvarsym(symtableentry).vartype.def) or
                           is_array_of_const(tvarsym(symtableentry).vartype.def) or
                           ((tvarsym(symtableentry).varspez=vs_const) and
-                           push_addr_param(tvarsym(symtableentry).vartype.def)) then
+                           paramanager.push_addr_param(tvarsym(symtableentry).vartype.def)) then
                          begin
                             if hregister=R_NO then
                               hregister:=rg.getaddressregister(exprasmlist);
@@ -694,7 +694,7 @@ implementation
              location.reference.base:=procinfo^.framepointer;
              location.reference.offset:=procinfo^.return_offset;
            end;
-         if ret_in_param(resulttype.def) then
+         if paramanager.ret_in_param(resulttype.def) then
            begin
               if not hr_valid then
                 hreg:=rg.getregisterint(exprasmlist);
@@ -921,7 +921,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-07-07 09:52:32  florian
+  Revision 1.13  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.12  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

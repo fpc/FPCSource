@@ -152,7 +152,6 @@ implementation
           tempconst :=
             crealconstnode.create(double(dummyrec($4330000000000000)),
             pbestrealtype^);
-
         resulttypepass(tempconst);
         firstpass(tempconst);
         secondpass(tempconst);
@@ -373,7 +372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-07-11 07:42:31  jonas
+  Revision 1.11  2002-07-11 14:41:34  florian
+    * start of the new generic parameter handling
+
+  Revision 1.10  2002/07/11 07:42:31  jonas
     * fixed nppccnv and enabled it
     - removed PPC specific second_int_to_int and use the generic one instead
 

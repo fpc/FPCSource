@@ -123,7 +123,7 @@ implementation
     uses
       cutils,globtype,systems,
       verbose,globals,
-      symconst,types,
+      symconst,paramgr,types,
       htypechk,pass_1,cpuinfo,cpubase,
       ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
@@ -364,7 +364,7 @@ implementation
          if not(assigned(aktcallprocdef) and
                 (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
                 (po_external in aktcallprocdef.procoptions)) and
-            push_high_param(defcoll.paratype.def) then
+            paramanager.push_high_param(defcoll.paratype.def) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
 
          { test conversions }
@@ -411,7 +411,7 @@ implementation
                        left.resulttype.def.typename,defcoll.paratype.def.typename);
                   end;
               { Process open parameters }
-              if push_high_param(defcoll.paratype.def) then
+              if paramanager.push_high_param(defcoll.paratype.def) then
                begin
                  { insert type conv but hold the ranges of the array }
                  oldtype:=left.resulttype;
@@ -676,7 +676,7 @@ implementation
         restypeset := true;
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if ret_in_param(restype.def) xor ret_in_param(symtableprocentry.defs^.def.rettype.def) then
+        if paramanager.ret_in_param(restype.def) xor paramanager.ret_in_param(symtableprocentry.defs^.def.rettype.def) then
           internalerror(200108291);
       end;
 
@@ -685,7 +685,7 @@ implementation
       begin
         self.createintern(name,params);
         funcretrefnode:=returnnode;
-        if not ret_in_param(symtableprocentry.defs^.def.rettype.def) then
+        if not paramanager.ret_in_param(symtableprocentry.defs^.def.rettype.def) then
           internalerror(200204247);
       end;
 
@@ -1503,7 +1503,7 @@ implementation
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
           begin
-            if ret_in_acc(resulttype.def) then
+            if paramanager.ret_in_acc(resulttype.def) then
              begin
                { wide- and ansistrings are returned in EAX    }
                { but they are imm. moved to a memory location }
@@ -1632,13 +1632,13 @@ implementation
 
              { It doesn't hurt to calculate it already though :) (JM) }
              rg.incrementregisterpushed(tprocdef(procdefinition).usedregisters);
-             
+
            end;
 
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
-             if ret_in_param(resulttype.def) then
+             if paramanager.ret_in_param(resulttype.def) then
               begin
                 location.loc:=LOC_CREFERENCE;
               end
@@ -1802,7 +1802,7 @@ implementation
          retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
-         if ret_in_param(inlineprocdef.rettype.def) then
+         if paramanager.ret_in_param(inlineprocdef.rettype.def) then
            inc(para_size,POINTER_SIZE);
          { copy args }
          if assigned(code) then
@@ -1870,7 +1870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2002-07-04 20:43:00  florian
+  Revision 1.79  2002-07-11 14:41:27  florian
+    * start of the new generic parameter handling
+
+  Revision 1.78  2002/07/04 20:43:00  florian
     * first x86-64 patches
 
   Revision 1.77  2002/07/01 16:23:52  peter

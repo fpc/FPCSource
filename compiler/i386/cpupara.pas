@@ -24,31 +24,35 @@
 }
 unit cpupara;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
        cpubase,
-       symdef;
+       symdef,paramgr;
 
-    var
-       paralocdummy : tparalocation;
-
-    { Returns the location for the nr-st 32 Bit int parameter
-      if every parameter before is an 32 Bit int parameter as well
-      and if the calling conventions for the helper routines of the
-      rtl are used.
-    }
-    function getintparaloc(nr : longint) : tparalocation;
-    procedure create_param_loc_info(const p : tparaitem);
+    type
+       { Returns the location for the nr-st 32 Bit int parameter
+         if every parameter before is an 32 Bit int parameter as well
+         and if the calling conventions for the helper routines of the
+         rtl are used.
+       }
+       ti386paramanager = class(tparamanager)
+          function getintparaloc(nr : longint) : tparalocation;override;
+          procedure create_param_loc_info(p : tabstractprocdef);override;
+       end;
 
   implementation
 
-    function getintparaloc(nr : longint) : tparalocation;
+    uses
+       verbose;
 
+    function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
       end;
-    procedure create_param_loc_info(const p : tparaitem);
 
+    procedure ti386paramanager.create_param_loc_info(p : tabstractprocdef);
       begin
          { set default para_alignment to target_info.stackalignment }
          { if para_alignment=0 then
@@ -57,11 +61,15 @@ unit cpupara;
       end;
 
 
-
+begin
+   paramanager:=ti386paramanager.create;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-07 09:52:33  florian
+  Revision 1.2  2002-07-11 14:41:32  florian
+    * start of the new generic parameter handling
+
+  Revision 1.1  2002/07/07 09:52:33  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

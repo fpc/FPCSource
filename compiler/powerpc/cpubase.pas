@@ -283,7 +283,7 @@ uses
       pparareference = ^tparareference;
       tparareference = packed record
          index       : tregister;
-         offset      : longint;
+         offset      : aword;
       end;
 
     const
@@ -569,7 +569,7 @@ implementation
         end;
       end;
 
- 
+
     procedure inverse_flags(var r: TResFlags);
       const
         inv_flags: array[F_EQ..F_GE] of TResFlagsEnum =
@@ -627,7 +627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-07-11 07:35:36  jonas
+  Revision 1.18  2002-07-11 14:41:34  florian
+    * start of the new generic parameter handling
+
+  Revision 1.17  2002/07/11 07:35:36  jonas
     * some available registers fixes
 
   Revision 1.16  2002/07/09 19:45:01  jonas

@@ -42,7 +42,7 @@ interface
        { aasm }
        aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,types,paramgr,
+       symconst,symbase,symtype,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -138,7 +138,7 @@ interface
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    paramanager.ret_in_acc(aktprocdef.rettype.def) and
+                                    ret_in_acc(aktprocdef.rettype.def) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
@@ -304,7 +304,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2002-07-11 14:41:34  florian
+  Revision 1.1  2002-07-11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.19  2002/07/01 18:46:34  peter

@@ -71,7 +71,7 @@ implementation
        { aasm }
        aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symbase,symtable,types,
+       symbase,symtable,types,paramgr,
        { pass 1 }
        node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -282,7 +282,7 @@ implementation
                    { but I suppose the comment is wrong and                         }
                    { it means that the address of var parameters can be placed      }
                    { in a register (FK)                                             }
-                     if (varspez in [vs_var,vs_const,vs_out]) and push_addr_param(tt.def) then
+                     if (varspez in [vs_var,vs_const,vs_out]) and paramanager.push_addr_param(tt.def) then
                        include(vs.varoptions,vo_regable);
 
                    { insert the sym in the parasymtable }
@@ -291,7 +291,7 @@ implementation
                    { do we need a local copy? Then rename the varsym, do this after the
                      insert so the dup id checking is done correctly }
                      if (varspez=vs_value) and
-                        push_addr_param(tt.def) and
+                        paramanager.push_addr_param(tt.def) and
                         not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
                        tprocdef(aktprocdef).parast.rename(vs.name,'val'+vs.name);
 
@@ -1929,7 +1929,7 @@ const
          begin
            if not parse_only then
             begin
-              if ret_in_param(aprocdef.rettype.def) then
+              if paramanager.ret_in_param(aprocdef.rettype.def) then
                begin
                  aprocdef.parast.insert(otsym);
                  { this increases the data size }
@@ -1950,14 +1950,17 @@ const
               otsym:=nil;
             end;
          end;
-
+        paramanager.create_param_loc_info(aprocdef);
         proc_add_definition:=forwardfound;
       end;
 
 end.
 {
   $Log$
-  Revision 1.58  2002-07-01 18:46:25  peter
+  Revision 1.59  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.58  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

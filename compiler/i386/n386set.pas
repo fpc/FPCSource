@@ -65,7 +65,7 @@ implementation
          result:=nil;
          { this is the only difference from the generic version }
          location.loc:=LOC_FLAGS;
-         
+
          firstpass(right);
          firstpass(left);
          if codegenerror then
@@ -85,7 +85,7 @@ implementation
                 inc(registers32);
            end;
       end;
-      
+
 
 
     procedure ti386innode.pass_2;
@@ -1011,12 +1011,15 @@ implementation
 begin
 {$ifndef TEST_GENERIC}
    cinnode:=ti386innode;
-{$endif}   
+{$endif}
    ccasenode:=ti386casenode;
 end.
 {
   $Log$
-  Revision 1.33  2002-07-06 20:27:26  carl
+  Revision 1.34  2002-07-11 14:41:34  florian
+    * start of the new generic parameter handling
+
+  Revision 1.33  2002/07/06 20:27:26  carl
   + generic set handling
 
   Revision 1.32  2002/07/01 18:46:33  peter

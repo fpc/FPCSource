@@ -42,7 +42,7 @@ implementation
       symconst,symdef,types,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
-      cpubase,cpupara,
+      cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
@@ -92,20 +92,20 @@ implementation
                  maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
                  cg.a_label(exprasmlist,falselabel);
                  { erroraddr }
-                 cg.a_param_reg(exprasmlist,OS_ADDR,R_EBP,getintparaloc(4));
+                 cg.a_param_reg(exprasmlist,OS_ADDR,R_EBP,paramanager.getintparaloc(4));
                  { lineno }
-                 cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,getintparaloc(3));
+                 cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(3));
                  { filename string }
                  hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
                  firstpass(hp2);
                  secondpass(hp2);
                  if codegenerror then
                   exit;
-                 cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,getintparaloc(2));
+                 cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paramanager.getintparaloc(2));
                  hp2.free;
                  { push msg }
                  secondpass(tcallparanode(tcallparanode(left).right).left);
-                 cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,getintparaloc(1));
+                 cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paramanager.getintparaloc(1));
                  { call }
                  cg.a_call_name(exprasmlist,'FPC_ASSERT');
                  cg.a_label(exprasmlist,truelabel);
@@ -461,7 +461,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-07-07 09:52:34  florian
+  Revision 1.48  2002-07-11 14:41:33  florian
+    * start of the new generic parameter handling
+
+  Revision 1.47  2002/07/07 09:52:34  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

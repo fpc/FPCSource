@@ -75,7 +75,7 @@ implementation
     strings,
 {$endif}
     cutils,cclasses,globtype,globals,systems,verbose,
-    symbase,symconst,symtype,symsym,symdef,symtable,types,
+    symbase,symconst,symtype,symsym,symdef,symtable,types,paramgr,
     fmodule,
     cgbase,regvars,
 {$ifdef GDB}
@@ -686,7 +686,7 @@ implementation
          begin
            { call by value open array ? }
            if is_cdecl and
-              push_addr_param(p.resulttype.def) then
+              paramanager.push_addr_param(p.resulttype.def) then
             begin
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
@@ -788,7 +788,7 @@ implementation
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
-           (push_addr_param(tvarsym(p).vartype.def)) then
+           (paramanager.push_addr_param(tvarsym(p).vartype.def)) then
          begin
            reference_reset_base(href1,procinfo^.framepointer,tvarsym(p).address+procinfo^.para_offset);
            if is_open_array(tvarsym(p).vartype.def) or
@@ -815,9 +815,9 @@ implementation
         if (tsym(p).typ=varsym) and
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
-           cg.a_param_const(list,OS_INT,tvarsym(p).getsize,getintparaloc(2));
+           cg.a_param_const(list,OS_INT,tvarsym(p).getsize,paramanager.getintparaloc(2));
            reference_reset_symbol(href,newasmsymbol(tvarsym(p).mangledname),0);
-           cg.a_paramaddr_ref(list,href,getintparaloc(1));
+           cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
            rg.saveregvars(list,all_registers);
            cg.a_call_name(list,'FPC_INIT_THREADVAR');
          end;
@@ -965,20 +965,20 @@ implementation
              tt_freeansistring :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,getintparaloc(1));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
                end;
              tt_widestring,
              tt_freewidestring :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
                end;
            end;
@@ -1024,7 +1024,7 @@ implementation
                end;
              else
                begin
-                 if ret_in_acc(aktprocdef.rettype.def) then
+                 if paramanager.ret_in_acc(aktprocdef.rettype.def) then
                   begin
                     uses_acc:=true;
                     cg.a_reg_alloc(list,accumulator);
@@ -1064,7 +1064,7 @@ implementation
                end;
              else
                begin
-                 if ret_in_acc(aktprocdef.rettype.def) then
+                 if paramanager.ret_in_acc(aktprocdef.rettype.def) then
                   cg.a_load_reg_ref(list,cgsize,accumulator,href);
                end;
            end;
@@ -1194,7 +1194,7 @@ implementation
           begin
              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
              reference_reset_base(href,procinfo^.framepointer,procinfo^.return_offset);
-             cg.g_initialize(list,aktprocdef.rettype.def,href,ret_in_param(aktprocdef.rettype.def));
+             cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
           end;
 
         { initialisize local data like ansistrings }
@@ -1360,14 +1360,14 @@ implementation
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             if is_class(procinfo^._class) then
                              begin
-                               cg.a_param_const(list,OS_INT,1,getintparaloc(2));
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,getintparaloc(1));
+                               cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
+                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
                              end
                             else if is_object(procinfo^._class) then
                              begin
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,getintparaloc(2));
+                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
                                reference_reset_symbol(href,newasmsymbol(procinfo^._class.vmt_mangledname),0);
-                               cg.a_paramaddr_ref(list,href,getintparaloc(1));
+                               cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
                              Internalerror(200006164);
@@ -1398,7 +1398,7 @@ implementation
                     not is_class(aktprocdef.rettype.def)) then
                   begin
                      reference_reset_base(href,procinfo^.framepointer,procinfo^.return_offset);
-                     cg.g_finalize(list,aktprocdef.rettype.def,href,ret_in_param(aktprocdef.rettype.def));
+                     cg.g_finalize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
                   end;
               end;
 
@@ -1540,7 +1540,7 @@ implementation
 
             if (not is_void(aktprocdef.rettype.def)) then
               begin
-                if ret_in_param(aktprocdef.rettype.def) then
+                if paramanager.ret_in_param(aktprocdef.rettype.def) then
                   list.concat(Tai_stabs.Create(strpnew(
                    '"'+aktprocsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
@@ -1549,7 +1549,7 @@ implementation
                    '"'+aktprocsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))));
                 if (m_result in aktmodeswitches) then
-                  if ret_in_param(aktprocdef.rettype.def) then
+                  if paramanager.ret_in_param(aktprocdef.rettype.def) then
                     list.concat(Tai_stabs.Create(strpnew(
                      '"RESULT:X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                      tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
@@ -1629,7 +1629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-07-11 07:33:25  jonas
+  Revision 1.22  2002-07-11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.21  2002/07/11 07:33:25  jonas
     * big-endian fixes for location_force_reg*()
 
   Revision 1.20  2002/07/07 09:52:32  florian

@@ -38,7 +38,6 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
@@ -146,43 +145,27 @@ const
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
 
-    procedure tcgppc.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
-
-      var
-        ref: treference;
-
-      begin
-  {$ifdef para_sizes_known}
-        if (nr <= max_param_regs_int) then
-          a_load_reg_reg(list,size,r,param_regs_int[nr])
-        else
-          begin
-            reset_reference(ref);
-            ref.base := STACK_POINTER_REG;
-            ref.offset := LinkageAreaSize+para_size_till_now;
-            a_load_reg_ref(list,size,reg,ref);
-          end;
-  {$endif para_sizes_known}
-      end;
-
-
     procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       var
         ref: treference;
 
       begin
-  {$ifdef para_sizes_known}
-        if (nr <= max_param_regs_int) then
-          a_load_const_reg(list,size,a,param_regs_int[nr])
-        else
-          begin
-            reset_reference(ref);
-            ref.base := STACK_POINTER_REG;
-            ref.offset := LinkageAreaSize+para_size_till_now;
-            a_load_const_ref(list,size,a,ref);
-          end;
-  {$endif para_sizes_known}
+        case locpara.loc of
+          LOC_REGISTER:
+            a_load_const_reg(list,size,a,locpara.register);
+          LOC_REFERENCE:
+            begin
+               reference_reset(ref);
+               ref.base:=locpara.reference.index;
+               ref.offset:=locpara.reference.offset;
+               a_load_const_ref(list,size,a,ref);
+            end;
+          else
+            internalerror(2002081101);
+        end;
+        if locpara.sp_fixup<>0 then
+          internalerror(2002081102);
       end;
 
 
@@ -193,20 +176,24 @@ const
         tmpreg: tregister;
 
       begin
-  {$ifdef para_sizes_known}
-        if (nr <= max_param_regs_int) then
-          a_load_ref_reg(list,size,r,param_regs_int[nr])
-        else
-          begin
-            reset_reference(ref);
-            ref.base := STACK_POINTER_REG;
-            ref.offset := LinkageAreaSize+para_size_till_now;
-            tmpreg := get_scratch_reg_int(list);
-            a_load_ref_reg(list,size,r,tmpreg);
-            a_load_reg_ref(list,size,tmpreg,ref);
-            free_scratch_reg(list,tmpreg);
-          end;
-  {$endif para_sizes_known}
+        case locpara.loc of
+          LOC_REGISTER:
+            a_load_ref_reg(list,size,r,locpara.register);
+          LOC_REFERENCE:
+            begin
+               reference_reset(ref);
+               ref.base:=locpara.reference.index;
+               ref.offset:=locpara.reference.offset;
+               tmpreg := get_scratch_reg_int(list);
+               a_load_ref_reg(list,size,r,tmpreg);
+               a_load_reg_ref(list,size,tmpreg,ref);
+               free_scratch_reg(list,tmpreg);
+            end;
+          else
+            internalerror(2002081103);
+        end;
+        if locpara.sp_fixup<>0 then
+          internalerror(2002081104);
       end;
 
 
@@ -606,7 +593,7 @@ const
          a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
        end;
 
-     procedure tcgppc.a_jmp_always(list : taasmoutput;l: tasmlabel); 
+     procedure tcgppc.a_jmp_always(list : taasmoutput;l: tasmlabel);
 
        begin
          a_jmp(list,A_B,C_None,0,l);
@@ -1306,7 +1293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-07-11 07:38:28  jonas
+  Revision 1.23  2002-07-11 14:41:34  florian
+    * start of the new generic parameter handling
+
+  Revision 1.22  2002/07/11 07:38:28  jonas
     + tcg64fpc implementation (only a_op64_reg_reg and a_op64_const_reg for
       now)
     * fixed and improved tcgppc.a_load_const_reg

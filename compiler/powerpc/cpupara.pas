@@ -23,27 +23,125 @@
 }
 unit cpupara;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
-       cpubase;
+       cpubase,
+       symconst,symbase,symdef,paramgr;
 
-    var
-       paralocdummy : tparalocation;
-
-    function getintparaloc(nr : longint) : tparalocation;
+    type
+       tppcparamanager = class(tparamanager)
+          function getintparaloc(nr : longint) : tparalocation;override;
+          procedure create_param_loc_info(p : tabstractprocdef);override;
+          function getfuncretloc(p : tabstractprocdef) : tparalocation;override;
+       end;
 
   implementation
 
-    function getintparaloc(nr : longint) : tparalocation;
+    uses
+       verbose,
+       cpuinfo,
+       symtype;
+
+    function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
 
       begin
+         fillchar(result,sizeof(tparalocation),0);
+         if nr<1 then
+           internalerror(2002070801)
+         else if nr<=8 then
+           begin
+              result.loc:=LOC_REGISTER;
+              result.register:=tregister(longint(R_2)+nr);
+           end
+         else
+           begin
+              result.loc:=LOC_REFERENCE;
+              result.reference.index:=stack_pointer_reg;
+              result.reference.offset:=(nr-8)*4;
+           end;
       end;
 
+    function getparaloc(p : tdef) : tloc;
+
+      begin
+         case p.deftype of
+            orddef:
+              getparaloc:=LOC_REGISTER;
+            floatdef:
+              getparaloc:=LOC_FPUREGISTER;
+            enumdef:
+              getparaloc:=LOC_REGISTER;
+            pointerdef:
+              getparaloc:=LOC_REGISTER;
+            else
+              internalerror(2002071001);
+         end;
+      end;
+
+    procedure tppcparamanager.create_param_loc_info(p : tabstractprocdef);
+
+      var
+         nextintreg,nextfloatreg,nextmmreg : tregister;
+         stack_offset : aword;
+         hp : tparaitem;
+         loc : tloc;
+
+      begin
+         nextintreg:=R_3;
+         nextfloatreg:=R_F1;
+         nextmmreg:=R_M1;
+         stack_offset:=0;
+         { pointer for structured results ? }
+         { !!!nextintreg:=R_4;              }
+
+         { frame pointer for nested procedures? }
+         { inc(nextintreg);                     }
+         { constructor? }
+         { destructor? }
+         hp:=tparaitem(p.para.last);
+         while assigned(hp) do
+           begin
+              loc:=getparaloc(hp.paratype.def);
+              case loc of
+                 LOC_REGISTER:
+                   begin
+                      if nextintreg<=R_8 then
+                        begin
+                           hp.paraloc.loc:=LOC_REGISTER;
+                           hp.paraloc.register:=nextintreg;
+                           inc(nextintreg);
+                        end
+                      else
+                         begin
+                            {!!!!!!!}
+                            internalerror(2002071003);
+                        end;
+                   end;
+                 else
+                   internalerror(2002071002);
+              end;
+              hp:=tparaitem(hp.previous);
+           end;
+      end;
+
+    function tppcparamanager.getfuncretloc(p : tabstractprocdef) : tparalocation;
+
+      begin
+         getfuncretloc.loc:=LOC_REGISTER;
+         getfuncretloc.register:=R_3;
+      end;
+
+begin
+   paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-07 09:44:32  florian
-    * powerpc target fixed, very simple units can be compiled
+  Revision 1.2  2002-07-11 14:41:34  florian
+    * start of the new generic parameter handling
 
+  Revision 1.1  2002/07/07 09:44:32  florian
+    * powerpc target fixed, very simple units can be compiled
 }

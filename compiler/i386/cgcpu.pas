@@ -161,7 +161,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,types,
+       symdef,symsym,types,paramgr,
        rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
@@ -1342,13 +1342,13 @@ unit cgcpu;
          tempaddr:=exceptbuf;
          tempbuf:=exceptbuf;
          inc(tempbuf.offset,12);
-         a_paramaddr_ref(list,tempaddr,getintparaloc(3));
-         a_paramaddr_ref(list,tempbuf,getintparaloc(2));
-         a_param_const(list,OS_INT,l,getintparaloc(1));
+         a_paramaddr_ref(list,tempaddr,paramanager.getintparaloc(3));
+         a_paramaddr_ref(list,tempbuf,paramanager.getintparaloc(2));
+         a_param_const(list,OS_INT,l,paramanager.getintparaloc(1));
          a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
          a_reg_alloc(list,accumulator);
-         a_param_reg(list,OS_ADDR,accumulator,getintparaloc(1));
+         a_param_reg(list,OS_ADDR,accumulator,paramanager.getintparaloc(1));
          a_reg_dealloc(list,accumulator);
          a_call_name(list,'FPC_SETJMP');
          list.concat(tai_regalloc.Alloc(accumulator));
@@ -1611,7 +1611,7 @@ unit cgcpu;
         if (po_clearstack in aktprocdef.procoptions) then
          begin
            { complex return values are removed from stack in C code PM }
-           if ret_in_param(aktprocdef.rettype.def) then
+           if paramanager.ret_in_param(aktprocdef.rettype.def) then
              list.concat(Taicpu.Op_const(A_RET,S_NO,4))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -1785,7 +1785,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-07-07 09:52:33  florian
+  Revision 1.27  2002-07-11 14:41:32  florian
+    * start of the new generic parameter handling
+
+  Revision 1.26  2002/07/07 09:52:33  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

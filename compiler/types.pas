@@ -154,20 +154,8 @@ interface
     {# Returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
 
-    {# Returns true if the return value can be put in accumulator }
-    function ret_in_acc(def : tdef) : boolean;
-
-    {# Returns true if uses a parameter as return value (???) }
-    function ret_in_param(def : tdef) : boolean;
-
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
-
-    function push_high_param(def : tdef) : boolean;
-
-    {# Returns true if a parameter is too large to copy and only the address is pushed
-    }
-    function push_addr_param(def : tdef) : boolean;
 
     {# Returns true, if def1 and def2 are semantically the same }
     function is_equal(def1,def2 : tdef) : boolean;
@@ -838,74 +826,12 @@ implementation
       end;
 
 
-    { true if the return value is in accumulator (EAX for i386), D0 for 68k }
-    function ret_in_acc(def : tdef) : boolean;
-      begin
-         ret_in_acc:=(def.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
-                     ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_ansistring,st_widestring])) or
-                     ((def.deftype=procvardef) and not(po_methodpointer in tprocvardef(def).procoptions)) or
-                     ((def.deftype=objectdef) and not is_object(def)) or
-                     ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
-      end;
-
-
     { true, if def is a 64 bit int type }
     function is_64bitint(def : tdef) : boolean;
       begin
          is_64bitint:=(def.deftype=orddef) and (torddef(def).typ in [u64bit,s64bit])
       end;
 
-
-    { true if uses a parameter as return value }
-    function ret_in_param(def : tdef) : boolean;
-      begin
-         ret_in_param:=(def.deftype in [arraydef,recorddef]) or
-           ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
-           ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
-           ((def.deftype=objectdef) and is_object(def)) or
-           (def.deftype=variantdef) or
-           ((def.deftype=setdef) and (tsetdef(def).settype<>smallset));
-      end;
-
-
-    function push_high_param(def : tdef) : boolean;
-      begin
-         push_high_param:=is_open_array(def) or
-                          is_open_string(def) or
-                          is_array_of_const(def);
-      end;
-
-
-    { true if a parameter is too large to copy and only the address is pushed }
-    function push_addr_param(def : tdef) : boolean;
-      begin
-        push_addr_param:=false;
-        if never_copy_const_param then
-         push_addr_param:=true
-        else
-         begin
-           case def.deftype of
-             variantdef,
-             formaldef :
-               push_addr_param:=true;
-             recorddef :
-               push_addr_param:=(def.size>pointer_size);
-             arraydef :
-               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>pointer_size)) or
-                                is_open_array(def) or
-                                is_array_of_const(def) or
-                                is_array_constructor(def);
-             objectdef :
-               push_addr_param:=is_object(def);
-             stringdef :
-               push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
-             procvardef :
-               push_addr_param:=(po_methodpointer in tprocvardef(def).procoptions);
-             setdef :
-               push_addr_param:=(tsetdef(def).settype<>smallset);
-           end;
-         end;
-      end;
 
     { if l isn't in the range of def a range check error (if not explicit) is generated and
       the value is placed within the range }
@@ -1980,7 +1906,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-07-01 16:23:54  peter
+  Revision 1.75  2002-07-11 14:41:32  florian
+    * start of the new generic parameter handling
+
+  Revision 1.74  2002/07/01 16:23:54  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

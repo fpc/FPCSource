@@ -366,7 +366,7 @@ implementation
        { module }
        fmodule,
        { codegen }
-       cgbase,cresstr
+       paramgr,cgbase,cresstr
        ;
 
 {****************************************************************************
@@ -1153,7 +1153,7 @@ implementation
         else
          begin
            { allocate space in local if ret in acc or in fpu }
-           if ret_in_acc(returntype.def) or
+           if paramanager.ret_in_acc(returntype.def) or
               (returntype.def.deftype=floatdef) then
             begin
               l:=returntype.def.size;
@@ -1432,7 +1432,7 @@ implementation
                 vs_value,
                 vs_const :
                   begin
-                      if push_addr_param(vartype.def) then
+                      if paramanager.push_addr_param(vartype.def) then
                         getpushsize:=pointer_size
                       else
                         getpushsize:=vartype.def.size;
@@ -1645,7 +1645,7 @@ implementation
                vs_out,
                vs_var   : st := 'v'+st;
                vs_value,
-               vs_const : if push_addr_param(vartype.def) then
+               vs_const : if paramanager.push_addr_param(vartype.def) then
                             st := 'v'+st { should be 'i' but 'i' doesn't work }
                           else
                             st := 'p'+st;
@@ -2517,7 +2517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-07-10 07:24:40  jonas
+  Revision 1.42  2002-07-11 14:41:31  florian
+    * start of the new generic parameter handling
+
+  Revision 1.41  2002/07/10 07:24:40  jonas
     * memory leak fixes from Sergey Korshunoff
 
   Revision 1.40  2002/07/01 18:46:27  peter

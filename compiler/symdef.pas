@@ -722,7 +722,7 @@ implementation
        { target }
        systems,
        { symtable }
-       symsym,symtable,
+       symsym,symtable,paramgr,
        types,
        { module }
 {$ifdef GDB}
@@ -3213,7 +3213,7 @@ implementation
               vs_out,
               vs_var   : inc(l,POINTER_SIZE);
               vs_value,
-              vs_const : if push_addr_param(pdc.paratype.def) then
+              vs_const : if paramanager.push_addr_param(pdc.paratype.def) then
                           inc(l,POINTER_SIZE)
                          else
                           inc(l,pdc.paratype.def.size);
@@ -5482,7 +5482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-07-07 09:52:32  florian
+  Revision 1.83  2002-07-11 14:41:30  florian
+    * start of the new generic parameter handling
+
+  Revision 1.82  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

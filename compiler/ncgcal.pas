@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit n386cal;
+unit ncgcal;
 
 {$i fpcdefs.inc}
 
@@ -32,17 +32,17 @@ interface
       symdef,node,ncal;
 
     type
-       ti386callparanode = class(tcallparanode)
+       tcgcallparanode = class(tcallparanode)
           procedure secondcallparan(defcoll : TParaItem;
                    push_from_left_to_right,inlined,is_cdecl : boolean;
                    para_alignment,para_offset : longint);override;
        end;
 
-       ti386callnode = class(tcallnode)
+       tcgcallnode = class(tcallnode)
           procedure pass_2;override;
        end;
 
-       ti386procinlinenode = class(tprocinlinenode)
+       tcgprocinlinenode = class(tprocinlinenode)
           procedure pass_2;override;
        end;
 
@@ -51,7 +51,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,types,
+      symconst,symbase,symsym,symtable,types,paramgr,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -61,18 +61,18 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpubase,paramgr,
-      aasmbase,aasmtai,aasmcpu,
+      cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
-                             TI386CALLPARANODE
+                             TCGCALLPARANODE
 *****************************************************************************}
 
-    procedure ti386callparanode.secondcallparan(defcoll : TParaItem;
+    procedure tcgcallparanode.secondcallparan(defcoll : TParaItem;
                 push_from_left_to_right,inlined,is_cdecl : boolean;para_alignment,para_offset : longint);
 
+      { goes to pass 1 }
       procedure maybe_push_high;
         begin
            { open array ? }
@@ -82,10 +82,9 @@ implementation
             begin
               secondpass(hightree);
               { this is a longint anyway ! }
-              push_value_para(hightree,inlined,false,para_offset,4,paralocdummy);
+              push_value_para(hightree,inlined,false,para_offset,4,defcoll.paraloc);
             end;
         end;
-
       var
          otlabel,oflabel : tasmlabel;
          { temporary variables: }
@@ -94,10 +93,6 @@ implementation
          href   : treference;
 
       begin
-         { set default para_alignment to target_info.stackalignment }
-         if para_alignment=0 then
-          para_alignment:=aktalignment.paraalign;
-
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
           begin
@@ -120,11 +115,11 @@ implementation
              if paramanager.push_addr_param(left.resulttype.def) then
                begin
                  inc(pushedparasize,4);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
+                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(left,inlined,is_cdecl,para_offset,para_alignment,paralocdummy);
+               push_value_para(left,inlined,is_cdecl,para_offset,para_alignment,defcoll.paraloc);
            end
          { filter array constructor with c styled args }
          else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
@@ -151,7 +146,7 @@ implementation
                        cg.a_load_loc_ref(exprasmlist,left.location,href);
                     end
                   else
-                    cg.a_param_loc(exprasmlist,left.location,paralocdummy);
+                    cg.a_param_loc(exprasmlist,left.location,defcoll.paraloc);
                   location_release(exprasmlist,left.location);
                 end
               else
@@ -169,7 +164,7 @@ implementation
                            cg.free_scratch_reg(exprasmlist,tmpreg);
                          end
                        else
-                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
+                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
                        location_release(exprasmlist,left.location);
                      end;
                 end;
@@ -201,7 +196,7 @@ implementation
                    cg.free_scratch_reg(exprasmlist,tmpreg);
                 end
               else
-                cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
+                cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
               location_release(exprasmlist,left.location);
            end
          else
@@ -248,13 +243,13 @@ implementation
                         cg.free_scratch_reg(exprasmlist,tmpreg);
                      end
                    else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
                    location_release(exprasmlist,left.location);
                 end
               else
                 begin
                    push_value_para(left,inlined,is_cdecl,
-                     para_offset,para_alignment,paralocdummy);
+                     para_offset,para_alignment,defcoll.paraloc);
                 end;
            end;
          truelabel:=otlabel;
@@ -273,10 +268,10 @@ implementation
 
 
 {*****************************************************************************
-                             TI386CALLNODE
+                             TCGCALLNODE
 *****************************************************************************}
 
-    procedure ti386callnode.pass_2;
+    procedure tcgcallnode.pass_2;
       var
          regs_to_push : tregisterset;
          unusedstate: pointer;
@@ -421,6 +416,8 @@ implementation
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
          pop_size:=0;
+
+{$ifdef dummy}
          { no inc esp for inlined procedure
            and for objects constructors PM }
          if inlined or
@@ -446,7 +443,7 @@ implementation
             if pop_size>0 then
              begin
                inc(pushedparasize,pop_size);
-               emit_const_reg(A_SUB,S_L,pop_size,R_ESP);
+               cg.a_const_reg(A_SUB,S_L,pop_size,R_ESP);
 {$ifdef GDB}
                if (cs_debuginfo in aktmoduleswitches) and
                   (exprasmList.first=exprasmList.last) then
@@ -454,6 +451,8 @@ implementation
 {$endif GDB}
              end;
           end;
+{$endif dummy}
+
 {$ifdef OPTALIGN}
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
@@ -550,7 +549,8 @@ implementation
                   cg.free_scratch_reg(exprasmlist,hregister);
                end
              else
-               cg.a_paramaddr_ref(exprasmlist,funcretref,paralocdummy);
+               cg.a_paramaddr_ref(exprasmlist,funcretref,
+                 paramanager.getfuncretloc(procdefinition));
            end;
 
          { procedure variable or normal function call ? }
@@ -559,6 +559,7 @@ implementation
            begin
               { Normal function call }
 
+{$ifdef dummy}
               { overloaded operator has no symtable }
               { push self }
               if assigned(symtableproc) and
@@ -640,15 +641,15 @@ implementation
                                     if is_class(tobjectdef(methodpointer.resulttype.def)) and
                                        (procdefinition.proctypeoption=potype_destructor) then
                                       begin
-                                        cg.a_param_const(exprasmlist,OS_ADDR,0,paramanager.getintparaloc(2));
-                                        cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+                                        cg.a_param_const(exprasmlist,OS_ADDR,0,2);
+                                        cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
                                       end;
 
                                     if not(is_con_or_destructor and
                                            is_class(methodpointer.resulttype.def) and
                                            (procdefinition.proctypeoption in [potype_constructor,potype_destructor])
                                           ) then
-                                      cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+                                      cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
                                     { if an inherited con- or destructor should be  }
                                     { called in a con- or destructor then a warning }
                                     { will be made                                  }
@@ -671,8 +672,8 @@ implementation
                                       begin
                                          { a constructor needs also a flag }
                                          if is_class(methodpointer.resulttype.def) then
-                                           cg.a_param_const(exprasmlist,OS_ADDR,0,paramanager.getintparaloc(2));
-                                         cg.a_param_const(exprasmlist,OS_ADDR,0,paramanager.getintparaloc(1));
+                                           cg.a_param_const(exprasmlist,OS_ADDR,0,2);
+                                         cg.a_param_const(exprasmlist,OS_ADDR,0,1);
                                       end;
                                  end;
                                hnewn:
@@ -681,10 +682,10 @@ implementation
                                     { ESI must be zero }
                                     rg.getexplicitregisterint(exprasmlist,R_ESI);
                                     cg.a_load_const_reg(exprasmlist,OS_ADDR,0,self_pointer_reg);
-                                    cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
+                                    cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,2);
                                     { insert the vmt }
                                     reference_reset_symbol(href,newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                                    cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+                                    cg.a_paramaddr_ref(exprasmlist,href,1);
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -696,9 +697,9 @@ implementation
                                     rg.getexplicitregisterint(exprasmlist,R_ESI);
                                     emit_ref_reg(A_LEA,S_L,methodpointer.location.reference,R_ESI);
                                     reference_release(exprasmlist,methodpointer.location.reference);
-                                    cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
+                                    cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,2);
                                     reference_reset_symbol(href,newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                                    cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+                                    cg.a_paramaddr_ref(exprasmlist,href,1);
                                  end;
                                else
                                  begin
@@ -741,14 +742,14 @@ implementation
                                         { direct call to destructor: remove data }
                                         if (procdefinition.proctypeoption=potype_destructor) and
                                            is_class(methodpointer.resulttype.def) then
-                                          cg.a_param_const(exprasmlist,OS_INT,1,paramanager.getintparaloc(1));
+                                          cg.a_param_const(exprasmlist,OS_INT,1,1);
 
                                         { direct call to class constructor, don't allocate memory }
                                         if (procdefinition.proctypeoption=potype_constructor) and
                                            is_class(methodpointer.resulttype.def) then
                                           begin
-                                             cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
-                                             cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(1));
+                                             cg.a_param_const(exprasmlist,OS_INT,0,2);
+                                             cg.a_param_const(exprasmlist,OS_INT,0,1);
                                           end
                                         else
                                           begin
@@ -756,8 +757,8 @@ implementation
                                              if (procdefinition.proctypeoption=potype_constructor) and
                                                 (methodpointer.resulttype.def.deftype=classrefdef) and
                                                 is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
-                                               cg.a_param_const(exprasmlist,OS_INT,1,paramanager.getintparaloc(1));
-                                             cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+                                               cg.a_param_const(exprasmlist,OS_INT,1,1);
+                                             cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
                                           end;
                                       end;
 
@@ -771,12 +772,12 @@ implementation
                                                   { it's no bad idea, to insert the VMT }
                                                   reference_reset_symbol(href,newasmsymbol(
                                                      tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                                                  cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+                                                  cg.a_paramaddr_ref(exprasmlist,href,1);
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                           }
                                               else
-                                                cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(1));
+                                                cg.a_param_const(exprasmlist,OS_INT,0,1);
                                            end;
                                       end;
                                  end;
@@ -806,32 +807,32 @@ implementation
                           begin
                              if (procdefinition.proctypeoption=potype_destructor) then
                                begin
-                                  cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
-                                  cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,paramanager.getintparaloc(1));
+                                  cg.a_param_const(exprasmlist,OS_INT,0,2);
+                                  cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,1);
                                end
                              else if (procdefinition.proctypeoption=potype_constructor) then
                                begin
-                                  cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
-                                  cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(1));
+                                  cg.a_param_const(exprasmlist,OS_INT,0,2);
+                                  cg.a_param_const(exprasmlist,OS_INT,0,1);
                                end
                              else
-                               cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,paramanager.getintparaloc(1));
+                               cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,1);
                           end
                         else if is_object(procinfo^._class) then
                           begin
-                             cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,paramanager.getintparaloc(1));
+                             cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,1);
                              if is_con_or_destructor then
                                begin
                                   if (procdefinition.proctypeoption=potype_constructor) then
                                     begin
                                       { it's no bad idea, to insert the VMT }
                                       reference_reset_symbol(href,newasmsymbol(procinfo^._class.vmt_mangledname),0);
-                                      cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+                                      cg.a_paramaddr_ref(exprasmlist,href,1);
                                     end
                                   { destructors haven't to dispose the instance, if this is }
                                   { a direct call                                           }
                                   else
-                                    cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(1));
+                                    cg.a_param_const(exprasmlist,OS_INT,0,1);
                                end;
                           end
                         else
@@ -847,7 +848,7 @@ implementation
                    (inlined or
                    (right=nil)) then
                   begin
-                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
                      reference_reset_base(href,self_pointer_reg,0);
                      tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
@@ -877,13 +878,13 @@ implementation
                      if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
                        begin
                           reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-                          cg.a_param_ref(exprasmlist,OS_ADDR,href,paralocdummy);
+                          cg.a_param_ref(exprasmlist,OS_ADDR,href,-1);
                        end
                        { this is only true if the difference is one !!
                          but it cannot be more !! }
                      else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
                        begin
-                          cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,paralocdummy);
+                          cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,-1);
                        end
                      else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
                        begin
@@ -897,15 +898,16 @@ implementation
                                reference_reset_base(href,hregister,procinfo^.framepointer_offset);
                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                             end;
-                          cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paralocdummy);
+                          cg.a_param_reg(exprasmlist,OS_ADDR,hregister,-1);
                           rg.ungetregisterint(exprasmlist,hregister);
                        end
                      else
                        internalerror(25000);
                   end;
-
+{$endif dummy}
               rg.saveregvars(exprasmlist,regs_to_push);
 
+{$ifdef dummy}
               if (po_virtualmethod in procdefinition.procoptions) and
                  not(no_virtual_call) then
                 begin
@@ -957,13 +959,13 @@ implementation
                         if (cs_check_object in aktlocalswitches) then
                           begin
                              reference_reset_symbol(hrefvmt,newasmsymbol(tprocdef(procdefinition)._class.vmt_mangledname),0);
-                             cg.a_paramaddr_ref(exprasmlist,hrefvmt,paramanager.getintparaloc(2));
-                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,paramanager.getintparaloc(1));
+                             cg.a_paramaddr_ref(exprasmlist,hrefvmt,2);
+                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,1);
                              cg.a_call_name(exprasmlist,'FPC_CHECK_OBJECT_EXT');
                           end
                         else if (cs_check_range in aktlocalswitches) then
                           begin
-                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,paramanager.getintparaloc(1));
+                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,1);
                              cg.a_call_name(exprasmlist,'FPC_CHECK_OBJECT');
                           end;
                      end;
@@ -971,8 +973,11 @@ implementation
                    if release_tmpreg then
                      cg.free_scratch_reg(exprasmlist,tmpreg);
                 end
-              else if not inlined then
+              else
+{$endif dummy}
+              if not inlined then
                 begin
+{$ifdef i386}
                   { We can call interrupts from within the smae code
                     by just pushing the flags and CS PM }
                   if (po_interrupt in procdefinition.procoptions) then
@@ -980,6 +985,7 @@ implementation
                         emit_none(A_PUSHF,S_L);
                         emit_reg(A_PUSH,S_L,R_CS);
                     end;
+{$endif i386}
                   cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                 end
               else { inlined proc }
@@ -991,16 +997,19 @@ implementation
                    if tprocdef(procdefinition).parast.datasize>0 then
                      tg.ungetpersistanttemp(exprasmlist,tprocdef(procdefinition).parast.address_fixup);
                 end;
-           end
+           end;
+{$ifdef dummy}
          else
            { now procedure variable case }
            begin
               secondpass(right);
+{$ifdef i386}
               if (po_interrupt in procdefinition.procoptions) then
                 begin
                     emit_none(A_PUSHF,S_L);
                     emit_reg(A_PUSH,S_L,R_CS);
                 end;
+{$endif i386}
               { procedure of object? }
               if (po_methodpointer in procdefinition.procoptions) then
                 begin
@@ -1027,7 +1036,7 @@ implementation
                        rg.getexplicitregisterint(exprasmlist,R_ESI);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,self_pointer_reg);
                        { push self pointer }
-                       cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paralocdummy);
+                       cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,-1);
                      end;
 
                    rg.saveregvars(exprasmlist,ALL_REGISTERS);
@@ -1056,7 +1065,9 @@ implementation
                    location_release(exprasmlist,right.location);
                 end;
            end;
+{$endif dummy}
 
+{$ifdef dummy}
            { this was only for normal functions
              displaced here so we also get
              it to work for procvars PM }
@@ -1088,6 +1099,8 @@ implementation
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
+{$endif dummy}
+
 {$ifdef OPTALIGN}
          if pop_esp then
            emit_reg(A_POP,S_L,R_ESP);
@@ -1099,6 +1112,7 @@ implementation
          testregisters32;
 {$endif TEMPREGDEBUG}
 
+{$ifdef dummy}
          { a constructor could be a function with boolean result }
          { if calling constructor called fail we
            must jump directly to quickexitlabel  PM
@@ -1111,11 +1125,6 @@ implementation
             (aktprocdef.proctypeoption=potype_constructor) then
            begin
              emitjmp(C_Z,faillabel);
-{$ifdef TEST_GENERIC}
-{ should be moved to generic version! }
-             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
-             cg.a_load_ref_reg(exprasmlist, OS_ADDR, href, SELF_POINTER_REG);
-{$endif}
            end;
 
          { call to AfterConstruction? }
@@ -1128,7 +1137,7 @@ implementation
            begin
               getlabel(constructorfailed);
               emitjmp(C_Z,constructorfailed);
-              cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+              cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
               reference_reset_base(href,self_pointer_reg,0);
               tmpreg:=cg.get_scratch_reg_address(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
@@ -1140,6 +1149,7 @@ implementation
               cg.a_load_reg_reg(exprasmlist,OS_ADDR,self_pointer_reg,accumulator);
            end;
 
+{$endif dummy}
          { handle function results }
          if (not is_void(resulttype.def)) then
           begin
@@ -1179,10 +1189,12 @@ implementation
                           cgsize:=OS_INT
                          else
                           begin
+{$ifdef dummy}
                             cgsize:=OS_NO;
                             { this fails if popsize > 0 PM }
                             location_reset(location,LOC_FLAGS,OS_NO);
                             location.resflags:=F_NE;
+{$endif dummy}
                           end;
                        end;
 
@@ -1217,9 +1229,12 @@ implementation
                     end;
                   floatdef :
                     begin
+{$ifdef dummy}
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                       location.register:=R_ST;
                       inc(trgcpu(rg).fpuvaroffset);
+{$endif dummy}
+
                     end;
                   else
                     begin
@@ -1238,8 +1253,11 @@ implementation
               cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
            end;
+
+{$ifdef i386}
          if pop_size>0 then
            emit_const_reg(A_ADD,S_L,pop_size,R_ESP);
+{$endif i386}
 
          { restore registers }
          rg.restoreusedregisters(exprasmlist,pushed);
@@ -1295,12 +1313,14 @@ implementation
                 end
               else if location.loc=LOC_FPUREGISTER then
                 begin
+{$ifdef i386}
                   { release FPU stack }
                   emit_reg(A_FSTP,S_NO,R_ST);
                   {
                     dec(trgcpu(rg).fpuvaroffset);
                     do NOT decrement as the increment before
                     is not called for unused results PM }
+{$endif i386}
                 end;
            end;
       end;
@@ -1308,11 +1328,11 @@ implementation
 
 
 {*****************************************************************************
-                             TI386PROCINLINENODE
+                             TCGPROCINLINENODE
 *****************************************************************************}
 
 
-    procedure ti386procinlinenode.pass_2;
+    procedure tcgprocinlinenode.pass_2;
        var st : tsymtable;
            oldprocdef : tprocdef;
            ps, i : longint;
@@ -1475,119 +1495,13 @@ implementation
 
 
 begin
-   ccallparanode:=ti386callparanode;
-   ccallnode:=ti386callnode;
-   cprocinlinenode:=ti386procinlinenode;
+   ccallparanode:=tcgcallparanode;
+   ccallnode:=tcgcallnode;
+   cprocinlinenode:=tcgprocinlinenode;
 end.
 {
   $Log$
-  Revision 1.59  2002-07-11 14:41:33  florian
+  Revision 1.1  2002-07-11 14:41:28  florian
     * start of the new generic parameter handling
-
-  Revision 1.58  2002/07/07 09:52:34  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.57  2002/07/06 20:27:26  carl
-  + generic set handling
-
-  Revision 1.56  2002/07/01 18:46:31  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.55  2002/07/01 16:23:56  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.54  2002/05/20 13:30:40  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.53  2002/05/18 13:34:23  peter
-    * readded missing revisions
-
-  Revision 1.52  2002/05/16 19:46:51  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.50  2002/05/13 19:54:38  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.49  2002/05/12 16:53:17  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.48  2002/04/25 20:16:40  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.47  2002/04/21 19:02:07  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.46  2002/04/21 15:34:25  carl
-  * changeregsize -> rg.makeregsize
-
-  Revision 1.45  2002/04/15 19:44:21  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.44  2002/04/04 19:06:10  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.43  2002/04/02 17:11:35  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.42  2002/03/31 20:26:38  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.41  2002/03/04 19:10:13  peter
-    * removed compiler warnings
 
 }
