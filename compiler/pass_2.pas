@@ -275,8 +275,15 @@ implementation
               { assign parameter locations }
               current_procinfo.after_pass1;
 
-              { paraloc register info is necessary for regvars }
+              { callee paraloc register info is necessary for regvars }
               paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
+              { caller paraloc info is also necessary in the stackframe_entry }
+              { code of the ppc (and possibly other processors)               }
+              if not current_procinfo.procdef.has_paraloc_info then
+                begin
+                  paramanager.create_paraloc_info(current_procinfo.procdef,callerside);
+                  current_procinfo.procdef.has_paraloc_info:=true;
+                end;
 
               { process register variable stuff (JM) }
               assign_regvars(p);
@@ -303,7 +310,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-07-05 20:13:03  jonas
+  Revision 1.59  2003-07-06 10:18:47  jonas
+    * also generate the caller paraloc info of a procedure if it doesn't exist
+      yet at the start of pass_2
+
+  Revision 1.58  2003/07/05 20:13:03  jonas
      * create_paraloc_info() is now called separately for the caller and
        callee info
      * fixed ppc cycle
