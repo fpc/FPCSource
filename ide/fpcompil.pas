@@ -126,9 +126,9 @@ uses
 {$ifdef win32}
   signals,
 {$endif}
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
   fpcatch,
-{$endif HasSignal}
+{ $endif HasSignal}
   Dos,
 {$ifdef fpc}
   Video,
@@ -667,12 +667,12 @@ const
 
 procedure CompilerStop(err: longint); {$ifndef FPC}far;{$endif}
 begin
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
   if StopJmpValid then
     Longjmp(StopJmp,LONGJMPCALLED)
   else
     Halt(err);
-{$endif}
+{ $endif}
 end;
 
 Function  CompilerGetNamedFileTime(const filename : string) : Longint; {$ifndef FPC}far;{$endif}
@@ -907,17 +907,17 @@ begin
   PPasFile:='ppas'+source_info.scriptext;
   WUtils.DeleteFile(GetExePath+PpasFile);
   SetStatus('Compiling...');
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
   StoreStopJumpValid:=StopJmpValid;
   StoreStopJmp:=StopJmp;
-{$endif HasSignal}
+{ $endif HasSignal}
   StoreExitProc:=ExitProc;
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
   StopJmpValid:=true;
   JmpRet:=SetJmp(StopJmp);
-{$else}
+{ $else
   JmpRet:=0;
-{$endif HasSignal}
+$endif HasSignal}
   if JmpRet=0 then
     begin
       inc(CompileStamp);
@@ -940,7 +940,7 @@ begin
         it was before calling FPintF.compile PM }
       ExitProc:=StoreExitProc;
       Inc(status.errorCount);
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
       Case JmpRet of
         LONGJMPCALLED : s:='Error';
         SIGINT : s := 'Interrupted by Ctrl-C';
@@ -951,17 +951,17 @@ begin
           s:='Undetermined signal '+inttostr(JmpRet);
       end;
       CompilerMessageWindow^.AddMessage(V_error,s+' during compilation','',0,0);
-{$endif HasSignal}
+{ $endif HasSignal}
       if JmpRet<>LONGJMPCALLED then
         begin
           CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
           SetStatus('Long jumped out of compilation...');
         end;
     end;
-{$ifdef HasSignal}
+{ $ifdef HasSignal}
   StopJmpValid:=StoreStopJumpValid;
   StopJmp:=StoreStopJmp;
-{$endif HasSignal}
+{ $endif HasSignal}
   { Retrieve created exefile }
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
@@ -1279,7 +1279,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2005-03-06 13:48:59  florian
+  Revision 1.39  2005-04-02 23:56:54  hajny
+    * fix for targets missing exception handler implementation
+
+  Revision 1.38  2005/03/06 13:48:59  florian
     + Units & Exe dir may now contain $fpc... valus
     * version to 1.0.4 increased
 

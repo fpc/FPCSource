@@ -58,6 +58,33 @@ var
 const
   StopJmpValid : boolean = false;
 
+{$IFNDEF HASSIGNAL}
+const
+  SIGABRT   = 288;
+  SIGFPE    = 289;
+  SIGILL    = 290;
+  SIGSEGV   = 291;
+  SIGTERM   = 292;
+  SIGALRM   = 293;
+  SIGHUP    = 294;
+  SIGINT    = 295;
+  SIGKILL   = 296;
+  SIGPIPE   = 297;
+  SIGQUIT   = 298;
+  SIGUSR1   = 299;
+  SIGUSR2   = 300;
+  SIGNOFP   = 301;
+  SIGTRAP   = 302;
+  SIGTIMR   = 303;    { Internal for setitimer (SIGALRM, SIGPROF) }
+  SIGPROF   = 304;
+  SIGMAX    = 320;
+
+  SIG_BLOCK   = 1;
+  SIG_SETMASK = 2;
+  SIG_UNBLOCK = 3;
+{$ENDIF HASSIGNAL}
+
+
 Implementation
 
 uses
@@ -222,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2005-02-14 17:13:18  peter
+  Revision 1.13  2005-04-02 23:56:54  hajny
+    * fix for targets missing exception handler implementation
+
+  Revision 1.12  2005/02/14 17:13:18  peter
     * truncate log
 
 }
