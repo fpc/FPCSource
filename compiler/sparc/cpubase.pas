@@ -393,6 +393,7 @@ uses
                                   Helpers
 *****************************************************************************}
 
+    function RefsEqual(Const r1,r2: TReference) : Boolean;
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var f: TResFlags);
@@ -426,6 +427,17 @@ implementation
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
+
+    function RefsEqual(Const r1,r2: TReference) : Boolean;
+      begin
+        RefsEqual := (r1.Offset=r2.Offset) and
+                     (r1.Base=r2.Base) and
+                     (r1.Index=r2.Index) and
+                     (r1.symbol=r2.symbol) and
+                     (r1.relsymbol=r2.relsymbol) and
+                     (r1.refaddr=r2.refaddr);
+      end;
+
 
     function is_calljmp(o:tasmop):boolean;
       const
@@ -509,7 +521,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2004-10-25 17:04:51  peter
+  Revision 1.74  2004-10-30 15:21:38  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.73  2004/10/25 17:04:51  peter
     * add saved_standard_registers
 
   Revision 1.72  2004/09/21 17:25:13  peter

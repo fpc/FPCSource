@@ -208,6 +208,7 @@ implementation
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
          inherited create(op);
+         is_jmp:=op in [A_BA,A_Bxx];
          condition:=cond;
          ops:=1;
          loadsymbol(0,_op1,0);
@@ -217,6 +218,7 @@ implementation
     constructor taicpu.op_sym(op : tasmop;_op1 : tasmsymbol);
       begin
          inherited create(op);
+         is_jmp:=op in [A_BA,A_Bxx];
          ops:=1;
          loadsymbol(0,_op1,0);
       end;
@@ -311,7 +313,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-06-20 08:55:32  florian
+  Revision 1.51  2004-10-30 15:21:38  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.50  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.49  2004/06/20 08:47:33  florian

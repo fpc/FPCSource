@@ -24,7 +24,6 @@ unit psub;
 
 {$i fpcdefs.inc}
 
-
 interface
 
     uses
@@ -105,7 +104,7 @@ implementation
          {$ifdef i386}
            ,aopt386
          {$else i386}
-           ,aoptcpu
+           ,aopt
          {$endif i386}
        {$endif}
        ;
@@ -1404,7 +1403,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.210  2004-10-24 20:01:08  peter
+  Revision 1.211  2004-10-30 15:21:37  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.210  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.209  2004/10/15 09:14:17  mazen

@@ -1235,7 +1235,7 @@ unit rgobj;
         i,j,k : word;
         n,a,c : Tsuperregister;
         colourednodes : Tsuperregisterset;
-                adj_colours:set of 0..255;
+        adj_colours:set of 0..255;
         found : boolean;
 
     begin
@@ -1994,7 +1994,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.144  2004-10-24 17:04:01  peter
+  Revision 1.145  2004-10-30 15:21:37  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.144  2004/10/24 17:04:01  peter
     * during translation only process regalloc for the current regtype
 
   Revision 1.143  2004/10/15 09:14:17  mazen

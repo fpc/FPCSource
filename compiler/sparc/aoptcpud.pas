@@ -1,8 +1,7 @@
 {
     $Id$
-    Copyright (c) 2001 by Peter Vreman
-
-    Includes the i386 dependent target units
+    Copyright (c) 1998-2004 by Jonas Maebe, member of the Free Pascal
+    Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,48 +19,25 @@
 
  ****************************************************************************
 }
-unit cputarg;
+Unit aoptcpud;
 
 {$i fpcdefs.inc}
 
-interface
-
-
-implementation
+  interface
 
     uses
-      systems { prevent a syntax error when nothing is included }
+      aoptda;
 
-{$ifndef NOOPT}
-      ,aoptcpu
-{$endif NOOPT}
+    type
+      TAOptDFACpu = class(TAOptDFA)
+      end;
 
-{**************************************
-             Targets
-**************************************}
-
-    {$ifndef NOTARGETLINUX}
-      ,t_linux
-    {$endif}
-    {$ifndef NOTARGETSUNOS}
-      ,t_sunos
-    {$endif}
-
-{**************************************
-             Assemblers
-**************************************}
-
-      ,CpuGas
-
-      ;
+  implementation
 
 end.
 {
   $Log$
-  Revision 1.6  2004-10-30 15:21:38  florian
+  Revision 1.1  2004-10-30 15:21:38  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
-
-  Revision 1.5  2004/06/20 08:55:32  florian
-    * logs truncated
 }

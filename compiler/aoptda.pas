@@ -24,164 +24,177 @@
 }
 Unit aoptda;
 
-Interface
+{$i fpcdefs.inc}
 
-uses aasm, cpubase, aoptcpub, aoptbase, aoptcpu;
+  Interface
 
-Type
-  TAOptDFA = Object(TAoptCpu)
-    { uses the same constructor as TAoptCpu = constructor from TAoptObj }
+    uses
+      cpubase,cgbase,
+      aasmbase,aasmtai,aasmcpu,
+      aoptcpub, aoptbase;
 
-    { gathers the information regarding the contents of every register }
-    { at the end of every instruction                                  }
-    Procedure DoDFA;
+    Type
+      TAOptDFA = class
+        { uses the same constructor as TAoptCpu = constructor from TAoptObj }
 
-    { handles the processor dependent dataflow analizing               }
-    Procedure CpuDFA(p: PInstr); Virtual;
+        { gathers the information regarding the contents of every register }
+        { at the end of every instruction                                  }
+        Procedure DoDFA;
 
-    { How many instructions are between the current instruction and the }
-    { last one that modified the register                               }
-    InstrSinceLastMod: TInstrSinceLastMod;
+        { handles the processor dependent dataflow analizing               }
+        Procedure CpuDFA(p: PInstr); Virtual;
 
-    { convert a TInsChange value into the corresponding register }
-    Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;
-    { returns whether the instruction P reads from register Reg }
-    Function RegReadByInstr(Reg: TRegister; p: Pai): Boolean; Virtual;
-  End;
+        { How many instructions are between the current instruction and the }
+        { last one that modified the register                               }
+        InstrSinceLastMod: TInstrSinceLastMod;
 
-Implementation
+        { convert a TInsChange value into the corresponding register }
+        //!!!!!!!!!! Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;
+        { returns whether the instruction P reads from register Reg }
+        Function RegReadByInstr(Reg: TRegister; p: tai): Boolean; Virtual;
+      End;
 
-uses globals, aoptobj;
+  Implementation
 
-Procedure TAOptDFA.DoDFA;
-{ Analyzes the Data Flow of an assembler list. Analyses the reg contents     }
-{ for the instructions between blockstart and blockend. Returns the last pai }
-{ which has been processed                                                   }
-Var
-    CurProp: PPaiProp;
-    UsedRegs: TUsedRegs;
-    p, hp, NewBlockStart : Pai;
-    TmpReg: TRegister;
-Begin
-  p := BlockStart;
-  UsedRegs.init;
-  UsedRegs.Update(p);
-  NewBlockStart := SkipHead(p);
-  { done implicitely by the constructor
-  FillChar(InstrSinceLastMod, SizeOf(InstrSinceLastMod), 0); }
-  While (P <> BlockEnd) Do
+    uses
+      globals, aoptobj;
+
+    Procedure TAOptDFA.DoDFA;
+    { Analyzes the Data Flow of an assembler list. Analyses the reg contents     }
+    { for the instructions between blockstart and blockend. Returns the last pai }
+    { which has been processed                                                   }
+    Var
+        CurProp: TPaiProp;
+        UsedRegs: TUsedRegs;
+        p, hp, NewBlockStart : tai;
+        TmpReg: TRegister;
     Begin
-      CurProp := New(PPaiProp, init);
-      If (p <> NewBlockStart) Then
+    {!!!!!!!!!!
+      p := BlockStart;
+      UsedRegs.Create;
+      UsedRegs.Update(p);
+      NewBlockStart := SkipHead(p);
+      { done implicitely by the constructor
+      FillChar(InstrSinceLastMod, SizeOf(InstrSinceLastMod), 0); }
+      While (P <> BlockEnd) Do
         Begin
-          GetLastInstruction(p, hp);
-          CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
-{ !!!!!!!!!!!! }
-{$ifdef x86}
-          CurProp^.CondRegs.Flags :=
-            PPaiProp(hp^.OptInfo)^.CondRegs.Flags;
-{$endif}
-        End;
-      CurProp^.UsedRegs.InitWithValue(UsedRegs.GetUsedRegs);
-      UsedRegs.Update(Pai(p^.Next));
-      PPaiProp(p^.OptInfo) := CurProp;
-      For TmpReg := LoGPReg To HiGPReg Do
-        Inc(InstrSinceLastMod[TmpReg]);
-      Case p^.typ Of
-        ait_label:
-          If (Pai_label(p)^.l^.is_used) Then
-            CurProp^.DestroyAllRegs(InstrSinceLastMod);
-{$ifdef GDB}
-        ait_stabs, ait_stabn, ait_stab_function_name:;
-{$endif GDB}
-        ait_instruction:
-          if not(PInstr(p)^.is_jmp) then
-            begin
-              If IsLoadMemReg(p) Then
-                Begin
-                  CurProp^.ReadRef(PInstr(p)^.oper[LoadSrc].ref);
-                  TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
-                  If RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^) And
-                     (CurProp^.GetRegContentType(TmpReg) = Con_Ref) Then
+          CurProp:=TPaiProp.Create;
+          If (p <> NewBlockStart) Then
+            Begin
+              GetLastInstruction(p, hp);
+              CurProp.Regs := TPaiProp(hp.OptInfo).Regs;
+    { !!!!!!!!!!!! }
+    {$ifdef x86}
+              CurProp.CondRegs.Flags :=
+                TPaiProp(hp.OptInfo).CondRegs.Flags;
+    {$endif}
+            End;
+          CurProp.UsedRegs.InitWithValue(UsedRegs.GetUsedRegs);
+          UsedRegs.Update(tai(p.Next));
+          TPaiProp(p.OptInfo) := CurProp;
+          For TmpReg := LoGPReg To HiGPReg Do
+            Inc(InstrSinceLastMod[TmpReg]);
+          Case p^.typ Of
+            ait_label:
+              If (Pai_label(p)^.l^.is_used) Then
+                CurProp^.DestroyAllRegs(InstrSinceLastMod);
+    {$ifdef GDB}
+            ait_stabs, ait_stabn, ait_stab_function_name:;
+    {$endif GDB}
+            ait_instruction:
+              if not(PInstr(p)^.is_jmp) then
+                begin
+                  If IsLoadMemReg(p) Then
                     Begin
-                      { a load based on the value this register already }
-                      { contained                                       }
+                      CurProp^.ReadRef(PInstr(p)^.oper[LoadSrc].ref);
+                      TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
+                      If RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^) And
+                         (CurProp^.GetRegContentType(TmpReg) = Con_Ref) Then
+                        Begin
+                          { a load based on the value this register already }
+                          { contained                                       }
+                          With CurProp^.Regs[TmpReg] Do
+                            Begin
+                              CurProp^.IncWState(TmpReg);
+                               {also store how many instructions are part of the  }
+                               { sequence in the first instruction's PPaiProp, so }
+                               { it can be easily accessed from within            }
+                               { CheckSequence                                    }
+                              Inc(NrOfMods, InstrSinceLastMod[TmpReg]);
+                              PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
+                              InstrSinceLastMod[TmpReg] := 0
+                            End
+                        End
+                      Else
+                        Begin
+                          { load of a register with a completely new value }
+                          CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
+                          If Not(RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^)) Then
+                            With CurProp^.Regs[TmpReg] Do
+                              Begin
+                                Typ := Con_Ref;
+                                StartMod := p;
+                                NrOfMods := 1;
+                              End
+                        End;
+      {$ifdef StateDebug}
+                        hp := new(pai_asm_comment,init(strpnew(std_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
+                        InsertLLItem(AsmL, p, p^.next, hp);
+      {$endif StateDebug}
+
+                    End
+                  Else if IsLoadConstReg(p) Then
+                    Begin
+                      TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
                       With CurProp^.Regs[TmpReg] Do
                         Begin
-                          CurProp^.IncWState(TmpReg);
-                           {also store how many instructions are part of the  }
-                           { sequence in the first instruction's PPaiProp, so }
-                           { it can be easily accessed from within            }
-                           { CheckSequence                                    }
-                          Inc(NrOfMods, InstrSinceLastMod[TmpReg]);
-                          PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
-                          InstrSinceLastMod[TmpReg] := 0
+                          CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
+                          typ := Con_Const;
+                          StartMod := Pointer(PInstr(p)^.oper[LoadSrc].val);
                         End
                     End
-                  Else
-                    Begin
-                      { load of a register with a completely new value }
-                      CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
-                      If Not(RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^)) Then
-                        With CurProp^.Regs[TmpReg] Do
-                          Begin
-                            Typ := Con_Ref;
-                            StartMod := p;
-                            NrOfMods := 1;
-                          End
-                    End;
-  {$ifdef StateDebug}
-                    hp := new(pai_asm_comment,init(strpnew(std_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
-                    InsertLLItem(AsmL, p, p^.next, hp);
-  {$endif StateDebug}
-
-                End
-              Else if IsLoadConstReg(p) Then
-                Begin
-                  TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
-                  With CurProp^.Regs[TmpReg] Do
-                    Begin
-                      CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
-                      typ := Con_Const;
-                      StartMod := Pointer(PInstr(p)^.oper[LoadSrc].val);
-                    End
-                End
-              Else CpuDFA(Pinstr(p));
-            End;
-        Else CurProp^.DestroyAllRegs(InstrSinceLastMod);
-      End;
-{      Inc(InstrCnt);}
-      GetNextInstruction(p, p);
+                  Else CpuDFA(Pinstr(p));
+                End;
+            Else CurProp^.DestroyAllRegs(InstrSinceLastMod);
+          End;
+    {      Inc(InstrCnt);}
+          GetNextInstruction(p, p);
+        End;
+    }
     End;
-End;
 
-Procedure TAoptDFA.CpuDFA(p: PInstr);
-Begin
-  Abstract;
-End;
+    Procedure TAoptDFA.CpuDFA(p: PInstr);
+    Begin
+      Abstract;
+    End;
 
-Function TAOptDFA.TCh2Reg(Ch: TInsChange): TRegister;
-Begin
-  TCh2Reg:=R_NO;
-  Abstract;
-End;
+  {!!!!!!!
+    Function TAOptDFA.TCh2Reg(Ch: TInsChange): TRegister;
+    Begin
+      TCh2Reg:=R_NO;
+      Abstract;
+    End;
+  }
 
-Function TAOptDFA.RegReadByInstr(Reg: TRegister; p: Pai): Boolean;
-Begin
-  RegReadByInstr:=false;
-  Abstract;
-End;
+    Function TAOptDFA.RegReadByInstr(Reg: TRegister; p: tai): Boolean;
+    Begin
+      RegReadByInstr:=false;
+      Abstract;
+    End;
 
 
 End.
 
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:28  florian
+  Revision 1.9  2004-10-30 15:21:37  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.8  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.7  2004/01/31 17:45:16  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
-
 }

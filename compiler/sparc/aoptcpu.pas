@@ -1,8 +1,9 @@
 {
     $Id$
-    Copyright (c) 2001 by Peter Vreman
+    Copyright (c) 1998-2004 by Jonas Maebe
 
-    Includes the i386 dependent target units
+    This unit calls the optimization procedures to optimize the assembler
+    code for sparc
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,48 +21,31 @@
 
  ****************************************************************************
 }
-unit cputarg;
+
+unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-interface
-
-
-implementation
+  Interface
 
     uses
-      systems { prevent a syntax error when nothing is included }
+      cpubase, aoptobj, aoptcpub, aopt;
 
-{$ifndef NOOPT}
-      ,aoptcpu
-{$endif NOOPT}
+    Type
+      TCpuAsmOptimizer = class(TAsmOptimizer)
+      End;
 
-{**************************************
-             Targets
-**************************************}
+  Implementation
 
-    {$ifndef NOTARGETLINUX}
-      ,t_linux
-    {$endif}
-    {$ifndef NOTARGETSUNOS}
-      ,t_sunos
-    {$endif}
-
-{**************************************
-             Assemblers
-**************************************}
-
-      ,CpuGas
-
-      ;
-
+begin
+  casmoptimizer:=TCpuAsmOptimizer;
 end.
 {
   $Log$
-  Revision 1.6  2004-10-30 15:21:38  florian
+  Revision 1.1  2004-10-30 15:21:38  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 
-  Revision 1.5  2004/06/20 08:55:32  florian
+  Revision 1.10  2004/06/20 08:55:31  florian
     * logs truncated
 }

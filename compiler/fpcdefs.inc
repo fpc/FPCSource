@@ -24,7 +24,7 @@
       {$ifndef USEOPT}
         {$define NOOPT}
       {$endif}
-      
+
       { 1.0.x generates broken code for sysutils }
       {$ifndef FORCE_SYSUTILS}
         {$undef USE_SYSUTILS}
@@ -37,7 +37,7 @@
        {$undef USE_SYSUTILS}
      {$endif}	
   {$endif}
-   
+
   {$define FPCPROCVAR}
   {$define USEEXCEPT}
 
@@ -58,18 +58,15 @@
   {$define cpu64bit}
   {$define cpuextended}
   {$define cpufloat128}
-  {$define noopt}
   {$define cputargethasfixedstack}
 {$endif x86_64}
 
 {$ifdef alpha}
   {$define cpu64bit}
-  {$define noopt}
 {$endif alpha}
 
 {$ifdef sparc}
   {$define cpuflags}
-  {$define noopt}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
 {$endif sparc}
@@ -84,19 +81,21 @@
   {$define cpuflags}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
-  {$define noopt}
   {$define cpurequiresproperalignment}
 {$endif arm}
 
 {$ifdef m68k}
   {$define cpuflags}
   {$define cpufpemu}
-  {$define noopt}
 {$endif m68k}
 
 {
   $Log$
-  Revision 1.44  2004-10-14 18:29:22  peter
+  Revision 1.45  2004-10-30 15:21:37  florian
+    * fixed generic optimizer
+    * enabled generic optimizer for sparc
+
+  Revision 1.44  2004/10/14 18:29:22  peter
     * disable USE_SYSUTILS when compiled with 1.9.4 or 1.0.x
 
   Revision 1.43  2004/10/10 14:57:29  jonas
