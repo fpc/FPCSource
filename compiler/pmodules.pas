@@ -726,7 +726,7 @@ implementation
 	       ltvTable := TAAsmOutput.Create;
 	       ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
 	     end;
-	     asym := getasmsymbol('_' + name);
+	     asym := getasmsymbol(mangledname);
 	     if asym <> nil then
 	     begin
 	       ltvTable.concat(tai_const_symbol.create(asym));    { address of threadvar }
@@ -1021,6 +1021,8 @@ implementation
 	 begin
 	   ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
 	   ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
+	   if (cs_create_smart in aktmoduleswitches) then
+             dataSegment.concat(Tai_cut.Create);
 	   dataSegment.concatlist(ltvTable);
 	   ltvTable.Free;
 	   current_module.flags:=current_module.flags or uf_local_threadvars;
@@ -1428,7 +1430,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-03-29 17:19:50  armin
+  Revision 1.55  2002-04-01 13:43:32  armin
+  addToLocalThreadvarList used '_'+name instead of mangledname to find asm symbol
+
+  Revision 1.54  2002/03/29 17:19:50  armin
   + allow exports for netware
 
   Revision 1.53  2002/03/29 09:00:56  armin
