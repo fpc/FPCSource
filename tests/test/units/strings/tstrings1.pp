@@ -93,6 +93,7 @@ procedure teststrpcopy;
        failed;
   end;
 
+
 procedure teststrend;
   Const
      P : PChar = 'This is a PCHAR string.';
@@ -100,6 +101,7 @@ procedure teststrend;
      If StrEnd(P)-P<>23 then
        failed;
   end;
+
 
 procedure teststrcopy;
   Const
@@ -117,6 +119,19 @@ procedure teststrcopy;
      if StrComp(Buf,P2)<>0 then
        failed;
   end;
+
+
+procedure teststrscanstrrscan;
+  Const
+    P : PChar = 'This is a PCHAR string.';
+    S : Char = 's' ;
+begin
+  if StrComp(StrScan(P,s),'s is a PCHAR string.')<>0 then
+    failed;
+  if StrComp(StrRScan(P,s),'string.')<>0 then
+    failed;
+end;
+
 
 begin
    write('Testing strlen ... ');
@@ -139,5 +154,8 @@ begin
    writeln('Success.');
    write('Testing strend ... ');
    teststrend;
+   writeln('Success.');
+   write('Testing strscan/strrscan ... ');
+   teststrscanstrrscan;
    writeln('Success.');
 end.
