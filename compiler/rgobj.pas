@@ -1986,7 +1986,7 @@ unit rgobj;
               top_shifterop:
                 begin
                   if shifterop^.rs<>NR_NO then
-                    addreginfo(getsupreg(shifterop^.rs),operand_read);
+                    addreginfo(shifterop^.rs,operand_read);
                 end;
 {$endif ARM}
             end;
@@ -2045,7 +2045,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.129  2004-06-20 08:55:30  florian
+  Revision 1.130  2004-06-22 18:24:18  florian
+    * fixed arm compilation
+
+  Revision 1.129  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.128  2004/06/20 08:47:33  florian
