@@ -215,7 +215,7 @@ begin
     end;
   If assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents[Runner]).Notification(AComponent,Operation);
+      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
 end;
 
 
@@ -237,7 +237,7 @@ begin
     Include(FCOmponentState,csAncestor);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count do
-      TComponent(FComponents[Runner]).SetAncestor(Value);
+      TComponent(FComponents.Items[Runner]).SetAncestor(Value);
 end;
 
 
@@ -252,7 +252,7 @@ begin
     Exclude(FComponentSTate,csDesigning);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count do
-      TComponent(FComponents[Runner]).SetDesigning(Value);
+      TComponent(FComponents.items[Runner]).SetDesigning(Value);
 end;
 
 
@@ -356,7 +356,7 @@ begin
   If Assigned(FFreeNotifies) then
     begin
     For Runner:=0 To FFreeNotifies.Count-1 do
-      TComponent(FFreeNotifies[Runner]).Notification (self,opRemove);
+      TComponent(FFreeNotifies.Items[Runner]).Notification (self,opRemove);
     FFreeNotifies.Free;
     FFreeNotifies:=Nil;
     end;
@@ -390,7 +390,7 @@ begin
   include (FComponentState,csDestroying);
   If Assigned(FComponents) then
     for Runner:=0 to FComponents.Count-1 do
-      TComponent(FComponents[Runner]).Destroying;
+      TComponent(FComponents.Items[Runner]).Destroying;
 end;
 
 
@@ -404,7 +404,7 @@ begin
   For i:=0 to FComponents.Count-1 do
     if TComponent(FComponents[I]).Name=AName then
       begin
-      Result:=TComponent(FComponents[I]);
+      Result:=TComponent(FComponents.Items[I]);
       exit;
       end;
 end;
@@ -478,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-04-12 08:02:48  michael
+  Revision 1.8  1999-04-12 14:41:00  michael
+  + Fixed TComponent methods where defaults are used
+
+  Revision 1.7  1999/04/12 08:02:48  michael
   + Fixed bug in ValidateRename
 
   Revision 1.6  1999/04/08 10:18:51  peter
