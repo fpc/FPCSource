@@ -159,6 +159,12 @@ var
                 s:=s+gas_regname(base)+','+gas_regname(index)
               else
                 internalerror(19992); //  *** ???
+            end
+          else if (base=NR_NO) and (offset=0) then
+            begin
+              {Temporary fix for inline asm, where a local var is referenced.}
+              //if assigned(symbol) then
+              //  s:= s+'(rtoc)';
             end;
         end;
       getreferencestring:=s;
@@ -178,6 +184,18 @@ var
           begin
             hs:=o.sym.name;
             ReplaceForbiddenChars(hs);
+            case o.sym.typ of
+              AT_FUNCTION:
+                begin
+                  if hs[1] <> '@' then {if not local label}
+                    if use_PR then
+                      hs:= '.'+hs+'[PR]'
+                    else
+                      hs:= '.'+hs
+                end
+              else
+                ;
+            end;
             if o.symofs>0 then
              hs:=hs+'+'+tostr(o.symofs)
             else
@@ -315,20 +333,17 @@ var
              A_BCTR,A_BCTRL,A_BLR,A_BLRL:
                s:=#9+gas_op2str[op];
              A_BL,A_BLA:
-               s:=#9+gas_op2str[op]+#9'.';
+               s:=#9+gas_op2str[op]+#9;
              else
                begin
                  s:=cond2str(op,taicpu(hp).condition);
-                 if (s[length(s)] <> #9) and 
+                 if (s[length(s)] <> #9) and
                     (taicpu(hp).ops>0) then
                    s := s + ',';
                end;
           end;
           if (taicpu(hp).oper[0]^.typ <> top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
-          if use_PR then
-            if (op=A_BL) or (op=A_BLA) then
-              s:=s+'[PR]';
         end
       else
         { process operands }
@@ -1367,7 +1382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2004-01-12 00:08:03  olle
+  Revision 1.30  2004-02-04 15:28:24  olle
+    * made more in phase with agppcgas.pas
+
+  Revision 1.29  2004/01/12 00:08:03  olle
     * gen of conditional instr updated according to agppcgas
     * gen of PPCAsm command fixed
 
