@@ -350,34 +350,32 @@ Const
      ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
 
 Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
-var
-  res : HRESULT;
-  I   : SizeInt;
-begin
-  Result:=nil;
-  if Not (VarType in Supportedpsas) Then
-    exit;
-  Res:=SafeArrayAllocDescriptor(Dim, Result);
-  if Res<>VAR_OK then
-    exit;
-  With Result^ do
-    begin
-    DimCount:=Dim;
-    Flags:=psaElementFlags[VarType];
-    ElementSize:=psaElementSizes[VarType];
+  var
+    res : HRESULT;
+    I   : SizeInt;
+  begin
+    Result:=nil;
+    if Not (VarType in Supportedpsas) Then
+      exit;
+    Res:=SafeArrayAllocDescriptor(Dim, Result);
+    if Res<>VAR_OK then
+      exit;
+    Result^.DimCount:=Dim;
+    Result^.Flags:=psaElementFlags[VarType];
+    Result^.ElementSize:=psaElementSizes[VarType];
     for i:=0 to Dim-1 do
       begin
-      Bounds[i].LowBound:=Bounds[Dim-I-1].LowBound;
-      Bounds[I].ElementCount:=Bounds[Dim-I-1].ElementCount;
+        Result^.Bounds[i].LowBound:=Bounds[Dim-I-1].LowBound;
+        Result^.Bounds[I].ElementCount:=Bounds[Dim-I-1].ElementCount;
       end;
-    end;
-  res:=SafeArrayAllocData(Result);
-  if res<>VAR_OK then
-    begin
-    SafeArrayDestroyDescriptor(Result);
-    Result:=nil;
-    end;
-end;
+    res:=SafeArrayAllocData(Result);
+    if res<>VAR_OK then
+      begin
+      SafeArrayDestroyDescriptor(Result);
+      Result:=nil;
+      end;
+  end;
+  
 
 Function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT;stdcall;
 begin
@@ -720,7 +718,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.23  2005-03-28 17:04:58  florian
+  Revision 1.24  2005-03-28 21:52:43  florian
+    * SafeCreateArray fixed
+
+  Revision 1.23  2005/03/28 17:04:58  florian
     * compilation on non win32 fixed
 
   Revision 1.22  2005/03/28 13:38:05  florian
