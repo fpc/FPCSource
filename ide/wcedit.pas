@@ -120,7 +120,8 @@ type
       function    GetUndoActionCount: sw_integer; virtual;
       function    GetRedoActionCount: sw_integer; virtual;
     private
-      OnDiskLoadTime : longint;
+      OnDiskLoadTime : cardinal;
+      SystemLoadTime : cardinal;
       procedure LinesInsert(Idx: sw_integer; Line: PLine);
     end;
 
@@ -378,7 +379,8 @@ begin
   New(Lines, Init(500,1000));
   TabSize:=DefaultTabSize;
   IndentSize:=DefaultIndentSize;
-  OnDiskLoadTime:=-1;
+  OnDiskLoadTime:=0;
+  SystemLoadTime:=0;
 end;
 
 procedure TCodeEditorCore.ChangeLinesTo(ALines : PLineCollection);
@@ -1431,7 +1433,7 @@ begin
           (Core^.UndoList^.At(0)^.Action=eaMoveCursor)) then
         begin
           SetCmdState(UndoCmd,false);
-          if (UndoTime>Core^.OnDiskLoadTime) or (Core^.OnDiskLoadTime=-1) then
+          if (UndoTime>=Core^.SystemLoadTime) or (Core^.SystemLoadTime=0) then
             SetModified(false);
         end;
       SetCmdState(RedoCmd,true);
@@ -1779,20 +1781,22 @@ begin
       longint(PA[2]):=Core^.GetChangedLine;
       EditorDialog(edChangedOnloading,@PA);
     end;
-  Core^.OnDiskLoadTime:=GetFileTime(FileName);
+  Core^.OnDiskLoadTime:=Cardinal(GetFileTime(FileName));
+  Core^.SystemLoadTime:=Core^.OnDiskLoadTime;
   LoadFile:=OK;
 end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
   IsChangedOnDisk:=(Core^.OnDiskLoadTime<>GetFileTime(FileName)) and
-    (Core^.OnDiskLoadTime<>-1);
+    (Core^.OnDiskLoadTime<>0);
 end;
 
 function TFileEditor.SaveFile: boolean;
 var OK: boolean;
     BAKName: string;
     f: text;
+    SaveTime : cardinal;
 begin
   If IsChangedOnDisk then
     begin
@@ -1814,6 +1818,7 @@ begin
      EatIO;
   end;
 {$I+}
+  SaveTime:=cardinal(now);
   OK:=SaveToFile(FileName);
   if OK then
     SetModified(false)
@@ -1828,7 +1833,10 @@ begin
     end;
   { don't forget to update the OnDiskLoadTime value }
   if OK then
-    Core^.OnDiskLoadTime:=GetFileTime(FileName);
+    begin
+      Core^.OnDiskLoadTime:=GetFileTime(FileName);
+      Core^.SystemLoadTime:=SaveTime;
+    end;
   if not OK then
     EditorDialog(edSaveError,@FileName);
   SaveFile:=OK;
@@ -1864,6 +1872,7 @@ begin
       ClearUndoList;
       { don't forget to update the OnDiskLoadTime value }
       Core^.OnDiskLoadTime:=GetFileTime(FileName);
+      Core^.SystemLoadTime:=Core^.OnDiskLoadTime;
       DrawView;
     end
   else
@@ -1899,7 +1908,7 @@ begin
     FileName:=FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
     { if we rename the file the OnDiskLoadTime is wrong so we reset it }
-    Core^.OnDiskLoadTime:=-1;
+    Core^.OnDiskLoadTime:=0;
     if SaveFile then
       begin
         SaveAs := true;
@@ -2062,7 +2071,10 @@ end;
 END.
 {
  $Log$
- Revision 1.16  2002-12-16 15:14:44  pierre
+ Revision 1.17  2002-12-18 16:10:01  pierre
+  * fix bug report 2205
+
+ Revision 1.16  2002/12/16 15:14:44  pierre
   * moved OnDiskLoadTime to Core
 
  Revision 1.15  2002/09/12 22:09:07  pierre
