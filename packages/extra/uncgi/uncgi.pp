@@ -9,13 +9,6 @@ unit uncgi;
 interface
 uses
   strings
- {$ifdef Unix}
-  {$ifdef ver1_0}
-    ,Linux
-  {$else}
-    ,Unix
-  {$endif}
- {$endif}
 {$IFDEF OS2}
   ,DosCalls
 {$ENDIF OS2}
@@ -234,6 +227,37 @@ begin
    end;
 end;
 {$endif}
+
+{$ifdef unix}
+Function GetEnv(P:string):Pchar;
+{
+  Searches the environment for a string with name p and
+  returns a pchar to it's value.
+  A pchar is used to accomodate for strings of length > 255
+}
+var
+  ep    : ppchar;
+  found : boolean;
+Begin
+  p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
+  ep:=envp;
+  found:=false;
+  if ep<>nil then
+   begin
+     while (not found) and (ep^<>nil) do
+      begin
+        if strlcomp(@p[1],(ep^),length(p))=0 then
+         found:=true
+        else
+         inc(ep);
+      end;
+   end;
+  if found then
+   getenv:=ep^+length(p)
+  else
+   getenv:=nil;
+end;
+{$endif unix}
 
 
 var
@@ -486,7 +510,7 @@ begin
     clen:=strpas (getenv('CONTENT_LENGTH'));
     val(clen,qslen);
     if (upcase(strpas(getenv('CONTENT_TYPE')))='APPLICATION/X-WWW-FORM-URLENCODED')
-       or (upcase(strpas(getenv('CONTENT_TYPE')))='TEXT/PLAIN') 
+       or (upcase(strpas(getenv('CONTENT_TYPE')))='TEXT/PLAIN')
       then
       begin
       getmem(querystring,qslen+1);
@@ -547,12 +571,12 @@ Function http_url: pchar;
 begin
   http_url:=getenv('REQUEST_URI');
 end;
-  
+
 function http_remote: pchar;
 begin
   http_remote :=getenv('REMOTE_ADDR');
 end;
-  
+
 begin
   {$ifdef win32}
   InitWin32CGI;
@@ -561,11 +585,14 @@ begin
   done_init :=false;
 end.
 
-  
+
 {
   HISTORY
   $Log$
-  Revision 1.12  2003-07-16 12:56:03  mazen
+  Revision 1.13  2003-09-27 12:07:31  peter
+    * unix getenv added
+
+  Revision 1.12  2003/07/16 12:56:03  mazen
   + using Assert to monitor done_init and get state of
     un_cgi initailization
   * renaming EnvP and EnvC to cgiEnvP and cgiEnvP
