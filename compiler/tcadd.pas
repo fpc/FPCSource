@@ -494,7 +494,7 @@ implementation
                 else
                  begin
                    if not(p^.treetype in [addn,subn,symdifn,muln,equaln,unequaln]) then
-                    CGMessage(type_e_set_operation_unknown );
+                    CGMessage(type_e_set_operation_unknown);
                  { right def must be a also be set }
                    if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
                     CGMessage(type_e_set_element_are_not_comp);
@@ -918,7 +918,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-11-05 12:03:02  peter
+  Revision 1.12  1998-11-05 14:28:16  peter
+    * fixed unknown set operation msg
+
+  Revision 1.11  1998/11/05 12:03:02  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
