@@ -1366,6 +1366,7 @@ begin
   def_symbol('VALUEGETMEM');
   def_symbol('VALUEFREEMEM');
   def_symbol('HASCURRENCY');
+  def_symbol('HASTHREADVAR');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -1681,7 +1682,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.84  2002-10-02 18:20:52  peter
+  Revision 1.85  2002-10-13 21:33:01  peter
+    * define HASTHREADVAR
+
+  Revision 1.84  2002/10/02 18:20:52  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.83  2002/09/22 14:02:35  carl
