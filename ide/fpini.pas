@@ -185,7 +185,7 @@ begin
   C:='';
   for I:=1 to length(S) do
     begin
-      C:=C+'#$'+IntToHex(ord(S[I]),2);
+      Insert('#$'+IntToHex(ord(S[I]),2),C,Length(C)+1);
     end;
   PaletteToStr:=C;
 end;
@@ -622,7 +622,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
+  Revision 1.3  2001-08-12 00:04:50  pierre
+   * some speed improvements for string operations
+
+  Revision 1.2  2001/08/05 02:01:48  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:23  peter

@@ -90,8 +90,8 @@ type
        procedure   FillScreen(B: byte); virtual;
        procedure   ClrEol; virtual;
        procedure   GotoXY(X,Y: integer); virtual;
-       procedure   Write(S: string); virtual;
-       procedure   WriteLn(S: string); virtual;
+       procedure   Write(Const S: string); virtual;
+       procedure   WriteLn(Const S: string); virtual;
        procedure   WriteChar(C: char); virtual;
        procedure   DelLine(LineCount: integer); virtual;
        procedure   InsLine(LineCount: integer); virtual;
@@ -183,8 +183,8 @@ type
        function    LoadFile(const FileName: string): boolean;
        procedure   Draw; virtual;
        destructor  Done; virtual;
-       procedure   Write(S: string); virtual;
-       procedure   WriteLn(S: string); virtual;
+       procedure   Write(Const S: string); virtual;
+       procedure   WriteLn(Const S: string); virtual;
        procedure   Lock; virtual;
        procedure   UnLock; virtual;
        procedure   ChangeBounds(var Bounds: TRect); virtual;
@@ -217,8 +217,8 @@ type
        function    LoadFile(const FileName: string): boolean;
        procedure   Draw; virtual;
        destructor  Done; virtual;
-       procedure   Write(S: string); virtual;
-       procedure   WriteLn(S: string); virtual;
+       procedure   Write(Const S: string); virtual;
+       procedure   WriteLn(Const S: string); virtual;
        procedure   Lock; virtual;
        procedure   UnLock; virtual;
        procedure   ChangeBounds(var Bounds: TRect); virtual;
@@ -294,7 +294,7 @@ begin
   Abstract;
 end;
 
-procedure TConsoleObject.Write(S: string); {assembler;
+procedure TConsoleObject.Write(Const S: string); {assembler;
 asm
   push   ds
   lds    si, S
@@ -321,9 +321,9 @@ begin
   for I:=1 to Len do ProcessChar(S[I]);
 end;
 
-procedure TConsoleObject.WriteLn(S: string);
+procedure TConsoleObject.WriteLn(Const S: string);
 begin
-  Write(S+#10);
+  Write(S);Write(#10);
 end;
 
 procedure TConsoleObject.DelLine(LineCount: integer);
@@ -542,7 +542,12 @@ begin
                  'M'     : if ANSIParam='' then DelLine(1)
                                            else DelLine(GetANSIParam);
                  'm'     : while ANSIParam<>'' do SetAttr(GetANSIParam);
-            else begin ANSIParam:=ANSIParam+C; ANSIDone:=false; end;
+            else
+              begin
+                {ANSIParam:=ANSIParam+C;}
+                System.Insert(C,AnsiParam,Length(AnsiParam)+1);
+                ANSIDone:=false;
+              end;
             end;
             if ANSIDone then
                begin
@@ -794,13 +799,13 @@ begin
           end;
 end;
 
-procedure TANSIView.Write(S: string);
+procedure TANSIView.Write(Const S: string);
 begin
   Console^.Write(S);
   DrawView;
 end;
 
-procedure TANSIView.WriteLn(S: string);
+procedure TANSIView.WriteLn(Const S: string);
 begin
   Console^.WriteLn(S);
   DrawView;
@@ -999,13 +1004,13 @@ begin
           end;
 end;
 
-procedure TANSIBackground.Write(S: string);
+procedure TANSIBackground.Write(Const S: string);
 begin
   Console^.Write(S);
   DrawView;
 end;
 
-procedure TANSIBackground.WriteLn(S: string);
+procedure TANSIBackground.WriteLn(Const S: string);
 begin
   Console^.WriteLn(S);
   DrawView;
@@ -1047,7 +1052,10 @@ end;
 END.
 {
  $Log$
- Revision 1.1  2001-08-04 11:30:25  peter
+ Revision 1.2  2001-08-12 00:04:50  pierre
+  * some speed improvements for string operations
+
+ Revision 1.1  2001/08/04 11:30:25  peter
    * ide works now with both compiler versions
 
  Revision 1.1.2.5  2001/03/06 22:39:31  pierre

@@ -395,8 +395,16 @@ begin
 end;
 
 function Trim(const S: string): string;
+var
+  i,j : longint;
 begin
-  Trim:=RTrim(LTrim(S));
+  i:=1;
+  while (i<length(s)) and (s[i]=' ') do
+   inc(i);
+  j:=length(s);
+  while (j>0) and (s[j]=' ') do
+   dec(j);
+  Trim:=Copy(S,i,j-i+1);
 end;
 
 function IntToStr(L: longint): string;
@@ -464,10 +472,11 @@ begin
   S:='';
   R:=L; if R<0 then begin R:=R+2147483647+2147483647+2; end;
   repeat
-    S:=HexNums[ModF(R,16)+1]+S;
+    Insert(HexNums[ModF(R,16)+1],S,1);
     R:=DivF(R,16);
   until R=0;
-  while length(S)<MinLen do S:='0'+S;
+  while length(S)<MinLen do
+    Insert('0',S,1);
   IntToHex:=S;
 end;
 
@@ -1220,7 +1229,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:49  peter
+  Revision 1.3  2001-08-12 00:04:50  pierre
+   * some speed improvements for string operations
+
+  Revision 1.2  2001/08/05 02:01:49  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:26  peter

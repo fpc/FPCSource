@@ -259,8 +259,10 @@ begin
     W:=GetLineStartOfs(Line);
     for X:=0 to GetWidth-1 do
      begin
-       Text:=Text+chr(VBuffer^[W+X*2]);
-       Attr:=Attr+chr(VBuffer^[W+X*2+1]);
+       {Text:=Text+chr(VBuffer^[W+X*2]);
+       Attr:=Attr+chr(VBuffer^[W+X*2+1]);}
+       System.Insert(chr(VBuffer^[W+X*2]),Text,Length(Text)+1);
+       System.Insert(chr(VBuffer^[W+X*2+1]),Attr,Length(Attr)+1);
      end;
   end;
 end;
@@ -832,7 +834,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-12 00:04:50  pierre
+   * some speed improvements for string operations
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.10  2001/06/14 09:15:16  pierre
