@@ -1595,7 +1595,7 @@ end;
           fnstcw (%rsp)
           popq %rax
         end;
-        
+
 
       procedure SetSSECSR(w : dword);
         var
@@ -1604,7 +1604,7 @@ end;
           _w:=w;
           asm
             ldmxcsr _w
-          end;    
+          end;
         end;
 
 
@@ -1617,8 +1617,8 @@ end;
             end;
             result:=_w;
           end;
-  
-                
+
+
       procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
         var
           CtlWord: Word;
@@ -1634,11 +1634,11 @@ end;
           { classic FPU }
           CtlWord:=Get8087CW;
           Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-          
+
           { SSE }
-          
+
           newmask:=GetSSECSR;
-          
+
           { invalid operation }
           if (exInvalidOp in mask) then
             newmask:=newmask or MM_MaskInvalidOp
@@ -1890,7 +1890,7 @@ end;
          'CPPDECL',
          '', { compilerproc }
          'FAR16',
-         'FPCCALL',
+         'OLDFPCCALL',
          'INLINE',
          '', { internproc }
          '', { syscall }
@@ -2290,7 +2290,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.167  2005-02-05 16:17:19  florian
+  Revision 1.168  2005-02-06 19:55:19  peter
+    * oldfpccall fixed
+
+  Revision 1.167  2005/02/05 16:17:19  florian
     + setting sse exception mask on x86_64
 
   Revision 1.166  2005/02/01 17:57:30  olle
