@@ -26,6 +26,12 @@ type
 
   TAsyncCallback = procedure(UserData: Pointer); cdecl;
 
+  TAsyncResult = (
+    asyncOK,
+    asyncInvalidHandle,
+    asyncInvalidFileHandle,
+    asyncHandlerAlreadySet);
+
 
 // Construction and destruction
 
@@ -59,9 +65,9 @@ function asyncGetTicks: Int64; cdecl;
 function asyncAddTimer(
   Handle: TAsyncHandle;
   MSec: LongInt;
-  Periodic: Boolean;            // False = One-shot timer, True = Periodic timer
+  Periodic: Boolean;		// False = One-shot timer, True = Periodic timer
   Callback: TAsyncCallback;
-  UserData: Pointer             // User data for callback
+  UserData: Pointer		// User data for callback
   ): TAsyncTimer; cdecl;
 
 procedure asyncRemoveTimer(
@@ -71,31 +77,31 @@ procedure asyncRemoveTimer(
 
 // I/O callback management
 
-procedure asyncSetIOCallback(
+function asyncSetIOCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 
 procedure asyncClearIOCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt); cdecl;
 
-procedure asyncSetDataAvailableCallback(
+function asyncSetDataAvailableCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 
 procedure asyncClearDataAvailableCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt); cdecl;
 
-procedure asyncSetCanWriteCallback(
+function asyncSetCanWriteCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 
 procedure asyncClearCanWriteCallback(
   Handle: TAsyncHandle;
@@ -104,8 +110,8 @@ procedure asyncClearCanWriteCallback(
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:52  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2002-09-15 15:43:30  sg
+  * Improved error reporting
 
   Revision 1.1  2002/01/29 17:54:53  peter
     * splitted to base and extra

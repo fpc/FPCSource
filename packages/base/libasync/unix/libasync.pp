@@ -2,7 +2,7 @@
     $Id$
 
     libasync: Asynchronous event management
-    Copyright (C) 2001 by
+    Copyright (C) 2001-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     Unix implementation
@@ -25,9 +25,11 @@ type
 
   TAsyncData = record
     IsRunning, DoBreak: Boolean;
-    HasCallbacks: Boolean;      // True as long as callbacks are set
+    HasCallbacks: Boolean;	// True as long as callbacks are set
     FirstTimer: Pointer;
     FirstIOCallback: Pointer;
+    CurIOCallback: Pointer;	// current callback being processed within 'run'
+    NextIOCallback: Pointer;	// next callback to get processed within 'run'
     FDData: Pointer;
     HighestHandle: LongInt;
   end;
@@ -69,16 +71,20 @@ type
 
 
 
-procedure InitIOCallback(Handle: TAsyncHandle; IOHandle: LongInt;
+function InitIOCallback(Handle: TAsyncHandle; IOHandle: LongInt;
   ARead: Boolean; ReadCallback: TAsyncCallback; ReadUserData: Pointer;
-  AWrite: Boolean; WriteCallback: TAsyncCallback; WriteUserData: Pointer);
+  AWrite: Boolean; WriteCallback: TAsyncCallback; WriteUserData: Pointer):
+  TAsyncResult;
 var
   Data: PIOCallbackData;
   i: LongInt;
   NeedData: Boolean;
 begin
   if IOHandle > MaxHandle then
+  begin
+    Result := asyncInvalidFileHandle;
     exit;
+  end;
 
   NeedData := True;
   Data := Handle^.Data.FirstIOCallback;
@@ -88,13 +94,23 @@ begin
     begin
       if ARead then
       begin
+        if Assigned(Data^.ReadCallback) then
+	begin
+	  Result := asyncHandlerAlreadySet;
+	  exit;
+	end;
         Data^.ReadCallback := ReadCallback;
-        Data^.ReadUserData := ReadUserData;
+	Data^.ReadUserData := ReadUserData;
       end;
       if AWrite then
       begin
+        if Assigned(Data^.WriteCallback) then
+	begin
+	  Result := asyncHandlerAlreadySet;
+	  exit;
+	end;
         Data^.WriteCallback := WriteCallback;
-        Data^.WriteUserData := WriteUserData;
+	Data^.WriteUserData := WriteUserData;
       end;
       NeedData := False;
       break;
@@ -153,13 +169,14 @@ begin
     Open_RdWr:
       begin
         if ARead then
-          FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
-        if AWrite then
-          FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+	  FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+	if AWrite then
+	  FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       end;
   end;
 
   Handle^.Data.HasCallbacks := True;
+  Result := asyncOK;
 end;
 
 procedure CheckForCallbacks(Handle: TAsyncHandle);
@@ -202,6 +219,8 @@ begin
     IOCallback := NextIOCallback;
   end;
 
+  Handle^.Data.NextIOCallback := nil;
+
   if Assigned(Handle^.Data.FDData) then
     FreeMem(Handle^.Data.FDData);
 end;
@@ -212,7 +231,7 @@ var
   TimeOut, AsyncResult: Integer;
   CurTime, NextTick: Int64;
   CurReadFDSet, CurWriteFDSet: TFDSet;
-  IOCallback: PIOCallbackData;
+  CurIOCallback: PIOCallbackData;
 begin
   if Handle^.Data.IsRunning then
     exit;
@@ -244,8 +263,8 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick < NextTick then
-          NextTick := Timer^.NextTick;
-        Timer := Timer^.Next;
+	  NextTick := Timer^.NextTick;
+	Timer := Timer^.Next;
       end;
       TimeOut := NextTick - CurTime;
       if TimeOut < 0 then
@@ -270,48 +289,60 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick <= CurTime then
-        begin
-          Timer^.Callback(Timer^.UserData);
-          NextTimer := Timer^.Next;
-          if Timer^.Periodic then
-            Inc(Timer^.NextTick, Timer^.MSec)
-          else
-            asyncRemoveTimer(Handle, Timer);
-          if Handle^.Data.DoBreak then
-            break;
-          Timer := NextTimer;
-        end else
-          Timer := Timer^.Next;
+	begin
+	  Timer^.Callback(Timer^.UserData);
+	  NextTimer := Timer^.Next;
+	  if Timer^.Periodic then
+	    Inc(Timer^.NextTick, Timer^.MSec)
+	  else
+	    asyncRemoveTimer(Handle, Timer);
+	  if Handle^.Data.DoBreak then
+	    break;
+	  Timer := NextTimer;
+	end else
+	  Timer := Timer^.Next;
       end;
     end;
 
     if (AsyncResult > 0) and not Handle^.Data.DoBreak then
     begin
       // Check for I/O events
-      IOCallback := Handle^.Data.FirstIOCallback;
-      while Assigned(IOCallback) do
+      Handle^.Data.CurIOCallback := Handle^.Data.FirstIOCallback;
+      while Assigned(Handle^.Data.CurIOCallback) do
       begin
-        if FD_IsSet(IOCallback^.IOHandle, CurReadFDSet) and
-          FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) then
-        begin
-          IOCallback^.ReadCallback(IOCallback^.ReadUserData);
-          if Handle^.Data.DoBreak then
-            break;
-        end;
+        CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
+        Handle^.Data.NextIOCallback := CurIOCallback^.Next;
+	if FD_IsSet(CurIOCallback^.IOHandle, CurReadFDSet) and
+	  FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) and
+	  Assigned(CurIOCallback^.ReadCallback) then
+	begin
+	  CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
+	  if Handle^.Data.DoBreak then
+	    break;
+	end;
 
-        if FD_IsSet(IOCallback^.IOHandle, CurWriteFDSet) and
-          FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) then
-        begin
-          IOCallback^.WriteCallback(IOCallback^.WriteUserData);
-          if Handle^.Data.DoBreak then
-            break;
-        end;
+	CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
+	if Assigned(CurIOCallback) and
+	  FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet) and
+	  FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) and
+	  Assigned(CurIOCallback^.WriteCallback) then
+	begin
+	  CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
+	  if Handle^.Data.DoBreak then
+	    break;
+	end;
 
-        IOCallback := IOCallback^.Next;
+	Handle^.Data.CurIOCallback := Handle^.Data.NextIOCallback;
       end;
     end;
   end;
+  Handle^.Data.CurIOCallback := nil;
+  Handle^.Data.NextIOCallback := nil;
   Handle^.Data.IsRunning := False;
+
+  WriteLn('DoBreak: ', Handle^.Data.DoBreak);
+  Writeln('HasCallbacks: ', Handle^.Data.HasCallbacks);
+  WriteLn('FirstCallback: ', Integer(Handle^.Data.HasCallbacks));
 end;
 
 procedure asyncBreak(Handle: TAsyncHandle); cdecl;
@@ -386,13 +417,13 @@ begin
   CheckForCallbacks(Handle);
 end;
 
-procedure asyncSetIOCallback(
+function asyncSetIOCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 begin
-  InitIOCallback(Handle, IOHandle, True, Callback, UserData,
+  Result := InitIOCallback(Handle, IOHandle, True, Callback, UserData,
     True, Callback, UserData);
 end;
 
@@ -408,6 +439,10 @@ begin
     NextData := CurData^.Next;
     if CurData^.IOHandle = IOHandle then
     begin
+      if Handle^.Data.CurIOCallback = CurData then
+        Handle^.Data.CurIOCallback := nil;
+      if Handle^.Data.NextIOCallback = CurData then
+        Handle^.Data.NextIOCallback := NextData;
       FD_Clr(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
       FD_Clr(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       if Assigned(PrevData) then
@@ -423,13 +458,14 @@ begin
   CheckForCallbacks(Handle);
 end;
 
-procedure asyncSetDataAvailableCallback(
+function asyncSetDataAvailableCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 begin
-  InitIOCallback(Handle, IOHandle, True, Callback, UserData, False, nil, nil);
+  Result := InitIOCallback(Handle, IOHandle, True, Callback, UserData, False,
+    nil, nil);
 end;
 
 procedure asyncClearDataAvailableCallback(Handle: TAsyncHandle;
@@ -444,6 +480,10 @@ begin
     NextData := CurData^.Next;
     if CurData^.IOHandle = IOHandle then
     begin
+      if Handle^.Data.CurIOCallback = CurData then
+        Handle^.Data.CurIOCallback := nil;
+      if Handle^.Data.NextIOCallback = CurData then
+        Handle^.Data.NextIOCallback := NextData;
       FD_Clr(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
       if Assigned(CurData^.WriteCallback) then
         CurData^.ReadCallback := nil
@@ -463,13 +503,14 @@ begin
   CheckForCallbacks(Handle);
 end;
 
-procedure asyncSetCanWriteCallback(
+function asyncSetCanWriteCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt;
   Callback: TAsyncCallback;
-  UserData: Pointer); cdecl;
+  UserData: Pointer): TAsyncResult; cdecl;
 begin
-  InitIOCallback(Handle, IOHandle, False, nil, nil, True, Callback, UserData);
+  Result := InitIOCallback(Handle, IOHandle, False, nil, nil, True,
+    Callback, UserData);
 end;
 
 procedure asyncClearCanWriteCallback(Handle: TAsyncHandle;
@@ -484,6 +525,10 @@ begin
     NextData := CurData^.Next;
     if CurData^.IOHandle = IOHandle then
     begin
+      if Handle^.Data.CurIOCallback = CurData then
+        Handle^.Data.CurIOCallback := nil;
+      if Handle^.Data.NextIOCallback = CurData then
+        Handle^.Data.NextIOCallback := NextData;
       FD_Clr(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       if Assigned(CurData^.ReadCallback) then
         CurData^.WriteCallback := nil
@@ -509,8 +554,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:52  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2002-09-15 15:43:30  sg
+  * Improved error reporting
 
   Revision 1.1  2002/01/29 17:54:53  peter
     * splitted to base and extra
