@@ -528,12 +528,19 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+procedure intRTLEventStartWait(AEvent: PRTLEvent);
 var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);  
   pthread_mutex_lock(@p^.mutex);
+end;
+
+procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+var p:pintrtlevent;
+
+begin
+  p:=pintrtlevent(aevent);  
   pthread_cond_wait(@p^.condvar, @p^.mutex);
   pthread_mutex_unlock(@p^.mutex);
 end;
@@ -573,6 +580,7 @@ begin
   EnterCriticalSection(SynchronizeCritSect);
   SynchronizeMethod := tthreadmethod(thrdmethd);
   SynchronizeException := nil;
+  RtlEventStartWait(ExecuteEvent);
   SynchronizeMethodProc;
   // wait infinitely
   RtlEventWaitFor(ExecuteEvent);
@@ -658,6 +666,7 @@ begin
     rtlEventCreate         :=@intrtlEventCreate;       
     rtlEventDestroy        :=@intrtlEventDestroy;
     rtlEventSetEvent       :=@intrtlEventSetEvent;
+    rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitFor        :=@intrtleventWaitFor;
     rtleventsync           :=trtleventsynchandler(@intrtleventsync);
     rtlchksyncunix	   :=@checksynchronize;
@@ -673,7 +682,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2004-12-27 15:28:40  marco
+  Revision 1.19  2004-12-28 14:20:03  marco
+   * tthread patch from neli
+
+  Revision 1.18  2004/12/27 15:28:40  marco
    * checksynchronize now in interface win32 uses the default impl.
        unix uses systhrds, rest empty implementation.
 

@@ -437,6 +437,11 @@ end;
 
 CONST INFINITE=-1;
 
+procedure intRTLEventStartWait(AEvent: PRTLEvent);
+begin
+  // nothing to do, win32 events stay signalled after being set
+end;
+
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
 begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
@@ -479,10 +484,11 @@ begin
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
-    RTLEventCreate       :=@intRTLEventCreate;
-    RTLEventDestroy      :=@intRTLEventDestroy;
-    RTLEventSetEvent     :=@intRTLEventSetEvent;
-    RTLeventWaitFor      :=@intRTLeventWaitFor;
+    RTLEventCreate         :=@intRTLEventCreate;
+    RTLEventDestroy        :=@intRTLEventDestroy;
+    RTLEventSetEvent       :=@intRTLEventSetEvent;
+    RTLEventStartWait      :=@intRTLEventStartWait;
+    RTLEventWaitFor        :=@intRTLEventWaitFor;
     end;
   SetThreadManager(WinThreadManager);
   InitHeapMutexes;
@@ -494,7 +500,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-12-26 13:46:45  peter
+  Revision 1.14  2004-12-28 14:20:03  marco
+   * tthread patch from neli
+
+  Revision 1.13  2004/12/26 13:46:45  peter
     * tthread uses systhrds
 
   Revision 1.12  2004/12/22 21:29:24  marco

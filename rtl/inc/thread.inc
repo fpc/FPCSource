@@ -248,6 +248,12 @@ begin
   currenttm.rtleventsetEvent(state);
 end;
 
+procedure RTLeventStartWait(state:pRTLEvent);
+
+begin
+  currenttm.rtleventStartWait(state);
+end;
+
 procedure RTLeventWaitFor(state:pRTLEvent);
 
 begin
@@ -409,6 +415,12 @@ begin
   NoThreadError;
 end;
 
+procedure NORTLeventStartWait(state:pRTLEvent);
+
+begin
+  NoThreadError;
+end;
+
 procedure NORTLeventWaitFor(state:pRTLEvent);
 
 begin
@@ -467,6 +479,7 @@ begin
     rtlEventCreate         :=@NortlEventCreate;
     rtleventdestroy        :=@Nortleventdestroy;
     rtleventSetEvent       :=@NortleventSetEvent;
+    rtleventStartWait      :=@NortleventStartWait;
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync	   :=@Nortleventsync;
     rtlchksyncunix	   :=@nortlchksyncunix;
@@ -477,7 +490,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-12-27 15:28:40  marco
+  Revision 1.17  2004-12-28 14:20:03  marco
+   * tthread patch from neli
+
+  Revision 1.16  2004/12/27 15:28:40  marco
    * checksynchronize now in interface win32 uses the default impl.
        unix uses systhrds, rest empty implementation.
 

@@ -78,7 +78,8 @@ type
     RTLEventCreate	   : TRTLCreateEventHandler;
     RTLEventDestroy	   : TRTLEventHandler;
     RTLEventSetEvent       : TRTLEventHandler;
-    RTLeventWaitFOr	   : TRTLEventHandler;
+    RTLEventStartWait	   : TRTLEventHandler;
+    RTLEventWaitFor	   : TRTLEventHandler;
     RTLEventSync	   : TRTLEventSyncHandler;
     RTLChkSyncUnix	   : TRTLCheckSyncUnixHandler;
   end;
@@ -158,13 +159,17 @@ function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 function  RTLEventCreate :PRTLEvent;
 procedure RTLeventdestroy(state:pRTLEvent);
 procedure RTLeventSetEvent(state:pRTLEvent);
+procedure RTLeventStartWait(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 procedure RTLchecksynchronize;
 
 {
   $Log$
-  Revision 1.23  2004-12-27 15:28:40  marco
+  Revision 1.24  2004-12-28 14:20:03  marco
+   * tthread patch from neli
+
+  Revision 1.23  2004/12/27 15:28:40  marco
    * checksynchronize now in interface win32 uses the default impl.
        unix uses systhrds, rest empty implementation.
 
