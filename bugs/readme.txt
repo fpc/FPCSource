@@ -359,3 +359,5 @@ bug0266.pp   write cuts 256 char
 bug0267.pp   parameters after methodpointer are wrong
 bug0268.pp   crash with exceptions
 bug0269.pp   wrong linenumber for repeat until when type mismatch
+bug0270.pp   unexpected eof in tp mode with (* and directives
+bug0271.pp   abstract methods can't be assigned to methodpointers
