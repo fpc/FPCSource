@@ -69,6 +69,7 @@ interface
           procedure buildderefimpl;virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
+          procedure duplicatesym(dupsym,sym:tsymentry);
           procedure insert(sym : tsymentry);override;
           procedure reset_all_defs;virtual;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
@@ -191,7 +192,6 @@ interface
 {*** Misc ***}
     procedure globaldef(const s : string;var t:ttype);
     function  findunitsymtable(st:tsymtable):tsymtable;
-    procedure duplicatesym(sym:tsym);
     function  FullTypeName(def,otherdef:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
 
@@ -266,6 +266,9 @@ implementation
       { codegen }
       procinfo
       ;
+
+    var
+      dupnr : longint; { unique number for duplicate symbols }
 
 
 {*****************************************************************************
@@ -558,6 +561,29 @@ implementation
       end;
 
 
+    procedure tstoredsymtable.duplicatesym(dupsym,sym:tsymentry);
+      var
+        st : tsymtable;
+      begin
+        Message1(sym_e_duplicate_id,tsym(sym).realname);
+        st:=findunitsymtable(sym.owner);
+        with tsym(sym).fileinfo do
+          begin
+            if assigned(st) and (st.unitid<>0) then
+              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
+            else
+              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
+          end;
+        { Rename duplicate sym to an unreachable name, but it can be
+          inserted in the symtable without errors }
+        if assigned(dupsym) then
+          begin
+            inc(dupnr);
+            dupsym.name:='dup'+tostr(dupnr)+dupsym.name;
+          end;
+      end;
+
+
     procedure tstoredsymtable.insert(sym:tsymentry);
       var
          hsym : tsym;
@@ -580,10 +606,7 @@ implementation
                    (vo_is_result in tvarsym(sym).varoptions)) then
              sym.name:='hidden'+sym.name
             else
-             begin
-               DuplicateSym(hsym);
-               exit;
-             end;
+             DuplicateSym(sym,hsym);
           end;
 
          { register definition of typesym }
@@ -1153,10 +1176,7 @@ implementation
               hsym:=search_class_member(tobjectdef(defowner),sym.name);
               if assigned(hsym) and
                  Tsym(hsym).is_visible_for_object(tobjectdef(defowner)) then
-               begin
-                 DuplicateSym(hsym);
-                 exit;
-               end;
+                DuplicateSym(sym,hsym);
            end;
          inherited insert(sym);
       end;
@@ -1211,10 +1231,7 @@ implementation
                    (vo_is_result in tvarsym(hsym).varoptions)) then
               hsym.owner.rename(hsym.name,'hidden'+hsym.name)
             else
-              begin
-                DuplicateSym(hsym);
-                exit;
-              end;
+              DuplicateSym(sym,hsym);
           end;
 
         if assigned(next) and
@@ -1233,10 +1250,7 @@ implementation
                        (vo_is_result in tvarsym(sym).varoptions)) then
                   sym.name:='hidden'+sym.name
                 else
-                  begin
-                    DuplicateSym(hsym);
-                    exit;
-                  end;
+                  DuplicateSym(sym,hsym);
               end;
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
@@ -1254,10 +1268,7 @@ implementation
                     in object (tp7 compatible) }
                   if not((m_delphi in aktmodeswitches) and
                          is_class(tdef(next.next.defowner))) then
-                   begin
-                     DuplicateSym(hsym);
-                     exit;
-                   end;
+                    DuplicateSym(sym,hsym);
                 end;
              end;
           end;
@@ -1297,10 +1308,7 @@ implementation
                    in object (tp7 compatible) }
                  if not((m_delphi in aktmodeswitches) and
                         is_class_or_interface(tobjectdef(next.defowner))) then
-                  begin
-                    DuplicateSym(hsym);
-                    exit;
-                  end;
+                   DuplicateSym(sym,hsym);
                end;
            end;
 
@@ -1461,10 +1469,7 @@ implementation
                   (hsym.typ=symconst.unitsym) then
                 hsym.owner.rename(hsym.name,'hidden'+hsym.name)
                else
-                begin
-                  DuplicateSym(hsym);
-                  exit;
-                end;
+                DuplicateSym(sym,hsym);
              end;
           end;
 
@@ -1603,10 +1608,7 @@ implementation
                   (hsym.typ=symconst.unitsym) then
                 hsym.owner.rename(hsym.name,'hidden'+hsym.name)
                else
-                begin
-                  DuplicateSym(hsym);
-                  exit;
-                end;
+                DuplicateSym(sym,hsym);
              end;
           end;
 
@@ -1620,10 +1622,7 @@ implementation
                (hsym.typ=symconst.unitsym) then
              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
             else
-             begin
-               DuplicateSym(hsym);
-               exit;
-             end;
+             DuplicateSym(sym,hsym);
           end;
 
          inherited insert(sym);
@@ -1726,22 +1725,6 @@ implementation
           end;
         until false;
       end;
-
-
-     procedure duplicatesym(sym:tsym);
-       var
-         st : tsymtable;
-       begin
-         Message1(sym_e_duplicate_id,sym.realname);
-         st:=findunitsymtable(sym.owner);
-         with sym.fileinfo do
-           begin
-             if assigned(st) and (st.unitid<>0) then
-               Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
-             else
-               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
-           end;
-       end;
 
 
     function FullTypeName(def,otherdef:tdef):string;
@@ -2299,6 +2282,7 @@ implementation
         { unit aliases }
         unitaliases:=tdictionary.create;
 {$endif}
+        dupnr:=0;
      end;
 
 
@@ -2314,7 +2298,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.160  2004-11-01 23:30:11  peter
+  Revision 1.161  2004-11-05 21:16:55  peter
+    * rename duplicate symbols and insert with unique name in the
+      symtable
+
+  Revision 1.160  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

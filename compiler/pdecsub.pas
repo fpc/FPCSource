@@ -731,7 +731,7 @@ implementation
                    if (m_fpc in aktmodeswitches) then
                     Message1(parser_e_overloaded_no_procedure,aprocsym.realname)
                    else
-                    DuplicateSym(aprocsym);
+                    tstoredsymtable(symtablestack).DuplicateSym(nil,aprocsym);
                    { rename the name to an unique name to avoid an
                      error when inserting the symbol in the symtable }
                    orgsp:=orgsp+'$'+tostr(aktfilepos.line);
@@ -2259,7 +2259,11 @@ const
 end.
 {
   $Log$
-  Revision 1.198  2004-10-31 18:54:24  peter
+  Revision 1.199  2004-11-05 21:16:55  peter
+    * rename duplicate symbols and insert with unique name in the
+      symtable
+
+  Revision 1.198  2004/10/31 18:54:24  peter
     * $fpctarget expands to <cpu>-<os>
     * allow * in middle of the path to support ../*/units/$fpctarget
 
