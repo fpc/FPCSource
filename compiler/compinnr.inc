@@ -21,7 +21,7 @@ const
    in_lo_long           = 3;
    in_hi_long           = 4;
    in_ord_x             = 5;
-   in_length_string     = 6;
+   in_length_x          = 6;
    in_chr_byte          = 7;
    in_write_x           = 14;
    in_writeln_x         = 15;
@@ -102,7 +102,11 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-11-09 17:46:54  florian
+  Revision 1.3  2001-07-09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.2  2000/11/09 17:46:54  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added

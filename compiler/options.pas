@@ -1275,6 +1275,7 @@ begin
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
   def_symbol('INTERNSETLENGTH');
+  def_symbol('INTERNLENGTH');
   def_symbol('INT64FUNCRESOK');
   def_symbol('PACKENUMFIXED');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
@@ -1562,7 +1563,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2001-07-08 21:00:15  peter
+  Revision 1.49  2001-07-09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.48  2001/07/08 21:00:15  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

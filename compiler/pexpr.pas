@@ -475,6 +475,16 @@ implementation
               statement_syssym := p1;
             end;
 
+          in_length_x:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              p2:=geninlinenode(l,false,p1);
+              consume(_RKLAMMER);
+              statement_syssym:=p2;
+            end;
+
           in_write_x,
           in_writeln_x :
             begin
@@ -2314,7 +2324,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-06-29 14:16:57  jonas
+  Revision 1.38  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.37  2001/06/29 14:16:57  jonas
     * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
       required to assign the address of a procedure to a procvar, sometimes
       not. Now it is always required) (merged)

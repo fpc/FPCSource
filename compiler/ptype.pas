@@ -474,7 +474,8 @@ implementation
                            Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
                         end
                        else
-                        Message(cg_e_illegal_expression)
+                        Message(cg_e_illegal_expression);
+                       p.free;
                     end
                   else
                     inc(l);
@@ -599,7 +600,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-07-01 20:16:16  peter
+  Revision 1.28  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.27  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -69,8 +69,10 @@ Function  hi(q : QWord) : DWord;  [INTERNPROC: In_hi_qword];
 Function  hi(i : Int64) : DWord;  [INTERNPROC: In_hi_qword];
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
+{$ifndef INTERNLENGTH}
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
 Function Length(c : char) : byte;   [INTERNPROC: In_Length_string];
+{$endif INTERNLENGTH}
 
 Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
@@ -656,7 +658,11 @@ end;
 
 {
   $Log$
-  Revision 1.16  2001-07-08 21:00:18  peter
+  Revision 1.17  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.16  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

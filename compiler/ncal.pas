@@ -494,7 +494,7 @@ implementation
                    end
                  else
                    begin
-                     hightree:=caddnode.create(subn,geninlinenode(in_length_string,false,left.getcopy),
+                     hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,left.getcopy),
                                                cordconstnode.create(1,s32bittype));
                      firstpass(hightree);
                      hightree:=ctypeconvnode.create(hightree,s32bittype);
@@ -1655,7 +1655,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-07-01 20:16:15  peter
+  Revision 1.37  2001-07-09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.36  2001/07/01 20:16:15  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -414,6 +414,7 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+{$ifndef INTERNLENGTH}
 Function Length (Const S : AnsiString) : Longint;
 {
   Returns the length of an AnsiString.
@@ -425,6 +426,7 @@ begin
   else
     Length:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
 end;
+{$endif INTERNLENGTH}
 
 
 Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
@@ -705,7 +707,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  2001-07-09 11:41:57  florian
+  Revision 1.15  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.14  2001/07/09 11:41:57  florian
     * another MT fix
 
   Revision 1.13  2001/07/08 21:00:18  peter

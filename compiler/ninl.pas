@@ -538,46 +538,79 @@ implementation
                    result:=hp;
                 end;
 
-              in_length_string:
+              in_length_x:
                 begin
                   set_varstate(left,true);
 
-                  { we don't need string convertions here }
-                  if (left.nodetype=typeconvn) and
-                     (ttypeconvnode(left).left.resulttype.def.deftype=stringdef) then
-                    begin
-                       hp:=ttypeconvnode(left).left;
-                       ttypeconvnode(left).left:=nil;
-                       left.free;
-                       left:=hp;
-                    end;
+                  case left.resulttype.def.deftype of
+                    stringdef :
+                      begin
+                        { we don't need string convertions here }
+                        if (left.nodetype=typeconvn) and
+                           (ttypeconvnode(left).left.resulttype.def.deftype=stringdef) then
+                         begin
+                           hp:=ttypeconvnode(left).left;
+                           ttypeconvnode(left).left:=nil;
+                           left.free;
+                           left:=hp;
+                         end;
 
-                  { evaluates length of constant strings direct }
-                  if (left.nodetype=stringconstn) then
-                    begin
-                       hp:=cordconstnode.create(tstringconstnode(left).len,s32bittype);
-                       resulttypepass(hp);
-                       result:=hp;
-                       goto myexit;
-                    end
-                  { length of char is one allways }
-                  else if is_constcharnode(left) then
-                    begin
-                       hp:=cordconstnode.create(1,s32bittype);
-                       resulttypepass(hp);
-                       result:=hp;
-                       goto myexit;
-                    end;
+                        { evaluates length of constant strings direct }
+                        if (left.nodetype=stringconstn) then
+                         begin
+                           hp:=cordconstnode.create(tstringconstnode(left).len,s32bittype);
+                           resulttypepass(hp);
+                           result:=hp;
+                           goto myexit;
+                         end;
+                      end;
+                    orddef :
+                      begin
+                        { length of char is one allways }
+                        if is_char(left.resulttype.def) or
+                           is_widechar(left.resulttype.def) then
+                         begin
+                           hp:=cordconstnode.create(1,s32bittype);
+                           resulttypepass(hp);
+                           result:=hp;
+                           goto myexit;
+                         end
+                        else
+                         CGMessage(type_e_mismatch);
+                      end;
+                    arraydef :
+                      begin
+                        if is_open_array(left.resulttype.def) or
+                           is_array_of_const(left.resulttype.def) then
+                         begin
+                           srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                           hp:=caddnode.create(addn,cloadnode.create(tvarsym(srsym),tloadnode(left).symtable),
+                                                    cordconstnode.create(1,s32bittype));
+                           resulttypepass(hp);
+                           result:=hp;
+                           goto myexit;
+                         end
+                        else
+                         if not is_dynamic_array(left.resulttype.def) then
+                          begin
+                            hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange-
+                                                      tarraydef(left.resulttype.def).lowrange+1,
+                                                     s32bittype);
+                            resulttypepass(hp);
+                            result:=hp;
+                            goto myexit;
+                          end;
+                      end;
+                    else
+                      CGMessage(type_e_mismatch);
+                  end;
 
+                  { shortstring return an 8 bit value as the length
+                    is the first byte of the string }
                   if is_shortstring(left.resulttype.def) then
-                     resulttype:=u8bittype
-                   else
-                     resulttype:=s32bittype;
-
-                   { check the type, must be string or char }
-                   if (left.resulttype.def.deftype<>stringdef) and
-                      (not is_char(left.resulttype.def)) then
-                     CGMessage(type_e_mismatch);
+                   resulttype:=u8bittype
+                  else
+                   resulttype:=s32bittype;
                 end;
 
               in_typeinfo_x:
@@ -1415,8 +1448,17 @@ implementation
             end;
 
 
-          in_length_string:
+          in_length_x:
             begin
+               if is_shortstring(left.resulttype.def) then
+                location.loc:=LOC_REFERENCE
+               else
+                begin
+                  { ansi/wide string }
+                  if registers32<1 then
+                   registers32:=1;
+                  location.loc:=LOC_REGISTER;
+                end;
             end;
 
           in_typeinfo_x:
@@ -1748,7 +1790,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2001-07-08 21:00:15  peter
+  Revision 1.44  2001-07-09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.43  2001/07/08 21:00:15  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

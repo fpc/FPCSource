@@ -75,6 +75,7 @@ begin
   p.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
   p.insert(tsyssym.create('SetLength',in_setlength_x));
   p.insert(tsyssym.create('Finalize',in_finalize_x));
+  p.insert(tsyssym.create('Length',in_length_x));
 end;
 
 
@@ -265,7 +266,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-05-09 19:58:45  peter
+  Revision 1.17  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.16  2001/05/09 19:58:45  peter
     * m68k doesn't support double (merged)
 
   Revision 1.15  2001/04/13 01:22:13  peter

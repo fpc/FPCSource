@@ -459,6 +459,7 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+{$ifndef INTERNLENGTH}
 Function Length (Const S : WideString) : Longint;
 {
   Returns the length of an WideString.
@@ -470,6 +471,7 @@ begin
   else
     Length:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
 end;
+{$endif INTERNLENGTH}
 
 
 Procedure UniqueString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
@@ -748,7 +750,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-07-08 21:00:18  peter
+  Revision 1.9  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.8  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

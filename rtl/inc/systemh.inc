@@ -299,7 +299,9 @@ Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
+{$ifndef INTERNLENGTH}
 Function  Length(s:string):byte;
+{$endif INTERNLENGTH}
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring;
 Function  Space(b:byte):shortstring;
@@ -314,7 +316,9 @@ Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char;
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
+{$ifndef INTERNLENGTH}
 function  length(c:char):byte;
+{$endif INTERNLENGTH}
 
 
 {****************************************************************************
@@ -325,7 +329,9 @@ function  length(c:char):byte;
 Procedure SetLength (Var S : AnsiString; l : Longint);
 {$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : AnsiString);
+{$ifndef INTERNLENGTH}
 Function  Length (Const S : AnsiString) : Longint;
+{$endif INTERNLENGTH}
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Function  Pos (c : Char; Const s : AnsiString) : Longint;
@@ -345,7 +351,9 @@ function  lowercase(const s : ansistring) : ansistring;
 Procedure SetLength (Var S : WideString; l : Longint);
 {$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : WideString);
+{$ifndef INTERNLENGTH}
 Function  Length (Const S : WideString) : Longint;
+{$endif INTERNLENGTH}
 Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
 Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
 Function  Pos (c : Char; Const s : WideString) : Longint;
@@ -504,7 +512,11 @@ const
 
 {
   $Log$
-  Revision 1.25  2001-07-08 21:00:18  peter
+  Revision 1.26  2001-07-09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.25  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
