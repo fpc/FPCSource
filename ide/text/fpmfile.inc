@@ -101,6 +101,10 @@ begin
        ChDir(FileDir);
      New(D, Init(OpenExts,'Open a file','File to ope~n~',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
+     { if I go to root under go32v2 and there is no
+       floppy I get a InOutRes = 152
+       get rid of it ! }
+     EatIO;
      if OpenIt then
        Begin
          D^.GetFileName(FileName);
@@ -185,7 +189,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-11-30 17:15:32  pierre
+  Revision 1.17  1999-12-01 16:48:09  pierre
+   * avoid problems after going to root directory
+
+  Revision 1.16  1999/11/30 17:15:32  pierre
    * avoid chdir('d:') in FPC
 
   Revision 1.15  1999/10/29 13:47:00  pierre
