@@ -34,7 +34,7 @@ begin
   ExitProc:=OldExit;
   if ExitCode=201 then
     begin
-      ErrorAddr:=0;
+      ErrorAddr:=nil;
       longjmp(RTE201Buf,1);
     end;
 end;
