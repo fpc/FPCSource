@@ -109,7 +109,6 @@ Function  DiskFree(drive: byte) : longint;
 Function  DiskSize(drive: byte) : longint;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
 
 {File}
 Procedure GetFAttr(var f; var attr: word);
@@ -482,12 +481,6 @@ begin
 end;
 
 
-Procedure FindClose(Var f: SearchRec);
-begin
-  DosError:=0;
-end;
-
-
 procedure swapvectors;
 begin
   DosError:=0;
@@ -791,7 +784,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-01-22 10:07:02  daniel
+  - Findclose removed: This is TP incompatible!!
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.19  1998/11/23 13:53:59  peter
