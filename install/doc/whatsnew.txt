@@ -11,6 +11,7 @@ Compiler:
   + x86_64/amd64 (Linux) compiler
   + Sparc (Linux) compiler
   + PowerPC MorphOS support
+  + MacOS (classic) compiler (for MPW)
   + Netware Libc support (-Tnetwlibc)
   + Register variable support (-Or) for all targets
   + MacPas compiler mode (-Mmacpas)
@@ -25,6 +26,7 @@ RTL:
   + x86_64/amd64 Linux support
   + Sparc Linux support
   + PowerPC MorphOS support
+  + MacOS (classic) support (except Sysutils and its dependants)
   + Netware Libc support
   + New heap manager that releases memory back to the OS
   + TThread.Synchronize support
