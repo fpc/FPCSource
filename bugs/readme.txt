@@ -193,6 +193,8 @@ Fixed bugs:
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
   bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
+  bug0176.pp   unit.symbol not allowed for implementation vars         OK 0.99.9 (PM)
+  bug0177.pp   program.symbol not allowed (almost the same as bug 176) OK 0.99.9 (PM)
 
 Unproducable bugs:
 ------------------
@@ -226,6 +228,4 @@ bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0172.pp   with with absolute seg:ofs should not be possible
-bug0176.pp   unit.symbol not allowed for implementation vars
-bug0177.pp   program.symbol not allowed (almost the same as bug 176)
 
