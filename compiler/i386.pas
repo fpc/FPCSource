@@ -1681,6 +1681,7 @@ unit i386;
              clear_reference(preference(op2)^);
              dispose(preference(op2));
           end;
+        inherited done;
      end;
 
 {****************************************************************************
@@ -1708,12 +1709,16 @@ unit i386;
              If Not(lab^.is_set) Then
                Dispose(lab);
            End;
+        inherited done;
       end;
 
 end.
 {
   $Log$
-  Revision 1.9  1998-06-04 23:51:41  peter
+  Revision 1.10  1998-09-14 21:30:45  peter
+    * added inherited done
+
+  Revision 1.9  1998/06/04 23:51:41  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32
