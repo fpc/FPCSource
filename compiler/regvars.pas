@@ -629,12 +629,10 @@ implementation
                       reg.number:=(reg.number and not $ff) or cgsize2subreg(OS_INT);
                       r:=reg;
                       convert_register_to_enum(r);
-{$ifndef notranslation}
                       if r.enum>lastreg then
                         internalerror(200201081);
                       if (rg.regvar_loaded_other[r.enum]) then
                        asml.concat(tai_regalloc.dealloc(reg));
-{$endif notranslation}
                     end;
                 end;
              end;
@@ -666,7 +664,6 @@ implementation
         i: longint;
         r: tregister;
       begin
-{$ifndef notranslation}
         if not assigned(current_procinfo.procdef.regvarinfo) then
           exit;
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
@@ -686,7 +683,6 @@ implementation
                 Message3(cg_d_register_weight,std_reg2str[r.enum],
                   tostr(regvars[i].refs),regvars[i].name);
               end;
-{$endif notranslation}
       end;
 {$endif newra}
 
@@ -694,7 +690,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2003-08-17 16:59:20  jonas
+  Revision 1.62  2003-08-17 20:47:47  daniel
+    * Notranslation changed into -sr functionality
+
+  Revision 1.61  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

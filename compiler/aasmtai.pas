@@ -532,7 +532,7 @@ implementation
              internalerror(200208182);
            if not assigned(aiclass[t]) then
              internalerror(200208183);
-           //writeln('taiload: ',taitypestr[t]);
+           {writeln('taiload: ',taitypestr[t]);}
            { generate tai of the correct class }
            ppuloadai:=aiclass[t].ppuload(t,ppufile);
          end
@@ -549,7 +549,7 @@ implementation
          begin
            { type, read by ppuloadnode }
            ppufile.putbyte(byte(n.typ));
-           //writeln('taiwrite: ',taitypestr[n.typ]);
+           {writeln('taiwrite: ',taitypestr[n.typ]);}
            n.ppuwrite(ppufile);
          end
         else
@@ -1784,7 +1784,7 @@ implementation
     constructor taasmoutput.create;
       begin
         inherited create;
-        // make sure the optimizer won't remove the first tai of this list
+        { make sure the optimizer won't remove the first tai of this list}
         insert(tai_marker.create(marker_blockstart));
       end;
 
@@ -1860,9 +1860,6 @@ implementation
         r:Preference;
 
     begin
-{$ifdef notranslation}
-      exit;
-{$endif notranslation}  
       p:=Tai(first);
       while assigned(p) do
         begin
@@ -1902,7 +1899,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-08-17 16:59:20  jonas
+  Revision 1.33  2003-08-17 20:47:47  daniel
+    * Notranslation changed into -sr functionality
+
+  Revision 1.32  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

@@ -146,6 +146,7 @@ unit agppcgas;
     function getreferencestring(var ref : treference) : string;
     var
       s : string;
+      i,b:boolean;
     begin
        with ref do
         begin
@@ -173,13 +174,9 @@ unit agppcgas;
            if (symaddr <> refs_full) then
              s := s+')'+symaddr2str[symaddr];
 
-{$ifndef notranslation}
-           if (index.enum < firstreg) or (index.enum > lastreg) then
-             internalerror(20030312);
-           if (base.enum < firstreg) or (base.enum > lastreg) then
-             internalerror(200303123);
-{$endif notranslation}
-           if (index.enum=R_NO) and (base.enum<>R_NO) then
+           b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
+           i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
+           if i and not b then
              begin
                 if offset=0 then
                   begin
@@ -188,20 +185,18 @@ unit agppcgas;
                      else
                        s:=s+'0';
                   end;
-{$ifndef notranslation}
-                s:=s+'('+gas_reg2str[base.enum]+')'
-{$else not notranslation}
-                s:=s+'(r'+tostr(ord(base.enum)-1)+')'
-{$endif notranslation}
+                if base.enum=R_INTREGISTER then
+                  s:=s+'(reg'+tostr(byte(base.number shr 8))+')'
+                else
+                  s:=s+'('+gas_reg2str[base.enum]+')';
              end
-           else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
-{$ifndef notranslation}
-             s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
+           else if (not i) and (not b) and (offset=0) then
+             if base.enum=R_INTREGISTER then
+               s:=s+'r'+tostr(byte(base.number shr 8))+',r'+tostr(byte(index.number shr 8))
+             else
+               s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
              internalerror(19992);
-{$else not notranslation}
-             s:=s+'r'+tostr(ord(base.enum)-1)+',r'+tostr(ord(index.enum)-1);
-{$endif notranslation}
         end;
       getreferencestring:=s;
     end;
@@ -245,13 +240,10 @@ unit agppcgas;
       case o.typ of
         top_reg:
           begin
-{$ifndef notranslation}
-            if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
-              internalerror(200303125);
-            getopstr:=gas_reg2str[o.reg.enum];
-{$else not notranslation}
-            getopstr:='r'+tostr(ord(o.reg.enum)-1);
-{$endif not notranslation}
+            if  o.reg.enum=R_INTREGISTER then
+              getopstr:='reg'+tostr(byte(o.reg.number shr 8))
+            else
+              getopstr:=gas_reg2str[o.reg.enum];
           end;
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -379,7 +371,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-08-17 16:59:20  jonas
+  Revision 1.25  2003-08-17 20:47:47  daniel
+    * Notranslation changed into -sr functionality
+
+  Revision 1.24  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to
