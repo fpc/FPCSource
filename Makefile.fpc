@@ -79,8 +79,8 @@ override RELEASE=1
 export RELEASE
 
 # We want to have the resulting .zips in the current dir
-ifndef DESTZIPDIR
-export DESTZIPDIR:=$(BASEDIR)
+ifndef DIST_DESTDIR
+export DIST_DESTDIR:=$(BASEDIR)
 endif
 
 # Temporary path to pack a file
@@ -250,8 +250,6 @@ installersrc:
 
 .PHONY: all clean distclean build install installbase zipinstall zipinstallbase zipinstallfcl \
         zipinstallpackages
-
-export RELEASE DESTZIPDIR
 
 all: build
 
