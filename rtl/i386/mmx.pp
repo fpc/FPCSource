@@ -238,11 +238,8 @@ begin
              is_amd_3d_dsp_cpu:=amd_3d_dsp_support;
              is_amd_3d_mmx_cpu:=amd_3d_mmx_support;
           end;
-        if getdevel=20 then
-          begin
-            is_sse_cpu:=sse_support;
-            is_sse2_cpu:=sse2_support;
-          end;
+        is_sse_cpu:=sse_support;
+        is_sse2_cpu:=sse2_support;
         { the exit code sets the fpu stack to empty }
         oldexitproc:=exitproc;
         exitproc:=@mmxexitproc;
@@ -250,7 +247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-09-23 18:55:19  hajny
+  Revision 1.10  2002-11-29 00:06:24  florian
+    * AMD CPUs could have SSE as well
+
+  Revision 1.9  2002/09/23 18:55:19  hajny
     * Opcode syntax corrected
 
   Revision 1.8  2002/09/23 18:25:55  hajny
