@@ -116,11 +116,15 @@ begin
               ProgramInfoWindow^.MakeFirst;
            end;
          end;
+      Close(GrepOut);
   Dispose(PGrepDialog, Done);
 end;
 {
   $Log$
-  Revision 1.3  1999-02-04 13:32:09  pierre
+  Revision 1.4  1999-02-04 15:59:08  pierre
+   * grep$$$.out was not closed
+
+  Revision 1.3  1999/02/04 13:32:09  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
