@@ -323,7 +323,7 @@ Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf }
 
 // setup cmdline variable
-getmem(cmdline,length(doscmd)+1);
+sysgetmem(cmdline,length(doscmd)+1);
 move(doscmd[1],cmdline^,length(doscmd));
 cmdline[length(doscmd)]:=#0;
 
@@ -382,13 +382,13 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     proxy_argc := atohex(largs[2]);
     proxy_seg  := atohex(largs[3]);
     proxy_ofs := atohex(largs[4]);
-    getmem(rm_argv,proxy_argc*sizeof(word));
+    sysgetmem(rm_argv,proxy_argc*sizeof(word));
     sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
     for i:=0 to proxy_argc - 1 do
       begin
       lin := proxy_seg*16 + rm_argv^[i];
       al :=far_strlen(dos_selector, lin);
-      getmem(largs[i],al+1);
+      sysgetmem(largs[i],al+1);
       sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
 {$IfDef SYSTEM_DEBUG_STARTUP}
       Writeln(stderr,'arg ',i,' #',largs[i],'#');
@@ -397,7 +397,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     argc := proxy_argc;
     end;
   end;
-getmem(argv,argc shl 2);
+sysgetmem(argv,argc shl 2);
 for i := 0 to argc-1  do
    argv[i] := largs[i];
   _args:=argv;
@@ -441,7 +441,7 @@ var env_selector : word;
     dos_env,cp : pchar;
 begin
    stub_info:=__stubinfo;
-   getmem(dos_env,stub_info^.env_size);
+   sysgetmem(dos_env,stub_info^.env_size);
    env_count:=0;
    sysseg_move(stub_info^.psp_selector,$2c, get_ds, longint(@env_selector), 2);
    sysseg_move(env_selector, 0, get_ds, longint(dos_env), stub_info^.env_size);
@@ -452,13 +452,13 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  getmem(envp,(env_count+1) * sizeof(pchar));
+  sysgetmem(envp,(env_count+1) * sizeof(pchar));
   if (envp = nil) then exit;
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do
    begin
-     getmem(envp[env_count],strlen(cp)+1);
+     sysgetmem(envp[env_count],strlen(cp)+1);
      strcopy(envp[env_count], cp);
 {$IfDef SYSTEM_DEBUG_STARTUP}
      Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
@@ -470,7 +470,7 @@ begin
    end;
   envp[env_count]:=nil;
   longint(cp):=longint(cp)+3;
-  getmem(dos_argv0,strlen(cp)+1);
+  sysgetmem(dos_argv0,strlen(cp)+1);
   if (dos_argv0 = nil) then halt;
   strcopy(dos_argv0, cp);
   { update ___dos_argv0 also }
@@ -733,7 +733,7 @@ begin
        openfiles[handle]:=false;
        if assigned(opennames[handle]) and free_closed_names then
          begin
-            freemem(opennames[handle],strlen(opennames[handle])+1);
+            sysfreemem(opennames[handle],strlen(opennames[handle])+1);
             opennames[handle]:=nil;
          end;
     end;
@@ -1023,8 +1023,14 @@ begin
 {$ifdef SYSTEMDEBUG}
   if regs.realeax<max_files then
     begin
+       if openfiles[regs.realeax] and
+          assigned(opennames[regs.realeax]) then
+         begin
+            Writeln(stderr,'file ',opennames[regs.realeax],'(',regs.realeax,') not closed but handle reused!');
+            sysfreemem(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
+         end;
        openfiles[regs.realeax]:=true;
-       getmem(opennames[regs.realeax],strlen(p)+1);
+       sysgetmem(opennames[regs.realeax],strlen(p)+1);
        move(p^,opennames[regs.realeax]^,strlen(p)+1);
     end;
 {$endif SYSTEMDEBUG}
@@ -1069,6 +1075,15 @@ end;
 {$DEFINE EOF_CTRLZ}
 
 {$i text.inc}
+
+
+{*****************************************************************************
+                           Generic Handling
+*****************************************************************************}
+
+{$ifdef TEST_GENERIC}
+{$i generic.inc}
+{$endif TEST_GENERIC}
 
 {*****************************************************************************
                            Directory Handling
@@ -1240,7 +1255,7 @@ Begin
   { before this, you can't use thread vars !!!! }
   { threadvarblocksize is calculate before the initialization }
   { of the system unit                                        }
-  getmem(mainprogramthreadblock,threadvarblocksize);
+  sysgetmem(mainprogramthreadblock,threadvarblocksize);
 {$endif MT}
   InitExceptions;
 { Setup stdin, stdout and stderr }
@@ -1260,7 +1275,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.14  1999-07-19 07:57:49  michael
+  Revision 1.15  1999-08-19 14:03:16  pierre
+   * use sysgetmem for startup and debug allocations
+
+  Revision 1.14  1999/07/19 07:57:49  michael
   + Small fix from Michael Baikov in setup_params
 
   Revision 1.13  1999/05/19 16:54:21  pierre
