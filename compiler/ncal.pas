@@ -1947,7 +1947,9 @@ type
                 varargspara:=tparaitem.create;
                 varargspara.paratyp:=vs_value;
                 varargspara.paratype:=pt.resulttype;
-                varargsparas.concat(varargspara);
+                { varargspara is left-right, use insert
+                  instead of concat }
+                varargsparas.insert(varargspara);
                 pt.paraitem:=varargspara;
               end;
             pt:=tcallparanode(pt.right);
@@ -2696,7 +2698,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.210  2003-12-01 18:44:15  peter
+  Revision 1.211  2003-12-08 16:34:23  peter
+    * varargspara is left-right, so adding paraitems needs insert
+      instead of concat
+
+  Revision 1.210  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 
