@@ -39,7 +39,7 @@ include $(INC)/Makefile.inc
 
 
 [rules]
-classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) $(UNIXINC)/classes$(PASEXT)
+classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
 
 inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 
