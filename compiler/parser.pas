@@ -29,6 +29,7 @@ unit parser;
 
     procedure compile(const filename:string;compile_system:boolean);
     procedure initparser;
+    procedure doneparser;
 
   implementation
 
@@ -76,6 +77,11 @@ unit parser;
           stacksize:=target_info.stacksize;
       end;
 
+    procedure doneparser;
+      begin
+         loaded_units.done;
+         usedunits.done;
+      end;
 
     procedure default_macros;
       var
@@ -361,7 +367,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.54  1998-10-05 21:33:23  peter
+  Revision 1.55  1998-10-06 17:16:53  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.54  1998/10/05 21:33:23  peter
     * fixed 161,165,166,167,168
 
   Revision 1.53  1998/09/30 16:43:36  peter

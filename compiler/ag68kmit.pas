@@ -619,6 +619,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
     { to get symify to work }
       AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
 
+      countlabelref:=false;
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
 
@@ -631,6 +632,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
       Writetree(importssection);
       Writetree(exportssection);
       Writetree(resourcesection);
+      countlabelref:=true;
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -642,7 +644,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.11  1998-10-01 20:19:09  jonas
+  Revision 1.12  1998-10-06 17:16:37  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.11  1998/10/01 20:19:09  jonas
     + ait_marker support
 
   Revision 1.10  1998/09/28 16:57:11  pierre

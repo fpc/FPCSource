@@ -1596,7 +1596,7 @@
           begin
             if definition^.sym=nil then
              definition^.sym:=@self;
-            if definition^.deftype=recorddef then
+            if (definition^.deftype=recorddef) and assigned(precdef(definition)^.symtable) then
              precdef(definition)^.symtable^.name:=stringdup('record '+name);
           end;
       end;
@@ -1719,7 +1719,10 @@
 
 {
   $Log$
-  Revision 1.49  1998-10-01 09:22:55  peter
+  Revision 1.50  1998-10-06 17:16:56  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.49  1998/10/01 09:22:55  peter
     * fixed value openarray
     * ungettemp of arrayconstruct
 

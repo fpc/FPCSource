@@ -580,6 +580,8 @@ implementation
 {$endif SUPPORT_MMX}
                 end;
            end;
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
          { push from right to left }
@@ -1442,6 +1444,8 @@ implementation
           addr_correction:=-addr_correction;
           st^.foreach(correct_address);
           aktprocsym:=oldprocsym;
+          freelabel(aktexitlabel);
+          freelabel(aktexit2label);
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
@@ -1453,7 +1457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1998-10-01 09:22:52  peter
+  Revision 1.33  1998-10-06 17:16:39  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.32  1998/10/01 09:22:52  peter
     * fixed value openarray
     * ungettemp of arrayconstruct
 

@@ -508,6 +508,8 @@ implementation
                                   newreference(p^.left^.location.reference))));
                            end;
          end;
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -731,7 +733,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-10-01 09:22:53  peter
+  Revision 1.23  1998-10-06 17:16:44  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.22  1998/10/01 09:22:53  peter
     * fixed value openarray
     * ungettemp of arrayconstruct
 

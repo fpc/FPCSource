@@ -551,6 +551,7 @@ ait_stab_function_name : ;
       AsmWriteLn('BITS 32');
       AsmLn;
 
+      countlabelref:=false;
       WriteTree(externals);
     { Nasm doesn't support stabs
       WriteTree(debuglist);}
@@ -560,6 +561,7 @@ ait_stab_function_name : ;
       WriteTree(consts);
       WriteTree(rttilist);
       WriteTree(bsssegment);
+      countlabelref:=true;
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -571,7 +573,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.9  1998-10-01 20:19:07  jonas
+  Revision 1.10  1998-10-06 17:16:34  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.9  1998/10/01 20:19:07  jonas
     + ait_marker support
 
   Revision 1.8  1998/09/20 17:11:22  jonas

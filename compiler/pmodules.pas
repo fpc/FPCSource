@@ -880,6 +880,7 @@ unit pmodules;
                 end;
               consume(SEMICOLON);
             end;
+
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
          { set implementation flag }
@@ -1001,7 +1002,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.59  1998-10-05 21:33:26  peter
+  Revision 1.60  1998-10-06 17:16:54  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.59  1998/10/05 21:33:26  peter
     * fixed 161,165,166,167,168
 
   Revision 1.58  1998/09/30 16:43:37  peter

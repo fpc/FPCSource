@@ -77,6 +77,7 @@ procedure Message2(w:tmsgconst;const s1,s2:string);
 procedure Message3(w:tmsgconst;const s1,s2,s3:string);
 
 procedure InitVerbose;
+procedure DoneVerbose;
 
 
 implementation
@@ -403,6 +404,12 @@ begin
   Status.MaxErrorCount:=50;
 end;
 
+procedure DoneVerbose;
+begin
+  if not(msg=nil) then
+   dispose(msg,Done);
+end;
+
 begin
 {$ifndef EXTERN_MSG}
   msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
@@ -413,7 +420,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  1998-10-05 13:51:36  peter
+  Revision 1.23  1998-10-06 17:17:01  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.22  1998/10/05 13:51:36  peter
     * if maxerrorcount is reached display a msg
 
   Revision 1.21  1998/09/28 16:57:30  pierre

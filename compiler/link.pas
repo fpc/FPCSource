@@ -119,6 +119,9 @@ end;
 
 Destructor TLinker.Done;
 begin
+  ObjectFiles.Done;
+  SharedLibFiles.Done;
+  StaticLibFiles.Done;
 end;
 
 
@@ -502,7 +505,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1998-09-29 15:23:05  peter
+  Revision 1.27  1998-10-06 17:16:52  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.26  1998/09/29 15:23:05  peter
     * remove also the end files for smartlinking
 
   Revision 1.25  1998/09/10 15:25:31  daniel

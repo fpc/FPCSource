@@ -983,6 +983,8 @@ implementation
          else
            internalerror(10061);
          end;
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
      end;
@@ -1310,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1998-10-02 07:20:35  florian
+  Revision 1.27  1998-10-06 17:16:40  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.26  1998/10/02 07:20:35  florian
     * range checking in units doesn't work if the units are smartlinked, fixed
 
   Revision 1.25  1998/09/30 12:14:24  peter

@@ -641,6 +641,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
       AsmStartSize:=AsmSize;
 
+      countlabelref:=false;
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
 
@@ -653,6 +654,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
       Writetree(importssection);
       Writetree(exportssection);
       Writetree(resourcesection);
+      countlabelref:=true;
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -664,7 +666,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.13  1998-10-01 20:19:08  jonas
+  Revision 1.14  1998-10-06 17:16:36  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.13  1998/10/01 20:19:08  jonas
     + ait_marker support
 
   Revision 1.12  1998/09/28 16:57:09  pierre

@@ -56,6 +56,7 @@ var
   importlib : pimportlib;
 
 procedure InitImport;
+procedure DoneImport;
 
 implementation
 
@@ -137,6 +138,12 @@ begin
 end;
 
 
+procedure DoneImport;
+begin
+   if assigned(importlib) then
+     dispose(importlib,done);
+end;
+
 procedure InitImport;
 begin
 {$ifdef i386}
@@ -156,7 +163,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-09-30 12:16:47  peter
+  Revision 1.5  1998-10-06 17:16:51  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.4  1998/09/30 12:16:47  peter
     * remove extension if one is specified
 
   Revision 1.3  1998/06/04 23:51:43  peter

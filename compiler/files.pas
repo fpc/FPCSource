@@ -185,7 +185,7 @@ unit files;
   implementation
 
   uses
-    dos,verbose,systems;
+    dos,verbose,symtable,systems;
 
 {****************************************************************************
                                   TINPUTFILE
@@ -882,6 +882,8 @@ unit files;
         stringdispose(modulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
+        if assigned(symtable) then
+          dispose(punitsymtable(symtable),done);
         inherited done;
       end;
 
@@ -925,7 +927,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.50  1998-09-30 16:43:34  peter
+  Revision 1.51  1998-10-06 17:16:47  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.50  1998/09/30 16:43:34  peter
     * fixed unit interdependency with circular uses
 
   Revision 1.49  1998/09/28 16:57:20  pierre

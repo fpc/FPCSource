@@ -500,6 +500,7 @@ ait_labeled_instruction :
        comment(v_info,'Start writing motorola-styled assembler output for '+current_module^.mainsource^);
 {$endif}
 
+      countlabelref:=false;
       WriteTree(externals);
     { WriteTree(debuglist);}
       WriteTree(codesegment);
@@ -510,6 +511,7 @@ ait_labeled_instruction :
       Writetree(importssection);
       Writetree(exportssection);
       Writetree(resourcesection);
+      countlabelref:=true;
 
       AsmLn;
       AsmWriteLn(#9'END');
@@ -524,7 +526,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.9  1998-10-01 20:19:10  jonas
+  Revision 1.10  1998-10-06 17:16:38  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.9  1998/10/01 20:19:10  jonas
     + ait_marker support
 
   Revision 1.8  1998/09/16 01:08:08  carl

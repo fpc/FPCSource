@@ -120,7 +120,11 @@ begin
    exit;
 { Free memory }
   DoneSymtable;
+  DoneGlobals;
+  linker.done;
   CompilerInited:=false;
+  doneparser;
+  DoneImport;
 end;
 
 
@@ -212,13 +216,18 @@ begin
    Compile:=0
   else
    Compile:=1;
+{ no message possible after this !! }
+  DoneVerbose;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.8  1998-09-01 09:00:27  peter
+  Revision 1.9  1998-10-06 17:16:46  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.8  1998/09/01 09:00:27  peter
     - removed tempheap creation/restore
 
   Revision 1.7  1998/09/01 07:54:17  pierre

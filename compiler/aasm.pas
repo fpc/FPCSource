@@ -294,6 +294,7 @@ type
   { label functions }
     const
       nextlabelnr : longint = 1;
+      countlabelref : boolean = true;
     { convert label to string}
     function lab2str(l : plabel) : string;
     { make l as a new label }
@@ -793,7 +794,9 @@ uses
              else
               lab2str:=target_asm.labelprefix+tostr(l^.nb);
            end;
-         inc(l^.refcount);
+         { inside the WriteTree we must not count the refs PM }
+         if countlabelref then
+           inc(l^.refcount);
          l^.is_used:=true;
       end;
 
@@ -872,7 +875,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  1998-10-01 20:19:11  jonas
+  Revision 1.20  1998-10-06 17:16:31  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.19  1998/10/01 20:19:11  jonas
     + ait_marker support
 
   Revision 1.18  1998/09/20 17:11:25  jonas

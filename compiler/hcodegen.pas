@@ -273,6 +273,7 @@ implementation
          dispose(datasegment,done);
          dispose(debuglist,done);
          dispose(externals,done);
+         dispose(internals,done);
          dispose(consts,done);
          dispose(rttilist,done);
          if assigned(importssection) then
@@ -383,7 +384,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  1998-09-17 09:42:37  peter
+  Revision 1.18  1998-10-06 17:16:50  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.17  1998/09/17 09:42:37  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

@@ -97,6 +97,9 @@ implementation
          secondpass(p^.left);
          maketojumpbool(p^.left);
          emitl(A_LABEL,lbreak);
+         freelabel(lloop);
+         freelabel(lcont);
+         freelabel(lbreak);
          truelabel:=otlabel;
          falselabel:=oflabel;
 
@@ -145,6 +148,8 @@ implementation
            emitl(A_LABEL,falselabel);
          if not(assigned(p^.right)) then
            emitl(A_LABEL,truelabel);
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -346,6 +351,9 @@ implementation
          if temptovalue then
            ungetiftemp(temp1);
 
+         freelabel(aktcontinuelabel);
+         freelabel(aktbreaklabel);
+         freelabel(l3);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -436,6 +444,8 @@ implementation
                         end;
               end;
 do_jmp:
+              freelabel(truelabel);
+              freelabel(falselabel);
               truelabel:=otlabel;
               falselabel:=oflabel;
               emitl(A_JMP,aktexit2label);
@@ -609,6 +619,10 @@ do_jmp:
          else
            emitcall('FPC_RERAISE',true);
          emitl(A_LABEL,endexceptlabel);
+         freelabel(exceptlabel);
+         freelabel(doexceptlabel);
+         freelabel(endexceptlabel);
+         freelabel(lastonlabel);
          endexceptlabel:=oldendexceptlabel;
       end;
 
@@ -724,7 +738,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.19  1998-09-28 12:13:53  peter
+  Revision 1.20  1998-10-06 17:16:42  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.19  1998/09/28 12:13:53  peter
     * fixed repeat continue until true;
 
   Revision 1.18  1998/09/26 15:03:04  florian

@@ -2207,6 +2207,8 @@
            dispose(parast,done);
          if assigned(localst) then
            dispose(localst,done);
+         if assigned(code) and ((options and poinline) <> 0) then
+           disposetree(ptree(code));
          if
 {$ifdef tp}
          not(use_big) and
@@ -3073,7 +3075,10 @@
 
 {
   $Log$
-  Revision 1.54  1998-10-05 21:33:28  peter
+  Revision 1.55  1998-10-06 17:16:55  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.54  1998/10/05 21:33:28  peter
     * fixed 161,165,166,167,168
 
   Revision 1.53  1998/10/05 12:48:39  pierre

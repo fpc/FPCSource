@@ -558,6 +558,7 @@ ait_stab_function_name : ;
       AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
       AsmLn;
 
+      countlabelref:=false;
       WriteTree(externals);
     { INTEL ASM doesn't support stabs
       WriteTree(debuglist);}
@@ -567,6 +568,7 @@ ait_stab_function_name : ;
       WriteTree(consts);
       WriteTree(rttilist);
       WriteTree(bsssegment);
+      countlabelref:=true;
 
       AsmWriteLn(#9'END');
       AsmLn;
@@ -580,7 +582,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.15  1998-10-01 20:19:06  jonas
+  Revision 1.16  1998-10-06 17:16:33  pierre
+    * some memory leaks fixed (thanks to Peter for heaptrc !)
+
+  Revision 1.15  1998/10/01 20:19:06  jonas
     + ait_marker support
 
   Revision 1.14  1998/09/20 17:11:21  jonas
