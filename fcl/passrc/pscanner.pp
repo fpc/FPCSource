@@ -510,7 +510,7 @@ begin
     end;
 
   FCurTokenString := '';
-
+  
   case TokenStr[0] of
     #0:		// Empty line
       begin
@@ -936,6 +936,24 @@ begin
 	        PPSkipMode := ppSkipIfBranch;
 		PPIsSkipping := True;
 	      end;
+	    end else if Directive = 'IF' then
+	    begin
+	      if PPSkipStackIndex = High(PPSkipModeStack) then
+	        Error(SErrIfXXXNestingLimitReached);
+	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+	      Inc(PPSkipStackIndex);
+	      if PPIsSkipping then
+	      begin
+	        PPSkipMode := ppSkipAll;
+		PPIsSkipping := True;
+	      end else
+	      begin
+	        { !!!: Currently, expressions are not supported, so they are
+                  just assumed as evaluating to false. }
+	        PPSkipMode := ppSkipIfBranch;
+		PPIsSkipping := True;
+	      end;
 	    end else if Directive = 'ELSE' then
 	    begin
 	      if PPSkipStackIndex = 0 then
@@ -996,7 +1014,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-04-04 08:01:55  michael
+  Revision 1.4  2003-09-02 13:26:06  mattias
+  MG: added IF directive skipping
+
+  Revision 1.3  2003/04/04 08:01:55  michael
   + Patch from Jeff Pohlmeyer to read less than and larger than
 
   Revision 1.2  2003/03/27 16:32:48  sg
