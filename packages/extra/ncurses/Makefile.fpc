@@ -4,7 +4,7 @@
 
 [package]
 name=ncurses
-version=1.0.6
+version=1.0.8
 
 [target]
 units=ncurses panel ncrt ocrt menu

@@ -6,11 +6,10 @@ packages=fcl gtk
 
 [package]
 name=fpgtk
-version=1.0.6
+version=1.0.8
 
 [target]
 units=fpglib fpgtk fpgtkext
-exampledirs=demo
 
 [install]
 fpcpackage=y
