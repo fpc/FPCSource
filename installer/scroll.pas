@@ -18,7 +18,13 @@ unit Scroll;
 
 interface
 
-uses Objects,Commands,Drivers,Views,App;
+uses Objects,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
+     Drivers,Views,App;
 
 const
     CScrollBoxBackground = #6;
@@ -251,7 +257,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:59:15  peter
+  Revision 1.2  2002-01-29 22:01:17  peter
+    * support fvision
+
+  Revision 1.1  2002/01/29 17:59:15  peter
     * moved installer
 
   Revision 1.1.2.2  2001/05/02 16:22:44  pierre

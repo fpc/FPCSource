@@ -16,10 +16,6 @@
  **********************************************************************}
 program install;
 
-{$DEFINE FV}         (* TH - added to make use of the original Turbo Vision possible. *)
-{$ifdef FVISION}
-{$undef FV}
-{$endif}
 { $DEFINE DLL}       (* TH - if defined, UNZIP32.DLL library is used to unpack. *)
 { $DEFINE DOSSTUB}   (* TH - should _not_ be defined unless creating a bound DOS and OS/2 installer!!! *)
 (* Defining DOSSTUB causes adding a small piece of code    *)
@@ -81,15 +77,16 @@ program install;
      heaptrc,
 {$endif HEAPTRC}
      strings,dos,objects,drivers,
-{$IFDEF FV}
+{$IFNDEF FVISION}
      commands,
+     HelpCtx,
 {$ENDIF}
      unzip,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
      app,dialogs,views,menus,msgbox,colortxt,tabs,scroll,
-     HelpCtx,WHTMLScn;
+     WHTMLScn;
 
   const
      installerversion='1.0.4';
@@ -1654,7 +1651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:59:15  peter
+  Revision 1.2  2002-01-29 22:01:17  peter
+    * support fvision
+
+  Revision 1.1  2002/01/29 17:59:15  peter
     * moved installer
 
   Revision 1.2.2.16  2001/11/24 14:29:54  carl

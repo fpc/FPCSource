@@ -29,6 +29,13 @@ fpcdir=..
 
 
 [rules]
+#
+# FVision or old FV detection
+#
+ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
+override COMPILER+=-dFVISION
+endif
+
 installer.pas: install.pas
         $(COPY) install.pas installer.pas
 

@@ -988,7 +988,7 @@ ifdef INSTALL_UNITS
 override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
 endif
 ifdef INSTALL_BUILDUNIT
-override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT),$(INSTALLPPUFILES))
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
 endif
 ifdef INSTALLPPUFILES
 override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
@@ -1297,6 +1297,9 @@ makefiles: fpc_makefiles
 .PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
+endif
+ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
+override COMPILER+=-dFVISION
 endif
 installer.pas: install.pas
 	$(COPY) install.pas installer.pas
