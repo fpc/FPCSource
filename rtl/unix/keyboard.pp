@@ -51,151 +51,7 @@ var
 {$ifdef logging}
   f : text;
 {$endif logging}
-
-{ list of all dos scancode for key giving 0 as char }
-Const
-   kbNoKey       = $00;
-   kbAltEsc      = $01;
-   kbAltSpace    = $02;
-   kbCtrlIns     = $04;
-   kbShiftIns    = $05;
-   kbCtrlDel     = $06;
-   kbShiftDel    = $07;
-   kbAltBack     = $08;
-   kbAltShiftBack= $09;
-   kbShiftTab    = $0F;
-   kbAltQ        = $10;
-   kbAltW        = $11;
-   kbAltE        = $12;
-   kbAltR        = $13;
-   kbAltT        = $14;
-   kbAltY        = $15;
-   kbAltU        = $16;
-   kbAltI        = $17;
-   kbAltO        = $18;
-   kbAltP        = $19;
-   kbAltLftBrack = $1A;
-   kbAltRgtBrack = $1B;
-   kbAltA        = $1E;
-   kbAltS        = $1F;
-   kbAltD        = $20;
-   kbAltF        = $21;
-   kbAltG        = $22;
-   kbAltH        = $23;
-   kbAltJ        = $24;
-   kbAltK        = $25;
-   kbAltL        = $26;
-   kbAltSemiCol  = $27;
-   kbAltQuote    = $28;
-   kbAltOpQuote  = $29;
-   kbAltBkSlash  = $2B;
-   kbAltZ        = $2C;
-   kbAltX        = $2D;
-   kbAltC        = $2E;
-   kbAltV        = $2F;
-   kbAltB        = $30;
-   kbAltN        = $31;
-   kbAltM        = $32;
-   kbAltComma    = $33;
-   kbAltPeriod   = $34;
-   kbAltSlash    = $35;
-   kbAltGreyAst  = $37;
-   kbF1          = $3B;
-   kbF2          = $3C;
-   kbF3          = $3D;
-   kbF4          = $3E;
-   kbF5          = $3F;
-   kbF6          = $40;
-   kbF7          = $41;
-   kbF8          = $42;
-   kbF9          = $43;
-   kbF10         = $44;
-   kbHome        = $47;
-   kbUp          = $48;
-   kbPgUp        = $49;
-   kbLeft        = $4B;
-   kbCenter      = $4C;
-   kbRight       = $4D;
-   kbAltGrayPlus = $4E;
-   kbend         = $4F;
-   kbDown        = $50;
-   kbPgDn        = $51;
-   kbIns         = $52;
-   kbDel         = $53;
-   kbShiftF1     = $54;
-   kbShiftF2     = $55;
-   kbShiftF3     = $56;
-   kbShiftF4     = $57;
-   kbShiftF5     = $58;
-   kbShiftF6     = $59;
-   kbShiftF7     = $5A;
-   kbShiftF8     = $5B;
-   kbShiftF9     = $5C;
-   kbShiftF10    = $5D;
-   kbCtrlF1      = $5E;
-   kbCtrlF2      = $5F;
-   kbCtrlF3      = $60;
-   kbCtrlF4      = $61;
-   kbCtrlF5      = $62;
-   kbCtrlF6      = $63;
-   kbCtrlF7      = $64;
-   kbCtrlF8      = $65;
-   kbCtrlF9      = $66;
-   kbCtrlF10     = $67;
-   kbAltF1       = $68;
-   kbAltF2       = $69;
-   kbAltF3       = $6A;
-   kbAltF4       = $6B;
-   kbAltF5       = $6C;
-   kbAltF6       = $6D;
-   kbAltF7       = $6E;
-   kbAltF8       = $6F;
-   kbAltF9       = $70;
-   kbAltF10      = $71;
-   kbCtrlPrtSc   = $72;
-   kbCtrlLeft    = $73;
-   kbCtrlRight   = $74;
-   kbCtrlend     = $75;
-   kbCtrlPgDn    = $76;
-   kbCtrlHome    = $77;
-   kbAlt1        = $78;
-   kbAlt2        = $79;
-   kbAlt3        = $7A;
-   kbAlt4        = $7B;
-   kbAlt5        = $7C;
-   kbAlt6        = $7D;
-   kbAlt7        = $7E;
-   kbAlt8        = $7F;
-   kbAlt9        = $80;
-   kbAlt0        = $81;
-   kbAltMinus    = $82;
-   kbAltEqual    = $83;
-   kbCtrlPgUp    = $84;
-   kbF11         = $85;
-   kbF12         = $86;
-   kbShiftF11    = $87;
-   kbShiftF12    = $88;
-   kbCtrlF11     = $89;
-   kbCtrlF12     = $8A;
-   kbAltF11      = $8B;
-   kbAltF12      = $8C;
-   kbCtrlUp      = $8D;
-   kbCtrlMinus   = $8E;
-   kbCtrlCenter  = $8F;
-   kbCtrlGreyPlus= $90;
-   kbCtrlDown    = $91;
-   kbCtrlTab     = $94;
-   kbAltHome     = $97;
-   kbAltUp       = $98;
-   kbAltPgUp     = $99;
-   kbAltLeft     = $9B;
-   kbAltRight    = $9D;
-   kbAltend      = $9F;
-   kbAltDown     = $A0;
-   kbAltPgDn     = $A1;
-   kbAltIns      = $A2;
-   kbAltDel      = $A3;
-   kbAltTab      = $A5;
+{$i keyscan.inc}
 
 {$ifdef Unused}
 type
@@ -1401,7 +1257,7 @@ end;
 
 { Exported functions }
 
-procedure InitKeyboard;
+procedure SysInitKeyboard;
 begin
   SetRawMode(true);
   patchkeyboard;
@@ -1428,7 +1284,7 @@ begin
 end;
 
 
-procedure DoneKeyboard;
+procedure SysDoneKeyboard;
 begin
   unpatchkeyboard;
   SetRawMode(false);
@@ -1438,7 +1294,7 @@ begin
 end;
 
 
-function GetKeyEvent: TKeyEvent;
+function SysGetKeyEvent: TKeyEvent;
 
   function EvalScan(b:byte):byte;
   const
@@ -1494,13 +1350,6 @@ var
   MyChar : char;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,IsAlt,Again : boolean;
 begin {main}
-  if PendingKeyEvent<>0 then
-   begin
-     GetKeyEvent:=PendingKeyEvent;
-     PendingKeyEvent:=0;
-     exit;
-   end;
-
   MyChar:=Readkey(IsAlt);
   MyScan:=ord(MyChar);
   SState:=ShiftState;
@@ -1551,9 +1400,9 @@ begin {main}
              end;
          end;
         if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
-          GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
+          SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
         else
-          GetKeyEvent:=0;
+          SysGetKeyEvent:=0;
         exit;
       end
     else if MyChar=#27 then
@@ -1627,104 +1476,54 @@ begin {main}
       end;
     until not Again;
   if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
-    GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
+    SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
   else
-    GetKeyEvent:=0;
+    SysGetKeyEvent:=0;
 end;
 
 
-function PollKeyEvent: TKeyEvent;
+function SysPollKeyEvent: TKeyEvent;
 begin
-  if PendingKeyEvent<>0 then
-   exit(PendingKeyEvent);
   if keypressed then
-   begin
-     { just get the key and place it in the pendingkeyevent }
-     PendingKeyEvent:=GetKeyEvent;
-     PollKeyEvent:=PendingKeyEvent;
-   end
+    SysPollKeyEvent:=SysGetKeyEvent
   else
-   PollKeyEvent:=0;
+    SysPollKeyEvent:=0;
 end;
 
 
-function PollShiftStateEvent: TKeyEvent;
+function SysGetShiftState  : Byte;
 begin
-  PollShiftStateEvent:=ShiftState shl 16;
-end;
-
-
-{ Function key translation }
-type
-  TTranslationEntry = packed record
-    Min, Max: Byte;
-    Offset: Word;
-  end;
-const
-  TranslationTableEntries = 12;
-  TranslationTable: array [1..TranslationTableEntries] of TTranslationEntry =
-    ((Min: $3B; Max: $44; Offset: kbdF1),   { function keys F1-F10 }
-     (Min: $54; Max: $5D; Offset: kbdF1),   { Shift fn keys F1-F10 }
-     (Min: $5E; Max: $67; Offset: kbdF1),   { Ctrl fn keys F1-F10 }
-     (Min: $68; Max: $71; Offset: kbdF1),   { Alt fn keys F1-F10 }
-     (Min: $85; Max: $86; Offset: kbdF11),  { function keys F11-F12 }
-     (Min: $87; Max: $88; Offset: kbdF11),  { Shift+function keys F11-F12 }
-     (Min: $89; Max: $8A; Offset: kbdF11),  { Ctrl+function keys F11-F12 }
-     (Min: $8B; Max: $8C; Offset: kbdF11),  { Alt+function keys F11-F12 }
-     (Min: $47; Max: $49; Offset: kbdHome), { Keypad keys kbdHome-kbdPgUp }
-     (Min: $4B; Max: $4D; Offset: kbdLeft), { Keypad keys kbdLeft-kbdRight }
-     (Min: $4F; Max: $51; Offset: kbdEnd),  { Keypad keys kbdEnd-kbdPgDn }
-     (Min: $52; Max: $53; Offset: kbdInsert));
-
-function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
-var
-  I: Integer;
-  ScanCode: Byte;
-begin
-  if KeyEvent and $03000000 = $03000000 then
-   begin
-     if KeyEvent and $000000FF <> 0 then
-      begin
-        TranslateKeyEvent := KeyEvent and $00FFFFFF;
-        exit;
-      end
-     else
-      begin
-        { This is a function key }
-        ScanCode := (KeyEvent and $0000FF00) shr 8;
-        for I := 1 to TranslationTableEntries do
-         begin
-           if (TranslationTable[I].Min <= ScanCode) and (ScanCode <= TranslationTable[I].Max) then
-            begin
-              TranslateKeyEvent := $02000000 + (KeyEvent and $00FF0000) +
-                (ScanCode - TranslationTable[I].Min) + TranslationTable[I].Offset;
-              exit;
-            end;
-         end;
-      end;
-   end;
-  TranslateKeyEvent := KeyEvent;
-end;
-
-
-function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
-begin
-  TranslateKeyEventUniCode := KeyEvent;
-  ErrorCode:=errKbdNotImplemented;
+  SysGetShiftState:=ShiftState;
 end;
 
 
 procedure RestoreStartMode;
+
 begin
   TCSetAttr(1,TCSANOW,StartTio);
 end;
 
-begin
+Const
+  SysKeyboardDriver : TKeyboardDriver = (
+    InitDriver : @SysInitKeyBoard;
+    DoneDriver : @SysDoneKeyBoard;
+    GetKeyevent : @SysGetKeyEvent;
+    PollKeyEvent : @SysPollKeyEvent;
+    GetShiftState : @SysGetShiftState;
+    TranslateKeyEvent : Nil;
+    TranslateKeyEventUnicode : Nil; 
+  );
+
+begin 
+  SetKeyBoardDriver(SysKeyBoardDriver);
   TCGetAttr(1,StartTio);
 end.
 {
   $Log$
-  Revision 1.7  2001-08-30 20:55:08  peter
+  Revision 1.8  2001-09-21 21:33:36  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.7  2001/08/30 20:55:08  peter
     * v10 merges
 
   Revision 1.6  2001/08/04 11:05:21  peter
@@ -1736,6 +1535,39 @@ end.
   Revision 1.3  2001/04/10 23:35:02  peter
     * fixed argument name
     * merged fixes
+
+  Revision 1.2.2.5  2001/03/27 12:38:10  pierre
+   + RestoreStartMode function
+
+  Revision 1.2.2.4  2001/03/27 11:41:03  pierre
+   * fix the special handler case to avoid waiting for one more char
+
+  Revision 1.2.2.3  2001/03/24 22:38:46  pierre
+   * fix bug with AltGr keys
+
+  Revision 1.2.2.11  2001/09/21 21:20:43  michael
+  + Added support for keyboard driver.
+  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
+  + PendingKeyEvent variable no longer public. Handling of this variable is
+    now done entirely by global functions. System dependent code should not
+    need it, it is set automatically.
+  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
+
+  Revision 1.2.2.10  2001/08/28 12:27:10  pierre
+   * second change to the char restore into InBuf array in ReadKey function
+
+  Revision 1.2.2.9  2001/08/03 14:46:50  pierre
+   * push the unused char at correct location into syskeypressed buffer
+
+  Revision 1.2.2.8  2001/08/02 13:23:55  pierre
+   * avoid several keys to be read and cause overflows
+
+  Revision 1.2.2.7  2001/06/17 22:56:24  pierre
+  * preserve KDGKBMETA
+
+  Revision 1.2.2.6  2001/04/10 23:22:25  peter
+    * merged fixes
+    * fixed argument name
 
   Revision 1.2.2.5  2001/03/27 12:38:10  pierre
    + RestoreStartMode function

@@ -36,7 +36,7 @@ uses
 
 const MaxQueueSize = 120;
       FrenchKeyboard = $040C040C;
-      KeyboardActive : boolean =false;
+
 var
    keyboardeventqueue : array[0..maxqueuesize] of TKeyEventRecord;
    nextkeyevent,nextfreekeyevent : longint;
@@ -181,10 +181,8 @@ begin
            end;
 end;
 
-procedure InitKeyboard;
+procedure SysInitKeyboard;
 begin
-   if KeyboardActive then
-     exit;
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
    FlushConsoleInputBuffer(StdInputHandle);
@@ -204,18 +202,14 @@ begin
    nextkeyevent:=0;
    nextfreekeyevent:=0;
    SetKeyboardEventHandler (@HandleKeyboard);
-   KeyboardActive:=true;
 end;
 
-procedure DoneKeyboard;
+procedure SysDoneKeyboard;
 begin
-   if not KeyboardActive then
-     exit;
-   SetKeyboardEventHandler(nil);     {hangs???}
-   DeleteCriticalSection (lockVar);
-   FlushConsoleInputBuffer(StdInputHandle);
-   closeHandle (newKeyEvent);
-   KeyboardActive:=false;
+  SetKeyboardEventHandler(nil);     {hangs???}
+  DeleteCriticalSection (lockVar);
+  FlushConsoleInputBuffer(StdInputHandle);
+  closeHandle (newKeyEvent);
 end;
 
 {$define USEKEYCODES}
@@ -550,7 +544,7 @@ CONST
    (n : $00; s : $0F; c : $94; a: $00));     {0F Tab }
 
 
-function translateKey (t : TKeyEventRecord) : TKeyEvent;
+function TranslateKey (t : TKeyEventRecord) : TKeyEvent;
 var key : TKeyEvent;
     ss  : byte;
 {$ifdef  USEKEYCODES}
@@ -679,31 +673,26 @@ begin
   translateKey := Key;
 end;
 
-function GetKeyEvent: TKeyEvent;
+function SysGetKeyEvent: TKeyEvent;
 var t   : TKeyEventRecord;
     key : TKeyEvent;
 begin
-  if PendingKeyEvent<>0 then
-  begin
-    GetKeyEvent:=PendingKeyEvent;
-    PendingKeyEvent:=0;
-    exit;
-  end;
   key := 0;
   repeat
      if getKeyEventFromQueueWait (t) then
        key := translateKey (t);
   until key <> 0;
-  GetKeyEvent := key;
+{$ifdef DEBUG}
+  last_ir.Event.KeyEvent:=t;
+{$endif DEBUG}
+  SysGetKeyEvent := key;
 end;
 
-function PollKeyEvent: TKeyEvent;
+function SysPollKeyEvent: TKeyEvent;
 var t   : TKeyEventRecord;
     k   : TKeyEvent;
 begin
-  if PendingKeyEvent<>0 then
-    exit(PendingKeyEvent);
-  PollKeyEvent := 0;
+  SysPollKeyEvent := 0;
   if getKeyEventFromQueue (t, true) then
   begin
     { we get an enty for shift, ctrl, alt... }
@@ -714,75 +703,101 @@ begin
       if not getKeyEventFromQueue (t, true) then exit;
       k := translateKey (t)
     end;
-    PollKeyEvent := k;
+    SysPollKeyEvent := k;
   end;
 end;
 
 
-function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
+function SysTranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
 begin
   if KeyEvent and $03000000 = $03000000 then
    begin
      if KeyEvent and $000000FF <> 0 then
      begin
-       TranslateKeyEvent := KeyEvent and $00FFFFFF;
+       SysTranslateKeyEvent := KeyEvent and $00FFFFFF;
        exit;
      end;
      {translate function-keys and other specials, ascii-codes are already ok}
      case (KeyEvent AND $0000FF00) shr 8 of
        {F1..F10}
-       $3B..$44     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $3B + $02000000;
+       $3B..$44     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $3B + $02000000;
        {F11,F12}
-       $85..$86     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $85 + $02000000;
+       $85..$86     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $85 + $02000000;
        {Shift F1..F10}
-       $54..$5D     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $54 + $02000000;
+       $54..$5D     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $54 + $02000000;
        {Shift F11,F12}
-       $87..$88     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $87 + $02000000;
+       $87..$88     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $87 + $02000000;
        {Alt F1..F10}
-       $68..$71     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $68 + $02000000;
+       $68..$71     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $68 + $02000000;
        {Alt F11,F12}
-       $8B..$8C     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $8B + $02000000;
+       $8B..$8C     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $8B + $02000000;
        {Ctrl F1..F10}
-       $5E..$67     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $5E + $02000000;
+       $5E..$67     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF1 + ((KeyEvent AND $0000FF00) SHR 8) - $5E + $02000000;
        {Ctrl F11,F12}
-       $89..$8A     : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $89 + $02000000;
+       $89..$8A     : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdF11 + ((KeyEvent AND $0000FF00) SHR 8) - $89 + $02000000;
 
        {normal,ctrl,alt}
-       $47,$77,$97  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdHome + $02000000;
-       $48,$8D,$98  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdUp + $02000000;
-       $49,$84,$99  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdPgUp + $02000000;
-       $4b,$73,$9B  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdLeft + $02000000;
-       $4d,$74,$9D  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdRight + $02000000;
-       $4f,$75,$9F  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdEnd + $02000000;
-       $50,$91,$A0  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdDown + $02000000;
-       $51,$76,$A1  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdPgDn + $02000000;
-       $52,$92,$A2  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdInsert + $02000000;
-       $53,$93,$A3  : TranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdDelete + $02000000;
+       $47,$77,$97  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdHome + $02000000;
+       $48,$8D,$98  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdUp + $02000000;
+       $49,$84,$99  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdPgUp + $02000000;
+       $4b,$73,$9B  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdLeft + $02000000;
+       $4d,$74,$9D  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdRight + $02000000;
+       $4f,$75,$9F  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdEnd + $02000000;
+       $50,$91,$A0  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdDown + $02000000;
+       $51,$76,$A1  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdPgDn + $02000000;
+       $52,$92,$A2  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdInsert + $02000000;
+       $53,$93,$A3  : SysTranslateKeyEvent := (KeyEvent AND $FCFF0000) + kbdDelete + $02000000;
      else
-       TranslateKeyEvent := KeyEvent;
+       SysTranslateKeyEvent := KeyEvent;
      end;
    end else
-     TranslateKeyEvent := KeyEvent;
+     SysTranslateKeyEvent := KeyEvent;
 end;
 
-function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
-begin
-  exit (KeyEvent);  {???}
-end;
 
-function PollShiftStateEvent: TKeyEvent;
-var t : TKeyEvent;
+function SysGetShiftState: Byte;
+
 begin
   {may be better to save the last state and return that if no key is in buffer???}
-  t := lastShiftState;
-  PollShiftStateEvent := t shl 16;
+  SysGetShiftState:= lastShiftState;
 end;
 
+Const
+  SysKeyboardDriver : TKeyboardDriver = (
+    InitDriver : @SysInitKeyBoard;
+    DoneDriver : @SysDoneKeyBoard;
+    GetKeyevent : @SysGetKeyEvent;
+    PollKeyEvent : @SysPollKeyEvent;
+    GetShiftState : @SysGetShiftState;
+    TranslateKeyEvent : @SysTranslateKeyEvent;
+    TranslateKeyEventUnicode : Nil; 
+  );
+
+
+begin 
+  SetKeyBoardDriver(SysKeyBoardDriver);
 end.
 {
   $Log$
-  Revision 1.4  2001-08-05 12:23:57  peter
+  Revision 1.5  2001-09-21 21:33:36  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.4  2001/08/05 12:23:57  peter
     * fixed for new input_record
+
+  Revision 1.2.2.4  2001/09/21 21:20:43  michael
+  + Added support for keyboard driver.
+  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
+  + PendingKeyEvent variable no longer public. Handling of this variable is
+    now done entirely by global functions. System dependent code should not
+    need it, it is set automatically.
+  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
+
+  Revision 1.2.2.3  2001/08/05 12:24:37  peter
+    * fixed for new input_record
+
+  Revision 1.2.2.2  2001/02/05 15:30:06  pierre
+   * fix compiliing with -dDEBUG
 
   Revision 1.3  2001/05/20 12:08:17  peter
     * fixed to compile with debug

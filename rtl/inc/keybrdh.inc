@@ -20,6 +20,10 @@ const
 
 type
   TKeyEvent = Longint;
+  TKeyRecord = packed record
+    KeyCode : Word;
+    ShiftState, Flags : Byte;
+  end;
 
 { The structure of a TKeyEvent follows in LSB-MSB order:
   2 bytes: depending on flags either the physical representation of a key
@@ -98,9 +102,31 @@ const
   kbCtrl        = 4;
   kbAlt         = 8;
 
-var
-  PendingKeyEvent : TKeyEvent;
+{ ---------------------------------------------------------------------
+    Key names. Can be localized if needed.
+  ---------------------------------------------------------------------}
+  SShift       : Array [1..3] of string[5] = ('SHIFT','CTRL','ALT');
+  SLeftRight   : Array [1..2] of string[5] = ('LEFT','RIGHT');
+  SUnicodeChar : String = 'Unicode character ';
+  SScanCode    : String = 'Key with scancode ';
+  SUnknownFunctionKey : String = 'Unknown function key : ';
+  SAnd         : String = 'AND';
+  SKeyPad      : Array [0..($FF2F-kbdHome)] of string[6] = 
+                 ('Home','Up','PgUp','Left',
+                  'Middle','Right','End','Down',
+                  'PgDn','Insert','Delete','',
+                  '','','','');
 
+Type 
+  TKeyboardDriver = Record
+    InitDriver : Procedure;
+    DoneDriver : Procedure;
+    GetKeyEvent : Function : TKeyEvent;
+    PollKeyEvent : Function : TKeyEvent;
+    GetShiftState : Function : Byte;
+    TranslateKeyEvent : Function (KeyEvent: TKeyEvent): TKeyEvent;
+    TranslateKeyEventUniCode : Function (KeyEvent: TKeyEvent): TKeyEvent;
+  end;
 
 procedure InitKeyboard;
 { Initializes the keyboard interface, additional platform specific parameters
@@ -151,9 +177,37 @@ function GetKeyEventShiftState(KeyEvent: TKeyEvent): Byte;
 function IsFunctionKey(KeyEvent: TKeyEvent): Boolean;
 { Returns true if the given key was a function key or not }
 
+Procedure SetKeyboardDriver (Const Driver : TKeyboardDriver);
+{ Sets the keyboard driver to use }
+
+Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
+{ Returns the currently active keyboard driver }
+
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+{ Returns a string representation of a shift state as returned by 
+  pollshiftstate }
+Function FunctionKeyName (KeyCode : Word) : String;
+{ Returns the name of a function key if the key is one of the special keys . }
+Function KeyEventToString(KeyEvent : TKeyEvent) : String;
+{ Returns a string representation of the pressed key }
+
 {
   $Log$
-  Revision 1.1  2001-01-13 11:13:12  peter
+  Revision 1.2  2001-09-21 21:33:36  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.1.2.2  2001/09/21 21:20:43  michael
+  + Added support for keyboard driver.
+  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
+  + PendingKeyEvent variable no longer public. Handling of this variable is
+    now done entirely by global functions. System dependent code should not
+    need it, it is set automatically.
+  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
+
+  Revision 1.1.2.1  2001/01/30 22:21:22  peter
+    * move api to rtl
+
+  Revision 1.1  2001/01/13 11:13:12  peter
     * API 2 RTL
 
 }

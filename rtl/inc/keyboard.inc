@@ -12,6 +12,9 @@
 
  **********************************************************************}
 
+var
+  PendingKeyEvent : TKeyEvent;
+
 procedure PutKeyEvent(KeyEvent: TKeyEvent);
 begin
   PendingKeyEvent := KeyEvent;
@@ -53,9 +56,256 @@ begin
   IsFunctionKey := KeyEvent and $03000000 = $02000000;
 end;
 
+Var 
+  KeyBoardInitialized : Boolean;
+  CurrentKeyboardDriver : TKeyboardDriver;
+  
+procedure InitKeyboard;
+
+begin
+  If Not KeyboardInitialized then
+    begin
+    If Assigned(CurrentKeyBoardDriver.InitDriver) Then
+      CurrentKeyBoardDriver.InitDriver();
+    KeyboardInitialized:=True;  
+    end;  
+end;
+
+procedure DoneKeyboard;
+
+begin
+  If KeyboardInitialized then
+    begin
+    If Assigned(CurrentKeyBoardDriver.DoneDriver) Then
+      CurrentKeyBoardDriver.DoneDriver();
+    KeyboardInitialized:=False;  
+    end;  
+end;
+
+
+function GetKeyEvent: TKeyEvent;
+
+begin
+  if PendingKeyEvent<>0 then
+    begin
+    GetKeyEvent:=PendingKeyEvent;
+    PendingKeyEvent:=0;
+    exit;
+    end;
+  If Assigned(CurrentKeyBoardDriver.GetKeyEvent) Then
+    GetKeyEvent:=CurrentKeyBoardDriver.GetKeyEvent()
+  else
+    GetKeyEvent:=0;
+end;
+
+function PollKeyEvent: TKeyEvent;
+
+begin
+  if PendingKeyEvent<>0 then
+   exit(PendingKeyEvent);
+  If Assigned(CurrentKeyBoardDriver.PollKeyEvent) Then
+    begin
+    PendingKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
+    PollKeyEvent:=PendingKeyEvent;
+    end
+  else
+    PollKeyEvent:=0;
+end;
+
+Procedure SetKeyboardDriver (Const Driver : TKeyboardDriver);
+
+begin
+  If Not KeyBoardInitialized then
+    CurrentKeyBoardDriver:=Driver;
+end;
+
+Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
+
+begin
+  Driver:=CurrentKeyBoardDriver;
+end;
+
+function PollShiftStateEvent: TKeyEvent;                                        
+
+begin
+  If Assigned(CurrentKeyBoardDriver.GetShiftState) then
+    PollShiftStateEvent:=CurrentKeyBoardDriver.GetShiftState() shl 16
+  else
+    PollShiftStateEvent:=0;  
+end;
+
+function DefaultTranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
+
+begin
+  DefaultTranslateKeyEventUniCode:=KeyEvent;
+  ErrorCode:=errKbdNotImplemented;
+end;
+
+
+function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
+
+begin
+  if Assigned(CurrentKeyBoardDriver.TranslateKeyEventUnicode) then
+    TranslateKeyEventUnicode:=CurrentKeyBoardDriver.TranslateKeyEventUnicode(KeyEvent)
+  else
+    TranslateKeyEventUnicode:=DefaultTranslateKeyEventUnicode(KeyEvent);  
+end;
+
+type
+  TTranslationEntry = packed record
+    Min, Max: Byte;
+    Offset: Word;
+  end;
+const
+  TranslationTableEntries = 12;
+  TranslationTable: array [1..TranslationTableEntries] of TTranslationEntry =
+    ((Min: $3B; Max: $44; Offset: kbdF1),   { function keys F1-F10 }
+     (Min: $54; Max: $5D; Offset: kbdF1),   { Shift fn keys F1-F10 }
+     (Min: $5E; Max: $67; Offset: kbdF1),   { Ctrl fn keys F1-F10 }
+     (Min: $68; Max: $71; Offset: kbdF1),   { Alt fn keys F1-F10 }
+     (Min: $85; Max: $86; Offset: kbdF11),  { function keys F11-F12 }
+     (Min: $87; Max: $88; Offset: kbdF11),  { Shift+function keys F11-F12 }
+     (Min: $89; Max: $8A; Offset: kbdF11),  { Ctrl+function keys F11-F12 }
+     (Min: $8B; Max: $8C; Offset: kbdF11),  { Alt+function keys F11-F12 }
+     (Min: $47; Max: $49; Offset: kbdHome), { Keypad keys kbdHome-kbdPgUp }
+     (Min: $4B; Max: $4D; Offset: kbdLeft), { Keypad keys kbdLeft-kbdRight }
+     (Min: $4F; Max: $51; Offset: kbdEnd),  { Keypad keys kbdEnd-kbdPgDn }
+     (Min: $52; Max: $53; Offset: kbdInsert));
+ 
+
+function DefaultTranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
+
+var
+  I: Integer;
+  ScanCode: Byte;
+begin
+  if KeyEvent and $03000000 = $03000000 then
+   begin
+     if KeyEvent and $000000FF <> 0 then
+      begin
+        DefaultTranslateKeyEvent := KeyEvent and $00FFFFFF;
+        exit;
+      end
+     else
+      begin
+        { This is a function key }
+        ScanCode := (KeyEvent and $0000FF00) shr 8;
+        for I := 1 to TranslationTableEntries do
+         begin
+           if (TranslationTable[I].Min <= ScanCode) and (ScanCode <= TranslationTable[I].Max) then
+            begin
+              DefaultTranslateKeyEvent := $02000000 + (KeyEvent and $00FF0000) +
+                (ScanCode - TranslationTable[I].Min) + TranslationTable[I].Offset;
+              exit;
+            end;
+         end;
+      end;
+   end;
+  DefaultTranslateKeyEvent := KeyEvent;                                                                                    
+end;
+
+function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
+
+begin
+  if Assigned(CurrentKeyBoardDriver.TranslateKeyEvent) then
+    TranslateKeyEvent:=CurrentKeyBoardDriver.TranslateKeyEvent(KeyEvent)
+  else
+    TranslateKeyEvent:=DefaultTranslateKeyEvent(KeyEvent);  
+end;
+
+{ ---------------------------------------------------------------------
+    KeyEvent to String representation section.
+  ---------------------------------------------------------------------}
+  
+Procedure AddToString (Var S : String; Const A : String);
+
+begin
+  If Length(S)=0 then
+    S:=A
+  else
+    S:=S+' '+A;  
+end;
+
+Function IntToStr(Int : Longint) : String;
+
+begin
+  Str(Int,IntToStr);  
+end;
+  
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+
+Var
+  S : Integer;
+  T : String;
+  
+begin
+  S:=GetKeyEventShiftState(KeyEvent);
+  T:='';
+  If (S and kbShift)<>0 then
+    begin
+    if UseLeftRight then
+      case (S and kbShift) of
+        kbShift      : AddToString(T,SLeftRight[1]+' '+SAnd+' '+SLeftRight[2]);
+        kbLeftShift  : AddToString(T,SLeftRight[1]);
+        kbRightShift : AddToString(T,SLeftRight[2]);
+      end;
+    AddToString(T,SShift[1]);
+    end;
+  If (S and kbCtrl)<>0 Then
+    AddToString(T,SShift[2]);
+  If (S and kbAlt)<>0 Then  
+    AddToString(T,SShift[3]);
+  ShiftStateToString:=T;  
+end;
+
+Function FunctionKeyName (KeyCode : Word) : String;
+
+begin
+  If ((KeyCode-KbdF1)<$1F) Then 
+    FunctionKeyName:='F'+IntToStr((KeyCode-KbdF1+1))
+  else
+    begin
+    If (KeyCode-kbdHome)<($2F-$1F) then
+      FunctionKeyName:=SKeyPad[(KeyCode-kbdHome)]
+    else
+      FunctionKeyName:=SUnknownFunctionKey + IntToStr(KeyCode);
+    end;  
+end;
+
+Function KeyEventToString(KeyEvent : TKeyEvent) : String;
+
+Var
+  T : String;
+
+begin
+  T:=ShiftStateToString(KeyEvent,False);
+  Case GetKeyEventFlags(KeyEvent) of
+    kbASCII   : AddToString(T,GetKeyEventChar(KeyEvent));
+    kbUniCode : AddToString(T,SUniCodeChar+IntToStr(GetKeyEventUniCode(Keyevent)));
+    kbFnKey   : AddToString(T,FunctionKeyName(GetKeyEventCode(KeyEvent)));
+                // Not good, we need a GetKeyEventScanCode function !!
+    kbPhys    : AddToString(T,SScanCode+IntToStr(KeyEvent and $ffff));
+  end;
+  KeyEventToString:=T;
+end;
+
 {
   $Log$
-  Revision 1.1  2001-01-13 11:13:12  peter
+  Revision 1.2  2001-09-21 21:33:36  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.1.2.2  2001/09/21 21:20:43  michael
+  + Added support for keyboard driver.
+  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
+  + PendingKeyEvent variable no longer public. Handling of this variable is
+    now done entirely by global functions. System dependent code should not
+    need it, it is set automatically.
+  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
+
+  Revision 1.1.2.1  2001/01/30 22:21:22  peter
+    * move api to rtl
+
+  Revision 1.1  2001/01/13 11:13:12  peter
     * API 2 RTL
 
 }
