@@ -29,7 +29,9 @@ uses
   cobjects,objects,symconst,symtable;
 
   type
+{$ifndef FPC}
     sw_integer = integer;
+{$endif FPC}
 
 const
   SymbolTypLen : integer = 6;
@@ -1704,7 +1706,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1999-11-30 10:40:42  peter
+  Revision 1.29  1999-12-01 11:05:47  pierre
+   * don't redefine sw_integer for FPC
+
+  Revision 1.28  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.27  1999/11/10 00:42:42  pierre
