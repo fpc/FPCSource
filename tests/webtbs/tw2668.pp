@@ -1,3 +1,4 @@
+{ %cpu=i386 }
 { %version=1.1 }
 { Source provided for Free Pascal Bug Report 2668 }
 { Submitted by "Marco" on  2003-09-06 }
@@ -28,7 +29,10 @@ const
    );
 
 asm
+	MOV ECX,0
+	MOV EDX,0
         MOVZX   EAX, TFloatingPointClass(FPClasses[EDX])
         MOVZX   EAX, TFloatingPointClass([ECX].FPClasses[EDX])
+	LEA ECX,FPClasses
         MOVZX   EAX, TFloatingPointClass([ECX].1+2[EDX])
 end.
