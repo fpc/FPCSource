@@ -88,6 +88,12 @@ end;
 Function CFreeMemSize(p:pointer;Size:ptrint):ptrint;
 
 begin
+  if size<=0 then
+    begin
+      if size<0 then
+        runerror(204);
+      exit;
+    end;  	
   if (p <> nil) then
     begin
       if (size <> pptrint(p-sizeof(ptrint))^) then
@@ -191,7 +197,10 @@ end.
 
 {
  $Log$
- Revision 1.9  2004-09-19 19:04:11  olle
+ Revision 1.10  2004-11-21 21:14:14  peter
+   * Freemem(p,0) does nothing
+
+ Revision 1.9  2004/09/19 19:04:11  olle
    * added $if defined(..) for 2.0.
 
  Revision 1.8  2004/09/19 08:16:03  olle
