@@ -41,14 +41,13 @@ const
 
 var correct : longint;  { Power correction }
     currprec : longint;
-    il,roundcorr : Valreal;
+    il,il2,roundcorr : Valreal;
     temp : string;
     power : string[10];
     sign : boolean;
     i : integer;
     dot : byte;
     currp : pchar;
-    { il : longint; caused overflows !! PM }
 begin
   case real_type of
     rt_s32real :
@@ -122,12 +121,13 @@ begin
   correct:=0;
   if d>=i10 then
    begin
-     il:=10;
-     while (d>il) do
-      begin
-        il:=il*10;
-        inc(correct);
-      end;
+     il:=i1;
+     il2:=i10;
+     repeat
+       il:=il2;
+       il2:=il*i10;
+       inc(correct);
+     until (d<il2);
      d:=d/il;
    end
   else
@@ -234,7 +234,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-11-03 00:55:09  pierre
+  Revision 1.17  1999-11-03 09:54:24  peter
+    * another fix for precision
+
+  Revision 1.16  1999/11/03 00:55:09  pierre
    * problem of last commit for large d values corrected
 
   Revision 1.15  1999/11/02 15:05:53  peter
