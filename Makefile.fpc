@@ -40,12 +40,16 @@ endif
 
 # Check if there is already a ppc386 binary in compiler, then
 # we will use that version for target and version info
-ifneq ($(wildcard $(PPNEW)),)
-override FPC_VERSION:=$(shell $(PPNEW) -iV)
-override OS_TARGET:=$(shell $(PPNEW) -iTO)
-override CPU_TARGET:=$(shell $(PPNEW) -iTP)
-export FPC_VERSION OS_TARGET CPU_TARGET
-endif
+#
+# This is not possible as you can't install a specific target
+# after a first target has been compiled
+#
+#ifneq ($(wildcard $(PPNEW)),)
+#override FPC_VERSION:=$(shell $(PPNEW) -iV)
+#override OS_TARGET:=$(shell $(PPNEW) -iTO)
+#override CPU_TARGET:=$(shell $(PPNEW) -iTP)
+#export FPC_VERSION OS_TARGET CPU_TARGET
+#endif
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
