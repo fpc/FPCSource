@@ -123,6 +123,7 @@ Fixed bugs:
   bug0106.pp   typecasts are now ignored problem (NOT A BUG)         OK 0.99.1
   bug0108.pp   gives wrong error message                             OK 0.99.1 (PFV)
   bug0109.pp   syntax error not detected when using a set as pointer OK 0.99.1 (FK)
+  bug0110.pp   SigSegv when using undeclared var in Case             OK 0.99.6 (PFV)
   bug0112.pp   still generates an internal error 10                  OK 0.99.1 (FK)
   bug0113.pp   point initialization problems                         OK 0.99.1 (PM/FK)
   bug0114.pp   writeln problem (by Pavel Ozerski)                    OK 0.99.1 (PFV)
@@ -139,22 +140,31 @@ Fixed bugs:
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
   bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
+  bug0130.pp   in [..#255] problem                                   OK 0.99.6 (PFV)
   bug0134.pp   'continue' keyword is buggy.                          OK 0.99.6 (FK)
+  bug0136.pp   No types necessary in the procedure header            OK 0.99.6 (PFV)
 
 Unproducable bugs:
 ------------------
-
 bug0048.pp   shows a problem with putimage on some computers
              (I can't reproduce the bug neither with a Millenium II
               nor a Trio64 card (FK)  )
+bug0107.pp   shows page fault problem (run in TRUE DOS mode)
+             (runs here fine with/without qemm under dos6.2 (PFV) )
+
+
+Unfixed not important bugs (mostly incompatibilities):
+------------------------------------------------------
+bug0111.pp   blockread(typedfile,...) is not allowed in TP7
+bug0133.pp   object type declaration not 100% compatibile with TP7
+
 
 Unfixed bugs:
 -------------
 bug0042.pp   shows assembler double operator expression problem
 bug0043.pp   shows assembler nasm output with fpu opcodes problem
 bug0049.pp   shows an error while defining subrange types
-bug0050.pp   can't set a function result in a nested
-             procedure of a function
+bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
 bug0054.pp   wordbool and longbool types are missed
@@ -162,7 +172,6 @@ bug0057.pp   shows a crash with switch graph/text/graph
 bug0062.pp   shows illegal type conversion for boolean
 bug0063.pp   shows problem with ranges in sets for variables
 bug0070.pp   shows missing include and exclude from rtl
-             (probably requires inlining)
 bug0073.pp   shows incompatiblity with bp for distance qualifiers
 bug0080.pp   Shows Missing High() (internal) function.
 bug0083.pp   shows missing "dynamic" set constructor
@@ -170,18 +179,11 @@ bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0096.pp   problem with objects as parameters
 bug0103.pp   problems with boolean typecasts (other type)
-bug0107.pp   shows page fault problem (run in TRUE DOS mode)
-bug0110.pp   SigSegv when using undeclared var in Case
-bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0120.pp   inc/dec(enumeration) doesn't work
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0127.pp   problem with cdecl in implementation part
-bug0130.pp   in [..#255] problem
 bug0131.pp   internal error 10 with highdimension arrays
 bug0132.pp   segmentation fault with type loop
-bug0133.pp   object type declaration not 100% compatibile with TP7
 bug0135.pp   Unsupported subrange type construction.
-bug0136.pp   No types necessary in the procedure header
 bug0137.pp   Cannot assign child object variable to parent objcet type variable
-bug0138.pp   with object^ do bug, %esi is not reloaded when it should
