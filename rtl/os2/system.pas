@@ -31,7 +31,7 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
   {.$define IODEBUG}
   {.$define DEBUGENVIRONMENT}
-  {$define DEBUGARGUMENTS}
+  {.$define DEBUGARGUMENTS}
 {$endif SYSTEMDEBUG}
 
 { $DEFINE OS2EXCEPTIONS}
@@ -1174,6 +1174,7 @@ begin
   repeat
     Inc(Arglen);
   until (pc[Arglen]=#0);
+  Inc(Arglen);
   pc:=GetMem(ArgLen);
   move(cmdline^, pc^, arglen);
   Arglen:=0;
@@ -1418,7 +1419,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-11-19 16:50:21  yuri
+  Revision 1.59  2003-11-19 18:21:11  yuri
+  * Memory allocation bug fixed
+
+  Revision 1.58  2003/11/19 16:50:21  yuri
   * Environment and arguments initialization now native
 
   Revision 1.57  2003/11/06 17:20:44  yuri
