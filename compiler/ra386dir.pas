@@ -43,7 +43,7 @@ unit Ra386dir;
          ende : boolean;
          sym : psym;
          code : paasmoutput;
-         l : longint;
+         i,l : longint;
 
        procedure writeasmline;
          var
@@ -52,7 +52,15 @@ unit Ra386dir;
            i:=length(s);
            while (i>0) and (s[i] in [' ',#9]) do
             dec(i);
-           s[0]:=chr(i);
+           {$ifndef TP}
+             {$ifopt H+}
+               setlength(s,i);
+             {$else}
+               s[0]:=chr(i);
+             {$endif}
+           {$else}
+             s[0]:=chr(i);
+           {$endif}
            if s<>'' then
             code^.concat(new(pai_direct,init(strpnew(s))));
             { consider it set function set if the offset was loaded }
@@ -81,17 +89,27 @@ unit Ra386dir;
               current_scanner^.gettokenpos; }
               case c of
                  'A'..'Z','a'..'z','_' : begin
-                      hs:='';
                       current_scanner^.gettokenpos;
+                      i:=0;
+                      hs:='';
                       while ((ord(c)>=ord('A')) and (ord(c)<=ord('Z')))
                          or ((ord(c)>=ord('a')) and (ord(c)<=ord('z')))
                          or ((ord(c)>=ord('0')) and (ord(c)<=ord('9')))
                          or (c='_') do
                         begin
-                           inc(byte(hs[0]));
-                           hs[length(hs)]:=c;
+                           inc(i);
+                           hs[i]:=c;
                            c:=current_scanner^.asmgetchar;
                         end;
+                      {$ifndef TP}
+                        {$ifopt H+}
+                          setlength(hs,i);
+                        {$else}
+                          hs[0]:=chr(i);
+                        {$endif}
+                      {$else}
+                         hs[0]:=chr(i);
+                      {$endif}
                       if upper(hs)='END' then
                          ende:=true
                       else
@@ -249,7 +267,15 @@ unit Ra386dir;
              else
                begin
                  current_scanner^.gettokenpos;
-                 inc(byte(s[0]));
+                 {$ifndef TP}
+                   {$ifopt H+}
+                     setlength(s,length(s)+1);
+                   {$else}
+                     inc(byte(s[0]));
+                   {$endif}
+                 {$else}
+                    inc(byte(s[0]));
+                 {$endif}
                  s[length(s)]:=c;
                  c:=current_scanner^.asmgetchar;
                end;
@@ -262,7 +288,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.10  1998-11-13 15:40:28  pierre
+  Revision 1.11  1998-11-17 00:26:12  peter
+    * fixed for $H+
+
+  Revision 1.10  1998/11/13 15:40:28  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

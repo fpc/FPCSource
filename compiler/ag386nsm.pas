@@ -202,8 +202,7 @@ unit ag386nsm;
                    getopstr:=hs;
                  end;
     top_symbol : begin
-                   hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
-                   move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
+                   hs:=strpas(pchar(pcsymbol(o)^.symbol));
                    hs:='dword '+hs;
                    if pcsymbol(o)^.offset>0 then
                      hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
@@ -226,8 +225,7 @@ unit ag386nsm;
           top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
         top_const : getopstr_jmp:=tostr(longint(o));
        top_symbol : begin
-                      hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
-                      move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
+                      hs:=strpas(pchar(pcsymbol(o)^.symbol));
                       if pcsymbol(o)^.offset>0 then
                         hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
                       else
@@ -584,7 +582,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.12  1998-11-12 11:19:34  pierre
+  Revision 1.13  1998-11-17 00:26:10  peter
+    * fixed for $H+
+
+  Revision 1.12  1998/11/12 11:19:34  pierre
    * fix for first line of function break
 
   Revision 1.11  1998/10/12 12:20:42  pierre

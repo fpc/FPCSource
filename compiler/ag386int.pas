@@ -196,9 +196,7 @@ unit ag386int;
                    getopstr:=hs;
                  end;
     top_symbol : begin
-                   hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
-                   move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
-                   hs:='offset '+hs;
+                   hs:='offset '+strpas(pchar(pcsymbol(o)^.symbol));
                    if pcsymbol(o)^.offset>0 then
                     hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
                    else
@@ -220,8 +218,7 @@ unit ag386int;
          top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
        top_const : getopstr_jmp:=tostr(longint(o));
        top_symbol : begin
-                      hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
-                      move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
+                      hs:=strpas(pchar(pcsymbol(o)^.symbol));
                       if pcsymbol(o)^.offset>0 then
                         hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
                       else
@@ -595,7 +592,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.19  1998-11-16 12:38:05  jonas
+  Revision 1.20  1998-11-17 00:26:09  peter
+    * fixed for $H+
+
+  Revision 1.19  1998/11/16 12:38:05  jonas
     + readded ait_marker support
 
   Revision 1.18  1998/11/12 11:19:33  pierre

@@ -744,7 +744,15 @@ end;
       PadZero := TRUE;
     { Fill it up with the specified character }
     fillchar(s[length(s)+1],n-1,#0);
-    s[0] := chr(n);
+    {$ifndef TP}
+      {$ifopt H+}
+        setlength(s,n);
+      {$else}
+        s[0] := chr(n);
+      {$endif}
+    {$else}
+      s[0] := chr(n);
+    {$endif}
   end;
 
 {*************************************************************************}
@@ -1779,7 +1787,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-11-05 23:48:17  peter
+  Revision 1.15  1998-11-17 00:26:11  peter
+    * fixed for $H+
+
+  Revision 1.14  1998/11/05 23:48:17  peter
     * recordtype.field support in constant expressions
     * fixed imul for oa_imm8 which was not allowed
     * fixed reading of local typed constants
