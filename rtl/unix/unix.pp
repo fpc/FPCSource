@@ -1632,7 +1632,7 @@ Begin
      i:=length(dirlist);
      j:=1;
      Repeat
-       NewDir:=p+'/'+Path;
+       NewDir:=strpas(p)+'/'+Path;
        if (FpStat(NewDir,Info)>=0) and
           (not fpS_ISDIR(Info.st_Mode)) then
         Begin
@@ -1754,7 +1754,10 @@ End.
 
 {
   $Log$
-  Revision 1.70  2004-04-23 19:16:25  marco
+  Revision 1.71  2004-07-03 13:15:51  daniel
+    * Compilation fix in fsearch
+
+  Revision 1.70  2004/04/23 19:16:25  marco
    * flock -> fpflock because of conflicting structure name
 
   Revision 1.69  2004/04/22 17:17:13  peter
