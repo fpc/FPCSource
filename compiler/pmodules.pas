@@ -940,6 +940,11 @@ unit pmodules;
          current_module^.localsymtable:=nil;
 
          reset_global_defs;
+
+         { number all units, so we know if a unit is used by this unit or
+           needs to be added implicitly }
+         numberunits;
+
          { ... parse the declarations }
          read_interface_declarations;
 
@@ -1344,7 +1349,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.131  1999-07-22 09:37:54  florian
+  Revision 1.132  1999-07-23 11:37:48  peter
+    * error for illegal type reference, instead of 10998
+
+  Revision 1.131  1999/07/22 09:37:54  florian
     + resourcestring implemented
     + start of longstring support
 

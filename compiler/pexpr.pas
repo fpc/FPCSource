@@ -977,107 +977,112 @@ unit pexpr;
                                  again:=false;
                                end
                               else
-                              { if we read a type declaration  }
-                              { we have to return the type and }
-                              { nothing else               }
-                               if block_type=bt_type then
-                                begin
-                                  p1:=gentypenode(pd);
-                                  { here we can also set resulttype !! }
-                                  p1^.resulttype:=pd;
-                                  pd:=voiddef;
-                                end
-                              else { not type block }
                                begin
-                                 if token=LKLAMMER then
+                                 { illegal reference ? }
+                                 if pd^.owner^.unitid=-1 then
+                                  Comment(V_Error,'illegal type reference, unit '+pd^.owner^.name^+' is not in uses');
+                                 { if we read a type declaration  }
+                                 { we have to return the type and }
+                                 { nothing else               }
+                                  if block_type=bt_type then
+                                   begin
+                                     p1:=gentypenode(pd);
+                                     { here we can also set resulttype !! }
+                                     p1^.resulttype:=pd;
+                                     pd:=voiddef;
+                                   end
+                                 else { not type block }
                                   begin
-                                    consume(LKLAMMER);
-                                    p1:=comp_expr(true);
-                                    consume(RKLAMMER);
-                                    p1:=gentypeconvnode(p1,pd);
-                                    p1^.explizit:=true;
-                                  end
-                                 else { not LKLAMMER}
-                                  if (token=POINT) and
-                                     (pd^.deftype=objectdef) and
-                                     not(pobjectdef(pd)^.isclass) then
-                                    begin
-                                      consume(POINT);
-                                      if assigned(procinfo._class) then
+                                    if token=LKLAMMER then
+                                     begin
+                                       consume(LKLAMMER);
+                                       p1:=comp_expr(true);
+                                       consume(RKLAMMER);
+                                       p1:=gentypeconvnode(p1,pd);
+                                       p1^.explizit:=true;
+                                     end
+                                    else { not LKLAMMER}
+                                     if (token=POINT) and
+                                        (pd^.deftype=objectdef) and
+                                        not(pobjectdef(pd)^.isclass) then
                                        begin
-                                         if procinfo._class^.isrelated(pobjectdef(pd)) then
+                                         consume(POINT);
+                                         if assigned(procinfo._class) then
                                           begin
-                                            p1:=gentypenode(pd);
-                                            p1^.resulttype:=pd;
-                                            srsymtable:=pobjectdef(pd)^.publicsyms;
-                                            sym:=pvarsym(srsymtable^.search(pattern));
-                                            { search also in inherited methods }
-                                            while sym=nil do
+                                            if procinfo._class^.isrelated(pobjectdef(pd)) then
                                              begin
-                                               pd:=pobjectdef(pd)^.childof;
+                                               p1:=gentypenode(pd);
+                                               p1^.resulttype:=pd;
                                                srsymtable:=pobjectdef(pd)^.publicsyms;
                                                sym:=pvarsym(srsymtable^.search(pattern));
+                                               { search also in inherited methods }
+                                               while sym=nil do
+                                                begin
+                                                  pd:=pobjectdef(pd)^.childof;
+                                                  srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                  sym:=pvarsym(srsymtable^.search(pattern));
+                                                end;
+                                               consume(ID);
+                                               do_member_read(false,sym,p1,pd,again);
+                                             end
+                                            else
+                                             begin
+                                               Message(parser_e_no_super_class);
+                                               pd:=generrordef;
+                                               again:=false;
                                              end;
-                                            consume(ID);
-                                            do_member_read(false,sym,p1,pd,again);
                                           end
                                          else
                                           begin
-                                            Message(parser_e_no_super_class);
-                                            pd:=generrordef;
-                                            again:=false;
+                                            { allows @TObject.Load }
+                                            { also allows static methods and variables }
+                                            p1:=genzeronode(typen);
+                                            p1^.resulttype:=pd;
+                                            { srsymtable:=pobjectdef(pd)^.publicsyms;
+                                              sym:=pvarsym(srsymtable^.search(pattern)); }
+
+                                            { TP allows also @TMenu.Load if Load is only }
+                                            { defined in an anchestor class              }
+                                            sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
+                                            if not assigned(sym) then
+                                              Message1(sym_e_id_no_member,pattern)
+                                            else if not(getaddr) and ((sym^.properties and sp_static)=0) then
+                                              Message(sym_e_only_static_in_static)
+                                            else
+                                             begin
+                                               consume(ID);
+                                               do_member_read(getaddr,sym,p1,pd,again);
+                                             end;
                                           end;
                                        end
-                                      else
+                                     else
                                        begin
-                                         { allows @TObject.Load }
-                                         { also allows static methods and variables }
-                                         p1:=genzeronode(typen);
-                                         p1^.resulttype:=pd;
-                                         { srsymtable:=pobjectdef(pd)^.publicsyms;
-                                           sym:=pvarsym(srsymtable^.search(pattern)); }
-
-                                         { TP allows also @TMenu.Load if Load is only }
-                                         { defined in an anchestor class              }
-                                         sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
-                                         if not assigned(sym) then
-                                           Message1(sym_e_id_no_member,pattern)
-                                         else if not(getaddr) and ((sym^.properties and sp_static)=0) then
-                                           Message(sym_e_only_static_in_static)
-                                         else
-                                          begin
-                                            consume(ID);
-                                            do_member_read(getaddr,sym,p1,pd,again);
-                                          end;
+                                          { class reference ? }
+                                          if (pd^.deftype=objectdef)
+                                            and pobjectdef(pd)^.isclass then
+                                            begin
+                                               p1:=gentypenode(pd);
+                                               p1^.resulttype:=pd;
+                                               pd:=new(pclassrefdef,init(pd));
+                                               p1:=gensinglenode(loadvmtn,p1);
+                                               p1^.resulttype:=pd;
+                                            end
+                                          else
+                                            begin
+                                               { generate a type node }
+                                               { (for typeof etc)     }
+                                               if allow_type then
+                                                 begin
+                                                    p1:=gentypenode(pd);
+                                                    { here we must use typenodetype explicitly !! PM
+                                                    p1^.resulttype:=pd; }
+                                                    pd:=voiddef;
+                                                 end
+                                               else
+                                                 Message(parser_e_no_type_not_allowed_here);
+                                            end;
                                        end;
-                                    end
-                                  else
-                                    begin
-                                       { class reference ? }
-                                       if (pd^.deftype=objectdef)
-                                         and pobjectdef(pd)^.isclass then
-                                         begin
-                                            p1:=gentypenode(pd);
-                                            p1^.resulttype:=pd;
-                                            pd:=new(pclassrefdef,init(pd));
-                                            p1:=gensinglenode(loadvmtn,p1);
-                                            p1^.resulttype:=pd;
-                                         end
-                                       else
-                                         begin
-                                            { generate a type node }
-                                            { (for typeof etc)     }
-                                            if allow_type then
-                                              begin
-                                                 p1:=gentypenode(pd);
-                                                 { here we must use typenodetype explicitly !! PM
-                                                 p1^.resulttype:=pd; }
-                                                 pd:=voiddef;
-                                              end
-                                            else
-                                              Message(parser_e_no_type_not_allowed_here);
-                                         end;
-                                    end;
+                                  end;
                                end;
                             end;
                   enumsym : begin
@@ -2051,7 +2056,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.122  1999-07-22 09:37:52  florian
+  Revision 1.123  1999-07-23 11:37:46  peter
+    * error for illegal type reference, instead of 10998
+
+  Revision 1.122  1999/07/22 09:37:52  florian
     + resourcestring implemented
     + start of longstring support
 

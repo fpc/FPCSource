@@ -144,7 +144,7 @@ unit symtable;
 
        tsymtable = object
           symtabletype : tsymtabletype;
-          unitid    : word;        { each symtable gets a number }
+          unitid    : integer;     { each symtable gets a number }
           name      : pstring;
           datasize  : longint;
           symindex,
@@ -515,7 +515,16 @@ implementation
       var
         counter : longint;
         hp      : pused_unit;
+        hp1     : pmodule;
       begin
+        { Reset all numbers to -1 }
+        hp1:=pmodule(loaded_units.first);
+        while assigned(hp1) do
+         begin
+           psymtable(hp1^.globalsymtable)^.unitid:=-1;
+           hp1:=pmodule(hp1^.next);
+         end;
+        { number units }
         counter:=1;
         psymtable(current_module^.globalsymtable)^.unitid:=0;
         hp:=pused_unit(current_module^.used_units.first);
@@ -2324,7 +2333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-07-22 09:37:58  florian
+  Revision 1.27  1999-07-23 11:37:50  peter
+    * error for illegal type reference, instead of 10998
+
+  Revision 1.26  1999/07/22 09:37:58  florian
     + resourcestring implemented
     + start of longstring support
 
