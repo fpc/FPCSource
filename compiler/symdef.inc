@@ -470,7 +470,7 @@
          case string_typ of
             ansistring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(9)));
+                 rttilist^.concat(new(pai_const,init_8bit(10)));
               end;
             widestring:
               begin
@@ -478,7 +478,7 @@
               end;
             longstring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(10)));
+                 rttilist^.concat(new(pai_const,init_8bit(9)));
                  rttilist^.concat(new(pai_const,init_32bit(len)));
               end;
             shortstring:
@@ -2620,7 +2620,10 @@
 
 {
   $Log$
-  Revision 1.8  1998-06-11 10:11:58  peter
+  Revision 1.9  1998-06-12 14:10:37  michael
+  * Fixed wrong code for ansistring
+
+  Revision 1.8  1998/06/11 10:11:58  peter
     * -gb works again
 
   Revision 1.7  1998/06/07 15:30:25  florian
