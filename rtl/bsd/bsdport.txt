@@ -1,46 +1,97 @@
 $Id$
 
+Comments, mistakes and suggestions to Marco@freepascal.org
+
+
 1 FreeBSD status and notes. (kept on CVS because I work on several places)
 -----------------------------------------------------------------------------
 
-At the moment that you are reading this, FPC for FreeBSD is still a dream.
-We are currently working actively on FreeBSD support.
+Please read these before running a FreeBSD snapshot.
 
-NI=not implemented yet
-req=required for compiler
-noreq? = probably not required, but not checked.
 
-syscall   status        comment
+- Supported are FreeBSD 3.x (3.2, 3.4 and 4.0-release (quickly) tested. I never
+   tested on 3.0).  NON-ELF (2.x) versions are not supported.
+
+- This is alpha-alpha software. I didn't have data-loss using it, but you
+	use this on your own responsability. Use a scratch, or well backup'ed
+	system.
+
+- FPC for FreeBSD is initially working, but only the most basic functionality
+	is implemented.(to rebuild the compiler)
+	That however could be enough for CGI, stdio and environment support seems to
+          be working.
+	Therefore, I decided to put a first alpha snapshot on the Net.
+
+-  IMPORTANT:
+     !!! An explicite warning: Not all procedures and structures in Linux are
+   checked, so even if they are not commented out, they can be not implemented!!!
+
+- The initial version's READDIR problem is fixed with a quick hack, which 
+    means that searchpath (-Fx) and FindFirst/FindNext are more or less 
+    working.
+  I don't know how  good that hack is,I hope to replace it later this week 
+     by a port of freebsd's libc opendir/readdir/closedir/telldir/seekdir code.
+  The hack may fail the first time you use it, or only when
+    you use hardlinks. (iow, I don't know why libc sorts the directory list
+    to find duplicate names. Just because of hardlinks or because due to heavy
+    deletion/insertion duplicate dir entries can exist?)
+
+- external lib linking is not ready yet. 
+
+2 Syscalls.
+
+The bulk of the linux syscalls are implemented.
+
+Some that aren't implemented:
+
+NI           = not implemented yet
+req          = required for compiler
+noreq?       = not required, but not checked.
+Ever? (y/n)
+
+syscall   status  Ever?  comment
 ------------------------------------------------------------------------
-Readdir   req           implemented from scratch, not working. (since this
-                        call doesn't exist on FBSD and FindFirst is based on it.
+Readdir   I req         implemented from scratch, working. (this
+                        call doesn't exist on FBSD and FindFirst is 
+			based on it)
 
-Clone()  NI noreq       Looks awfully complicated. Should be based on RFork.
+ioperm   NI noreq  n    IO via port access impossible under FreeBSD
+                           (so: no ports unit, port[] support)
+
+ipc      NI       n     The IPC is an System V thingy, and not supported
+                            under BSD.
+
+Clone()  NI noreq       Emu code looks awfully complicated, amd maybe not
+                         possible in user space. Should be based
+                            on RFork if possible
+                        Some developper confirmed there will be no fully kernel
+                        level thread system. The implementation (after BSDI
+                        mergure) will be mixed kernel-userland space.
 
 sysinfo  NI noreq       Not supported under BSD, not even by emulator
 uname    NI noreq       "        "       "    "   "   "    "   "
-                        (procedure based on this call are also commented
+                        (procedures based on this call are also commented
                          (get* procs))
 
 signal   NI  noreq?     A *lot* of emulation code.
 alarm    NI  noreq?     Could be possible to port.
 pause    NI  noreq?     Also possible I think. Uses process information
                         in linux-emu, that is why I didn't port directly.
-IOPERM   NI  noreq?     Concept doesn't exist on FreeBSD. No IO outside kernel?
 
 
-2 How to build a FreeBSD compiler.
+3 How to build a FreeBSD compiler/RTL ?
 -----------------------------------------------------------------------------
 
-Comments, mistakes and suggestions to Marcov@stack.nl
+You'll probably need CVS sources dated after April 16th for this.
 
-The FreeBSD port is 99% experimental atm, though valid native binaries can be
-obtained. They mosttimes don't function yet.
+3a How to build a FreeBSD system starting on Linux or using the Linux emu of
+   FreeBSD? (Bootstrapping)
 
-Supported are probably FreeBSD 3.x (3.2, 3.4 and 4.0-release tested).
+The FreeBSD port is experimental atm, though valid native binaries can be
+obtained.
 
 The procedure here is verbose, and for the most akward case.
-If you have linux support on on your FreeBSD machine, or operate on NFS or samba
+If you have linux support on on your FreeBSD machine, or operate on NFS or Samba
 share (so that copying and using the sources in two systems is easier)
 some steps can be omitted or simplified. Just play with it.
 
@@ -48,27 +99,20 @@ STEP A: create the RTL assembler files.
 
 1a. Copy all linux files to a new directory. (here called BSDBUILD), and
 1b. edit the makefile to NOT compile the i386 directory. (we do that by
-    hand for now) I do this by emptying the LOADEROBJECTS= line.
+    hand for now) I do this by emptying the LOADEROBJECTS= line, and kill
+    all references to the ports unit
 2. Copy all bsd files over them.
-3. execute  make OPT='-Tlinux -dBSD -a -s -OG3p3' (with any i386 FPC compiler)
+3. Execute  make OPT='-Tlinux -dBSD -a -s -OG3p3' (with any i386 FPC compiler)
     in directory BSDBUILD. This failed with some go32v2 versions (which wanted
     to assemble anyway), but worked with several win32 and linux' snapshots.
 
-You know have .ppu's and .s  's for the RTL hopefully.
+You now have .ppu's and .s  's for the RTL hopefully. Don't forget
+    i386/prt0.as (which is in fact a .s file)!
 
-STEP B: Create the compiler assembler sources;
+STEP B: Create the compiler assembler (.s) sources;
 
-This will generate the .s files for the compiler.
-
-4. Copy the mppc386.bat file in the compiler/ directory, and delete anything but
-    the ppc386 line.
-5. Add "-Fu\BSDPATH\BSDBUILD -s -a -dBSD" to the line, and delete all %1 %2 options
-    which then look like this:
-
-ppc386 -O3p3 -Ch8000000 -dI386 -dGDB  -dBROWSERLOG -Sg pp.pas -Fu\BSDPATH\BSDBUILD -s -a -dBSD -Tlinux
-
-6. Execute this line in the compiler directory (direct or via script)
-
+4. Compile with
+   ./bsdcompile -Fu/full_path_to_BSDBUILD -a -s
 
 STEP C: Building the binary
 
@@ -80,13 +124,35 @@ STEP C: Building the binary
      - rtl/bsd/i386/*.s files
      )
      to a directory on the BSD machine.
-8. Change to the directory on the BSD machine, and run the script DO_S to assemble
-    .s files to .o files.
+8a. Change to the directory on the BSD machine, and run the script DO_S to
+    assemble all .s files to .o files.
+8b. Assemble the stub with as prt0.as -o prt0.o
 9. Adapt link.res so that all paths to the BSD machine are right.
-10. run ppas.sh
+    (remove all paths in front of all .o files, remove the -l lines and their
+      parentheses)
+10a. Edit ppas.sh, and keep only #!/bin/sh and the line starting with ld.
+  b  Remove any -l=ld-linux.so.1 (or similar) option from the ld line.
+  c  run ppas.sh to build the compiler
 
+11. Have fun :-) The compiler is called "pp"
 
-You know should have a native FreeBSD "pp" binary.
+------------
+
+3b How to update FPC compiler on FreeBSD from fresh CVS sources with a snapshot
+installed.
+
+(assuming ppc386 in the PATH, and a rtl/ and compiler/ directory obtained
+ from snapshot zips, with non mangled makefiles)
+
+1a  Rename the rtl/linux to something else. (here rtl/linuxorg)
+1b  create a new rtl/linux dir
+1c  copy rtl/linuxorg/* to rtl/linux
+1d  copy rtl/bsd/* to rtl/linux  RECURSIVELY
+2   switch to compiler/
+3   gmake cycle OPT='-OG3p3 -dBSD' will generate a new compiler.
+    Be patient! FreeBSD has slower disk-io than Linux :-)
+
+Do you see why I recommend snapshots?
 
 ------------------
 The DO_S script.
@@ -102,7 +168,9 @@ for i in *.s; do
 
 {
 $Log$
-Revision 1.2  2000-04-10 15:46:51  marco
- * worked all day. probably a lot changed
+Revision 1.3  2000-04-16 16:11:33  marco
+ * Severe updates for now *working* status
 
+Revision 1.2  2000/04/10 15:46:51  marco
+ * worked all day. probably a lot changed
 }
