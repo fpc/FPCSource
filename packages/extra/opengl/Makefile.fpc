@@ -13,7 +13,7 @@ packages_netbsd=x11
 packages_openbsd=x11
 
 [target]
-units=gl glu glut
+units=gl glu glut glext
 units_linux=dllfuncs glx
 units_freebsd=dllfuncs glx
 units_netbsd=dllfuncs glx
