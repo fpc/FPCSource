@@ -95,7 +95,7 @@ unit i_linux;
           (
             system       : system_m68k_linux;
             name         : 'Linux for m68k';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
@@ -158,7 +158,7 @@ unit i_linux;
           (
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -221,7 +221,7 @@ unit i_linux;
           (
             system       : system_alpha_LINUX;
             name         : 'Linux for Alpha';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_alpha;
             unit_env     : 'LINUXUNITS';
@@ -284,7 +284,7 @@ unit i_linux;
           (
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
@@ -347,7 +347,7 @@ unit i_linux;
           (
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
@@ -410,7 +410,7 @@ unit i_linux;
           (
             system       : system_arm_Linux;
             name         : 'Linux for ARM';
-            shortname    : 'linux';
+            shortname    : 'Linux';
             flags        : [tf_needs_symbol_size];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
@@ -513,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-10-25 15:38:41  peter
+  Revision 1.32  2004-12-11 14:39:03  florian
+    * made some target short names look more nicer
+
+  Revision 1.31  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

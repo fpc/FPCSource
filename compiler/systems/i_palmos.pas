@@ -32,7 +32,7 @@ unit i_palmos;
           (
             system       : system_m68k_PalmOS;
             name         : 'PalmOS';
-            shortname    : 'palmos';
+            shortname    : 'PalmOS';
             flags        : [tf_code_small,tf_static_a5_based];
             cpu          : cpu_m68k;
             short_name   : 'PALMOS';
@@ -91,7 +91,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-10-25 15:38:41  peter
+  Revision 1.5  2004-12-11 14:39:03  florian
+    * made some target short names look more nicer
+
+  Revision 1.4  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

@@ -32,7 +32,7 @@ unit i_morph;
           (
             system       : system_powerpc_MorphOS;
             name         : 'MorphOS';
-            shortname    : 'morphos';
+            shortname    : 'MorphOS';
             flags        : [];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-10-25 15:38:41  peter
+  Revision 1.5  2004-12-11 14:39:03  florian
+    * made some target short names look more nicer
+
+  Revision 1.4  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 
