@@ -1110,49 +1110,146 @@ const
           end;
       end;
 
-    const
-      macosLinkageAreaSize = 24;
-      registerSaveAreaMaxSize = 19*4 + 18*8;
+    function save_regs(list : taasmoutput):longint;
+    {Generates code which saves used non-volatile registers in
+     the save area right below the address the stackpointer point to.
+     Returns the actual used save area size.}
 
-    procedure save_fp_regs(list : taasmoutput);
-
-     var regcounter: TRegister;
+     var regcounter,firstregfpu,firstreggpr: TRegister;
+         usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
 
     begin
+      usesfpr:=false;
+      for regcounter:=R_F14 to R_F31 do
+        if regcounter in rg.usedbyproc then
+          begin
+             usesfpr:=true;
+             firstregfpu:=regcounter;
+             break;
+          end;
+
+      usesgpr:=false;
+      for regcounter:=R_13 to R_31 do
+        if regcounter in rg.usedbyproc then
+          begin
+             usesgpr:=true;
+             firstreggpr:=regcounter;
+             break;
+          end;
+
       offset:= 0;
-      for regcounter := R_F14 to R_F31 do
-        begin
-          offset:= offset - 8;
-          reference_reset_base(href, STACK_POINTER_REG, offset);
-          list.concat(taicpu.op_reg_ref(A_STFD, regcounter, href));
-        end;
+
+      { save floating-point registers }
+      if usesfpr then
+        for regcounter := firstregfpu to R_F31 do
+          begin
+            offset:= offset - 8;
+            reference_reset_base(href, STACK_POINTER_REG, offset);
+            list.concat(taicpu.op_reg_ref(A_STFD, regcounter, href));
+          end;
+        (* Optimiztion in the future:  a_call_name(list,'_savefXX'); *)
+
+      { save gprs in gpr save area }
+      if usesgpr then
+        if firstreggpr < R_30 then
+          begin
+            offset:= offset - 4 * (ord(R_31) - ord(firstreggpr) + 1);
+            reference_reset_base(href,STACK_POINTER_REG,offset);
+            list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+              {STMW stores multiple registers}
+          end
+        else
+          begin
+            for regcounter := firstreggpr to R_31 do
+              begin
+                offset:= offset - 4;
+                reference_reset_base(href, STACK_POINTER_REG, offset);
+                list.concat(taicpu.op_reg_ref(A_STW, regcounter, href));
+              end;
+          end;
+
+      { now comes the AltiVec context save, not yet implemented !!! }
+
+      save_regs:= -offset;
     end;
 
-    procedure restore_fp_regs(list : taasmoutput);
+    procedure restore_regs(list : taasmoutput);
+    {Generates code which restores used non-volatile registers from
+    the save area right below the address the stackpointer point to.}
 
-     var regcounter: TRegister;
+     var regcounter,firstregfpu,firstreggpr: TRegister;
+         usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
 
     begin
+      usesfpr:=false;
+      for regcounter:=R_F14 to R_F31 do
+        if regcounter in rg.usedbyproc then
+          begin
+             usesfpr:=true;
+             firstregfpu:=regcounter;
+             break;
+          end;
+
+      usesgpr:=false;
+      for regcounter:=R_13 to R_31 do
+        if regcounter in rg.usedbyproc then
+          begin
+             usesgpr:=true;
+             firstreggpr:=regcounter;
+             break;
+          end;
+
       offset:= 0;
-      for regcounter := R_F14 to R_F31 do
-        begin
-          offset:= offset - 8;
-          reference_reset_base(href, STACK_POINTER_REG, offset);
-          list.concat(taicpu.op_reg_ref(A_LFD, regcounter, href));
-        end;
+
+      { restore fp registers }
+      if usesfpr then
+        for regcounter := firstregfpu to R_F31 do
+          begin
+            offset:= offset - 8;
+            reference_reset_base(href, STACK_POINTER_REG, offset);
+            list.concat(taicpu.op_reg_ref(A_LFD, regcounter, href));
+          end;
+        (* Optimiztion in the future: a_call_name(list,'_restfXX'); *)
+
+      { restore gprs }
+      if usesgpr then
+        if firstreggpr < R_30 then
+          begin
+            offset:= offset - 4 * (ord(R_31) - ord(firstreggpr) + 1);
+            reference_reset_base(href,STACK_POINTER_REG,offset); //-220
+            list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
+              {LMW loads multiple registers}
+          end
+        else
+          begin
+            for regcounter := firstreggpr to R_31 do
+              begin
+                offset:= offset - 4;
+                reference_reset_base(href, STACK_POINTER_REG, offset);
+                list.concat(taicpu.op_reg_ref(A_LWZ, regcounter, href));
+              end;
+          end;
+
+      { now comes the AltiVec context restore, not yet implemented !!! }
     end;
+
 
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
  { combined size of ALL the parameters of a procedure called by the current }
- { one                                                                      }
+ { one                                                                     }
+
+     const
+         macosLinkageAreaSize = 24;
+
      var regcounter: TRegister;
          href : treference;
+         registerSaveAreaSize : longint;
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
@@ -1162,35 +1259,33 @@ const
         { Interface Manual", bar the saving of AltiVec registers           }
         a_reg_alloc(list,STACK_POINTER_REG);
         a_reg_alloc(list,R_0);
+
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
           a_reg_alloc(list,regcounter);
+        {TODO: Allocate fp and altivec parameter registers also}
 
-        { save return address... }
+        { save return address in callers frame}
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
         reference_reset_base(href,STACK_POINTER_REG,8);
         list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
 
-        { save floating-point registers }
-        { !!! has to be optimized: only save registers that are used }
-        save_fp_regs(list);
-        (* a_call_name(list,'_savef14'); *)
-        { save gprs in gpr save area }
-        { !!! has to be optimized: only save registers that are used }
-        reference_reset_base(href,STACK_POINTER_REG,-220);
-        list.concat(taicpu.op_reg_ref(A_STMW,R_13,href));
+        { save non-volatile registers in callers frame}
+        registerSaveAreaSize:= save_regs(list);
 
-        { save the CR if necessary ( !!! always done currently ) }
+        { save the CR if necessary in callers frame ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR));
         reference_reset_base(href,stack_pointer_reg,LA_CR);
         list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
 
+        (*
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER_REG,0));
+        *)
 
         (*
         a_reg_alloc(list,R_12);
@@ -1208,12 +1303,14 @@ const
         *)
 
         { allocate stack frame }
-        localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaMaxSize, 16);
+        localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaSize, 16);
+        inc(localsize,tg.lasttemp);
+        localsize:=align(localsize,16);
+        tppcprocinfo(procinfo).localsize:=localsize;
+
         reference_reset_base(href,R_1,-localsize);
         a_load_store(list,A_STWU,R_1,href);
-
-
-        { now comes the AltiVec context save, not yet implemented !!! }
+          { this also stores the old stack pointer in the new stack frame }
       end;
 
     procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
@@ -1225,31 +1322,42 @@ const
         { release parameter registers }
         for regcounter := R_3 to R_10 do
           a_reg_dealloc(list,regcounter);
-        { AltiVec context restore, not yet implemented !!! }
+        {TODO: Release fp and altivec parameter registers also}
 
-        { restore SP }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
-
-        { restore the CR if necessary ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
-        list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_CR));
-        reference_reset_base(href,stack_pointer_reg,LA_CR);
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
-        a_reg_dealloc(list,R_0);
-        { restore gprs }
-        reference_reset_base(href,STACK_POINTER_REG,-220);
-        list.concat(taicpu.op_reg_ref(A_LMW,R_13,href));
-        { restore return address ... }
-        reference_reset_base(href,STACK_POINTER_REG,8);
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
 
+        { restore stack pointer }
+        reference_reset_base(href,stack_pointer_reg,LA_SP);
+        list.concat(taicpu.op_reg_ref(A_LWZ,STACK_POINTER_REG,href));
         (*
-        { ... and return from _restf14 }
-        list.concat(taicpu.op_sym_ofs(A_B,objectlibrary.newasmsymbol('_restf14'),0));
+        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
         *)
 
-        { restore fp registers }
-        restore_fp_regs(list);
+        { restore the CR if necessary from callers frame
+            ( !!! always done currently ) }
+        reference_reset_base(href,STACK_POINTER_REG,LA_CR);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_CR));
+        a_reg_dealloc(list,R_0);
+
+        (*
+        { restore return address from callers frame }
+        reference_reset_base(href,STACK_POINTER_REG,8);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+        *)
+
+        { restore non-volatile registers from callers frame }
+        restore_regs(list);
+
+        (*
+        { return to caller }
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_LR));
+        list.concat(taicpu.op_none(A_BLR));
+        *)
+
+        { restore return address from callers frame }
+        reference_reset_base(href,STACK_POINTER_REG,8);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
 
         { return to caller }
         list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_LR));
@@ -1770,7 +1878,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-10-19 23:51:48  olle
+  Revision 1.63  2002-10-28 22:24:28  olle
+    * macos entry/exit: only used registers are saved
+    - macos entry/exit: stackptr not saved in r31 anymore
+    * macos entry/exit: misc fixes
+
+  Revision 1.62  2002/10/19 23:51:48  olle
     * macos stack frame size computing updated
     + macos epilogue: control register now restored
     * macos prologue and epilogue: fp reg now saved and restored
