@@ -58,6 +58,10 @@ program install;
 {$endif}
 
 
+{$ifdef FPC}
+{$define USE_FPUSRSCR}
+{$endif FPC}
+
   uses
 {$IFDEF OS2}
  {$IFDEF FPC}
@@ -85,6 +89,9 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
+{$ifdef USE_FPUSRSCR}
+     FPUsrScr,
+{$endif USE_FPUSRSCR}
      app,dialogs,views,menus,msgbox,colortxt,tabs,scroll,
      WHTMLScn;
 
@@ -178,6 +185,7 @@ program install;
      pinstalldialog = ^tinstalldialog;
      tinstalldialog = object(tdialog)
         constructor init;
+        procedure handleevent(var event : tevent);virtual;
      end;
 
      PFPHTMLFileLinkScanner = ^TFPHTMLFileLinkScanner;
@@ -1228,6 +1236,17 @@ program install;
        Tab^.Select;
     end;
 
+  procedure tinstalldialog.handleevent(var event : tevent);
+    begin
+       if event.what=evcommand then
+         if event.command=cmquit then
+           begin
+              putevent(event);
+              event.command:=cmCancel;
+           end;
+       inherited handleevent(event);
+    end;
+
 
 {*****************************************************************************
                                TSpecialInputLine
@@ -1828,6 +1847,11 @@ var
    i : longint;
 
 begin
+{$ifdef USE_FPUSRSCR}
+   InitUserScreen;
+   if Assigned(UserScreen) then
+     UserScreen^.SwitchBackToIDEScreen;
+{$endif USE_FPUSRSCR}
    { register objects for help streaming }
    RegisterWHTMLScan;
 {$ifdef FPC}
@@ -1915,12 +1939,21 @@ begin
 {$endif}
    installapp.do_installdialog;
    installapp.done;
+{$ifdef USE_FPUSRSCR}
+   if Assigned(UserScreen) then
+     UserScreen^.SwitchToConsoleScreen;
+   DoneUserScreen;
+{$endif USE_FPUSRSCR}
    if createlog then
      close(log);
 end.
 {
   $Log$
-  Revision 1.13  2002-09-07 15:40:59  peter
+  Revision 1.14  2003-01-22 13:42:35  pierre
+   * fix problem with Alt-X (webbug 1959)
+   + use fpusrscr unit to restore console at exit.
+
+  Revision 1.13  2002/09/07 15:40:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.12  2002/07/06 11:51:04  carl
