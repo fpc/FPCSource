@@ -48,7 +48,7 @@ asm
         call    %o1
 .LNoThread0:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK0:
 end;
 
@@ -80,7 +80,7 @@ asm
         call    %o1
 .LNoThread1:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK1:
 end;
 
@@ -113,7 +113,7 @@ asm
         call    %o1
 .LNoThread2:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK2:
 end;
 
@@ -147,7 +147,7 @@ asm
         call    %o1
 .LNoThread3:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK3:
 end;
 
@@ -182,7 +182,7 @@ asm
         call    %o1
 .LNoThread4:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK4:
 end;
 
@@ -218,7 +218,7 @@ asm
         call    %o1
 .LNoThread5:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK5:
 end;
 
@@ -255,7 +255,7 @@ asm
         call    %o1
 .LNoThread6:
         st      %i0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
 .LSyscOK6:
 end;
 
@@ -342,7 +342,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-07-03 21:03:57  peter
+  Revision 1.7  2003-07-06 20:40:10  peter
+    * wrong return reg
+
+  Revision 1.6  2003/07/03 21:03:57  peter
     * syscalls implemented
 
   Revision 1.5  2003/06/02 22:05:03  mazen
