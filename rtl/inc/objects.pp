@@ -278,15 +278,15 @@ TYPE
 {                          TYPE CONVERSION RECORDS                          }
 {---------------------------------------------------------------------------}
 TYPE
-   WordRec = RECORD
+   WordRec = packed RECORD
      Lo, Hi: Byte;                                    { Word to bytes }
    END;
 
-   LongRec = RECORD
+   LongRec = packed RECORD
      Lo, Hi: Word;                                    { LongInt to words }
    END;
 
-   PtrRec = RECORD
+   PtrRec = packed RECORD
      Ofs, Seg: Word;                                  { Pointer to words }
    END;
 
@@ -2734,7 +2734,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.8  1998-09-09 15:29:02  peter
+  Revision 1.9  1998-10-22 18:23:55  peter
+    + packed record for conversion records
+
+  Revision 1.8  1998/09/09 15:29:02  peter
     * removed some warnings
 
   Revision 1.7  1998/07/15 12:08:33  carl
