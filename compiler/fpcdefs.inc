@@ -59,6 +59,7 @@
 
 {$ifdef powerpc}
   {$define callparatemp}
+  {$define vs_hidden_self}
 {$endif powerpc}
 
 { FPU Emulator support }
@@ -73,7 +74,10 @@
 
 {
   $Log$
-  Revision 1.17  2003-04-24 22:29:57  florian
+  Revision 1.18  2003-04-30 09:42:42  florian
+    + first changes to make self a hidden parameter
+
+  Revision 1.17  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.16  2003/04/23 13:47:41  peter

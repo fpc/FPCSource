@@ -111,7 +111,7 @@ implementation
            { Generate result variable accessing function result }
            vs:=tvarsym.create('$result',pd.rettype);
            include(vs.varoptions,vo_is_funcret);
-           { Store the this symbol as fucnretsym for procedures }
+           { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
             tprocdef(pd).funcretsym:=vs;
 
@@ -125,6 +125,49 @@ implementation
          end;
       end;
 
+    procedure insert_self_and_vmt_para(pd:tabstractprocdef);
+      var
+        storepos : tfileposinfo;
+        vs       : tvarsym;
+        tt       : ttype;
+      begin
+        if (pd.deftype=procvardef) and
+          pd.is_methodpointer then
+          begin
+             internalerror(200304301);
+          end
+        else
+          begin
+             if (pd is tprocdef) and
+               assigned(tprocdef(pd)._class) then
+              begin
+                storepos:=akttokenpos;
+                if pd.deftype=procdef then
+                 akttokenpos:=tprocdef(pd).fileinfo;
+
+                { Generate result variable accessing function result }
+                tt.setdef(tprocdef(pd)._class);
+                { for unknwon reasons this doesn't work:
+                tt.setdef(tprocdef(pd)._class.typedef);
+                }
+                vs:=tvarsym.create('$self',tt);
+                include(vs.varoptions,vo_is_funcret);
+                { Store the this symbol as funcretsym for procedures }
+                if pd.deftype=procdef then
+                 tprocdef(pd).funcretsym:=vs;
+
+                { Handle self of objects like a var parameter }
+                if is_object(tprocdef(pd)._class) then
+                  vs.varspez:=vs_var;
+
+                pd.parast.insert(vs);
+                { Also insert a hidden parameter as first }
+                pd.insertpara(vs.vartype,vs,vs_hidden,nil);
+
+                akttokenpos:=storepos;
+              end;
+          end;
+      end;
 
     procedure insert_funcret_local(pd:tprocdef);
       var
@@ -1731,6 +1774,10 @@ const
       begin
         { insert hidden high parameters }
         insert_hidden_para(pd);
+        { insert hidden self parameter }
+{$ifdef vs_hidden_self}
+        insert_self_and_vmt_para(pd);
+{$endif vs_hidden_self}
         { insert funcret parameter if required }
         insert_funcret_para(pd);
 
@@ -2123,7 +2170,10 @@ const
 end.
 {
   $Log$
-  Revision 1.119  2003-04-27 11:21:33  peter
+  Revision 1.120  2003-04-30 09:42:42  florian
+    + first changes to make self a hidden parameter
+
+  Revision 1.119  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
