@@ -623,7 +623,11 @@ implementation
              subscriptn :
                begin
                  gotsubscript:=true;
+                 { a class/interface access is an implicit }
+                 { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
+                 if is_class_or_interface(hp.resulttype) then
+                   gotderef:=true;
                end;
              subn,
              addn :
@@ -900,7 +904,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-11-29 00:30:31  florian
+  Revision 1.20  2000-12-09 13:04:05  florian
+    * web bug 1207 fixed: field and properties of const classes can be
+      changed
+
+  Revision 1.19  2000/11/29 00:30:31  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
