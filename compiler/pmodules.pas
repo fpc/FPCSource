@@ -1458,6 +1458,10 @@ unit pmodules;
                   aktmoduleswitches:=aktmoduleswitches-[cs_debuginfo];
                 end;
            end;
+
+         { get correct output names }
+         current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
+
          if islibrary then
            begin
               consume(_LIBRARY);
@@ -1491,8 +1495,6 @@ unit pmodules;
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
-         { get correct output names }
-         current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
 
          { setup things using the global switches }
          setupglobalswitches;
@@ -1704,7 +1706,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.193  2000-05-04 20:43:33  peter
+  Revision 1.194  2000-05-08 13:18:09  peter
+    * fixed setting of output names with includefile
+
+  Revision 1.193  2000/05/04 20:43:33  peter
     * don't write rst files if errors found
 
   Revision 1.192  2000/05/03 14:39:51  pierre
