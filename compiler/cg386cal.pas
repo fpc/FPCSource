@@ -105,7 +105,8 @@ implementation
            begin
               { allow @var }
               inc(pushedparasize,4);
-              if p^.left^.treetype=addrn then
+              if (p^.left^.treetype=addrn) and
+                 (not p^.left^.procvarload) then
                 begin
                 { always a register }
                   if inlined then
@@ -1457,7 +1458,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2000-05-31 09:29:15  florian
+  Revision 1.136  2000-06-04 09:05:05  peter
+    * fix addrn with procvar, also detected by testpva2 !
+
+  Revision 1.135  2000/05/31 09:29:15  florian
     * stack alignment to 8 byte boundaries with -Oa switch
 
   Revision 1.134  2000/05/16 20:19:05  pierre
