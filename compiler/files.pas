@@ -648,7 +648,8 @@ unit files;
                  else
                   begin
                     Message(unit_d_obj_is_older_than_asm);
-                    exit;
+                    if not(cs_asm_extern in aktglobalswitches) then
+                     exit;
                   end;
                end;
             end;
@@ -868,7 +869,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.44  1998-09-10 13:51:32  peter
+  Revision 1.45  1998-09-18 09:58:51  peter
+    * -s doesn't require the .o to be available, this allows compiling of
+      everything on other platforms (profiling the windows.pp loading ;)
+
+  Revision 1.44  1998/09/10 13:51:32  peter
     * tp compiler also uses 'as' as asmprefix
 
   Revision 1.43  1998/09/03 17:08:45  pierre
