@@ -98,7 +98,11 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_external_var)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$ifdef supportbrowser}
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
+{$else supportbrowser}
+   {L} (typesw:modulesw; setsw:ord(cs_localnone)),
+{$endif supportbrowser}
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -111,7 +115,11 @@ const
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
+{$ifdef supportbrowser}
    {Y} (typesw:modulesw; setsw:ord(cs_browser)),
+{$else supportbrowser}
+   {Y} (typesw:modulesw; setsw:ord(cs_localnone)),
+{$endif supportbrowser}
    {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
     );
 
@@ -226,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2004-08-27 21:59:26  peter
+  Revision 1.17  2005-01-04 18:39:06  olle
+    * made macpas switches in sync with turbo switches
+
+  Revision 1.16  2004/08/27 21:59:26  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 
