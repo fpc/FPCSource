@@ -40,7 +40,7 @@ Uses AAsm, CObjects
 Type
 
   TRegArray = Array[R_EAX..R_BL] of TRegister;
-  TRegSet = Set of TRegister;
+  TRegSet = Set of R_EAX..R_BL;
   TRegInfo = Record
                 RegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
@@ -1999,7 +1999,10 @@ End.
 
 {
  $Log$
- Revision 1.19  1998-10-20 09:29:24  peter
+ Revision 1.20  1998-10-22 13:24:51  jonas
+   * changed TRegSet to a small set
+
+ Revision 1.19  1998/10/20 09:29:24  peter
    * bugfix so that code like
       movl  48(%esi),%esi                            movl  48(%esi),%esi
       pushl %esi            doesn't get changed to   pushl %esi
