@@ -308,7 +308,7 @@ unit i386;
 
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
-    { mostly set value of a reference }
+    { set mostly used values of a new reference }
     function new_reference(base : tregister;offset : longint) : preference;
     { same as reset_reference, but symbol is disposed }
     { use this only for already used references       }
@@ -1724,7 +1724,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.12  1998-10-08 17:17:20  pierre
+  Revision 1.13  1998-10-14 08:47:17  pierre
+    * bugs in secondfuncret for result in subprocedures removed
+
+  Revision 1.12  1998/10/08 17:17:20  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

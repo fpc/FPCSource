@@ -353,6 +353,9 @@ type
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
 
+    { set mostly used values of a new reference }
+    function new_reference(base : tregister;offset : longint) : preference;
+
     { same as reset_reference, but symbol is disposed }
     { use this only for already used references       }
     procedure clear_reference(var ref : treference);
@@ -915,6 +918,18 @@ type
           direction := dir_none;
         end;
       end;
+
+      function new_reference(base : tregister;offset : longint) : preference;
+
+        var
+           r : preference;
+        begin
+           new(r);
+           reset_reference(r^);
+           r^.base:=base;
+           r^.offset:=offset;
+           new_reference:=r;
+        end;
 
     procedure clear_reference(var ref : treference);
 
@@ -1593,7 +1608,10 @@ type
 end.
 {
   $Log$
-  Revision 1.8  1998-10-13 16:50:15  pierre
+  Revision 1.9  1998-10-14 08:47:18  pierre
+    * bugs in secondfuncret for result in subprocedures removed
+
+  Revision 1.8  1998/10/13 16:50:15  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

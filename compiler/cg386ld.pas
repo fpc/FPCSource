@@ -531,7 +531,7 @@ implementation
          if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
               hr:=getregister32;
-              hr_valid:=false;
+              hr_valid:=true;
               hp:=new_reference(procinfo.framepointer,
                 procinfo.framepointer_offset);
               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hr)));
@@ -733,7 +733,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-10-06 17:16:44  pierre
+  Revision 1.24  1998-10-14 08:47:14  pierre
+    * bugs in secondfuncret for result in subprocedures removed
+
+  Revision 1.23  1998/10/06 17:16:44  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.22  1998/10/01 09:22:53  peter

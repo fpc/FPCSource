@@ -447,10 +447,10 @@ implementation
          hr_valid:=false;
 { !!!!!!! }
 
-(*         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
+         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
-              hr:=getregister32;
-              hr_valid:=false;
+              hr:=getaddressreg;
+              hr_valid:=true;
               hp:=new_reference(procinfo.framepointer,
                 procinfo.framepointer_offset);
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hr)));
@@ -466,7 +466,7 @@ implementation
                 end;
               p^.location.reference.base:=hr;
            end
-         else *)
+         else
            p^.location.reference.base:=procinfo.framepointer;
          p^.location.reference.offset:=procinfo.retoffset;
          if ret_in_param(p^.retdef) then
@@ -510,7 +510,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-14 08:08:53  pierre
+  Revision 1.6  1998-10-14 08:47:16  pierre
+    * bugs in secondfuncret for result in subprocedures removed
+
+  Revision 1.5  1998/10/14 08:08:53  pierre
     * following Peters remark, removed all ifdef in
       the systems unit enums
     * last bugs of cg68k removed for sysamiga
