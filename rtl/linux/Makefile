@@ -33,13 +33,6 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
-# Options needed
-ifneq ("$(FPC_VERSION)","0.99.10")
-ifndef BROWSER
-NEEDOPT=-b-
-endif
-endif 
-
 # Where to place the result files
 TARGETDIR=.
 
@@ -177,6 +170,13 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Dependencies
 #####################################################################
 
+# Options needed
+ifneq ("$(FPC_VERSION)","0.99.10")
+ifndef BROWSER
+NEEDOPT=-b-
+endif
+endif 
+
 vpath %$(PASEXT) $(INC) $(PROCINC)
 
 #
@@ -282,7 +282,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.25  1999-05-13 07:39:07  michael
+# Revision 1.26  1999-05-28 11:21:06  peter
+#   * moved fpc_version check so it works correct
+#
+# Revision 1.25  1999/05/13 07:39:07  michael
 # + Fix in heaptrc target: needs -Sg
 #
 # Revision 1.24  1999/05/05 22:24:08  peter
