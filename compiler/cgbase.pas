@@ -422,6 +422,12 @@ implementation
 
     procedure tprocinfo.after_pass1;
       begin
+{$ifdef powerpc}
+         { do it again because of implicit para's (HACK, JM) }
+         { Retrieve function result offset }
+         if assigned(procdef.funcretsym) then
+           current_procinfo.return_offset:=tvarsym(procdef.funcretsym).adjusted_address;
+{$endif powerpc}
       end;
 
 
@@ -579,7 +585,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-05-15 18:58:53  peter
+  Revision 1.49  2003-05-16 20:00:39  jonas
+    * powerpc nested procedure fixes, should work completely now if all
+      local variables of the parent procedure are declared before the
+      nested procedures are declared
+
+  Revision 1.48  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

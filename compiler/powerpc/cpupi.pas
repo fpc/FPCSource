@@ -66,8 +66,9 @@ unit cpupi;
     procedure tppcprocinfo.after_header;
       begin
          { this value is necessary for nested procedures }
+         procdef.parast.address_fixup:=0;
          if assigned(procdef.localst) then
-           procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+           procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
          inherited after_header;
      end;
 
@@ -115,7 +116,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-05-15 19:39:09  florian
+  Revision 1.16  2003-05-16 20:00:39  jonas
+    * powerpc nested procedure fixes, should work completely now if all
+      local variables of the parent procedure are declared before the
+      nested procedures are declared
+
+  Revision 1.15  2003/05/15 19:39:09  florian
     * fixed ppc compiler which was broken by Peter's changes
 
   Revision 1.14  2003/05/10 23:57:23  florian

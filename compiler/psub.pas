@@ -964,16 +964,27 @@ implementation
             { Insert local copies for value para }
             pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}insert_local_value_para,nil);
 
-            { Update parameter information }
-            current_procinfo.allocate_implicit_parameter;
 {$ifdef i386}
             { add implicit pushes for interrupt routines }
             if (po_interrupt in pd.procoptions) then
               current_procinfo.allocate_interrupt_stackframe;
 {$endif i386}
 
+{$ifdef powerpc}
+            { temp hack for nested procedures on ppc }
+
             { Calculate offsets }
             current_procinfo.after_header;
+
+            { Update parameter information }
+            current_procinfo.allocate_implicit_parameter;
+{$else powerpc}
+            { Update parameter information }
+            current_procinfo.allocate_implicit_parameter;
+
+            { Calculate offsets }
+            current_procinfo.after_header;
+{$endif powerpc}
 
             { set _FAIL as keyword if constructor }
             if (pd.proctypeoption=potype_constructor) then
@@ -1130,7 +1141,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-05-16 14:33:31  peter
+  Revision 1.114  2003-05-16 20:00:39  jonas
+    * powerpc nested procedure fixes, should work completely now if all
+      local variables of the parent procedure are declared before the
+      nested procedures are declared
+
+  Revision 1.113  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.112  2003/05/13 21:26:38  peter

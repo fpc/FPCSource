@@ -82,7 +82,8 @@ implementation
             { pass the same framepointer as the current procedure got }
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
-            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,current_procinfo.framepointer,hregister2);
+            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister2);
             { it must be adjusted! }
          end
          { this is only true if the difference is one !!
@@ -94,19 +95,21 @@ implementation
             hregister1.number:=NR_R1;
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
-            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.localst.address_fixup));
+            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.parast.address_fixup));
          end
        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
-            i:=current_procdef.parast.symtablelevel;
+            { the previous frame pointer is always saved at }
+            { previous_framepointer-sizeof(pointer)         }
+            reference_reset_base(href,hregister1,-POINTER_SIZE);
+            i:=current_procdef.parast.symtablelevel-1;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                  {we should get the correct frame_pointer_offset at each level
                  how can we do this !!! }
-                 reference_reset_base(href,hregister2,current_procinfo.framepointer_offset);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
                  dec(i);
               end;
@@ -123,7 +126,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-04-27 11:21:36  peter
+  Revision 1.11  2003-05-16 20:00:39  jonas
+    * powerpc nested procedure fixes, should work completely now if all
+      local variables of the parent procedure are declared before the
+      nested procedures are declared
+
+  Revision 1.10  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
