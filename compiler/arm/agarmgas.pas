@@ -224,7 +224,7 @@ unit agarmgas;
                    end;
                  end
                else
-                  s:=s+sep+getopstr(taicpu(hp).oper[i]^);
+                 s:=s+sep+getopstr(taicpu(hp).oper[i]^);
 
                sep:=',';
             end;
@@ -238,7 +238,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-11-01 17:41:28  florian
+  Revision 1.23  2004-11-06 17:44:47  florian
+    + additional extdebug check for wrong add_reg_instructions added
+    * too long manglednames are cut off at 200 chars using a crc
+
+  Revision 1.22  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

@@ -656,6 +656,10 @@ unit rgobj;
         supreg : tsuperregister;
       begin
         supreg:=getsupreg(r);
+{$ifdef extdebug}
+        if supreg>=maxreginfo then
+          internalerror(200411061);
+{$endif extdebug}
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
@@ -1993,11 +1997,16 @@ unit rgobj;
           end;
       end;
 
-
+begin
+  writeln(sizeof(Treginfo));
 end.
 {
   $Log$
-  Revision 1.149  2004-11-01 10:34:08  peter
+  Revision 1.150  2004-11-06 17:44:47  florian
+    + additional extdebug check for wrong add_reg_instructions added
+    * too long manglednames are cut off at 200 chars using a crc
+
+  Revision 1.149  2004/11/01 10:34:08  peter
     * regalloc bind to instructions need to get real ait_instruction
 
   Revision 1.148  2004/10/31 23:18:29  jonas

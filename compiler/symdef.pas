@@ -840,7 +840,8 @@ implementation
 {$endif GDB}
        fmodule,
        { other }
-       gendef
+       gendef,
+       crc
        ;
 
 
@@ -870,6 +871,7 @@ implementation
       var
         s,
         prefix : string;
+        crc : dword;
       begin
         prefix:='';
         if not assigned(st) then
@@ -914,6 +916,12 @@ implementation
         if (target_info.system = system_powerpc_darwin) and
            (result[1] = 'L') then
           result := '_' + result;
+        if length(result)>200 then
+          begin
+            s:=copy(result,1,200);
+            crc:=UpdateCrc32(0,result[201],length(result)-200);
+            result:=s+'_$crc$_$'+hexstr(crc,8);
+          end;
       end;
 
 
@@ -4362,6 +4370,8 @@ implementation
     function tprocdef.mangledname : string;
       var
         hp : TParaItem;
+        s : string;
+        crc : dword;
       begin
         if assigned(_mangledname) then
          begin
@@ -4385,6 +4395,13 @@ implementation
              mangledname:=mangledname+'$'+hp.paratype.def.mangledparaname;
            hp:=TParaItem(hp.next);
          end;
+        { cut off too long strings using a crc }
+        if length(result)>200 then
+          begin
+            s:=copy(result,1,200);
+            crc:=UpdateCrc32(0,result[201],length(result)-200);
+            result:=s+'_$crc$_$'+hexstr(crc,8);
+          end;
        {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(mangledname));
        {$else}
@@ -6219,7 +6236,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.267  2004-11-05 21:07:13  florian
+  Revision 1.268  2004-11-06 17:44:47  florian
+    + additional extdebug check for wrong add_reg_instructions added
+    * too long manglednames are cut off at 200 chars using a crc
+
+  Revision 1.267  2004/11/05 21:07:13  florian
     * vmt offset of objects is no properly aligned when necessary
 
   Revision 1.266  2004/11/04 17:58:48  peter

@@ -206,7 +206,7 @@ unit cpupara;
 
       procedure assignintreg;
         begin
-           if nextintreg<=ord(NR_R3) then
+           if nextintreg<=RS_R3 then
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
@@ -424,6 +424,7 @@ unit cpupara;
         else
           begin
             paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
           end;
      end;
 
@@ -471,7 +472,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-11-01 09:23:01  florian
+  Revision 1.25  2004-11-06 17:44:47  florian
+    + additional extdebug check for wrong add_reg_instructions added
+    * too long manglednames are cut off at 200 chars using a crc
+
+  Revision 1.24  2004/11/01 09:23:01  florian
     * fixed handling of stack parameters on the arm
 
   Revision 1.23  2004/10/31 12:37:11  florian
