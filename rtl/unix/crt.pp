@@ -1013,45 +1013,45 @@ Begin
                {$ENDIF}
                'K' : PushExt(79);
                {$IFDEF FREEBSD}
-               'L' : StoExt(82);   {Insert - Deekoo}
-               'M' : StoExt(59);   {F1-F10 - Deekoo}
-               'N' : StoExt(60);   {F2}
-               'O' : StoExt(61);   {F3}
-               'P' : StoExt(62);   {F4}
-               'Q' : StoExt(63);   {F5}
-               'R' : StoExt(64);   {F6}
-               'S' : StoExt(65);   {F7}
-               'T' : StoExt(66);   {F8}
-               'U' : StoExt(67);   {F9}
-               'V' : StoExt(68);   {F10}
+               'L' : PushExt(82);   {Insert - Deekoo}
+               'M' : PushExt(59);   {F1-F10 - Deekoo}
+               'N' : PushExt(60);   {F2}
+               'O' : PushExt(61);   {F3}
+               'P' : PushExt(62);   {F4}
+               'Q' : PushExt(63);   {F5}
+               'R' : PushExt(64);   {F6}
+               'S' : PushExt(65);   {F7}
+               'T' : PushExt(66);   {F8}
+               'U' : PushExt(67);   {F9}
+               'V' : PushExt(68);   {F10}
                {Not sure if TP/BP handles F11 and F12 like this normally;
                    In pcemu, a TP7 executable handles 'em this way, though.}
-               'W' : StoExt(133);   {F11}
-               'X' : StoExt(134);   {F12}
-               'Y' : StoExt(84);   {Shift-F1}
-               'Z' : StoExt(85);   {Shift-F2}
-               'a' : StoExt(86);   {Shift-F3}
-               'b' : StoExt(87);   {Shift-F4}
-               'c' : StoExt(88);   {Shift-F5}
-               'd' : StoExt(89);   {Shift-F6}
-               'e' : StoExt(90);   {Shift-F7}
-               'f' : StoExt(91);   {Shift-F8}
-               'g' : StoExt(92);   {Shift-F9}
-               'h' : StoExt(93);   {Shift-F10}
-               'i' : StoExt(135);   {Shift-F11}
-               'j' : StoExt(136);   {Shift-F12}
-               'k' : StoExt(94);        {Ctrl-F1}
-               'l' : StoExt(95);
-               'm' : StoExt(96);
-               'n' : StoExt(97);
-               'o' : StoExt(98);
-               'p' : StoExt(99);
-               'q' : StoExt(100);
-               'r' : StoExt(101);
-               's' : StoExt(102);
-               't' : StoExt(103);   {Ctrl-F10}
-               'u' : StoExt(137);   {Ctrl-F11}
-               'v' : StoExt(138);   {Ctrl-F12}
+               'W' : PushExt(133);   {F11}
+               'X' : PushExt(134);   {F12}
+               'Y' : PushExt(84);   {Shift-F1}
+               'Z' : PushExt(85);   {Shift-F2}
+               'a' : PushExt(86);   {Shift-F3}
+               'b' : PushExt(87);   {Shift-F4}
+               'c' : PushExt(88);   {Shift-F5}
+               'd' : PushExt(89);   {Shift-F6}
+               'e' : PushExt(90);   {Shift-F7}
+               'f' : PushExt(91);   {Shift-F8}
+               'g' : PushExt(92);   {Shift-F9}
+               'h' : PushExt(93);   {Shift-F10}
+               'i' : PushExt(135);   {Shift-F11}
+               'j' : PushExt(136);   {Shift-F12}
+               'k' : PushExt(94);        {Ctrl-F1}
+               'l' : PushExt(95);
+               'm' : PushExt(96);
+               'n' : PushExt(97);
+               'o' : PushExt(98);
+               'p' : PushExt(99);
+               'q' : PushExt(100);
+               'r' : PushExt(101);
+               's' : PushExt(102);
+               't' : PushExt(103);   {Ctrl-F10}
+               'u' : PushExt(137);   {Ctrl-F11}
+               'v' : PushExt(138);   {Ctrl-F12}
                {$ENDIF}
                '1' : State:=4;
                '2' : State:=5;
@@ -1652,7 +1652,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2000-09-18 13:38:13  marco
+   Small fix
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/07/13 11:33:47  michael
