@@ -642,9 +642,34 @@ uses
 
 implementation
 
+    uses  verbose;
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
+
+    procedure convert_register_to_enum(var r:Tregister);
+    
+    begin
+      if r.enum=R_INTREGISTER then
+        case r.number of
+          NR_NO:  r.enum:=R_NO;
+          NR_EAX: r.enum:=R_EAX;        NR_EBX: r.enum:=R_EBX;
+          NR_ECX: r.enum:=R_ECX;        NR_EDX: r.enum:=R_EDX;
+          NR_ESI: r.enum:=R_ESI;        NR_EDI: r.enum:=R_EDI;
+          NR_ESP: r.enum:=R_ESP;        NR_EBP: r.enum:=R_EBP;
+          NR_AX:  r.enum:=R_AX;         NR_BX:  r.enum:=R_BX;
+          NR_CX:  r.enum:=R_CX;         NR_DX:  r.enum:=R_DX;
+          NR_SI:  r.enum:=R_SI;         NR_DI:  r.enum:=R_DI;
+          NR_SP:  r.enum:=R_SP;         NR_BP:  r.enum:=R_BP;
+          NR_AL:  r.enum:=R_AL;         NR_BL:  r.enum:=R_BL;
+          NR_CL:  r.enum:=R_CL;         NR_DL:  r.enum:=R_DL;
+          NR_AH:  r.enum:=R_AH;         NR_BH:  r.enum:=R_BH;
+          NR_CH:  r.enum:=R_CH;         NR_DH:  r.enum:=R_DH;
+        else
+          internalerror(200301082);
+        end;
+    end;
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -678,7 +703,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-01-08 18:43:57  daniel
+  Revision 1.37  2003-01-08 22:32:36  daniel
+    * Added register convesrion procedure
+
+  Revision 1.36  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.35  2003/01/05 13:36:53  florian
