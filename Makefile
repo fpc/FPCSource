@@ -2665,8 +2665,8 @@ FPCISSSUBST+=-d DisableDocs=;
 endif
 innocheck:
 ifndef NODOCS
-ifeq ($(wildcard docs-pdf.zip),)
-	@$(ECHO) "No documentation available. Please copy the file docs-pdf.zip to this directory."
+ifeq ($(wildcard doc-pdf.zip),)
+	@$(ECHO) "No documentation available. Please copy the file doc-pdf.zip to this directory."
 	@exit 1
 endif
 endif
@@ -2678,7 +2678,7 @@ innobuild: innocheck build
 	$(DELTREE) $(INNODIR)
 	$(MKDIR) $(INNODIR)
 ifndef NODOCS
-	unzip -d $(INNODIR) docs-pdf.zip
+	unzip -d $(INNODIR) doc-pdf.zip
 endif
 	$(MAKE) install INSTALL_PREFIX=$(INNODIR)
 	compiler/utils/fpcsubst -i install/fpc.ist -o $(INNODIR)/fpc.iss $(FPCISSSUBST)
