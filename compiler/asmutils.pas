@@ -1036,7 +1036,7 @@ end;
     Var Offset: longint; operandnum: byte):boolean;
   { search and returns the offset of records/objects of the base }
   { with field name setup in field.                              }
-  { returns 0 if not found.                                      }
+  { returns FALSE if not found.                                      }
   { used when base is a variable or a typed constant name.       }
    var
     sym:psym;
@@ -1081,6 +1081,38 @@ end;
                 GetVarOffset := TRUE;
                 Exit;
              end;
+          end
+        else
+        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
+          begin
+             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
+               begin
+                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
+                  if assigned(pvarsym(p)) then
+                    Begin
+                      Offset := pvarsym(p)^.address;
+                      { the current size is NOT overriden if it already }
+                      { exists, such as in the case of a byte ptr, in   }
+                      { front of the identifier.                        }
+                      if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                        Begin
+                          case pvarsym(p)^.getsize of
+                          1: instr.operands[operandnum].size := S_B;
+                          2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                          4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                          8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                         extended_size: instr.operands[operandnum].size := S_FX;
+                         else
+                         { this is in the case where the instruction is LEA }
+                         { or something like that, in that case size is not }
+                         { important.                                       }
+                           instr.operands[operandnum].size := S_NO;
+                         end; { end case }
+                       end;
+                     GetVarOffset := TRUE;
+                     Exit;
+                    end;
+               end;
           end;
       end
       else
@@ -1120,10 +1152,42 @@ end;
                 end;
                 Exit;
              end;
-           end; { endif }
-         end; {endif }
-       end; { endif }
-     end;
+           end { endif }
+         else
+         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
+          begin
+             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
+               begin
+                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
+                  if assigned(pvarsym(p)) then
+                    Begin
+                      Offset := pvarsym(p)^.address;
+                      { the current size is NOT overriden if it already }
+                      { exists, such as in the case of a byte ptr, in   }
+                      { front of the identifier.                        }
+                      if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                        Begin
+                          case pvarsym(p)^.getsize of
+                          1: instr.operands[operandnum].size := S_B;
+                          2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                          4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                          8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                         extended_size: instr.operands[operandnum].size := S_FX;
+                         else
+                         { this is in the case where the instruction is LEA }
+                         { or something like that, in that case size is not }
+                         { important.                                       }
+                           instr.operands[operandnum].size := S_NO;
+                         end; { end case }
+                       end;
+                     GetVarOffset := TRUE;
+                     Exit;
+                    end;
+               end;
+          end;
+         end;
+        end;
+      end; { endif assigned(aktprocsym) }
 
      { not found.. .now look for global variables. }
      getsym(base,false);
@@ -1190,6 +1254,38 @@ end;
                 Exit;
              end;
           end
+        else
+        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
+          begin
+             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
+               begin
+                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
+                  if assigned(pvarsym(p)) then
+                    Begin
+                      Offset := pvarsym(p)^.address;
+                      { the current size is NOT overriden if it already }
+                      { exists, such as in the case of a byte ptr, in   }
+                      { front of the identifier.                        }
+                      if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                        Begin
+                          case pvarsym(p)^.getsize of
+                          1: instr.operands[operandnum].size := S_B;
+                          2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                          4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                          8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                         extended_size: instr.operands[operandnum].size := S_FX;
+                         else
+                         { this is in the case where the instruction is LEA }
+                         { or something like that, in that case size is not }
+                         { important.                                       }
+                           instr.operands[operandnum].size := S_NO;
+                         end; { end case }
+                       end;
+                     GetVarOffset := TRUE;
+                     Exit;
+                    end;
+               end;
+          end;
      end; { end looking for global variables .. }
   end;
 
@@ -1776,7 +1872,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-27 00:43:06  carl
+  Revision 1.9  1998-09-24 17:54:15  carl
+    * bugfixes from fix branch
+
+  Revision 1.8.2.1  1998/09/24 17:46:25  carl
+   * support for objects in asm statements
+
+  Revision 1.8  1998/08/27 00:43:06  carl
     +} now record offsets searches set the operand sizes
 
   Revision 1.7  1998/08/18 20:51:32  peter
