@@ -23,6 +23,10 @@ program install;
 (* application if running in OS/2 VDM (DOS) window. Used   *)
 (* only if compiling with TP/BP (see conditionals below).  *)
 
+{$IFDEF OS2}
+ {$DEFINE DLL}
+{$ENDIF DLL}
+
 {$IFDEF VER60}
  {$DEFINE TP}
 {$ENDIF}
@@ -266,6 +270,11 @@ program install;
   procedure errorhalt;
     begin
       installapp.done;
+      if CreateLog then
+        begin
+          WriteLn (Log, 'Installation hasn''t been completed.');
+          Close (Log);
+        end;
       halt(1);
     end;
 
@@ -768,6 +777,9 @@ program install;
          begin
             messagebox('File "'+s+'" missing for the selected installation. '+
                        'Installation hasn''t been completed.',nil,mferror+mfokbutton);
+            if CreateLog then
+              WriteLn (Log, 'File "' + S +
+                                   '" missing for the selected installation!');
             errorhalt;
          end;
 {$IFNDEF DLL}
@@ -777,6 +789,9 @@ program install;
        SetUnzipReportProc (UnzipCheckFn);
  {$ENDIF FPC}
 {$ENDIF DLL}
+       if CreateLog then
+         WriteLn (Log, 'Unpacking ' + AllFiles + ' from '
+                                   + StartPath + DirSep + S + ' to ' + ToPath);
        repeat
          fn:=startpath+DirSep+s+#0;
          dir:=topath+#0;
@@ -785,6 +800,8 @@ program install;
          FileUnzipEx(@fn[1],@dir[1],@wild[1]);
          if (UnzipErr <> 0) and (UnzipErr <> 1) then
            begin
+              if CreateLog then
+                WriteLn (Log, 'Error ', UnzipErr, ' while unpacking!');
               s:=GetZipErrorInfo(UnzipErr);
               { Str(UnzipErr,s);}
               st2:='';
@@ -800,6 +817,12 @@ program install;
                         islfn:=true;
                       if islfn then
                         begin
+                          if CreateLog then
+                            begin
+                              WriteLn (Log, 'Error while extracting ' +
+                               CurrentFile + because of missing LFN support,');
+                              WriteLn (Log, '  skipping rest of ZIP file.);
+                            end;
                           messagebox('Error while extracting '+currentfile+
                             #13#3'because of missing lfn support'+
                             #13#3'skipping rest of zipfile '+s
@@ -812,6 +835,8 @@ program install;
 {$endif MAYBE_LFN}
                     st2:=' Disk full?';
                 end;
+              if CreateLog then
+                WriteLn (Log, 'Error (' + S + ') while extracting.' + ST2);
               if messagebox('Error (' + S + ') while extracting.'+st2+#13+
                             #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
@@ -1136,6 +1161,8 @@ program install;
        if not found then
         begin
           messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
+          if CreateLog then
+            WriteLn (Log, 'No components found to install, aborting.');
           errorhalt;
         end;
 
@@ -1493,6 +1520,8 @@ end;
           begin
             params[0]:=@fn;
             messagebox('File %s not found!',@params,mferror+mfokbutton);
+            if CreateLog then
+                WriteLn (Log, 'File "' + S + '" not found!');
             errorhalt;
           end;
        end;
@@ -1585,6 +1614,8 @@ end;
                    if cfg.packs>maxpacks then
                     begin
                       writeln('Too many packs');
+                      if CreateLog then
+                        WriteLn (Log, 'Too many packs');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].name:=s;
@@ -1595,6 +1626,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defcfgfile:=s
@@ -1605,6 +1638,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defidecfgfile:=s
@@ -1615,6 +1650,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].setpathfile:=s
@@ -1625,6 +1662,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defideinifile:=s
@@ -1635,6 +1674,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].ppc386:=s;
@@ -1645,6 +1686,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].binsub:=s;
@@ -1655,6 +1698,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].filechk:=s;
@@ -1665,6 +1710,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].targetname:=s;
@@ -1675,6 +1722,8 @@ end;
                    if cfg.packs=0 then
                     begin
                       writeln('No pack set');
+                      if CreateLog then
+                        WriteLn (Log, 'No pack set');
                       halt(1);
                     end;
                    with cfg.pack[cfg.packs] do
@@ -1908,6 +1957,15 @@ begin
         else
           begin
              writeln('Illegal command line parameter: ',paramstr(i));
+             WriteLn;
+             writeln('FPC Installer Copyright (c) 1993-2002 Florian Klaempfl');
+             writeln('Command line options:');
+             writeln('  -l   create log file');
+{$ifdef MAYBE_LFN}
+             writeln('  --nolfn   force installation with short file names');
+{$endif MAYBE_LFN}
+             writeln;
+             writeln('  -h   displays this help');
              halt(1);
           end;
      end;
@@ -1950,7 +2008,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-02-08 21:49:59  carl
+  Revision 1.17  2003-03-01 16:15:42  hajny
+    + logging enhanced
+
+  Revision 1.16  2003/02/08 21:49:59  carl
     * DOS : fix user screen problem
        DOS: emu386 reinstated
 
