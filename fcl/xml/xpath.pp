@@ -64,35 +64,35 @@ type
 
 { XPath lexical scanner }
 
-  TXPathToken = (		// [28] - [38]
+  TXPathToken = (               // [28] - [38]
     tkInvalid,
     tkEndOfStream,
     tkIdentifier,
     tkString,
     tkNumber,
-    tkDollar,			// "$"
-    tkLeftBracket,		// "("
-    tkRightBracket,		// ")"
-    tkAsterisk,			// "*"
-    tkPlus,			// "+"
-    tkComma,			// ","
-    tkMinus,			// "-"
-    tkDot,			// "."
-    tkDotDot,			// ".."
-    tkSlash,			// "/"
-    tkSlashSlash,		// "//"
-    tkColon,			// ":"
-    tkColonColon,		// "::"
-    tkLess,			// "<"
-    tkLessEqual,		// "<="
-    tkEqual,			// "="
-    tkNotEqual,			// "!="
-    tkGreater,			// ">"
-    tkGreaterEqual,		// ">="
-    tkAt,			// "@"
-    tkLeftSquareBracket,	// "["
-    tkRightSquareBracket,	// "]"
-    tkPipe			// "|"
+    tkDollar,                   // "$"
+    tkLeftBracket,              // "("
+    tkRightBracket,             // ")"
+    tkAsterisk,                 // "*"
+    tkPlus,                     // "+"
+    tkComma,                    // ","
+    tkMinus,                    // "-"
+    tkDot,                      // "."
+    tkDotDot,                   // ".."
+    tkSlash,                    // "/"
+    tkSlashSlash,               // "//"
+    tkColon,                    // ":"
+    tkColonColon,               // "::"
+    tkLess,                     // "<"
+    tkLessEqual,                // "<="
+    tkEqual,                    // "="
+    tkNotEqual,                 // "!="
+    tkGreater,                  // ">"
+    tkGreaterEqual,             // ">="
+    tkAt,                       // "@"
+    tkLeftSquareBracket,        // "["
+    tkRightSquareBracket,       // "]"
+    tkPipe                      // "|"
   );
 
 
@@ -463,12 +463,12 @@ begin
     DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE, ELEMENT_NODE:
       begin
         SetLength(Result, 0);
-	Child := Node.FirstChild;
-	while Assigned(Child) do
-	begin
-	  Result := Result + NodeToText(Child);
-	  Child := Child.NextSibling;
-	end;
+        Child := Node.FirstChild;
+        while Assigned(Child) do
+        begin
+          Result := Result + NodeToText(Child);
+          Child := Child.NextSibling;
+        end;
       end;
     ATTRIBUTE_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE, TEXT_NODE,
       CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE:
@@ -663,39 +663,39 @@ var
       NodeSet1 := Op1.AsNodeSet;
       if Op2.InheritsFrom(TXPathNodeSetVariable) then
       begin
-	NodeSet2 := Op2.AsNodeSet;
+        NodeSet2 := Op2.AsNodeSet;
         for i := 0 to NodeSet1.Count - 1 do
-	begin
-	  s := NodeToText(TDOMNode(NodeSet1[i]));
-	  for j := 0 to NodeSet2.Count - 1 do
-	    if s = NodeToText(TDOMNode(NodeSet2[j])) then
-	    begin
-	      Result := True;
-	      exit;
-	    end;
-	end;
+        begin
+          s := NodeToText(TDOMNode(NodeSet1[i]));
+          for j := 0 to NodeSet2.Count - 1 do
+            if s = NodeToText(TDOMNode(NodeSet2[j])) then
+            begin
+              Result := True;
+              exit;
+            end;
+        end;
       end else
       begin
         s := Op2.AsText;
-	for i := 0 to NodeSet1.Count - 1 do
-	begin
-	  if NodeToText(TDOMNode(NodeSet1[i])) = s then
-	  begin
-	    Result := True;
-	    exit;
-	  end;
-	end;
+        for i := 0 to NodeSet1.Count - 1 do
+        begin
+          if NodeToText(TDOMNode(NodeSet1[i])) = s then
+          begin
+            Result := True;
+            exit;
+          end;
+        end;
       end;
       Result := False;
     end else if Op2.InheritsFrom(TXPathNodeSetVariable) then
     begin
       s := Op1.AsText;
       for i := 0 to NodeSet2.Count - 1 do
-	if s = NodeToText(TDOMNode(NodeSet2[i])) then
-	begin
-	  Result := True;
-	  exit;
-	end;
+        if s = NodeToText(TDOMNode(NodeSet2[i])) then
+        begin
+          Result := True;
+          exit;
+        end;
       Result := False;
     end else if Op1.InheritsFrom(TXPathBooleanVariable) or
       Op2.InheritsFrom(TXPathBooleanVariable) then
@@ -780,7 +780,7 @@ begin
             if NodeSet[j] = CurNode then
             begin
               DoAdd := False;
-    	  break;
+          break;
             end;
           if DoAdd then
             NodeSet.Add(CurNode);
@@ -840,28 +840,28 @@ begin
         Inc(NewContext.ContextPosition);
         DoAdd := True;
         for j := 0 to FPredicates.Count - 1 do
-	begin
-	  PredicateResult := TXPathExprNode(FPredicates[j]).Evaluate(NewContext,
-	    AEnvironment);
-	  try
-	    if PredicateResult.InheritsFrom(TXPathNumberVariable) then
-	    begin
-	      if PredicateResult.AsNumber <> i + 1 then
-	      begin
-	        DoAdd := False;
-		break;
-	      end;
-	    end else if not PredicateResult.AsBoolean then
-  	    begin
-	      DoAdd := False;
-	      break;
-	    end;
-	  finally
-	    PredicateResult.Release;
-	  end;
-	end;
-	if DoAdd then
-	  NewNodeSet.Add(CurContextNode);
+        begin
+          PredicateResult := TXPathExprNode(FPredicates[j]).Evaluate(NewContext,
+            AEnvironment);
+          try
+            if PredicateResult.InheritsFrom(TXPathNumberVariable) then
+            begin
+              if PredicateResult.AsNumber <> i + 1 then
+              begin
+                DoAdd := False;
+                break;
+              end;
+            end else if not PredicateResult.AsBoolean then
+            begin
+              DoAdd := False;
+              break;
+            end;
+          finally
+            PredicateResult.Release;
+          end;
+        end;
+        if DoAdd then
+          NewNodeSet.Add(CurContextNode);
       end;
     except
       NewNodeSet.Free;
@@ -913,30 +913,30 @@ var
     begin
       case AStep.NodeTestType of
         ntAnyPrincipal:
-	  // !!!: Probably this isn't ready for namespace support yet
-	  if (AStep.Axis <> axisAttribute) and
-	    (Node.NodeType <> ELEMENT_NODE) then
-	    exit;
+          // !!!: Probably this isn't ready for namespace support yet
+          if (AStep.Axis <> axisAttribute) and
+            (Node.NodeType <> ELEMENT_NODE) then
+            exit;
         ntName:
-	  if Node.NodeName <> AStep.NodeTestString then
-	    exit;
+          if Node.NodeName <> AStep.NodeTestString then
+            exit;
         ntTextNode:
-	  if not Node.InheritsFrom(TDOMCharacterData) then
-	    exit;
+          if not Node.InheritsFrom(TDOMCharacterData) then
+            exit;
         ntCommentNode:
-	  if Node.NodeType <> COMMENT_NODE then
-	    exit;
+          if Node.NodeType <> COMMENT_NODE then
+            exit;
         ntPINode:
-	  if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
-	    exit;
+          if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
+            exit;
       end;
       DoAdd := True;
       for i := 0 to StepNodes.Count - 1 do
-	if TDOMNode(StepNodes[i]) = Node then
-	begin
-	  DoAdd := False;
-	  break;
-	end;
+        if TDOMNode(StepNodes[i]) = Node then
+        begin
+          DoAdd := False;
+          break;
+        end;
       if DoAdd then
         StepNodes.Add(Node);
     end;
@@ -971,36 +971,36 @@ var
     case AStep.Axis of
       axisAncestor:
         begin
-  	  Node := AContext.ContextNode.ParentNode;
-	  while Assigned(Node) do
-	  begin
-	    DoNodeTest(Node);
-	    Node := Node.ParentNode;
-	  end;
+          Node := AContext.ContextNode.ParentNode;
+          while Assigned(Node) do
+          begin
+            DoNodeTest(Node);
+            Node := Node.ParentNode;
+          end;
         end;
       axisAncestorOrSelf:
         begin
-	  Node := AContext.ContextNode;
-	  repeat
-	    DoNodeTest(Node);
-	    Node := Node.ParentNode;
-	 until not Assigned(Node);
+          Node := AContext.ContextNode;
+          repeat
+            DoNodeTest(Node);
+            Node := Node.ParentNode;
+         until not Assigned(Node);
         end;
       axisAttribute:
         begin
-	  Attr := AContext.ContextNode.Attributes;
-	  if Assigned(Attr) then
-	    for i := 0 to Attr.Length - 1 do
-	      DoNodeTest(Attr[i]);
+          Attr := AContext.ContextNode.Attributes;
+          if Assigned(Attr) then
+            for i := 0 to Attr.Length - 1 do
+              DoNodeTest(Attr[i]);
         end;
       axisChild:
         begin
-	  Node := AContext.ContextNode.FirstChild;
-	  while Assigned(Node) do
-	  begin
-	    DoNodeTest(Node);
-	    Node := Node.NextSibling;
-	  end;
+          Node := AContext.ContextNode.FirstChild;
+          while Assigned(Node) do
+          begin
+            DoNodeTest(Node);
+            Node := Node.NextSibling;
+          end;
         end;
       axisDescendant:
         AddDescendants(AContext.ContextNode);
@@ -1017,47 +1017,47 @@ var
             while Assigned(Node2) do
             begin
               DoNodeTest(Node2);
-	      AddDescendants(Node2);
-	      Node := Node.NextSibling;
+              AddDescendants(Node2);
+              Node := Node.NextSibling;
             end;
             Node := Node.ParentNode;
-	  until not Assigned(Node);
+          until not Assigned(Node);
         end;
       axisFollowingSibling:
         begin
-	  Node := AContext.ContextNode.NextSibling;
-	  while Assigned(Node) do
-	  begin
-	    DoNodeTest(Node);
-	    Node := Node.NextSibling;
-	  end;
+          Node := AContext.ContextNode.NextSibling;
+          while Assigned(Node) do
+          begin
+            DoNodeTest(Node);
+            Node := Node.NextSibling;
+          end;
         end;
       {axisNamespace: !!!: Not supported yet}
       axisParent:
         if Assigned(AContext.ContextNode.ParentNode) then
-	  DoNodeTest(AContext.ContextNode);
+          DoNodeTest(AContext.ContextNode);
       axisPreceding:
         begin
-	  Node := AContext.ContextNode;
-	  repeat
+          Node := AContext.ContextNode;
+          repeat
             Node2 := Node.PreviousSibling;
             while Assigned(Node2) do
             begin
               DoNodeTest(Node2);
-	      AddDescendants(Node2);
-	      Node := Node.PreviousSibling;
+              AddDescendants(Node2);
+              Node := Node.PreviousSibling;
             end;
             Node := Node.ParentNode;
-	  until not Assigned(Node);
+          until not Assigned(Node);
         end;
       axisPrecedingSibling:
         begin
-	  Node := AContext.ContextNode.PreviousSibling;
-	  while Assigned(Node) do
-	  begin
-	    DoNodeTest(Node);
-	    Node := Node.PreviousSibling;
-	  end;
+          Node := AContext.ContextNode.PreviousSibling;
+          while Assigned(Node) do
+          begin
+            DoNodeTest(Node);
+            Node := Node.PreviousSibling;
+          end;
         end;
       axisSelf:
         DoNodeTest(AContext.ContextNode);
@@ -1077,22 +1077,22 @@ var
       NewStepNodes := nil;
       try
         NewStepNodes := TNodeSet.Create;
-	Predicate := TXPathExprNode(AStep.Predicates[i]);
+        Predicate := TXPathExprNode(AStep.Predicates[i]);
         for j := 0 to StepNodes.Count - 1 do
-	begin
-	  Node := TDOMNode(StepNodes[j]);
-	  NewContext.ContextNode := Node;
-	  Inc(NewContext.ContextPosition);
-	  PredicateResult := Predicate.Evaluate(NewContext, AEnvironment);
-	  try
-	    if (PredicateResult.InheritsFrom(TXPathNumberVariable) and
-	      (PredicateResult.AsNumber = j + 1)) or
-	      PredicateResult.AsBoolean then
-	        NewStepNodes.Add(Node);
-	  finally
-	    PredicateResult.Release;
-	  end;
-	end;
+        begin
+          Node := TDOMNode(StepNodes[j]);
+          NewContext.ContextNode := Node;
+          Inc(NewContext.ContextPosition);
+          PredicateResult := Predicate.Evaluate(NewContext, AEnvironment);
+          try
+            if (PredicateResult.InheritsFrom(TXPathNumberVariable) and
+              (PredicateResult.AsNumber = j + 1)) or
+              PredicateResult.AsBoolean then
+                NewStepNodes.Add(Node);
+          finally
+            PredicateResult.Release;
+          end;
+        end;
       finally
         NewContext.Free;
         StepNodes.Free;
@@ -1107,9 +1107,9 @@ var
         for i := 0 to StepNodes.Count - 1 do
         begin
           NewContext.ContextNode := TDOMNode(StepNodes[i]);
-	  Inc(NewContext.ContextPosition);
-	  EvaluateStep(AStep.NextStep, NewContext);
-	end;
+          Inc(NewContext.ContextPosition);
+          EvaluateStep(AStep.NextStep, NewContext);
+        end;
       finally
         NewContext.Free;
       end;
@@ -1121,11 +1121,11 @@ var
         Node := TDOMNode(StepNodes[i]);
         DoAdd := True;
         for j := 0 to ResultNodeSet.Count - 1 do
-	  if TDOMNode(ResultNodeSet[j]) = Node then
-	  begin
-	    DoAdd := False;
-	    break;
-	  end;
+          if TDOMNode(ResultNodeSet[j]) = Node then
+          begin
+            DoAdd := False;
+            break;
+          end;
         if DoAdd then
           ResultNodeSet.Add(Node);
       end;
@@ -1270,9 +1270,9 @@ end;
 function TXPathBooleanVariable.AsText: DOMString;
 begin
   if FValue then
-    Result := 'true'	// Do not localize!
+    Result := 'true'    // Do not localize!
   else
-    Result := 'false';	// Do not localize!
+    Result := 'false';  // Do not localize!
 end;
 
 
@@ -1392,19 +1392,19 @@ begin
       if FCurData[1] = '=' then
       begin
         Inc(FCurData);
-	Result := tkNotEqual;
+        Result := tkNotEqual;
       end;
     '"':
       begin
         SetLength(FCurTokenString, 0);
-	Inc(FCurData);
-	while FCurData[0] <> '"' do
-	begin
-	  if FCurData[0] = #0 then
-	    Error(SScannerQuotStringIsOpen);
-	  FCurTokenString := FCurTokenString + FCurData[0];
-	  Inc(FCurData);
-	end;
+        Inc(FCurData);
+        while FCurData[0] <> '"' do
+        begin
+          if FCurData[0] = #0 then
+            Error(SScannerQuotStringIsOpen);
+          FCurTokenString := FCurTokenString + FCurData[0];
+          Inc(FCurData);
+        end;
         Result := tkString;
       end;
     '$':
@@ -1412,14 +1412,14 @@ begin
     '''':
       begin
         SetLength(FCurTokenString, 0);
-	Inc(FCurData);
-	while FCurData[0] <> '''' do
-	begin
-	  if FCurData[0] = #0 then
-	    Error(SScannerAposStringIsOpen);
-	  FCurTokenString := FCurTokenString + FCurData[0];
-	  Inc(FCurData);
-	end;
+        Inc(FCurData);
+        while FCurData[0] <> '''' do
+        begin
+          if FCurData[0] = #0 then
+            Error(SScannerAposStringIsOpen);
+          FCurTokenString := FCurTokenString + FCurData[0];
+          Inc(FCurData);
+        end;
         Result := tkString;
       end;
     '(':
@@ -1437,54 +1437,54 @@ begin
     '.':
       if FCurData[1] = '.' then
       begin
-	Inc(FCurData);
-	Result := tkDotDot;
+        Inc(FCurData);
+        Result := tkDotDot;
       end else if FCurData[1] in ['0'..'9'] then
         GetNumber
       else
-	Result := tkDot;
+        Result := tkDot;
     '/':
       if FCurData[1] = '/' then
       begin
-	Inc(FCurData);
-	Result := tkSlashSlash;
+        Inc(FCurData);
+        Result := tkSlashSlash;
       end else
-	Result := tkSlash;
+        Result := tkSlash;
     '0'..'9':
       GetNumber;
     ':':
       if FCurData[1] = ':' then
       begin
-	Inc(FCurData);
-	Result := tkColonColon;
+        Inc(FCurData);
+        Result := tkColonColon;
       end else
-	Result := tkColon;
+        Result := tkColon;
     '<':
       if FCurData[1] = '=' then
       begin
-	Inc(FCurData);
-	Result := tkLessEqual;
+        Inc(FCurData);
+        Result := tkLessEqual;
       end else
-	Result := tkLess;
+        Result := tkLess;
     '=':
       Result := tkEqual;
     '>':
       if FCurData[1] = '=' then
       begin
-	Inc(FCurData);
-	Result := tkGreaterEqual;
+        Inc(FCurData);
+        Result := tkGreaterEqual;
       end else
-	Result := tkGreater;
+        Result := tkGreater;
     '@':
       Result := tkAt;
     'A'..'Z', 'a'..'z':
       begin
         Result := tkIdentifier;
-	while FCurData[1] in IdentifierChars do
-	begin
-	  Inc(FCurData);
-	  FCurTokenString := FCurTokenString + FCurData[0];
-	end;
+        while FCurData[1] in IdentifierChars do
+        begin
+          Inc(FCurData);
+          FCurTokenString := FCurTokenString + FCurData[0];
+        end;
       end;
     '[':
       Result := tkLeftSquareBracket;
@@ -1983,18 +1983,18 @@ end;
 constructor TXPathExpression.Create(AScanner: TXPathScanner;
   CompleteExpression: Boolean);
 
-  function ParseLocationPath: TXPathLocationPathNode; forward;	// [1]
-  function ParsePrimaryExpr: TXPathExprNode; forward;		// [15]
-  function ParseUnionExpr: TXPathExprNode; forward;		// [18]
-  function ParsePathExpr: TXPathExprNode; forward;		// [19]
-  function ParseFilterExpr: TXPathExprNode; forward;		// [20]
-  function ParseOrExpr: TXPathExprNode; forward;		// [21]
-  function ParseAndExpr: TXPathExprNode; forward;		// [22]
-  function ParseEqualityExpr: TXPathExprNode; forward;		// [23]
-  function ParseRelationalExpr: TXPathExprNode; forward;	// [24]
-  function ParseAdditiveExpr: TXPathExprNode; forward;		// [25]
-  function ParseMultiplicativeExpr: TXPathExprNode; forward;	// [26]
-  function ParseUnaryExpr: TXPathExprNode; forward;		// [27]
+  function ParseLocationPath: TXPathLocationPathNode; forward;  // [1]
+  function ParsePrimaryExpr: TXPathExprNode; forward;           // [15]
+  function ParseUnionExpr: TXPathExprNode; forward;             // [18]
+  function ParsePathExpr: TXPathExprNode; forward;              // [19]
+  function ParseFilterExpr: TXPathExprNode; forward;            // [20]
+  function ParseOrExpr: TXPathExprNode; forward;                // [21]
+  function ParseAndExpr: TXPathExprNode; forward;               // [22]
+  function ParseEqualityExpr: TXPathExprNode; forward;          // [23]
+  function ParseRelationalExpr: TXPathExprNode; forward;        // [24]
+  function ParseAdditiveExpr: TXPathExprNode; forward;          // [25]
+  function ParseMultiplicativeExpr: TXPathExprNode; forward;    // [26]
+  function ParseUnaryExpr: TXPathExprNode; forward;             // [27]
 
   procedure Error(const Msg: String);
   begin
@@ -2015,28 +2015,28 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     CurStep := nil;
 
     case AScanner.NextToken of
-      tkSlash:		// [2] AbsoluteLocationPath, first case
+      tkSlash:          // [2] AbsoluteLocationPath, first case
         begin
-	  IsAbsolute := True;
-	  if not (AScanner.NextToken in
-	    [tkDot, tkDotDot, tkAsterisk, tkAt, tkIdentifier]) then
-	  begin
-	    AScanner.UngetToken;
-	    exit;
-	  end;
-	  AScanner.UngetToken;
-	end;
-      tkSlashSlash:	// [10] AbbreviatedAbsoluteLocationPath
+          IsAbsolute := True;
+          if not (AScanner.NextToken in
+            [tkDot, tkDotDot, tkAsterisk, tkAt, tkIdentifier]) then
+          begin
+            AScanner.UngetToken;
+            exit;
+          end;
+          AScanner.UngetToken;
+        end;
+      tkSlashSlash:     // [10] AbbreviatedAbsoluteLocationPath
         begin
-	  IsAbsolute := True;
-	  CurStep := TStep.Create;
-	  CurStep.Axis := axisDescendantOrSelf;
-	  CurStep.NodeTestType := ntAnyNode;
-	end;
+          IsAbsolute := True;
+          CurStep := TStep.Create;
+          CurStep.Axis := axisDescendantOrSelf;
+          CurStep.NodeTestType := ntAnyNode;
+        end;
       else
       begin
         AScanner.UngetToken;
-	IsAbsolute := False;
+        IsAbsolute := False;
       end;
     end;
 
@@ -2053,121 +2053,121 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
 
       // Parse [4] Step
       case AScanner.NextToken of
-        tkDot:		// [12] Abbreviated step, first case
-	  begin
-	    CurStep.Axis := axisSelf;
-	    CurStep.NodeTestType := ntAnyNode;
-	  end;
-        tkDotDot:		// [12] Abbreviated step, second case
-	  begin
-	    CurStep.Axis := axisParent;
-	    CurStep.NodeTestType := ntAnyNode;
-	  end;
+        tkDot:          // [12] Abbreviated step, first case
+          begin
+            CurStep.Axis := axisSelf;
+            CurStep.NodeTestType := ntAnyNode;
+          end;
+        tkDotDot:               // [12] Abbreviated step, second case
+          begin
+            CurStep.Axis := axisParent;
+            CurStep.NodeTestType := ntAnyNode;
+          end;
         else
         begin
           AScanner.UngetToken;
 
-	  // Parse [5] AxisSpecifier
+          // Parse [5] AxisSpecifier
           case AScanner.NextToken of
-            tkAt:		// [13] AbbreviatedAxisSpecifier
-	      CurStep.Axis := axisAttribute;
-            tkIdentifier:	// [5] AxisName '::'
-    	      begin
-	        // Check for [6] AxisName
-		NeedColonColon := True;
-	        if AScanner.CurTokenString = 'ancestor' then
-      		  CurStep.Axis := axisAncestor
-	        else if AScanner.CurTokenString = 'ancestor-or-self' then
-		  CurStep.Axis := axisAncestorOrSelf
-	        else if AScanner.CurTokenString = 'attribute' then
-		  CurStep.Axis := axisAttribute
-	        else if AScanner.CurTokenString = 'child' then
-		  CurStep.Axis := axisChild
-	        else if AScanner.CurTokenString = 'descendant' then
-		  CurStep.Axis := axisDescendant
-	        else if AScanner.CurTokenString = 'descendant-or-self' then
-		  CurStep.Axis := axisDescendantOrSelf
-	        else if AScanner.CurTokenString = 'following' then
-		  CurStep.Axis := axisFollowing
-	        else if AScanner.CurTokenString = 'following-sibling' then
-		  CurStep.Axis := axisFollowingSibling
-	        else if AScanner.CurTokenString = 'namespace' then
-		  CurStep.Axis := axisNamespace
-	        else if AScanner.CurTokenString = 'parent' then
-		  CurStep.Axis := axisParent
-	        else if AScanner.CurTokenString = 'preceding' then
-		  CurStep.Axis := axisPreceding
-	        else if AScanner.CurTokenString = 'preceding-sibling' then
-		  CurStep.Axis := axisPrecedingSibling
-	        else if AScanner.CurTokenString = 'self' then
-		  CurStep.Axis := axisSelf
-	        else
-		begin
-		  NeedColonColon := False;
-		  AScanner.UngetToken;
-		  CurStep.Axis := axisChild;
-		end;
-	        if NeedColonColon and (AScanner.NextToken <> tkColonColon) then
-		  Error(SParserExpectedColonColor);
-	      end;
-	    else
-	    begin
-	      AScanner.UngetToken;
-	      CurStep.Axis := axisChild;
-	    end;
-	  end;
+            tkAt:               // [13] AbbreviatedAxisSpecifier
+              CurStep.Axis := axisAttribute;
+            tkIdentifier:       // [5] AxisName '::'
+              begin
+                // Check for [6] AxisName
+                NeedColonColon := True;
+                if AScanner.CurTokenString = 'ancestor' then
+                  CurStep.Axis := axisAncestor
+                else if AScanner.CurTokenString = 'ancestor-or-self' then
+                  CurStep.Axis := axisAncestorOrSelf
+                else if AScanner.CurTokenString = 'attribute' then
+                  CurStep.Axis := axisAttribute
+                else if AScanner.CurTokenString = 'child' then
+                  CurStep.Axis := axisChild
+                else if AScanner.CurTokenString = 'descendant' then
+                  CurStep.Axis := axisDescendant
+                else if AScanner.CurTokenString = 'descendant-or-self' then
+                  CurStep.Axis := axisDescendantOrSelf
+                else if AScanner.CurTokenString = 'following' then
+                  CurStep.Axis := axisFollowing
+                else if AScanner.CurTokenString = 'following-sibling' then
+                  CurStep.Axis := axisFollowingSibling
+                else if AScanner.CurTokenString = 'namespace' then
+                  CurStep.Axis := axisNamespace
+                else if AScanner.CurTokenString = 'parent' then
+                  CurStep.Axis := axisParent
+                else if AScanner.CurTokenString = 'preceding' then
+                  CurStep.Axis := axisPreceding
+                else if AScanner.CurTokenString = 'preceding-sibling' then
+                  CurStep.Axis := axisPrecedingSibling
+                else if AScanner.CurTokenString = 'self' then
+                  CurStep.Axis := axisSelf
+                else
+                begin
+                  NeedColonColon := False;
+                  AScanner.UngetToken;
+                  CurStep.Axis := axisChild;
+                end;
+                if NeedColonColon and (AScanner.NextToken <> tkColonColon) then
+                  Error(SParserExpectedColonColor);
+              end;
+            else
+            begin
+              AScanner.UngetToken;
+              CurStep.Axis := axisChild;
+            end;
+          end;
 
-	  // Parse [7] NodeTest
+          // Parse [7] NodeTest
           case AScanner.NextToken of
-            tkAsterisk:	// [37] NameTest, first case
-	      CurStep.NodeTestType := ntAnyPrincipal;
+            tkAsterisk: // [37] NameTest, first case
+              CurStep.NodeTestType := ntAnyPrincipal;
             tkIdentifier:
-    	      begin
-	        // Check for case [38] NodeType
-	        if AScanner.CurTokenString = 'comment' then
-	        begin
-		  if (AScanner.NextToken <> tkLeftBracket) or
-	            (AScanner.NextToken <> tkRightBracket) then
-	            Error(SParserExpectedBrackets);
-		  CurStep.NodeTestType := ntCommentNode;
-	        end else if AScanner.CurTokenString = 'text' then
-	        begin
-		  if (AScanner.NextToken <> tkLeftBracket) or
-	            (AScanner.NextToken <> tkRightBracket) then
-	            Error(SParserExpectedBrackets);
-		  CurStep.NodeTestType := ntTextNode;
-	        end else if AScanner.CurTokenString = 'processing-instruction' then
-	        begin
-		  if (AScanner.NextToken <> tkLeftBracket) or
-	            (AScanner.NextToken <> tkRightBracket) then
-	            Error(SParserExpectedBrackets);
-		  CurStep.NodeTestType := ntPINode;
-	        end else if AScanner.CurTokenString = 'node' then
-	        begin
-		  if (AScanner.NextToken <> tkLeftBracket) or
-	            (AScanner.NextToken <> tkRightBracket) then
-	            Error(SParserExpectedBrackets);
-		  CurStep.NodeTestType := ntAnyNode;
-	        end else  // [37] NameTest, second or third case
-	        begin
-		  // !!!: Doesn't support namespaces yet
-		  // (this will have to wait until the DOM unit supports them)
-		  CurStep.NodeTestType := ntName;
-		  CurStep.NodeTestString := AScanner.CurTokenString;
-	        end;
-	      end;
-	    else
-	      Error(SParserInvalidNodeTest);
-	  end;
+              begin
+                // Check for case [38] NodeType
+                if AScanner.CurTokenString = 'comment' then
+                begin
+                  if (AScanner.NextToken <> tkLeftBracket) or
+                    (AScanner.NextToken <> tkRightBracket) then
+                    Error(SParserExpectedBrackets);
+                  CurStep.NodeTestType := ntCommentNode;
+                end else if AScanner.CurTokenString = 'text' then
+                begin
+                  if (AScanner.NextToken <> tkLeftBracket) or
+                    (AScanner.NextToken <> tkRightBracket) then
+                    Error(SParserExpectedBrackets);
+                  CurStep.NodeTestType := ntTextNode;
+                end else if AScanner.CurTokenString = 'processing-instruction' then
+                begin
+                  if (AScanner.NextToken <> tkLeftBracket) or
+                    (AScanner.NextToken <> tkRightBracket) then
+                    Error(SParserExpectedBrackets);
+                  CurStep.NodeTestType := ntPINode;
+                end else if AScanner.CurTokenString = 'node' then
+                begin
+                  if (AScanner.NextToken <> tkLeftBracket) or
+                    (AScanner.NextToken <> tkRightBracket) then
+                    Error(SParserExpectedBrackets);
+                  CurStep.NodeTestType := ntAnyNode;
+                end else  // [37] NameTest, second or third case
+                begin
+                  // !!!: Doesn't support namespaces yet
+                  // (this will have to wait until the DOM unit supports them)
+                  CurStep.NodeTestType := ntName;
+                  CurStep.NodeTestString := AScanner.CurTokenString;
+                end;
+              end;
+            else
+              Error(SParserInvalidNodeTest);
+          end;
 
-	  // Parse predicates
- 	  while AScanner.NextToken = tkLeftSquareBracket do
-	  begin
-	    CurStep.Predicates.Add(ParseOrExpr);
-	    if AScanner.NextToken <> tkRightSquareBracket then
-	      Error(SParserExpectedRightSquareBracket);
-	  end;
-	  AScanner.UngetToken;
+          // Parse predicates
+          while AScanner.NextToken = tkLeftSquareBracket do
+          begin
+            CurStep.Predicates.Add(ParseOrExpr);
+            if AScanner.NextToken <> tkRightSquareBracket then
+              Error(SParserExpectedRightSquareBracket);
+          end;
+          AScanner.UngetToken;
         end;
       end;
 
@@ -2175,15 +2175,15 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
       if AScanner.NextToken = tkSlashSlash then
       begin
         // Found abbreviated step ("//" for "descendant-or-self::node()")
-	NextStep := TStep.Create;
-	CurStep.NextStep := NextStep;
-	CurStep := NextStep;
-	CurStep.Axis := axisDescendantOrSelf;
-	CurStep.NodeTestType := ntAnyNode;
+        NextStep := TStep.Create;
+        CurStep.NextStep := NextStep;
+        CurStep := NextStep;
+        CurStep.Axis := axisDescendantOrSelf;
+        CurStep.NodeTestType := ntAnyNode;
       end else if AScanner.CurToken <> tkSlash then
       begin
         AScanner.UngetToken;
-	break;
+        break;
       end;
     end;
 
@@ -2196,43 +2196,43 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     IsFirstArg: Boolean;
   begin
     case AScanner.NextToken of
-      tkDollar:		// [36] Variable reference
+      tkDollar:         // [36] Variable reference
         begin
-	  if AScanner.NextToken <> tkIdentifier then
-	    Error(SParserExpectedVarName);
-	  Result := TXPathVariableNode.Create(AScanner.CurTokenString);
-	end;
+          if AScanner.NextToken <> tkIdentifier then
+            Error(SParserExpectedVarName);
+          Result := TXPathVariableNode.Create(AScanner.CurTokenString);
+        end;
       tkLeftBracket:
         begin
           Result := ParseOrExpr;
-	  if AScanner.NextToken <> tkRightBracket then
-	    Error(SParserExpectedRightBracket);
-	end;
-      tkString:		// [29] Literal
+          if AScanner.NextToken <> tkRightBracket then
+            Error(SParserExpectedRightBracket);
+        end;
+      tkString:         // [29] Literal
         Result := TXPathConstantNode.Create(
-	  TXPathStringVariable.Create(AScanner.CurTokenString));
-      tkNumber:		// [30] Number
+          TXPathStringVariable.Create(AScanner.CurTokenString));
+      tkNumber:         // [30] Number
         Result := TXPathConstantNode.Create(
-	  TXPathNumberVariable.Create(StrToFloat(AScanner.CurTokenString)));
-      tkIdentifier:	// [16] Function call
+          TXPathNumberVariable.Create(StrToFloat(AScanner.CurTokenString)));
+      tkIdentifier:     // [16] Function call
         begin
-	  Result := TXPathFunctionNode.Create(AScanner.CurTokenString);
-	  if AScanner.NextToken <> tkLeftBracket then
-	    Error(SParserExpectedLeftBracket);
-	  // Parse argument list
-	  IsFirstArg := True;
-	  while AScanner.NextToken <> tkRightBracket do
-	  begin
-	    if IsFirstArg then
-	    begin
-	      IsFirstArg := False;
-	      AScanner.UngetToken;
-	    end else
-	      if AScanner.CurToken <> tkComma then
-	        Error(SParserExpectedRightBracket);
-	    TXPathFunctionNode(Result).FArgs.Add(ParseOrExpr);
-	  end;
-	end;
+          Result := TXPathFunctionNode.Create(AScanner.CurTokenString);
+          if AScanner.NextToken <> tkLeftBracket then
+            Error(SParserExpectedLeftBracket);
+          // Parse argument list
+          IsFirstArg := True;
+          while AScanner.NextToken <> tkRightBracket do
+          begin
+            if IsFirstArg then
+            begin
+              IsFirstArg := False;
+              AScanner.UngetToken;
+            end else
+              if AScanner.CurToken <> tkComma then
+                Error(SParserExpectedRightBracket);
+            TXPathFunctionNode(Result).FArgs.Add(ParseOrExpr);
+          end;
+        end;
       else
         Error(SParserInvalidPrimExpr);
     end;
@@ -2247,7 +2247,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
       else
       begin
         AScanner.UngetToken;
-	break;
+        break;
       end;
   end;
 
@@ -2267,7 +2267,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     begin
       ScannerState := AScanner.SaveState;
       if AScanner.NextToken = tkLeftBracket then
-	IsFunctionCall := True;
+        IsFunctionCall := True;
       AScanner.RestoreState(ScannerState);
     end;
 
@@ -2284,7 +2284,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
       Result := ParseLocationPath;
     end;
   end;
-  
+
   function ParseFilterExpr: TXPathExprNode;  // [20]
   var
     IsFirst: Boolean;
@@ -2296,12 +2296,12 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     begin
       if IsFirst then
       begin
-	Result := TXPathFilterNode.Create(Result);
-	IsFirst := False;
+        Result := TXPathFilterNode.Create(Result);
+        IsFirst := False;
       end;
       TXPathFilterNode(Result).FPredicates.Add(ParseOrExpr);
       if AScanner.NextToken <> tkRightSquareBracket then
-	Error(SParserExpectedRightSquareBracket);
+        Error(SParserExpectedRightSquareBracket);
     end;
     AScanner.UngetToken;
   end;
@@ -2316,7 +2316,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
       else
       begin
         AScanner.UngetToken;
-	break;
+        break;
       end;
   end;
 
@@ -2330,7 +2330,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
       else
       begin
         AScanner.UngetToken;
-	break;
+        break;
       end;
   end;
 
@@ -2340,16 +2340,16 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     while True do
       case AScanner.NextToken of
         tkEqual:
-	  Result := TXPathBooleanOpNode.Create(opEqual, Result,
-	    ParseRelationalExpr);
+          Result := TXPathBooleanOpNode.Create(opEqual, Result,
+            ParseRelationalExpr);
         tkNotEqual:
-	  Result := TXPathBooleanOpNode.Create(opNotEqual, Result,
-	    ParseRelationalExpr);
-	else
-	begin
-	  AScanner.UngetToken;
-	  break;
-	end;
+          Result := TXPathBooleanOpNode.Create(opNotEqual, Result,
+            ParseRelationalExpr);
+        else
+        begin
+          AScanner.UngetToken;
+          break;
+        end;
       end;
   end;
 
@@ -2359,22 +2359,22 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     while True do
       case AScanner.NextToken of
         tkLess:
-	  Result := TXPathBooleanOpNode.Create(opLess, Result,
-	    ParseAdditiveExpr);
+          Result := TXPathBooleanOpNode.Create(opLess, Result,
+            ParseAdditiveExpr);
         tkLessEqual:
-	  Result := TXPathBooleanOpNode.Create(opLessEqual, Result,
-	    ParseAdditiveExpr);
+          Result := TXPathBooleanOpNode.Create(opLessEqual, Result,
+            ParseAdditiveExpr);
         tkGreater:
-	  Result := TXPathBooleanOpNode.Create(opGreater, Result,
-	    ParseAdditiveExpr);
+          Result := TXPathBooleanOpNode.Create(opGreater, Result,
+            ParseAdditiveExpr);
         tkGreaterEqual:
-	  Result := TXPathBooleanOpNode.Create(opGreaterEqual, Result,
-	    ParseAdditiveExpr);
-	else
-	begin
-	  AScanner.UngetToken;
-	  break;
-	end;
+          Result := TXPathBooleanOpNode.Create(opGreaterEqual, Result,
+            ParseAdditiveExpr);
+        else
+        begin
+          AScanner.UngetToken;
+          break;
+        end;
       end;
   end;
 
@@ -2384,16 +2384,16 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     while True do
       case AScanner.NextToken of
         tkPlus:
-	  Result := TXPathMathOpNode.Create(opAdd, Result,
-	    ParseMultiplicativeExpr);
-	tkMinus:
-	  Result := TXPathMathOpNode.Create(opSubtract, Result,
-	    ParseMultiplicativeExpr);
-	else
-	begin
-	  AScanner.UngetToken;
-	  break;
-	end;
+          Result := TXPathMathOpNode.Create(opAdd, Result,
+            ParseMultiplicativeExpr);
+        tkMinus:
+          Result := TXPathMathOpNode.Create(opSubtract, Result,
+            ParseMultiplicativeExpr);
+        else
+        begin
+          AScanner.UngetToken;
+          break;
+        end;
       end;
   end;
 
@@ -2403,25 +2403,25 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     while True do
       case AScanner.NextToken of
         tkAsterisk:
-	  Result := TXPathMathOpNode.Create(opMultiply, Result,
-	    ParseUnaryExpr);
-	tkIdentifier:
-	  if AScanner.CurTokenString = 'div' then
-  	    Result := TXPathMathOpNode.Create(opDivide, Result,
-	      ParseUnaryExpr)
-	  else if AScanner.CurTokenString = 'mod' then
-  	    Result := TXPathMathOpNode.Create(opMod, Result,
-	      ParseUnaryExpr)
-	  else
-	  begin
-	    AScanner.UngetToken;
-	    break;
-	  end;
-	else
-	begin
-	  AScanner.UngetToken;
-	  break;
-	end;
+          Result := TXPathMathOpNode.Create(opMultiply, Result,
+            ParseUnaryExpr);
+        tkIdentifier:
+          if AScanner.CurTokenString = 'div' then
+            Result := TXPathMathOpNode.Create(opDivide, Result,
+              ParseUnaryExpr)
+          else if AScanner.CurTokenString = 'mod' then
+            Result := TXPathMathOpNode.Create(opMod, Result,
+              ParseUnaryExpr)
+          else
+          begin
+            AScanner.UngetToken;
+            break;
+          end;
+        else
+        begin
+          AScanner.UngetToken;
+          break;
+        end;
       end;
   end;
 
@@ -2501,7 +2501,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-17 14:32:15  peter
+  Revision 1.3  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
+
+  Revision 1.2  2003/03/17 14:32:15  peter
     * Change ASText return to DOMString in implementation
 
   Revision 1.1  2003/03/16 22:10:57  sg

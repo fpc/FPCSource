@@ -186,7 +186,7 @@ var
   ElFlags: THTMLElementFlags;
 begin
   s := LowerCase(node.NodeName);
-  ElFlags := [efSubelementContent, efPCDATAContent];	// default flags
+  ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
   for i := Low(HTMLElProps) to High(HTMLElProps) do
     if HTMLElProps[i].Name = s then
     begin
@@ -381,7 +381,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-11-29 18:04:25  sg
+  Revision 1.6  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
+
+  Revision 1.5  2002/11/29 18:04:25  sg
   * Improved HTML writing, now uses the HTML definition unit
     (moved from FPDoc into FCL)
 

@@ -225,7 +225,7 @@ ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 CLASSES10=classes
 endif
 override TARGET_DIRS+=xml image db shedit passrc net
-override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils
+override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls registry eventlog custapp cgiapp wformat whtml wtex rttiutils avl_tree
 ifeq ($(OS_TARGET),linux)
 override TARGET_UNITS+=process resolve ssockets fpasync syncobjs
 endif

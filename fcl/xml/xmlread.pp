@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     XML reading routines.
-    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,38 +14,38 @@
 
  **********************************************************************}
 
-
 unit XMLRead;
+
+{$MODE objfpc}
+{$H+}
 
 interface
 
-uses SysUtils, Classes, DOM;
+{off $DEFINE MEM_CHECK}
+
+uses
+  {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
+  SysUtils, Classes, DOM;
 
 type
 
   EXMLReadError = class(Exception);
 
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
-  overload;
+procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String); overload;
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File); overload;
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream); overload;
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String); overload;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
 
-procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
-  overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream); overload;
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
-  const AFilename: String); overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const AFilename: String); overload;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
-  overload;
+procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);  overload;
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File); overload;
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream); overload;
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String); overload;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
 
 
 // =======================================================
@@ -63,8 +63,118 @@ const
 
   NmToken: set of Char = Letter + Digit + ['.', '-', '_', ':'];
 
-type
+function ComparePChar(p1, p2: PChar): boolean;
+begin
+  if p1<>p2 then begin
+    if (p1<>nil) and (p2<>nil) then begin
+      while true do begin
+        if (p1^=p2^) then begin
+          if p1^<>#0 then begin
+            inc(p1);
+            inc(p2);
+          end else begin
+            Result:=true;
+            exit;
+          end;
+        end else begin
+          Result:=false;
+          exit;
+        end;
+      end;
+      Result:=true;
+    end else begin
+      Result:=false;
+    end;
+  end else begin
+    Result:=true;
+  end;
+end;
 
+function CompareLPChar(p1, p2: PChar; Max: integer): boolean;
+begin
+  if p1<>p2 then begin
+    if (p1<>nil) and (p2<>nil) then begin
+      while Max>0 do begin
+        if (p1^=p2^) then begin
+          if (p1^<>#0) then begin
+            inc(p1);
+            inc(p2);
+            dec(Max);
+          end else begin
+            Result:=true;
+            exit;
+          end;
+        end else begin
+          Result:=false;
+          exit;
+        end;
+      end;
+      Result:=true;
+    end else begin
+      Result:=false;
+    end;
+  end else begin
+    Result:=true;
+  end;
+end;
+
+function CompareIPChar(p1, p2: PChar): boolean;
+begin
+  if p1<>p2 then begin
+    if (p1<>nil) and (p2<>nil) then begin
+      while true do begin
+        if (p1^=p2^) or (upcase(p1^)=upcase(p2^)) then begin
+          if p1^<>#0 then begin
+            inc(p1);
+            inc(p2);
+          end else begin
+            Result:=true;
+            exit;
+          end;
+        end else begin
+          Result:=false;
+          exit;
+        end;
+      end;
+      Result:=true;
+    end else begin
+      Result:=false;
+    end;
+  end else begin
+    Result:=true;
+  end;
+end;
+
+function CompareLIPChar(p1, p2: PChar; Max: integer): boolean;
+begin
+  if p1<>p2 then begin
+    if (p1<>nil) and (p2<>nil) then begin
+      while Max>0 do begin
+        if (p1^=p2^) or (upcase(p1^)=upcase(p2^)) then begin
+          if (p1^<>#0) then begin
+            inc(p1);
+            inc(p2);
+            dec(Max);
+          end else begin
+            Result:=true;
+            exit;
+          end;
+        end else begin
+          Result:=false;
+          exit;
+        end;
+      end;
+      Result:=true;
+    end else begin
+      Result:=false;
+    end;
+  end else begin
+    Result:=true;
+  end;
+end;
+
+
+type
   TXMLReaderDocument = class(TXMLDocument)
   public
     procedure SetDocType(ADocType: TDOMDocumentType);
@@ -84,17 +194,23 @@ type
     buf, BufStart: PChar;
     Filename: String;
 
-    procedure RaiseExc(descr: String);
+    procedure RaiseExc(const descr: String);
     function  SkipWhitespace: Boolean;
     procedure ExpectWhitespace;
-    procedure ExpectString(s: String);
+    procedure ExpectString(const s: String);
     function  CheckFor(s: PChar): Boolean;
-    function  GetString(ValidChars: TSetOfChar): String;
+    function  CheckForChar(c: Char): Boolean;
+    procedure SkipString(const ValidChars: TSetOfChar);
+    function  GetString(const ValidChars: TSetOfChar): String;
+    function  GetString(BufPos: PChar; Len: integer): String;
 
+    function  CheckName: Boolean;
     function  GetName(var s: String): Boolean;
     function  ExpectName: String;                                       // [5]
+    procedure SkipName;
     procedure ExpectAttValue(attr: TDOMAttr);                           // [10]
     function  ExpectPubidLiteral: String;                               // [12]
+    procedure SkipPubidLiteral;
     function  ParseComment(AOwner: TDOMNode): Boolean;                  // [15]
     function  ParsePI: Boolean;                                         // [16]
     procedure ExpectProlog;                                             // [22]
@@ -102,8 +218,8 @@ type
     procedure ExpectEq;
     procedure ParseMisc(AOwner: TDOMNode);                              // [27]
     function  ParseMarkupDecl: Boolean;                                 // [29]
-    function  ParseCharData(AOwner: TDOMNode): Boolean;			// [14]
-    function  ParseCDSect(AOwner: TDOMNode): Boolean;    		// [18]
+    function  ParseCharData(AOwner: TDOMNode): Boolean;                 // [14]
+    function  ParseCDSect(AOwner: TDOMNode): Boolean;                   // [18]
     function  ParseElement(AOwner: TDOMNode): Boolean;                  // [39]
     procedure ExpectElement(AOwner: TDOMNode);
     function  ParseReference(AOwner: TDOMNode): Boolean;                // [67]
@@ -112,16 +228,17 @@ type
     function  ParseExternalID: Boolean;                                 // [75]
     procedure ExpectExternalID;
     function  ParseEncodingDecl: String;                                // [80]
+    procedure SkipEncodingDecl;
 
     procedure ResolveEntities(RootNode: TDOMNode);
   public
     doc: TDOMDocument;
-    procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
-    procedure ProcessFragment(AOwner: TDOMNode; ABuf: PChar; AFilename: String);
-    procedure ProcessDTD(ABuf: PChar; AFilename: String);  // ([29])
+    procedure ProcessXML(ABuf: PChar; const AFilename: String);  // [1]
+    procedure ProcessFragment(AOwner: TDOMNode; ABuf: PChar; const AFilename: String);
+    procedure ProcessDTD(ABuf: PChar; const AFilename: String);  // ([29])
   end;
 
-
+{ TXMLReaderDocument }
 
 procedure TXMLReaderDocument.SetDocType(ADocType: TDOMDocumentType);
 begin
@@ -136,7 +253,7 @@ end;
 
 
 
-procedure TXMLReader.RaiseExc(descr: String);
+procedure TXMLReader.RaiseExc(const descr: String);
 var
   apos: PChar;
   x, y: Integer;
@@ -174,42 +291,84 @@ begin
     RaiseExc('Expected whitespace');
 end;
 
-procedure TXMLReader.ExpectString(s: String);
+procedure TXMLReader.ExpectString(const s: String);
+
+  procedure RaiseStringNotFound;
+  var
+    s2: PChar;
+    s3: String;
+  begin
+    GetMem(s2, Length(s) + 1);
+    StrLCopy(s2, buf, Length(s));
+    s3 := StrPas(s2);
+    FreeMem(s2);
+    RaiseExc('Expected "' + s + '", found "' + s3 + '"');
+  end;
+
 var
   i: Integer;
-  s2: PChar;
-  s3: String;
 begin
   for i := 1 to Length(s) do
     if buf[i - 1] <> s[i] then begin
-      GetMem(s2, Length(s) + 1);
-      StrLCopy(s2, buf, Length(s));
-      s3 := StrPas(s2);
-      FreeMem(s2);
-      RaiseExc('Expected "' + s + '", found "' + s3 + '"');
+      RaiseStringNotFound;
     end;
   Inc(buf, Length(s));
 end;
 
 function TXMLReader.CheckFor(s: PChar): Boolean;
 begin
-  if buf[0] = #0 then begin
+  if buf[0] <> #0 then begin
+    if (buf[0]=s[0]) and (CompareLPChar(buf, s, StrLen(s))) then begin
+      Inc(buf, StrLen(s));
+      Result := True;
+    end else
+      Result := False;
+  end else begin
     Result := False;
-    exit;
   end;
-  if StrLComp(buf, s, StrLen(s)) = 0 then begin
-    Inc(buf, StrLen(s));
-    Result := True;
-  end else
-    Result := False;
 end;
 
-function TXMLReader.GetString(ValidChars: TSetOfChar): String;
+function TXMLReader.CheckForChar(c: Char): Boolean;
 begin
-  SetLength(Result, 0);
+  if (buf[0]=c) and (c<>#0) then begin
+    inc(buf);
+    Result:=true;
+  end else begin
+    Result:=false;
+  end;
+end;
+
+procedure TXMLReader.SkipString(const ValidChars: TSetOfChar);
+begin
   while buf[0] in ValidChars do begin
-    Result := Result + buf[0];
     Inc(buf);
+  end;
+end;
+
+function TXMLReader.GetString(const ValidChars: TSetOfChar): String;
+var
+  OldBuf: PChar;
+  i, len: integer;
+begin
+  OldBuf:=Buf;
+  while buf[0] in ValidChars do begin
+    Inc(buf);
+  end;
+  len:=buf-OldBuf;
+  SetLength(Result, Len);
+  for i:=1 to len do begin
+    Result[i]:=OldBuf[0];
+    inc(OldBuf);
+  end;
+end;
+
+function TXMLReader.GetString(BufPos: PChar; Len: integer): string;
+var i: integer;
+begin
+  SetLength(Result,Len);
+  for i:=1 to Len do begin
+    Result[i]:=BufPos[0];
+    inc(BufPos);
   end;
 end;
 
@@ -256,7 +415,7 @@ const
 
 {$ENDIF}
 
-procedure TXMLReader.ProcessXML(ABuf: PChar; AFilename: String);    // [1]
+procedure TXMLReader.ProcessXML(ABuf: PChar; const AFilename: String);    // [1]
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -270,10 +429,12 @@ begin
   SetWideStringManager(WideStringManager, OldWideStringManager);
   try
   {$ENDIF}
-    doc := TXMLReaderDocument.Create;
-    ExpectProlog;
-    ExpectElement(doc);
-    ParseMisc(doc);
+  doc := TXMLReaderDocument.Create;
+  ExpectProlog;
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ProcessXML A');{$ENDIF}
+  ExpectElement(doc);
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ProcessXML B');{$ENDIF}
+  ParseMisc(doc);
   {$IFDEF UsesFPCWidestrings}
   finally
     SetWideStringManager(OldWideStringManager);
@@ -284,8 +445,7 @@ begin
     RaiseExc('Text after end of document element found');
 end;
 
-procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar;
-  AFilename: String);
+procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar; const AFilename: String);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -311,75 +471,129 @@ begin
   {$ENDIF}
 end;
 
-
-function TXMLReader.GetName(var s: String): Boolean;    // [5]
+function TXMLReader.CheckName: Boolean;
+var OldBuf: PChar;
 begin
-  SetLength(s, 0);
   if not (buf[0] in (Letter + ['_', ':'])) then begin
     Result := False;
     exit;
   end;
 
-  s := buf[0];
+  OldBuf := buf;
   Inc(buf);
-  s := s + GetString(Letter + ['0'..'9', '.', '-', '_', ':']);
+  SkipString(Letter + ['0'..'9', '.', '-', '_', ':']);
+  buf := OldBuf;
+  Result := True;
+end;
+
+function TXMLReader.GetName(var s: String): Boolean;    // [5]
+var OldBuf: PChar;
+begin
+  if not (buf[0] in (Letter + ['_', ':'])) then begin
+    SetLength(s, 0);
+    Result := False;
+    exit;
+  end;
+
+  OldBuf := buf;
+  Inc(buf);
+  SkipString(Letter + ['0'..'9', '.', '-', '_', ':']);
+  s := GetString(OldBuf,buf-OldBuf);
   Result := True;
 end;
 
 function TXMLReader.ExpectName: String;    // [5]
+
+  procedure RaiseNameNotFound;
+  begin
+    RaiseExc('Expected letter, "_" or ":" for name, found "' + buf[0] + '"');
+  end;
+
+var OldBuf: PChar;
 begin
   if not (buf[0] in (Letter + ['_', ':'])) then
-    RaiseExc('Expected letter, "_" or ":" for name, found "' + buf[0] + '"');
+    RaiseNameNotFound;
 
-  Result := buf[0];
+  OldBuf := buf;
   Inc(buf);
-  Result := Result + GetString(Letter + ['0'..'9', '.', '-', '_', ':']);
+  SkipString(Letter + ['0'..'9', '.', '-', '_', ':']);
+  Result:=GetString(OldBuf,buf-OldBuf);
+end;
+
+procedure TXMLReader.SkipName;
+
+  procedure RaiseSkipNameNotFound;
+  begin
+    RaiseExc('Expected letter, "_" or ":" for name, found "' + buf[0] + '"');
+  end;
+
+begin
+  if not (buf[0] in (Letter + ['_', ':'])) then
+    RaiseSkipNameNotFound;
+
+  Inc(buf);
+  SkipString(Letter + ['0'..'9', '.', '-', '_', ':']);
 end;
 
 procedure TXMLReader.ExpectAttValue(attr: TDOMAttr);    // [10]
 var
-  s: String;
+  OldBuf: PChar;
 
   procedure FlushStringBuffer;
+  var
+    s: String;
   begin
-    if Length(s) > 0 then
-    begin
+    if OldBuf<>buf then begin
+      s := GetString(OldBuf,buf-OldBuf);
+      OldBuf := buf;
       attr.AppendChild(doc.CreateTextNode(s));
       SetLength(s, 0);
     end;
   end;
 
 var
-  StrDel: array[0..1] of Char;  // String delimiter
+  StrDel: char;
 begin
   if (buf[0] <> '''') and (buf[0] <> '"') then
     RaiseExc('Expected quotation marks');
-  StrDel[0] := buf[0];
-  StrDel[1] := #0;
+  StrDel:=buf[0];
   Inc(buf);
-  SetLength(s, 0);
-  while not CheckFor(StrDel) do
-    if buf[0] = '&' then
-    begin
-      FlushStringBuffer;
-      ParseReference(attr);
+  OldBuf := buf;
+  while (buf[0]<>StrDel) and (buf[0]<>#0) do begin
+    if buf[0] <> '&' then begin
+      Inc(buf);
     end else
     begin
-      s := s + buf[0];
-      Inc(buf);
+      if OldBuf<>buf then FlushStringBuffer;
+      ParseReference(attr);
+      OldBuf := buf;
     end;
-  FlushStringBuffer;
+  end;
+  if OldBuf<>buf then FlushStringBuffer;
+  inc(buf);
   ResolveEntities(Attr);
 end;
 
 function TXMLReader.ExpectPubidLiteral: String;
 begin
   SetLength(Result, 0);
-  if CheckFor('''') then begin
-    GetString(PubidChars - ['''']);
+  if CheckForChar('''') then begin
+    SkipString(PubidChars - ['''']);
     ExpectString('''');
-  end else if CheckFor('"') then begin
-    GetString(PubidChars - ['"']);
+  end else if CheckForChar('"') then begin
+    SkipString(PubidChars - ['"']);
+    ExpectString('"');
+  end else
+    RaiseExc('Expected quotation marks');
+end;
+
+procedure TXMLReader.SkipPubidLiteral;
+begin
+  if CheckForChar('''') then begin
+    SkipString(PubidChars - ['''']);
+    ExpectString('''');
+  end else if CheckForChar('"') then begin
+    SkipString(PubidChars - ['"']);
     ExpectString('"');
   end else
     RaiseExc('Expected quotation marks');
@@ -388,14 +602,15 @@ end;
 function TXMLReader.ParseComment(AOwner: TDOMNode): Boolean;    // [15]
 var
   comment: String;
+  OldBuf: PChar;
 begin
   if CheckFor('<!--') then begin
-    SetLength(comment, 0);
+    OldBuf := buf;
     while (buf[0] <> #0) and (buf[1] <> #0) and
       ((buf[0] <> '-') or (buf[1] <> '-')) do begin
-      comment := comment + buf[0];
       Inc(buf);
     end;
+    comment:=GetString(OldBuf,buf-OldBuf);
     AOwner.AppendChild(doc.CreateComment(comment));
     ExpectString('-->');
     Result := True;
@@ -404,14 +619,11 @@ begin
 end;
 
 function TXMLReader.ParsePI: Boolean;    // [16]
-var
-  checkbuf: array[0..3] of char;
 begin
   if CheckFor('<?') then begin
-    StrLCopy(checkbuf, buf, 4);
-    if UpperCase(StrPas(checkbuf)) = 'XML ' then
+    if CompareLIPChar(buf,'XML ',4) then
       RaiseExc('"<?xml" processing instruction not allowed here');
-    ExpectName;
+    SkipName;
     if SkipWhitespace then
       while (buf[0] <> #0) and (buf[1] <> #0) and not
         ((buf[0] = '?') and (buf[1] = '>')) do Inc(buf);
@@ -427,7 +639,7 @@ procedure TXMLReader.ExpectProlog;    // [22]
   begin
     if doc.InheritsFrom(TXMLDocument) then
       TXMLDocument(doc).XMLVersion :=
-        GetString(['a'..'z', 'A'..'Z', '0'..'9', '_', '.', ':', '-']);
+      GetString(['a'..'z', 'A'..'Z', '0'..'9', '_', '.', ':', '-']);
   end;
 
   procedure ParseDoctypeDecls;
@@ -465,7 +677,7 @@ begin
       RaiseExc('Expected single or double quotation mark');
 
     // EncodingDecl?
-    ParseEncodingDecl;
+    SkipEncodingDecl;
 
     // SDDecl?
     SkipWhitespace;
@@ -501,16 +713,16 @@ begin
     SkipWhitespace;
     DocType.Name := ExpectName;
     SkipWhitespace;
-    if CheckFor('[') then
+    if CheckForChar('[') then
     begin
       ParseDoctypeDecls;
       SkipWhitespace;
       ExpectString('>');
-    end else if not CheckFor('>') then
+    end else if not CheckForChar('>') then
     begin
       ParseExternalID;
       SkipWhitespace;
-      if CheckFor('[') then
+      if CheckForChar('[') then
       begin
         ParseDoctypeDecls;
         SkipWhitespace;
@@ -562,13 +774,13 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 
       procedure ExpectCP;    // [48]
       begin
-        if CheckFor('(') then
+        if CheckForChar('(') then
           ExpectChoiceOrSeq
         else
-          ExpectName;
-        if CheckFor('?') then
-        else if CheckFor('*') then
-        else if CheckFor('+') then;
+          SkipName;
+        if CheckForChar('?') then
+        else if CheckForChar('*') then
+        else if CheckForChar('+') then;
       end;
 
     var
@@ -578,7 +790,7 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       ExpectCP;
       SkipWhitespace;
       delimiter := #0;
-      while not CheckFor(')') do begin
+      while not CheckForChar(')') do begin
         if delimiter = #0 then begin
           if (buf[0] = '|') or (buf[0] = ',') then
             delimiter := buf[0]
@@ -595,32 +807,32 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
   begin
     if CheckFor('<!ELEMENT') then begin
       ExpectWhitespace;
-      ExpectName;
+      SkipName;
       ExpectWhitespace;
 
       // Get contentspec [46]
 
       if CheckFor('EMPTY') then
       else if CheckFor('ANY') then
-      else if CheckFor('(') then begin
+      else if CheckForChar('(') then begin
         SkipWhitespace;
         if CheckFor('#PCDATA') then begin
           // Parse Mixed section [51]
           SkipWhitespace;
-          if not CheckFor(')') then
+          if not CheckForChar(')') then
             repeat
               ExpectString('|');
               SkipWhitespace;
-              ExpectName;
+              SkipName;
             until CheckFor(')*');
         end else begin
           // Parse Children section [47]
 
           ExpectChoiceOrSeq;
 
-          if CheckFor('?') then
-          else if CheckFor('*') then
-          else if CheckFor('+') then;
+          if CheckForChar('?') then
+          else if CheckForChar('*') then
+          else if CheckForChar('+') then;
         end;
       end else
         RaiseExc('Invalid content specification');
@@ -638,10 +850,10 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
   begin
     if CheckFor('<!ATTLIST') then begin
       ExpectWhitespace;
-      ExpectName;
+      SkipName;
       SkipWhitespace;
-      while not CheckFor('>') do begin
-        ExpectName;
+      while not CheckForChar('>') do begin
+        SkipName;
         ExpectWhitespace;
 
         // Get AttType [54], [55], [56]
@@ -657,22 +869,22 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
           ExpectWhitespace;
           ExpectString('(');
           SkipWhitespace;
-          ExpectName;
+          SkipName;
           SkipWhitespace;
-          while not CheckFor(')') do begin
+          while not CheckForChar(')') do begin
             ExpectString('|');
             SkipWhitespace;
-            ExpectName;
+            SkipName;
             SkipWhitespace;
           end;
-        end else if CheckFor('(') then begin    // [59]
+        end else if CheckForChar('(') then begin    // [59]
           SkipWhitespace;
-          GetString(Nmtoken);
+          SkipString(Nmtoken);
           SkipWhitespace;
-          while not CheckFor(')') do begin
+          while not CheckForChar(')') do begin
             ExpectString('|');
             SkipWhitespace;
-            GetString(Nmtoken);
+            SkipString(Nmtoken);
             SkipWhitespace;
           end;
         end else
@@ -703,16 +915,15 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 
     function ParseEntityValue: Boolean;    // [9]
     var
-      strdel: array[0..1] of Char;
+      strdel: Char;
     begin
       if (buf[0] <> '''') and (buf[0] <> '"') then begin
         Result := False;
         exit;
       end;
-      strdel[0] := buf[0];
-      strdel[1] := #0;
+      strdel := buf[0];
       Inc(buf);
-      while not CheckFor(strdel) do
+      while not CheckForChar(strdel) do
         if ParsePEReference then
         else if ParseReference(NewEntity) then
         else begin
@@ -724,7 +935,7 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
   begin
     if CheckFor('<!ENTITY') then begin
       ExpectWhitespace;
-      if CheckFor('%') then begin    // [72]
+      if CheckForChar('%') then begin    // [72]
         ExpectWhitespace;
         NewEntity := doc.CreateEntity(ExpectName);
         ExpectWhitespace;
@@ -744,7 +955,7 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
           ExpectWhitespace;
           ExpectString('NDATA');
           ExpectWhitespace;
-          ExpectName;
+          SkipName;
         end;
       end;
       SkipWhitespace;
@@ -758,12 +969,12 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
   begin
     if CheckFor('<!NOTATION') then begin
       ExpectWhitespace;
-      ExpectName;
+      SkipName;
       ExpectWhitespace;
       if ParseExternalID then
       else if CheckFor('PUBLIC') then begin    // [83]
         ExpectWhitespace;
-        ExpectPubidLiteral;
+        SkipPubidLiteral;
       end else
         RaiseExc('Expected external or public ID');
       SkipWhitespace;
@@ -780,7 +991,7 @@ begin
     Result := True;
 end;
 
-procedure TXMLReader.ProcessDTD(ABuf: PChar; AFilename: String);
+procedure TXMLReader.ProcessDTD(ABuf: PChar; const AFilename: String);
 begin
   buf := ABuf;
   BufStart := ABuf;
@@ -791,75 +1002,69 @@ begin
 
   {
   if buf[0] <> #0 then begin
-    WriteLn('=== Unparsed: ===');
-    //WriteLn(buf);
-    WriteLn(StrLen(buf), ' chars');
+    DebugLn('=== Unparsed: ===');
+    //DebugLn(buf);
+    DebugLn(StrLen(buf), ' chars');
   end;
   }
 end;
 
 function TXMLReader.ParseCharData(AOwner: TDOMNode): Boolean;    // [14]
 var
-  s: String;
-  i: Integer;
+  p: PChar;
+  DataLen: integer;
+  OldBuf: PChar;
 begin
-  SetLength(s, 0);
+  OldBuf := buf;
   while not (buf[0] in [#0, '<', '&']) do
-  begin
-    s := s + buf[0];
-    Inc(buf);
-  end;
-  if Length(s) > 0 then
-  begin
-    // Check if s has non-whitespace content
-    i := Length(s);
-    while (i > 0) and (s[i] in WhitespaceChars) do
-      Dec(i);
-    if i > 0 then
-      AOwner.AppendChild(doc.CreateTextNode(s));
-    Result := True;
-  end else
+    begin
+      Inc(buf);
+    end;
+  DataLen:=buf-OldBuf;
+  if DataLen > 0 then
+    begin
+      // Check if chardata has non-whitespace content
+      p:=OldBuf;
+      while (p<buf) and (p[0] in WhitespaceChars) do
+        inc(p);
+      if p<buf then
+        AOwner.AppendChild(doc.CreateTextNode(GetString(OldBuf,DataLen)));
+      Result := True;
+    end
+  else
     Result := False;
 end;
 
 function TXMLReader.ParseCDSect(AOwner: TDOMNode): Boolean;    // [18]
 var
-  cdata: String;
+  OldBuf: PChar;
 begin
   if CheckFor('<![CDATA[') then
-  begin
-    SetLength(cdata, 0);
-    while not CheckFor(']]>') do
     begin
-      cdata := cdata + buf[0];
-      Inc(buf);
-    end;
-    AOwner.AppendChild(doc.CreateCDATASection(cdata));
-    Result := True;
-  end else
+      OldBuf := buf;
+      while not CheckFor(']]>') do
+      begin
+        Inc(buf);
+      end;
+      AOwner.AppendChild(doc.CreateCDATASection(GetString(OldBuf,buf-OldBuf)));
+      Result := True;
+    end
+  else
     Result := False;
 end;
 
 function TXMLReader.ParseElement(AOwner: TDOMNode): Boolean;    // [39] [40] [44]
 var
   NewElem: TDOMElement;
-var
-  IsEmpty: Boolean;
-  name: String;
-  oldpos: PChar;
 
-  attr: TDOMAttr;
-begin
-  oldpos := buf;
-  if CheckFor('<') then
+  procedure CreateNameElement;
+  var
+    IsEmpty: Boolean;
+    attr: TDOMAttr;
+    name: string;
   begin
-    if not GetName(name) then
-    begin
-      buf := oldpos;
-      Result := False;
-      exit;
-    end;
-
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement A');{$ENDIF}
+    GetName(name);
     NewElem := doc.CreateElement(name);
     AOwner.AppendChild(NewElem);
 
@@ -867,12 +1072,13 @@ begin
     IsEmpty := False;
     while True do
     begin
+      {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement E');{$ENDIF}
       if CheckFor('/>') then
       begin
         IsEmpty := True;
         break;
       end;
-      if CheckFor('>') then
+      if CheckForChar('>') then
         break;
 
       // Get Attribute [41]
@@ -900,13 +1106,28 @@ begin
       ExpectString('>');
     end;
 
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement END');{$ENDIF}
     ResolveEntities(NewElem);
+  end;
 
-
-
-    Result := True;
+var
+  OldBuf: PChar;
+begin
+  OldBuf := Buf;
+  if CheckForChar('<') then
+  begin
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ParseElement A');{$ENDIF}
+    if not CheckName then
+    begin
+      Buf := OldBuf;
+      Result := False;
+    end else begin
+      CreateNameElement;
+      Result := True;
+    end;
   end else
     Result := False;
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ParseElement END');{$ENDIF}
 end;
 
 procedure TXMLReader.ExpectElement(AOwner: TDOMNode);
@@ -917,8 +1138,8 @@ end;
 
 function TXMLReader.ParsePEReference: Boolean;    // [69]
 begin
-  if CheckFor('%') then begin
-    ExpectName;
+  if CheckForChar('%') then begin
+    SkipName;
     ExpectString(';');
     Result := True;
   end else
@@ -927,12 +1148,12 @@ end;
 
 function TXMLReader.ParseReference(AOwner: TDOMNode): Boolean;    // [67] [68]
 begin
-  if not CheckFor('&') then begin
+  if not CheckForChar('&') then begin
     Result := False;
     exit;
   end;
-  if CheckFor('#') then begin    // Test for CharRef [66]
-    if CheckFor('x') then begin
+  if CheckForChar('#') then begin    // Test for CharRef [66]
+    if CheckForChar('x') then begin
       // !!!: there must be at least one digit
       while buf[0] in ['0'..'9', 'a'..'f', 'A'..'F'] do Inc(buf);
     end else
@@ -954,19 +1175,40 @@ end;
 function TXMLReader.ParseExternalID: Boolean;    // [75]
 
   function GetSystemLiteral: String;
+  var
+    OldBuf: PChar;
   begin
-    SetLength(Result, 0);
+    if buf[0] = '''' then begin
+      Inc(buf);
+      OldBuf := buf;
+      while (buf[0] <> '''') and (buf[0] <> #0) do begin
+        Inc(buf);
+      end;
+      Result := GetString(OldBuf,buf-OldBuf);
+      ExpectString('''');
+    end else if buf[0] = '"' then begin
+      Inc(buf);
+      OldBuf := buf;
+      while (buf[0] <> '"') and (buf[0] <> #0) do begin
+        Inc(buf);
+      end;
+      Result := GetString(OldBuf,buf-OldBuf);
+      ExpectString('"');
+    end else
+      Result:='';
+  end;
+
+  procedure SkipSystemLiteral;
+  begin
     if buf[0] = '''' then begin
       Inc(buf);
       while (buf[0] <> '''') and (buf[0] <> #0) do begin
-        Result := Result + buf[0];
         Inc(buf);
       end;
       ExpectString('''');
     end else if buf[0] = '"' then begin
       Inc(buf);
       while (buf[0] <> '"') and (buf[0] <> #0) do begin
-        Result := Result + buf[0];
         Inc(buf);
       end;
       ExpectString('"');
@@ -976,13 +1218,13 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
 begin
   if CheckFor('SYSTEM') then begin
     ExpectWhitespace;
-    GetSystemLiteral;
+    SkipSystemLiteral;
     Result := True;
   end else if CheckFor('PUBLIC') then begin
     ExpectWhitespace;
-    ExpectPubidLiteral;
+    SkipPubidLiteral;
     ExpectWhitespace;
-    GetSystemLiteral;
+    SkipSystemLiteral;
     Result := True;
   end else
     Result := False;
@@ -997,12 +1239,14 @@ end;
 function TXMLReader.ParseEncodingDecl: String;    // [80]
 
   function ParseEncName: String;
+  var OldBuf: PChar;
   begin
     if not (buf[0] in ['A'..'Z', 'a'..'z']) then
       RaiseExc('Expected character (A-Z, a-z)');
-    Result := buf[0];
+    OldBuf := buf;
     Inc(buf);
-    Result := Result + GetString(['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']);
+    SkipString(['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']);
+    Result := GetString(OldBuf,buf-OldBuf);
   end;
 
 begin
@@ -1017,6 +1261,32 @@ begin
     end else if buf[0] = '"' then begin
       Inc(buf);
       Result := ParseEncName;
+      ExpectString('"');
+    end;
+  end;
+end;
+
+procedure TXMLReader.SkipEncodingDecl;
+
+  procedure ParseEncName;
+  begin
+    if not (buf[0] in ['A'..'Z', 'a'..'z']) then
+      RaiseExc('Expected character (A-Z, a-z)');
+    Inc(buf);
+    SkipString(['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']);
+  end;
+
+begin
+  SkipWhitespace;
+  if CheckFor('encoding') then begin
+    ExpectEq;
+    if buf[0] = '''' then begin
+      Inc(buf);
+      ParseEncName;
+      ExpectString('''');
+    end else if buf[0] = '"' then begin
+      Inc(buf);
+      ParseEncName;
       ExpectString('"');
     end;
   end;
@@ -1041,7 +1311,7 @@ procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
       if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
       begin
         TDOMCharacterData(PrevSibling).AppendData(
-          TDOMCharacterData(NextSibling).Data);
+        TDOMCharacterData(NextSibling).Data);
         RootNode.RemoveChild(NextSibling);
       end
     end else
@@ -1079,7 +1349,7 @@ end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
 var
-  Reader: TXMLReader;
+  reader: TXMLReader;
   buf: PChar;
   BufSize: LongInt;
 begin
@@ -1104,15 +1374,13 @@ begin
   end;
 end;
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String);
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String);
 var
-  Reader: TXMLReader;
+  reader: TXMLReader;
   buf: PChar;
 begin
   ADoc := nil;
-  if f.Size = 0 then
-    exit;
+  if f.Size = 0 then exit;
 
   GetMem(buf, f.Size + 1);
   try
@@ -1137,17 +1405,21 @@ end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
 var
-  Stream: TStream;
+  FileStream: TFileStream;
+  MemStream: TMemoryStream;
 begin
   ADoc := nil;
-  Stream := TFileStream.Create(AFilename, fmOpenRead);
+  FileStream := TFileStream.Create(AFilename, fmOpenRead);
+  if FileStream=nil then exit;
+  MemStream := TMemoryStream.Create;
   try
-    ReadXMLFile(ADoc, Stream, AFilename);
+    MemStream.LoadFromStream(FileStream);
+    ReadXMLFile(ADoc, MemStream, AFilename);
   finally
-    Stream.Free;
+    FileStream.Free;
+    MemStream.Free;
   end;
 end;
-
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File);
 var
@@ -1175,8 +1447,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
-  const AFilename: String);
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const AFilename: String);
 var
   Reader: TXMLReader;
   buf: PChar;
@@ -1245,8 +1516,7 @@ begin
   end;
 end;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String);
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String);
 var
   Reader: TXMLReader;
   buf: PChar;
@@ -1291,30 +1561,9 @@ end;
 
 
 end.
-
-
 {
   $Log$
-  Revision 1.11  2004-05-02 20:17:52  peter
-    * use sizeint
-
-  Revision 1.10  2003/12/01 23:59:12  sg
-  * Added support for main branch to be able to read and write at least
-    ISO8859-1 encoded files correctly. A much improved solution will be
-    provided when the mainbranch RTL fully supports Unicode/WideStrings.
-
-  Revision 1.9  2003/11/04 20:00:46  michael
-  + Fixed processing instruction parsing. <?xml is not allowed but <?xml-XXX is
-
-  Revision 1.8  2003/01/15 21:59:55  sg
-  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
-    modifications as well
-
-  Revision 1.7  2002/09/21 19:22:38  sg
-  * Added procedures to process XML fragments only (e.g. for merging them
-    into an existing DOM document)
-
-  Revision 1.6  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.12  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
 
 }

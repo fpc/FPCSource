@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     Implementation of DOM interfaces
-    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -32,11 +32,37 @@
 
 unit DOM;
 
+{$MODE objfpc}
+{$H+}
+
 interface
 
-uses SysUtils, Classes;
+{off $DEFINE MEM_CHECK}
+
+uses
+  {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
+  SysUtils, Classes, AVL_Tree;
+
 
 type
+  TDOMImplementation = class;
+  TDOMDocumentFragment = class;
+  TDOMDocument = class;
+  TDOMNode = class;
+  TDOMNodeList = class;
+  TDOMNamedNodeMap = class;
+  TDOMCharacterData = class;
+  TDOMAttr = class;
+  TDOMElement = class;
+  TDOMText = class;
+  TDOMComment = class;
+  TDOMCDATASection = class;
+  TDOMDocumentType = class;
+  TDOMNotation = class;
+  TDOMEntity = class;
+  TDOMEntityReference = class;
+  TDOMProcessingInstruction = class;
+
 
 // -------------------------------------------------------
 //   DOMString
@@ -44,8 +70,10 @@ type
 
 {$IFDEF ver1_0}
   DOMString = String;
+  DOMPChar = PChar;
 {$ELSE}
   DOMString = WideString;
+  DOMPChar = PWideChar;
 {$ENDIF}
 
 
@@ -57,32 +85,31 @@ const
 
   // DOM Level 1 exception codes:
 
-  INDEX_SIZE_ERR              = 1;      // index or size is negative, or greater than the allowed value
-  DOMSTRING_SIZE_ERR          = 2;      // Specified range of text does not fit into a DOMString
-  HIERARCHY_REQUEST_ERR       = 3;      // node is inserted somewhere it does not belong
-  WRONG_DOCUMENT_ERR          = 4;      // node is used in a different document than the one that created it (that does not support it)
-  INVALID_CHARACTER_ERR       = 5;      // invalid or illegal character is specified, such as in a name
-  NO_DATA_ALLOWED_ERR         = 6;      // data is specified for a node which does not support data
-  NO_MODIFICATION_ALLOWED_ERR = 7;      // an attempt is made to modify an object where modifications are not allowed
-  NOT_FOUND_ERR               = 8;      // an attempt is made to reference a node in a context where it does not exist
-  NOT_SUPPORTED_ERR           = 9;      // implementation does not support the type of object requested
-  INUSE_ATTRIBUTE_ERR         = 10;     // an attempt is made to add an attribute that is already in use elsewhere
+  INDEX_SIZE_ERR              = 1;  // index or size is negative, or greater than the allowed value
+  DOMSTRING_SIZE_ERR          = 2;  // Specified range of text does not fit into a DOMString
+  HIERARCHY_REQUEST_ERR       = 3;  // node is inserted somewhere it does not belong
+  WRONG_DOCUMENT_ERR          = 4;  // node is used in a different document than the one that created it (that does not support it)
+  INVALID_CHARACTER_ERR       = 5;  // invalid or illegal character is specified, such as in a name
+  NO_DATA_ALLOWED_ERR         = 6;  // data is specified for a node which does not support data
+  NO_MODIFICATION_ALLOWED_ERR = 7;  // an attempt is made to modify an object where modifications are not allowed
+  NOT_FOUND_ERR               = 8;  // an attempt is made to reference a node in a context where it does not exist
+  NOT_SUPPORTED_ERR           = 9;  // implementation does not support the type of object requested
+  INUSE_ATTRIBUTE_ERR         = 10;  // an attempt is made to add an attribute that is already in use elsewhere
 
   // DOM Level 2 exception codes:
 
-  INVALID_STATE_ERR           = 11;     // an attempt is made to use an object that is not, or is no longer, usable
-  SYNTAX_ERR                  = 12;     // invalid or illegal string specified
-  INVALID_MODIFICATION_ERR    = 13;     // an attempt is made to modify the type of the underlying object
-  NAMESPACE_ERR               = 14;     // an attempt is made to create or change an object in a way which is incorrect with regard to namespaces
-  INVALID_ACCESS_ERR          = 15;     // parameter or operation is not supported by the underlying object
+  INVALID_STATE_ERR           = 11;  // an attempt is made to use an object that is not, or is no longer, usable
+  SYNTAX_ERR                  = 12;  // invalid or illegal string specified
+  INVALID_MODIFICATION_ERR    = 13;  // an attempt is made to modify the type of the underlying object
+  NAMESPACE_ERR               = 14;  // an attempt is made to create or change an object in a way which is incorrect with regard to namespaces
+  INVALID_ACCESS_ERR          = 15;  // parameter or operation is not supported by the underlying object
 
 
 type
 
   EDOMError = class(Exception)
-  protected
-    constructor Create(ACode: Integer; const ASituation: String);
   public
+    constructor Create(ACode: Integer; const ASituation: String);
     Code: Integer;
   end;
 
@@ -163,25 +190,6 @@ const
 
 
 type
-
-  TDOMImplementation = class;
-  TDOMDocumentFragment = class;
-  TDOMDocument = class;
-  TDOMNode = class;
-  TDOMNodeList = class;
-  TDOMNamedNodeMap = class;
-  TDOMCharacterData = class;
-  TDOMAttr = class;
-  TDOMElement = class;
-  TDOMText = class;
-  TDOMComment = class;
-  TDOMCDATASection = class;
-  TDOMDocumentType = class;
-  TDOMNotation = class;
-  TDOMEntity = class;
-  TDOMEntityReference = class;
-  TDOMProcessingInstruction = class;
-
   TRefClass = class
   protected
     RefCounter: LongInt;
@@ -200,13 +208,14 @@ type
     FOwnerDocument: TDOMDocument;
 
     function  GetNodeValue: DOMString; virtual;
-    procedure SetNodeValue(AValue: DOMString); virtual;
+    procedure SetNodeValue(const AValue: DOMString); virtual;
     function  GetFirstChild: TDOMNode; virtual;
     function  GetLastChild: TDOMNode; virtual;
     function  GetAttributes: TDOMNamedNodeMap; virtual;
 
-    constructor Create(AOwner: TDOMDocument);
   public
+    constructor Create(AOwner: TDOMDocument);
+
     // Free NodeList with TDOMNodeList.Release!
     function GetChildNodes: TDOMNodeList; virtual;
 
@@ -230,9 +239,8 @@ type
     function CloneNode(deep: Boolean): TDOMNode; overload;
 
     // Extensions to DOM interface:
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; virtual;
-    function FindNode(const ANodeName: DOMString): TDOMNode;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
+    function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
   end;
 
 
@@ -243,9 +251,12 @@ type
   TDOMNode_WithChildren = class(TDOMNode)
   protected
     FFirstChild, FLastChild: TDOMNode;
+    FChildNodeTree: TAVLTree;
     function GetFirstChild: TDOMNode; override;
     function GetLastChild: TDOMNode; override;
     procedure CloneChildren(ACopy: TDOMNode; ACloneOwner: TDOMDocument);
+    procedure AddToChildNodeTree(NewNode: TDOMNode);
+    procedure RemoveFromChildNodeTree(OldNode: TDOMNode);
   public
     destructor Destroy; override;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
@@ -253,6 +264,7 @@ type
     function RemoveChild(OldChild: TDOMNode): TDOMNode; override;
     function AppendChild(NewChild: TDOMNode): TDOMNode; override;
     function HasChildNodes: Boolean; override;
+    function FindNode(const ANodeName: DOMString): TDOMNode; override;
   end;
 
 
@@ -265,10 +277,10 @@ type
     node: TDOMNode;
     filter: DOMString;
     UseFilter: Boolean;
-    constructor Create(ANode: TDOMNode; AFilter: DOMString);
     function GetCount: LongInt;
     function GetItem(index: LongWord): TDOMNode;
   public
+    constructor Create(ANode: TDOMNode; const AFilter: DOMString);
     property Item[index: LongWord]: TDOMNode read GetItem;
     property Count: LongInt read GetCount;
   end;
@@ -284,9 +296,9 @@ type
     function GetItem(index: LongWord): TDOMNode;
     procedure SetItem(index: LongWord; AItem: TDOMNode);
     function GetLength: LongInt;
-
-    constructor Create(AOwner: TDOMDocument);
   public
+    constructor Create(AOwner: TDOMDocument);
+
     function GetNamedItem(const name: DOMString): TDOMNode;
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
@@ -335,7 +347,7 @@ type
 // -------------------------------------------------------
 
   TDOMDocumentFragment = class(TDOMNode_WithChildren)
-  protected
+  public
     constructor Create(AOwner: TDOMDocument);
   end;
 
@@ -369,7 +381,7 @@ type
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 
     // Extensions to DOM interface:
-    constructor Create; virtual;
+    constructor Create;
     function CreateEntity(const data: DOMString): TDOMEntity;
   end;
 
@@ -394,12 +406,11 @@ type
     FSpecified: Boolean;
     AttrOwner: TDOMNamedNodeMap;
     function  GetNodeValue: DOMString; override;
-    procedure SetNodeValue(AValue: DOMString); override;
-
-    constructor Create(AOwner: TDOMDocument);
+    procedure SetNodeValue(const AValue: DOMString); override;
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Name: DOMString read FNodeName;
     property Specified: Boolean read FSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
@@ -411,15 +422,14 @@ type
 // -------------------------------------------------------
 
   TDOMElement = class(TDOMNode_WithChildren)
-  protected
+  private
     FAttributes: TDOMNamedNodeMap;
+  protected
     function GetAttributes: TDOMNamedNodeMap; override;
-
-    constructor Create(AOwner: TDOMDocument); virtual;
   public
+    constructor Create(AOwner: TDOMDocument);
     destructor Destroy; override;
-    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property  TagName: DOMString read FNodeName;
     function  GetAttribute(const name: DOMString): DOMString;
     procedure SetAttribute(const name, value: DOMString);
@@ -441,11 +451,9 @@ type
 // -------------------------------------------------------
 
   TDOMText = class(TDOMCharacterData)
-  protected
-    constructor Create(AOwner: TDOMDocument);
   public
-    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     function SplitText(offset: LongWord): TDOMText;
   end;
 
@@ -455,11 +463,9 @@ type
 // -------------------------------------------------------
 
   TDOMComment = class(TDOMCharacterData)
-  protected
-    constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
   end;
 
 
@@ -468,11 +474,9 @@ type
 // -------------------------------------------------------
 
   TDOMCDATASection = class(TDOMText)
-  protected
-    constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
   end;
 
 
@@ -483,11 +487,9 @@ type
   TDOMDocumentType = class(TDOMNode)
   protected
     FEntities, FNotations: TDOMNamedNodeMap;
-
-    constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Name: DOMString read FNodeName;
     property Entities: TDOMNamedNodeMap read FEntities;
     property Notations: TDOMNamedNodeMap read FEntities;
@@ -501,11 +503,9 @@ type
   TDOMNotation = class(TDOMNode)
   protected
     FPublicID, FSystemID: DOMString;
-
-    constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-      overload; override;
+    constructor Create(AOwner: TDOMDocument);
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property PublicID: DOMString read FPublicID;
     property SystemID: DOMString read FSystemID;
   end;
@@ -518,9 +518,8 @@ type
   TDOMEntity = class(TDOMNode_WithChildren)
   protected
     FPublicID, FSystemID, FNotationName: DOMString;
-
-    constructor Create(AOwner: TDOMDocument);
   public
+    constructor Create(AOwner: TDOMDocument);
     property PublicID: DOMString read FPublicID;
     property SystemID: DOMString read FSystemID;
     property NotationName: DOMString read FNotationName;
@@ -532,7 +531,7 @@ type
 // -------------------------------------------------------
 
   TDOMEntityReference = class(TDOMNode_WithChildren)
-  protected
+  public
     constructor Create(AOwner: TDOMDocument);
   end;
 
@@ -542,9 +541,8 @@ type
 // -------------------------------------------------------
 
   TDOMProcessingInstruction = class(TDOMNode)
-  protected
-    constructor Create(AOwner: TDOMDocument);
   public
+    constructor Create(AOwner: TDOMDocument);
     property Target: DOMString read FNodeName;
     property Data: DOMString read FNodeValue;
   end;
@@ -659,7 +657,7 @@ begin
   Result := FNodeValue;
 end;
 
-procedure TDOMNode.SetNodeValue(AValue: DOMString);
+procedure TDOMNode.SetNodeValue(const AValue: DOMString);
 begin
   FNodeValue := AValue;
 end;
@@ -669,28 +667,47 @@ begin
   Result := TDOMNodeList.Create(Self, '*');
 end;
 
-function TDOMNode.GetFirstChild: TDOMNode; begin Result := nil end;
-function TDOMNode.GetLastChild: TDOMNode; begin Result := nil end;
-function TDOMNode.GetAttributes: TDOMNamedNodeMap; begin Result := nil end;
+function TDOMNode.GetFirstChild: TDOMNode;
+begin
+  Result := nil;
+end;
+
+function TDOMNode.GetLastChild: TDOMNode;
+begin
+  Result := nil;
+end;
+
+function TDOMNode.GetAttributes: TDOMNamedNodeMap;
+begin
+  Result := nil;
+end;
 
 function TDOMNode.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
 begin
   raise EDOMHierarchyRequest.Create('Node.InsertBefore');
+  if (NewChild=nil) and (RefChild=nil) then ;
+  Result:=nil;
 end;
 
 function TDOMNode.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
 begin
   raise EDOMHierarchyRequest.Create('Node.ReplaceChild');
+  if (NewChild=nil) and (OldChild=nil) then ;
+  Result:=nil;
 end;
 
 function TDOMNode.RemoveChild(OldChild: TDOMNode): TDOMNode;
 begin
   raise EDOMHierarchyRequest.Create('Node.RemoveChild');
+  if (OldChild=nil) then ;
+  Result:=nil;
 end;
 
 function TDOMNode.AppendChild(NewChild: TDOMNode): TDOMNode;
 begin
   raise EDOMHierarchyRequest.Create('Node.AppendChild');
+  if (NewChild=nil) then ;
+  Result:=nil;
 end;
 
 function TDOMNode.HasChildNodes: Boolean;
@@ -701,11 +718,14 @@ end;
 function TDOMNode.CloneNode(deep: Boolean): TDOMNode;
 begin
   Result:=CloneNode(deep, FOwnerDocument);
+  if deep then ;
 end;
 
 function TDOMNode.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   raise EDOMNotSupported.Create('CloneNode not implemented for ' + ClassName);
+  if (deep) and (ACloneOwner=nil) then ;
+  Result:=nil;
 end;
 
 function TDOMNode.FindNode(const ANodeName: DOMString): TDOMNode;
@@ -725,6 +745,37 @@ begin
   Result := nil;
 end;
 
+//------------------------------------------------------------------------------
+
+function CompareDOMStrings(const s1, s2: DOMPChar; l1, l2: integer): integer;
+var i: integer;
+begin
+  Result:=l1-l2;
+  i:=1;
+  while (i<=l1) and (Result=0) do begin
+    Result:=ord(s1[i])-ord(s2[i]);
+    inc(i);
+  end;
+end;
+
+function CompareDOMNodeWithDOMNode(Node1, Node2: Pointer): integer;
+begin
+  Result:=CompareDOMStrings(DOMPChar(TDOMNode(Node1).NodeName),
+                            DOMPChar(TDOMNode(Node2).NodeName),
+                            length(TDOMNode(Node1).NodeName),
+                            length(TDOMNode(Node2).NodeName)
+                            );
+end;
+
+function CompareDOMStringWithDOMNode(AKey, ANode: Pointer): integer;
+begin
+  Result:=CompareDOMStrings(DOMPChar(AKey),
+                            DOMPChar(TDOMNode(ANode).NodeName),
+                            length(DOMString(AKey)),
+                            length(TDOMNode(ANode).NodeName)
+                            );
+end;
+
 
 function TDOMNode_WithChildren.GetFirstChild: TDOMNode;
 begin
@@ -740,6 +791,10 @@ destructor TDOMNode_WithChildren.Destroy;
 var
   child, next: TDOMNode;
 begin
+  if FChildNodeTree<>nil then begin
+    FChildNodeTree.Free;
+    FChildNodeTree:=nil;
+  end;
   child := FirstChild;
   while Assigned(child) do
   begin
@@ -752,8 +807,6 @@ end;
 
 function TDOMNode_WithChildren.InsertBefore(NewChild, RefChild: TDOMNode):
   TDOMNode;
-var
-  i: Integer;
 begin
   Result := NewChild;
 
@@ -783,11 +836,13 @@ begin
 
   RefChild.FPreviousSibling := NewChild;
   NewChild.FParentNode := Self;
+  AddToChildNodeTree(NewChild);
 end;
 
 function TDOMNode_WithChildren.ReplaceChild(NewChild, OldChild: TDOMNode):
   TDOMNode;
 begin
+  RemoveFromChildNodeTree(OldChild);
   InsertBefore(NewChild, OldChild);
   if Assigned(OldChild) then
     RemoveChild(OldChild);
@@ -810,7 +865,9 @@ begin
   else
     OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
 
+  RemoveFromChildNodeTree(OldChild);
   OldChild.Free;
+  Result:=nil;
 end;
 
 function TDOMNode_WithChildren.AppendChild(NewChild: TDOMNode): TDOMNode;
@@ -843,6 +900,7 @@ begin
     FLastChild := NewChild;
     NewChild.FParentNode := Self;
   end;
+  AddToChildNodeTree(NewChild);
   Result := NewChild;
 end;
 
@@ -851,7 +909,20 @@ begin
   Result := Assigned(FFirstChild);
 end;
 
-procedure TDOMNode_WithChildren.CloneChildren(ACopy: TDOMNode; ACloneOwner: TDOMDocument);
+function TDOMNode_WithChildren.FindNode(const ANodeName: DOMString): TDOMNode;
+var AVLNode: TAVLTreeNode;
+begin
+  Result:=nil;
+  if FChildNodeTree<>nil then begin
+    AVLNode:=FChildNodeTree.FindKey(DOMPChar(ANodeName),
+                                    @CompareDOMStringWithDOMNode);
+    if AVLNode<>nil then
+      Result:=TDOMNode(AVLNode.Data);
+  end;
+end;
+
+procedure TDOMNode_WithChildren.CloneChildren(ACopy: TDOMNode;
+  ACloneOwner: TDOMDocument);
 var
   node: TDOMNode;
 begin
@@ -863,12 +934,26 @@ begin
   end;
 end;
 
+procedure TDOMNode_WithChildren.AddToChildNodeTree(NewNode: TDOMNode);
+begin
+  if FChildNodeTree=nil then
+    FChildNodeTree:=TAVLTree.Create(@CompareDOMNodeWithDOMNode);
+  if FChildNodeTree.Find(NewNode)=nil then
+    FChildNodeTree.Add(NewNode);
+end;
+
+procedure TDOMNode_WithChildren.RemoveFromChildNodeTree(OldNode: TDOMNode);
+begin
+  if FChildNodeTree<>nil then
+    FChildNodeTree.Remove(OldNode);
+end;
+
 
 // -------------------------------------------------------
 //   NodeList
 // -------------------------------------------------------
 
-constructor TDOMNodeList.Create(ANode: TDOMNode; AFilter: DOMString);
+constructor TDOMNodeList.Create(ANode: TDOMNode; const AFilter: DOMString);
 begin
   inherited Create;
   node := ANode;
@@ -1001,7 +1086,7 @@ end;
 
 function TDOMCharacterData.SubstringData(offset, count: LongWord): DOMString;
 begin
-  if (offset < 0) or (offset > Length) or (count < 0) then
+  if (offset < 0) or (longint(offset) > Length) or (count < 0) then
     raise EDOMIndexSize.Create('CharacterData.SubstringData');
   Result := Copy(FNodeValue, offset + 1, count);
 end;
@@ -1013,7 +1098,7 @@ end;
 
 procedure TDOMCharacterData.InsertData(offset: LongWord; const arg: DOMString);
 begin
-  if (offset < 0) or (offset > Length) then
+  if (offset < 0) or (longint(offset) > Length) then
     raise EDOMIndexSize.Create('CharacterData.InsertData');
 
   FNodeValue := Copy(FNodeValue, 1, offset) + arg +
@@ -1022,7 +1107,7 @@ end;
 
 procedure TDOMCharacterData.DeleteData(offset, count: LongWord);
 begin
-  if (offset < 0) or (offset > Length) or (count < 0) then
+  if (offset < 0) or (longint(offset) > Length) or (count < 0) then
     raise EDOMIndexSize.Create('CharacterData.DeleteData');
 
   FNodeValue := Copy(FNodeValue, 1, offset) +
@@ -1056,6 +1141,7 @@ function TDOMImplementation.HasFeature(const feature, version: DOMString):
   Boolean;
 begin
   Result := False;
+  if (feature='') and (version='') then ;
 end;
 
 function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
@@ -1063,6 +1149,8 @@ function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
 begin
   // !!!: Implement this method (easy to do)
   raise EDOMNotSupported.Create('DOMImplementation.CreateDocumentType');
+  if (QualifiedName='') and (PublicID='') and (SystemID='') then ;
+  Result:=nil;
 end;
 
 function TDOMImplementation.CreateDocument(const NamespaceURI,
@@ -1070,6 +1158,8 @@ function TDOMImplementation.CreateDocument(const NamespaceURI,
 begin
   // !!!: Implement this method (easy to do)
   raise EDOMNotSupported.Create('DOMImplementation.CreateDocument');
+  if (NamespaceURI='') and (QualifiedName='') and (doctype=nil) then ;
+  Result:=nil;
 end;
 
 
@@ -1129,12 +1219,16 @@ function TDOMDocument.CreateCDATASection(const data: DOMString):
   TDOMCDATASection;
 begin
   raise EDOMNotSupported.Create('DOMDocument.CreateCDATASection');
+  if data='' then ;
+  Result:=nil;
 end;
 
 function TDOMDocument.CreateProcessingInstruction(const target,
   data: DOMString): TDOMProcessingInstruction;
 begin
   raise EDOMNotSupported.Create('DOMDocument.CreateProcessingInstruction');
+  if (target='') and (data='') then ;
+  Result:=nil;
 end;
 
 function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
@@ -1147,6 +1241,8 @@ function TDOMDocument.CreateEntityReference(const name: DOMString):
   TDOMEntityReference;
 begin
   raise EDOMNotSupported.Create('DOMDocument.CreateEntityReference');
+  if name='' then ;
+  Result:=nil;
 end;
 
 function TDOMDocument.CreateEntity(const data: DOMString): TDOMEntity;
@@ -1222,7 +1318,7 @@ begin
   end;
 end;
 
-procedure TDOMAttr.SetNodeValue(AValue: DOMString);
+procedure TDOMAttr.SetNodeValue(const AValue: DOMString);
 var
   tn: TDOMText;
 begin
@@ -1244,7 +1340,6 @@ constructor TDOMElement.Create(AOwner: TDOMDocument);
 begin
   FNodeType := ELEMENT_NODE;
   inherited Create(AOwner);
-  FAttributes := TDOMNamedNodeMap.Create(AOwner);
 end;
 
 destructor TDOMElement.Destroy;
@@ -1253,9 +1348,12 @@ var
 begin
   {As the attributes are _not_ childs of the element node, we have to free
    them manually here:}
-  for i := 0 to FAttributes.Count - 1 do
-    FAttributes[i].Free;
-  FAttributes.Free;
+  if FAttributes<>nil then begin
+    for i := 0 to FAttributes.Count - 1 do
+      FAttributes[i].Free;
+    FAttributes.Free;
+    FAttributes:=nil;
+  end;
   inherited Destroy;
 end;
 
@@ -1265,14 +1363,19 @@ var
 begin
   Result := TDOMElement.Create(ACloneOwner);
   Result.FNodeName := FNodeName;
-  for i := 0 to FAttributes.Count - 1 do
-    TDOMElement(Result).FAttributes.Add(FAttributes[i].CloneNode(True, ACloneOwner));
+  if FAttributes<>nil then begin
+    TDOMElement(Result).GetAttributes;
+    for i := 0 to FAttributes.Count - 1 do
+      TDOMElement(Result).FAttributes.Add(FAttributes[i].CloneNode(True, ACloneOwner));
+  end;
   if deep then
     CloneChildren(Result, ACloneOwner);
 end;
 
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
+  if FAttributes=nil then
+    FAttributes := TDOMNamedNodeMap.Create(FOwnerDocument);
   Result := FAttributes;
 end;
 
@@ -1280,12 +1383,14 @@ function TDOMElement.GetAttribute(const name: DOMString): DOMString;
 var
   i: Integer;
 begin
-  for i := 0 to FAttributes.Count - 1 do
-    if FAttributes[i].NodeName = name then
-    begin
-      Result := FAttributes[i].NodeValue;
-      exit;
-    end;
+  if FAttributes<>nil then begin
+    for i := 0 to FAttributes.Count - 1 do
+      if FAttributes[i].NodeName = name then
+      begin
+        Result := FAttributes[i].NodeValue;
+        exit;
+      end;
+  end;
   SetLength(Result, 0);
 end;
 
@@ -1294,6 +1399,7 @@ var
   i: Integer;
   attr: TDOMAttr;
 begin
+  GetAttributes;
   for i := 0 to FAttributes.Count - 1 do
     if FAttributes[i].NodeName = name then
     begin
@@ -1310,6 +1416,7 @@ procedure TDOMElement.RemoveAttribute(const name: DOMString);
 var
   i: Integer;
 begin
+  if FAttributes=nil then exit;
   for i := 0 to FAttributes.Count - 1 do
     if FAttributes[i].NodeName = name then
     begin
@@ -1323,12 +1430,14 @@ function TDOMElement.GetAttributeNode(const name: DOMString): TDOMAttr;
 var
   i: Integer;
 begin
-  for i := 0 to FAttributes.Count - 1 do
-    if FAttributes[i].NodeName = name then
-    begin
-      Result := TDOMAttr(FAttributes[i]);
-      exit;
-    end;
+  if FAttributes<>nil then begin
+    for i := 0 to FAttributes.Count - 1 do
+      if FAttributes[i].NodeName = name then
+      begin
+        Result := TDOMAttr(FAttributes[i]);
+        exit;
+      end;
+  end;
   Result := nil;
 end;
 
@@ -1336,6 +1445,7 @@ procedure TDOMElement.SetAttributeNode(NewAttr: TDOMAttr);
 var
   i: Integer;
 begin
+  if FAttributes=nil then exit;
   for i := 0 to FAttributes.Count - 1 do
     if FAttributes[i].NodeName = NewAttr.NodeName then
     begin
@@ -1350,6 +1460,8 @@ var
   i: Integer;
   node: TDOMNode;
 begin
+  Result:=nil;
+  if FAttributes=nil then exit;
   for i := 0 to FAttributes.Count - 1 do
   begin
     node := FAttributes[i];
@@ -1388,11 +1500,12 @@ function TDOMText.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   Result := TDOMText.Create(ACloneOwner);
   Result.FNodeValue := FNodeValue;
+  if deep and (ACloneOwner=nil) then ;
 end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
 begin
-  if offset > Length then
+  if longint(offset) > Length then
     raise EDOMIndexSize.Create('Text.SplitText');
 
   Result := TDOMText.Create(FOwnerDocument);
@@ -1417,6 +1530,7 @@ function TDOMComment.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNo
 begin
   Result := TDOMComment.Create(ACloneOwner);
   Result.FNodeValue := FNodeValue;
+  if deep and (ACloneOwner=nil) then ;
 end;
 
 
@@ -1435,6 +1549,7 @@ function TDOMCDATASection.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): T
 begin
   Result := TDOMCDATASection.Create(ACloneOwner);
   Result.FNodeValue := FNodeValue;
+  if deep and (ACloneOwner=nil) then ;
 end;
 
 
@@ -1452,6 +1567,7 @@ function TDOMDocumentType.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): T
 begin
   Result := TDOMDocumentType.Create(ACloneOwner);
   Result.FNodeName := FNodeName;
+  if deep and (ACloneOwner=nil) then ;
 end;
 
 
@@ -1469,6 +1585,7 @@ function TDOMNotation.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMN
 begin
   Result := TDOMNotation.Create(ACloneOwner);
   Result.FNodeName := FNodeName;
+  if deep and (ACloneOwner=nil) then ;
 end;
 
 
@@ -1510,22 +1627,7 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-11-15 10:31:50  michael
-  + Fixed CloneNode overloaded call (from Andreas Hausladen)
-
-  Revision 1.12  2003/01/15 21:59:55  sg
-  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
-    modifications as well
-
-  Revision 1.11  2002/12/11 21:06:07  sg
-  * Small cleanups
-  * Replaced htmldoc unit with dom_html unit
-  * Added SAX parser framework and SAX HTML parser
-
-  Revision 1.10  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/03/01 10:02:38  sg
-  * Fixed read access method for TDOMAttr.Value
+  Revision 1.14  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
 
 }

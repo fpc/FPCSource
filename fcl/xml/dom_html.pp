@@ -34,14 +34,14 @@ type
 
   THTMLCollection = class
   public
-    property Length: Cardinal;	// !!!: ro
+    property Length: Cardinal;  // !!!: ro
     function Item(Index: Cardinal): TDOMNode;
     function NamedItem(const Index: DOMString): TDOMNode;
   end;
 
   THTMLOptionsCollection = class
   public
-    property Length: Cardinal;	// !!!: ro
+    property Length: Cardinal;  // !!!: ro
     function Item(Index: Cardinal): TDOMNode;
     function NamedItem(const Index: DOMString): TDOMNode;
   end;
@@ -86,86 +86,86 @@ type
 
   THTMLLinkElement = class(THTMLElement)
   public
-    property Disabled: Boolean;	// !!!: rw
-    property Charset: DOMString;	// !!!: rw
-    property HRef: DOMString;	// !!!: rw
-    property HRefLang: DOMString;	// !!!: rw
-    property Media: DOMString;	// !!!: rw
-    property Rel: DOMString;	// !!!: rw
-    property Rev: DOMString;	// !!!: rw
-    property Target: DOMString;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property Charset: DOMString;        // !!!: rw
+    property HRef: DOMString;   // !!!: rw
+    property HRefLang: DOMString;       // !!!: rw
+    property Media: DOMString;  // !!!: rw
+    property Rel: DOMString;    // !!!: rw
+    property Rev: DOMString;    // !!!: rw
+    property Target: DOMString; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
   end;
 
   THTMLTitleElement = class(THTMLElement)
   public
-    property Text: DOMString;	// !!!: rw
+    property Text: DOMString;   // !!!: rw
   end;
 
   THTMLMetaElement = class(THTMLElement)
   public
-    property Content: DOMString;	// !!!: rw
-    property HTTPEqiv: DOMString;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property Scheme: DOMString;	// !!!: rw
+    property Content: DOMString;        // !!!: rw
+    property HTTPEqiv: DOMString;       // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property Scheme: DOMString; // !!!: rw
   end;
 
   THTMLBaseElement = class(THTMLElement)
   public
-    property HRef: DOMString;	// !!!: rw
-    property Target: DOMString;	// !!!: rw
+    property HRef: DOMString;   // !!!: rw
+    property Target: DOMString; // !!!: rw
   end;
 
   THTMLIsIndexElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property Prompt: DOMString;	// !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property Prompt: DOMString; // !!!: rw
   end;
 
   THTMLStyleElement = class(THTMLElement)
   public
-    property Disabled: Boolean;	// !!!: rw
-    property Media: DOMString;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property Media: DOMString;  // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
   end;
 
   THTMLBodyElement = class(THTMLElement)
   public
-    property ALink: DOMString;	// !!!: rw
-    property Background: DOMString;	// !!!: rw
-    property BgColor: DOMString;	// !!!: rw
-    property Link: DOMString;	// !!!: rw
-    property Text: DOMString;	// !!!: rw
-    property VLink: DOMString;	// !!!: rw
+    property ALink: DOMString;  // !!!: rw
+    property Background: DOMString;     // !!!: rw
+    property BgColor: DOMString;        // !!!: rw
+    property Link: DOMString;   // !!!: rw
+    property Text: DOMString;   // !!!: rw
+    property VLink: DOMString;  // !!!: rw
   end;
 
   THTMLFormElement = class(THTMLElement)
   public
-    property Elements: THTMLCollection;	// !!!: ro
-    property Length: Integer;	// !!!: ro
-    property Name: DOMString;	// !!!: rw
-    property AcceptCharset: DOMString;	// !!!: rw
-    property Action: DOMString;	// !!!: rw
-    property EncType: DOMString;	// !!!: rw
-    property Method: DOMString;	// !!!: rw
-    property Target: DOMString;	// !!!: rw
+    property Elements: THTMLCollection; // !!!: ro
+    property Length: Integer;   // !!!: ro
+    property Name: DOMString;   // !!!: rw
+    property AcceptCharset: DOMString;  // !!!: rw
+    property Action: DOMString; // !!!: rw
+    property EncType: DOMString;        // !!!: rw
+    property Method: DOMString; // !!!: rw
+    property Target: DOMString; // !!!: rw
     procedure Submit; virtual; abstract;
     procedure Reset; virtual; abstract;
   end;
 
   THTMLSelectElement = class(THTMLElement)
   public
-    property HTMLType: DOMString;	// !!!: ro
-    property SelectedIndex: Integer;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
-    property Length: Cardinal;	// !!!: rw
-    property Form: THTMLFormElement;	// !!!: ro
-    property Options: THTMLOptionsCollection;	// !!!: ro
-    property Disabled: Boolean;	// !!!: rw
-    property Multiple: Boolean;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property Size: Integer;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
+    property HTMLType: DOMString;       // !!!: ro
+    property SelectedIndex: Integer;    // !!!: rw
+    property Value: DOMString;  // !!!: rw
+    property Length: Cardinal;  // !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property Options: THTMLOptionsCollection;   // !!!: ro
+    property Disabled: Boolean; // !!!: rw
+    property Multiple: Boolean; // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property Size: Integer;     // !!!: rw
+    property TabIndex: Integer; // !!!: rw
     procedure Add(Element, Before: THTMLElement);
     procedure Remove(Index: Integer);
     procedure Blur; virtual; abstract;
@@ -174,42 +174,42 @@ type
 
   THTMLOptGroupElement = class(THTMLElement)
   public
-    property Disabled: Boolean;	// !!!: rw
-    property GroupLabel: DOMString;	// !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property GroupLabel: DOMString;     // !!!: rw
   end;
 
   THTMLOptionElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property DefaultSelected: Boolean;	// !!!: rw
-    property Text: DOMString;	// !!!: ro
-    property Index: Integer;	// !!!: ro
-    property Disabled: Boolean;	// !!!: rw
-    property OptionLabel: DOMString;	// !!!: rw
-    property Selected: Boolean;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property DefaultSelected: Boolean;  // !!!: rw
+    property Text: DOMString;   // !!!: ro
+    property Index: Integer;    // !!!: ro
+    property Disabled: Boolean; // !!!: rw
+    property OptionLabel: DOMString;    // !!!: rw
+    property Selected: Boolean; // !!!: rw
+    property Value: DOMString;  // !!!: rw
   end;
 
   THTMLInputElement = class(THTMLElement)
   public
-    property DefaultValue: DOMString;	// !!!: rw
-    property DefaultChecked: Boolean;	// !!!: rw
-    property Form: THTMLFormElement;	// !!!: ro
-    property Accept: DOMString;	// !!!: rw
-    property AccessKey: DOMString;	// !!!: rw
-    property Align: DOMString;	// !!!: rw
-    property Alt: DOMString;	// !!!: rw
-    property Checked: Boolean;	// !!!: rw
-    property Disabled: Boolean;	// !!!: rw
-    property MaxLength: Integer;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property ReadOnly: Boolean;	// !!!: rw
-    property Size: Cardinal;	// !!!: rw
-    property Src: DOMString;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
-    property UseMap: DOMString;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
+    property DefaultValue: DOMString;   // !!!: rw
+    property DefaultChecked: Boolean;   // !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property Accept: DOMString; // !!!: rw
+    property AccessKey: DOMString;      // !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Alt: DOMString;    // !!!: rw
+    property Checked: Boolean;  // !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property MaxLength: Integer;        // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property ReadOnly: Boolean; // !!!: rw
+    property Size: Cardinal;    // !!!: rw
+    property Src: DOMString;    // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property UseMap: DOMString; // !!!: rw
+    property Value: DOMString;  // !!!: rw
     procedure Blur; virtual; abstract;
     procedure Focus; virtual; abstract;
     procedure Select; virtual; abstract;
@@ -218,17 +218,17 @@ type
 
   THTMLTextAreaElement = class(THTMLElement)
   public
-    property DefaultValue: DOMString;	// !!!: rw
-    property Form: THTMLFormElement;	// !!!: ro
-    property AccessKey: DOMString;	// !!!: rw
-    property Cols: Integer;	// !!!: rw
-    property Disabled: Boolean;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property ReadOnly: Boolean;	// !!!: rw
-    property Rows: Integer;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
+    property DefaultValue: DOMString;   // !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property AccessKey: DOMString;      // !!!: rw
+    property Cols: Integer;     // !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property ReadOnly: Boolean; // !!!: rw
+    property Rows: Integer;     // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property Value: DOMString;  // !!!: rw
     procedure Blur; virtual; abstract;
     procedure Focus; virtual; abstract;
     procedure Select; virtual; abstract;
@@ -236,251 +236,251 @@ type
 
   THTMLButtonElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property AccessKey: DOMString;	// !!!: rw
-    property Disabled: Boolean;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property AccessKey: DOMString;      // !!!: rw
+    property Disabled: Boolean; // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property Value: DOMString;  // !!!: rw
   end;
 
   THTMLLabelElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property AccessKey: DOMString;	// !!!: rw
-    property HtmlFor: DOMString;	// !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property AccessKey: DOMString;      // !!!: rw
+    property HtmlFor: DOMString;        // !!!: rw
   end;
 
   THTMLFieldSetElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
+    property Form: THTMLFormElement;    // !!!: ro
   end;
 
   THTMLLegendElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property AccessKey: DOMString;	// !!!: rw
-    property Align: DOMString;	// !!!: rw
+    property Form: THTMLFormElement;    // !!!: ro
+    property AccessKey: DOMString;      // !!!: rw
+    property Align: DOMString;  // !!!: rw
   end;
 
   THTMLUListElement = class(THTMLElement)
   public
-    property Compact: Boolean;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property Compact: Boolean;  // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
   end;
 
   THTMLOListElement = class(THTMLElement)
   public
-    property Compact: Boolean;	// !!!: rw
-    property Start: Integer;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property Compact: Boolean;  // !!!: rw
+    property Start: Integer;    // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
   end;
 
   THTMLDListElement = class(THTMLElement)
   public
-    property Compact: Boolean;	// !!!: rw
+    property Compact: Boolean;  // !!!: rw
   end;
 
   THTMLDirectoryElement = class(THTMLElement)
   public
-    property Compact: Boolean;	// !!!: rw
+    property Compact: Boolean;  // !!!: rw
   end;
 
   THTMLMenuElement = class(THTMLElement)
   public
-    property Compact: Boolean;	// !!!: rw
+    property Compact: Boolean;  // !!!: rw
   end;
 
   THTMLLIElement = class(THTMLElement)
   public
-    property HTMLType: DOMString;	// !!!: rw
-    property Value: Integer;	// !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property Value: Integer;    // !!!: rw
   end;
 
   THTMLDivElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
   end;
 
   THTMLParagraphElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
   end;
 
   THTMLHeadingElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
   end;
 
   THTMLQuoteElement = class(THTMLElement)
   public
-    property Cite: DOMString;	// !!!: rw
+    property Cite: DOMString;   // !!!: rw
   end;
 
   THTMLPreElement = class(THTMLElement)
   public
-    property Width: Integer;	// !!!: rw
+    property Width: Integer;    // !!!: rw
   end;
 
   THTMLBREElement = class(THTMLElement)
   public
-    property Clear: DOMString;	// !!!: rw
+    property Clear: DOMString;  // !!!: rw
   end;
 
   THTMLBaseFontElement = class(THTMLElement)
   public
-    property Color: DOMString;	// !!!: rw
-    property Face: DOMString;	// !!!: rw
-    property Size: Integer;	// !!!: rw
+    property Color: DOMString;  // !!!: rw
+    property Face: DOMString;   // !!!: rw
+    property Size: Integer;     // !!!: rw
   end;
 
   THTMLFontElement = class(THTMLElement)
   public
-    property Color: DOMString;	// !!!: rw
-    property Face: DOMString;	// !!!: rw
-    property Size: Integer;	// !!!: rw
+    property Color: DOMString;  // !!!: rw
+    property Face: DOMString;   // !!!: rw
+    property Size: Integer;     // !!!: rw
   end;
 
   THTMLHRElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
-    property NoShade: Boolean;	// !!!: rw
-    property Size: DOMString;	// !!!: rw
-    property Width: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property NoShade: Boolean;  // !!!: rw
+    property Size: DOMString;   // !!!: rw
+    property Width: DOMString;  // !!!: rw
   end;
 
   THTMLModElement = class(THTMLElement)
   public
-    property Cite: DOMString;	// !!!: rw
-    property DateTime: DOMString;	// !!!: rw
+    property Cite: DOMString;   // !!!: rw
+    property DateTime: DOMString;       // !!!: rw
   end;
 
   THTMLAnchorElement = class(THTMLElement)
   public
-    property AccessKey: DOMString;	// !!!: rw
-    property Charset: DOMString;	// !!!: rw
-    property Coords: DOMString;	// !!!: rw
-    property HRef: DOMString;	// !!!: rw
-    property HRefLang: DOMString;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property Rel: DOMString;	// !!!: rw
-    property Rev: DOMString;	// !!!: rw
-    property Shape: DOMString;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property Target: DOMString;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property AccessKey: DOMString;      // !!!: rw
+    property Charset: DOMString;        // !!!: rw
+    property Coords: DOMString; // !!!: rw
+    property HRef: DOMString;   // !!!: rw
+    property HRefLang: DOMString;       // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property Rel: DOMString;    // !!!: rw
+    property Rev: DOMString;    // !!!: rw
+    property Shape: DOMString;  // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property Target: DOMString; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
     procedure Blur; virtual; abstract;
     procedure Focus; virtual; abstract;
   end;
 
   THTMLImageElement = class(THTMLElement)
   public
-    property Name: DOMString;	// !!!: rw
-    property Align: DOMString;	// !!!: rw
-    property Alt: DOMString;	// !!!: rw
-    property Border: DOMString;	// !!!: rw
-    property Height: Integer;	// !!!: rw
-    property HSpace: Integer;	// !!!: rw
-    property IsMap: Boolean;	// !!!: rw
-    property LongDesc: DOMString;	// !!!: rw
-    property Src: Integer;	// !!!: rw
-    property UseMap: DOMString;	// !!!: rw
-    property VSpace: Integer;	// !!!: rw
-    property Width: Integer;	// !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Alt: DOMString;    // !!!: rw
+    property Border: DOMString; // !!!: rw
+    property Height: Integer;   // !!!: rw
+    property HSpace: Integer;   // !!!: rw
+    property IsMap: Boolean;    // !!!: rw
+    property LongDesc: DOMString;       // !!!: rw
+    property Src: Integer;      // !!!: rw
+    property UseMap: DOMString; // !!!: rw
+    property VSpace: Integer;   // !!!: rw
+    property Width: Integer;    // !!!: rw
   end;
 
   THTMLObjectElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;	// !!!: ro
-    property Code: DOMString;	// !!!: rw
-    property Align: DOMString;	// !!!: rw
-    property Archive: DOMString;	// !!!: rw
-    property Border: DOMString;	// !!!: rw
-    property CodeBase: DOMString;	// !!!: rw
-    property CodeType: DOMString;	// !!!: rw
-    property Data: DOMString;	// !!!: rw
-    property Declare: Boolean;	// !!!: rw
-    property Height: DOMString;	// !!!: rw
-    property HSpace: Integer;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property StandBy: DOMString;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
-    property UseMap: DOMString;	// !!!: rw
-    property VSpace: Integer;	// !!!: rw
-    property Width: Integer;	// !!!: rw
-    property ContentDocument: TDOMDocument;	// !!!: ro
+    property Form: THTMLFormElement;    // !!!: ro
+    property Code: DOMString;   // !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Archive: DOMString;        // !!!: rw
+    property Border: DOMString; // !!!: rw
+    property CodeBase: DOMString;       // !!!: rw
+    property CodeType: DOMString;       // !!!: rw
+    property Data: DOMString;   // !!!: rw
+    property Declare: Boolean;  // !!!: rw
+    property Height: DOMString; // !!!: rw
+    property HSpace: Integer;   // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property StandBy: DOMString;        // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property UseMap: DOMString; // !!!: rw
+    property VSpace: Integer;   // !!!: rw
+    property Width: Integer;    // !!!: rw
+    property ContentDocument: TDOMDocument;     // !!!: ro
   end;
 
   THTMLParamElement = class(THTMLElement)
   public
-    property Name: DOMString;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
-    property Value: DOMString;	// !!!: rw
-    property ValueType: DOMString;	// !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
+    property Value: DOMString;  // !!!: rw
+    property ValueType: DOMString;      // !!!: rw
   end;
 
   THTMLAppletElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
-    property Alt: DOMString;	// !!!: rw
-    property Archive: DOMString;	// !!!: rw
-    property Code: DOMString;	// !!!: rw
-    property CodeBase: DOMString;	// !!!: rw
-    property Height: DOMString;	// !!!: rw
-    property HSpace: Integer;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property AppletObject: DOMString;	// !!!: rw
-    property VSpace: Integer;	// !!!: rw
-    property Width: Integer;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Alt: DOMString;    // !!!: rw
+    property Archive: DOMString;        // !!!: rw
+    property Code: DOMString;   // !!!: rw
+    property CodeBase: DOMString;       // !!!: rw
+    property Height: DOMString; // !!!: rw
+    property HSpace: Integer;   // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property AppletObject: DOMString;   // !!!: rw
+    property VSpace: Integer;   // !!!: rw
+    property Width: Integer;    // !!!: rw
   end;
 
   THTMLMapElement = class(THTMLElement)
   public
-    property Areas: THTMLCollection;	// !!!: ro
-    property Name: DOMString;	// !!!: rw
+    property Areas: THTMLCollection;    // !!!: ro
+    property Name: DOMString;   // !!!: rw
   end;
 
   THTMLAreaElement = class(THTMLElement)
   public
-    property AccessKey: DOMString;	// !!!: rw
-    property Alt: DOMString;	// !!!: rw
-    property Coords: DOMString;	// !!!: rw
-    property HRef: DOMString;	// !!!: rw
-    property NoHRef: Boolean;	// !!!: rw
-    property Shape: DOMString;	// !!!: rw
-    property TabIndex: Integer;	// !!!: rw
-    property Target: DOMString;	// !!!: rw
+    property AccessKey: DOMString;      // !!!: rw
+    property Alt: DOMString;    // !!!: rw
+    property Coords: DOMString; // !!!: rw
+    property HRef: DOMString;   // !!!: rw
+    property NoHRef: Boolean;   // !!!: rw
+    property Shape: DOMString;  // !!!: rw
+    property TabIndex: Integer; // !!!: rw
+    property Target: DOMString; // !!!: rw
   end;
 
   THTMLScriptElement = class(THTMLElement)
   public
-    property Text: DOMString;	// !!!: rw
-    property HtmlFor: DOMString;	// !!!: rw
-    property Event: DOMString;	// !!!: rw
-    property Charset: DOMString;	// !!!: rw
-    property Defer: Boolean;	// !!!: rw
-    property Src: DOMString;	// !!!: rw
-    property HTMLType: DOMString;	// !!!: rw
+    property Text: DOMString;   // !!!: rw
+    property HtmlFor: DOMString;        // !!!: rw
+    property Event: DOMString;  // !!!: rw
+    property Charset: DOMString;        // !!!: rw
+    property Defer: Boolean;    // !!!: rw
+    property Src: DOMString;    // !!!: rw
+    property HTMLType: DOMString;       // !!!: rw
   end;
 
   THTMLTableElement = class(THTMLElement)
   public
-    property Caption: THTMLTableCaptionElement;	// !!!: rw
-    property THead: THTMLTableSectionElement;	// !!!: rw
-    property TFoot: THTMLTableSectionElement;	// !!!: rw
-    property Rows: THTMLCollection;	// !!!: ro
-    property TBodies: THTMLCollection;	// !!!: ro
-    property Align: DOMString;	// !!!: rw
-    property BgColor: DOMString;	// !!!: rw
-    property Border: DOMString;	// !!!: rw
-    property CellPadding: DOMString;	// !!!: rw
-    property CellSpacing: DOMString;	// !!!: rw
-    property Frame: DOMString;	// !!!: rw
-    property Rules: DOMString;	// !!!: rw
-    property Summary: DOMString;	// !!!: rw
-    property Width: DOMString;	// !!!: rw
+    property Caption: THTMLTableCaptionElement; // !!!: rw
+    property THead: THTMLTableSectionElement;   // !!!: rw
+    property TFoot: THTMLTableSectionElement;   // !!!: rw
+    property Rows: THTMLCollection;     // !!!: ro
+    property TBodies: THTMLCollection;  // !!!: ro
+    property Align: DOMString;  // !!!: rw
+    property BgColor: DOMString;        // !!!: rw
+    property Border: DOMString; // !!!: rw
+    property CellPadding: DOMString;    // !!!: rw
+    property CellSpacing: DOMString;    // !!!: rw
+    property Frame: DOMString;  // !!!: rw
+    property Rules: DOMString;  // !!!: rw
+    property Summary: DOMString;        // !!!: rw
+    property Width: DOMString;  // !!!: rw
     function CreateTHead: THTMLElement;
     procedure DeleteTHead;
     function CreateTFoot: THTMLElement;
@@ -493,95 +493,95 @@ type
 
   THTMLTableCaptionElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
   end;
 
   THTMLTableColElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
-    property Ch: DOMString;	// !!!: rw
-    property ChOff: DOMString;	// !!!: rw
-    property Span: Integer;	// !!!: rw
-    property VAlign: DOMString;	// !!!: rw
-    property Width: DOMString;	// !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Ch: DOMString;     // !!!: rw
+    property ChOff: DOMString;  // !!!: rw
+    property Span: Integer;     // !!!: rw
+    property VAlign: DOMString; // !!!: rw
+    property Width: DOMString;  // !!!: rw
   end;
 
   THTMLTableSectionElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
-    property Ch: DOMString;	// !!!: rw
-    property ChOff: DOMString;	// !!!: rw
-    property VAlign: DOMString;	// !!!: rw
-    property Rows: THTMLCollection;	// !!!: ro
+    property Align: DOMString;  // !!!: rw
+    property Ch: DOMString;     // !!!: rw
+    property ChOff: DOMString;  // !!!: rw
+    property VAlign: DOMString; // !!!: rw
+    property Rows: THTMLCollection;     // !!!: ro
     function InsertRow(Index: Integer): THTMLElement;
     procedure DeleteRow(Index: Integer);
   end;
 
   THTMLTableRowElement = class(THTMLElement)
   public
-    property RowIndex: Integer;	// !!!: ro
-    property SectionRowIndex: Integer;	// !!!: ro
-    property Cells: THTMLCollection;	// !!!: ro
-    property Align: DOMString;	// !!!: rw
-    property BgColor: DOMString;	// !!!: rw
-    property Ch: DOMString;	// !!!: rw
-    property ChOff: DOMString;	// !!!: rw
-    property VAlign: DOMString;	// !!!: rw
+    property RowIndex: Integer; // !!!: ro
+    property SectionRowIndex: Integer;  // !!!: ro
+    property Cells: THTMLCollection;    // !!!: ro
+    property Align: DOMString;  // !!!: rw
+    property BgColor: DOMString;        // !!!: rw
+    property Ch: DOMString;     // !!!: rw
+    property ChOff: DOMString;  // !!!: rw
+    property VAlign: DOMString; // !!!: rw
     function InsertCell(Index: Integer): THTMLElement;
     procedure DeleteCell(Index: Integer);
   end;
 
   THTMLTableCellElement = class(THTMLElement)
   public
-    property CellIndex: Integer;	// !!!: ro
-    property Abbr: DOMString;	// !!!: rw
-    property Align: DOMString;	// !!!: rw
-    property Axis: DOMString;	// !!!: rw
-    property BgColor: DOMString;	// !!!: rw
-    property Ch: DOMString;	// !!!: rw
-    property ChOff: DOMString;	// !!!: rw
-    property ColSpan: Integer;	// !!!: rw
-    property Headers: DOMString;	// !!!: rw
-    property Height: DOMString;	// !!!: rw
-    property NoWrap: Boolean;	// !!!: rw
-    property RowSpan: Integer;	// !!!: rw
-    property Scope: DOMString;	// !!!: rw
-    property VAlign: DOMString;	// !!!: rw
-    property Width: DOMString;	// !!!: rw
+    property CellIndex: Integer;        // !!!: ro
+    property Abbr: DOMString;   // !!!: rw
+    property Align: DOMString;  // !!!: rw
+    property Axis: DOMString;   // !!!: rw
+    property BgColor: DOMString;        // !!!: rw
+    property Ch: DOMString;     // !!!: rw
+    property ChOff: DOMString;  // !!!: rw
+    property ColSpan: Integer;  // !!!: rw
+    property Headers: DOMString;        // !!!: rw
+    property Height: DOMString; // !!!: rw
+    property NoWrap: Boolean;   // !!!: rw
+    property RowSpan: Integer;  // !!!: rw
+    property Scope: DOMString;  // !!!: rw
+    property VAlign: DOMString; // !!!: rw
+    property Width: DOMString;  // !!!: rw
   end;
 
   THTMLFrameSetElement = class(THTMLElement)
   public
-    property Cols: DOMString;	// !!!: rw
-    property Rows: DOMString;	// !!!: rw
+    property Cols: DOMString;   // !!!: rw
+    property Rows: DOMString;   // !!!: rw
   end;
 
   THTMLFrameElement = class(THTMLElement)
   public
-    property FrameBorder: DOMString;	// !!!: rw
-    property LongDesc: DOMString;	// !!!: rw
-    property MarginHeight: DOMString;	// !!!: rw
-    property MarginWidth: DOMString;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property NoResize: Boolean;	// !!!: rw
-    property Scrolling: DOMString;	// !!!: rw
-    property Src: DOMString;	// !!!: rw
-    property ContentDocument: TDOMDocument;	// !!!: ro
+    property FrameBorder: DOMString;    // !!!: rw
+    property LongDesc: DOMString;       // !!!: rw
+    property MarginHeight: DOMString;   // !!!: rw
+    property MarginWidth: DOMString;    // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property NoResize: Boolean; // !!!: rw
+    property Scrolling: DOMString;      // !!!: rw
+    property Src: DOMString;    // !!!: rw
+    property ContentDocument: TDOMDocument;     // !!!: ro
   end;
 
   THTMLIFrameElement = class(THTMLElement)
   public
-    property Align: DOMString;	// !!!: rw
-    property FrameBorder: DOMString;	// !!!: rw
-    property Height: DOMString;	// !!!: rw
-    property LongDesc: DOMString;	// !!!: rw
-    property MarginHeight: DOMString;	// !!!: rw
-    property MarginWidth: DOMString;	// !!!: rw
-    property Name: DOMString;	// !!!: rw
-    property Scrolling: DOMString;	// !!!: rw
-    property Src: DOMString;	// !!!: rw
-    property Width: DOMString;	// !!!: rw
-    property ContentDocument: TDOMDocument;	// !!!: ro
+    property Align: DOMString;  // !!!: rw
+    property FrameBorder: DOMString;    // !!!: rw
+    property Height: DOMString; // !!!: rw
+    property LongDesc: DOMString;       // !!!: rw
+    property MarginHeight: DOMString;   // !!!: rw
+    property MarginWidth: DOMString;    // !!!: rw
+    property Name: DOMString;   // !!!: rw
+    property Scrolling: DOMString;      // !!!: rw
+    property Src: DOMString;    // !!!: rw
+    property Width: DOMString;  // !!!: rw
+    property ContentDocument: TDOMDocument;     // !!!: ro
   end;
 
   THTMLDocument = class(TXMLDocument)
@@ -590,16 +590,16 @@ type
     procedure SetTitle(const Value: DOMString);
   public
     property Title: DOMString read GetTitle write SetTitle;
-    property Referrer: DOMString;	// !!!: ro
-    property Domain: DOMString;	// !!!: ro
-    property URL: DOMString;	// !!!: ro
-    property Body: THTMLElement;	// !!!: rw
-    property Images: THTMLCollection;	// !!!: ro
-    property Applets: THTMLCollection;	// !!!: ro
-    property Links: THTMLCollection;	// !!!: ro
-    property Forms: THTMLCollection;	// !!!: ro
-    property Anchors: THTMLCollection;	// !!!: ro
-    property Cookie: DOMString;		// !!!: rw
+    property Referrer: DOMString;       // !!!: ro
+    property Domain: DOMString; // !!!: ro
+    property URL: DOMString;    // !!!: ro
+    property Body: THTMLElement;        // !!!: rw
+    property Images: THTMLCollection;   // !!!: ro
+    property Applets: THTMLCollection;  // !!!: ro
+    property Links: THTMLCollection;    // !!!: ro
+    property Forms: THTMLCollection;    // !!!: ro
+    property Anchors: THTMLCollection;  // !!!: ro
+    property Cookie: DOMString;         // !!!: rw
 
     procedure Open; virtual; abstract;
     procedure Close; virtual; abstract;
@@ -924,7 +924,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-12-11 21:06:07  sg
+  Revision 1.2  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
+
+  Revision 1.1  2002/12/11 21:06:07  sg
   * Small cleanups
   * Replaced htmldoc unit with dom_html unit
   * Added SAX parser framework and SAX HTML parser

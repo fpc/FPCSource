@@ -38,10 +38,10 @@ type
 
   THTMLScannerContext = (
     scUnknown,
-    scWhitespace,	// within whitespace
-    scText,		// within text
-    scEntityReference,	// within entity reference ("&...;")
-    scTag);		// within a start tag or end tag
+    scWhitespace,       // within whitespace
+    scText,             // within text
+    scEntityReference,  // within entity reference ("&...;")
+    scTag);             // within a start tag or end tag
 
   THTMLReader = class(TSAXReader)
   private
@@ -159,110 +159,110 @@ begin
     while BufferPos < BufferSize do
       case ScannerContext of
         scUnknown:
-	  case Buffer[BufferPos] of
-	    #9, #10, #13, ' ':
-	      EnterNewScannerContext(scWhitespace);
-	    '&':
-	      begin
-	        Inc(BufferPos);
-	        EnterNewScannerContext(scEntityReference);
-	      end;
-	    '<':
-	      begin
-	        Inc(BufferPos);
-	        EnterNewScannerContext(scTag);
-	      end;
-	    else
-	      EnterNewScannerContext(scText);
-	  end;
-	scWhitespace:
-	  case Buffer[BufferPos] of
-	    #9, #10, #13, ' ':
-	      begin
-		FTokenText := FTokenText + Buffer[BufferPos];
-	        Inc(BufferPos);
-	      end;
-	    '&':
-	      begin
-	        Inc(BufferPos);
-	        EnterNewScannerContext(scEntityReference);
-	      end;
-	    '<':
-	      begin
-	        Inc(BufferPos);
-		EnterNewScannerContext(scTag);
-	      end;
-	    else
-	      EnterNewScannerContext(scText);
-	  end;
+          case Buffer[BufferPos] of
+            #9, #10, #13, ' ':
+              EnterNewScannerContext(scWhitespace);
+            '&':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scEntityReference);
+              end;
+            '<':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scTag);
+              end;
+            else
+              EnterNewScannerContext(scText);
+          end;
+        scWhitespace:
+          case Buffer[BufferPos] of
+            #9, #10, #13, ' ':
+              begin
+                FTokenText := FTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
+              end;
+            '&':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scEntityReference);
+              end;
+            '<':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scTag);
+              end;
+            else
+              EnterNewScannerContext(scText);
+          end;
         scText:
-	  case Buffer[BufferPos] of
-	    #9, #10, #13, ' ':
-	      EnterNewScannerContext(scWhitespace);
-	    '&':
-	      begin
-	        Inc(BufferPos);
-	        EnterNewScannerContext(scEntityReference);
-	      end;
-	    '<':
-	      begin
-	        Inc(BufferPos);
-		EnterNewScannerContext(scTag);
-	      end;
-	    else
-	    begin
-	      FTokenText := FTokenText + Buffer[BufferPos];
-	      Inc(BufferPos);
-	    end;
-	  end;
-	scEntityReference:
-	  if Buffer[BufferPos] = ';' then
-	  begin
-	    Inc(BufferPos);
-	    EnterNewScannerContext(scUnknown);
-	  end else if not (Buffer[BufferPos] in
-	    ['a'..'z', 'A'..'Z', '0'..'9', '#']) then
-	    EnterNewScannerContext(scUnknown)
-	  else
-	  begin
-	    FTokenText := FTokenText + Buffer[BufferPos];
-	    Inc(BufferPos);
-	  end;
-	scTag:
-	  case Buffer[BufferPos] of
-	    '''', '"':
-	      begin
-	        if FAttrNameRead then
-		begin
-	          if FCurStringValueDelimiter = #0 then
-		    FCurStringValueDelimiter := Buffer[BufferPos]
-		  else if FCurStringValueDelimiter = Buffer[BufferPos] then
-		  begin
-		    FCurStringValueDelimiter := #0;
-		    FAttrNameRead := False;
-		  end;
-		end;
-		FTokenText := FTokenText + Buffer[BufferPos];
-		Inc(BufferPos);
-	      end;
-	    '=':
-	      begin
-	        FAttrNameRead := True;
-		FTokenText := FTokenText + Buffer[BufferPos];
-		Inc(BufferPos);
-	      end;
-	    '>':
-	      begin
-	        Inc(BufferPos);
-		if FCurStringValueDelimiter = #0 then
-		  EnterNewScannerContext(scUnknown);
-	      end;
-	    else
-	    begin
-	      FTokenText := FTokenText + Buffer[BufferPos];
-	      Inc(BufferPos);
-	    end;
-	  end;
+          case Buffer[BufferPos] of
+            #9, #10, #13, ' ':
+              EnterNewScannerContext(scWhitespace);
+            '&':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scEntityReference);
+              end;
+            '<':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scTag);
+              end;
+            else
+            begin
+              FTokenText := FTokenText + Buffer[BufferPos];
+              Inc(BufferPos);
+            end;
+          end;
+        scEntityReference:
+          if Buffer[BufferPos] = ';' then
+          begin
+            Inc(BufferPos);
+            EnterNewScannerContext(scUnknown);
+          end else if not (Buffer[BufferPos] in
+            ['a'..'z', 'A'..'Z', '0'..'9', '#']) then
+            EnterNewScannerContext(scUnknown)
+          else
+          begin
+            FTokenText := FTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
+          end;
+        scTag:
+          case Buffer[BufferPos] of
+            '''', '"':
+              begin
+                if FAttrNameRead then
+                begin
+                  if FCurStringValueDelimiter = #0 then
+                    FCurStringValueDelimiter := Buffer[BufferPos]
+                  else if FCurStringValueDelimiter = Buffer[BufferPos] then
+                  begin
+                    FCurStringValueDelimiter := #0;
+                    FAttrNameRead := False;
+                  end;
+                end;
+                FTokenText := FTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
+              end;
+            '=':
+              begin
+                FAttrNameRead := True;
+                FTokenText := FTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
+              end;
+            '>':
+              begin
+                Inc(BufferPos);
+                if FCurStringValueDelimiter = #0 then
+                  EnterNewScannerContext(scUnknown);
+              end;
+            else
+            begin
+              FTokenText := FTokenText + Buffer[BufferPos];
+              Inc(BufferPos);
+            end;
+          end;
       end;
   end;
 end;
@@ -295,48 +295,48 @@ procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 
       while j <= Length(s) do
         if s[j] = '=' then
-	begin
-	  AttrName := LowerCase(Copy(s, i, j - i));
-	  Inc(j);
-	  if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
-	  begin
-  	    ValueDelimiter := s[j];
-	    Inc(j);
-	  end else
-	    ValueDelimiter := #0;
-	  i := j;
-	  DoIncJ := False;
-	  while j <= Length(s) do
-	    if ValueDelimiter = #0 then
-	      if s[j] in WhitespaceChars then
-	        break
-	      else
-	        Inc(j)
-	    else if s[j] = ValueDelimiter then
-	    begin
-	      DoIncJ := True;
-	      break
-	    end else
-	      Inc(j);
+        begin
+          AttrName := LowerCase(Copy(s, i, j - i));
+          Inc(j);
+          if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
+          begin
+            ValueDelimiter := s[j];
+            Inc(j);
+          end else
+            ValueDelimiter := #0;
+          i := j;
+          DoIncJ := False;
+          while j <= Length(s) do
+            if ValueDelimiter = #0 then
+              if s[j] in WhitespaceChars then
+                break
+              else
+                Inc(j)
+            else if s[j] = ValueDelimiter then
+            begin
+              DoIncJ := True;
+              break
+            end else
+              Inc(j);
 
           Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
 
-	  if DoIncJ then
-	    Inc(j);
+          if DoIncJ then
+            Inc(j);
 
           while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-	    Inc(j);
-	  i := j;
-	end
-	else if s[j] in WhitespaceChars then
-	begin
-	  Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
-	  Inc(j);
+            Inc(j);
+          i := j;
+        end
+        else if s[j] in WhitespaceChars then
+        begin
+          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+          Inc(j);
           while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-	    Inc(j);
-	  i := j;
+            Inc(j);
+          i := j;
         end else
-	  Inc(j);
+          Inc(j);
     end;
   end;
 
@@ -355,43 +355,43 @@ begin
     scEntityReference:
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
-	begin
-	  EntString := Ent;
-	  DoCharacters(PSAXChar(EntString), 0, 1);
-	end else
-	begin
-	  { Is this a predefined Unicode character entity? We must check this,
-	    as undefined entities must be handled as text, for compatiblity
-	    to popular browsers... }
-	  Found := False;
-	  for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-	    if UnicodeHTMLEntities[i] = TokenText then
-	    begin
-	      Found := True;
-	      break;
-	    end;
-	  if Found then
-	    DoSkippedEntity(TokenText)
-	  else
+        begin
+          EntString := Ent;
+          DoCharacters(PSAXChar(EntString), 0, 1);
+        end else
+        begin
+          { Is this a predefined Unicode character entity? We must check this,
+            as undefined entities must be handled as text, for compatiblity
+            to popular browsers... }
+          Found := False;
+          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
+            if UnicodeHTMLEntities[i] = TokenText then
+            begin
+              Found := True;
+              break;
+            end;
+          if Found then
+            DoSkippedEntity(TokenText)
+          else
             DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
-	end;
+        end;
       end;
     scTag:
       if Length(TokenText) > 0 then
       begin
         Attr := nil;
         if TokenText[1] = '/' then
-	begin
-	  DoEndElement('',
-	    SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
-	end else if TokenText[1] <> '!' then
-	begin
-	  // Do NOT combine to a single line, as Attr is an output value!
-	  TagName := SplitTagString(TokenText, Attr);
-	  DoStartElement('', TagName, '', Attr);
-	end;
-	if Assigned(Attr) then
-  	  Attr.Free;
+        begin
+          DoEndElement('',
+            SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
+        end else if TokenText[1] <> '!' then
+        begin
+          // Do NOT combine to a single line, as Attr is an output value!
+          TagName := SplitTagString(TokenText, Attr);
+          DoStartElement('', TagName, '', Attr);
+        end;
+        if Assigned(Attr) then
+          Attr.Free;
       end;
   end;
   FScannerContext := NewContext;
@@ -546,33 +546,33 @@ begin
       TagInfo := nil;
       for j := Low(HTMLElProps) to High(HTMLElProps) do
         if CompareText(HTMLElProps[j].Name, LocalName) = 0 then
-	begin
-	  TagInfo := @HTMLElProps[j];
-	  break;
-	end;
+        begin
+          TagInfo := @HTMLElProps[j];
+          break;
+        end;
 
       Inc(i);
       while i < FNodeBuffer.Count do
       begin
         NodeInfo2 := THTMLNodeInfo(FNodeBuffer.Items[i]);
 
-	if (NodeInfo2.NodeType = ntWhitespace) and Assigned(TagInfo) and
-	  (not (efPreserveWhitespace in TagInfo^.Flags)) then
-	  // Handle whitespace, which doesn't need to get preserved...
-	  if not (efPCDATAContent in TagInfo^.Flags) then
-	    // No character data allowed within the current element
-	    NodeInfo2.DOMNode.Free
-	  else
-	  begin
-	    // Character data allowed, so normalize it
-	    NodeInfo2.DOMNode.NodeValue := ' ';
+        if (NodeInfo2.NodeType = ntWhitespace) and Assigned(TagInfo) and
+          (not (efPreserveWhitespace in TagInfo^.Flags)) then
+          // Handle whitespace, which doesn't need to get preserved...
+          if not (efPCDATAContent in TagInfo^.Flags) then
+            // No character data allowed within the current element
+            NodeInfo2.DOMNode.Free
+          else
+          begin
+            // Character data allowed, so normalize it
+            NodeInfo2.DOMNode.NodeValue := ' ';
             NodeInfo.DOMNode.AppendChild(NodeInfo2.DOMNode)
-	  end
-	else
-	  NodeInfo.DOMNode.AppendChild(NodeInfo2.DOMNode);
+          end
+        else
+          NodeInfo.DOMNode.AppendChild(NodeInfo2.DOMNode);
 
-	NodeInfo2.Free;
-	FNodeBuffer.Delete(i);
+        NodeInfo2.Free;
+        FNodeBuffer.Delete(i);
       end;
       break;
     end;
@@ -649,7 +649,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-03-16 22:38:09  sg
+  Revision 1.6  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
+
+  Revision 1.5  2003/03/16 22:38:09  sg
   * Added fragment parsing functions
 
   Revision 1.4  2002/12/14 19:18:21  sg

@@ -3,9 +3,9 @@
     This file is part of the Free Component Library
 
     XML writing routines
-    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
 
-    See the file COPYING.FPC, included in this distribution,
+    See the file COPYING.modifiedLGPL, included in this distribution,
     for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
@@ -17,6 +17,9 @@
 
 unit XMLWrite;
 
+{$MODE objfpc}
+{$H+}
+
 interface
 
 uses Classes, DOM;
@@ -25,9 +28,9 @@ procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String); overload;
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text); overload;
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream); overload;
 
-procedure WriteXML(Node: TDOMNode; const AFileName: String); overload;
-procedure WriteXML(Node: TDOMNode; var AFile: Text); overload;
-procedure WriteXML(Node: TDOMNode; AStream: TStream); overload;
+procedure WriteXML(Element: TDOMElement; const AFileName: String); overload;
+procedure WriteXML(Element: TDOMElement; var AFile: Text); overload;
+procedure WriteXML(Element: TDOMElement; AStream: TStream); overload;
 
 
 // ===================================================================
@@ -59,15 +62,9 @@ type
 
 const
   WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
-{$IFDEF FPC}
     (@WriteElement, @WriteAttribute, @WriteText, @WriteCDATA, @WriteEntityRef,
      @WriteEntity, @WritePI, @WriteComment, @WriteDocument, @WriteDocumentType,
      @WriteDocumentFragment, @WriteNotation);
-{$ELSE}
-    (WriteElement, WriteAttribute, WriteText, WriteCDATA, WriteEntityRef,
-     WriteEntity, WritePI, WriteComment, WriteDocument, WriteDocumentType,
-     WriteDocumentFragment, WriteNotation);
-{$ENDIF}
 
 procedure WriteNode(node: TDOMNode);
 begin
@@ -80,58 +77,94 @@ end;
 // -------------------------------------------------------------------
 
 type
-  TOutputProc = procedure(const s: String);
+  TOutputProc = procedure(const Buffer; Count: Longint);
 
-var
+threadvar
   f: ^Text;
   stream: TStream;
   wrt, wrtln: TOutputProc;
   InsideTextNode: Boolean;
 
-
-procedure Text_Write(const s: String);
+procedure Text_Write(const Buffer; Count: Longint);
+var s: string;
 begin
-  Write(f^, s);
+  if Count>0 then begin
+    SetLength(s,Count);
+    System.Move(Buffer,s[1],Count);
+    Write(f^, s);
+  end;
 end;
 
-procedure Text_WriteLn(const s: String);
+procedure Text_WriteLn(const Buffer; Count: Longint);
+var s: string;
 begin
-  WriteLn(f^, s);
+  if Count>0 then begin
+    SetLength(s,Count);
+    System.Move(Buffer,s[1],Count);
+    writeln(f^, s);
+  end;
 end;
 
-procedure Stream_Write(const s: String);
+procedure Stream_Write(const Buffer; Count: Longint);
 begin
-  if Length(s) > 0 then
-    Stream.Write(s[1], Length(s));
+  if Count > 0 then begin
+    stream.Write(Buffer, Count);
+  end;
 end;
 
-procedure Stream_WriteLn(const s: String);
-const
-  LF: Char = #10;
+procedure Stream_WriteLn(const Buffer; Count: Longint);
 begin
-  if Length(s) > 0 then
-    Stream.Write(s[1], Length(s));
-  Stream.Write(LF, 1);
+  if Count > 0 then begin
+    stream.Write(Buffer, Count);
+    stream.WriteByte(10);
+  end;
 end;
 
+procedure wrtStr(const s: string);
+begin
+  if s<>'' then
+    wrt(s[1],length(s));
+end;
+
+procedure wrtStrLn(const s: string);
+begin
+  if s<>'' then
+    wrtln(s[1],length(s));
+end;
+
+procedure wrtChr(c: char);
+begin
+  wrt(c,1);
+end;
+
+procedure wrtLineEnd;
+begin
+  wrt(#10,1);
+end;
 
 // -------------------------------------------------------------------
 //   Indent handling
 // -------------------------------------------------------------------
 
-var
+threadvar
   Indent: String;
+  IndentCount: integer;
 
+procedure wrtIndent;
+var i: integer;
+begin
+  for i:=1 to IndentCount do
+    wrtStr(Indent);
+end;
 
 procedure IncIndent;
 begin
-  Indent := Indent + '  ';
+  inc(IndentCount);
 end;
 
 procedure DecIndent;
 begin
-  if Length(Indent) >= 2 then
-    SetLength(Indent, Length(Indent) - 2);
+  if IndentCount>0 then dec(IndentCount);
 end;
 
 
@@ -159,40 +192,43 @@ begin
   begin
     if s[EndPos] in SpecialChars then
     begin
-      wrt(Copy(s, StartPos, EndPos - StartPos));
+      wrt(s[StartPos],EndPos - StartPos);
       SpecialCharCallback(s[EndPos]);
       StartPos := EndPos + 1;
     end;
     Inc(EndPos);
   end;
-  if EndPos > StartPos then
-    wrt(Copy(s, StartPos, EndPos - StartPos));
+  if StartPos <= length(s) then
+    wrt(s[StartPos], EndPos - StartPos);
 end;
 
 procedure AttrSpecialCharCallback(c: Char);
+const
+  QuotStr = '&quot;';
+  AmpStr = '&amp;';
 begin
-  if c = '<' then
-    wrt('&lt;')
-  else if c = '>' then
-    wrt('&gt;')
-  else if c = '"' then
-    wrt('&quot;')
+  if c = '"' then
+    wrtStr(QuotStr)
   else if c = '&' then
-    wrt('&amp;')
+    wrtStr(AmpStr)
   else
-    wrt(c);
+    wrt(c,1);
 end;
 
 procedure TextnodeSpecialCharCallback(c: Char);
+const
+  ltStr = '&lt;';
+  gtStr = '&gt;';
+  AmpStr = '&amp;';
 begin
   if c = '<' then
-    wrt('&lt;')
+    wrtStr(ltStr)
   else if c = '>' then
-    wrt('&gt;')
+    wrtStr(gtStr)
   else if c = '&' then
-    wrt('&amp;')
+    wrtStr(AmpStr)
   else
-    wrt(c);
+    wrt(c,1);
 end;
 
 
@@ -208,30 +244,32 @@ var
   s: String;
 begin
   if not InsideTextNode then
-    wrt(Indent);
-  wrt('<' + node.NodeName);
+    wrtIndent;
+  wrtChr('<');
+  wrtStr(node.NodeName);
   for i := 0 to node.Attributes.Length - 1 do
   begin
     attr := node.Attributes.Item[i];
-    wrt(' ' + attr.NodeName + '=');
+    wrtChr(' ');
+    wrtStr(attr.NodeName);
+    wrtChr('=');
     s := attr.NodeValue;
-    wrt('"');
+    // !!!: Replace special characters in "s" such as '&', '<', '>'
+    wrtChr('"');
     ConvWrite(s, AttrSpecialChars, @AttrSpecialCharCallback);
-    wrt('"');
+    wrtChr('"');
   end;
   Child := node.FirstChild;
-  if Child = nil then
-    if InsideTextNode then
-      wrt('/>')
-    else
-      wrtln('/>')
-  else
+  if Child = nil then begin
+    wrtChr('/');
+    wrtChr('>');
+    if not InsideTextNode then wrtLineEnd;
+  end else
   begin
     SavedInsideTextNode := InsideTextNode;
-    if InsideTextNode or Child.InheritsFrom(TDOMText) then
-      wrt('>')
-    else
-      wrtln('>');
+    wrtChr('>');
+    if not (InsideTextNode or Child.InheritsFrom(TDOMText)) then
+      wrtLineEnd;
     IncIndent;
     repeat
       if Child.InheritsFrom(TDOMText) then
@@ -241,82 +279,88 @@ begin
     until child = nil;
     DecIndent;
     if not InsideTextNode then
-      wrt(Indent);
+      wrtIndent;
     InsideTextNode := SavedInsideTextNode;
-    s := '</' + node.NodeName + '>';
-    if InsideTextNode then
-      wrt(s)
-    else
-      wrtln(s);
+    wrtChr('<');
+    wrtChr('/');
+    wrtStr(node.NodeName);
+    wrtChr('>');
+    if not InsideTextNode then
+      wrtLineEnd;
   end;
 end;
 
 procedure WriteAttribute(node: TDOMNode);
 begin
-  WriteLn('WriteAttribute');
+  if node=nil then ;
 end;
 
 procedure WriteText(node: TDOMNode);
 begin
   ConvWrite(node.NodeValue, TextSpecialChars, @TextnodeSpecialCharCallback);
+  if node=nil then ;
 end;
 
 procedure WriteCDATA(node: TDOMNode);
 begin
-  if InsideTextNode then
-    wrt('<![CDATA[' + node.NodeValue + ']]>')
-  else
-    wrtln(Indent + '<![CDATA[' + node.NodeValue + ']]>')
+  if not InsideTextNode then
+    wrtStr('<![CDATA[' + node.NodeValue + ']]>')
+  else begin
+    wrtIndent;
+    wrtStrln('<![CDATA[' + node.NodeValue + ']]>')
+  end;
 end;
 
 procedure WriteEntityRef(node: TDOMNode);
 begin
-  wrt('&' + node.NodeName + ';');
+  wrtChr('&');
+  wrtStr(node.NodeName);
+  wrtChr(';');
 end;
 
 procedure WriteEntity(node: TDOMNode);
 begin
-  WriteLn('WriteEntity');
+  if node=nil then ;
 end;
 
 procedure WritePI(node: TDOMNode);
-var
-  s: String;
 begin
-  s := '<!' + TDOMProcessingInstruction(node).Target + ' ' +
-    TDOMProcessingInstruction(node).Data + '>';
-  if InsideTextNode then
-    wrt(s)
-  else
-    wrtln(Indent + s);
+  if not InsideTextNode then wrtIndent;
+  wrtChr('<'); wrtChr('!');
+  wrtStr(TDOMProcessingInstruction(node).Target);
+  wrtChr(' ');
+  wrtStr(TDOMProcessingInstruction(node).Data);
+  wrtChr('>');
+  if not InsideTextNode then wrtLineEnd;
 end;
 
 procedure WriteComment(node: TDOMNode);
 begin
-  if InsideTextNode then
-    wrt('<!--' + node.NodeValue + '-->')
-  else
-    wrtln(Indent + '<!--' + node.NodeValue + '-->')
+  if not InsideTextNode then wrtIndent;
+  wrtStr('<!--');
+  wrtStr(node.NodeValue);
+  wrtStr('-->');
+  if not InsideTextNode then wrtLineEnd;
 end;
 
 procedure WriteDocument(node: TDOMNode);
 begin
-  WriteLn('WriteDocument');
+  if node=nil then ;
 end;
 
 procedure WriteDocumentType(node: TDOMNode);
 begin
-  WriteLn('WriteDocumentType');
+  if node=nil then ;
 end;
 
 procedure WriteDocumentFragment(node: TDOMNode);
 begin
-  WriteLn('WriteDocumentFragment');
+  if node=nil then ;
 end;
 
 procedure WriteNotation(node: TDOMNode);
 begin
-  WriteLn('WriteNotation');
+  if node=nil then ;
 end;
 
 
@@ -331,30 +375,31 @@ var
   Child: TDOMNode;
 begin
   InitWriter;
-  wrt('<?xml version="');
+  wrtStr('<?xml version="');
   if Length(doc.XMLVersion) > 0 then
     ConvWrite(doc.XMLVersion, AttrSpecialChars, @AttrSpecialCharCallback)
   else
-    wrt('1.0');
-  wrt('"');
+    wrtStr('1.0');
+  wrtChr('"');
   if Length(doc.Encoding) > 0 then
   begin
-    wrt(' encoding="');
+    wrtStr(' encoding="');
     ConvWrite(doc.Encoding, AttrSpecialChars, @AttrSpecialCharCallback);
-    wrt('"');
+    wrtStr('"');
   end;
-  wrtln('?>');
+  wrtStrln('?>');
 
   if Length(doc.StylesheetType) > 0 then
   begin
-    wrt('<?xml-stylesheet type="');
+    wrtStr('<?xml-stylesheet type="');
     ConvWrite(doc.StylesheetType, AttrSpecialChars, @AttrSpecialCharCallback);
-    wrt('" href="');
+    wrtStr('" href="');
     ConvWrite(doc.StylesheetHRef, AttrSpecialChars, @AttrSpecialCharCallback);
-    wrtln('"?>');
+    wrtStrln('"?>');
   end;
 
-  SetLength(Indent, 0);
+  Indent := '  ';
+  IndentCount := 0;
 
   child := doc.FirstChild;
   while Assigned(Child) do
@@ -364,6 +409,14 @@ begin
   end;
 end;
 
+
+procedure WriteXMLMemStream(doc: TXMLDocument);
+// internally used by the WriteXMLFile procedures
+begin
+  Stream:=TMemoryStream.Create;
+  WriteXMLFile(doc,Stream);
+  Stream.Position:=0;
+end;
 
 // -------------------------------------------------------------------
 //   Interface implementation
@@ -413,25 +466,18 @@ const
 {$ENDIF}
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
-{$IFDEF UsesFPCWidestrings}
 var
-  OldWideStringManager: TWideStringManager;
-{$ENDIF}
+  fs: TFileStream;
 begin
-  {$IFDEF UsesFPCWidestrings}
-  SetWideStringManager(WideStringManager, OldWideStringManager);
+  // write first to memory buffer and then as one whole block to file
+  WriteXMLMemStream(doc);
   try
-  {$ENDIF}
-    Stream := TFileStream.Create(AFileName, fmCreate);
-    wrt := @Stream_Write;
-    wrtln := @Stream_WriteLn;
-    RootWriter(doc);
-    Stream.Free;
-  {$IFDEF UsesFPCWidestrings}
+    fs := TFileStream.Create(AFileName, fmCreate);
+    fs.CopyFrom(Stream,Stream.Size);
+    fs.Free;
   finally
-    SetWideStringManager(OldWideStringManager);
+    Stream.Free;
   end;
-  {$ENDIF}
 end;
 
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
@@ -477,7 +523,7 @@ begin
 end;
 
 
-procedure WriteXML(Node: TDOMNode; const AFileName: String);
+procedure WriteXML(Element: TDOMElement; const AFileName: String);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -491,7 +537,7 @@ begin
     wrt := @Stream_Write;
     wrtln := @Stream_WriteLn;
     InitWriter;
-    WriteNode(Node);
+    WriteNode(Element);
     Stream.Free;
   {$IFDEF UsesFPCWidestrings}
   finally
@@ -500,7 +546,7 @@ begin
   {$ENDIF}
 end;
 
-procedure WriteXML(Node: TDOMNode; var AFile: Text);
+procedure WriteXML(Element: TDOMElement; var AFile: Text);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -514,7 +560,7 @@ begin
     wrt := @Text_Write;
     wrtln := @Text_WriteLn;
     InitWriter;
-    WriteNode(Node);
+    WriteNode(Element);
   {$IFDEF UsesFPCWidestrings}
   finally
     SetWideStringManager(OldWideStringManager);
@@ -522,7 +568,7 @@ begin
   {$ENDIF}
 end;
 
-procedure WriteXML(Node: TDOMNode; AStream: TStream);
+procedure WriteXML(Element: TDOMElement; AStream: TStream);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -536,7 +582,7 @@ begin
     wrt := @Stream_Write;
     wrtln := @Stream_WriteLn;
     InitWriter;
-    WriteNode(Node);
+    WriteNode(Element);
   {$IFDEF UsesFPCWidestrings}
   finally
     SetWideStringManager(OldWideStringManager);
@@ -544,38 +590,10 @@ begin
   {$ENDIF}
 end;
 
-
 end.
-
-
 {
   $Log$
-  Revision 1.14  2004-05-02 20:17:53  peter
-    * use sizeint
-
-  Revision 1.13  2004/01/20 12:27:19  sg
-  * "<" and ">" are now written as "&lt;" and "&gt;"
-
-  Revision 1.12  2003/12/01 23:59:12  sg
-  * Added support for main branch to be able to read and write at least
-    ISO8859-1 encoded files correctly. A much improved solution will be
-    provided when the mainbranch RTL fully supports Unicode/WideStrings.
-
-  Revision 1.11  2003/01/15 21:59:55  sg
-  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
-    modifications as well
-
-  Revision 1.10  2002/11/30 16:04:34  sg
-  * Stream parameters are not "var" anymore (stupid copy&paste bug)
-
-  Revision 1.9  2002/09/20 11:36:51  sg
-  * Argument escaping improvements
-  * Indent fixed for consecutive WriteXML calls
-
-  Revision 1.8  2002/09/20 11:04:21  michael
-  + Changed writexml type to TDomNode instead of TDomeElement
-
-  Revision 1.7  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.15  2004-11-05 22:32:28  peter
+    * merged xml updates from lazarus
 
 }
