@@ -53,7 +53,12 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
-  MOS_ExecBase : DWord; External Name '_ExecBase';  
+  MOS_ExecBase : LongInt; external name '_ExecBase';
+
+  int_heap     : LongInt; external name 'HEAP';
+  int_heapsize : LongInt; external name 'HEAPSIZE';
+
+function exec_OpenLibrary(libname: PChar location 'a1'; libver: LongInt location 'd0'; LIBBASE: DWORD LOCATION 'LIBBASE') : LongInt; SysCall 552;
 
 implementation
 
@@ -70,52 +75,15 @@ implementation
 { $I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
 
-const 
-  REG_D0 = 0;
-  REG_D1 = 4;
-  REG_D2 = 8;
-  REG_D3 = 12;
-  REG_D4 = 16;
-  REG_D5 = 20;
-  REG_D6 = 24;
-  REG_D7 = 28;
-  REG_A0 = 32;
-  REG_A1 = 36;
-  REG_A2 = 40;
-  REG_A3 = 44;
-  REG_A4 = 48;
-  REG_A5 = 52;
-  REG_A6 = 56;
-
-const 
-  LVOOpenLibrary = -552;
-
-
-function Exec_OpenLibrary(LibName: PChar; LibVer: LongInt) : LongInt; Assembler;
-asm
-  stw   r3,(REG_A0)(r2)
-  stw   r4,(REG_D0)(r2)
-
-  lis   r3,(MOS_ExecBase)@ha
-  ori   r3,r3,(MOS_ExecBase)@l
-  stw   r3,(REG_A6)(r2)
-
-  li    r3,LVOOpenLibrary
-  mtlr  r3
-  blrl
-
-  mr    r3,r16
-end;
-
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-//procedure haltproc(e:longint);cdecl;external name '_haltproc';
+procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
 begin
-//  haltproc(ExitCode);
+  haltproc(ExitCode);
 End;
 
 
@@ -155,21 +123,15 @@ end;
 *****************************************************************************}
 
 { first address of heap }
-function getheapstart:pointer;{assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];}
+function getheapstart:pointer;
 begin
-   getheapstart:=NIL;
+   getheapstart:=@int_heap;
 end;
 
 { current length of heap }
-function getheapsize:longint;{assembler;
-asm
-        movl    HEAPSIZE,%eax
-end ['EAX'];}
+function getheapsize:longint;
 begin
-   getheapsize:=0;
+   getheapsize:=int_heapsize;
 end;
 
 { function to allocate size bytes more for the program }
@@ -208,12 +170,12 @@ begin
   InOutRes:=1;
 end;
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:longint; addr: pointer; len: longint) : longint;
 begin
   InOutRes:=1;
 end;
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:longint; addr: pointer; len: longint) : longint;
 begin
   InOutRes:=1;
 end;
@@ -348,17 +310,17 @@ Begin
 //  InstallSignals;
 { Setup heap }
   InitHeap;
-  SysInitExceptions;
+//  SysInitExceptions;
 { Arguments }
 //  SetupCmdLine;
 //  SysInitExecPath;
 { Setup stdin, stdout and stderr }
-  SysInitStdIO;
+//  SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
 (* This should be changed to a real value during *)
 (* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
+//  ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -366,8 +328,8 @@ End.
 
 {
   $Log$
-  Revision 1.2  2004-04-08 06:28:29  karoly
-   * first steps to have a morphos system unit
+  Revision 1.3  2004-05-01 15:09:47  karoly
+    * first working system unit (very limited yet)
 
   Revision 1.1  2004/02/13 07:19:53  karoly
    * quick hack from Linux system unit
