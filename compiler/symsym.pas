@@ -1859,12 +1859,14 @@ implementation
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
                  exit;
                end;
-             if (owner.symtabletype=parasymtable) and
-                paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
-                not(vo_has_local_copy in varoptions) then
-               st := 'v'+st { should be 'i' but 'i' doesn't work }
-             else
-               st := 'p'+st;
+             if (owner.symtabletype=parasymtable) then
+               begin
+                 if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
+                    not(vo_has_local_copy in varoptions) then
+                   st := 'v'+st { should be 'i' but 'i' doesn't work }
+                 else
+                   st := 'p'+st;
+               end;
              case localloc.loc of
                LOC_REGISTER, LOC_FPUREGISTER :
                  begin
@@ -2687,7 +2689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2003-12-23 22:13:26  peter
+  Revision 1.140  2004-01-06 15:46:12  peter
+    * fix stabs for locals
+
+  Revision 1.139  2003/12/23 22:13:26  peter
     * don't generate rtti for errordef
 
   Revision 1.138  2003/12/12 12:09:40  marco
