@@ -258,6 +258,18 @@ begin
    end;
 end;
 
+function octstr(val : longint;cnt : byte) : shortstring;
+var
+  i : longint;
+begin
+  octstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     octstr[i]:=hextbl[val and 7];
+     val:=val shr 3;
+   end;
+end;
+
 
 function binstr(val : longint;cnt : byte) : shortstring;
 var
@@ -281,6 +293,19 @@ begin
    begin
      hexstr[i]:=hextbl[val and $f];
      val:=val shr 4;
+   end;
+end;
+
+
+function octstr(val : int64;cnt : byte) : shortstring;
+var
+  i : longint;
+begin
+  octstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     octstr[i]:=hextbl[val and 7];
+     val:=val shr 3;
    end;
 end;
 
@@ -373,6 +398,12 @@ begin
               base:=2;
               inc(code);
             end;
+      '&' : begin
+              Base:=8;
+              repeat
+                inc(code);
+              until (code>=length(s)) or (s[code]<>'0');
+            end;      
      end;
   end;
   InitVal:=code;
@@ -580,7 +611,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2002-01-24 18:27:06  peter
+  Revision 1.19  2002-08-06 20:53:38  michael
+    + Added support for octal strings (using &)
+
+  Revision 1.18  2002/01/24 18:27:06  peter
     * lowercase() overloaded
 
   Revision 1.17  2001/11/16 15:09:47  jonas

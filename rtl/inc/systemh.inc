@@ -357,8 +357,10 @@ Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
 Function  hexStr(Val:Longint;cnt:byte):shortstring;
+Function  OctStr(Val:Longint;cnt:byte):shortstring;
 Function  binStr(Val:Longint;cnt:byte):shortstring;
 Function  hexStr(Val:int64;cnt:byte):shortstring;
+Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  binStr(Val:int64;cnt:byte):shortstring;
 
 { Char functions }
@@ -579,7 +581,10 @@ const
 
 {
   $Log$
-  Revision 1.50  2002-07-26 22:46:06  florian
+  Revision 1.51  2002-08-06 20:53:38  michael
+    + Added support for octal strings (using &)
+
+  Revision 1.50  2002/07/26 22:46:06  florian
     * interface of system unit for Linux/PowerPC compiles
 
   Revision 1.49  2002/07/26 21:29:03  florian
