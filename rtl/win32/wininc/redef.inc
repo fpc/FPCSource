@@ -175,7 +175,7 @@ function BackupWrite(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToWrite: DWO
 function BeginPaint(hWnd: HWND; var lpPaint: TPaintStruct): HDC; external 'user32' name 'BeginPaint';
 function BuildCommDCB(lpDef: PChar; var lpDCB: TDCB): BOOL;external 'kernel32' name 'BuildCommDCBA';
 function BuildCommDCBA(lpDef: LPCSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBA';
-function BuildCommDCBAndTimeouts(lpDef: PChar; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL;external 'kernel32' name 'BuildCommDCBAndTimeouts';
+function BuildCommDCBAndTimeouts(lpDef: PChar; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL;external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
 function BuildCommDCBAndTimeoutsA(lpDef: LPCSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
 function BuildCommDCBAndTimeoutsW(lpDef: LPWSTR; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsW';
 function BuildCommDCBW(lpDef: LPWSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBW';
@@ -927,7 +927,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.13  2003-03-20 14:25:39  armin
+  Revision 1.14  2003-04-07 18:28:53  armin
+  * corrected BuildCommDCBAndTimeouts, the external is BuildCommDCBAndTimeoutsA not BuildCommDCBAndTimeouts
+
+  Revision 1.13  2003/03/20 14:25:39  armin
   + reactivated delphi compatible versions of SetCommTimeouts,SetCommState,BuildCommDCB*
 
   Revision 1.12  2003/01/02 22:07:00  peter
