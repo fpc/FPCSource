@@ -1,0 +1,140 @@
+# Please compile this file with data2inc (e.g. data2inc data2inc.exm demo.inc)
+#
+# This demo file should show all possibilities of the data2inc program.
+# (comment chars are %;#, empty lines are ignored)
+
+# First, the standard purpose of data2inc.
+
+# FPC (before 0.99.12) allowed only textual constants of up to 255 bytes.
+# The main use of data2inc is to circumvent this by defining a constant of
+# type ARRAY OF BYTE in an include file.
+#
+# Some of my utils have a small screen of text to show when wrong or no
+# commandline parameters are passed. The below example is for ../demo/crtolf.pp
+# I use an extremely small procedure in EFIO (EFIO.WrArrChar) to display such
+# constants.
+
+#
+# CrToLf Usage text.
+#
+# First, a '!' to indictate a new record (constant in the include file). This
+# also defines the type of the constant. The record ends at the next line
+# starting with '!' or at the end of the file.
+#
+#  !name  is an array of char type constant
+#  !$name is an array of byte type constant.
+
+# This is an array of char, named UsageCrtolf
+
+!UsageCrtolf
+
+# Now the contents of the type. Empty lines are deleted, so we have to put
+# some constant to indicate an empty line. To ease this, \xxx octal character
+# codes are allowed. (The \015's below translate to CHR(13) which is CR).
+# In data2inc, all characters (and I mean all, even #0 #13 etc) are allowed
+# as long as unprintable characters are noted as with octal code.
+# Beware that a single \ has to be escaped as \\ !!!!!!!!
+
+Usage:   CrToLf <FileName1> [FileName2] [Switches]\015
+ Default all separators are translated to CrLf, spaces are tabbed\015
+ with a default tablength of 8\015
+  Switches:\015
+  /C        : Lineseparator always Cr\015
+  /L        : Lineseparator always Lf\015
+  /B        : Lineseparator always CrLf(default)\015
+  /T        : Convert spaces to hardtabs, default the otherway around\015
+  /S:<Nr>   : Use tabsize <Nr> (default:8)\015
+\015
+  /W[:size] : word wrap the file to a width of 80 (default) or <size>\015
+              characters if /W is used, tabbing is off\015
+\015
+  /P        : (only together with /W) Strip multiple points too (.... becomes .)\015
+  /R        : (Ignored with /W): Never write more than one linefeed.\015
+  /D        : ROT 13 file (not together with /w)\015
+  /M        : Clean up MAN pages linux\015\015
+
+# Now we define a new constant, the same principle as above, but we let it
+# translate to an ARRAY OF BYTE typed constant.
+
+#
+# indexer usage text, translate to array of byte. (The dollarsign after the
+#  exclamation mark).
+#
+
+!$usageindexer
+Usage: Indexer <directory>\015
+Creates indexes and Files.bbs from descript.ion, recursing directories.\015
+Usage : Indexer <Starting-Directory>\015
+   E.g. Indexer c:..\\source\015\015
+
+
+#
+# Now we are moving up to the more advanced possibilities. Everywhere in
+# a record you can add data by placing keyword DATA on a new line, and
+# put your data after it, which works pretty much like the BASIC data command
+#
+# After the DATA keyword, you should put a space, and then several fields
+# with either (integer)nummerical or textual constants.
+#
+# Textual constants are similar to TP textual constants except that you can also
+# use double quotes instead of single, and you can use single quotes inside
+# double quotes. Also #xxx character codes are allowed, and '+' characters
+# which indicate concatenation of strings under BP.
+#
+# Nummerical integer constants come in quite much flavours.
+# $123 , 0x123 , 123h and 123H are equivalent to hexadecimal 123 (= 291 decimal)
+# \666 , 666o and 666O         are equivalent to octal 666       (=438 decimal)
+# 123  , 123d and 123D         is plain decimal 123
+# %010 , 010b and 010B         are equivalent to binary 010      (= 4 decimal)
+#
+#
+# The only problem with integer constants is that 123 is NOT equal to 0123 or
+#  000123
+# 123    will occupy 1 byte
+# 0123   will occupy 2 bytes.
+# 000123 will occupy 4 bytes
+#
+# Same for hexadecimal constants (and the others)
+#
+# FFh     will occupy 1 byte
+# 0FFh    will occupy 2 bytes.
+# 000FFh  will occupy 4 bytes
+#
+
+# First define a new record, ARRAY OF BYTE style
+# If you want to verify DATA, try removing the '$' in the line below and
+# view the ARRAY OF CHAR data.
+
+!$weirddata
+
+This line is just text
+
+# now a data statement
+#       textual                       , rest nummerical
+
+DATA 'Hello :'#12+"another 'hello'"#39,123,$123,0x456,789d,776o
+
+Again normal text.
+
+DATA \666,12d,13h,%10101010
+
+# Be carefull with statements as below. Data2inc syntax isn't entirely basic.
+# If you do define lines like the one below, you can't tell one,two,three apart.
+
+DATA 'one','two','three'
+
+# A solution would be:
+
+DATA 'one'#0,'two'#0,'three'#0,0
+
+#
+# A demonstration line for the difference between $FF, $0FF and $000FF
+#
+
+DATA $FF,$00FF,$000FF
+
+#
+# Everything between the !$weirddata line and this line will be added to
+# the constant weirddata. The empty and comment lines are of course not added.
+
+
