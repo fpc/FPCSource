@@ -52,19 +52,19 @@ type
 
 const
 { Default filehandles }
-   UnusedHandle    : longint = -1;
-   StdInputHandle  : longint = 0;
-   StdOutputHandle : longint = 0;
-   StdErrorHandle  : longint = 0;
+  UnusedHandle    : Longint = -1;
+  StdInputHandle  : Longint = 0;
+  StdOutputHandle : Longint = 0;
+  StdErrorHandle  : Longint = 0;
 
-   FileNameCaseSensitive : boolean = true;
+  FileNameCaseSensitive : boolean = true;
 
-   sLineBreak = LineEnding;
-   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-   { Thread count for DLL }
-   Thread_count : longint = 0;
-   System_exception_frame : PEXCEPTION_FRAME =nil;
+  { Thread count for DLL }
+  Thread_count : longint = 0;
+  System_exception_frame : PEXCEPTION_FRAME =nil;
 
 type
   TStartupInfo=packed record
@@ -90,8 +90,8 @@ type
 
 var
 { C compatible arguments }
-  argc  : longint;
-  argv  : ppchar;
+  argc : longint;
+  argv : ppchar;
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
@@ -257,13 +257,15 @@ var
   heap : longint;external name 'HEAP';
   intern_heapsize : longint;external name 'HEAPSIZE';
 
-function getheapstart:pointer;assembler;
+function getheapstart:pointer;
+assembler;
 asm
         leal    HEAP,%eax
 end ['EAX'];
 
 
-function getheapsize:longint;assembler;
+function getheapsize:longint;
+assembler;
 asm
         movl    intern_HEAPSIZE,%eax
 end ['EAX'];
@@ -453,7 +455,7 @@ begin
 end;
 
 
-procedure do_open(var f;p : pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -1528,7 +1530,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  2003-01-01 20:56:57  florian
+  Revision 1.41  2003-09-12 12:33:43  olle
+    * nice-ified
+
+  Revision 1.40  2003/01/01 20:56:57  florian
     + added invalid instruction exception
 
   Revision 1.39  2002/12/24 15:35:15  peter
