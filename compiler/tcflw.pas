@@ -455,8 +455,9 @@ implementation
            begin
               { first para must be a _class_ }
               firstpass(p^.left);
-              if (p^.left^.resulttype^.deftype<>objectdef) or
-                 not(pobjectdef(p^.left^.resulttype)^.is_class) then
+              if assigned(p^.left^.resulttype) and
+                 ((p^.left^.resulttype^.deftype<>objectdef) or
+                  not(pobjectdef(p^.left^.resulttype)^.is_class)) then
                 CGMessage(type_e_mismatch);
               set_varstate(p^.left,true);
               if codegenerror then
@@ -633,7 +634,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:51  michael
+  Revision 1.3  2000-08-02 07:04:56  jonas
+    * fixed crash when an undeclared identifier is used in a raise statement
+      (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:51  michael
   + removed logs
 
 }
