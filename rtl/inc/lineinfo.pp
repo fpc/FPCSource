@@ -22,7 +22,7 @@ interface
 
 {$S-}
 
-procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
+procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
 
 
 implementation
@@ -721,7 +721,7 @@ end;
 {$Q-}
 { this avoids problems with some targets PM }
 
-procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
+procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
 var
   res : {$ifdef tp}integer{$else}longint{$endif};
   stabsleft,
@@ -852,7 +852,7 @@ begin
   { reset to prevent infinite recursion if problems inside the code PM }
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
-  GetLineInfo(dword(addr),func,source,line);
+  GetLineInfo(ptruint(addr),func,source,line);
 { create string }
   StabBackTraceStr:='  $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
   if func<>'' then
@@ -883,7 +883,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2004-04-22 21:10:35  peter
+  Revision 1.23  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.22  2004/04/22 21:10:35  peter
     * elf64 support
 
   Revision 1.21  2004/04/22 19:43:43  peter

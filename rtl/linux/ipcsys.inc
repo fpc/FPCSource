@@ -34,7 +34,7 @@ end;
 
 function shmat (shmid:cint; shmaddr:pointer; shmflg:cint): pointer;
 Var raddr : pointer;
-    error : cint;
+    error : ptrint;
 begin
   error:=do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmflg),TSysParam(@raddr),TSysParam(shmaddr));
   If Error<0 then
@@ -99,7 +99,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-04-25 19:15:43  marco
+  Revision 1.2  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.1  2004/04/25 19:15:43  marco
    * IPC reform
 
 }

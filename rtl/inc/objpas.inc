@@ -601,12 +601,12 @@
         begin
           IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then begin
-            PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
+            PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
             intf_incr_ref(pointer(obj)); { it must be an com interface }
             getinterface:=True;
           end
           else begin
-            PDWORD(@Obj)^:=0;
+            PPointer(@Obj)^:=nil;
             getinterface:=False;
           end;
         end;
@@ -617,13 +617,13 @@
         begin
           IEntry:=getinterfaceentrybystr(iidstr);
           if Assigned(IEntry) then begin
-            PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
+            PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
             if Assigned(IEntry^.iid) then { for Com interfaces }
               intf_incr_ref(pointer(obj));
             getinterfacebystr:=True;
           end
           else begin
-            PDWORD(@Obj)^:=0;
+            PPointer(@Obj)^:=nil;
             getinterfacebystr:=False;
           end;
         end;
@@ -747,7 +747,10 @@
 
 {
   $Log$
-  Revision 1.36  2004-03-22 22:19:36  florian
+  Revision 1.37  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.36  2004/03/22 22:19:36  florian
     * more alignment fixes
 
   Revision 1.35  2004/03/21 22:41:29  florian

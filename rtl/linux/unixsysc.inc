@@ -32,7 +32,7 @@ Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
   investigate.
 }
 begin
-  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(path),longint(@Info)));
+  StatFS:=(do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(@Info)));
 end;
 
 Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
@@ -42,7 +42,7 @@ Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
   you wish to investigate.
 }
 begin
-  fStatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,longint(@info)));
+  fStatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(@info)));
 end;
 
 
@@ -84,7 +84,7 @@ begin
   {$ifdef FPC_USE_LIBC}
   assignpipe:=pipe(pip);
   {$else}
-  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip));
+  assignPipe:=do_SysCall(SysCall_nr_pipe,TSysParam(@pip));
   {$endif}
   pipe_in:=pip[0];
   pipe_out:=pip[1];
@@ -117,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-04-23 19:16:24  marco
+  Revision 1.27  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.26  2004/04/23 19:16:24  marco
    * flock -> fpflock because of conflicting structure name
 
   Revision 1.25  2004/01/02 22:46:29  marco

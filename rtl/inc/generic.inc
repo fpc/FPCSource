@@ -434,7 +434,7 @@ begin
    if (_self=nil) or (_vmt=nil) then
      exit;
    { vmt=-1 when memory was allocated }
-   if longint(_vmt)=-1 then
+   if ptrint(_vmt)=-1 then
      begin
        if (_self=nil) or (ppointer(_self+vmt_pos)^=nil) then
          HandleError(210)
@@ -1139,7 +1139,10 @@ end;
 
 {
   $Log$
-  Revision 1.70  2004-04-26 15:55:01  peter
+  Revision 1.71  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.70  2004/04/26 15:55:01  peter
     * FPC_MOVE alias
 
   Revision 1.69  2004/02/02 20:39:27  florian

@@ -226,7 +226,7 @@ end;
 Function SafeArrayCalculateElementAddress(psa: PVarArray; aElement: Integer): Pointer;
 
 begin
-  Result:=Pointer(Integer(psa^.Data)+(aElement*psa^.ElementSize));
+  Result:=Pointer(psa^.Data)+(aElement*psa^.ElementSize);
 end;
 
 Function CheckVarArrayAndCalculateAddress(psa: PVarArray;
@@ -709,7 +709,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.10  2002-11-22 16:30:05  peter
+  Revision 1.11  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.10  2002/11/22 16:30:05  peter
     * Widestring->PWidechar requires a typecast
 
   Revision 1.9  2002/10/11 12:21:55  florian

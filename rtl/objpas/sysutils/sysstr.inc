@@ -1017,7 +1017,7 @@ begin
               end;
         'P' : Begin
               CheckArg(vtpointer,true);
-              ToAdd:=HexStr(Longint(Args[DoArg].VPointer),8);
+              ToAdd:=HexStr(ptrint(Args[DoArg].VPointer),sizeof(Ptrint)*2);
               // Insert ':'. Is this needed in 32 bit ? No it isn't.
               // Insert(':',ToAdd,5);
               end;
@@ -1809,7 +1809,7 @@ Var
           End;
       End; { Case }
     End; { While .. Begin }
-    Result:=LongInt(Buf)-LongInt(Buffer);
+    Result:=PtrInt(Buf)-PtrInt(Buffer);
   End;
 
 Begin
@@ -2144,7 +2144,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-02-26 08:46:21  michael
+  Revision 1.10  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.9  2004/02/26 08:46:21  michael
   + Added AnsiSameStr
 
   Revision 1.8  2003/11/26 22:17:42  michael

@@ -15,15 +15,15 @@
 
 { Include syscall itself }
 {i syscallo.inc}
-Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
+Function Sys_mmap(adr:pointer;len:size_t;prot,flags,fdes:cint;off:off_t):cint; // moved from sysunix.inc, used in sbrk
 
 begin
-  fpmmap(pointer(adr),size_t(len),cint(prot),cint(flags),cint(fdes),off_t(off));
+  fpmmap(adr,len,prot,flags,fdes,off);
 end;
 
-Function Sys_munmap(adr,len:longint):longint; // moved from sysunix.inc, used in sbrk
+Function Sys_munmap(adr:pointer;len:cint):cint; // moved from sysunix.inc, used in sbrk
 begin
- fpmunmap(pointer(adr),cint(len));
+  fpmunmap(adr,len);
 end;
 
 {
@@ -33,8 +33,7 @@ end;
   Data points to data needed for the Ndx function. The structure of this
   data is function-dependent.
 }
-Function Sys_IOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  // This was missing here, instead hardcode in Do_IsDevice
-
+Function Sys_IOCtl(Handle,Ndx: cint;Data: Pointer):cint;  // This was missing here, instead hardcode in Do_IsDevice
 begin
   sys_ioctl:=fpioctl(handle,ndx,data);
 end;
@@ -42,7 +41,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-11-17 11:28:08  marco
+  Revision 1.4  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.3  2003/11/17 11:28:08  marco
    * Clone moved to linux, + few small unit unix changes
 
   Revision 1.2  2003/10/31 08:55:11  mazen

@@ -1937,7 +1937,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Byte(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
+       IF Boolean(Byte(ptrint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1953,7 +1953,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Byte(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
+     IF Boolean(Byte(ptrint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2950,7 +2950,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.30  2004-04-22 20:59:23  peter
+  Revision 1.31  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.30  2004/04/22 20:59:23  peter
     * longint to ptrint
 
   Revision 1.29  2004/03/31 21:49:19  florian

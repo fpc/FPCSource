@@ -21,7 +21,11 @@ Type
     Attr : Longint;
     Name : TFileName;
     ExcludeAttr : Longint;
+{$ifdef unix}    
+    FindHandle : Pointer;
+{$else unix}
     FindHandle : THandle;
+{$endif unix}    
 {$ifdef Win32}
     FindData : TWin32FindData;
 {$endif}
@@ -83,7 +87,10 @@ Function FileIsReadOnly(const FileName: String): Boolean;
 
 {
   $Log$
-  Revision 1.2  2004-02-08 14:50:51  michael
+  Revision 1.3  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.2  2004/02/08 14:50:51  michael
   + Added fileIsReadOnly
 
   Revision 1.1  2003/10/06 21:01:06  peter

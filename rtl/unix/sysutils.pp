@@ -191,7 +191,7 @@ Var SInfo : Stat;
     GlobSearchRec : PGlobSearchrec;
 
 begin
-  GlobSearchRec:=PGlobSearchrec(Info.FindHandle);
+  GlobSearchRec:=Info.FindHandle;
   P:=GlobSearchRec^.GlobHandle;
   Result:=P<>Nil;
   If Result then
@@ -224,7 +224,7 @@ Var
 
 begin
   Result:=-1;
-  GlobSearchRec:=PGlobSearchRec(Rslt.FindHandle);
+  GlobSearchRec:=Rslt.FindHandle;
   If (GlobSearchRec^.GlobHandle<>Nil) then
     While (GlobSearchRec^.GlobHandle<>Nil) and not (Result=0) do
       If GlobToTSearchRec(Rslt) Then Result:=0;
@@ -242,7 +242,7 @@ begin
   GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
   GlobSearchRec^.GlobHandle:=Glob(Path);
   Rslt.ExcludeAttr:=Not Attr; //!! Not correct !!
-  Rslt.FindHandle:=Longint(GlobSearchRec);
+  Rslt.FindHandle:=GlobSearchRec;
   Result:=DoFind (Rslt);
 end;
 
@@ -260,7 +260,7 @@ Var
   GlobSearchRec : PGlobSearchRec;
 
 begin
-  GlobSearchRec:=PGlobSearchRec(F.FindHandle);
+  GlobSearchRec:=F.FindHandle;
   GlobFree (GlobSearchRec^.GlobHandle);
   Dispose(GlobSearchRec);
 end;
@@ -635,7 +635,10 @@ end.
 {
 
   $Log$
-  Revision 1.39  2004-04-26 14:50:19  peter
+  Revision 1.40  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.39  2004/04/26 14:50:19  peter
     * FileIsReadOnly fixed
 
   Revision 1.38  2004/04/20 18:24:32  marco

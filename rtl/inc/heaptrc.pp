@@ -744,7 +744,7 @@ begin
   i:=0;
 
 {$ifdef go32v2}
-  if cardinal(p)<$1000 then
+  if ptruint(p)<$1000 then
     runerror(216);
   asm
      movl %ebp,get_ebp
@@ -753,27 +753,27 @@ begin
   end;
   stack_top:=__stkbottom+__stklen;
   { allow all between start of code and end of data }
-  if cardinal(p)<=data_end then
+  if ptruint(p)<=data_end then
     goto _exit;
   { .bss section }
-  if cardinal(p)<=cardinal(heap_at_init) then
+  if ptruint(p)<=ptruint(heap_at_init) then
     goto _exit;
   { stack can be above heap !! }
 
-  if (cardinal(p)>=get_ebp) and (cardinal(p)<=stack_top) then
+  if (ptruint(p)>=get_ebp) and (ptruint(p)<=stack_top) then
     goto _exit;
 {$endif go32v2}
 
   { I don't know where the stack is in other OS !! }
 {$ifdef win32}
-  if (cardinal(p)>=$40000) and (p<=HeapOrg) then
+  if (ptruint(p)>=$40000) and (p<=HeapOrg) then
     goto _exit;
   { inside stack ? }
   asm
      movl %ebp,get_ebp
   end;
-  if (cardinal(p)>get_ebp) and
-     (cardinal(p)<Win32StackTop) then
+  if (ptruint(p)>get_ebp) and
+     (ptruint(p)<Win32StackTop) then
     goto _exit;
 {$endif win32}
 
@@ -785,8 +785,8 @@ begin
    begin
      { inside this valid block ! }
      { we can be changing the extrainfo !! }
-     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info){+extra_info_size}) and
-        (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
+     if (ptruint(p)>=ptruint(pp)+sizeof(theap_mem_info){+extra_info_size}) and
+        (ptruint(p)<=ptruint(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
        begin
           { check allocated block }
           if ((pp^.sig=$DEADBEEF) and not usecrc) or
@@ -817,8 +817,8 @@ begin
   while pp<>nil do
    begin
      { inside this block ! }
-     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)) and
-        (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)+cardinal(pp^.size)) then
+     if (ptruint(p)>=ptruint(pp)+sizeof(theap_mem_info)+ptruint(extra_info_size)) and
+        (ptruint(p)<=ptruint(pp)+sizeof(theap_mem_info)+ptruint(extra_info_size)+ptruint(pp^.size)) then
         { allocated block }
        if ((pp^.sig=$DEADBEEF) and not usecrc) or
           ((pp^.sig=calculate_sig(pp)) and usecrc) then
@@ -1156,7 +1156,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2004-03-15 21:48:26  peter
+  Revision 1.28  2004-04-28 20:48:20  peter
+    * ordinal-pointer conversions fixed
+
+  Revision 1.27  2004/03/15 21:48:26  peter
     * cmem moved to rtl
     * longint replaced with ptrint in heapmanagers
 

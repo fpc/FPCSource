@@ -61,7 +61,7 @@ Function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, a
 }
 
 begin
-  fpsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,longint(how),longint(nset),longint(oset));
+  fpsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset));
 end;
 
 
@@ -71,7 +71,7 @@ Function fpSigPending(var nset: TSigSet):cint;
   signals is set in SSet
 }
 begin
-  fpsigpending:=do_syscall(syscall_nr_rt_sigpending,longint(@nset));
+  fpsigpending:=do_syscall(syscall_nr_rt_sigpending,TSysParam(@nset));
 end;
 
 function fpsigsuspend(const sigmask:TSigSet):cint;
@@ -81,7 +81,7 @@ function fpsigsuspend(const sigmask:TSigSet):cint;
 }
 
 begin
-  fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,longint(@sigmask));
+  fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,TSysParam(@sigmask));
 end;
 
 Type
@@ -97,13 +97,13 @@ Const   ITimer_Real    =0;
 Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
 
 Begin
-  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,Longint(@Value),longint(@varovalue));
+  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,TSysParam(@Value),TSysParam(@varovalue));
 End;
 
 Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
 
 Begin
-  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,Longint(@value));
+  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,TSysParam(@value));
 End;
 
 Function fpalarm(Seconds: cuint):cuint;
@@ -256,7 +256,7 @@ function fpwait(var stat_loc:cint): pid_t;
 }
 
 begin // actually a wait4() call with 4th arg 0.
- fpWait:=do_syscall(syscall_nr_Wait4,WAIT_ANY,longint(@Stat_loc),0,0);
+ fpWait:=do_syscall(syscall_nr_Wait4,WAIT_ANY,TSysParam(@Stat_loc),0,0);
 end;
 
 //function fpgetpid : pid_t;
@@ -312,7 +312,7 @@ end;
 function fpgetgroups(gidsetsize : cint; var grouplist:tgrparr): cint;
 
 begin
- fpgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,longint(@grouplist));
+ fpgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,TSysParam(@grouplist));
 end;
 
 function fpgetpgrp : pid_t;
@@ -342,7 +342,7 @@ Function fplink(existing:pchar;newone:pchar):cint;
   In effect, new will be the same file as old.
 }
 begin
-  fpLink:=Do_Syscall(syscall_nr_link,longint(existing),longint(newone));
+  fpLink:=Do_Syscall(syscall_nr_link,TSysParam(existing),TSysParam(newone));
 end;
 
 Function fpmkfifo(path:pchar;mode:mode_t):cint;
@@ -355,13 +355,13 @@ end;
 Function fpchmod(path:pchar;mode:mode_t):cint;
 
 begin
-  fpchmod:=do_syscall(syscall_nr_chmod,longint(path),longint(mode));
+  fpchmod:=do_syscall(syscall_nr_chmod,TSysParam(path),TSysParam(mode));
 end;
 
 Function fpchown(path:pchar;owner:uid_t;group:gid_t):cint;
 
 begin
-  fpChOwn:=do_syscall(syscall_nr_chown,longint(path),longint(owner),longint(group));
+  fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
 end;
 
 Function fpUtime(path:pchar;times:putimbuf):cint;
@@ -373,7 +373,7 @@ end;
 Function fppipe(var fildes : tfildes):cint;
 
 begin
- fppipe:=do_syscall(syscall_nr_pipe,longint(@fildes));
+ fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
 end;
 
 function fpfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
@@ -385,7 +385,7 @@ end;
 function fpfcntl(fildes:cint;Cmd:cint;var Arg:flock):cint;
 
 begin
- fpfcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,longint(@arg));
+ fpfcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,TSysParam(@arg));
 end;
 
 function fpfcntl(fildes:cint;Cmd:cint):cint;
@@ -397,13 +397,13 @@ end;
 function fpexecve(path:pchar;argv:ppchar;envp:ppchar):cint;
 
 Begin
-  fpexecve:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+  fpexecve:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
 End;
 
 function fpexecv(path:pchar;argv:ppchar):cint;
 
 Begin
-  fpexecv:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+  fpexecv:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
 End;
 
 function fptimes(var buffer : tms):clock_t;
@@ -425,17 +425,17 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
 
 {$ifdef cpui386}
 Var
-  SelectArray : Array[1..5] of longint;
+  SelectArray : Array[1..5] of TSysParam;
 {$endif}
 
 begin
 {$ifdef cpui386}
   SelectArray[1]:=n;
-  SelectArray[2]:=longint(Readfds);
-  Selectarray[3]:=longint(Writefds);
-  selectarray[4]:=longint(exceptfds);
-  Selectarray[5]:=longint(TimeOut);
-  fpSelect:=do_syscall(syscall_nr_select,longint(@selectarray));
+  SelectArray[2]:=TSysParam(Readfds);
+  Selectarray[3]:=TSysParam(Writefds);
+  selectarray[4]:=TSysParam(exceptfds);
+  Selectarray[5]:=TSysParam(TimeOut);
+  fpSelect:=do_syscall(syscall_nr_select,TSysParam(@selectarray));
 {$endif}
 {$ifdef cpupowerpc}
  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
@@ -446,7 +446,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2004-04-22 17:17:23  peter
+ Revision 1.10  2004-04-28 20:48:20  peter
+   * ordinal-pointer conversions fixed
+
+ Revision 1.9  2004/04/22 17:17:23  peter
    * x86-64 fixes
 
  Revision 1.8  2004/02/21 23:18:50  marco

@@ -172,7 +172,7 @@ Var
   stdout:text absolute output;
   {$ENDIF}
 begin
-  Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Longint(Addr),8),' :');
+  Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
