@@ -59,7 +59,7 @@ begin
   Insert(KeyST);
   GetExtent(R); R.Grow(-1,-1); R.A.Y:=10;
   New(MsgLB, Init(R, nil, nil));
-  MsgLB^.NewList(New(PUnsortedStringCollection, Init(100,100)));
+{  MsgLB^.NewList(New(PUnsortedStringCollection, Init(100,100))); }
   Insert(MsgLB);
 end;
 
@@ -232,7 +232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-01-14 21:42:19  peter
+  Revision 1.6  1999-01-15 16:12:43  peter
+    * fixed crash after compile
+
+  Revision 1.5  1999/01/14 21:42:19  peter
     * source tracking from Gabor
 
   Revision 1.4  1999/01/12 14:29:32  peter
