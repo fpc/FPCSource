@@ -195,6 +195,12 @@ implementation
                if symtablestack.symtabletype=localsymtable then
                  symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
             end;
+         if (current_procdef.localst.symtablelevel=main_program_level) and
+             (not current_module.is_unit) then
+           begin
+             { there's always a call to FPC_DO_EXIT in the main program }
+             include(current_procinfo.flags,pi_do_call);
+           end;
       end;
 
 
@@ -1253,7 +1259,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2003-06-07 18:57:04  jonas
+  Revision 1.124  2003-06-07 19:37:43  jonas
+    * pi_do_call must always be set for the main program, since it always
+      ends with a call to FPC_DO_EXIT
+
+  Revision 1.123  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
