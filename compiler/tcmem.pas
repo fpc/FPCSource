@@ -234,6 +234,10 @@ implementation
                    begin
                      hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                        getcopy(p^.left^.methodpointer));
+                     disposetree(p);
+                     firstpass(hp);
+                     p:=hp;
+                     exit;
                    end
                   else
                    hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
@@ -636,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-11-18 15:34:51  pierre
+  Revision 1.35  1999-11-29 22:36:48  florian
+    * problem with taking the address of abstract procedures fixed
+
+  Revision 1.34  1999/11/18 15:34:51  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 
