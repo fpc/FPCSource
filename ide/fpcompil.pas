@@ -664,10 +664,12 @@ end;
 procedure CompilerStop; {$ifndef FPC}far;{$endif}
 begin
 {$ifndef GABOR}
+{$ifdef HasSignal}
   if StopJmpValid then
     Longjmp(StopJmp,1)
   else
     Halt(1);
+{$endif}
 {$endif}
 end;
 
@@ -944,11 +946,17 @@ begin
   WUtils.DeleteFile(GetExePath+PpasFile);
   SetStatus('Compiling...');
 {$ifndef GABOR}
+{$ifdef HasSignal}
   StoreStopJumpValid:=StopJmpValid;
   StoreStopJmp:=StopJmp;
+{$endif HasSignal}
   StoreExitProc:=ExitProc;
+{$ifdef HasSignal}
   StopJmpValid:=true;
   JmpRet:=SetJmp(StopJmp);
+{$else}  
+  JmpRet:=0;
+{$endif HasSignal}
   if JmpRet=0 then
     begin
       inc(CompileStamp);
@@ -985,8 +993,10 @@ begin
       CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
       SetStatus('Long jumped out of compilation...');
     end;
+{$ifdef HasSignal}
   StopJmpValid:=StoreStopJumpValid;
   StopJmp:=StoreStopJmp;
+{$endif HasSignal}
 {$endif}
   { tokens are created and distroyed by compiler.compile !! PM }
   InitTokens;
@@ -1298,7 +1308,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-09-26 15:00:35  pierre
+  Revision 1.16  2002-10-23 19:19:40  hajny
+    * another bunch of missing HasSignal conditionals
+
+  Revision 1.15  2002/09/26 15:00:35  pierre
    * fix problems with system unit is not present for __fp__ compilation
 
   Revision 1.14  2002/09/13 22:30:50  pierre
