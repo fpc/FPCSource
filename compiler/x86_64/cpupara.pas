@@ -340,15 +340,22 @@ unit cpupara;
                         end;
                       LOC_REFERENCE :
                         begin
-                          { Extended needs a single location }
-                          if (paracgsize=OS_F80) or
-                             (paralen<=sizeof(aint)) then
-                            l:=paralen
-                          else
-                            l:=sizeof(aint);
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REFERENCE;
-                          paraloc^.size:=int_cgsize(l);
+                          { Extended needs a single location }
+                          if (paracgsize=OS_F80) then
+                            begin
+                              paraloc^.size:=paracgsize;
+                              l:=paralen;
+                            end
+                          else
+                            begin
+                              if (paralen<=sizeof(aint)) then
+                                l:=paralen
+                              else
+                                l:=sizeof(aint);
+                              paraloc^.size:=int_cgsize(l);
+                            end;
                           if side=callerside then
                             paraloc^.reference.index:=NR_STACK_POINTER_REG
                           else
@@ -426,7 +433,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2005-01-29 11:36:52  peter
+  Revision 1.15  2005-02-03 18:32:25  peter
+    * fix extended paraloc
+
+  Revision 1.14  2005/01/29 11:36:52  peter
     * update x86_64 with new cpupara
 
   Revision 1.13  2004/12/12 12:56:18  peter
