@@ -27,46 +27,47 @@ uses
 
 const
   tokenidlen=14;
+  tokheader=#8'Free Pascal Compiler -- Token data'#13#10#26;
 
 type
-  ttoken=(
+  ttoken=(NOTOKEN,
     { operators, which can also be overloaded }
-    PLUS,
-    MINUS,
-    STAR,
-    SLASH,
-    EQUAL,
-    GT,
-    LT,
-    GTE,
-    LTE,
-    SYMDIF,
-    STARSTAR,
-    OP_IS,
-    OP_AS,
-    OP_IN,
-    ASSIGNMENT,
+    _PLUS,
+    _MINUS,
+    _STAR,
+    _SLASH,
+    _EQUAL,
+    _GT,
+    _LT,
+    _GTE,
+    _LTE,
+    _SYMDIF,
+    _STARSTAR,
+    _OP_IS,
+    _OP_AS,
+    _OP_IN,
+    _ASSIGNMENT,
     { special chars }
-    CARET,
-    UNEQUAL,
-    LECKKLAMMER,
-    RECKKLAMMER,
-    POINT,
-    COMMA,
-    LKLAMMER,
-    RKLAMMER,
-    COLON,
-    SEMICOLON,
-    KLAMMERAFFE,
-    POINTPOINT,
-    DOUBLEADDR,
+    _CARET,
+    _UNEQUAL,
+    _LECKKLAMMER,
+    _RECKKLAMMER,
+    _POINT,
+    _COMMA,
+    _LKLAMMER,
+    _RKLAMMER,
+    _COLON,
+    _SEMICOLON,
+    _KLAMMERAFFE,
+    _POINTPOINT,
+    _DOUBLEADDR,
     _EOF,
-    ID,
-    NOID,
-    REALNUMBER,
-    INTCONST,
-    CSTRING,
-    CCHAR,
+    _ID,
+    _NOID,
+    _REALNUMBER,
+    _INTCONST,
+    _CSTRING,
+    _CCHAR,
     { C like operators }
     _PLUSASN,
     _MINUSASN,
@@ -80,6 +81,7 @@ type
     _XORASN,
     { Normal words }
     _AS,
+    _AT,
     _DO,
     _IF,
     _IN,
@@ -121,9 +123,11 @@ type
     _UNIT,
     _USES,
     _WITH,
+    _ALIAS,
     _ARRAY,
     _BEGIN,
     _BREAK,
+    _CDECL,
     _CLASS,
     _CONST,
     _FALSE,
@@ -139,21 +143,29 @@ type
     _INLINE,
     _OBJECT,
     _PACKED,
+    _PASCAL,
     _PUBLIC,
     _RECORD,
     _REPEAT,
+    _RESULT,
     _STATIC,
     _STORED,
     _STRING,
+    _SYSTEM,
+    _ASMNAME,
     _DEFAULT,
     _DISPOSE,
     _DYNAMIC,
     _EXPORTS,
     _FINALLY,
     _FORWARD,
+    _IOCHECK,
     _LIBRARY,
+    _MESSAGE,
     _PRIVATE,
     _PROGRAM,
+    _STDCALL,
+    _SYSCALL,
     _VIRTUAL,
     _ABSOLUTE,
     _ABSTRACT,
@@ -162,8 +174,12 @@ type
     _FUNCTION,
     _OPERATOR,
     _OVERRIDE,
+    _POPSTACK,
     _PROPERTY,
+    _REGISTER,
     _RESIDENT,
+    _SAFECALL,
+    _ASSEMBLER,
     _INHERITED,
     _INTERFACE,
     _INTERRUPT,
@@ -172,12 +188,18 @@ type
     _PROCEDURE,
     _PROTECTED,
     _PUBLISHED,
+    _THREADVAR,
     _DESTRUCTOR,
+    _INTERNPROC,
+    _OPENSTRING,
     _CONSTRUCTOR,
+    _INTERNCONST,
     _SHORTSTRING,
     _FINALIZATION,
+    _SAVEREGISTERS,
     _IMPLEMENTATION,
-    _INITIALIZATION
+    _INITIALIZATION,
+    _RESOURCESTRING
   );
 
   tokenrec=record
@@ -187,13 +209,19 @@ type
     encoded : longint;
   end;
 
-type
   ttokenarray=array[ttoken] of tokenrec;
   ptokenarray=^ttokenarray;
 
+  tokenidxrec=record
+    first,last : ttoken;
+  end;
+
+  ptokenidx=^ttokenidx;
+  ttokenidx=array[2..tokenidlen,'A'..'Z'] of tokenidxrec;
 
 const
-  arraytokeninfo: ttokenarray =(
+  arraytokeninfo : ttokenarray =(
+      (str:''              ;special:true ;keyword:m_none),
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
       (str:'-'             ;special:true ;keyword:m_none),
@@ -244,12 +272,13 @@ const
       (str:''              ;special:true ;keyword:m_none),
     { Normal words }
       (str:'AS'            ;special:false;keyword:m_class),
+      (str:'AT'            ;special:false;keyword:m_none),
       (str:'DO'            ;special:false;keyword:m_all),
       (str:'IF'            ;special:false;keyword:m_all),
       (str:'IN'            ;special:false;keyword:m_all),
       (str:'IS'            ;special:false;keyword:m_class),
       (str:'OF'            ;special:false;keyword:m_all),
-      (str:'ON'            ;special:false;keyword:m_objpas),
+      (str:'ON'            ;special:false;keyword:m_class),
       (str:'OR'            ;special:false;keyword:m_all),
       (str:'TO'            ;special:false;keyword:m_all),
       (str:'AND'           ;special:false;keyword:m_all),
@@ -265,7 +294,7 @@ const
       (str:'SET'           ;special:false;keyword:m_all),
       (str:'SHL'           ;special:false;keyword:m_all),
       (str:'SHR'           ;special:false;keyword:m_all),
-      (str:'TRY'           ;special:false;keyword:m_objpas),
+      (str:'TRY'           ;special:false;keyword:m_class),
       (str:'VAR'           ;special:false;keyword:m_all),
       (str:'XOR'           ;special:false;keyword:m_all),
       (str:'CASE'          ;special:false;keyword:m_all),
@@ -285,39 +314,49 @@ const
       (str:'UNIT'          ;special:false;keyword:m_all),
       (str:'USES'          ;special:false;keyword:m_all),
       (str:'WITH'          ;special:false;keyword:m_all),
+      (str:'ALIAS'         ;special:false;keyword:m_none),
       (str:'ARRAY'         ;special:false;keyword:m_all),
       (str:'BEGIN'         ;special:false;keyword:m_all),
       (str:'BREAK'         ;special:false;keyword:m_none),
+      (str:'CDECL'         ;special:false;keyword:m_none),
       (str:'CLASS'         ;special:false;keyword:m_class),
       (str:'CONST'         ;special:false;keyword:m_all),
       (str:'FALSE'         ;special:false;keyword:m_all),
       (str:'INDEX'         ;special:false;keyword:m_none),
       (str:'LABEL'         ;special:false;keyword:m_all),
-      (str:'RAISE'         ;special:false;keyword:m_objpas),
+      (str:'RAISE'         ;special:false;keyword:m_class),
       (str:'UNTIL'         ;special:false;keyword:m_all),
       (str:'WHILE'         ;special:false;keyword:m_all),
       (str:'WRITE'         ;special:false;keyword:m_none),
       (str:'DOWNTO'        ;special:false;keyword:m_all),
-      (str:'EXCEPT'        ;special:false;keyword:m_objpas),
+      (str:'EXCEPT'        ;special:false;keyword:m_class),
       (str:'EXPORT'        ;special:false;keyword:m_none),
       (str:'INLINE'        ;special:false;keyword:m_none),
       (str:'OBJECT'        ;special:false;keyword:m_all),
       (str:'PACKED'        ;special:false;keyword:m_all),
+      (str:'PASCAL'        ;special:false;keyword:m_none),
       (str:'PUBLIC'        ;special:false;keyword:m_none),
       (str:'RECORD'        ;special:false;keyword:m_all),
       (str:'REPEAT'        ;special:false;keyword:m_all),
+      (str:'RESULT'        ;special:false;keyword:m_none),
       (str:'STATIC'        ;special:false;keyword:m_none),
       (str:'STORED'        ;special:false;keyword:m_none),
       (str:'STRING'        ;special:false;keyword:m_all),
+      (str:'SYSTEM'        ;special:false;keyword:m_none),
+      (str:'ASMNAME'       ;special:false;keyword:m_none),
       (str:'DEFAULT'       ;special:false;keyword:m_none),
       (str:'DISPOSE'       ;special:false;keyword:m_all),
       (str:'DYNAMIC'       ;special:false;keyword:m_none),
       (str:'EXPORTS'       ;special:false;keyword:m_all),
-      (str:'FINALLY'       ;special:false;keyword:m_objpas),
+      (str:'FINALLY'       ;special:false;keyword:m_class),
       (str:'FORWARD'       ;special:false;keyword:m_none),
+      (str:'IOCHECK'       ;special:false;keyword:m_none),
       (str:'LIBRARY'       ;special:false;keyword:m_all),
+      (str:'MESSAGE'       ;special:false;keyword:m_none),
       (str:'PRIVATE'       ;special:false;keyword:m_none),
       (str:'PROGRAM'       ;special:false;keyword:m_all),
+      (str:'STDCALL'       ;special:false;keyword:m_none),
+      (str:'SYSCALL'       ;special:false;keyword:m_none),
       (str:'VIRTUAL'       ;special:false;keyword:m_none),
       (str:'ABSOLUTE'      ;special:false;keyword:m_none),
       (str:'ABSTRACT'      ;special:false;keyword:m_none),
@@ -326,8 +365,12 @@ const
       (str:'FUNCTION'      ;special:false;keyword:m_all),
       (str:'OPERATOR'      ;special:false;keyword:m_fpc),
       (str:'OVERRIDE'      ;special:false;keyword:m_none),
+      (str:'POPSTACK'      ;special:false;keyword:m_none),
       (str:'PROPERTY'      ;special:false;keyword:m_class),
+      (str:'REGISTER'      ;special:false;keyword:m_none),
       (str:'RESIDENT'      ;special:false;keyword:m_none),
+      (str:'SAFECALL'      ;special:false;keyword:m_none),
+      (str:'ASSEMBLER'     ;special:false;keyword:m_none),
       (str:'INHERITED'     ;special:false;keyword:m_all),
       (str:'INTERFACE'     ;special:false;keyword:m_all),
       (str:'INTERRUPT'     ;special:false;keyword:m_none),
@@ -336,33 +379,120 @@ const
       (str:'PROCEDURE'     ;special:false;keyword:m_all),
       (str:'PROTECTED'     ;special:false;keyword:m_none),
       (str:'PUBLISHED'     ;special:false;keyword:m_none),
+      (str:'THREADVAR'     ;special:false;keyword:m_class),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all),
+      (str:'INTERNPROC'    ;special:false;keyword:m_none),
+      (str:'OPENSTRING'    ;special:false;keyword:m_none),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all),
+      (str:'INTERNCONST'   ;special:false;keyword:m_none),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none),
-      (str:'FINALIZATION'  ;special:false;keyword:m_class),
+      (str:'FINALIZATION'  ;special:false;keyword:m_initfinal),
+      (str:'SAVEREGISTERS' ;special:false;keyword:m_none),
       (str:'IMPLEMENTATION';special:false;keyword:m_all),
-      (str:'INITIALIZATION';special:false;keyword:m_class)
+      (str:'INITIALIZATION';special:false;keyword:m_initfinal),
+      (str:'RESOURCESTRING';special:false;keyword:m_class)
   );
 
-const
-  tokeninfo: ptokenarray = @arraytokeninfo;
-  
+var
+  tokeninfo:ptokenarray;
+  tokenidx:ptokenidx;
+
+procedure inittokens;
+procedure donetokens;
+procedure create_tokenidx;
+
 implementation
+
+{$ifdef TP}
+uses
+  dos;
+{$endif}
+
+procedure create_tokenidx;
+{ create an index with the first and last token for every possible token
+  length, so a search only will be done in that small part }
+var
+  t : ttoken;
+begin
+  fillchar(tokenidx^,sizeof(tokenidx^),0);
+  for t:=low(ttoken) to high(ttoken) do
+   begin
+     if not arraytokeninfo[t].special then
+      begin
+        if ord(tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first)=0 then
+         tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first:=t;
+        tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].last:=t;
+      end;
+   end;
+end;
+
+procedure inittokens;
+{$ifdef TP}
+var
+  f:file;
+  n : namestr;
+  d : dirstr;
+  e : extstr;
+  header:string;
+  a:longint;
+{$endif TP}
+begin
+{$ifdef TP}
+    fsplit(paramstr(0),n,d,e);
+    assign(f,d+'\tokens.dat');
+    {$I-}
+    reset(f,1);
+    {We are not sure that the msg file is loaded!}
+    if ioresult<>0 then
+        begin
+            close(f);
+            { Very nice indeed !!! PM }
+            writeln('Fatal: File tokens.dat not found.');
+            halt(3);
+        end;
+    blockread(f,header,1);
+    blockread(f,header[1],length(header));
+    blockread(f,a,sizeof(a));
+    if (ioresult<>0) or
+       (header<>tokheader) or (a<>sizeof(ttokenarray)) then
+     begin
+       close(f);
+       writeln('Fatal: File tokens.dat corrupt.');
+       halt(3);
+     end;
+    new(tokeninfo);
+    blockread(f,tokeninfo^,sizeof(ttokenarray));
+    new(tokenidx);
+    blockread(f,tokenidx^,sizeof(tokenidx^));
+    close(f);
+{$I+}
+    if (ioresult<>0) then
+     begin
+       writeln('Fatal: File tokens.dat corrupt.');
+       halt(3);
+     end;
+{$else not TP}
+  tokeninfo:=@arraytokeninfo;
+  new(tokenidx);
+  create_tokenidx;
+{$endif not TP}
+end;
+
+
+procedure donetokens;
+begin
+{$ifdef TP}
+    dispose(tokeninfo);
+{$else TP}
+    tokeninfo:=nil;
+{$endif TP}
+    dispose(tokenidx);
+end;
 
 end.
 {
   $Log$
-  Revision 1.2  1999-09-07 08:28:19  pierre
-   * adapted to new compiler/tokens unit
-
-  Revision 1.1  1999/01/28 19:56:12  peter
-    * moved to include compiler/gdb independent of each other
-
-  Revision 1.1  1998/12/22 14:27:54  peter
-    * moved
-
-  Revision 1.1  1998/12/10 23:54:28  peter
-    * initial version of the FV IDE
-    * initial version of a fake compiler
+  Revision 1.3  1999-09-17 09:16:13  peter
+    * updated with compiler versions
 
 }

@@ -26,6 +26,37 @@ interface
        maxidlen = 64;
 
     type
+       { System independent float names }
+{$ifdef i386}
+       bestreal = extended;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = extended;
+{$endif}
+{$ifdef m68k}
+       bestreal = real;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = comp;
+{$endif}
+{$ifdef alpha}
+       bestreal = extended;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = comp;
+{$endif}
+{$ifdef powerpc}
+       bestreal = double;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = comp;
+{$endif powerpc}
+       pbestreal=^bestreal;
+
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
          { codegen }
@@ -36,7 +67,7 @@ interface
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_ansistrings
        );
-       tlocalswitches=set of tlocalswitch;
+       tlocalswitches = set of tlocalswitch;
 
        { Switches which can be changed only at the beginning of a new module }
        tmoduleswitch = (cs_modulenone,
@@ -44,53 +75,84 @@ interface
          cs_fp_emulation,cs_extsyntax,cs_openstring,
          { support }
          cs_support_inline,cs_support_goto,cs_support_macro,
-         cs_support_c_operators,
+         cs_support_c_operators,cs_static_keyword,
+         cs_typed_const_not_changeable,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
+         cs_lineinfo,
          { linking }
-         cs_smartlink,cs_create_sharedlib,cs_create_staticlib
+         cs_smartlink
        );
-       tmoduleswitches=set of tmoduleswitch;
+       tmoduleswitches = set of tmoduleswitch;
 
        { Switches which can be changed only for a whole program/compilation,
          mostly set with commandline }
        tglobalswitch = (cs_globalnone,
          { parameter switches }
-         cs_check_unit_name,cs_constructor_name,cs_static_keyword,
+         cs_check_unit_name,cs_constructor_name,
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
          { optimizer }
          cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
          cs_fastoptimize, cs_slowoptimize,
+         { browser }
+         cs_browser_log,
          { debugger }
-         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,
+         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_checkpointer,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
+         cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
-         cs_link_extern,cs_link_shared,cs_link_static,cs_link_deffile
+         cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
+         cs_link_strip,cs_link_toc
        );
-       tglobalswitches=set of tglobalswitch;
+       tglobalswitches = set of tglobalswitch;
 
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
          m_fpc,m_delphi,m_tp,m_gpc,
          { more specific }
-         m_class,m_objpas,m_result,m_string_pchar,m_cvar_support,
-         m_nested_comment,m_tp_procvar,m_repeat_forward,
+         m_class,               { delphi class model }
+         m_objpas,              { load objpas unit }
+         m_result,              { result in functions }
+         m_string_pchar,        { pchar 2 string conversion }
+         m_cvar_support,        { cvar variable directive }
+         m_nested_comment,      { nested comments }
+         m_tp_procvar,          { tp style procvars (no @ needed) }
+         m_repeat_forward,      { repeating forward declarations is needed }
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }
-         m_autoderef            { does auto dereferencing of struct. vars }
+         m_autoderef,           { does auto dereferencing of struct. vars }
+         m_initfinal,           { initialization/finalization for units }
+         m_add_pointer          { allow pointer add/sub operations }
        );
-       tmodeswitches=set of tmodeswitch;
+       tmodeswitches = set of tmodeswitch;
 
        { win32 sub system }
-       tapptype = (at_gui,at_cui);
+       tapptype = (at_none,
+         at_gui,at_cui
+       );
 
        { currently parsed block type }
-       tblock_type = (bt_general,bt_type,bt_const);
+       tblock_type = (bt_none,
+         bt_general,bt_type,bt_const
+       );
 
+       { packrecords types }
+       tpackrecords = (packrecord_none,
+         packrecord_1,packrecord_2,packrecord_4,
+         packrecord_8,packrecord_16,packrecord_32,
+         packrecord_C
+       );
+
+    const
+       packrecordalignment : array[tpackrecords] of byte=(0,
+         1,2,4,8,16,32,1
+       );
+
+    type
        stringid = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
@@ -101,20 +163,24 @@ interface
        pword      = ^word;
        plongint   = ^longint;
 
+    const
+       { link options }
+       link_none    = $0;
+       link_allways = $1;
+       link_static  = $2;
+       link_smart   = $4;
+       link_shared  = $8;
+
+
 implementation
 
+
+begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-28 19:56:12  peter
-    * moved to include compiler/gdb independent of each other
-
-  Revision 1.1  1998/12/22 14:27:54  peter
-    * moved
-
-  Revision 1.1  1998/12/10 23:54:28  peter
-    * initial version of the FV IDE
-    * initial version of a fake compiler
+  Revision 1.2  1999-09-17 09:16:12  peter
+    * updated with compiler versions
 
 }
 
