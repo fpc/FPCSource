@@ -11,7 +11,7 @@ units=system objpas strings \
       beos \
       dos \
       sysutils typinfo math varutils \
-      cpu mmx getopts heaptrc lineinfo
+      cpu mmx getopts heaptrc lineinfo variants
 rsts=math varutils typinfo
 
 [require]
