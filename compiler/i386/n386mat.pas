@@ -64,6 +64,8 @@ implementation
 
     procedure ti386moddivnode.pass_2;
       var
+         unusedregisters : tregisterset;
+         usablecount, regstopush : byte;
          hreg1 : tregister;
          hreg2 : tregister;
          shrdiv, andmod, pushed,popeax,popedx : boolean;
@@ -86,23 +88,23 @@ implementation
 
          if is_64bitint(resulttype.def) then
            begin
-              { save lcoation, because we change it now }
-              set_location(hloc,location);
+              regstopush := $ff;
+              remove_non_regvars_from_loc(location,regstopush);
+              remove_non_regvars_from_loc(right.location,regstopush);
+              
+              { ugly hack because in *this* case, the pushed register }
+              { must not be allocated later on (JM)                   }
+              unusedregisters:=unused;
+              usablecount:=usablereg32;
+              pushusedregisters(pushedreg,regstopush);
+              unused:=unusedregisters;
+              usablereg32:=usablecount;
+              
+              emit_pushq_loc(location);
               release_qword_loc(location);
-              release_qword_loc(right.location);
-              location.registerlow:=getexplicitregister32(R_EAX);
-              location.registerhigh:=getexplicitregister32(R_EDX);
-              pushusedregisters(pushedreg,$ff
-                and not($80 shr byte(location.registerlow))
-                and not($80 shr byte(location.registerhigh)));
-              { the left operand is in hloc, because the
-                location of left is location but location
-                is already destroyed
-              }
-              emit_pushq_loc(hloc);
-              clear_location(hloc);
+              clear_location(location);
               emit_pushq_loc(right.location);
-
+              release_qword_loc(right.location);
               if torddef(resulttype.def).typ=u64bit then
                 typename:='QWORD'
               else
@@ -114,10 +116,22 @@ implementation
               saveregvars($ff);
               emitcall('FPC_'+opname+typename);
 
+              { make sure we don't overwrite any results (JM) }
+              if R_EDX in unused then
+                begin
+                   location.registerhigh:=getexplicitregister32(R_EDX);
+                   location.registerlow:=getexplicitregister32(R_EAX);
+                end
+              else
+                begin
+                   location.registerlow:=getexplicitregister32(R_EAX);
+                   location.registerhigh:=getexplicitregister32(R_EDX);
+                end;
+              location.loc:=LOC_REGISTER;
               emit_reg_reg(A_MOV,S_L,R_EAX,location.registerlow);
               emit_reg_reg(A_MOV,S_L,R_EDX,location.registerhigh);
+
               popusedregisters(pushedreg);
-              location.loc:=LOC_REGISTER;
            end
          else
            begin
@@ -476,7 +490,9 @@ implementation
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,R_ECX);
-                         end;
+                         end
+                        else
+                          getexplicitregister32(R_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
                      end;
 
@@ -1042,7 +1058,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-08-26 13:37:00  florian
+  Revision 1.15  2001-08-29 12:03:23  jonas
+    * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
+    * fixed partial result overwriting with the above calls too
+
+  Revision 1.14  2001/08/26 13:37:00  florian
     * some cg reorganisation
     * some PPC updates
 

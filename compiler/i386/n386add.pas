@@ -686,6 +686,8 @@ interface
       label do_normal;
 
       var
+         unusedregisters : tregisterset;
+         usablecount : byte;
          hregister,hregister2 : tregister;
          noswap,popeax,popedx,
          pushed,mboverflow,cmpop : boolean;
@@ -1657,15 +1659,18 @@ interface
 
                    if nodetype=muln then
                      begin
-                        { save lcoation, because we change it now }
-                        set_location(hloc,location);
-                        release_qword_loc(location);
-                        release_qword_loc(right.location);
-                        location.registerlow:=getexplicitregister32(R_EAX);
-                        location.registerhigh:=getexplicitregister32(R_EDX);
-                        pushusedregisters(pushedreg,$ff
-                          and not($80 shr byte(location.registerlow))
-                          and not($80 shr byte(location.registerhigh)));
+                        regstopush := $ff;
+                        remove_non_regvars_from_loc(location,regstopush);
+                        remove_non_regvars_from_loc(right.location,regstopush);
+                        
+                        { ugly hack because in *this* case, the pushed register }
+                        { must not be allocated later on (JM)                   }
+                        unusedregisters:=unused;
+                        usablecount:=usablereg32;
+                        pushusedregisters(pushedreg,regstopush);
+                        unused:=unusedregisters;
+                        usablereg32:=usablecount;
+                        
                         if cs_check_overflow in aktlocalswitches then
                           push_int(1)
                         else
@@ -1673,19 +1678,35 @@ interface
                         { the left operand is in hloc, because the
                           location of left is location but location
                           is already destroyed
+                          
+                          not anymore... I had to change this because the
+                          regalloc info was completely wrong otherwise (JM)
                         }
-                        emit_pushq_loc(hloc);
-                        clear_location(hloc);
+                        emit_pushq_loc(location);
+                        release_qword_loc(location);
+                        clear_location(location);
                         emit_pushq_loc(right.location);
+                        release_qword_loc(right.location);
                         saveregvars($ff);
                         if torddef(resulttype.def).typ=u64bit then
                           emitcall('FPC_MUL_QWORD')
                         else
                           emitcall('FPC_MUL_INT64');
+                        { make sure we don't overwrite any results (JM) }
+                        if R_EDX in unused then
+                          begin
+                             location.registerhigh:=getexplicitregister32(R_EDX);
+                             location.registerlow:=getexplicitregister32(R_EAX);
+                          end
+                        else
+                          begin
+                             location.registerlow:=getexplicitregister32(R_EAX);
+                             location.registerhigh:=getexplicitregister32(R_EDX);
+                          end;
+                        location.loc := LOC_REGISTER;
                         emit_reg_reg(A_MOV,S_L,R_EAX,location.registerlow);
                         emit_reg_reg(A_MOV,S_L,R_EDX,location.registerhigh);
                         popusedregisters(pushedreg);
-                        location.loc:=LOC_REGISTER;
                      end
                    else
                      begin
@@ -2293,7 +2314,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-08-26 13:36:55  florian
+  Revision 1.18  2001-08-29 12:03:23  jonas
+    * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
+    * fixed partial result overwriting with the above calls too
+
+  Revision 1.17  2001/08/26 13:36:55  florian
     * some cg reorganisation
     * some PPC updates
 
