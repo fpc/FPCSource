@@ -492,12 +492,14 @@ Type
 ******************************************************************************}
 
 {$ifdef bsd}
+
+function Do_SysCall(sysnr:longint):longint;
+function Do_Syscall(sysnr,param1:integer):longint;
 function Do_SysCall(sysnr,param1:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
 {$else}
 Function SysCall(callnr:longint;var regs:SysCallregs):longint;
@@ -547,7 +549,9 @@ Procedure Execlp(Todo:string;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
+{$ifndef BSD}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+{$endif}
 Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
@@ -662,14 +666,14 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
     General information
 ***************************}
 
+Function  GetEnv(P:string):Pchar;
+
+{$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
-{$ifndef BSD}
-Function  GetEnv(P:string):Pchar;
-{$endif}
 Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
-
+{$endif}
 {**************************
         Signal
 ***************************}
@@ -1239,18 +1243,78 @@ begin
    LinuxError:=Errno;
 end;
 
+{$ifdef BSD}
+Function Fcntl(Fd:longint;Cmd:longint):longint;
+{
+  Read or manipulate a file.(See also fcntl (2) )
+  Possible values for Cmd are :
+    F_GetFd,F_GetFl,F_GetOwn
+  Errors are reported in Linuxerror;
+  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+}
+
+begin
+  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
+   begin
+     Linuxerror:=sys_fcntl(fd,cmd,0);
+     if linuxerror=-1 then
+      begin
+        linuxerror:=errno;
+        fcntl:=0;
+      end
+     else
+      begin
+        fcntl:=linuxerror;
+        linuxerror:=0;
+      end;
+   end
+  else
+   begin
+     linuxerror:=Sys_einval;
+     Fcntl:=0;
+   end;
+end;
 
 
+Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
+{
+  Read or manipulate a file. (See also fcntl (2) )
+  Possible values for Cmd are :
+    F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
+  Errors are reported in Linuxerror;
+  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  F_DupFD is not allowed, due to the structure of Files in Pascal.
+}
+begin
+  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
+   begin
+     sys_fcntl(fd,cmd,arg);
+     LinuxError:=ErrNo;
+   end
+  else
+   linuxerror:=Sys_einval;
+end;
+{$endif}
+
+
+{$ifdef BSD}
+Function Fcntl(var Fd:Text;Cmd:longint):longint;
+{$else}
 Function Fcntl(var Fd:Text;Cmd:integer):integer;
+{$endif}
 begin
   Fcntl := Fcntl(textrec(Fd).handle, Cmd);
 end;
 
+{$ifdef BSD}
+Procedure Fcntl(var Fd:Text;Cmd,Arg:Longint);
+{$else}
 Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+{$endif}
+
 begin
   Fcntl(textrec(Fd).handle, Cmd, Arg);
 end;
-
 
 
 Function Flock (var T : text;mode : longint) : boolean;
@@ -1297,8 +1361,6 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 begin
   FStat:=Fstat(FileRec(F).Handle,Info);
 end;
-
-
 
 Function SymLink(OldPath,newPath:pathstr):boolean;
 {
@@ -1378,8 +1440,6 @@ begin
   NewName:=NewName+#0;
   FRename:=FRename (@OldName[1],@NewName[1]);
 end;
-
-
 
 Function Dup(var oldfile,newfile:text):Boolean;
 {
@@ -1505,7 +1565,9 @@ begin
      errno:=Sys_EBADF;
      exit;
    end;
+ {$ifndef bsd}
   p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
+ {$endif}
   p^.size:=0;
   p^.loc:=0;
 end;
@@ -2023,7 +2085,7 @@ Begin
 end;
 
 
-
+{$ifndef bsd}
 Function GetDomainName:String;
 {
   Get machines domain name. Returns empty string if not set.
@@ -2055,7 +2117,7 @@ begin
   else
    gethostname:=strpas(@Sysn.nodename[0]);
 end;
-
+{$endif}
 
 {******************************************************************************
                           Signal handling calls
@@ -2819,7 +2881,10 @@ End.
 
 {
   $Log$
-  Revision 1.67  2000-04-14 16:07:06  marco
+  Revision 1.68  2000-04-16 16:09:32  marco
+   * Some small mistakes when merging BSD and Linux version fixed
+
+  Revision 1.67  2000/04/14 16:07:06  marco
    * Splitted linux into linux.pp and linsysca.inc, and merged BSD diffs
       into header
 
@@ -2907,4 +2972,3 @@ End.
   + Added assignstream with rerouting of stderr, by Sebastian Guenther
 
 }
-
