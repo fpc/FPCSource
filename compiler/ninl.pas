@@ -1131,6 +1131,24 @@ implementation
                               result:=hp;
                             end
                            else
+                            if is_dynamic_array(left.resulttype.def) then
+                              begin
+{
+                                Doesn't work because that procedure isn't in
+                                the interface of the system unit :( (JM)
+                                
+                                srsym:=searchsymonlyin(systemunit,'FPC_DYNARRAY_HIGH');
+                                if not assigned(srsym) then
+                                  internalerror(200104291);
+                                inserttypeconv(left,voidpointertype);
+                                hp:=ccallparanode.create(left,nil);
+                                hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
+                                left:=nil;
+                                resulttypepass(hp);
+                                result:=hp;}
+                                {$warning "high(dynamic_array)" isn't implemented yet }
+                              end
+                           else
                             begin
                               hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype);
                               resulttypepass(hp);
@@ -1729,7 +1747,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-04-26 21:57:05  peter
+  Revision 1.40  2001-05-06 17:16:43  jonas
+    + added warning about missing implementation for high(dynamic_array)
+
+  Revision 1.39  2001/04/26 21:57:05  peter
     * moved code from firstpass to det_resulttype and remove extraneous
       calls to firstcallparan for in_str,in_write,in_val
 
