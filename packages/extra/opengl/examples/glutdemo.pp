@@ -124,7 +124,7 @@ begin
   glLoadIdentity;
   glTranslatef(0, 0, -5.5);
 
-  WriteLn('Starte...');
+  WriteLn('Starting...');
   glutMainLoop;
 
 end.
