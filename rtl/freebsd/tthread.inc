@@ -407,7 +407,7 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): LongInt; cdecl;
+function ThreadFunc(parameter: Pointer): LongInt; 
 var
   LThread: TThread;
   c: char;
@@ -606,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-01-03 12:18:29  marco
+  Revision 1.9  2004-03-06 01:27:40  marco
+   * Somebody forgot to adapt bsd again
+
+  Revision 1.8  2004/01/03 12:18:29  marco
    * a lot of copyright notices and CVS logs added and fixed
 
   Revision 1.7  2003/11/22 11:04:08  marco
