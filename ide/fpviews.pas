@@ -3360,7 +3360,7 @@ begin
     else
        begin Text:=''; Attr:=''; end;
     Text:=copy(Text,Delta.X+1,255); Attr:=copy(Attr,Delta.X+1,255);
-    MoveChar(B,' ',0,Size.X);
+    MoveChar(B,' ',GetColor(1),Size.X);
     for X:=1 to length(Text) do
       MoveChar(B[X-1],Text[X],ord(Attr[X]),1);
     WriteLine(0,Y-Delta.Y,Size.X,1,B);
@@ -4210,7 +4210,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2002-06-06 08:15:29  pierre
+  Revision 1.22  2002-06-13 10:54:54  pierre
+   * avoid random colors in Screen view
+
+  Revision 1.21  2002/06/06 08:15:29  pierre
    * fix GDBwindow indicator bug
 
   Revision 1.20  2002/06/01 20:08:42  marco
