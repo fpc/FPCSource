@@ -1011,6 +1011,7 @@ implementation
           end;
         dataSegment.concatlist(rawdata);
         rawdata.free;
+        rawcode.convert_registers;
         codeSegment.concatlist(rawcode);
         rawcode.free;
         freemem(impintfindexes,(max+1)*sizeof(longint));
@@ -1332,7 +1333,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2003-01-09 21:52:37  peter
+  Revision 1.40  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.39  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

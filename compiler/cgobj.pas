@@ -777,6 +777,10 @@ unit cgobj;
     procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
 
       begin
+      {$ifdef i386}
+        {For safety convert location register to enum for now...}
+        convert_register_to_enum(reg);
+      {$endif}
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,loc.size,loc.reference,reg);
@@ -1694,7 +1698,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.72  2003-01-09 22:00:53  florian
+  Revision 1.73  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.72  2003/01/09 22:00:53  florian
     * fixed some PowerPC issues
 
   Revision 1.71  2003/01/09 20:41:10  florian

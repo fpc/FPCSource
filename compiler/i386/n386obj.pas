@@ -113,9 +113,10 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
     r:Tregister;
   begin
     { mov offset(%esp),%eax }
-    r.enum:=R_ESP;
+    r.enum:=R_INTREGISTER;
+    r.number:=NR_ESP;
     reference_reset_base(href,r,getselfoffsetfromsp(procdef));
-    r.enum:=R_EAX;
+    r.number:=NR_EAX;
     cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
   end;
 
@@ -126,7 +127,8 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   begin
     checkvirtual;
     { mov  0(%eax),%eax ; load vmt}
-    r.enum:=R_EAX;
+    r.enum:=R_INTREGISTER;
+    r.number:=NR_EAX;
     reference_reset_base(href,r,0);
     emit_ref_reg(A_MOV,S_L,href,r);
   end;
@@ -137,7 +139,8 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
     r:Tregister;
   begin
     { call/jmp  vmtoffs(%eax) ; method offs }
-    r.enum:=R_EAX;
+    r.enum:=R_INTREGISTER;
+    r.number:=NR_EAX;
     reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
     emit_ref(op,S_L,href);
   end;
@@ -148,7 +151,8 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
     r:Tregister;
   begin
     { mov  vmtoffs(%eax),%eax ; method offs }
-    r.enum:=R_EAX;
+    r.enum:=R_INTREGISTER;
+    r.number:=NR_EAX;
     reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
     emit_ref_reg(A_MOV,S_L,href,r);
   end;
@@ -203,17 +207,18 @@ begin
   { case 3 }
   else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
     begin
-      r.enum:=R_EBX;
+      r.enum:=R_INTREGISTER;
+      r.number:=NR_EBX;
       emit_reg(A_PUSH,S_L,r); { allocate space for address}
-      r.enum:=R_EAX;
+      r.number:=NR_EAX;
       emit_reg(A_PUSH,S_L,r);
       getselftoeax(8);
       loadvmttoeax;
       loadmethodoffstoeax;
       { mov %eax,4(%esp) }
-      r.enum:=R_ESP;
+      r.number:=NR_ESP;
       reference_reset_base(href,r,4);
-      r.enum:=R_EAX;
+      r.number:=NR_EAX;
       emit_reg_ref(A_MOV,S_L,r,href);
       { pop  %eax }
       emit_reg(A_POP,S_L,r);
@@ -242,7 +247,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2003-01-08 18:43:57  daniel
+  Revision 1.17  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.16  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.15  2002/08/11 14:32:30  peter

@@ -152,6 +152,8 @@ implementation
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
+         convert_register_to_enum(reg1);
+         convert_register_to_enum(reg2);
          if (reg1.enum<>reg2.enum) or (i<>A_MOV) then
            exprasmList.concat(Taicpu.Op_reg_reg(i,s,reg1,reg2));
       end;
@@ -174,7 +176,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-01-08 18:43:57  daniel
+  Revision 1.35  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.34  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.33  2002/07/01 18:46:29  peter

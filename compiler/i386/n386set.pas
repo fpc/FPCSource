@@ -279,7 +279,8 @@ implementation
                       if (pleftreg.enum <> R_EDI) and
                          (left.location.loc = LOC_CREGISTER) then
                         begin
-                          r.enum:=R_EDI;
+                          r.enum:=R_INTREGISTER;
+                          r.number:=NR_EDI;
                           rg.ungetregister(exprasmlist,pleftreg);
                           rg.getexplicitregisterint(exprasmlist,R_EDI);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
@@ -397,7 +398,8 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-                      r.enum:=R_EDI;
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_EDI;
                       rg.getexplicitregisterint(exprasmlist,R_EDI);
                       emit_ref_reg(A_MOVZX,S_BL,left.location.reference,r);
                       hr:=r;
@@ -433,6 +435,8 @@ implementation
                        internalerror(2002032210);
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
+                  if (hr.enum=R_INTREGISTER) and (hr.number=NR_EDI) then
+                    hr.enum:=R_EDI;
                   rg.ungetregisterint(exprasmlist,hr);
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
@@ -710,7 +714,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-01-08 18:43:57  daniel
+  Revision 1.47  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.46  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.45  2002/11/25 17:43:27  peter

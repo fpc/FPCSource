@@ -121,7 +121,8 @@ implementation
                           else
                             begin
                               rg.getexplicitregisterint(exprasmlist,R_EDI);
-                              hreg2.enum := R_EDI;
+                              hreg2.enum := R_INTREGISTER;
+                              hreg2.number := NR_EDI;
                               emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
                               { if the left value is signed, R_EDI := $ffffffff,
                                 otherwise 0 }
@@ -133,6 +134,8 @@ implementation
                           emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                           { release EDX if we used it }
                           { also releas EDI }
+                          if (hreg2.enum=R_INTREGISTER) and (hreg2.number=NR_EDI) then
+                            hreg2.enum:=R_EDI;
                           rg.ungetregisterint(exprasmlist,hreg2);
                           { do the shift }
                           emit_const_reg(A_SAR,S_L,power,hreg1);
@@ -163,12 +166,14 @@ implementation
                   rg.getexplicitregisterint(exprasmlist,R_EDI);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
-                  r.enum:=R_EDI;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_EDI;
                   cg.a_load_loc_reg(exprasmlist,right.location,r);
                   popedx:=false;
                   popeax:=false;
-                  r.enum:=R_EAX;
-                  r2.enum:=R_EDX;
+                  r.number:=NR_EAX;
+                  r2.enum:=R_INTREGISTER;
+                  r2.number:=NR_EDX;
                   if hreg1.enum=R_EDX then
                     begin
                       if not(R_EAX in rg.unusedregsint) then
@@ -208,18 +213,23 @@ implementation
                      emit_none(A_CDQ,S_NO);
 
                   { division depends on the right type }
-                  r.enum:=R_EDI;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_EDI;
                   if torddef(right.resulttype.def).typ=u32bit then
                     emit_reg(A_DIV,S_L,r)
                   else
                     emit_reg(A_IDIV,S_L,r);
                   r.enum:=R_EDI;
                   rg.ungetregisterint(exprasmlist,r);
-                  r.enum:=R_EAX;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_EAX;
                   if nodetype=divn then
                     begin
                        if not popedx and (hreg1.enum <> R_EDX) then
-                         rg.ungetregister(exprasmlist,r2);
+                        begin
+                           r2.enum:=R_EDX;
+                           rg.ungetregister(exprasmlist,r2);
+                        end;
                        { if result register is busy then copy }
                        if popeax then
                          begin
@@ -239,7 +249,10 @@ implementation
                   else
                     begin
                       if not popeax and (hreg1.enum <> R_EAX)then
-                        rg.ungetregister(exprasmlist,r);
+                        begin
+                          r.enum:=R_EAX;
+                          rg.ungetregister(exprasmlist,r);
+                        end;
                       if popedx then
                        {the mod was done by an (i)div (so the result is now in
                         edx), but edx was occupied prior to the division, so
@@ -862,7 +875,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-01-08 18:43:57  daniel
+  Revision 1.43  2003-01-13 14:54:34  daniel
+    * Further work to convert codegenerator register convention;
+      internalerror bug fixed.
+
+  Revision 1.42  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.41  2002/11/25 17:43:26  peter
