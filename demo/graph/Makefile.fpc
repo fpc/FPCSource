@@ -17,7 +17,7 @@ endif
 [rules]
 .PHONY: text gfx both
 
-all: both
+all: graph
 
 clean : execlean fpc_cleanall
 
