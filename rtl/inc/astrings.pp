@@ -649,26 +649,28 @@ end;
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
 
+Var LS : Longint;
+
 begin
-  Writeln (Index,' ',Size);
   if index<=0 then
     begin
     Size:=Size+index-1;
     index:=1;
     end;
-  if (Index<=length(s)) and (Size>0) then
+  LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;  
+  if (Index<=LS) and (Size>0) then
     begin
     UniqueAnsiString (S);
-    if Size+Index>Length(S) then
-      Size:=Length(s)-Index+1;
-    Setlength(s,Length(s)-Size);
-    if Index<=Length(s) then
+    if Size+Index>LS then
+      Size:=LS-Index+1;
+    if Index+Size<=LS then
+      begin
+      Dec(Index);
       Move(PByte(Pointer(S))[Index+Size],
-           PByte(Pointer(s))[Index],Length(s)-Index+2)
-     else
-       Pbyte(Pointer(S)+Length(S))^:=0;
+           PByte(Pointer(S))[Index],LS-Index+1);
+      end;
+    Setlength(s,LS-Size);
     end;
-   Writeln ('Delete : Returning ',S);
 end;
 
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
@@ -683,6 +685,7 @@ begin
   if index > LS then index := LS+1;
   Dec(Index);
   Pointer(Temp) := NewAnsiString(Length(Source)+LS);
+  SetLength(Temp,Length(Source)+LS);
   If Index>0 then
     move (Pointer(S)^,Pointer(Temp)^,Index);
   Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
@@ -694,7 +697,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  1998-11-13 14:37:11  michael
+  Revision 1.32  1998-11-16 11:11:47  michael
+  + Fix for Insert and Delete functions
+
+  Revision 1.31  1998/11/13 14:37:11  michael
   + Insert procedure corrected
 
   Revision 1.30  1998/11/05 14:20:36  peter
