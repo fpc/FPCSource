@@ -1,6 +1,8 @@
     News
     ====
 
+    2003/02/16 armin:
+     - added nwconio, nwthreads, nwsnut
     2003/02/15 armin:
      - changes for new threadvars
     2002/02/27 armin:
@@ -51,9 +53,9 @@
 
     Binutils-2.11 for win32 and RedHat 7.2 with netware support and a patched nlmconv
     that supports "copyright" are available from:
-           http://home.t-online.de/home/armin-diehl/fpcnw
-      or
-           http://members.tripod.de/adiehl/fpcnw
+           http://home.arcor.de/armin.diehl/fpcnw
+	  
+    The copyright-patch is included in newer versions of binutils (2.13)
 
 
     Building the freepascal runtime-library for netware
@@ -211,6 +213,9 @@
         - MMX
 	- WinSock2
 	- SYSTHRDS
+	- nwconio
+	- nwthreads
+	- nwsnut
 
 
 armin@freepascal.org
