@@ -13,7 +13,6 @@
 
  **********************************************************************}
 
- {$warning CHECK ME and FIX ME !!!!!!!!!!!}
   Stat = packed Record  // No unix typing because of differences
     case byte of
       0: (st_dev    : word;
@@ -62,7 +61,10 @@
 
 {
   $Log$
-  Revision 1.2  2004-05-27 23:15:02  peter
+  Revision 1.3  2004-05-27 23:15:14  peter
+    * remove warnign
+
+  Revision 1.2  2004/05/27 23:15:02  peter
     * startup argc,argv,envp fix
     * stat fixed
 
