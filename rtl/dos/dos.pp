@@ -181,7 +181,9 @@ var
     procedure LoadDosError;
       begin
         if (dosregs.flags and carryflag) <> 0 then
-         doserror:=dosregs.ax
+        { conversion from word to integer !!
+          gave a Bound check error if ax is $FFFF !! PM }
+         doserror:=integer(dosregs.ax)
         else
          doserror:=0;
       end;
@@ -1160,7 +1162,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.15  1998-11-01 20:27:18  peter
+  Revision 1.16  1998-11-17 09:37:41  pierre
+   * explicit conversion from word dosreg.ax to integer doserror
+
+  Revision 1.15  1998/11/01 20:27:18  peter
     * fixed some doserror settings
 
   Revision 1.14  1998/10/22 15:05:28  pierre
