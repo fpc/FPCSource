@@ -41,7 +41,7 @@ begin
 end;
 
 
-procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
+procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
   begin
      { calling the variant manager here is a problem because the static/global variants
        are initialized while the variant manager isn't assigned }
@@ -49,15 +49,17 @@ procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
   end;
 
 
-procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
+procedure variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];
   begin
-     variantmanager.varclear(v);
+    if assigned(VarClearProc) then
+      VarClearProc(v)
   end;
 
 
-procedure variant_addref(var v : variant);[Public,Alias:'FPC_VARIANT_ADDREF'];
+procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
   begin
-     variantmanager.varaddref(v);
+    if assigned(VarAddRefProc) then
+      VarAddRefProc(v);
   end;
 
 
@@ -113,7 +115,6 @@ function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
 operator :=(const source : byte) dest : variant;
 
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,1);
 end;
 
@@ -121,7 +122,6 @@ end;
 operator :=(const source : shortint) dest : variant;
 
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,-1);
 end;
 
@@ -129,56 +129,43 @@ end;
 operator :=(const source : word) dest : variant;
 
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,2);
 end;
 
 
 operator :=(const source : smallint) dest : variant;
-
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,-2);
 end;
 
 
 operator :=(const source : dword) dest : variant;
-
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,4);
 end;
 
 
 operator :=(const source : longint) dest : variant;
-
 begin
-//  Variant_Init(Dest);
   Variantmanager.varfromInt(Dest,Source,-4);
 end;
 
 
 operator :=(const source : qword) dest : variant;
-
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromWord64(Dest,Source);
 end;
 
 
 operator :=(const source : int64) dest : variant;
-
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromInt64(Dest,Source);
 end;
 
 { Boolean }
 
 operator :=(const source : boolean) dest : variant;
-
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Source);
 end;
 
@@ -186,7 +173,6 @@ end;
 operator :=(const source : wordbool) dest : variant;
 
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
@@ -194,7 +180,6 @@ end;
 operator :=(const source : longbool) dest : variant;
 
 begin
-  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
@@ -204,7 +189,6 @@ end;
 operator :=(const source : char) dest : variant;
 
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
@@ -212,7 +196,6 @@ end;
 operator :=(const source : widechar) dest : variant;
 
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromWStr(Dest,Source);
 end;
 
@@ -221,7 +204,6 @@ end;
 operator :=(const source : shortstring) dest : variant;
 
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
@@ -229,7 +211,6 @@ end;
 operator :=(const source : ansistring) dest : variant;
 
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromLStr(Dest,Source);
 end;
 
@@ -237,7 +218,6 @@ end;
 operator :=(const source : widestring) dest : variant;
 
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromWStr(Dest,Source);
 end;
 
@@ -246,7 +226,6 @@ end;
 {$ifdef SUPPORT_SINGLE}
 operator :=(const source : single) dest : variant;
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif SUPPORT_SINGLE}
@@ -255,7 +234,6 @@ end;
 {$ifdef SUPPORT_DOUBLE}
 operator :=(const source : double) dest : variant;
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif SUPPORT_DOUBLE}
@@ -264,7 +242,6 @@ end;
 {$ifdef SUPPORT_EXTENDED}
 operator :=(const source : extended) dest : variant;
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif SUPPORT_EXTENDED}
@@ -273,7 +250,6 @@ end;
 {$ifdef SUPPORT_COMP}
 Operator :=(const source : comp) dest : variant;
 begin
-  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif SUPPORT_COMP}
@@ -622,7 +598,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.21  2005-01-08 20:43:44  florian
+  Revision 1.22  2005-01-15 18:47:26  florian
+    * several variant init./final. stuff fixed
+
+  Revision 1.21  2005/01/08 20:43:44  florian
     + init/cleaning code for variants added
 
   Revision 1.20  2005/01/07 21:15:46  florian

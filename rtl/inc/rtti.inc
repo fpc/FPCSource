@@ -139,7 +139,7 @@ begin
       recordrtti(data,typeinfo,@int_initialize);
 {$ifdef HASVARIANT}
     tkVariant:
-      variant_init(Variant(PVarData(Data)^));
+      variant_init(PVarData(Data)^);
 {$endif HASVARIANT}
   end;
 end;
@@ -150,7 +150,7 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       begin
-        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
 {$ifdef HASWIDESTRING}
@@ -176,7 +176,7 @@ begin
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
 {$ifdef HASVARIANT}
     tkVariant:
-      variant_clear(Variant(PVarData(Data)^))
+      variant_clear(PVarData(Data)^);
 {$endif HASVARIANT}
   end;
 end;
@@ -204,7 +204,7 @@ begin
 {$endif HASINTF}
 {$ifdef HASVARIANT}
     tkVariant:
-      variant_addref(PVariant(Data)^);
+      variant_addref(pvardata(Data)^);
 {$endif HASVARIANT}
   end;
 end;
@@ -237,7 +237,7 @@ begin
 {$endif HASINTF}
 {$ifdef HASVARIANT}
     tkVariant:
-      variant_clear(PVariant(Data)^);
+      variant_clear(pvardata(data)^);
 {$endif HASVARIANT}
   end;
 end;
@@ -251,11 +251,12 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
        int_finalize(data+size*i,typeinfo);
   end;
 
-
-
 {
   $Log$
-  Revision 1.20  2005-01-08 20:43:44  florian
+  Revision 1.21  2005-01-15 18:47:26  florian
+    * several variant init./final. stuff fixed
+
+  Revision 1.20  2005/01/08 20:43:44  florian
     + init/cleaning code for variants added
 
   Revision 1.19  2004/11/02 15:52:04  florian

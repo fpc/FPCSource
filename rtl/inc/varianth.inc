@@ -186,6 +186,13 @@ procedure GetVariantManager(var VarMgr: TVariantManager);
 procedure SetVariantManager(const VarMgr: TVariantManager);
 function IsVariantManagerSet: Boolean;
 
+const
+  VarClearProc :  procedure(var v : TVarData) = nil;
+  VarAddRefProc : procedure(var v : TVarData) = nil;
+  VarCopyProc :   procedure(var d : TVarData;const s : TVarData) = nil;
+  VarToLStrProc : procedure(var d : AnsiString;const s : TVarData) = nil;
+  VarToWStrProc : procedure(var d : WideString;const s : TVarData) = nil;
+
 var
    VarDispProc : pointer;
    DispCallByIDProc : pointer;
@@ -311,7 +318,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.16  2003-12-22 23:07:52  peter
+  Revision 1.17  2005-01-15 18:47:26  florian
+    * several variant init./final. stuff fixed
+
+  Revision 1.16  2003/12/22 23:07:52  peter
     * fixed type of verror
 
   Revision 1.15  2003/12/10 01:36:39  florian

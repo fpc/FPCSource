@@ -69,7 +69,8 @@ begin
         case VType of
           varEmpty, varNull, varSmallint, varInteger, varSingle, varDouble,
           varCurrency, varDate, varError, varBoolean, varByte,VarShortInt,
-          varInt64, VarLongWord,VarQWord:;
+          varInt64, VarLongWord,VarQWord:
+            ;
           varOleStr:
             WideString(Pointer(VOleStr)):='';
           varDispatch,
@@ -709,7 +710,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.12  2005-01-08 16:19:42  florian
+  Revision 1.13  2005-01-15 18:47:26  florian
+    * several variant init./final. stuff fixed
+
+  Revision 1.12  2005/01/08 16:19:42  florian
     * made some variants stuff more readable
 
   Revision 1.11  2004/04/28 20:48:20  peter
