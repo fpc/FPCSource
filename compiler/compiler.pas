@@ -322,14 +322,23 @@ begin
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif newcg}
 {$endif EXTDEBUG}
-
+{$ifdef fixLeaksOnError}
+ {$ifdef tp}
+  do_stop;
+ {$else tp}
+  do_stop();
+ {$endif tp}
+{$endif fixLeaksOnError}
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.42  2000-01-07 01:14:23  peter
+  Revision 1.43  2000-01-11 16:53:24  jonas
+    + call do_stop at the end of compile()
+
+  Revision 1.42  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.41  1999/12/02 17:34:34  peter
