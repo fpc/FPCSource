@@ -1178,7 +1178,7 @@ implementation
                            if assigned(tcallnode(left).methodpointer) then
                              tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
                            else
-                             tloadnode(hp).set_mp(load_self);
+                             tloadnode(hp).set_mp(load_self_node);
                          end;
                         resulttypepass(hp);
                       end;
@@ -2091,7 +2091,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2003-05-09 17:47:02  peter
+  Revision 1.111  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.110  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

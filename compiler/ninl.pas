@@ -924,10 +924,12 @@ implementation
             { create a temp codepara, but save the original code para to }
             { assign the result to later on                              }
             if assigned(codepara) then
-              orgcode := codepara.left
+              begin
+                orgcode := codepara.left;
+                codepara.left := ctemprefnode.create(tempcode);
+              end
             else
-              codepara := ccallparanode.create(nil,nil);
-            codepara.left := ctemprefnode.create(tempcode);
+              codepara := ccallparanode.create(ctemprefnode.create(tempcode),nil);
             { we need its resulttype later on }
             codepara.get_paratype;
           end
@@ -1388,7 +1390,7 @@ implementation
                   set_varstate(left,false);
                   if paramanager.push_high_param(left.resulttype.def,current_procdef.proccalloption) then
                    begin
-                     hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+                     hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
@@ -1545,7 +1547,7 @@ implementation
                         if is_open_array(left.resulttype.def) or
                            is_array_of_const(left.resulttype.def) then
                          begin
-                           hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+                           hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
                             begin
                               hp:=caddnode.create(addn,hightree,
@@ -1788,7 +1790,7 @@ implementation
                            if is_open_array(left.resulttype.def) or
                               is_array_of_const(left.resulttype.def) then
                             begin
-                              result:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+                              result:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
@@ -1817,7 +1819,7 @@ implementation
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
-                            result:=load_high_value(tvarsym(tloadnode(left).symtableentry))
+                            result:=load_high_value_node(tvarsym(tloadnode(left).symtableentry))
                            else
                             result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8bittype,true);
                          end;
@@ -2349,7 +2351,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2003-05-09 17:47:02  peter
+  Revision 1.111  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.110  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

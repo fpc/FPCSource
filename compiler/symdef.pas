@@ -240,8 +240,6 @@ interface
 
        tobjectdef = class(tabstractrecorddef)
        private
-          sd : tprocdef;
-          procedure _searchdestructor(sym : tnamedindexitem;arg:pointer);
 {$ifdef GDB}
           procedure addprocname(p :tnamedindexitem;arg:pointer);
 {$endif GDB}
@@ -4607,26 +4605,27 @@ implementation
           end;
      end;*)
 
-    procedure Tobjectdef._searchdestructor(sym:Tnamedindexitem;arg:pointer);
+    procedure _searchdestructor(sym:Tnamedindexitem;sd:pointer);
 
     begin
         { if we found already a destructor, then we exit }
-        if (sd=nil) and (Tsym(sym).typ=procsym) then
-            sd:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
+        if (ppointer(sd)^=nil) and
+           (Tsym(sym).typ=procsym) then
+          ppointer(sd)^:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
     end;
 
    function tobjectdef.searchdestructor : tprocdef;
 
      var
         o : tobjectdef;
-
+        sd : tprocdef;
      begin
         searchdestructor:=nil;
         o:=self;
         sd:=nil;
         while assigned(o) do
           begin
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor,nil);
+             o.symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}_searchdestructor,@sd);
              if assigned(sd) then
                begin
                   searchdestructor:=sd;
@@ -5762,7 +5761,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2003-05-09 17:47:03  peter
+  Revision 1.142  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.141  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

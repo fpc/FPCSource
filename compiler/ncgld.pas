@@ -249,25 +249,25 @@ implementation
                          end;
                     end;
 
-                  { handle call by reference variables }
-                  if (symtabletype in [parasymtable,inlineparasymtable]) then
+                  { handle call by reference variables, ignore the reference
+                    when we need to load the self pointer for objects }
+                  if (symtabletype in [parasymtable,inlineparasymtable]) and
+                     not(nf_load_self_pointer in flags) and
+                     (
+                      (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption)
+                     ) then
                     begin
-                      { in case call by reference, then calculate. Open array
-                        is always an reference! }
-                      if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
-                        begin
-                           if hregister.enum=R_NO then
-                             hregister:=rg.getaddressregister(exprasmlist);
-                           { we need to load only an address }
-                           location.size:=OS_ADDR;
-                           cg.a_load_loc_reg(exprasmlist,location,hregister);
-                           if tvarsym(symtableentry).varspez=vs_const then
-                            location_reset(location,LOC_CREFERENCE,newsize)
-                           else
-                            location_reset(location,LOC_REFERENCE,newsize);
-                           location.reference.base:=hregister;
-                       end;
+                      if hregister.enum=R_NO then
+                        hregister:=rg.getaddressregister(exprasmlist);
+                      { we need to load only an address }
+                      location.size:=OS_ADDR;
+                      cg.a_load_loc_reg(exprasmlist,location,hregister);
+                      if tvarsym(symtableentry).varspez=vs_const then
+                       location_reset(location,LOC_CREFERENCE,newsize)
+                      else
+                       location_reset(location,LOC_REFERENCE,newsize);
+                      location.reference.base:=hregister;
                     end;
                end;
             procsym:
@@ -936,7 +936,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-05-11 14:45:12  peter
+  Revision 1.57  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.56  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

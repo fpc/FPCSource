@@ -1296,9 +1296,7 @@ implementation
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
-        rsp,
-        tmpreg : tregister;
-        inheriteddesctructorlabel : tasmlabel;
+        rsp : tregister;
       begin
         if not inlined then
            stackalloclist:=taasmoutput.Create;
@@ -1397,12 +1395,6 @@ implementation
               cg.g_profilecode(list);
           end;
 
-        { a constructor needs a help procedure }
-        if (current_procdef.proctypeoption=potype_constructor) then
-         begin
-           cg.g_call_constructor_helper(list);
-         end;
-
         if not is_void(current_procdef.rettype.def) then
           begin
              { for now the pointer to the result can't be a register }
@@ -1497,56 +1489,14 @@ implementation
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
             end;
 
-           { do we need an exception frame because of ansi/widestrings/interfaces ? }
-           if (pi_needs_implicit_finally in current_procinfo.flags) and
-              { but it's useless in init/final code of units }
-              not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
-            begin
-              include(rg.usedinproc,accumulator);
-              tg.GetTemp(list,JMP_BUF_SIZE,tt_noreuse,current_procinfo.exception_jmp_ref);
-              tg.GetTemp(list,12,tt_noreuse,current_procinfo.exception_env_ref);
-              tg.GetTemp(list,sizeof(aword),tt_noreuse,current_procinfo.exception_result_ref);
-              new_exception(list,current_procinfo.exception_jmp_ref,
-                  current_procinfo.exception_env_ref,
-                  current_procinfo.exception_result_ref,1,aktexitlabel);
-            end;
-
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
             list.concat(Tai_force_line.Create);
 {$endif GDB}
          end;
 
-        { maybe call BeforeDestruction for classes }
-        if (current_procdef.proctypeoption=potype_destructor) and
-           is_class(current_procdef._class) then
-         begin
-           objectlibrary.getlabel(inheriteddesctructorlabel);
-           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.inheritedflag_offset);
-           cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,inheriteddesctructorlabel);
-           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.selfpointer_offset);
-         {$ifdef newra}
-           tmpreg:=rg.getaddressregister(list);
-         {$else}
-           tmpreg:=cg.get_scratch_reg_address(list);
-         {$endif}
-           cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
-           cg.a_param_reg(list,OS_ADDR,tmpreg,paramanager.getintparaloc(1));
-           reference_reset_base(href,tmpreg,0);
-           cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
-           reference_reset_base(href,tmpreg,72);
-           cg.a_call_ref(list,href);
-         {$ifdef newra}
-           rg.ungetregisterint(list,tmpreg);
-         {$else}
-           cg.free_scratch_reg(list,tmpreg);
-         {$endif}
-           cg.a_label(list,inheriteddesctructorlabel);
-         end;
-
         if inlined then
           load_regvars(list,nil);
-
 
         {************************* Stack allocation **************************}
         { and symbol entry point as well as debug information                 }
@@ -1647,15 +1597,12 @@ implementation
         p : pchar;
         st : string[2];
 {$endif GDB}
-        inheritedconstructorlabel,
-        okexitlabel,
-        noreraiselabel,nodestroycall : tasmlabel;
+        okexitlabel : tasmlabel;
         href : treference;
         usesacc,
         usesacchi,
         usesself,usesfpu : boolean;
-        pd : tprocdef;
-        rsp,tmpreg,r  : Tregister;
+        rsp,r  : Tregister;
       begin
         if aktexit2label.is_used and
            ((pi_needs_implicit_finally in current_procinfo.flags) or
@@ -1670,11 +1617,6 @@ implementation
           list.concat(Tai_label.Create(aktexitlabel));
 
         cleanup_regvars(list);
-
-        { call the destructor help procedure }
-        if (current_procdef.proctypeoption=potype_destructor) and
-           assigned(current_procdef._class) then
-         cg.g_call_destructor_helper(list);
 
         { finalize temporary data }
         finalizetempvariables(list);
@@ -1701,89 +1643,6 @@ implementation
         if assigned(current_procdef.parast) then
           current_procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
 
-        { do we need to handle exceptions because of ansi/widestrings ? }
-        if not inlined and
-           (pi_needs_implicit_finally in current_procinfo.flags) and
-           { but it's useless in init/final code of units }
-           not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
-          begin
-             { the exception helper routines modify all registers }
-             current_procdef.usedintregisters:=all_intregisters;
-             current_procdef.usedotherregisters:=all_registers;
-             objectlibrary.getlabel(noreraiselabel);
-             free_exception(list,
-                  current_procinfo.exception_jmp_ref,
-                  current_procinfo.exception_env_ref,
-                  current_procinfo.exception_result_ref,0,
-                  noreraiselabel,false);
-             tg.Ungettemp(list,current_procinfo.exception_jmp_ref);
-             tg.Ungettemp(list,current_procinfo.exception_env_ref);
-             tg.Ungettemp(list,current_procinfo.exception_result_ref);
-
-             if (current_procdef.proctypeoption=potype_constructor) then
-               begin
-                  if assigned(current_procdef._class) then
-                    begin
-                       pd:=current_procdef._class.searchdestructor;
-                       if assigned(pd) then
-                         begin
-                            objectlibrary.getlabel(nodestroycall);
-                            { check VMT pointer if this is an inherited constructor }
-                            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
-                            cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
-{                            srsym:=pd.parast.searchsym('self');
-                            if not assigned(srsym) then
-                              internalerror(200305101);
-                            reference_reset_base(href,current_procinfo.framepointer,tvarsym(srsym).adjusted_address);
-                            cg.a_load_ref_reg( }
-                            r:=cg.g_load_self(list);
-                            if is_class(current_procdef._class) then
-                             begin
-                               cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
-                               cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
-                             end
-                            else if is_object(current_procdef._class) then
-                             begin
-                               cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(current_procdef._class.vmt_mangledname),0);
-                               cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
-                             end
-                            else
-                             Internalerror(200006164);
-                            if (po_virtualmethod in pd.procoptions) then
-                             begin
-                               reference_reset_base(href,r,0);
-                               cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                               reference_reset_base(href,r,current_procdef._class.vmtmethodoffset(pd.extnumber));
-                               cg.a_call_ref(list,href);
-                             end
-                            else
-                             cg.a_call_name(list,pd.mangledname);
-                            rg.ungetregisterint(list,r);
-                            { not necessary because the result is never assigned in the
-                              case of an exception (FK) }
-                            cg.a_label(list,nodestroycall);
-                         end;
-                    end
-               end
-             else
-              begin
-                { no constructor }
-                { must be the return value finalized before reraising the exception? }
-                if (not is_void(current_procdef.rettype.def)) and
-                   (current_procdef.rettype.def.needs_inittable) and
-                   ((current_procdef.rettype.def.deftype<>objectdef) or
-                    not is_class(current_procdef.rettype.def)) then
-                  begin
-                     reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-                     cg.g_finalize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
-                  end;
-              end;
-
-             cg.a_call_name(list,'FPC_RERAISE');
-             cg.a_label(list,noreraiselabel);
-          end;
-
         { call __EXIT for main program }
         if (not DLLsource) and
            (not inlined) and
@@ -1803,44 +1662,17 @@ implementation
           begin
             if (current_procdef.proctypeoption=potype_constructor) then
               begin
-                objectlibrary.getlabel(inheritedconstructorlabel);
                 objectlibrary.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
                 { Failure exit }
                 cg.a_label(list,faillabel);
                 cg.g_call_fail_helper(list);
-                cg.a_jmp_always(list,inheritedconstructorlabel);
                 { Success exit }
                 cg.a_label(list,okexitlabel);
                 r.enum:=R_INTREGISTER;
                 r.number:=NR_ACCUMULATOR;
                 cg.a_reg_alloc(list,r);
-                { maybe call AfterConstructor for classes }
-                if is_class(current_procdef._class) then
-                 begin
-                   reference_reset_base(href,current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
-                   cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                   cg.a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,r,inheritedconstructorlabel);
-                   reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
-                   cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                   cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
-                   reference_reset_base(href,r,0);
-                 {$ifdef newra}
-                   tmpreg:=rg.getaddressregister(list);
-                 {$else newra}
-                   tmpreg:=cg.get_scratch_reg_address(list);
-                 {$endif}
-                   cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
-                   reference_reset_base(href,tmpreg,68);
-                   cg.a_call_ref(list,href);
-                 {$ifdef newra}
-                   rg.ungetregisterint(list,tmpreg);
-                 {$else}
-                   cg.free_scratch_reg(list,tmpreg);
-                 {$endif}
-                 end;
                 { return the self pointer }
-                cg.a_label(list,inheritedconstructorlabel);
                 reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
                 cg.a_load_ref_reg(list,OS_ADDR,href,r);
                 cg.a_reg_dealloc(list,r);
@@ -2018,7 +1850,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-05-11 14:45:12  peter
+  Revision 1.99  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.98  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

@@ -56,7 +56,7 @@ implementation
        ppu,fmodule,
        { pass 1 }
        node,
-       nbas,nld,
+       nbas,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -225,6 +225,259 @@ implementation
       end;
 
 
+    function generate_entry_block:tblocknode;
+      var
+        srsym        : tsym;
+        para         : tcallparanode;
+        newstatement : tstatementnode;
+        htype        : ttype;
+      begin
+        generate_entry_block:=internalstatements(newstatement,true);
+
+        { a constructor needs a help procedure }
+        if (current_procdef.proctypeoption=potype_constructor) then
+          begin
+            if is_class(current_procdef._class) then
+              begin
+                if (cs_implicit_exceptions in aktmoduleswitches) then
+                  include(current_procinfo.flags,pi_needs_implicit_finally);
+                srsym:=search_class_member(current_procdef._class,'NEWINSTANCE');
+                if assigned(srsym) and
+                   (srsym.typ=procsym) then
+                  begin
+                    { if vmt<>0 then newinstance }
+                    addstatement(newstatement,cifnode.create(
+                        caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create),
+                        cassignmentnode.create(
+                            ctypeconvnode.create_explicit(
+                                load_self_pointer_node,
+                                voidpointertype),
+                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node)),
+                        nil));
+                  end
+                else
+                  internalerror(200305108);
+              end
+            else
+              if is_object(current_procdef._class) then
+                begin
+                  htype.setdef(current_procdef._class);
+                  htype.setdef(tpointerdef.create(htype));
+                  { parameter 3 : vmt_offset }
+                  { parameter 2 : address of pointer to vmt,
+                    this is required to allow setting the vmt to -1 to indicate
+                    that memory was allocated }
+                  { parameter 1 : self pointer }
+                  para:=ccallparanode.create(
+                            cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                        ccallparanode.create(
+                            ctypeconvnode.create_explicit(
+                                load_vmt_pointer_node,
+                                voidpointertype),
+                        ccallparanode.create(
+                            ctypeconvnode.create_explicit(
+                                load_self_pointer_node,
+                                voidpointertype),
+                        nil)));
+                  addstatement(newstatement,cassignmentnode.create(
+                      ctypeconvnode.create_explicit(
+                          load_self_pointer_node,
+                          voidpointertype),
+                      ccallnode.createintern('fpc_help_constructor',para)));
+                end
+            else
+              internalerror(200305103);
+            { if self=nil then fail }
+            addstatement(newstatement,cifnode.create(
+                caddnode.create(equaln,
+                    load_self_pointer_node,
+                    cnilnode.create),
+                cfailnode.create,
+                nil));
+          end;
+
+        { maybe call BeforeDestruction for classes }
+        if (current_procdef.proctypeoption=potype_destructor) and
+           is_class(current_procdef._class) then
+          begin
+            srsym:=search_class_member(current_procdef._class,'BEFOREDESTRUCTION');
+            if assigned(srsym) and
+               (srsym.typ=procsym) then
+              begin
+                { if vmt<>0 then beforedestruction }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(unequaln,
+                        load_vmt_pointer_node,
+                        cnilnode.create),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                    nil));
+              end
+            else
+              internalerror(200305104);
+          end;
+      end;
+
+
+    function generate_exit_block:tblocknode;
+      var
+        srsym : tsym;
+        para : tcallparanode;
+        newstatement : tstatementnode;
+      begin
+        generate_exit_block:=internalstatements(newstatement,true);
+
+        { maybe call AfterConstruction for classes }
+        if (current_procdef.proctypeoption=potype_constructor) and
+           is_class(current_procdef._class) then
+          begin
+            srsym:=search_class_member(current_procdef._class,'AFTERCONSTRUCTION');
+            if assigned(srsym) and
+               (srsym.typ=procsym) then
+              begin
+                { if vmt<>0 then afterconstruction }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(unequaln,
+                        load_vmt_pointer_node,
+                        cnilnode.create),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                    nil));
+              end
+            else
+              internalerror(200305106);
+          end;
+
+        { a destructor needs a help procedure }
+        if (current_procdef.proctypeoption=potype_destructor) then
+          begin
+            if is_class(current_procdef._class) then
+              begin
+                srsym:=search_class_member(current_procdef._class,'FREEINSTANCE');
+                if assigned(srsym) and
+                   (srsym.typ=procsym) then
+                  begin
+                    { if self<>0 and vmt=1 then freeinstance }
+                    addstatement(newstatement,cifnode.create(
+                        caddnode.create(andn,
+                            caddnode.create(unequaln,
+                                load_self_pointer_node,
+                                cnilnode.create),
+                            caddnode.create(equaln,
+                                ctypeconvnode.create(
+                                    load_vmt_pointer_node,
+                                    voidpointertype),
+                                cpointerconstnode.create(1,voidpointertype))),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                        nil));
+                  end
+                else
+                  internalerror(200305108);
+              end
+            else
+              if is_object(current_procdef._class) then
+                begin
+                  { parameter 3 : vmt_offset }
+                  { parameter 2 : pointer to vmt }
+                  { parameter 1 : self pointer }
+                  para:=ccallparanode.create(
+                            cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                        ccallparanode.create(
+                            ctypeconvnode.create_explicit(
+                                load_vmt_pointer_node,
+                                voidpointertype),
+                        ccallparanode.create(
+                            ctypeconvnode.create_explicit(
+                                load_self_pointer_node,
+                                voidpointertype),
+                        nil)));
+                  addstatement(newstatement,
+                      ccallnode.createintern('fpc_help_destructor',para));
+                end
+            else
+              internalerror(200305105);
+          end;
+      end;
+
+
+    function generate_except_block:tblocknode;
+      var
+        pd : tprocdef;
+        newstatement : tstatementnode;
+      begin
+        generate_except_block:=internalstatements(newstatement,true);
+
+        { a constructor needs call destroy when it is not inherited }
+        if (current_procdef.proctypeoption=potype_constructor) then
+          begin
+            pd:=current_procdef._class.searchdestructor;
+            if assigned(pd) then
+              begin
+                { if vmt<>0 then call destructor }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(unequaln,
+                        load_vmt_pointer_node,
+                        cnilnode.create),
+                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node),
+                    nil));
+              end
+            else
+              internalerror(200305107);
+          end
+        else
+          begin
+            { no constructor }
+            { must be the return value finalized before reraising the exception? }
+            if (not is_void(current_procdef.rettype.def)) and
+               (current_procdef.rettype.def.needs_inittable) and
+               (not is_class(current_procdef.rettype.def)) then
+              finalize_data_node(caddrnode.create(load_result_node));
+          end;
+      end;
+
+
+    procedure add_entry_exit_block(var code:tnode;const entrypos,exitpos:tfileposinfo);
+      var
+        entryblock,
+        exitblock,
+        newblock     : tblocknode;
+        newstatement : tstatementnode;
+        oldfilepos   : tfileposinfo;
+      begin
+        oldfilepos:=aktfilepos;
+        { Generate entry and exit }
+        aktfilepos:=entrypos;
+        entryblock:=generate_entry_block;
+        aktfilepos:=exitpos;
+        exitblock:=generate_exit_block;
+
+        { Generate procedure by combining entry+body+exit,
+          depending on the implicit finally we need to add
+          an try...finally...end wrapper }
+        newblock:=internalstatements(newstatement,true);
+        if (pi_needs_implicit_finally in current_procinfo.flags) and
+           { but it's useless in init/final code of units }
+           not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+          begin
+            addstatement(newstatement,entryblock);
+            aktfilepos:=exitpos;
+            addstatement(newstatement,ctryexceptnode.createintern(
+               code,
+               generate_except_block));
+            addstatement(newstatement,exitblock);
+          end
+        else
+          begin
+            addstatement(newstatement,entryblock);
+            addstatement(newstatement,code);
+            addstatement(newstatement,exitblock);
+          end;
+        resulttypepass(newblock);
+        code:=newblock;
+        aktfilepos:=oldfilepos;
+      end;
+
+
     procedure compile_proc_body(pd:tprocdef;make_global,parent_has_class:boolean);
       {
         Compile the body of a procedure
@@ -325,13 +578,6 @@ implementation
          localmaxfpuregisters:=aktmaxfpuregisters;
          { parse the code ... }
          code:=block(current_module.islibrary);
-         { store a copy of the original tree for inline, for
-           normal procedures only store a reference to the
-           current tree }
-         if (current_procdef.proccalloption=pocall_inline) then
-           current_procdef.code:=code.getcopy
-         else
-           current_procdef.code:=code;
          { get a better entry point }
          if assigned(code) then
            entrypos:=code.fileinfo;
@@ -340,6 +586,16 @@ implementation
          exitpos:=last_endtoken_filepos;
          { save current filepos }
          savepos:=aktfilepos;
+         { add implicit entry and exit code }
+         if assigned(code) then
+           add_entry_exit_block(code,entrypos,exitpos);
+         { store a copy of the original tree for inline, for
+           normal procedures only store a reference to the
+           current tree }
+         if (current_procdef.proccalloption=pocall_inline) then
+           current_procdef.code:=code.getcopy
+         else
+           current_procdef.code:=code;
 
          {When we are called to compile the body of a unit, aktprocsym should
           point to the unit initialization. If the unit has no initialization,
@@ -842,7 +1098,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-05-09 17:47:03  peter
+  Revision 1.109  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.108  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

@@ -91,6 +91,7 @@ interface
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
+          constructor create_def(l:tnode;def:tprocdef;mp:tnode);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; const res: ttype);
@@ -173,6 +174,8 @@ interface
        end;
        tprocinlinenodeclass = class of tprocinlinenode;
 
+    function initialize_data_node(p:tnode):tnode;
+    function finalize_data_node(p:tnode):tnode;
     function reverseparameters(p: tcallparanode): tcallparanode;
 
 
@@ -219,6 +222,36 @@ type
              hp1:=hp2;
           end;
         reverseparameters:=hp1;
+      end;
+
+
+    function initialize_data_node(p:tnode):tnode;
+      begin
+        result:=ccallnode.createintern('fpc_initialize',
+              ccallparanode.create(
+                  caddrnode.create(
+                      crttinode.create(
+                          tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
+              ccallparanode.create(
+                  p,
+              nil)));
+      end;
+
+
+    function finalize_data_node(p:tnode):tnode;
+      begin
+        if not assigned(p.resulttype.def) then
+          resulttypepass(p);
+        if p.resulttype.def.deftype<>pointerdef then
+          internalerror(2003051010);
+        result:=ccallnode.createintern('fpc_finalize',
+              ccallparanode.create(
+                  caddrnode.create(
+                      crttinode.create(
+                          tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
+              ccallparanode.create(
+                  p,
+              nil)));
       end;
 
 
@@ -535,8 +568,9 @@ type
 
       begin
          inherited create(callparan,expr,next);
-         if assigned(expr) then
-          expr.set_file_line(self);
+         if not assigned(expr) then
+           internalerror(200305091);
+         expr.set_file_line(self);
          callparaflags:=[];
       end;
 
@@ -876,7 +910,6 @@ type
  ****************************************************************************}
 
     constructor tcallnode.create(l:tnode;v : tprocsym;st : tsymtable; mp : tnode);
-
       begin
          inherited create(calln,l,nil);
          symtableprocentry:=v;
@@ -884,6 +917,20 @@ type
          include(flags,nf_return_value_used);
          methodpointer:=mp;
          procdefinition:=nil;
+         restypeset:=false;
+         funcretnode:=nil;
+         paralength:=-1;
+      end;
+
+
+    constructor tcallnode.create_def(l:tnode;def:tprocdef;mp:tnode);
+      begin
+         inherited create(calln,l,nil);
+         symtableprocentry:=nil;
+         symtableproc:=nil;
+         include(flags,nf_return_value_used);
+         methodpointer:=mp;
+         procdefinition:=def;
          restypeset:=false;
          funcretnode:=nil;
          paralength:=-1;
@@ -1601,13 +1648,13 @@ type
                 else
                   begin
                     if methodpointer.nodetype=typen then
-                      selftree:=load_self
+                      selftree:=load_self_node
                     else
                       selftree:=methodpointer.getcopy;
                   end;
               end
             else
-              selftree:=load_self;
+              selftree:=load_self_node;
           end
         else
           begin
@@ -1639,7 +1686,7 @@ type
             else
               begin
                 if methodpointer.nodetype=typen then
-                  selftree:=load_self
+                  selftree:=load_self_node
                 else
                   selftree:=methodpointer.getcopy;
               end;
@@ -2682,7 +2729,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2003-05-11 14:45:12  peter
+  Revision 1.151  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.150  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

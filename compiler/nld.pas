@@ -127,8 +127,11 @@ interface
 
 
     procedure load_procvar_from_calln(var p1:tnode);
-    function load_high_value(vs:tvarsym):tnode;
-    function load_self:tnode;
+    function load_high_value_node(vs:tvarsym):tnode;
+    function load_self_node:tnode;
+    function load_result_node:tnode;
+    function load_self_pointer_node:tnode;
+    function load_vmt_pointer_node:tnode;
     function is_self_node(p:tnode):boolean;
 
 
@@ -179,7 +182,7 @@ implementation
         end;
 
 
-    function load_high_value(vs:tvarsym):tnode;
+    function load_high_value_node(vs:tvarsym):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -195,13 +198,16 @@ implementation
          end;
         srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
         if assigned(srsym) then
-          result:=cloadnode.create(srsym,srsymtable)
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
         else
           CGMessage(cg_e_illegal_expression);
       end;
 
 
-    function load_self:tnode;
+    function load_self_node:tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -209,7 +215,62 @@ implementation
         result:=nil;
         searchsym('self',srsym,srsymtable);
         if assigned(srsym) then
-          result:=cloadnode.create(srsym,srsymtable)
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_result_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('result',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_self_pointer_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('self',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            include(result.flags,nf_load_self_pointer);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_vmt_pointer_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('vmt',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
         else
           CGMessage(cg_e_illegal_expression);
       end;
@@ -327,23 +388,29 @@ implementation
               begin
                 { if it's refered by absolute then it's used }
                 if nf_absolute in flags then
-                  tvarsym(symtableentry).varstate:=vs_used;
-
-                { fix self type which is declared as voidpointer in the
-                  definition }
-                if vo_is_self in tvarsym(symtableentry).varoptions then
+                  tvarsym(symtableentry).varstate:=vs_used
+                else
                   begin
-                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
-                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                    { fix self type which is declared as voidpointer in the
+                      definition }
+                    if vo_is_self in tvarsym(symtableentry).varoptions then
+                      begin
+                        resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                        if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
+                           (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                          resulttype.setdef(tclassrefdef.create(resulttype))
+                        else if is_object(resulttype.def) and
+                                (nf_load_self_pointer in flags) then
+                          resulttype.setdef(tpointerdef.create(resulttype));
+                      end
+                    else if vo_is_vmt in tvarsym(symtableentry).varoptions then
                       begin
                         resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
                         resulttype.setdef(tclassrefdef.create(resulttype));
                       end
                     else
-                      resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
-                  end
-                else
-                  resulttype:=tvarsym(symtableentry).vartype;
+                      resulttype:=tvarsym(symtableentry).vartype;
+                  end;
               end;
             typedconstsym :
                 if not(nf_absolute in flags) then
@@ -1148,7 +1215,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-05-11 14:45:12  peter
+  Revision 1.93  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.92  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

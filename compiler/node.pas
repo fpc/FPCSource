@@ -234,11 +234,9 @@ interface
          nf_memseg,
          nf_callunique,
 
-         { twithnode }
-         nf_islocal,
-
          { tloadnode }
          nf_absolute,
+         nf_load_self_pointer,
 
          { taddnode }
          nf_is_currency,
@@ -988,7 +986,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-05-09 17:47:02  peter
+  Revision 1.60  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.59  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

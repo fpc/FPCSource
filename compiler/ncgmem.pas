@@ -464,7 +464,7 @@ implementation
             if not(current_procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
              begin
                { Get high value }
-               hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+               hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                { it must be available }
                if not assigned(hightree) then
                  internalerror(200212201);
@@ -824,7 +824,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-05-11 14:45:12  peter
+  Revision 1.53  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.52  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

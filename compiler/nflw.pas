@@ -33,8 +33,13 @@ interface
        symppu,symtype,symbase,symdef,symsym;
 
     type
+       { internal labels for gotonode.createintern }
+{       tgotolabel = (
+         gnl_fail
+       ); }
+
        { flags used by loop nodes }
-       tloopflags = (
+       tloopflag = (
          { set if it is a for ... downto ... do loop }
          lnf_backward,
          { Do we need to parse childs to set var state? }
@@ -45,6 +50,8 @@ interface
          lnf_checknegate,
          { Should the value of the loop variable on exit be correct. }
          lnf_dont_mind_loopvar_on_exit);
+       tloopflags = set of tloopflag;
+
     const
          { loop flags which must match to consider loop nodes equal regarding the flags }
          loopflagsequal = [lnf_backward];
@@ -52,7 +59,7 @@ interface
     type
        tloopnode = class(tbinarynode)
           t1,t2 : tnode;
-          loopflags : set of tloopflags;
+          loopflags : tloopflags;
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -117,7 +124,9 @@ interface
        tgotonode = class(tnode)
           labsym : tlabelsym;
           exceptionblock : integer;
+//          internlab : tinterngotolabel;
           constructor create(p : tlabelsym);virtual;
+//          constructor createintern(g:tinterngotolabel);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -159,7 +168,9 @@ interface
        traisenodeclass = class of traisenode;
 
        ttryexceptnode = class(tloopnode)
+          onlyreraise : boolean;
           constructor create(l,r,_t1 : tnode);virtual;
+          constructor createintern(l,_t1 : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -1274,6 +1285,14 @@ implementation
     constructor ttryexceptnode.create(l,r,_t1 : tnode);
       begin
          inherited create(tryexceptn,l,r,_t1,nil);
+         onlyreraise:=false;
+      end;
+
+
+    constructor ttryexceptnode.createintern(l,_t1 : tnode);
+      begin
+         inherited create(tryexceptn,l,nil,_t1,nil);
+         onlyreraise:=true;
       end;
 
 
@@ -1503,7 +1522,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-05-01 07:59:42  florian
+  Revision 1.73  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.72  2003/05/01 07:59:42  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs

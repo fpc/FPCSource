@@ -1097,9 +1097,7 @@ implementation
 
          cg.a_label(exprasmlist,exceptlabel);
 
-
          try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,endexceptlabel,false);
-
 
          cg.a_label(exprasmlist,doexceptlabel);
 
@@ -1119,110 +1117,134 @@ implementation
            secondpass(right);
 
          cg.a_label(exprasmlist,lastonlabel);
-         { default handling except handling }
-         if assigned(t1) then
+         if onlyreraise then
            begin
-              { FPC_CATCHES must be called with
-                'default handler' flag (=-1)
-              }
-              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(1));
-              cg.a_call_name(exprasmlist,'FPC_CATCHES');
-
-              { the destruction of the exception object must be also }
-              { guarded by an exception frame                        }
-              objectlibrary.getlabel(doobjectdestroy);
-              objectlibrary.getlabel(doobjectdestroyandreraise);
-
-              try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
-
-              { here we don't have to reset flowcontrol           }
-              { the default and on flowcontrols are handled equal }
-              secondpass(t1);
-              exceptflowcontrol:=flowcontrol;
-
-              cg.a_label(exprasmlist,doobjectdestroyandreraise);
-
-              try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
-
-              cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_ACCUMULATOR;
-              cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
-              cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-              { we don't need to restore esi here because reraise never }
-              { returns                                                 }
-              cg.a_call_name(exprasmlist,'FPC_RERAISE');
-
-              cg.a_label(exprasmlist,doobjectdestroy);
-              cleanupobjectstack;
-              cg.a_jmp_always(exprasmlist,endexceptlabel);
+             { implicit except frame to cleanup and reraise only }
+             if assigned(t1) then
+               secondpass(t1);
+             cg.a_call_name(exprasmlist,'FPC_RERAISE');
+             if fc_exit in tryflowcontrol then
+               begin
+                 cg.a_label(exprasmlist,exittrylabel);
+                 cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+               end;
+             if fc_break in tryflowcontrol then
+               begin
+                 cg.a_label(exprasmlist,breaktrylabel);
+                 cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+               end;
+             if fc_continue in tryflowcontrol then
+               begin
+                 cg.a_label(exprasmlist,continuetrylabel);
+                 cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+               end;
            end
          else
            begin
-              cg.a_call_name(exprasmlist,'FPC_RERAISE');
-              exceptflowcontrol:=flowcontrol;
-           end;
+             { default handling except handling }
+             if assigned(t1) then
+               begin
+                  { FPC_CATCHES must be called with
+                    'default handler' flag (=-1)
+                  }
+                  cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(1));
+                  cg.a_call_name(exprasmlist,'FPC_CATCHES');
 
-         if fc_exit in exceptflowcontrol then
-           begin
-              { do some magic for exit in the try block }
-              cg.a_label(exprasmlist,exitexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cleanupobjectstack;
-              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
-           end;
+                  { the destruction of the exception object must be also }
+                  { guarded by an exception frame                        }
+                  objectlibrary.getlabel(doobjectdestroy);
+                  objectlibrary.getlabel(doobjectdestroyandreraise);
 
-         if fc_break in exceptflowcontrol then
-           begin
-              cg.a_label(exprasmlist,breakexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cleanupobjectstack;
-              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
-           end;
+                  try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
 
-         if fc_continue in exceptflowcontrol then
-           begin
-              cg.a_label(exprasmlist,continueexceptlabel);
-              { we must also destroy the address frame which guards }
-              { exception object                                    }
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cleanupobjectstack;
-              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
-           end;
+                  { here we don't have to reset flowcontrol           }
+                  { the default and on flowcontrols are handled equal }
+                  secondpass(t1);
+                  exceptflowcontrol:=flowcontrol;
 
-         if fc_exit in tryflowcontrol then
-           begin
-              { do some magic for exit in the try block }
-              cg.a_label(exprasmlist,exittrylabel);
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
-           end;
+                  cg.a_label(exprasmlist,doobjectdestroyandreraise);
 
-         if fc_break in tryflowcontrol then
-           begin
-              cg.a_label(exprasmlist,breaktrylabel);
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
-           end;
+                  try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
-         if fc_continue in tryflowcontrol then
-           begin
-              cg.a_label(exprasmlist,continuetrylabel);
-              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.g_exception_reason_load(exprasmlist,href);
-              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
-           end;
+                  cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
 
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_ACCUMULATOR;
+                  cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
+                  cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+                  { we don't need to restore esi here because reraise never }
+                  { returns                                                 }
+                  cg.a_call_name(exprasmlist,'FPC_RERAISE');
+
+                  cg.a_label(exprasmlist,doobjectdestroy);
+                  cleanupobjectstack;
+                  cg.a_jmp_always(exprasmlist,endexceptlabel);
+               end
+             else
+               begin
+                  cg.a_call_name(exprasmlist,'FPC_RERAISE');
+                  exceptflowcontrol:=flowcontrol;
+               end;
+
+             if fc_exit in exceptflowcontrol then
+               begin
+                  { do some magic for exit in the try block }
+                  cg.a_label(exprasmlist,exitexceptlabel);
+                  { we must also destroy the address frame which guards }
+                  { exception object                                    }
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cleanupobjectstack;
+                  cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+               end;
+
+             if fc_break in exceptflowcontrol then
+               begin
+                  cg.a_label(exprasmlist,breakexceptlabel);
+                  { we must also destroy the address frame which guards }
+                  { exception object                                    }
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cleanupobjectstack;
+                  cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+               end;
+
+             if fc_continue in exceptflowcontrol then
+               begin
+                  cg.a_label(exprasmlist,continueexceptlabel);
+                  { we must also destroy the address frame which guards }
+                  { exception object                                    }
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cleanupobjectstack;
+                  cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+               end;
+
+             if fc_exit in tryflowcontrol then
+               begin
+                  { do some magic for exit in the try block }
+                  cg.a_label(exprasmlist,exittrylabel);
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+               end;
+
+             if fc_break in tryflowcontrol then
+               begin
+                  cg.a_label(exprasmlist,breaktrylabel);
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+               end;
+
+             if fc_continue in tryflowcontrol then
+               begin
+                  cg.a_label(exprasmlist,continuetrylabel);
+                  cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+                  cg.g_exception_reason_load(exprasmlist,href);
+                  cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+               end;
+           end;
          cg.a_label(exprasmlist,endexceptlabel);
 
        errorexit:
@@ -1534,7 +1556,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-04-30 15:45:35  florian
+  Revision 1.59  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.58  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.57  2003/04/29 07:29:14  michael

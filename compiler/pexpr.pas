@@ -647,7 +647,7 @@ implementation
                end;
              objectsymtable :
                begin
-                 p1:=load_self;
+                 p1:=load_self_node;
                  maybe_load_methodpointer:=true;
                end;
            end;
@@ -817,7 +817,7 @@ implementation
                         withsymtable :
                           p1:=tnode(twithsymtable(st).withrefnode).getcopy;
                         objectsymtable :
-                          p1:=load_self;
+                          p1:=load_self_node;
                       end;
                     end;
                    if assigned(p1) then
@@ -1112,7 +1112,7 @@ implementation
 
                     case srsymtable.symtabletype of
                       objectsymtable :
-                        p1:=csubscriptnode.create(srsym,load_self);
+                        p1:=csubscriptnode.create(srsym,load_self_node);
                       withsymtable :
                         p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
                       else
@@ -1771,7 +1771,7 @@ implementation
                 end
                else
                 begin
-                  p1:=load_self;
+                  p1:=load_self_node;
                   postfixoperators(p1,again);
                 end;
              end;
@@ -2339,7 +2339,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-05-11 14:45:12  peter
+  Revision 1.117  2003-05-11 21:37:03  peter
+    * moved implicit exception frame from ncgutil to psub
+    * constructor/destructor helpers moved from cobj/ncgutil to psub
+
+  Revision 1.116  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode
