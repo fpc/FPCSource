@@ -19,9 +19,11 @@ interface
 
 { don't redir under linux, because all stdout (also from the ide!) will
   then be redired (PFV) }
+{ this should work now correctly because
+  DisableRedirAll and EnableRedirAll function are added in fpredir (PM) }
 {$ifndef debug}
   {$ifndef linux}
-    { $define redircompiler}
+    {$define redircompiler}
   {$endif}
 {$endif}
 
@@ -366,6 +368,9 @@ end;
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
 begin
+{$ifdef redircompiler}
+  DisableRedirAll;
+{$endif}
 { only display line info every 100 lines, ofcourse all other messages
   will be displayed directly }
   if (status.currentline mod 100=0) then
@@ -377,6 +382,9 @@ begin
      { HeapView^.Update; }
    end;
   CompilerStatus:=false;
+{$ifdef redircompiler}
+  EnableRedirAll;
+{$endif}
 end;
 
 
@@ -390,6 +398,9 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
+{$ifdef redircompiler}
+  DisableRedirAll;
+{$endif}
   CompilerComment:=false;
 {$ifndef DEV}
   if (status.verbosity and Level)=Level then
@@ -403,6 +414,9 @@ begin
      { update memory usage }
      { HeapView^.Update; }
    end;
+{$ifdef redircompiler}
+  EnableRedirAll;
+{$endif}
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
 {$endif TEMPHEAP}
@@ -539,7 +553,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-04-29 09:36:11  peter
+  Revision 1.25  1999-04-29 22:58:09  pierre
+   + disabling of redirction in compiler dialogs
+
+  Revision 1.24  1999/04/29 09:36:11  peter
     * fixed hotkeys with Compiler switches
     * fixed compiler status dialog
     * Run shows again the output
