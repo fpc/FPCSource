@@ -195,19 +195,19 @@ implementation
         var
           i: longint;
           defs: TIndexArray;
-          pd: tprocdef;
+          pd: tdef;
         begin
           include(aktclass.objectoptions,oo_has_virtual);
           defs:=aktclass.symtable.defindex;
           for i:=1 to defs.count do
             begin
-              pd:=tprocdef(defs.search(i));
+              pd:=tdef(defs.search(i));
               if pd.deftype=procdef then
                 begin
-                  pd.extnumber:=aktclass.lastvtableindex;
+                  tprocdef(pd).extnumber:=aktclass.lastvtableindex;
                   inc(aktclass.lastvtableindex);
-                  include(pd.procoptions,po_virtualmethod);
-                  pd.forwarddef:=false;
+                  include(tprocdef(pd).procoptions,po_virtualmethod);
+                  tprocdef(pd).forwarddef:=false;
                 end;
             end;
         end;
@@ -730,7 +730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-11-16 20:32:40  peter
+  Revision 1.84  2004-12-26 20:11:39  peter
+    * fix invalid typecast
+
+  Revision 1.83  2004/11/16 20:32:40  peter
   * fixes for win32 mangledname
 
   Revision 1.82  2004/10/15 09:14:17  mazen
