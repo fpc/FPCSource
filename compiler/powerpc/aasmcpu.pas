@@ -486,26 +486,44 @@ uses cutils,rgobj;
       end;
 
 
-      procedure decode_loadstore(op: tasmop; var counterpart: tasmop; wasload: boolean);
+      function decode_loadstore(op: tasmop; var counterpart: tasmop; wasload: boolean): boolean;
      
         begin
+          result := true;
           wasload := true;
           case op of
             A_LBZ:
               begin
                 counterpart := A_STB;
               end;
+            A_LBZX:
+              begin
+                counterpart := A_STBX;
+              end;
             A_LHZ,A_LHA:
               begin
                 counterpart := A_STH;
+              end;
+            A_LHZX,A_LHAX:
+              begin
+                counterpart := A_STHX;
               end;
             A_LWZ:
               begin
                 counterpart := A_STW;
               end;
+            A_LWZX:
+              begin
+                counterpart := A_STWX;
+              end;
             A_STB:
               begin
                 counterpart := A_LBZ;
+                wasload := false;
+              end;
+            A_STBX:
+              begin
+                counterpart := A_LBZX;
                 wasload := false;
               end;
             A_STH:
@@ -513,13 +531,27 @@ uses cutils,rgobj;
                 counterpart := A_LHZ;
                 wasload := false;
               end;
+            A_STHX:
+              begin
+                counterpart := A_LHZX;
+                wasload := false;
+              end;
             A_STW:
               begin
                 counterpart := A_LWZ;
                 wasload := false;
               end;
-            else
+            A_STWX:
+              begin
+                counterpart := A_LWZX;
+                wasload := false;
+              end;
+            A_LBZU,A_LBZUX,A_LHZU,A_LHZUX,A_LHAU,A_LHAUX,
+            A_LWZU,A_LWZUX,A_STBU,A_STBUX,A_STHU,A_STHUX,
+            A_STWU,A_STWUX:
               internalerror(2003070602);
+            else
+              result := false;
           end;
        end;
 
@@ -529,19 +561,16 @@ uses cutils,rgobj;
         helpreg:Tregister;
         helpins:Taicpu;
         op:Tasmop;
-        hopsize:Topsize;
         pos:Tai;
         wasload: boolean;
 
       begin
         spill_registers:=false;
-        // there are no instruction with only one operand and oper[0].typ is
-        // always top_reg
-        if (oper[1].typ=top_ref) then
+        if (ops = 2) and
+           (oper[1].typ=top_ref) and
+           { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
+           decode_loadstore(opcode,op,wasload) then
           begin
-            // load/store
-            decode_loadstore(opcode,op,wasload);
-
             { the register that's being stored/loaded }
             supreg:=oper[0].reg.number shr 8;
             if supreg in r then
@@ -569,7 +598,7 @@ uses cutils,rgobj;
                 spill_registers := true;
                 if wasload then
                   begin
-                    helpins := taicpu.op_reg_ref(A_LWZ,helpreg,oper[1].ref^);
+                    helpins := taicpu.op_reg_ref(opcode,helpreg,oper[1].ref^);
                     loadref(1,spilltemplist[supreg]);
                     opcode := op;
                   end
@@ -582,6 +611,7 @@ uses cutils,rgobj;
                 loadreg(0,helpreg);
                 rgunget(list,helpins,helpreg);
                 forward_allocation(tai(helpins.next));
+                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
               end;
 
             { now the registers used in the reference }
@@ -593,7 +623,7 @@ uses cutils,rgobj;
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
                 else
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0);
-                rgget(list,pos,subreg,helpreg);
+                rgget(list,pos,0,helpreg);
                 spill_registers:=true;
                 helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
                 if pos=nil then
@@ -603,6 +633,7 @@ uses cutils,rgobj;
                 oper[1].ref^.base:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next));
+                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
               end;
 
             { b) index }
@@ -613,7 +644,7 @@ uses cutils,rgobj;
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
                 else
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0);
-                rgget(list,pos,subreg,helpreg);
+                rgget(list,pos,0,helpreg);
                 spill_registers:=true;
                 helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
                 if pos=nil then
@@ -623,6 +654,7 @@ uses cutils,rgobj;
                 oper[1].ref^.index:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next));
+                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
               end;
             { load/store is done }
             exit;
@@ -631,9 +663,9 @@ uses cutils,rgobj;
         { all other instructions the compiler generates are the same (I hope):   }
         { operand 0 is a register and is the destination, the others are sources }
         { and can be either registers or constants                               }
+        { exception: branches (is_jmp isn't always set for them)                 }
         if oper[0].typ <> top_reg then
-          internalerror(2003070603);
-
+          exit;
         reg1 := oper[0].reg.number shr 8;
         if oper[1].typ = top_reg then
           reg2 := oper[1].reg.number shr 8
@@ -661,7 +693,7 @@ uses cutils,rgobj;
             rgget(list,pos,0,helpreg);
             spill_registers := true;
             helpins := taicpu.op_reg_ref(A_STW,helpreg,spilltemplist[supreg]);
-            list.insertafter(helpins,self)
+            list.insertafter(helpins,self);
             helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
             if pos=nil then
               list.insertafter(helpins,list.first)
@@ -670,6 +702,7 @@ uses cutils,rgobj;
             loadreg(0,helpreg);
             rgunget(list,helpins,helpreg);
             forward_allocation(tai(helpins.next));
+            list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
           end;
 
         for i := 1 to 2 do
@@ -698,6 +731,7 @@ uses cutils,rgobj;
                   loadreg(i,helpreg);
                   rgunget(list,helpins,helpreg);
                   forward_allocation(tai(helpins.next));
+                  list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
                 end;
             end;
       end;
@@ -716,8 +750,8 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.9  2003-07-06 15:29:06  jonas
-    + first spill_registers implementation, most likely still very buggy
+  Revision 1.10  2003-07-06 21:26:06  jonas
+    * committed wrong file previously :(
 
   Revision 1.8  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
