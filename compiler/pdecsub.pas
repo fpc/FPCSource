@@ -792,12 +792,12 @@ implementation
 
 procedure pd_far;
 begin
-  Message(parser_w_proc_far_ignored);
+  Message1(parser_w_proc_directive_ignored,'FAR');
 end;
 
 procedure pd_near;
 begin
-  Message(parser_w_proc_near_ignored);
+  Message1(parser_w_proc_directive_ignored,'NEAR');
 end;
 
 procedure pd_export;
@@ -2058,7 +2058,10 @@ const
 end.
 {
   $Log$
-  Revision 1.84  2002-11-29 22:31:19  carl
+  Revision 1.85  2002-12-01 22:06:14  carl
+    * cleanup of error messages
+
+  Revision 1.84  2002/11/29 22:31:19  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives
