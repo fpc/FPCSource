@@ -42,10 +42,14 @@ function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 Procedure DoDirSeparators (Var FileName : String);
 Function SetDirSeparators (Const FileName : String) : String;
 Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
+Function SameFileName(const S1, S2: string): Boolean;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-02-08 15:05:50  michael
+  + Made SameFileName Public
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.8  2002/10/22 21:57:54  michael
