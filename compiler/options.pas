@@ -1109,6 +1109,7 @@ begin
                       include(initglobalswitches,cs_link_map);
                     's' :
                       include(initglobalswitches,cs_link_strip);
+		    'c' : Cshared:=TRUE;
                     't' :
                       include(initglobalswitches,cs_link_staticflag);
                     'D' :
@@ -1126,6 +1127,10 @@ begin
                              utilsprefix:=Copy(more,2,length(More)-1);
                              More:='';
                           End;
+                    'r' : Begin
+			     rlinkpath:=Copy(more,2,length(More)-1);
+                             More:='';
+			  end;
                     'p' :
                       include(initmoduleswitches,cs_create_pic);
                     'S' :
@@ -1986,7 +1991,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.112  2003-10-18 09:14:18  hajny
+  Revision 1.113  2003-10-22 15:40:44  marco
+   * -Xc -Xr support
+
+  Revision 1.112  2003/10/18 09:14:18  hajny
     * upper limit for heapsize removed
 
   Revision 1.110  2003/10/14 00:30:48  florian

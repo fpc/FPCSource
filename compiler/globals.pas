@@ -139,8 +139,9 @@ interface
        utilsdirectory : dirstr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : dirstr;
-       { Don't add std paths to linkpath}
-       Dontlinkstdlibpath: Boolean;
+       cshared	      : boolean;	{ pass --shared to ld to link C libs shared}
+       Dontlinkstdlibpath: Boolean;	{ Don't add std paths to linkpath}
+       rlinkpath      : dirstr;		{ rpath-link linkdir override}
 
        { some flags for global compiler switches }
        do_build,
@@ -1614,7 +1615,8 @@ implementation
       { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
-
+	cshared:=false;
+        rlinkpath:='';
 
       { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
@@ -1710,7 +1712,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-10-22 15:22:33  peter
+  Revision 1.111  2003-10-22 15:40:44  marco
+   * -Xc -Xr support
+
+  Revision 1.110  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 
