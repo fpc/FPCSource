@@ -790,6 +790,7 @@ implementation
                  { typecast sizes must match, exceptions:
                    - from formaldef
                    - from void
+                   - from open array
                    - typecast from pointer to array }
                  fromdef:=ttypeconvnode(hp).left.resulttype.def;
                  todef:=hp.resulttype.def;
@@ -798,6 +799,7 @@ implementation
                         ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef)) or
                         ((fromdef.deftype = objectdef) and (todef.deftype = objectdef) and
                          (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
+                    is_open_array(fromdef) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types }
@@ -994,7 +996,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-07-08 15:20:56  peter
+  Revision 1.66  2003-08-23 18:52:18  peter
+    * don't check size for open array in valid_for_assign
+
+  Revision 1.65  2003/07/08 15:20:56  peter
     * don't allow add/assignments for formaldef
     * formaldef size changed to 0
 
