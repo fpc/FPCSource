@@ -1,0 +1,88 @@
+Bugs/Problems:
+- The unindent doesn't work when a tab char is in front of the line. Tab
+  chars should be ignored in this case.
+- Files without extensions can't be opened using the open dialog (even
+  not with a trailing .)
+- fix function locatefile in fputils (always returns '' currently because
+  the result of locatesinglefile is simply discarded). This causes (at least
+  under Dos) an RTE 3 if you try to open several files in different directories
+
+From Marco:
+-----------
+
+1 When cursor is at column 1, and you press cursor left, you don't go to the end of
+        the last line.
+  This isn't the behavior of the TP IDE maybe it should be supported
+  only with an option (FK)
+
+2 When you go beyond the last
+        character on a line, you keep on moving instead of free cursor move
+3 If you press down (or up), and the new line is less full then the current, you
+   don't end up on the last written character, but somewhere in the void.
+
+Since 2 and 3 are probably a matter of taste. Maybe an option
+        "relaxed cursor movement" o.s.s.
+
+4. ctrl-K g option. (scans the windows for an active block and
+         - if only one block defined, copy block to active window
+         - If more blocks defined prompt for number of window to copy from.)
+
+5 Can the dialogs (specially the file open) get somewhat bigger in 80x50?  space
+        enough. (I now use this mode, and except for this it seems to work ok)
+
+
+and definitely the most annoying one:
+
+6 ctrl-T sometimes deletes in blocks, and even when no blocks are defined, it
+doesn't work right! (check BP. But also e.g. Qedit and Pegasus has this key.
+Joe is an exception however)
+
+Rough description:
+- When pressed on a character n alphanumerical character ('a'..'z','A'..'Z','0'..'9') it should
+delete all alphanumerical characters until next non alphanumerical character.
+- When pressed on a space or tab it should delete all space and tabs until
+   a normal character (anything but space and tab)
+- When pressed on neither spacetab nor alphanumeric (so. '!'..')',[',']',\'  linefeed, etc)
+        ctrl-t acts the same as delete.
+
+Another bad one (for wordstar fanatics like me)
+
+7 ctrl-k t  (define block on word) marks a block, but the block can't be copied.
+
+8  (related to 7?) ctrl-k c only works if the defined blocks is visible. If you press
+        page-down a few times, it doesn't work anymore. Ctrl-k v (move) works fine however.
+
+9  F7 (trace into) a unit causes emergency exit (cannot run a unit?)
+
+10 When I set the memory of a dosbox to 16 MB DPMI, and debug the
+	compiler, emergency exit (very rarely even without cleaning the
+screen)
+
+Not bugs, but things I don't like:
+
+10a  Pressing F8 on a FOR loop should exec until after the for loop, not
+jump    into the loop? I believe BP also does this, but I always hated it.
+Now the
+	only way to jump over a for loop is to use breakpoints.
+10b  Bugs 1-8 are not solved :-)
+
+Things I like:
+
+11
+
+When I press F7 to start tracing, always some sources (and the main
+exe) 
+are rebuilt, even when I didn't change anything. (test source: the
+compiler)
+
+
+--- Ideas ---
+
+ * Integrated source beautifier (fully configurable)
+ * Add some other classes to syntax highlight
+   (eg. highlight standard Pascal types, etc.)
+ * ASCII-table for inserting chars not accessible thru keyboard
+ * Binary->source (const table/array) converter
+ * Browse all vars in debug mode, much like TD inspect command, but then
+    browsable instead of having to type names.
+

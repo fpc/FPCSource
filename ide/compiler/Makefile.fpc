@@ -1,0 +1,46 @@
+#
+#   Makefile.fpc for Compiler units for IDE inclusion
+#
+
+[target]
+units=compunit
+
+#[require]
+#packages=fv
+
+[compiler]
+targetdir=.
+unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets
+includedir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[prerules]
+COMPILERDIR=$(FPCDIR)/compiler
+
+# Use 1.0.2 and 1.0.4 require -Ca to generate simple ppu
+ifneq ($(findstring 1.0.2,$(FPC_VERSION)),)
+override FPCOPT+=-Ca
+endif
+ifneq ($(findstring 1.0.4,$(FPC_VERSION)),)
+override FPCOPT+=-Ca
+endif
+
+# Add required defines
+override FPCOPT+=-dBrowserCol -dGDB
+ifeq ($(CPU_TARGET),i386)
+override FPCOPT+=-dSUPPORT_MMX
+endif
+
+
+[rules]
+all: fpc_all
+
+clean: cleanall
+
+# Nothing to install
+install:

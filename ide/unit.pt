@@ -1,0 +1,15 @@
+unit $PROMPT('unit');
+
+interface
+
+uses $PROMPT('uses');
+
+const
+
+type
+
+var
+
+implementation
+
+end.

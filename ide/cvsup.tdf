@@ -1,0 +1,25 @@
+[Main]
+Title="CVS Update"
+Size=(56,7)
+CommandLine="%z% update %filename%"
+Default="filename"
+
+[filename]
+Type=InputLine
+Origin=(2,3)
+Size=(52,1)
+
+[label]
+Type=Label
+Origin=(2,2)
+Size=(52,1)
+Text="~F~ile(s) to update"
+Link="filename"
+
+[z]
+Type=CheckBox
+Name="~C~ompress (-z 3)"
+Origin=(2,5)
+Size=(25,1)
+Default=On
+On="-z 3"

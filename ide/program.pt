@@ -1,0 +1,6 @@
+program $PROMPT('program');
+
+uses $PROMPT('uses');
+
+BEGIN
+END.

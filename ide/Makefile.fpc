@@ -1,0 +1,209 @@
+#
+#   Makefile.fpc for FP IDE
+#
+
+[package]
+name=fpide
+version=1.0.5
+
+[target]
+dirs=compiler fakegdb
+programs=fp
+rst=fpstrings
+
+[install]
+datadir=$(INSTALL_BASEDIR)/ide
+fpcpackage=y
+
+[compiler]
+options=-Sg
+targetdir=.
+unitdir=compiler
+
+[require]
+packages=fv gdbint
+
+[default]
+fpcdir=..
+
+[prerules]
+#
+# Linux->Unix transistion fix
+#
+ifeq ($(OS_TARGET),linux)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override FPCOPT+=-dUNIX
+endif
+endif
+
+ifeq ($(OS_TARGET),freebsd)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override FPCOPT+=-dUNIX
+endif
+endif
+
+
+#
+# Automatic detection of the compiler version
+#
+# compilers 1.0.x need to define COMPILER_1_0.
+#
+# To detect 1.0.x compilers we look for finput.ppu. If this unit
+# is not found then we include 1.0.x compiler
+#
+KL:=$(wildcard compiler/finput.*)
+ifeq ($(wildcard compiler/finput.*),)
+override FPCOPT+=-dCOMPILER_1_0
+endif
+
+
+#
+# Automatic detection if libgdb.a is present
+#
+
+# when including debugger include the gdbinterface
+ifndef GDBINT
+GDBINT=gdbint
+endif
+
+# Try to find GDB library
+ifeq ($(GDB),1)
+ifeq ($(DEBUG),1)
+# First test if a debug version exists in a specific dir
+ifneq ($(strip $(wildcard $(addsuffix /$(GDBINT)/libgdb/d$(OS_TARGET)/libgdb.a,$(PACKAGESDIR)))),)
+OSGDBDIR=d$(OS_TARGET)
+else
+OSGDBDIR=$(OS_TARGET)
+endif
+else
+OSGDBDIR=$(OS_TARGET)
+endif
+GDBLIBDIR+=$(wildcard $(addsuffix /$(GDBINT)/libgdb/$(OSGDBDIR),$(PACKAGESDIR)))
+GDBOBJDIR+=$(wildcard $(addsuffix /$(GDBINT)/libgdb/$(OSGDBDIR),$(PACKAGESDIR)))
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+GDBLIBDIR+=$(DJDIR)/lib
+endif
+endif
+ifeq ($(strip $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))),)
+override GDB=0
+GDBFOUND=0
+else
+override LIBGDB=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+GDBFOUND=1
+endif
+endif
+
+ifeq ($(GDB),1)
+# The gdbint is already included due the gdbint package dependency
+override LIBDIR+=$(GDBLIBDIR)
+override OBJDIR+=$(GDBOBJDIR)
+else
+override UNITDIR+=fakegdb
+endif
+
+
+[rules]
+.PHONY: compilerunits compilerclean \
+        nogdb gdb all \
+        clean_compiler clean testgdb postgdbinfo
+
+clean: fpc_cleanall
+
+distclean: clean compilerclean
+
+fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
+
+testgdb:
+ifneq ($(GDBFOUND),0)
+        @$(ECHO) LibGDB found in $(LIBGDB)
+else
+        @$(ECHO) LibGDB not found
+        @$(ECHO) LIBGDB=$(LIBGDB)
+        @$(ECHO) GDBLIBDIR=$(GDBLIBDIR)
+        @$(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
+endif
+
+postgdbinfo:
+ifeq ($(GDBFOUND),0)
+        @$(ECHO) LibGDB was not found, IDE has no Debugger support
+endif
+
+#
+# Compiler
+#
+
+compilerunits : compiler/$(FPCMADE)
+compiler/$(FPCMADE):
+        $(MAKE) -C compiler all
+
+compilerclean :
+        $(MAKE) -C compiler clean
+
+#
+# Fake GDB
+#
+
+fakegdbunits : fakegdb/$(FPCMADE)
+fakegdb/$(FPCMADE):
+        $(MAKE) -C fakegdb all
+
+fakegdbclean :
+        $(MAKE) -C fakegdb clean
+
+fakegdbinfo:
+        @$(ECHO) Using FakeGDB, IDE has no Debugger support
+
+#
+# Build targets
+#
+# building happends in 2 steps, first the compiler and fakegdb
+# dirs are build. In the second step the IDE is build. This is
+# required because it needs to detect which compiler version
+# to use.
+#
+builddirs: compilerunits fakegdbunits
+
+buildfp: fpc_all
+
+gdb:
+        $(MAKE) builddirs
+        $(MAKE) testgdb buildfp postgdbinfo GDB=1
+
+nogdb:
+        $(MAKE) builddirs
+        $(MAKE) buildfp fakegdbinfo
+
+#
+# Default targets
+#
+
+# By default we try to create the ide with full debugging support,
+# if gdbint and libgdb is not available it will fallback to use
+# fakegdb
+all: gdb
+
+# This is necessary because we don't have all units separate in the
+# units targets
+clean: cleanall
+
+#
+# Installation
+#
+
+ifndef UNIXINSTALLDIR
+override INSTALL_DATADIR=$(INSTALL_BINDIR)
+endif
+
+install: fpc_install
+        $(MKDIR) $(INSTALL_DATADIR)
+        $(MKDIR) $(INSTALL_DOCDIR)
+        $(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(INSTALL_DATADIR)
+        $(INSTALL) readme.ide $(INSTALL_DOCDIR)
+
+
+#
+# Misc
+#
+clean_compiler:
+        $(MAKE) -C ../../compiler clean
