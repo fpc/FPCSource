@@ -3,7 +3,7 @@
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Main module
-
+ 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -30,6 +30,16 @@ interface
 {$endif}
       sysutils,classes,
       fpcmdic;
+      
+{$ifdef BEOS}
+{$define NO_UNIX_UNIT}
+{$endif}
+{$ifdef SUNOS}
+{$define NO_UNIX_UNIT}
+{$endif}
+{$ifdef QNX}
+{$define NO_UNIX_UNIT}
+{$endif}
 
     const
       Version='1.1';
@@ -1005,7 +1015,7 @@ implementation
         if hs='' then
          begin
 {$ifdef UNIX}
-{$ifndef beos}
+{$ifndef NO_UNIX_UNIT}
            if FileExists('/usr/local/bin/ppc386') then
             begin
               s:=ExtractFilePath(ReadLink('/usr/local/bin/ppc386'));
@@ -1331,7 +1341,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-12-11 23:01:56  carl
+  Revision 1.17  2001-12-15 04:16:57  carl
+  + clean support for QNX / BeOS and SunOS targets
+
+  Revision 1.16  2001/12/11 23:01:56  carl
   + Added SunOS and QNX targets
 
   Revision 1.15  2001/10/14 21:38:32  peter
