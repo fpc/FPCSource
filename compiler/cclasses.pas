@@ -78,6 +78,8 @@ interface
           procedure Clear;
           { inserts an Item }
           procedure Insert(Item:TLinkedListItem);
+          { inserts an Item before Loc }
+          procedure InsertBefore(Item,Loc : TLinkedListItem);
           { inserts an Item after Loc }
           procedure InsertAfter(Item,Loc : TLinkedListItem);
           { concats an Item }
@@ -473,6 +475,20 @@ end;
          end;
         FFirst:=Item;
         inc(FCount);
+      end;
+
+
+    procedure TLinkedList.InsertBefore(Item,Loc : TLinkedListItem);
+      begin
+         Item.Previous:=Loc.Previous;
+         Item.Next:=Loc;
+         Loc.Previous:=Item;
+         if assigned(Item.Previous) then
+           Item.Previous.Next:=Item
+         else
+           { if we've no next item, we've to adjust FFist }
+           FFirst:=Item;
+         inc(FCount);
       end;
 
 
@@ -1868,7 +1884,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2003-09-24 13:02:10  marco
+  Revision 1.25  2003-09-29 20:52:50  peter
+    * insertbefore added
+
+  Revision 1.24  2003/09/24 13:02:10  marco
    * (Peter) patch to fix snapshot
 
   Revision 1.23  2003/06/09 12:19:34  peter
