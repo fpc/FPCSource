@@ -18,13 +18,13 @@ program testsqldb;
   Examples:
   
   ./testsqldb postgresql testdb fpdev
-  ./testsqldb interbase /home/firebird/dbtest.fdb sysdba 123456
+  ./testsqldb interbase /home/firebird/dbtest.fdb fpdev sysdba 123456
 }
 
 {$mode objfpc}{$H+}
 
 {$define pqconnection}
-{ define MySQLConnection}
+{$define MySQLConnection}
 {$define IBConnection}
 
 uses
