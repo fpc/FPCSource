@@ -508,7 +508,7 @@ implementation
                              (tsetdef(p.proptype.def).settype=smallset))) or
                             ((p.proptype.def.deftype=arraydef) and
                              (ppo_indexed in p.propoptions)) or
-                        not(propertyparas.empty) then
+                        (ppo_hasparameters in p.propoptions) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
                        needed to support values like -1 }
@@ -1110,7 +1110,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-01-24 18:25:48  peter
+  Revision 1.38  2002-01-25 17:38:19  peter
+    * fixed default value for properties with index values
+
+  Revision 1.37  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
