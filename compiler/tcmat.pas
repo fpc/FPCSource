@@ -349,16 +349,18 @@ implementation
          if is_boolean(p^.resulttype) then
            begin
              p^.registers32:=p^.left^.registers32;
-{$ifdef i386}
-             if p^.left^.location.loc<>LOC_JUMP then
-               p^.location.loc:=LOC_FLAGS;
-{$endif def i386}
              if (p^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
               begin
                 p^.location.loc:=LOC_REGISTER;
                 if (p^.registers32<1) then
                  p^.registers32:=1;
               end;
+            { before loading it into flags we need to load it into
+              a register thus 1 register is need PM }
+{$ifdef i386}
+             if p^.left^.location.loc<>LOC_JUMP then
+               p^.location.loc:=LOC_FLAGS;
+{$endif def i386}
            end
          else
 {$ifdef SUPPORT_MMX}
@@ -406,7 +408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-08-04 13:03:15  jonas
+  Revision 1.20  1999-08-23 23:37:01  pierre
+   * firstnot register counting error corrected
+
+  Revision 1.19  1999/08/04 13:03:15  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 
