@@ -20,7 +20,7 @@ pack=Dos/Go~3~2v2
 binsub=\bin\go32v2
 ppc386=ppc386
 targetname=go32v2
-cfgfile=ppc386.cfg
+cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*go32.zip
@@ -44,7 +44,7 @@ pack=~W~in32
 binsub=\bin\win32
 ppc386=ppc386
 targetname=win32
-cfgfile=ppc386.cfg
+cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*w32.zip
@@ -71,7 +71,7 @@ pack=OS/2 ~E~MX
 binsub=\bin\os2
 ppc386=ppc386
 targetname=os2
-cfgfile=ppc386.cfg
+cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*emx.zip
@@ -108,7 +108,7 @@ package=docsrc.zip,~D~ocumentation sources (LaTeX)
 
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 1.0.2
+# Example fpc.cfg for Free Pascal Compiler Version 1.0.2
 #
 
 # ----------------------

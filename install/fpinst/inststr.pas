@@ -44,7 +44,7 @@ unit inststr;
        dialog_install_quit = '~Q~uit';
        dialog_install_basepath = '~B~ase path';
        dialog_install_config = 'Con~f~ig';
-       dialog_install_createppc386cfg = 'create ppc386.cfg';
+       dialog_install_createppccfg = 'create fpc.cfg';
        dialog_install_general = '~G~eneral';
 
        msg_nocomponents = 'No components selected.'#13#13'Abort installation?';
@@ -94,7 +94,10 @@ unit inststr;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-11 15:57:47  peter
+  Revision 1.5  2001-11-24 14:33:51  carl
+  * ppc386.cfg -> fpc.cfg
+
+  Revision 1.4  2000/10/11 15:57:47  peter
     * merged ide additions
 
   Revision 1.3  2000/09/22 12:15:49  florian

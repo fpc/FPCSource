@@ -179,7 +179,7 @@ if yesno "Install demos"; then
 fi
 echo
 
-# Install /etc/ppc386.cfg, this is done using the samplecfg script
+# Install /etc/fpc.cfg, this is done using the samplecfg script
 $LIBDIR/samplecfg $LIBDIR
 
 # The End

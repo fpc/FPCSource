@@ -21,10 +21,10 @@ fi
 # Detect if we have write permission in root.
 if [ -w $sysdir ] ; then
   echo Write permission in $sysdir.
-  thefile=$sysdir/ppc386.cfg
+  thefile=$sysdir/fpc.cfg
 else
   echo No write premission in $sysdir.
-  thefile=$HOME/.ppc386.cfg
+  thefile=$HOME/.fpc.cfg
 fi
 #
 if [ -f $thefile ] ; then
@@ -46,7 +46,7 @@ echo Found libgcc.a in $GCCDIR
 echo Writing sample configuration file to $thefile
 cat <<EOFCFG > $thefile
 #
-# Example ppc386.cfg for Free Pascal Compiler
+# Example fpc.cfg for Free Pascal Compiler
 #
 
 # ----------------------

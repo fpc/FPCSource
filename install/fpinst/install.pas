@@ -587,7 +587,7 @@ program install;
     end;
 
 {*****************************************************************************
-                          Writing of ppc386.cfg
+                          Writing of fpc.cfg
 *****************************************************************************}
 
   procedure writedefcfg(const fn:string;const cfgdata : tcfgarray;count : longint);
@@ -613,7 +613,7 @@ program install;
     { create directory }
       fsplit(fn,d,n,e);
       createdir(d);
-    { create the ppc386.cfg }
+    { create the fpc.cfg }
       assign(t,fn);
       {$I-}
        rewrite(t);
@@ -1761,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-11-26 19:00:44  hajny
+  Revision 1.13  2001-11-24 14:34:10  carl
+  * ppc386.cfg -> fpc.cfg
+
+  Revision 1.12  2000/11/26 19:00:44  hajny
     * English correction
 
   Revision 1.11  2000/10/11 17:16:01  peter

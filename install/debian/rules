@@ -145,7 +145,7 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) demo_install $(INSTALLOPTS) INSTALL_DOCDIR=$(DOC_DIR)/fp-compiler
 	$(MAKE) doc_install $(INSTALLOPTS) INSTALL_DOCDIR=$(DOC_DIR)/fp-compiler
 
-# Create ppc386.cfg which is included as conffile
+# Create fpc.cfg which is included as conffile
 	chmod 755 compiler/utils/samplecfg 
 	compiler/utils/samplecfg "/usr/lib/fpc/\$$version" $(INSTALL_DIR)/etc
 	touch install-arch-stamp
