@@ -202,28 +202,30 @@ implementation
 {$else UseAnsiString}
 
                    { generate an ansi string ? }
-                   if is_ansistring(p^.resulttype) then
-                     begin
-                        concat_constlabel(lastlabel,conststring);
-                        consts^.concat(new(pai_const,init_32bit(p^.length)));
-                        consts^.concat(new(pai_const,init_32bit(p^.length)));
-                        consts^.concat(new(pai_const,init_32bit(-1)));
-                        getmem(pc,p^.length+1);
-                        move(p^.values^,pc^,p^.length+1);
-                        { to overcome this problem we set the length explicitly }
-                        { with the ending null char }
-                        consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
-                     end
-                   else
-                     begin
-                        getmem(pc,p^.length+3);
-                        move(p^.values^,pc[1],p^.length+1);
-                        pc[0]:=chr(p^.length);
-                        concat_constlabel(lastlabel,conststring);
-                        { to overcome this problem we set the length explicitly }
-                        { with the ending null char }
-                        consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
-                     end;
+                   case p^.stringtype of
+                      st_ansistring:
+                        begin
+                           concat_constlabel(lastlabel,conststring);
+                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           consts^.concat(new(pai_const,init_32bit(-1)));
+                           getmem(pc,p^.length+1);
+                           move(p^.values^,pc^,p^.length+1);
+                           { to overcome this problem we set the length explicitly }
+                           { with the ending null char }
+                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                        end;
+                      st_shortstring:
+                        begin
+                           getmem(pc,p^.length+3);
+                           move(p^.values^,pc[1],p^.length+1);
+                           pc[0]:=chr(p^.length);
+                           concat_constlabel(lastlabel,conststring);
+                           { to overcome this problem we set the length explicitly }
+                           { with the ending null char }
+                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                        end;
+                   end;
 {$endif UseAnsiString}
                 end;
            end;
@@ -344,7 +346,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-07-18 22:54:25  florian
+  Revision 1.8  1998-07-20 10:23:00  florian
+    * better ansi string assignement
+
+  Revision 1.7  1998/07/18 22:54:25  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions

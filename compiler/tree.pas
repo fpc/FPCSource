@@ -198,7 +198,7 @@ unit tree;
         firstpasscount : longint;
 {$endif extdebug}
           case treetype : ttreetyp of
-             addn : (use_strconcat : boolean;string_typ : stringtype);
+             addn : (use_strconcat : boolean;string_typ : tstringtype);
              callparan : (is_colon_para : boolean;exact_match_found : boolean);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
@@ -218,9 +218,9 @@ unit tree;
              { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
              { string const can be longer then 255 with ansistring !! }
 {$ifdef UseAnsiString}
-             stringconstn : (values : pchar;length : longint; labstrnumber : longint);
+             stringconstn : (values : pchar;length : longint; labstrnumber : longint;stringtype : tstringtype);
 {$else UseAnsiString}
-             stringconstn : (values : pstring; labstrnumber : longint);
+             stringconstn : (values : pstring; labstrnumber : longint;stringtype : tstringtype);
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              inlinen : (inlinenumber : longint);
@@ -823,6 +823,7 @@ unit tree;
          p^.values:=stringdup(s);
 {$endif UseAnsiString}
          p^.labstrnumber:=-1;
+         p^.stringtype:=st_shortstring;
          genstringconstnode:=p;
       end;
 
@@ -1595,7 +1596,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.21  1998-07-14 21:46:56  peter
+  Revision 1.22  1998-07-20 10:23:05  florian
+    * better ansi string assignement
+
+  Revision 1.21  1998/07/14 21:46:56  peter
     * updated messages file
 
   Revision 1.20  1998/07/14 14:47:11  peter

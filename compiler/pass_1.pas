@@ -1826,7 +1826,7 @@ unit pass_1;
 
          { some string functions don't need conversion, so treat them separatly }
 
-         if (p^.left^.resulttype^.deftype=stringdef) and (assigned(p^.right^.resulttype)) then
+         if is_shortstring(p^.left^.resulttype) and (assigned(p^.right^.resulttype)) then
           begin
             if not ((p^.right^.resulttype^.deftype=stringdef) or
                     ((p^.right^.resulttype^.deftype=orddef) and (porddef(p^.right^.resulttype)^.typ=uchar))) then
@@ -2066,10 +2066,8 @@ unit pass_1;
          if pstringdef(p^.resulttype)^.string_typ<>
             pstringdef(p^.left^.resulttype)^.string_typ then
            begin
-              { trick: secondstringconstn generates a const entry depending on }
-              { the result type                                                }
               if p^.left^.treetype=stringconstn then
-                p^.left^.resulttype:=p^.resulttype
+                p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
            end;
@@ -5046,7 +5044,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.41  1998-07-18 22:54:27  florian
+  Revision 1.42  1998-07-20 10:23:01  florian
+    * better ansi string assignement
+
+  Revision 1.41  1998/07/18 22:54:27  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions
