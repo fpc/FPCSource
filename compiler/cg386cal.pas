@@ -41,6 +41,9 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       aasm,types,
+{$ifdef GDB}
+      gdb,
+{$endif GDB}
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386,cg386ld;
 
@@ -310,6 +313,11 @@ implementation
                         inc(pushedparasize,size);
                         if not inlined then
                          exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+{$ifdef GDB}
+                        if (cs_debuginfo in aktmoduleswitches) and
+                           (exprasmlist^.first=exprasmlist^.last) then
+                          exprasmlist^.concat(new(pai_force_line,init));
+{$endif GDB}
                         r:=new_reference(R_ESP,0);
                         floatstoreops(pfloatdef(p^.left^.resulttype)^.typ,op,opsize);
                         { this is the easiest case for inlined !! }
@@ -523,6 +531,11 @@ implementation
                                   { create stack space }
                                   if not inlined then
                                     exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+{$ifdef GDB}
+                                  if (cs_debuginfo in aktmoduleswitches) and
+                                     (exprasmlist^.first=exprasmlist^.last) then
+                                    exprasmlist^.concat(new(pai_force_line,init));
+{$endif GDB}
                                   inc(pushedparasize,size);
                                   { create stack reference }
                                   stackref.symbol := nil;
@@ -622,6 +635,11 @@ implementation
                         inc(pushedparasize,8); { was missing !!! (PM) }
                         exprasmlist^.concat(new(pai386,op_const_reg(
                           A_SUB,S_L,8,R_ESP)));
+{$ifdef GDB}
+                        if (cs_debuginfo in aktmoduleswitches) and
+                           (exprasmlist^.first=exprasmlist^.last) then
+                          exprasmlist^.concat(new(pai_force_line,init));
+{$endif GDB}
                         if inlined then
                           begin
                              r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
@@ -775,6 +793,11 @@ implementation
              begin
                inc(pushedparasize,pop_size);
                exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,pop_size,R_ESP)));
+{$ifdef GDB}
+               if (cs_debuginfo in aktmoduleswitches) and
+                  (exprasmlist^.first=exprasmlist^.last) then
+                 exprasmlist^.concat(new(pai_force_line,init));
+{$endif GDB}
              end;
           end;
 
@@ -1520,7 +1543,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1998-11-10 10:09:08  peter
+  Revision 1.41  1998-11-12 11:19:40  pierre
+   * fix for first line of function break
+
+  Revision 1.40  1998/11/10 10:09:08  peter
     * va_list -> array of const
 
   Revision 1.39  1998/11/09 11:44:33  peter

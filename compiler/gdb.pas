@@ -65,6 +65,12 @@ Const
           destructor done; virtual;
        end;
 
+       { insert a cut to split into several smaller files }
+       pai_force_line = ^tai_force_line;
+       tai_force_line = object(tai)
+          constructor init;
+       end;
+
        pai_stab_function_name = ^tai_stab_function_name;
 
        tai_stab_function_name = object(tai)
@@ -225,6 +231,13 @@ N_BINCL to N_EINCL
          inherited done;
       end;
 
+    constructor tai_force_line.init;
+
+      begin
+         inherited init;
+         typ:=ait_force_line;
+      end;
+
     constructor tai_stab_function_name.init(_str : pchar);
 
       begin
@@ -243,7 +256,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-09-22 17:13:45  pierre
+  Revision 1.4  1998-11-12 11:19:45  pierre
+   * fix for first line of function break
+
+  Revision 1.3  1998/09/22 17:13:45  pierre
     + browsing updated and developed
       records and objects fields are also stored
 

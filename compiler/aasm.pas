@@ -66,6 +66,7 @@ unit aasm;
           ait_const_rva,
           ait_stabn,
           ait_stabs,
+          ait_force_line,
           ait_stab_function_name,
           ait_cut, { used to split into tiny assembler files }
           ait_regalloc,
@@ -912,7 +913,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  1998-10-14 15:56:37  pierre
+  Revision 1.24  1998-11-12 11:19:30  pierre
+   * fix for first line of function break
+
+  Revision 1.23  1998/10/14 15:56:37  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.22  1998/10/12 12:20:38  pierre

@@ -545,6 +545,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
 {$ifdef GDB}
              ait_stabn,
              ait_stabs,
+        ait_force_line,
 ait_stab_function_name : ;
 {$endif GDB}
          else
@@ -593,7 +594,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.17  1998-10-12 12:20:40  pierre
+  Revision 1.18  1998-11-12 11:19:33  pierre
+   * fix for first line of function break
+
+  Revision 1.17  1998/10/12 12:20:40  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

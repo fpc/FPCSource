@@ -198,7 +198,12 @@ implementation
                    LOC_FPU : begin
                                         size:=pfloatdef(p^.left^.resulttype)^.size;
                                         inc(pushedparasize,size);
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,S_L,size,R_SP)));
+                                        { how now how long a FPU is !! }
+                                        if (size > 0) and (size < 9) then
+                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,S_L,size,R_SP)))
+                                        else
+                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBA,
+                                            S_L,size,R_SP)));
                                         new(r);
                                         reset_reference(r^);
                                         r^.base:=R_SP;
@@ -1057,7 +1062,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-10-21 15:12:51  pierre
+  Revision 1.15  1998-11-12 11:19:41  pierre
+   * fix for first line of function break
+
+  Revision 1.14  1998/10/21 15:12:51  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)

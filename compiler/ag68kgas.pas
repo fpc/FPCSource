@@ -579,6 +579,9 @@ ait_labeled_instruction : begin
                        AsmWritePChar(pai_stabn(hp)^.str);
                        AsmLn;
                      end;
+    ait_force_line : begin
+                        stabslastfileinfo.line:=0;
+                     end;
 ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
            ait_cut : begin
@@ -696,7 +699,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.19  1998-10-29 11:35:36  florian
+  Revision 1.20  1998-11-12 11:19:35  pierre
+   * fix for first line of function break
+
+  Revision 1.19  1998/10/29 11:35:36  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 

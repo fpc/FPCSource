@@ -529,7 +529,6 @@ var hs:string;
     unitinits:taasmoutput;
 {$ifdef GDB}
     stab_function_name:Pai_stab_function_name;
-    npai : pai;
 {$endif GDB}
 begin
     if (aktprocsym^.definition^.options and poproginit<>0) then
@@ -594,19 +593,8 @@ begin
     { don't load ESI, does the caller }
 
 {$ifdef GDB}
-      if (cs_debuginfo in aktmoduleswitches) and
-         (((aktprocsym^.definition^.options and poconstructor)<>0) or
-          ((aktprocsym^.definition^.options and poproginit)<>0)) then
-        begin
-           { add a stabn here so trace begins here }
-           if (aktprocsym^.definition^.options and poconstructor)<>0 then
-             npai:=new(pai_asm_comment,init(' constructor entry'))
-           else
-             npai:=new(pai_asm_comment,init(' program entry'));
-           { used to force the stabn to be written again !! }
-           npai^.fileinfo.line:=0;
-           list^.insert(npai);
-        end;
+      if (cs_debuginfo in aktmoduleswitches) then
+         list^.insert(new(pai_force_line,init));
 {$endif GDB}
       
     { omit stack frame ? }
@@ -1363,7 +1351,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1998-11-12 09:46:17  pierre
+  Revision 1.28  1998-11-12 11:19:42  pierre
+   * fix for first line of function break
+
+  Revision 1.27  1998/11/12 09:46:17  pierre
     + break main stops before calls to unit inits
     + break at constructors stops before call to FPC_NEW_CLASS
       or FPC_HELP_CONSTRUCTOR

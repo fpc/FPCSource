@@ -497,6 +497,7 @@ ait_labeled_instruction :
 {$ifdef GDB}
               ait_stabn,
               ait_stabs,
+         ait_force_line,
  ait_stab_function_name : ;
 {$endif GDB}
         ait_marker : ;
@@ -540,7 +541,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.13  1998-10-29 11:35:38  florian
+  Revision 1.14  1998-11-12 11:19:38  pierre
+   * fix for first line of function break
+
+  Revision 1.13  1998/10/29 11:35:38  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 
