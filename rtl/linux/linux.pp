@@ -146,10 +146,10 @@ Const
   SIGUNUSED  = 31;
 
 Type
-  SignalHandler   = Procedure(Sig : Integer);
-  PSignalHandler  = ^SignalHandler;
-  SignalRestorer  = Procedure;
-  PSignalRestorer = ^SignalRestorer;
+  SignalHandler   = Procedure(Sig : Longint);{$ifndef ver0_99_5}cdecl;{$endif}
+  PSignalHandler  = SignalHandler;
+  SignalRestorer  = Procedure;{$ifndef ver0_99_5}cdecl;{$endif}
+  PSignalRestorer = SignalRestorer;
 
   SigSet  = Integer;
   PSigSet = ^SigSet;
@@ -157,10 +157,10 @@ Type
 
 {$PACKRECORDS 1}
   SigActionRec = record
-    Sa_Handler : ^SignalHandler;
+    Sa_Handler : SignalHandler;
     Sa_Mask : longint;
     Sa_Flags : Integer;
-    Sa_restorer : ^SignalRestorer;{ Obsolete - Don't use }
+    Sa_restorer : SignalRestorer;{ Obsolete - Don't use }
   end;
   PSigActionRec = ^SigActionRec;
 {$PACKRECORDS NORMAL}
@@ -2518,12 +2518,12 @@ begin
   Linuxerror:=SysCall(Syscall_nr_signal,sr);
   If linuxerror=Sig_Err then
    begin
-     Signal:=nil;
+     Signal:=PSignalHandler(nil);
      Linuxerror:=errno;
    end
   else
    begin
-     Signal:=pointer(Linuxerror);
+     Signal:=PSignalHandler(Linuxerror);
      linuxerror:=0;
    end;
 end;
@@ -3505,7 +3505,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  1998-06-16 08:21:58  michael
+  Revision 1.11  1998-07-27 13:58:36  michael
+  * corrected signactionrec
+
+  Revision 1.10  1998/06/16 08:21:58  michael
   * PClose didn't flush textfiles before closing. Now it does
 
   Revision 1.9  1998/06/03 11:55:33  michael
