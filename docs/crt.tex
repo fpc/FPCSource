@@ -22,21 +22,18 @@
 \label{ch:crtunit}
 This chapter describes the \var{CRT} unit for Free Pascal, both under \dos
 and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
-
 The unit was ported to \linux by Mark May\footnote{Current
 e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van Canneyt
 It works on the \linux console, and in xterm and rxvt windows under
 X-Windows. The functionality for both is the same, except that under \linux
 the use of an early implementation (versions 0.9.1 an earlier of the
 compiler) the crt unit automatically cleared the screen at program startup.
-
 This chapter is divided in two sections. 
 \begin{itemize}
 \item The first section lists the pre-defined constants, types and variables. 
 \item The second section describes the functions which appear in the
 interface part of the CRT unit.
 \end{itemize}
-
 \section{Types, Variables, Constants}
 Color definitions :
 \begin{verbatim}
@@ -105,230 +102,371 @@ screen. It is defined on \dos only.
 \begin{verbatim}
 var lastmode : Word;
 \end{verbatim}
-
 \section{Procedures and Functions}
+\begin{procedure}{AssignCrt}
+\Declaration
+Procedure AssignCrt (Var F: Text);
 
-\procedure{AssignCrt}{(Var F: Text)}
-{
+\Description
+
 Assigns a file F to the console. Everything written to the file F goes to
 the console instead. If the console contains a window, everything is written
 to the window instead.
-}
-{None.}{\seep{Window}}
 
+\Errors
+None.
+\SeeAlso
+\seep{Window}
+\end{procedure}
 \latex{\inputlisting{crtex/ex1.pp}}
  \html{\input{crtex/ex1.tex}}
+\begin{procedure}{BigCursor}
+\Declaration
+Procedure BigCursor ;
 
-\Procedure{BigCursor}{Makes the cursor a big rectangle. 
+\Description
+Makes the cursor a big rectangle. 
+Not implemented on \linux.
+\Errors
+None.
+\SeeAlso
+\seep{CursorOn}, \seep{CursorOff}
+\end{procedure}
+\begin{procedure}{ClrEol}
+\Declaration
+Procedure ClrEol ;
 
-Not implemented on \linux.}
-{None.}{\seep{CursorOn}, \seep{CursorOff}}
-
-\Procedure {ClrEol}
-{ ClrEol clears the current line, starting from the cursor position, to the
-end of the window. The cursor doesn't move}
-{None.}{\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}}
-
+\Description
+ ClrEol clears the current line, starting from the cursor position, to the
+end of the window. The cursor doesn't move
+\Errors
+None.
+\SeeAlso
+\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}
+\end{procedure}
 \latex{\inputlisting{crtex/ex9.pp}}
  \html{\input{crtex/ex9.tex}}
+\begin{procedure}{ClrScr}
+\Declaration
+Procedure ClrScr ;
 
-\procedure {ClrScr}{}
-{ ClrScr clears the current window (using the current colors), 
+\Description
+ ClrScr clears the current window (using the current colors), 
 and sets the cursor in the top left
-corner of the current window.}
-{None.}{ \seep{Window} }
-
+corner of the current window.
+\Errors
+None.
+\SeeAlso
+ \seep{Window} 
+\end{procedure}
 \latex{\inputlisting{crtex/ex8.pp}}
  \html{\input{crtex/ex8.tex}}
+\begin{procedure}{CursorOff}
+\Declaration
+Procedure CursorOff ;
 
-\Procedure{CursorOff}{Switches the cursor off (i.e. the cursor is no
+\Description
+Switches the cursor off (i.e. the cursor is no
 longer visible). 
+Not implemented on \linux.
+\Errors
+None.
+\SeeAlso
+\seep{CursorOn}, \seep{BigCursor}
+\end{procedure}
+\begin{procedure}{CursorOn}
+\Declaration
+Procedure CursorOn ;
 
-Not implemented on \linux.}
-{None.}{\seep{CursorOn}, \seep{BigCursor}}
+\Description
+Switches the cursor on. 
+Not implemented on \linux.
+\Errors
+None.
+\SeeAlso
+\seep{BigCursor}, \seep{CursorOff}
+\end{procedure}
+\begin{procedure}{Delay}
+\Declaration
+Procedure Delay (DTime: Word);
 
-\Procedure{CursorOn}{Switches the cursor on. 
-
-Not implemented on \linux.}
-{None.}{\seep{BigCursor}, \seep{CursorOff}}
-
-\procedure{Delay}{(DTime: Word)}
-{Delay waits a specified number of milliseconds. The number of specified
-seconds is an approximation, and may be off a lot, if system load is high.}
-{None}{\seep{Sound}, \seep{NoSound}}
-
+\Description
+Delay waits a specified number of milliseconds. The number of specified
+seconds is an approximation, and may be off a lot, if system load is high.
+\Errors
+None
+\SeeAlso
+\seep{Sound}, \seep{NoSound}
+\end{procedure}
 \latex{\inputlisting{crtex/ex15.pp}}
  \html{\input{crtex/ex15.tex}}
+\begin{procedure}{DelLine}
+\Declaration
+Procedure DelLine ;
 
-\Procedure {DelLine}
-{ DelLine removes the current line. Lines following the current line are 
+\Description
+ DelLine removes the current line. Lines following the current line are 
 scrolled 1 line up, and an empty line is inserted at the bottom of the
-current window. The cursor doesn't move.}
-{None.}{\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}}
-
+current window. The cursor doesn't move.
+\Errors
+None.
+\SeeAlso
+\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}
+\end{procedure}
 \latex{\inputlisting{crtex/ex11.pp}}
  \html{\input{crtex/ex11.tex}}
+\begin{procedure}{GotoXY}
+\Declaration
+Procedure GotoXY (X: Byte; Y: Byte);
 
-\procedure {GotoXY}{(X: Byte; Y: Byte)}
-{ Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
+\Description
+ Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
 vertical direction relative to the origin of the current window. The origin
 is located at \var{(1,1)}, the upper-left corner of the window.
-}
-{None.}{ \seef{WhereX}, \seef{WhereY}, \seep{Window} }
 
+\Errors
+None.
+\SeeAlso
+ \seef{WhereX}, \seef{WhereY}, \seep{Window} 
+\end{procedure}
 \latex{\inputlisting{crtex/ex6.pp}}
  \html{\input{crtex/ex6.tex}}
+\begin{procedure}{HighVideo}
+\Declaration
+Procedure HighVideo ;
 
-\procedure {HighVideo}{}
-{ HighVideo switches the output to highlighted text. (It sets the high
+\Description
+ HighVideo switches the output to highlighted text. (It sets the high
 intensity bit of the video attribute)
-}
-{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
-\seep{NormVideo}}
 
+\Errors
+None.
+\SeeAlso
+ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
+\seep{NormVideo}
+\end{procedure}
 \latex{\inputlisting{crtex/ex14.pp}}
  \html{\input{crtex/ex14.tex}}
+\begin{procedure}{InsLine}
+\Declaration
+Procedure InsLine ;
 
-\procedure {InsLine}{}
-{ InsLine inserts an empty line at the current cursor position. 
+\Description
+ InsLine inserts an empty line at the current cursor position. 
 Lines following the current line are scrolled 1 line down, 
 causing the last line to disappear from the window. 
-The cursor doesn't move.}
-{None.}{\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}}
-
+The cursor doesn't move.
+\Errors
+None.
+\SeeAlso
+\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}
+\end{procedure}
 \latex{\inputlisting{crtex/ex10.pp}}
  \html{\input{crtex/ex10.tex}}
+\begin{function}{KeyPressed}
+\Declaration
+Function KeyPressed  : Boolean;
 
-\Function {KeyPressed}{Boolean}
-{ The Keypressed function scans the keyboard buffer and sees if a key has
+\Description
+ The Keypressed function scans the keyboard buffer and sees if a key has
 been pressed. If this is the case, \var{True} is returned. If not,
 \var{False} is returned. The \var{Shift, Alt, Ctrl} keys are not reported.
 The key is not removed from the buffer, and can hence still be read after
 the KeyPressed function has been called.
-}
-{None.}{\seef{ReadKey}}
 
+\Errors
+None.
+\SeeAlso
+\seef{ReadKey}
+\end{function}
 \latex{\inputlisting{crtex/ex2.pp}}
  \html{\input{crtex/ex2.tex}}
+\begin{procedure}{LowVideo}
+\Declaration
+Procedure LowVideo ;
 
-\Procedure {LowVideo}
-{ LowVideo switches the output to non-highlighted text. (It clears the high
+\Description
+ LowVideo switches the output to non-highlighted text. (It clears the high
 intensity bit of the video attribute)
-}
-{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{HighVideo},
-\seep{NormVideo}}
 
+\Errors
+None.
+\SeeAlso
+ \seep{TextColor}, \seep{TextBackground}, \seep{HighVideo},
+\seep{NormVideo}
+\end{procedure}
 For an example, see \seep{HighVideo}
+\begin{procedure}{NormVideo}
+\Declaration
+Procedure NormVideo ;
 
-\Procedure {NormVideo}
-{ NormVideo switches the output to the defaults, read at startup. (The
+\Description
+ NormVideo switches the output to the defaults, read at startup. (The
 defaults are read from the cursor position at startup)
-}
-{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
-\seep{HighVideo}}
 
+\Errors
+None.
+\SeeAlso
+ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
+\seep{HighVideo}
+\end{procedure}
 For an example, see \seep{HighVideo}
+\begin{procedure}{NoSound}
+\Declaration
+Procedure NoSound ;
 
-\Procedure{NoSound}{
+\Description
+
 Stops the speaker sound.
-
-This is not supported in \linux}{None.}{\seep{Sound}}
-
+This is not supported in \linux
+\Errors
+None.
+\SeeAlso
+\seep{Sound}
+\end{procedure}
 \latex{\inputlisting{crtex/ex16.pp}}
  \html{\input{crtex/ex16.tex}}
+\begin{function}{ReadKey}
+\Declaration
+Function ReadKey  : Char;
 
-\Function  {ReadKey}{Char}
-{
+\Description
+
 The ReadKey function reads 1 key from the keyboard buffer, and returns this.
 If an extended or function key has been pressed, then the zero ASCII code is 
 returned. You can then read the scan code of the key with a second ReadKey
 call.
-
 \textbf{Remark.} Key mappings under Linux can cause the wrong key to be
 reported by ReadKey, so caution is needed when using ReadKey.  
-}
-{None.}{\seef{KeyPressed}}
 
+\Errors
+None.
+\SeeAlso
+\seef{KeyPressed}
+\end{function}
 \latex{\inputlisting{crtex/ex3.pp}}
  \html{\input{crtex/ex3.tex}}
+\begin{procedure}{Sound}
+\Declaration
+Procedure Sound (hz : word);
 
+\Description
+ Sounds the speaker at a frequency of \var{hz}.
+This is not supported in \linux
+\Errors
+None.
+\SeeAlso
+\seep{NoSound}
+\end{procedure}
+\begin{procedure}{TextBackground}
+\Declaration
+Procedure TextBackground (CL: Byte);
 
-\procedure{Sound}{(hz : word)}
-{ Sounds the speaker at a frequency of \var{hz}.
+\Description
 
-This is not supported in \linux}{None.}{\seep{NoSound}}
-
-\procedure {TextBackground}{(CL: Byte)}
-{
 TextBackground sets the background color to \var{CL}. \var{CL} can be one of the
 predefined color constants.
-}
-{None.}{ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
-\seep{NormVideo}}
 
+\Errors
+None.
+\SeeAlso
+ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}
+\end{procedure}
 \latex{\inputlisting{crtex/ex13.pp}}
  \html{\input{crtex/ex13.tex}}
+\begin{procedure}{TextColor}
+\Declaration
+Procedure TextColor (CL: Byte);
 
-\procedure {TextColor}{(CL: Byte)}
-{
+\Description
+
 TextColor sets the foreground color to \var{CL}. \var{CL} can be one of the
 predefined color constants.
-}
-{None.}{ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
-\seep{NormVideo}}
 
+\Errors
+None.
+\SeeAlso
+ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}
+\end{procedure}
 \latex{\inputlisting{crtex/ex12.pp}}
  \html{\input{crtex/ex12.tex}}
+\begin{function}{WhereX}
+\Declaration
+Function WhereX  : Byte;
 
-\Function  {WhereX}{Byte}
-{
+\Description
+
 WhereX returns the current X-coordinate of the cursor, relative to the
 current window. The origin is \var{(1,1)}, in the upper-left corner of the
 window.
-}
-{None.}{ \seep{GotoXY}, \seef{WhereY}, \seep{Window} }
 
-
+\Errors
+None.
+\SeeAlso
+ \seep{GotoXY}, \seef{WhereY}, \seep{Window} 
+\end{function}
 \latex{\inputlisting{crtex/ex7.pp}}
  \html{\input{crtex/ex7.tex}}
+\begin{function}{WhereY}
+\Declaration
+Function WhereY  : Byte;
 
-\Function  {WhereY}{Byte}
-{
+\Description
+
 WhereY returns the current Y-coordinate of the cursor, relative to the
 current window. The origin is \var{(1,1)}, in the upper-left corner of the
 window.
-}
-{None.}{ \seep{GotoXY}, \seef{WhereX}, \seep{Window} }
 
+\Errors
+None.
+\SeeAlso
+ \seep{GotoXY}, \seef{WhereX}, \seep{Window} 
+\end{function}
 \latex{\inputlisting{crtex/ex7.pp}}
  \html{\input{crtex/ex7.tex}}
+\begin{procedure}{Window}
+\Declaration
+Procedure Window (X1, Y1, X2, Y2: Byte);
 
-\procedure {Window}{(X1, Y1, X2, Y2: Byte)}
-{ Window creates a window on the screen, to which output will be sent.
+\Description
+ Window creates a window on the screen, to which output will be sent.
 \var{(X1,Y1)} are the coordinates of the upper left corner of the window,
 \var{(X2,Y2)} are the coordinates of the bottom right corner of the window.
 These coordinates are relative to the entire screen, with the top left
 corner equal to \var{(1,1)}
-
 Further coordinate operations, except for the next Window call,
 are relative to the window's top left corner.
-}
-{None.}{\seep{GotoXY}, \seef{WhereX}, \seef{WhereY}, \seep{ClrScr}}
 
+\Errors
+None.
+\SeeAlso
+\seep{GotoXY}, \seef{WhereX}, \seef{WhereY}, \seep{ClrScr}
+\end{procedure}
 \latex{\inputlisting{crtex/ex5.pp}}
 \html{\input{crtex/ex5.tex}}
+\begin{procedure}{ScrollWindow}
+\Declaration
+Procedure ScrollWindow (X1,Y1,X2,Y2 : Byte; Count : Longint);
 
-
-%\procedure {ScrollWindow}{(X1,Y1,X2,Y2 : Byte; Count : Longint)}
-%{ ScrollWindow scrolls the contents of the window defined by the upper-left
+\Description
+ ScrollWindow scrolls the contents of the window defined by the upper-left
 %\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners \var{count} lines up if
 %\var{count} is positive, it scrolls down if \var{count} is negative.
 %The new lines are made blank using the current textcolors.
-%}
-%{None.}{\seep{Window}, \seep{ClrScr}}
+%
+\Errors
+None.
+\SeeAlso
+\seep{Window}, \seep{ClrScr}
+\end{procedure}
+\begin{function}{SaveScreenRegion}
+\Declaration
+Function SaveScreenRegion (X1,Y1,X2,Y2, var P : pointer) : Boolean;
 
-%\function {SaveScreenRegion}{(X1,Y1,X2,Y2, var P : pointer)}{Boolean}
-%{SaveScreenRegion writes the the contents of the window defined by the upper-left
+\Description
+SaveScreenRegion writes the the contents of the window defined by the upper-left
 %\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners to the location pointed
 %to by \var{P}. If \var{P} is \var{nil} then enough memory is allocated to
 %contain the contents of the window.
@@ -339,17 +477,28 @@ are relative to the window's top left corner.
 %\var{(Y2-Y1+1)*(X2-X1+1)*2} bytes.
 %
 %The function returns \var{False} if it couldn't allocate the required
-%memory, \var{True} if the memory was allocated.}{None.}
-%{\seep{RestoreScreenRegion}, \seep{Window} }
+%memory, \var{True} if the memory was allocated.
+\Errors
+None.
+\SeeAlso
+\seep{RestoreScreenRegion}, \seep{Window} 
+\end{function}
+\begin{procedure}{RestoreScreenRegion}
+\Declaration
+Procedure RestoreScreenRegion (X1,Y1,X2,Y2, var P : pointer);
 
-%\procedure {RestoreScreenRegion}{(X1,Y1,X2,Y2, var P : pointer)}
-%{SaveScreenRegion writes the the contents of the memory location pointed to
+\Description
+SaveScreenRegion writes the the contents of the memory location pointed to
 %by \var{P}, to the window defined by the upper-left \var{(X1,Y1)} and 
 %lower-right \var{(X2,Y2)} corners. 
 %
 %The contents of \var{P} should be arranged as if they are when written by 
 %a call to the SaveScreenRegion () function.
 %
-%The memory pointed to by \var{P} is NOT freed.}{None}
-%{\seef{SaveScreenRegion}, \seep{Window} }
+%The memory pointed to by \var{P} is NOT freed.
+\Errors
+None
+\SeeAlso
+\seef{SaveScreenRegion}, \seep{Window} 
+\end{procedure}
 

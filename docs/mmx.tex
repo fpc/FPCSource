@@ -54,31 +54,33 @@ initialization code.
 is_mmx_cpu : boolean = false;
 is_amd_3d_cpu : boolean = false;
 \end{verbatim}
-
 \section{Functions and Procedures}
+\begin{procedure}{Emms}
+\Declaration
+Procedure Emms ;
 
-\Procedure{Emms}
-{\var{Emms} sets all floating point registers to empty. This procedure must
+\Description
+\var{Emms} sets all floating point registers to empty. This procedure must
 be called after you have used any \var{MMX} instructions, if you want to use
 floating point arithmetic. If you just want to move floating point data
 around, it isn't necessary to call this function, the compiler doesn't use
 the FPU registers when moving data. Only when doing calculations, you should
 use this function.
-}
-{None.}
-{ \progref }
+
+\Errors
+None.
+\SeeAlso
+ \progref 
+\end{procedure}
 \begin{FPCList}
 \item[Example:]
 \begin{verbatim}
 Program MMXDemo;
-
 uses mmx;
-
 var
    d1 : double;
    a : array[0..10000] of double;
    i : longint;
-
 begin
    d1:=1.0;
 {$mmx+}

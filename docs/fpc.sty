@@ -80,54 +80,20 @@
 }
 {\end{list}}
 %
-% define a version of \procedure and \function 
-% which allows you to give a label.
 %
-\newcommand{\functionl}[7]{
-\subsection{#1}
-\raisebox{1ex}{\rule{\linewidth}{0.5mm}}
-\label{fu:#2}
-\index{#1}
-\begin{FPCList}
-\item[Declaration]
-\texttt {Function #1  #3  : #4;}
-\item[Description]
-#5
-\item[Errors]
-#6
-\item[See also]
-#7
-\end{FPCList}
-}
-\newcommand{\procedurel}[6]{
-\subsection{#1}
-\raisebox{1ex}{\rule{\linewidth}{0.5mm}}
-\label{pro:#2}
-\index{#1}
-\begin{FPCList}
-\item[Declaration]
-\texttt {Procedure #1  #3;}
-\item[Description]
-#4
-\item[Errors]
-#5
-\item[See also]
-#6
-\end{FPCList}
-}
-% define a capital version, 
-% for function/command which has no options passed to it.
-\newcommand{\Functionl}[6]{\functionl{#1}{#2}{}{#3}{#4}{#5}{#6}}
-\newcommand{\Procedurel}[5]{\procedurel{#1}{#2}{}{#3}{#4}{#5}}
+\newcommand{\Declaration}{\item[Declaration]\ttfamily}
+\newcommand{\Description}{\item[Description]\rmfamily}
+\newcommand{\Errors}{\item[Errors]\rmfamily}
+\newcommand{\SeeAlso}{\item[See also]\rmfamily}
 %
-% These versions take the function name as the label.
+%  The environments
 %
-\newcommand{\function}[6]{\functionl{#1}{#1}{#2}{#3}{#4}{#5}{#6}}
-\newcommand{\procedure}[5]{\procedurel{#1}{#1}{#2}{#3}{#4}{#5}}
-% define a capital version, 
-% for function/command which has no options passed to it.
-\newcommand{\Function}[5]{\function{#1}{}{#2}{#3}{#4}{#5}}
-\newcommand{\Procedure}[4]{\procedure{#1}{}{#2}{#3}{#4}}
+\newenvironment{functionl}[2]{\subsection{#1}%
+\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{procedurel}[2]{\subsection{#1}%
+\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
+\newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
 % Now the referencing commands.
 %
 % First, the ones with alternate label (second argument}

@@ -21,21 +21,18 @@
 \chapter{The DOS unit.}
 This chapter describes the \var{DOS} unit for Free pascal, both under \dos
 and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
-
 The unit was ported to \linux by Mark May\footnote{Current
 e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van
 Canneyt.
 Under \linux, some of the functionality is lost, as it is either impossible 
 or meaningless to implement it. Other than that, 
 the functionality for both operating systems is the same.
-
 This chapter is divided in two sections. 
 \begin{itemize}
 \item The first section lists the pre-defined constants, types and variables. 
 \item The second section describes the functions which appear in the
 interface part of the DOS unit.
 \end{itemize}
-
 \section{Types, Variables, Constants}
 \subsection {Constants}
 The DOS unit implements the following constants:
@@ -47,7 +44,6 @@ The DOS unit implements the following constants:
   fzero =      $0040;
   fsign =      $0080;
   foverflow  = $0800;
-
   {Bitmasks for file attribute}
   readonly =   $01;
   hidden =     $02;
@@ -100,7 +96,6 @@ different from \dos's, and the calls have to be mimicked.
 \begin{verbatim}
 const
   filerecnamelength = 255;
-
 type
   FileRec = Packed Record
     Handle,
@@ -117,7 +112,6 @@ Text files are handled by the following types :
 const
   TextRecNameLength = 256;
   TextRecBufSize    = 256;
-
 type
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
@@ -162,7 +156,6 @@ The  \var{registers} type is used in the \var{MSDos} call.
 \end{verbatim}
 The \var{DateTime} type is used in \seep{PackTime} and \seep{UnPackTime} for
 setting/reading file times with \seep{GetFTime} and \seep{SetFTime}.
-
 \subsection{Variables}
 \begin{verbatim}
     DosError : integer;
@@ -187,18 +180,18 @@ Other values are possible, but are not documented.
 %\end{verbatim}
 %This variable is defined in the \linux version of the \dos unit. It is used
 %in the \seef{DiskFree} and \seef{DiskSize} calls.
-
 \section{Functions and Procedures}
+\begin{procedure}{AddDisk}
+\Declaration
+Procedure AddDisk (Const S : String);
 
-\procedure{AddDisk}{(Const S : String)}
-{\var{AddDisk} adds a filename \var{S} to the internal list of disks. It is
+\Description
+\var{AddDisk} adds a filename \var{S} to the internal list of disks. It is
 implemented for \linux only.
  This list is used to determine which disks to use in the \seef{DiskFree}
 and \seef{DiskSize} calls. 
-
 The \seef{DiskFree} and \seef{DiskSize} functions need a file on the 
 specified drive, since this is required for the \var{statfs} system call.
-
 The names are added sequentially. The dos
 initialization code presets the first three disks to:
 \begin{itemize}
@@ -210,21 +203,27 @@ initialization code presets the first three disks to:
 The first call to \var{AddDisk} will therefore add a name for the second
 harddisk, The second call for the third drive, and so on until 23 drives
 have been added (corresponding to drives \var{'D:'} to \var{'Z:'})
-}{None}{\seef{DiskFree}, \seef{DiskSize} }
 
-\function{DiskFree}{(Drive: byte)}{longint}{
+\Errors
+None
+\SeeAlso
+\seef{DiskFree}, \seef{DiskSize} 
+\end{procedure}
+\begin{function}{DiskFree}
+\Declaration
+Function DiskFree (Drive: byte) : longint;
+
+\Description
+
 \var{DiskFree} returns the number of free bytes on a disk. The parameter
 \var{Drive} indicates which disk should be checked. This parameter is 1 for
 floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the free
 space on the current drive. 
-
 Typically, the free space is the size of a disk block, multiplied by the
 number of free blocks on the disk.
-
 \textbf{For \linux only:}\\
 The \var{diskfree} and \var{disksize} functions need a file on the 
 specified drive, since this is required for the \var{statfs} system call.
-
 These filenames are set in the initialization of the dos unit, and have 
 been preset to :
 \begin{itemize}
@@ -235,20 +234,25 @@ been preset to :
 \end{itemize}
 There is room for 1-26 drives. You can add a drive with the
 \seep{AddDisk} procedure.
-
 These settings can be coded in \var{dos.pp}, in the initialization part.
-}{-1 when a failure occurs, or an invalid \var{drivenr} is given.}  
-{\seef{DiskSize}, \seep{AddDisk}}
 
+\Errors
+-1 when a failure occurs, or an invalid \var{drivenr} is given.
+\SeeAlso
+\seef{DiskSize}, \seep{AddDisk}
+\end{function}
 \latex{\inputlisting{dosex/ex6.pp}}
 \html{\input{dosex/ex6.tex}}
+\begin{function}{DiskSize}
+\Declaration
+Function DiskSize (Drive: byte) : longint;
 
-\function{DiskSize}{(Drive: byte)}{longint}{
+\Description
+
 \var{DiskSize} returns the total size (in bytes) of a disk. The parameter
 \var{Drive} indicates which disk should be checked. This parameter is 1 for
 floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the size
 of the current drive. 
-
 \textbf{For \linux only:}\\
 The \var{diskfree} and \var{disksize} functions need a file on the specified drive, since this
 is required for the \var{statfs} system call.
@@ -262,166 +266,268 @@ been preset to :
 \end{itemize}
 There is room for 1-26 drives. You can add a drive with the
 \seep{AddDisk} procedure.
-
 These settings can be coded in \var{dos.pp}, in the initialization part.
-}{-1 when a failure occurs, or an invalid drive number is given.}  
-{\seef{DiskFree}, \seep{AddDisk}}
 
+\Errors
+-1 when a failure occurs, or an invalid drive number is given.
+\SeeAlso
+\seef{DiskFree}, \seep{AddDisk}
+\end{function}
 For an example, see \seef{DiskFree}.
+\begin{function}{DosExitCode}
+\Declaration
+Function DosExitCode  : Word;
 
-\Function{DosExitCode}{Word}{
+\Description
+
 \var{DosExitCode} contains (in the low byte) the exit-code of a program 
-executed with the \var{Exec} call.}{None.}{\seep{Exec}}
-
+executed with the \var{Exec} call.
+\Errors
+None.
+\SeeAlso
+\seep{Exec}
+\end{function}
 \latex{\inputlisting{dosex/ex5.pp}}
 \html{\input{dosex/ex5.tex}}
+\begin{function}{DosVersion}
+\Declaration
+Function DosVersion  : Word;
 
-\Function{DosVersion}{Word}
-{\var{DosVersion} returns the \dos version number. On \linux systems, it
+\Description
+\var{DosVersion} returns the \dos version number. On \linux systems, it
 returns the Linux version (The first 2 numbers, e.g Linux version 2.1.76 will
-give you DosVersion 2.1)}{None.}{}
+give you DosVersion 2.1)
+\Errors
+None.
+\SeeAlso
 
+\end{function}
 \latex{\inputlisting{dosex/ex1.pp}}
 \html{\input{dosex/ex1.tex}}
+\begin{function}{EnvCount}
+\Declaration
+Function EnvCount  : longint;
 
-\Function{EnvCount}{longint}{
-\var{EnvCount} returns the number of environment variables.}
-{None.}{\seef{EnvStr}, \seef{GetEnv}}
-\function{EnvStr}{(Index: integer)}{string}{
+\Description
+
+\var{EnvCount} returns the number of environment variables.
+\Errors
+None.
+\SeeAlso
+\seef{EnvStr}, \seef{GetEnv}
+\end{function}
+\begin{function}{EnvStr}
+\Declaration
+Function EnvStr (Index: integer) : string;
+
+\Description
+
 \var{EnvStr} returns the \var{Index}-th \var{Name=Value} pair from the list
 of environment variables. 
-
-The index of the first pair is zero.}
-{The length is limited to 255 characters. This may cause problems under
-\linux. The \linux unit solves this problem.}{\seef{EnvCount}, \seef{GetEnv}}
-
+The index of the first pair is zero.
+\Errors
+The length is limited to 255 characters. This may cause problems under
+\linux. The \linux unit solves this problem.
+\SeeAlso
+\seef{EnvCount}, \seef{GetEnv}
+\end{function}
 \latex{\inputlisting{dosex/ex13.pp}}
 \html{\input{dosex/ex13.tex}}
+\begin{procedure}{Exec}
+\Declaration
+Procedure Exec (const Path: pathstr; const ComLine: comstr);
 
-\procedure{Exec}{(const Path: pathstr; const ComLine: comstr)}{
+\Description
+
 \var{Exec} executes the program in \var{Path}, with the options given by
 \var{ComLine}.
 After the program has terminated, the procedure returns. The Exit value of
 the program can be consulted with the \var{DosExitCode} function.
-}{Errors are reported in \var{DosError}.}{\seef{DosExitCode}}
 
+\Errors
+Errors are reported in \var{DosError}.
+\SeeAlso
+\seef{DosExitCode}
+\end{procedure}
 For an example, see \seef{DosExitCode}
+\begin{functionl}{FExpand}{Dos:FExpand}
+\Declaration
+Function FExpand (const path: pathstr) : pathstr;
 
-\functionl{FExpand}{Dos:FExpand}{(const path: pathstr)}{pathstr}{
+\Description
+
 \var{FExpand} takes its argument and expands it to a complete filename, i.e.
 a filename starting from the root directory of the current drive, prepended
 with the drive-letter (under \dos).
-
 The resulting name is converted to uppercase on \dos systems. Under \linux,
 the name is left as it is. (filenames are case sensitive under Unix)
-}{\seep{FSplit}}
 
-\latex{\inputlisting{dosex/ex5.pp}}
+\Errors
+\seep{FSplit}
+\SeeAlso
+\inputlisting{dosex/ex5.pp}
+\end{functionl}
 \html{\input{dosex/ex5.tex}}
+\begin{procedure}{FindClose}
+\Declaration
+Procedure FindClose (Var F: SearchRec);
 
-\procedure{FindClose}{(Var F: SearchRec)}{
+\Description
+
 \textbf{\linux only}
 Under \linux, the \var{findfirst/findnext} calls have to be mimicked. 
 An internal table of file descriptors is kept. 
 When using different \var{searchrecs} at the same time, 
 the system may run out of file descriptors for directories.
-
 The \linux implementation of the \dos unit therefore keeps a table of open
 directories, and when the table is full, closes one of the directories, and
 reopens another. This system is adequate but slow if you use a lot of
 \var{searchrecs}.
-
 So, to speed up the findfirst/findnext system, the \var{FindClose} call was
 implemented. When you don't need a \var{searchrec} any more, you can tell
 this to the \dos unit by issuing a \var{FindClose} call. The directory
 which is kept open for this \var{searchrec} is then closed, and the table slot
 freed.
-
 It is recommended to use the \linux call \var{Glob} when looking for files.
-}{None.}{\seef{Glob}.}
 
-\procedure{FindFirst}{(const Path: pathstr; Attr: word; var F: SearchRec)}{
+\Errors
+None.
+\SeeAlso
+\seef{Glob}.
+\end{procedure}
+\begin{procedure}{FindFirst}
+\Declaration
+Procedure FindFirst (const Path: pathstr; Attr: word; var F: SearchRec);
+
+\Description
+
 \var{FindFirst} searches the file specified in \var{Path}, checks the
 atrributes specified in \var{Attr}. It returns a \var{SearchRec} record for
 further searching in \var{F}.
-
 \var{Path} can contain the wildcard characters \var{?} (matches any single
 character) and \var{*} (matches 0 ore more arbitrary characters). In this
 case \var{FindFirst} will return the first file which matches the specified
 criteria.
-
 If \var{DosError} is different from zero, no file(s) matching the criteria 
-was(were) found.}{Errors are reported in DosError.}{\seep{FindNext},
-\seep{FindClose}}
-
+was(were) found.
+\Errors
+Errors are reported in DosError.
+\SeeAlso
+\seep{FindNext},
+\seep{FindClose}
+\end{procedure}
 \latex{\inputlisting{dosex/ex7.pp}}
 \html{\input{dosex/ex7.tex}}
+\begin{procedure}{FindNext}
+\Declaration
+Procedure FindNext (var f: searchRec);
 
-\procedure{FindNext}{(var f: searchRec)}{
+\Description
+
 \var{FindNext} takes as an argument a \var{SearchRec} from a previous
 \var{FindNext} call, or a \var{FindFirst} call, and tries to find another
 file which matches the criteria, specified in the \var{FindFirst} call.
-
 If \var{DosError} is different from zero, no more files matching the
-criteria were found.}{\var{DosError} is used to report errors.}
-{\seep{FindFirst}, \seep{FindClose}}
-
+criteria were found.
+\Errors
+\var{DosError} is used to report errors.
+\SeeAlso
+\seep{FindFirst}, \seep{FindClose}
+\end{procedure}
 For an example, see \seep{FindFirst}.
+\begin{functionl}{FSearch}{Dos:FSearch}
+\Declaration
+Function FSearch (Path: pathstr; DirList: string) : pathstr;
 
-\functionl{FSearch}{Dos:FSearch}{(Path: pathstr; DirList: string)}{pathstr}
-{\var{FSearch} searches the file \var{Path} in all directories listed in
+\Description
+\var{FSearch} searches the file \var{Path} in all directories listed in
 \var{DirList}. The full name of the found file is returned.
-
 \var{DirList} must be a list of directories, separated by semi-colons (or
 colons under \linux).
-
 When no file is found, an empty string is returned.
-}{None.}{\seefl{FExpand}{Dos:FExpand}}
 
+\Errors
+None.
+\SeeAlso
+\seefl{FExpand}{Dos:FExpand}
+\end{functionl}
 \latex{\inputlisting{dosex/ex10.pp}}
 \html{\input{dosex/ex10.tex}}
-
-
  
-\procedure{FSplit}{(path: pathstr; \\ var dir: dirstr; var name: namestr;
-  var ext: extstr)}{
+\begin{procedure}{FSplit}
+\Declaration
+Procedure FSplit (path: pathstr; \\ var dir: dirstr; var name: namestr;
+  var ext: extstr);
+
+\Description
+
 \var{FSplit} splits a full file name into 3 parts : A \var{Path}, a
 \var{Name} and an extension  (in \var{ext}.) 
-
 Under \linux, the extension is taken to be all letters after the last dot
 (.).
-}{None.}{\seefl{FSearch}{Dos:FSearch}}
 
+\Errors
+None.
+\SeeAlso
+\seefl{FSearch}{Dos:FSearch}
+\end{procedure}
 \latex{\inputlisting{dosex/ex12.pp}}
 \html{\input{dosex/ex12.tex}}
+\begin{procedure}{GetCBreak}
+\Declaration
+Procedure GetCBreak (var breakvalue: boolean);
 
-\procedure{GetCBreak}{(var breakvalue: boolean)}{
+\Description
+
 \var{GetCBreak} gets the status of CTRL-Break checking under \dos.
 When \var{BreakValue} is \var{false}, then \dos only checks for the 
 CTRL-Break key-press when I/O is performed. When it is set to \var{True},
-then a check is done at every system call.}{Under Linux, this exists but is 
-not implemented, i.e. the call does nothing.}{\seep{SetCBreak}}
+then a check is done at every system call.
+\Errors
+Under Linux, this exists but is 
+not implemented, i.e. the call does nothing.
+\SeeAlso
+\seep{SetCBreak}
+\end{procedure}
+\begin{procedurel}{GetDate}{Dos:GetDate}
+\Declaration
+Procedure GetDate (var year, month, mday, wday: word);
 
-\procedurel{GetDate}{Dos:GetDate}{(var year, month, mday, wday: word)}{
+\Description
+
 \var{GetDate} returns the system's date. \var{Year} is a number in the range
 1980..2099.\var{mday} is the day of the month,
-\var{wday} is the day of the week, starting with Sunday as day 0.}
-{None.}{\seepl{GetTime}{Dos:GetTime},\seep{SetDate}}
-
+\var{wday} is the day of the week, starting with Sunday as day 0.
+\Errors
+None.
+\SeeAlso
+\seepl{GetTime}{Dos:GetTime},\seep{SetDate}
+\end{procedurel}
 \latex{\inputlisting{dosex/ex2.pp}}
 \html{\input{dosex/ex2.tex}}
+\begin{functionl}{GetEnv}{Dos:GetEnv}
+\Declaration
+Function GetEnv (EnvVar: String) : String;
 
-\functionl{GetEnv}{Dos:GetEnv}{(EnvVar: String)}{String}{
+\Description
+
 \var{Getenv} returns the value of the environment variable \var{EnvVar}.
 Under \linux, case is important when looking for \var{EnvVar}.
-
 When there is no environment variable \var{EnvVar} defined, an empty
-string is returned.}{None.}{\seef{EnvCount}, \seef{EnvStr}}
-
+string is returned.
+\Errors
+None.
+\SeeAlso
+\seef{EnvCount}, \seef{EnvStr}
+\end{functionl}
 \latex{\inputlisting{dosex/ex14.pp}}
 \html{\input{dosex/ex14.tex}}
+\begin{procedure}{GetFAttr}
+\Declaration
+Procedure GetFAttr (var F; var Attr: word);
 
-\procedure{GetFAttr}{(var F; var Attr: word)}{
+\Description
+
 \var{GetFAttr} returns the file attributes of the file-variable \var{f}.
  \var{F} can be a untyped or typed file, or of type \var{Text}. \var{f} must
 have been assigned, but not opened. The attributes can be examined with the
@@ -441,86 +547,173 @@ Under \linux, supported attributes are:
 \item \var{ReadOnly} if the current process doesn't have access to the file.
 \item \var{Hidden} for files whose name starts with a dot \var{('.')}.
 \end{itemize}
-}{Errors are reported in \var{DosError}}{\seep{SetFAttr}}
 
+\Errors
+Errors are reported in \var{DosError}
+\SeeAlso
+\seep{SetFAttr}
+\end{procedure}
 \latex{\inputlisting{dosex/ex8.pp}}
 \html{\input{dosex/ex8.tex}}
+\begin{procedure}{GetFTime}
+\Declaration
+Procedure GetFTime (var F; var Time: longint);
 
-\procedure{GetFTime}{(var F; var Time: longint)}{
+\Description
+
 \var{GetFTime} returns the modification time of a file.
 This time is encoded and must be decoded with \var{UnPackTime}. 
 \var{F} must be a file type, which has been assigned, and
-opened.}{Errors are reported in \var{DosError}}
-{\seep{SetFTime}, \seep{PackTime},\seep{UnPackTime}}
-
+opened.
+\Errors
+Errors are reported in \var{DosError}
+\SeeAlso
+\seep{SetFTime}, \seep{PackTime},\seep{UnPackTime}
+\end{procedure}
 \latex{\inputlisting{dosex/ex9.pp}}
 \html{\input{dosex/ex9.tex}}
+\begin{procedure}{GetIntVec}
+\Declaration
+Procedure GetIntVec (IntNo: byte; var Vector: pointer);
 
-\procedure{GetIntVec}{(IntNo: byte; var Vector: pointer)}{
+\Description
+
 \var{GetIntVec} returns the address of interrupt vector
-\var{IntNo}.}{None. Under \linux, this call exists bout isn't implemented,
-i.e. it does nothing.}{\seep{SetIntVec}}
+\var{IntNo}.
+\Errors
+None. Under \linux, this call exists bout isn't implemented,
+i.e. it does nothing.
+\SeeAlso
+\seep{SetIntVec}
+\end{procedure}
+\begin{procedurel}{GetTime}{Dos:GetTime}
+\Declaration
+Procedure GetTime (var hour, minute, second, sec100: word);
 
-\procedurel{GetTime}{Dos:GetTime}{(var hour, minute, second, sec100: word)}{
+\Description
+
 \var{GetTime} returns the system's time. \var{Hour} is a on a 24-hour time
 scale. \var{sec100} is in hundredth of a
-second.}{None.}{\seepl{GetDate}{Dos:GetDate},
-\seep{SetTime}}
-
+second.
+\Errors
+None.
+\SeeAlso
+\seepl{GetDate}{Dos:GetDate},
+\seep{SetTime}
+\end{procedurel}
 \latex{\inputlisting{dosex/ex3.pp}}
 \html{\input{dosex/ex3.tex}}
+\begin{procedure}{GetVerify}
+\Declaration
+Procedure GetVerify (var verify: boolean);
 
-\procedure{GetVerify}{(var verify: boolean)}{
+\Description
+
 \var{GetVerify} returns the status of the verify flag under \dos. When
 \var{Verify} is \var{True}, then \dos checks data which are written to disk,
 by reading them after writing. If \var{Verify} is \var{False}, then data
-written to disk are not verified.}{Under \linux,  Verify is always
-\var{True}.}{\seep{SetVerify}}
+written to disk are not verified.
+\Errors
+Under \linux,  Verify is always
+\var{True}.
+\SeeAlso
+\seep{SetVerify}
+\end{procedure}
+\begin{procedure}{Intr}
+\Declaration
+Procedure Intr (IntNo: byte; var Regs: registers);
 
-\procedure{Intr}{(IntNo: byte; var Regs: registers)}{
+\Description
+
 \var{Intr} executes a software interrupt number \var{IntNo} (must be between
 0 and 255), with processor registers set to \var{Regs}. After the interrupt call
-returned, the processor registers are saved in \var{Regs}.}
-{Under \linux this call does nothing, because interrupts are managed by the
-kernel. The only allowed interrupt is 80h, the kernel entry interrupt.}
-{\seep{MSDos}, see the \linux unit.}
+returned, the processor registers are saved in \var{Regs}.
+\Errors
+Under \linux this call does nothing, because interrupts are managed by the
+kernel. The only allowed interrupt is 80h, the kernel entry interrupt.
+\SeeAlso
+\seep{MSDos}, see the \linux unit.
+\end{procedure}
+\begin{procedure}{Keep}
+\Declaration
+Procedure Keep (ExitCode: word);
 
-\procedure{Keep}{(ExitCode: word)}{
+\Description
+
 \var{Keep} terminates the program, but stays in memory. This is used for TSR
 (Terminate Stay Resident) programs which catch some interrupt.
-\var{ExitCode} is the same parameter as the \var{Halt} function takes.}
-{Under \linux, this call does nothing.}{\seem{Halt}{}}
+\var{ExitCode} is the same parameter as the \var{Halt} function takes.
+\Errors
+Under \linux, this call does nothing.
+\SeeAlso
+\seem{Halt}{}
+\end{procedure}
+\begin{procedure}{MSDos}
+\Declaration
+Procedure MSDos (var regs: registers);
 
+\Description
 
-\procedure{MSDos}{(var regs: registers)}{
 \var{MSDos} executes an MS-\dos call (int 21h). This is the same as doing a
-\var{Intr} call with an interrupt number of 21h.}{None.}{\seep{Intr}}
+\var{Intr} call with an interrupt number of 21h.
+\Errors
+None.
+\SeeAlso
+\seep{Intr}
+\end{procedure}
+\begin{procedure}{PackTime}
+\Declaration
+Procedure PackTime (var T: datetime; var P: longint);
 
-\procedure{PackTime}{(var T: datetime; var P: longint)}{
+\Description
+
 \var{UnPackTime} converts the date and time specified in \var{T}
-to a packed-time format which can be fed to \var{SetFTime}.}
-{None.}
-{\seep{SetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{UnPackTime}}
-
+to a packed-time format which can be fed to \var{SetFTime}.
+\Errors
+None.
+\SeeAlso
+\seep{SetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{UnPackTime}
+\end{procedure}
 \latex{\inputlisting{dosex/ex4.pp}}
 \html{\input{dosex/ex4.tex}}
+\begin{procedure}{SetCBreak}
+\Declaration
+Procedure SetCBreak (breakvalue: boolean);
 
-\procedure{SetCBreak}{(breakvalue: boolean)}{
+\Description
+
 \var{SetCBreak} sets the status of CTRL-Break checking under \dos.
 When \var{BreakValue} is \var{false}, then \dos only checks for the 
 CTRL-Break key-press when I/O is performed. When it is set to \var{True},
-then a check is done at every system call.}{Under Linux, this call exists
-but is not implemented, i.e. it does nothing.}{\seep{GetCBreak}}
+then a check is done at every system call.
+\Errors
+Under Linux, this call exists
+but is not implemented, i.e. it does nothing.
+\SeeAlso
+\seep{GetCBreak}
+\end{procedure}
+\begin{procedure}{SetDate}
+\Declaration
+Procedure SetDate (year,month,day: word);
 
-\procedure{SetDate}{(year,month,day: word)}{
+\Description
+
 \var{SetDate} sets the system's internal date. \var{Year} is a number
-between 1980 and 2099.}
-{On a \linux  machine, this is not implemented (allthough a procedure
+between 1980 and 2099.
+\Errors
+On a \linux  machine, this is not implemented (allthough a procedure
 exists, it just doesn't do anything. The setting of the date is a
-root-only privilege, and is hence not implemented.}{\seep{GetDate},
-\seep{SetTime}}
+root-only privilege, and is hence not implemented.
+\SeeAlso
+\seep{GetDate},
+\seep{SetTime}
+\end{procedure}
+\begin{procedure}{SetFAttr}
+\Declaration
+Procedure SetFAttr (var F; Attr: word);
 
-\procedure{SetFAttr}{(var F; Attr: word)}{
+\Description
+
 \var{SetFAttr} sets the file attributes of the file-variable \var{F}.
  \var{F} can be a untyped or typed file, or of type \var{Text}. \var{F} must
 have been assigned, but not opened. The attributes can be a sum of the
@@ -534,54 +727,101 @@ following constants:
 \item \var{Archive   = 20h}
 \item \var{AnyFile   = 3fh}
 \end{itemize}
-}{Errors are reported in \var{DosError}.
 
-Under \linux the call exists, but is not implemented, i.e. it does nothing.}
-{\seep{GetFAttr}}
+\Errors
+Errors are reported in \var{DosError}.
+Under \linux the call exists, but is not implemented, i.e. it does nothing.
+\SeeAlso
+\seep{GetFAttr}
+\end{procedure}
+\begin{procedure}{SetFTime}
+\Declaration
+Procedure SetFTime (var F; Time: longint);
 
-\procedure{SetFTime}{(var F; Time: longint)}{
+\Description
+
 \var{SetFTime} sets the modification time of a file,
 this time is encoded and must be encoded with \var{PackTime}. 
 \var{F} must be a file type, which has been assigned, and
-opened.}{Errors are reported in \var{DosError}}
-{\seep{GetFTime}, \seep{PackTime},\seep{UnPackTime}}
+opened.
+\Errors
+Errors are reported in \var{DosError}
+\SeeAlso
+\seep{GetFTime}, \seep{PackTime},\seep{UnPackTime}
+\end{procedure}
+\begin{procedure}{SetIntVec}
+\Declaration
+Procedure SetIntVec (IntNo: byte; Vector: pointer);
 
+\Description
 
-\procedure{SetIntVec}{(IntNo: byte; Vector: pointer)}{
 \var{SetIntVec} sets interrupt vector \var{IntNo} to \var{Vector}.
-\var{Vector} should point to an interrupt procedure.}{Under \linux, this
-call exists but is not implemented, the kernel manages all interrupts.}
-{\seep{GetIntVec}}
+\var{Vector} should point to an interrupt procedure.
+\Errors
+Under \linux, this
+call exists but is not implemented, the kernel manages all interrupts.
+\SeeAlso
+\seep{GetIntVec}
+\end{procedure}
+\begin{procedure}{SetTime}
+\Declaration
+Procedure SetTime (hour,minute,second,sec100: word);
 
-\procedure{SetTime}{(hour,minute,second,sec100: word)}{
+\Description
+
 \var{SetTime} sets the system's internal clock. The \var{Hour} parameter is
-on a 24-hour time scale.}{this call exists, but is not implemented on \linux, 
-as setting the time is a root-only privilege.}
-{\seep{GetTime}, \seep{SetDate}}
+on a 24-hour time scale.
+\Errors
+this call exists, but is not implemented on \linux, 
+as setting the time is a root-only privilege.
+\SeeAlso
+\seep{GetTime}, \seep{SetDate}
+\end{procedure}
+\begin{procedure}{SetVerify}
+\Declaration
+Procedure SetVerify (verify: boolean);
 
+\Description
 
-\procedure{SetVerify}{(verify: boolean)}{
 \var{SetVerify} sets the status of the verify flag under \dos. When
 \var{Verify} is \var{True}, then \dos checks data which are written to disk,
 by reading them after writing. If \var{Verify} is \var{False}, then data
-written to disk are not verified.}{Under \linux,  Verify is always
-\var{True}.}{\seep{SetVerify}}
+written to disk are not verified.
+\Errors
+Under \linux,  Verify is always
+\var{True}.
+\SeeAlso
+\seep{SetVerify}
+\end{procedure}
+\begin{procedure}{SwapVectors}
+\Declaration
+Procedure SwapVectors ;
 
-\Procedure{SwapVectors}{
+\Description
+
 \var{SwapVectors} swaps the contents of the internal table of interrupt 
 vectors with the current contents of the interrupt vectors.
-
 This is called typically in before and after an \var{Exec} call.
-}{Under \linux this call does nothing, as the interrupt vectors are 
-managed by the kernel.}{\seep{Exec}, \seep{SetIntVec}}
 
+\Errors
+Under \linux this call does nothing, as the interrupt vectors are 
+managed by the kernel.
+\SeeAlso
+\seep{Exec}, \seep{SetIntVec}
+\end{procedure}
+\begin{procedure}{UnPackTime}
+\Declaration
+Procedure UnPackTime (p: longint; var T: datetime);
 
-\procedure{UnPackTime}{(p: longint; var T: datetime)}{
+\Description
+
 \var{UnPackTime} converts the file-modification time in \var{p}
 to a \var{DateTime} record. The file-modification time can be 
-returned by \var{GetFTime}, \var{FindFirst} or \var{FindNext} calls.}
-{None.}
-{\seep{GetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{PackTime}}
-
+returned by \var{GetFTime}, \var{FindFirst} or \var{FindNext} calls.
+\Errors
+None.
+\SeeAlso
+\seep{GetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{PackTime}
+\end{procedure}
 For an example, see \seep{PackTime}.
 

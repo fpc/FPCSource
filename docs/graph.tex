@@ -23,7 +23,6 @@
 \chapter{The GRAPH unit.}
 This document describes the \var{GRAPH} unit for Free Pascal, under \dos.
 The unit was first written for \dos by Florian kl\"ampfl. 
-
 This chapter is divided in three sections. 
 \begin{itemize}
 \item The first section gives an introduction to the graph unit.
@@ -31,233 +30,547 @@ This chapter is divided in three sections.
 \item The second section describes the functions which appear in the
 interface part of the \file{GRAPH} unit.
 \end{itemize}
-
 \section{Introduction}
 \label{se:Introduction}
 \subsection{Requirements}
 The unit Graph exports functions and procedures for graphical output.
 It requires at least a VESA compatible VGA-Card or a VGA-Card with software-driver
 (min. \textbf{512Kb} video memory).
-
 Before the graph unit can be used, be sure your graphics adapter supports
 the VESA-Standard. Otherwise in the most cases you can try to use a VESA-TSR
 to make your adapter VESA compatible (e.g. UNIVBE).
-
 \section{Constants, Types and Variables}
 \subsection{Types}
 \begin{verbatim}
 ArcCoordsType = record
  X,Y,Xstart,Ystart,Xend,Yend : Integer;
 end;
-
 FillPatternType = Array [1..8] of Byte;
-
 FillSettingsType = Record
  Pattern,Color : Word
 end;
-
 LineSettingsType = Record
   LineStyle,Pattern, Width : Word;
 end;
-
 PaletteType = Record
  Size : Byte;
  Colors : array[0..MAxColor] of shortint;
 end;
-
 PointType = Record
   X,Y : Integer;
 end;
-
 TextSettingsType = Record
  Font,Direction, CharSize, Horiz, Vert : Word
 end;
-
 ViewPortType = Record
   X1,Y1,X2,Y2 : Integer;
   Clip : Boolean
 end;
 \end{verbatim}
-
 \section{Functions and procedures}
-\procedure{Arc}{(X,Y : Integer; start,stop, radius : Word)}
-{ \var{Arc} draws part of a circle with center at \var{(X,Y)}, radius
+\begin{procedure}{Arc}
+\Declaration
+Procedure Arc (X,Y : Integer; start,stop, radius : Word);
+
+\Description
+ \var{Arc} draws part of a circle with center at \var{(X,Y)}, radius
 \var{radius}, starting from angle \var{start}, stopping at angle \var{stop}.
 These  angles are measured
-counterclockwise.}{None.}{\seep{Circle},\seep{Ellipse} 
-\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}}
+counterclockwise.
+\Errors
+None.
+\SeeAlso
+\seep{Circle},\seep{Ellipse} 
+\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
+\end{procedure}
+\begin{procedure}{Bar}
+\Declaration
+Procedure Bar (X1,Y1,X2,Y2 : Integer);
 
-\procedure{Bar}{(X1,Y1,X2,Y2 : Integer)}
-{Draws a rectangle with corners at \var{(X1,Y1)} and \var{(X2,Y2)} 
-and fills it with the current color and fill-style.}{None.}{\seep{Bar3D}, 
-\seep{Rectangle}}
+\Description
+Draws a rectangle with corners at \var{(X1,Y1)} and \var{(X2,Y2)} 
+and fills it with the current color and fill-style.
+\Errors
+None.
+\SeeAlso
+\seep{Bar3D}, 
+\seep{Rectangle}
+\end{procedure}
+\begin{procedure}{Bar3D}
+\Declaration
+Procedure Bar3D (X1,Y1,X2,Y2 : Integer; depth : Word; Top : Boolean);
 
-\procedure{Bar3D}{(X1,Y1,X2,Y2 : Integer; depth : Word; Top : Boolean)}
-{Draws a 3-dimensional Bar  with corners at \var{(X1,Y1)} and \var{(X2,Y2)} 
+\Description
+Draws a 3-dimensional Bar  with corners at \var{(X1,Y1)} and \var{(X2,Y2)} 
 and fills it with the current color and fill-style.
 \var{Depth} specifies the number of pixels used to show the depth of the
 bar.
+If \var{Top} is true; then a 3-dimensional top is drawn.
+\Errors
+None.
+\SeeAlso
+\seep{Bar}, \seep{Rectangle}
+\end{procedure}
+\begin{procedure}{Circle}
+\Declaration
+Procedure Circle (X,Y : Integer; Radius : Word);
 
-If \var{Top} is true; then a 3-dimensional top is drawn.}
-{None.}{\seep{Bar}, \seep{Rectangle}}
+\Description
+ \var{Circle} draws part of a circle with center at \var{(X,Y)}, radius
+\var{radius}.
+\Errors
+None.
+\SeeAlso
+\seep{Ellipse},\seep{Arc}
+\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
+\end{procedure}
+\begin{procedure}{ClearDevice}
+\Declaration
+Procedure ClearDevice ;
 
-\procedure{Circle}{(X,Y : Integer; Radius : Word)}
-{ \var{Circle} draws part of a circle with center at \var{(X,Y)}, radius
-\var{radius}.}{None.}{\seep{Ellipse},\seep{Arc}
-\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}}
+\Description
+Clears the graphical screen (with the current
+background color), and sets the pointer at \var{(0,0)}
+\Errors
+None.
+\SeeAlso
+\seep{ClearViewPort}, \seep{SetBkColor}
+\end{procedure}
+\begin{procedure}{ClearViewPort}
+\Declaration
+Procedure ClearViewPort ;
 
-\procedure{ClearDevice}{}{Clears the graphical screen (with the current
-background color), and sets the pointer at \var{(0,0)}}{None.}
-{\seep{ClearViewPort}, \seep{SetBkColor}}
-
-\procedure{ClearViewPort}{}
-{Clears the current view-port. The current background color is used as filling
+\Description
+Clears the current view-port. The current background color is used as filling
 color. The pointer is set at
-\var{(0,0)}}{None.}{\seep{ClearDevice},\seep{SetViewPort}, \seep{SetBkColor}}
+\var{(0,0)}
+\Errors
+None.
+\SeeAlso
+\seep{ClearDevice},\seep{SetViewPort}, \seep{SetBkColor}
+\end{procedure}
+\begin{procedure}{CloseGraph}
+\Declaration
+Procedure CloseGraph ;
 
-\procedure{CloseGraph}{}{Closes the graphical system, and restores the
+\Description
+Closes the graphical system, and restores the
 screen modus which was active before the graphical modus was
-activated.}{None.}{\seep{InitGraph}}
+activated.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{procedure}
+\begin{procedure}{DetectGraph}
+\Declaration
+Procedure DetectGraph (Var Driver, Modus : Integer);
 
-\procedure{DetectGraph}{(Var Driver, Modus : Integer)}
-{ Checks the hardware in the PC and determines the driver and screen-modus to
+\Description
+ Checks the hardware in the PC and determines the driver and screen-modus to
 be used. These are returned in \var{Driver} and \var{Modus}, and can be fed
 to \var{InitGraph}. 
+See the \var{InitGraph} for a list of drivers and modi.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{procedure}
+\begin{procedure}{DrawPoly}
+\Declaration
+Procedure DrawPoly (NumberOfPoints : Word; Var PolyPoints;
 
-See the \var{InitGraph} for a list of drivers and modi.}
-{None.}{\seep{InitGraph}}
+\Description
 
-\procedure{DrawPoly}{(NumberOfPoints : Word; Var PolyPoints}{
 Draws a polygone with \var{NumberOfPoints} corner points, using the
 current color and line-style. PolyPoints is an array of type \var{PointType}.
-}{None.}{\seep{Bar}, seep{Bar3D}, \seep{Rectangle}}
 
-\procedure{Ellipse}{(X,Y : Integer; Start,Stop,XRadius,YRadius : Word)}
-{ \var{Ellipse} draws part of an ellipse with center at \var{(X,Y)}.
+\Errors
+None.
+\SeeAlso
+\seep{Bar}, seep{Bar3D}, \seep{Rectangle}
+\end{procedure}
+\begin{procedure}{Ellipse}
+\Declaration
+Procedure Ellipse (X,Y : Integer; Start,Stop,XRadius,YRadius : Word);
+
+\Description
+ \var{Ellipse} draws part of an ellipse with center at \var{(X,Y)}.
 \var{XRadius} and \var{Yradius} are the horizontal and vertical radii of the
 ellipse. \var{Start} and \var{Stop} are the starting and stopping angles of
 the part of the ellipse. 
+They are measured counterclockwise from the X-axis.
+\Errors
+None.
+\SeeAlso
+\seep{Arc} \seep{Circle}, \seep{FillEllipse}
+\end{procedure}
+\begin{procedure}{FillEllipse}
+\Declaration
+Procedure FillEllipse (X,Y : Integer; Xradius,YRadius: Word);
 
-They are measured counterclockwise from the X-axis.}
-{None.}{\seep{Arc} \seep{Circle}, \seep{FillEllipse}}
-
-\procedure{FillEllipse}{(X,Y : Integer; Xradius,YRadius: Word)}
-{ \var{Ellipse} draws an ellipse with center at \var{(X,Y)}.
+\Description
+ \var{Ellipse} draws an ellipse with center at \var{(X,Y)}.
 \var{XRadius} and \var{Yradius} are the horizontal and vertical radii of the
-ellipse. The ellipse is filled with the current color and fill-style.}
-{None.}{\seep{Arc} \seep{Circle},
-\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}}
+ellipse. The ellipse is filled with the current color and fill-style.
+\Errors
+None.
+\SeeAlso
+\seep{Arc} \seep{Circle},
+\seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
+\end{procedure}
+\begin{procedure}{FillPoly}
+\Declaration
+Procedure FillPoly (NumberOfPoints : Word; Var PolyPoints);
 
-\procedure{FillPoly}{(NumberOfPoints : Word; Var PolyPoints)}{
+\Description
+
 Draws a polygone with \var{NumberOfPoints} corner points and fills it
 using the current color and line-style. 
-
 PolyPoints is an array of type \var{PointType}.
-}{None.}{\seep{Bar}, seep{Bar3D}, \seep{Rectangle}}
 
-\procedure{FloodFill}{(X,Y : Integer; BorderColor : Word)}{
+\Errors
+None.
+\SeeAlso
+\seep{Bar}, seep{Bar3D}, \seep{Rectangle}
+\end{procedure}
+\begin{procedure}{FloodFill}
+\Declaration
+Procedure FloodFill (X,Y : Integer; BorderColor : Word);
+
+\Description
+
 Fills the area containing the point \var{(X,Y)}, bounded by the color
-\var{BorderColor}.}{None}{\seep{SetColor}, \seep{SetBkColor}}
+\var{BorderColor}.
+\Errors
+None
+\SeeAlso
+\seep{SetColor}, \seep{SetBkColor}
+\end{procedure}
+\begin{procedure}{GetArcCoords}
+\Declaration
+Procedure GetArcCoords (Var ArcCoords : ArcCoordsType);
 
-\procedure{GetArcCoords}{(Var ArcCoords : ArcCoordsType)}
-{\var{GetArcCoords} returns the coordinates of the latest \var{Arc} or
-\var{Ellipse} call.}
-{None.}{\seep{Arc}, \seep{Ellipse}}
+\Description
+\var{GetArcCoords} returns the coordinates of the latest \var{Arc} or
+\var{Ellipse} call.
+\Errors
+None.
+\SeeAlso
+\seep{Arc}, \seep{Ellipse}
+\end{procedure}
+\begin{procedure}{GetAspectRatio}
+\Declaration
+Procedure GetAspectRatio (Var Xasp,Yasp : Word);
 
-\procedure{GetAspectRatio}{(Var Xasp,Yasp : Word)}
-{\var{GetAspectRatio} determines the effective resolution of the screen. The aspect ration can
-the be calculated as \var{Xasp/Yasp}.}{None.}{\seep{InitGraph},\seep{SetAspectRatio}}
+\Description
+\var{GetAspectRatio} determines the effective resolution of the screen. The aspect ration can
+the be calculated as \var{Xasp/Yasp}.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph},\seep{SetAspectRatio}
+\end{procedure}
+\begin{function}{GetBkColor}
+\Declaration
+Function GetBkColor  : Word;
 
-\Function{GetBkColor}{Word}{\var{GetBkColor} returns the current background color (the palette
-entry).}{None.}{\seef{GetColor},\seep{SetBkColor}}
+\Description
+\var{GetBkColor} returns the current background color (the palette
+entry).
+\Errors
+None.
+\SeeAlso
+\seef{GetColor},\seep{SetBkColor}
+\end{function}
+\begin{function}{GetColor}
+\Declaration
+Function GetColor  : Word;
 
-\Function{GetColor}{Word}{\var{GetColor} returns the current drawing color (the palette
-entry).}{None.}{\seef{GetColor},\seep{SetBkColor}}
+\Description
+\var{GetColor} returns the current drawing color (the palette
+entry).
+\Errors
+None.
+\SeeAlso
+\seef{GetColor},\seep{SetBkColor}
+\end{function}
+\begin{procedure}{GetDefaultPalette}
+\Declaration
+Procedure GetDefaultPalette (Var Palette : PaletteType);
 
-\procedure {GetDefaultPalette}{(Var Palette : PaletteType)}{Returns the
-current palette in \var{Palette}.}{None.}{\seef{GetColor}, \seef{GetBkColor}}
+\Description
+Returns the
+current palette in \var{Palette}.
+\Errors
+None.
+\SeeAlso
+\seef{GetColor}, \seef{GetBkColor}
+\end{procedure}
+\begin{function}{GetDriverName}
+\Declaration
+Function GetDriverName  : String;
 
-\Function{GetDriverName}{String}{\var{GetDriverName} returns a string containing the name of the
-current driver.}{None.}{\seef{GetModeName}, \seep{InitGraph}}
+\Description
+\var{GetDriverName} returns a string containing the name of the
+current driver.
+\Errors
+None.
+\SeeAlso
+\seef{GetModeName}, \seep{InitGraph}
+\end{function}
+\begin{procedure}{GetFillPattern}
+\Declaration
+Procedure GetFillPattern (Var FillPattern : FillPatternType);
 
-\procedure{GetFillPattern}{(Var FillPattern : FillPatternType)}
-{\var{GetFillPattern} returns an array with the current fill-pattern  in \var{FillPattern}}
-{None}{\seep{SetFillPattern}}
+\Description
+\var{GetFillPattern} returns an array with the current fill-pattern  in \var{FillPattern}
+\Errors
+None
+\SeeAlso
+\seep{SetFillPattern}
+\end{procedure}
+\begin{procedure}{GetFillSettings}
+\Declaration
+Procedure GetFillSettings (Var FillInfo : FillSettingsType);
 
-\procedure{GetFillSettings}{(Var FillInfo : FillSettingsType)}
-{\var{GetFillSettings} returns the current fill-settings in
-\var{FillInfo}}{None.}{\seep{SetFillPattern}}
+\Description
+\var{GetFillSettings} returns the current fill-settings in
+\var{FillInfo}
+\Errors
+None.
+\SeeAlso
+\seep{SetFillPattern}
+\end{procedure}
+\begin{function}{GetGraphMode}
+\Declaration
+Function GetGraphMode  : Integer;
 
-\Function{GetGraphMode}{Integer}{\var{GetGraphMode} returns the current graphical modus}
-{None.}{\seep{InitGraph}}
+\Description
+\var{GetGraphMode} returns the current graphical modus
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{function}
+\begin{procedure}{GetImage}
+\Declaration
+Procedure GetImage (X1,Y1,X2,Y2 : Integer, Var Bitmap;
 
-\procedure{GetImage}{(X1,Y1,X2,Y2 : Integer, Var Bitmap}{\var{GetImage}
-Places a copy of the screen area \var{(X1,Y1)} to \var{X2,Y2} in \var{BitMap}}
-{Bitmap must have enough room to contain the image.}{\seef{ImageSize},
-\seep{PutImage}}
+\Description
+\var{GetImage}
+Places a copy of the screen area \var{(X1,Y1)} to \var{X2,Y2} in \var{BitMap}
+\Errors
+Bitmap must have enough room to contain the image.
+\SeeAlso
+\seef{ImageSize},
+\seep{PutImage}
+\end{procedure}
+\begin{procedure}{GetLineSettings}
+\Declaration
+Procedure GetLineSettings (Var LineInfo : LineSettingsType);
 
-\procedure{GetLineSettings}{(Var LineInfo : LineSettingsType)}
-{\var{GetLineSettings} returns the current Line settings in
-\var{LineInfo}}{None.}{\seep{SetLineStyle}}
+\Description
+\var{GetLineSettings} returns the current Line settings in
+\var{LineInfo}
+\Errors
+None.
+\SeeAlso
+\seep{SetLineStyle}
+\end{procedure}
+\begin{function}{GetMaxColor}
+\Declaration
+Function GetMaxColor  : Word;
 
-\Function{GetMaxColor}{Word}{\var{GetMaxColor} returns the maximum
-color-number which can be set with \var{SetColor}}{None.}{\seep{SetColor},
-\seef{GetPaletteSize}}
+\Description
+\var{GetMaxColor} returns the maximum
+color-number which can be set with \var{SetColor}
+\Errors
+None.
+\SeeAlso
+\seep{SetColor},
+\seef{GetPaletteSize}
+\end{function}
+\begin{function}{GetMaxMode}
+\Declaration
+Function GetMaxMode  : Word;
 
-\Function{GetMaxMode}{Word}{\var{GetMaxMode} returns the highest modus for
-the current driver.}{None.}{\seep{InitGraph}}
+\Description
+\var{GetMaxMode} returns the highest modus for
+the current driver.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{function}
+\begin{function}{GetMaxX}
+\Declaration
+Function GetMaxX  : Word;
 
-\Function{GetMaxX}{Word}{\var{GetMaxX} returns the maximum horizontal screen
-length}{None.}{\seef{GetMaxY}}
+\Description
+\var{GetMaxX} returns the maximum horizontal screen
+length
+\Errors
+None.
+\SeeAlso
+\seef{GetMaxY}
+\end{function}
+\begin{function}{GetMaxY}
+\Declaration
+Function GetMaxY  : Word;
 
-\Function{GetMaxY}{Word}{\var{GetMaxY} returns the maximum number of screen
-lines}{None.}{\seef{GetMaxY}}
+\Description
+\var{GetMaxY} returns the maximum number of screen
+lines
+\Errors
+None.
+\SeeAlso
+\seef{GetMaxY}
+\end{function}
+\begin{function}{GetModeName}
+\Declaration
+Function GetModeName (Var modus : Integer) : String;
 
-\function{GetModeName}{(Var modus : Integer)}{String}{
+\Description
+
 Returns a string with the name of modus
-\var{Modus}}{None.}{\seef{GetDriverName}, \seep{InitGraph}}
+\var{Modus}
+\Errors
+None.
+\SeeAlso
+\seef{GetDriverName}, \seep{InitGraph}
+\end{function}
+\begin{procedure}{GetModeRange}
+\Declaration
+Procedure GetModeRange (Driver : Integer; \\ LoModus, HiModus: Integer);
 
-\procedure{GetModeRange}{(Driver : Integer; \\ LoModus, HiModus: Integer)}
-{\var{GetModeRange} returns the Lowest and Highest modus of the currently
-installed driver.}{None.}{\seep{InitGraph}}
+\Description
+\var{GetModeRange} returns the Lowest and Highest modus of the currently
+installed driver.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{procedure}
+\begin{procedure}{GetPalette}
+\Declaration
+Procedure GetPalette (Var Palette : PaletteType);
 
-\procedure{GetPalette}{(Var Palette : PaletteType)}
-{\var{GetPalette} returns in \var{Palette} the current palette.}
-{None.}{\seef{GetPaletteSize}, \seep{SetPalette}}
+\Description
+\var{GetPalette} returns in \var{Palette} the current palette.
+\Errors
+None.
+\SeeAlso
+\seef{GetPaletteSize}, \seep{SetPalette}
+\end{procedure}
+\begin{function}{GetPaletteSize}
+\Declaration
+Function GetPaletteSize  : Word;
 
-\Function{GetPaletteSize}{Word}{\var{GetPaletteSize} returns the maximum
-number of entries in the current palette.}{None.}{\seep{GetPalette},
-\seep{SetPalette}}
+\Description
+\var{GetPaletteSize} returns the maximum
+number of entries in the current palette.
+\Errors
+None.
+\SeeAlso
+\seep{GetPalette},
+\seep{SetPalette}
+\end{function}
+\begin{function}{GetPixel}
+\Declaration
+Function GetPixel (X,Y : Integer) : Word;
 
-\function{GetPixel}{(X,Y : Integer)}{Word}{\var{GetPixel} returns the color
-of the point at \var{(X,Y)} }{None.}{}
+\Description
+\var{GetPixel} returns the color
+of the point at \var{(X,Y)} 
+\Errors
+None.
+\SeeAlso
 
-\procedure{GetTextSettings}{(Var TextInfo : TextSettingsType)}
-{\var{GetTextSettings} returns the current text style settings : The font,
+\end{function}
+\begin{procedure}{GetTextSettings}
+\Declaration
+Procedure GetTextSettings (Var TextInfo : TextSettingsType);
+
+\Description
+\var{GetTextSettings} returns the current text style settings : The font,
 direction, size and placement as set with \var{SetTextStyle} and
-\var{SetTextJustify}}{None.}{\seep{SetTextStyle}, \seep{SetTextJustify}}
+\var{SetTextJustify}
+\Errors
+None.
+\SeeAlso
+\seep{SetTextStyle}, \seep{SetTextJustify}
+\end{procedure}
+\begin{procedure}{GetViewSettings}
+\Declaration
+Procedure GetViewSettings (Var ViewPort : ViewPortType);
 
-\procedure{GetViewSettings}{(Var ViewPort : ViewPortType)}
-{\var{GetViewSettings} returns the current view-port and clipping settings in
-\var{ViewPort}.}{None.}{\seep{SetViewPort}}
+\Description
+\var{GetViewSettings} returns the current view-port and clipping settings in
+\var{ViewPort}.
+\Errors
+None.
+\SeeAlso
+\seep{SetViewPort}
+\end{procedure}
+\begin{function}{GetX}
+\Declaration
+Function GetX  : Integer;
 
-\Function{GetX}{Integer}{\var{GetX} returns the X-coordinate of the current position of
-the graphical pointer}{None.}{\seef{GetY}}
+\Description
+\var{GetX} returns the X-coordinate of the current position of
+the graphical pointer
+\Errors
+None.
+\SeeAlso
+\seef{GetY}
+\end{function}
+\begin{function}{GetY}
+\Declaration
+Function GetY  : Integer;
 
-\Function{GetY}{Integer}{\var{GetY} returns the Y-coordinate of the current position of
-the graphical pointer}{None.}{\seef{GetX}}
+\Description
+\var{GetY} returns the Y-coordinate of the current position of
+the graphical pointer
+\Errors
+None.
+\SeeAlso
+\seef{GetX}
+\end{function}
+\begin{procedure}{GraphDefaults}
+\Declaration
+Procedure GraphDefaults ;
 
-\Procedure{GraphDefaults}{\var{GraphDefaults} resets all settings for view-port, palette,
+\Description
+\var{GraphDefaults} resets all settings for view-port, palette,
 foreground and background pattern, line-style and pattern, filling style,
 filling color and pattern, font, text-placement and
-text size.}{None.}{\seep{SetViewPort}, \seep{SetFillStyle}, \seep{SetColor},
-\seep{SetBkColor}, \seep{SetLineStyle}}
+text size.
+\Errors
+None.
+\SeeAlso
+\seep{SetViewPort}, \seep{SetFillStyle}, \seep{SetColor},
+\seep{SetBkColor}, \seep{SetLineStyle}
+\end{procedure}
+\begin{function}{GraphErrorMsg}
+\Declaration
+Function GraphErrorMsg (ErrorCode : Integer) : String;
 
-\function{GraphErrorMsg}{(ErrorCode : Integer)}{String}{\var{GraphErrorMsg}
+\Description
+\var{GraphErrorMsg}
 returns a string describing the error \var{Errorcode}. This string can be
-used to let the user know what went wrong.}{None.}{\seef{GraphResult}}
+used to let the user know what went wrong.
+\Errors
+None.
+\SeeAlso
+\seef{GraphResult}
+\end{function}
+\begin{function}{GraphResult}
+\Declaration
+Function GraphResult  : Integer;
 
-\Function{GraphResult}{Integer}{\var{GraphResult} returns an error-code for
+\Description
+\var{GraphResult} returns an error-code for
 the last graphical operation. If the returned value is zero, all went well.
 A value different from zero means an error has occurred.
 Except for all operations which draw something on the screen, 
@@ -272,16 +585,33 @@ zero:
 \item \seep{SetGraphMode}
 \item \seep{SetTextStyle}
 \end{itemize}
-}{None.}{\seef{GraphErrorMsg}}
 
-\function{ImageSize}{(X1,Y1,X2,Y2 : Integer)}{Word}{\var{ImageSize} returns
+\Errors
+None.
+\SeeAlso
+\seef{GraphErrorMsg}
+\end{function}
+\begin{function}{ImageSize}
+\Declaration
+Function ImageSize (X1,Y1,X2,Y2 : Integer) : Word;
+
+\Description
+\var{ImageSize} returns
 the number of bytes needed to store the image in the rectangle defined by
-\var{(X1,Y1)} and \var{(X2,Y2)}.}{None.}{\seep{GetImage}}
+\var{(X1,Y1)} and \var{(X2,Y2)}.
+\Errors
+None.
+\SeeAlso
+\seep{GetImage}
+\end{function}
+\begin{procedure}{InitGraph}
+\Declaration
+Procedure InitGraph (var GraphDriver,GraphModus : integer;\\
+const PathToDriver : string);
 
-\procedure{InitGraph}{(var GraphDriver,GraphModus : integer;\\
-const PathToDriver : string)}{
+\Description
+
 \var{InitGraph} initializes the \var{graph} package.
-
 \var{GraphDriver} has two valid values: \var{GraphDriver=0} which
 performs an auto detect and initializes the highest possible mode with the most
 colors. 1024x768x64K is the highest possible resolution supported by the
@@ -290,18 +620,19 @@ If you need another mode, then set \var{GraphDriver} to a value different
 from zero
 and \var{graphmode} to the mode you wish (VESA modes where 640x480x256
 is \var {101h} etc.).
-
 \var{PathToDriver} is only needed, if you use the BGI fonts from
-Borland.}{None.}{Introduction, (page \pageref{se:Introduction}),
-\seep{DetectGraph}, \seep{CloseGraph}, \seef{GraphResult}}
-
+Borland.
+\Errors
+None.
+\SeeAlso
+Introduction, (page \pageref{se:Introduction}),
+\seep{DetectGraph}, \seep{CloseGraph}, \seef{GraphResult}
+\end{procedure}
 Example:
-
 \begin{verbatim}
 var 
    gd,gm : integer; 
    PathToDriver : string; 
-
 begin 
    gd:=detect; { highest possible resolution } 
    gm:=0; { not needed, auto detection } 
@@ -313,60 +644,142 @@ begin
    CloseGraph; { restores the old graphics mode } 
 end.
 \end{verbatim}
+\begin{function}{InstallUserDriver}
+\Declaration
+Function InstallUserDriver (DriverPath : String; \\AutoDetectPtr: Pointer) : Integer;
 
-\function{InstallUserDriver}{(DriverPath : String; \\AutoDetectPtr: Pointer)}
-{Integer}{\var{InstallUserDriver} 
+\Description
+\var{InstallUserDriver} 
 adds the device-driver \var{DriverPath} to the list of .BGI
-drivers. \var{AutoDetectPtr} is a pointer to a possible auto-detect function.}
-{None.}{\seep{InitGraph}, \seef{InstallUserFont}}
+drivers. \var{AutoDetectPtr} is a pointer to a possible auto-detect function.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}, \seef{InstallUserFont}
+\end{function}
+\begin{function}{InstallUserFont}
+\Declaration
+Function InstallUserFont (FontPath : String) : Integer;
 
-\function{InstallUserFont}{(FontPath : String)}{Integer}
-{\var{InstallUserFont} adds the font in \var{FontPath} to the list of fonts
-of the .BGI system.}
-{None.}{\seep{InitGraph}, \seef{InstallUserDriver}}
+\Description
+\var{InstallUserFont} adds the font in \var{FontPath} to the list of fonts
+of the .BGI system.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}, \seef{InstallUserDriver}
+\end{function}
+\begin{procedure}{Line}
+\Declaration
+Procedure Line (X1,Y1,X2,Y2 : Integer);
 
-\procedure{Line}{(X1,Y1,X2,Y2 : Integer)}{\var{Line} draws a line starting from
+\Description
+\var{Line} draws a line starting from
 \var{(X1,Y1} to \var{(X2,Y2)}, in the current line style and color. The
-current position is put to \var{(X2,Y2)}}{None.}
-{\seep{LineRel},\seep{LineTo}}
+current position is put to \var{(X2,Y2)}
+\Errors
+None.
+\SeeAlso
+\seep{LineRel},\seep{LineTo}
+\end{procedure}
+\begin{procedure}{LineRel}
+\Declaration
+Procedure LineRel (DX,DY : Integer);
 
-\procedure{LineRel}{(DX,DY : Integer)}{\var{LineRel} draws a line starting from
+\Description
+\var{LineRel} draws a line starting from
 the current pointer position to the point\var{(DX,DY}, \textbf{relative} to the
 current position, in the current line style and color. The Current Position
-is set to the endpoint of the line.}{None.}
-{\seep{Line}, \seep{LineTo}}
+is set to the endpoint of the line.
+\Errors
+None.
+\SeeAlso
+\seep{Line}, \seep{LineTo}
+\end{procedure}
+\begin{procedure}{LineTo}
+\Declaration
+Procedure LineTo (DX,DY : Integer);
 
-\procedure{LineTo}{(DX,DY : Integer)}{\var{LineTo} draws a line starting from
+\Description
+\var{LineTo} draws a line starting from
 the current pointer position to the point\var{(DX,DY}, \textbf{relative} to the
 current position, in the current line style and color. The Current position
-is set to the end of the line.}{None.}
-{\seep{LineRel},\seep{Line}}
+is set to the end of the line.
+\Errors
+None.
+\SeeAlso
+\seep{LineRel},\seep{Line}
+\end{procedure}
+\begin{procedure}{MoveRel}
+\Declaration
+Procedure MoveRel (DX,DY : Integer;
 
-\procedure{MoveRel}{(DX,DY : Integer}{\var{MoveRel} moves the pointer to the
+\Description
+\var{MoveRel} moves the pointer to the
 point \var{(DX,DY)}, relative to the current pointer
-position}{None.}{\seep{MoveTo}}
+position
+\Errors
+None.
+\SeeAlso
+\seep{MoveTo}
+\end{procedure}
+\begin{procedure}{MoveTo}
+\Declaration
+Procedure MoveTo (X,Y : Integer;
 
-\procedure{MoveTo}{(X,Y : Integer}{\var{MoveTo} moves the pointer to the
-point \var{(X,Y)}.}{None.}{\seep{MoveRel}}
+\Description
+\var{MoveTo} moves the pointer to the
+point \var{(X,Y)}.
+\Errors
+None.
+\SeeAlso
+\seep{MoveRel}
+\end{procedure}
+\begin{procedure}{OutText}
+\Declaration
+Procedure OutText (Const TextString : String);
 
-\procedure{OutText}{(Const TextString : String)}
-{\var{OutText} puts \var{TextString} on the screen, at the current pointer
+\Description
+\var{OutText} puts \var{TextString} on the screen, at the current pointer
 position, using the current font and text settings. The current position is
-moved to the end of the text.}
-{None.}{\seep{OutTextXY}}
+moved to the end of the text.
+\Errors
+None.
+\SeeAlso
+\seep{OutTextXY}
+\end{procedure}
+\begin{procedure}{OutTextXY}
+\Declaration
+Procedure OutTextXY (X,Y : Integer; Const TextString : String);
 
-\procedure{OutTextXY}{(X,Y : Integer; Const TextString : String)}
-{\var{OutText} puts \var{TextString} on the screen, at position \var{(X,Y)},
+\Description
+\var{OutText} puts \var{TextString} on the screen, at position \var{(X,Y)},
 using the current font and text settings. The current position is
-moved to the end of the text.}
-{None.}{\seep{OutText}}
+moved to the end of the text.
+\Errors
+None.
+\SeeAlso
+\seep{OutText}
+\end{procedure}
+\begin{procedure}{PieSlice}
+\Declaration
+Procedure PieSlice (X,Y : Integer; \\ Start,Stop,Radius : Word);
 
-\procedure{PieSlice}{(X,Y : Integer; \\ Start,Stop,Radius : Word)}{\var{PieSlice}
+\Description
+\var{PieSlice}
 draws and fills a sector of a circle with center \var{(X,Y)} and radius 
-\var{Radius}, starting at angle \var{Start} and ending at angle \var{Stop}.}
-{None.}{\seep{Arc}, \seep{Circle}, \seep{Sector}}
+\var{Radius}, starting at angle \var{Start} and ending at angle \var{Stop}.
+\Errors
+None.
+\SeeAlso
+\seep{Arc}, \seep{Circle}, \seep{Sector}
+\end{procedure}
+\begin{procedure}{PutImage}
+\Declaration
+Procedure PutImage (X1,Y1 : Integer; Var Bitmap; How : word) ;
 
-\procedure{PutImage}{(X1,Y1 : Integer; Var Bitmap; How : word) }{\var{PutImage}
+\Description
+\var{PutImage}
 Places the bitmap in \var{Bitmap} on the screen at \var{(X1,Y1)}. \var{How}
 determines how the bitmap will be placed on the screen. Possible values are :
 \begin{itemize}
@@ -375,58 +788,167 @@ determines how the bitmap will be placed on the screen. Possible values are :
 \item ORPut
 \item AndPut
 \item NotPut
-\end{itemize}}
-{None}{\seef{ImageSize},\seep{GetImage}}
+\end{itemize}
+\Errors
+None
+\SeeAlso
+\seef{ImageSize},\seep{GetImage}
+\end{procedure}
+\begin{procedure}{PutPixel}
+\Declaration
+Procedure PutPixel (X,Y : Integer; Color : Word);
 
-\procedure{PutPixel}{(X,Y : Integer; Color : Word)}{Puts a point at
-\var{(X,Y)} using color \var{Color}}{None.}{\seef{GetPixel}}
+\Description
+Puts a point at
+\var{(X,Y)} using color \var{Color}
+\Errors
+None.
+\SeeAlso
+\seef{GetPixel}
+\end{procedure}
+\begin{procedure}{Rectangle}
+\Declaration
+Procedure Rectangle (X1,Y1,X2,Y2 : Integer);
 
-\procedure{Rectangle}{(X1,Y1,X2,Y2 : Integer)}{Draws a rectangle with
+\Description
+Draws a rectangle with
 corners at \var{(X1,Y1)} and \var{(X2,Y2)}, using the current color and
-style.}{None.}{\seep{Bar}, \seep{Bar3D}}
+style.
+\Errors
+None.
+\SeeAlso
+\seep{Bar}, \seep{Bar3D}
+\end{procedure}
+\begin{function}{RegisterBGIDriver}
+\Declaration
+Function RegisterBGIDriver (Driver : Pointer) : Integer;
 
-\function{RegisterBGIDriver}{(Driver : Pointer)}{Integer}
-{Registers a user-defined BGI driver}{None.}{\seef{InstallUserDriver},
-\seef{RegisterBGIFont}}
+\Description
+Registers a user-defined BGI driver
+\Errors
+None.
+\SeeAlso
+\seef{InstallUserDriver},
+\seef{RegisterBGIFont}
+\end{function}
+\begin{function}{RegisterBGIFont}
+\Declaration
+Function RegisterBGIFont (Font : Pointer) : Integer;
 
-\function{RegisterBGIFont}{(Font : Pointer)}{Integer}
-{Registers a user-defined BGI driver}{None.}{\seef{InstallUserFont},
-\seef{RegisterBGIDriver}}
+\Description
+Registers a user-defined BGI driver
+\Errors
+None.
+\SeeAlso
+\seef{InstallUserFont},
+\seef{RegisterBGIDriver}
+\end{function}
+\begin{procedure}{RestoreCRTMode}
+\Declaration
+Procedure RestoreCRTMode ;
 
-\Procedure{RestoreCRTMode}{Restores the screen modus which was active before
-the graphical modus was started.}{None.}{\seep{InitGraph}}
+\Description
+Restores the screen modus which was active before
+the graphical modus was started.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{procedure}
+\begin{procedure}{Sector}
+\Declaration
+Procedure Sector (X,Y : Integer; \\ Start,Stop,XRadius,YRadius : Word);
 
-\procedure{Sector}{(X,Y : Integer; \\ Start,Stop,XRadius,YRadius : Word)}{\var{Sector}
+\Description
+\var{Sector}
 draws and fills a sector of an ellipse  with center \var{(X,Y)} and radii 
-\var{XRadius} and \var{YRadius}, starting at angle \var{Start} and ending at angle \var{Stop}.}
-{None.}{\seep{Arc}, \seep{Circle}, \seep{PieSlice}}
+\var{XRadius} and \var{YRadius}, starting at angle \var{Start} and ending at angle \var{Stop}.
+\Errors
+None.
+\SeeAlso
+\seep{Arc}, \seep{Circle}, \seep{PieSlice}
+\end{procedure}
+\begin{procedure}{SetActivePage}
+\Declaration
+Procedure SetActivePage (Page : Word);
 
-\procedure{SetActivePage}{(Page : Word)}{Sets \var{Page} as the active page 
-for all graphical output.}{None.}{}
+\Description
+Sets \var{Page} as the active page 
+for all graphical output.
+\Errors
+None.
+\SeeAlso
 
-\procedure{SetAllPallette}{(Var Palette)}{Sets the current palette to
+\end{procedure}
+\begin{procedure}{SetAllPallette}
+\Declaration
+Procedure SetAllPallette (Var Palette);
+
+\Description
+Sets the current palette to
 \var{Palette}. \var{Palette} is an untyped variable, usually pointing to a
-record of type \var{PaletteType}}{None.}{\seep{GetPalette}}
+record of type \var{PaletteType}
+\Errors
+None.
+\SeeAlso
+\seep{GetPalette}
+\end{procedure}
+\begin{procedure}{SetAspectRatio}
+\Declaration
+Procedure SetAspectRatio (Xasp,Yasp : Word);
 
-\procedure{SetAspectRatio}{(Xasp,Yasp : Word)}{Sets the aspect ratio of the
-current screen to \var{Xasp/Yasp}.}
-{None}{\seep{InitGraph}, \seep{GetAspectRatio}}
+\Description
+Sets the aspect ratio of the
+current screen to \var{Xasp/Yasp}.
+\Errors
+None
+\SeeAlso
+\seep{InitGraph}, \seep{GetAspectRatio}
+\end{procedure}
+\begin{procedure}{SetBkColor}
+\Declaration
+Procedure SetBkColor (Color : Word);
 
-\procedure{SetBkColor}{(Color : Word)}{Sets the background color to
-\var{Color}.}{None.}{\seef{GetBkColor}, \seep{SetColor}}
+\Description
+Sets the background color to
+\var{Color}.
+\Errors
+None.
+\SeeAlso
+\seef{GetBkColor}, \seep{SetColor}
+\end{procedure}
+\begin{procedure}{SetColor}
+\Declaration
+Procedure SetColor (Color : Word);
 
-\procedure{SetColor}{(Color : Word)}{Sets the foreground color to
-\var{Color}.}{None.}{\seef{GetColor}, \seep{SetBkColor}}
+\Description
+Sets the foreground color to
+\var{Color}.
+\Errors
+None.
+\SeeAlso
+\seef{GetColor}, \seep{SetBkColor}
+\end{procedure}
+\begin{procedure}{SetFillPattern}
+\Declaration
+Procedure SetFillPattern (FillPattern : FillPatternType,\\ Color : Word);
 
-\procedure{SetFillPattern}{(FillPattern : FillPatternType,\\ Color : Word)}
-{\var{SetFillPattern} sets the current fill-pattern to \var{FillPattern}, and
+\Description
+\var{SetFillPattern} sets the current fill-pattern to \var{FillPattern}, and
 the filling color to \var{Color}
-
 The pattern is an 8x8 raster, corresponding to the 64 bits in
-\var{FillPattern}.}{None}{\seep{GetFillPattern}, \seep{SetFillStyle}}
+\var{FillPattern}.
+\Errors
+None
+\SeeAlso
+\seep{GetFillPattern}, \seep{SetFillStyle}
+\end{procedure}
+\begin{procedure}{SetFillStyle}
+\Declaration
+Procedure SetFillStyle (Pattern,Color : word);
 
-\procedure{SetFillStyle}{(Pattern,Color : word)}
-{\var{SetFillStyle} sets the filling pattern and color to one of the
+\Description
+\var{SetFillStyle} sets the filling pattern and color to one of the
 predefined filling patterns. \var{Pattern} can be one of the following predefined
 constants :
 \begin{itemize}
@@ -444,16 +966,43 @@ constants :
 \item \var{CloseDotFill} Fills with dots, narrow spacing.
 \item \var{UserFill} Fills with a user-defined pattern.
 \end{itemize}
-}{None.}{\seep{SetFillPattern}}
 
-\procedure{SetGraphBufSize}{(BufSize : Word)}{\var{SetGraphBufSize} 
-sets the graphical buffer size. The default size is 4Kb}{None.}{}
+\Errors
+None.
+\SeeAlso
+\seep{SetFillPattern}
+\end{procedure}
+\begin{procedure}{SetGraphBufSize}
+\Declaration
+Procedure SetGraphBufSize (BufSize : Word);
 
-\procedure{SetGraphMode}{(Mode : Integer)}{\var{SetGraphMode} sets the
-graphical mode and clears the screen.}{None.}{\seep{InitGraph}}
+\Description
+\var{SetGraphBufSize} 
+sets the graphical buffer size. The default size is 4Kb
+\Errors
+None.
+\SeeAlso
 
-\procedure{SetLineStyle}{(LineStyle,Pattern,Width :
-Word)}{\var{SetLineStyle}
+\end{procedure}
+\begin{procedure}{SetGraphMode}
+\Declaration
+Procedure SetGraphMode (Mode : Integer);
+
+\Description
+\var{SetGraphMode} sets the
+graphical mode and clears the screen.
+\Errors
+None.
+\SeeAlso
+\seep{InitGraph}
+\end{procedure}
+\begin{procedure}{SetLineStyle}
+\Declaration
+Procedure SetLineStyle (LineStyle,Pattern,Width :
+Word);
+
+\Description
+\var{SetLineStyle}
 sets the drawing style for lines. You can specify a \var{LineStyle} which is
 one of the following pre-defined constants:
 \begin{itemize}
@@ -471,19 +1020,43 @@ pre-defined constants:
 \item \var{NormWidth=1}
 \item \var{ThickWidth=3}
 \end{itemize}
-}{None.}{\seep{GetLineSettings}}
 
-\procedure{SetPalette}{(ColorNr : Word; NewColor : ShortInt)}
-{\var{SetPalette} changes the \var{ColorNr}-th entry in the palette to
-\var{NewColor}}{None.}{\seep{SetAllPallette},\seep{SetRGBPalette}}
+\Errors
+None.
+\SeeAlso
+\seep{GetLineSettings}
+\end{procedure}
+\begin{procedure}{SetPalette}
+\Declaration
+Procedure SetPalette (ColorNr : Word; NewColor : ShortInt);
 
-\procedure{SetRGBPalette}{(ColorNr,Red,Green,Blue : Integer)}
-{\var{SetRGBPalette} sets the \var{ColorNr}-th entry in the palette to the
-color with RGB-values \var{Red, Green Blue}.}{None.}{\seep{SetAllPallette},
-\seep{SetPalette}}
+\Description
+\var{SetPalette} changes the \var{ColorNr}-th entry in the palette to
+\var{NewColor}
+\Errors
+None.
+\SeeAlso
+\seep{SetAllPallette},\seep{SetRGBPalette}
+\end{procedure}
+\begin{procedure}{SetRGBPalette}
+\Declaration
+Procedure SetRGBPalette (ColorNr,Red,Green,Blue : Integer);
 
-\procedure{SetTextJustify}{(Horizontal,Vertical : Word)}
-{\var{SetTextJustify} controls the placement of new text, relative to the 
+\Description
+\var{SetRGBPalette} sets the \var{ColorNr}-th entry in the palette to the
+color with RGB-values \var{Red, Green Blue}.
+\Errors
+None.
+\SeeAlso
+\seep{SetAllPallette},
+\seep{SetPalette}
+\end{procedure}
+\begin{procedure}{SetTextJustify}
+\Declaration
+Procedure SetTextJustify (Horizontal,Vertical : Word);
+
+\Description
+\var{SetTextJustify} controls the placement of new text, relative to the 
 (graphical) cursor position. \var{Horizontal} controls horizontal placement, and can be
 one of the following pre-defined constants:
 \begin{itemize}
@@ -499,10 +1072,18 @@ pre-defined constants :
 \item \var{CenterText=1;} Text is placed centered vertically on the pointer.
 \item \var{TopText=2;}Text is placed above the pointer.
 \end{itemize}
-}{None.}{\seep{OutText}, \seep{OutTextXY}}
 
-\procedure{SetTextStyle}{(Font,Direction,Magnitude : Word)}
-{\var{SetTextStyle} controls the style of text to be put on the screen.
+\Errors
+None.
+\SeeAlso
+\seep{OutText}, \seep{OutTextXY}
+\end{procedure}
+\begin{procedure}{SetTextStyle}
+\Declaration
+Procedure SetTextStyle (Font,Direction,Magnitude : Word);
+
+\Description
+\var{SetTextStyle} controls the style of text to be put on the screen.
 pre-defined constants for \var{Font} are:
 \begin{itemize}
 \item \var{DefaultFont=0;}
@@ -515,40 +1096,91 @@ Pre-defined constants for \var{Direction} are :
 \begin{itemize}
 \item \var{HorizDir=0;}
 \item \var{VertDir=1;}
-\end{itemize}}{None.}{\seep{GetTextSettings}} 
+\end{itemize}
+\Errors
+None.
+\SeeAlso
+\seep{GetTextSettings} 
+\end{procedure}
+\begin{procedure}{SetUserCharSize}
+\Declaration
+Procedure SetUserCharSize (Xasp1,Xasp2,Yasp1,Yasp2 : Word);
 
-\procedure{SetUserCharSize}{(Xasp1,Xasp2,Yasp1,Yasp2 : Word)}
-{Sets the width and height of vector-fonts. The horizontal size is given
-by \var{Xasp1/Xasp2}, and the vertical size by \var{Yasp1/Yasp2}.}{None.}
-{\seep{SetTextStyle}}
+\Description
+Sets the width and height of vector-fonts. The horizontal size is given
+by \var{Xasp1/Xasp2}, and the vertical size by \var{Yasp1/Yasp2}.
+\Errors
+None.
+\SeeAlso
+\seep{SetTextStyle}
+\end{procedure}
+\begin{procedure}{SetViewPort}
+\Declaration
+Procedure SetViewPort (X1,Y1,X2,Y2 : Integer; Clip : Boolean);
 
-\procedure{SetViewPort}{(X1,Y1,X2,Y2 : Integer; Clip : Boolean)}
-{Sets the current graphical view-port (window) to the rectangle defined by
+\Description
+Sets the current graphical view-port (window) to the rectangle defined by
 the top-left corner \var{(X1,Y1)} and the bottom-right corner \var{(X2,Y2)}.
 If \var{Clip} is true, anything drawn outside the view-port (window) will be
 clipped (i.e. not drawn). Coordinates specified after this call are relative
-to the top-left corner of the view-port.}{None.}{\seep{GetViewSettings}}
+to the top-left corner of the view-port.
+\Errors
+None.
+\SeeAlso
+\seep{GetViewSettings}
+\end{procedure}
+\begin{procedure}{SetVisualPage}
+\Declaration
+Procedure SetVisualPage (Page : Word);
 
-\procedure{SetVisualPage}{(Page : Word)}
-{\var{SetVisualPage} sets the video page to page number \var{Page}. }
-{None}{\seep{SetActivePage}}
+\Description
+\var{SetVisualPage} sets the video page to page number \var{Page}. 
+\Errors
+None
+\SeeAlso
+\seep{SetActivePage}
+\end{procedure}
+\begin{procedure}{SetWriteMode}
+\Declaration
+Procedure SetWriteMode (Mode : Integer);
 
-\procedure{SetWriteMode}{(Mode : Integer)}
-{\var{SetWriteMode} controls the drawing of lines on the screen. It controls
+\Description
+\var{SetWriteMode} controls the drawing of lines on the screen. It controls
 the binary operation used when drawing lines on the screen. \var{Mode} can
 be one of the following pre-defined constants:
 \begin{itemize}
 \item CopyPut=0;
 \item XORPut=1;
-\end{itemize}}{None.}{}
+\end{itemize}
+\Errors
+None.
+\SeeAlso
 
-\function{TextHeight}{(S : String)}{Word}
-{\var{TextHeight} returns the height (in pixels) of the string \var{S} in
-the current font and text-size.
-}{None.}{\seef{TextWidth}}
+\end{procedure}
+\begin{function}{TextHeight}
+\Declaration
+Function TextHeight (S : String) : Word;
 
-\function{TextWidth}{(S : String)}{Word}
-{\var{TextHeight} returns the width (in pixels) of the string \var{S} in
+\Description
+\var{TextHeight} returns the height (in pixels) of the string \var{S} in
 the current font and text-size.
-}{None.}{\seef{TextHeight}}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+\Errors
+None.
+\SeeAlso
+\seef{TextWidth}
+\end{function}
+\begin{function}{TextWidth}
+\Declaration
+Function TextWidth (S : String) : Word;
+
+\Description
+\var{TextHeight} returns the width (in pixels) of the string \var{S} in
+the current font and text-size.
+
+\Errors
+None.
+\SeeAlso
+\seef{TextHeight}
+\end{function}
+                                                                                                                                                                                                                                                               
