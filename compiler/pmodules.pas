@@ -1486,8 +1486,7 @@ unit pmodules;
          { test static symtable }
          if (Errorcount=0) then
            begin
-             { st^.allsymbolsused;
-               already done in compile_proc_body ! }
+              st^.allsymbolsused;
              st^.allprivatesused;
            end;
 
@@ -1551,7 +1550,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.169  1999-11-20 01:19:10  pierre
+  Revision 1.170  1999-11-22 00:23:09  pierre
+   * also complain about unused functions in program
+
+  Revision 1.169  1999/11/20 01:19:10  pierre
     * DLL index used for win32 target with DEF file
     + DLL initialization/finalization support
 

@@ -922,7 +922,11 @@ implementation
              MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
            { units references are problematic }
            else if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
-             if (psym(p)^.typ<>procsym) or not (pprocsym(p)^.is_global) then
+             if (psym(p)^.typ<>procsym) or not (pprocsym(p)^.is_global) or
+             { all program functions are declared global
+               but unused should still be signaled PM }
+                ((psym(p)^.owner^.symtabletype=staticsymtable) and
+                not current_module^.is_unit) then
              MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],p^.name);
           end;
       end;
@@ -2562,7 +2566,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-11-19 14:49:15  pierre
+  Revision 1.66  1999-11-22 00:23:09  pierre
+   * also complain about unused functions in program
+
+  Revision 1.65  1999/11/19 14:49:15  pierre
    * avoid certain wrong notes/hints
 
   Revision 1.64  1999/11/18 15:34:48  pierre

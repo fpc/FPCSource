@@ -1601,8 +1601,9 @@ begin
          begin
             { not for unit init, becuase the var can be used in finalize,
               it will be done in proc_unit }
-            if not(aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-              aktprocsym^.definition^.localst^.allsymbolsused;
+            if not(aktprocsym^.definition^.proctypeoption
+               in [potype_proginit,potype_unitinit,potype_unitfinalize]) then
+               aktprocsym^.definition^.localst^.allsymbolsused;
             aktprocsym^.definition^.parast^.allsymbolsused;
          end;
      end;
@@ -1937,7 +1938,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-11-17 17:05:02  pierre
+  Revision 1.36  1999-11-22 00:23:09  pierre
+   * also complain about unused functions in program
+
+  Revision 1.35  1999/11/17 17:05:02  pierre
    * Notes/hints changes
 
   Revision 1.34  1999/11/10 00:24:02  pierre
