@@ -12,74 +12,74 @@
 #
 # **********************************************************************
 #///*
-#//**	Called as start(argc, argv, envp)
+#//**   Called as start(argc, argv, envp)
 #//*/
-#///*	gs:edx points to prog_info structure.  All other registers are OBSOLETE
-#//**	but included for backwards compatibility
+#///*   gs:edx points to prog_info structure.  All other registers are OBSOLETE
+#//**   but included for backwards compatibility
 #//*/
 
-	.text
-	.globl	_start
+        .text
+        .globl  _start
 _start:
-	.globl	start
+        .globl  start
 start:
 # the first instruction must be movl %eax,
 # because that is the way GO32V2 makes the difference between V1 and V2 coff format
-	movl	%eax,__hard_master
-	movl	%esi,___pid
-	movl	%edi,___transfer_buffer
-	movl	%ebx,_ScreenPrimary
-	movl	%ebp,_ScreenSecondary
-	cmpl	$0, %edx
-	je	Lcopy_none
-	movw	%gs,%cx
-	movw	%ds,%ax
-	cmpw	%cx,%ax
-	je	Lcopy_none
+        movl    %eax,__hard_master
+        movl    %esi,___pid
+        movl    %edi,___transfer_buffer
+        movl    %ebx,_ScreenPrimary
+        movl    %ebp,_ScreenSecondary
+        cmpl    $0, %edx
+        je      Lcopy_none
+        movw    %gs,%cx
+        movw    %ds,%ax
+        cmpw    %cx,%ax
+        je      Lcopy_none
 #   /* set the right size */
-	movl  $40,U_SYSTEM_GO32_INFO_BLOCK
+        movl  $40,U_SYSTEM_GO32_INFO_BLOCK
 
-	movl	%gs:(%edx), %ecx
-	cmpl	U_SYSTEM_GO32_INFO_BLOCK, %ecx
-	jbe	Lcopy_less
-	movl	U_SYSTEM_GO32_INFO_BLOCK, %ecx
+        movl    %gs:(%edx), %ecx
+        cmpl    U_SYSTEM_GO32_INFO_BLOCK, %ecx
+        jbe     Lcopy_less
+        movl    U_SYSTEM_GO32_INFO_BLOCK, %ecx
 Lcopy_less:
-	movl	$U_SYSTEM_GO32_INFO_BLOCK, %edi
-	addl	$3, %ecx
-	andl	$0xfffffffc, %ecx
-	movl	%ecx, (%edi)
-	addl	$4, %edi
-	addl	$4, %edx
-	subl	$4, %ecx
+        movl    $U_SYSTEM_GO32_INFO_BLOCK, %edi
+        addl    $3, %ecx
+        andl    $0xfffffffc, %ecx
+        movl    %ecx, (%edi)
+        addl    $4, %edi
+        addl    $4, %edx
+        subl    $4, %ecx
 Lcopy_more:
-	movl	%gs:(%edx), %eax
-	movl	%eax, (%edi)
-	addl	$4, %edx
-	addl	$4, %edi
-	subl	$4, %ecx
-	jnz	Lcopy_more
+        movl    %gs:(%edx), %eax
+        movl    %eax, (%edi)
+        addl    $4, %edx
+        addl    $4, %edi
+        subl    $4, %ecx
+        jnz     Lcopy_more
 
-	movl	U_SYSTEM_GO32_INFO_BLOCK+4, %eax
-	movl	%eax, _ScreenPrimary
-	movl	U_SYSTEM_GO32_INFO_BLOCK+8, %eax
-	movl	%eax, _ScreenSecondary
-        movl	U_SYSTEM_GO32_INFO_BLOCK+12, %eax
-	movl	%eax, ___transfer_buffer
-	movl	U_SYSTEM_GO32_INFO_BLOCK+20, %eax
-	movl	%eax, ___pid
-	movl	U_SYSTEM_GO32_INFO_BLOCK+24, %eax
-	movl	%eax, __hard_master
+        movl    U_SYSTEM_GO32_INFO_BLOCK+4, %eax
+        movl    %eax, _ScreenPrimary
+        movl    U_SYSTEM_GO32_INFO_BLOCK+8, %eax
+        movl    %eax, _ScreenSecondary
+        movl    U_SYSTEM_GO32_INFO_BLOCK+12, %eax
+        movl    %eax, ___transfer_buffer
+        movl    U_SYSTEM_GO32_INFO_BLOCK+20, %eax
+        movl    %eax, ___pid
+        movl    U_SYSTEM_GO32_INFO_BLOCK+24, %eax
+        movl    %eax, __hard_master
 
-	jmp	Lcopy_done
+        jmp     Lcopy_done
 
 Lcopy_none:
-	movl	%ebx,U_SYSTEM_GO32_INFO_BLOCK+4
-	movl	%ebp,U_SYSTEM_GO32_INFO_BLOCK+8
-	movl	%edi,U_SYSTEM_GO32_INFO_BLOCK+12
-	movl	$4096,U_SYSTEM_GO32_INFO_BLOCK+16
-	movl	%esi,U_SYSTEM_GO32_INFO_BLOCK+20
-	movl	%eax,U_SYSTEM_GO32_INFO_BLOCK+24
-	movl	$28, U_SYSTEM_GO32_INFO_BLOCK
+        movl    %ebx,U_SYSTEM_GO32_INFO_BLOCK+4
+        movl    %ebp,U_SYSTEM_GO32_INFO_BLOCK+8
+        movl    %edi,U_SYSTEM_GO32_INFO_BLOCK+12
+        movl    $4096,U_SYSTEM_GO32_INFO_BLOCK+16
+        movl    %esi,U_SYSTEM_GO32_INFO_BLOCK+20
+        movl    %eax,U_SYSTEM_GO32_INFO_BLOCK+24
+        movl    $28, U_SYSTEM_GO32_INFO_BLOCK
 Lcopy_done:
 
         movw    U_SYSTEM_GO32_INFO_BLOCK+36,%ax
@@ -93,75 +93,76 @@ Lcopy_done:
 
         movw    U_SYSTEM_GO32_INFO_BLOCK+26,%ax
         movw    %ax,_core_selector
-   	movl    U_SYSTEM_GO32_INFO_BLOCK+28,%eax
-   	movl  %eax,U_SYSTEM_STUB_INFO
-	xorl	%esi,%esi
-	xorl	%edi,%edi
-	xorl	%ebp,%ebp
-	xorl	%ebx,%ebx
+        movl    U_SYSTEM_GO32_INFO_BLOCK+28,%eax
+        movl  %eax,U_SYSTEM_STUB_INFO
+        xorl    %esi,%esi
+        xorl    %edi,%edi
+        xorl    %ebp,%ebp
+        xorl    %ebx,%ebx
 
-	movl	%esp,%ebx
+        movl    %esp,%ebx
         movl    $0x0,%ebp
-	movl	%esp,%ebx
-	movl	8(%ebx),%eax
-	movl	%eax,_environ
-	movl	4(%ebx),%eax
-	movl	%eax,_args
-	movl	(%ebx),%eax
-	movl	%eax,_argc
+        movl    %esp,%ebx
+        movl    8(%ebx),%eax
+        movl    %eax,_environ
+        movl    %eax,U_SYSTEM_ENVIRON
+        movl    4(%ebx),%eax
+        movl    %eax,_args
+        movl    (%ebx),%eax
+        movl    %eax,_argc
 
-	call	PASCALMAIN
+        call    PASCALMAIN
 
 
 exit_again:
-	movl	$0x4c00,%eax
-	int	$0x21
-	jmp	exit_again
+        movl    $0x4c00,%eax
+        int     $0x21
+        jmp     exit_again
 
-	ret
+        ret
 
-	.data
+        .data
         .globl _argc
 _argc:
-	.long   0
-	.globl  _args
+        .long   0
+        .globl  _args
 _args:
-	.long	0
-	.globl	_run_mode
+        .long   0
+        .globl  _run_mode
 _run_mode:
-	.word	0
-	.globl	_core_selector
+        .word   0
+        .globl  _core_selector
 _core_selector:
-	.word	0
-	.globl	_environ
+        .word   0
+        .globl  _environ
 _environ:
-	.long	0
+        .long   0
 
-	.globl	___pid
+        .globl  ___pid
 ___pid:
-	.long	42
+        .long   42
 
-	.globl	___transfer_buffer
+        .globl  ___transfer_buffer
 ___transfer_buffer:
-	.long	0
+        .long   0
 
-	.globl	_ScreenPrimary
+        .globl  _ScreenPrimary
 _ScreenPrimary:
-	.long	0
+        .long   0
 
-	.globl	_ScreenSecondary
+        .globl  _ScreenSecondary
 _ScreenSecondary:
-	.long	0
+        .long   0
 
-	.globl	__hard_master
-	.globl	__hard_slave
-	.globl	__core_select
+        .globl  __hard_master
+        .globl  __hard_slave
+        .globl  __core_select
 __hard_master:
-	.byte	0
+        .byte   0
 __hard_slave:
-	.byte	0
+        .byte   0
 __core_select:
-	.short	0
+        .short  0
         .globl  __stkbottom
 __stkbottom:
         .long   0

@@ -22,7 +22,7 @@ endif
 
 # What is the Operating System
 ifndef OS_SRC
-OS_SRC=GO32V1
+OS_SRC=GO32V2
 endif
 
 # What is the target operating system ?
@@ -144,10 +144,11 @@ OEXT=.o1
 
 .PHONY: all clean install diffs diffclean
 
-all : system$(PPUEXT) prt0$(OEXT) crt$(PPUEXT) go32$(PPUEXT) strings$(PPUEXT) \
-	dos$(PPUEXT) printer$(PPUEXT) objects$(PPUEXT) \
-	mmx$(PPUEXT) cpu$(PPUEXT) \
-	mouse$(PPUEXT) fmouse$(PPUEXT) getopts$(PPUEXT) graph$(PPUEXT)
+all : system$(PPUEXT) prt0$(OEXT) go32$(PPUEXT) strings$(PPUEXT) \
+      objpas$(PPUEXT) \
+      dos$(PPUEXT) crt$(PPUEXT) printer$(PPUEXT) objects$(PPUEXT) \
+      mmx$(PPUEXT) cpu$(PPUEXT) \
+      mouse$(PPUEXT) getopts$(PPUEXT) graph$(PPUEXT) \
 
 printer$(PPUEXT) : ../printer.pp system$(PPUEXT)
 	$(COPY) ../printer.pp .
@@ -215,22 +216,22 @@ objects$(PPUEXT) : ../objects.pp system$(PPUEXT)
 	$(PP) $(OPT) objects.pp $(REDIR)
 	$(DEL) objects.pp
 
+objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
+	$(COPY) ../../objpas/objpas.pp .
+	$(PP) $(OPT) objpas $(REDIR)
+	$(DEL) objpas.pp
+
 mouse$(PPUEXT) : ../mouse.pp system$(PPUEXT)
 	$(COPY) ../mouse.pp .
 	$(PP) $(OPT) mouse.pp $(REDIR)
 	$(DEL) mouse.pp
-
-fmouse$(PPUEXT) : ../fmouse.pp system$(PPUEXT)
-	$(COPY) ../fmouse.pp .
-	$(PP) $(OPT) fmouse.pp $(REDIR)
-	$(DEL) fmouse.pp
 
 clean:
 	-$(DEL) *$(OEXT)
 	-$(DEL) *$(PPUEXT)
 	-$(DEL) *.dif
 	-$(DEL) log
-	-$(DEL) *.as
+	-$(DEL) *$(ASMEXT)
 
 diffclean:
 	-$(DEL) *.dif

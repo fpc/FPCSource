@@ -73,15 +73,13 @@ type
 var
   stub_info       : p_stub_info;
   go32_info_block : t_go32_info_block;
+  environ         : ppchar;
 
   implementation
 
     { include system independent routines }
 
     {$I system.inc}
-
-{    type
-       plongint = ^longint;}
 
 {$S-}
     procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
@@ -610,7 +608,7 @@ begin
   TextRec(f).Closefunc:=@fileclosefunc;
 end;
 
-     
+
 Begin
 { Initialize ExitProc }
   ExitProc:=Nil;
@@ -622,14 +620,18 @@ Begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-{ Reset IO Error }  
+{ Reset IO Error }
   InOutRes:=0;
 End.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.2  1998-03-26 12:21:02  peter
+    * makefile works again
+    * environ is now defined in system.pp (like go32v2)
+
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
   Revision 1.9  1998/02/14 01:41:35  peter
     * fixed unusedhandle bug which was -1
@@ -638,7 +640,7 @@ End.
   + Added log at the end
 
 
-  
+
   Working file: rtl/dos/go32v1/system.pp
   description:
   ----------------------------
