@@ -296,10 +296,10 @@ begin
      {$else}
      {MPW style error}
      if status.currentcolumn>0 then
-       hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+
-         ' # (' + tostr(status.currentcolumn) + ') ' +hs+' '+s
+       hs:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+
+         ' #[' + tostr(status.currentcolumn) + '] ' +hs+' '+s
      else
-       hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+' #'+hs+' '+s;
+       hs:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+' # '+hs+' '+s;
      {$endif}
    end
   else
@@ -398,7 +398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2004-12-28 22:02:05  olle
+  Revision 1.35  2005-01-24 18:12:17  olle
+    * In MPW, whole path to source file is now displayed in messages.
+
+  Revision 1.34  2004/12/28 22:02:05  olle
     * fixed typo in MPW error msg
 
   Revision 1.33  2004/12/28 01:39:07  olle
