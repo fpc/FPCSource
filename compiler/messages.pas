@@ -29,6 +29,7 @@ type
   PMessage=^TMessage;
   TMessage=object
     msgfilename : string;
+    msgallocsize,
     msgsize,
     msgs        : longint;
     msgtxt      : pchar;
@@ -55,6 +56,7 @@ uses
 constructor TMessage.Init(p:pointer;n:longint);
 begin
   msgtxt:=pchar(p);
+  msgallocsize:=0;
   msgsize:=0;
   msgs:=n;
   CreateIdx;
@@ -125,7 +127,8 @@ begin
       end;
    end;
 { now read the buffer in mem }
-  getmem(msgtxt,msgsize);
+  msgallocsize:=msgsize;
+  getmem(msgtxt,msgallocsize);
   ptxt:=msgtxt;
   reset(f);
   while not eof(f) do
@@ -163,10 +166,17 @@ end;
 
 destructor TMessage.Done;
 begin
-  if not (msgidx=nil) then
-   freemem(msgidx,msgs shl 2);
-  if msgsize>0 then
-   freemem(msgtxt,msgsize);
+  if assigned(msgidx) then
+   begin
+     freemem(msgidx,msgs shl 2);
+     msgidx:=nil;
+   end;
+  if msgallocsize>0 then
+   begin
+     freemem(msgtxt,msgallocsize);
+     msgtxt:=nil;
+     msgallocsize:=0;
+   end;
 end;
 
 
@@ -264,7 +274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:27  peter
+  Revision 1.10  2000-01-23 16:32:08  peter
+    * fixed wrong freemem size when loading message file
+
+  Revision 1.9  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/07/18 10:19:55  florian
