@@ -17,12 +17,14 @@ packages=api fv gdbint
 [libs]
 libgcc=1
 
+[defaults]
+defaultoptions=-Sg
+
 
 [presettings]
 # when making a full version include the compiler
 ifeq ($(FULL),1)
 override COMPUNITDIR+=../../compiler
-override NEEDOPT+=-dBrowserCol -dGDB -Sg
 else
 override COMPUNITDIR+=../fake/compiler
 endif
@@ -46,6 +48,12 @@ override GDBUNITDIR+=../fake/gdb
 endif
 
 
+[postsettings]
+ifeq ($(FULL),1)
+override NEEDOPT+=-dBrowserCol -dGDB -Sg
+endif
+
+
 [rules]
 .PHONY: gdb full fullgdb clean_compiler
 
@@ -55,10 +63,10 @@ gdb:
         $(MAKE) all GDB=1
 
 full:
-        $(MAKE) all FULL=1 NEEDOPT=-Sg
+        $(MAKE) all FULL=1
 
 fullgdb:
-        $(MAKE) all FULL=1 GDB=1 NEEDOPT=-Sg
+        $(MAKE) all FULL=1 GDB=1
 
 # This is necessary because we don't have all units separate in the
 # units targets
