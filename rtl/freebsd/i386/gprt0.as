@@ -67,12 +67,12 @@ _start:
 	pushl %esi
 	pushl %ebx
 	movl 4(%ebp),%ebx
-	movl %ebx,U_SYSTEM_ARGC
+	movl %ebx,operatingsystem_parameter_argc
 	leal 12(%ebp,%ebx,4),%esi
 	leal 8(%ebp),%eax
-	movl %eax,U_SYSTEM_ARGV
+	movl %eax,operatingsystem_parameter_argv
 	movl %eax,-4(%ebp)
-	movl %esi,U_SYSTEM_ENVP		
+	movl %esi,operatingsystem_parameter_envp
 	movl %esi,environ
 	movl $_DYNAMIC,%ecx
 	testl %ebx,%ebx
@@ -125,11 +125,11 @@ _start:
 .globl _haltproc
 .type _haltproc,@function
 _haltproc:
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           movzwl operatingsystem_result,%ebx
            pushl %ebx
 	   call  exit
            mov $1,%eax  
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           movzwl operatingsystem_result,%ebx
 	   pushl %ebx
            call .Lactualsyscall
            addl  $4,%esp
@@ -156,3 +156,8 @@ _haltproc:
 	.globl	_DYNAMIC
 	.weak	_DYNAMIC
 	.ident	"GCC: (GNU) c 2.95.4 20020320 [FreeBSD]"
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4

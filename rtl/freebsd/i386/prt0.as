@@ -55,12 +55,12 @@ _start:
         movl %edx,%edx
 #NO_APP
         leal 8(%ebp),%edi
-        movl %edi,U_SYSTEM_ARGV
+        movl %edi,operatingsystem_parameter_argv
         mov -4(%edi),%eax
-        movl %eax,U_SYSTEM_ARGC
+        movl %eax,operatingsystem_parameter_argc
         movl 4(%ebp),%ebx
         leal 12(%ebp,%ebx,4),%esi
-        movl %esi,U_SYSTEM_ENVP
+        movl %esi,operatingsystem_parameter_envp
         movl %esi,environ
         testl %ebx,%ebx
         jle .L2
@@ -101,7 +101,7 @@ _start:
 
 _haltproc:
            mov $1,%eax  
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           movzwl operatingsystem_result,%ebx
            pushl %ebx
            call _actualsyscall
            addl  $4,%esp
@@ -122,3 +122,9 @@ _actualsyscall:
         .comm   environ,4,4
         .weak   _DYNAMIC
         .ident  "GCC: (GNU) 2.7.2.1"
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
+	

@@ -69,12 +69,10 @@ ifeq ($(CPU_TARGET),i386)
 CPU_UNITS+=oldlinux
 endif
 LINUXUNIT2=linux
-PRT0=prt0
 else
 SYSTEMUNIT=syslinux
 LINUXUNIT1=linux
 LINUXUNIT2=
-PRT0=prt0_10
 override FPCOPT+=-dUNIX
 endif
 
@@ -119,8 +117,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
-        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
+prt0$(OEXT) : $(CPU_TARGET)/prt0.as
+        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
         $(AS) -o dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as

@@ -42,11 +42,11 @@ _start:
 #       movq %rdx,%r9                 /* Address of the shared library termination
 #               	                 function.  */
 	popq     %rsi		      /* Pop the argument count.  */
-        movq     %rsi,U_SYSTEM_ARGC
-	movq     %rsp,U_SYSTEM_ARGV   /* argv starts just at the current stack top.  */
+        movq     %rsi,operatingsystem_parameter_argc
+	movq     %rsp,operatingsystem_parameter_argv   /* argv starts just at the current stack top.  */
         leaq     8(,%rsi,8),%rax
         addq     %rsp,%rax
-        movq     %rax,U_SYSTEM_ENVP
+        movq     %rax,operatingsystem_parameter_envp
         andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
 /* !!!! CPU initialization? */
@@ -59,8 +59,7 @@ _start:
         .type   _haltproc,@function
 _haltproc:
         movl    $60,%eax                 /* exit call */
-	xorq	%rdi,%rdi
-        movw    U_SYSTEM_EXITCODE,%di
+        movzwl    operatingsystem_result,%edi
         syscall
         jmp     _haltproc
 
@@ -71,6 +70,12 @@ __data_start:
 	.long 0
 	.weak data_start
         data_start = __data_start
+
+.bss
+        .comm operatingsystem_parameter_envp,8
+        .comm operatingsystem_parameter_argc,8
+        .comm operatingsystem_parameter_argv,8
+
 
 /* We need this stuff to make gdb behave itself, otherwise
    gdb will chokes with SIGILL when trying to debug apps.
@@ -90,7 +95,11 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.7  2004-04-24 17:14:09  florian
+# Revision 1.8  2004-07-03 21:50:31  daniel
+#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+#     longer necessary
+#
+# Revision 1.7  2004/04/24 17:14:09  florian
 #   * prt0.as exit code handling fixed
 #   * int64 mod int64 for negative numbers fixed
 #

@@ -50,14 +50,14 @@ _start:
 	ldmia   sp!, {a2}
 
 	/* Pop argc off the stack and save a pointer to argv */
-	ldr ip,=U_SYSTEM_ARGC
-	ldr a3,=U_SYSTEM_ARGV 
+	ldr ip,=operatingsystem_parameter_argc
+	ldr a3,=operatingsystem_parameter_argv
 	str a2,[ip]
 
 	/* calc envp */
 	add a2,a2,#1
 	add a2,sp,a2,LSL #2
-	ldr ip,=U_SYSTEM_ENVP
+	ldr ip,=operatingsystem_parameter_envp
 
 	str sp,[a3]
     str a2,[ip]
@@ -68,7 +68,7 @@ _start:
 	.globl  _haltproc
     .type   _haltproc,#function
 _haltproc:
-	ldr		r0,=U_SYSTEM_EXITCODE
+	ldr		r0,=operatingsystem_result
 	ldrb	r0,[r0]
 	swi		0x900001
 	b		_haltproc
@@ -80,6 +80,11 @@ __data_start:
 	.long 0
 	.weak data_start
 	data_start = __data_start
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
 
 	.section ".comment"
 	.byte 0
@@ -101,7 +106,11 @@ __data_start:
 
 /*
   $Log$
-  Revision 1.3  2004-03-11 22:39:53  florian
+  Revision 1.4  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.3  2004/03/11 22:39:53  florian
     * arm startup code fixed
     * made some generic math code more readable
 

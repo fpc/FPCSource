@@ -50,11 +50,11 @@ _start:
 	popq %rsi		/* Pop the argument count.  */
 	movq %rsp, %rdx		/* argv starts just at the current stack top.  */
 
-        movq     %rsi,U_SYSTEM_ARGC
-	movq     %rsp,U_SYSTEM_ARGV   /* argv starts just at the current stack top.  */
+        movq     %rsi,operatingsystem_parameter_argc
+	movq     %rsp,operatingsystem_parameter_argv   /* argv starts just at the current stack top.  */
         leaq     8(,%rsi,8),%rax
         addq     %rsp,%rax
-        movq     %rax,U_SYSTEM_ENVP
+        movq     %rax,operatingsystem_parameter_envp
 
 	/* Align the stack to a 16 byte boundary to follow the ABI.  */
 	andq  $~15, %rsp
@@ -93,7 +93,7 @@ main_stub:
         .globl _haltproc
         .type _haltproc,@function
 _haltproc:
-        movzwq    U_SYSTEM_EXITCODE,%rax /* load and save exitcode */
+        movzwq    operatingsystem_result,%rax /* load and save exitcode */
 
         movq    ___fpc_ret,%rdx         /* return to libc */
         movq    ___fpc_ret_rbp,%rbp
@@ -121,6 +121,11 @@ ___fpc_ret:                             /* return address to libc */
 ___fpc_ret_rbp:
         .quad   0
 
+.bss
+        .comm operatingsystem_parameter_envp,8
+        .comm operatingsystem_parameter_argc,8
+        .comm operatingsystem_parameter_argv,8
+
 /* We need this stuff to make gdb behave itself, otherwise
    gdb will chokes with SIGILL when trying to debug apps.
 */
@@ -140,7 +145,11 @@ ___fpc_ret_rbp:
 
 /*
   $Log$
-  Revision 1.2  2004-02-20 23:48:27  peter
+  Revision 1.3  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.2  2004/02/20 23:48:27  peter
     * c stub implemented
 
   Revision 1.1  2003/01/06 19:39:17  florian

@@ -39,18 +39,18 @@ _start:
 	movq	-8(%rbp), %rax
 	movl	(%rax), %eax
 	movl	%eax, -20(%rbp)
-	movl	%eax, U_SYSTEM_ARGC
+	movl	%eax, operatingsystem_parameter_argc
 	movq	-8(%rbp), %rax
 	addq	$8, %rax
 	movq	%rax, -32(%rbp)
-	movq    %rax, U_SYSTEM_ARGV
+	movq    %rax, operatingsystem_parameter_argv
 	movl	-20(%rbp), %eax
 	cltq
 	salq	$3, %rax
 	addq	-8(%rbp), %rax
 	addq	$16, %rax
 	movq	%rax, -40(%rbp)
-	movq    %rax, U_SYSTEM_ENVP
+	movq    %rax, operatingsystem_parameter_envp
 	movq	-40(%rbp), %rax
 	movq	%rax, environ(%rip)
 	movq    %rax,environ

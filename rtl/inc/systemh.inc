@@ -341,7 +341,7 @@ const
   StackError : boolean = FALSE;
 
 var
-  ExitCode    : Word;
+  ExitCode    : Word; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
   IsLibrary : boolean;
@@ -744,7 +744,11 @@ const
 
 {
   $Log$
-  Revision 1.95  2004-06-11 19:21:53  florian
+  Revision 1.96  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.95  2004/06/11 19:21:53  florian
     * fixed wrong commit
 
   Revision 1.94  2004/06/11 13:45:33  florian

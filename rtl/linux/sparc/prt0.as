@@ -33,21 +33,21 @@ _start:
   	/* Extract the arguments and environment as encoded on the stack.  The
      	   argument info starts after one register window (16 words) past the SP.  */
 	ld	[%sp+22*4], %o2
-	sethi	%hi(U_SYSTEM_ARGC),%o1
-	or	%o1,%lo(U_SYSTEM_ARGC),%o1
+	sethi	%hi(operatingsystem_parameter_argc),%o1
+	or	%o1,%lo(operatingsystem_parameter_argc),%o1
 	st	%o2, [%o1]	
 
 	add	%sp, 23*4, %o0
-	sethi	%hi(U_SYSTEM_ARGV),%o1
-	or	%o1,%lo(U_SYSTEM_ARGV),%o1
+	sethi	%hi(operatingsystem_parameter_argv),%o1
+	or	%o1,%lo(operatingsystem_parameter_argv),%o1
 	st	%o0, [%o1]	
 
 	/* envp=(argc+1)*4+argv */
 	inc     %o2
 	sll     %o2, 2, %o2
 	add	%o2, %o0, %o2
-	sethi	%hi(U_SYSTEM_ENVP),%o1
-	or	%o1,%lo(U_SYSTEM_ENVP),%o1
+	sethi	%hi(operatingsystem_parameter_envp),%o1
+	or	%o1,%lo(operatingsystem_parameter_envp),%o1
 	st	%o2, [%o1]	
 	
   	/* Call the user program entry point.  */
@@ -68,9 +68,18 @@ _haltproc:
 
 	.size _start, .-_start
 
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
+
 #
 # $Log$
-# Revision 1.7  2004-05-27 23:15:02  peter
+# Revision 1.8  2004-07-03 21:50:31  daniel
+#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+#     longer necessary
+#
+# Revision 1.7  2004/05/27 23:15:02  peter
 #   * startup argc,argv,envp fix
 #   * stat fixed
 #

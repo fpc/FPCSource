@@ -52,14 +52,17 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-var
-  argc : longint;
-  argv : ppchar;
-  envp : ppchar;
+var argc:longint;external name 'operatingsystem_parameter_argc';
+    argv:PPchar;external name 'operatingsystem_parameter_argv';
+    envp:PPchar;external name 'operatingsystem_parameter_envp';
 
 {
   $Log$
-  Revision 1.19  2004-05-18 20:16:23  peter
+  Revision 1.20  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.19  2004/05/18 20:16:23  peter
     * unix thandle is always 32bit
     * textrec fixed for 64bit
 

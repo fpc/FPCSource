@@ -31,9 +31,9 @@ _start:
         addl    %esp,%eax
         andl    $0xfffffff8,%esp        /* Align stack */
 
-        movl    %eax,U_SYSTEM_ENVP    /* Move the environment pointer */
-        movl    %ecx,U_SYSTEM_ARGC    /* Move the argument counter    */
-        movl    %ebx,U_SYSTEM_ARGV    /* Move the argument pointer    */
+        movl    %eax,operatingsystem_parameter_envp    /* Move the environment pointer */
+        movl    %ecx,operatingsystem_parameter_argc    /* Move the argument counter    */
+        movl    %ebx,operatingsystem_parameter_argv    /* Move the argument pointer    */
 
         finit                           /* initialize fpu */
         fwait
@@ -53,31 +53,35 @@ _start:
         .globl _haltproc
         .type _haltproc,@function
 _haltproc:
-        xorl    %ebx,%ebx               /* load and save exitcode */
-        movw    U_SYSTEM_EXITCODE,%bx
+_haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
+        movzwl  operatingsystem_result,%ebx
         pushl   %ebx
-
         call    exit                    /* call libc exit, this will */
                                         /* write the gmon.out */
-
-        movl    $1,%eax                 /* exit call */
+        xorl    %eax,%eax
+        incl    %eax                    /* eax=1, exit call */
         popl    %ebx
         int     $0x80
-        jmp     _haltproc
+        jmp     _haltproc2
 
 .data
-        .align  4
 ___fpucw:
         .long   0x1332
 
-        .globl  ___fpc_brk_addr         /* heap management */
+.bss
         .type   ___fpc_brk_addr,@object
-        .size   ___fpc_brk_addr,4
-___fpc_brk_addr:
-        .long   0
+        .comm   ___fpc_brk_addr,4        /* heap management */
+
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
 
 #
 # $Log$
-# Revision 1.3  2002-09-07 16:01:20  peter
+# Revision 1.4  2004-07-03 21:50:31  daniel
+#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+#     longer necessary
+#
+# Revision 1.3  2002/09/07 16:01:20  peter
 #   * old logs removed and tabs fixed
 #

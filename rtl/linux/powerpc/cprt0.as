@@ -31,14 +31,14 @@ _start:
 	mtlr	0
 	stw	0,0(1)
 
-        lis 	11,U_SYSTEM_ARGC@ha
-	stw 	3,U_SYSTEM_ARGC@l(11);
+        lis 	11,operatingsystem_parameter_argc@ha
+	stw 	3,operatingsystem_parameter_argc@l(11);
 
-        lis 	11,U_SYSTEM_ARGV@ha
-	stw 	4,U_SYSTEM_ARGV@l(11);
+        lis 	11,operatingsystem_parameter_argc@ha
+	stw 	4,operatingsystem_parameter_argc@l(11);
 
-	lis 	11,U_SYSTEM_ENVP@ha
-	stw 	5,U_SYSTEM_ENVP@l(11);
+	lis 	11,operatingsystem_parameter_envp@ha
+	stw 	5,operatingsystem_parameter_envp@l(11);
 
 	/* init libc, parameters are already setup at this point */
 	bl	__libc_init_first
@@ -52,8 +52,8 @@ _start:
         .type   _haltproc,@function
 _haltproc:
         li      0,1	         /* exit call */
-	lis	3,U_SYSTEM_EXITCODE@h
-	stw	3,U_SYSTEM_EXITCODE@l(3)
+	lis	3,operatingsystem_result@h
+	stw	3,operatingsystem_result@l(3)
         sc
         b	_haltproc
 
@@ -68,9 +68,18 @@ data_start:
 ___fpc_brk_addr:
         .long   0
 
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
+
 /*
   $Log$
-  Revision 1.6  2004-01-04 17:28:03  florian
+  Revision 1.7  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.6  2004/01/04 17:28:03  florian
     * clean up
 
   Revision 1.5  2004/01/04 17:12:28  florian

@@ -31,18 +31,18 @@ _start:
 	mtlr	0
 	stw	0,0(1)
 	lwz     3,0(26)       /* get argc */
-        lis 	11,U_SYSTEM_ARGC@ha
-	stw 	3,U_SYSTEM_ARGC@l(11);
+        lis 	11,operatingsystem_parameter_argc@ha
+	stw 	3,operatingsystem_parameter_argc@l(11);
 
 	addi    4,26,4        /* get argv */
-        lis 	11,U_SYSTEM_ARGV@ha
-	stw 	4,U_SYSTEM_ARGV@l(11);
+        lis 	11,operatingsystem_parameter_argv@ha
+	stw 	4,operatingsystem_parameter_argv@l(11);
 
 	addi    27,3,1        /* calculate argc + 1 into r27 */
         slwi    27,27,2       /* calculate (argc + 1) * sizeof(char *) into r27 */
         add     5,4,27        /* get address of env[0] */
-	lis 	11,U_SYSTEM_ENVP@ha
-	stw 	5,U_SYSTEM_ENVP@l(11);
+	lis 	11,operatingsystem_parameter_envp@ha
+	stw 	5,operatingsystem_parameter_envp@l(11);
 
 	bl	PASCALMAIN
 	
@@ -65,9 +65,18 @@ data_start:
         .size   ___fpc_brk_addr,4
 ___fpc_brk_addr:
         .long   0
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
 /*
   $Log$
-  Revision 1.12  2004-05-26 20:48:17  florian
+  Revision 1.13  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.12  2004/05/26 20:48:17  florian
     * _haltproc fixed
 
   Revision 1.11  2004/01/04 17:23:57  florian

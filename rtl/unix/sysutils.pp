@@ -23,6 +23,7 @@ interface
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$DEFINE HASUNIX}
 
 uses
   Unix,errors,sysconst;
@@ -643,7 +644,11 @@ end.
 {
 
   $Log$
-  Revision 1.42  2004-06-15 07:36:03  michael
+  Revision 1.43  2004-07-03 21:50:31  daniel
+    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
+      longer necessary
+
+  Revision 1.42  2004/06/15 07:36:03  michael
   + Fixed Globtosearchrec to use unixtowinage
 
   Revision 1.41  2004/05/22 14:25:03  michael
