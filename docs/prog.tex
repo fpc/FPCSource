@@ -2607,23 +2607,79 @@ Offset from frame pointer & What is stored \\ \hline
 % Constructor and destructor calls
 \section{Constructor and Destructor calls}
 \label{se:ConsDest}
-When using objects that need virtual methods, the compiler uses two help
-procedures that are in the run-time library. They are called
-\var{FPC\_HELP\_DESTRUCTOR} and \var{FPC\_HELP\_CONSTRUCTOR}.
-They are used to allocate the necessary memory if needed,
-and to insert the Virtual Method Table (VMT) pointer in the newly allocated
-object.
 
-When the compiler encounters a call to an object's constructor,
-it sets up the stack frame for the call, and inserts a call to the
-\var{FPC\_HELP\_CONSTRUCTOR} procedure before issuing the call to the real constructor.
-The helper procedure allocates the needed memory (if needed) and inserts the
-VMT pointer in the object. After that, the real constructor is called.
+Constructor and destructors have special invisible parameters
+which are passed to them. These invisible parameters are used
+internally to instanciate the objects and classes. 
 
-A call to \var{FPC\_HELP\_DESTRUCTOR} is inserted in every destructor declaration,
-just before the destructor's exit sequence, it deallocates the memory
-allocated in the constructor.
+\subsection{objects}
 
+The actual invisible declaration of an object constructoir
+is as follows:
+
+\begin{verbatim}
+  constructor init(_vmt : pointer; _self : pointer ...);
+\end{verbatim}
+
+Where \var{\_vmt} is a pointer to the virtual method table
+for this object. This value is nil if a constructor is called
+within the object instance (such as calling an ihnerited constructor).
+
+\var{\_self} is either nil if the instance must be allocated 
+dynamically (object is declared as pointer), or the address of 
+the object instance if the object is declared as a normal object
+(stored in the data area) or if the object instance has already 
+been allocated.
+
+The allocated instance (if allocated via new) (\var{self}) 
+is returned in the accumulator.
+
+
+The declaration of a destructor is as follows:
+
+\begin{verbatim}
+  destructor done(_vmt : pointer; _self : pointer ...);
+\end{verbatim}
+
+Where \var{\_vmt} is a pointer to the virtual method table
+for this object. This value is nil if a destructor is called
+within the object instance (such as calling an ihnerited constructor),
+or if the object instance is a variable and not a pointer.
+
+\var{\_self} is the address of the object instance.
+
+
+\subsection{classes}
+
+The actual invisible declaration of a class constructoir
+is as follows:
+
+\begin{verbatim}
+  constructor init(_vmt: pointer; flag : longint; ..);
+\end{verbatim}
+
+\var{\_vmt} is either nil if called from the instance
+or if calling an inherited constructor, otherwise
+it points to the address of the virtual method table.
+
+Where \var{flag} is zero if the constructor is called
+within the object instance or with an instance qualifier
+otherwise this flag is set to one. 
+
+The allocated instance (\var{self}) is returned in the accumulator.
+
+
+The declaration of a destructor is as follows:
+
+\begin{verbatim}
+  destructor done(_self : pointer; flag : longint ...);
+\end{verbatim}
+
+\var{\_self} is the address of the object instance.
+
+\var{flag} is zero if the destructor is called
+within the object instance or with an instance qualifier
+otherwise this flag is set to one.
 
 
 \section{Entry and exit code}
