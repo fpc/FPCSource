@@ -15,10 +15,6 @@ interface
 uses 
   Classes,db,sysutils,Contnrs;
 
-{$ifndef linux}
-{$R *.DCR}
-{$endif}
-
 type
   PRecInfo = ^TRecInfo;
   TRecInfo = record
