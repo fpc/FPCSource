@@ -16,14 +16,14 @@
 # Config
 #####################################################################
 
-MODULES=rtl compiler utils api fv gdb ide
+MODULES=rtl compiler utils fcl gtk api fv gdb ide
 
 ifndef RTLDIR
 RTLDIR=rtl
 endif
 
 ifndef COMPILERDIR
-COMPILERDIR=utils
+COMPILERDIR=compiler
 endif
 
 ifndef UTILSDIR
@@ -75,7 +75,9 @@ RELEASE=1
 	$(addsuffix _install,$(MODULES)) \
 	$(addsuffix _staticinstall,$(MODULES)) \
 	$(addsuffix _sharedinstall,$(MODULES))\
-	ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
+	compiler_cycle \
+	idezips ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip \
+	fclzip gtkzip fvzip compilerzip utilszip
 
 info:
 	@echo
@@ -177,6 +179,9 @@ rtl_sharedinstall:
 #######################################
 # Compiler
 #######################################
+
+compiler_cycle:
+	$(MAKE) -C $(COMPILERDIR) cycle
 
 compiler_all: rtl_all
 	$(MAKE) -C $(COMPILERDIR) all
@@ -423,7 +428,10 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.15  1999-05-12 16:17:06  peter
+# Revision 1.16  1999-05-16 02:37:29  peter
+#   + fpc_showinstallfiles to show which files will be added to the system
+#
+# Revision 1.15  1999/05/12 16:17:06  peter
 #   + utils_X targets
 #   * missing export of prefixinstalldir
 #

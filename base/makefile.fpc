@@ -238,7 +238,7 @@ ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
 ECHO=echo
 else
-export ECHO:=$(firstword $(ECHO))
+export ECHO:=@$(firstword $(ECHO))
 endif
 endif
 
@@ -748,6 +748,20 @@ endif
 # Install rules
 #####################################################################
 
+fpc_showinstallfiles : all
+ifndef DEFAULTUNITS
+ifdef EXEOBJECTS
+	$(ECHO) $(addprefix "\n"$(BININSTALLDIR)/,$(EXEFILES))
+endif
+endif
+ifdef LOADEROBJECTS
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
+endif
+ifdef UNITOBJECTS
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITFILES))
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITOFILES))
+endif
+
 fpc_install : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
@@ -1019,7 +1033,10 @@ endif
 
 #
 # $Log$
-# Revision 1.26  1999-05-14 22:46:21  peter
+# Revision 1.27  1999-05-16 02:37:30  peter
+#   + fpc_showinstallfiles to show which files will be added to the system
+#
+# Revision 1.26  1999/05/14 22:46:21  peter
 #   * patch for comments in ld.so.conf
 #
 # Revision 1.25  1999/05/12 16:17:07  peter
