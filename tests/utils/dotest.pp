@@ -41,7 +41,6 @@ var
   PPFile : string;
   PPFileInfo : string;
   TestName : string;
-  Note : string;
 
 const
   LongLogfile : string[32] = 'longlog';
@@ -241,147 +240,6 @@ begin
 end;
 
 
-function GetConfig(const fn:string;var r:TConfig):boolean;
-var
-  t : text;
-  part,code : integer;
-  l : longint;
-  s,res : string;
-
-  function GetEntry(const entry:string):boolean;
-  var
-    i : longint;
-  begin
-    Getentry:=false;
-    Res:='';
-    if Upcase(Copy(s,1,length(entry)))=Upcase(entry) then
-     begin
-       Delete(s,1,length(entry));
-       TrimB(s);
-       if (s<>'') then
-        begin
-          if (s[1]='=') then
-           begin
-             delete(s,1,1);
-             i:=pos('}',s);
-             if i=0 then
-              i:=255
-             else
-              dec(i);
-             res:=Copy(s,1,i);
-             TrimB(res);
-             TrimE(res);
-           end;
-          Verbose(V_Debug,'Config: '+Entry+' = "'+Res+'"');
-          GetEntry:=true;
-        end;
-     end;
-  end;
-
-begin
-  FillChar(r,sizeof(r),0);
-  GetConfig:=false;
-  Verbose(V_Debug,'Reading '+fn);
-  assign(t,fn);
-  {$I-}
-   reset(t);
-  {$I+}
-  if ioresult<>0 then
-   begin
-     Verbose(V_Error,'Can''t open '+fn);
-     exit;
-   end;
-  Note:='';
-  while not eof(t) do
-   begin
-     readln(t,s);
-     if s<>'' then
-      begin
-        if s[1]='{' then
-         begin
-           delete(s,1,1);
-           TrimB(s);
-           if (s<>'') and (s[1]='%') then
-            begin
-              delete(s,1,1);
-              if GetEntry('OPT') then
-               r.NeedOptions:=res
-              else
-               if GetEntry('TARGET') then
-                r.NeedTarget:=res
-              else
-               if GetEntry('SKIPTARGET') then
-                r.SkipTarget:=res
-              else
-               if GetEntry('CPU') then
-                r.NeedCPU:=res
-              else
-               if GetEntry('SKIPCPU') then
-                r.SkipCPU:=res
-              else
-               if GetEntry('VERSION') then
-                r.NeedVersion:=res
-              else
-               if GetEntry('RESULT') then
-                Val(res,r.ResultCode,code)
-              else
-               if GetEntry('GRAPH') then
-                r.UsesGraph:=true
-              else
-               if GetEntry('FAIL') then
-                r.ShouldFail:=true
-              else
-               if GetEntry('RECOMPILE') then
-                r.NeedRecompile:=true
-              else
-               if GetEntry('NORUN') then
-                r.NoRun:=true
-              else
-               if GetEntry('NEEDLIBRARY') then
-                r.NeedLibrary:=true
-              else
-               if GetEntry('KNOWNRUNERROR') then
-                begin
-                  if res<>'' then
-                    begin
-                      val(res,l,code);
-                      if code>1 then
-                        begin
-                          part:=code;
-                          val(copy(res,1,code-1),l,code);
-                          delete(res,1,part);
-                        end;
-                      if code=0 then
-                        r.KnownRunError:=l;
-                      if res<>'' then
-                        r.KnownRunNote:=res;
-                    end;
-                end
-              else
-               if GetEntry('KNOWN') then
-                 r.IsKnown:=true
-              else
-               if GetEntry('INTERACTIVE') then
-                r.IsInteractive:=true
-              else
-               if GetEntry('NOTE') then
-                begin
-                  Note:='Note: '+res;
-                  Verbose(V_Normal,Note);
-                end
-              else
-               Verbose(V_Error,'Unknown entry: '+s);
-            end;
-         end
-        else
-         break;
-      end;
-   end;
-  close(t);
-  GetConfig:=true;
-end;
-
-
 function GetCompilerInfo(c:tcompinfo):boolean;
 
   function GetToken(var s:string):string;
@@ -533,13 +391,13 @@ begin
   if ExitWithInternalError(OutName) then
    begin
      AddLog(FailLogFile,TestName);
-     if Note<>'' then
-      AddLog(FailLogFile,Note);
+     if Config.Note<>'' then
+      AddLog(FailLogFile,Config.Note);
      AddLog(ResLogFile,failed_to_compile+PPFileInfo+' internalerror generated');
      AddLog(LongLogFile,line_separation);
      AddLog(LongLogFile,failed_to_compile+PPFileInfo);
-     if Note<>'' then
-      AddLog(LongLogFile,Note);
+     if Config.Note<>'' then
+      AddLog(LongLogFile,Config.Note);
      CopyFile(OutName,LongLogFile,true);
      { avoid to try again }
      AddLog(ForceExtension(PPFile,'elg'),'Failed to compile '++PPFileInfo);
@@ -560,30 +418,54 @@ begin
      else
       begin
         AddLog(FailLogFile,TestName);
-        if Note<>'' then
-          AddLog(FailLogFile,Note);
+        if Config.Note<>'' then
+          AddLog(FailLogFile,Config.Note);
         AddLog(ResLogFile,failed_compilation_successful+PPFileInfo);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,failed_compilation_successful+PPFileInfo);
         { avoid to try again }
         AddLog(ForceExtension(PPFile,'elg'),failed_compilation_successful+PPFileInfo);
-        if Note<>'' then
-          AddLog(LongLogFile,Note);
+        if Config.Note<>'' then
+          AddLog(LongLogFile,Config.Note);
         CopyFile(OutName,LongLogFile,true);
       end;
    end
   else
    begin
-     if ExecuteResult<>0 then
+     if (ExecuteResult<>0) and
+        (((Config.KnownCompileNote<>'') and (Config.KnownCompileError=0)) or
+         ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
+      begin
+        AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownCompileNote);
+        AddLog(LongLogFile,line_separation);
+        AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
+        AddLog(LongLogFile,failed_to_compile+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+        Copyfile(OutName,LongLogFile,true);
+        Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
+      end
+     else if (ExecuteResult<>0) and (Pos('1.0',CompilerVersion)=1) and
+        (((Config.KnownCompile10Note<>'') and (Config.KnownCompile10Error=0)) or
+         ((Config.KnownCompile10Error<>0) and (ExecuteResult=Config.KnownCompile10Error))) then
+      begin
+        AddLog(FailLogFile,TestName+known_problem+Config.KnownCompile10Note);
+        AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownCompile10Note);
+        AddLog(LongLogFile,line_separation);
+        AddLog(LongLogFile,known_problem+Config.KnownCompile10Note);
+        AddLog(LongLogFile,failed_to_compile+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+        Copyfile(OutName,LongLogFile,true);
+        Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
+      end
+     else if ExecuteResult<>0 then
       begin
         AddLog(FailLogFile,TestName);
-        if Note<>'' then
-          AddLog(FailLogFile,Note);
+        if Config.Note<>'' then
+          AddLog(FailLogFile,Config.Note);
         AddLog(ResLogFile,failed_to_compile+PPFileInfo);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,failed_to_compile+PPFileInfo);
-        if Note<>'' then
-          AddLog(LongLogFile,Note);
+        if Config.Note<>'' then
+          AddLog(LongLogFile,Config.Note);
         CopyFile(OutName,LongLogFile,true);
         { avoid to try again }
         AddLog(ForceExtension(PPFile,'elg'),failed_to_compile+PPFileInfo);
@@ -899,7 +781,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-12-24 22:30:41  peter
+  Revision 1.26  2003-02-20 12:41:15  pierre
+   + handle KNOWNCOMPILEERROR and KNOWNCOMPILE10ERROR
+
+  Revision 1.25  2002/12/24 22:30:41  peter
     * small verbosity update
 
   Revision 1.24  2002/12/24 21:47:49  peter
