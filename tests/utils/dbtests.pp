@@ -150,7 +150,7 @@ end;
 Function SQLDate(D : TDateTime) : String;
 
 begin
-  Result:=FormatDateTime('YYYY/MM/DD',D);
+  Result:=FormatDateTime('YYYY/MM/DD hh:nn:ss',D);
 end;
 
 { ---------------------------------------------------------------------

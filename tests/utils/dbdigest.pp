@@ -343,7 +343,7 @@ begin
   If TestVersionID=-1 then
     Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
   If (Round(TestDate)=0) then
-    Testdate:=Date;
+    Testdate:=Now;
   TestRunID:=GetRunID(TestOSID,TestCPUID,TestVersionID,TestDate);
   If (TestRunID=-1) then
     begin
@@ -423,7 +423,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-03 22:51:02  michael
+  Revision 1.6  2003-10-04 21:30:21  florian
+    + added time to timestamp so multiple runs per day can be done
+
+  Revision 1.5  2003/10/03 22:51:02  michael
   + Changed database structure after suggestion of florian
 
   Revision 1.4  2002/12/24 21:47:49  peter
