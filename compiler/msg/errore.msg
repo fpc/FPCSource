@@ -2014,6 +2014,7 @@ option_help_pages=11025_[
 **1B_build all modules
 **1C<x>_code generation options:
 **2CD_create also dynamic library (not supported)
+**2Ce_Compilation with emulated floating point opcodes
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_omit linking stage

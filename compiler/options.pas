@@ -465,6 +465,13 @@ begin
                           IllegalPara(opt);
                          break;
                        end;
+                    'e' :
+                       begin
+                         If UnsetBool(More, j) then
+                           exclude(initmoduleswitches,cs_fp_emulation)
+                         Else
+                           include(initmoduleswitches,cs_fp_emulation);
+                       end; 
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1879,7 +1886,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.88  2002-11-15 01:58:52  peter
+  Revision 1.89  2002-11-30 21:29:56  carl
+    + -Ce for softfpu
+
+  Revision 1.88  2002/11/15 01:58:52  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
