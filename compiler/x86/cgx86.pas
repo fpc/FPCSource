@@ -136,6 +136,13 @@ unit cgx86;
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
       end;
 
+   const
+      TCGSize2OpSize: Array[tcgsize] of topsize =
+        (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
+         S_FS,S_FL,S_FX,S_IQ,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+
+
   implementation
 
     uses
@@ -146,6 +153,7 @@ unit cgx86;
 {$ifndef NOTARGETWIN32}
     const
       winstackpagesize = 4096;
+{$endif NOTARGETWIN32}
 
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
                             A_IDIV,A_MUL, A_IMUL, A_NEG,A_NOT,A_OR,
@@ -153,12 +161,6 @@ unit cgx86;
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
-
-      TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
-         S_FS,S_FL,S_FX,S_IQ,
-         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
-{$endif NOTARGETWIN32}
 
 
 {****************************************************************************
@@ -1674,7 +1676,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.14  2002-09-01 14:42:41  peter
+  Revision 1.15  2002-09-16 18:06:29  peter
+    * move CGSize2Opsize to interface
+
+  Revision 1.14  2002/09/01 14:42:41  peter
     * removevaluepara added to fix the stackpointer so restoring of
       saved registers works
 
