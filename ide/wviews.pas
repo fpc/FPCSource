@@ -630,10 +630,8 @@ procedure TrackMouse;
 var
   Mouse: TPoint;
   R: TRect;
-{  OldC: PMenuItem;}
 begin
   MakeLocal(E.Where, Mouse);
-{  OldC:=Current;}
   Current := Menu^.Items;
   while Current <> nil do
   begin
@@ -647,7 +645,7 @@ begin
   end;
   if (Current<>nil) and IsDisabled(Current) then
   begin
-     Current:={OldC}nil;
+     Current:=nil;
      MouseActive:=false;
   end;
 end;
@@ -965,10 +963,8 @@ procedure TrackMouse;
 var
   Mouse: TPoint;
   R: TRect;
-  OldC: PMenuItem;
 begin
   MakeLocal(E.Where, Mouse);
-  OldC:=Current;
   Current := Menu^.Items;
   while Current <> nil do
   begin
@@ -1633,7 +1629,6 @@ end;
 
 function UpdateMenu(M: PMenu): boolean;
 var P: PMenuItem;
-    Enable,
     IsEnabled: boolean;
 begin
   if M=nil then begin UpdateMenu:=false; Exit; end;
@@ -1927,7 +1922,8 @@ begin
             GoSelectItem:=-2;
             ClearEvent(Event);
           end else
-        if (Event.CharCode = ' ') and (Focused < Range) then
+        if ((Event.KeyCode=kbEnter) or (Event.CharCode = ' ')) and
+           (Focused < Range) then
           begin
             GoSelectItem:=Focused;
             NewItem := Focused;
@@ -2042,6 +2038,7 @@ begin
              FocusItem(0);
            kbEnd  :
              FocusItem(Count-1);
+           kbEnter,
            kbPgDn :
              DropList(true);
          else DontClear:=true;
@@ -2050,9 +2047,9 @@ begin
        end;
     evBroadcast :
       case Event.Command of
-{        cmReleasedFocus :
+        cmReleasedFocus :
           if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
-            DropList(false);}
+            DropList(false);
         cmListItemSelected :
           if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
             begin
@@ -2192,7 +2189,7 @@ begin
     end;
   MoveChar(B,' ',C,Size.X);
   MoveStr(B[1],copy(Text,1,Size.X-2),TextC);
-  if ListDropped then LC:=#30 else LC:=#31;
+  if ListDropped then LC:='^' else LC:='v';
   MoveChar(B[Size.X-2],LC,C,1);
   WriteLine(0,0,Size.X,Size.Y,B);
 end;
@@ -2391,7 +2388,6 @@ end;
 
 procedure GetStaticTextDimensions(const S: string; ViewWidth: integer; var MaxCols, Rows: integer);
 var
-  Color: Byte;
   Center: Boolean;
   I, J, L, P, Y: Sw_Integer;
   CurLine: string;
@@ -2534,7 +2530,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2004-11-08 20:28:29  peter
+  Revision 1.11  2004-12-06 19:23:30  peter
+  dropdownlistbox works better with Enter key
+
+  Revision 1.10  2004/11/08 20:28:29  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
