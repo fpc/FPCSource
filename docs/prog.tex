@@ -110,12 +110,12 @@ influence the compiler's behaviour from the moment they're encountered
 until the moment another switch annihilates their behaviour, or the end
 of the current unit or program is reached.
 
-\subsection{\var{\$A} or \var{\$ALIGN} : Align Data}
+\subsection{\var{\protect\$A} or \var{\protect\$ALIGN} : Align Data}
 
 This switch is recognized for Turbo Pascal Compatibility, but is not
 yet implemented. The alignment of data will be different in any case.
 
-\subsection{\var{\$ASMMODE} : Assembler mode (Intel 80x86 only)}
+\subsection{\var{\protect\$ASMMODE} : Assembler mode (Intel 80x86 only)}
 \label{se:AsmReader}
 
 The \var{\{\$ASMMODE XXX\}} directive informs the compiler what kind of assembler
@@ -134,7 +134,7 @@ The command-line switch that corresponds to this switch is \var{-R}.
 
 The default assembler reader is the AT\&T reader.
 
-\subsection{\var{\$B} or \var{\$BOOLEVAL} : Complete boolean evaluation}
+\subsection{\var{\protect\$B} or \var{\protect\$BOOLEVAL} : Complete boolean evaluation}
 
 This switch is understood by the \fpc compiler, but is ignored. The compiler
 always uses shortcut evaluation, i.e. the evaluation of a boolean expression
@@ -149,7 +149,7 @@ If False and Bofu then
 This has as a consequence that any additional actions that are done by
 \var{Bofu} are not executed.
 
-\subsection{\var{\$C} or \var{\$ASSERTIONS} : Assertion support}
+\subsection{\var{\protect\$C} or \var{\protect\$ASSERTIONS} : Assertion support}
 
 The \var{\{\$ASSERTIONS\}} switch determines if assert statements are
 compiled into the binary or not. If the switch is on, the statement
@@ -174,7 +174,7 @@ This can be used mainly for debugging purposes. The \file{system} unit sets the
 and simply exits. The \file{sysutils} unit catches the run-time error 227
 and raises an \var{EAssertionFailed} exception.
 
-\subsection{\var{\$DEFINE} : Define a symbol}
+\subsection{\var{\protect\$DEFINE} : Define a symbol}
 
 The directive
 \begin{verbatim}
@@ -189,7 +189,7 @@ insensitive.
 The symbols that are defined in a unit, are not saved in the unit file,
 so they are also not exported from a unit.
 
-\subsection{\var{\$ELSE} : Switch conditional compilation}
+\subsection{\var{\protect\$ELSE} : Switch conditional compilation}
 
 The \var{\{\$ELSE\}} switches between compiling and ignoring the source
 text delimited by the preceding \var{\{\$IFxxx\}} and following
@@ -204,7 +204,7 @@ is the same as
 \end{verbatim}
 This is useful for indication what switch is meant.
 
-\subsection{\var{\$ENDIF} : End conditional compilation}
+\subsection{\var{\protect\$ENDIF} : End conditional compilation}
 
 The \var{\{\$ENDIF\}} directive ends the conditional compilation initiated by the
 last \var{\{\$IFxxx\}} directive. Any text after the \var{ENDIF} keyword but
@@ -218,7 +218,7 @@ is the same as
 \end{verbatim}
 This is useful for indication what switch is meant to be ended.
 
-\subsection{\var{\$ERROR} : Generate error message}
+\subsection{\var{\protect\$ERROR} : Generate error message}
 
 The following code
 \begin{verbatim}
@@ -228,7 +228,7 @@ will display an error message when the compiler encounters it,
 and increase the error count of the compiler.
 The compiler will continue to compile, but no code will be emitted.
 
-\subsection{\var{\$F} : Far or near functions}
+\subsection{\var{\protect\$F} : Far or near functions}
 This directive is recognized for compatibility with Turbo Pascal. Under the
 32-bit and 64-bit programming models, the concept of near and far calls have
 no meaning, hence the directive is ignored. A warning is printed to the screen, 
@@ -278,7 +278,7 @@ displayed in that case is:
 testf.pp(3) Warning: NEAR ignored
 \end{verbatim}
 
-\subsection{\var{\$FATAL} : Generate fatal error message}
+\subsection{\var{\protect\$FATAL} : Generate fatal error message}
 
 The following code
 \begin{verbatim}
@@ -290,7 +290,7 @@ and the compiler will immediatly stop the compilation process.
 This is mainly useful inc conjunction wih \var{\{\$IFDEF\}} or
 \var{\{\$IFOPT\}} statements.
 
-\subsection{\var{\$GOTO} : Support \var{Goto} and \var{Label}}
+\subsection{\var{\protect\$GOTO} : Support \var{Goto} and \var{Label}}
 
 If \var{\{\$GOTO ON\}} is specified, the compiler will support \var{Goto}
 statements and \var{Label} declarations. By default, \var{\$GOTO OFF} is
@@ -315,7 +315,7 @@ readers, any labels used in the assembler code must be declared, and
 the \var{\{\$GOTO ON\}} directive should be used.
 \end{remark}
 
-\subsection{\var{\$H} or \var{\$LONGSTRINGS} : Use AnsiStrings}
+\subsection{\var{\protect\$H} or \var{\protect\$LONGSTRINGS} : Use AnsiStrings}
 
 If \var{\{\$LONGSTRINGS ON\}} is specified, the keyword \var{String} (no
 length specifier) will be treated as \var{AnsiString}, and the compiler
@@ -327,7 +327,7 @@ The \file{system} unit is compiled without ansistrings, all its functions accept
 shortstring arguments. The same is true for all RTL units, except the
 \file{sysutils} unit, which is compiled with ansistrings.
 
-\subsection{\var{\$HINT} : Generate hint message}
+\subsection{\var{\protect\$HINT} : Generate hint message}
 
 If the generation of hints is turned on, through the \var{-vh} command-line
 option or the \var{\{\$HINTS ON\}} directive, then
@@ -338,14 +338,14 @@ will display a hint message when the compiler encounters it.
 
 By default, no hints are generated.
 
-\subsection{\var{\$HINTS} : Emit hints}
+\subsection{\var{\protect\$HINTS} : Emit hints}
 
 \var{\{\$HINTS ON\}} switches the generation of hints on.
 \var{\{\$HINTS OFF\}} switches the generation of hints off.
 Contrary to the command-line option \var{-vh} this is a local switch,
 this is useful for checking parts of the code.
 
-\subsection{\var{\$IF} : Start conditional compilation}
+\subsection{\var{\protect\$IF} : Start conditional compilation}
 
 The directive \var{\{\$IF expr\}} will continue the compilation
 if the boolean expression \var{expr} evaluates to \var{true}. If the
@@ -359,7 +359,7 @@ the source cannot be used. Macros and symbols may be used, however.
 More information on this can be found in the section about
 conditionals.
 
-\subsection{\var{\$IFDEF Name} : Start conditional compilation}
+\subsection{\var{\protect\$IFDEF Name} : Start conditional compilation}
 
 If the symbol \var{Name} is not defined then the \var{\{\$IFDEF name\}}
 will skip the compilation of the text that follows it to the first
@@ -367,7 +367,7 @@ will skip the compilation of the text that follows it to the first
 If \var{Name} is defined, then compilation continues as if the directive
 wasn't there.
 
-\subsection{\var{\$IFNDEF} : Start conditional compilation}
+\subsection{\var{\protect\$IFNDEF} : Start conditional compilation}
 
 If the symbol \var{Name} is defined then the \var{\{\$IFNDEF name\}}
 will skip the compilation of the text that follows it to the first
@@ -375,7 +375,7 @@ will skip the compilation of the text that follows it to the first
 If it is not defined, then compilation continues as if the directive
 wasn't there.
 
-\subsection{\var{\$IFOPT} : Start conditional compilation}
+\subsection{\var{\protect\$IFOPT} : Start conditional compilation}
 
 The \var{\{\$IFOPT switch\}} will compile the text that follows it if the
 switch \var{switch} is currently in the specified state.
@@ -394,7 +394,7 @@ Will compile the writeln statement if generation of type information is on.
 i.e. \var{\{\$IFOPT TYPEINFO\}} will not be accepted.
 \end{remark}
 
-\subsection{\var{\$INFO} : Generate info message}
+\subsection{\var{\protect\$INFO} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
 option, then
@@ -406,7 +406,7 @@ will display an info message when the compiler encounters it.
 This is useful in conjunction with the \var{\{\$IFDEF\}} directive, to show
 information about which part of the code is being compiled.
 
-\subsection{\var{\$INLINE} : Allow inline code.}
+\subsection{\var{\protect\$INLINE} : Allow inline code.}
 
 The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
 procedure modifier should be allowed. Procedures that are declared inline
@@ -419,7 +419,7 @@ By default, \var{Inline} procedures are not allowed. This directive must be
 specified to use inlined code. The directive is equivalent to the command-line
  switch \var{-Si}. For more information on inline routines, consult the \refref.
 
-\subsection{\var{\$I} or \var{\$IOCHECKS} : Input/Output checking}
+\subsection{\var{\protect\$I} or \var{\protect\$IOCHECKS} : Input/Output checking}
 
 The \var{\{\$I-\}} or \var{\{\$IOCHECKS OFF\}} directive tells the compiler
 not to generate input/output checking code in the program. By default, the
@@ -454,7 +454,7 @@ See the \var{IOResult} function explanation in \refref for a
 detailed description of the possible errors that can occur when using
 input/output checking.
 
-\subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
+\subsection{\var{\protect\$I} or \var{\protect\$INCLUDE} : Include file }
 
 The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive
 tells the compiler to read further statements from the file \var{filename}.
@@ -484,16 +484,27 @@ path.
 Directories can be added to the include file search path with the \var{-I}
 command-line option.
 
-\subsection{\var{\$I} or \var{\$INCLUDE} : Include compiler info}
+\subsection{\var{\protect\$I} or \var{\protect\$INCLUDE} : Include compiler info}
 
 In this form:
 \begin{verbatim}
 {$INCLUDE %xxx%}
 \end{verbatim}
-where \var{xxx} is one of \var{TIME}, \var{DATE}, \var{FPCVERSION} or
-\var{FPCTARGET}, will generate a macro with the value of these things.
-If \var{xxx} is none of the above, then it is assumed to be the value of
-an environment variable. It's value will be fetched, and inserted in the code
+where \var{xxx} is one of the following:
+\begin{description}
+\item[DATE] Inserts the current date.
+\item[FPCTARGET] Inserts the target CPU name. (deprecated, use
+\var{FPCTARGETCPU})
+\item[FPCTARGETCPU] Inserts the target CPU name.
+\item[FPCTARGETOS] Inserts the target OS name.
+\item[FPCVERSION] Current compiler version number.
+\item[FILE] Filename in which the directive is found.
+\item[LINE] Linenumer on which the directive is found.
+\item[TIME] Current time.
+\end{description}
+If \var{xxx} is none of the above, then it is assumed to be the name of
+an environment variable. Its value will be fetched.
+As a reult, this will generate a macro with the value of these things,
 as if it were a string.
 
 For example, the following program
@@ -519,7 +530,7 @@ Target CPU: i386
 \end{verbatim}
 % Assembler type
 
-\subsection{\var{\$I386\_XXX} : Specify assembler format (Intel 80x86 only)}
+\subsection{\var{\protect\$I386\_XXX} : Specify assembler format (Intel 80x86 only)}
 
 This switch selects the assembler reader. \var{\{\$I386\_XXX\}}
 has the same effect as \var{\{\$ASMMODE XXX\}}, \sees{AsmReader}
@@ -527,7 +538,7 @@ has the same effect as \var{\{\$ASMMODE XXX\}}, \sees{AsmReader}
 This switch is deprecated, the \var{\{\$ASMMODE XXX\}} directive should
 be used instead.
 
-\subsection{\var{\$L} or \var{\$LINK} : Link object file}
+\subsection{\var{\protect\$L} or \var{\protect\$LINK} : Link object file}
 
 The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive
 tells the compiler that the file \file{filename} should be linked to
@@ -560,7 +571,7 @@ they will be passed to the linker, in the order that they were specified on
 the command line, just before the names of the object files that must be
 linked.
 
-\subsection{\var{\$LINKLIB} : Link to a library}
+\subsection{\var{\protect\$LINKLIB} : Link to a library}
 \label{se:linklib}
 
 The \var{\{\$LINKLIB name\}} will link to a library \file{name}.
@@ -595,7 +606,7 @@ above unit, and specify \var{-k-lc} on the command-line:
 ppc386 -k-lc foo.pp
 \end{verbatim}
 
-\subsection{\var{\$M} or \var{\$TYPEINFO} : Generate type info}
+\subsection{\var{\protect\$M} or \var{\protect\$TYPEINFO} : Generate type info}
 
 For classes that are compiled in the \var{\{\$M+\}} or \var{\{\$TYPEINFO ON\}}
 state, the compiler will generate Run-Time Type Information (RTTI). All
@@ -615,7 +626,7 @@ The streaming system implemented by \fpc requires that all
 streamable components be descendent from \var{TPersistent}.
 \end{remark}
 
-\subsection{\var{\$MACRO} : Allow use of macros.}
+\subsection{\var{\protect\$MACRO} : Allow use of macros.}
 
 In the \var{\{\$MACRO ON\}} state, the compiler allows to use C-style
 (although not as elaborate) macros. Macros provide a means for simple text
@@ -625,7 +636,7 @@ switch \var{-Sm}.
 
 By default, macros are not allowed.
 
-\subsection{\var{\$MAXFPUREGISTERS} : Maximum number of FPU registers for variables (Intel 80x86 only)}
+\subsection{\var{\protect\$MAXFPUREGISTERS} : Maximum number of FPU registers for variables (Intel 80x86 only)}
 
 The \var{\{\$MAXFPUREGISTERS XXX\}} directive tells the compiler how much floating point
 variables can be kept in the floating point processor registers. This switch is ignored
@@ -650,7 +661,7 @@ Currently this can be in the range 0 to 7.
 \begin{remark}This directive is valid until the end of the current procedure.
 \end{remark}
 
-\subsection{\var{\$MESSAGE} : Generate info message}
+\subsection{\var{\protect\$MESSAGE} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
 option, then
@@ -661,7 +672,7 @@ will display an info message when the compiler encounters it. The effect is
 the same as the \var{\{\$INFO\}} directive.
 
 
-\subsection{\var{\$MMX} : Intel MMX support (Intel 80x86 only)}
+\subsection{\var{\protect\$MMX} : Intel MMX support (Intel 80x86 only)}
 
 \fpc supports optimization for the \textbf{MMX} Intel
 processor (see also chapter \ref{ch:MMXSupport}).
@@ -709,7 +720,7 @@ end.
 See, however, the chapter on MMX (\ref{ch:MMXSupport}) for more information
 on this topic.
 
-\subsection{\var{\$NOTE} : Generate note message}
+\subsection{\var{\protect\$NOTE} : Generate note message}
 
 If the generation of notes is turned on, through the \var{-vn} command-line
 option or the \var{\{\$NOTES ON\}} directive, then
@@ -719,7 +730,7 @@ option or the \var{\{\$NOTES ON\}} directive, then
 will display a note message when the compiler encounters it.
 
 
-\subsection{\var{\$NOTES} : Emit notes}
+\subsection{\var{\protect\$NOTES} : Emit notes}
 
 \var{\{\$NOTES ON\}} switches the generation of notes on.
 \var{\{\$NOTES OFF\}} switches the generation of notes off.
@@ -728,7 +739,7 @@ this is useful for checking parts of the code.
 
 By default, \var{\{\$NOTES\}} is off.
 
-\subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
+\subsection{\var{\protect\$OUTPUT\_FORMAT} : Specify the output format}
 
 \var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
 command-line option: it tells the compiler what kind of object file must be
@@ -753,7 +764,7 @@ PECOFF    & PECOFF object file (Win32).\\
 TASM      & Tasm assembler file.\\
 \end{FPCltable}
 
-\subsection{\var{\$P} or \var{\$OPENSTRINGS} : Use open strings}
+\subsection{\var{\protect\$P} or \var{\protect\$OPENSTRINGS} : Use open strings}
 
 If this switch is on, all function or procedure parameters of type string
 are considered to be open string parameters; this parameter only has effect
@@ -766,7 +777,7 @@ with the \var{High(P)} call.
 
 Default the use of openstrings is off.
 
-\subsection{\var{\$PACKENUM} : Minimum enumeration type size}
+\subsection{\var{\protect\$PACKENUM} : Minimum enumeration type size}
 
 This directive tells the compiler the minimum number of bytes it should
 use when storing enumerated types. It is of the following form:
@@ -798,7 +809,7 @@ Type
 \end{verbatim}
 
 
-\subsection{\var{\$PACKRECORDS} : Alignment of record elements}
+\subsection{\var{\protect\$PACKRECORDS} : Alignment of record elements}
 
 This directive controls the byte alignment of the elements in a record,
 object or class type definition.
@@ -823,7 +834,7 @@ More information on this and an example program can be found in the reference
 guide, in the section about record types.
 
 
-\subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
+\subsection{\var{\protect\$Q} \var{\protect\$OVERFLOWCHECKS}: Overflow checking}
 The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on
 integer overflow checking. This means that the compiler inserts code
 to check for overflow when doing computations with integers.
@@ -842,7 +853,7 @@ generation.
 The generation of overflow checking code can also be controlled
 using the \var{-Co} command line compiler option (see \userref).
 
-\subsection{\var{\$R} or \var{\$RANGECHECKS} : Range checking}
+\subsection{\var{\protect\$R} or \var{\protect\$RANGECHECKS} : Range checking}
 
 By default, the compiler doesn't generate code to check the ranges of array
 indices, enumeration types, subrange types, etc. Specifying the
@@ -861,14 +872,14 @@ will be generated.
 when the call is compiled in \var{\{\$R+\}} mode.
 \end{remark}
 
-\subsection{\var{\$SATURATION} : Saturation operations (Intel 80x86 only)}
+\subsection{\var{\protect\$SATURATION} : Saturation operations (Intel 80x86 only)}
 
 This works only on the intel compiler, and MMX support must be on
 (\var{\{\$MMX +\}}) for this to have any effect. See the section on
 saturation support (\sees{SaturationSupport}) for more information
 on the effect of this directive.
 
-\subsection{\var{\$SMARTLINK} : Use smartlinking}
+\subsection{\var{\protect\$SMARTLINK} : Use smartlinking}
 
 A unit that is compiled in the \var{\{\$SMARTLINK ON\}} state will be
 compiled in such a way that it can be used for smartlinking. This means that
@@ -897,7 +908,7 @@ Interface
 
 This directive is equivalent to the \var{-Cx} command-line switch.
 
-\subsection{\var{\$STATIC} : Allow use of \var{Static} keyword.}
+\subsection{\var{\protect\$STATIC} : Allow use of \var{Static} keyword.}
 
 If you specify the \var{\{\$STATIC ON\}} directive, then \var{Static}
 methods are allowed for objects. \var{Static} objects methods do not require
@@ -909,7 +920,7 @@ By default, the address operator returns an untyped pointer.
 
 This directive is equivalent to the \var{-St} command-line option.
 
-\subsection{\var{\$STOP} : Generate fatal error message}
+\subsection{\var{\protect\$STOP} : Generate fatal error message}
 
 The following code
 \begin{verbatim}
@@ -920,7 +931,7 @@ The compiler will immediatly stop the compilation process.
 
 It has the same effect as the \var{\{\$FATAL\}} directive.
 
-\subsection{\var{\$T} or \var{\$TYPEDADDRESS} : Typed address operator (@)}
+\subsection{\var{\protect\$T} or \var{\protect\$TYPEDADDRESS} : Typed address operator (@)}
 
 In the \var{\{\$T+\}} or \var{\{\$TYPEDADDRESS ON\}} state the @ operator,
 when applied to a variable, returns a result of type \var{\^{}T}, if the
@@ -928,7 +939,7 @@ type of the variable is \var{T}. In the \var{\{\$T-\}} state, the result is
 always an untyped pointer, which is assignment compatible with all other
 pointer types.
 
-\subsection{\var{\$UNDEF} : Undefine a symbol}
+\subsection{\var{\protect\$UNDEF} : Undefine a symbol}
 
 The directive
 \begin{verbatim}
@@ -938,13 +949,13 @@ un-defines the symbol \var{name} if it was previously defined.
 \var{Name} is case insensitive.
 
 
-\subsection{\var{\$V} or \var{\$VARSTRINGCHECKS} : Var-string checking}
+\subsection{\var{\protect\$V} or \var{\protect\$VARSTRINGCHECKS} : Var-string checking}
 
 When in the \var{+} or \var{ON} state, the compiler checks that strings
 passed as parameters are of the same, identical, string type as the declared
 parameters of the procedure.
 
-\subsection{\var{\$WAIT} : Wait for enter key press}
+\subsection{\var{\protect\$WAIT} : Wait for enter key press}
 
 If the compiler encounters a
 \begin{verbatim}
@@ -961,7 +972,7 @@ before waiting for a keypress.
 compilation processes. It should be used for debugging purposes only.
 \end{remark}
 
-\subsection{\var{\$WARNING} : Generate warning message}
+\subsection{\var{\protect\$WARNING} : Generate warning message}
 
 If the generation of warnings is turned on, through the \var{-vw}
 command-line option or the \var{\{\$WARNINGS ON\}} directive, then
@@ -970,7 +981,7 @@ command-line option or the \var{\{\$WARNINGS ON\}} directive, then
 \end{verbatim}
 will display a warning message when the compiler encounters it.
 
-\subsection{\var{\$WARNINGS} : Emit warnings}
+\subsection{\var{\protect\$WARNINGS} : Emit warnings}
 
 \var{\{\$WARNINGS ON\}} switches the generation of warnings on.
 \var{\{\$WARNINGS OFF\}} switches the generation of warnings off.
@@ -979,7 +990,7 @@ is a local switch, this is useful for checking parts of your code.
 
 By default, no warnings are emitted.
 
-\subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
+\subsection{\var{\protect\$X} or \var{\protect\$EXTENDEDSYNTAX} : Extended syntax}
 
 Extended syntax allows you to drop the result of a function. This means that
 you can use a function call as if it were a procedure. Standard this feature
@@ -1016,7 +1027,7 @@ Global directives affect the whole of the compilation process. That is why
 they also have a command-line counterpart. The command-line counterpart is
 given for each of the directives.
 
-\subsection{\var{\$APPTYPE} : Specify type of application (Win32 and AmigaOS only)}
+\subsection{\var{\protect\$APPTYPE} : Specify type of application (Win32 and AmigaOS only)}
 
 The \var{\{\$APPTYPE XXX\}} accepts one argument that can have two possible
 values: \var{GUI} or \var{CONSOLE}. It is used to tell the \windows
@@ -1042,7 +1053,7 @@ Const
 contains \var{True} if the application is a console application, \var{False}
 if the application is a GUI application.
 
-\subsection{\var{\$D} or \var{\$DEBUGINFO} : Debugging symbols}
+\subsection{\var{\protect\$D} or \var{\protect\$DEBUGINFO} : Debugging symbols}
 
 When this switch is on,
 the compiler inserts GNU debugging information in
@@ -1051,12 +1062,12 @@ switch \var{-g}.
 
 By default, insertion of debugging information is off.
 
-\subsection{\var{\$DESCRIPTION} : Application description}
+\subsection{\var{\protect\$DESCRIPTION} : Application description}
 
 This switch is recognised for compatibility only, but is ignored completely
 by the compiler. At a later stage, this switch may be activated.
 
-\subsection{\var{\$E} : Emulation of coprocessor}
+\subsection{\var{\protect\$E} : Emulation of coprocessor}
 
 This directive controls the emulation of the coprocessor. There is no
 command-line counterpart for this directive.
@@ -1088,12 +1099,12 @@ For unix targets, floating point emulation (if required) is handled
 by the operating system, and by default it is off.
 \end{remark}
 
-\subsection{\var{\$G} : Generate 80286 code}
+\subsection{\var{\protect\$G} : Generate 80286 code}
 
 This option is recognised for Turbo Pascal compatibility, but is ignored,
 since the compiler works only on 32-bit and 64-bit processors.
 
-\subsection{\var{\$INCLUDEPATH} : Specify include path.}
+\subsection{\var{\protect\$INCLUDEPATH} : Specify include path.}
 
 This option serves to specify the include path, where the compiler looks for
 include files. \var{\{\$INCLUDEPATH XXX\}} will add \var{XXX} to the include
@@ -1120,13 +1131,13 @@ paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$L} or \var{\$LOCALSYMBOLS} : Local symbol information}
+\subsection{\var{\protect\$L} or \var{\protect\$LOCALSYMBOLS} : Local symbol information}
 
 This switch (not to be confused with the \var{\{\$L file\}} file linking
 directive) is recognised for Turbo Pascal compatibility, but is ignored.
 Generation of symbol information is controlled by the \var{\$D} switch.
 
-\subsection{\var{\$LIBRARYPATH} : Specify library path.}
+\subsection{\var{\protect\$LIBRARYPATH} : Specify library path.}
 
 This option serves to specify the library path, where the linker looks for
 static or dynamic libraries. \var{\{\$LIBRARYPATH XXX\}} will add \var{XXX}
@@ -1151,7 +1162,7 @@ directory structure may be different. In general it would be fair to say
 that you should avoid using this directive. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$M} or \var{\$MEMORY} : Memory sizes}
+\subsection{\var{\protect\$M} or \var{\protect\$MEMORY} : Memory sizes}
 
 This switch can be used to set the heap and stacksize. It's format is as
 follows:
@@ -1164,7 +1175,7 @@ second the size of the heap. (Stack setting is ignored under \linux, \netbsd and
 The two numbers can be set on the command line using the \var{-Ch}
 and \var{-Cs} switches.
 
-\subsection{\var{\$MODE} : Set compiler compatibility mode}
+\subsection{\var{\protect\$MODE} : Set compiler compatibility mode}
 
 The \var{\{\$MODE\}} sets the compatibility mode of the compiler. This
 is equivalent to setting one of the command-line options \var{-So},
@@ -1188,18 +1199,18 @@ option.
 For an exact description of each of these modes, see appendix \ref{ch:AppD},
 on page \pageref{ch:AppD}.
 
-\subsection{\var{\$N} : Numeric processing }
+\subsection{\var{\protect\$N} : Numeric processing }
 
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
 ignored, since the compiler always uses the coprocessor for floating point
 mathematics.
 
-\subsection{\var{\$O} : Overlay code generation }
+\subsection{\var{\protect\$O} : Overlay code generation }
 
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
 ignored.
 
-\subsection{\var{\$OBJECTPATH} : Specify object path.}
+\subsection{\var{\protect\$OBJECTPATH} : Specify object path.}
 
 This option serves to specify the object path, where the compiler looks for
 object files. \var{\{\$OBJECTPATH XXX\}} will add \var{XXX} to the object
@@ -1226,7 +1237,7 @@ paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$S} : Stack checking}
+\subsection{\var{\protect\$S} : Stack checking}
 
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
 code. This generates code to check if a stack overflow occurred, i.e. to see
@@ -1241,7 +1252,7 @@ The command-line compiler switch \var{-Ct} has the same effect as the
 
 By default, no stack checking is performed.
 
-\subsection{\var{\$UNITPATH} : Specify unit path.}
+\subsection{\var{\protect\$UNITPATH} : Specify unit path.}
 
 This option serves to specify the unit path, where the compiler looks for
 unit files. \var{\{\$UNITPATH XXX\}} will add \var{XXX} to the unit
@@ -1268,7 +1279,7 @@ paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$W} or \var{\$STACKFRAMES} : Generate stackframes}
+\subsection{\var{\protect\$W} or \var{\protect\$STACKFRAMES} : Generate stackframes}
 
 The \var{\{\$W\}} switch directove controls the generation of stackframes.
 In the on state, the compiler will generate a
@@ -1285,7 +1296,7 @@ a \var{asm \dots end;} block.
 \end{itemize}
 If these conditions are satisfied, the stack frame will be omitted.
 
-\subsection{\var{\$Y} or \var{\$REFERENCEINFO} : Insert Browser information}
+\subsection{\var{\protect\$Y} or \var{\protect\$REFERENCEINFO} : Insert Browser information}
 
 This switch controls the generation of browser inforation. It is recognized
 for compatibility with Turbo Pascal and Delphi only, as Browser information
