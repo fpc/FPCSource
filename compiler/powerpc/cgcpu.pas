@@ -1661,7 +1661,9 @@ const
            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
          else if (ref2.base <> NR_NO) and
                  (r <> ref2.base) then
-           list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
+           list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base))
+         else
+           list.concat(taicpu.op_reg_const(A_LI,r,0));
          if freereg then
            rg[R_INTREGISTER].ungetregister(list,ref2.base);
        end;
@@ -2324,7 +2326,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2003-12-28 23:49:30  jonas
+  Revision 1.153  2003-12-29 11:13:53  jonas
+    * fixed tb0350 (support loading address of reference containing the
+      address 0)
+
+  Revision 1.152  2003/12/28 23:49:30  jonas
     * fixed tnotnode for < 32 bit quantities
 
   Revision 1.151  2003/12/28 19:22:27  florian
