@@ -38,7 +38,8 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symtable,aasm,types,
-      hcodegen,htypechk,pass_1
+      hcodegen,htypechk,pass_1,
+      tccnv
 {$ifdef i386}
 {$ifdef ag386bin}
       ,i386base
@@ -92,8 +93,12 @@ implementation
          if codegenerror then
           exit;
 
+         { Convert array constructor first to set }
+         if is_array_constructor(p^.right^.resulttype) then
+           arrayconstructor_to_set(p^.right);
+
          if p^.right^.resulttype^.deftype<>setdef then
-          CGMessage(sym_e_set_expected);
+           CGMessage(sym_e_set_expected);
 
          firstpass(p^.left);
          if codegenerror then
@@ -155,7 +160,7 @@ implementation
            exit;
          { both types must be compatible }
          if not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) and
-            not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,ct,ordconstn,false)) then
+            (isconvertable(p^.left^.resulttype,p^.right^.resulttype,ct,ordconstn,false)=0) then
            CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
          if (p^.left^.treetype=ordconstn) and (p^.right^.treetype=ordconstn) then
@@ -249,7 +254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-02-22 02:15:55  peter
+  Revision 1.7  1999-03-02 18:22:36  peter
+    * arrayconstructor convert for in
+
+  Revision 1.6  1999/02/22 02:15:55  peter
     * updates for ag386bin
 
   Revision 1.5  1998/12/18 17:15:40  peter
