@@ -1999,10 +1999,12 @@ implementation
             { left is an interface }
             else if is_interface(left.resulttype.def) then
              begin
-               { the operands must be related }
+               { the operands must be related
+                 we don't necessarily know how the both interfaces are implemented, so we can't do this check (FK)
                if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
                   (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
                  CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
+               }
              end
             else
              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
@@ -2084,7 +2086,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2002-10-05 12:43:25  carl
+  Revision 1.86  2002-10-06 16:10:23  florian
+    * when compiling <interface> as <interface> we can't assume
+      anything about relation
+
+  Revision 1.85  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
