@@ -234,7 +234,7 @@ void                  \2\x0F\x06                      286,PRIV
 void                  \1\xF5                          8086
 
 [CMP,cmpX]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_ROp1, Ch_ROp2, Ch_WFlags)
 mem,reg8              \300\1\x38\101                  8086,SM
 reg8,reg8             \300\1\x38\101                  8086
 mem,reg16             \320\300\1\x39\101              8086,SM
@@ -2276,14 +2276,14 @@ mem,imm16             \320\300\1\x81\206\31           8086,SM
 mem,imm32             \321\300\1\x81\206\41           386,SM
 
 [CMOVcc,cmovCCX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_ROp1, Ch_WOp2, Ch_RFLAGS)
 reg16,mem             \320\301\1\x0F\330\x40\110      P6,SM
 reg16,reg16           \320\301\1\x0F\330\x40\110      P6
 reg32,mem             \321\301\1\x0F\330\x40\110      P6,SM
 reg32,reg32           \321\301\1\x0F\330\x40\110      P6
 
 [Jcc]
-(Ch_All, Ch_None, Ch_None)
+(Ch_None, Ch_None, Ch_None)
 imm|near              \322\1\x0F\330\x80\64           386,PASS2
 imm16|near            \320\1\x0F\330\x80\64           386,PASS2
 imm32|near            \321\1\x0F\330\x80\64           386,PASS2
@@ -2291,7 +2291,7 @@ imm                   \330\x70\50                     8086
 imm|short             \330\x70\50                     8086,ND
 
 [SETcc,setCCX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_RFLAGS, Ch_WOp1, Ch_None)
 mem                   \300\1\x0F\330\x90\200          386,SB
 reg8                  \300\1\x0F\330\x90\200          386
 
