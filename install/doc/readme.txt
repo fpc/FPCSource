@@ -76,8 +76,9 @@ Win32:
  - Win95/98/Me/2000/XP or WinNT
  - 8 MB RAM (16+ MB recommended)
 OS/2 and DOS (extender EMX):
- - either DOS 5.0 and above
-  or OS/2 v2.x and above
+ - either DOS 5.0 and above or OS/2 v3.x and above (including eComStation;
+  OS/2 v2.x might work at least in some cases, but is not officially
+  supported any more)
  - 3 MB RAM (8+ MB recommended) for DOS
   or 8 MB (12 or more MB recommended depending on OS version) for OS/2
  - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
