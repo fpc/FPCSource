@@ -110,7 +110,9 @@ interface
 
       procedure ReLabel(var p:tasmsymbol);
         begin
-          if p.defbind = AB_LOCAL then
+          { Only relabel local tasmlabels }
+          if (p.defbind = AB_LOCAL) and
+             (p is tasmlabel) then
            begin
              if not assigned(p.altsymbol) then
                objectlibrary.GenerateAltSymbol(p);
@@ -288,7 +290,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-11-27 02:37:13  peter
+  Revision 1.28  2002-11-27 15:33:19  peter
+    * fixed relabeling to relabel only tasmlabel (formerly proclocal)
+
+  Revision 1.27  2002/11/27 02:37:13  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are
