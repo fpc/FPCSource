@@ -1353,6 +1353,58 @@ type
   end;
 {$endif HASINTF}
 
+{ ---------------------------------------------------------------------
+    TDatamodule support
+  ---------------------------------------------------------------------}
+  TDataModule = class(TComponent)
+  private
+    FDPos: TPoint;
+    FDSize: TPoint;
+    FOnCreate: TNotifyEvent;
+    FOnDestroy: TNotifyEvent;
+    FOldOrder : Boolean;
+    Procedure ReadT(Reader: TReader);
+    Procedure WriteT(Writer: TWriter);
+    Procedure ReadL(Reader: TReader);
+    Procedure WriteL(Writer: TWriter);
+    Procedure ReadW(Reader: TReader);
+    Procedure WriteW(Writer: TWriter);
+    Procedure ReadH(Reader: TReader);
+    Procedure WriteH(Writer: TWriter);
+  protected
+    Procedure DoCreate; virtual;
+    Procedure DoDestroy; virtual;
+    Procedure DefineProperties(Filer: TFiler); override;
+    Procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    Function HandleCreateException: Boolean; virtual;
+    Procedure ReadState(Reader: TReader); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    Constructor CreateNew(AOwner: TComponent); 
+    Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); virtual;
+    destructor Destroy; override;
+    Procedure AfterConstruction; override;
+    Procedure BeforeDestruction; override;
+    property DesignOffset: TPoint read FDPos write FDPos;
+    property DesignSize: TPoint read FDSize write FDSize;
+  published
+    property OnCreate: TNotifyEvent read FOnCreate write FOnCreate;
+    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
+    property OldCreateOrder: Boolean read FOldOrder write FOldOrder;
+  end;
+  
+var 
+  // IDE hooks for TDatamodule support. 
+  AddDataModule              : procedure (DataModule: TDataModule) of object;
+  RemoveDataModule           : procedure (DataModule: TDataModule) of object;
+  ApplicationHandleException : procedure (Sender: TObject) of object;
+  ApplicationShowException   : procedure (E: Exception) of object;
+
+{ ---------------------------------------------------------------------
+    General streaming and registration routines
+  ---------------------------------------------------------------------}
+  
+
 var
   RegisterComponentsProc: procedure(const Page: string;
     ComponentClasses: array of TComponentClass);
@@ -1403,6 +1455,7 @@ type
   TIdentToInt = function(const Ident: string; var Int: Longint): Boolean;
   TIntToIdent = function(Int: Longint; var Ident: string): Boolean;
   TFindGlobalComponent = function(const Name: string): TComponent;
+  TInitComponentHandler = function(Instance: TComponent; RootAncestor : TClass): boolean;
 
 var
   MainThreadID: THandle;
@@ -1419,6 +1472,7 @@ function ReadComponentRes(const ResName: string; Instance: TComponent): TCompone
 function ReadComponentResEx(HInstance: THandle; const ResName: string): TComponent;
 function ReadComponentResFile(const FileName: string; Instance: TComponent): TComponent;
 procedure WriteComponentResFile(const FileName: string; Instance: TComponent);
+procedure RegisterInitComponentHandler(ComponentClass: TComponentClass;   Handler: TInitComponentHandler);
 
 procedure GlobalFixupReferences;
 procedure GetFixupReferenceNames(Root: TComponent; Names: TStrings);
@@ -1450,7 +1504,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.23  2002-10-14 19:46:50  peter
+  Revision 1.24  2003-06-04 15:27:24  michael
+  + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
+
+  Revision 1.23  2002/10/14 19:46:50  peter
     * use FPC_THREADING define for removing thread dependent code
 
   Revision 1.22  2002/09/07 15:15:24  peter

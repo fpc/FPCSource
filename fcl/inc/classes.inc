@@ -72,8 +72,13 @@ var
 { TBasicAction implementation }
 {$i action.inc}
 
+{ TDataModule implementation }
+{$i dm.inc}
+
 { Class and component registration routines }
 {$I cregist.inc}
+
+
 
 { Interface related stuff }
 {$ifdef HASINTF}
@@ -266,42 +271,58 @@ begin
   Result := True;
 end;
 
+Type
+  TInitHandler = Class(TObject)
+    AHandler : TInitComponentHandler;
+    AClass : TComponentClass;
+  end;
+  
+Var  
+  InitHandlerList : TList;
+   
+procedure RegisterInitComponentHandler(ComponentClass: TComponentClass;   Handler: TInitComponentHandler);
+
+Var
+  I : Integer;
+  H: TInitHandler;
+  
+begin
+  If (InitHandlerList=Nil) then
+    InitHandlerList:=TList.Create;
+  H:=TInitHandler.Create;
+  H.Aclass:=ComponentClass;
+  H.AHandler:=Handler;
+  With InitHandlerList do
+    begin
+    I:=0;
+    While (I<Count) and not H.AClass.InheritsFrom(TInitHandler(Items[i]).AClass) do 
+      Inc(I);
+    If I=Count then
+      InitHandlerList.Add(H)
+    else
+      InitHandlerList.Insert(I,H);
+    end;  
+end;
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
 
-  function DoInitClass(ClassType: TClass): Boolean;
-  begin
-    Result := False;
-    if (ClassType <> TComponent) and (ClassType <> RootAncestor) then
-    begin
-      { Init the parent class first }
-      Result := DoInitClass(ClassType.ClassParent);
-
-      { !!!: This would work only on Win32, how should we do this multiplatform?
-      Result := InternalReadComponentRes(ClassType.ClassName,
-        FindResourceHInstance(FindClassHInstance(ClassType)), Instance)
-        or Result;}
-      Result := False;
-    end;
-  end;
+Var
+  I : Integer;
 
 begin
-  {!!!: GlobalNameSpace.BeginWrite;
-  try}
-    if (Instance.ComponentState * [csLoading, csInline]) = [] then
+  I:=0;
+  Result:=False;
+  With InitHandlerList do
     begin
-      BeginGlobalLoading;
-      try
-        Result := DoInitClass(Instance.ClassType);
-        NotifyGlobalLoading;
-      finally
-        EndGlobalLoading;
+    I:=0;
+    // Instance is the normally the lowest one, so that one should be used when searching.
+    While Not result and (I<Count) do
+      begin
+      If (Instance.InheritsFrom(TInitHandler(Items[i]).AClass)) then 
+        Result:=TInitHandler(Items[i]).AHandler(Instance,RootAncestor);  
+      Inc(I);
       end;
-    end else
-      Result := DoInitClass(Instance.ClassType);
-  {finally
-    GlobalNameSpace.EndWrite;
-  end;}
+    end;  
 end;
 
 
@@ -1146,6 +1167,7 @@ end;
 
 procedure CommonInit;
 begin
+  InitHandlerList:=Nil;
   IntConstList := TThreadList.Create;
   GlobalFixupList := TThreadList.Create;
   ClassList := TThreadList.Create;
@@ -1174,6 +1196,8 @@ begin
   ComponentPages.Free;
   {!!!: GlobalNameSpace.Free;
   GlobalNameSpace := nil;}
+  InitHandlerList.Free;
+  InitHandlerList:=Nil;
 end;
 
 
@@ -1191,7 +1215,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-04-19 14:29:25  michael
+  Revision 1.13  2003-06-04 15:27:24  michael
+  + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
+
+  Revision 1.12  2003/04/19 14:29:25  michael
   + Fix from Mattias Gaertner, closes memory leak
 
   Revision 1.11  2002/12/02 12:04:07  sg
