@@ -1148,7 +1148,7 @@ implementation
                          (resulttype.def.deftype=pointerdef)) or
                          ((resulttype.def.deftype=orddef) and
                           (left.resulttype.def.deftype=pointerdef)) then
-                       CGMessage(cg_d_pointer_to_longint_conv_not_portable);
+                       CGMessage(cg_h_pointer_to_longint_conv_not_portable);
                    end;
 
                   { the conversion into a strutured type is only }
@@ -1992,7 +1992,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2002-11-27 13:11:38  peter
+  Revision 1.92  2002-11-27 19:43:21  carl
+    * updated notes and hints
+
+  Revision 1.91  2002/11/27 13:11:38  peter
     * more currency fixes, taddcurr runs now successfull
 
   Revision 1.90  2002/11/27 11:29:21  peter
