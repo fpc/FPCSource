@@ -197,10 +197,10 @@ Begin
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
+{$ifdef dummy}
   globalresult := GLOBAL_RESULT;
   { secondcalln : class constructor failure, when getmem returns 0,
     that will call class_help_fail and abort class construction }
-{$ifdef fpc}
   heaperror := @myheaperrornil;
   try
     class_none_fail:=tclass2.create_none;
@@ -209,15 +209,12 @@ Begin
    end;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
-{$endif fpc}
 
-  globalresult := 0;
   { secondcalln : class constructor failure, getmem gives a runtime error
     that will be translated to a exception and the exception shall be catched
     here }
-{$ifdef fpc}
+  globalresult := 0;
   heaperror := @myheaperrorexception;
-{$endif fpc}
   try
     class_none_fail:=tclass2.create_none;
    except
@@ -225,7 +222,7 @@ Begin
    end;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
-
+{$endif dummy}
 
   if failed then
     fail
@@ -236,7 +233,10 @@ end.
 
 {
  $Log$
- Revision 1.5  2003-10-03 14:46:37  peter
+ Revision 1.6  2004-06-29 20:55:29  peter
+   * heaperror is gone
+
+ Revision 1.5  2003/10/03 14:46:37  peter
    * popstack to oldfpccall
 
  Revision 1.4  2002/09/07 15:40:52  peter
