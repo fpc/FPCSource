@@ -1,5 +1,9 @@
 {$mode delphi}
-   uses sysutils;
+  uses 
+{$ifdef go32v2}
+    dpmiexcp,
+{$endif go32v2}
+    sysutils;
    type
      ttest=class
      end;
