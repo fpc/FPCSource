@@ -91,7 +91,7 @@ const
         lis    r4,factor@ha
         lfd    f2,factor@l(r4)
         {$else}
-        lwz    r4,factor[TC](r2)
+        lwz    r4,factor(r2)
         lfd    f2,0(r4)
         {$endif}
         // check if value is < 0
@@ -112,7 +112,7 @@ const
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
         {$else}
-        lwz    r4,longint_to_real_helper[TC](r2)
+        lwz    r4,longint_to_real_helper(r2)
         lfd    f0,0(r4)
         {$endif}
         lfd    f3,temp
@@ -129,7 +129,7 @@ const
         lis    r4,factor2@ha
         lfd    f2,factor2@l(r4)
         {$else}
-        lwz    r4,factor2[TC](r2)
+        lwz    r4,factor2(r2)
         lfd    f2,0(r4)
         {$endif}
 
@@ -187,7 +187,7 @@ const
         lis    r4,factor@ha
         lfd    f2,factor@l(r4)
         {$else}
-        lwz    r4,factor[TC](r2)
+        lwz    r4,factor(r2)
         lfd    f2,0(r4)
         {$endif}
         // check if value is < 0
@@ -208,7 +208,7 @@ const
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
         {$else}
-        lwz    r4,longint_to_real_helper[TC](r2)
+        lwz    r4,longint_to_real_helper(r2)
         lfd    f0,0(r4)
         {$endif}
         lfd    f3,temp
@@ -225,7 +225,7 @@ const
         lis    r4,factor2@ha
         lfd    f2,factor2@l(r4)
         {$else}
-        lwz    r4,factor2[TC](r2)
+        lwz    r4,factor2(r2)
         lfd    f2,0(r4)
         {$endif}
 
@@ -362,7 +362,7 @@ asm
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
            {$else}
-           lwz    r3,longint_to_real_helper[TC](r2)
+           lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
            {$endif}
            lfd    f0,temp
@@ -375,8 +375,8 @@ asm
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r4)
            {$else}
-           lwz    r4,cardinal_to_real_helper[TC](r2)
-           lwz    r3,int_to_real_factor[TC](r2)
+           lwz    r4,cardinal_to_real_helper(r2)
+           lwz    r3,int_to_real_factor(r2)
            lfd    f3,temp
            lfd    f1,0(r4)
            lfd    f2,0(r3)
@@ -406,7 +406,7 @@ asm
            lis    r3,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r3)
            {$else}
-           lwz    r3,longint_to_real_helper[TC](r2)
+           lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
            {$endif}
            stw    r4,temp+4
@@ -416,7 +416,7 @@ asm
            lis    r4,int_to_real_factor@ha
            lfd    f2,int_to_real_factor@l(r4)
            {$else}
-           lwz    r4,int_to_real_factor[TC](r2)
+           lwz    r4,int_to_real_factor(r2)
            lfd    f2,0(r4)
            {$endif}
            fsub   f3,f3,f1
@@ -426,7 +426,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2003-12-07 19:55:37  jonas
+  Revision 1.33  2004-02-09 20:21:06  olle
+    * fixed global variable access in asm
+
+  Revision 1.32  2003/12/07 19:55:37  jonas
     - reverted previous patch, solved with the new assembler reader
       (which didn't understand the new syntax)
 
