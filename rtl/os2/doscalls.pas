@@ -1080,7 +1080,8 @@ const   faReadOnly      =  1;
         faHidden        =  2;
         faSystem        =  4;
         faReserve       =  8;
-        faDirecA P                    faArchive       = 32;
+        faDirectory     = 16;
+        faArchive       = 32;
 
         ilStandard      =  1;
         ilQueryEAsize   =  2;
@@ -4552,7 +4553,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.17  2002-11-04 21:22:12  hajny
+  Revision 1.18  2002-11-14 21:16:22  hajny
+    * corruption from the last commit corrected
+
+  Revision 1.17  2002/11/04 21:22:12  hajny
     + DosProtect* functions added, first part of longint->cardinal fixes
 
   Revision 1.16  2002/10/13 15:25:27  hajny
