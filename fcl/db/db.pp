@@ -1145,7 +1145,10 @@ type
     Private
       FDatabase : TDatabase;
       Procedure SetDatabase (Value : TDatabase);
+    Protected 
+      Procedure CheckDatabase;  
     Public
+      Destructor destroy; override;
       Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     end;
 
@@ -1161,7 +1164,7 @@ type
     FConnected : Boolean;
     FDataBaseName : String;
     FDataSets : TList;
-    FDirectOry : String;
+    FDirectory : String;
     FKeepConnection : Boolean;
     FLoginPrompt : Boolean;
     FOnLogin : TLoginEvent;
@@ -1459,7 +1462,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-05-15 15:15:15  michael
+  Revision 1.10  2003-08-16 16:42:21  michael
+  + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
+
+  Revision 1.9  2003/05/15 15:15:15  michael
   + Database class in TDBDataset is public, not published
 
   Revision 1.8  2003/05/08 21:52:41  michael

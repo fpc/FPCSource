@@ -43,9 +43,15 @@ Const
   SDatasetReadOnly = 'Dataset is read-only.';
   SNeedField = 'Field %s is required, but not supplied.';
   SNotInEditState = 'Operation not allowed, dataset "%s" is not in an edit state.';
+  SErrNoDatabaseAvailable = 'Invalid operation: Not attached to database';
+  
+
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:23  peter
+  Revision 1.5  2003-08-16 16:42:21  michael
+  + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
+
+  Revision 1.4  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }

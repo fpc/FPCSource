@@ -66,6 +66,8 @@ constructor TDatabase.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
+  FParams:=TStringlist.Create;
+  FDatasets:=TList.Create;
 end;
 
 destructor TDatabase.Destroy;
@@ -74,6 +76,7 @@ begin
   Connected:=False;
   RemoveDatasets;
   FDatasets.Free;
+  FParams.Free;
   Inherited Destroy;
 end;
 
@@ -173,9 +176,27 @@ begin
     end;
 end;
 
+Procedure TDBDataset.CheckDatabase;
+
+begin
+  If (FDatabase=Nil) then
+    DatabaseError(SErrNoDatabaseAvailable,Self)
+end;
+
+Destructor TDBDataset.Destroy;
+
+begin
+  Database:=Nil;
+  Inherited;
+end;
+
+
 {
   $Log$
-  Revision 1.3  2002-09-07 15:15:22  peter
+  Revision 1.4  2003-08-16 16:42:21  michael
+  + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
+
+  Revision 1.3  2002/09/07 15:15:22  peter
     * old logs removed and tabs fixed
 
 }

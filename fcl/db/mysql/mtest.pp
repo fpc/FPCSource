@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
+{$H+}
 program mtest;
 
 uses db,sysutils,mysqldb;
@@ -74,6 +76,7 @@ begin
 end;
 
 Var
+  Dbase : TMySQLDatabase;
   Data : TMysqldataset;
   I,Count : longint;
   Bookie : TBookMarkStr;
@@ -112,77 +115,95 @@ begin
     Writeln ('Usage : mtest db user pwd sql');
     Halt(1);
     end;
-  Log ('Creating Dataset');
-  Data:=TMysqlDataset.Create(Nil);
-  With Data do
-    begin
-    Log('Setting database');
-    Database:=Paramstr(1);
-    Log('Setting user');
-    User:=Paramstr(2);
-    Log('Setting password');
-    PassWord := Paramstr(3);
-    Log('Setting SQL');
-    SQL.text := Paramstr(4);
-    Log('Opening Dataset');
-    Open;
-    Log('Dumping fielddefs : ');
-    Writeln ('Fielddefs count : ',FieldDefs.Count);
-    For I:=0 to FieldDefs.Count-1 do
-      DumpFieldDef(FieldDefs.Items[i]);
-    Writeln ('Fields count : ',FieldCount);
-    For I:=0 to FieldCount-1 do
-      DumpField(Fields[i]);
-    ScrollForward;
-    ScrollBackWard;
-    Writeln ('Going to last :');
-    writeln ('---------------');
-    Last;
-    ScrollBackWard;
-    ScrollForward;
-    Writeln ('Going to first:');
-    First;
-    Count:=0;
-    Writeln ('Browsing Forward:');
-    Writeln ('------------------');
+  Log ('Creating Database');
+  DBase:=TMySQLDatabase.Create(Nil);
+  Try
+    With DBase do
+      begin
+      Log('Setting database');
+      DatabaseName:=Paramstr(1);
+      Log('Setting user');
+      UserName:=Paramstr(2);
+      Log('Setting password');
+      PassWord := Paramstr(3);
+      Log('Connecting');
+      Connected:=True;
+      end;
+    Log ('Creating Dataset');
+    Data:=TMysqlDataset.Create(Nil);
     With Data do
-      While NOT EOF do
-        begin
-        Inc(Count);
-        If Count=recordCount div 2 then
-          begin
-          Writeln ('Setting bookmark on record');
-          Bookie:=Bookmark;
-          Writeln ('Got data : "',Bookie,'"');
-          end;
+      Try
+        Log('Setting database property');
+        Database:=DBase;
+        Log('Setting SQL');
+        SQL.text := Paramstr(4);
+        Log('Opening Dataset');
+        Open;
+        Log('Dumping fielddefs : ');
+        Writeln ('Fielddefs count : ',FieldDefs.Count);
+        For I:=0 to FieldDefs.Count-1 do
+          DumpFieldDef(FieldDefs.Items[i]);
+        Writeln ('Fields count : ',FieldCount);
+        For I:=0 to FieldCount-1 do
+          DumpField(Fields[i]);
+        ScrollForward;
+        ScrollBackWard;
+        Writeln ('Going to last :');
+        writeln ('---------------');
+        Last;
+        ScrollBackWard;
+        ScrollForward;
+        Writeln ('Going to first:');
+        First;
+        Count:=0;
+        Writeln ('Browsing Forward:');
+        Writeln ('------------------');
+        With Data do
+          While NOT EOF do
+            begin
+            Inc(Count);
+            If Count=recordCount div 2 then
+              begin
+              Writeln ('Setting bookmark on record');
+              Bookie:=Bookmark;
+              Writeln ('Got data : "',Bookie,'"');
+              end;
+            For I:=0 to FieldCount-1 do
+              DumpFieldData(Fields[I]);
+            Next;
+            end;
+        Writeln ('Jumping to bookmark',Bookie);
+        BookMark:=Bookie;
+        Writeln ('Dumping Record : ');
+          For I:=0 to FieldCount-1 do
+            DumpFieldData(Fields[I]);
+        Next;
+        Writeln ('Dumping Next Record : ');
         For I:=0 to FieldCount-1 do
           DumpFieldData(Fields[I]);
-        Next;
-        end;
-    Writeln ('Jumping to bookmark',Bookie);
-    BookMark:=Bookie;
-    Writeln ('Dumping Record : ');
-      For I:=0 to FieldCount-1 do
-        DumpFieldData(Fields[I]);
-    Next;
-    Writeln ('Dumping Next Record : ');
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[I]);
-    Prior;
-    Prior;
-    Writeln ('Dumping Previous Record : ');
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[I]);
-    Log('Closing Dataset');
-    Close;
-    Log('End.');
-    Free;
-    end;
+        Prior;
+        Prior;
+        Writeln ('Dumping Previous Record : ');
+        For I:=0 to FieldCount-1 do
+          DumpFieldData(Fields[I]);
+        Log('Closing Dataset');
+        Close;
+        Log('End.');
+      Finally  
+        Free;
+      end;
+  Finally
+    Writeln('Freeing database');
+    DBase.free;
+  end;    
 end.
 
 {
    $Log$
-   Revision 1.2  2002-09-07 15:15:23  peter
+   Revision 1.3  2003-08-16 16:42:21  michael
+   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
+
+   Revision 1.2  2002/09/07 15:15:23  peter
      * old logs removed and tabs fixed
 
 }

@@ -7,7 +7,7 @@ main=fcl
 
 [target]
 units=mysqldb
-examples=testm
+examples=mtest
 
 [clean]
 units=mysql mysql_com mysql_version
