@@ -47,7 +47,7 @@ type
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
-    function  Unsetbool(const opts:string; pos: Longint):boolean;
+    function  Unsetbool(var Opts:string; Pos: Longint):boolean;
     procedure interpret_proc_specific_options(const opt:string);virtual;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
@@ -305,11 +305,18 @@ begin
 end;
 
 
-function Toption.Unsetbool(const opts:string; pos: Longint):boolean;
+function Toption.Unsetbool(var Opts:string; Pos: Longint):boolean;
 { checks if the character after pos in Opts is a + or a - and returns resp.
   false or true. If it is another character (or none), it also returns false }
 begin
-  UnsetBool := (Length(Opts) > Pos) And (Opts[Succ(Pos)] = '-');
+  UnsetBool := false;
+  if Length(Opts)>Pos then
+   begin
+    inc(Pos);
+    UnsetBool := Opts[Pos] = '-';
+    if Opts[Pos] in ['-','+']then
+     delete(Opts,Pos,1);
+   end;
 end;
 
 
@@ -403,39 +410,24 @@ begin
                                  break;
                                end;
                             'i' : If UnsetBool(More, j) then
-                                    Begin
-                                      initlocalswitches:=initlocalswitches-[cs_check_io];
-                                      inc(j)
-                                    End
+                                    initlocalswitches:=initlocalswitches-[cs_check_io]
                                   else initlocalswitches:=initlocalswitches+[cs_check_io];
                             'n' : If UnsetBool(More, j) then
-                                    Begin
-                                      initglobalswitches:=initglobalswitches-[cs_link_extern];
-                                      inc(j)
-                                    End
+                                    initglobalswitches:=initglobalswitches-[cs_link_extern]
                                   Else initglobalswitches:=initglobalswitches+[cs_link_extern];
                             'o' :
                               If UnsetBool(More, j) then
-                                Begin
-                                  initlocalswitches:=initlocalswitches-[cs_check_overflow];
-                                  inc(j);
-                                End
+                                  initlocalswitches:=initlocalswitches-[cs_check_overflow]
                               Else
                                 initlocalswitches:=initlocalswitches+[cs_check_overflow];
                             'r' :
                               If UnsetBool(More, j) then
-                                Begin
-                                  initlocalswitches:=initlocalswitches-[cs_check_range];
-                                  inc(j);
-                                End
+                                 initlocalswitches:=initlocalswitches-[cs_check_range]
                               Else
                                 initlocalswitches:=initlocalswitches+[cs_check_range];
                             'R' :
                               If UnsetBool(More, j) then
-                                Begin
-                                  initlocalswitches:=initlocalswitches-[cs_check_object_ext];
-                                  inc(j);
-                                End
+                                initlocalswitches:=initlocalswitches-[cs_check_object_ext]
                               Else
                                 initlocalswitches:=initlocalswitches+[cs_check_object_ext];
                             's' :
@@ -447,26 +439,17 @@ begin
                                end;
                             't' :
                                If UnsetBool(More, j) then
-                                 Begin
-                                   initlocalswitches:=initlocalswitches-[cs_check_stack];
-                                   inc(j)
-                                 End
+                                 initlocalswitches:=initlocalswitches-[cs_check_stack]
                                Else
                                  initlocalswitches:=initlocalswitches+[cs_check_stack];
                             'D' :
                                If UnsetBool(More, j) then
-                                 Begin
-                                   initmoduleswitches:=initmoduleswitches-[cs_create_dynamic];
-                                   inc(j)
-                                 End
+                                   initmoduleswitches:=initmoduleswitches-[cs_create_dynamic]
                                Else
                                  initmoduleswitches:=initmoduleswitches+[cs_create_dynamic];
                             'X' :
                                If UnsetBool(More, j) then
-                                 Begin
-                                   initmoduleswitches:=initmoduleswitches-[cs_create_smart];
-                                   inc(j)
-                                 End
+                                 initmoduleswitches:=initmoduleswitches-[cs_create_smart]
                                Else
                                  initmoduleswitches:=initmoduleswitches+[cs_create_smart];
                             else
@@ -756,7 +739,10 @@ begin
               'v' : if not setverbosity(More) then
                      IllegalPara(opt);
               'W' : begin
-                      for j:=1 to length(More) do
+                      j:=0;
+                      while j<length(More) do
+                      begin
+                       inc(j);
                        case More[j] of
                         'B': {bind_win32_dll:=true}
                              begin
@@ -777,10 +763,7 @@ begin
                                break;
                              end;
                         'C': apptype:=app_cui;
-                        'D': if UnsetBool(More, j) then
-                              ForceDeffileForExport:=false
-                             else
-                              ForceDeffileForExport:=true;
+                        'D': ForceDeffileForExport:=not UnsetBool(More, j);
                         'F': apptype:=app_fs;
                         'G': apptype:=app_gui;
                         'N': begin
@@ -788,12 +771,14 @@ begin
                                RelocSectionSetExplicitly:=true;
                              end;
                         'R': begin
-                               RelocSection:=true;
+                               { support -WR+ / -WR- as synonims to -WR / -WN }
+                               RelocSection:=not UnsetBool(More,j);
                                RelocSectionSetExplicitly:=true;
                              end;
                        else
                         IllegalPara(opt);
                        end;
+                       end; {of while}
                     end;
               'X' : begin
                       for j:=1 to length(More) do
@@ -1541,7 +1526,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.45  2001-06-19 14:55:45  jonas
+  Revision 1.46  2001-06-29 19:41:54  peter
+    * patch from Pavel Ozerski to support +/- better
+
+  Revision 1.45  2001/06/19 14:55:45  jonas
     * fixed typo in NOBOUNDCHECK define
 
   Revision 1.44  2001/06/18 20:36:24  peter
