@@ -35,7 +35,8 @@ interface
           function pass_1 : tnode;override;
        end;
 
-       thnewnode = class(tnode) // fixme
+       thnewnode = class(tnode)
+          constructor create;virtual;
           function pass_1 : tnode;override;
        end;
 
@@ -44,10 +45,13 @@ interface
           function pass_1 : tnode;override;
        end;
 
-       thdisposenode = class(tnode)  // fixme
+       thdisposenode = class(tunarynode)
+          constructor create(l : tnode);virtual;
+          function pass_1 : tnode;override;
        end;
 
-       tsimplenewdisposenode = class(tnode) // fixme
+       tsimplenewdisposenode = class(tunarynode)
+          constructor create(n : tnodetype;l : tnode);
           function pass_1 : tnode;override;
        end;
 
@@ -126,7 +130,7 @@ implementation
       globtype,systems,
       cutils,cobjects,verbose,globals,
       symconst,aasm,types,
-      htypechk,pass_1
+      htypechk,pass_1,ncal
 {$ifdef newcg}
       ,cgbase
 {$else newcg}
@@ -201,6 +205,12 @@ implementation
                              THNEWNODE
 *****************************************************************************}
 
+    constructor thnewnode.create;
+
+      begin
+         inherited create(hnewn);
+      end;
+
     function thnewnode.pass_1 : tnode;
       begin
          pass_1:=nil;
@@ -246,6 +256,12 @@ implementation
                             THDISPOSENODE
 *****************************************************************************}
 
+    constructor thdisposenode.create(l : tnode);
+
+      begin
+         inherited create(hdisposen,l);
+      end;
+
     function thdisposenode.pass_1 : tnode;
       begin
          pass_1:=nil;
@@ -275,6 +291,12 @@ implementation
 {*****************************************************************************
                         TSIMPLENEWDISPOSENODE
 *****************************************************************************}
+
+    constructor tsimplenewdisposenode.create(n : tnodetype;l : tnode);
+
+      begin
+         inherited create(n,l);
+      end;
 
     function tsimplenewdisposenode.pass_1 : tnode;
       begin
@@ -334,18 +356,19 @@ implementation
               if (m_tp_procvar in aktmodeswitches) then
                begin
                  hp:=left;
-                 case hp.treetype of
+                 case hp.nodetype of
                    calln :
                      begin
                        { is it a procvar? }
-                       hp:=hp.right;
+                       hp:=tcallnode(hp).right;
                        if assigned(hp) then
                          begin
                            { remove calln node }
-                           putnode(left);
+                           tcallnode(left).right:=nil;
+                           left.free;
                            left:=hp;
                            firstpass(hp);
-                           procvarload:=true;
+                           include(flags,nf_procvarload);
                          end;
                      end;
                    loadn,
@@ -358,13 +381,11 @@ implementation
                        if codegenerror then
                         exit;
                        if hp.resulttype^.deftype=procvardef then
-                        begin
-                          procvarload:=true;
-                        end;
+                         include(flags,nf_procvarload);
                      end;
                  end;
                end;
-              if procvarload then
+              if nf_procvarload in flags then
                begin
                  registers32:=left.registers32;
                  registersfpu:=left.registersfpu;
@@ -379,22 +400,22 @@ implementation
                end;
 
               { proc 2 procvar ? }
-              if left.treetype=calln then
+              if left.nodetype=calln then
                 begin
                   { generate a methodcallnode or proccallnode }
                   { we shouldn't convert things like @tcollection.load }
-                  if (left.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                    not(assigned(left.methodpointer) and (left.methodpointer^.treetype=typen)) then
+                  if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                    not(assigned(tcallnode(left).methodpointer) and (tcallnode(left).methodpointer.nodetype=typen)) then
                    begin
-                     hp:=genloadmethodcallnode(pprocsym(left.symtableprocentry),left.symtableproc,
-                       getcopy(left.methodpointer));
-                     disposetree(p);
+                     hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),tcallnode(left).symtableproc,
+                       tcallnode(left).methodpointer.getcopy);
                      firstpass(hp);
-                     p:=hp;
+                     pass_1:=hp;
                      exit;
                    end
                   else
-                   hp:=genloadcallnode(pprocsym(left.symtableprocentry),left.symtableproc);
+                   hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
+                     tcallnode(left).symtableproc);
 
                   { result is a procedure variable }
                   { No, to be TP compatible, you must return a pointer to
@@ -404,10 +425,10 @@ implementation
                        resulttype:=new(pprocvardef,init);
 
                     { it could also be a procvar, not only pprocsym ! }
-                       if left.symtableprocentry^.typ=varsym then
-                        hp3:=pabstractprocdef(pvarsym(left.symtableentry)^.vartype.def)
+                       if tcallnode(left).symtableprocentry^.typ=varsym then
+                        hp3:=pabstractprocdef(pvarsym(tloadnode(left).symtableentry)^.vartype.def)
                        else
-                        hp3:=pabstractprocdef(pprocsym(left.symtableprocentry)^.definition);
+                        hp3:=pabstractprocdef(pprocsym(tcallnode(left).symtableprocentry)^.definition);
 
                        pprocvardef(resulttype)^.proctypeoption:=hp3^.proctypeoption;
                        pprocvardef(resulttype)^.proccalloptions:=hp3^.proccalloptions;
@@ -421,7 +442,7 @@ implementation
                          include(pprocvardef(resulttype)^.procoptions,po_methodpointer);
                        { we need to process the parameters reverse so they are inserted
                          in the correct right2left order (PFV) }
-                       hp2^.:=pparaitem(hp3^.para^.last);
+                       hp2:=pparaitem(hp3^.para^.last);
                        while assigned(hp2^.) do
                          begin
                             pprocvardef(resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp,hp2^.defaultvalue);
@@ -863,7 +884,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-09-25 09:58:22  florian
-    * first revision for testing purpose
+  Revision 1.2  2000-09-25 15:05:25  florian
+    * some updates
 
+  Revision 1.1  2000/09/25 09:58:22  florian
+    * first revision for testing purpose
 }

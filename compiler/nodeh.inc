@@ -137,15 +137,6 @@
           tc_cord_2_pointer
        );
 
-       { allows to determine which elementes are to be replaced }
-       tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
-                      dt_mbleft,dt_typeconv,dt_inlinen,dt_leftrightmethod,
-                      dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn,
-                      dt_leftrightframe);
-
-      { different assignment types }
-      tassigntyp = (at_normal,at_plus,at_minus,at_star,at_slash);
-
       pcaserecord = ^tcaserecord;
       tcaserecord = record
           { range }
@@ -165,7 +156,7 @@
           less,greater : pcaserecord;
        end;
 
-       { this will be used mainly for the newcg }
+       { all boolean field of ttree are now collected in flags }
        tnodeflags = (
          nf_needs_truefalselabel,
          nf_swapable,    { tbinop operands can be swaped }
@@ -194,8 +185,27 @@
          { tvecnode }
          nf_memindex,
          nf_memseg,
-         nf_callunique
-         );
+         nf_callunique,
+
+         { twithnode }
+         nf_islocal,
+
+         { tloadnode }
+         nf_absolute,   { 20th }
+         nf_first,
+
+         { tassignmentnode }
+         nf_concat_string,
+
+         { tfuncretnode }
+         nf_is_first_funcret,
+
+         { tarrayconstructnode }
+         nf_cargs,
+         nf_cargswap,
+         nf_forcevaria,
+         nf_novariaallowed
+       );
 
        tnodeflagset = set of tnodeflags;
 
@@ -310,7 +320,10 @@
 
 {
   $Log$
-  Revision 1.4  2000-09-24 21:15:34  florian
+  Revision 1.5  2000-09-25 15:05:25  florian
+    * some updates
+
+  Revision 1.4  2000/09/24 21:15:34  florian
     * some errors fix to get more stuff compilable
 
   Revision 1.3  2000/09/22 21:45:36  florian
