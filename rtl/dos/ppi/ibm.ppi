@@ -57,14 +57,22 @@ begin
         GetVESAInfo:=false;
       BytesPerLine:=VESAInfo.BPL;
       case VESAInfo.BitsPerPixel of
-       8     : BytesPerPixel:=1;
-       15,16 : BytesPerPixel:=2;
+       8     : begin
+                  BytesPerPixel:=1;
+                  ColorMask:=$ff;
+               end;
+       15,16 : begin
+                  BytesPerPixel:=2;
+                  ColorMask:=$ffff;
+               end;
 {$ifdef TEST_24BPP}
        24    : begin
-               BytesPerPixel:=3;
+                  BytesPerPixel:=3;
+                  ColorMask:=$ffffff;
                end;
        32    : begin
-               BytesPerPixel:=4;
+                  BytesPerPixel:=4;
+                  ColorMask:=$ffffff;
                end;
 {$endif TEST_24BPP}
        else    begin
@@ -292,7 +300,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-11-20 10:16:02  pierre
+  Revision 1.6  1998-11-20 18:42:08  pierre
+    * many bugs related to floodfill and ellipse fixed
+
+  Revision 1.5  1998/11/20 10:16:02  pierre
     * Found out the LinerFrameBuffer problem
       Was an alignment problem in VesaInfoBlock (see graph.pp file)
       Compile with -dDEBUG and answer 'y' to 'Use Linear ?' to test

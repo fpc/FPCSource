@@ -184,7 +184,7 @@ procedure pixel(offset:longint);
    end; 
 end; { proc }
 
-function getpixel(x,y:integer):longint;
+function getpixeli(x,y:integer):longint;
 var viewport:viewporttype;
     col : longint;
 begin
@@ -241,6 +241,7 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       je     g_24BPP
   g_32BPP:
       movl   %gs:(%esi),%eax
+      andl   $0x00FFFFFF,%eax
       jmp    g_Result
   g_24BPP:
       movl   _WINLOMASKMINUSPIXELSIZE,%edi
@@ -263,10 +264,10 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       jmp    g_Result
 {$endif TEST_24BPP}
   g_16BPP:
-      movw   %gs:(%esi),%ax
+      movzwl %gs:(%esi),%eax
       jmp    g_Result
   g_8BPP:    
-      movb   %gs:(%esi),%al
+      movzbl %gs:(%esi),%eax
       jmp    g_Result
   gp_eexit:
       xorl   %eax,%eax
@@ -275,13 +276,21 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
   gp_exit:
       movl   %eax,col
   end;
-    getpixel:=unconvert(col);
+  getpixeli:=col;
+end; { proc getpixeli }
+
+function getpixel(x,y:integer):longint;
+begin
+    getpixel:=unconvert(getpixeli(x,y));
 end; { proc }
 
 
 {
   $Log$
-  Revision 1.4  1998-11-18 13:23:36  pierre
+  Revision 1.5  1998-11-20 18:42:09  pierre
+    * many bugs related to floodfill and ellipse fixed
+
+  Revision 1.4  1998/11/18 13:23:36  pierre
     * floodfill got into an infinite loop !!
     + added partial support for fillpoly
       (still wrong if the polygon is not convex)

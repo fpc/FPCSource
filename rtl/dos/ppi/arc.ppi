@@ -22,7 +22,8 @@
    const i:Array[0..20]of Byte=
        (0,3,0, 2,3,1, 2,1,0, 0,1,1, 0,3,0, 2,3,1, 2,1,0);
 
-   var counter,index,ofs : integer;
+   var counter,index     : integer;
+       endofs,ofs        : integer;
        xa,ya,xe,ye       : Array[0..2]of Integer;
        xp,yp             : integer;
        xradius,yradius   : word;
@@ -54,7 +55,8 @@
        end;
      repeat
      if (((xp=xe[0]) or (xp=xe[1]) or (xp=xe[2])) and
-         ((yp=ye[0]) or (yp=ye[1]) or (yp=ye[2]))) then
+         ((yp=ye[0]) or (yp=ye[1]) or (yp=ye[2]))) and
+         (ofs=endofs) then
          begin
            putpixeli(xp,yp,aktcolor);
            ready:=true;
@@ -79,6 +81,12 @@
        180..269  : ofs:=2;
        270..359  : ofs:=3;
      end;
+     case beta of
+         0.. 89  : endofs:=0;
+        90..179  : endofs:=1;
+       180..269  : endofs:=2;
+       270..359  : endofs:=3;
+     end;
      xa[1]:=x+round(sin((alpha+90)*Pi/180) * XRadius);
      ya[1]:=y+round(cos((alpha+90)*Pi/180) * YRadius);
      xe[1]:=x+round(sin((beta+90)*Pi/180) * XRadius);
@@ -97,17 +105,26 @@
        DrawArc(i[ofs*3],i[ofs*3+1],i[ofs*3+2]);
        ofs:=(ofs+1) mod 7;
        inc(ofscount);
-     until ready or (ofscount>7);
+     until ready or (ofscount>16);
   end;
 
   procedure PieSlice(X,Y,alpha,beta:integer;Radius: Word);
   var angle : real;
       XRadius, YRadius : word;
+      stline : LineSettingsType;
+      writemode : word;
   begin
      Arc(x,y,alpha,beta,Radius);
+     GetLineSettings(stline);
+     writemode:=aktwritemode;
+     aktwritemode:=normalput;
+     SetLineStyle(SolidLn,0,NormWidth);
      MoveTo(ActArcCoords.xstart,ActArcCoords.ystart);
      LineTo(x,y);
      LineTo(ActArcCoords.xend,ActArcCoords.yend);
+     PutPixeli(ActArcCoords.xstart,ActArcCoords.ystart,aktcolor);
+     PutPixeli(x,y,aktcolor);
+     PutPixeli(ActArcCoords.xend,ActArcCoords.yend,aktcolor);
      alpha:=alpha mod 360; beta:=beta mod 360;
      if alpha<=beta then
        angle:=(alpha+beta)/2
@@ -116,13 +133,33 @@
      { fill from the point in the middle of the slice }
      XRadius:=(Radius*10000) div XAsp;
      YRadius:=(Radius*10000) div YAsp;
-     FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
-       y+round(cos((angle+90)*Pi/180)*YRadius/2),truecolor);
+{$ifdef GraphDebug}
+     Writeln(stderr,'Arc Center ',x,' ',y);
+     Writeln(stderr,'Radii ',xradius,' ',yradius);
+     Writeln(stderr,'Start  ',ActArcCoords.xstart,' ',ActArcCoords.ystart);
+     if not ColorsEqual(truecolor,getpixel(ActArcCoords.xstart,ActArcCoords.ystart)) then
+       Writeln('Start error not set');
+     Writeln(stderr,'End  ',ActArcCoords.xend,' ',ActArcCoords.yend);
+     if not ColorsEqual(truecolor,getpixel(ActArcCoords.xend,ActArcCoords.yend)) then
+       Writeln('End error not set');
+     Writeln(stderr,'Fill start ',x+round(sin((angle+90)*Pi/180)*XRadius/2),' ',
+       y+round(cos((angle+90)*Pi/180)*YRadius/2));
+{$endif GraphDebug}
+     { avoid rounding errors }
+     if abs(ActArcCoords.xstart-ActArcCoords.xend)
+        +abs(ActArcCoords.ystart-ActArcCoords.yend)>2 then
+       FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
+         y+round(cos((angle+90)*Pi/180)*YRadius/2),truecolor);
+     aktwritemode:=writemode;
+     aktlineinfo:=stline;
   end;
 
 {
   $Log$
-  Revision 1.4  1998-11-19 15:09:35  pierre
+  Revision 1.5  1998-11-20 18:42:05  pierre
+    * many bugs related to floodfill and ellipse fixed
+
+  Revision 1.4  1998/11/19 15:09:35  pierre
     * several bugfixes for sector/ellipse/floodfill
     + graphic driver mode const in interface G800x600x256...
     + added backput mode as in linux graph.pp

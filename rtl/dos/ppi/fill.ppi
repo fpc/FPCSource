@@ -33,17 +33,25 @@ var start,ende,xx : integer;
     col           : longint;
  
 begin  
-  xx:=x; col:=getpixel(xx,y);
-{$ifdef ExtDebug}
-     Writeln(stderr,'Fill ',x,' ',y,' ',col);
-{$endif def ExtDebug}
+{$ifdef GraphDebug}
+  if (x>viewport.x2) or (x<viewport.x1) or
+     (y>viewport.y2) or (y<viewport.y1) then
+    begin
+       Writeln(stderr,'Wrong value in Fill(',x,',',y,')');
+       exit;
+    end;
+{$endif def GraphDebug}
+  xx:=x; col:=getpixeli(xx,y);
+{$ifdef GraphDebug}
+     Writeln(stderr,'Fill ',x,' ',y,' ',hexstr(col,8));
+{$endif def GraphDebug}
   if (col=bordercol) or (col=fillcol) or
      (test_bkfill and (col=fillbkcol)) then
     exit;
   while (col<>bordercol) and (xx > viewport.x1) and
      (col<>fillcol) and (not test_bkfill or (col<>fillbkcol))
     do begin
-      xx:=xx-1; col:=getpixel(xx,y);
+      xx:=xx-1; col:=getpixeli(xx,y);
     end;
   if (col<>bordercol) and (col<>fillcol) and
      (not test_bkfill or (col<>fillbkcol)) then
@@ -52,11 +60,11 @@ begin
     start:=xx+1;
 
   xx:=x;
-  col:=getpixel(xx,y);
+  col:=getpixeli(xx,y);
   while (col<>bordercol) and (xx < viewport.x2) and (col<>fillcol)
       and (not test_bkfill or (col<>fillbkcol)) 
     do begin
-      xx:=xx+1; col:=getpixel(xx,y);
+      xx:=xx+1; col:=getpixeli(xx,y);
     end;
   if (col<>bordercol) and (col<>fillcol) and
      (not test_bkfill or (col<>fillbkcol)) then
@@ -64,20 +72,20 @@ begin
   else
     ende:=xx-1;
 
-{$ifdef ExtDebug}
+{$ifdef GraphDebug}
      Writeln(stderr,'Pattern ',start,' ',ende,' ',y);
-{$endif def ExtDebug}
+{$endif def GraphDebug}
   patternline(start,ende,y);
-{$ifdef ExtDebug}
-     Writeln(stderr,'Fill  after Patterline ',x,' ',y,' ',getpixel(x,y));
-{$endif def ExtDebug}
+{$ifdef GraphDebug}
+     Writeln(stderr,'Fill  after Patterline ',x,' ',y,' ',hexstr(getpixel(x,y),8));
+{$endif def GraphDebug}
   offset:=(y * _maxy + start) shr 8;
   
   if (y > viewport.y1)
   then begin
     xx:=start;
     repeat
-      col:=getpixel(xx,y-1);
+      col:=getpixeli(xx,y-1);
       if (col<>bordercol) and (col<>fillcol) and
          (not test_bkfill or (col<>fillbkcol)) 
       then begin
@@ -92,7 +100,7 @@ begin
    begin
     xx:=start;
     repeat
-      col:=getpixel(xx,y+1);
+      col:=getpixeli(xx,y+1);
       if (col<>bordercol) and (col<>fillcol) and
          (not test_bkfill or (col<>fillbkcol)) then
         fill(xx,y+1);
@@ -103,39 +111,35 @@ begin
 end;
 
 begin
+{$ifdef GraphDebug}
+     Writeln(stderr,'FloodFill start ',x,' ',y);
+{$endif def GraphDebug}
+  {$ifdef NOFILL}
+  exit;
+  {$endif NOFILL}
   {fillchar(buffermem^,buffersize,0);
     not used !! }
   if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
+  { reject invalid points !! }
+
   viewport.x2:=viewport.x2-viewport.x1;
   viewport.y2:=viewport.y2-viewport.y1;
   viewport.x1:=0;
   viewport.y1:=0;
-  { reject invalid points !! }
+
   if (x>viewport.x2) or (x<viewport.x1) or
      (y>viewport.y2) or (y<viewport.y1) then
-    exit;
-  bordercol:=convert(border);
-  if BytesPerPixel=1
-  then begin
-    bordercol:=bordercol and $FF;
-    fillcol:=aktfillsettings.color and $FF;
-    fillbkCol:=aktfillbkcolor and $FF;
-  end
-{$ifdef TEST_24BPP}
-  else if BytesPerPixel>=3
-  then begin
-    bordercol:=bordercol and $FFFFFF;
-    fillcol:=aktfillsettings.color and $FFFFFF;
-    fillbkCol:=aktfillbkcolor and $FFFFFF;
-  end
-{$endif TEST_24BPP}
-  else if BytesPerPixel=2
-  then begin
-    bordercol:=bordercol and $FFFF;
-    fillcol:=aktfillsettings.color and $FFFF;
-    fillbkCol:=aktfillbkcolor and $FFFF;
-  end;
-  
+    begin
+{$ifdef GraphDebug}
+       Writeln(stderr,'Error Wrong values for FloodFill');
+       Writeln(stderr,'xmax ',viewport.x2);
+       Writeln(stderr,'ymax ',viewport.y2);
+{$endif def GraphDebug}
+       exit;
+    end;
+  bordercol:=convert(border) and ColorMask;
+  fillcol:=aktfillsettings.color and ColorMask;
+  fillbkCol:=aktfillbkcolor and ColorMask;
   if aktfillsettings.pattern=emptyfill then
     begin
        fillcol:=fillbkcol;
@@ -145,10 +149,11 @@ begin
      test_bkfill:=false
   else
     test_bkfill:=true;
-{$ifdef ExtDebug}
-     Writeln(stderr,'FloodFill(',x,',',y,') Fillcol ',fillcol);
-     Writeln(stderr,' bordercol ',bordercol,' fillbkcol ',fillbkcol);
-{$endif def ExtDebug}
+{$ifdef GraphDebug}
+     Writeln(stderr,'FloodFill(',x,',',y,') Fillcol ',hexstr(unconvert(fillcol),8));
+     Writeln(stderr,' bordercol ',hexstr(unconvert(bordercol),8),
+       ' fillbkcol ',hexstr(unconvert(fillbkcol),8));
+{$endif def GraphDebug}
   fill(x,y);
 end;
 
@@ -264,7 +269,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-11-19 15:09:37  pierre
+  Revision 1.6  1998-11-20 18:42:07  pierre
+    * many bugs related to floodfill and ellipse fixed
+
+  Revision 1.5  1998/11/19 15:09:37  pierre
     * several bugfixes for sector/ellipse/floodfill
     + graphic driver mode const in interface G800x600x256...
     + added backput mode as in linux graph.pp

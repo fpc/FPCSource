@@ -253,6 +253,8 @@ var    { X/Y Verhaeltnis des Bildschirm }
        aktbackcolor : longint;
        { Current background color RGB value }
        truebackcolor : longint;
+       { used for fill }
+       colormask : longint;
        { Videospeicherbereiche }
        wbuffer,rbuffer,wrbuffer : ^byte;
        { aktueller Ausgabebereich }
@@ -938,7 +940,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-11-20 10:16:01  pierre
+  Revision 1.11  1998-11-20 18:42:04  pierre
+    * many bugs related to floodfill and ellipse fixed
+
+  Revision 1.10  1998/11/20 10:16:01  pierre
     * Found out the LinerFrameBuffer problem
       Was an alignment problem in VesaInfoBlock (see graph.pp file)
       Compile with -dDEBUG and answer 'y' to 'Use Linear ?' to test
