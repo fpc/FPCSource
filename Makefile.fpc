@@ -38,12 +38,12 @@ ifeq ($(CPU_TARGET),alpha)
 PPSUF=axp
 endif
 
-
+# cross compilers uses full cpu_target, not just ppc-suffix.
 ifneq ($(OS_TARGET),$(OS_SOURCE))
-PPPRE=ppcross$(CPU_TARGET)
+PPPRE=ppcross
 else
 ifneq ($(CPU_TARGET),$(CPU_SOURCE))
-PPPRE=ppcross$(CPU_TARGET)
+PPPRE=ppcross
 else
 PPPRE=ppc
 endif
