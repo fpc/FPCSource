@@ -995,10 +995,7 @@ begin
    2 : filerec(f).mode:=fminout;
   end;
   if (flags and $1000)<>0 then
-   begin
-     filerec(f).mode:=fmoutput;
-     action:=$12; {create file function}
-   end;
+   action:=$12; {create file function}
 { empty name is special }
   if p[0]=#0 then
    begin
@@ -1288,7 +1285,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  1999-09-20 12:40:20  pierre
+  Revision 1.20  1999-10-28 09:53:19  peter
+    * create can also open file in fminout
+
+  Revision 1.19  1999/09/20 12:40:20  pierre
    * adapted to new heaph
 
   Revision 1.18  1999/09/10 17:14:09  peter
