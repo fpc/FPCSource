@@ -24,10 +24,12 @@
 function ChangeFileExt(const FileName, Extension: string): string;
 var i: longint;
 begin
-I := Length(FileName);
-while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do Dec(I);
-if (I = 0) or (FileName[I] <> '.') then I := 255;
-Result := Copy(FileName, 1, I - 1) + Extension;
+  I := Length(FileName);
+  while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do 
+    Dec(I);
+  if (I = 0) or (FileName[I] <> '.') then 
+    I := Length(FileName)+1;
+  Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
 function ExtractFilePath(const FileName: string): string;
@@ -188,7 +190,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:22  peter
+  Revision 1.7  2002-10-12 15:34:09  michael
+  + Fixed changefileexit for long (>255) filenames
+
+  Revision 1.6  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }
