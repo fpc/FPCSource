@@ -16,8 +16,13 @@
  **********************************************************************}
 unit sysamiga;
 
-{ Things left to do :                                          }
-{   - Fix Truncate!!                                           }
+{--------------------------------------------------------------------}
+{ LEFT TO DO:                                                        }
+{--------------------------------------------------------------------}
+{ o ChDir('..')                                                      }
+{ o SBrk                                                             }
+{ o GetDir with different drive numbers                              }
+{--------------------------------------------------------------------}
 
 {$I os.inc}
 
@@ -49,6 +54,11 @@ const
  _IntuitionBase : pointer = nil;       { intuition library pointer }
  _DosBase       : pointer = nil;       { DOS library pointer       }
  _UtilityBase   : pointer = nil;       { utiity library pointer    }
+
+ { Required for crt unit }
+  function do_read(h,addr,len : longint) : longint;
+  function do_write(h,addr,len : longint) : longint;
+
 
  var
   OrigDir : Longint;
@@ -1391,8 +1401,8 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-07-09 11:54:57  carl
-    + implemented do_truncate
+  Revision 1.8  1998-07-13 12:32:18  carl
+    * do_truncate works, some cleanup
 
   Revision 1.6  1998/07/02 12:37:52  carl
     * IOCheck for chdir,rmdir and mkdir as in TP
