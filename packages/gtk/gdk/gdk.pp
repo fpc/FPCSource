@@ -38,14 +38,16 @@ uses
   const
     gdkdll='gdk-1.3';
   {$define gtkwin}
+
+  {$packrecords 4}
 {$else}
   const
     gdkdll='gdk';
   {$linklib c}
   {$linklib X11}
+  
+  {$packrecords C}
 {$endif}
-
-{$packrecords C}
 
 Type
   PLongint  = ^Longint;
@@ -84,7 +86,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-08-06 10:33:10  peter
+  Revision 1.1.2.2  2000-09-06 21:13:34  peter
+    * packrecords 4 for win32, packrecords c for linux
+
+  Revision 1.1.2.1  2000/08/06 10:33:10  peter
     * force smartlinking
 
   Revision 1.1  2000/07/13 06:34:01  michael
