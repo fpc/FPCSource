@@ -107,7 +107,8 @@ var
   VideoBufSize : Longint;
   CursorLines  : Byte;
 const
-  LowAscii     : Boolean=true;
+  LowAscii     : Boolean = true;
+  NoExtendedFrame : Boolean = false;
   FVMaxWidth = 132;
 
 procedure InitVideo;
@@ -229,7 +230,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-10-15 20:50:17  hajny
+  Revision 1.6  2000-11-13 17:22:22  pierre
+   merge NoExtendedFrame
+
+  Revision 1.1.2.4  2000/11/09 08:49:22  pierre
+   + NoExtendedFrame for terminals with only one graphic set
+
+  Revision 1.5  2000/10/15 20:50:17  hajny
     * TVideoBuf again TP-compatible
 
   Revision 1.4  2000/10/15 09:22:40  peter

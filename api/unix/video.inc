@@ -22,6 +22,84 @@ const
 {$ASMMODE ATT}
 const
   can_delete_term : boolean = false;
+  ACSIn : string = '';
+  ACSOut : string = '';
+
+function IsACS(var ch,ACSchar : char): boolean;
+begin
+  IsACS:=false;
+  case ch of
+    #24, #30: {}
+      ch:='^';
+    #25, #31: {}
+      ch:='v';
+    #26, #16: {Never introduce a ctrl-Z ... }
+      ch:='>';
+    {#27,needed in Escape sequences} #17: {}
+      ch:='<';
+    #176, #177, #178: {°±²}
+      begin
+        IsACS:=true;
+        ACSChar:='a';
+      end;
+    #180, #181, #182, #185: {´µ¶¹}
+      begin
+        IsACS:=true;
+        ACSChar:='u';
+      end;
+    #183, #184, #187, #191: {·¸»¿}
+      begin
+        IsACS:=true;
+        ACSChar:='k';
+      end;
+    #188, #189, #190, #217: {¼½¾Ù}
+      begin
+        IsACS:=true;
+        ACSChar:='j';
+      end;
+    #192, #200, #211, #212: {ÀÈÓÔ}
+      begin
+        IsACS:=true;
+        ACSChar:='m';
+      end;
+    #193, #202, #207, #208: {ÁÊÏÐ}
+      begin
+        IsACS:=true;
+        ACSChar:='v';
+      end;
+    #194, #203, #209, #210: {ÂËÑÒ}
+      begin
+        IsACS:=true;
+        ACSChar:='w';
+      end;
+    #195, #198, #199, #204: {ÃÆÇÌ}
+      begin
+        IsACS:=true;
+        ACSChar:='t';
+      end;
+    #196, #205: {ÄÍ}
+      begin
+        IsACS:=true;
+        ACSChar:='q';
+      end;
+    #179, #186: {³º}
+      begin
+        IsACS:=true;
+        ACSChar:='x';
+      end;
+    #197, #206, #215, #216: {ÅÎ×Ø}
+      begin
+        IsACS:=true;
+        ACSChar:='n';
+      end;
+    #201, #213, #214, #218: {ÉÕÖÚ}
+      begin
+        IsACS:=true;
+        ACSChar:='l';
+      end;
+  end;
+end;
+
 
 procedure SendEscapeSeqNdx(Ndx: Word);
 var
@@ -166,6 +244,42 @@ begin
   Attr2Ansi:=#27'['+hstr+'m';
 end;
 
+procedure TransformUsingACS(var st : string);
+var
+  is_acs : boolean;
+  res : string;
+  i : longint;
+  ch,ACSch : char;
+begin
+  is_acs:=false;
+  res:='';
+  for i:=1 to length(st) do
+    begin
+      ch:=st[i];
+      if IsACS(ch,ACSch) then
+        begin
+          if not is_acs then
+            begin
+              res:=res+ACSIn;
+              is_acs:=true;
+            end;
+          res:=res+ACSch;
+        end
+      else
+        begin
+          if is_acs then
+            begin
+              res:=res+ACSOut;
+              is_acs:=false;
+            end;
+          res:=res+ch;
+        end;
+    end;
+  if is_acs then
+    res:=res+ACSout;
+  st:=res;
+end;
+
 
 procedure UpdateTTY(Force:boolean);
 type
@@ -193,6 +307,8 @@ var
        hstr:=#13#10+hstr;
        dec(eol);
      end;
+    if NoExtendedFrame and (ACSIn<>'') and (ACSOut<>'') then
+      TransformUsingACS(Hstr);
     move(hstr[1],outbuf[outptr],length(hstr));
     inc(outptr,length(hstr));
     if outptr>=1024 then
@@ -236,7 +352,7 @@ begin
   p:=PVideoCell(VideoBuf);
   pold:=PVideoCell(OldVideoBuf);
 { init Attr and X,Y }
-  OutData(#27'[m'#27'[H');
+  SendEscapeSeq(#27'[m'#27'[H');
   LastAttr:=7;
   LastX:=1;
   LastY:=1;
@@ -479,6 +595,16 @@ begin
          setupterm(nil, stdout, err);
          can_delete_term:=false;
        end;
+     if assigned(cur_term_Strings) then
+       begin
+         ACSIn:=StrPas(cur_term_Strings^[enter_alt_charset_mode]);
+         ACSOut:=StrPas(cur_term_Strings^[exit_alt_charset_mode]);
+       end
+     else
+       begin
+         ACSIn:='';
+         ACSOut:='';
+       end;
      ClearScreen;
 {$ifdef logging}
      assign(f,'video.log');
@@ -511,6 +637,8 @@ begin
   FreeMem(VideoBuf,VideoBufSize);
   FreeMem(OldVideoBuf,VideoBufSize);
   VideoBufSize:=0;
+  ACSIn:='';
+  ACSOut:='';
   doneVideoDone;
   if can_delete_term then
     begin
@@ -634,9 +762,18 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-10-26 23:08:48  peter
+  Revision 1.3  2000-11-13 17:22:22  pierre
+   merge NoExtendedFrame
+
+<<<<<<< video.inc
+  Revision 1.2  2000/10/26 23:08:48  peter
     * merged freebsd from fixes
 
+=======
+  Revision 1.1.2.2  2000/11/09 08:50:36  pierre
+   + support for terms with only one graphic set
+
+>>>>>>> 1.1.2.2
   Revision 1.1.2.1  2000/10/25 12:23:20  marco
    * Linux dir split up
 
