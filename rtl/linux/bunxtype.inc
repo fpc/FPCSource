@@ -31,7 +31,11 @@ CONST
 
    SIG_MAXSIG      = 128;	// highest signal version
    FD_MAXFDSET	   = 1024;
+{$ifdef FPC_USE_LIBC}
+   wordsinsigset   = 128 div 4;	 // words in sigset_t
+{$else}
    wordsinsigset   = 4;		// words in sigset_t
+{$endif}
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
    ln2bitmask	   = 1 shl ln2bitsinword - 1;
 
@@ -265,7 +269,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2003-12-02 00:04:34  sg
+  Revision 1.6  2003-12-31 20:17:06  marco
+   * sigset size adaption for FPC_USE_LIBC
+
+  Revision 1.5  2003/12/02 00:04:34  sg
   * Fixed ln2bitmask
 
   Revision 1.4  2003/11/19 10:56:15  marco
