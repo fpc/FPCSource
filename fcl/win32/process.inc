@@ -88,12 +88,14 @@ Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
 
 begin
   FillChar(PA,SizeOf(PA),0);
+  PA.nLength := SizeOf(PA);
 end;
 
 Procedure InitThreadAttributes(P : TProcess; Var TA : TSecurityAttributes);
 
 begin
   FillChar(TA,SizeOf(TA),0);
+  TA.nLength := SizeOf(TA);
 end;
 
 Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFO);
@@ -175,7 +177,7 @@ Var
   HI,HO,HE : THandle;
 
 begin
-    FInheritHandles:=True;
+  FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
