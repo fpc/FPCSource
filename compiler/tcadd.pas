@@ -449,8 +449,14 @@ implementation
                 else
                   CGMessage(type_e_mismatch);
                 end;
-
+(*
                 { these one can't be in flags! }
+                
+                Yes they can, secondadd converts the loc_flags to a register.
+                The typeconversions below are simply removed by firsttypeconv()
+                because the resulttype of p^.left = p^.left^.resulttype
+                (surprise! :) (JM)
+                
                 if p^.treetype in [xorn,unequaln,equaln] then
                   begin
                      if p^.left^.location.loc=LOC_FLAGS then
@@ -470,6 +476,7 @@ implementation
                      { readjust registers }
                      calcregisters(p,1,0,0);
                   end;
+*)
                 convdone:=true;
               end
              else
@@ -1278,7 +1285,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:49  michael
+  Revision 1.4  2000-07-27 09:19:37  jonas
+    * removed obsolete typeconversion (it got removed by the compiler in
+      firsttypeconv anyway) (merged from fixes branch)
+
+  Revision 1.3  2000/07/14 05:11:49  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:50  michael
