@@ -18,7 +18,8 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
-\documentclass{report}
+\documentclass{book}
+%\documentclass{report}
 %
 % Preamble
 %
@@ -32,17 +33,17 @@
   \latex{\usepackage{fpc}}
 \else
   \usepackage{fpc}
+%  \usepackage{fpcbook}
 \fi
-%
-\html{\input{fpc-html.tex}}
-%
-\ifpdf
+\latex{%
+  \usepackage{times}
+  \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
            /Subject(Free Pascal Users' guide)
            /Keywords(Free Pascal)
            }
-\fi
+\fi}
 %
 % Settings
 %
@@ -192,7 +193,7 @@ recompiling of the compiler and Run-Time Library, this is needed.
 Other than that, \fpc should run on almost any I386 \linux system.
 
 \subsubsection{Under Windows}
-The \dos distribution contains all the files you need to run the compiler
+The \windows distribution contains all the files you need to run the compiler
 and compile pascal programs. However, it may be a good idea to install
 the \file{mingw32} tools or the \var{cygwin} development tools. Links
 to both of these tools can be found on \var{http://www.freepascal.org}
