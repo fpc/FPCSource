@@ -133,8 +133,10 @@ begin
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
-    aktprocdef.setmangledname(name)
-    aktprocdef.has_mangledname:=true;
+   begin
+     aktprocdef.setmangledname(name);
+     aktprocdef.has_mangledname:=true;
+   end     
   else
     message(parser_e_empty_import_name);
 end;
@@ -539,7 +541,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-03-03 13:00:39  hajny
+  Revision 1.14  2002-03-04 17:54:59  peter
+    * allow oridinal labels again
+
+  Revision 1.13  2002/03/03 13:00:39  hajny
     * importprocedure fix by Armin Diehl
 
   Revision 1.12  2001/11/02 22:58:12  peter

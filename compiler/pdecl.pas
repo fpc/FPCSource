@@ -255,7 +255,10 @@ implementation
                   end
                 else
                   getlabel(hl);
-                symtablestack.insert(tlabelsym.create(orgpattern,hl));
+                if token=_ID then
+                 symtablestack.insert(tlabelsym.create(orgpattern,hl))
+                else
+                 symtablestack.insert(tlabelsym.create(pattern,hl));
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);
@@ -605,7 +608,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-12-06 17:57:35  florian
+  Revision 1.41  2002-03-04 17:54:59  peter
+    * allow oridinal labels again
+
+  Revision 1.40  2001/12/06 17:57:35  florian
     + parasym to tparaitem added
 
   Revision 1.39  2001/10/25 21:22:35  peter

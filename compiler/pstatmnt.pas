@@ -884,6 +884,7 @@ implementation
          filepos : tfileposinfo;
          srsym   : tsym;
          srsymtable : tsymtable;
+         s       : stringid;
       begin
          filepos:=akttokenpos;
          case token of
@@ -899,7 +900,20 @@ implementation
                   end
                 else
                   begin
-                     consume_sym(srsym,srsymtable);
+                     if token=_ID then
+                      consume_sym(srsym,srsymtable)
+                     else
+                      begin
+                        searchsym(pattern,srsym,srsymtable);
+                        if srsym=nil then
+                         begin
+                           identifier_not_found(pattern);
+                           srsym:=generrorsym;
+                           srsymtable:=nil;
+                         end;
+                        consume(token);
+                      end;
+
                      if srsym.typ<>labelsym then
                        begin
                           Message(sym_e_id_is_no_label_id);
@@ -954,6 +968,26 @@ implementation
          else
            begin
              p:=expr;
+
+             { When a colon follows a intconst then transform it into a label }
+             if try_to_consume(_COLON) then
+              begin
+                s:=tostr(tordconstnode(p).value);
+                p.free;
+                searchsym(s,srsym,srsymtable);
+                if assigned(srsym) then
+                 begin
+                   if tlabelsym(srsym).defined then
+                    Message(sym_e_label_already_defined);
+                   tlabelsym(srsym).defined:=true;
+                   p:=clabelnode.create(tlabelsym(srsym),nil);
+                 end
+                else
+                 begin
+                   identifier_not_found(s);
+                   p:=cnothingnode.create;
+                 end;
+              end;
 
              if p.nodetype=labeln then
               begin
@@ -1188,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-01-29 21:32:03  peter
+  Revision 1.47  2002-03-04 17:54:59  peter
+    * allow oridinal labels again
+
+  Revision 1.46  2002/01/29 21:32:03  peter
     * allow accessing locals in other lexlevel when the current assembler
       routine doesn't have locals.
 
