@@ -211,6 +211,9 @@ endif
 ifdef I386
 PPC_TARGET=i386
 endif
+ifdef X86_64
+PPC_TARGET=x86_64
+endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif
@@ -259,6 +262,15 @@ endif
 endif
 MSGFILE=msg/error$(FPCLANG).msg
 override LOCALDEF+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
+ifeq ($(PPC_TARGET),i386)
+override LOCALDEF+=-dSUPPORT_MMX -Fux86
+endif
+ifeq ($(PPC_TARGET),x86_64)
+override LOCALDEF+=-dSUPPORT_MMX -Fux86
+endif
+ifeq ($(PPC_TARGET),m68k)
+override LOCALDEF+=-dNoAg68kMot -dNoAg68kMpw
+endif
 PASDOC:=$(strip $(wildcard $(addsuffix /pasdoc.exe,$(SEARCHPATH))))
 ifeq ($(PASDOC),)
 PASDOC:=$(strip $(wildcard $(addsuffix /pasdoc,$(SEARCHPATH))))
@@ -267,12 +279,6 @@ ifeq ($(PASDOC),)
 PASDOC:=../projects/pasdoc/bin/pasdoc
 else
 PASDOC:=$(firstword $(PASDOC))
-endif
-ifeq ($(PPC_TARGET),i386)
-override LOCALDEF+=-dSUPPORT_MMX
-endif
-ifeq ($(PPC_TARGET),m68k)
-override LOCALDEF+=-dNoAg68kMot -dNoAg68kMpw
 endif
 override LOCALOPT+=$(LOCALDEF)
 override FPCOPT:=$(LOCALOPT)
