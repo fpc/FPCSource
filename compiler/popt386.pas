@@ -1435,6 +1435,19 @@ Begin
                          Begin
                            If (Pai386(hp1)^.op1 = Pai386(p)^.op1) Then
                              Begin
+                               Case Pai386(hp1)^._operator Of
+                                 A_DEC, A_INC:
+ {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
+                                   Begin
+                                     Pai386(hp1)^.opxt := Pai386(hp1)^.opxt shl 4 + top_const;
+                                     Pai386(hp1)^.Op2 := Pai386(hp1)^.Op1;
+                                     Pai386(hp1)^.Op1 := Pointer(1);
+                                     Case Pai386(hp1)^._operator Of
+                                       A_DEC: Pai386(hp1)^._operator := A_SUB;
+                                       A_INC: Pai386(hp1)^._operator := A_ADD;
+                                     End
+                                   End
+                                 End;
                                hp1 := pai(p^.next);
                                asml^.remove(p);
                                dispose(p, done);
@@ -1577,7 +1590,12 @@ End.
 
 {
  $Log$
- Revision 1.32  1998-12-16 12:09:29  jonas
+ Revision 1.33  1998-12-23 15:16:21  jonas
+   * change "inc x/dec x; test x, x"  to "add 1, x/sub 1,x" because inc and dec
+     don't affect the carry flag (test does). This *doesn't* fix the problem with
+    cardinal, that's a cg issue.
+
+ Revision 1.32  1998/12/16 12:09:29  jonas
    * fixed fistp/fild optimization
 
  Revision 1.31  1998/12/15 22:30:39  jonas
