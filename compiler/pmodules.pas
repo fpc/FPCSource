@@ -626,14 +626,12 @@ unit pmodules;
       end;
 
       var
-         { unitname : stringid; }
          names  : Tstringcontainer;
          st     : psymtable;
          unitst : punitsymtable;
 {$ifdef GDB}
          pu     : pused_unit;
 {$endif GDB}
-         i      : longint;
          s1,s2  : ^string; {Saves stack space}
       begin
          consume(_UNIT);
@@ -647,22 +645,22 @@ unit pmodules;
              new(s1);
              new(s2);
              s1^:=upper(target_info.system_unit);
-             s2^:=upper(current_scanner^.inputfile^.name^);
-             { strip extension, there could only be one dot }
-             i:=pos('.',s2^);
-             if i>0 then
-              s2^:=Copy(s2^,1,i-1);
-             if (cs_compilesystem in aktmoduleswitches)  then
+             s2^:=upper(SplitName(current_scanner^.inputfile^.name^));
+             if (cs_compilesystem in aktmoduleswitches) then
               begin
-                if (cs_check_unit_name in aktglobalswitches) and
-                   ((length(current_module^.modulename^)>8) or
-                    (current_module^.modulename^<>s1^) or
-                    (current_module^.modulename^<>s2^)) then
-                  Message1(unit_e_illegal_unit_name,s1^);
+                if ((length(current_module^.modulename^)>8) or
+                   (current_module^.modulename^<>s1^) or
+                   (current_module^.modulename^<>s2^)) then
+                  Message1(unit_e_illegal_unit_name,current_module^.modulename^);
               end
              else
-              if (current_module^.modulename^=s1^) then
-               Message(unit_w_switch_us_missed);
+              begin
+                if (cs_check_unit_name in aktglobalswitches) and
+                   (current_module^.modulename^<>s2^) then
+                 Message1(unit_e_illegal_unit_name,current_module^.modulename^);
+                if (current_module^.modulename^=s1^) then
+                 Message(unit_w_switch_us_missed);
+              end;
              dispose(s2);
              dispose(s1);
           end;
@@ -1093,7 +1091,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.73  1998-10-22 23:53:27  peter
+  Revision 1.74  1998-10-26 09:34:50  peter
+    * unit check name works now for all units, not only systemunit
+
+  Revision 1.73  1998/10/22 23:53:27  peter
     * leave when an error has been in the interface (else other units could
       be compiled with the implementation uses!)
     * don't always compile when not in implementation with a second_load
