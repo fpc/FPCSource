@@ -31,7 +31,7 @@ type
       BitMapType:Integer;
     protected
       function  InternalCheck (Stream:TStream):boolean;override;
-      procedure InternalRead(Stream:TStream;Img:TFPCustomImage);
+      procedure InternalRead(Stream:TStream;Img:TFPCustomImage);override;
   end;
 
 implementation
@@ -48,39 +48,48 @@ function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
 end;
 {TODO : real implementation of InternalRead}
 procedure TFPReaderPNM.InternalRead(Stream:TStream;Img:TFPCustomImage);
-  procedure ReadHeader;
-    const
+  const
 {Whitespace (TABs, CRs, LFs, blanks) are separators in the PNM Headers}
-      WhiteSpaces=[#9,#10,#13,#32];
-    function DropWhiteSpaces:Char;
-      begin
-        with Stream do
+    WhiteSpaces=[#9,#10,#13,#32];
+  function DropWhiteSpaces:Char;
+    begin
+      with Stream do
+        begin
           repeat
             Read(DropWhiteSpaces,1);
           until not(DropWhiteSpaces in WhiteSpaces);
-      end;
-    function ReadInteger:Integer;
-      var
-        s:String[7];
-      begin
-        s:='';
-        s[1]:=DropWhiteSpaces;
-        with Stream do
-          repeat
-            Inc(s[0]);
-            Read(s[Length(s)+1],1)
-          until s[Length(s)+1] in WhiteSpaces;
-        Val(s,ReadInteger);
-      end;
+          if DropWhiteSpaces='#'
+          then
+            begin
+              repeat
+                Read(DropWhiteSpaces,1);
+              until DropWhiteSpaces=#10;
+              Read(DropWhiteSpaces,1);
+            end;
+        end;
+    end;
+  function ReadInteger:Integer;
+    var
+      s:String[7];
     begin
-      Img.SetSize(ReadInteger,ReadInteger);
-      WriteLn(ReadInteger);
+      s:='';
+      s[1]:=DropWhiteSpaces;
+      with Stream do
+        repeat
+          Inc(s[0]);
+          Read(s[Length(s)+1],1)
+        until s[Length(s)+1] in WhiteSpaces;
+      Val(s,ReadInteger);
     end;
   var
     Row,Coulumn,nBpLine,ReadSize:Integer;
     aColor:TFPcolor;
     aLine:PByte;
   begin
+    Row:=ReadInteger;
+    Coulumn:=ReadInteger;
+    Img.SetSize(Row,Coulumn);
+    WriteLn(ReadInteger);
     case BitMapType of
       1:nBpLine:=Img.Width*2;{p p p}
       2:nBpLine:=Img.Width*4;{lll lll lll}
@@ -95,7 +104,7 @@ procedure TFPReaderPNM.InternalRead(Stream:TStream;Img:TFPCustomImage);
       6:nBpLine:=Img.Width*3;
     end;
     GetMem(aLine,nBpLine);
-    for Row:=img.Height-1 downto 0 do
+    for Row:=0 to img.Height-1 do
       begin
         Stream.Read(aLine^,nBpLine);
         for Coulumn:=0 to img.Width-1 do
@@ -107,7 +116,11 @@ procedure TFPReaderPNM.InternalRead(Stream:TStream;Img:TFPCustomImage);
                 3:;
                 4:;
                 5:;
-                6:;
+                6:begin
+                    Red:=aLine[3*Coulumn] shl 8;
+                    Green:=aLine[3*Coulumn+1] shl 8;
+                    Blue:=aLine[3*Coulumn+2] shl 8;
+                  end;
               end;
               alpha:=AlphaOpaque;
               img.colors[Coulumn,Row]:=aColor;
@@ -121,7 +134,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.1  2003-09-30 07:15:48  mazen
+Revision 1.2  2003-09-30 12:26:33  mazen
++ reading P6 format implemented.
+
+Revision 1.1  2003/09/30 07:15:48  mazen
 + Support for PNM (Portable aNyMap) formats (skeleton only)
    need to complete implementation
 
