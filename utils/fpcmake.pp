@@ -23,7 +23,7 @@ uses
   sysutils,classes,inifiles;
 
 const
-  Version='v0.99.13';
+  Version='v0.99.15';
   Title='fpcmake '+Version;
   TitleDate=Title+' ['+{$i %DATE}+']';
 
@@ -501,7 +501,7 @@ begin
      Verbose('Opening '+fn);
      result:=TIniFile.Create(fn);
    end;
-  result.Escapelinefeeds:=True; 
+  result.Escapelinefeeds:=True;
 end;
 
 
@@ -1305,7 +1305,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2000-03-11 15:58:56  michael
+  Revision 1.34  2000-04-11 15:34:58  peter
+    * added extra ifdef to check if there are some objects else some
+      targets aren't added anymore
+
+  Revision 1.33  2000/03/11 15:58:56  michael
   + Added escapelinefeeds:=true after inifile.create
 
   Revision 1.32  2000/02/09 16:44:14  peter

@@ -1,15 +1,15 @@
 Name: fpc
-Version: 0.99.14
+Version: 0.99.15
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-0.99.14-src.tar.gz
+Source: fpc-0.99.15-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
 
-%define fpcversion 0.99.14
+%define fpcversion 0.99.15
 %define fpcdir /usr/lib/fpc/%{fpcversion}
 %define docdir /usr/doc/fpc-%{fpcversion}
 
@@ -27,6 +27,7 @@ mysql,postgres,ibase bindings.
 %setup -c
 
 %build
+export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle
 	make fcl_all PP=${NEWPP}
@@ -35,6 +36,7 @@ NEWPP=`pwd`/compiler/ppc386
 	make utils_all PP=${NEWPP}
 
 %install
+export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
 	make compiler_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
@@ -49,12 +51,12 @@ NEWPPUFILES=`pwd`/utils/ppufiles
 	make man_install PP=${NEWPP}
 	
 %clean
-	make compiler_distclean
-	make rtl_distclean
-	make fcl_distclean
-	make api_distclean
-	make packages_distclean
-	make utils_distclean
+	make compiler_clean
+	make rtl_clean
+	make fcl_clean
+	make api_clean
+	make packages_clean
+	make utils_clean
 
 %post
 FPCDIR=%{fpcdir}

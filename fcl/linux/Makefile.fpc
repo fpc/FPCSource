@@ -4,6 +4,7 @@
 
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets
+rst=ssockets
 
 [defaults]
 defaulttarget=linux

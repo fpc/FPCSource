@@ -1,15 +1,15 @@
 Name: fpc-docs
-Version: 0.99.14
+Version: 0.99.15
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-docs-0.99.14-src.tar.gz
+Source: fpc-docs-0.99.15-src.tar.gz
 Summary: Free Pascal Compiler Documentation
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
 
-%define fpcversion 0.99.14
+%define fpcversion 0.99.15
 %define fpcdir /usr/lib/fpc/%{fpcversion}
 %define docdir /usr/doc/fpc-%{fpcversion}
 
