@@ -25,7 +25,7 @@ uses Classes;
 
 type
   PLine = ^TLine;
-  TLine = packed record
+  TLine = record
     info: Pointer;
     flags: LongWord;
     s: AnsiString;
@@ -58,8 +58,8 @@ type
 
   TViewInfo = class(TCollectionItem)
   public
-    OnLineInsert, OnLineRemove: TDocLineEvent;
-    OnModifiedChange: TNotifyEvent;
+    OnLineInsert, OnLineRemove, OnLineChange: TDocLineEvent;
+    OnClearDocument, OnModifiedChange: TNotifyEvent;
   end;
 
   TTextDoc = class
@@ -96,11 +96,9 @@ type
     property Modified: Boolean read FModified write SetModified;
     property LineWidth: Integer read FLineWidth;
     property LineCount: Integer read FLineCount;
-    property LineText[LineNumber: Integer]: String
-      read GetLineText write SetLineText;
+    property LineText[LineNumber: Integer]: String read GetLineText write SetLineText;
     property LineLen[LineNumber: Integer]: Integer read GetLineLen;
-    property LineFlags[LineNumber: Integer]: Byte
-      read GetLineFlags write SetLineFlags;
+    property LineFlags[LineNumber: Integer]: Byte read GetLineFlags write SetLineFlags;
 
     property ViewInfos: TCollection read FViewInfos;
   end;
@@ -126,9 +124,16 @@ begin
 end;
 
 destructor TTextDoc.Destroy;
+var
+  i: Integer;
 begin
-  Clear;
+  for i := 0 to FLineCount - 1 do
+    SetLength(FLines^[i].s, 0);
+  if Assigned(FLines) then
+    FreeMem(FLines);
+
   FViewInfos.Free;
+  inherited Destroy;
 end;
 
 procedure TTextDoc.AddRef;
@@ -157,8 +162,8 @@ begin
   FLineWidth:=0;
 
   for i := 0 to FViewInfos.Count - 1 do
-    if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineRemove) then
-      TViewInfo(FViewInfos.Items[i]).OnLineRemove(Self, 0);
+    if Assigned(TViewInfo(FViewInfos.Items[i]).OnClearDocument) then
+      TViewInfo(FViewInfos.Items[i]).OnClearDocument(Self);
 end;
 
 procedure TTextDoc.InsertLine(BeforeLine: Integer; const s: String);
@@ -212,7 +217,6 @@ procedure TTextDoc.LoadFromStream(AStream: TStream);
     i: Integer;
   begin
     // Expand tabs to spaces
-    SetLength(s2, 0);
     for i := 1 to Length(s) do
       if s[i] = #9 then begin
         repeat s2 := s2 + ' ' until (Length(s2) mod 8) = 0;
@@ -221,7 +225,7 @@ procedure TTextDoc.LoadFromStream(AStream: TStream);
     AddLine(s2);
   end;
 
-var
+{var
   read: LongInt;
   buf: Char;
   s: String;
@@ -238,7 +242,75 @@ begin
       s := s + buf;
   end;
   ProcessLine(s);
+end;}
+var
+  NewData: array[0..1023] of Byte;
+  buffer, p: PChar;
+  BytesInBuffer, BytesRead, OldBufSize, LastEndOfLine, i, LineLength: Integer;
+  line: String;
+begin
+  Clear;
+  SetLength(line, 0);
+  BytesInBuffer := 0;
+  buffer := nil;
+
+  while True do begin
+    BytesRead := AStream.Read(NewData, SizeOf(NewData));
+    if BytesRead <= 0 then break;
+    OldBufSize := BytesInBuffer;
+
+    // Append the new received data to the read buffer
+    Inc(BytesInBuffer, BytesRead);
+    ReallocMem(buffer, BytesInBuffer);
+    Move(NewData, buffer[OldBufSize], BytesRead);
+
+    LastEndOfLine := 0;
+    if OldBufSize > 0 then
+      i := OldBufSize - 1
+    else
+      i := 0;
+
+    while i <= BytesInBuffer - 2 do begin
+      if (buffer[i] = #13) or (buffer[i] = #10) then begin
+        LineLength := i - LastEndOfLine;
+	SetLength(line, LineLength);
+	if LineLength > 0 then
+	  Move(buffer[LastEndOfLine], line[1], LineLength);
+
+	ProcessLine(line);
+
+	if ((buffer[i] = #13) and (buffer[i + 1] = #10)) or
+	   ((buffer[i] = #10) and (buffer[i + 1] = #13)) then
+	  Inc(i);
+	LastEndOfLine := i + 1;
+      end;
+      Inc(i);
+    end;
+
+    if LastEndOfLine > 0 then begin
+      // Remove all processed lines from the buffer
+      Dec(BytesInBuffer, LastEndOfLine);
+      GetMem(p, BytesInBuffer);
+      Move(buffer[LastEndOfLine], p^, BytesInBuffer);
+      FreeMem(buffer);
+      buffer := p;
+    end;
+  end;
+
+ if BytesInBuffer > 0 then
+    if buffer[BytesInBuffer - 1] in [#13, #10] then begin
+      buffer[BytesInBuffer - 1] := #0;
+      SetLength(line, BytesInBuffer);
+      Move(buffer, line[1], BytesInBuffer);
+      ProcessLine(line);
+      ProcessLine('');
+    end else
+      ProcessLine(buffer);
+
+  if Assigned(buffer) then
+    FreeMem(buffer);
 end;
+
 
 procedure TTextDoc.LoadFromFile(const filename: String);
 var
@@ -291,12 +363,17 @@ begin
 end;
 
 procedure TTextDoc.SetLineText(LineNumber: Integer; const NewText: String);
+var
+  i: Integer;
 begin
   if FLines^[LineNumber].s <> NewText then begin
     FLines^[LineNumber].s := NewText;
     if Length(NewText) > FLineWidth then
       FLineWidth := Length(NewText);
     Modified := True;
+    for i := 0 to FViewInfos.Count - 1 do
+      if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineChange) then
+        TViewInfo(FViewInfos.Items[i]).OnLineChange(Self, LineNumber);
   end;
 end;
 
@@ -327,7 +404,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-02-19 19:05:16  sg
+  Revision 1.11  2000-02-22 14:26:52  sg
+  * New, much faster stream reader
+  * Added more notifiers for the attached view objects
+
+  Revision 1.10  2000/02/19 19:05:16  sg
   * Lines are now stored as AnsiStrings instead of PChars
 
   Revision 1.9  2000/01/31 19:22:16  sg
