@@ -37,32 +37,44 @@ begin
     FN := FileName + #0;
 {$ENDIF}
     asm
-         mov eax, 7F2Bh
-         mov ecx, Mode
+        mov eax, 7F2Bh
+        mov ecx, Mode
 {$IFOPT H+}
-         mov edx, FileName
+        mov edx, FileName
 {$ELSE}
-         lea edx, FN
-         inc edx
+        lea edx, FN
+        inc edx
 {$ENDIF}
-         call syscall
+        call syscall
 {$IFOPT H-}
+        mov [ebp - 4], eax
     end;
 {$ENDIF}
 end;
 
 
 function FileCreate (const FileName: string): longint;
+{$IFOPT H+}
+                                                                    assembler;
+{$ELSE}
 var FN: string;
 begin
     FN := FileName + #0;
+{$ENDIF}
     asm
-         mov eax, 7F2Bh
-         mov ecx, ofReadWrite or faCreate
-         lea edx, FN
-         inc edx
-         call syscall
+        mov eax, 7F2Bh
+        mov ecx, ofReadWrite or faCreate
+{$IFOPT H+}
+        mov edx, FileName
+{$ELSE}
+        lea edx, FN
+        inc edx
+{$ENDIF}
+        call syscall
+{$IFOPT H-}
+        mov [ebp - 4], eax
     end;
+{$ENDIF}
 end;
 
 
@@ -228,6 +240,7 @@ begin
             jnc @FSetDateEnd
             mov eax, -1
 @FSetDateEnd:
+            mov [ebp - 4], eax
         end;
 end;
 
@@ -253,6 +266,7 @@ asm
     mov eax, -1
 @FGetAttrEnd:
 {$IFOPT H-}
+    mov [ebp - 4], eax
 end;
 {$ENDIF}
 end;
@@ -281,6 +295,7 @@ asm
     mov eax, -1
 @FSetAttrEnd:
 {$IFOPT H-}
+    mov [ebp - 4], eax
 end;
 {$ENDIF}
 end;
@@ -308,6 +323,7 @@ asm
     inc eax
 @FDeleteEnd:
 {$IFOPT H-}
+    mov [ebp - 4], eax
 end;
 {$ENDIF}
 end;
@@ -339,6 +355,7 @@ asm
     inc eax
 @FRenameEnd:
 {$IFOPT H-}
+    mov [ebp - 4], eax
 end;
 {$ENDIF}
 end;
@@ -370,7 +387,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-06-04 14:22:02  hajny
+  Revision 1.11  2000-06-04 15:04:22  hajny
+    * another bunch of corrections
+
+  Revision 1.10  2000/06/04 14:22:02  hajny
     * minor corrections
 
   Revision 1.9  2000/06/01 18:36:50  hajny
