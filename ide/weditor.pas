@@ -7085,14 +7085,18 @@ begin
             else
               DriveNumber:=Ord(FileDir[1])-ord('A')+1;
             GetDir(DriveNumber,StoreDir2);
-{$ifndef FPC}
+            {$I-}
             ChDir(Copy(FileDir,1,2));
-            { this sets InOutRes in win32 PM }
-            { is this bad? What about an EatIO? Gabor }
-{$endif not FPC}
+            EatIO;
+            {$I+}
           end;
         if FileDir<>'' then
-          ChDir(TrimEndSlash(FileDir));
+          begin
+            {$I-}
+            ChDir(TrimEndSlash(FileDir));
+            EatIO;
+            {$I+}
+          end;
         case Dialog of
           edSaveAs     :
             begin
@@ -7189,7 +7193,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.49  2004-12-06 16:23:43  peter
+  Revision 1.50  2004-12-06 16:35:26  peter
+  fix ioerror when last save had invalid dir
+
+  Revision 1.49  2004/12/06 16:23:43  peter
   fix codecomplete in overwrite mode
 
   Revision 1.48  2004/11/08 20:28:29  peter
