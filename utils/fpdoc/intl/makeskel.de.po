@@ -1,0 +1,24 @@
+#: makeskel:stitle
+msgid "MakeSkel - FPDoc skeleton XML description file generator"
+msgstr "MakeSkel - Skelett-Generator für FPDoc-XML-Beschreibungsdateien"
+
+#: makeskel:scopyright
+msgid "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
+msgstr "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
+
+#: makeskel:scmdlinehelp
+msgid "See documentation for usage."
+msgstr "Siehe Dokumentation zur Handhabung."
+
+#: makeskel:scmdlineinvalidoption
+msgid "Ignoring unknown option \"%s\""
+msgstr "Ignoriere unbekannte Option \"%s\""
+
+#: makeskel:snopackagenameprovided
+msgid "Please specify a package name with --package=<name>"
+msgstr "Bitte geben Sie einen Paketnamen mit --package=<name> an"
+
+#: makeskel:sdone
+msgid "Done."
+msgstr "Fertig."
+

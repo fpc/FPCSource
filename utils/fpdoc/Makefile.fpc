@@ -1,0 +1,33 @@
+#
+#   Makefile.fpc for FPDoc
+#
+
+[package]
+name=fpdoc
+version=1.0.8
+
+[require]
+packages=fcl
+
+[target]
+programs=fpdoc makeskel
+rst=dwriter fpdoc dglobals makeskel
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[clean]
+units=dglobals dwriter dw_xml sh_pas dw_html dw_latex
+files=dwriter.rst fpdoc.rst dglobals.rst makeskel.rst
+
+[rules]
+fpdoc$(EXEEXT): fpdoc.pp dglobals.pp dwriter.pp dw_xml.pp sh_pas.pp dw_html.pp\
+  dw_latex.pp
+
+makeskel$(EXEEXT): makeskel.pp dglobals.pp

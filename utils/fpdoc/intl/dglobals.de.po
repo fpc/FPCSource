@@ -1,0 +1,160 @@
+#: dglobals:sdocpackagetitle
+msgid "Reference for package '%s'"
+msgstr "Referenz für Paket '%s'"
+
+#: dglobals:sdocprograms
+msgid "Programs"
+msgstr "Programme"
+
+#: dglobals:sdocunits
+msgid "Units"
+msgstr "Units"
+
+#: dglobals:sdocunittitle
+msgid "Reference for unit '%s'"
+msgstr "Referenz für Unit '%s'"
+
+#: dglobals:sdocinterfacesection
+msgid "Interface section"
+msgstr "Interface-Abschnitt"
+
+#: dglobals:sdocimplementationsection
+msgid "Implementation section"
+msgstr "Implementation-Abschnitt"
+
+#: dglobals:sdocusedunits
+msgid "Used units"
+msgstr "Verwendete Units"
+
+#: dglobals:sdocusedunitsbyunitxy
+msgid "Used units by unit '%s'"
+msgstr "Von Unit '%s' verwendete Units"
+
+#: dglobals:sdocconststypesvars
+msgid "Constants, types and variables"
+msgstr "Konstanten, Typen und Variablen"
+
+#: dglobals:sdocresstrings
+msgid "Resource strings"
+msgstr "Resource-Strings"
+
+#: dglobals:sdoctypes
+msgid "Types"
+msgstr "Typen"
+
+#: dglobals:sdocconstants
+msgid "Constants"
+msgstr "Konstanten"
+
+#: dglobals:sdocclasses
+msgid "Classes"
+msgstr "Klassen"
+
+#: dglobals:sdocproceduresandfunctions
+msgid "Procedures and functions"
+msgstr "Prozeduren und Funktionen"
+
+#: dglobals:sdocvariables
+msgid "Variables"
+msgstr "Variablen"
+
+#: dglobals:sdocunitoverview
+msgid "Overview of unit '%s'"
+msgstr "Überblick über Unit '%s'"
+
+#: dglobals:sdocoverview
+msgid "Overview"
+msgstr "Überblick"
+
+#: dglobals:sdocsearch
+msgid "Search"
+msgstr "Suchen"
+
+#: dglobals:sdocdeclaration
+msgid "Declaration"
+msgstr "Deklaration"
+
+#: dglobals:sdocdescription
+msgid "Description"
+msgstr "Beschreibung"
+
+#: dglobals:sdocerrors
+msgid "Errors"
+msgstr "Fehler"
+
+#: dglobals:sdocseealso
+msgid "See also"
+msgstr "Siehe auch"
+
+#: dglobals:sdocexample
+msgid "Example"
+msgstr "Beispiel"
+
+#: dglobals:sdocarguments
+msgid "Arguments"
+msgstr "Argumente"
+
+#: dglobals:sdocfunctionresult
+msgid "Function result"
+msgstr "Funktionsergebnis"
+
+#: dglobals:sdocremark
+msgid "Remark:   "
+msgstr "Bemerkung:   "
+
+#: dglobals:sdocmethodoverview
+msgid "Method overview"
+msgstr "Überblick über die Methoden"
+
+#: dglobals:sdocpropertyoverview
+msgid "Property overview"
+msgstr "Überblick über die Eigenschaften"
+
+#: dglobals:sdocpage
+msgid "Page"
+msgstr "Seite"
+
+#: dglobals:sdocmethod
+msgid "Method"
+msgstr "Methode"
+
+#: dglobals:sdocproperty
+msgid "Property"
+msgstr "Eigenschaft"
+
+#: dglobals:sdocaccess
+msgid "Access"
+msgstr "Zugriff"
+
+#: dglobals:sdocinheritance
+msgid "Inheritance"
+msgstr "Ableitung"
+
+#: dglobals:sdocproperties
+msgid "Properties"
+msgstr "Eigenschaften"
+
+#: dglobals:sdocmethods
+msgid "Methods"
+msgstr "Methoden"
+
+#: dglobals:sdocevents
+msgid "Events"
+msgstr "Ereignisse"
+
+#: dglobals:sdocbyname
+msgid "by Name"
+msgstr "nach Name"
+
+#: dglobals:sdocvalue
+msgid "Value"
+msgstr "Wert"
+
+#: dglobals:sdocexplanation
+msgid "Explanation"
+msgstr "Erklärung"
+
+#: dglobals:sdocvaluesforenum
+msgid "Enumeration values for type %s"
+msgstr "Aufzählungswerte für Typ %s"
+

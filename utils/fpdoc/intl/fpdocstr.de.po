@@ -1,0 +1,265 @@
+#: fpdocstr:sptreeelement
+msgid "Generic element"
+msgstr "Generisches Element"
+
+#: fpdocstr:sptreesection
+msgid "Unit section"
+msgstr "Unit-Abschnitt"
+
+#: fpdocstr:sptreemodule
+msgid "Module"
+msgstr "Modul"
+
+#: fpdocstr:sptreepackage
+msgid "Package"
+msgstr "Paket"
+
+#: fpdocstr:sptreeresstring
+msgid "Resource string"
+msgstr "Ressourcen-String"
+
+#: fpdocstr:sptreetype
+msgid "Generic type"
+msgstr "Generischer Typ"
+
+#: fpdocstr:sptreepointertype
+msgid "Pointer type"
+msgstr "Zeigertyp"
+
+#: fpdocstr:sptreealiastype
+msgid "Alias type"
+msgstr "Alias-Typ"
+
+#: fpdocstr:sptreetypealiastype
+msgid "\"type\" alias type"
+msgstr "\"type\" Alias-Type"
+
+#: fpdocstr:sptreeclassoftype
+msgid "\"class of\" type"
+msgstr "\"class of\" Typ"
+
+#: fpdocstr:sptreerangetype
+msgid "Range type"
+msgstr "Bereichstyp"
+
+#: fpdocstr:sptreearraytype
+msgid "Array type"
+msgstr "Array-Typ"
+
+#: fpdocstr:sptreeenumvalue
+msgid "Enumeration value"
+msgstr "Aufzählungswert"
+
+#: fpdocstr:sptreeenumtype
+msgid "Enumeration type"
+msgstr "Aufzählungstyp"
+
+#: fpdocstr:sptreesettype
+msgid "Set type"
+msgstr "Mengentyp"
+
+#: fpdocstr:sptreerecordtype
+msgid "Record type"
+msgstr "Record-Typ"
+
+#: fpdocstr:sptreeclasstype
+msgid "Class"
+msgstr "Klasse"
+
+#: fpdocstr:sptreeargument
+msgid "Argument"
+msgstr "Argument"
+
+#: fpdocstr:sptreeproceduretype
+msgid "Procedure type"
+msgstr "Prozedur-Typ"
+
+#: fpdocstr:sptreeresultelement
+msgid "Function result"
+msgstr "Funktionsergebnis"
+
+#: fpdocstr:sptreefunctiontype
+msgid "Function type"
+msgstr "Funktionstyp"
+
+#: fpdocstr:sptreetyperef
+msgid "Type reference"
+msgstr "Typ-Verweis"
+
+#: fpdocstr:sptreevariable
+msgid "Variable"
+msgstr "Variable"
+
+#: fpdocstr:sptreeconst
+msgid "Constant"
+msgstr "Konstante"
+
+#: fpdocstr:sptreeproperty
+msgid "Property"
+msgstr "Eigenschaft"
+
+#: fpdocstr:sptreeoverloadedprocedure
+msgid "Overloaded procedure"
+msgstr "Überladene Prozedur"
+
+#: fpdocstr:sptreeprocedure
+msgid "Procedure"
+msgstr "Prozedur"
+
+#: fpdocstr:sptreefunction
+msgid "Function"
+msgstr "Funktion"
+
+#: fpdocstr:sptreeconstructor
+msgid "Constructor"
+msgstr "Konstruktur"
+
+#: fpdocstr:sptreedestructor
+msgid "Destructor"
+msgstr "Destruktor"
+
+#: fpdocstr:sdocpackagetitle
+msgid "Reference for package '%s'"
+msgstr "Referenz für das Paket '%s'"
+
+#: fpdocstr:sdocprograms
+msgid "Programs"
+msgstr "Programme"
+
+#: fpdocstr:sdocunits
+msgid "Units"
+msgstr "Units"
+
+#: fpdocdef:sdocunittitle
+msgid "Reference for unit '%s'"
+msgstr "Referenz für Unit '%s'"
+
+#: fpdocdef:sdocinterfacesection
+msgid "Interface section"
+msgstr "Interface-Abschnitt"
+
+#: fpdocdef:sdocimplementationsection
+msgid "Implementation section"
+msgstr "Implementation-Abschnitt"
+
+#: fpdocdef:sdocusedunits
+msgid "Used units"
+msgstr "Verwendete Units"
+
+#: fpdocdef:sdocusedunitsbyunitxy
+msgid "Used units by unit '%s'"
+msgstr "Von Unit '%s' verwendete Units"
+
+#: fpdocdef:sdocconststypesvars
+msgid "Constants, types and variables"
+msgstr "Konstanten, Typen und Variablen"
+
+#: fpdocdef:sdocresstrings
+msgid "Resource strings"
+msgstr "Ressourcen-Strings"
+
+#: fpdocdef:sdoctypes
+msgid "Types"
+msgstr "Typen"
+
+#: fpdocdef:sdocconstants
+msgid "Constants"
+msgstr "Konstanten"
+
+#: fpdocdef:sdocclasses
+msgid "Classes"
+msgstr "Klassen"
+
+#: fpdocdef:sdocproceduresandfunctions
+msgid "Procedures and functions"
+msgstr "Prozeduren und Funktionen"
+
+#: fpdocdef:sdocvariables
+msgid "Variables"
+msgstr "Variablen"
+
+#: fpdocdef:sdocoverview
+msgid "Overview"
+msgstr "Überblick"
+
+#: fpdocdef:sdocsearch
+msgid "Search"
+msgstr "Suchen"
+
+#: fpdocdef:sdocdeclaration
+msgid "Declaration"
+msgstr "Deklaration"
+
+#: fpdocdef:sdocdescription
+msgid "Description"
+msgstr "Beschreibung"
+
+#: fpdocstr:sdocerrors
+msgid "Errors"
+msgstr "Fehler"
+
+#: fpdocdef:sdocseealso
+msgid "See also"
+msgstr "Siehe auch"
+
+#: fpdocstr:sdocexample
+msgid "Example"
+msgstr "Beispiel"
+
+#: fpdocdef:sdocarguments
+msgid "Arguments"
+msgstr "Argumente"
+
+#: fpdocdef:sdocfunctionresult
+msgid "Function result"
+msgstr "Funktionsergebnis"
+
+#: fpdocstr:sdocremark
+msgid "Remark:   "
+msgstr "Bemerkung:   "
+
+#: fpdocstr:sdocmethodoverview
+msgid "Method overview"
+msgstr "Überblick über die Methoden"
+
+#: fpdocstr:sdocpropertyoverview
+msgid "Property overview"
+msgstr "Überblick über die Eigenschaften"
+
+#: fpdocstr:sdocpage
+msgid "Page"
+msgstr "Seite"
+
+#: fpdocstr:sdocmethod
+msgid "Method"
+msgstr "Methode"
+
+#: fpdocstr:sdocproperty
+msgid "Property"
+msgstr "Eigenschaft"
+
+#: fpdocstr:sdocaccess
+msgid "Access"
+msgstr "Zugriff"
+
+#: fpdocstr:sdocinheritance
+msgid "Inheritance"
+msgstr "Vererbung"
+
+
+#: fpdocstr:sdocproperties
+msgid "Properties"
+msgstr "Eigenschaften"
+
+#: fpdocstr:sdocmethods
+msgid "Methods"
+msgstr "Methoden"
+
+#: fpdocstr:sdocevents
+msgid "Events"
+msgstr "Ereignisse"
+
+#: fpdocstr:sdocbyname
+msgid "by Name"
+msgstr "nach Name"
+

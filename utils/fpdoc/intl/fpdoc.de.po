@@ -1,0 +1,36 @@
+#: fpdoc:stitle
+msgid "FPDoc - Free Pascal Documentation Tool"
+msgstr "FPDoc - Free-Pascal-Dokumentationstool"
+
+#: fpdoc:scopyright
+msgid "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
+msgstr "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
+
+#: fpdoc:scmdlinehelp
+msgid "See documentation for usage."
+msgstr "Siehe Dokumentation zur Beschreibung der Verwendungsweise."
+
+#: fpdoc:scmdlineinvalidoption
+msgid "Ignoring unknown option \"%s\""
+msgstr "Ignoriere unbekannte Option \"%s\""
+
+#: fpdoc:scmdlineinvalidformat
+msgid "Invalid format \"%s\" specified"
+msgstr "Ungültiges Format \"%s\" angegeben"
+
+#: fpdoc:scmdlineoutputoptionmissing
+msgid "Need an output filename, please specify one with --output=<filename>"
+msgstr "Benötige einen Ausgabedateinamen, bitte geben Sie einen mit --output=<dateiname> an"
+
+#: fpdoc:swritingpages
+msgid "Writing %d pages..."
+msgstr "Schreibe %d Seiten..."
+
+#: fpdoc:sneedpackagename
+msgid "No package name specified. Please specify one using the --package option."
+msgstr "Kein Paketname angegeben. Bitte geben Sie einen mit Hilfe der '--package'-Option an."
+
+#: fpdoc:sdone
+msgid "Done."
+msgstr "Fertig."
+

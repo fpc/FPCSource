@@ -1,0 +1,32 @@
+#: fpdocmk:stitle
+msgid "FPDocMK - Makefile.fpc processor for Free Pascal Documentation Tool"
+msgstr "FPDocMK - Makefile.fpc-Prozessor für das Free-Pascal-Documentationstool"
+
+#: fpdocmk:scopyright
+msgid "(c) 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
+msgstr "(c) 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
+
+#: fpdocmk:scmdlinehelp
+msgid "See documentation for usage."
+msgstr ""
+
+#: fpdocmk:scmdlineinvalidoption
+msgid "Ignoring unknown option \"%s\""
+msgstr ""
+
+#: fpdocmk:scmdlineinvalidformat
+msgid "Invalid format \"%s\" specified"
+msgstr ""
+
+#: fpdocmk:scmdlineoutputoptionmissing
+msgid "Need an output path or filename, please specify one with --output=<filename>"
+msgstr "Benötige einen Ausgabepfad oder -Dateinamen, bitte geben Sie einen mit --output=<dateiname> an"
+
+#: fpdocmk:sneedpackagename
+msgid "No package name specified. Please specify one using the --package option."
+msgstr ""
+
+#: fpdocmk:sdone
+msgid "Done."
+msgstr "Fertig."
+

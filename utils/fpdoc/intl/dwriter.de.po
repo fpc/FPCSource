@@ -1,0 +1,80 @@
+#: dwriter:serrfilewriting
+msgid "An error occured during writing of file \"%s\": %s"
+msgstr "Beim Schreiben der Datei \"%s\" ist ein Fehler aufgetrete: %s"
+
+#: dwriter:serrinvalidshortdescr
+msgid "Invalid short description"
+msgstr "Ungültige Kurzbeschreibung"
+
+#: dwriter:serrinvaliddescr
+msgid "Invalid description (illegal XML element: \"%s\")"
+msgstr "Ungültige Beschreibung (illegales XML-Element: \"%s\")"
+
+#: dwriter:serrinvalidparacontent
+msgid "Invalid paragraph content"
+msgstr "Ungültiger Absatzinhalt (in <p>-Element)"
+
+#: dwriter:serrinvalidelementinlist
+msgid "Invalid element in list - only \"li\" allowed"
+msgstr "Ungültiges Element in Liste - nur \"li\" ist erlaubt"
+
+#: dwriter:serrinvalidlistcontent
+msgid "Invalid list content"
+msgstr "Ungültiger Listeninhalt"
+
+#: dwriter:serrlistisempty
+msgid "List is empty - need at least one \"li\" element"
+msgstr "Liste ist leer - brauche mindestens ein \"li\"-Element"
+
+#: dwriter:serrinvalidremarkcontent
+msgid "Invalid <remark> content (illegal XML element: \"%s\")"
+msgstr "Ungültiger <remark>-Inhalt (illegales XML-Element: \"%s\")"
+
+#: dwriter:serrinvaliddefinitiontermcontent
+msgid "Invalid content in definition term"
+msgstr "Ungültiger Inhalt in Definitionsterm"
+
+#: dwriter:serrdefinitionentrymissing
+msgid "Definition entry after definition term is missing"
+msgstr "Definitionseintrag nach Definitionsterm fehlt"
+
+#: dwriter:serrtableinvalidbordervalue
+msgid "Invalid \"border\" value for <table>"
+msgstr "Ungültiger \"border\"-Wert für <table>"
+
+#: dwriter:serrinvalidtablecontent
+msgid "Invalid table content"
+msgstr "Ungültiger Tabelleninhalt"
+
+#: dwriter:serrtablerowempty
+msgid "Table row is empty (no \"td\" elements found)"
+msgstr "Tabellenzeile ist leer (keine \"td\"-Elemente gefunden)"
+
+#: dwriter:serrinvalidcontentbeforesectiontitle
+msgid "Invalid content before section title"
+msgstr "Ungültiger Inhalt vor Abschnittstitel"
+
+#: dwriter:serrsectiontitleexpected
+msgid "Section title (\"title\" element) expected"
+msgstr "Abschnittstitel (\"title\"-Element) erwartet"
+
+#: dwriter:serrdescrtagunknown
+msgid "Warning: Unknown tag \"%s\" in description"
+msgstr "Warnung: Unbekanntes Tag \"%s\" in Beschreibung"
+
+#: dwriter:serrunknownentityreference
+msgid "Warning: Unknown entity reference \"&%s;\" found"
+msgstr "Warnung: Unbekannte Entity-Referenz \"&%s;\" gefunden"
+
+#: dwriter:serrunknownlinkid
+msgid "Warning: Target ID of <link> is unknown: \"%s\""
+msgstr "Warnung: Ziel-ID von <link> ist unbekannt: \"%s\""
+
+#: dwriter:serrunknownprintshortid
+msgid "Warning: Target ID of <printshort> is unknown: \"%s\""
+msgstr "Warnung: Ziel-ID von <printshort> ist unbekannt: \"%s\""
+
+#: dwriter:serrunknownlink
+msgid "Could not resolve link to \"%s\""
+msgstr "Konnte Link auf \"%s\" nicht auflösen"
+
