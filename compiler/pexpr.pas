@@ -621,50 +621,56 @@ unit pexpr;
               pd:=voiddef;
               if assigned(ppropertysym(sym)^.writeaccesssym) then
                 begin
-                   if ppropertysym(sym)^.writeaccesssym^.sym^.typ=procsym then
-                     begin
-                        { generate the method call }
-                        p1:=genmethodcallnode(pprocsym(
-                          ppropertysym(sym)^.writeaccesssym),st,p1);
-                        { we know the procedure to call, so
-                          force the usage of that procedure }
-                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
-                        p1^.left:=paras;
-                        consume(_ASSIGNMENT);
-                        { read the expression }
-                        getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
-                        p2:=comp_expr(true);
-                        if getprocvar then
-                         begin
-                           if (p2^.treetype=calln) then
-                            handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2)
-                           else
-                            if (p2^.treetype=typeconvn) and
-                               (p2^.left^.treetype=calln) then
-                             handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2^.left);
-                         end;
-                        p1^.left:=gencallparanode(p2,p1^.left);
-                        getprocvar:=false;
-                     end
-                   else if ppropertysym(sym)^.writeaccesssym^.sym^.typ=varsym then
-                     begin
-                        if assigned(paras) then
-                          message(parser_e_no_paras_allowed);
-                        { subscribed access? }
-                        if p1=nil then
-                          p1:=genloadnode(pvarsym(ppropertysym(sym)^.writeaccesssym),st)
-                        else
-                          p1:=gensubscriptnode(pvarsym(ppropertysym(sym)^.writeaccesssym),p1);
-                        consume(_ASSIGNMENT);
-                        { read the expression }
-                        p2:=comp_expr(true);
-                        p1:=gennode(assignn,p1,p2);
-                     end
-                   else
-                     begin
+                   case ppropertysym(sym)^.writeaccesssym^.sym^.typ of
+                     procsym :
+                       begin
+                         { generate the method call }
+                         p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.writeaccesssym^.sym),st,p1);
+                         { we know the procedure to call, so
+                           force the usage of that procedure }
+                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
+                         p1^.left:=paras;
+                         consume(_ASSIGNMENT);
+                         { read the expression }
+                         getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
+                         p2:=comp_expr(true);
+                         if getprocvar then
+                          begin
+                            if (p2^.treetype=calln) then
+                             handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2)
+                            else
+                             if (p2^.treetype=typeconvn) and
+                                (p2^.left^.treetype=calln) then
+                              handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2^.left);
+                          end;
+                         p1^.left:=gencallparanode(p2,p1^.left);
+                         getprocvar:=false;
+                       end;
+                     varsym :
+                       begin
+                         if assigned(paras) then
+                           message(parser_e_no_paras_allowed);
+                         { subscribed access? }
+                         plist:=ppropertysym(sym)^.writeaccesssym;
+                         while assigned(plist) do
+                          begin
+                            if p1=nil then
+                              p1:=genloadnode(pvarsym(plist^.sym),st)
+                            else
+                              p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
+                            plist:=plist^.next;
+                          end;
+                         consume(_ASSIGNMENT);
+                         { read the expression }
+                         p2:=comp_expr(true);
+                         p1:=gennode(assignn,p1,p2);
+                      end
+                    else
+                      begin
                         p1:=genzeronode(errorn);
                         Message(parser_e_no_procedure_to_access_property);
-                     end;
+                      end;
+                  end;
                 end
               else
                 begin
@@ -2070,7 +2076,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.135  1999-08-14 00:38:56  peter
+  Revision 1.136  1999-08-15 22:47:45  peter
+    * fixed property writeaccess which was buggy after my previous
+      subscribed property access
+
+  Revision 1.135  1999/08/14 00:38:56  peter
     * hack to support property with record fields
 
   Revision 1.134  1999/08/09 22:16:29  peter
