@@ -434,7 +434,7 @@ interface
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            isjump:=(left.location.loc=LOC_JUMP);
+            isjump:=(left.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=truelabel;
@@ -449,9 +449,11 @@ interface
              begin
                truelabel:=otl;
                falselabel:=ofl;
-             end;
+             end
+            else if left.location.loc=LOC_JUMP then
+              internalerror(200310081);
 
-            isjump:=(right.location.loc=LOC_JUMP);
+            isjump:=(right.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=truelabel;
@@ -466,7 +468,9 @@ interface
              begin
                truelabel:=otl;
                falselabel:=ofl;
-             end;
+             end
+            else if left.location.loc=LOC_JUMP then
+              internalerror(200310082);
 
             { left must be a register }
             left_must_be_reg(opsize,false);
@@ -1485,7 +1489,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-10-01 20:34:49  peter
+  Revision 1.81  2003-10-08 09:13:16  florian
+    * fixed full bool evalution and bool xor, if the left or right side have LOC_JUMP
+
+  Revision 1.80  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
