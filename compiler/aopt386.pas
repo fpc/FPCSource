@@ -39,7 +39,7 @@ Uses
 
 
 Procedure Optimize(AsmL: PAasmOutput);
-Var BlockStart, BlockEnd: Pai;
+Var BlockStart, BlockEnd, HP: Pai;
 Begin
 {setup labeltable, always necessary}
   BlockStart := Pai(AsmL^.First);
@@ -72,10 +72,11 @@ Begin
           While GetNextInstruction(BlockStart, BlockStart) And
                 ((BlockStart^.Typ <> Ait_Marker) Or
                  (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
-          If GetNextInstruction(BlockStart, BlockStart) And
-             ((BlockStart^.typ <> ait_Marker) Or
-             (Pai_Marker(BlockStart)^.Kind <> AsmBlockStart)) Then
-            BlockEnd := DFAPass1(AsmL, BlockStart);
+          If GetNextInstruction(BlockStart, HP) And
+             ((HP^.typ <> ait_Marker) Or
+             (Pai_Marker(HP)^.Kind <> AsmBlockStart)) Then
+            BlockEnd := DFAPass1(AsmL, BlockStart)
+          Else BlockStart := HP;
         End
    End;
 End;
@@ -84,7 +85,11 @@ End.
 
 {
  $Log$
- Revision 1.26  1999-03-31 13:55:03  peter
+ Revision 1.27  1999-04-18 17:57:17  jonas
+   * fix for crash when the first instruction of a sequence that gets
+     optimized is removed (this situation can't occur aymore now)
+
+ Revision 1.26  1999/03/31 13:55:03  peter
    * assembler inlining working for ag386bin
 
  Revision 1.25  1998/12/29 19:58:27  jonas

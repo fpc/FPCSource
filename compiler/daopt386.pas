@@ -1237,7 +1237,9 @@ Var OldP: Pai;
 Begin
   Repeat
     OldP := P;
-    If (P^.typ in SkipInstr) Then
+    If (P^.typ in SkipInstr) Or
+       ((P^.typ = ait_marker) And
+        (Pai_Marker(P)^.Kind = AsmBlockEnd)) Then
       GetNextInstruction(P, P)
     Else If ((P^.Typ = Ait_Marker) And
         (Pai_Marker(P)^.Kind = NoPropInfoStart)) Then
@@ -1759,8 +1761,7 @@ Begin
   p := BlockStart;
   UsedRegs := [];
   UpdateUsedregs(UsedRegs, p);
-  If (BlockStart^.typ in SkipInstr) Then
-    GetNextInstruction(p, p);
+  SkipHead(P);
   BlockStart := p;
   InstrCnt := 1;
   FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
@@ -2286,7 +2287,11 @@ End.
 
 {
  $Log$
- Revision 1.43  1999-04-17 22:16:59  pierre
+ Revision 1.44  1999-04-18 17:57:19  jonas
+   * fix for crash when the first instruction of a sequence that gets
+     optimized is removed (this situation can't occur aymore now)
+
+ Revision 1.43  1999/04/17 22:16:59  pierre
    * ifdef USE_OP3 released (changed into ifndef NO_OP3)
    * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
 
