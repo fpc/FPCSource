@@ -124,7 +124,8 @@ interface
           addoptn,
           nothingn,
           loadvmtn,
-          guidconstn
+          guidconstn,
+          rttin       { rtti information so they can be accessed in result/firstpass }
        );
 
       const
@@ -211,7 +212,8 @@ interface
           'addoptn',
           'nothingn',
           'loadvmtn',
-          'guidconstn');
+          'guidconstn',
+          'rttin');
 
     type
        { all boolean field of ttree are now collected in flags }
@@ -803,7 +805,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-10-20 19:28:38  peter
+  Revision 1.21  2002-01-19 11:52:32  peter
+    * dynarr:=nil support added
+
+  Revision 1.20  2001/10/20 19:28:38  peter
     * interface 2 guid support
     * guid constants support
 

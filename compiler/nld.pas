@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symbase,symtype,symsym,symdef;
+       symconst,symbase,symtype,symsym,symdef;
 
     type
        tloadnode = class(tunarynode)
@@ -95,6 +95,19 @@ interface
        end;
        ttypenodeclass = class of ttypenode;
 
+       trttinode = class(tnode)
+          l1,l2  : longint;
+          rttitype : trttitype;
+          rttidef : tstoreddef;
+          constructor create(def:tstoreddef;rt:trttitype);virtual;
+          function  getcopy : tnode;override;
+          function pass_1 : tnode;override;
+          procedure pass_2;override;
+          function det_resulttype:tnode;override;
+          function docompare(p: tnode): boolean; override;
+       end;
+       trttinodeclass = class of trttinode;
+
     var
        cloadnode : tloadnodeclass;
        cassignmentnode : tassignmentnodeclass;
@@ -102,15 +115,16 @@ interface
        carrayconstructorrangenode : tarrayconstructorrangenodeclass;
        carrayconstructornode : tarrayconstructornodeclass;
        ctypenode : ttypenodeclass;
+       crttinode : trttinodeclass;
 
 
 implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symconst,symtable,types,
+      symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,cpubase,tgcpu,cgbase
+      ncnv,nmem,ncal,cpubase,tgcpu,cgbase
       ;
 
 
@@ -396,6 +410,8 @@ implementation
 
 
     function tassignmentnode.det_resulttype:tnode;
+      var
+        hp,hp2 : tnode;
       begin
         result:=nil;
         resulttype:=voidtype;
@@ -419,6 +435,19 @@ implementation
         { assignments to open arrays aren't allowed }
         if is_open_array(left.resulttype.def) then
           CGMessage(type_e_mismatch);
+
+        { assigning nil to a dynamic array clears the array }
+        if is_dynamic_array(left.resulttype.def) and
+           (right.nodetype=niln) then
+         begin
+           hp := ctypeconvnode.create(left,voidpointertype);
+           hp.toggleflag(nf_explizit);
+           hp2 := crttinode.create(tstoreddef(left.resulttype.def),initrtti);
+           hp := ccallparanode.create(hp2,ccallparanode.create(hp,nil));
+           left:=nil;
+           result := ccallnode.createintern('fpc_dynarray_clear',hp);
+           exit;
+         end;
 
         { some string functions don't need conversion, so treat them separatly }
         if not (
@@ -814,6 +843,63 @@ implementation
           inherited docompare(p);
       end;
 
+
+{*****************************************************************************
+                              TRTTINODE
+*****************************************************************************}
+
+
+    constructor trttinode.create(def:tstoreddef;rt:trttitype);
+      begin
+         inherited create(rttin);
+         rttidef:=def;
+         rttitype:=rt;
+      end;
+
+
+    function trttinode.getcopy : tnode;
+      var
+         n : trttinode;
+      begin
+         n:=trttinode(inherited getcopy);
+         n.rttidef:=rttidef;
+         n.rttitype:=rttitype;
+         result:=n;
+      end;
+
+
+    function trttinode.det_resulttype:tnode;
+      begin
+        { rtti information will be returned as a void pointer }
+        result:=nil;
+        resulttype:=voidpointertype;
+      end;
+
+
+    function trttinode.pass_1 : tnode;
+      begin
+        result:=nil;
+        location.loc:=LOC_MEM;
+      end;
+
+
+    function trttinode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (rttidef = trttinode(p).rttidef) and
+          (rttitype = trttinode(p).rttitype);
+      end;
+
+
+    procedure trttinode.pass_2;
+      begin
+        reset_reference(location.reference);
+        location.loc:=LOC_MEM;
+        location.reference.symbol:=rttidef.get_rtti_label(rttitype);
+      end;
+
+
 begin
    cloadnode:=tloadnode;
    cassignmentnode:=tassignmentnode;
@@ -821,10 +907,14 @@ begin
    carrayconstructorrangenode:=tarrayconstructorrangenode;
    carrayconstructornode:=tarrayconstructornode;
    ctypenode:=ttypenode;
+   crttinode:=trttinode;
 end.
 {
   $Log$
-  Revision 1.31  2001-12-28 15:02:00  jonas
+  Revision 1.32  2002-01-19 11:52:32  peter
+    * dynarr:=nil support added
+
+  Revision 1.31  2001/12/28 15:02:00  jonas
     * fixed web bug 1684 (it already didn't crash anymore, but it also didn't
       generate an error) ("merged")
 
