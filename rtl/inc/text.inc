@@ -17,14 +17,15 @@
 
   EOF_CTRLZ       Is Ctrl-Z (#26) a EOF mark for textfiles
   SHORT_LINEBREAK Use short Linebreaks #10 instead of #10#13
+  MAC_LINEBREAK   Use Mac Linebreaks: #13 instead of #10 or #10#13
 
   SHORT_LINEBREAK is defined in the Linux system unit (syslinux.pp)
+
 }
 
 {****************************************************************************
                     subroutines For TextFile handling
 ****************************************************************************}
-
 
 Procedure FileCloseFunc(Var t:TextRec);
 Begin
@@ -275,6 +276,9 @@ End;
 
 
 Function SeekEof (Var t : Text) : Boolean;
+var
+  oldfilepos, oldbufpos, oldbufend, reads: longint;
+  isdevice: boolean;
 Begin
   If (InOutRes<>0) then
    exit(true);
@@ -286,22 +290,71 @@ Begin
       InOutRes:=103;
      exit(true);
    end;
+  { try to save the current position in the file, seekeof() should not move }
+  { the current file position (JM)                                          }
+  oldbufpos := TextRec(t).BufPos;
+  oldbufend := TextRec(t).BufEnd;
+  reads := 0;
+  oldfilepos := -1;
+  isdevice := Do_IsDevice(TextRec(t).handle);
   repeat
     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
      begin
+       { signal that the we will have to do a seek }
+       inc(reads);
+       if not isdevice and
+          (reads = 1) then
+         begin
+           oldfilepos := Do_FilePos(TextRec(t).handle) - TextRec(t).BufEnd;
+           InOutRes:=0;
+         end;
        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
        If TextRec(t).BufPos>=TextRec(t).BufEnd Then
-        exit(true);
+        begin
+          { if we only did a read in which we didn't read anything, the }
+          { old buffer is still valid and we can simply restore the     }
+          { pointers (JM)                                               }
+          dec(reads);
+          SeekEof := true;
+          break;
+        end;
      end;
     case TextRec(t).Bufptr^[TextRec(t).BufPos] of
-         #26 : exit(true);
+{$ifdef EOF_CTRLZ}
+         #26 : 
+           begin
+             SeekEof := true;
+             break;
+           end;
+{$endif EOF_CTRLZ}
      #10,#13,
       #9,' ' : ;
     else
-     exit(false);
+     begin
+       SeekEof := false;
+       break;
+     end;
     end;
-    inc(TextRec(t).BufPos);
+   inc(TextRec(t).BufPos);
   until false;
+  { restore file position if not working with a device }
+  if not isdevice then
+    { if we didn't modify the buffer, simply restore the BufPos and BufEnd  }
+    { (the latter becuase it's now probably set to zero because nothing was }
+    {  was read anymore)                                                    }
+    if (reads = 0) then
+      begin
+        TextRec(t).BufPos:=oldbufpos;
+        TextRec(t).BufEnd:=oldbufend;
+      end
+    { otherwise return to the old filepos and reset the buffer }
+    else
+      begin
+        do_seek(TextRec(t).handle,oldfilepos);
+        InOutRes:=0;
+        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+        TextRec(t).BufPos:=oldbufpos;
+      end;
 End;
 
 
@@ -882,7 +935,7 @@ var
   len: longint;
 Begin
   len := ReadPCharLen(f,pchar(@s),high(s)+1);
-  if len < high(s)+1 then
+  if len <= high(s) then
     s[len] := #0;
 End;
 
@@ -1184,7 +1237,14 @@ end;
 
 {
   $Log$
-  Revision 1.14  2001-08-23 14:28:36  jonas
+  Revision 1.15  2001-09-25 16:34:59  jonas
+    * fixed seekeof() so that it doesn't move the current possition in the
+      file anymore (merged)
+    * seekeof() now only regards #26 as EOF marker if EOF_CTRLZ is defined
+      (just like eof()) (merged)
+    * very tiny optimization to read_array_as_pchar
+
+  Revision 1.14  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent
