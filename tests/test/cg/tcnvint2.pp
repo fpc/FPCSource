@@ -42,6 +42,14 @@ var
      begin
        getint64 := $10000000;
      end;
+     
+   function getint64_2 : int64;
+     var
+      i: longint;
+     begin
+       i:=1;
+       getint64_2 := i shl 36;
+     end;
 {$endif}
 
    procedure Test(const s:string;b:boolean);
@@ -65,6 +73,7 @@ var
  bb2 : bytebool;
  wb2 : wordbool;
  lb2 : longbool;
+ value : longint;
 begin
  failed:=false;
 
@@ -107,6 +116,11 @@ begin
  fromint64 := $10000000;
  lb1 := longbool(fromint64);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
+ { does it indirectly, since it might not work in direct mode }
+ value:=1;
+ fromint64 := value shl 36 ;
+ lb1 := longbool(fromint64);
+ Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
  { left : LOC_REGISTER  }
  Writeln('Testing LOC_REGISTER...');
@@ -143,6 +157,8 @@ begin
 {$ifndef tp}
  fromint64 := $10000000;
  lb1 := longbool(getint64);
+ Test('int64 -> longbool : Value should be TRUE...',lb1);
+ lb1 := longbool(getint64_2);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
 (* CURRENTLY NEVER GOES INTO THE LOC_FLAGS LOCATION!
@@ -184,7 +200,10 @@ end.
 
 {
    $Log$
-   Revision 1.4  2002-09-07 15:40:55  peter
+   Revision 1.5  2002-09-27 17:46:01  carl
+     + big-endian testing
+
+   Revision 1.4  2002/09/07 15:40:55  peter
      * old logs removed and tabs fixed
 
    Revision 1.3  2002/05/13 13:45:38  peter
