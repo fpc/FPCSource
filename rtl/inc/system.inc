@@ -535,10 +535,16 @@ Procedure int_assert(Const Msg,FName:string;LineNo,ErrorAddr:Longint); [Public,A
 type
   TAssertErrorProc=procedure(const msg,fname:string;lineno,erroraddr:longint);
 begin
+  asm
+    pushal
+  end;
   if AssertErrorProc<>nil then
    TAssertErrorProc(AssertErrorProc)(Msg,FName,LineNo,ErrorAddr)
   else
    HandleError(227);
+  asm
+    popal
+  end;
 end;
 
 
@@ -567,7 +573,10 @@ end;
 
 {
   $Log$
-  Revision 1.64  1999-07-05 20:04:27  peter
+  Revision 1.65  1999-07-28 12:58:22  peter
+    * fixed assert() to push/pop registers
+
+  Revision 1.64  1999/07/05 20:04:27  peter
     * removed temp defines
 
   Revision 1.63  1999/07/03 01:24:19  peter
