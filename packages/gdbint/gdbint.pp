@@ -53,7 +53,9 @@ interface
 
 {$ifdef linux}
   {$undef NotImplemented}
+ {$ifndef GDB_V5}
   {$LINKLIB ncurses}
+ {$endif not GDB_V5}
   {$LINKLIB gdb}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
@@ -62,8 +64,11 @@ interface
       {$LINKLIB opcodes}
       {$LINKLIB history}
       {$LINKLIB iberty}
+      {$LINKLIB ncurses}
+      {$LINKLIB m}
+      {$LINKLIB intl}
+      {$LINKLIB iberty}
     {$endif GDB_V5}
-  {$LINKLIB m}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif linux}
@@ -2386,7 +2391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.2  2000-09-27 22:31:13  pierre
+  Revision 1.1.2.3  2000-10-01 22:24:44  pierre
+   * libraries for linux with GDB 5
+
+  Revision 1.1.2.2  2000/09/27 22:31:13  pierre
   * avoid cdecl troubles in CreateBreakpointHook
 
   Revision 1.1.2.1  2000/09/15 23:51:37  pierre
