@@ -1048,6 +1048,7 @@ begin
   def_symbol('NEWVMTOFFSET');
   def_symbol('HASINTERNMATH');
   def_symbol('SYSTEMTVARREC');
+  def_symbol('INCLUDEOK');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1233,7 +1234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-10-14 14:57:52  florian
+  Revision 1.27  1999-10-26 13:13:47  peter
+    * define INCLUDEOK, which seems to work correct
+
+  Revision 1.26  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.25  1999/10/13 10:24:49  peter
