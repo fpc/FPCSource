@@ -957,8 +957,8 @@ Begin
      exit;
    end;
 {Wait for Key}
-{ Only if the buffer is empty! (JM) }
-  if inCnt = 0 then
+{ Only if none are waiting! (JM) }
+  if not sysKeyPressed then
     begin
       FD_Zero (FDS);
       FD_Set (0,FDS);
@@ -1342,8 +1342,49 @@ Function CrtRead(Var F: TextRec): Integer;
   Read from CRT associated file.
 }
 var
-  i : longint;
+  c: char;
+  i, CurX, CurY : longint;
 Begin
+  if isATTY(F.Handle) then
+    begin
+      i := 0;
+      repeat
+        c := readkey;
+        case c of
+          { ignore special keys }
+          #0:
+            c:= readkey;
+          { Backspace }
+          #8:
+            if i > 0 then
+              begin
+                if not(OutputRedir or InputRedir) then
+                  write(#8#32#8);
+                dec(i);
+              end;
+          { Unhandled extended key }
+          #27:;
+          { CR }
+          #13:
+            begin
+              F.BufPtr^[i] := #10;
+              if not(OutputRedir or InputRedir) then
+                write(#13);
+              inc(i);
+            end;
+          else
+            begin
+              if not(OutputRedir or InputRedir) then
+                write(c);
+              F.BufPtr^[i] := c;
+              inc(i);
+            end;
+        end;
+      until c in [#10,#13];
+      F.BufEnd := i;
+      CrtRead := 0;
+      exit;
+    end;
   F.BufEnd:=fdRead(F.Handle, F.BufPtr^, F.BufSize);
 { fix #13 only's -> #10 to overcome terminal setting }
   for i:=1to F.BufEnd do
@@ -1621,7 +1662,15 @@ Begin
 End.
 {
   $Log$
-  Revision 1.26  2000-06-04 13:49:57  jonas
+  Revision 1.27  2000-06-05 08:35:28  jonas
+    * in readkey, check if keypresses are waiting using sysKeyPressed instead
+      of simply checking if there are keys left in the ttyRecvChar buffer
+    * CrtRead supports the backspace key when reading from a TTY.
+      NOTE: you have to use ReadKey or ttyRecvChar in crtRead, because it's
+      possible that when CrtRead starts, there are already keys waiting in
+      the ttyRecvChar buffer which would be missed using an fdRead!
+
+  Revision 1.26  2000/06/04 13:49:57  jonas
     * fixed webbug 978
 
   Revision 1.25  2000/05/08 13:24:27  peter
