@@ -228,9 +228,9 @@ implementation
 *****************************************************************************}
 
     type
-      tsecondconvproc = procedure(pto,pfrom : ptree;convtyp : tconverttype);
+      tsecondconvproc = procedure(var pto,pfrom : ptree;convtyp : tconverttype);
 
-    procedure second_int_to_int(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_int_to_int(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         op      : tasmop;
         opsize    : topsize;
@@ -342,7 +342,7 @@ implementation
           end;
       end;
 
-    procedure second_string_to_string(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_string_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
 
       var
          pushed : tpushed;
@@ -456,7 +456,7 @@ implementation
       end;
 
 
-    procedure second_cstring_to_pchar(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_cstring_to_pchar(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         hr : preference;
       begin
@@ -498,7 +498,7 @@ implementation
       end;
 
 
-    procedure second_string_to_chararray(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_string_to_chararray(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          l1 : pasmlabel;
          hr : preference;
@@ -547,7 +547,7 @@ implementation
       end;
 
 
-    procedure second_array_to_pointer(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_array_to_pointer(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
          del_reference(pfrom^.location.reference);
          clear_location(pto^.location);
@@ -558,7 +558,7 @@ implementation
       end;
 
 
-    procedure second_pointer_to_array(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_pointer_to_array(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
         clear_location(pto^.location);
         pto^.location.loc:=LOC_REFERENCE;
@@ -584,7 +584,7 @@ implementation
 
     { generates the code for the type conversion from an array of char }
     { to a string                                                       }
-    procedure second_chararray_to_string(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_chararray_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          pushed : tpushed;
          l : longint;
@@ -643,7 +643,7 @@ implementation
       end;
 
 
-    procedure second_char_to_string(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_char_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         pushed : tpushed;
       begin
@@ -680,7 +680,7 @@ implementation
       end;
 
 
-    procedure second_int_to_real(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_int_to_real(var pto,pfrom : ptree;convtyp : tconverttype);
 
       var
          r : preference;
@@ -789,7 +789,7 @@ implementation
       end;
 
 
-    procedure second_real_to_fix(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_real_to_fix(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          rreg : tregister;
          ref : treference;
@@ -828,7 +828,7 @@ implementation
       end;
 
 
-    procedure second_real_to_real(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_real_to_real(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
          case pfrom^.location.loc of
             LOC_FPU : ;
@@ -851,7 +851,7 @@ implementation
       end;
 
 
-    procedure second_fix_to_real(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_fix_to_real(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         popeax,popebx,popecx,popedx : boolean;
         startreg : tregister;
@@ -929,7 +929,7 @@ implementation
       end;
 
 
-    procedure second_cord_to_pointer(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_cord_to_pointer(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
         { this can't happend, because constants are already processed in
           pass 1 }
@@ -937,7 +937,7 @@ implementation
       end;
 
 
-    procedure second_int_to_fix(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_int_to_fix(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          hregister : tregister;
       begin
@@ -971,7 +971,7 @@ implementation
       end;
 
 
-    procedure second_proc_to_procvar(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_proc_to_procvar(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
         { method pointer ? }
         if assigned(pfrom^.left) then
@@ -990,7 +990,7 @@ implementation
       end;
 
 
-    procedure second_bool_to_int(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_bool_to_int(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          oldtruelabel,oldfalselabel,hlabel : pasmlabel;
          hregister : tregister;
@@ -1113,7 +1113,7 @@ implementation
       end;
 
 
-    procedure second_int_to_bool(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_int_to_bool(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         hregister : tregister;
         flags     : tresflags;
@@ -1166,7 +1166,7 @@ implementation
       end;
 
 
-    procedure second_load_smallset(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_load_smallset(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         href : treference;
         pushedregs : tpushed;
@@ -1185,7 +1185,7 @@ implementation
       end;
 
 
-    procedure second_ansistring_to_pchar(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_ansistring_to_pchar(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          l1 : pasmlabel;
          hr : preference;
@@ -1214,7 +1214,7 @@ implementation
       end;
 
 
-    procedure second_pchar_to_string(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_pchar_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         pushed : tpushed;
       begin
@@ -1287,7 +1287,7 @@ implementation
       end;
 
 
-    procedure second_nothing(pto,pfrom : ptree;convtyp : tconverttype);
+    procedure second_nothing(var pto,pfrom : ptree;convtyp : tconverttype);
       begin
       end;
 
@@ -1491,7 +1491,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  1999-11-06 14:34:17  peter
+  Revision 1.94  1999-11-29 22:15:25  pierre
+   * fix for internalerror(12) on ord(booleanarray[1])
+
+  Revision 1.93  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.92  1999/10/25 10:32:43  peter
