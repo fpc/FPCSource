@@ -289,7 +289,7 @@ end;
    function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
      external 'kernel32' name 'HeapAlloc';
 {$IFDEF SYSTEMDEBUG}
-   function HeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
+   function WinAPIHeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
      external 'kernel32' name 'HeapSize';
 {$ENDIF}
 
@@ -317,7 +317,7 @@ begin
   if (l = 0) then
     l := -1;
 {$ifdef DUMPGROW}
-  Writeln('new heap part at $',hexstr(l,8), ' size = ',HeapSize(GetProcessHeap()));
+  Writeln('new heap part at $',hexstr(l,8), ' size = ',WinAPIHeapSize(GetProcessHeap()));
 {$endif}
   sbrk:=l;
 end;
@@ -1282,8 +1282,7 @@ begin
         error:=exceptError[exceptLevel];
 {$ifdef SYSTEMEXCEPTIONDEBUG}
         if IsConsole then
-                writeln(stderr,'In JumpToHandleErrorFrame error=',error);
-        end;
+          writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
         if resetFPU[exceptLevel] then asm
                 fninit
@@ -1565,7 +1564,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2002-04-12 17:45:13  carl
+  Revision 1.27  2002-06-04 09:25:14  pierre
+   * Rename HeapSize to WinAPIHeapSize to avoid conflict with general function
+
+  Revision 1.26  2002/04/12 17:45:13  carl
   + generic stack checking
 
   Revision 1.25  2002/03/11 19:10:33  peter
