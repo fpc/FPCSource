@@ -1294,7 +1294,7 @@ implementation
             newmask.b := newmask.b or (1 shl (31-24));
 
           { denormals can not cause exceptions on the PPC }
-          
+
           { zero divide: bit 27 }
           if (exZeroDivide in mask) then
             newmask.b := newmask.b and not(1 shl (31-27))
@@ -1306,13 +1306,13 @@ implementation
             newmask.b := newmask.b and not(1 shl (31-25))
           else
             newmask.b := newmask.b or (1 shl (31-25));
-            
+
           { underflow: bit 26 }
           if (exUnderflow in mask) then
             newmask.b := newmask.b and not(1 shl (31-26))
           else
             newmask.b := newmask.b or (1 shl (31-26));
-            
+
           { Precision (inexact result): bit 28 }
           if (exUnderflow in mask) then
             newmask.b := newmask.b and not(1 shl (31-28))
@@ -1761,7 +1761,6 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_direct;
 {$endif sparc}
 {$ifdef arm}
         initpackenum:=4;
@@ -1797,7 +1796,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2004-01-02 16:50:24  jonas
+  Revision 1.120  2004-01-12 16:36:53  peter
+    * removed asmmode_direct
+
+  Revision 1.119  2004/01/02 16:50:24  jonas
     + SetFPUExceptionMask implementation for PPC
 
   Revision 1.118  2003/12/25 01:07:09  florian

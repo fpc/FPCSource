@@ -770,17 +770,6 @@ implementation
         asmreader : tbaseasmreader;
       begin
          Inside_asm_statement:=true;
-         if aktasmmode=asmmode_direct then
-           begin
-             if not target_asm.allowdirect then
-               Message(parser_f_direct_assembler_not_allowed);
-             if (current_procinfo.procdef.proccalloption=pocall_inline) then
-               Begin
-                  Message1(parser_w_not_supported_for_inline,'direct asm');
-                  Message(parser_w_inlining_disabled);
-                  current_procinfo.procdef.proccalloption:=pocall_default;
-               End;
-           end;
          if assigned(asmmodeinfos[aktasmmode]) then
            begin
              asmreader:=asmmodeinfos[aktasmmode]^.casmreader.create;
@@ -1095,7 +1084,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2003-12-07 16:40:45  jonas
+  Revision 1.125  2004-01-12 16:36:53  peter
+    * removed asmmode_direct
+
+  Revision 1.124  2003/12/07 16:40:45  jonas
     * moved count_locals from pstatmnt to symutils
     * use count_locals in powerpc/cpupi to check whether we should set the
       first temp offset (and as such generate a stackframe)
