@@ -70,8 +70,6 @@ uses
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
          procedure loadbool(opidx:longint;_b:boolean);
-
-         destructor destroy;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -314,16 +312,6 @@ implementation
          loadref(1,_op2);
       end;
 
-    destructor taicpu.destroy;
-      var
-        i : longint;
-      begin
-          for i:=ops-1 downto 0 do
-            if (oper[i].typ=top_ref) then
-              dispose(oper[i].ref);
-        inherited destroy;
-      end;
-
 
     procedure InitAsm;
       begin
@@ -337,7 +325,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-26 11:19:57  jonas
+  Revision 1.3  2002-09-17 18:26:02  jonas
+    - removed taicpu.destroy, its job is already handled by
+      taicpu_abstract.destroy() and this caused heap corruption
+
+  Revision 1.2  2002/07/26 11:19:57  jonas
     * fixed range errors
 
   Revision 1.1  2002/07/07 09:44:31  florian
