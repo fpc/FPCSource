@@ -358,6 +358,7 @@ implementation
         { optimize first loading of a set }
 {$ifdef usecreateset}
         if (p^.right^.treetype=setelementn) and
+           not(assigned(p^.right^.right)) and
            is_emptyset(p^.left) then
          createset:=true
         else
@@ -1809,7 +1810,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-02-12 10:43:56  florian
+  Revision 1.43  1999-02-16 00:46:30  peter
+    * fixed bug 206
+
+  Revision 1.42  1999/02/12 10:43:56  florian
     * internal error 10 with ansistrings fixed
 
   Revision 1.41  1999/01/20 19:23:10  jonas
