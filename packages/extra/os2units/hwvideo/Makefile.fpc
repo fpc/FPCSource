@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for the Multimedia Toolkit (interface units for MMPM)
+#
+
+[package]
+name=hwvideo
+version=1.0.6
+
+[target]
+units=hwvideo
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
