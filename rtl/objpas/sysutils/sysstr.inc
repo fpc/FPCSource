@@ -128,7 +128,7 @@ begin
   while (result=0) and (I<length) do
     begin
     result:=byte(P1^)-byte(P2^);
-    P1:=pchar(P1)+1;		// VP compat.
+    P1:=pchar(P1)+1;            // VP compat.
     P2:=pchar(P2)+1;
     i := i + 1;
    end ;
@@ -486,23 +486,23 @@ begin
  if P=Q then exit;
  if P^<>quote then exit;
  inc(p);
-   
+
  setlength(result,(Q-P)+1);
  R:=@Result[1];
  i := 0;
- while P <> Q do 
+ while P <> Q do
    begin
-     R^:=P^; 
+     R^:=P^;
      inc(R);
      if (P^ = Quote) then
        begin
          P := P + 1;
          if (p^ <> Quote) then
           begin
-	    dec(R);
-	    break;
+            dec(R);
+            break;
           end;
-       end; 
+       end;
      P := P + 1;
    end ;
  src:=p;
@@ -788,7 +788,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     Index,Width,Prec : Longint;
     Left : Boolean;
     Fchar : char;
+{$ifdef ver1_0}
     vl : int64;
+{$else}
+    vq : qword;
+{$endif}
 
   {
     ReadFormat reads the format string. It returns the type character in
@@ -910,8 +914,8 @@ var Code: word;
     inc(chpos);
     If Fmt[Chpos]='%' then
       begin
-	Result:='%';
-  	exit;				// VP fix
+        Result:='%';
+        exit;                           // VP fix
       end;
     ReadIndex;
     ReadLeft;
@@ -984,11 +988,11 @@ begin
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
-  	      {$IFNDEF VIRTUALPASCAL}
+              {$IFNDEF VIRTUALPASCAL}
               else if CheckArg(vtInt64,true) then
                 Str(Args[DoArg].VInt64^,toadd)
-	      {$ENDIF}
-	      ;
+              {$ENDIF}
+              ;
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               If ToAdd[1]<>'-' then
@@ -1000,15 +1004,15 @@ begin
         'U' : begin
               if Checkarg(vtinteger,false) then
                 Str(cardinal(Args[Doarg].VInteger),ToAdd)
-  	      {$IFNDEF VIRTUALPASCAL}
+              {$IFNDEF VIRTUALPASCAL}
               else if CheckArg(vtInt64,true) then
                 Str(qword(Args[DoArg].VInt64^),toadd)
-	      {$ENDIF}
-	      ;
+              {$ENDIF}
+              ;
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
-	      ToAdd:=StringOfChar('0',Index)+ToAdd
-              end;        
+              ToAdd:=StringOfChar('0',Index)+ToAdd
+              end;
         'E' : begin
               CheckArg(vtExtended,true);
               ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3);
@@ -1064,38 +1068,55 @@ begin
               // Insert(':',ToAdd,5);
               end;
         'X' : begin
+{$ifdef ver1_0}
               if Checkarg(vtinteger,false) then
-	         begin
-	           vl:=Args[Doarg].VInteger;
-		   index:=16;
-	         end
-	      else
-	         begin
+                 begin
+                   vl:=Args[Doarg].VInteger and int64($ffffffff);
+                   index:=16;
+                 end
+              else
+                 begin
                    CheckArg(vtInt64,true);
-		   vl:=Args[DoArg].VInt64^;
-		   index:=31;
-	         end;
+                   vl:=Args[DoArg].VInt64^;
+                   index:=31;
+                 end;
               If Prec>index then
                 ToAdd:=HexStr(vl,index)
               else
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-		{$Ifdef ver1_0}
                  While (DWord(1 shl (Index*4))<=DWord(Args[DoArg].VInteger)) and (index<8) do
                   inc(Index);
-		{$else}
-                While (qWord(1 shl (Index*4))<=qWord(vl)) and (index<16) do
-                 inc(Index);
-		{$endif}
                 If Index>Prec then
                   Prec:=Index;
-		{$ifdef ver1_0}
                 ToAdd:=HexStr(int64(vl),Prec);
-		{$else}
-                ToAdd:=HexStr(qword(vl),Prec);
-		{$endif}
                 end;
+{$else}
+              if Checkarg(vtinteger,false) then
+                 begin
+                   vq:=Cardinal(Args[Doarg].VInteger);
+                   index:=16;
+                 end
+              else
+                 begin
+                   CheckArg(vtInt64,true);
+                   vq:=Qword(Args[DoArg].VInt64^);
+                   index:=31;
+                 end;
+              If Prec>index then
+                ToAdd:=HexStr(vq,index)
+              else
+                begin
+                // determine minimum needed number of hex digits.
+                Index:=1;
+                While (qWord(1) shl (Index*4)<=vq) and (index<16) do
+                  inc(Index);
+                If Index>Prec then
+                  Prec:=Index;
+                ToAdd:=HexStr(vq,Prec);
+                end;
+{$endif}
               end;
         '%': ToAdd:='%';
       end;
@@ -2186,8 +2207,8 @@ Var
   C,LQ,BC : Char;
   P,BLen,Len : Integer;
   HB,IBC : Boolean;
-  
-begin 
+
+begin
   Result:='';
   L:=Line;
   Blen:=Length(BreakStr);
@@ -2211,12 +2232,12 @@ begin
         LQ:=C;
       If (LQ<>#0) then
         Inc(P)
-      else  
+      else
         begin
         HB:=((C=BC) and (BreakStr=Copy(L,P,BLen)));
         If HB then
-          Inc(P,Blen-1)
-        else 
+          Inc(P,Blen)
+        else
           begin
           If (P>MaxCol) then
             IBC:=C in BreakChars;
@@ -2237,7 +2258,7 @@ function WrapText(const Line: string; MaxCol: Integer): string;
 begin
   Result:=WrapText(Line,sLineBreak, [' ', '-', #9], MaxCol);
 end;
-  
+
 
 {
    Case Translation Tables
@@ -2299,7 +2320,10 @@ const
 
 {
   $Log$
-  Revision 1.23  2004-12-19 17:55:38  michael
+  Revision 1.24  2004-12-26 13:04:30  peter
+    * fix bugs 3477, 3478, 3479
+
+  Revision 1.23  2004/12/19 17:55:38  michael
   + Implemented wraptext
 
   Revision 1.22  2004/12/01 10:34:46  michael
