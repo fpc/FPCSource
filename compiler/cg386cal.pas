@@ -369,7 +369,7 @@ implementation
                  (po_iocheck in p^.procdefinition^.procoptions) and
                  not(po_iocheck in aktprocsym^.definition^.procoptions) then
                 begin
-                   getlabel(iolabel);
+                   getaddrlabel(iolabel);
                    emitlab(iolabel);
                 end
               else
@@ -1432,8 +1432,8 @@ implementation
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
             begin
-              getlabel(startlabel);
-              getlabel(endlabel);
+              getaddrlabel(startlabel);
+              getaddrlabel(endlabel);
               emitlab(startlabel);
               p^.inlineprocsym^.definition^.localst^.symtabletype:=inlinelocalsymtable;
               p^.inlineprocsym^.definition^.parast^.symtabletype:=inlineparasymtable;
@@ -1511,7 +1511,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:24  michael
+  Revision 1.4  2000-07-21 15:14:01  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.3  2000/07/13 12:08:24  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:32  michael

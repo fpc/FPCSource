@@ -182,8 +182,8 @@ unit t_win32;
            { Get labels for the sections }
              getdatalabel(lhead);
              getdatalabel(lname);
-             getlabel(lidata4);
-             getlabel(lidata5);
+             getaddrlabel(lidata4);
+             getaddrlabel(lidata5);
            { create header for this importmodule }
              importssection^.concat(new(pai_cut,init_begin));
              importssection^.concat(new(pai_section,init(sec_idata2)));
@@ -1303,7 +1303,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-07-21 15:14:02  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }

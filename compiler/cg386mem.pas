@@ -894,8 +894,8 @@ implementation
                   if (cs_debuginfo in aktmoduleswitches) then
                     begin
                       inc(withlevel);
-                      getlabel(withstartlabel);
-                      getlabel(withendlabel);
+                      getaddrlabel(withstartlabel);
+                      getaddrlabel(withendlabel);
                       emitlab(withstartlabel);
                       withdebuglist^.concat(new(pai_stabs,init(strpnew(
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack^.getnewtypecount)+
@@ -951,7 +951,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:35  michael
+  Revision 1.3  2000-07-21 15:14:02  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.2  2000/07/13 11:32:35  michael
   + removed logs
 
 }

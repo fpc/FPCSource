@@ -122,9 +122,13 @@ unit aasm;
        tasmlabel = object(tasmsymbol)
          labelnr : longint;
          { this is set by the pai_label.init }
-         is_set  : boolean;
+         is_set,
+         { is the label only there for getting an address (e.g. for i/o }
+         { checks -> true) or is it a jump target (false)               }
+         is_addr : boolean;
          constructor init;
          constructor initdata;
+         constructor initaddr;
          function name:string;virtual;
        end;
 
@@ -361,6 +365,8 @@ type
 
     { make l as a new label }
     procedure getlabel(var l : pasmlabel);
+    { make l as a new label and flag is_addr }
+    procedure getaddrlabel(var l : pasmlabel);
     { make l as a new label and flag is_data }
     procedure getdatalabel(var l : pasmlabel);
     {just get a label number }
@@ -928,6 +934,7 @@ uses
         inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_FUNCTION);
         proclocal:=true;
         is_set:=false;
+        is_addr := false;
       end;
 
 
@@ -940,10 +947,16 @@ uses
         else
           inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
+        is_addr := false;
         { write it always }
         refs:=1;
       end;
 
+    constructor tasmlabel.initaddr;
+      begin;
+        init;
+        is_addr := true;
+      end;
 
     function tasmlabel.name:string;
       begin
@@ -1058,6 +1071,11 @@ uses
         asmsymbollist^.insert(l);
       end;
 
+    procedure getaddrlabel(var l : pasmlabel);
+      begin
+        l:=new(pasmlabel,initaddr);
+        asmsymbollist^.insert(l);
+      end;
 
     procedure RegenerateLabel(var l : pasmlabel);
       begin
@@ -1090,7 +1108,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:24  michael
+  Revision 1.4  2000-07-21 15:14:01  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.3  2000/07/13 12:08:24  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:28  michael

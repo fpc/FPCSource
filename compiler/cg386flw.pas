@@ -600,7 +600,7 @@ do_jmp:
                 end
               else
                 begin
-                   getlabel(a);
+                   getaddrlabel(a);
                    emitlab(a);
                    emit_const(A_PUSH,S_L,0);
                    emit_sym(A_PUSH,S_L,a);
@@ -1234,7 +1234,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:33  michael
+  Revision 1.3  2000-07-21 15:14:02  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.2  2000/07/13 11:32:33  michael
   + removed logs
 
 }

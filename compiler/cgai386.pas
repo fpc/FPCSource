@@ -2647,7 +2647,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       case target_info.target of
          target_i386_linux:
            begin
-              getlabel(pl);
+              getaddrlabel(pl);
               emitcall('mcount');
               exprasmlist^.insert(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
               exprasmlist^.insert(new(pai_section,init(sec_code)));
@@ -3969,7 +3969,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:25  michael
+  Revision 1.4  2000-07-21 15:14:02  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.3  2000/07/13 12:08:25  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:37  michael

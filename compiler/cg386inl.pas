@@ -231,7 +231,7 @@ implementation
            if (cs_check_io in aktlocalswitches) and
               not(po_iocheck in aktprocsym^.definition^.procoptions) then
              begin
-                getlabel(iolabel);
+                getaddrlabel(iolabel);
                 emitlab(iolabel);
              end
            else
@@ -1528,7 +1528,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:34  michael
+  Revision 1.3  2000-07-21 15:14:02  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.2  2000/07/13 11:32:34  michael
   + removed logs
 
 }
