@@ -60,7 +60,7 @@ Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IV
      mtlr      r30
   end;
 
-Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
+Function CallSingleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Single;assembler;
   { input:             }
   {     r3: s          }
   {     r4: address    }
@@ -80,7 +80,47 @@ Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint)
      mtlr      r30
   end;
 
-Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
+Function CallDoubleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Double;assembler;
+  { input:             }
+  {     r3: s          }
+  {     r4: address    }
+  {     r5: index      }
+  {     r6: ivalue     }
+  { output:            }
+  {     fr1: result    }
+  asm
+     { save current return address }
+     mflr      r30
+     mtctr     r4
+     { always pass ivalue as second parameter, it doesn't matter if it }
+     { isn't used                                                      }
+     mr        r4,r6
+     bctrl
+     { restore return address }
+     mtlr      r30
+  end;
+
+Function CallExtendedFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Extended;assembler;
+  { input:             }
+  {     r3: s          }
+  {     r4: address    }
+  {     r5: index      }
+  {     r6: ivalue     }
+  { output:            }
+  {     fr1: result    }
+  asm
+     { save current return address }
+     mflr      r30
+     mtctr     r4
+     { always pass ivalue as second parameter, it doesn't matter if it }
+     { isn't used                                                      }
+     mr        r4,r6
+     bctrl
+     { restore return address }
+     mtlr      r30
+  end;
+
+Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; Index,IVAlue : Longint) : Integer;assembler;
   { input:              }
   {     r3:  s          }
   {     r4:  address    }
@@ -171,7 +211,10 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.3  2003-04-23 22:19:21  peter
+  Revision 1.4  2003-04-23 22:47:13  florian
+    * fixed compilation
+
+  Revision 1.3  2003/04/23 22:19:21  peter
     * sstringfunc para updated
 
   Revision 1.2  2002/09/07 16:01:26  peter
