@@ -61,8 +61,8 @@ override LOCALOPT+=$(LOCALDEF)
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib \
-        staticinstall sharedinstall libinstall \
+	staticlib sharedlib \
+	staticinstall sharedinstall libinstall \
 
 info: testfpcmake fpc_info
 
@@ -256,7 +256,7 @@ msg: msgtxt.inc
 
 # Make only the compiler
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
-	$(COMPILER) $(LOCALOPT) pp.pas
+	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 
@@ -266,10 +266,10 @@ remake: $(EXENAME)
 	$(MAKE) execlean
 	$(MAKE) -C $(RTLDIR) libsclean
 	$(MAKE) clean
-	$(MAKE) 'PP=$(TEMPNAME)' all
+	$(MAKE) 'PP=./$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
-	$(MAKE) 'PP=$(TEMPNAME3)' 'OLDPP=$(TEMPNAME2)' next
+	$(MAKE) 'PP=./$(TEMPNAME3)' 'OLDPP=./$(TEMPNAME2)' next
 	$(DIFF) $(TEMPNAME3) $(EXENAME)
 
 $(TEMPNAME1) : $(EXENAME)
@@ -277,12 +277,12 @@ $(TEMPNAME1) : $(EXENAME)
 	$(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) 'PP=$(TEMPNAME1)' 'OLDPP=' next
+	$(MAKE) 'PP=./$(TEMPNAME1)' 'OLDPP=' next
 	-$(DEL) $(TEMPNAME2)
 	$(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-	$(MAKE) 'PP=$(TEMPNAME2)' 'OLDPP=$(TEMPNAME1)' next
+	$(MAKE) 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
 	-$(DEL) $(TEMPNAME3)
 	$(MOVE) $(EXENAME) $(TEMPNAME3)
 
@@ -293,10 +293,10 @@ cycle: testfpcmake
 	$(MAKE) remake3
 	$(MAKE) echotime
 
-cycledep: testfpcmake 
+cycledep: testfpcmake
 	$(MAKE) cycle USEDEPEND=1
 
-cvstest: testfpcmake 
+cvstest: testfpcmake
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
 
 
@@ -305,7 +305,7 @@ cvstest: testfpcmake
 #####################################################################
 
 # This will only install the ppc386.exe, not the message files etc.
-quickinstall: testfpcmake 
+quickinstall: testfpcmake
 ifdef inlinux
 	$(MKDIR) $(LIBINSTALLDIR)
 	$(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
@@ -370,7 +370,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.22  1999-03-16 00:46:56  peter
+# Revision 1.23  1999-03-24 23:12:54  peter
+#   * use ./ before tempnames
+#
+# Revision 1.22  1999/03/16 00:46:56  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
