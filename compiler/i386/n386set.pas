@@ -614,7 +614,7 @@ implementation
                     end
                   else
                     begin
-                       emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                       emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
                        emitjmp(C_Z,t^.statement);
                        last:=t^._low;
                     end;
@@ -639,7 +639,7 @@ implementation
                          end
                        else
                          begin
-                            emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                            emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
                             emitjmp(jmp_le,elselabel);
                          end;
                     end;
@@ -657,7 +657,7 @@ implementation
                     end
                   else
                     begin
-                       emit_const_reg(A_CMP,opsize,t^._high,hregister);
+                       emit_const_reg(A_CMP,opsize,longint(t^._high),hregister);
                        emitjmp(jmp_lee,t^.statement);
                     end;
 
@@ -698,7 +698,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype)) then
                begin
-                  emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                  emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
                   emitjmp(jmp_le,elselabel);
                end;
              if t^._low=t^._high then
@@ -706,7 +706,7 @@ implementation
                   if t^._low-last=0 then
                     emit_reg_reg(A_OR,opsize,hregister,hregister)
                   else
-                    gensub(t^._low-last);
+                    gensub(longint(t^._low-last));
                   last:=t^._low;
                   emitjmp(C_Z,t^.statement);
                end
@@ -718,10 +718,7 @@ implementation
                   if first then
                     begin
                        { have we to ajust the first value ? }
-                       if (with_sign and
-                           (t^._low>get_min_value(left.resulttype))) or
-                          (not with_sign and
-                           (cardinal(t^._low) > cardinal(get_min_value(left.resulttype)))) then
+                       if (t^._low>get_min_value(left.resulttype)) then
                          gensub(t^._low);
                     end
                   else
@@ -732,10 +729,10 @@ implementation
 
                       { note: you can't use gensub() here because dec doesn't }
                       { change the carry flag (needed for jmp_lxx) (JM)       }
-                      emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
+                      emit_const_reg(A_SUB,opsize,longint(t^._low-last),hregister);
                       emitjmp(jmp_le,elselabel);
                     end;
-                  emit_const_reg(A_SUB,opsize,t^._high-t^._low,hregister);
+                  emit_const_reg(A_SUB,opsize,longint(t^._high-t^._low),hregister);
                   emitjmp(jmp_lee,t^.statement);
                   last:=t^._high;
                end;
@@ -785,10 +782,10 @@ implementation
           begin
            if not(jumptable_no_range) then
              begin
-                emit_const_reg(A_CMP,opsize,min_,hregister);
+                emit_const_reg(A_CMP,opsize,longint(min_),hregister);
                 { case expr less than min_ => goto elselabel }
                 emitjmp(jmp_le,elselabel);
-                emit_const_reg(A_CMP,opsize,max_,hregister);
+                emit_const_reg(A_CMP,opsize,longint(max_),hregister);
                 emitjmp(jmp_gt,elselabel);
              end;
            getlabel(table);
@@ -816,7 +813,7 @@ implementation
            new(hr);
            reset_reference(hr^);
            hr^.symbol:=table;
-           hr^.offset:=(-min_)*4;
+           hr^.offset:=(-longint(min_))*4;
            hr^.index:=hregister;
            hr^.scalefactor:=4;
            emit_ref(A_JMP,S_NO,hr);
@@ -834,7 +831,8 @@ implementation
         end;
 
       var
-         lv,hv,max_label,labels : longint;
+         max_label: tconstexprint;
+         lv,hv,labels : longint;
          max_linear_list : longint;
          otl, ofl: pasmlabel;
 {$ifdef Delphi}
@@ -1071,7 +1069,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-12-16 15:58:18  jonas
+  Revision 1.9  2000-12-18 17:45:32  jonas
+    * int64 case fixes
+    * explicit longint type casts for constants used in assembler code
+      generation s,ice they can be cardinals too (or even int64's in case of
+      range check errors)
+
+  Revision 1.8  2000/12/16 15:58:18  jonas
     * removed warnings about possible range check errors
 
   Revision 1.7  2000/12/05 11:44:34  jonas
