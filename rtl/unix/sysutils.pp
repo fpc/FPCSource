@@ -43,7 +43,7 @@ Uses
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
-Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
+Function getenv(name:shortstring):Pchar; external name 'FPC_SYSC_FPGETENV';
 
 Type
   ComStr  = String[255];
@@ -1088,7 +1088,10 @@ end.
 {
 
   $Log$
-  Revision 1.52  2004-11-02 13:59:42  marco
+  Revision 1.53  2004-11-06 17:24:07  marco
+   * getenv had ansistring as param due to {$H+} now shortstring.
+
+  Revision 1.52  2004/11/02 13:59:42  marco
    * timezone stuff back to unix
 
   Revision 1.51  2004/11/01 07:10:56  peter
