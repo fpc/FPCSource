@@ -9,7 +9,7 @@ Type definitions for UNZIP
     and
     amended for Win32 by Dr Abimbola Olowofoyeku (The African Chief)
  Homepage: http://ourworld.compuserve.com/homepages/African_Chief
-  * extended to by Tomas Hajny, XHajT03@mbox.vol.cz to support other 32-bit
+  * extended by Tomas Hajny, XHajT03@mbox.vol.cz to support other 32-bit
     compilers/platforms (OS/2, GO32, ...); search for (* TH ... *)
 }
 
@@ -202,7 +202,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.1  1999-02-19 16:45:26  peter
+  Revision 1.2  1999-06-10 07:28:30  hajny
+    * compilable with TP again
+
+  Revision 1.1  1999/02/19 16:45:26  peter
     * moved to fpinst/ directory
     + makefile
 

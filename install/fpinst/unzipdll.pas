@@ -41,7 +41,6 @@ uses
 
 type
  UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint;
-(* var ArgV ??? *)
 
 const
 {$IFDEF OS2}
@@ -175,7 +174,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-02-19 16:45:26  peter
+  Revision 1.2  1999-06-10 07:28:29  hajny
+    * compilable with TP again
+
+  Revision 1.1  1999/02/19 16:45:26  peter
     * moved to fpinst/ directory
     + makefile
 

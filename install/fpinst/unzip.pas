@@ -2,6 +2,49 @@
   $Id$
 }
 UNIT Unzip;
+{
+Unzips deflated, imploded, shrunk and stored files
+  ** COMPATIBLE WITH
+        * Turbo Pascal v7.x     (DOS)
+        * Borland Pascal v7.x   (Dos, DPMI, and Windows)
+        * Delphi v1.x
+        * Delphi v2.x
+        * Delphi v3.x
+        * Virtual Pascal v2.0   (OS/2, Win32)
+        * Free Pascal Compiler  (DOS, OS/2, Win32, Linux)
+}
+
+{
+  Original version (1.x): Christian Ghisler
+   C code by info-zip group, translated to pascal by Christian Ghisler
+   based on unz51g.zip;
+   Special thanks go to Mark Adler,who wrote the main inflate and
+   explode code, and did NOT copyright it!!!
+
+ v2.00: March 1998: Dr Abimbola Olowofoyeku (The African Chief)
+        Homepage: http://ourworld.compuserve.com/homepages/African_Chief
+   * modified to compile for Delphi v2.x and Delphi v3.x
+
+ v2.01: April 1998: Dr Abimbola Olowofoyeku (The African Chief)
+   * source files merged into a single source (this) file
+   * several high level functions added - i.e.,
+              FileUnzip()
+              FileUnzipEx()
+              ViewZip()
+              UnzipSize()
+              SetUnzipReportProc()
+              SetUnzipQuestionProc()
+              ChfUnzip_Init()
+   * callbacks added
+   * modified to support Virtual Pascal v2.0 (Win32)
+   * Delphi component added (chfunzip.pas)
+ v2.01a: December 1998: Tomas Hajny, XHajT03@mbox.vol.cz
+   * extended to support other 32-bit compilers/platforms (OS/2, GO32, ...);
+     search for (* TH ... *)
+ v2.01b: December 1998: Peter Vreman
+   * modifications needed for Linux
+}
+
 INTERFACE
 
 {$IFDEF FPC}
@@ -285,6 +328,7 @@ CONST   {Error codes returned by huft_build}
   huft_incomplete = 1;   {Incomplete tree <- sufficient in some cases!}
   huft_error     = 2;   {bad tree constructed}
   huft_outofmem  = 3;   {not enough memory}
+(* TH - use of the new BIT32 conditional (was WIN32 only previously) *)
   MaxMax = {$ifdef BIT32}256 * 1024    {BIT32 =  256kb buffer}
            {$else}Maxint -1{$endif}; {16-bit = 32kb buffer}
 
@@ -718,7 +762,11 @@ BEGIN
   b := ( n = w ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @slide [ 0 ] ) ^ ), w );
   {--}
+{$IFDEF FPC}
   IF ( b = TRUE ) AND Assigned(ZipReport)  {callback report for high level functions}
+{$ELSE}
+  IF ( b = TRUE ) AND ( @ZipReport <> NIL )  {callback report for high level functions}
+{$ENDIF}
   THEN BEGIN
       WITH ZipRec DO BEGIN
            Status := file_unzipping;
@@ -2083,7 +2131,11 @@ BEGIN
   b := ( n = write_ptr ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @writebuf^ [ 0 ] ) ^ ), write_ptr );
   {--}
+{$IFDEF FPC}
   IF ( b = TRUE ) AND Assigned(ZipReport)  {callback report for high level functions}
+{$ELSE}
+  IF ( b = TRUE ) AND ( @ZipReport <> NIL )  {callback report for high level functions}
+{$ENDIF}
   THEN BEGIN
       WITH ZipRec DO BEGIN
            Status := file_unzipping;
@@ -2980,10 +3032,17 @@ VAR
     s : string [ 255 ];
 
 BEGIN
+{$IFDEF FPC}
   IF not assigned(Report) THEN
    Report := DummyReport;
   IF not assigned(Question) THEN
    Question := DummyQuestion;
+{$ELSE}
+  IF @Report = nil THEN
+   Report := DummyReport;
+  IF @Question = nil THEN
+   Question := DummyQuestion;
+{$ENDIF}
 
   Count := 0;
   rSize := 0;
@@ -3135,9 +3194,13 @@ BEGIN
   rSize := 0;
   cSize := 0;
   Viewzip := unzip_MissingParameter;
+{$IFDEF FPC}
   IF ( StrPas ( SourceZipFile ) = '' ) or
      not assigned(Report) THEN
    exit;
+{$ELSE}
+  IF ( StrPas ( SourceZipFile ) = '' ) OR ( @Report = NIL ) THEN Exit;
+{$ENDIF}
 
   Strcopy ( thename, SourceZipFile );
   ViewZip := unzip_NotZipFile;
@@ -3221,13 +3284,21 @@ END; { UnZipSize }
 {***************************************************************************}
 FUNCTION  SetUnZipReportProc ( aProc : UnzipReportProc ) : Pointer;
 BEGIN
+{$IFDEF FPC}
    SetUnZipReportProc := ZipReport; {save and return original}
+{$ELSE}
+   SetUnZipReportProc := @ZipReport; {save and return original}
+{$ENDIF}
    ZipReport  := aProc;
 END; { SetUnZipReportProc }
 {***************************************************************************}
 FUNCTION  SetUnZipQuestionProc ( aProc : UnzipQuestionProc ) : Pointer;
 BEGIN
+{$IFDEF FPC}
   SetUnZipQuestionProc := ZipQuestion;  {save and return original}
+{$ELSE}
+  SetUnZipQuestionProc := @ZipQuestion;  {save and return original}
+{$ENDIF}
   ZipQuestion := aProc;
 END; { SetUnZipQuestionProc }
 {***************************************************************************}
@@ -3257,7 +3328,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  1999-02-19 16:45:26  peter
+  Revision 1.2  1999-06-10 07:28:28  hajny
+    * compilable with TP again
+
+  Revision 1.1  1999/02/19 16:45:26  peter
     * moved to fpinst/ directory
     + makefile
 
