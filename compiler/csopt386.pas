@@ -246,7 +246,6 @@ Begin
   Until p1 = p2;
 End;
 
-{$ifdef alignreg}
 Procedure SetAlignReg(p: Pai);
 Const alignSearch = 12;
 var regsUsable: TRegSet;
@@ -410,7 +409,6 @@ begin
 {$endif alignregdebug}
   pai_align(p)^.reg := lastRemoved;
 End;
-{$endif alignreg}
 
 {$ifdef replacereg}
 function FindRegDealloc(reg: tregister; p: pai): boolean;
@@ -528,14 +526,19 @@ end;
 function NoHardCodedRegs(p: paicpu): boolean;
 var chCount: byte;
 begin
-  NoHardCodedRegs := true;
-  with InsProp[p^.opcode] do
-    for chCount := 1 to MaxCh do
-      if Ch[chCount] in ([Ch_REAX..Ch_MEDI]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
-        begin
-          NoHardCodedRegs := false;
-          break
-        end;
+  if (p^.opcode = A_IMUL) then
+    noHardCodedRegs := p^.ops <> 1
+  else
+    begin
+      NoHardCodedRegs := true;
+      with InsProp[p^.opcode] do
+      for chCount := 1 to MaxCh do
+        if Ch[chCount] in ([Ch_REAX..Ch_MEDI,Ch_WMemEDI,Ch_All]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
+          begin
+            NoHardCodedRegs := false;
+            break
+          end;
+    end;
 end;
 
 Procedure ChangeReg(var Reg: TRegister; orgReg, newReg: TRegister);
@@ -548,19 +551,23 @@ begin
          reg := regtoreg16(orgReg);
 end;
 
+procedure changeOp(var o: toper; orgReg, newReg: tregister);
+begin
+  case o.typ of
+    top_reg: changeReg(o.reg,orgReg,newReg);
+    top_ref:
+      begin
+        changeReg(o.ref^.base,orgReg,newReg);
+        changeReg(o.ref^.index,orgReg,newReg);
+      end;
+  end;
+end;
+
 Procedure DoReplaceReg(orgReg,newReg: tregister; hp: paicpu);
 var opCount: byte;
 begin
   for opCount := 0 to 2 do
-    with hp^.oper[opCount] Do
-      case typ of
-        top_reg: ChangeReg(reg,orgReg,newReg);
-        top_ref:
-          begin
-            ChangeReg(ref^.base,orgReg,newReg);
-            ChangeReg(ref^.index,orgReg,newReg);
-          end;
-      end;
+    changeOp(hp^.oper[opCount],orgReg,newReg)
 end;
 
 function RegSizesOK(oldReg,newReg: TRegister; p: paicpu): boolean;
@@ -590,60 +597,96 @@ begin
   p := paicpu(hp);
   if hp^.typ <> ait_instruction then
     exit;
-  for opCount := 0 to 2 do
-    if (p^.oper[opCount].typ = top_ref) and
-       RegInRef(reg,p^.oper[opCount].ref^) then
-      begin
-        RegReadByInstruction := true;
-        exit
+  case p^.opcode of
+    A_IMUL:
+      case p^.ops of
+        1: regReadByInstruction := (reg = R_EAX) or reginOp(reg,p^.oper[0]);
+        2,3:
+          regReadByInstruction := regInOp(reg,p^.oper[0]) or
+            regInOp(reg,p^.oper[1]);
       end;
-  for opCount := 1 to MaxCh do
-    case InsProp[p^.opcode].Ch[opCount] of
-      Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
-        if (p^.oper[0].typ = top_reg) and
-           (reg32(p^.oper[0].reg) = reg) then
-          begin
-            RegReadByInstruction := true;
-            exit
+{    A_IDIV,A_DIV,A_IMUL:
+      begin
+        regReadByInstruction :=
+          regInOp(reg,p^.oper[0]) or
+          (((p^.opcode = A_IDIV) or
+            (p^.opcode = A_DIV)) and
+           (reg = R_EAX));
+      end;}
+    else
+      begin
+        for opCount := 0 to 2 do
+          if (p^.oper[opCount].typ = top_ref) and
+             RegInRef(reg,p^.oper[opCount].ref^) then
+            begin
+              RegReadByInstruction := true;
+              exit
+            end;
+        for opCount := 1 to MaxCh do
+          case InsProp[p^.opcode].Ch[opCount] of
+            Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
+              if (p^.oper[0].typ = top_reg) and
+                 (reg32(p^.oper[0].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+            Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
+              if (p^.oper[1].typ = top_reg) and
+                 (reg32(p^.oper[1].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+            Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
+              if (p^.oper[2].typ = top_reg) and
+                 (reg32(p^.oper[2].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
           end;
-      Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
-        if (p^.oper[1].typ = top_reg) and
-           (reg32(p^.oper[1].reg) = reg) then
-          begin
-            RegReadByInstruction := true;
-            exit
-          end;
-      Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
-        if (p^.oper[2].typ = top_reg) and
-           (reg32(p^.oper[2].reg) = reg) then
-          begin
-            RegReadByInstruction := true;
-            exit
-          end;
-    end;
+      end;
+  end;
 end;
 
 procedure DoReplaceReadReg(orgReg,newReg: tregister; p: paicpu);
 var opCount: byte;
 begin
-  for opCount := 0 to 2 do
-    if p^.oper[opCount].typ = top_ref then
+  { handle special case }
+  case p^.opcode of
+    A_IMUL:
       begin
-        ChangeReg(p^.oper[opCount].ref^.base,orgReg,newReg);
-        ChangeReg(p^.oper[opCount].ref^.index,orgReg,newReg);
+        case p^.ops of
+          1: internalerror(1301001);
+          2,3:
+            begin
+              changeOp(p^.oper[0],orgReg,newReg);
+              if p^.ops = 3 then
+                changeOp(p^.oper[1],orgReg,newReg);
+            end;
+        end;
       end;
-  for opCount := 1 to MaxCh do
-    case InsProp[p^.opcode].Ch[opCount] of
-      Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
-        if p^.oper[0].typ = top_reg then
-          ChangeReg(p^.oper[0].reg,orgReg,newReg);
-      Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
-        if p^.oper[1].typ = top_reg then
-          ChangeReg(p^.oper[1].reg,orgReg,newReg);
-      Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
-        if p^.oper[2].typ = top_reg then
-          ChangeReg(p^.oper[2].reg,orgReg,newReg);
-    end;
+    A_DIV,A_IDIV,A_MUL: internalerror(1301002);
+    else
+      begin
+        for opCount := 0 to 2 do
+          if p^.oper[opCount].typ = top_ref then
+            changeOp(p^.oper[opCount],orgReg,newReg);
+        for opCount := 1 to MaxCh do
+          case InsProp[p^.opcode].Ch[opCount] of
+            Ch_ROp1:
+              if p^.oper[0].typ = top_reg then
+                ChangeReg(p^.oper[0].reg,orgReg,newReg);
+            Ch_ROp2:
+              if p^.oper[1].typ = top_reg then
+                ChangeReg(p^.oper[1].reg,orgReg,newReg);
+            Ch_ROp3:
+              if p^.oper[2].typ = top_reg then
+                ChangeReg(p^.oper[2].reg,orgReg,newReg);
+          end;
+      end;
+  end;
 end;
 
 function ReplaceReg(orgReg, newReg: TRegister; p: pai;
@@ -662,14 +705,6 @@ begin
   newRegModified := false;
   orgRegRead := false;
   endP := p;
-(*
-  endP := pai(p^.previous);
-  { skip over the instructions that will be removed }
-  while getNextInstruction(endP,hp) and
-        assigned(hp) and
-        PPaiProp(hp^.optInfo)^.canBeRemoved do
-    endP := hp;
-*)
   while tmpResult and not sequenceEnd do
     begin
       tmpResult :=
@@ -679,9 +714,10 @@ begin
          Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
           sequenceEnd :=
-            RegLoadedWithNewValue(newReg,paicpu(endP)) or
-            (GetNextInstruction(endp,hp) and
-             FindRegDealloc(newReg,hp));
+            noHardCodedRegs(paicpu(endP)) and
+            (RegLoadedWithNewValue(newReg,paicpu(endP)) or
+             (GetNextInstruction(endp,hp) and
+              FindRegDealloc(newReg,hp)));
           newRegModified :=
             newRegModified or
             (not(sequenceEnd) and
@@ -832,10 +868,9 @@ Begin
   While (p <> Last) Do
     Begin
       Case p^.typ Of
-{$ifdef alignreg}
         ait_align:
-          SetAlignReg(p);
-{$endif alignreg}
+          if not(pai_align(p)^.use_op) then
+            SetAlignReg(p);
         ait_instruction:
           Begin
             Case Paicpu(p)^.opcode Of
@@ -1114,7 +1149,11 @@ End.
 
 {
  $Log$
- Revision 1.38  2000-01-07 01:14:23  peter
+ Revision 1.39  2000-01-13 13:07:05  jonas
+   * released -dalignreg
+   * some small fixes to -dnewOptimizations helper procedures
+
+ Revision 1.38  2000/01/07 01:14:23  peter
    * updated copyright to 2000
 
  Revision 1.37  2000/01/03 17:11:17  jonas

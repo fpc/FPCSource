@@ -64,6 +64,9 @@ Function RefsEqual(Const R1, R2: TReference): Boolean;
 Function IsGP32Reg(Reg: TRegister): Boolean;
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
 Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
+{$ifdef newOptimizations}
+Function RegInOp(Reg: TRegister; const o:toper): Boolean;
+{$endif newOptimizations}
 Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
@@ -96,9 +99,6 @@ Const
 {$ifdef GDB}
   ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
-{$ifndef alignreg}
-  ,ait_align
-{$endif alignreg}
   ,ait_regalloc, ait_tempalloc
   ];
 
@@ -458,7 +458,7 @@ Var TempP: Pai;
 Begin
   TempP := hp;
   While Assigned(TempP) and
-       (TempP^.typ In SkipInstr + [ait_label]) Do
+       (TempP^.typ In SkipInstr + [ait_label,ait_align]) Do
     If (TempP^.typ <> ait_Label) Or
        (pai_label(TempP)^.l <> L)
       Then GetNextInstruction(TempP, TempP)
@@ -705,15 +705,17 @@ Begin
   RegInInstruction := TmpResult
 End;
 
-{Function RegInOp(Reg: TRegister; const o:toper): Boolean;
+{$ifdef newOptimizations}
+Function RegInOp(Reg: TRegister; const o:toper): Boolean;
 Begin
   RegInOp := False;
-  Case opt Of
+  Case o.typ Of
     top_reg: RegInOp := Reg = o.reg;
     top_ref: RegInOp := (Reg = o.ref^.Base) Or
                         (Reg = o.ref^.Index);
   End;
-End;}
+End;
+{$endif newOptimizations}
 (*
 Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 {returns true if Reg is modified by the instruction p1. P1 is assumed to be
@@ -2017,7 +2019,11 @@ End.
 
 {
  $Log$
- Revision 1.77  2000-01-09 01:44:21  jonas
+ Revision 1.78  2000-01-13 13:07:06  jonas
+   * released -dalignreg
+   * some small fixes to -dnewOptimizations helper procedures
+
+ Revision 1.77  2000/01/09 01:44:21  jonas
    + (de)allocation info for EDI to fix reported bug on mailinglist.
      Also some (de)allocation info for ESI added. Between -dallocEDI
      because at this time of the night bugs could easily slip in ;)

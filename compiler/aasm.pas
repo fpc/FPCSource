@@ -76,7 +76,7 @@ unit aasm;
 
 {$ifdef newcg}
     const
-      SkipInstr = [ait_comment, ait_align, ait_symbol
+      SkipInstr = [ait_comment, ait_symbol
 {$ifdef GDB}
                    ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
@@ -1038,7 +1038,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.71  2000-01-12 10:38:16  peter
+  Revision 1.72  2000-01-13 13:07:05  jonas
+    * released -dalignreg
+    * some small fixes to -dnewOptimizations helper procedures
+
+  Revision 1.71  2000/01/12 10:38:16  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet
