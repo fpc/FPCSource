@@ -154,10 +154,10 @@ implementation
 
 ****************************************************************************}
 
+
 procedure system_exit;
 begin
-  DosFreeThreadLocalMemory (DataIndex);
-  DosExit(1{process}, exitcode);
+  DosExit (1{process}, exitcode);
 end;
 
 {$ASMMODE ATT}
@@ -769,7 +769,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2005-02-14 17:13:31  peter
+  Revision 1.80  2005-03-01 21:59:14  hajny
+    * compilation fix
+
+  Revision 1.79  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.78  2005/02/06 16:57:18  peter
