@@ -140,8 +140,8 @@ var Mode: DWORD;
 begin
   if GetConsoleMode(InputHandle, @Mode) then      { Turn the mouse-cursor off }
     begin
-      Mode := Mode AND NOT enable_processed_input
-                   AND NOT enable_mouse_input;
+      Mode := Mode AND cardinal(NOT enable_processed_input)
+                   AND cardinal(NOT enable_mouse_input);
 
       SetConsoleMode(InputHandle, Mode);
     end; { if }
@@ -1007,7 +1007,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.4  2000-12-09 13:27:41  florian
+  Revision 1.5  2000-12-15 13:16:30  jonas
+    * fixed range check errors
+
+  Revision 1.4  2000/12/09 13:27:41  florian
     * web bug 1228 fixed (keypressed ate too muck keys)
 
   Revision 1.3  2000/09/10 20:17:56  peter
