@@ -3,18 +3,18 @@
 #
 
 [target]
-dirs=paszlib regexpr
+dirs=paszlib regexpr netdb
 dirs_linux=inet gdbint libasync \
-           mysql ibase postgres oracle odbc netdb
+           mysql ibase postgres oracle odbc pthreads
 dirs_win32=inet gdbint \
            mysql ibase odbc
 dirs_go32v2=gdbint
 dirs_netbsd=inet gdbint libasync \
-            mysql ibase postgres oracle odbc netdb
+            mysql ibase postgres oracle odbc 
 dirs_openbsd=inet gdbint libasync \
-            mysql ibase postgres oracle odbc netdb
+            mysql ibase postgres oracle odbc 
 dirs_freebsd=inet gdbint libasync \
-             mysql ibase postgres oracle odbc netdb
+             mysql ibase postgres oracle odbc 
 
 [install]
 fpcpackage=y
