@@ -219,8 +219,8 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-ifeq ($(OS_TARGET),go32v2)
-override TARGET_PROGRAMS+=voxel
+ifeq ($(OS_TARGET),netware)
+override TARGET_PROGRAMS+=nutmon check
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1594,3 +1594,4 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+nutmon.nlm: nutmon.pp nutconnection.pp

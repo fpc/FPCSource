@@ -4,14 +4,15 @@
 
 [package]
 name=demo
-version=1.9.4
+version=1.9.6
 
 [target]
-dirs=text graph
-dirs_go32v2=modex
-dirs_win32=win32
-dirs_linux=linux
-dirs_os2=os2
+dirs=text
+dirs_go32v2=modex graph
+dirs_win32=win32 graph
+dirs_linux=linux graph
+dirs_os2=os2 graph
+dirs_netware=netware
 
 [install]
 fpcpackage=y
