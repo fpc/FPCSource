@@ -546,7 +546,7 @@ end;
             size_of_longint : 4;
             heapsize     : 256*1024;
             maxheapsize  : 32768*1024;
-            stacksize    : 8192;
+            stacksize    : 262144;
             DllScanSupported:false;
             use_bound_instruction : false;
             use_function_relative_addresses : true
@@ -561,7 +561,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2001-11-02 22:58:12  peter
+  Revision 1.14  2001-12-09 03:37:38  carl
+  * Updated SunOS stack size
+
+  Revision 1.13  2001/11/02 22:58:12  peter
     * procsym definition rewrite
 
   Revision 1.12  2001/09/18 11:32:00  michael
