@@ -657,11 +657,17 @@ implementation
     function tvecnode.det_resulttype:tnode;
       var
          htype : ttype;
+         valid : boolean;
       begin
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,vs_used,true);
+         { In p[1] p is always valid, it is not possible to
+           declared a normal array that has undefined number
+           of elements. Dynamic array needs to be valid }
+         valid:=not(left.resulttype.def.deftype=arraydef) or
+                is_dynamic_array(left.resulttype.def);
+         set_varstate(left,vs_used,valid);
          set_varstate(right,vs_used,true);
          if codegenerror then
           exit;
@@ -959,7 +965,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-12-01 18:44:15  peter
+  Revision 1.75  2003-12-08 22:35:06  peter
+    * don't check varstate for left of vecnode for normal arrays
+
+  Revision 1.74  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 
