@@ -3296,7 +3296,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+         if (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+           begin
+{$ifndef OLD_C_STACK}
+             { complex return values are removed from stack in C code PM }
+             if ret_in_param(aktprocsym^.definition^.retdef) then
+               exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,4)))
+             else
+{$endif not OLD_C_STACK}
+               exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
+           end
+         else if (parasize=0) then
           exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)))
          else
           exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,parasize)));
@@ -3386,7 +3396,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.51  1999-10-05 22:01:52  pierre
+  Revision 1.52  1999-10-08 15:40:47  pierre
+   * use and remember that C functions with complex data results use ret $4
+
+  Revision 1.51  1999/10/05 22:01:52  pierre
    * bug exit('test') + fail for classes
 
   Revision 1.50  1999/09/29 11:46:18  florian

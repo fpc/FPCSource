@@ -399,7 +399,12 @@ implementation
            inlinecode^.retoffset:=gettempofsizepersistant(4);
          if ret_in_param(p^.resulttype) then
            begin
-              inc(pushedparasize,4);
+              { This must not be counted for C code
+                complex return address is removed from stack
+                by function itself !   }
+{$ifdef OLD_C_STACK}
+              inc(pushedparasize,4); { lets try without it PM }
+{$endif not OLD_C_STACK}
               if inlined then
                 begin
                    emit_ref_reg(A_LEA,S_L,
@@ -1217,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  1999-09-27 23:44:46  peter
+  Revision 1.107  1999-10-08 15:40:47  pierre
+   * use and remember that C functions with complex data results use ret $4
+
+  Revision 1.106  1999/09/27 23:44:46  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1666,4 +1674,3 @@ end.
     * splitted cgi386
 
 }
-
