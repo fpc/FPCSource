@@ -31,12 +31,15 @@ INTERFACE
 {$endif}
 {$IFDEF Ver70}
   {$define MouseAPI}
+  {$G+}
 {$endif}
 {$IFDEF Ver60}
   {$define MouseAPI}
+  {$G+}
 {$endif}
 {$IFDEF Ver55}
   {$define MouseAPI}
+  {$G+}
 {$endif}
 CONST  LineDistY=13;
 
@@ -107,8 +110,25 @@ PROCEDURE SetDefaultColor; {Restore the attribs saved on startup}
 
 {$IFNDEF FPC}
 PROCEDURE SetCursorSize(CurDat:WORD);
+FUNCTION  GetCursorSize:WORD;
 PROCEDURE CursorOn;
 PROCEDURE CursorOff;
+
+{Non Go32 but not existant in BP}
+PROCEDURE FillWord(VAR Data;Count,Value:WORD);
+
+PROCEDURE dosmemfillword(Segx,xofs,Count,Value:WORD);
+PROCEDURE dosmemput(Segx,xofs:WORD;VAR Data;Count:WORD);
+PROCEDURE dosmemget(Segx,xofs:WORD;VAR Data;Count:WORD);
+
+FUNCTION  inportb(portx : word) : byte;
+PROCEDURE outportb(portx : word;data : byte);
+
+FUNCTION  inportw(portx : word) : word;
+PROCEDURE outportw(portx : word;data : word);
+
+FUNCTION  inportl(portx : word) : longint;
+PROCEDURE outportl(portx : word;data : longint);
 {$ENDIF}
 
 IMPLEMENTATION
@@ -707,8 +727,131 @@ PROCEDURE CursorOff;
 BEGIN
   SetCursorSize($FFFF);
 END;
-{$ENDIF}
 
+PROCEDURE dosmemfillword(Segx,xofs,Count,Value:WORD); ASSEMBLER;
+{VAR A:WORD;
+BEGIN
+  FOR A :=0 TO Count-1 DO
+    MemW[Seg:xofs+2*A]:=Value;
+END;
+}
+ASM
+  mov  ax,segx
+  mov  es,ax
+  mov  di,xofs
+  mov  cx,count
+  mov  ax,value
+  rep
+    stosw
+end;
+
+{TYPE VetteArray=ARRAY[0..9999] OF BYTE;}
+
+PROCEDURE dosmemput(Segx,xofs:WORD;VAR Data;Count:WORD); assembler;
+{VAR A:WORD;
+    L:^VetteArray;
+BEGIN
+  L:=@Data;
+  FOR A :=0 TO Count-1 DO
+    Mem[Segx:xofs+A]:=L^[A];
+END;
+}
+asm
+  lds si,Data
+  mov ax,segx
+  mov es,ax
+  mov di,xofs
+  mov cx,count
+  rep
+    movsw
+end;
+
+PROCEDURE dosmemget(Segx,xofs:WORD;VAR Data;Count:WORD); ASSEMBLER;
+{VAR A:WORD;
+    L:^VetteArray;
+BEGIN
+  L:=@Data;
+  FOR A :=0 TO Count-1 DO
+    L^[A]:=Mem[Segx:xofs+A];
+END;
+}
+asm
+  les di,Data
+  mov ax,segx
+  mov ds,ax
+  mov si,xofs
+  mov cx,count
+  rep
+    movsw
+end;
+
+PROCEDURE FillWord(VAR Data;Count,Value:WORD); ASSEMBLER;
+{VAR A :WORD;
+    L:^VetteArray;
+BEGIN
+  L:=@Data;
+  FOR A:=0 TO Count-1 DO
+  Begin
+    L^[2*A]:=Value AND 255;
+    L^[2*A+1]:=Value shr 8;
+  END;
+END;}
+
+asm
+  les di,Data
+  mov cx,count
+  mov ax,Value
+  rep
+    movsw
+end;
+
+FUNCTION GetCursorSize:WORD;ASSEMBLER;
+ASM
+  mov ah,3
+  xor bh,bh
+  int $10
+  mov ax,cx
+END;
+
+FUNCTION  inportb(portx : word) : byte;
+BEGIN
+  Inportb:=Port[PortX];
+END;
+
+PROCEDURE outportb(portx : word;data : byte);
+BEGIN
+  Port[portx]:=Data;
+END;
+
+FUNCTION  inportw(portx : word) : word;
+BEGIN
+  Inportw:=Portw[PortX];
+END;
+
+PROCEDURE outportw(portx : word;data : word);
+BEGIN
+  PortW[portx]:=Data;
+END;
+
+ FUNCTION  inportl(portx : word) : longint; ASSEMBLER;
+ ASM
+   mov dx,portx                   { load port address }
+   db $66; in  ax,dx              { in  eax,dx }
+   db $66; mov dx,ax              { mov edx, eax }
+   db $66; shr dx,16              { shr edx, 16 }
+   { return: ax=low word, dx=hi word }
+ END;
+ 
+ PROCEDURE  outportl(portx : word;data : longint); ASSEMBLER;
+ ASM
+   { we cant use the 32 bit operand prefix for loading the longint -
+     therefore we have to do that in two chunks }
+     mov dx, portx
+     db $66; mov ax, Word(Data)  { mov eax, Data }
+   db $66; out dx,ax              { out dx, eax }
+ END;
+
+{$ENDIF}
 
 BEGIN
  {$IFDEF MouseAPI}
@@ -719,7 +862,19 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  1999-12-31 17:05:25  marco
+  Revision 1.4  2000-01-01 14:54:16  marco
+   * Added bp comtibility
+  :wq
+   * bp compat routines
+
+
+
+
+  B
+  B
+  B
+
+  Revision 1.3  1999/12/31 17:05:25  marco
 
 
   Graphical version and fixes. BP cursorroutines moved from FPCTRIS
@@ -729,5 +884,4 @@ END.
 
   Revision 1.1  1999/06/01 19:24:33  peter
     * updates from marco
-
 }
