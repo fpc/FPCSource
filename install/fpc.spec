@@ -1,17 +1,21 @@
 Name: fpc
 Version: 1.0.1
 Release: 1
-ExclusiveArch: i386
+ExclusiveArch: i386 i586 i686
 Copyright: GPL
 Group: Development/Languages
 Source: fpc-1.0.1-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
+BuildRoot: /tmp/fpc-build
+BuildRequires: fpc
 
 %define fpcversion 1.0.1
 %define fpcdir /usr/lib/fpc/%{fpcversion}
 %define docdir /usr/doc/fpc-%{fpcversion}
+
+%define builddocdir %{buildroot}%{docdir}
 
 %description	
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -37,7 +41,7 @@ NEWPP=`pwd`/compiler/ppc386
 %install
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
-INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr"
+INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=%{buildroot}/usr"
 	make compiler_install ${INSTALLOPTS}
 	make rtl_install ${INSTALLOPTS}
 	make fcl_install ${INSTALLOPTS}
@@ -45,12 +49,12 @@ INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr"
 	make packages_install ${INSTALLOPTS}
 	make utils_install ${INSTALLOPTS}
 
-	make fcl_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
-	make api_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
-	make packages_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make fcl_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
+	make api_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
+	make packages_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
 
-	make demo_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
-	make doc_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make demo_install ${INSTALLOPTS} SOURCEINSTALLDIR=%{builddocdir}
+	make doc_install ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
 	make man_install ${INSTALLOPTS}
 	
 %clean
@@ -61,6 +65,8 @@ INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr"
 	make packages_clean
 	make utils_clean
 
+	rm -rf %{buildroot}
+	
 %post
 FPCDIR=%{fpcdir}
 

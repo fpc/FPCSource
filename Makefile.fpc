@@ -479,7 +479,7 @@ rpmcopy: distclean
         install -d $(RPMSOURCESDIR)
 # fpc.rpm
         rm -rf $(RPMSRCDIR)
-        cp $(CVSINSTALL)/fpc-$(FPC_VERSION).spec $(RPMSPECDIR)
+        cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(FPC_VERSION).spec
         install -d $(RPMSRCDIR)
         $(COPYTREE) compiler $(RPMSRCDIR)
         $(COPYTREE) rtl $(RPMSRCDIR)
@@ -496,7 +496,7 @@ rpmcopy: distclean
         cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
 # fpc-docs.rpm
         rm -rf $(DOCSRCDIR)
-        cp $(CVSINSTALL)/fpc-docs-$(FPC_VERSION).spec $(RPMSPECDIR)
+        cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(FPC_VERSION).spec
         install -d $(DOCSRCDIR)
         $(COPYTREE) docs $(DOCSRCDIR)
         find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
