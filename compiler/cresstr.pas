@@ -62,7 +62,8 @@ implementation
 uses
    cutils,globals,
    verbose,fmodule,
-   aasmbase,aasmtai;
+   aasmbase,aasmtai,
+   aasmcpu,cpuinfo;
 
 
 { ---------------------------------------------------------------------
@@ -156,6 +157,7 @@ procedure TResourceStrings.CreateResourceStringList;
          begin
             objectlibrary.getdatalabel(l1);
             resourcestringlist.concat(tai_const_symbol.create(l1));
+            consts.concat(tai_align.Create(const_align(pointer_size)));
             consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(-1));
@@ -173,6 +175,7 @@ procedure TResourceStrings.CreateResourceStringList;
        objectlibrary.getdatalabel(l1);
        L:=Length(Name);
        resourcestringlist.concat(tai_const_symbol.create(l1));
+       consts.concat(tai_align.Create(const_align(pointer_size)));
        consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_const.create_32bit(-1));
@@ -192,6 +195,7 @@ begin
     resourcestringlist:=taasmoutput.create;
   resourcestringlist.insert(tai_const.create_32bit(resstrcount));
   resourcestringlist.insert(tai_symbol.createdataname_global(current_module.modulename^+'_'+'RESOURCESTRINGLIST',0));
+  resourcestringlist.insert(tai_align.Create(const_align(pointer_size)));
   R:=TResourceStringItem(List.First);
   While assigned(R) do
    begin
@@ -294,7 +298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-08-11 14:32:26  peter
+  Revision 1.17  2002-11-09 15:39:03  carl
+    + resource string tables are now aligned
+
+  Revision 1.16  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.15  2002/08/11 13:24:11  peter
