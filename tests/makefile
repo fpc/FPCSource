@@ -1,5 +1,5 @@
 #
-# $Id:
+# $Id$
 #
 # make all test
 # and printout errors
@@ -103,4 +103,8 @@ allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 clean :
 	-rm *.re* *.o *.ppu *.exe log faillist
 
-# $Log:
+# $Log$
+# Revision 1.3  1998-10-21 12:12:09  pierre
+# Log inserted
+#
+
