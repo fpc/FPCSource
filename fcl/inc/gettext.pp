@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2001 by the Free Pascal development team
 
     Gettext interface to resourcestrings.
 
@@ -263,9 +263,33 @@ end;
 procedure TranslateResourceStrings(const AFilename: String);
 var
   mo: TMOFile;
-  lang: String;
+  lang, FallbackLanguage: String;
 begin
-  lang := Copy(GetEnv('LANG'), 1, 2);
+  lang := GetEnv('LC_ALL');
+  if Length(lang) = 0 then
+  begin
+    lang := GetEnv('LC_MESSAGES');
+    if Length(lang) = 0 then
+    begin
+      lang := GetEnv('LANG');
+      if Length(lang) = 0 then
+        exit;	// no language defined via environment variables
+    end;
+  end;
+
+  FallbackLanguage := Copy(lang, 1, 2);
+  try
+    mo := TMOFile.Create(Format(AFilename, [FallbackLanguage]));
+    try
+      TranslateResourceStrings(mo);
+    finally
+      mo.Free;
+    end;
+  except
+    on e: Exception do;
+  end;
+
+  lang := Copy(lang, 1, 5);
   try
     mo := TMOFile.Create(Format(AFilename, [lang]));
     try
@@ -286,7 +310,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-11-23 10:19:31  sg
+  Revision 1.4  2001-09-21 12:52:54  sg
+  * Evaluates all 3 i18n environment variables: LC_ALL, LC_MESSAGES, LANG
+  * Now takes sublanguage specifiers into account: When the language is set
+    to xx_YY, then the catalogue for xx will be loaded first, and then the
+    catalogue for sublanguage xx_YY will be loaded and applied as well.
+
+  Revision 1.3  2000/11/23 10:19:31  sg
   * optimized the string translation process a little bit
 
   Revision 1.2  2000/07/13 11:32:59  michael
