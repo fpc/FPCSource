@@ -24,8 +24,8 @@
 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/paszlib.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/adler.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crc.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crcasm.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzcrc.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzcrcasm.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzio.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infblock.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infcodes.ppu 
@@ -69,10 +69,10 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infblock.o 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libgzio.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzio.o 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libcrcasm.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crcasm.o 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libcrc.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crc.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libgzcrcasm.a 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzcrcasm.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libgzcrc.a 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzcrc.o 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libadler.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/adler.o 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libpaszlib.a 

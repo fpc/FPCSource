@@ -198,7 +198,7 @@ binary-arch: build-arch arrange-arch debian-files
 	dh_installchangelogs -a
 
 	dh_installchangelogs -pfp-compiler logs/Changes.compiler
-	dh_installchangelogs -pfp-rtl logs/Changes.rtl
+	dh_installchangelogs -pfp-units-rtl logs/Changes.rtl
 	dh_installchangelogs -pfp-utils logs/Changes.utils
 	dh_installchangelogs -pfp-units-fcl logs/Changes.fcl
 	dh_installchangelogs -pfp-units-api logs/Changes.api
