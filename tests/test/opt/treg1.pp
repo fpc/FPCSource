@@ -1,4 +1,4 @@
-{ %OPT=-Or}
+{ %OPT=-Or -So}
 {$minenumsize 1}
 
 type
