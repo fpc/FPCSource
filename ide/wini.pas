@@ -143,7 +143,8 @@ end;
 
 procedure TINIEntry.Split;
 var S,ValueS: string;
-    P,P2,StartP: byte;
+    P,P2,StartP: longint;
+    { using byte for P2 lead to infinite loops PM }
     C: char;
     InString: boolean;
     Delimiter: char;
@@ -488,7 +489,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
+  Revision 1.2  2001-08-07 22:24:43  pierre
+   * avoid infinite loop in split method
+
+  Revision 1.1  2001/08/04 11:30:26  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.3  2000/08/16 18:46:15  peter
