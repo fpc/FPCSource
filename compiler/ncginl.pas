@@ -609,7 +609,7 @@ implementation
                        end
                      else
                        begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister);
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
                 {$ifdef newra}
@@ -682,7 +682,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2003-05-23 14:27:35  peter
+  Revision 1.32  2003-05-23 21:10:38  jonas
+    * fixed exclude
+
+  Revision 1.31  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
