@@ -21,7 +21,7 @@ uses
 var
  Country: TCountryCode;  (* Country code info (0 = current country) *)
  CtryInfo: TCountryInfo; (* Buffer for country-specific information *)
- Size: cardinal;         (* Real size of returned data              *)
+ Size: longint;         (* Real size of returned data              *)
  W: word;
 
 begin
@@ -41,7 +41,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
+  Revision 1.2  2002-02-25 21:33:04  carl
+  * bugfix of demo compilation problem
+
+  Revision 1.1  2001/05/03 21:39:34  peter
     * moved to own module
 
   Revision 1.1  2001/01/14 19:02:14  hajny
