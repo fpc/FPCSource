@@ -133,6 +133,12 @@ unit cpupara;
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
+          setdef :
+            push_addr_param:=(tsetdef(def).settype<>smallset);
+          stringdef :
+            push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+          procvardef :
+            push_addr_param:=po_methodpointer in tprocvardef(def).procoptions;
           else
             push_addr_param:=inherited push_addr_param(def,calloption);
         end;
@@ -311,7 +317,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-05-11 23:19:32  florian
+  Revision 1.29  2003-05-12 20:14:47  florian
+    * fixed parameter passing by value of large sets, strings and method pointers
+
+  Revision 1.28  2003/05/11 23:19:32  florian
     * fixed passing of small const arrays and const records, they are always passed by reference
 
   Revision 1.27  2003/04/26 11:30:59  florian
