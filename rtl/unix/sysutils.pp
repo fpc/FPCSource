@@ -123,6 +123,17 @@ begin
   FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
+Function UnixToWinAge(UnixAge : time_t): Longint;
+
+Var
+  Y,M,D,hh,mm,ss : word;
+  
+begin
+  EpochToLocal(UnixAge,y,m,d,hh,mm,ss);
+  Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
+end;
+    
+
 Function FileAge (Const FileName : String): Longint;
 
 Var Info : Stat;
@@ -132,10 +143,7 @@ begin
   If  fpstat (FileName,Info)<0 then
     exit(-1)
   else
-    begin
-    EpochToLocal(info.st_mtime,y,m,d,hh,mm,ss);
-    Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
-    end;
+    Result:=UnixToWinAge(info.st_mtime);
 end;
 
 
@@ -208,7 +216,7 @@ begin
            Attr:=Info.Attr;
            If P^.Name<>Nil then
            Name:=strpas(p^.name);
-           Time:=Sinfo.st_mtime;
+           Time:=UnixToWinAge(Sinfo.st_mtime);
            Size:=Sinfo.st_Size;
            end;
       end;
@@ -635,7 +643,10 @@ end.
 {
 
   $Log$
-  Revision 1.41  2004-05-22 14:25:03  michael
+  Revision 1.42  2004-06-15 07:36:03  michael
+  + Fixed Globtosearchrec to use unixtowinage
+
+  Revision 1.41  2004/05/22 14:25:03  michael
   + Fixed FindFirst/FindNext so it treats the attributes correctly
 
   Revision 1.40  2004/04/28 20:48:20  peter
