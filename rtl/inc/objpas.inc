@@ -36,19 +36,19 @@
 
 {$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
-    procedure intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure fpc_intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
-    procedure intf_incr_ref(const i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF'];
+    procedure fpc_intf_incr_ref(const i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
-    procedure intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+    procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
-    procedure intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+    procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
@@ -715,7 +715,10 @@
 
 {
   $Log$
-  Revision 1.22  2002-07-01 16:29:05  peter
+  Revision 1.23  2002-07-30 17:29:19  florian
+    * interface helpers for 1.1 compilers without interface support fixed
+
+  Revision 1.22  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.21  2002/04/26 15:19:05  peter
