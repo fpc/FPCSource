@@ -18,9 +18,6 @@ program talign2;
 {$endif}
 
 
-{$mode objfpc}
-
-
 procedure test(b : boolean);
 begin
   if b then exit;
@@ -58,7 +55,10 @@ begin
 end.  
 {
    $Log$
-   Revision 1.3  2004-04-29 21:04:58  peter
+   Revision 1.4  2005-01-04 20:30:09  olle
+     - removed unnecessary mode switch
+
+   Revision 1.3  2004/04/29 21:04:58  peter
      * 64 bit fixes
 
    Revision 1.2  2002/11/09 21:19:21  carl
