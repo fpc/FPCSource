@@ -124,6 +124,8 @@ implementation
                  p3:=nil;
                end;
               firstpass(p2);
+              if assigned(p3) then
+               firstpass(p3);
               if codegenerror then
                break;
               case p2^.resulttype^.deftype of
@@ -901,7 +903,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-05 21:33:32  peter
+  Revision 1.5  1998-10-07 10:38:55  peter
+    * forgot a firstpass in arrayconstruct2set
+
+  Revision 1.4  1998/10/05 21:33:32  peter
     * fixed 161,165,166,167,168
 
   Revision 1.3  1998/09/27 10:16:26  florian
