@@ -504,7 +504,6 @@ begin
                        begin
 {$ifdef GDB}
                          initmoduleswitches:=initmoduleswitches+[cs_debuginfo];
-                         initglobalswitches:=initglobalswitches-[cs_link_strip];
                          for j:=1 to length(more) do
                           case more[j] of
                            'd' : initglobalswitches:=initglobalswitches+[cs_gdb_dbx];
@@ -1175,6 +1174,11 @@ begin
      initoutputformat:=target_asm.id;
    end;
 
+{ turn off stripping if compiling with debuginfo or profile }
+  if (cs_debuginfo in initmoduleswitches) or
+     (cs_profile in initmoduleswitches) then
+    initglobalswitches:=initglobalswitches-[cs_link_strip];
+
   MaybeLoadMessageFile;
 
   dispose(option,Done);
@@ -1184,7 +1188,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-08-28 17:46:10  peter
+  Revision 1.19  1999-09-01 22:07:20  peter
+    * turn off stripping if profiling or debugging
+
+  Revision 1.18  1999/08/28 17:46:10  peter
     * resources are working correct
 
   Revision 1.17  1999/08/28 15:34:19  florian
