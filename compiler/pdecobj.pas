@@ -315,6 +315,11 @@ implementation
                      until not try_to_consume(_SEMICOLON);
                      dec(testcurobject);
                      consume(_RECKKLAMMER);
+
+                     { the parser need to know if a property has parameters, the
+                       index parameter doesn't count (PFV) }
+                     if not(propertyparas.empty) then
+                       include(p.propoptions,ppo_hasparameters);
                   end;
                 { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
@@ -344,9 +349,6 @@ implementation
                           propertyparas.insert(hp2);
                           pt.free;
                        end;
-                     { the parser need to know if a property has parameters }
-                     if not(propertyparas.empty) then
-                       include(p.propoptions,ppo_hasparameters);
                   end
                 else
                   begin
@@ -388,9 +390,16 @@ implementation
                           end;
                         varsym :
                           begin
-                            if not(propertyparas.empty) or
-                               not(is_equal(p.readaccess.def,p.proptype.def)) then
-                              Message(parser_e_ill_property_access_sym);
+                            if CheckTypes(p.readaccess.def,p.proptype.def) then
+                             begin
+                               { property parameters are allowed if this is
+                                 an indexed property, because the index is then
+                                 the parameter.
+                                 Note: In the help of Kylix it is written
+                                 that it isn't allowed, but the compiler accepts it (PFV) }
+                               if (ppo_hasparameters in p.propoptions) then
+                                Message(parser_e_ill_property_access_sym);
+                             end;
                           end;
                         else
                           Message(parser_e_ill_property_access_sym);
@@ -417,9 +426,16 @@ implementation
                           end;
                         varsym :
                           begin
-                            if not(propertyparas.empty) or
-                               not(is_equal(p.writeaccess.def,p.proptype.def)) then
-                              Message(parser_e_ill_property_access_sym);
+                            if CheckTypes(p.writeaccess.def,p.proptype.def) then
+                             begin
+                               { property parameters are allowed if this is
+                                 an indexed property, because the index is then
+                                 the parameter.
+                                 Note: In the help of Kylix it is written
+                                 that it isn't allowed, but the compiler accepts it (PFV) }
+                               if (ppo_hasparameters in p.propoptions) then
+                                Message(parser_e_ill_property_access_sym);
+                             end;
                           end;
                         else
                           Message(parser_e_ill_property_access_sym);
@@ -461,7 +477,7 @@ implementation
                                    end;
                                  varsym :
                                    begin
-                                     if not(propertyparas.empty) or
+                                     if (ppo_hasparameters in p.propoptions) or
                                         not(is_boolean(p.storedaccess.def)) then
                                       Message(parser_e_stored_property_must_be_boolean);
                                    end;
@@ -1078,7 +1094,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-10-21 12:33:06  peter
+  Revision 1.31  2001-10-21 13:10:50  peter
+    * better support for indexed properties
+
+  Revision 1.30  2001/10/21 12:33:06  peter
     * array access for properties added
 
   Revision 1.29  2001/08/30 20:13:53  peter

@@ -721,7 +721,7 @@ implementation
          paras:=nil;
          { property parameters? read them only if the property really }
          { has parameters                                             }
-         if ppo_hasparameters in tpropertysym(sym).propoptions then
+         if (ppo_hasparameters in tpropertysym(sym).propoptions) then
            begin
               if token=_LECKKLAMMER then
                 begin
@@ -729,12 +729,12 @@ implementation
                    paras:=parse_paras(false,true);
                    consume(_RECKKLAMMER);
                 end;
-              { indexed property }
-              if (ppo_indexed in tpropertysym(sym).propoptions) then
-                begin
-                   p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype);
-                   paras:=ccallparanode.create(p2,paras);
-                end;
+           end;
+         { indexed property }
+         if (ppo_indexed in tpropertysym(sym).propoptions) then
+           begin
+              p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype);
+              paras:=ccallparanode.create(p2,paras);
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
@@ -749,6 +749,7 @@ implementation
                          { generate the method call }
                          p1:=ccallnode.create(paras,
                                               tprocsym(tpropertysym(sym).writeaccess.firstsym^.sym),st,p1);
+                         paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
                          getprocvar:=(tpropertysym(sym).proptype.def.deftype=procvardef);
@@ -761,9 +762,7 @@ implementation
                        end;
                      varsym :
                        begin
-                         if assigned(paras) then
-                           message(parser_e_no_paras_allowed);
-                         { subscribed access? }
+                         { generate access code }
                          symlist_to_node(p1,tpropertysym(sym).writeaccess);
                          consume(_ASSIGNMENT);
                          { read the expression }
@@ -791,15 +790,14 @@ implementation
                    case tpropertysym(sym).readaccess.firstsym^.sym.typ of
                      varsym :
                        begin
-                          if assigned(paras) then
-                            message(parser_e_no_paras_allowed);
-                          { subscribed access? }
+                          { generate access code }
                           symlist_to_node(p1,tpropertysym(sym).readaccess);
                        end;
                      procsym :
                        begin
                           { generate the method call }
                           p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).readaccess.firstsym^.sym),st,p1);
+                          paras:=nil;
                           include(p1.flags,nf_isproperty);
                        end
                      else
@@ -816,6 +814,9 @@ implementation
                    Message(parser_e_no_procedure_to_access_property);
                 end;
            end;
+        { release paras if not used }
+        if assigned(paras) then
+         paras.free;
       end;
 
 
@@ -2332,7 +2333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2001-10-21 12:33:07  peter
+  Revision 1.46  2001-10-21 13:10:51  peter
+    * better support for indexed properties
+
+  Revision 1.45  2001/10/21 12:33:07  peter
     * array access for properties added
 
   Revision 1.44  2001/10/20 19:28:39  peter
