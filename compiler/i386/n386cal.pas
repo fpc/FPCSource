@@ -1507,9 +1507,13 @@ implementation
           ps:=para_size;
           make_global:=false; { to avoid warning }
           genentrycode(inlineentrycode,proc_names,make_global,0,ps,nostackframe,true);
+          if po_assembler in aktprocsym^.definition^.procoptions then
+            inlineentrycode^.insert(new(pai_marker,init(asmblockstart)));
           exprasmlist^.concatlist(inlineentrycode);
           secondpass(inlinetree);
           genexitcode(inlineexitcode,0,false,true);
+          if po_assembler in aktprocsym^.definition^.procoptions then
+            inlineexitcode^.concat(new(pai_marker,init(asmblockend)));
           exprasmlist^.concatlist(inlineexitcode);
 
           dispose(inlineentrycode,done);
@@ -1585,7 +1589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-11-22 15:12:06  jonas
+  Revision 1.10  2000-11-23 13:26:34  jonas
+    * fix for webbug 1066/1126
+
+  Revision 1.9  2000/11/22 15:12:06  jonas
     * fixed inline-related problems (partially "merges")
 
   Revision 1.8  2000/11/17 09:54:58  florian

@@ -984,7 +984,7 @@ Begin
       End;}
   Until Not(Assigned(Current)) Or
         (Current^.typ <> ait_Marker) Or
-        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart,NoPropInfoEnd]);
+        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart{,NoPropInfoEnd}]);
   Next := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
@@ -1025,7 +1025,7 @@ Begin
       End;}
   Until Not(Assigned(Current)) Or
         (Current^.typ <> ait_Marker) Or
-        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart,NoPropInfoEnd]);
+        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart{,NoPropInfoEnd}]);
   If Not(Assigned(Current)) or
      (Current^.typ In SkipInstr) or
      ((Current^.typ = ait_label) And
@@ -1051,10 +1051,10 @@ Begin
     OldP := P;
     If (P^.typ in SkipInstr) Or
        ((P^.typ = ait_marker) And
-        (Pai_Marker(P)^.Kind = AsmBlockEnd)) Then
+        (Pai_Marker(P)^.Kind in [AsmBlockEnd,inlinestart,inlineend])) Then
       GetNextInstruction(P, P)
     Else If ((P^.Typ = Ait_Marker) And
-        (Pai_Marker(P)^.Kind = NoPropInfoStart)) Then
+        (Pai_Marker(P)^.Kind = nopropinfostart)) Then
    {a marker of the NoPropInfoStart can't be the first instruction of a
     paasmoutput list}
       GetNextInstruction(Pai(P^.Previous),P);
@@ -2443,7 +2443,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-11-17 15:22:04  jonas
+  Revision 1.8  2000-11-23 13:26:33  jonas
+    * fix for webbug 1066/1126
+
+  Revision 1.7  2000/11/17 15:22:04  jonas
     * fixed another bug in allocregbetween (introduced by the previous fix)
       ("merged")
 
