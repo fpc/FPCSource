@@ -30,6 +30,8 @@ const
       btBreakWatch  = 4;
 
 type
+    PBrowserWindow = ^TBrowserWindow;
+
     PSymbolView = ^TSymbolView;
     TSymbolView = object(TListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
@@ -38,6 +40,7 @@ type
       procedure    TrackItem(Item: sw_integer); virtual;
       function     GetPalette: PPalette; virtual;
     private
+      MyBW         : PBrowserWindow;
       function     TrackReference(R: PReference): boolean; virtual;
       function     GotoReference(R: PReference): boolean; virtual;
     end;
@@ -78,6 +81,7 @@ type
       function     GetPalette: PPalette; virtual;
     private
       MemInfo: PSymbolMemInfo;
+      MyBW   : PBrowserWindow;
     end;
 
     PSymbolInheritanceView = ^TSymbolInheritanceView;
@@ -95,6 +99,7 @@ type
       function     GetPalette: PPalette; virtual;
     private
       Root: PObjectSymbol;
+      MyBW         : PBrowserWindow;
     end;
 
     PBrowserTabItem = ^TBrowserTabItem;
@@ -121,10 +126,9 @@ type
       Current : Sw_integer;
     end;
 
-    PBrowserWindow = ^TBrowserWindow;
     TBrowserWindow = object(TFPWindow)
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
-                    const AName: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection;
+                    const AName,APrefix: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection;
                     AInheritance: PObjectSymbol; AMemInfo: PSymbolMemInfo);
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
@@ -133,14 +137,19 @@ type
       function    GetPalette: PPalette; virtual;
     private
       PageTab       : PBrowserTab;
+      ST            : PStaticText;
       Sym           : PSymbol;
       ScopeView     : PSymbolScopeView;
       ReferenceView : PSymbolReferenceView;
       InheritanceView: PSymbolInheritanceView;
       MemInfoView   : PSymbolMemInfoView;
+      Prefix        : PString;
+      IsValid       : boolean;
+      DebuggerRunCount : longint;
     end;
 
 procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;S : PSymbol;
+            ParentBrowser : PBrowserWindow;
             Symbols: PSymbolCollection; References: PReferenceCollection;
             Inheritance: PObjectSymbol; MemInfo: PSymbolMemInfo);
 
@@ -159,7 +168,10 @@ const
 implementation
 
 uses Commands,App,
-     WEditor,WViews,
+{$ifdef BROWSERCOL}
+     symconst,
+{$endif BROWSERCOL}
+     WEditor,WViews,WUtils,
      FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif};
 
 procedure CloseAllBrowsers;
@@ -227,6 +239,7 @@ procedure OpenOneSymbolBrowser(Name : String);
 var Index : sw_integer;
     PS : PSymbol;
     P : Pstring;
+    Symbols: PSymbolCollection;
 
   function Search(P : PSymbol) : boolean;
   begin
@@ -239,9 +252,15 @@ begin
      begin
        PS:=BrowCol.Modules^.FirstThat(@Search);
        If assigned(PS) then
-         OpenSymbolBrowser(0,20,
-                PS^.Items^.At(Index)^.GetName,'',PS^.Items^.At(Index),
-                PS^.Items^.At(Index)^.Items,PS^.Items^.At(Index)^.References,nil,PS^.MemInfo)
+         begin
+           Symbols:=PS^.Items^.At(Index)^.Items;
+           if (not assigned(symbols) or (symbols^.count=0)) and
+              assigned(PS^.Items^.At(Index)^.Ancestor) then
+             Symbols:=PS^.Items^.At(Index)^.Ancestor^.Items;
+           OpenSymbolBrowser(0,20,
+                PS^.Items^.At(Index)^.GetName,'',PS^.Items^.At(Index),nil,
+                Symbols,PS^.Items^.At(Index)^.References,nil,PS^.MemInfo);
+         end
        else
          begin
            P:=@Name;
@@ -372,6 +391,7 @@ constructor TSymbolView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrol
 begin
   inherited Init(Bounds,1,AVScrollBar);
   HScrollBar:=AHScrollBar;
+  MyBW:=nil;
   if assigned(HScrollBar) then
     HScrollBar^.SetRange(1,80);
   Options:=Options or (ofSelectable+ofTopSelect);
@@ -557,9 +577,17 @@ begin
 end;
 
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
-var S: string;
+var S,S2: string;
 begin
   S:=Symbols^.At(Item)^.GetText;
+{$ifndef NODEBUG}
+  if assigned(Debugger) and Debugger^.IsRunning and
+     assigned(MyBW) and MyBW^.IsValid then
+    begin
+      S2:=GetPChar(Debugger^.GetValue(GetStr(MyBW^.Prefix)+Symbols^.At(Item)^.GetName));
+      S:=S+' = '+S2;
+    end;
+{$endif ndef NODEBUG}
   GetText:=copy(S,1,MaxLen);
 end;
 
@@ -623,6 +651,7 @@ begin
   inherited Init(Bounds,'');
   Options:=Options or (ofSelectable+ofTopSelect);
   MemInfo:=AMemInfo;
+  MyBW:=nil;
 end;
 
 destructor TSymbolMemInfoView.Done;
@@ -676,7 +705,9 @@ begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
   Options:=Options or (ofSelectable+ofTopSelect);
   Root:=ARoot;
-  ExpandAll(GetRoot); Update;
+  MyBW:=nil;
+  ExpandAll(GetRoot);
+  Update;
 end;
 
 destructor TSymbolInheritanceView.Done;
@@ -732,6 +763,7 @@ end;
 procedure TSymbolInheritanceView.Selected(I: Integer);
 var P: pointer;
     S: PSymbol;
+    St : String;
     Anc: PObjectSymbol;
 begin
   P:=GetNode(I);
@@ -742,11 +774,12 @@ begin
   { this happens for the top objects view (PM) }
   if S=nil then exit;
 
+  st:=S^.GetName;
   if S^.Ancestor=nil then Anc:=nil else
     Anc:=SearchObjectForSymbol(S^.Ancestor);
   OpenSymbolBrowser(Origin.X-1,FOC-Delta.Y+1,
-    S^.GetName,
-    S^.GetText,S,
+    st,
+    S^.GetText,S,nil,
     S^.Items,S^.References,Anc,S^.MemInfo);
 end;
 
@@ -895,16 +928,17 @@ begin
 end;
 
 constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
-             const AName: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection;
+             const AName,APrefix: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection;
              AInheritance: PObjectSymbol; AMemInfo: PSymbolMemINfo);
 var R: TRect;
-    ST: PStaticText;
     HSB,VSB: PScrollBar;
+{$ifndef NODEBUG}
+    S2 : String;
+{$endif NODEBUG}
 function CreateVSB(R: TRect): PScrollBar;
 var R2: TRect;
     SB: PScrollBar;
 begin
-  Sym:=ASym;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); SB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   CreateVSB:=SB;
@@ -918,11 +952,23 @@ begin
   CreateHSB:=SB;
 end;
 begin
-  inherited Init(Bounds, ATitle, ANumber);
+  inherited Init(Bounds, 'Browse: '+ATitle, ANumber);
   HelpCtx:=hcBrowserWindow;
+  Sym:=ASym;
+  Prefix:=NewStr(APrefix);
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
-  New(ST, Init(R, ' '+AName)); ST^.GrowMode:=gfGrowHiX;
+{$ifndef NODEBUG}
+  if assigned(Debugger) and Debugger^.IsRunning and
+     assigned(Sym) and (Sym^.typ=varsym) then
+    begin
+      S2:=GetPChar(Debugger^.GetValue(ATitle));
+      New(ST, Init(R, ' '+AName+' = '+S2));
+    end
+  else
+{$endif NODEBUG}
+    New(ST, Init(R, ' '+AName));
+  ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
 
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,2);
@@ -933,6 +979,7 @@ begin
       New(ScopeView, Init(R, ASymbols, HSB, VSB));
       ScopeView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(ScopeView);
+      ScopeView^.MyBW:=@Self;
     end;
   if assigned(AReferences) and (AReferences^.Count>0) then
     begin
@@ -941,18 +988,21 @@ begin
       New(ReferenceView, Init(R, AReferences, HSB, VSB));
       ReferenceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(ReferenceView);
+      ReferenceView^.MyBW:=@Self;
     end;
   if assigned(AInheritance) then
     begin
       New(InheritanceView, Init(R, nil,nil, AInheritance));
       InheritanceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(InheritanceView);
+      InheritanceView^.MyBW:=@Self;
     end;
   if assigned(AMemInfo) then
     begin
       New(MemInfoView, Init(R, AMemInfo));
       MemInfoView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(MemInfoView);
+      MemInfoView^.MyBW:=@Self;
     end;
 
   GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.B.Y:=R.A.Y+1;
@@ -979,6 +1029,7 @@ end;
 procedure TBrowserWindow.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     S: PSymbol;
+    Symbols: PSymbolCollection;
     Anc: PObjectSymbol;
     P: TPoint;
 begin
@@ -996,11 +1047,16 @@ begin
               Inc(P.Y);
               if S^.Ancestor=nil then Anc:=nil else
                 Anc:=SearchObjectForSymbol(S^.Ancestor);
-              if (S^.GetReferenceCount>0) or (S^.GetItemCount>0) or (Anc<>nil) then
+              Symbols:=S^.Items;
+              if (not assigned(Symbols)  or (symbols^.count=0)) then
+                if assigned(S^.Ancestor) then
+                  Symbols:=S^.Ancestor^.Items;
+              if (S^.GetReferenceCount>0) or (assigned(Symbols) and (Symbols^.Count>0)) or (Anc<>nil) then
                OpenSymbolBrowser(Origin.X-1,P.Y,
                  S^.GetName,
-                 ScopeView^.GetText(ScopeView^.Focused,255),S,
-                 S^.Items,S^.References,Anc,S^.MemInfo);
+                 ScopeView^.GetText(ScopeView^.Focused,255),
+                 S,@self,
+                 Symbols,S^.References,Anc,S^.MemInfo);
             end;
       end;
 {    evCommand :
@@ -1146,22 +1202,50 @@ begin
 end;
 
 procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;S : PSymbol;
+            ParentBrowser : PBrowserWindow;
             Symbols: PSymbolCollection; References: PReferenceCollection;
             Inheritance: PObjectSymbol; MemInfo: PSymbolMemInfo);
 var R: TRect;
+    PB : PBrowserWindow;
+    St,st2 : string;
 begin
   if X=0 then X:=Desktop^.Size.X-35;
   R.A.X:=X; R.A.Y:=Y;
   R.B.X:=R.A.X+35; R.B.Y:=R.A.Y+15;
   while (R.B.Y>Desktop^.Size.Y) do R.Move(0,-1);
-  Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: '+Name,SearchFreeWindowNo,S,Line,Symbols,References,Inheritance,MemInfo)));
+  if assigned(ParentBrowser) then
+    begin
+      st:=GetStr(ParentBrowser^.Prefix)+Name;
+    end
+  else
+    st:=Name;
+  st2:=st;
+  if assigned(S) and ((S^.Flags and sfPointer)<>0) then
+    begin
+      st:=st+'^';
+      if assigned(S^.Ancestor) and
+         ((S^.Ancestor^.Flags and sfRecord)<>0) then
+        st:=st+'.';
+    end
+  else if assigned(S) and ((S^.Flags and sfRecord)<>0) then
+    st:=st+'.';
+
+  PB:=New(PBrowserWindow, Init(R,
+    st2,SearchFreeWindowNo,S,Line,st,
+    Symbols,References,Inheritance,MemInfo));
+  if (S^.typ=varsym) or (assigned(ParentBrowser) and ParentBrowser^.IsValid) then
+     PB^.IsValid:=true;
+
+  Desktop^.Insert(PB);
 end;
 
 END.
 {
   $Log$
-  Revision 1.20  1999-11-10 00:42:42  pierre
+  Revision 1.21  2000-03-07 21:55:16  pierre
+   + Add current value to browser
+
+  Revision 1.20  1999/11/10 00:42:42  pierre
     * LookUp function now returns the complete name in browcol
       and fpsymbol only yakes a part of LoopUpStr
 
