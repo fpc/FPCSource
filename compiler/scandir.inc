@@ -489,7 +489,7 @@ const
         hs:=FixFileName(hs);
         fsplit(hs,path,name,ext);
       { first look in the path of _d then currentmodule }
-        path:=search(hs,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
+        path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
       { shutdown current file }
         current_scanner^.close;
       { load new file }
@@ -706,7 +706,10 @@ const
 
 {
   $Log$
-  Revision 1.15  1998-07-14 21:46:55  peter
+  Revision 1.16  1998-08-04 22:03:44  michael
+  + fixed dir_include search() call
+
+  Revision 1.15  1998/07/14 21:46:55  peter
     * updated messages file
 
   Revision 1.14  1998/07/14 14:47:03  peter
