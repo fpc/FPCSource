@@ -711,7 +711,7 @@ type
   { argument types are unknown }
   function RGB(r,g,b : longint) : DWORD;
     begin
-       RGB:=DWORD(((BYTE(r)) or ((WORD(g)) shl 8)) or ((DWORD(BYTE(b))) shl 16));
+       RGB:=DWORD(((DWORD(BYTE(r))) or ((DWORD(WORD(g))) shl 8)) or ((DWORD(BYTE(b))) shl 16));
     end;
 
   { was #define dname(params) def_expr }
@@ -879,7 +879,7 @@ type
   { argument types are unknown }
   function MAKEROP4(fore,back : longint) : DWORD;
     begin
-       MAKEROP4:=DWORD(((back shl 8) and $FF000000) or fore);
+       MAKEROP4:=DWORD((DWORD(back shl 8) and $FF000000) or DWORD(fore));
     end;
 
   { was #define dname(params) def_expr }
@@ -941,7 +941,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2000-10-11 16:05:56  peter
+  Revision 1.5  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.4  2000/10/11 16:05:56  peter
     * stdcall for callbacks (merged)
 
   Revision 1.3  2000/08/16 18:35:19  peter

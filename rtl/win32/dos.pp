@@ -558,7 +558,7 @@ end;
 procedure FindMatch(var f:searchrec);
 begin
 { Find file with correct attribute }
-  While (F.W32FindData.dwFileAttributes and F.ExcludeAttr)<>0 do
+  While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
      if not FindNextFile (F.FindHandle,F.W32FindData) then
       begin
@@ -815,7 +815,7 @@ var
 begin
   doserror:=0;
   l:=GetFileAttributes(filerec(f).name);
-  if l=$ffffffff then
+  if l=longint($ffffffff) then
    begin
      doserror:=getlasterror;
      attr:=0;
@@ -1016,7 +1016,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-06 20:47:34  peter
+  Revision 1.7  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.6  2000/09/06 20:47:34  peter
     * removed previous fsplit() patch as it's not the correct behaviour for
       LFNs. The code showing the bug could easily be adapted (merged)
 

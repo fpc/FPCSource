@@ -19,7 +19,7 @@
 CONST
    { REQUIRED TO PUT MANUALLY here, because of name conflicts in win32.inc }
    { flags for CreateFile }
-   GENERIC_READ=$80000000;
+   GENERIC_READ=longint($80000000);
    GENERIC_WRITE=$40000000;
    CREATE_NEW = 1;
    CREATE_ALWAYS = 2;
@@ -184,7 +184,10 @@ END;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:57  michael
+  Revision 1.3  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
  
 }

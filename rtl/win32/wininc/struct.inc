@@ -745,7 +745,7 @@
      DCB = record
           DCBlength : DWORD;
           BaudRate : DWORD;
-          flag0 : longint;
+          flag0 : DWORD;
           wReserved : WORD;
           XonLim : WORD;
           XoffLim : WORD;
@@ -908,7 +908,7 @@
      PCOMPOSITIONFORM = ^COMPOSITIONFORM;
 
      COMSTAT = record
-          flag0 : longint;
+          flag0 : DWORD;
           cbInQue : DWORD;
           cbOutQue : DWORD;
        end;
@@ -6961,7 +6961,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2000-11-21 08:49:14  jonas
+  Revision 1.5  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.4  2000/11/21 08:49:14  jonas
     * workaround for the "hicon: hicon" bug (merged from fixes branch)
 
   Revision 1.3  2000/10/11 16:05:56  peter

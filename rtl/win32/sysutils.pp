@@ -42,7 +42,7 @@ implementation
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 const
-  AccessMode: array[0..2] of Integer = (
+  AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
     GENERIC_WRITE,
     GENERIC_READ or GENERIC_WRITE);
@@ -94,7 +94,7 @@ end;
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 begin
-  Result := SetFilePointer(Handle, FOffset, nil, Origin);
+  Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
 end;
 
 
@@ -108,7 +108,7 @@ end;
 
 Function FileTruncate (Handle,Size: Longint) : boolean;
 begin
-  Result:=SetFilePointer(handle,Size,nil,FILE_BEGIN)<>-1;
+  Result:=longint(SetFilePointer(handle,Size,nil,FILE_BEGIN))<>-1;
   If Result then
     Result:=SetEndOfFile(handle);
 end;
@@ -163,7 +163,7 @@ end;
 Function FindMatch(var f: TSearchRec) : Longint;
 begin
   { Find file with correct attribute }
-  While (F.FindData.dwFileAttributes and F.ExcludeAttr)<>0 do
+  While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
      if not FindNextFile (F.FindHandle,@F.FindData) then
       begin
@@ -643,7 +643,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-09-19 23:57:57  pierre
+  Revision 1.5  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.4  2000/09/19 23:57:57  pierre
    * bug fix for 1041 (merged)
 
   Revision 1.3  2000/08/29 18:01:52  michael

@@ -1171,7 +1171,7 @@ begin
         if IsConsole then Writeln(stderr,'Exception  ',
                 hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
-        case excep^.ExceptionRecord^.ExceptionCode of
+        case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
                 STATUS_INTEGER_DIVIDE_BY_ZERO,
                 STATUS_FLOAT_DIVIDE_BY_ZERO :
                         res := SysHandleErrorFrame(200, frame, true);
@@ -1380,7 +1380,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-10-15 08:19:49  peter
+  Revision 1.2  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.1  2000/10/15 08:19:49  peter
     * system unit rename for 1.1 branch
 
   Revision 1.6  2000/10/13 12:01:52  peter

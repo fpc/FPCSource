@@ -304,7 +304,7 @@ unit winsock;
     }
     const
        INVALID_SOCKET = not(1);
-       SOCKET_ERROR = -1;
+       SOCKET_ERROR = $ffffffff;
        SOCK_STREAM = 1;
        SOCK_DGRAM = 2;
        SOCK_RAW = 3;
@@ -951,7 +951,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-12-18 17:28:58  jonas
+    * fixed range check errors
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
  
 }
