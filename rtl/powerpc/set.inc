@@ -78,15 +78,15 @@ function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_se
 }
 asm
        // copy source to result
-       li       r0,8
-       mtctr    r0
-       subi     r4,r4,4
-       subi     r3,r3,4
-Lset_set_byte_copy:
-       lwzu     r0,4(r4)
-       stwu     r0,4(r3)
-       bdnz     Lset_set_byte_copy
-       subi     r3,r3,32
+       lfd      f0,0(r4)
+       lfd      f1,8(r4)
+       lfd      f2,16(r4)
+       lfd      f3,24(r4)
+       stfd     f0,0(r3)
+       stfd     f1,8(r3)
+       stfd     f2,16(r3)
+       stfd     f3,24(r3)
+
        // get the index of the correct *dword* in the set
        // r0 := (r5 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
@@ -95,7 +95,7 @@ Lset_set_byte_copy:
        li       r0,1
        // generate bit which has to be inserted
        // (can't use rlwimi, since that one only works for constants)
-       slw      r5,r0,r5
+       rlwnm    r5,r0,r5,0,31
        // insert it
        or       r5,r4,r5
        // store result
@@ -113,15 +113,14 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
 }
 asm
        // copy source to result
-       li       r0,8
-       mtctr    r0
-       subi     r4,r4,4
-       subi     r3,r3,4
-Lset_unset_byte_copy:
-       lwzu     r0,4(r4)
-       stwu     r0,4(r3)
-       bdnz     Lset_unset_byte_copy
-       subi     r3,r3,32
+       lfd      f0,0(r4)
+       lfd      f1,8(r4)
+       lfd      f2,16(r4)
+       lfd      f3,24(r4)
+       stfd     f0,0(r3)
+       stfd     f1,8(r3)
+       stfd     f2,16(r3)
+       stfd     f3,24(r3)
        // get the index of the correct *dword* in the set
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
@@ -524,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2003-05-02 15:10:53  jonas
+  Revision 1.20  2003-05-11 11:06:34  jonas
+    * fixed fpc_set_set_byte and fpc_set_unset_byte
+
+  Revision 1.19  2003/05/02 15:10:53  jonas
     * fixed fpc_set_set_range
 
   Revision 1.18  2003/04/26 15:29:34  jonas
