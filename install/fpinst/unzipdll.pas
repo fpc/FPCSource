@@ -21,9 +21,15 @@ type
  PArgV = ^TArgV;
  TCharArray = array [1..1024*1024] of char;
  PCharArray = ^TCharArray;
-
-function FileUnzipEx (SourceZipFile, TargetDirectory,
+ TFileUnzipEx = function (SourceZipFile, TargetDirectory,
                                                     FileSpecs: PChar): integer;
+
+function DllFileUnzipEx (SourceZipFile, TargetDirectory,
+                                                    FileSpecs: PChar): integer;
+
+const
+ FileUnzipEx: TFileUnzipEx = @DllFileUnzipEx;
+
 (* Returns non-zero result on success. *)
 
 implementation
@@ -44,7 +50,7 @@ uses
      Windows,
  {$ENDIF WIN32}
 {$ENDIF OS2}
- Dos;
+ Unzip, Dos;
 
 type
  UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint; cdecl;
@@ -74,6 +80,7 @@ const
 var
  DLLHandle: longint;
  OldExit: pointer;
+ C: char;
 
 function DLLInit: boolean;
 var
@@ -131,7 +138,7 @@ begin
 {$ENDIF}
 end;
 
-function FileUnzipEx (SourceZipFile, TargetDirectory,
+function DllFileUnzipEx (SourceZipFile, TargetDirectory,
                                                     FileSpecs: PChar): integer;
 var
  I, FCount, ArgC: longint;
@@ -195,7 +202,7 @@ begin
  Inc (ArgC);
  ArgV [ArgC] := @ExDirOpt [3]; (* contains #0 *)
  UnzipErr := UzpMain (ArgC, ArgV);
- if UnzipErr <> 0 then FileUnzipEx := 0 else FileUnzipEx := FCount;
+ if UnzipErr <> 0 then DllFileUnzipEx := 0 else DllFileUnzipEx := FCount;
  for I := 1 to FCount do FreeMem (ArgV [I + OptCount], StrLen [I + OptCount]);
 end;
 
@@ -211,12 +218,20 @@ begin
   WriteLn ('Please, download the library, either from the location where you found');
   WriteLn ('this installer, or from any FTP archive carrying InfoZip programs.');
   WriteLn ('If you have this DLL on your disk, please, check your configuration (' + LIBPATH + ').');
-  Halt (255);
+  WriteLn (#13#10'If you want to try unpacking the files with internal unpacking routine,');
+  WriteLn ('answer the following question with Y. However, this might not work correctly');
+  WriteLn ('under some conditions (e.g. for long names and drives not supporting them).');
+  Write (#13#10'Do you want to continue now (y/N)? ');
+  ReadLn (C);
+  if UpCase (C) = 'Y' then FileUnzipEx := TFileUnzipEx (@Unzip.FileUnzipEx) else Halt (255);
  end;
 end.
 {
   $Log$
-  Revision 1.2  2000-10-18 20:14:32  hajny
+  Revision 1.3  2000-11-26 19:02:19  hajny
+    * little enhancement
+
+  Revision 1.2  2000/10/18 20:14:32  hajny
     * FPC compatibility issues
 
   Revision 1.1  2000/07/13 06:30:22  michael
