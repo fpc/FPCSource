@@ -687,7 +687,7 @@ Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 { Need to be exported for threads unit }
 Procedure SysInitExceptions;
 procedure SysInitStdIO;
-Procedure SysResetFPU;
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {*****************************************************************************
                          Abstract/Assert/Error Handling
@@ -744,7 +744,10 @@ const
 
 {
   $Log$
-  Revision 1.96  2004-07-03 21:50:31  daniel
+  Revision 1.97  2004-07-07 15:15:40  daniel
+    * Add inline directive to sysresetfpu
+
+  Revision 1.96  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
