@@ -13,7 +13,7 @@
 
 unit IniFiles;
 
-{$mode delphi}
+{$mode objfpc}
 {$H+}
 
 interface
@@ -26,7 +26,8 @@ type
 
    TIniFile = class(TObject)
    private
-     FFileName : string;
+     FFileName   : string;
+     FStream     : TStream;
      FFileBuffer : TStringList;
      function GetName(const line : string) : string;
      function GetValue(const line, name : string) : string;
@@ -34,10 +35,15 @@ type
      function IsSection(const line : string) : boolean;
      function GetSectionIndex(const section : string) : integer;
    protected
+     procedure SetFileName(const fn:string);
+     procedure SetStream(s:TStream);
      procedure LoadFromFile;
      procedure SaveToFile;
+     procedure LoadFromStream;
+     procedure SaveToStream;
    public
      constructor Create(const theFileName : string);
+     constructor Create(s:TStream);
      destructor Destroy; override;
      procedure DeleteKey(const section, ident : string);
      procedure EraseSection(const section : string);
@@ -69,10 +75,20 @@ const
 constructor TIniFile.Create(const theFileName : string);
 begin
    FFileName := theFileName;
+   FStream:=nil;
    FFileBuffer := TStringList.Create;
 
    if FileExists(fileName) then
       LoadFromFile;
+end;
+
+constructor TIniFile.Create(s:TStream);
+begin
+   FFileName := '';
+   FStream:=s;
+   FFileBuffer := TStringList.Create;
+
+   LoadFromStream;
 end;
 
 destructor TIniFile.Destroy;
@@ -141,14 +157,40 @@ begin
    result := FFileBuffer.IndexOf(brackets[0] + section + brackets[1]);
 end;
 
+{ Load/Save }
+
+procedure TIniFile.SetFileName(const fn:string);
+begin
+  FFileName:=fn;
+end;
+
+procedure TIniFile.SetStream(s:TStream);
+begin
+  FStream:=s;
+end;
+
 procedure TIniFile.LoadFromFile;
 begin
+  if FFileName<>'' then
    FFileBuffer.LoadFromFile(FFileName);
 end;
 
 procedure TIniFile.SaveToFile;
 begin
+  if FFileName<>'' then
    FFileBuffer.SaveToFile(FFileName);
+end;
+
+procedure TIniFile.LoadFromStream;
+begin
+  if assigned(FStream) then
+   FFileBuffer.LoadFromStream(FStream);
+end;
+
+procedure TIniFile.SaveToStream;
+begin
+  if assigned(FStream) then
+   FFileBuffer.SaveToStream(FStream);
 end;
 
 { Read all Names of one Section }
@@ -439,7 +481,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-11-08 15:01:38  peter
+  Revision 1.5  1999-11-23 09:50:51  peter
+    * load/save stream support
+
+  Revision 1.4  1999/11/08 15:01:38  peter
     * fpcmake support
 
   Revision 1.3  1999/11/02 23:58:37  peter
