@@ -17,6 +17,9 @@ Var PName,PDir : PChar;
     FProcessInformation : TProcessInformation;
 
 begin
+  FillChar(FProcessAttributes,SizeOf(FProcessAttributes),#0);
+  FillChar(FThreadAttributes,SizeOf(FThreadAttributes),#0);
+  FillChar(FStartupInfo,SizeOf(FStartupInfo),#0);
   if poNoConsole in FCReateOptions then
     FCreationFlags:=FCreationFlags or Detached_Process;
   If poRunSuspended in FCreateOptions Then
@@ -40,7 +43,7 @@ begin
     hStdInput:=FChildInputStream.Handle;
     hStdOutput:=FChildOutPutStream.Handle;
     hStdError:=FChildErrorStream.Handle;
-    If (FFillAttribute<>0) then
+    If (FFillAttribute<>-1) then
       begin
       dwFlags:=dwFlags or Startf_UseFillAttribute;
       dwFillAttribute:=FFIllAttribute;
