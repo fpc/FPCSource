@@ -39,7 +39,7 @@ interface
 implementation
 
   uses
-    strings,cobjects,systems,globals,
+    verbose,strings,cobjects,systems,globals,
     files,aasm,symtable;
 
 
@@ -53,7 +53,10 @@ implementation
         { insert sharedlibrary }
         current_module^.linksharedlibs.insert(SplitName(module));
         { do nothing with the procedure, only set the mangledname }
-        aktprocsym^.definition^.setmangledname(name);
+        if name<>'' then
+          aktprocsym^.definition^.setmangledname(name)
+        else
+          Message(parser_e_empty_import_name);
       end;
 
 
@@ -75,7 +78,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-11-28 16:20:51  peter
+  Revision 1.3  1999-01-20 14:18:32  pierre
+    * bugs related to mangledname solved
+      - linux external without name
+      -external procs already used
+      (added count and is_used boolean fiels in tprocvar)
+
+  Revision 1.2  1998/11/28 16:20:51  peter
     + support for dll variables
 
   Revision 1.1  1998/10/19 18:07:13  peter

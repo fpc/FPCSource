@@ -388,6 +388,9 @@
           { true, if the procedure is only declared }
           { (forward procedure) }
           forwarddef : boolean;
+          { check the problems of manglednames }
+          count      : boolean;
+          is_used    : boolean;
           { set which contains the modified registers }
 {$ifdef i386}
           usedregisters : byte;
@@ -493,7 +496,13 @@
 
 {
   $Log$
-  Revision 1.14  1999-01-12 14:25:33  peter
+  Revision 1.15  1999-01-20 14:18:40  pierre
+    * bugs related to mangledname solved
+      - linux external without name
+      -external procs already used
+      (added count and is_used boolean fiels in tprocvar)
+
+  Revision 1.14  1999/01/12 14:25:33  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser

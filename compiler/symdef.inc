@@ -2165,6 +2165,8 @@
          forwarddef:=true;
          _class := nil;
          code:=nil;
+         count:=false;
+         is_used:=false;
       end;
 
 
@@ -2204,6 +2206,8 @@
          lastwritten:=nil;
          defref:=nil;
          refcount:=0;
+         count:=true;
+         is_used:=false;
       end;
 
 
@@ -2453,6 +2457,8 @@
          else
 {$endif}
           mangledname:=strpas(_mangledname);
+         if count then
+           is_used:=true;
       end;
 
 
@@ -3278,7 +3284,13 @@
 
 {
   $Log$
-  Revision 1.87  1999-01-19 10:56:05  pierre
+  Revision 1.88  1999-01-20 14:18:39  pierre
+    * bugs related to mangledname solved
+      - linux external without name
+      -external procs already used
+      (added count and is_used boolean fiels in tprocvar)
+
+  Revision 1.87  1999/01/19 10:56:05  pierre
    typeof(object) without vmt generates an error instead of an internalerror
 
   Revision 1.86  1999/01/12 14:25:32  peter
