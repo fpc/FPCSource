@@ -147,11 +147,11 @@ implementation
             keepreleased:=true;
             SetHeapTraceOutput('heap.log');
 {$ifdef VER1_0}
-            SetExtraInfoString({$ifdef FPC}@{$endif}get_extra_info);
+            SetExtraInfoString(@get_extra_info);
 {$else}
             SetHeapExtraInfo(sizeof(textra_info),
-                             set_extra_info,
-                             show_extra_info);
+                             @set_extra_info,
+                             @show_extra_info);
 {$endif}
          end;
        pp_heap_inited:=true;
@@ -163,7 +163,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-10-15 09:14:17  mazen
+  Revision 1.15  2004-10-18 14:39:22  peter
+    * fixed compile error
+
+  Revision 1.14  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
