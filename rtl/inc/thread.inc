@@ -260,6 +260,12 @@ begin
   currenttm.rtleventsync(m,p);
 end;
 
+procedure RTLchecksynchronize;
+
+begin
+ currenttm.rtlchksyncunix;
+end;
+
 
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
@@ -416,6 +422,15 @@ begin
 end;
 
 
+procedure NORTLChkSyncUnix;
+
+begin
+  NoThreadError;
+end;
+
+
+
+
 Var
   NoThreadManager : TThreadManager;
 
@@ -454,6 +469,7 @@ begin
     rtleventSetEvent       :=@NortleventSetEvent;
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync	   :=@Nortleventsync;
+    rtlchksyncunix	   :=@nortlchksyncunix;
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -461,7 +477,11 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-12-23 20:58:22  peter
+  Revision 1.16  2004-12-27 15:28:40  marco
+   * checksynchronize now in interface win32 uses the default impl.
+       unix uses systhrds, rest empty implementation.
+
+  Revision 1.15  2004/12/23 20:58:22  peter
     * fix rtlcreateevent
 
   Revision 1.14  2004/12/23 15:08:58  marco

@@ -557,7 +557,6 @@ procedure CheckSynchronize;
 begin
   if SynchronizeMethod = nil then
     exit;
-
   try
     SynchronizeMethod;
   except
@@ -661,6 +660,7 @@ begin
     rtlEventSetEvent       :=@intrtlEventSetEvent;
     rtleventWaitFor        :=@intrtleventWaitFor;
     rtleventsync           :=trtleventsynchandler(@intrtleventsync);
+    rtlchksyncunix	   :=@checksynchronize;
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -673,7 +673,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2004-12-23 20:20:30  michael
+  Revision 1.18  2004-12-27 15:28:40  marco
+   * checksynchronize now in interface win32 uses the default impl.
+       unix uses systhrds, rest empty implementation.
+
+  Revision 1.17  2004/12/23 20:20:30  michael
   + Fixed tmt1 test bug
 
   Revision 1.16  2004/12/23 15:08:59  marco

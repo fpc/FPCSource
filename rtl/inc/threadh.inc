@@ -46,6 +46,8 @@ type
   TRTLEventHandler	    = procedure(AEvent:PRTLEvent);
   TRTLCreateEventHandler    = function:PRTLEvent;	
   TRTLEventSyncHandler	    = procedure (m:trtlmethod;p:tprocedure);
+  TRTLCheckSyncUnixHandler  = procedure;
+
   // TThreadManager interface.
   TThreadManager = Record
     InitManager            : Function : Boolean;
@@ -78,6 +80,7 @@ type
     RTLEventSetEvent       : TRTLEventHandler;
     RTLeventWaitFOr	   : TRTLEventHandler;
     RTLEventSync	   : TRTLEventSyncHandler;
+    RTLChkSyncUnix	   : TRTLCheckSyncUnixHandler;
   end;
 
 {*****************************************************************************
@@ -157,9 +160,15 @@ procedure RTLeventdestroy(state:pRTLEvent);
 procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
+procedure RTLchecksynchronize;
+
 {
   $Log$
-  Revision 1.22  2004-12-23 15:08:58  marco
+  Revision 1.23  2004-12-27 15:28:40  marco
+   * checksynchronize now in interface win32 uses the default impl.
+       unix uses systhrds, rest empty implementation.
+
+  Revision 1.22  2004/12/23 15:08:58  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 
