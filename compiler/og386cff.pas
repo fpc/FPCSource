@@ -69,7 +69,8 @@ unit og386cff;
 
     uses
        cobjects,
-       og386,i386base,aasm;
+       systems,i386base,aasm,
+       og386;
 
     type
        preloc = ^treloc;
@@ -85,7 +86,7 @@ unit og386cff;
        tsymbol = packed record
          name    : string[8];
          strpos  : longint;
-         section : longint;
+         section : tsection;
          value   : longint;
          typ     : TAsmsymtype;
        end;
@@ -93,6 +94,7 @@ unit og386cff;
        pcoffsection = ^tcoffsection;
        tcoffsection = object
           index : tsection;
+          secidx : longint;
           data  : PDynamicArray;
           len,
           pos,
@@ -215,15 +217,6 @@ unit og386cff;
         end;
 
 
-      const
-        sec_2_str : array[tsection] of string[8]=('',
-          '.text','.data','.bss',
-          '.stab','.stabstr',
-          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-          ''
-        );
-
-
 {****************************************************************************
                                TSection
 ****************************************************************************}
@@ -231,6 +224,7 @@ unit og386cff;
     constructor tcoffsection.init(sec:TSection;Aflags:longint);
       begin
         index:=sec;
+        secidx:=0;
         flags:=AFlags;
         relocHead:=nil;
         relocTail:=@relocHead;
@@ -440,7 +434,7 @@ unit og386cff;
           of the symbol }
         if p^.typ in [AS_LOCAL,AS_GLOBAL] then
          begin
-           sym.section:=ord(p^.section);
+           sym.section:=p^.section;
            sym.value:=p^.address;
          end;
         { update the asmsymbol index }
@@ -581,12 +575,12 @@ unit og386cff;
            if assigned(r^.symbol) then
             begin
               if (r^.symbol^.typ=AS_LOCAL) then
-               rel.sym:=2*ord(r^.symbol^.section)
+               rel.sym:=2*sects[r^.symbol^.section]^.secidx
               else
                rel.sym:=r^.symbol^.idx+initsym;
             end
            else
-            rel.sym:=2*ord(r^.section);
+            rel.sym:=2*sects[r^.section]^.secidx;
            case r^.relative of
              relative_true  : rel.relative:=$14;
              relative_false : rel.relative:=$6;
@@ -622,6 +616,7 @@ unit og386cff;
       var
         filename : string[18];
         sec : tsection;
+        sectionval,
         i   : longint;
         globalval : byte;
         secrec : coffsectionrec;
@@ -632,13 +627,12 @@ unit og386cff;
         fillchar(filename,sizeof(filename),0);
         filename:=SplitFileName(current_module^.mainsource^);
         writer^.write(filename[1],sizeof(filename)-1);
-        { The section records, with their auxiliaries }
-        i:=0;
+        { The section records, with their auxiliaries, also store the
+          symbol index }
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
-            inc(i);
-            write_symbol(sec_2_str[sec],-1,{sects[sec]^.pos}0,i,3,1);
+            write_symbol(target_asm.secnames[sec],-1,{sects[sec]^.pos}0,sects[sec]^.secidx,3,1);
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=sects[sec]^.len;
             secrec.nrelocs:=sects[sec]^.nrelocs;
@@ -653,14 +647,18 @@ unit og386cff;
              globalval:=3
            else
              globalval:=2;
-           write_symbol(sym.name,sym.strpos,sym.value,sym.section,globalval,0);
+           if assigned(sects[sym.section]) then
+             sectionval:=sects[sym.section]^.secidx
+           else
+             sectionval:=0;
+           write_symbol(sym.name,sym.strpos,sym.value,sectionval,globalval,0);
          end;
       end;
 
 
     procedure tgenericcoffoutput.writetodisk;
       var
-        datapos,
+        datapos,secidx,
         nsects,pos,sympos,i,fillsize : longint;
         sec    : tsection;
         header : coffheader;
@@ -693,9 +691,12 @@ unit og386cff;
         pos:=0;
         initsym:=2; { 2 for the file }
         { sections first }
+        secidx:=0;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
+            inc(secidx);
+            sects[sec]^.secidx:=secidx;
             sects[sec]^.pos:=pos;
             sects[sec]^.datapos:=datapos;
             inc(pos,sects[sec]^.len);
@@ -721,15 +722,14 @@ unit og386cff;
         header.nsects:=nsects;
         header.sympos:=sympos;
         header.syms:=syms^.count+initsym;
-        if not win32 then
-         header.flag:=$104;
+        header.flag:=$104;
         writer^.write(header,sizeof(header));
       { Section headers }
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
             fillchar(sechdr,sizeof(sechdr),0);
-            move(sec_2_str[sec][1],sechdr.name,length(sec_2_str[sec]));
+            move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
             if not win32 then
               sechdr.vsize:=sects[sec]^.pos
             else if sec=sec_bss then
@@ -817,7 +817,7 @@ unit og386cff;
 
     function twin32coffoutput.text_flags : longint;
       begin
-        text_flags:={ $60500020}$60300020{changed to get same as asw.exe (PM)};
+        text_flags:=$60000020; { same as as 2.9.1 }
       end;
 
     function twin32coffoutput.data_flags : longint;
@@ -839,7 +839,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:24  peter
+  Revision 1.2  1999-05-02 22:36:35  peter
+    * fixed section index when not all sections are used
+
+  Revision 1.1  1999/05/01 13:24:24  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
