@@ -1,0 +1,2007 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<package name="rtl">
+
+<!--
+  ====================================================================
+    Unix
+  ====================================================================
+-->
+
+<module name="Unix">
+<short>Extended Unix functionality.</short>
+<descr>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="UnixUtil">
+<short>Various unit utility routines.</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="BaseUnix">
+<short>Basic unix functionality.</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="UnixType">
+<short>Basic unix types.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt8">
+<short>C type: 8 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt8">
+<short>C type: 8 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt16">
+<short>C type: 16 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt16">
+<short>C type: 16 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt32">
+<short>C type: 32 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt32">
+<short>C type: 32 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt64">
+<short>C type: 64 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt64">
+<short>C type: 64 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuchar">
+<short>C type: unsigned character</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt">
+<short>C type: integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt">
+<short>C type: unsigned integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cLong">
+<short>C type: long signed integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuLong">
+<short>C type: long unsigned integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cshort">
+<short>C type: short signed integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cushort">
+<short>C type: short unsigned integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcInt">
+<short>Pointer to <link id="cInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcUInt">
+<short>Pointer to <link id="cUInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcLong">
+<short>Pointer to <link id="cLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pculong">
+<short>Pointer to <link id="cuLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcshort">
+<short>Pointer to <link id="cShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcushort">
+<short>Pointer to <link id="cuShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="dev_t">
+<short>Device descriptor type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TDev">
+<short>Alias for <link id="dev_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pDev">
+<short>Pointer to <link id="TDev"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="gid_t">
+<short>Group ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TGid">
+<short>Alias for <link id="gid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pGid">
+<short>Pointer to <link id="TGid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ino_t">
+<short>Inode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIno">
+<short>Alias for <link id="ino_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pIno">
+<short>Pointer to <link id="TIno"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="mode_t">
+<short>Inode mode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TMode">
+<short>Alias for <link id="mode_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pMode">
+<short>Pointer to <link id="TMode"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="nlink_t">
+<short>Number of links type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TnLink">
+<short>Alias for <link id="nlink_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pnLink">
+<short>Pointer to <link id="TnLink"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="off_t">
+<short>Offset type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TOff">
+<short>Alias for <link id="off_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pOff">
+<short>Pointer to <link id="TOff"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pid_t">
+<short>Process ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TPid">
+<short>Alias for <link id="pid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pPid">
+<short>Pointer to <link id="TPid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="size_t">
+<short>Size specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSize">
+<short>Alias for <link id="size_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSize">
+<short>Pointer to <link id="TSize"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ssize_t">
+<short>Small size type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TsSize">
+<short>Alias for <link id="ssize_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="psSize">
+<short>Pointer to <link id="TsSize"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="uid_t">
+<short>User ID type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TUid">
+<short>Alias for <link id="uid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pUid">
+<short>Pointer to <link id="TUid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="clock_t">
+<short>Clock ticks type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TClock">
+<short>Alias for <link id="clock_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pClock">
+<short>Pointer to <link id="TClock"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="time_t">
+<short>Time span type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTime">
+<short>Alias for <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pTime">
+<short>Pointer to <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptime_t">
+<short>Pointer to <link id="time_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="socklen_t">
+<short>Socket address length type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSocklen">
+<short>Alias for <link id="socklen_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSocklen">
+<short>Pointer to <link id="TSockLen"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timeval">
+<short>Time specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimeval">
+<short>Pointer to <link id="timeval"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeVal">
+<short>Alias for <link id="timeval"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timespec">
+<short>Short time specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimespec">
+<short>Pointer to <link id="timespec"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Ttimespec">
+<short>Alias for <link id="TimeSpec"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_mutex_t">
+<short>Thread mutex type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_cond_t">
+<short>Thread conditional variable type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_t">
+<short>Posix thread type.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ARG_MAX">
+<short>Maximum number of arguments to a program.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NAME_MAX">
+<short>Maximum filename length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PATH_MAX">
+<short>Maximum pathname length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SYS_NMLN">
+<short>Max system name length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SIG_MAXSIG">
+<short>Maximum system signal number.</short>
+</element>
+
+
+<!-- constant Visibility: default -->
+<element name="Prio_Process">
+<short><link id="fpGetPriority"/> option: Get process priority.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Prio_PGrp">
+<short><link id="fpGetPriority"/> option: Get process group priority.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Prio_User">
+<short><link id="fpGetPriority"/> option: Get user priority.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Seek_set">
+<short>Seek option: Set absolute position.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Seek_Cur">
+<short>Seek option: Set position relative to current position.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Seek_End">
+<short>Seek option: Set position relative to end of file.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Accmode">
+<short>Bitmask to determine access mode in open flags.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_RdOnly">
+<short>File open mode: Read only</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_WrOnly">
+<short>File open mode: Write only</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_RdWr">
+<short>File open mode: Read/Write</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Creat">
+<short>File open mode: Create if file does not yet exist.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Excl">
+<short>File open mode: Open exclusively</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_NoCtty">
+<short>File open mode: No TTY control.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Trunc">
+<short>File open mode: Truncate file to length 0</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Append">
+<short>File open mode: Append to file</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_NonBlock">
+<short>File open mode: Open in non-blocking mode</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_NDelay">
+<short>File open mode: Alias for <link id="Open_NonBlock"/></short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Sync">
+<short>File open mode: Write to disc at once</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Direct">
+<short>File open mode: Minimize caching effects</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_LargeFile">
+<short>File open mode: Open for 64-bit I/O</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_Directory">
+<short>File open mode: File must be directory.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Open_NoFollow">
+<short>File open mode: Fail if file is symbolic link.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Wait_NoHang">
+<short><link id="#rtl.baseunix.fpWaitPID"/>: Do not wait</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Wait_UnTraced">
+<short><link id="#rtl.baseunix.fpWaitPID"/>: Also report stopped but untraced processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Wait_Any">
+<short><link id="#rtl.baseunix.fpWaitPID"/>: Wait on any process</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Wait_MyPGRP">
+<short><link id="#rtl.baseunix.fpWaitPID"/>: Wait processes from current process group</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Wait_Clone">
+<short><link id="#rtl.baseunix.fpWaitPID"/>: Wait on clone processes only.</short>
+</element>
+
+
+<element name="STAT_IFMT">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: File type bit mask</short>
+</element>
+<element name="STAT_IFSOCK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Socket</short>
+</element>
+<element name="STAT_IFLNK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Link</short>
+</element>
+<element name="STAT_IFREG">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Regular file</short>
+</element>
+<element name="STAT_IFBLK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Block device</short>
+</element>
+<element name="STAT_IFDIR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Directory</short>
+</element>
+<element name="STAT_IFCHR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Character device</short>
+</element>
+<element name="STAT_IFIFO">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: FIFO</short>
+</element>
+<element name="STAT_ISUID">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: UID bit set</short>
+</element>
+<element name="STAT_ISGID">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: GID bit set</short>
+</element>
+<element name="STAT_ISVTX">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Sticky bit set</short>
+</element>
+<element name="STAT_IRWXO">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Other permission bits mask</short>
+</element>
+<element name="STAT_IROTH">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Other read permission</short>
+</element>
+<element name="STAT_IWOTH">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Other write permission</short>
+</element>
+<element name="STAT_IXOTH">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Others execute permission</short>
+</element>
+<element name="STAT_IRWXG">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Group permission bits mask</short>
+</element>
+<element name="STAT_IRGRP">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Group read permission</short>
+</element>
+<element name="STAT_IWGRP">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Group write permission</short>
+</element>
+<element name="STAT_IXGRP">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Others execute permission</short>
+</element>
+<element name="STAT_IRWXU">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Owner permission bits mask</short>
+</element>
+<element name="STAT_IRUSR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Owner read permission</short>
+</element>
+<element name="STAT_IWUSR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Owner write permission</short>
+</element>
+<element name="STAT_IXUSR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Others execute permission</short>
+</element>
+
+<element name="fs_old_ext2">
+<short>File system type (<link id="StatFS"/>): (ext2) Old second extended</short>
+</element>
+<element name="fs_ext2">
+<short>File system type (<link id="StatFS"/>): (ext2) Second extended</short>
+</element>
+<element name="fs_ext">
+<short>File system type (<link id="StatFS"/>): (ext) Extended</short>
+</element>
+<element name="fs_iso">
+<short>File system type (<link id="StatFS"/>): ISO 9660</short>
+</element>
+<element name="fs_minix">
+<short>File system type (<link id="StatFS"/>): Minix</short>
+</element>
+<element name="fs_minix_30">
+<short>File system type (<link id="StatFS"/>): Minix 3.0</short>
+</element>
+<element name="fs_minux_V2">
+<short>File system type (<link id="StatFS"/>): Minix V2</short>
+</element>
+<element name="fs_msdos">
+<short>File system type (<link id="StatFS"/>): MSDOS (FAT)</short>
+</element>
+<element name="fs_nfs">
+<short>File system type (<link id="StatFS"/>): NFS </short>
+</element>
+<element name="fs_proc">
+<short>File system type (<link id="StatFS"/>): PROC fs</short>
+</element>
+<element name="fs_xia">
+<short>File system type (<link id="StatFS"/>): XIA</short>
+</element>
+
+<element name="MAP_PRIVATE">
+<short><link id="FpMMap"/> map type: Changes are private</short>
+</element>
+<element name="MAP_ANONYMOUS">
+<short><link id="FpMMap"/> map type: Don't use a file</short>
+</element>
+<element name="MAP_GROWSDOWN">
+<short><link id="FpMMap"/> option: Memory grows downward (like a stack)</short>
+</element>
+<element name="MAP_DENYWRITE">
+<short><link id="FpMMap"/> option: Ignored.</short>
+</element>
+<element name="MAP_EXECUTABLE">
+<short><link id="FpMMap"/> option: Ignored.</short>
+</element>
+<element name="MAP_LOCKED">
+<short><link id="FpMMap"/> option: lock the pages in memory.</short>
+</element>
+<element name="MAP_NORESERVE">
+<short><link id="FpMMap"/> option: Do not reserve swap pages for this memory.</short>
+</element>
+<element name="MAP_SHARED">
+<short><link id="FpMMap"/> map type: Share changes</short>
+</element>
+<element name="MAP_TYPE">
+<short><link id="FpMMap"/> map type: Bitmask for type of mapping</short>
+</element>
+<element name="MAP_FIXED">
+<short><link id="FpMMap"/> map type: Interpret addr exactly</short>
+</element>
+
+
+<!-- constant Visibility: default -->
+<element name="IOCtl_TCGETS">
+<short>IOCTL call number: get Terminal Control settings</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOCLDSTOP">
+<short>Sigaction options: Do not receive notification when child processes stop</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOCLDWAIT">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_SIGINFO">
+<short>Sigaction options: The signal handler takes 3 arguments, not one.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_SHIRQ">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_STACK">
+<short>Sigaction options: Call the signal handler on an alternate signal stack.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_RESTART">
+<short>Sigaction options: Provide behaviour compatible with BSD signal semantics</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_INTERRUPT">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOMASK">
+<short>Sigaction options: Do not prevent the signal from being received when it is handled.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_ONESHOT">
+<short>Sigaction options: Restore the signal action to the default state.</short>
+</element>
+
+<element name="SIG_BLOCK">
+<short>Sigprocmask flags: Add signals to the set of blocked signals.</short>
+</element>
+<element name="SIG_UNBLOCK">
+<short>Sigprocmask flags: Remove signals from the set set of blocked signals.</short>
+</element>
+<element name="SIG_SETMASK">
+<short>Sigprocmask flags: Set of blocked signals is given.</short>
+</element>
+<element name="SIG_DFL">
+<short>Signal handler: Default signal handler</short>
+</element>
+<element name="SIG_IGN">
+<short>Signal handler: Ignore signal</short>
+</element>
+<element name="SIG_ERR">
+<short>Signal handler: error</short>
+</element>
+
+<element name="SIGHUP">
+<short>Signal: HUP (Hangup)</short>
+</element>
+<element name="SIGINT">
+<short>Signal: INT (Interrupt)</short>
+</element>
+<element name="SIGQUIT">
+<short>Signal: QUIT</short>
+</element>
+<element name="SIGILL">
+<short>Signal: ILL (Illegal instruction)</short>
+</element>
+<element name="SIGTRAP">
+<short>Signal: TRAP (Trace trap)</short>
+</element>
+<element name="SIGABRT">
+<short>Signal: ABRT (Abort)</short>
+</element>
+<element name="SIGIOT">
+<short>Signal: IOT (IOT trap)</short>
+</element>
+<element name="SIGBUS">
+<short>Signal: BUS (bus error)</short>
+</element>
+<element name="SIGFPE">
+<short>Signal: FPE (Floating point error)</short>
+</element>
+<element name="SIGKILL">
+<short>Signal: KILL (unblockable)</short>
+</element>
+<element name="SIGUSR1">
+<short>Signal: USR1 (User-defined signal 1)</short>
+</element>
+<element name="SIGSEGV">
+<short>Signal: SEGV (Segmentation violation)</short>
+</element>
+<element name="SIGUSR2">
+<short>Signal: USR2 (User-defined signal 2)</short>
+</element>
+<element name="SIGPIPE">
+<short>Signal: PIPE (Broken pipe</short>
+</element>
+<element name="SIGALRM">
+<short>Signal: ALRM (Alarm clock)</short>
+</element>
+<element name="SIGTERM">
+<short>Signal: TERM (Terminate)</short>
+</element>
+<element name="SIGSTKFLT">
+<short>Signal: STKFLT (Stack Fault)</short>
+</element>
+<element name="SIGCHLD">
+<short>Signal: CHLD (child status changed)</short>
+</element>
+<element name="SIGCONT">
+<short>Signal: CONT (Continue)</short>
+</element>
+<element name="SIGSTOP">
+<short>Signal: STOP (Stop, unblockable)</short>
+</element>
+<element name="SIGTSTP">
+<short>Signal: TSTP (keyboard stop)</short>
+</element>
+
+<element name="SIGTTIN">
+<short>Signal: TTIN (Terminal input, background)</short>
+</element>
+<element name="SIGTTOU">
+<short>Signal: TTOU (Terminal output, background)</short>
+</element>
+<element name="SIGURG">
+<short>Signal: URG (Socket urgent condition)</short>
+</element>
+<element name="SIGXCPU">
+<short>Signal: XCPU (CPU limit exceeded)</short>
+</element>
+<element name="SIGXFSZ">
+<short>Signal: XFSZ (File size limit exceeded)</short>
+</element>
+<element name="SIGVTALRM">
+<short>Signal: VTALRM (Virtual alarm clock)</short>
+</element>
+<element name="SIGPROF">
+<short>Signal: PROF (Profiling alarm)</short>
+</element>
+<element name="SIGWINCH">
+<short>Signal: WINCH (Window/Terminal size change)</short>
+</element>
+<element name="SIGIO">
+<short>Signal: IO (I/O operation possible)</short>
+</element>
+<element name="SIGPOLL">
+<short>Signal: POLL (Pollable event) </short>
+</element>
+<element name="SIGPWR">
+<short>Signal: PWR (power failure restart)</short>
+</element>
+<element name="SIGUNUSED">
+<short>Signal: Unused</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SI_PAD_SIZE">
+<short>Signal information pad size.</short>
+</element>
+
+<element name="tfpreg">
+<short>Record describing floating point register in signal handler.</short>
+</element>
+<element name="tfpreg.significand">
+<short>Decimal part of floating point value</short>
+</element>
+<element name="tfpreg.exponent">
+<short>Exponent of floating point value</short>
+</element>
+
+<element name="pfpstate">
+<short>Pointer to <link id="tfpstate"/> record.</short>
+</element>
+<element name="tfpstate">
+<short>Record describing floating point unit in signal handler.</short>
+</element>
+<element name="tfpstate.cw">
+<short></short>
+</element>
+<element name="tfpstate.sw">
+<short></short>
+</element>
+<element name="tfpstate.tag">
+<short></short>
+</element>
+<element name="tfpstate.ipoff">
+<short></short>
+</element>
+<element name="tfpstate.cssel">
+<short></short>
+</element>
+<element name="tfpstate.dataoff">
+<short></short>
+</element>
+<element name="tfpstate.datasel">
+<short></short>
+</element>
+<element name="tfpstate.st">
+<short></short>
+</element>
+<element name="tfpstate.status">
+<short></short>
+</element>
+
+
+<element name="SigSet">
+<short>Signal set type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="sigset_t">
+<short>Signal set type</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigSet">
+<short>Pointer to <link id="SigSet"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="psigset_t">
+<short>Pointer to <link id="sigset_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSigSet">
+<short>Alias for <link id="SigSet"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigInfoRec">
+<short>Pointer to <link id="SigInfoRec"/> record type.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="SigInfoRec">
+<short>Record containing signal information.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_signo">
+<short>Signal number.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_errno">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_code">
+<short>?</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="SignalHandler">
+<short>Simple signal handler prototype</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSignalHandler">
+<short>Pointer to <link id="SignalHandler"/> type.</short>
+</element>
+
+<element name="SignalRestorer">
+<short>Signal restorer function prototype</short>
+</element>
+<element name="PSignalrestorer">
+<short>Pointer to <link id="SignalRestorer"/> type</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TSigAction">
+<short>Extended signal handler prototype.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="SigActionRec">
+<short>Record used in <link id="#rtl.baseunix.fpSigAction"/> call.</short>
+</element>
+<element name="SigActionRec.sa_handler">
+<short>Funcion called when signal is triggered.</short>
+</element>
+<element name="SigActionRec.Sa_Mask">
+<short>Signal mask.</short>
+</element>
+<element name="SigActionRec.SA_FLAGS">
+<short>Flags for SigAction</short>
+</element>
+<element name="SigActionRec.SA_RESTORER">
+<short>Obsolete, don't use</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSigActionRec">
+<short>Alias for <link id="SigActionRec"/> record type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigActionRec">
+<short>Pointer to <link id="SigActionRec"/> record type.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="timezone">
+<short>Record describing a timezone</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timezone.minuteswest">
+<short>Minutes west of GMT</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timezone.dsttime">
+<short>Daylight savings time</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="ptimezone">
+<short>Pointer to <link id="TimeZone"/> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeZone">
+<short>Alias for <link id="TimeZone"/> record.</short>
+</element>
+
+<element name="S_IFMT">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: File type bit mask</short>
+</element>
+<element name="S_IFSOCK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Socket</short>
+</element>
+<element name="S_IFLNK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Link</short>
+</element>
+<element name="S_IFREG">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Regular file</short>
+</element>
+<element name="S_IFBLK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Block device</short>
+</element>
+<element name="S_IFDIR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Directory</short>
+</element>
+<element name="S_IFCHR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Character device</short>
+</element>
+<element name="S_IFIFO">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: FIFO</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="P_IN">
+<short>Input file descriptor of pipe pair.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="P_OUT">
+<short>Output file descriptor of pipe pair.</short>
+</element>
+
+
+<element name="LOCK_SH">
+<short><link id="FpFLock"/> Shared lock</short>
+</element>
+<element name="LOCK_EX">
+<short><link id="FpFLock"/> Exclusive lock</short>
+</element>
+<element name="LOCK_UN">
+<short><link id="FpFLock"/> unlock</short>
+</element>
+<element name="LOCK_NB">
+<short><link id="FpFLock"/> Non-blocking operation</short>
+</element>
+
+<element name="PGlob">
+<short>Pointer to <link id="TGlob"/> record.</short>
+</element>
+<element name="TGlob">
+<short>Record containing one entry in the result of <link id="Glob"/></short>
+</element>
+<element name="TGlob.Name">
+<short>Filename matching the search criteria</short>
+</element>
+<element name="TGlob.Next">
+<short>Next element in result of <var>Glob</var> call.</short>
+</element>
+
+<element name="Tpipe">
+<short>Array describing a pipe pair of filedescriptors.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tzdaylight">
+<short>Indicates whether daylight savings time is active.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tzname">
+<short>Timezone name.</short>
+</element>
+
+<element name="PROT_READ">
+<short><link id="FpMMap"/> memory access: page can be read</short>
+</element>
+<element name="PROT_WRITE">
+<short><link id="FpMMap"/> memory access: page can be written</short>
+</element>
+<element name="PROT_EXEC">
+<short><link id="FpMMap"/> memory access: page can be executed</short>
+</element>
+<element name="PROT_NONE">
+<short><link id="FpMMap"/> memory access: page can not be accessed</short>
+</element>
+
+
+<!-- enumeration type Visibility: default -->
+<element name="TFSearchOption">
+<short>Describes the search strategy used by <link id="FSearch"/></short>
+<seealso>
+<link id="FSearch"/>
+</seealso>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFSearchOption.NoCurrentDirectory">
+<short>Do not search the current directory unless it is specified in the search path.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFSearchOption.CurrentDirectoryFirst">
+<short>Search the current directory first, before all directories in the search path.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFSearchOption.CurrentDirectoryLast">
+<short>Search the current directory last, after all directories in the search path </short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetLocalTimezone">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetLocalTimezone">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="ReadTimezoneFile">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetTimezoneFile">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetEpochTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetDate">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GetDateTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetDate">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetDateTime">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CreateShellArgV">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CreateShellArgV">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="FreeShellArgV">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execv">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execv">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execvp">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execvp">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execl">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execl">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execle">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execle">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execlp">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Execlp">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecLE">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecL">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecLP">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecV">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecVP">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecVPE">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Shell">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Shell">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpSystem">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WaitProcess">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WIFSTOPPED">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="W_EXITCODE">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="W_STOPCODE">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fsync">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFlock">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fStatFS">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StatFS">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFlock">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFlock">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SelectText">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SelectText">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="SeekDir">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="TellDir">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="AssignPipe">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="AssignPipe">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="AssignPipe">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="POpen">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="POpen">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="AssignStream">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="AssignStream">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetDomainName">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetHostName">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+
+<!-- function Visibility: default -->
+<element name="FExpand">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FSearch">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FSearch">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FSearch">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Glob">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="Globfree">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="SigRaise">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpMMap">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Fpmunmap">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpgettimeofday">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpNice">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpGetPriority">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpSetPriority">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpLstat">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpLstat">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpSymlink">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpReadLink">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="PClose">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="PClose">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StatFS">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpReadLink">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+</module> <!-- Unix -->
+</package>
+</fpdoc-descriptions>
