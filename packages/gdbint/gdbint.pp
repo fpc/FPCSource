@@ -55,6 +55,15 @@ interface
   {$undef NotImplemented}
   {$LINKLIB ncurses}
   {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB intl}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+    {$endif GDB_V5}
+  {$LINKLIB m}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif linux}
@@ -1827,8 +1836,21 @@ end;
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
 var
   sym : symtab_and_line;
+
+{ this procedure is only here to avoid the problems
+  with different version of gcc having different stack
+  handling:
+  on older versions find_pc_line uses just "ret"
+  while on newer gcc version "ret $4" is used
+  if this call is within the CreateBreakPointHook function
+  it changes %esp and thus the registers are
+  not restored correctly PM }
+  procedure get_pc_line;
+    begin
+      sym:=find_pc_line(b.address,0);
+    end;
 begin
-  sym:=find_pc_line(b.address,0);
+  get_pc_line;
   with curr_gdb^ do
    begin
      last_breakpoint_number:=b.number;
@@ -2364,7 +2386,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-09-15 23:51:37  pierre
+  Revision 1.1.2.2  2000-09-27 22:31:13  pierre
+  * avoid cdecl troubles in CreateBreakpointHook
+
+  Revision 1.1.2.1  2000/09/15 23:51:37  pierre
    * fix bug 1120 and start of gdb 5 support
 
   Revision 1.6  2000/04/14 05:37:33  pierre
