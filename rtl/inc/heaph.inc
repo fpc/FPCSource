@@ -30,8 +30,9 @@ Procedure SysFreemem(Var p:pointer;Size:Longint);
 
 { Variables }
 const
-  heapblocks   : boolean=true;
-  growheapsize : longint=$100000;
+  heapblocks    : boolean=true;
+  growheapsize1 : longint=256*1024;  { < 256k will grow with 256k }
+  growheapsize2 : longint=1024*1024; { > 256k will grow with 1m }
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
@@ -57,14 +58,17 @@ Procedure releaseheap(oldfreelist,oldheapptr : pointer);
   Procedure unsplit_heap;
   Procedure switch_to_base_heap;
   Procedure switch_to_temp_heap;
-  Procedure switch_heap;  
+  Procedure switch_heap;
   Procedure releasetempheap;
   Procedure gettempmem(var p : pointer;size : longint);
 {$endif TEMPHEAP}
 
 {
   $Log$
-  Revision 1.8  1999-02-08 09:31:40  florian
+  Revision 1.9  1999-05-31 20:36:35  peter
+    * growing is now 256k or 1mb
+
+  Revision 1.8  1999/02/08 09:31:40  florian
     * fixed small things regarding TEMPHEAP
 
   Revision 1.7  1998/10/01 14:55:18  peter

@@ -976,15 +976,24 @@ begin
    wantedsize:=size;
    { Allocate by 64K size }
    size:=(size+$fffff) and $ffff0000;
-   { first try 1Meg }
-   if size<GrowHeapSize then
+   { first try 256K (default) }
+   if size<GrowHeapSize1 then
     begin
-      NewPos:=Sbrk(GrowHeapSize);
+      NewPos:=Sbrk(GrowHeapSize1);
       if NewPos>0 then
-       size:=GrowHeapSize;
+       size:=GrowHeapSize1;
     end
    else
-    NewPos:=SBrk(size);
+   { second try 1024K (default) }
+    if size<GrowHeapSize2 then
+     begin
+       NewPos:=Sbrk(GrowHeapSize2);
+       if NewPos>0 then
+        size:=GrowHeapSize2;
+     end
+   { else alloate the needed bytes }
+    else
+     NewPos:=SBrk(size);
    { try again }
    if NewPos=-1 then
     begin
@@ -1089,7 +1098,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-05-17 21:52:36  florian
+  Revision 1.11  1999-05-31 20:36:34  peter
+    * growing is now 256k or 1mb
+
+  Revision 1.10  1999/05/17 21:52:36  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.9  1999/04/19 11:53:13  pierre
