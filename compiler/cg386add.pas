@@ -416,6 +416,8 @@ implementation
                    { add can be an other SET or Range or Element ! }
 {$IfNDef regallocfix}
                      del_location(p^.left^.location);
+                     { del_location(p^.right^.location);
+                       done in pushsetelement below PM }
                      del_location(p^.right^.location);
                      pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
@@ -425,7 +427,8 @@ implementation
                       begin
 {$IfDef regallocfix}
                         del_location(p^.left^.location);
-                        del_location(p^.right^.location);
+                        { del_location(p^.right^.location);
+                          done in pushsetelement below PM }
 {$EndIf regallocfix}
                         pushsetelement(p^.right^.left);
                         emitpushreferenceaddr(href);
@@ -2113,7 +2116,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-08-23 10:35:13  jonas
+  Revision 1.76  1999-08-23 23:31:00  pierre
+   * double del_location removed in add_set
+
+  Revision 1.75  1999/08/23 10:35:13  jonas
     * fixed <= and >= for sets
 
   Revision 1.74  1999/08/19 13:08:43  pierre
