@@ -538,6 +538,7 @@ Type
   end;
   
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
+Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 
 {$endif HASWIDESTRING}
@@ -712,7 +713,10 @@ const
 
 {
   $Log$
-  Revision 1.79  2003-11-28 20:36:13  michael
+  Revision 1.80  2003-11-29 17:27:05  michael
+  + Added overloaded version of SetWideStringManager without old parameter
+
+  Revision 1.79  2003/11/28 20:36:13  michael
   + Added WideStringManager
 
   Revision 1.78  2003/11/15 19:01:27  florian

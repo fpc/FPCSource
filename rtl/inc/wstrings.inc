@@ -100,6 +100,12 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 begin
   GetWideStringManager(Old);
+  SetWideStringManager(New);
+end;
+  
+Procedure SetWideStringManager (Const New : TWideStringManager);
+
+begin
   Wide2AnsiMoveProc:=New.Wide2AnsiMove;
   Ansi2WideMoveProc:=New.Ansi2WideMove;
 end;
@@ -1005,7 +1011,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2003-11-28 20:36:13  michael
+  Revision 1.34  2003-11-29 17:27:05  michael
+  + Added overloaded version of SetWideStringManager without old parameter
+
+  Revision 1.33  2003/11/28 20:36:13  michael
   + Added WideStringManager
 
   Revision 1.32  2003/11/05 15:33:51  florian
