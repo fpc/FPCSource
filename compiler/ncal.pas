@@ -160,7 +160,7 @@ interface
           procedure get_paratype;
           procedure insert_typeconv(do_count : boolean);
           procedure det_registers;
-          procedure firstcallparan(do_count : boolean);
+          procedure firstcallparan;
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
@@ -187,8 +187,8 @@ implementation
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,
-      nutils,procinfo,
-      tgobj,cgbase
+      procinfo,
+      cgbase
       ;
 
 type
@@ -782,7 +782,7 @@ type
       end;
 
 
-    procedure tcallparanode.firstcallparan(do_count : boolean);
+    procedure tcallparanode.firstcallparan;
       begin
         if not assigned(left.resulttype.def) then
           get_paratype;
@@ -1213,7 +1213,8 @@ type
           overloaded definitions in the class, this only needs to be done once
           for class entries as the tree keeps always the same }
         if (not symtableprocentry.overloadchecked) and
-           (po_overload in symtableprocentry.first_procdef.procoptions) and
+           ((symtableprocentry.first_procdef.proctypeoption=potype_constructor) or
+            (po_overload in symtableprocentry.first_procdef.procoptions)) and
            (symtableprocentry.owner.symtabletype=objectsymtable) then
          search_class_overloads(symtableprocentry);
 
@@ -2570,7 +2571,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.196  2003-10-13 14:05:12  peter
+  Revision 1.197  2003-10-21 15:14:55  peter
+    * also search in parents for overloads when calling a constructor
+
+  Revision 1.196  2003/10/13 14:05:12  peter
     * removed is_visible_for_proc
     * search also for class overloads when finding interface
       implementations
