@@ -92,6 +92,8 @@ type
       VType      : PString;
       TypeID     : longint;
       RelatedTypeID : longint;
+      DebuggerCount : longint;
+      DebuggerValue : PString;
       Ancestor   : PSymbol;
       Flags      : longint;
       MemInfo    : PSymbolMemInfo;
@@ -636,6 +638,8 @@ begin
         S:=S+'('+Params^+')';
       if Assigned(VType) then
         S:=S+': '+VType^;
+      if Assigned(DebuggerValue) then
+        S:=S+' = '+DebuggerValue^;
     end;
   GetText:=S;
 end;
@@ -679,6 +683,8 @@ begin
     Dispose(Items, Done);
   if assigned(Name) then
     DisposeStr(Name);
+  if assigned(DebuggerValue) then
+    DisposeStr(DebuggerValue);
 {  if assigned(Params) then
     DisposeStr(Params);
   if assigned(VType) then
@@ -1043,6 +1049,10 @@ end;
     Name:=Name+GetDefinitionStr(def^.elementtype.def);
     GetSetDefStr:=Name;
   end;
+  function GetPointerDefStr(def: ppointerdef): string;
+  begin
+    GetPointerDefStr:='^'+GetDefinitionStr(def^.pointertype.def);
+  end;
   function GetDefinitionStr(def: pdef): string;
   var Name: string;
       sym: psym;
@@ -1264,6 +1274,7 @@ end;
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfPointer);
                       Symbol^.RelatedTypeID:=longint(ppointerdef(restype.def)^.pointertype.def);{TypeNames^.Add(S);}
+                      SetDType(Symbol,GetPointerDefStr(ppointerdef(restype.def)));
                     end;
 
                   filedef :
@@ -1750,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2000-03-07 21:55:59  pierre
+  Revision 1.35  2000-03-08 12:25:29  pierre
+   * more fixes for TSymbol
+
+  Revision 1.34  2000/03/07 21:55:59  pierre
     * Tsymbol and Ancestor fixes
 
   Revision 1.33  2000/02/09 13:22:45  peter
