@@ -924,6 +924,7 @@ implementation
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
+           (tvarsym(p).refs>0) and
            assigned(tvarsym(p).vartype.def) and
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
@@ -956,7 +957,8 @@ implementation
         case tsym(p).typ of
           varsym :
             begin
-              if not(vo_is_funcret in tvarsym(p).varoptions) and
+              if (tvarsym(p).refs>0) and
+                 not(vo_is_funcret in tvarsym(p).varoptions) and
                  assigned(tvarsym(p).vartype.def) and
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
@@ -2053,7 +2055,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2003-09-23 17:56:05  peter
+  Revision 1.147  2003-09-23 21:03:59  peter
+    * check for refs>0 in init/final local data
+
+  Revision 1.146  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
