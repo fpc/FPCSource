@@ -59,7 +59,10 @@ implementation
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
-       ncgutil,gdb,
+       ncgutil,
+{$ifdef GDB}
+       gdb,
+{$endif GDB}
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -679,7 +682,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2004-01-31 22:48:31  daniel
+  Revision 1.78  2004-02-11 19:59:06  peter
+    * fix compilation without GDB
+
+  Revision 1.77  2004/01/31 22:48:31  daniel
     * Fix stabs generation problem reported by Jonas
 
   Revision 1.76  2004/01/31 18:40:15  daniel

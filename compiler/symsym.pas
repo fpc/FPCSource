@@ -70,7 +70,9 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure generate_mangledname;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef GDB}
           function  stabstring : pchar;override;
+{$endif GDB}
        end;
 
        tunitsym = class(Tsym)
@@ -404,7 +406,7 @@ implementation
     begin
       if s='mangledname' then
         get_var_value:=mangledname
-      else 
+      else
         get_var_value:=inherited get_var_value(s);
     end;
 
@@ -482,11 +484,14 @@ implementation
            end;
       end;
 
-    function Tlabelsym.stabstring : pchar;
 
-    begin
-      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
-    end;
+{$ifdef GDB}
+    function Tlabelsym.stabstring : pchar;
+      begin
+        stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
+      end;
+{$endif GDB}
+
 
 {****************************************************************************
                                   TUNITSYM
@@ -2355,7 +2360,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.156  2004-02-08 18:08:59  jonas
+  Revision 1.157  2004-02-11 19:59:06  peter
+    * fix compilation without GDB
+
+  Revision 1.156  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-

@@ -817,6 +817,13 @@ implementation
            tprocsym(p).unchain_overload;
       end;
 
+
+    procedure Tstoredsymtable.reset_def(def:Tnamedindexitem;arg:pointer);
+      begin
+        Tstoreddef(def).reset;
+      end;
+
+
 {$ifdef GDB}
 
     procedure TStoredSymtable.concatstab(p : TNamedIndexItem;arg:pointer);
@@ -838,23 +845,13 @@ implementation
         end;
     end;
 
+
     procedure TStoredSymtable.resetstab(p : TNamedIndexItem;arg:pointer);
       begin
         if tsym(p).typ <> procsym then
           Tstoredsym(p).isstabwritten:=false;
       end;
 
-    procedure Tstoredsymtable.reset_def(def:Tnamedindexitem;arg:pointer);
-
-    begin
-      Tstoreddef(def).reset;
-    end;
-
-    procedure Tstoredsymtable.reset_all_defs;
-
-    begin
-      defindex.foreach(@reset_def,nil);
-    end;
 
     procedure TStoredSymtable.concattypestab(p : TNamedIndexItem;arg:pointer);
 
@@ -878,6 +875,7 @@ implementation
         end;
     end;
 
+
    function tstoredsymtable.getnewtypecount : word;
       begin
          getnewtypecount:=pglobaltypecount^;
@@ -889,6 +887,12 @@ implementation
 {***********************************************
            Process all entries
 ***********************************************}
+
+    procedure Tstoredsymtable.reset_all_defs;
+      begin
+        defindex.foreach(@reset_def,nil);
+      end;
+
 
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;
@@ -2406,7 +2410,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2004-02-06 22:37:00  daniel
+  Revision 1.136  2004-02-11 19:59:06  peter
+    * fix compilation without GDB
+
+  Revision 1.135  2004/02/06 22:37:00  daniel
     * Removed not very usefull nextglobal & previousglobal fields from
       Tstoreddef, saving 78 kb of memory
 

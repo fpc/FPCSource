@@ -228,8 +228,11 @@ implementation
     uses
        verbose,
        fmodule,
-       symdef,
-       gdb;
+       symdef
+{$ifdef GDB}
+       ,gdb
+{$endif GDB}
+       ;
 
 
 {****************************************************************************
@@ -407,7 +410,7 @@ implementation
     function Tsym.stabstring : pchar;
 
     begin
-{      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);}
+(*      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]); *)
        stabstring:=nil;
     end;
 {
@@ -1540,7 +1543,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2004-01-31 22:48:31  daniel
+  Revision 1.39  2004-02-11 19:59:06  peter
+    * fix compilation without GDB
+
+  Revision 1.38  2004/01/31 22:48:31  daniel
     * Fix stabs generation problem reported by Jonas
 
   Revision 1.37  2004/01/31 21:09:58  daniel

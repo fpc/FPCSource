@@ -1028,7 +1028,9 @@ implementation
          inlining_procedure:=true;
 
          { Add inling start }
+{$ifdef GDB}
          exprasmlist.concat(Tai_force_line.Create);
+{$endif GDB}
          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc '+tprocdef(procdefinition).procsym.name)));
@@ -1208,7 +1210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2004-02-09 22:48:45  florian
+  Revision 1.154  2004-02-11 19:59:06  peter
+    * fix compilation without GDB
+
+  Revision 1.153  2004/02/09 22:48:45  florian
     * several fixes to parameter handling on arm
 
   Revision 1.152  2004/01/31 17:45:17  peter
