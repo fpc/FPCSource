@@ -7,7 +7,10 @@
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
-{   Copyright (c) 1998-2000 by Florian Klaempfl
+{
+		Id:
+		
+		Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software;you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -770,48 +773,58 @@ PROCEDURE tcgSPARC.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
 
 { *********** entry/exit code and address loading ************ }
 
-PROCEDURE tcgSPARC.g_stackframe_entry(list:TAasmOutput;localsize:LongInt);
-  VAR
+procedure tcgSPARC.g_stackframe_entry(list:TAasmOutput;localsize:LongInt);
+  var
     href:TReference;
     i:integer;
     again:tasmlabel;
-  BEGIN
-	{Reserve space to save register window in case of overflow/underflow}
-	  Inc(LocalSize,16);{located between %o6 and %o6+15}
-    WITH list DO
+  begin
+{According the the SPARC ABI the standard stack frame must include :
+	*	16 word save for the in and local registers in case of overflow/underflow.
+this save area always must exist at the %o6+0,
+	*	software conventions requires space for the aggregate return value pointer, even if the word is not used,
+	*	althogh the first six words of arguments reside in registers, the standard
+stack frame reserves space for them. Arguments beond the sixth reside on the
+stack as in the Intel architecture,
+	* other areas depend on the compiler and the code being compiled. The
+standard calling sequence does not define a maximum stack frame size, nor does
+it restrict how a language system uses the "unspecified" areas of the standard
+stack frame.}
+	  Dec(LocalSize,(16+1+5)*4);
+{Althogh the SPARC architecture require only word alignment, software
+convention and the operating system require every stack frame to be double word
+aligned}
+		if(LocalSize and $00000003)<>0
+		then
+			LocalSize:=(LocalSize and $FFFFFFFC)+4;
+    with list do
       concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
-  END;
-PROCEDURE tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
-  BEGIN
-    list.concat(Taicpu.Op_none(A_RESTORE,S_NO));
-  END;
-PROCEDURE tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
-  BEGIN
+  end;
+procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
+  begin
+{We use trivial restore, as we set result before}
+    with list do
+      concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
+  end;
+procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
+	var
+	  RetReference:TReference;
+  begin
     { Routines with the poclearstack flag set use only a ret }
     { also routines with parasize=0     }
-    WITH List DO
-      (*IF(po_clearstack IN aktprocdef.procoptions)
-      THEN
-          { complex return values are removed from stack in C code PM }
-        IF ret_in_param(aktprocdef.rettype.def)
-        THEN
-          Concat(Taicpu.Op_const(A_RET,S_NO,4))
-        ELSE
-          Concat(Taicpu.Op_none(A_RET,S_NO))
-      ELSE*)
-        IF(parasize=0)
-        THEN
-          Concat(Taicpu.Op_none(A_RET,S_NO))
-        ELSE
-          BEGIN
+    with list do
+			begin
+				reference_reset_base(RetReference,R_I7,8);
+	      concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
+      	if(parasize<>0)
+      	then
            { parameters are limited to 65535 bytes because }
            { ret allows only imm16                    }
-            IF(parasize>65535)
-            THEN
-              CGMessage(cg_e_parasize_too_big);
-            Concat(Taicpu.Op_const(A_RET,S_NO,parasize));
-          END;
-  END;
+          IF(parasize>65535)
+          THEN
+            CGMessage(cg_e_parasize_too_big);
+			end
+  end;
 
      PROCEDURE tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
 
@@ -1060,3 +1073,6 @@ PROCEDURE tcgSPARC.floatstore(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
 BEGIN
   cg:=tcgSPARC.create;
 END.
+{
+	$Log:
+}
