@@ -501,12 +501,16 @@ unit rgcpu;
 
 
 initialization
-  rg := trgcpu.create(7);   {We use 7 int registers on i386.}
+  rg := trgcpu.create(6);   {We use 6 int registers on i386.}
 end.
 
 {
   $Log$
-  Revision 1.29  2003-06-17 16:51:30  peter
+  Revision 1.30  2003-08-17 08:48:02  daniel
+   * Another register allocator bug fixed.
+   * cpu_registers set to 6 for i386
+
+  Revision 1.29  2003/06/17 16:51:30  peter
     * cycle fixes
 
   Revision 1.28  2003/06/17 16:34:44  jonas

@@ -1742,12 +1742,17 @@ unit rgobj;
 
     procedure Trgobj.add_worklist(u:Tsuperregister);
 
+    var p:byte;
+
     begin
       if not(u in [first_supreg..last_supreg]) and not move_related(u) and
          (degree[u]<cpu_registers) then
         begin
+          p:=pos(char(u),freezeworklist);
+          if p=0 then
+            internalerror(200308161); {must be found}
           if length(freezeworklist)>1 then
-            freezeworklist[pos(char(u),freezeworklist)]:=freezeworklist[length(freezeworklist)];
+            freezeworklist[p]:=freezeworklist[length(freezeworklist)];
           dec(freezeworklist[0]);
 {          delete(freezeworklist,pos(char(u),freezeworklist),1);}
           simplifyworklist:=simplifyworklist+char(u);
@@ -1828,6 +1833,7 @@ unit rgobj;
         i,p:byte;
         n,o:cardinal;
         t:char;
+        decrement:boolean;
 
     begin
       p:=pos(char(v),freezeworklist);
@@ -1861,11 +1867,13 @@ unit rgobj;
             t:=adj^[i];
             if (pos(t,selectstack) or pos(t,coalescednodes))=0 then
               begin
+                decrement:=(Tsuperregister(t)<>u) and not(u in igraph.bitmap[Tsuperregister(t)]);
                 add_edge(Tsuperregister(t),u);
                 {Do not call decrement_degree because it might move nodes between
                  lists while the degree does not change (add_edge will increase it).
-                 Instead, we will decrement manually.}
-                if degree[Tsuperregister(t)]>0 then
+                 Instead, we will decrement manually. (Only if the degree has been
+                 increased.)}
+                if decrement and (degree[Tsuperregister(t)]>0) then
                   dec(degree[Tsuperregister(t)]);
               end;
           end;
@@ -2542,7 +2550,11 @@ end.
 
 {
   $Log$
-  Revision 1.63  2003-08-09 18:56:54  daniel
+  Revision 1.64  2003-08-17 08:48:02  daniel
+   * Another register allocator bug fixed.
+   * cpu_registers set to 6 for i386
+
+  Revision 1.63  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code
