@@ -134,8 +134,8 @@ type
 
 var
   doscmd    : string[128];  { Dos commandline copied from PSP, max is 128 chars }
-  old_int00,
-  old_int75 : tseginfo;
+  old_int00 : tseginfo;cvar;
+  old_int75 : tseginfo;cvar;
 
 
 {$ASMMODE DIRECT}
@@ -1227,7 +1227,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1998-12-21 14:22:02  pierre
+   * old_int?? transformed to cvar to be readable by dpmiexcp
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.25  1998/12/15 22:42:52  peter
