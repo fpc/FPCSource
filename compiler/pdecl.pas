@@ -556,7 +556,8 @@ unit pdecl;
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
                       consume(_ID);
-                      if extern_aktvarsym then
+                      if extern_aktvarsym or
+                         (symtablestack^.symtabletype in [parasymtable,localsymtable]) then
                        Message(parser_e_not_external_and_export)
                       else
                        export_aktvarsym:=true;
@@ -585,7 +586,14 @@ unit pdecl;
                     aktvarsym:=new(pvarsym,init_C(s,C_name,tt));
                    { set some vars options }
                    if export_aktvarsym then
-                    inc(aktvarsym^.refs);
+                    begin
+                      inc(aktvarsym^.refs);
+{$ifdef INCLUDEOK}
+                      include(aktvarsym^.varoptions,vo_is_exported);
+{$else}
+                      aktvarsym^.varoptions:=aktvarsym^.varoptions+[vo_is_exported];
+{$endif}
+                    end;
                    if extern_aktvarsym then
 {$ifdef INCLUDEOK}
                     include(aktvarsym^.varoptions,vo_is_external);
@@ -1210,7 +1218,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.182  2000-06-01 19:14:09  peter
+  Revision 1.183  2000-06-02 21:18:13  pierre
+   + set vo_is_exported for vars
+
+  Revision 1.182  2000/06/01 19:14:09  peter
     * symtable.insert changed to procedure
 
   Revision 1.181  2000/04/17 18:44:22  peter
