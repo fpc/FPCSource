@@ -399,7 +399,7 @@ begin
   if elfheader.e_shentsize<>sizeof(telf32sechdr) then
    exit;
   { read section names }
-  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*sizeof(telf32sechdr));
+  seek(f,elfheader.e_shoff+cardinal(elfheader.e_shstrndx)*sizeof(telf32sechdr));
   blockread(f,elfsec,sizeof(telf32sechdr));
   seek(f,elfsec.sh_offset);
   blockread(f,secnames,sizeof(secnames));
@@ -641,7 +641,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 13:40:04  marco
+  Revision 1.5  2000-12-18 14:01:11  jonas
+    * added cardinal typecast to avoid signed evaluation
+
+  Revision 1.4  2000/11/13 13:40:04  marco
    * Renamefest
 
   Revision 1.3  2000/10/14 21:55:07  peter
