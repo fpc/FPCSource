@@ -30,8 +30,21 @@ interface
    type
        tendian = (endian_little,endian_big);
 
-       ttargetcpu=(no_cpu
-            ,i386,m68k,alpha,powerpc
+     {
+       IMPORTANT NOTE:
+       The value of this enumeration is stored in PPU files.
+       Therefore adding new CPU targets should not change the
+       values of the pre-existing targets. (CEC)
+       FURTHERMORE : Make sure that this branch values, are
+       consistant with the main branch version always.
+     }
+       ttargetcpu=
+       (
+             no_cpu,                   { 0 }
+             i386,                     { 1 }
+             m68k,                     { 2 }
+             alpha,                    { 3 }
+             powerpc                   { 4 }
        );
 
        tprocessors = (no_processor
@@ -55,16 +68,40 @@ interface
        { IMPORTANT NOTE:
          the integer value of this enum is stored in PPU
          files to recognize the target, so if you add new targets
-         allways add them at end PM }
-       ttarget = (target_none,
-            target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-              target_i386_OS2,target_i386_Win32,target_i386_freebsd,
-              target_i386_Netware,target_i386_sunos,target_i386_beos,
-              target_i386_NetBsd,
-            target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-              target_m68k_linux,target_m68k_PalmOS,target_m68k_NetBsd,
-            target_alpha_linux,
-            target_powerpc_linux,target_powerpc_macos
+         allways add them at end PM
+         FURTHERMORE : Make sure that this branch values, are
+         consistant with the main branch version always.
+       }
+     { IMPORTANT NOTE:
+       the integer value of this enum is stored in PPU
+       files to recognize the target, so if you add new targets
+       allways add them at end PM
+       FURTHERMORE : Make sure that this branch values, are
+       consistant with the main branch version always. (CEC)
+       }
+     type
+       ttarget =
+       (
+             target_none,               { 0 }
+             target_i386_GO32V1,        { 1 }
+             target_i386_GO32V2,        { 2 }
+             target_i386_linux,         { 3 }
+             target_i386_OS2,           { 4 }
+             target_i386_Win32,         { 5 }
+             arget_i386_freebsd,        { 6 }
+             target_m68k_Amiga,         { 7 }
+             target_m68k_Atari,         { 8 }
+             target_m68k_Mac,           { 9 }
+             target_m68k_linux,         { 10 }
+             target_m68k_PalmOS,        { 11 }
+             target_alpha_linux,        { 12 }
+             target_powerpc_linux,      { 13 }
+             target_powerpc_macos,      { 14 }
+             target_i386_sunos,         { 15 }
+             target_i386_beos,          { 16 }
+             target_i386_netbsd,        { 17 }
+             target_m68k_netbsd,        { 18 }
+             target_i386_Netware        { 19 }
        );
 
        tasm = (as_none
@@ -651,7 +688,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2001-09-18 11:30:48  michael
+  Revision 1.28  2001-09-22 00:03:53  carl
+  + added warning for targets - use same target values as fixes branch
+
+  Revision 1.27  2001/09/18 11:30:48  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
