@@ -35,15 +35,15 @@ interface
        pstring = ^string;
 
     {# Returns the minimal value between @var(a) and @var(b) }
-    function min(a,b : longint) : longint;
+    function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the maximum value between @var(a) and @var(b) }
-    function max(a,b : longint) : longint;
+    function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @var(x) swapped to different endian }
-    function SwapLong(x : longint): longint;
+    function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @va(x) swapped to different endian }
-    function SwapWord(x : word): word;
+    function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
-    function align(i,a:longint):longint;
+    function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
 
     function used_align(varalign,minalign,maxalign:longint):longint;
     function size_2_align(len : longint) : longint;
@@ -58,15 +58,15 @@ interface
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
     function hexstr(val : cardinal;cnt : cardinal) : string;
-    function tostru(i:cardinal) : string;
-    function tostr(i : longint) : string;
-    function realtostr(e:extended):string;
-    function int64tostr(i : int64) : string;
-    function tostr_with_plus(i : longint) : string;
+    function tostru(i:cardinal) : string;{$ifdef USEINLINE}inline;{$endif}
+    function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
+    function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
+    function int64tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
+    function tostr_with_plus(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
     function DStr(l:longint):string;
     procedure valint(S : string;var V : longint;var code : integer);
     {# Returns true if the string s is a number }
-    function is_number(const s : string) : boolean;
+    function is_number(const s : string) : boolean;{$ifdef USEINLINE}inline;{$endif}
     {# Returns true if value is a power of 2, the actual
        exponent value is returned in power.
     }
@@ -76,12 +76,12 @@ interface
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
-    procedure stringdispose(var p : pstring);
+    procedure stringdispose(var p : pstring);{$ifdef USEINLINE}inline;{$endif}
 
 
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
-    function stringdup(const s : string) : pstring;
+    function stringdup(const s : string) : pstring;{$ifdef USEINLINE}inline;{$endif}
 
     {# Allocates memory for the string @var(s) and copies s as zero
        terminated string to that allocated memory and returns a pointer
@@ -132,7 +132,7 @@ uses
       lowertbl  : array[char] of char;
 
 
-    function min(a,b : longint) : longint;
+    function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the minimal of a and b
     }
@@ -144,7 +144,7 @@ uses
       end;
 
 
-    function max(a,b : longint) : longint;
+    function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
     }
@@ -156,7 +156,7 @@ uses
       end;
 
 
-    Function SwapLong(x : longint): longint;
+    Function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
       var
         y : word;
         z : word;
@@ -169,7 +169,7 @@ uses
       End;
 
 
-    Function SwapWord(x : word): word;
+    Function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
       var
         z : byte;
       Begin
@@ -180,7 +180,7 @@ uses
       End;
 
 
-    function align(i,a:longint):longint;
+    function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return value <i> aligned <a> boundary
     }
@@ -359,7 +359,7 @@ uses
       end;
 
 
-    function tostru(i:cardinal):string;
+    function tostru(i:cardinal):string;{$ifdef USEINLINE}inline;{$endif}
     {
       return string of value i, but for cardinals
     }
@@ -368,7 +368,7 @@ uses
       end;
 
 
-   function tostr(i : longint) : string;
+   function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
    {
      return string of value i
    }
@@ -501,36 +501,29 @@ uses
       end;
 
 
-   function realtostr(e:extended):string;
+   function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
      begin
         str(e,result);
      end;
 
 
-   function int64tostr(i : int64) : string;
+   function int64tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
    {
      return string of value i
    }
-     var
-        hs : string;
      begin
-        str(i,hs);
-        int64tostr:=hs;
+        str(i,result);
      end;
 
 
-   function tostr_with_plus(i : longint) : string;
+   function tostr_with_plus(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
    {
      return string of value i, but always include a + when i>=0
    }
-     var
-        hs : string;
      begin
-        str(i,hs);
+        str(i,result);
         if i>=0 then
-          tostr_with_plus:='+'+hs
-        else
-          tostr_with_plus:=hs;
+          result:='+'+result;
      end;
 
 
@@ -573,7 +566,7 @@ uses
 {$endif not FPC}
 
 
-    function is_number(const s : string) : boolean;
+    function is_number(const s : string) : boolean;{$ifdef USEINLINE}inline;{$endif}
     {
       is string a correct number ?
     }
@@ -710,21 +703,20 @@ uses
       end;
 
 
-    procedure stringdispose(var p : pstring);
+    procedure stringdispose(var p : pstring);{$ifdef USEINLINE}inline;{$endif}
       begin
          if assigned(p) then
-           freemem(p,length(p^)+1);
-         p:=nil;
+           begin
+             freemem(p,length(p^)+1);
+             p:=nil;
+           end;
       end;
 
 
-    function stringdup(const s : string) : pstring;
-      var
-         p : pstring;
+    function stringdup(const s : string) : pstring;{$ifdef USEINLINE}inline;{$endif}
       begin
-         getmem(p,length(s)+1);
-         p^:=s;
-         stringdup:=p;
+         getmem(result,length(s)+1);
+         result^:=s;
       end;
 
 
@@ -792,8 +784,10 @@ uses
     procedure ansistringdispose(var p : pchar;length : longint);
       begin
          if assigned(p) then
-           freemem(p,length+1);
-         p:=nil;
+           begin
+             freemem(p,length+1);
+             p:=nil;
+           end;
       end;
 
 
@@ -863,7 +857,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2003-09-03 15:55:00  peter
+  Revision 1.29  2003-10-31 15:51:11  peter
+    * USEINLINE directive added (not enabled yet)
+
+  Revision 1.28  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.27.2.2  2003/08/29 17:28:59  peter

@@ -241,10 +241,10 @@ interface
     var
        mms_movescalar : pmmshuffle;
 
-    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);
-    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);
-    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);
-    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);{$ifdef USEINLINE}inline;{$endif}
+    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
+    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
+    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;{$ifdef USEINLINE}inline;{$endif}
 
     function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
     function getsubreg(r:tregister):tsubregister;{$ifdef USEINLINE}inline;{$endif}
@@ -260,10 +260,10 @@ interface
     function int_cgsize(const a: aword): tcgsize;
 
     { return the inverse condition of opcmp }
-    function inverse_opcmp(opcmp: topcmp): topcmp;
+    function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
 
     { return whether op is commutative }
-    function commutativeop(op: topcg): boolean;
+    function commutativeop(op: topcg): boolean;{$ifdef USEINLINE}inline;{$endif}
 
     { returns true, if shuffle describes a real shuffle operation and not only a move }
     function realshuffle(shuffle : pmmshuffle) : boolean;
@@ -277,7 +277,7 @@ implementation
     uses
       verbose;
 
-    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);{$ifdef USEINLINE}inline;{$endif}
       var
         b : byte;
       begin
@@ -289,19 +289,19 @@ implementation
       end;
 
 
-    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);
+    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
       begin
-        include(regs[s shr 8],(s and $ff))
+        include(regs[s shr 8],(s and $ff));
       end;
 
 
-    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);
+    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
       begin
-        exclude(regs[s shr 8],(s and $ff))
+        exclude(regs[s shr 8],(s and $ff));
       end;
 
 
-    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;
+    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
         result:=(s and $ff) in regs[s shr 8];
       end;
@@ -411,7 +411,7 @@ implementation
       end;
 
 
-    function inverse_opcmp(opcmp: topcmp): topcmp;
+    function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
       const
         list: array[TOpCmp] of TOpCmp =
           (OC_NONE,OC_NE,OC_LTE,OC_GTE,OC_LT,OC_GT,OC_EQ,OC_A,OC_AE,
@@ -421,7 +421,7 @@ implementation
       end;
 
 
-    function commutativeop(op: topcg): boolean;
+    function commutativeop(op: topcg): boolean;{$ifdef USEINLINE}inline;{$endif}
       const
         list: array[topcg] of boolean =
           (true,true,true,false,false,true,true,false,false,
@@ -469,7 +469,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.74  2003-10-30 14:56:40  mazen
+  Revision 1.75  2003-10-31 15:51:11  peter
+    * USEINLINE directive added (not enabled yet)
+
+  Revision 1.74  2003/10/30 14:56:40  mazen
   + add support for double float register vars
 
   Revision 1.73  2003/10/29 15:07:01  mazen

@@ -6,6 +6,7 @@
     {$mode objfpc}
     {$H-}
     {$goto on}
+    {$inline on}
 
     { This reduces the memory requirements a lot }
     {$PACKENUM 1}
@@ -14,6 +15,8 @@
       exceptions in the constructors }
     {$ifndef VER1_0}
       {$IMPLICITEXCEPTIONS OFF}
+      //{$calling register}
+      //{$define USEINLINE}
     {$endif VER1_0}
 
     {$define FPCPROCVAR}
@@ -82,7 +85,10 @@
 
 {
   $Log$
-  Revision 1.25  2003-09-06 16:47:24  florian
+  Revision 1.26  2003-10-31 15:51:11  peter
+    * USEINLINE directive added (not enabled yet)
+
+  Revision 1.25  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.24  2003/09/03 15:55:00  peter
