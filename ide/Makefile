@@ -1246,7 +1246,7 @@ fakegdbclean :
 	$(MAKE) -C fakegdb clean
 fakegdbinfo:
 	@$(ECHO) Using FakeGDB, IDE has no Debugger support
-builddirs: compilerunits fakegdbunits
+builddirs: fpc_packages compilerunits fakegdbunits
 buildfp: fpc_all
 gdb:
 	$(MAKE) builddirs

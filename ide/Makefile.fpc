@@ -163,12 +163,12 @@ fakegdbinfo:
 #
 # Build targets
 #
-# building happends in 2 steps, first the compiler and fakegdb
+# building happends in 2 steps, first the packages, compiler and fakegdb
 # dirs are build. In the second step the IDE is build. This is
 # required because it needs to detect which compiler version
 # to use.
 #
-builddirs: compilerunits fakegdbunits
+builddirs: fpc_packages compilerunits fakegdbunits
 
 buildfp: fpc_all
 
