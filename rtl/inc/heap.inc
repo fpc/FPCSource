@@ -1042,7 +1042,7 @@ var
   pcurrsize: ptrint;
 begin
   if p=nil then
-    HandleError(204);
+    exit;
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
   { check if this is a fixed- or var-sized chunk }
   if (pcurrsize and fixedsizeflag) = 0 then
@@ -1286,7 +1286,10 @@ end;
 
 {
   $Log$
-  Revision 1.41  2004-12-19 13:45:56  peter
+  Revision 1.42  2005-01-30 11:56:29  peter
+    * allow Freemem(nil)
+
+  Revision 1.41  2004/12/19 13:45:56  peter
     * fixed overflow when reusing a memory block for fixed size chunks
 
   Revision 1.40  2004/11/26 22:22:58  peter
