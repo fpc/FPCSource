@@ -49,6 +49,7 @@ unit rgcpu;
 
     uses
       cgobj, verbose, cutils,
+      procinfo,
       aasmcpu;
 
 
@@ -66,16 +67,58 @@ unit rgcpu;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
-        ref : treference;
+        tmpref,ref : treference;
+        helplist : taasmoutput;
+        l : tasmlabel;
+        tmpreg : tregister;
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
-        helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
-        if pos=nil then
-          list.insertafter(helpins,list.first)
+        if abs(ref.offset)>4095 then
+          begin
+            helplist:=taasmoutput.create;
+            reference_reset(tmpref);
+            { create consts entry }
+            objectlibrary.getlabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+            { load consts entry }
+            getregisterinline(helplist,nil,defaultsub,tmpreg);
+            tmpref.symbol:=l;
+            tmpref.base:=NR_R15;
+            helplist.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+            if ref.index<>NR_NO then
+              internalerror(200401263);
+            ref.index:=tmpreg;
+            ref.offset:=0;
+
+            helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
+            helplist.concat(helpins);
+            if pos=nil then
+              list.insertlistafter(list.first,helplist)
+            else
+              list.insertlistafter(pos.next,helplist);
+
+            ungetregisterinline(helplist,tai(helplist.last),regs[regidx].tempreg);
+
+            ungetregisterinline(list,instr,regs[regidx].tempreg);
+            forward_allocation(tai(helpins.next),instr);
+
+            helplist.free;
+          end
         else
-          list.insertafter(helpins,pos.next);
-        ungetregisterinline(list,instr,regs[regidx].tempreg);
-        forward_allocation(tai(helpins.next),instr);
+          begin
+            helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
+            if pos=nil then
+              list.insertafter(helpins,list.first)
+            else
+              list.insertafter(helpins,pos.next);
+            ungetregisterinline(list,instr,regs[regidx].tempreg);
+            forward_allocation(tai(helpins.next),instr);
+          end;
       end;
 
 
@@ -83,12 +126,48 @@ unit rgcpu;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
-        ref : treference;
+        ref,tmpref : treference;
+        helplist : taasmoutput;
+        l : tasmlabel;
+        tmpreg : tregister;
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
-        helpins:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
-        list.insertafter(helpins,instr);
-        ungetregisterinline(list,helpins,regs[regidx].tempreg);
+        if abs(ref.offset)>4095 then
+          begin
+            helplist:=taasmoutput.create;
+            reference_reset(tmpref);
+            { create consts entry }
+            objectlibrary.getlabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+            { load consts entry }
+            getregisterinline(helplist,nil,defaultsub,tmpreg);
+            tmpref.symbol:=l;
+            tmpref.base:=NR_R15;
+            helplist.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+            if ref.index<>NR_NO then
+              internalerror(200401263);
+            ref.index:=tmpreg;
+            ref.offset:=0;
+
+            helplist.concat(taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref));
+            ungetregisterinline(helplist,tai(helplist.last),regs[regidx].tempreg);
+            ungetregisterinline(helplist,tai(helplist.last),tmpreg);
+
+            list.insertlistafter(instr,helplist);
+
+            helplist.free;
+          end
+        else
+          begin
+            helpins:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
+            list.insertafter(helpins,instr);
+            ungetregisterinline(list,helpins,regs[regidx].tempreg);
+          end;
       end;
 
 
@@ -141,7 +220,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-01-26 19:05:56  florian
+  Revision 1.7  2004-01-28 15:36:47  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.6  2004/01/26 19:05:56  florian
     * fixed several arm issues
 
   Revision 1.5  2003/11/02 14:30:03  florian

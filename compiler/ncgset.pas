@@ -448,7 +448,7 @@ implementation
 
                   { emit bit test operation }
                   emit_bit_test_reg_reg(exprasmlist,left.location.register,hr2,hr2);
-                  
+
                   { if left > 31 then hr := 0 else hr := $ffffffff }
                   cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,32,left.location.register,hr);
                   cg.a_op_const_reg(exprasmlist,OP_SAR,OS_INT,31,hr);
@@ -475,10 +475,10 @@ implementation
                   else
                     { adjust for endianess differences }
                     inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
-                  location_release(exprasmlist,right.location);
                   { allocate a register for the result }
                   location.register := cg.getintregister(exprasmlist,location.size);
                   cg.a_load_ref_reg(exprasmlist,OS_8,location.size,right.location.reference, location.register);
+                  location_release(exprasmlist,right.location);
                   cg.a_op_const_reg(exprasmlist,OP_SHR,location.size,tordconstnode(left).value and 7,
                     location.register);
                   cg.a_op_const_reg(exprasmlist,OP_AND,location.size,1,location.register);
@@ -1010,7 +1010,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-12-09 19:14:50  jonas
+  Revision 1.55  2004-01-28 15:36:46  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.54  2003/12/09 19:14:50  jonas
     * fixed and optimized in-node with constant smallset
     * some register usage optimisations.
 

@@ -80,12 +80,10 @@ implementation
                   location_copy(location,left.location);
                   inverse_flags(location.resflags);
                 end;
-              LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
+              LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  ins:=taicpu.op_reg_reg(A_MVN,left.location.register,left.location.register);
-                  ins.oppostfix:=PF_S;
-                  exprasmlist.concat(ins);
+                  exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
@@ -102,7 +100,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-11-02 14:30:03  florian
+  Revision 1.5  2004-01-28 15:36:47  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.4  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.3  2003/08/27 00:27:56  florian

@@ -457,8 +457,8 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
+                localalignmin   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2004-01-26 19:05:56  florian
+  Revision 1.22  2004-01-28 15:36:47  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.21  2004/01/26 19:05:56  florian
     * fixed several arm issues
 
   Revision 1.20  2004/01/12 22:11:39  peter

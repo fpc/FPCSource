@@ -206,7 +206,7 @@ var
 begin
   LoadExtern:=false;
   getmem(buf,bufsize);
-{Read the message file}
+  { Read the message file }
   assign(f,fn);
   {$I-}
    reset(f);
@@ -217,7 +217,7 @@ begin
      exit;
    end;
   settextbuf(f,buf^,bufsize);
-{ First parse the file and count bytes needed }
+  { First parse the file and count bytes needed }
   error:=false;
   line:=0;
   multiline:=false;
@@ -271,7 +271,7 @@ begin
      close(f);
      exit;
    end;
-{ now read the buffer in mem }
+  { now read the buffer in mem }
   msgallocsize:=msgsize;
   getmem(msgtxt,msgallocsize);
   ptxt:=msgtxt;
@@ -346,7 +346,7 @@ var
   i : longint;
 begin
   { clear }
-  for i:=1to msgparts do
+  for i:=1 to msgparts do
    fillchar(msgidx[i]^,msgidxmax[i]*4,0);
 end;
 
@@ -368,7 +368,7 @@ begin
   while (hp<hpend) do
    begin
      hp1:=hp;
-     for i:=1to 5 do
+     for i:=1 to 5 do
       begin
         number[i]:=hp1^;
         inc(hp1);
@@ -461,7 +461,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2003-05-10 23:57:23  florian
+  Revision 1.9  2004-01-28 15:36:46  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.8  2003/05/10 23:57:23  florian
     * vmtpointer_offset must be adjusted in after_pass1 as well
 
   Revision 1.7  2003/04/22 14:33:38  peter

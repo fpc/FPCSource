@@ -108,7 +108,7 @@ unit cgcpu;
 
     const
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
-                           C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
+                           C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
 
     function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
 
@@ -321,28 +321,43 @@ unit cgcpu;
                 begin
                   if a>32 then
                     internalerror(200308291);
-                  shifterop_reset(so);
-                  so.shiftmode:=SM_LSL;
-                  so.shiftimm:=a;
-                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  if a<>0 then
+                    begin
+                      shifterop_reset(so);
+                      so.shiftmode:=SM_LSL;
+                      so.shiftimm:=a;
+                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    end
+                  else
+                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
                 end;
               OP_SHR:
                 begin
                   if a>32 then
                     internalerror(200308292);
                   shifterop_reset(so);
-                  so.shiftmode:=SM_LSR;
-                  so.shiftimm:=a;
-                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  if a<>0 then
+                    begin
+                      so.shiftmode:=SM_LSR;
+                      so.shiftimm:=a;
+                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    end
+                  else
+                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
                 end;
               OP_SAR:
                 begin
                   if a>32 then
                     internalerror(200308291);
-                  shifterop_reset(so);
-                  so.shiftmode:=SM_ASR;
-                  so.shiftimm:=a;
-                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  if a<>0 then
+                    begin
+                      shifterop_reset(so);
+                      so.shiftmode:=SM_ASR;
+                      so.shiftimm:=a;
+                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    end
+                  else
+                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
                 end;
               else
                 list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a));
@@ -1253,7 +1268,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-01-27 15:04:06  florian
+  Revision 1.42  2004-01-28 15:36:47  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.41  2004/01/27 15:04:06  florian
     * fixed code generation for math inl. nodes
     * more code generator improvements
 

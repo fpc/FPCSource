@@ -230,7 +230,8 @@ interface
        );
 
        psysteminfo = ^tsysteminfo;
-       tsysteminfo = packed record
+       { using packed causes bus errors on processors which require alignment }
+       tsysteminfo = record
           system       : tsystem;
           name         : string[34];
           shortname    : string[9];
@@ -649,7 +650,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.80  2004-01-21 20:53:50  marco
+  Revision 1.81  2004-01-28 15:36:46  florian
+    * fixed another couple of arm bugs
+
+  Revision 1.80  2004/01/21 20:53:50  marco
    * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
 
   Revision 1.79  2004/01/14 23:39:05  florian
