@@ -21,86 +21,74 @@
     System Utilities For Free Pascal
 }
 
-
-type
-   PByte=^Byte;
-   PWord=^Word;
-   PLongint=^Longint;
-
-const
-   DayTable:array[Boolean,1..12] of longint =
-      ((0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
-       (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
-   HexDigits: array[0..15] of char = '0123456789ABCDEF';
-
-function ChangeFileExt(FileName, Extension: string): string;
+function ChangeFileExt(const FileName, Extension: string): string;
 var i: longint;
 begin
 I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['.', '\', ':']) do Dec(I);
+while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do Dec(I);
 if (I = 0) or (FileName[I] <> '.') then I := 255;
-ChangeFileExt := Copy(FileName, 1, I - 1) + Extension;
+Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
-function ExtractFilePath(FileName: string): string;
+function ExtractFilePath(const FileName: string): string;
 var i: longint;
 begin
 i := Length(FileName);
-while (I > 0) and not (FileName[I] in ['\', ':']) do Dec(I);
-ExtractFilePath := Copy(FileName, 1, I);
+while (i > 0) and not (FileName[i] in ['/', '\', ':']) do Dec(i);
+Result := Copy(FileName, 1, i);
 end;
 
-function ExtractFileDir(FileName: string): string;
+function ExtractFileDir(const FileName: string): string;
 var i: longint;
 begin
 I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['\', ':']) do Dec(I);
-if (I > 1) and (FileName[I] = '\') and
-    not (FileName[I - 1] in ['\', ':']) then Dec(I);
-ExtractFileDir := Copy(FileName, 1, I);
+while (I > 0) and not (FileName[I] in ['/', '\', ':']) do Dec(I);
+if (I > 1) and (FileName[I] in ['\', '/']) and
+   not (FileName[I - 1] in ['/', '\', ':']) then Dec(I);
+Result := Copy(FileName, 1, I);
 end;
 
-function ExtractFileDrive(FileName: string): string;
-var i, j: longint;
+function ExtractFileDrive(const FileName: string): string;
+var i: longint;
 begin
 if (Length(FileName) >= 3) and (FileName[2] = ':') then
-   ExtractFileDrive := Copy(FileName, 1, 2)
-else if (Length(FileName) >= 2) and (FileName[1] = '\') and
-   (FileName[2] = '\') then begin
-   J := 0;
-   I := 3;
-   While (I < Length(FileName)) and (J < 2) do begin
-      if FileName[I] = '\' then Inc(J);
-      if J < 2 then Inc(I);
-      end;
-   if FileName[I] = '\' then Dec(I);
-   ExtractFileDrive := Copy(FileName, 1, I);
-   end else ExtractFileDrive := '';
+   result := Copy(FileName, 1, 2)
+else if (Length(FileName) >= 2) and (FileName[1] in ['/', '\']) and
+   (FileName[2] in ['/', '\']) then begin
+   i := 2;
+   While (i < Length(Filename)) do begin
+	   if Filename[i + 1] in ['/', '\'] then break;
+      inc(i);
+      end ;
+   Result := Copy(FileName, 1, i);
+   end
+else Result := '';
 end;
 
-function ExtractFileName(FileName: string): string;
+function ExtractFileName(const FileName: string): string;
 var i: longint;
 begin
 I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['\', ':']) do Dec(I);
-ExtractFileName := Copy(FileName, I + 1, 255);
+while (I > 0) and not (FileName[I] in ['/', '\', ':']) do Dec(I);
+Result := Copy(FileName, I + 1, 255);
 end;
 
-function ExtractFileExt(FileName: string): string;
+function ExtractFileExt(const FileName: string): string;
 var i: longint;
 begin
 I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['.', '\', ':']) do Dec(I);
+while (I > 0) and not (FileName[I] in ['.', '/', '\', ':']) do Dec(I);
 if (I > 0) and (FileName[I] = '.') then
-   ExtractFileExt := Copy(FileName, I, 255)
-else ExtractFileExt := '';
+   Result := Copy(FileName, I, 255)
+else Result := '';
 end;
-
 
 {
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-16 08:28:38  michael
+  Update from gertjan Schouten, plus small fix for linux
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
-
 }

@@ -21,29 +21,72 @@
     System Utilities For Free Pascal
 }
 
-{ String functions }
+{==============================================================================}
+{   standard functions                                                         }
+{==============================================================================}
 
-function  setLength(var s: string; newLength: longint): longint;
-function  UpperCase(s: string): string;
-function  LowerCase(s: string): string;
-function  AnsiUpperCase(s: string): string;
-function  AnsiLowerCase(s: string): string;
-function  Left(s: string; i: longint): string;
-function  Right(s: string; i: longint): string;
-function  Trim(s: string): string;
-function  TrimLeft(s: string): string;
-function  TrimRight(s: string): string;
+type
+   PString = ^String;
 
-{ Conversion Functions }
+function NewStr(const S: string): PString;
+procedure DisposeStr(S: PString);
+procedure AssignStr(var P: PString; const S: string);
+procedure AppendStr(var Dest: PString; const S: string);
+function UpperCase(const s: string): string;
+function LowerCase(const s: string): string;
+function CompareStr(const S1, S2: string): Integer;
+function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
+function CompareText(const S1, S2: string): integer;
 
-function  IntToStr(l:longint):string;
-function  StrToInt(s:string):longint;
-function  IntToHex(Value: longint; Digits: longint): string;
+function AnsiUpperCase(const s: string): string;
+function AnsiLowerCase(const s: string): string;
+function AnsiCompareStr(const S1, S2: string): integer;
+function AnsiCompareText(const S1, S2: string): integer;
+function AnsiStrComp(S1, S2: PChar): integer;
+function AnsiStrIComp(S1, S2: PChar): integer;
+function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
+function AnsiStrLower(Str: PChar): PChar;
+function AnsiStrUpper(Str: PChar): PChar;
+function AnsiLastChar(const S: string): PChar;
+function AnsiStrLastChar(Str: PChar): PChar;
+
+function Trim(const S: string): string;
+function TrimLeft(const S: string): string;
+function TrimRight(const S: string): string;
+function QuotedStr(const S: string): string;
+function AnsiQuotedStr(const S: string; Quote: char): string;
+function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
+function AdjustLineBreaks(const S: string): string;
+function IsValidIdent(const Ident: string): boolean;
+function IntToStr(Value: integer): string;
+// function IntToStr(Value: Int64): string;
+function IntToHex(Value: integer; Digits: integer): string;
+// function IntToHex(Value: Int64; Digits: integer): string;
+function StrToInt(const s: string): integer;
+// function StrToInt64(const s: string): int64;
+function StrToIntDef(const S: string; Default: integer): integer;
+// function StrToInt64Def(const S: string; Default: int64): int64;
+function LoadStr(Ident: integer): string;
+// function FmtLoadStr(Ident: integer; const Args: array of const): string;
+
+{==============================================================================}
+{   extra functions                                                            }
+{==============================================================================}
+
+function SetLength(var S: string; NewLength: integer): integer; // should be in the system unit
+function LeftStr(const S: string; Count: integer): string;
+function RightStr(const S: string; Count: integer): string;
+function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-16 08:28:43  michael
+  Update from gertjan Schouten, plus small fix for linux
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
 
 }
+

@@ -20,7 +20,12 @@ interface
 {$endif}
 
     uses
-       dos,objpas; { should become platform independent }
+    {$ifdef linux}
+       linux,
+    {$else}
+       dos,
+    {$endif}
+       objpas; { should become platform independent }
 
 
     type
@@ -127,7 +132,10 @@ end.
 
 {
     $Log$
-    Revision 1.5  1998-09-04 08:49:07  peter
+    Revision 1.6  1998-09-16 08:28:44  michael
+    Update from gertjan Schouten, plus small fix for linux
+
+    Revision 1.5  1998/09/04 08:49:07  peter
       * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
 
     Revision 1.4  1998/08/10 15:52:27  peter

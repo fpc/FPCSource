@@ -26,20 +26,20 @@ const
    SecsPerDay = 24 * 60 * 60; // Seconds and milliseconds per day
    MSecsPerDay = SecsPerDay * 1000;
 
-   DateDelta = 693594; // Days between 1/1/0001 and 12/31/1899
-   DateSeparator:char='-';
-   TimeSeparator:char=':';
-   TimeAMString: pchar = 'am';
-   TimePMString: pchar = 'pm';
-   ShortMonthNames: array[1..12] of pchar =
+   DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
+   DateSeparator: char = '-';
+   TimeSeparator: char = ':';
+   TimeAMString: string = 'am';
+   TimePMString: string = 'pm';
+   ShortMonthNames: array[1..12] of string =
      ('jan','feb','mar','apr','mai','jun',
       'jul','aug','sep','oct','nov','dec');
-   LongMonthNames: array[1..12] of pchar=
+   LongMonthNames: array[1..12] of string =
      ('january','february','march','april','mai','june',
       'july','august','september','october','november','december');
-   ShortDayNames: array[1..7] of pchar=
+   ShortDayNames: array[1..7] of string =
      ('sun','mon','tue','wen','thu','fri','sat');
-   LongDayNames: array[1..7] of pchar=
+   LongDayNames: array[1..7] of string =
      ('sunday','monday','tuesday','wednesday','thursday','friday','saturday');
 
    {  date time formatting characters:
@@ -73,47 +73,59 @@ const
       'xx'   : literal text
    }
 
-// these constant strings will be changed to pchars too, someday :)
-   ShortDateFormat:string='d/m/y';
-   LongDateFormat:string='dd" "mmmm" "yyyy';
-   ShortTimeFormat:string='hh:nn';
-   LongTimeFormat:string='hh:nn:ss';
+   ShortDateFormat: string = 'd/m/y';
+   LongDateFormat: string = 'dd" "mmmm" "yyyy';
+   ShortTimeFormat: string = 'hh:nn';
+   LongTimeFormat: string = 'hh:nn:ss';
 
-   Eoln = #10; // or should that be #13, or $0d0a
+   Eoln = #10;
 
 type
-   TSystemTime=record
-      wYear:word;wMonth:word;wDay:word;
-      wHour:word;wMinute:word;wSecond:word;wMilliSecond:word;
+   TSystemTime = record
+      Year, Month, Day: word;
+      Hour, Minute, Second, MilliSecond: word;
    end ;
+
    TDateTime = double;
 
-{  Date and Time functions  }
+   TTimeStamp = record
+      Time: integer;   { Number of milliseconds since midnight }
+      Date: integer;   { One plus number of days since 1/1/0001 }
+   end ;
 
-function  DateToStr(Date:TDateTime):string;
-function  TimeToStr(Time:TDateTime):string;
-function  DateTimeToStr(DateTime:TDateTime):string;
-function  EncodeDate(Year, Month, Day :word):TDateTime;
-function  EncodeTime(Hour, Minute, Second, MilliSecond:word):TDateTime;
-procedure DecodeDate(Date:TDateTime;var Year:word;var Month:word;var Day:word);
-procedure DecodeTime(Time:TDateTime;var Hour:word;var Minute:word;var Second:word;var MilliSecond:word);
-function  FormatDateTime(FormatStr:string;DateTime:TDateTime):string;
-function  StrToDate(const s:string):TDateTime;
-function  StrToTime(const s:string):TDateTime;
-function  StrToDateTime(const s:string):TDateTime;
-function  DayOfWeek(DateTime:TDateTime):longint;
-function  Date:TDateTime;
-function  Time:TDateTime;
-function  Now:TDateTime;
-procedure GetLocalTime(var systemtime:tsystemtime);
-
+function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
+function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
+function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
+function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
+function EncodeDate(Year, Month, Day :word): TDateTime;
+function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
+procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
+procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
+procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
+function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
+function DayOfWeek(DateTime: TDateTime): integer;
+function Date: TDateTime;
+function Time: TDateTime;
+function Now: TDateTime;
+function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
+function IsLeapYear(Year: Word): boolean;
+function DateToStr(Date: TDateTime): string;
+function TimeToStr(Time: TDateTime): string;
+function DateTimeToStr(DateTime: TDateTime): string;
+function StrToDate(const S: string): TDateTime;
+function StrToTime(const S: string): TDateTime;
+function StrToDateTime(const S: string): TDateTime;
+function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
+procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 
 {
 
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-16 08:28:37  michael
+  Update from gertjan Schouten, plus small fix for linux
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
-
 
 }

@@ -21,18 +21,20 @@
     System Utilities For Free Pascal
 }
 
-{ Filename Functions }
-
-function ChangeFileExt(FileName, Extension: string): string;
-function ExtractFilePath(FileName: string): string;
-function ExtractFileDrive(FileName: string): string;
-function ExtractFileName(FileName: string): string;
-function ExtractFileExt(FileName: string): string; { Returns file extension like '.123' }
+function ChangeFileExt(const FileName, Extension: string): string;
+function ExtractFilePath(const FileName: string): string;
+function ExtractFileDrive(const FileName: string): string;
+function ExtractFileName(const FileName: string): string;
+function ExtractFileExt(const FileName: string): string; { Returns file extension like '.123' }
 
 {
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-16 08:28:39  michael
+  Update from gertjan Schouten, plus small fix for linux
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
 
 }
+

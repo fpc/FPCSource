@@ -23,266 +23,350 @@
 
 {  PChar functions  }
 
-function  NewStr(s:string):pchar;
-var p:pchar;l:longint;
-begin
-l := length(s);
-p := StrAlloc(l + 1);
-move(s[1], p^, l);
-byte(pchar(p + l)^) := 0;
-NewStr := p;
-end ;
+type
+   pbyte = ^byte;
+   CharArray = array[0..0] of char;
 
-function  StrAlloc(Size:longint):pchar;
-var p:pointer;
-begin
-Getmem(p, size + sizeof(longint));
-Move(Size, p^, sizeof(longint));
-pbyte(p + sizeof(longint))^ := 0;
-StrAlloc := pchar(p + sizeof(longint));
-end ;
+{  StrLen returns the length of Str ( terminator not included )  }
 
-procedure StrDispose(var p:pchar);
-var l:longint;
+function StrLen(Str: PChar): cardinal;
 begin
-if (p = nil) then exit;
-p := pchar(p - sizeof(longint));
-move(p^, l, sizeof(longint));
-freemem(p, l + sizeof(longint));
-p := nil;
-end ;
-
-function StrPas(p:pchar):string;
-begin
-   asm
-      movl  P,%eax
-      movl  %eax,%esi
-      movl  __RESULT,%eax
-      movl  %eax,%edi
-      pushl %edi
-      incl  %edi
-      xorl  %eax,%eax
-      movw  $255,%cx
-   STR_LOOP1:
-      lodsb
-      orb   %al,%al
-      jz    STR_END
-      stosb
-      loop  STR_LOOP1
-   STR_END:
-      popl  %edi
-      movw  $255,%ax
-      subw  %cx,%ax
-      movb  %al,(%edi)
+result := 0;
+if Str <> nil then begin
+   while CharArray(Str^)[result] <> #0 do
+      result := result + 1;
    end ;
 end ;
 
-function  StrLen(p:pchar):longint;
+{  StrEnd returns a pointer to the last character (terminator) of Str  }
+
+function StrEnd(Str: PChar): PChar;
 begin
-	asm
-      movl  p,%eax
-      movl  %eax,%esi
-      xorl  %eax,%eax
-      movl  $0xFFFFFFFF,%ecx
-   STRLEN_LOOP:
-      incl  %ecx
-      lodsb
-      orb   %al,%al
-      jnz   STRLEN_LOOP
-      movl  %ecx,__RESULT
+result := Str;
+if Str <> nil then begin
+   while result^ <> #0 do
+      result := result + 1;
    end ;
 end ;
 
-function  StrEnd(p:pchar):pchar;
+{  StrMove copies Count bytes from source to dest, source and dest may overlap.   }
+
+function StrMove(Dest, Source: PChar; Count: cardinal): PChar;
 begin
-   asm
-      movl  p,%eax
-      movl  %eax,%esi
-   STREND_LOOP:
-      lodsb
-      orb   %al,%al
-      jnz   STREND_LOOP
-      movl  %esi,__RESULT
+result := Dest;
+if (Dest <> nil) and (Source <> nil) and (Count > 0) then
+   move(Source^, Dest^, Count);
+end ;
+
+{  StrCopy copies StrLen(Source) characters from Source to Dest and returns Dest  }
+
+function StrCopy(Dest, Source: PChar): PChar;
+begin
+result := StrMove(Dest, Source, 1 + StrLen(Source));  {  copy nul character too !  }
+end ;
+
+{  StrECopy copies StrLen(Source) characters from Source to Dest and returns StrEnd(Dest)  }
+
+function StrECopy(Dest, Source: PChar): PChar;
+begin
+StrMove(Dest, Source, 1 + StrLen(Source));
+result := StrEnd(Dest);
+end ;
+
+{  StrLCopy copies MaxLen or less characters from Source to Dest and returns Dest  }
+
+function StrLCopy(Dest, Source: PChar; MaxLen: cardinal): PChar;
+var count: cardinal;
+begin
+result := Dest;
+if result <> Nil then begin
+   count := StrLen(Source);
+   if count > MaxLen then
+      count := MaxLen;
+   StrMove(Dest, Source, count);
+   CharArray(result^)[Count] := #0; { terminate ! }
    end ;
 end ;
 
-function  StrMove(Dest, Source: PChar; Count: longint): PChar;
+{  StrPCopy copies the pascal string Source to Dest and returns Dest  }
+
+function StrPCopy(Dest: PChar; Source: string): PChar;
 begin
-   asm
-      movl    source,%eax
-      movl    %eax,%esi
-      movl    dest,%eax
-      movl    %eax,%edi
-      movl    %edi,__RESULT
-      movl    COUNT,%ecx
-      movl    %ecx,%edx
-      cmpl    %esi,%edi
-      jg      STRMOVE_BACK
-      shrl    $2,%ecx
-      rep
-		movsl
-      movl    %edx,%ecx
-      andl    $3,%ecx
-      rep
-		movsb
-      jmp     STRMOVE_END
-   STRMOVE_BACK:
-      addl    %ecx,%edi
-      decl    %edi
-      addl    %ecx,%esi
-      decl    %esi
-      andl    $3,%ecx
-      STD
-      rep
-		movsb
-      subl    $3,%esi
-      subl    $3,%edi
-      movl    %edx,%ecx
-      shrl    $2,%ecx
-      rep
-		movsl
-      CLD
-   STRMOVE_END:
+result := StrMove(Dest, PChar(@Source[1]), length(Source));
+end ;
+
+{  StrPLCopy copies MaxLen or less characters from the pascal string
+   Source to Dest and returns Dest  }
+
+function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
+var Count: cardinal;
+begin
+result := Dest;
+if (Result <> Nil) and (MaxLen <> 0) then begin
+   Count := Length(Source);
+   if Count > MaxLen then
+      Count := MaxLen;
+   StrMove(Dest, PChar(@Source[1]), Count);
+   CharArray(result^)[Count] := #0;  { terminate ! }
    end ;
 end ;
 
-function  StrCat(Dest, Source: PChar): PChar;
+{  StrCat concatenates Dest and Source and returns Dest  }
+
+function StrCat(Dest, Source: PChar): PChar;
 begin
-StrCat := Dest;
-while char(dest^) <> #0 do
-   dest := dest + 1;
-while char(source^) <> #0 do begin
-   char(dest^) := char(source^);
-   dest := dest + 1;
-   source := source + 1;
-   end ;
-char(dest^) := #0;
+result := Dest;
+StrMove(StrEnd(Dest), Source, 1 + StrLen(Source)); {  include #0  }
 end ;
 
-function  StrCat(Dest:pchar; Source: string): PChar;
-var l:longint;
-begin
-StrCat := Dest;
-while char(dest^) <> #0 do
-   dest := dest + 1;
-l := length(source);
-move(source[1], dest^, l);
-dest := dest + l;
-char(dest^) := #0;
-end ;
+{  StrLCat concatenates Dest and MaxLen - StrLen(Dest) (or less) characters
+   from Source, and returns Dest   }
 
-function  StrCat(var Dest:string; Source: pchar): String;
-var count,l:longint;
+function StrLCat(Dest, Source: PChar; MaxLen: cardinal): PChar;
+var Count: cardinal; P: PChar;
 begin
-l := length(Dest);
-count := setLength(Dest, l + StrLen(Source)) - l;
-if (count > 0) then
-   move(source^, dest[l + 1], count);
-StrCat := Dest;
-end ;
-
-function  StrIns(Dest:pchar; Source: string): PChar;
-var len:longint;
-begin
-len := length(Source);
-StrMove(dest + len, dest, 1 + strlen(dest));
-Move(Source[1], dest^, len);
-StrIns := dest;
-end ;
-
-function  StrCopy(Dest, Source: PChar): Pchar;
-begin
-   asm
-      movl    Dest,%eax
-      movl    %eax,%edi
-      movl    %eax,__RESULT
-      movl    Source,%eax
-      movl    %eax,%esi
-   STRCOPY_LOOP:
-      lodsb
-      stosb
-      orb     %al,%al
-      jnz     STRCOPY_LOOP
+result := Dest;
+if (Dest <> nil) and (MaxLen <> 0) then begin
+   P := StrEnd(Dest);
+   Count := StrLen(Source);
+   if Count > MaxLen - (P - Dest) then
+      Count := MaxLen - (P - Dest);
+   if Count <> 0 then begin
+      StrMove(P, Source, Count);
+      CharArray(p^)[Count] := #0;       {  terminate Dest  }
+      end ;
    end ;
 end ;
 
-function  StrLCopy(Dest, Source: PChar; MaxLen: longint): PChar;
+{  StrComp returns 0 if Str1 and Str2 are equal,
+   a value less than 0 in case Str1 < Str2
+   and a value greater than 0 in case Str1 > Str2  }
+
+function StrComp(Str1, Str2: PChar): integer;
 begin
-   asm
-      movl    Dest,%eax
-      movl    %eax,__RESULT
-      movl    %eax,%edi
-      movl    Source,%eax
-      movl    %eax,%esi
-      movl    MaxLen,%ecx
-      orl     %ecx,%ecx
-      jz      STRLCOPY_END
-   STRLCOPY_LOOP:
-      lodsb
-      orb     %al,%al
-      jz      STRLCOPY_END
-      stosb
-      loop    STRLCOPY_LOOP
-   STRLCOPY_END:
-      xorb    %al,%al
-      stosb
+result := 0;
+if (Str1 <> Nil) and (Str2 <> Nil) then begin
+   while result = 0 do begin
+      result := byte(Str1^) - byte(Str2^);
+      if (Str1^ = #0) or (Str2^ = #0) then break;
+      Str1 := Str1 + 1;
+      Str2 := Str2 + 1;
+      end ;
    end ;
 end ;
 
-function  StrScan(str:pchar;ch:char):pchar;
+{  StrIComp returns 0 if Str1 and Str2 are equal,
+   a value less than 0 in case Str1 < Str2
+   and a value greater than 0 in case Str1 > Str2;
+   comparison is case insensitive  }
+
+function StrIComp(Str1, Str2: PChar): integer;
+var Chr1, Chr2: byte;
 begin
-   asm
-      movl    str,%eax
-      movl    %eax,%esi
-      movb    ch,%bl
-   STRSCAN_LOOP:
-      lodsb
-      cmpb    %al,%bl
-      je      STRSCAN_END
-      orb     %al,%al
-      jnz     STRSCAN_LOOP
-   STRSCAN_END:
-      decl    %esi
-      movl    %esi,__RESULT
+result := 0;
+if (Str1 <> Nil) and (Str2 <> Nil) then begin
+   while result = 0 do begin
+      Chr1 := byte(Str1^);
+      Chr2 := byte(Str2^);
+      if Chr1 in [97..122] then Chr1 := Chr1 - 32;
+      if Chr2 in [97..122] then Chr2 := Chr2 - 32;
+      result := Chr1 - Chr2;
+      if (Chr1 = 0) or (Chr2 = 0) then break;
+      Str1 := Str1 + 1;
+      Str2 := Str2 + 1;
+      end ;
    end ;
 end ;
 
-function  StrRScan(str:pchar;ch:char):pchar;
+{  StrLComp returns 0 if Str1 and Str2 are equal,
+   a value less than 0 in case Str1 < Str2
+   and a value greater than 0 in case Str1 > Str2;
+   MaxLen or less characters are compared  }
+
+function StrLComp(Str1, Str2: PChar; MaxLen: cardinal): integer;
+var I: integer;
 begin
-   asm
-      movl    str,%eax
-      movl    %eax,%esi
-      movl    %eax,%edx
-      movb    ch,%bl
-   STRRSCAN_LOOP:
-      lodsb
-      cmpb    %al,%bl
-      jne     STRRSCAN_NOTFOUND
-      movl    %esi,%edx
-      decl    %edx
-   STRRSCAN_NOTFOUND:
-      orb     %al,%al
-      jnz     STRRSCAN_LOOP
-      movl    %edx,__RESULT
+result := 0;
+if (Str1 <> Nil) and (Str2 <> Nil) then begin
+   I := 0;
+   while (I < MaxLen) and (result = 0) do begin
+      result := byte(Str1^) - byte(Str2^);
+      if (Str1^ = #0) or (Str2^ = #0) then break;
+      Str1 := Str1 + 1;
+      Str2 := Str2 + 1;
+      I := I + 1;
+      end ;
    end ;
 end ;
 
-function  StrTer(str:pchar;l:longint):pchar;
+{  StrLIComp returns 0 if Str1 and Str2 are equal,
+   a value less than 0 in case Str1 < Str2
+   and a value greater than 0 in case Str1 > Str2;
+   comparison is case insensitive and MaxLen or less characters are compared  }
+
+function StrLIComp(Str1, Str2: PChar; MaxLen: cardinal): integer;
+var Chr1, Chr2: byte; I: integer;
 begin
-   asm
-   	movl    str,%eax
-      movl    %eax,__RESULT
-      addl    l,%eax
-      movl    %eax,%edi
-      xorb    %al,%al
-      movb    %al,(%edi)
+result := 0;
+if (Str1 <> Nil) and (Str2 <> Nil) then begin
+   I := 0;
+   while (I < MaxLen) and (result = 0) do begin
+      Chr1 := byte(Str1^);
+      Chr2 := byte(Str2^);
+      if Chr1 in [97..122] then Chr1 := Chr1 - 32;
+      if Chr2 in [97..122] then Chr2 := Chr2 - 32;
+      result := Chr1 - Chr2;
+      if (Chr1 = 0) or (Chr2 = 0) then break;
+      Str1 := Str1 + 1;
+      Str2 := Str2 + 1;
+      I := I + 1;
+      end ;
+   end ;
+end ;
+
+{  StrScan returns a PChar to the first character Chr in Str   }
+
+function StrScan(Str: PChar; Chr: char): PChar;
+var P: PChar;
+begin
+result := Nil;
+if Str <> Nil then begin
+   P := Str;
+   while (P^ <> #0) and (P^ <> Chr) do
+      P := P + 1;
+   if P^ = Chr then result := P;
+   end ;
+end ;
+
+{  StrRScan returns a PChar to the last character Chr in Str   }
+
+function StrRScan(Str: PChar; Chr: char): PChar;
+var P: PChar;
+begin
+result := Nil;
+if Str <> Nil then begin
+   P := StrEnd(Str);
+   While (P^ <> Chr) and (P <> Str) do
+      P := P - 1;
+   If P^ = Chr then result := P;
+   end ;
+end ;
+
+{  StrPos returns a PChar to the first occurance of Str2 contained in Str1
+   if no occurance can be found StrPos returns Nil  }
+
+function StrPos(Str1, Str2: PChar): PChar;
+var E: PChar; Count1, Count2: Cardinal;
+begin
+Count1 := StrLen(Str1);
+Count2 := StrLen(Str2);
+if (Str1 <> Nil) and (Str2 <> Nil) and (Count1 > 0) and (Count1 >= Count2) then begin
+   E := Str1 + 1 + Count1 - Count2;
+   result := Str1;
+   While result <> E do begin
+      if StrLComp(result, Str2, Count2) = 0 then
+         exit;
+      result := result + 1;
+      end ;
+   end ;
+result := Nil;
+end ;
+
+{  StrUpper converts all lowercase characters in Str to uppercase  }
+
+function StrUpper(Str: PChar): PChar;
+begin
+Result := Str;
+if Str <> Nil then begin
+   While Str^ <> #0 do begin
+      if Str^ in ['a'..'z'] then
+         dec(byte(Str^), 32);
+      Str := Str + 1;
+      end ;
+   end ;
+end ;
+
+{  StrLower converts all uppercase characters in Str to lowercase  }
+
+function StrLower(Str: PChar): PChar;
+begin
+Result := Str;
+if Str <> Nil then begin
+   While Str^ <> #0 do begin
+      if Str^ in ['A'..'Z'] then
+         inc(byte(Str^), 32);
+      Str := Str + 1;
+      end ;
+   end ;
+end ;
+
+{  StrPas converts a PChar to a pascal string  }
+
+function StrPas(Str: PChar): string;
+begin
+SetLength(result, StrLen(Str));
+Move(Str^, result[1], Length(result));
+end ;
+
+{  StrAlloc allocates a buffer of Size + 4
+   the size of the allocated buffer is stored at result - 4
+   StrDispose should be used to destroy the buffer  }
+
+function StrAlloc(Size: cardinal): PChar;
+var Temp: pointer;
+begin
+GetMem(Temp, Size + SizeOf(cardinal));
+Move(Size, Temp^, SizeOf(cardinal));
+pbyte(Temp + SizeOf(cardinal))^ := 0;
+result := PChar(Temp + SizeOf(cardinal));
+end ;
+
+{  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
+
+function StrBufSize(var Str: PChar): cardinal;
+begin
+if Str <> Nil then
+   result := Cardinal(pointer(Str - SizeOf(cardinal))^)
+else
+   result := 0;
+end ;
+
+{  StrNew creates an exact copy of Str   }
+
+function StrNew(Str: PChar): PChar;
+begin
+if Str <> Nil then begin
+   result := StrAlloc(1 + StrLen(Str));
+   StrCopy(result, Str);
+   end
+else result := Nil;
+end ;
+
+{   StrDispose clears the memory allocated with StrAlloc   }
+
+procedure StrDispose(var Str: PChar);
+var Size: cardinal;
+begin
+if (Str <> Nil) then begin
+   Str := PChar(Str - SizeOf(cardinal));
+   Move(Str^, Size, SizeOf(cardinal));
+   FreeMem(Str, Size + SizeOf(cardinal));
+   Str := Nil;
    end ;
 end ;
 
 {
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-16 08:28:40  michael
+  Update from gertjan Schouten, plus small fix for linux
+
+
+  1998/08/26 Gertjan
+  Most functions rewritten in pascal.
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
+
 
 }
