@@ -67,7 +67,7 @@ implementation
       verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
-      cgbase,tgobj,cgobj
+      cgbase,cgobj
 {$ifdef delphi}
       ,dmisc
 {$endif}
@@ -268,15 +268,18 @@ implementation
                                          begin
                                            j:=1;
                                            same_string:=true;
-                                           for i:=0 to len-1 do
-                                            begin
-                                              if tai_string(hp1).str[j]<>value_str[i] then
-                                               begin
-                                                 same_string:=false;
-                                                 break;
-                                               end;
-                                              inc(j);
-                                            end;
+                                           if len>0 then
+                                             begin
+                                               for i:=0 to len-1 do
+                                                begin
+                                                  if tai_string(hp1).str[j]<>value_str[i] then
+                                                   begin
+                                                     same_string:=false;
+                                                     break;
+                                                   end;
+                                                  inc(j);
+                                                end;
+                                             end;
                                          end;
                                      end;
                                    st_ansistring,
@@ -308,15 +311,18 @@ implementation
                                            lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
                                            same_string:=true;
                                            j:=0;
-                                           for i:=0 to len-1 do
-                                            begin
-                                              if tai_string(hp1).str[j]<>value_str[i] then
-                                               begin
-                                                 same_string:=false;
-                                                 break;
-                                               end;
-                                              inc(j);
-                                            end;
+                                           if len>0 then
+                                             begin
+                                               for i:=0 to len-1 do
+                                                begin
+                                                  if tai_string(hp1).str[j]<>value_str[i] then
+                                                   begin
+                                                     same_string:=false;
+                                                     break;
+                                                   end;
+                                                  inc(j);
+                                                end;
+                                             end;
                                          end;
                                      end;
                                  end;
@@ -572,7 +578,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2004-03-16 16:19:44  peter
+  Revision 1.39  2004-03-18 17:29:40  peter
+    * fix overflow
+
+  Revision 1.38  2004/03/16 16:19:44  peter
     * fix out of bounds for string compares
 
   Revision 1.37  2004/02/26 16:16:38  peter
