@@ -27,7 +27,10 @@ unit browcol;
 
 interface
 uses
-  cobjects,cutils,objects,symconst,symtable,cpuinfo;
+  cobjects,cutils,objects,
+  symbase,symconst,symdef,
+  symtable,symtype,symsym,
+  cpuinfo;
 
 {$ifndef FPC}
   type
@@ -1149,7 +1152,7 @@ end;
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: PSymTable);
   var I,J,defcount,symcount: longint;
       Ref: PRef;
-      Sym,ParSym: PSym;
+      Sym,ParSym: PStoredSym;
       Symbol: PSymbol;
       Reference: PReference;
       ParamCount: Sw_integer;
@@ -1172,7 +1175,7 @@ end;
       Count: sw_integer;
   begin
     Name:='(';
-    esym:=def^.Firstenum; Count:=0;
+    esym:=penumsym(def^.Firstenum); Count:=0;
     while (esym<>nil) do
       begin
         if Count>0 then
@@ -1424,7 +1427,7 @@ end;
      Exit;
     if Owner=nil then
      Owner:=New(PSortedSymbolCollection, Init(10,50));
-    sym:=psym(Table^.symindex^.first);
+    sym:=PStoredSym(Table^.symindex^.first);
     while assigned(sym) do
       begin
         ParamCount:=0;
@@ -1569,7 +1572,7 @@ end;
           end;
         if Assigned(Symbol) then
           Owner^.Insert(Symbol);
-        sym:=psym(sym^.indexnext);
+        sym:=pstoredsym(sym^.indexnext);
       end;
   end;
 
@@ -2092,7 +2095,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-31 22:02:46  peter
+  Revision 1.12  2000-11-02 15:01:22  pierre
+   * get it to compile again
+
+  Revision 1.11  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.10  2000/10/15 07:47:51  peter
