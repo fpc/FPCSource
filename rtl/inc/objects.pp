@@ -20,15 +20,15 @@
 {                                                          }
 {    Interface Copyright (c) 1992 Borland International    }
 {                                                          }
-{    Parts Copyright (c) 1999-2000 by Florian Klaempfl       }
+{    Parts Copyright (c) 1999-2000 by Florian Klaempfl     }
 {    fnklaemp@cip.ft.uni-erlangen.de                       }
 {                                                          }
-{    Parts Copyright (c) 1999-2000 by Frank ZAGO                }
+{    Parts Copyright (c) 1999-2000 by Frank ZAGO           }
 {    zago@ecoledoc.ipc.fr                                  }
 {                                                          }
-{    Parts Copyright (c) 1999-2000 by MH Spiegel                }
+{    Parts Copyright (c) 1999-2000 by MH Spiegel           }
 {                                                          }
-{    Parts Copyright (c) 1996, 1999-2000 by Leon de Boer        }
+{    Parts Copyright (c) 1996, 1999-2000 by Leon de Boer   }
 {    ldeboer@ibm.net                                       }
 {                                                          }
 {    Free Vision project coordinator Balazs Scheidler      }
@@ -1549,7 +1549,7 @@ VAR Success: Integer; W, Bw: Sw_Word; P: PByteArray;
 BEGIN
    If Status <> StOk then
      begin
-       FillChar(P^, Count, #0);                       { Error clear buffer }
+       FillChar(Buf, Count, #0);                       { Error clear buffer }
        exit;
      end;
    If (Position + Count > StreamSize) Then            { Read pas stream end }
@@ -2901,7 +2901,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.15  2002-10-31 12:47:30  carl
+  Revision 1.16  2002-10-31 13:08:04  carl
+    * forgot to init P buffer variable = crash
+
+  Revision 1.15  2002/10/31 12:47:30  carl
     * more compatibility fixes for objects unit
 
   Revision 1.14  2002/10/30 22:44:44  carl
