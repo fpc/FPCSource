@@ -373,7 +373,6 @@ begin
             if not (Force) then
                 asm
                     cld
-{$IFDEF BIT_32}
                     mov esi, VideoBuf
                     mov edi, OldVideoBuf
                     mov eax, VideoBufSize
@@ -433,7 +432,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-01-23 20:23:56  hajny
+  Revision 1.3  2001-02-01 21:35:36  hajny
+    * correction of a previously introduced bug
+
+  Revision 1.2  2001/01/23 20:23:56  hajny
     * another little optimization of UpdateScreen
 
   Revision 1.1  2001/01/13 11:03:58  peter
