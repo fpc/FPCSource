@@ -1,5 +1,5 @@
 Name: fpc
-Version: 1.9.0
+Version: 1.9.2
 Release: 0
 ExclusiveArch: i386 i586 i686
 Copyright: GPL
