@@ -25,7 +25,7 @@ unit objpas;
        smallint = system.integer;
        integer  = system.longint;
 
-       { the compiler searches in the objpas unit for the tvarrec symbol }       
+       { the compiler searches in the objpas unit for the tvarrec symbol }
        TVarRec = System.TVarRec;
        PVarRec = ^TVarRec;
 {****************************************************************************
@@ -60,9 +60,9 @@ unit objpas;
      Function GetResourceString(Hash : Longint) : AnsiString;
      Procedure ResetResourceTables;
      Function SetResourceString(Hash : longint; Const Value : AnsiString) : Boolean;
-{$endif}     
-     
-     
+{$endif}
+
+
   implementation
 
 {****************************************************************************
@@ -149,10 +149,10 @@ begin
     if (Param>=0) and (Param<argc) then
       begin
       Len:=0;
-      While Argv[Param][Len]<>#0 do 
+      While Argv[Param][Len]<>#0 do
         Inc(len);
       SetLength(Result,Len);
-      If Len>0 then 
+      If Len>0 then
         Move(Argv[Param][0],Result[1],Len);
       end
     else
@@ -160,7 +160,7 @@ begin
   end;
 
 {$IFDEF HasResourceStrings}
-  
+
 { ---------------------------------------------------------------------
     ResourceString support
   ---------------------------------------------------------------------}
@@ -170,32 +170,33 @@ Type
      DefaultValue,
      CurrentValue : AnsiString;
      HashValue : longint;
-     end;
-     
-   TResourceStringTable = Packed Record 
+   end;
+
+   TResourceStringTable = Packed Record
      Count : longint;
-     Resrec : Array[Cardinal] of TResourceStringRecord;
-     end;
-  
-Var 
+     Resrec : Array[Word] of TResourceStringRecord;
+   end;
+
+Var
   ResourceStringTable : TResourceStringTable; External Name 'RESOURCESTRINGLIST';
 
 Function FindHashIndex (Value : Longint) : Longint;
 
-VAr I : longint;
-
+Var
+  I : longint;
 begin
   // Linear search, later we can implement binary search.
-  With ResourceStringTable do 
+  With ResourceStringTable do
     For I:=0 to Count-1 do
-      If Value=Resrec[result].HashValue then
+      If Value=Resrec[I].HashValue then
         begin
         Result:=I;
         exit;
         end;
-  Result:=-1;  
+  Result:=-1;
 end;
-  
+
+
 Function GetResourceString(Hash : Longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
 
 begin
@@ -203,8 +204,9 @@ begin
   If Hash<>-1 then
      Result:=ResourceStringTable.ResRec[Hash].CurrentValue
   else
-     Result:='';     
+     Result:='';
 end;
+
 
 Function SetResourceString(Hash : longint; Const Value : AnsiString) : Boolean;
 
@@ -215,25 +217,31 @@ begin
     ResourceStringTable.ResRec[Hash].CurrentValue:=Value;
 end;
 
+
 Procedure ResetResourceTables;
 
 Var I : longint;
 
 begin
-  For I:=0 to ResourceStringTable.Count-1 do
-    ResourceStringTable.ResRec[i].CurrentValue:=
-    ResourceStringTable.ResRec[i].DefaultValue;
+  With ResourceStringTable do
+    For I:=0 to Count-1 do
+      With ResRec[i] do
+        CurrentValue:=DefaultValue;
 end;
 
 Initialization
   ResetResourceTables;
-{$endif}  
-  
+{$endif}
+
 end.
 
 {
   $Log$
-  Revision 1.28  1999-07-23 22:51:11  michael
+  Revision 1.29  1999-07-23 23:13:54  peter
+    * array[cardinal] is buggy, use array[word]
+    * small fix in getresourcestring
+
+  Revision 1.28  1999/07/23 22:51:11  michael
   * Added HasResourceStrings check
 
   Revision 1.27  1999/07/22 20:30:13  michael
