@@ -5,17 +5,19 @@
 # Note:cygwin seems to like to have all platforms qualified.
 #
 
+BASE=~
+
 # where to store the built tree of binutils?
-DESTDIR=~/cross
+DESTDIR=${BASE}/cross
 
 # directory where logs go
-LOGDIR=~/logs
+LOGDIR=${BASE}/logs
 
 # where can I decrunch and build?
-WORKDIR=~/bintst1
+WORKDIR=${BASE}/buildme
 
 # where is the binutils archive?
-BINUTILSPATH=~/
+BINUTILSPATH=~
 
 # what is it's base name?
 BINUTILSBASE=binutils
@@ -32,14 +34,15 @@ MYINTEL=i686
 # target info, OSes per processor with "WIN" as special case
 
 BSD="freebsd netbsd openbsd"
-TARGETS_WIN="cygwin mingw"
+TARGETS_WIN="cygwin mingw32 msdosdjgpp"
 TARGETS_I386="${BSD} linux solaris darwin"
 TARGETS_POWERPC="${BSD} linux darwin"
 TARGETS_SPARC="${BSD} linux solaris"
-#TARGETS_M68k=
+#TARGETS_M68k=   
+
 
 # I use the below because my default system is dual proc.
-#EXTRAOPT=j 4
+#EXTRAOPT=-j 4
 
 ###########################################################################
 # don't edit below
@@ -48,10 +51,11 @@ TARGETS_SPARC="${BSD} linux solaris"
 #
 #
 
-export LD_FLAGS="${LD_FLAGS} -static"
-export CFLAGS="${CFLAGS} -static"
-export CPPFLAGS="${CPPFLAGS} -static"
-export CXXFLAGS="${CXXFLAGS} -static"
+LD_FLAGS="${LD_FLAGS} -static"
+LDFLAGS="${LD_FLAGS} -s"
+CFLAGS="${CFLAGS} -static"
+CPPFLAGS="${CPPFLAGS} -static"
+CXXFLAGS="${CXXFLAGS} -static"
 
 #
 # Make a list of targets
@@ -66,7 +70,6 @@ done;
 for OS in ${TARGETS_I386}; do
 TARGETS="${TARGETS} ${MYINTEL}-${OS}"
 done;
-
 
 for OS in ${TARGETS_POWERPC}; do
 TARGETS="${TARGETS} powerpc-${OS}"
@@ -90,6 +93,14 @@ LOGDIR=${LOGDIR%/}/
 BINUTILSPATH=${BINUTILSPATH%/}/
 BINUTILSARCHIVE=${BINUTILSPATH}${BINUTILSBASE}-${BINUTILSVERSION}
 MAKE=make
+
+#
+# Make sure they exist
+#
+ 
+mkdir -p $DESTDIR
+mkdir -p $WORKDIR
+mkdir -p $LOGDIR
 
 #
 # BSD? -> gmake
@@ -118,8 +129,6 @@ fi
 # depack or clean  dir
 #
 
-mkdir -p $DESTDIR
-mkdir -p $WORKDIR
 cd ${WORKDIR}
 
 if [ ! -d ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION} ]; then
@@ -139,7 +148,6 @@ cd ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION}
 ${MAKE} clean >/dev/null
 fi
 
-
 cd ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION}
 
 #
@@ -150,7 +158,7 @@ FAILURES=""
 for a in $TARGETS; do
 if [ ! -f ${DESTDIR}bin/${a}-as ] ; then
 echo Building $a
-{ ./configure --target=$a --prefix=${DESTDIR} && ${MAKE} $(EXTRAOPT) && ${MAKE} install && ${MAKE} clean; } > ${WORKDIR}log-${a} 2>&1
+{ ./configure --disable-nls --disable-shared --target=$a --prefix=${DESTDIR} && ${MAKE} $(EXTRAOPT) && ${MAKE} install && ${MAKE} clean; } > ${LOGDIR}log-${a} 2>&1
 
 if [ ! $? = 0 ]; then
 echo $a FAILES!
