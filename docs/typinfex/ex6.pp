@@ -65,8 +65,7 @@ begin
   Write('Get (propinfo)               : ');
   M:=GetMethodProp(O,PI);
   PrintMethod(M);
-  M.Data:=No;
-  M.Code:=Pointer(@NO.Notification2);
+  M:=TMethod(@NO.Notification2);
   SetMethodProp(O,'NotifyEvent',M);
   Write('Set (name,Notification2)     : ');
   M:=GetMethodProp(O,PI);
@@ -74,8 +73,7 @@ begin
   Write('Notifying                    : ');
   O.Notify;
   Write('Set (propinfo,Notification1) : ');
-  M.Data:=No;
-  M.Code:=Pointer(@NO.Notification1);
+  M:=TMethod(@NO.Notification1);
   SetMethodProp(O,PI,M);
   M:=GetMethodProp(O,PI);
   PrintMethod(M);
