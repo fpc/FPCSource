@@ -279,10 +279,10 @@ implementation
                     objectlibrary.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
                     if p.nodetype=stringconstn then
-                     varalign:=size_2_align(tstringconstnode(p).len)
+                     varalign:=tstringconstnode(p).len
                     else
                      varalign:=0;
-                    varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+                    varalign:=const_align(varalign);
                     Consts.concat(Tai_align.Create(varalign));
                     Consts.concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
@@ -309,6 +309,7 @@ implementation
                   begin
                     objectlibrary.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
+                    Consts.concat(tai_align.create(const_align(pointer_size)));
                     Consts.concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
                       begin
@@ -559,6 +560,8 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            { the actual structure starts at -12 from start label - CEC }
+                            Consts.concat(tai_align.create(const_align(pointer_size)));
                             { first write the maximum size }
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             { second write the real length }
@@ -586,6 +589,8 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            { the actual structure starts at -12 from start label - CEC }
+                            Consts.concat(tai_align.create(const_align(pointer_size)));
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             Consts.concat(Tai_const.Create_32bit(-1));
@@ -980,7 +985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-09-06 19:58:31  carl
+  Revision 1.58  2002-11-09 15:31:57  carl
+    + align ansi/wide string constants
+
+  Revision 1.57  2002/09/06 19:58:31  carl
    * start bugfix 1996
    * 64-bit typed constant now work correctly and fully (bugfix 2001)
 
