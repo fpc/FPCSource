@@ -15,7 +15,9 @@
 
  **********************************************************************}
 {$mode objfpc}
-{$define dynpthreads}
+{$ifdef linux}
+{$define dynpthreads} // Useless on BSD, since they are in libc
+{$endif}
 
 unit cthreads;
 interface
@@ -417,7 +419,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-11-27 20:16:59  michael
+  Revision 1.3  2003-11-27 20:24:53  michael
+  + Compiles on BSD too now
+
+  Revision 1.2  2003/11/27 20:16:59  michael
   + Make works with 1.0.10 too
 
   Revision 1.1  2003/11/26 20:10:59  michael
