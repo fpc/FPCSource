@@ -226,7 +226,6 @@ unit symtable;
 
        pwithsymtable = ^twithsymtable;
        twithsymtable = object(tsymtable)
-{$ifndef NODIRECTWITH}
           { used for withsymtable for allowing constructors }
           direct_with : boolean;
           { in fact it is a ptree }
@@ -235,7 +234,6 @@ unit symtable;
           { already usable before firstwith
             needed for firstpass of function parameters PM }
           withrefnode : pointer;
-{$endif def NODIRECTWITH}
           constructor init;
           destructor  done;virtual;
         end;
@@ -1041,11 +1039,9 @@ const localsymtablestack : psymtable = nil;
     constructor twithsymtable.init;
       begin
          inherited init(withsymtable);
-{$ifndef NODIRECTWITH}
          direct_with:=false;
          withnode:=nil;
          withrefnode:=nil;
-{$endif def NODIRECTWITH}
       end;
 
 
@@ -2349,7 +2345,11 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.14  1999-05-14 17:52:29  peter
+  Revision 1.15  1999-05-17 23:51:41  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.14  1999/05/14 17:52:29  peter
     * new deref code
 
   Revision 1.13  1999/05/13 21:59:48  peter

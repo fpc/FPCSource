@@ -376,13 +376,11 @@ unit pstatmnt;
                            withsymtable^.symsearch:=obj^.publicsyms^.symsearch;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
-{$ifndef NODIRECTWITH}
                            if (p^.treetype=loadn) and
                               (p^.symtable=aktprocsym^.definition^.localst) then
                              pwithsymtable(symtab)^.direct_with:=true;
                            {symtab^.withnode:=p; not yet allocated !! }
                            pwithsymtable(symtab)^.withrefnode:=p;
-{$endif ndef NODIRECTWITH}
                            levelcount:=1;
                            obj:=obj^.childof;
                            while assigned(obj) do
@@ -390,13 +388,11 @@ unit pstatmnt;
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
                               symtab^.symsearch:=obj^.publicsyms^.symsearch;
-{$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
                                 pwithsymtable(symtab)^.direct_with:=true;
                               {symtab^.withnode:=p; not yet allocated !! }
                               pwithsymtable(symtab)^.withrefnode:=p;
-{$endif ndef NODIRECTWITH}
                               symtab^.defowner:=obj;
                               obj:=obj^.childof;
                               inc(levelcount);
@@ -410,13 +406,11 @@ unit pstatmnt;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=symtab^.symsearch;
                            withsymtable^.next:=symtablestack;
-{$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
                                 pwithsymtable(withsymtable)^.direct_with:=true;
                               {symtab^.withnode:=p; not yet allocated !! }
                               pwithsymtable(withsymtable)^.withrefnode:=p;
-{$endif ndef NODIRECTWITH}
                            withsymtable^.defowner:=obj;
                            symtablestack:=withsymtable;
                         end;
@@ -1273,7 +1267,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.84  1999-05-13 21:59:38  peter
+  Revision 1.85  1999-05-17 23:51:40  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.84  1999/05/13 21:59:38  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

@@ -63,10 +63,8 @@ implementation
          p1 : ptree;
 
       begin
-{$ifndef NODIRECTWITH}
          if (p^.symtable^.symtabletype=withsymtable) and
-            (pwithsymtable(p^.symtable)^.direct_with) and
-            (p^.symtableentry^.typ=varsym) then
+            (pwithsymtable(p^.symtable)^.direct_with) then
            begin
               p1:=getcopy(ptree(pwithsymtable(p^.symtable)^.withrefnode));
               p1:=gensubscriptnode(pvarsym(p^.symtableentry),p1);
@@ -75,7 +73,6 @@ implementation
               firstpass(p);
               exit;
            end;
-{$endif ndef NODIRECTWITH}
 
          p^.location.loc:=LOC_REFERENCE;
          p^.registers32:=0;
@@ -452,8 +449,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-05-16 17:04:39  peter
-    * fixed with and procsym
+  Revision 1.29  1999-05-17 23:51:45  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
 
   Revision 1.27  1999/05/12 00:20:02  peter
     * removed R_DEFAULT_SEG

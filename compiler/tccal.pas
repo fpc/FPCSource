@@ -1073,7 +1073,6 @@ implementation
                 typen,hnewn : ;
                 else
                   begin
-{$ifndef NODIRECTWITH}
                      if ((p^.procdefinition^.options and (poconstructor or podestructor)) <> 0) and
                         assigned(p^.symtable) and (p^.symtable^.symtabletype=withsymtable) and
                         not pwithsymtable(p^.symtable)^.direct_with then
@@ -1082,7 +1081,6 @@ implementation
                        end; { Is accepted by Delphi !! }
                      { this is not a good reason to accept it in FPC if we produce
                        wrong code for it !!! (PM) }
-{$endif ndef NODIRECTWITH}
 
                      { R.Assign is not a constructor !!! }
                      { but for R^.Assign, R must be valid !! }
@@ -1149,7 +1147,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-05-13 21:59:50  peter
+  Revision 1.42  1999-05-17 23:51:43  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.41  1999/05/13 21:59:50  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

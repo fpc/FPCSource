@@ -402,40 +402,28 @@ implementation
                      if we can init from base class for a child
                      class that the wrong VMT will be
                      transfered to constructor !! }
-{$ifdef NODIRECTWITH}
-                   p^.methodpointer^.resulttype:=p^.symtable^.defowner;
-{$else NODIRECTWITH}
                    p^.methodpointer^.resulttype:=
                      ptree(pwithsymtable(p^.symtable)^.withnode)^.left^.resulttype;
-{$endif def NODIRECTWITH}
                    { change dispose type !! }
                    p^.disposetyp:=dt_mbleft_and_method;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
-{$ifndef NODIRECTWITH}
-                   if assigned(ptree(pwithsymtable(p^.symtable)^.withnode)^.pref) then
+                   { if assigned(ptree(pwithsymtable(p^.symtable)^.withnode)^.pref) then
                      begin
                         r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.pref^;
-                        {if assigned(r^.symbol) then
-                          r^.symbol:=stringdup(r^.symbol^);}
                      end
                    else
-{$endif def NODIRECTWITH}
                      begin
                         r^.offset:=p^.symtable^.datasize;
                         r^.base:=procinfo.framepointer;
-                     end;
-{$ifndef NODIRECTWITH}
+                     end; }
+                   r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
                    if (not pwithsymtable(p^.symtable)^.direct_with) or
                       pobjectdef(p^.methodpointer^.resulttype)^.isclass then
-{$endif def NODIRECTWITH}
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)))
-{$ifndef NODIRECTWITH}
                    else
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_ESI)))
-{$endif def NODIRECTWITH}
-                     ;
+                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_ESI)));
                 end;
 
               { push self }
@@ -803,8 +791,7 @@ implementation
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
-                   ungetpersistanttemp(p^.procdefinition^.parast^.address_fixup,
-                     p^.procdefinition^.parast^.datasize);
+                   ungetpersistanttemp(p^.procdefinition^.parast^.address_fixup);
                 end;
            end
          else
@@ -1102,7 +1089,7 @@ implementation
               pp:=pp^.right;
            end;
          if inlined then
-           ungetpersistanttemp(inlinecode^.retoffset,4);
+           ungetpersistanttemp(inlinecode^.retoffset);
          disposetree(params);
 
 
@@ -1183,7 +1170,7 @@ implementation
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
             begin
-              ungetpersistanttemp(st^.address_fixup,st^.datasize);
+              ungetpersistanttemp(st^.address_fixup);
               st^.address_fixup:=0;
             end;
           aktprocsym:=oldprocsym;
@@ -1200,7 +1187,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  1999-05-17 21:56:59  florian
+  Revision 1.80  1999-05-17 23:51:37  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.79  1999/05/17 21:56:59  florian
     * new temporary ansistring handling
 
   Revision 1.78  1999/05/01 13:24:02  peter

@@ -525,7 +525,6 @@ implementation
                firstpass(p^.left);
                if codegenerror then
                  exit;
-{$ifndef NODIRECTWITH}
                symtable:=p^.withsymtable;
                for i:=1 to p^.tablecount do
                  begin
@@ -535,7 +534,6 @@ implementation
                     symtable^.withnode:=p;
                     symtable:=pwithsymtable(symtable^.next);
                   end;
-{$endif ndef NODIRECTWITH}
                firstpass(p^.right);
                if codegenerror then
                  exit;
@@ -555,7 +553,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-05-01 13:24:57  peter
+  Revision 1.15  1999-05-17 23:51:46  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.14  1999/05/01 13:24:57  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -240,8 +240,7 @@ unit tree;
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
              labeln,goton : (labelnr : plabel);
-             withn : (withsymtable : pwithsymtable;tablecount : longint;
-                     pref : preference);
+             withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
            end;
@@ -600,7 +599,8 @@ unit tree;
          p^.resulttype:=nil;
          p^.withsymtable:=symtable;
          p^.tablecount:=count;
-         p^.pref:=nil;
+         p^.withreference:=nil;
+         p^.islocal:=false;
          set_file_line(l,p);
          genwithnode:=p;
       end;
@@ -1708,7 +1708,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.79  1999-05-17 13:00:36  pierre
+  Revision 1.80  1999-05-17 23:51:48  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.79  1999/05/17 13:00:36  pierre
    * old field suppressed was still in debug code
 
   Revision 1.78  1999/05/12 00:20:03  peter

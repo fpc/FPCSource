@@ -196,19 +196,28 @@ implementation
                                      end;
                                    withsymtable:
                                      begin
-                                        hregister:=getregister32;
-                                        p^.location.reference.base:=hregister;
                                         { make a reference }
                                         { symtable datasize field
                                           contains the offset of the temp
                                           stored }
-                                        hp:=new_reference(procinfo.framepointer,
+{                                        hp:=new_reference(procinfo.framepointer,
                                           p^.symtable^.datasize);
 
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));}
 
-                                        p^.location.reference.offset:=
-                                          pvarsym(p^.symtableentry)^.address;
+                                        if ptree(pwithsymtable(p^.symtable)^.withnode)^.islocal then
+                                         begin
+                                           p^.location.reference:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
+                                         end
+                                        else
+                                         begin
+                                           hregister:=getregister32;
+                                           p^.location.reference.base:=hregister;
+                                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                             newreference(ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^),
+                                             hregister)));
+                                         end;
+                                        inc(p^.location.reference.offset,pvarsym(p^.symtableentry)^.address);
                                      end;
                                 end;
                            end;
@@ -845,7 +854,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-05-17 21:57:04  florian
+  Revision 1.56  1999-05-17 23:51:38  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.55  1999/05/17 21:57:04  florian
     * new temporary ansistring handling
 
   Revision 1.54  1999/05/12 00:19:43  peter

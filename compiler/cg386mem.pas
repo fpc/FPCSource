@@ -827,56 +827,67 @@ implementation
         ref : treference;
         symtable : psymtable;
         i : longint;
-        load : boolean;
+        usetemp : boolean;
       begin
          if assigned(p^.left) then
             begin
                secondpass(p^.left);
-               load:=true;
                if p^.left^.location.reference.segment<>R_NO then
                  message(parser_e_no_with_for_variable_in_other_segments);
-               ref.symbol:=nil;
-               gettempofsizereference(4,ref);
+
+               new(p^.withreference);
+
+               usetemp:=false;
                if (p^.left^.treetype=loadn) and
                   (p^.left^.symtable=aktprocsym^.definition^.localst) then
                  begin
-                    { for local class just use the local storage }
-                    ungetiftemp(ref);
-                    new(p^.pref);
-                    p^.pref^:=p^.left^.location.reference;
-                    { don't discard symbol if in main procedure }
-                    p^.left^.location.reference.symbol:=nil;
-                    load:=false;
-                 end
-               else if (p^.left^.resulttype^.deftype=objectdef) and
-                  pobjectdef(p^.left^.resulttype)^.isclass then
-                 begin
-                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                      newreference(p^.left^.location.reference),R_EDI)))
+                    { for locals use the local storage }
+                    p^.withreference^:=p^.left^.location.reference;
+                    p^.islocal:=true;
                  end
                else
-                 exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                   newreference(p^.left^.location.reference),R_EDI)));
-               if load then
-                 exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                 R_EDI,newreference(ref))));
-               del_reference(p^.left^.location.reference);
+                if (p^.left^.resulttype^.deftype=objectdef) and
+                   pobjectdef(p^.left^.resulttype)^.isclass then
+                 begin
+                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                      newreference(p^.left^.location.reference),R_EDI)));
+                    usetemp:=true;
+                 end
+               else
+                 begin
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                     newreference(p^.left^.location.reference),R_EDI)));
+                   usetemp:=true;
+                 end;
+
+               { if usetemp is set the value must be in %edi }
+               if usetemp then
+                begin
+                  gettempofsizereference(4,p^.withreference^);
+                  normaltemptopersistant(p^.withreference^.offset);
+                  { move to temp reference }
+                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                    R_EDI,newreference(p^.withreference^))));
+                  del_reference(p^.left^.location.reference);
+                end;
+
                { the offset relative to (%ebp) is only needed here! }
-               symtable:=p^.withsymtable;
+{               symtable:=p^.withsymtable;
                for i:=1 to p^.tablecount do
                  begin
                     symtable^.datasize:=ref.offset;
                     symtable:=symtable^.next;
-                 end;
+                 end; }
 
                { p^.right can be optimize out !!! }
-               if p^.right<>nil then
+               if assigned(p^.right) then
                  secondpass(p^.right);
-               { clear some stuff }
-               if assigned(p^.pref) then
-                 dispose(p^.pref);
-               if load then
-                 ungetiftemp(ref);
+
+               if usetemp then
+                 ungetpersistanttemp(p^.withreference^.offset);
+
+               dispose(p^.withreference);
+               p^.withreference:=nil;
             end;
        end;
 
@@ -884,7 +895,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-05-17 21:57:05  florian
+  Revision 1.39  1999-05-17 23:51:39  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.38  1999/05/17 21:57:05  florian
     * new temporary ansistring handling
 
   Revision 1.37  1999/05/17 14:14:14  pierre

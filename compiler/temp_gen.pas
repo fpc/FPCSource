@@ -72,9 +72,10 @@ unit temp_gen;
     { special call for inlined procedures }
     function gettempofsizepersistant(size : longint) : longint;
     { for parameter func returns }
+    procedure normaltemptopersistant(pos : longint);
     procedure persistanttemptonormal(pos : longint);
     {procedure ungettemp(pos : longint;size : longint);}
-    procedure ungetpersistanttemp(pos : longint;size : longint);
+    procedure ungetpersistanttemp(pos : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
@@ -394,6 +395,30 @@ unit temp_gen;
       end;
 
 
+    procedure normaltemptopersistant(pos : longint);
+      var
+        hp : ptemprecord;
+      begin
+         hp:=templist;
+         while assigned(hp) do
+           if (hp^.pos=pos) and (hp^.temptype=tt_normal) then
+             begin
+{$ifdef EXTDEBUG}
+               Comment(V_Debug,'temp managment : normaltemptopersistant()'+
+                  ' at pos '+tostr(pos)+ ' found !');
+{$endif}
+                hp^.temptype:=tt_persistant;
+                exit;
+             end
+           else
+             hp:=hp^.next;
+{$ifdef EXTDEBUG}
+         Comment(V_Debug,'temp managment problem : normaltemptopersistant()'+
+            ' at pos '+tostr(pos)+ ' not found !');
+{$endif}
+      end;
+
+
     function ungettemp(pos:longint;allowtype:ttemptype):ttemptype;
       var
          hp,hnext,hprev,hprevfree : ptemprecord;
@@ -454,7 +479,7 @@ unit temp_gen;
       end;
 
 
-    procedure ungetpersistanttemp(pos : longint;size : longint);
+    procedure ungetpersistanttemp(pos : longint);
       begin
 {$ifdef EXTDEBUG}
         if ungettemp(pos,tt_persistant)<>tt_persistant then
@@ -497,7 +522,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-05-17 21:57:17  florian
+  Revision 1.25  1999-05-17 23:51:47  peter
+    * with temp vars now use a reference with a persistant temp instead
+      of setting datasize
+
+  Revision 1.24  1999/05/17 21:57:17  florian
     * new temporary ansistring handling
 
   Revision 1.23  1999/05/17 12:49:16  pierre
