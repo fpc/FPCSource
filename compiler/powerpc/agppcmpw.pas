@@ -88,6 +88,10 @@ var
       firstLineInFunction: longint;
 {$endif}
 
+    type
+      t64bitarray = array[0..7] of byte;
+      t32bitarray = array[0..3] of byte;
+
     function ReplaceForbiddenChars(var s: string):Boolean;
          {Returns wheater a replacement has occured.}
 
@@ -408,6 +412,42 @@ var
           delete(hs,p,1);
          double2str:=lower(hs);
       end;
+
+  { convert floating point values }
+  { to correct endian             }
+  procedure swap64bitarray(var t: t64bitarray);
+    var
+     b: byte;
+    begin
+      b:= t[7];
+      t[7] := t[0];
+      t[0] := b;
+
+      b := t[6];
+      t[6] := t[1];
+      t[1] := b;
+
+      b:= t[5];
+      t[5] := t[2];
+      t[2] := b;
+
+      b:= t[4];
+      t[4] := t[3];
+      t[3] := b;
+   end;
+
+   procedure swap32bitarray(var t: t32bitarray);
+    var
+     b: byte;
+    begin
+      b:= t[1];
+      t[1]:= t[2];
+      t[2]:= b;
+
+      b:= t[0];
+      t[0]:= t[3];
+      t[3]:= b;
+    end;
 
    function fixline(s:string):string;
    {
@@ -751,6 +791,8 @@ var
       quoted   : boolean;
       sep      : char;
       replaced : boolean;
+      sin      : single;
+      d        : double;
 
     begin
       if not assigned(p) then
@@ -983,10 +1025,42 @@ var
                AsmLn;
              end;
 
-            ait_real_32bit:
-              AsmWriteLn(#9'dc.l'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
-            ait_real_64bit:
-              AsmWriteLn(#9'dc.d'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
+            ait_real_64bit :
+              begin
+                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
+                d:=tai_real_64bit(hp).value;
+                { swap the values to correct endian if required }
+                if source_info.endian <> target_info.endian then
+                  swap64bitarray(t64bitarray(d));
+                AsmWrite(#9'dc.b'#9);
+                  begin
+                    for i:=0 to 7 do
+                      begin
+                        if i<>0 then
+                          AsmWrite(',');
+                        AsmWrite(tostr(t64bitarray(d)[i]));
+                      end;
+                  end;
+                AsmLn;
+              end;
+
+            ait_real_32bit :
+              begin
+                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
+                sin:=tai_real_32bit(hp).value;
+                { swap the values to correct endian if required }
+                if source_info.endian <> target_info.endian then
+                  swap32bitarray(t32bitarray(sin));
+                AsmWrite(#9'dc.b'#9);
+                for i:=0 to 3 do
+                  begin
+                    if i<>0 then
+                      AsmWrite(',');
+                    AsmWrite(tostr(t32bitarray(sin)[i]));
+                  end;
+                AsmLn;
+              end;
+
             ait_string:
               begin
                 {NOTE When a single quote char is encountered, it is
@@ -1411,7 +1485,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2004-07-26 22:26:39  olle
+  Revision 1.38  2004-09-10 11:23:52  olle
+    * floating point constants is now written as byte pattern, to have exact control of each bit.
+
+  Revision 1.37  2004/07/26 22:26:39  olle
     * made target macos really work again after the dwarf merge
 
   Revision 1.36  2004/06/20 08:55:31  florian
