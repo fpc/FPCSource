@@ -1486,9 +1486,11 @@ implementation
                       emit_none(A_FABS,S_NO);
                     in_sqr_extended:
                       begin
-                         emit_reg(A_FLD,S_NO,R_ST0);
+                         (* emit_reg(A_FLD,S_NO,R_ST0);
                          { emit_none(A_FMULP,S_NO); nasm does not accept this PM }
                          emit_reg_reg(A_FMULP,S_NO,R_ST0,R_ST1);
+                           can be shorten to *)
+                         emit_reg_reg(A_FMUL,S_NO,R_ST0,R_ST0);
                       end;
                     in_sqrt_extended:
                       emit_none(A_FSQRT,S_NO);
@@ -1526,7 +1528,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2000-04-04 21:41:56  pierre
+  Revision 1.100  2000-04-14 12:33:40  pierre
+   * better inlined real sqr function
+
+  Revision 1.99  2000/04/04 21:41:56  pierre
    * generate code accepted by nasm
 
   Revision 1.98  2000/04/02 18:30:11  florian
