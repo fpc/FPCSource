@@ -3,8 +3,8 @@ Free Pascal for DEBIAN
 
 No changes were necessary to the source tree as checked out from
 CVS at cvs.freepascal.org by
- cvs -d :pserver:cvs@cvs.freepascal.org:/FPC/CVS -z3 co -r RELEASE_1_0_4 fpc
-The Debian Build Directory was created by 'make debcopy FPC_VERSION=1.0.4'
+ cvs -d :pserver:cvs@cvs.freepascal.org:/FPC/CVS -z3 co -r RELEASE_1_0_6 fpc
+The Debian Build Directory was created by 'make debcopy FPC_VERSION=1.0.6'
 and then duplicated to .orig before 'dpkg-buildpackage -sa -rfakeroot' was
 run.
 
@@ -20,7 +20,7 @@ As shipped, only the .pdf docs are built. You may want to make the HTML
 files with latex2html by yourself, and eventually adapt the doc-base file.
      
 To create a new config file for fpc (/etc/fpc.cfg) use the command:
- /usr/lib/fpc/1.0.4/samplecfg /usr/lib/fpc/1.0.4
+ /usr/lib/fpc/1.0.6/samplecfg /usr/lib/fpc/1.0.6
 However, you should be aware, that said file /etc/fpc.cfg is
 declared as a conffile since version 1.0.2.
 
@@ -38,7 +38,6 @@ The Original site is
   ftp://ftp.freepascal.org/
   
 HTTP Mirrored at  
-  http://www.brain.uni-freiburg.de/~klaus/fpc/
   http://www.zeus.rug.ac.be/freepascal/
   http://gd.tuwien.ac.at/languages/pascal/fpc/www/
   http://www.atlasz.com/freepascal/

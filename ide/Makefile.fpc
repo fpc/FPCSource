@@ -3,8 +3,8 @@
 #
 
 [package]
-name=fpide
-version=1.0.5
+name=ide
+version=1.0.6
 
 [target]
 dirs=compiler fakegdb

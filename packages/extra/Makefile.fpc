@@ -22,6 +22,7 @@ dirs_go32v2=unzip uncgi
 
 [install]
 fpcpackage=y
+sourcesubdir=packages/extra
 
 [default]
 fpcdir=../..

@@ -114,8 +114,10 @@ program install;
 
   type
      tpackage=record
-       name  : string[60];
-       zip   : string[12];
+       name      : string[60];
+       zip       : string[40];  { default zipname }
+       zipshort  : string[12];  { 8.3 zipname }
+       diskspace : longint;     { diskspace required }
      end;
 
      tpack=record
@@ -232,8 +234,8 @@ program install;
      UnzDlg      : punzipdialog;
      log         : text;
      createlog   : boolean;
-{$IFNDEF DLL}
 
+{$IFNDEF DLL}
   const
      UnzipErr: longint = 0;
 {$ENDIF}
@@ -285,6 +287,23 @@ program install;
            Insert(s2,s,i);
          end;
       until i=0;
+    end;
+
+
+  function DotStr(l:longint):string;
+    var
+      TmpStr : string[32];
+      i : longint;
+    begin
+      Str(l,TmpStr);
+      i:=Length(TmpStr);
+      while (i>3) do
+       begin
+         i:=i-3;
+         if TmpStr[i]<>'-' then
+          Insert('.',TmpStr,i+1);
+       end;
+      DotStr:=TmpStr;
     end;
 
 
@@ -340,25 +359,22 @@ program install;
       s : string;
     begin
       s:=zipfile+#0;
-      if not (IsZip (@S [1])) then DiskSpaceN := -1 else
-      begin
-       Uncompressed:=UnzipSize(@s[1],compressed);
-       DiskSpaceN:=uncompressed shr 10;
-      end;
+      if not (IsZip (@S [1])) then
+       DiskSpaceN := -1
+      else
+       begin
+         Uncompressed:=UnzipSize(@s[1],compressed);
+         DiskSpaceN:=uncompressed shr 10;
+       end;
     end;
 
 
-  function diskspace(const zipfile : string) : string;
-    var
-      uncompressed : longint;
-      s : string;
+  function diskspacestr(uncompressed : longint) : string;
     begin
-      uncompressed:=DiskSpaceN (zipfile);
-      if Uncompressed = -1 then DiskSpace := ' [INVALID]' else
-      begin
-       str(uncompressed,s);
-       diskspace:=' ('+s+' KB)';
-      end;
+      if Uncompressed = -1 then
+       DiskSpacestr := ' [INVALID]'
+      else
+       diskspacestr:=' ('+DotStr(uncompressed)+' KB)';
     end;
 
 
@@ -521,14 +537,12 @@ program install;
     var
        LS : PFPHTMLFileLinkScanner;
        BS : PBufStream;
-       S : String;
        Re : Word;
        params : array[0..0] of pointer;
        dir    : searchrec;
        r : trect;
 
     begin
-       S:='HTML Index';
        r.assign(10,10,70,15);
        indexdlg:=new(phtmlindexdialog,init(r,'Creating HTML index file, please wait ...'));
        desktop^.insert(indexdlg);
@@ -652,7 +666,7 @@ program install;
 
 {$IFNDEF DLL}
   procedure UnzipCheckFn (Retcode: longint; Rec: pReportRec );{$ifdef Delphi32}STDCALL;{$endif}
-  {$IFNDEF BIT32} FAR;{$ENDIF BIT32}
+  {$ifndef fpc}{$IFNDEF BIT32} FAR;{$ENDIF BIT32}{$endif}
   var
     name : string;
   begin
@@ -689,7 +703,6 @@ program install;
     var
       again : boolean;
       fn,dir,wild : string;
-      Cnt: integer;
     begin
        Disposestr(filetext^.text);
        filetext^.Text:=NewStr(#3'File: '+s + #13#3' ');
@@ -846,13 +859,13 @@ program install;
          islfn:=true;
     end;
 
-  function haslfn(const zipfile,path : string) : boolean;
+  function haslfn(const zipfile : string) : boolean;
 
     var
        buf : array[0..255] of char;
 
     begin
-       strpcopy(buf,path+DirSep+zipfile);
+       strpcopy(buf,zipfile);
        islfn:=false;
 {$ifdef FPC}
        ViewZip(buf,AllFiles,@lfnreport);
@@ -891,6 +904,7 @@ program install;
        scrollbox: pscrollbox;
        sbr,sbsbr: trect;
        sbsb: pscrollbar;
+       zipfile : string;
     begin
        f:=nil;
      { walk packages reverse and insert a newsitem for each, and set the mask }
@@ -902,18 +916,29 @@ program install;
            packmask[j]:=0;
            for i:=packages downto 1 do
             begin
+              zipfile:='';
               if file_exists(package[i].zip,startpath) then
+               zipfile:=startpath+DirSep+package[i].zip
+              else if file_exists(package[i].zipshort,startpath) then
                begin
+                 zipfile:=startpath+DirSep+package[i].zipshort;
+                 { update package to replace the full zipname with the short name }
+                 package[i].zip:=package[i].zipshort;
+               end;
+              if zipfile<>'' then
+               begin
+                 { get diskspace required }
+                 package[i].diskspace:=diskspaceN(zipfile);
 {$ifdef MAYBE_LFN}
                  if not(locallfnsupport) then
                    begin
-                      if not(haslfn(package[i].zip,startpath)) then
+                      if not(haslfn(zipfile)) then
                         begin
-                           items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
+                           items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
                            packmask[j]:=packmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
-                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... no lfn');
+                             writeln(log,'Checking lfn usage for ',zipfile,' ... no lfn');
                         end
                       else
                         begin
@@ -921,13 +946,13 @@ program install;
                            packmask[j]:=packmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
-                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... uses lfn');
+                             writeln(log,'Checking lfn usage for ',zipfile,' ... uses lfn');
                         end;
                    end
                  else
 {$endif MAYBE_LFN}
                    begin
-                      items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
+                      items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
                       firstitem[j]:=i;
                    end;
@@ -1121,7 +1146,7 @@ program install;
                        begin
                          if data.packmask[j] and packagemask(i)<>0 then
                          begin
-                          ASpace := DiskSpaceN (package[i].zip);
+                          ASpace := package[i].diskspace;
                           if ASpace = -1 then
                               MessageBox ('File ' + package[i].zip +
                                             ' is probably corrupted!', nil,
@@ -1214,10 +1239,10 @@ program install;
   procedure tapp.readcfg(const fn:string);
     var
       t    : text;
-      i,j,
+      i,j,k,
       line : longint;
       item,
-      s    : string;
+      s,hs   : string;
       params : array[0..0] of pointer;
 
 {$ifndef FPC}
@@ -1423,9 +1448,18 @@ program install;
                       if (j>0) and (packages<maxpackages) then
                        begin
                          inc(packages);
-                         package[packages].zip:=copy(s,1,j-1);
+                         hs:=copy(s,1,j-1);
+                         k:=pos('[',hs);
+                         if (k>0) then
+                          begin
+                            package[packages].zip:=Copy(hs,1,k-1);
+                            package[packages].zipshort:=Copy(hs,k+1,length(hs)-k-1);
+                          end
+                         else
+                          package[packages].zip:=hs;
                          package[packages].name:=copy(s,j+1,255);
                        end;
+                      package[packages].diskspace:=-1;
                     end;
                  end
              end;
@@ -1608,7 +1642,7 @@ begin
 {$endif MAYBE_LFN}
         else if paramstr(i)='-h' then
           begin
-             writeln('FPC Installer Copyright (c) 1993-2001 Florian Klaempfl');
+             writeln('FPC Installer Copyright (c) 1993-2002 Florian Klaempfl');
              writeln('Command line options:');
              writeln('  -l   create log file');
 {$ifdef MAYBE_LFN}
@@ -1658,7 +1692,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-02-28 17:02:08  pierre
+  Revision 1.4  2002-02-28 21:30:34  peter
+    * regenated
+
+  Revision 1.3  2002/02/28 17:02:08  pierre
    * fix win32 compilation if DEBUG cond is set
 
   Revision 1.2  2002/01/29 22:01:17  peter

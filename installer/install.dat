@@ -31,9 +31,11 @@ package=utilgo32.zip,~E~xtra Utilities
 package=makego32.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
 package=ufclgo32.zip,~F~ree Component Libary (FCL)
-package=ubasgo32.zip,Basic ~u~nits (needed by FCL)
-package=unetgo32.zip,~N~etworking units
-package=umisgo32.zip,~M~iscellaneous units
+package=ugdbintgo32.zip[ugdbgo32.zip],GDB Interfacing units
+package=upaszlibgo32.zip[upzlgo32.zip],PasZLib units
+package=uregexprgo32.zip[ureggo32.zip],Regular expression units
+package=uunzipgo32.zip[uzipgo32.zip],Unzip units
+package=uuncgigo32.zip[ucgigo32.zip],Uncgi units
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -51,16 +53,22 @@ filecheck=*w32.zip
 package=basew32.zip,~B~asic system for Win32 (required)
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
 package=idew32.zip,~I~DE with integrated debugger/compiler (BETA)
-package=utilw32.zip,~E~xtra Utilities
+package=utilsw32.zip,~E~xtra Utilities
 package=makew32.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbw32.zip,GNU ~D~ebugger for Win32
 package=ufclw32.zip,~F~ree Component Libary (FCL)
-package=ubasw32.zip,~B~asic units (needed by FCL)
-package=ugfxw32.zip,O~p~enGL units
-package=ugtkw32.zip,GT~K~ units
-package=unetw32.zip,~N~etworking units
-package=udbw32.zip,Da~t~abase (interbase,mysql) units
-package=umisw32.zip,~M~iscellaneous units
+package=uopenglw32.zip,OpenGL units
+package=ugtkw32.zip,GTK units
+package=uinetw32.zip,Internet helper routines units
+package=uibasew32.zip,Interbase interface units
+package=umysqlw32.zip,MySQL interface units
+package=ummsystemw32.zip,MMSystem interface units
+package=ugdbintw32.zip,GDB Interfacing units
+package=upaszlibw32.zip,PasZLib units
+package=uregexprw32.zip,Regular expression units
+package=uunzipgo32.zip,Unzip units
+package=uuncgigo32.zip,Uncgi units
+package=uzlibw32.zip,ZLib interface units
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -93,8 +101,6 @@ pack=C~o~mmon
 package=docs-pdf.zip,Documentation (~P~DF)
 package=doc-htm.zip,Documentation (~H~MTL)
 package=demo.zip,D~e~mos
-package=ufclexm.zip,Examples for ~F~CL
-package=upkgexm.zip,Examples for ~P~ackages
 
 
 #
@@ -103,17 +109,29 @@ package=upkgexm.zip,Examples for ~P~ackages
 pack=~S~ources
 filecheck=*src.zip
 package=basesrc.zip,~B~asic Makefiles for the sources
-package=compsrc.zip,~C~ompiler sources
+package=compilersrc.zip[compsrc.zip],~C~ompiler sources
 package=rtlsrc.zip,~R~un time library sources
 package=fclsrc.zip,~F~ree component library (FCL) sources
-package=pkgssrc.zip,~P~ackages units sources
-package=utilsrc.zip,~U~tils sources
-package=instsrc.zip,~I~nstaller sources
+package=utilssrc.zip[utilsrc.zip],~U~tils sources
+package=installersrc.zip[instsrc.zip],~I~nstaller sources
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
+package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
+package=upaszlibsrc.zip[upzlsrc.zip],PasZLib units
+package=uregexprsrc.zip[uregsrc.zip],Regular expression units
+package=uunzipsrc.zip[uzipsrc.zip],Unzip units
+package=uuncgisrc.zip[ucgisrc.zip],Uncgi units
+package=uopenglsrc.zip,OpenGL units
+package=ugtksrc.zip,GTK units
+package=uinetsrc.zip,Internet helper routines units
+package=uibasesrc.zip,Interbase interface units
+package=umysqlsrc.zip,MySQL interface units
+package=ummsystemsrc.zip,MMSystem interface units
+package=uzlibsrc.zip,ZLib interface units
+
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.0.4
+# Example fpc.cfg for Free Pascal Compiler Version 1.0.6
 #
 
 # ----------------------

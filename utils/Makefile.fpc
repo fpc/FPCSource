@@ -3,8 +3,8 @@
 #
 
 [package]
-name=fputils
-version=1.0.5
+name=utils
+version=1.0.6
 
 [target]
 dirs=fpcm tply h2pas fprcp dxegen

@@ -13,6 +13,8 @@ dirs_win32=win32
 dirs_linux=linux
 dirs_os2=os2
 
+[install]
+fpcpackage=y
 
 [rules]
 #################################

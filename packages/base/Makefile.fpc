@@ -16,6 +16,7 @@ dirs_freebsd=inet gdbint libasync \
 
 [install]
 fpcpackage=y
+sourcesubdir=packages/base
 
 [default]
 fpcdir=../..

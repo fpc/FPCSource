@@ -3,7 +3,7 @@
 #
 
 [package]
-name=fpinst
+name=installer
 version=1.0.6
 
 [target]
