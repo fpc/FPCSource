@@ -36,8 +36,7 @@ unit cpupara;
     type
        tppcparamanager = class(tparamanager)
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
-          procedure freeintparaloc(list: taasmoutput; nr : longint); override;
+          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
        end;
 
@@ -49,7 +48,7 @@ unit cpupara;
        rgobj,
        defutil,symsym;
 
-    function tppcparamanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
+    function tppcparamanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
 
       begin
          fillchar(result,sizeof(tparalocation),0);
@@ -59,7 +58,6 @@ unit cpupara;
            begin
               result.loc:=LOC_REGISTER;
               result.register:=newreg(R_INTREGISTER,RS_R2+nr,R_SUBWHOLE);
-              rg.getexplicitregisterint(list,result.register);
            end
          else
            begin
@@ -68,22 +66,6 @@ unit cpupara;
               result.reference.offset:=(nr-8)*4;
            end;
          result.size := OS_INT;
-      end;
-
-
-    procedure tppcparamanager.freeintparaloc(list: taasmoutput; nr : longint);
-
-      var
-        r: tregister;
-
-      begin
-         if nr<1 then
-           internalerror(2003060401)
-         else if nr<=8 then
-           begin
-             r:=newreg(R_INTREGISTER,RS_R2+nr,R_SUBWHOLE);
-             rg.ungetregisterint(list,r);
-           end;
       end;
 
 
@@ -345,7 +327,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-09-03 21:04:14  peter
+  Revision 1.45  2003-09-14 16:37:20  jonas
+    * fixed some ppc problems
+
+  Revision 1.44  2003/09/03 21:04:14  peter
     * some fixes for ppc
 
   Revision 1.43  2003/09/03 19:35:24  peter

@@ -34,6 +34,10 @@ unit cgcpu;
 
     type
       tcgppc = class(tcg)
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+
+
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
         { left to right), this allows to move the parameter to    }
@@ -151,10 +155,20 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi;
+       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi, rgcpu;
 
-    { parameter passing... Still needs extra support from the processor }
-    { independent code generator                                        }
+
+    procedure tcgppc.init_register_allocators;
+      begin
+        rg := trgcpu.create(29,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+chr(ord(RS_R9))+chr(ord(RS_R10))+chr(ord(RS_R11))+chr(ord(RS_R12))+chr(ord(RS_R31))+chr(ord(RS_R30))+chr(ord(RS_R29))+chr(ord(RS_R28))+chr(ord(RS_R27))+chr(ord(RS_R26))+chr(ord(RS_R25))+chr(ord(RS_R24))+chr(ord(RS_R23))+chr(ord(RS_R22))+chr(ord(RS_R21))+chr(ord(RS_R20))+chr(ord(RS_R19))+chr(ord(RS_R18))+chr(ord(RS_R17))+chr(ord(RS_R16))+chr(ord(RS_R15))+chr(ord(RS_R14))+chr(ord(RS_R13)));
+      end;
+
+
+    procedure tcgppc.done_register_allocators;
+      begin
+        rg.free;
+      end;
+
 
     procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
       var
@@ -2382,7 +2396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2003-09-03 21:04:14  peter
+  Revision 1.126  2003-09-14 16:37:20  jonas
+    * fixed some ppc problems
+
+  Revision 1.125  2003/09/03 21:04:14  peter
     * some fixes for ppc
 
   Revision 1.124  2003/09/03 19:35:24  peter

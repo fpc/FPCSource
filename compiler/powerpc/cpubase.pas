@@ -116,8 +116,7 @@ uses
       {$i rppccon.inc}
 
       { Integer Super registers first and last }
-{$warning Supreg shall be $00-$1f}
-      first_int_supreg = RS_R3;
+      first_int_supreg = RS_R0;
       last_int_supreg = RS_R31;
 
       first_int_imreg = $20;
@@ -748,7 +747,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-09-03 21:04:14  peter
+  Revision 1.68  2003-09-14 16:37:20  jonas
+    * fixed some ppc problems
+
+  Revision 1.67  2003/09/03 21:04:14  peter
     * some fixes for ppc
 
   Revision 1.66  2003/09/03 19:35:24  peter
