@@ -1081,10 +1081,10 @@ implementation
                    begin
                       if p^.left^.location.loc<>LOC_REGISTER then
                         begin
-                           p^.location.registerlow:=getregister32;
-                           p^.location.registerhigh:=getregister32;
                            if p^.left^.location.loc=LOC_CREGISTER then
                              begin
+                                p^.location.registerlow:=getregister32;
+                                p^.location.registerhigh:=getregister32;
                                 emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
                                   p^.location.registerlow);
                                 emit_reg_reg(A_MOV,opsize,p^.left^.location.registerhigh,
@@ -1093,6 +1093,8 @@ implementation
                            else
                              begin
                                 del_reference(p^.left^.location.reference);
+                                p^.location.registerlow:=getregister32;
+                                p^.location.registerhigh:=getregister32;
                                 emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
                                   p^.location.registerlow);
                                 r:=newreference(p^.left^.location.reference);
@@ -1125,6 +1127,10 @@ implementation
                    begin
                       if p^.left^.location.loc<>LOC_REGISTER then
                         begin
+                           { first, we've to release the source location ... }
+                           if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                             del_reference(p^.left^.location.reference);
+
                            p^.location.register:=getregister32;
                            if (p^.resulttype^.size=2) then
                              p^.location.register:=reg32toreg16(p^.location.register);
@@ -1137,11 +1143,8 @@ implementation
                            if p^.left^.location.loc=LOC_FLAGS then
                              emit_flag2reg(p^.left^.location.resflags,p^.location.register)
                            else
-                             begin
-                                del_reference(p^.left^.location.reference);
-                                emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
-                                  p^.location.register);
-                             end;
+                             emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
+                               p^.location.register);
                         end
                       else p^.location.register:=p^.left^.location.register;
                       if not (cs_check_overflow in aktlocalswitches) then
@@ -1481,7 +1484,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  1999-12-02 12:38:45  florian
+  Revision 1.84  1999-12-14 10:17:40  florian
+    * fixed an internalerror 10 with pred(...)
+
+  Revision 1.83  1999/12/02 12:38:45  florian
     + added support for succ/pred(<qword/int64>)
 
   Revision 1.82  1999/12/01 12:42:31  peter
