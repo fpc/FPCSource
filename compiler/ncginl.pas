@@ -175,12 +175,18 @@ implementation
 *****************************************************************************}
     procedure tcginlinenode.second_Assert;
      var
-         hp2 : tstringconstnode;
-         otlabel,oflabel{,l1}   : tasmlabel;
+       hp2 : tstringconstnode;
+       otlabel,oflabel : tasmlabel;
+       paraloc1,paraloc2,
+       paraloc3,paraloc4 : tparalocation;
      begin
        { the node should be removed in the firstpass }
        if not (cs_do_assertion in aktlocalswitches) then
           internalerror(7123458);
+       paraloc1:=paramanager.getintparaloc(pocall_default,1);
+       paraloc2:=paramanager.getintparaloc(pocall_default,2);
+       paraloc3:=paramanager.getintparaloc(pocall_default,3);
+       paraloc4:=paramanager.getintparaloc(pocall_default,4);
        otlabel:=truelabel;
        oflabel:=falselabel;
        objectlibrary.getlabel(truelabel);
@@ -189,25 +195,29 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paramanager.getintparaloc(exprasmlist,4));
+       paramanager.allocparaloc(exprasmlist,paraloc4);
+       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { lineno }
-       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(exprasmlist,3));
+       paramanager.allocparaloc(exprasmlist,paraloc3);
+       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3);
        { filename string }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
        firstpass(tnode(hp2));
        secondpass(tnode(hp2));
        if codegenerror then
           exit;
-       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paramanager.getintparaloc(exprasmlist,2));
+       paramanager.allocparaloc(exprasmlist,paraloc2);
+       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2);
        hp2.free;
        { push msg }
        secondpass(tcallparanode(tcallparanode(left).right).left);
-       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paramanager.getintparaloc(exprasmlist,1));
+       paramanager.allocparaloc(exprasmlist,paraloc1);
+       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1);
        { call }
-       paramanager.freeintparaloc(exprasmlist,4);
-       paramanager.freeintparaloc(exprasmlist,3);
-       paramanager.freeintparaloc(exprasmlist,2);
-       paramanager.freeintparaloc(exprasmlist,1);
+       paramanager.freeparaloc(exprasmlist,paraloc1);
+       paramanager.freeparaloc(exprasmlist,paraloc2);
+       paramanager.freeparaloc(exprasmlist,paraloc3);
+       paramanager.freeparaloc(exprasmlist,paraloc4);
        rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
        rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -653,7 +663,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2003-09-07 22:09:35  peter
+  Revision 1.42  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.41  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

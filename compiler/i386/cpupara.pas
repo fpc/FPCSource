@@ -46,9 +46,7 @@ unit cpupara;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
-          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
-          procedure freeintparaloc(list: taasmoutput; nr : longint); override;
-          function getparaloc(p : tdef) : tcgloc;
+          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
        private
@@ -158,23 +156,28 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
+    function ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
-         getintparaloc.loc:=LOC_REFERENCE;
-         getintparaloc.reference.index:=NR_EBP;
-         getintparaloc.reference.offset:=4*nr;
-      end;
-
-
-    procedure ti386paramanager.freeintparaloc(list: taasmoutput; nr : longint);
-      begin
-        { nothing to release }
-      end;
-
-
-    function ti386paramanager.getparaloc(p : tdef) : tcgloc;
-      begin
-        result:=LOC_REFERENCE;
+         if calloption=pocall_register then
+           begin
+             if nr<=3 then
+               begin
+                 getintparaloc.loc:=LOC_REGISTER;
+                 getintparaloc.register:=nr-1;
+               end
+             else
+               begin
+                 getintparaloc.loc:=LOC_REFERENCE;
+                 getintparaloc.reference.index:=NR_EBP;
+                 getintparaloc.reference.offset:=4*nr;
+               end;
+           end
+         else
+           begin
+             getintparaloc.loc:=LOC_REFERENCE;
+             getintparaloc.reference.index:=NR_EBP;
+             getintparaloc.reference.offset:=4*nr;
+           end;
       end;
 
 
@@ -318,7 +321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-09-09 21:03:17  peter
+  Revision 1.28  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.27  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.26  2003/09/09 15:55:05  peter

@@ -199,7 +199,8 @@ implementation
 *****************************************************************************}
 
     procedure tcgderefnode.pass_2;
-
+      var
+        paraloc1 : tparalocation;
       begin
          secondpass(left);
          location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
@@ -230,8 +231,10 @@ implementation
             not(cs_compilesystem in aktmoduleswitches) and
             (not tpointerdef(left.resulttype.def).is_far) then
           begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-            paramanager.freeintparaloc(exprasmlist,1);
+            paraloc1:=paramanager.getintparaloc(pocall_default,1);
+            paramanager.allocparaloc(exprasmlist,paraloc1);
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.freeparaloc(exprasmlist,paraloc1);
             rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
             rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -244,7 +247,8 @@ implementation
 *****************************************************************************}
 
     procedure tcgsubscriptnode.pass_2;
-
+      var
+        paraloc1 : tparalocation;
       begin
          secondpass(left);
          if codegenerror then
@@ -280,8 +284,10 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                paramanager.freeintparaloc(exprasmlist,1);
+                paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                paramanager.allocparaloc(exprasmlist,paraloc1);
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freeparaloc(exprasmlist,paraloc1);
                 rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
                 rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -296,8 +302,10 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                paramanager.freeintparaloc(exprasmlist,1);
+                paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                paramanager.allocparaloc(exprasmlist,paraloc1);
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freeparaloc(exprasmlist,paraloc1);
                 rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
                 rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -439,6 +447,7 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
+         paraloc1,paraloc2 : tparalocation;
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
@@ -480,12 +489,16 @@ implementation
          else
           if is_dynamic_array(left.resulttype.def) then
             begin
-               cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
-               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
+               paraloc1:=paramanager.getintparaloc(pocall_default,1);
+               paraloc2:=paramanager.getintparaloc(pocall_default,2);
+               paramanager.allocparaloc(exprasmlist,paraloc2);
+               cg.a_param_loc(exprasmlist,right.location,paraloc2);
+               paramanager.allocparaloc(exprasmlist,paraloc1);
+               cg.a_param_loc(exprasmlist,left.location,paraloc1);
+               paramanager.freeparaloc(exprasmlist,paraloc1);
+               paramanager.freeparaloc(exprasmlist,paraloc2);
                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               paramanager.freeintparaloc(exprasmlist,2);
-               paramanager.freeintparaloc(exprasmlist,1);
                rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
             end
          else
@@ -503,6 +516,7 @@ implementation
          newsize : tcgsize;
          mulsize: longint;
          isjump  : boolean;
+         paraloc1,paraloc2 : tparalocation;
       begin
          mulsize := get_mul_size;
 
@@ -539,10 +553,12 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
+                   paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                   paramanager.allocparaloc(exprasmlist,paraloc1);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
+                   paramanager.freeparaloc(exprasmlist,paraloc1);
                    rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   paramanager.freeintparaloc(exprasmlist,1);
                    rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 end;
 
@@ -616,14 +632,18 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(exprasmlist,2));
+                              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                              paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                              paramanager.allocparaloc(exprasmlist,paraloc2);
+                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2);
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
+                              paramanager.allocparaloc(exprasmlist,paraloc1);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
+                              paramanager.freeparaloc(exprasmlist,paraloc1);
+                              paramanager.freeparaloc(exprasmlist,paraloc2);
                               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              paramanager.freeintparaloc(exprasmlist,2);
-                              paramanager.freeintparaloc(exprasmlist,1);
                               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                            end;
 
@@ -746,14 +766,18 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(exprasmlist,2));
+                              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                              paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                              paramanager.allocparaloc(exprasmlist,paraloc2);
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
+                              paramanager.allocparaloc(exprasmlist,paraloc1);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
+                              paramanager.freeparaloc(exprasmlist,paraloc1);
+                              paramanager.freeparaloc(exprasmlist,paraloc2);
                               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              paramanager.freeintparaloc(exprasmlist,2);
-                              paramanager.freeintparaloc(exprasmlist,1);
                               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                            end;
                          st_shortstring:
@@ -787,7 +811,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-09-07 22:09:35  peter
+  Revision 1.72  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.71  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

@@ -767,7 +767,11 @@ implementation
       var
          a : tasmlabel;
          href2: treference;
+         paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc2:=paramanager.getintparaloc(pocall_default,2);
+         paraloc3:=paramanager.getintparaloc(pocall_default,3);
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
@@ -786,16 +790,18 @@ implementation
               { Push parameters }
               if assigned(right) then
                 begin
+                  paramanager.allocparaloc(exprasmlist,paraloc3);
                   if assigned(frametree) then
                     begin
                       location_release(exprasmlist,frametree.location);
-                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(exprasmlist,3))
+                      cg.a_param_loc(exprasmlist,frametree.location,paraloc3)
                     end
                   else
-                    cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,3));
+                    cg.a_param_const(exprasmlist,OS_INT,0,paraloc3);
                   { push address }
                   location_release(exprasmlist,right.location);
-                  cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
+                  paramanager.allocparaloc(exprasmlist,paraloc2);
+                  cg.a_param_loc(exprasmlist,right.location,paraloc2);
                 end
               else
                 begin
@@ -804,18 +810,21 @@ implementation
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
                    { push current frame }
-                   cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paramanager.getintparaloc(exprasmlist,3));
+                   paramanager.allocparaloc(exprasmlist,paraloc3);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
                    { push current address }
+                   paramanager.allocparaloc(exprasmlist,paraloc2);
                    if target_info.system <> system_powerpc_macos then
-                     cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2))
+                     cg.a_paramaddr_ref(exprasmlist,href2,paraloc2)
                    else
-                     cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,2));
+                     cg.a_param_const(exprasmlist,OS_INT,0,paraloc2);
                 end;
               location_release(exprasmlist,left.location);
-              cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
-              paramanager.freeintparaloc(exprasmlist,3);
-              paramanager.freeintparaloc(exprasmlist,2);
-              paramanager.freeintparaloc(exprasmlist,1);
+              paramanager.allocparaloc(exprasmlist,paraloc1);
+              cg.a_param_loc(exprasmlist,left.location,paraloc1);
+              paramanager.freeparaloc(exprasmlist,paraloc1);
+              paramanager.freeparaloc(exprasmlist,paraloc2);
+              paramanager.freeparaloc(exprasmlist,paraloc3);
               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -861,13 +870,16 @@ implementation
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     procedure cleanupobjectstack;
-
+      var
+        paraloc1 : tparalocation;
       begin
          rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
-         cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paramanager.getintparaloc(exprasmlist,1));
-         paramanager.freeintparaloc(exprasmlist,1);
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.allocparaloc(exprasmlist,paraloc1);
+         cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+         paramanager.freeparaloc(exprasmlist,paraloc1);
          rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -894,7 +906,7 @@ implementation
          exceptflowcontrol : tflowcontrol;
          tempbuf,tempaddr : treference;
          href : treference;
-
+         paraloc1 : tparalocation;
       label
          errorexit;
       begin
@@ -973,8 +985,10 @@ implementation
               { FPC_CATCHES must be called with
                 'default handler' flag (=-1)
               }
-              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(exprasmlist,1));
-              paramanager.freeintparaloc(exprasmlist,1);
+              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+              paramanager.allocparaloc(exprasmlist,paraloc1);
+              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paraloc1);
+              paramanager.freeparaloc(exprasmlist,paraloc1);
               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -999,8 +1013,10 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
 
-              cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paramanager.getintparaloc(exprasmlist,1));
-              paramanager.freeintparaloc(exprasmlist,1);
+              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+              paramanager.allocparaloc(exprasmlist,paraloc1);
+              cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+              paramanager.freeparaloc(exprasmlist,paraloc1);
               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -1124,7 +1140,7 @@ implementation
          tempbuf,tempaddr : treference;
          href : treference;
          href2: treference;
-
+         paraloc1 : tparalocation;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -1134,8 +1150,10 @@ implementation
 
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
-         cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,1));
-         paramanager.freeintparaloc(exprasmlist,1);
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.allocparaloc(exprasmlist,paraloc1);
+         cg.a_paramaddr_ref(exprasmlist,href2,paraloc1);
+         paramanager.freeparaloc(exprasmlist,paraloc1);
          rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
          rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -1182,8 +1200,10 @@ implementation
          rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
          rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
-         cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paramanager.getintparaloc(exprasmlist,1));
-         paramanager.freeintparaloc(exprasmlist,1);
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.allocparaloc(exprasmlist,paraloc1);
+         cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+         paramanager.freeparaloc(exprasmlist,paraloc1);
          rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -1409,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-09-07 22:09:35  peter
+  Revision 1.80  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.79  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

@@ -1134,21 +1134,29 @@ unit cgobj;
 
 
     procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
+      var
+        paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
 {$ifdef FPC}
         {$warning FIX ME!}
 {$endif}
-        a_paramaddr_ref(list,dest,paramanager.getintparaloc(list,3));
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
+        paraloc2:=paramanager.getintparaloc(pocall_default,2);
+        paraloc3:=paramanager.getintparaloc(pocall_default,3);
+        paramanager.allocparaloc(list,paraloc3);
+        a_paramaddr_ref(list,dest,paraloc3);
+        paramanager.allocparaloc(list,paraloc2);
         if loadref then
-          a_param_ref(list,OS_ADDR,source,paramanager.getintparaloc(list,2))
+          a_param_ref(list,OS_ADDR,source,paraloc2)
         else
-          a_paramaddr_ref(list,source,paramanager.getintparaloc(list,2));
+          a_paramaddr_ref(list,source,paraloc2);
         if delsource then
          reference_release(list,source);
-        a_param_const(list,OS_INT,len,paramanager.getintparaloc(list,1));
-        paramanager.freeintparaloc(list,3);
-        paramanager.freeintparaloc(list,2);
-        paramanager.freeintparaloc(list,1);
+        paramanager.allocparaloc(list,paraloc1);
+        a_param_const(list,OS_INT,len,paraloc1);
+        paramanager.freeparaloc(list,paraloc3);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
         rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
         rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1159,7 +1167,10 @@ unit cgobj;
       var
         href : treference;
         incrfunc : string;
+        paraloc1,paraloc2 : tparalocation;
       begin
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc2:=paramanager.getintparaloc(pocall_default,2);
          { These functions should not change the registers (they use
            the saveregister proc directive }
          if is_interfacecom(t) then
@@ -1176,8 +1187,9 @@ unit cgobj;
          if incrfunc<>'' then
           begin
             { these functions get the pointer by value }
-            a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1));
-            paramanager.freeintparaloc(list,1);
+            paramanager.allocparaloc(list,paraloc1);
+            a_param_ref(list,OS_ADDR,ref,paraloc1);
+            paramanager.freeparaloc(list,paraloc1);
             rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,incrfunc);
             rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1185,13 +1197,15 @@ unit cgobj;
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+            paramanager.allocparaloc(list,paraloc2);
+            a_paramaddr_ref(list,href,paraloc2);
+            paramanager.allocparaloc(list,paraloc1);
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
+              a_param_ref(list,OS_ADDR,ref,paraloc1)
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-            paramanager.freeintparaloc(list,1);
-            paramanager.freeintparaloc(list,2);
+              a_paramaddr_ref(list,ref,paraloc1);
+            paramanager.freeparaloc(list,paraloc1);
+            paramanager.freeparaloc(list,paraloc2);
             rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_ADDREF');
             rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1204,7 +1218,10 @@ unit cgobj;
         href : treference;
         decrfunc : string;
         needrtti : boolean;
+        paraloc1,paraloc2 : tparalocation;
       begin
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc2:=paramanager.getintparaloc(pocall_default,2);
          needrtti:=false;
          if is_interfacecom(t) then
           decrfunc:='FPC_INTF_DECR_REF'
@@ -1225,29 +1242,33 @@ unit cgobj;
             if needrtti then
              begin
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-               a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+               paramanager.allocparaloc(list,paraloc2);
+               a_paramaddr_ref(list,href,paraloc2);
              end;
+            paramanager.allocparaloc(list,paraloc1);
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
+              a_param_ref(list,OS_ADDR,ref,paraloc1)
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-            paramanager.freeintparaloc(list,1);
+              a_paramaddr_ref(list,ref,paraloc1);
+            paramanager.freeparaloc(list,paraloc1);
+            if needrtti then
+              paramanager.freeparaloc(list,paraloc2);
             rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,decrfunc);
             rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
-            if needrtti then
-              paramanager.freeintparaloc(list,2);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+            paramanager.allocparaloc(list,paraloc2);
+            a_paramaddr_ref(list,href,paraloc2);
+            paramanager.allocparaloc(list,paraloc1);
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
+              a_param_ref(list,OS_ADDR,ref,paraloc1)
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-            paramanager.freeintparaloc(list,1);
-            paramanager.freeintparaloc(list,2);
+              a_paramaddr_ref(list,ref,paraloc1);
+            paramanager.freeparaloc(list,paraloc1);
+            paramanager.freeparaloc(list,paraloc2);
             rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_DECREF');
             rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1258,7 +1279,10 @@ unit cgobj;
     procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
       var
          href : treference;
+         paraloc1,paraloc2 : tparalocation;
       begin
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc2:=paramanager.getintparaloc(pocall_default,2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
@@ -1266,13 +1290,15 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+              paramanager.allocparaloc(list,paraloc2);
+              a_paramaddr_ref(list,href,paraloc2);
+              paramanager.allocparaloc(list,paraloc1);
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
+                a_param_ref(list,OS_ADDR,ref,paraloc1)
               else
-                a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-              paramanager.freeintparaloc(list,1);
-              paramanager.freeintparaloc(list,2);
+                a_paramaddr_ref(list,ref,paraloc1);
+              paramanager.freeparaloc(list,paraloc1);
+              paramanager.freeparaloc(list,paraloc2);
               rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_INITIALIZE');
               rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1283,7 +1309,10 @@ unit cgobj;
     procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
       var
          href : treference;
+         paraloc1,paraloc2 : tparalocation;
       begin
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc2:=paramanager.getintparaloc(pocall_default,2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
@@ -1291,13 +1320,15 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+              paramanager.allocparaloc(list,paraloc2);
+              a_paramaddr_ref(list,href,paraloc2);
+              paramanager.allocparaloc(list,paraloc1);
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
+                a_param_ref(list,OS_ADDR,ref,paraloc1)
               else
-                a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-              paramanager.freeintparaloc(list,1);
-              paramanager.freeintparaloc(list,2);
+                a_paramaddr_ref(list,ref,paraloc1);
+              paramanager.freeparaloc(list,paraloc1);
+              paramanager.freeparaloc(list,paraloc2);
               rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_FINALIZE');
               rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1416,11 +1447,14 @@ unit cgobj;
 
 
     procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
-
+      var
+        paraloc1 : tparalocation;
       begin
-         a_param_const(list,OS_32,stackframesize,paramanager.getintparaloc(list,1));
+         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.allocparaloc(list,paraloc1);
+         a_param_const(list,OS_32,stackframesize,paraloc1);
+         paramanager.freeparaloc(list,paraloc1);
          a_call_name(list,'FPC_STACKCHECK');
-         paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1439,15 +1473,18 @@ unit cgobj;
     procedure tcg.g_maybe_testself(list : taasmoutput;reg:tregister);
       var
         OKLabel : tasmlabel;
+        paraloc1 : tparalocation;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
            objectlibrary.getlabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           a_param_const(list,OS_INT,210,paramanager.getintparaloc(list,1));
+           paraloc1:=paramanager.getintparaloc(pocall_default,1);
+           paramanager.allocparaloc(list,paraloc1);
+           a_param_const(list,OS_INT,210,paraloc1);
+           paramanager.freeparaloc(list,paraloc1);
            a_call_name(list,'FPC_HANDLEERROR');
-           paramanager.freeintparaloc(list,1);
            a_label(list,oklabel);
          end;
       end;
@@ -1456,14 +1493,19 @@ unit cgobj;
     procedure tcg.g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
       var
         hrefvmt : treference;
+        paraloc1,paraloc2 : tparalocation;
       begin
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
+        paraloc2:=paramanager.getintparaloc(pocall_default,2);
         if (cs_check_object in aktlocalswitches) then
          begin
            reference_reset_symbol(hrefvmt,objectlibrary.newasmsymboldata(objdef.vmt_mangledname),0);
-           a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(list,2));
-           a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
-           paramanager.freeintparaloc(list,2);
-           paramanager.freeintparaloc(list,1);
+           paramanager.allocparaloc(list,paraloc2);
+           a_paramaddr_ref(list,hrefvmt,paraloc2);
+           paramanager.allocparaloc(list,paraloc1);
+           a_param_reg(list,OS_ADDR,reg,paraloc1);
+           paramanager.freeparaloc(list,paraloc1);
+           paramanager.freeparaloc(list,paraloc2);
            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1471,8 +1513,9 @@ unit cgobj;
         else
          if (cs_check_range in aktlocalswitches) then
           begin
-            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
-            paramanager.freeintparaloc(list,1);
+            paramanager.allocparaloc(list,paraloc1);
+            a_param_reg(list,OS_ADDR,reg,paraloc1);
+            paramanager.freeparaloc(list,paraloc1);
             rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_CHECK_OBJECT');
             rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1539,7 +1582,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.120  2003-09-09 20:59:27  daniel
+  Revision 1.121  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.120  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.119  2003/09/07 22:09:34  peter

@@ -266,6 +266,7 @@ implementation
          hdenom : tregister;
          power : longint;
          hl : tasmlabel;
+         paraloc1 : tparalocation;
       begin
          secondpass(left);
          if codegenerror then
@@ -329,7 +330,10 @@ implementation
                   }
                   objectlibrary.getlabel(hl);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_NE,0,hdenom,hl);
-                  cg.a_param_const(exprasmlist,OS_S32,200,paramanager.getintparaloc(exprasmlist,1));
+                  paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                  paramanager.allocparaloc(exprasmlist,paraloc1);
+                  cg.a_param_const(exprasmlist,OS_S32,200,paraloc1);
+                  paramanager.freeparaloc(exprasmlist,paraloc1);
                   cg.a_call_name(exprasmlist,'FPC_HANDLERROR');
                   cg.a_label(exprasmlist,hl);
                   if nodetype = modn then
@@ -498,7 +502,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 15:55:00  peter
+  Revision 1.18  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.17  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.16  2003/09/03 11:18:37  florian

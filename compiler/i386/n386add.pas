@@ -329,7 +329,8 @@ interface
 
 
     procedure ti386addnode.second_addstring;
-
+      var
+        paraloc1,paraloc2 : tparalocation;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -340,16 +341,20 @@ interface
                 case nodetype of
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
+                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                       paraloc2:=paramanager.getintparaloc(pocall_default,2);
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(exprasmlist,2));
+                       paramanager.allocparaloc(exprasmlist,paraloc2);
+                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(exprasmlist,1));
+                       paramanager.allocparaloc(exprasmlist,paraloc1);
+                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
+                       paramanager.freeparaloc(exprasmlist,paraloc1);
+                       paramanager.freeparaloc(exprasmlist,paraloc2);
                        rg.allocexplicitregistersint(exprasmlist,[first_int_supreg..last_int_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       paramanager.freeintparaloc(exprasmlist,2);
-                       paramanager.freeintparaloc(exprasmlist,1);
                        rg.deallocexplicitregistersint(exprasmlist,[first_int_supreg..last_int_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
@@ -1446,7 +1451,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-09-03 15:55:01  peter
+  Revision 1.77  2003-09-10 08:31:48  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.76  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.75.2.2  2003/08/31 13:50:16  daniel

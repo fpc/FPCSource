@@ -257,26 +257,35 @@ implementation
     procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
 
-     begin
-       cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(list,3));
-       cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(list,2));
-       { push type of exceptionframe }
-       cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(list,1));
-       paramanager.freeintparaloc(list,3);
-       paramanager.freeintparaloc(list,2);
-       paramanager.freeintparaloc(list,1);
-       rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
-       cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
-       rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+      var
+        paraloc1,paraloc2,paraloc3 : tparalocation;
+      begin
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
+        paraloc2:=paramanager.getintparaloc(pocall_default,2);
+        paraloc3:=paramanager.getintparaloc(pocall_default,3);
+        paramanager.allocparaloc(list,paraloc3);
+        cg.a_paramaddr_ref(list,envbuf,paraloc3);
+        paramanager.allocparaloc(list,paraloc2);
+        cg.a_paramaddr_ref(list,jmpbuf,paraloc2);
+        { push type of exceptionframe }
+        paramanager.allocparaloc(list,paraloc1);
+        cg.a_param_const(list,OS_S32,1,paraloc1);
+        paramanager.freeparaloc(list,paraloc3);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
+        rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+        rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
 
-       cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paramanager.getintparaloc(list,1));
-       paramanager.freeintparaloc(list,1);
-       rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
-       cg.a_call_name(list,'FPC_SETJMP');
-       rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+        paramanager.allocparaloc(list,paraloc1);
+        cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+        paramanager.freeparaloc(list,paraloc1);
+        rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+        cg.a_call_name(list,'FPC_SETJMP');
+        rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
 
-       cg.g_exception_reason_save(list, href);
-       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,NR_FUNCTION_RESULT_REG,exceptlabel);
+        cg.g_exception_reason_save(list, href);
+        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,NR_FUNCTION_RESULT_REG,exceptlabel);
      end;
 
 
@@ -1029,7 +1038,9 @@ implementation
       var
         hp : ptemprecord;
         href : treference;
+        paraloc1 : tparalocation;
       begin
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
         hp:=tg.templist;
         while assigned(hp) do
          begin
@@ -1038,8 +1049,9 @@ implementation
              tt_freeansistring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 paramanager.freeintparaloc(list,1);
+                 paramanager.allocparaloc(list,paraloc1);
+                 cg.a_paramaddr_ref(list,href,paraloc1);
+                 paramanager.freeparaloc(list,paraloc1);
                  rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
                  rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1048,8 +1060,9 @@ implementation
              tt_freewidestring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 paramanager.freeintparaloc(list,1);
+                 paramanager.allocparaloc(list,paraloc1);
+                 cg.a_paramaddr_ref(list,href,paraloc1);
+                 paramanager.freeparaloc(list,paraloc1);
                  rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                  rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1057,8 +1070,9 @@ implementation
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 paramanager.freeintparaloc(list,1);
+                 paramanager.allocparaloc(list,paraloc1);
+                 cg.a_paramaddr_ref(list,href,paraloc1);
+                 paramanager.freeparaloc(list,paraloc1);
                  rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
                  rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
@@ -1218,6 +1232,7 @@ implementation
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
       var
         href : treference;
+        paraloc1,paraloc2 : tparalocation;
       begin
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
@@ -1281,11 +1296,15 @@ implementation
                  (cs_profile in aktmoduleswitches) then
                begin
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+                 paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                 paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                 paramanager.allocparaloc(list,paraloc2);
+                 cg.a_paramaddr_ref(list,href,paraloc2);
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 paramanager.freeintparaloc(list,2);
-                 paramanager.freeintparaloc(list,1);
+                 paramanager.allocparaloc(list,paraloc1);
+                 cg.a_paramaddr_ref(list,href,paraloc1);
+                 paramanager.freeparaloc(list,paraloc2);
+                 paramanager.freeparaloc(list,paraloc1);
                  rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
                  cg.a_call_name(list,'_monstartup');
                  rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
@@ -1805,7 +1824,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2003-09-07 22:09:35  peter
+  Revision 1.141  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.140  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

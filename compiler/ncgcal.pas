@@ -42,6 +42,7 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
+          framepointer_paraloc : tparalocation;
           procedure release_para_temps;
           procedure normal_pass_2;
           procedure inlined_pass_2;
@@ -344,23 +345,25 @@ implementation
         href : treference;
         hregister : tregister;
       begin
+        framepointer_paraloc:=paramanager.getintparaloc(procdefinition.proccalloption,1);
+        paramanager.allocparaloc(exprasmlist,framepointer_paraloc);
         { this routine is itself not nested }
         if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.parent_framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
+            cg.a_param_ref(exprasmlist,OS_ADDR,href,framepointer_paraloc);
           end
         { one nesting level }
         else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
           begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(exprasmlist,1));
+            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,framepointer_paraloc);
           end
         { very complex nesting level ... }
        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
             cg.g_load_parent_framepointer(exprasmlist,tprocdef(procdefinition).parast,hregister);
-            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(exprasmlist,1));
+            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,framepointer_paraloc);
             rg.ungetaddressregister(exprasmlist,hregister);
           end;
       end;
@@ -368,7 +371,7 @@ implementation
 
     procedure tcgcallnode.free_pushed_framepointer;
       begin
-        paramanager.freeintparaloc(exprasmlist,1);
+        paramanager.freeparaloc(exprasmlist,framepointer_paraloc);
       end;
 
 
@@ -1331,7 +1334,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2003-09-07 22:09:35  peter
+  Revision 1.112  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.111  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

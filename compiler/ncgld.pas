@@ -69,7 +69,7 @@ implementation
         newsize : tcgsize;
         dorelocatelab,
         norelocatelab : tasmlabel;
-        paraloc: tparalocation;
+        paraloc1 : tparalocation;
       begin
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
@@ -130,7 +130,8 @@ implementation
                        objectlibrary.getlabel(dorelocatelab);
                        objectlibrary.getlabel(norelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
-                       paraloc := paramanager.getintparaloc(exprasmlist,1);
+                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                       paramanager.allocparaloc(exprasmlist,paraloc1);
                        { we've to allocate the register before we save the used registers }
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
@@ -146,11 +147,11 @@ implementation
                        cg.a_label(exprasmlist,dorelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc);
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
-                       paramanager.freeintparaloc(exprasmlist,1);
+                       paramanager.freeparaloc(exprasmlist,paraloc1);
                        r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
@@ -666,6 +667,7 @@ implementation
         dovariant : boolean;
         elesize : longint;
         tmpreg  : tregister;
+        paraloc : tparalocation;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
@@ -673,19 +675,24 @@ implementation
         else
          elesize:=tarraydef(resulttype.def).elesize;
         if nf_cargs in flags then
-         location_reset(location,LOC_VOID,OS_NO)
+          begin
+            location_reset(location,LOC_VOID,OS_NO);
+            { Retrieve parameter location for push }
+            paraloc:=paramanager.getintparaloc(pocall_cdecl,1);
+          end
         else
-         location_reset(location,LOC_CREFERENCE,OS_NO);
-        if not(nf_cargs in flags) then
-         begin
-           { Allocate always a temp, also if no elements are required, to
-             be sure that location is valid (PFV) }
-            if tarraydef(resulttype.def).highrange=-1 then
-              tg.GetTemp(exprasmlist,elesize,tt_normal,location.reference)
-            else
-              tg.GetTemp(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
-            href:=location.reference;
-         end;
+          begin
+            location_reset(location,LOC_CREFERENCE,OS_NO);
+            fillchar(paraloc,sizeof(paraloc),0);
+            { Allocate always a temp, also if no elements are required, to
+              be sure that location is valid (PFV) }
+             if tarraydef(resulttype.def).highrange=-1 then
+               tg.GetTemp(exprasmlist,elesize,tt_normal,location.reference)
+             else
+               tg.GetTemp(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
+             href:=location.reference;
+          end;
+        { Process nodes in array constructor }
         hp:=self;
         while assigned(hp) do
          begin
@@ -796,7 +803,7 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
-                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paralocdummy);
+                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paraloc);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
@@ -804,10 +811,10 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(exprasmlist,hp.left,pocall_cdecl,0,4,paralocdummy)
+                        push_value_para(exprasmlist,hp.left,pocall_cdecl,0,4,paraloc)
                     else
                       begin
-                        cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
+                        cg.a_param_loc(exprasmlist,hp.left.location,paraloc);
                         inc(pushedparasize,pointer_size);
                       end;
                   end
@@ -881,7 +888,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-09-03 15:55:00  peter
+  Revision 1.80  2003-09-10 08:31:47  marco
+   * Patch from Peter for paraloc
+
+  Revision 1.79  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.78  2003/09/03 11:18:37  florian

@@ -72,15 +72,7 @@ unit paramgr;
           }
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;virtual;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;virtual;
-          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;virtual;abstract;
-
-          {# frees a parameter location allocated with getintparaloc
-
-            @param(list Current assembler list)
-            @param(nr Parameter number of routine, starting from 1)
-          }
-          procedure freeintparaloc(list: taasmoutput; nr : longint); virtual; abstract;
-
+          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;virtual;abstract;
 
           {# allocate a parameter location created with create_paraloc_info
 
@@ -115,7 +107,6 @@ unit paramgr;
 
 
     var
-       paralocdummy : tparalocation;
        paramanager : tparamanager;
 
 
@@ -362,7 +353,10 @@ end.
 
 {
    $Log$
-   Revision 1.53  2003-09-07 22:09:35  peter
+   Revision 1.54  2003-09-10 08:31:47  marco
+    * Patch from Peter for paraloc
+
+   Revision 1.53  2003/09/07 22:09:35  peter
      * preparations for different default calling conventions
      * various RA fixes
 
