@@ -105,8 +105,6 @@ unit cobjects;
           first,last : plinkedlist_item;
           constructor init;
           destructor done;
-          { destructors the linkedlist without cleaning the items up }
-          destructor done_noclear;
 
           { disposes the items of the list }
           procedure clear;
@@ -1121,11 +1119,6 @@ end;
 
       begin
          clear;
-      end;
-
-    destructor tlinkedlist.done_noclear;
-
-      begin
       end;
 
     procedure tlinkedlist.clear;
@@ -2411,7 +2404,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-02 19:49:58  peter
+  Revision 1.4  2000-08-06 19:42:40  peter
+    * removed note
+
+  Revision 1.3  2000/08/02 19:49:58  peter
     * first things for default parameters
 
   Revision 1.2  2000/07/13 11:32:38  michael
