@@ -116,7 +116,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  
    addl  $20,%esp
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;[public,alias:'FPC_DOSYS6'];
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;  assembler;[public,alias:'FPC_DOSYS6'];
 
 asm
    movl  sysnr,%eax
