@@ -4375,8 +4375,10 @@ with Borland or Turbo Pascal.
 Functions are listed in alphabetical order. Arguments of functions or 
 procedures that are optional are put between square brackets.
 
-The pre-defined constants and variables are listed in the first section. The
-second section contains the supported functions and procedures.
+The pre-defined constants and variables are listed in the first section. 
+The second section contains an overview of all functions, grouped by
+functionality, and the last section contains the supported functions
+and procedures.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Types, Constants and Variables
@@ -4696,6 +4698,146 @@ The randomize function uses a seed stored in the \var{RandSeed} variable:
   RandSeed    : Cardinal;
 \end{verbatim}
 This variable is initialized in the initialization code of the system unit.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and Procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+\subsection{File handling}
+Functions concerning input and output from and to file.
+\begin{funclist}
+\procref{Append}{Open a file in append mode}
+\procref{Assign}{Assign a name to a file}
+\procref{Blockread}{Read data from a file into memory}
+\procref{Blockwrite}{Write data from memory to a file}
+\procref{Close}{Close a file}
+\funcref{Eof}{Check for end of file}
+\funcref{Eoln}{Check for end of line}
+\procref{Erase}{Delete  file from disk}
+\funcref{Filepos}{Position in file}
+\funcref{Filesize}{Size of file}
+\procref{Flush}{Write file buffers to disk}
+\funcref{IOresult}{Return result of last file IO operation}
+\procref{Read}{Read from file into variable}
+\procref{Readln}{Read from file into variable and goto next line}
+\procref{Rename}{Rename file on disk}
+\procref{Reset}{Open file for reading}
+\procref{Rewrite}{Open file for writing}
+\procref{Seek}{Set file position}
+\funcref{SeekEof}{Set file position to end of file}
+\funcref{SeekEoln}{Set file position to end of line}
+\procref{SetTextBuf}{Set size of file buffer}
+\procref{Truncate}{Truncate the file at position}
+\procref{Write}{Write variable to file}
+\procref{WriteLn}{Write variable to file and append newline}
+\end{funclist}
+
+\subsection{Memory management}
+Functions concerning memory issues.
+\begin{funclist}
+\funcref{Addr}{Return address of variable}
+\funcref{Assigned}{Check if a pointer is valid}
+\funcref{CSeg}{Return code segment}
+\procref{Dispose}{Free dynamically allocated memory}
+\funcref{DSeg}{Return data segment}
+\procref{Fillchar}{Fill memory region with certain character}
+\procref{Fillword}{Fill memory region with 16 bit pattern}
+\procref{Freemem}{Release allocated memory}
+\procref{Getmem}{Allocate new memory}
+\procref{GetMemoryManager}{Return current memory manager}
+\funcref{High}{Return highest index of open array or enumerated}
+\funcref{IsMemoryManagerSet}{Is the memory manager set}
+\funcref{Low}{Return lowest index of open array or enumerated}
+\procref{Mark}{Mark current memory position}
+\funcref{Maxavail}{Return size of largest free memory block}
+\funcref{Memavail}{Return total available memory}
+\procref{Move}{Move data from one location in memory to another}
+\procref{New}{Dynamically allocate memory for variable}
+\funcref{Ofs}{Return offset of variable}
+\funcref{Ptr}{Combine segmant and offset to pointer}
+\procref{Release}{Release memory above mark point}
+\funcref{Seg}{Return segment}
+\procref{SetMemoryManager}{Set a memory manager}
+\funcref{Sptr}{Return current stack pointer}
+\funcref{SSeg}{Return ESS register value}
+\end{funclist}
+
+\subsection{Mathematical routines}
+Functions connected to calculating and coverting numbers.
+\begin{funclist}
+\funcref{Abs}{Calculate absolute value}
+\funcref{Arctan}{Calculate inverse tangent}
+\funcref{Cos}{Calculate cosine of angle}
+\procref{Dec}{Decrease value of variable}
+\funcref{Exp}{Exponentiate}
+\funcref{Frac}{Return fractional part of floating point value}
+\funcref{Hi}{Return high byte/word of value}
+\procref{Inc}{Increase value of variable}
+\funcref{Int}{Calculate integer part of floating point value}
+\funcref{Ln}{Calculate logarithm}
+\funcref{Lo}{Return low byte/word of value}
+\funcref{Odd}{Is a value odd or even ? }
+\funcref{Pi}{Return the value of pi}
+\funcref{Power}{Raise float to integer power}
+\funcref{Random}{Generate random number}
+\procref{Randomize}{Initialize random number generator}
+\funcref{Round}{Round floating point value to nearest integer number}
+\funcref{Sin}{Calculate sine of angle}
+\funcref{Sqr}{Calculate the square of a value}
+\funcref{Sqrt}{Calculate the square root of a value}
+\funcref{Swap}{Swap high and low bytes/words of a variable}
+\funcref{Trunc}{Truncate a floating point value}
+\end{funclist}
+
+\subsection{String handling}
+All things connected to string handling.
+\begin{funclist}
+\funcref{BinStr}{Construct binary representation of integer}
+\funcref{Chr}{Convert ASCII code to character}
+\funcref{Concat}{Concatenate two strings}
+\funcref{Copy}{Copy part of a string}
+\procref{Delete}{Delete part of a string}
+\funcref{HexStr}{Construct hexadecimal representation of integer}
+\procref{Insert}{Insert one string in another}
+\funcref{Length}{Return length of string}
+\funcref{Lowercase}{Convert string to all-lowercase}
+\funcref{Pos}{Calculate position of one string in another}
+\procref{SetLength}{Set length of a string}
+\procref{Str}{Convert number to string representation}
+\funcref{StringOfChar}{Create string consisting of a number of characters}
+\funcref{Upcase}{Convert string to all-uppercase}
+\procref{Val}{Convert string to number}
+\end{funclist}
+
+\subsection{Operating System functions}
+Functions that are connected to the operating system.
+\begin{funclist}
+\procref{Chdir}{Change working directory}
+\procref{Getdir}{Return current working directory}
+\procref{Halt}{Halt program execution}
+\funcref{Paramcount}{Number of parameters with which program was called}
+\funcref{Paramstr}{Retrieve parameters with which program was called}
+\procref{Mkdir}{Make a directory}
+\procref{Rmdir}{Remove a directory}
+\procref{Runerror}{Abort program execution with error condition}
+\end{funclist}
+
+\subsection{Miscellaneous functions}
+Functions that do not belong in one of the other categories.
+\begin{funclist}
+\procref{Break}{Abort current loop}
+\procref{Continue}{Next cycle in current loop}
+\procref{Exit}{Exit current function or procedure}
+\procref{LongJmp}{Jump to execution point}
+\funcref{Ord}{Return ordinal value of enumerated type}
+\funcref{Pred}{Return previous value of ordinal type}
+\funcref{SetJmp}{Mark execution point for jump}
+\funcref{SizeOf}{Return size of variable or type}
+\funcref{Succ}{Return next value of ordinal type}
+\end{funclist}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and Procedures
@@ -6028,7 +6170,7 @@ created.
 
 Contrary to \tp, \fpc opens the file with mode \var{fmoutput}. If you want
 to get it in \var{fminout} mode, you'll need to do an extra call to 
-\seef{Reset}.
+\seep{Reset}.
 
 \Errors
 If the file cannot be opened for writing, then a run-time error is

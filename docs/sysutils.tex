@@ -27,7 +27,8 @@ the latter, it is designed to work on multiple platforms. It is implemented
 on all supported platforms.
 
 This chapter starts out with a definition of all types and constants 
-that are defined, followed by a complete explanation of each function.
+that are defined, followed by an overview of functions grouped by
+functionality, and lastly the complete explanation of each function.
 
 \section{Constants and types}
 
@@ -196,6 +197,158 @@ Const
   OsDirSeparator = '\';
 {$endif}
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+
+\subsection{String functions}
+Functions for handling strings.
+\begin{funclist}
+\funcref{AnsiCompareStr}{Compare two strings}
+\funcref{AnsiCompareText}{Compare two strings, case insensitive}
+\funcref{AnsiExtractQuotedStr}{Removes quotes from string}
+\funcref{AnsiLastChar}{Get last character of string}
+\funcref{AnsiLowerCase}{Convert string to all-lowercase}
+\funcref{AnsiQuotedStr}{Qoutes a string}
+\funcref{AnsiStrComp}{Compare strings case-sensitive}
+\funcref{AnsiStrIComp}{Compare strings case-insensitive}
+\funcref{AnsiStrLComp}{Compare L characters of strings case sensitive}
+\funcref{AnsiStrLIComp}{Compare L characters of strings case insensitive}
+\funcref{AnsiStrLastChar}{Get last character of string}
+\funcref{AnsiStrLower}{Convert string to all-lowercase}
+\funcref{AnsiStrUpper}{Convert string to all-uppercase}
+\funcref{AnsiUpperCase}{Convert string to all-uppercase}
+\procref{AppendStr}{Append 2 strings}
+\procref{AssignStr}{Assign value of strings on heap}
+\funcref{CompareStr}{Compare two strings case sensitive}
+\funcref{CompareText}{Compare two strings case insensitive}
+\procrefl{DisposeStr}{DisposeStrSys}{Remove string from heap}
+\funcref{IsValidIdent}{Is string a valid pascal identifier}
+\funcref{LeftStr}{Get first N characters of a string}
+\funcref{LoadStr}{Load string from resources}
+\funcref{LowerCase}{Convert string to all-lowercase}
+\funcrefl{NewStr}{NewStrSys}{Allocate new string on heap}
+\funcref{RightStr}{Get last N characters of a string}
+\funcrefl{StrAlloc}{StrAllocSys}{Allocate memory for string}
+\funcref{StrBufSize}{Reserve memory for a string}
+\procrefl{StrDispose}{StrDisposeSys}{Remove string from heap}
+\funcrefl{StrPas}{StrPasSys}{Convert PChar to pascal string}
+\funcrefl{StrPCopy}{StrPCopySys}{Copy pascal string}
+\funcrefl{StrPLCopy}{StrPLCopySys}{Copy N bytes of pascal string}
+\funcref{UpperCase}{Convert string to all-uppercase}
+\end{funclist}
+
+\subsection{Formatting strings}
+Functions for formatting strings. 
+\begin{funclist}
+\funcref{AdjustLineBreaks}{Convert line breaks to line breaks for system}
+\funcref{FormatBuf}{Format a buffer}
+\funcref{Format}{Format arguments in string}
+\procref{FmtStr}{Format buffer}
+\funcref{QuotedStr}{Quote a string}
+\funcref{StrFmt}{Format arguments in a string}
+\funcref{StrLFmt}{Format maximum L characters in a string}
+\funcref{TrimLeft}{Remove whitespace at the left of a string}
+\funcref{TrimRight}{Remove whitespace at the right of a string}
+\funcref{Trim}{Remove whitespace at both ends of a string}
+\end{funclist}
+
+\subsection{File input/output routines}
+Functions for reading/writing to file.
+\begin{funclist}
+\funcref{FileCreate}{Create a file and return handle}
+\funcref{FileOpen}{Open file end return handle}
+\funcref{FileRead}{Read from file}
+\funcref{FileSeek}{Set file position}
+\funcref{FileTruncate}{Truncate file length}
+\funcref{FileWrite}{Write to file}
+\procref{FileClose}{Close file handle}
+\end{funclist}
+
+\subsection{File handling routines}
+Functions for file manipulation.
+\begin{funclist}
+\funcref{AddDisk}{Add sisk to list of disk drives}
+\funcref{ChangeFileExt}{Change extension of file name}
+\funcref{CreateDir}{Create a directory}
+\funcref{DeleteFile}{Delete a file}
+\funcrefl{DiskFree}{DiskFreeSys}{Free space on disk}
+\funcrefl{DiskSize}{DiskSizeSys}{Total size of disk}
+\funcref{ExpandFileName}{Create full file name}
+\funcref{ExpandUNCFileName}{Create full UNC file name}
+\funcref{ExtractFileDir}{Extract directory part of filename}
+\funcref{ExtractFileDrive}{Extract drive part of filename}
+\funcref{ExtractFileExt}{Extract extension part of filename}
+\funcref{ExtractFileName}{Extract name part of filename}
+\funcref{ExtractFilePath}{Extrct path part of filename}
+\funcref{ExtractRelativePath}{Construct relative path between two files}
+\funcref{FileAge}{Return file age}
+\funcref{FileDateToDateTime}{Convert file date to system date}
+\funcref{FileExists}{Determine whether a file exists on disk}
+\funcref{FileGetAttr}{Get attributes of file}
+\funcref{FileGetDate}{Get date of last file modification}
+\funcref{FileSearch}{Search for file in path}
+\funcrefl{FileSetAttr}{FileSetAttr}{Get file attributes}
+\funcrefl{FileSetDate}{FileSetDate}{Get file dates}
+\funcref{FindFirst}{Start finding a file}
+\funcref{FindNext}{Find next file}
+\funcref{GetCurrentDir}{Return current working directory}
+\funcref{RemoveDir}{Remove a directory from disk}
+\funcref{RenameFile}{Rename a file on disk}
+\funcref{SetCurrentDir}{Set current working directory}
+\funcref{SetDirSeparators}{Set directory separator characters}
+\procrefl{FindClose}{FindCloseSys}{Stop searching a file}
+\procref{DoDirSeparators}{Replace directory separator characters}
+\end{funclist}
+
+\subsection{Date/time routines}
+Functions for date and time handling.
+\begin{funclist}
+\funcref{DateTimeToFileDate}{Convert DateTime type to file date}
+\funcref{DateTimeToStr}{Construct string representation of DateTime}
+\procref{DateTimeToString}{Construct string representation of DateTime}
+\procref{DateTimeToSystemTime}{Convert DateTime to system time}
+\funcref{DateTimeToTimeStamp}{Convert DateTime to timestamp}
+\funcref{DateToStr}{Construct string representation of date}
+\funcref{Date}{Get current date}
+\funcref{DayOfWeek}{Get day of week}
+\procref{DecodeDate}{Decode DateTime to year month and day}
+\procref{DecodeTime}{Decode DateTime to hours, minutes and seconds}
+\funcref{EncodeDate}{Encode year, day and month to DateTime}
+\funcref{EncodeTime}{Encode hours, minutes and seconds to DateTime}
+\funcref{FormatDateTime}{Return string representation of DateTime}
+\funcref{IncMonth}{Add 1 to month}
+\funcref{IsLeapYear}{Determine if year is leap year}
+\funcref{MSecsToTimeStamp}{Convert nr of milliseconds to timestamp}
+\funcref{Now}{Get current date and time}
+\funcref{StrToDateTime}{Convert string to DateTime}
+\funcref{StrToDate}{Convert string to date}
+\funcref{StrToTime}{Convert string to time}
+\funcref{SystemTimeToDateTime}{Convert system time to datetime}
+\funcref{TimeStampToDateTime}{Convert time stamp to DateTime}
+\funcref{TimeStampToMSecs}{Convert Timestamp to number of millicseconds}
+\funcref{TimeToStr}{return string representation of Time}
+\funcref{Time}{Get current tyme}
+\end{funclist}
+
+\section{Miscellaneous conversion routines}
+Functions for various conversions.
+\begin{funclist}
+\funcref{BCDToInt}{Convert BCD number to integer}
+\funcref{CompareMem}{Compare two memory regions}
+\funcref{FloatToStrF}{Convert float to formatted string}
+\funcref{FloatToStr}{Convert float to string}
+\funcref{FloatToText}{Convert float to string}
+\funcref{GetDirs}{Split string in list of directories}
+\funcref{IntToHex}{return hexadecimal representation of integer}
+\funcref{IntToStr}{return decumal representation of integer}
+\funcref{StrToIntDef}{Convert string to integer with default value}
+\funcref{StrToInt}{Convert string to integer}
+\end{funclist}
 
 \section{Date and time functions}
 
