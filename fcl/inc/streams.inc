@@ -15,19 +15,26 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
-  function TStream.GetPosition: Longint;
+  function TStream.GetPosition: Int64;
 
     begin
        Result:=Seek(0,soFromCurrent);
     end;
 
-  procedure TStream.SetPosition(Pos: Longint);
+  procedure TStream.SetPosition(Pos: Int64);
 
     begin
        Seek(pos,soFromBeginning);
     end;
 
-  function TStream.GetSize: Longint;
+  procedure TStream.SetSize64(NewSize: Int64);
+
+    begin
+      // Required because can't use overloaded functions in properties
+      SetSize(NewSize);
+    end;
+
+  function TStream.GetSize: Int64;
 
     var
        p : longint;
@@ -45,6 +52,55 @@
     // As wel as possible read-ony streams !!
     end;
 
+  procedure TStream.SetSize(NewSize: Int64);
+
+    begin
+      // Backwards compatibility that calls the longint SetSize
+      if (NewSize<Low(longint)) or
+         (NewSize>High(longint)) then
+        raise ERangeError.Create(SRangeError);
+      SetSize(longint(NewSize));
+    end;
+
+  function TStream.Seek(Offset: Longint; Origin: Word): Longint;
+
+    type
+      TSeek64 = function(offset:Int64;Origin:TSeekorigin):Int64 of object;
+    var
+      CurrSeek,
+      TStreamSeek : TSeek64;
+      CurrClass   : TClass;
+    begin
+      // Redirect calls to 64bit Seek, but we can't call the 64bit Seek
+      // from TStream, because then we end up in an infinite loop
+      CurrSeek:=nil;
+      CurrClass:=Classtype;
+      while (CurrClass<>nil) and
+            (CurrClass<>TStream) do
+       CurrClass:=CurrClass.Classparent;
+      if CurrClass<>nil then
+       begin
+         CurrSeek:=@Self.Seek;
+         TStreamSeek:=@TStream(CurrClass).Seek;
+         if TMethod(TStreamSeek).Code=TMethod(CurrSeek).Code then
+          CurrSeek:=nil;
+       end;
+      if CurrSeek<>nil then
+       Result:=Seek(Int64(offset),TSeekOrigin(origin))
+      else
+       raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
+    end;
+
+  function TStream.Seek(Offset: Int64; Origin: TSeekorigin): Int64;
+
+    begin
+      // Backwards compatibility that calls the longint Seek
+      if (Offset<Low(longint)) or
+         (Offset>High(longint)) then
+        raise ERangeError.Create(SRangeError);
+      Seek(longint(Offset),ord(Origin));
+    end;
+
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
     begin
@@ -59,10 +115,10 @@
          Raise EWriteError.Create(SWriteError);
     end;
 
-  function TStream.CopyFrom(Source: TStream; Count: Longint): Longint;
+  function TStream.CopyFrom(Source: TStream; Count: Int64): Int64;
 
     var
-       i : longint;
+       i : Int64;
        buffer : array[0..1023] of byte;
 
     begin
@@ -134,13 +190,13 @@
        Driver := TBinaryObjectWriter.Create(Self, 4096);
        Try
          Writer := TWriter.Create(Driver);
-	 Try
+         Try
            Writer.WriteDescendent(Instance, Ancestor);
-	 Finally
-	   Writer.Destroy;
-	 end;
+         Finally
+           Writer.Destroy;
+         end;
        Finally
-	 Driver.Free;
+         Driver.Free;
        end;
 
     end;
@@ -327,6 +383,25 @@ begin
 end;
 
 
+Procedure THandleStream.SetSize(NewSize: Longint);
+
+begin
+  SetSize(Int64(NewSize));
+end;
+
+
+Procedure THandleStream.SetSize(NewSize: Int64);
+
+begin
+  FileTruncate(FHandle,NewSize);
+end;
+
+
+function THandleStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
+
+begin
+  Result:=FileSeek(FHandle,Offset,ord(Origin));
+end;
 
 
 {****************************************************************************}
@@ -349,25 +424,27 @@ begin
 end;
 
 
+constructor TFileStream.Create(const AFileName: string; Mode: Word; Rights: Cardinal);
+
+begin
+  FFileName:=AFileName;
+  If Mode=fmcreate then
+    FHandle:=FileCreate(AFileName)
+  else
+    FHAndle:=FileOpen(AFileName,Mode);
+  If FHandle<0 then
+    If Mode=fmcreate then
+      raise EFCreateError.createfmt(SFCreateError,[AFileName])
+    else
+      raise EFOpenError.Createfmt(SFOpenError,[AFilename]);
+end;
+
+
 destructor TFileStream.Destroy;
 
 begin
   FileClose(FHandle);
 end;
-
-Procedure TFileStream.SetSize(NewSize: Longint);
-
-begin
-  FileTruncate(FHandle,NewSize);
-end;
-
-
-function TFileStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-begin
-  Result:=FileSeek(FHandle,Offset,Origin);
-end;
-
 
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}
@@ -656,7 +733,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-03-08 19:38:32  michael
+  Revision 1.4  2001-10-28 17:16:44  peter
+    * int64 file functions added
+
+  Revision 1.3  2001/03/08 19:38:32  michael
   + Merged changes, fixed stringstream
 
   Revision 1.2  2000/07/13 11:33:00  michael

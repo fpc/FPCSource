@@ -501,18 +501,21 @@ type
 
   TStream = class(TObject)
   private
-    function GetPosition: Longint;
-    procedure SetPosition(Pos: Longint);
-    function GetSize: Longint;
+    function GetPosition: Int64;
+    procedure SetPosition(Pos: Int64);
+    function GetSize: Int64;
+    procedure SetSize64(NewSize: Int64);
   protected
     procedure SetSize(NewSize: Longint); virtual;
+    procedure SetSize(NewSize: Int64); virtual;
   public
     function Read(var Buffer; Count: Longint): Longint; virtual; abstract;
     function Write(const Buffer; Count: Longint): Longint; virtual; abstract;
-    function Seek(Offset: Longint; Origin: Word): Longint; virtual; abstract;
+    function Seek(Offset: Longint; Origin: Word): Longint; virtual;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual;
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
-    function CopyFrom(Source: TStream; Count: Longint): Longint;
+    function CopyFrom(Source: TStream; Count: Int64): Int64;
     function ReadComponent(Instance: TComponent): TComponent;
     function ReadComponentRes(Instance: TComponent): TComponent;
     procedure WriteComponent(Instance: TComponent);
@@ -530,8 +533,8 @@ type
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
     Procedure WriteAnsiString (S : String);
-    property Position: Longint read GetPosition write SetPosition;
-    property Size: Longint read GetSize write SetSize;
+    property Position: Int64 read GetPosition write SetPosition;
+    property Size: Int64 read GetSize write SetSize64;
   end;
 
 {$ifdef HASINTF}
@@ -546,10 +549,14 @@ type
   THandleStream = class(TStream)
   private
     FHandle: Integer;
+  protected
+    procedure SetSize(NewSize: Longint); override;
+    procedure SetSize(NewSize: Int64); override;
   public
     constructor Create(AHandle: Integer);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Handle: Integer read FHandle;
   end;
 
@@ -558,12 +565,10 @@ type
   TFileStream = class(THandleStream)
   Private
     FFileName : String;
-  protected
-    procedure SetSize(NewSize: Longint); override;
   public
     constructor Create(const AFileName: string; Mode: Word);
+    constructor Create(const AFileName: string; Mode: Word; Rights: Cardinal);
     destructor Destroy; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
     property FileName : String Read FFilename;
   end;
 
@@ -1289,7 +1294,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.12  2001-10-23 21:51:02  peter
+  Revision 1.13  2001-10-28 17:16:44  peter
+    * int64 file functions added
+
+  Revision 1.12  2001/10/23 21:51:02  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.11  2001/08/12 22:10:36  peter

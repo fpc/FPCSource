@@ -36,6 +36,8 @@ const
   SDuplicateClass = 'A Class with name %s exists already';
   SNoComSupport = '%s is not registered as COM-Class';
   SLineTooLong = 'Line too long';
+  SRangeError = 'Range error';
+  SSeekNotImplemented = '64bit Seek not implemented for class %s';
 
   SInvalidPropertyValue = 'Invalid property value';
   SInvalidPropertyPath = 'Invalid property path';
@@ -273,7 +275,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2000-12-23 22:54:50  sg
+  Revision 1.5  2001-10-28 17:16:44  peter
+    * int64 file functions added
+
+  Revision 1.4  2000/12/23 22:54:50  sg
   * Fixed SUnknownPropertyType
 
   Revision 1.3  2000/12/22 22:39:36  peter
