@@ -102,6 +102,7 @@ unit files;
 
           map           : punitmap; { mapping of all used units }
           unitcount     : word;     { local unit counter }
+          unit_index    : word;     { global counter for browser }
           symtable      : pointer;  { pointer to the psymtable of this unit }
           output_format : tof;      { how to write this file }
 
@@ -219,6 +220,7 @@ unit files;
     var
        main_module    : pmodule;
        current_module : pmodule;
+       global_unit_count : word;
        loaded_units   : tlinkedlist;
 
 
@@ -300,11 +302,21 @@ unit files;
               dispose(hp,done);
               hp:=files;
            end;
+         last_ref_index:=0;
       end;
 
     procedure tfilemanager.close_all;
 
+      var
+         hp : pextfile;
+
       begin
+         hp:=files;
+         while assigned(hp) do
+           begin
+              hp^.close;
+              hp:=hp^._next;
+           end;
       end;
 
     procedure tfilemanager.register_file(f : pextfile);
@@ -419,6 +431,12 @@ unit files;
              begin
                sources_avail:=false;
                temp:=' library';
+             end
+            else if pos('Macro ',hs)=1 then
+             begin
+               { we don't want to find this file }
+               { but there is a problem with file indexing !! }
+               temp:='';
              end
             else
              begin
@@ -849,6 +867,8 @@ unit files;
          flags:=0;
          crc:=0;
          unitcount:=1;
+         inc(global_unit_count);
+         unit_index:=global_unit_count;
          do_assemble:=false;
          do_compile:=false;
          sources_avail:=true;
@@ -909,7 +929,17 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.11  1998-05-12 10:46:59  peter
+  Revision 1.12  1998-05-20 09:42:33  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.11  1998/05/12 10:46:59  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

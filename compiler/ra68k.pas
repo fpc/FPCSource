@@ -73,7 +73,7 @@ var
 Implementation
 
 uses
-  globals,AsmUtils,strings,hcodegen,scanner,aasm,
+  files,globals,AsmUtils,strings,hcodegen,scanner,aasm,
   cobjects,verbose,symtable;
 
 
@@ -249,6 +249,9 @@ var
     end;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
+    tokenpos.line:=current_module^.current_inputfile^.line_no;
+    tokenpos.column:=get_current_col;
+    tokenpos.fileindex:=current_module^.current_index;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
 
@@ -2169,7 +2172,17 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  1998-04-29 10:34:01  pierre
+  Revision 1.3  1998-05-20 09:42:36  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.2  1998/04/29 10:34:01  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

@@ -654,13 +654,10 @@ unit pexpr;
          d : bestreal;
          constset : pconstset;
          propsym : ppropertysym;
-{$ifdef UseTokenInfo}
          oldp1 : ptree;
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
 
-{$ifdef UseTokenInfo}
       procedure check_tokenpos;
         begin
            if (p1<>oldp1) then
@@ -671,15 +668,12 @@ unit pexpr;
                 filepos:=tokenpos;
              end;
         end;
-{$endif UseTokenInfo}
 
       { p1 and p2 must contain valid values }
       procedure postfixoperators;
 
         begin
-{$ifdef UseTokenInfo}
              check_tokenpos;
-{$endif UseTokenInfo}
            while again do
              begin
                 case token of
@@ -904,9 +898,7 @@ unit pexpr;
                         else again:=false;
                      end;
                 end;
-{$ifdef UseTokenInfo}
              check_tokenpos;
-{$endif UseTokenInfo}
            end;
       end;
 
@@ -930,10 +922,8 @@ unit pexpr;
          possible_error : boolean;
 
       begin
-{$ifdef UseTokenInfo}
          oldp1:=nil;
          filepos:=tokenpos;
-{$endif UseTokenInfo}
          case token of
             ID:
               begin
@@ -954,7 +944,14 @@ unit pexpr;
                    end
                  else
                    begin
-                      getsym(pattern,true);
+                      if lastsymknown then
+                        begin
+                           srsym:=lastsrsym;
+                           srsymtable:=lastsrsymtable;
+                           lastsymknown:=false;
+                        end
+                      else
+                        getsym(pattern,true);
                       consume(ID);
                       { is this an access to a function result ? }
                        if assigned(aktprocsym) and
@@ -1516,9 +1513,7 @@ unit pexpr;
               end;
          end;
          factor:=p1;
-{$ifdef UseTokenInfo}
          check_tokenpos;
-{$endif UseTokenInfo}
       end;
 
     type    Toperator_precedence=(opcompare,opaddition,opmultiply);
@@ -1556,9 +1551,7 @@ unit pexpr;
 
     var p1,p2:Ptree;
         oldt:Ttoken;
-{$ifdef UseTokenInfo}
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
 
     begin
@@ -1574,9 +1567,7 @@ unit pexpr;
                ((token<>EQUAL) or accept_equal) then
                 begin
                     oldt:=token;
-{$ifdef UseTokenInfo}
                     filepos:=tokenpos;
-{$endif UseTokenInfo}
 
                     consume(token);
 {                    if pred_level=high(Toperator_precedence) then }
@@ -1585,9 +1576,7 @@ unit pexpr;
                     else
                         p2:=sub_expr(succ(pred_level),true);
                     p1:=gennode(tok2node[oldt],p1,p2);
-{$ifdef UseTokenInfo}
                     set_tree_filepos(p1,filepos);
-{$endif UseTokenInfo}
 
                 end
             else
@@ -1613,20 +1602,16 @@ unit pexpr;
       var
          p1,p2 : ptree;
          oldafterassignment : boolean;
-{$ifdef UseTokenInfo}
          oldp1 : ptree;
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
          if token in [ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
-{$ifdef UseTokenInfo}
          filepos:=tokenpos;
          oldp1:=p1;
-{$endif UseTokenInfo}
          case token of
             POINTPOINT : begin
                             consume(POINTPOINT);
@@ -1679,10 +1664,8 @@ unit pexpr;
                          end;
          end;
          afterassignment:=oldafterassignment;
-{$ifdef UseTokenInfo}
          if p1<>oldp1 then
            set_tree_filepos(p1,filepos);
-{$endif UseTokenInfo}
          expr:=p1;
       end;
 
@@ -1732,7 +1715,17 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.14  1998-05-11 13:07:56  peter
+  Revision 1.15  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.14  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

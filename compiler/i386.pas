@@ -315,7 +315,8 @@ unit i386;
 
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
-
+    { mostly set value of a reference }
+    function new_reference(base : tregister;offset : longint) : preference;
     { same as reset_reference, but symbol is disposed }
     { use this only for already used references       }
     procedure clear_reference(var ref : treference);
@@ -1179,7 +1180,19 @@ unit i386;
 {$endif}
       end;
 
-    procedure clear_reference(var ref : treference);
+      function new_reference(base : tregister;offset : longint) : preference;
+
+        var
+           r : preference;
+        begin
+           new(r);
+           reset_reference(r^);
+           r^.base:=base;
+           r^.offset:=offset;
+           new_reference:=r;
+        end;
+
+      procedure clear_reference(var ref : treference);
 
       begin
          stringdispose(ref.symbol);
@@ -1780,7 +1793,17 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-04 17:54:25  peter
+  Revision 1.7  1998-05-20 09:42:34  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.6  1998/05/04 17:54:25  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

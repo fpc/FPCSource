@@ -94,7 +94,7 @@ unit pbase;
 
     uses
 
-       files,scanner,symtable,systems,verbose;
+       files,scanner,systems,verbose;
 
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
@@ -148,11 +148,7 @@ unit pbase;
          else
            begin
              if token=_END then
-{$ifdef UseTokenInfo}
                 last_endtoken_filepos:=tokenpos;
-{$else UseTokenInfo}
-                get_cur_file_pos(last_endtoken_filepos);
-{$endif UseTokenInfo}
              token:=yylex;
            end;
       end;
@@ -160,19 +156,11 @@ unit pbase;
     procedure consume_all_until(atoken : ttoken);
 
       begin
-{$ifndef UseTokenInfo}
          while (token<>atoken) and (token<>_EOF) do
            consume(token);
          { this will create an error if the token is _EOF }
          if token<>atoken then
            consume(atoken);
-{$else UseTokenInfo}
-         while (token<>atoken) and (token<>_EOF) do
-           consume(token);
-         { this will create an error if the token is _EOF }
-         if token<>atoken then
-           consume(atoken);
-{$endif UseTokenInfo}
          { this error is fatal as we have read the whole file }
          Message(scan_f_end_of_file);
       end;
@@ -193,12 +181,8 @@ unit pbase;
       begin
          sc:=new(pstringcontainer,init);
          repeat
-{$ifndef UseTokenInfo}
-           sc^.insert(pattern);
-{$else UseTokenInfo}
            sc^.insert_with_tokeninfo(pattern,
              tokenpos);
-{$endif UseTokenInfo}
            consume(ID);
            if token=COMMA then consume(COMMA)
              else break
@@ -212,27 +196,17 @@ unit pbase;
 
       var
          s : string;
-{$ifdef UseTokenInfo}
          filepos : tfileposinfo;
          ss : pvarsym;
-{$endif UseTokenInfo}
 
 
       begin
-{$ifdef UseTokenInfo}
         s:=sc^.get_with_tokeninfo(filepos);
-{$else UseTokenInfo}
-        s:=sc^.get;
-{$endif UseTokenInfo}
          while s<>'' do
            begin
-{$ifndef UseTokenInfo}
-              st^.insert(new(pvarsym,init(s,def)));
-{$else UseTokenInfo}
               ss:=new(pvarsym,init(s,def));
               ss^.line_no:=filepos.line;
               st^.insert(ss);
-{$endif UseTokenInfo}
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
                  ((current_object_option and sp_static)<>0) then
@@ -240,11 +214,7 @@ unit pbase;
                    s:=lowercase(st^.name^)+'_'+s;
                    st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
                 end;
-{$ifdef UseTokenInfo}
               s:=sc^.get_with_tokeninfo(filepos);
-{$else UseTokenInfo}
-              s:=sc^.get;
-{$endif UseTokenInfo}
            end;
          dispose(sc,done);
       end;
@@ -253,7 +223,17 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-05-12 10:47:00  peter
+  Revision 1.7  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.6  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

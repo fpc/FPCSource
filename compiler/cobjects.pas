@@ -55,9 +55,7 @@ unit cobjects;
        tstringitem = record
           data : pstring;
           next : pstringitem;
-{$ifdef UseTokenInfo}
           fileinfo : tfileposinfo; { pointer to tinputfile }
-{$endif UseTokenInfo}
        end;
 
        plinkedlist_item = ^tlinkedlist_item;
@@ -144,15 +142,11 @@ unit cobjects;
 
           { inserts a string }
           procedure insert(const s : string);
-{$ifdef UseTokenInfo}
           procedure insert_with_tokeninfo(const s : string;const file_info : tfileposinfo);
-{$endif UseTokenInfo}
 
           { gets a string }
           function get : string;
-{$ifdef UseTokenInfo}
           function get_with_tokeninfo(var file_info : tfileposinfo) : string;
-{$endif UseTokenInfo}
 
           { deletes all strings }
           procedure clear;
@@ -176,7 +170,11 @@ unit cobjects;
            { but it's assumed, that there no seek while do_crc is true       }
            do_crc : boolean;
            crc : longint;
-
+           { temporary closing feature }
+           tempclosed : boolean;
+           tempmode : byte;
+           temppos : longint;
+           
            { inits a buffer with the size bufsize which is assigned to }
            { the file  filename                                        }
            constructor init(const filename : string;_bufsize : longint);
@@ -216,6 +214,12 @@ unit cobjects;
            { closes the file and releases the buffer }
            procedure close;
 
+{$ifdef TEST_TEMPCLOSE}
+           { temporary closing }
+           procedure tempclose;
+           procedure tempreopen;
+{$endif TEST_TEMPCLOSE}
+           
            { goto the given position }
            procedure seek(l : longint);
 
@@ -479,7 +483,6 @@ end;
          last:=hp;
       end;
 
-{$ifdef UseTokenInfo}
           procedure tstringcontainer.insert_with_tokeninfo
             (const s : string; const file_info : tfileposinfo);
 
@@ -505,7 +508,6 @@ end;
          last:=hp;
       end;
 
-{$endif UseTokenInfo}
     procedure tstringcontainer.clear;
 
       var
@@ -542,7 +544,6 @@ end;
           end;
       end;
 
-{$ifdef UseTokenInfo}
     function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
 
       var
@@ -566,7 +567,6 @@ end;
             dispose(hp);
           end;
       end;
-{$endif UseTokenInfo}
 
 {****************************************************************************
                             TLINKEDLIST_ITEM
@@ -807,6 +807,7 @@ end;
          buflast:=0;
          do_crc:=false;
          iomode:=0;
+         tempclosed:=false;
          change_endian:=false;
          clear_crc;
       end;
@@ -994,8 +995,11 @@ end;
       begin
         if bufpos+length(s)>bufsize then
           flush;
+        { why is there not CRC here ??? }
         move(s[1],(buf+bufpos)^,length(s));
         inc(bufpos,length(s));
+         { should be
+        write_data(s[1],length(s)); }
       end;
 
     procedure tbufferedfile.write_pchar(p : pchar);
@@ -1007,10 +1011,13 @@ end;
         l:=strlen(p);
         if l>=bufsize then
           runerror(222);
+        { why is there not CRC here ???}
         if bufpos+l>bufsize then
           flush;
         move(p^,(buf+bufpos)^,l);
         inc(bufpos,l);
+         { should be
+        write_data(p^,l); }
       end;
 
     procedure tbufferedfile.write_byte(b : byte);
@@ -1071,14 +1078,67 @@ end;
               flush;
               system.close(f);
               freemem(buf,bufsize);
+              buf:=nil;
               iomode:=0;
            end;
       end;
 
+{$ifdef TEST_TEMPCLOSE}
+    procedure tbufferedfile.tempclose;
+
+      begin
+         if iomode<>0 then
+           begin
+              temppos:=system.filepos(f);
+              tempmode:=iomode;
+              tempclosed:=true;
+              system.close(f);
+              iomode:=0;
+           end
+         else
+           tempclosed:=false;
+      end;
+
+    procedure tbufferedfile.tempreopen;
+
+      var
+         ofm : byte;
+         
+      begin
+         if tempclosed then
+           begin
+              if tempmode=1 then
+                begin
+                   ofm:=filemode;
+                   iomode:=1;
+                   filemode:=0;
+                   system.reset(f,1);
+                   filemode:=ofm;
+                end
+              else if tempmode=2 then
+                begin
+                   iomode:=2;
+                   system.rewrite(f,1);
+                end;
+              system.seek(f,temppos);
+           end;
+      end;
+{$endif TEST_TEMPCLOSE}
+
 end.
 {
   $Log$
-  Revision 1.7  1998-05-06 18:36:53  peter
+  Revision 1.8  1998-05-20 09:42:33  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.7  1998/05/06 18:36:53  peter
     * tai_section extended with code,data,bss sections and enumerated type
     * ident 'compiled by FPC' moved to pmodules
     * small fix for smartlink

@@ -569,6 +569,12 @@ unit pstatmnt;
     function _asm_statement : ptree;
 
       begin
+         if (aktprocsym^.definition^.options and poinline)<>0 then
+           Begin
+              Comment(V_Warning,'asm statement inside inline procedure/function not yet supported');
+              Comment(V_Warning,'inlining disabled');
+              aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
+           End;
          case aktasmmode of
             I386_ATT : _asm_statement:=ratti386.assemble;
             I386_INTEL : _asm_statement:=rai386.assemble;
@@ -801,15 +807,11 @@ unit pstatmnt;
 
       var
          first,last : ptree;
-{$ifdef UseTokenInfo}
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
       begin
          first:=nil;
-{$ifdef UseTokenInfo}
          filepos:=tokenpos;
-{$endif UseTokenInfo}
          consume(_BEGIN);
          inc(statement_level);
 
@@ -845,11 +847,7 @@ unit pstatmnt;
          dec(statement_level);
 
          last:=gensinglenode(blockn,first);
-{$ifdef UseTokenInfo}
          set_tree_filepos(last,filepos);
-{$else UseTokenInfo}
-         set_file_line(first,last);
-{$endif UseTokenInfo}
          statement_block:=last;
       end;
 
@@ -859,17 +857,13 @@ unit pstatmnt;
          p : ptree;
          code : ptree;
          labelnr : plabel;
-{$ifdef UseTokenInfo}
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
       label
          ready;
 
       begin
-{$ifdef UseTokenInfo}
          filepos:=tokenpos;
-{$endif UseTokenInfo}
          case token of
             _GOTO : begin
                        if not(cs_support_goto in aktswitches)then
@@ -929,7 +923,9 @@ unit pstatmnt;
               end;
              }
             _EXIT : code:=exit_statement;
-            _ASM : code:=_asm_statement;
+            _ASM : begin
+                      code:=_asm_statement;
+                   end;
          else
            begin
               if (token=INTCONST) or
@@ -938,6 +934,11 @@ unit pstatmnt;
                 (pattern='RESULT'))) then
                 begin
                    getsym(pattern,false);
+                   lastsymknown:=true;
+                   lastsrsym:=srsym;
+                   { it is NOT necessarily the owner
+                     it can be a withsymtable !!! }
+                   lastsrsymtable:=srsymtable;
                    if assigned(srsym) and (srsym^.typ=labelsym) then
                      begin
                         consume(token);
@@ -948,7 +949,7 @@ unit pstatmnt;
 
                         { statement modifies srsym }
                         labelnr:=plabelsym(srsym)^.number;
-
+                        lastsymknown:=false;
                         { the pointer to the following instruction }
                         { isn't a very clean way                   }
 {$ifdef tp}
@@ -965,13 +966,19 @@ unit pstatmnt;
               if not(p^.treetype in [calln,assignn,breakn,inlinen,
                 continuen]) then
                 Message(cg_e_illegal_expression);
+              { specify that we don't use the value returned by the call }
+              { Question : can this be also improtant
+                for inlinen ??
+                it is used for :
+                 - dispose of temp stack space
+                 - dispose on FPU stack }
+              if p^.treetype=calln then
+                p^.return_value_used:=false;
               code:=p;
            end;
          end;
          ready:
-{$ifdef UseTokenInfo}
          set_tree_filepos(code,filepos);
-{$endif UseTokenInfo}
          statement:=code;
       end;
 
@@ -1091,8 +1098,10 @@ unit pstatmnt;
            end;
            { set the framepointer to esp for assembler functions }
            { but only if the are no local variables              }
+           { added no parameter also (PM)                        }
            if ((aktprocsym^.definition^.options and poassembler)<>0) and
-               (aktprocsym^.definition^.localst^.datasize=0) then
+               (aktprocsym^.definition^.localst^.datasize=0) and
+               (aktprocsym^.definition^.parast^.datasize=0) then
                begin
 {$ifdef i386}
                   procinfo.framepointer:=R_ESP;
@@ -1110,7 +1119,17 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-11 13:07:56  peter
+  Revision 1.11  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.10  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

@@ -274,7 +274,7 @@ unit pmodules;
          insertinternsyms(p);
       end;
 
-    procedure load_ppu(hp : pmodule;compile_system : boolean);
+    procedure load_ppu(oldhp,hp : pmodule;compile_system : boolean);
 
       var
          loaded_unit  : pmodule;
@@ -322,7 +322,17 @@ unit pmodules;
                   if not(hp^.sources_avail) then
                    Message1(unit_f_cant_compile_unit,hp^.unitname^)
                   else
-                   compile(hp^.mainsource^,compile_system);
+                   begin
+{$ifdef TEST_TEMPCLOSE}
+                      if assigned(oldhp^.current_inputfile) then
+                        oldhp^.current_inputfile^.tempclose;
+{$endif TEST_TEMPCLOSE}
+                      compile(hp^.mainsource^,compile_system);
+{$ifdef TEST_TEMPCLOSE}
+                      if not oldhp^.compiled then
+                        oldhp^.current_inputfile^.tempreopen;
+{$endif TEST_TEMPCLOSE}
+                   end;
                   exit;
                 end;
 
@@ -336,8 +346,10 @@ unit pmodules;
             hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
 
           { if this is the system unit insert the intern symbols }
+            make_ref:=false;
             if compile_system then
               insertinternsyms(psymtable(hp^.symtable));
+            make_ref:=true;
           end;
 
        { now only read the implementation part }
@@ -389,7 +401,17 @@ unit pmodules;
                    if not(hp^.sources_avail) then
                     Message1(unit_f_cant_compile_unit,hp^.unitname^)
                    else
-                    compile(hp^.mainsource^,compile_system);
+                    begin
+{$ifdef TEST_TEMPCLOSE}
+                       if assigned(oldhp^.current_inputfile) then
+                         oldhp^.current_inputfile^.tempclose;
+{$endif TEST_TEMPCLOSE}
+                       compile(hp^.mainsource^,compile_system);
+{$ifdef TEST_TEMPCLOSE}
+                       if not oldhp^.compiled then
+                         oldhp^.current_inputfile^.tempreopen;
+{$endif TEST_TEMPCLOSE}
+                    end;
                    exit;
                 end;
               { setup the map entry for deref }
@@ -407,8 +429,10 @@ unit pmodules;
 
          { if this is the system unit insert the intern }
          { symbols                                      }
+         make_ref:=false;
          if compile_system then
            insertinternsyms(psymtable(hp^.symtable));
+         make_ref:=true;
 
          { now only read the implementation part }
          hp^.in_implementation:=true;
@@ -443,7 +467,15 @@ unit pmodules;
                    if not(hp^.sources_avail) then
                     Message1(unit_f_cant_compile_unit,hp^.unitname^)
                    else
-                     compile(hp^.mainsource^,compile_system);
+                     begin
+{ifdef TEST_TEMPCLOSE}
+                        oldhp^.current_inputfile^.tempclose;
+{endif TEST_TEMPCLOSE}
+                        compile(hp^.mainsource^,compile_system);
+{ifdef TEST_TEMPCLOSE}
+                        oldhp^.current_inputfile^.tempclose;
+{endif TEST_TEMPCLOSE}
+                     end;
                    exit;
                 end; *)
               { read until ibend }
@@ -514,7 +546,17 @@ unit pmodules;
                    if not(hp^.sources_avail) then
                     Message1(unit_f_cant_compile_unit,hp^.unitname^)
                    else
-                    compile(hp^.mainsource^,compile_system);
+                    begin
+{$ifdef TEST_TEMPCLOSE}
+                       if assigned(old_current_module^.current_inputfile) then
+                         old_current_module^.current_inputfile^.tempclose;
+{$endif TEST_TEMPCLOSE}
+                       compile(hp^.mainsource^,compile_system);
+{$ifdef TEST_TEMPCLOSE}
+                      if not old_current_module^.compiled then
+                         old_current_module^.current_inputfile^.tempreopen;
+{$endif TEST_TEMPCLOSE}
+                    end;
                 end
               else
                 begin
@@ -528,7 +570,7 @@ unit pmodules;
 {$else}
                   if hp^.ppufile^.name^<>'' then
 {$endif}
-                    load_ppu(hp,compile_system);
+                    load_ppu(old_current_module,hp,compile_system);
                  { add the files for the linker }
                   addlinkerfiles(hp);
                 end;
@@ -567,11 +609,24 @@ unit pmodules;
                 { we must preserve the unit chain }
                 hp^.next:=nextmodule;
                 if assigned(hp^.ppufile) then
-                 load_ppu(hp,compile_system)
+                 load_ppu(old_current_module,hp,compile_system)
                 else
                  begin
+{$ifdef UseBrowser}
+                    { here we need to remove the names ! }
+                    hp^.sourcefiles.done;
+                    hp^.sourcefiles.init;
+{$endif not UseBrowser}
+{$ifdef TEST_TEMPCLOSE}
+                   if assigned(old_current_module^.current_inputfile) then
+                     old_current_module^.current_inputfile^.tempclose;
+{$endif TEST_TEMPCLOSE}
                    Message1(parser_d_compiling_second_time,hp^.mainsource^);
                    compile(hp^.mainsource^,compile_system);
+{$ifdef TEST_TEMPCLOSE}
+                   if not old_current_module^.compiled then
+                     old_current_module^.current_inputfile^.tempreopen;
+{$endif TEST_TEMPCLOSE}
                  end;
                 current_module^.compiled:=true;
              end;
@@ -841,7 +896,8 @@ unit pmodules;
          }
          { generates static symbol table }
          p:=new(punitsymtable,init(staticsymtable,current_module^.unitname^));
-         refsymtable:=p;
+         { must be done only after _USES !! (PM)
+         refsymtable:=p;}
 
          {Generate a procsym.}
          aktprocsym:=new(Pprocsym,init(current_module^.unitname^+'_init'));
@@ -864,6 +920,8 @@ unit pmodules;
          symtablestack:=unitst^.next;
 
          parse_implementation_uses(unitst);
+         { now we can change refsymtable }
+         refsymtable:=p;
 
          { but reinsert the global symtable as lasts }
          unitst^.next:=symtablestack;
@@ -946,12 +1004,7 @@ unit pmodules;
               pu:=pused_unit(pu^.next);
            end;
          inc(datasize,symtablestack^.datasize);
-
-
-
-      { finish asmlist by adding segment starts }
-
-
+         { finish asmlist by adding segment starts }
          insertsegment;
       end;
 
@@ -1020,6 +1073,9 @@ unit pmodules;
 
          refsymtable:=st;
 
+         { necessary for browser }
+         loaded_units.insert(current_module);
+
          {Insert the symbols of the system unit into the stack of symbol
           tables.}
          symtablestack:=systemunit;
@@ -1081,24 +1137,27 @@ unit pmodules;
 
 
          datasize:=symtablestack^.datasize;
-         symtablestack^.check_forwards;
+         { symtablestack^.check_forwards;
          symtablestack^.allsymbolsused;
-
-
-
-      { finish asmlist by adding segment starts }
-
-
+         done in compile_proc_body }
+         { finish asmlist by adding segment starts }
          insertsegment;
-
-
-
       end;
 
 end.
 {
   $Log$
-  Revision 1.13  1998-05-12 10:47:00  peter
+  Revision 1.14  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.13  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

@@ -201,7 +201,7 @@ unit pdecl;
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
 {$else GDB}
-                 else d:=globaldef('SYSTEM.STRING');
+                 else d:=globaldef('STRING');
 {$endif GDB}
 {$else UseAnsiString}
               if p^.value>255 then
@@ -211,18 +211,18 @@ unit pdecl;
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
 {$else GDB}
-                 else d:=globaldef('SYSTEM.STRING');
+                 else d:=globaldef('STRING');
 {$endif GDB}
               consume(RECKKLAMMER);
 {$endif UseAnsiString}
               disposetree(p);
            end
-           { should string bwithout suffix be an ansistring also
+           { should string without suffix be an ansistring also
              in ansistring mode ?? (PM) }
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
 {$else GDB}
-                 else d:=globaldef('SYSTEM.STRING');
+                 else d:=globaldef('STRING');
 {$endif GDB}
                  stringtype:=d;
           end;
@@ -382,9 +382,7 @@ unit pdecl;
            sc : pstringcontainer;
            hp : pdef;
            s : string;
-{$ifdef UseTokenInfo}
            filepos : tfileposinfo;
-{$endif UseTokenInfo}
            pp : pprocdef;
 
         begin
@@ -442,7 +440,7 @@ unit pdecl;
                          end
                        else
                          hp:=new(pformaldef,init);
-                       s:=sc^.get;
+                       s:=sc^.get_with_tokeninfo(filepos);
                        while s<>'' do
                          begin
                             new(hp2);
@@ -450,7 +448,7 @@ unit pdecl;
                             hp2^.data:=hp;
                             hp2^.next:=propertyparas;
                             propertyparas:=hp2;
-                            s:=sc^.get;
+                            s:=sc^.get_with_tokeninfo(filepos);
                          end;
                        dispose(sc,done);
                        if token=SEMICOLON then consume(SEMICOLON)
@@ -1546,9 +1544,7 @@ unit pdecl;
          old_block_type : tblock_type;
          { to handle absolute }
          abssym : pabsolutesym;
-{$ifdef UseTokenInfo}
          filepos : tfileposinfo;
-{$endif UseTokenInfo}
 
 
       begin
@@ -1566,11 +1562,7 @@ unit pdecl;
               p:=read_type('');
               if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
                 begin
-{$ifdef UseTokenInfo}
-        s:=sc^.get_with_tokeninfo(filepos);
-{$else UseTokenInfo}
-        s:=sc^.get;
-{$endif UseTokenInfo}
+                   s:=sc^.get_with_tokeninfo(filepos);
                    if sc^.get<>'' then
                     Message(parser_e_absolute_only_one_var);
                    dispose(sc,done);
@@ -1586,9 +1578,7 @@ unit pdecl;
                         abssym^.typ:=absolutesym;
                         abssym^.abstyp:=tovar;
                         abssym^.ref:=srsym;
-{$ifdef UseTokenInfo}
                         abssym^.line_no:=filepos.line;
-{$endif UseTokenInfo}
                         symtablestack^.insert(abssym);
                      end
                    else
@@ -1600,9 +1590,7 @@ unit pdecl;
                         abssym^.typ:=absolutesym;
                         abssym^.abstyp:=toasm;
                         abssym^.asmname:=stringdup(s);
-{$ifdef UseTokenInfo}
                         abssym^.line_no:=filepos.line;
-{$endif UseTokenInfo}
                         symtablestack^.insert(abssym);
                      end
                    else
@@ -1615,9 +1603,7 @@ unit pdecl;
                           abssym^.typ:=absolutesym;
                           abssym^.abstyp:=toaddr;
                           abssym^.absseg:=false;
-{$ifdef UseTokenInfo}
                           abssym^.line_no:=filepos.line;
-{$endif UseTokenInfo}
                           s:=pattern;
                           consume(INTCONST);
                           val(s,abssym^.address,code);
@@ -1787,7 +1773,17 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.17  1998-05-11 13:07:55  peter
+  Revision 1.18  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.17  1998/05/11 13:07:55  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

@@ -75,7 +75,7 @@ var
 Implementation
 
 Uses
-  aasm,globals,AsmUtils,strings,hcodegen,scanner,
+  files,aasm,globals,AsmUtils,strings,hcodegen,scanner,
   cobjects,verbose,symtable,types;
 
 type
@@ -327,6 +327,9 @@ const
      c:=asmgetchar;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
+    tokenpos.line:=current_module^.current_inputfile^.line_no;
+    tokenpos.column:=get_current_col;
+    tokenpos.fileindex:=current_module^.current_index;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
       firsttoken := FALSE;
@@ -3678,7 +3681,17 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-04-29 13:52:23  peter
+  Revision 1.6  1998-05-20 09:42:37  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.5  1998/04/29 13:52:23  peter
     * small optimize fix
 
   Revision 1.4  1998/04/29 10:34:04  pierre

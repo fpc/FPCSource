@@ -23,24 +23,24 @@ unit browser;
 
 interface
 
-uses globals, files;
+uses globals,cobjects,files;
 
 type
   pref = ^tref;
   tref = object
          nextref   : pref;
-         inputfile : pinputfile;
-         lineno    : longint;
-         constructor init(ref : pref);
-         constructor load(var ref : pref;fileindex : word;line : longint);
+         posinfo : tfileposinfo;
+         moduleindex : word;
+         constructor init(ref : pref;pos : pfileposinfo);
+         constructor load(var ref : pref;fileindex : word;line,column : longint);
          destructor done; virtual;
          function  get_file_line : string;
          end;
 
   { simple method to chain all refs }
-  procedure add_new_ref(var ref : pref);
+  procedure add_new_ref(var ref : pref;pos : pfileposinfo);
 
-  function get_source_file(index : word) : pinputfile;
+  function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
   { one big problem remains for overloaded procedure }
   { we should be able to separate them               }
@@ -48,80 +48,95 @@ type
 
 implementation
 
-  constructor tref.init(ref :pref);
+  uses scanner,verbose;
+
+  constructor tref.init(ref :pref;pos : pfileposinfo);
 
     begin
        nextref:=nil;
        if ref<>nil then
           ref^.nextref:=@self;
+       if assigned(pos) then
+         posinfo:=pos^;
        if current_module<>nil then
          begin
-            inputfile:=current_module^.current_inputfile;
-            if inputfile<>nil then
-              begin
-                 inc(inputfile^.ref_index);
-                 lineno:=inputfile^.line_no;
-              end
-            else
-              lineno:=0;
-         end
-       else
-         begin
-            inputfile:=nil;
-            lineno:=0;
+            moduleindex:=current_module^.unit_index;
          end;
     end;
 
-  constructor tref.load(var ref : pref;fileindex : word;line : longint);
+  constructor tref.load(var ref : pref;fileindex : word;line,column : longint);
 
     begin
+       moduleindex:=current_module^.unit_index;
        if assigned(ref) then
          ref^.nextref:=@self;
        nextref:=nil;
-       inputfile:=get_source_file(fileindex);
-       lineno:=line;
+       posinfo.fileindex:=fileindex;
+       posinfo.line:=line;
+       posinfo.column:=column;
        ref:=@self;
     end;
 
   destructor tref.done;
 
+    var
+       inputfile : pinputfile;
     begin
+       inputfile:=get_source_file(moduleindex,posinfo.fileindex);
        if inputfile<>nil then
          dec(inputfile^.ref_count);
     end;
 
     function tref.get_file_line : string;
 
+      var
+         inputfile : pinputfile;
       begin
         get_file_line:='';
-        if inputfile=nil then exit;
-        if Use_Rhide then
-          get_file_line:=lowercase(inputfile^.name^+inputfile^.ext^)+':'+tostr(lineno)+':'
+        inputfile:=get_source_file(moduleindex,posinfo.fileindex);
+        if assigned(inputfile) then
+          if Use_Rhide then
+            get_file_line:=globals.lowercase(inputfile^.name^+inputfile^.ext^)
+              +':'+tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
+          else
+            get_file_line:=inputfile^.name^+inputfile^.ext^
+              +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
         else
-          get_file_line:=inputfile^.name^+inputfile^.ext^+'('+tostr(lineno)+')'
+          if Use_Rhide then
+            get_file_line:='file_unknown:'
+              +tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
+          else
+            get_file_line:='file_unknown('
+              +tostr(posinfo.line)+','+tostr(posinfo.column)+')'
       end;
 
-  procedure add_new_ref(var ref : pref);
+  procedure add_new_ref(var ref : pref;pos : pfileposinfo);
 
     var
        newref : pref;
 
     begin
-       new(newref,init(ref));
+       new(newref,init(ref,pos));
        ref:=newref;
     end;
 
-    function get_source_file(index : word) : pinputfile;
+    function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
       var
+         hp : pmodule;
          f : pinputfile;
 
       begin
+         hp:=pmodule(loaded_units.first);
+         while assigned(hp) and (hp^.unit_index<>moduleindex) do
+           hp:=pmodule(hp^.next);
          get_source_file:=nil;
-         f:=pinputfile(current_module^.sourcefiles.files);
+         if not assigned(hp) then
+           exit;
+         f:=pinputfile(hp^.sourcefiles.files);
          while assigned(f) do
            begin
-              if f^.ref_index=index then
+              if f^.ref_index=fileindex then
                 begin
                    get_source_file:=f;
                    exit;
@@ -133,7 +148,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-04-30 15:59:39  pierre
+  Revision 1.3  1998-05-20 09:42:32  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.2  1998/04/30 15:59:39  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

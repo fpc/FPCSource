@@ -206,7 +206,7 @@ unit tree;
              calln : (symtableprocentry : pprocsym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
-                      no_check,unit_specific : boolean);
+                      no_check,unit_specific,return_value_used : boolean);
              ordconstn : (value : longint);
              realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
              fixconstn : (valuef: longint);
@@ -224,7 +224,8 @@ unit tree;
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              inlinen : (inlinenumber : longint);
-             procinlinen : (inlineprocdef : pprocdef);
+             procinlinen : (inlineprocdef : pprocdef;
+                            retoffset,para_offset,para_size : longint);
              setconstrn : (constset : pconstset);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput);
@@ -283,7 +284,7 @@ unit tree;
     procedure set_current_file_line(_to : ptree);
     procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
 {$ifdef extdebug}
-    procedure compare_trees(p1,p2 : ptree);
+    procedure compare_trees(oldp,p : ptree);
     const
        maxfirstpasscount : longint = 0;
 {$endif extdebug}
@@ -345,11 +346,7 @@ unit tree;
          hp^.error:=false;
 
          { we know also the position }
-{$ifdef UseTokenInfo}
          hp^.fileinfo:=tokenpos;
-{$else UseTokenInfo}
-         get_cur_file_pos(hp^.fileinfo);
-{$endif UseTokenInfo}
          hp^.pragmas:=aktswitches;
          getnode:=hp;
       end;
@@ -989,6 +986,7 @@ unit tree;
          p^.symtableproc:=st;
          p^.unit_specific:=false;
          p^.no_check:=false;
+         p^.return_value_used:=true;
          p^.disposetyp := dt_leftright;
          p^.methodpointer:=nil;
          p^.left:=nil;
@@ -1012,7 +1010,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=calln;
-
+         p^.return_value_used:=true;
          p^.symtableprocentry:=v;
          p^.symtableproc:=st;
          p^.disposetyp:=dt_mbleft_and_method;
@@ -1142,6 +1140,9 @@ unit tree;
          p^.disposetyp:=dt_left;
          p^.treetype:=procinlinen;
          p^.inlineprocdef:=callp^.procdefinition;
+         p^.retoffset:=-4; { less dangerous as zero (PM) }
+         p^.para_offset:=0;
+         p^.para_size:=p^.inlineprocdef^.para_size;
          { copy args }
          p^.left:=getcopy(code);
          p^.registers32:=code^.registers32;
@@ -1175,110 +1176,117 @@ unit tree;
       end;
 
 {$ifdef extdebug}
-    procedure compare_trees(p1,p2 : ptree);
+    procedure compare_trees(oldp,p : ptree);
 
       var
          error_found : boolean;
 
       begin
-         if p1^.error<>p2^.error then
+          if oldp^.resulttype<>p^.resulttype then
+            begin
+               error_found:=true;
+               if is_equal(oldp^.resulttype,p^.resulttype) then
+                 comment(v_debug,'resulttype fields are different but equal')
+               else
+                 comment(v_warning,'resulttype fields are really different');
+            end;
+         if oldp^.treetype<>p^.treetype then
+           begin
+              comment(v_warning,'treetype field different');
+              error_found:=true;
+           end
+         else
+           comment(v_debug,' treetype '+tostr(longint(oldp^.treetype)));
+         if oldp^.error<>p^.error then
            begin
               comment(v_warning,'error field different');
               error_found:=true;
            end;
-         if p1^.disposetyp<>p2^.disposetyp then
+         if oldp^.disposetyp<>p^.disposetyp then
            begin
               comment(v_warning,'disposetyp field different');
               error_found:=true;
            end;
          { is true, if the right and left operand are swaped }
-         if p1^.swaped<>p2^.swaped then
+         if oldp^.swaped<>p^.swaped then
            begin
               comment(v_warning,'swaped field different');
               error_found:=true;
            end;
 
          { the location of the result of this node }
-         if p1^.location.loc<>p2^.location.loc then
+         if oldp^.location.loc<>p^.location.loc then
            begin
               comment(v_warning,'location.loc field different');
               error_found:=true;
            end;
 
           { the number of registers needed to evalute the node }
-          if p1^.registers32<>p2^.registers32 then
+          if oldp^.registers32<>p^.registers32 then
            begin
               comment(v_warning,'registers32 field different');
-              comment(v_warning,tostr(p1^.registers32)+'<>'+tostr(p2^.registers32));
+              comment(v_warning,' old '+tostr(oldp^.registers32)+'<> new '+tostr(p^.registers32));
               error_found:=true;
            end;
-          if p1^.registersfpu<>p2^.registersfpu then
+          if oldp^.registersfpu<>p^.registersfpu then
            begin
               comment(v_warning,'registersfpu field different');
               error_found:=true;
            end;
 {$ifdef SUPPORT_MMX}
-          if p1^.registersmmx<>p2^.registersmmx then
+          if oldp^.registersmmx<>p^.registersmmx then
            begin
               comment(v_warning,'registersmmx field different');
               error_found:=true;
            end;
 {$endif SUPPORT_MMX}
-          if p1^.left<>p2^.left then
+          if oldp^.left<>p^.left then
            begin
               comment(v_warning,'left field different');
               error_found:=true;
            end;
-          if p1^.right<>p2^.right then
+          if oldp^.right<>p^.right then
            begin
               comment(v_warning,'right field different');
               error_found:=true;
            end;
-          if p1^.resulttype<>p2^.resulttype then
-            begin
-               error_found:=true;
-               if is_equal(p1^.resulttype,p2^.resulttype) then
-                 comment(v_debug,'resulttype fields are different but equal')
-               else
-                 comment(v_warning,'resulttype fields are really different');
-            end;
-          if p1^.fileinfo.line<>p2^.fileinfo.line then
+          if oldp^.fileinfo.line<>p^.fileinfo.line then
             begin
                comment(v_warning,'fileinfo.line field different');
                error_found:=true;
             end;
-          if p1^.fileinfo.column<>p2^.fileinfo.column then
+          if oldp^.fileinfo.column<>p^.fileinfo.column then
             begin
                comment(v_warning,'fileinfo.column field different');
                error_found:=true;
             end;
-          if p1^.fileinfo.fileindex<>p2^.fileinfo.fileindex then
+          if oldp^.fileinfo.fileindex<>p^.fileinfo.fileindex then
             begin
                comment(v_warning,'fileinfo.fileindex field different');
                error_found:=true;
             end;
-          if p1^.pragmas<>p2^.pragmas then
+          if oldp^.pragmas<>p^.pragmas then
             begin
                comment(v_warning,'pragmas field different');
                error_found:=true;
             end;
 {$ifdef extdebug}
-          if p1^.firstpasscount<>p2^.firstpasscount then
+          if oldp^.firstpasscount<>p^.firstpasscount then
             begin
                comment(v_warning,'firstpasscount field different');
                error_found:=true;
             end;
 {$endif extdebug}
-          if p1^.treetype=p2^.treetype then
-          case p1^.treetype of
+          if oldp^.treetype=p^.treetype then
+          case oldp^.treetype of
              addn :
              begin
-                if p1^.use_strconcat<>p2^.use_strconcat then
+                if oldp^.use_strconcat<>p^.use_strconcat then
                   begin
                      comment(v_warning,'use_strconcat field different');
                      error_found:=true;
                   end;
-                if p1^.string_typ<>p2^.string_typ then
+                if oldp^.string_typ<>p^.string_typ then
                   begin
                      comment(v_warning,'stringtyp field different');
                      error_found:=true;
@@ -1287,12 +1295,12 @@ unit tree;
              callparan :
              {(is_colon_para : boolean;exact_match_found : boolean);}
              begin
-                if p1^.is_colon_para<>p2^.is_colon_para then
+                if oldp^.is_colon_para<>p^.is_colon_para then
                   begin
                      comment(v_warning,'use_strconcat field different');
                      error_found:=true;
                   end;
-                if p1^.exact_match_found<>p2^.exact_match_found then
+                if oldp^.exact_match_found<>p^.exact_match_found then
                   begin
                      comment(v_warning,'exact_match_found field different');
                      error_found:=true;
@@ -1301,12 +1309,12 @@ unit tree;
              assignn :
              {(assigntyp : tassigntyp;concat_string : boolean);}
              begin
-                if p1^.assigntyp<>p2^.assigntyp then
+                if oldp^.assigntyp<>p^.assigntyp then
                   begin
                      comment(v_warning,'assigntyp field different');
                      error_found:=true;
                   end;
-                if p1^.concat_string<>p2^.concat_string then
+                if oldp^.concat_string<>p^.concat_string then
                   begin
                      comment(v_warning,'concat_string field different');
                      error_found:=true;
@@ -1316,22 +1324,22 @@ unit tree;
              {(symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);}
              begin
-                if p1^.symtableentry<>p2^.symtableentry then
+                if oldp^.symtableentry<>p^.symtableentry then
                   begin
                      comment(v_warning,'symtableentry field different');
                      error_found:=true;
                   end;
-                if p1^.symtable<>p2^.symtable then
+                if oldp^.symtable<>p^.symtable then
                   begin
                      comment(v_warning,'symtable field different');
                      error_found:=true;
                   end;
-                if p1^.is_absolute<>p2^.is_absolute then
+                if oldp^.is_absolute<>p^.is_absolute then
                   begin
                      comment(v_warning,'is_absolute field different');
                      error_found:=true;
                   end;
-                if p1^.is_first<>p2^.is_first then
+                if oldp^.is_first<>p^.is_first then
                   begin
                      comment(v_warning,'is_first field different');
                      error_found:=true;
@@ -1343,32 +1351,32 @@ unit tree;
                       methodpointer : ptree;
                       no_check,unit_specific : boolean);}
              begin
-                if p1^.symtableprocentry<>p2^.symtableprocentry then
+                if oldp^.symtableprocentry<>p^.symtableprocentry then
                   begin
                      comment(v_warning,'symtableprocentry field different');
                      error_found:=true;
                   end;
-                if p1^.symtableproc<>p2^.symtableproc then
+                if oldp^.symtableproc<>p^.symtableproc then
                   begin
                      comment(v_warning,'symtableproc field different');
                      error_found:=true;
                   end;
-                if p1^.procdefinition<>p2^.procdefinition then
+                if oldp^.procdefinition<>p^.procdefinition then
                   begin
                      comment(v_warning,'procdefinition field different');
                      error_found:=true;
                   end;
-                if p1^.methodpointer<>p2^.methodpointer then
+                if oldp^.methodpointer<>p^.methodpointer then
                   begin
                      comment(v_warning,'methodpointer field different');
                      error_found:=true;
                   end;
-                if p1^.no_check<>p2^.no_check then
+                if oldp^.no_check<>p^.no_check then
                   begin
                      comment(v_warning,'no_check field different');
                      error_found:=true;
                   end;
-                if p1^.unit_specific<>p2^.unit_specific then
+                if oldp^.unit_specific<>p^.unit_specific then
                   begin
                      error_found:=true;
                      comment(v_warning,'unit_specific field different');
@@ -1376,7 +1384,7 @@ unit tree;
              end;
              ordconstn :
                begin
-                  if p1^.value<>p2^.value then
+                  if oldp^.value<>p^.value then
                   begin
                      comment(v_warning,'value field different');
                      error_found:=true;
@@ -1384,17 +1392,17 @@ unit tree;
                end;
              realconstn :
                begin
-                  if p1^.valued<>p2^.valued then
+                  if oldp^.valued<>p^.valued then
                   begin
                      comment(v_warning,'valued field different');
                      error_found:=true;
                   end;
-                  if p1^.labnumber<>p2^.labnumber then
+                  if oldp^.labnumber<>p^.labnumber then
                   begin
                      comment(v_warning,'labnumber field different');
                      error_found:=true;
                   end;
-                  if p1^.realtyp<>p2^.realtyp then
+                  if oldp^.realtyp<>p^.realtyp then
                   begin
                      comment(v_warning,'realtyp field different');
                      error_found:=true;
@@ -1527,7 +1535,17 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-12 10:47:00  peter
+  Revision 1.10  1998-05-20 09:42:38  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.9  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

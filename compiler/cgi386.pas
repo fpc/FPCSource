@@ -221,36 +221,24 @@ implementation
                       begin
                          { first handle local and temporary variables }
                          if (symtabletype=parasymtable) or
-{$ifdef TestInline}
                             (symtabletype=inlinelocalsymtable) or
                             (symtabletype=inlineparasymtable) or
-{$endif TestInline}
                             (symtabletype=localsymtable) then
                            begin
                               p^.location.reference.base:=procinfo.framepointer;
                               p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                              if (symtabletype=localsymtable) then
+                              if (symtabletype=localsymtable) or (symtabletype=inlinelocalsymtable) then
                                 p^.location.reference.offset:=-p^.location.reference.offset;
-                              if (symtabletype=parasymtable) then
+                              if (symtabletype=parasymtable) or (symtabletype=inlineparasymtable) then
                                 inc(p^.location.reference.offset,p^.symtable^.call_offset);
-{$ifdef TestInline}
-                              if (symtabletype=inlinelocalsymtable) then
-                                p^.location.reference.offset:=-p^.location.reference.offset
-                                  +p^.symtable^.call_offset;
-                              if (symtabletype=inlineparasymtable) then
-                                inc(p^.location.reference.offset,p^.symtable^.call_offset);
-                                { comment(v_fatal,'inline proc arg not replaced'); }
-{$endif TestInline}
                               if (lexlevel>(p^.symtable^.symtablelevel)) then
                                 begin
                                    hregister:=getregister32;
 
                                    { make a reference }
-                                   new(hp);
-                                   reset_reference(hp^);
-                                   hp^.offset:=procinfo.framepointer_offset;
-                                   hp^.base:=procinfo.framepointer;
-
+                                   hp:=new_reference(procinfo.framepointer,
+                                     procinfo.framepointer_offset);
+                                   
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
                                    simple_loadn:=false;
@@ -258,11 +246,7 @@ implementation
                                    while i>(p^.symtable^.symtablelevel) do
                                      begin
                                         { make a reference }
-                                        new(hp);
-                                        reset_reference(hp^);
-                                        hp^.offset:=8;
-                                        hp^.base:=hregister;
-
+                                        hp:=new_reference(hregister,8);
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
                                         dec(i);
                                      end;
@@ -297,10 +281,11 @@ implementation
                                    hregister:=getregister32;
                                    p^.location.reference.base:=hregister;
                                    { make a reference }
-                                   new(hp);
-                                   reset_reference(hp^);
-                                   hp^.offset:=p^.symtable^.datasize;
-                                   hp^.base:=procinfo.framepointer;
+                                   { symtable datasize field
+                                     contains the offset of the temp
+                                     stored }
+                                   hp:=new_reference(procinfo.framepointer,
+                                     p^.symtable^.datasize);
 
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
@@ -654,7 +639,10 @@ implementation
                 end;
            end;
          stringdispose(p^.location.reference.symbol);
-         p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal));
+         if assigned(lastlabel) then
+           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal))
+         else
+           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,constreal));
       end;
 
     procedure secondfixconst(var p : ptree);
@@ -763,7 +751,10 @@ implementation
                 end;
            end;
          stringdispose(p^.location.reference.symbol);
-         p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring));
+         if assigned(lastlabel) then
+           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring))
+         else
+           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,conststring));
          p^.location.loc := LOC_MEM;
       end;
 
@@ -1288,8 +1279,7 @@ implementation
                 begin
                    if p^.left^.resulttype^.deftype=arraydef then
                      begin
-                        new(hp);
-                        reset_reference(hp^);
+                        hp:=new_reference(R_NO,0);
                         parraydef(p^.left^.resulttype)^.genrangecheck;
                         hp^.symbol:=stringdup('R_'+tostr(parraydef(p^.left^.resulttype)^.rangenr));
                         exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
@@ -1410,8 +1400,7 @@ implementation
                    hregister:=R_EDI;
                 end
               else internalerror(6);
-              new(hp);
-              reset_reference(hp^);
+              hp:=new_reference(R_NO,0);
               hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr));
               if porddef(p1)^.von>porddef(p1)^.bis then
                 begin
@@ -1423,8 +1412,7 @@ implementation
               exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hp)));
               if porddef(p1)^.von>porddef(p1)^.bis then
                 begin
-                   new(hp);
-                   reset_reference(hp^);
+                   hp:=new_reference(R_NO,0);
                    hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr+1));
                    emitl(A_JMP,poslabel);
                    emitl(A_LABEL,neglabel);
@@ -1738,10 +1726,8 @@ implementation
           if porddef(p^.left^.resulttype)^.typ=u32bit then
             push_int(0);
           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
-         new(r);
-         reset_reference(r^);
-         r^.base:=R_ESP;
-         { for u32bit a solution would be to push $0 and to load a
+          r:=new_reference(R_ESP,0);
+         { for u32bit a solution is to push $0 and to load a
          comp }
           if porddef(p^.left^.resulttype)^.typ=u32bit then
             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
@@ -1955,16 +1941,13 @@ implementation
                    else
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                        newreference(p^.location.reference),R_EDI)));
-
-                   new(hpp);
-                   reset_reference(hpp^);
+                   hpp:=new_reference(R_NO,0);
                    hpp^.symbol:=stringdup('R_'+tostr(porddef(hp^.resulttype)^.rangenr));
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
 
                    { then we do a normal range check }
                    porddef(p^.resulttype)^.genrangecheck;
-                   new(hpp);
-                   reset_reference(hpp^);
+                   hpp:=new_reference(R_NO,0);
                    hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                 end
@@ -2000,8 +1983,7 @@ implementation
                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,newreference(p^.location.reference),R_EDI)));
                      end
                    else internalerror(6);
-                   new(hpp);
-                   reset_reference(hpp^);
+                   hpp:=new_reference(R_NO,0);
                    hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                    (*
@@ -2382,7 +2364,10 @@ implementation
        pushedparasize : longint;
 
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
-                push_from_left_to_right : boolean);
+                push_from_left_to_right : boolean
+                ;inlined : boolean;
+                para_offset : longint
+                );
 
       procedure maybe_push_open_array_high;
 
@@ -2395,19 +2380,31 @@ implementation
            if assigned(defcoll^.data) and
              is_open_array(defcoll^.data) then
              begin
+                inc(pushedparasize,4);
                 { push high }
                 if is_open_array(p^.left^.resulttype) then
                   begin
-                     new(r);
-                     reset_reference(r^);
-                     r^.base:=highframepointer;
-                     r^.offset:=highoffset+4;
+                     r:=new_reference(highframepointer,highoffset+4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                       end
+                     else
                      exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
                   end
                 else
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                            parraydef(p^.left^.resulttype)^.highrange-
+                            parraydef(p^.left^.resulttype)^.lowrange,r)));
+                       end
+                     else
                   push_int(parraydef(p^.left^.resulttype)^.highrange-
                            parraydef(p^.left^.resulttype)^.lowrange);
-                inc(pushedparasize,4);
              end;
         end;
 
@@ -2427,7 +2424,9 @@ implementation
       begin
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right);
+           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right
+             ,inlined,para_offset
+           );
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -2438,9 +2437,17 @@ implementation
            (defcoll^.data^.deftype=formaldef) then
            begin
               { allow @var }
+              inc(pushedparasize,4);
               if p^.left^.treetype=addrn then
                 begin
                    { always a register }
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            p^.left^.location.register,r)));
+                       end
+                     else
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                    ungetregister32(p^.left^.location.register);
                 end
@@ -2451,11 +2458,19 @@ implementation
                      Message(sym_e_type_mismatch)
                    else
                      begin
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                            newreference(p^.left^.location.reference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
                         emitpushreferenceaddr(p^.left^.location.reference);
                         del_reference(p^.left^.location.reference);
                      end;
                 end;
-              inc(pushedparasize,4);
            end
          { handle call by reference parameter }
          else if (defcoll^.paratyp=vs_var) then
@@ -2463,9 +2478,18 @@ implementation
               if (p^.left^.location.loc<>LOC_REFERENCE) then
                 Message(cg_e_var_must_be_reference);
               maybe_push_open_array_high;
+              inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                            newreference(p^.left^.location.reference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
               emitpushreferenceaddr(p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
-              inc(pushedparasize,4);
            end
          else
            begin
@@ -2476,9 +2500,18 @@ implementation
                  dont_copy_const_param(p^.resulttype) then
                 begin
                    maybe_push_open_array_high;
-                   emitpushreferenceaddr(p^.left^.location.reference);
-                   del_reference(p^.left^.location.reference);
                    inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                            newreference(p^.left^.location.reference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
+                     emitpushreferenceaddr(p^.left^.location.reference);
+                   del_reference(p^.left^.location.reference);
                 end
               else
                 case p^.left^.location.loc of
@@ -2489,22 +2522,43 @@ implementation
                            R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
                            R_EDI,R_ESP,R_EBP :
                              begin
-                                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                                 inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            p^.left^.location.register,r)));
+                       end
+                     else
+                                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                                 ungetregister32(p^.left^.location.register);
                              end;
                            R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
                              begin
-                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,p^.left^.location.register)));
                                  inc(pushedparasize,2);
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_W,
+                            p^.left^.location.register,r)));
+                       end
+                     else
+                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,p^.left^.location.register)));
                                  ungetregister32(reg16toreg32(p^.left^.location.register));
                               end;
                            R_AL,R_BL,R_CL,R_DL:
                              begin
+                                inc(pushedparasize,2);
                                 { we must push always 16 bit }
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            reg8toreg16(p^.left^.location.register),r)));
+                       end
+                     else
                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,
                                   reg8toreg16(p^.left^.location.register))));
-                                inc(pushedparasize,2);
                                 ungetregister32(reg8toreg32(p^.left^.location.register));
                              end;
                         end;
@@ -2512,12 +2566,17 @@ implementation
                    LOC_FPU:
                      begin
                         size:=pfloatdef(p^.left^.resulttype)^.size;
-                        inc(pushedparasize,size);
+                        inc(pushedparasize,size); { must be before for inlined }
+                        if not inlined then
                         exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
-                        new(r);
-                        reset_reference(r^);
-                        r^.base:=R_ESP;
+                        r:=new_reference(R_ESP,0);
                         floatstoreops(pfloatdef(p^.left^.resulttype)^.typ,op,s);
+                        { this is the easiest case for inlined !! }
+                        if inlined then
+                          begin
+                             r^.base:=procinfo.framepointer;
+                             r^.offset:=para_offset-pushedparasize;
+                          end;
                         exprasmlist^.concat(new(pai386,op_ref(op,s,r)));
                      end;
                    LOC_REFERENCE,LOC_MEM:
@@ -2525,53 +2584,140 @@ implementation
                         tempreference:=p^.left^.location.reference;
                         del_reference(p^.left^.location.reference);
                         case p^.resulttype^.deftype of
-                           orddef : begin
-                                         case porddef(p^.resulttype)^.typ of
-                                            s32bit,u32bit :
-                                              begin
-                                                 emit_push_mem(tempreference);
-                                                 inc(pushedparasize,4);
-                                              end;
-                                            s8bit,u8bit,uchar,bool8bit,s16bit,u16bit : begin
-                                                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
-                                                  newreference(tempreference))));
-                                                inc(pushedparasize,2);
-                                            end;
-                                          end;
+                           orddef :
+                             begin
+                                case porddef(p^.resulttype)^.typ of
+                                  s32bit,u32bit :
+                                    begin
+                                       inc(pushedparasize,4);
+                                       if inlined then
+                                         begin
+                                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                              newreference(tempreference),R_EDI)));
+                                            r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                            exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                            R_EDI,r)));
+                                         end
+                                       else
+                                         emit_push_mem(tempreference);
                                     end;
-                           floatdef : begin
-                                         case pfloatdef(p^.resulttype)^.typ of
-                                            f32bit,
-                                            s32real :
-                                              begin
-                                                 emit_push_mem(tempreference);
-                                                 inc(pushedparasize,4);
+                                  s8bit,u8bit,uchar,bool8bit,s16bit,u16bit :
+                                    begin
+                                      inc(pushedparasize,2);
+                                      if inlined then
+                                        begin
+                                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
+                                             newreference(tempreference),R_DI)));
+                                           r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_W,
+                                           R_DI,r)));
+                                        end
+                                      else
+                                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
+                                          newreference(tempreference))));
+                                    end;
+                                end;
+                             end;
+                           floatdef :
+                           begin
+                             case pfloatdef(p^.resulttype)^.typ of
+                               f32bit,
+                               s32real :
+                                 begin
+                                    inc(pushedparasize,4);
+                                    if inlined then
+                                      begin
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                           newreference(tempreference),R_EDI)));
+                                         r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                           R_EDI,r)));
+                                      end
+                                    else
+                                      emit_push_mem(tempreference);
                                               end;
                                             s64real,
                                             s64bit : begin
+                                                         inc(pushedparasize,4);
                                                          inc(tempreference.offset,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                            newreference(tempreference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
                                                          emit_push_mem(tempreference);
+                                                         inc(pushedparasize,4);
                                                          dec(tempreference.offset,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                            newreference(tempreference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
                                                          emit_push_mem(tempreference);
-                                                         inc(pushedparasize,8);
                                                       end;
                                             s80real : begin
+                                                         inc(pushedparasize,4);
                                                          inc(tempreference.offset,6);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                            newreference(tempreference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
                                                          emit_push_mem(tempreference);
                                                          dec(tempreference.offset,4);
+                                                         inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                            newreference(tempreference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
                                                          emit_push_mem(tempreference);
                                                          dec(tempreference.offset,2);
+                                                         inc(pushedparasize,2);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
+                            newreference(tempreference),R_DI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_W,
+                            R_DI,r)));
+                       end
+                     else
                                                          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
                                                            newreference(tempreference))));
-                                                         inc(pushedparasize,extended_size);
                                                       end;
                                          end;
                                       end;
                            pointerdef,procvardef,
                            enumdef,classrefdef:
                              begin
-                                emit_push_mem(tempreference);
                                 inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                            newreference(tempreference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
+                                emit_push_mem(tempreference);
                              end;
                            arraydef,recorddef,stringdef,setdef,objectdef :
                              begin
@@ -2579,8 +2725,14 @@ implementation
                                 if ((p^.resulttype^.deftype=setdef) and
                                   (psetdef(p^.resulttype)^.settype=smallset)) then
                                   begin
-                                     emit_push_mem(tempreference);
                                      inc(pushedparasize,4);
+                                     if inlined then
+                                       begin
+                                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                          concatcopy(tempreference,r^,4,false);
+                                       end
+                                     else
+                                     emit_push_mem(tempreference);
                                   end
                                 { call by value open array ? }
                                 else if (p^.resulttype^.deftype=arraydef) and
@@ -2589,8 +2741,17 @@ implementation
                                   begin
                                      { first, push high }
                                      maybe_push_open_array_high;
-                                     emitpushreferenceaddr(p^.left^.location.reference);
                                      inc(pushedparasize,4);
+                     if inlined then
+                       begin
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                            newreference(p^.left^.location.reference),R_EDI)));
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                            R_EDI,r)));
+                       end
+                     else
+                                     emitpushreferenceaddr(p^.left^.location.reference);
                                   end
                                 else
                                   begin
@@ -2607,12 +2768,22 @@ implementation
                                      if size=1 then size:=2;
                                      }
                                      { create stack space }
-                                     exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+                                     if not inlined then
+                                       exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
                                      inc(pushedparasize,size);
                                      { create stack reference }
                                      stackref.symbol := nil;
-                                     clear_reference(stackref);
-                                     stackref.base:=R_ESP;
+                                     if not inlined then
+                                       begin
+                                          clear_reference(stackref);
+                                          stackref.base:=R_ESP;
+                                       end
+                                     else
+                                       begin
+                                          clear_reference(stackref);
+                                          stackref.base:=procinfo.framepointer;
+                                          stackref.offset:=para_offset-pushedparasize;
+                                       end;
                                      { produce copy }
                                      if p^.resulttype^.deftype=stringdef then
                                        begin
@@ -2634,9 +2805,23 @@ implementation
                         getlabel(hlabel);
                         inc(pushedparasize,2);
                         emitl(A_LABEL,truelabel);
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_W,
+                            1,r)));
+                       end
+                     else
                         exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,1)));
                         emitl(A_JMP,hlabel);
                         emitl(A_LABEL,falselabel);
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_W,
+                            0,r)));
+                       end
+                     else
                         exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,0)));
                         emitl(A_LABEL,hlabel);
                      end;
@@ -2653,10 +2838,14 @@ implementation
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,R_AL,R_AX)));
                         {exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EAX,R_EAX)));}
                         inc(pushedparasize,2);
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_W,
+                            R_AX,r)));
+                       end
+                     else
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,R_AX)));
-                        { this is also false !!!
-                        if not(R_EAX in unused) then
-                          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EAX,R_EDI)));}
                         if not(R_EAX in unused) then
                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EDI,R_EAX)));
                      end;
@@ -2664,12 +2853,19 @@ implementation
                    LOC_MMXREGISTER,
                    LOC_CMMXREGISTER:
                      begin
+                        inc(pushedparasize,8); { was missing !!! (PM) }
                         exprasmlist^.concat(new(pai386,op_const_reg(
                           A_SUB,S_L,8,R_ESP)));
-                        new(r);
-                        reset_reference(r^);
-                        r^.base:=R_ESP;
-                        exprasmlist^.concat(new(pai386,op_reg_ref(
+                     if inlined then
+                       begin
+                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
+                            p^.left^.location.register,r)));
+                       end
+                     else
+                        begin
+                           r:=new_reference(R_ESP,0);
+                           exprasmlist^.concat(new(pai386,op_reg_ref(
                           A_MOVQ,S_NO,p^.left^.location.register,r)));
                      end;
 {$endif SUPPORT_MMX}
@@ -2679,7 +2875,9 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right);
+           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right
+             ,inlined,para_offset
+           );
       end;
 
     procedure secondcalln(var p : ptree);
@@ -2705,7 +2903,9 @@ implementation
          { help reference pointer }
          r : preference;
          pp,params : ptree;
+         inlined : boolean;
          inlinecode : ptree;
+         para_offset : longint;
          { instruction for alignement correction }
          corr : pai386;
          { we must pop this size also after !! }
@@ -2719,6 +2919,7 @@ implementation
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
+         inlined:=false;
          loadesi:=true;
          no_virtual_call:=false;
          unusedregisters:=unused;
@@ -2727,8 +2928,28 @@ implementation
           exit;
          if (p^.procdefinition^.options and poinline)<>0 then
            begin
+              inlined:=true;
               inlinecode:=p^.right;
+              { set it to the same lexical level }
+              p^.procdefinition^.parast^.symtablelevel:=
+                aktprocsym^.definition^.parast^.symtablelevel;
+              if assigned(p^.left) then
+                inlinecode^.para_offset:=
+                  gettempofsizepersistant(inlinecode^.para_size);
+              p^.procdefinition^.parast^.call_offset:=
+                inlinecode^.para_offset;
+{$ifdef extdebug}
+             Comment(V_debug,
+               'inlined parasymtable is at offset '
+               +tostr(p^.procdefinition^.parast^.call_offset));
+             exprasmlist^.concat(new(pai_asm_comment,init(
+               strpnew('inlined parasymtable is at offset '
+               +tostr(p^.procdefinition^.parast^.call_offset)))));
+{$endif extdebug}
               p^.right:=nil;
+              { disable further inlining of the same proc
+                in the args }
+              p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
            end;
          { only if no proc var }
          if not(assigned(p^.right)) then
@@ -2781,25 +3002,54 @@ implementation
                 end
               else
 {$endif test_dest_loc}
-                gettempofsizereference(p^.procdefinition^.retdef^.size,funcretref);
+                if inlined then
+                  begin
+                     reset_reference(funcretref);
+                     funcretref.offset:=gettempofsizepersistant(p^.procdefinition^.retdef^.size);
+                     funcretref.base:=procinfo.framepointer;
+                  end
+                else
+                  gettempofsizereference(p^.procdefinition^.retdef^.size,funcretref);
            end;
          if assigned(p^.left) then
            begin
               pushedparasize:=0;
               { be found elsewhere }
+              if inlined then
+                para_offset:=p^.procdefinition^.parast^.call_offset+
+                  p^.procdefinition^.parast^.datasize
+              else
+                para_offset:=0;
               if assigned(p^.right) then
                 secondcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0)
+                  (p^.procdefinition^.options and poleftright)<>0
+                  ,inlined,
+                  para_offset
+                  )
               else
                 secondcallparan(p^.left,p^.procdefinition^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0);
+                  (p^.procdefinition^.options and poleftright)<>0
+                   ,inlined,
+                  para_offset
+                  );
            end;
          params:=p^.left;
          p^.left:=nil;
+         if inlined then
+           inlinecode^.retoffset:=gettempofsizepersistant(4);
          if ret_in_param(p^.resulttype) then
            begin
-              emitpushreferenceaddr(funcretref);
               inc(pushedparasize,4);
+              if inlined then
+                begin
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                     newreference(funcretref),R_EDI)));
+                   r:=new_reference(procinfo.framepointer,inlinecode^.retoffset);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                     R_EDI,r)));
+                end
+              else
+                emitpushreferenceaddr(funcretref);
            end;
          { procedure variable ? }
          if (p^.right=nil) then
@@ -3072,7 +3322,7 @@ implementation
               if (p^.procdefinition^.options and poexports)<>0 then
                 Message(cg_e_dont_call_exported_direct);
 
-              if (pushedparasize mod 4)<>0 then
+              if (not inlined) and ((pushedparasize mod 4)<>0) then
                 begin
                    corr^.op1:=pointer(4-(pushedparasize mod 4));
                    must_pop:=true;
@@ -3138,15 +3388,22 @@ implementation
                      end;
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
                 end
-              else if (p^.procdefinition^.options and poinline)=0 then
+              else if not inlined then
                 emitcall(p^.procdefinition^.mangledname,
                   (p^.symtableproc^.symtabletype=unitsymtable) or
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)))
               else { inlined proc }
                 { inlined code is in inlinecode }
-                secondpass(inlinecode);
-              if ((p^.procdefinition^.options and poclearstack)<>0) then
+                begin
+                   secondpass(inlinecode);
+                   { set poinline again }
+                   p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
+                   { free the args }
+                   ungetpersistanttemp(p^.procdefinition^.parast^.call_offset,
+                     p^.procdefinition^.parast^.datasize);
+                end;
+              if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
                    { consider the alignment with the rest (PM) }
                    pushedparasize:=pushedparasize+pop_size;
@@ -3210,9 +3467,16 @@ implementation
          unused:=unusedregisters;
 
          { handle function results }
-         if p^.resulttype<>pdef(voiddef) then
+         { structured results are easy to handle.... }
+         { needed also when result_no_used !! }
+         if (p^.resulttype<>pdef(voiddef)) and ret_in_param(p^.resulttype) then
            begin
-
+              p^.location.loc:=LOC_MEM;
+              stringdispose(p^.location.reference.symbol);
+              p^.location.reference:=funcretref;
+           end;
+         if (p^.resulttype<>pdef(voiddef)) and p^.return_value_used then
+           begin
                  { a contructor could be a function with boolean result }
               if (p^.right=nil) and
                  ((p^.procdefinition^.options and poconstructor)<>0) and
@@ -3235,33 +3499,34 @@ implementation
                           end;
                      end;
                 end
-              { structed results are easy to handle.... }
+               { structed results are easy to handle.... }
               else if ret_in_param(p^.resulttype) then
                 begin
-                   p^.location.loc:=LOC_MEM;
+                   {p^.location.loc:=LOC_MEM;
                    stringdispose(p^.location.reference.symbol);
                    p^.location.reference:=funcretref;
-                    end
-                 else
-                    begin
-                       if (p^.resulttype^.deftype=orddef) then
-                          begin
-                             p^.location.loc:=LOC_REGISTER;
-                             case porddef(p^.resulttype)^.typ of
-                                s32bit,u32bit :
-                                  begin
+                   already done above (PM) }
+                end
+              else
+                begin
+                   if (p^.resulttype^.deftype=orddef) then
+                     begin
+                        p^.location.loc:=LOC_REGISTER;
+                        case porddef(p^.resulttype)^.typ of
+                          s32bit,u32bit :
+                            begin
 {$ifdef test_dest_loc}
-                                     if dest_loc_known and (dest_loc_tree=p) then
-                                       mov_reg_to_dest(p,S_L,R_EAX)
-                                     else
+                               if dest_loc_known and (dest_loc_tree=p) then
+                                 mov_reg_to_dest(p,S_L,R_EAX)
+                               else
 {$endif test_dest_loc}
-                                       begin
-                                          hregister:=getregister32;
-                                          emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                                          p^.location.register:=hregister;
-                                       end;
-                                  end;
-                                uchar,u8bit,bool8bit,s8bit :
+                                 begin
+                                    hregister:=getregister32;
+                                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                                    p^.location.register:=hregister;
+                                 end;
+                            end;
+                          uchar,u8bit,bool8bit,s8bit :
                                   begin
 {$ifdef test_dest_loc}
                                      if dest_loc_known and (dest_loc_tree=p) then
@@ -3352,7 +3617,24 @@ implementation
                   ungetiftemp(pp^.left^.location.reference);
               pp:=pp^.right;
            end;
+         if inlined then
+           ungetpersistanttemp(inlinecode^.retoffset,4);
          disposetree(params);
+         
+         { from now on the result can be freed normally }
+         if inlined and ret_in_param(p^.resulttype) then
+           persistanttemptonormal(funcretref.offset);
+
+         { if return value is not used }
+         if (not p^.return_value_used) and (p^.resulttype<>pdef(voiddef)) then
+           begin
+              if p^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                { release unused temp }
+                ungetiftemp(p^.location.reference)
+              else if p^.location.loc=LOC_FPU then
+                { release FPU stack }
+                exprasmlist^.concat(new(pai386,op_none(A_FDECSTP,S_NO)));
+           end;
       end;
 
     { reverts the parameter list }
@@ -3517,7 +3799,9 @@ implementation
                        Message(parser_e_illegal_colon_qualifier);
                      if ft=ft_typed then
                        never_copy_const_param:=true;
-                     secondcallparan(hp,@dummycoll,false);
+                     secondcallparan(hp,@dummycoll,false
+                       ,false,0
+                     );
                      if ft=ft_typed then
                        never_copy_const_param:=false;
                      hp^.right:=node;
@@ -3559,7 +3843,9 @@ implementation
                                     hp:=node;
                                     node:=node^.right;
                                     hp^.right:=nil;
-                                    secondcallparan(hp,@dummycoll,false);
+                                    secondcallparan(hp,@dummycoll,false
+                                      ,false,0
+                                    );
                                     hp^.right:=node;
                                     if codegenerror then
                                       exit;
@@ -3576,7 +3862,9 @@ implementation
                                     hp:=node;
                                     node:=node^.right;
                                     hp^.right:=nil;
-                                    secondcallparan(hp,@dummycoll,false);
+                                    secondcallparan(hp,@dummycoll,false
+                                      ,false,0
+                                    );
                                     hp^.right:=node;
                                     if pararesult^.deftype<>floatdef then
                                       Message(parser_e_illegal_colon_qualifier);
@@ -3741,7 +4029,9 @@ implementation
            { string arg }
 
            dummycoll.paratyp:=vs_var;
-           secondcallparan(hp,@dummycoll,false);
+           secondcallparan(hp,@dummycoll,false
+             ,false,0
+             );
            if codegenerror then
              exit;
 
@@ -3755,7 +4045,9 @@ implementation
               node^.is_colon_para then
              begin
                 dummycoll.data:=hp^.resulttype;
-                secondcallparan(hp,@dummycoll,false);
+                secondcallparan(hp,@dummycoll,false
+                  ,false,0
+                  );
                 if codegenerror then
                   exit;
                 hp:=node;
@@ -3771,7 +4063,9 @@ implementation
            if hp^.is_colon_para then
              begin
                 dummycoll.data:=hp^.resulttype;
-                secondcallparan(hp,@dummycoll,false);
+                secondcallparan(hp,@dummycoll,false
+                  ,false,0
+                  );
                 if codegenerror then
                   exit;
                 hp:=node;
@@ -3785,7 +4079,9 @@ implementation
                push_int(-1);
 
            { last arg longint or real }
-           secondcallparan(hp,@dummycoll,false);
+           secondcallparan(hp,@dummycoll,false
+             ,false,0
+             );
            if codegenerror then
              exit;
 
@@ -4289,46 +4585,54 @@ implementation
          i : longint;
          hp : ptree;
          href,sref : treference;
+         hr : tregister;
 
       begin
          { this should be reimplemented for smallsets }
          { differently  (PM) }
          { produce constant part }
+{$ifdef TestSmallSet}
+         if psetdef(p^.resulttype)=smallset then
+           begin
+              smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
+              smallsetvalue:=((smallset*256+p^.constset^[1])*256+p^.constset^[1];
+              {consts^.concat(new(pai_const,init_32bit(smallsetvalue)));}
+              hr:=getregister32;
+              exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
+                smallsetvalue,hr)));
+              hp:=p^.left;
+              if assigned(hp) then
+                begin
+                   while assigned(hp) do
+                     begin
+                        secondpass(hp^.left);
+                        if codegenerror then
+                          exit;
+                        case hp^.left^.location.loc of
+                          LOC_MEM,LOC_REFERENCE :
+                            exprasmlist^.concat(new(pai386,op_ref_reg(A_BTS,S_L,
+                              newreference(p^.left^.location.reference),hr)));
+                          LOC_REGISTER,LOC_CREGISTER :
+                            exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_L,
+                              p^.left^.location.register,hr)));
+                          else
+                            internalerror(10567);
+                          end
+                        hp:=hp^.right;
+                     end;
+                end;
+              p^.location.loc:=LOC_REGISTER;
+              p^.location.register:=hr;
+           end
+         else
+{$endif TestSmallSet}
+           begin
          href.symbol := Nil;
          clear_reference(href);
          getlabel(l);
          stringdispose(p^.location.reference.symbol);
          href.symbol:=stringdup(constlabel2str(l,constseta));
          concat_constlabel(l,constseta);
-           {if psetdef(p^.resulttype)=smallset then
-           begin
-              smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
-              smallsetvalue:=((smallset*256+p^.constset^[1])*256+p^.constset^[1];
-              consts^.concat(new(pai_const,init_32bit(smallsetvalue)));
-              hp:=p^.left;
-              if assigned(hp) then
-                begin
-                   sref.symbol:=nil;
-                   gettempofsizereference(32,sref);
-                     concatcopy(href,sref,32,false);
-                   while assigned(hp) do
-                     begin
-                        secondpass(hp^.left);
-                        if codegenerror then
-                          exit;
-
-                        pushsetelement(hp^.left);
-                        emitpushreferenceaddr(sref);
-                         register is save in subroutine
-                        emitcall('SET_SET_BYTE',true);
-                        hp:=hp^.right;
-                     end;
-                   p^.location.reference:=sref;
-                end
-              else p^.location.reference:=href;
-           end
-         else    }
-           begin
            for i:=0 to 31 do
              consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
          hp:=p^.left;
@@ -4721,22 +5025,12 @@ implementation
        end;
 {***}
 
-    procedure secondexpr(var p : ptree);
-
-      begin
-         secondpass(p^.left);
-         if (p^.left^.resulttype<>pdef(voiddef)) then
-           if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-             ungetiftemp(p^.left^.location.reference);
-      end;
-
-    procedure secondblockn(var p : ptree);
-
+    procedure secondstatement(var p : ptree);
       var
          hp : ptree;
 
       begin
-         hp:=p^.left;
+         hp:=p;
          while assigned(hp) do
            begin
               { assignments could be distance optimized }
@@ -4744,14 +5038,29 @@ implementation
                 begin
                    cleartempgen;
                    secondpass(hp^.right);
-                   if (hp^.right^.resulttype<>pdef(voiddef)) then
+                   (* if (hp^.right^.resulttype<>pdef(voiddef)) then
                      if hp^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                       ungetiftemp(hp^.right^.location.reference);
+                     { release unused temp }
+                       ungetiftemp(hp^.right^.location.reference)
+                     else if hp^.right^.location.loc=LOC_FPU then
+                     { release FPU stack }
+                       exprasmlist^.concat(new(pai386,op_none(A_FDECSTP,S_NO)));
+                     All done in secondcalln now (PM) *)
                 end;
               hp:=hp^.left;
            end;
       end;
 
+
+    procedure secondblockn(var p : ptree);
+
+      begin
+         { do second pass on left node }
+         if assigned(p^.left) then
+           secondpass(p^.left);
+      end;
+
+ 
     procedure second_while_repeatn(var p : ptree);
 
       var
@@ -4771,7 +5080,7 @@ implementation
               aktbreaklabel:=l2;
               cleartempgen;
               if assigned(p^.right) then
-                  secondpass(p^.right);
+                secondpass(p^.right);
 
               otlabel:=truelabel;
               oflabel:=falselabel;
@@ -5646,25 +5955,92 @@ do_jmp:
             end;
        end;
 
-    { not used for now }
+    { implementation not complete yet }
+
+    var addr_correction : longint;
+
+    procedure correct_address(p : psym);
+
+      begin
+         if p^.typ=varsym then
+           begin
+             inc(pvarsym(p)^.address,addr_correction);
+{$ifdef extdebug}
+             Comment(V_debug,pvarsym(p)^.name+' is at offset -'
+               +tostr(pvarsym(p)^.address));
+             exprasmlist^.concat(new(pai_asm_comment,init(
+               strpnew(pvarsym(p)^.name+' is at offset -'
+               +tostr(pvarsym(p)^.address)))));
+{$endif extdebug}
+           end;
+      end;
 
     procedure secondprocinline(var p : ptree);
 
        var st : psymtable;
-
+           oldprocsym : pprocsym;
+           para_size : longint;
+           oldprocinfo : tprocinfo;
+           { just dummies for genentrycode }
+           nostackframe,make_global : boolean;
+           proc_names : tstringcontainer;
+           inlineentrycode,inlineexitcode : paasmoutput;
+           oldexitlabel,oldexit2label,oldquickexitlabel:Plabel;
        begin
-          st:=p^.inlineprocdef^.parast;
-          st^.call_offset:=4;
+          oldexitlabel:=aktexitlabel;
+          oldexit2label:=aktexit2label;
+          oldquickexitlabel:=quickexitlabel;
+          getlabel(aktexitlabel);
+          getlabel(aktexit2label);
+          oldprocsym:=aktprocsym;
+          oldprocinfo:=procinfo;
+          { set the return value }
+          procinfo.retdef:=p^.inlineprocdef^.retdef;
+          procinfo.retoffset:=p^.retoffset;
+          { arg space has been filled by the parent secondcall }
           st:=p^.inlineprocdef^.localst;
-          st^.call_offset:=gettempofsize(st^.datasize);
+              { set it to the same lexical level }
+          st^.symtablelevel:=
+            oldprocsym^.definition^.localst^.symtablelevel;
+          if st^.datasize>0 then
+            st^.call_offset:=gettempofsizepersistant(st^.datasize);
+{$ifdef extdebug}
+             Comment(V_debug,'local symtable is at offset '
+               +tostr(st^.call_offset));
+          exprasmlist^.concat(new(pai_asm_comment,init(
+          strpnew('local symtable is at offset '
+               +tostr(st^.call_offset)))));
+{$endif extdebug}
+          addr_correction:=-st^.call_offset-st^.datasize;
+          st^.foreach(correct_address);
+{$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init('Start of inlined proc')));
-          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+{$endif extdebug}
+          { takes care of local data initialization }
+          inlineentrycode:=new(paasmoutput,init);
+          inlineexitcode:=new(paasmoutput,init);
+          proc_names.init;
+          para_size:=p^.para_size;
+          genentrycode(inlineentrycode,proc_names,make_global,
+           0,para_size,nostackframe,true);
+          exprasmlist^.concatlist(inlineentrycode);
           secondpass(p^.left);
-          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBP)));
+          genexitcode(inlineexitcode,0,false,true);
+          exprasmlist^.concatlist(inlineexitcode);
+{$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init('End of inlined proc')));
-          {we can free the local stack now }
-          ungettemp(st^.call_offset,st^.datasize);
+{$endif extdebug}
+          {we can free the local data now }
+          if st^.datasize>0 then
+            ungetpersistanttemp(st^.call_offset,st^.datasize);
+          { set the real address again }
+          addr_correction:=-addr_correction;
+          st^.foreach(correct_address);
+          aktprocsym:=oldprocsym;
+          aktexitlabel:=oldexitlabel;
+          aktexit2label:=oldexit2label;
+          quickexitlabel:=oldquickexitlabel;
+          procinfo:=oldprocinfo;
        end;
 
 
@@ -5686,7 +6062,7 @@ do_jmp:
              secondnot,secondinline,secondniln,seconderror,
              secondnothing,secondhnewn,secondhdisposen,secondnewn,
              secondsimplenewdispose,secondnothing,secondsetcons,secondblockn,
-             secondnothing,secondnothing,secondifn,secondbreakn,
+             secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
              secondgoto,secondsimplenewdispose,secondtryexcept,secondraise,
@@ -5852,7 +6228,11 @@ do_jmp:
                          dec(procinfo.framepointer_offset,4);
                          dec(procinfo.ESI_offset,4);
 
-                         dec(procinfo.retoffset,4);
+                         { is this correct ???}
+                         { retoffset can be negativ for results in eax !! }
+                         { the value should be decreased only if positive }
+                         if procinfo.retoffset>=0 then
+                           dec(procinfo.retoffset,4);
 
                          dec(procinfo.call_offset,4);
                          aktprocsym^.definition^.parast^.call_offset:=procinfo.call_offset;
@@ -5982,7 +6362,17 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.23  1998-05-12 10:46:58  peter
+  Revision 1.24  1998-05-20 09:42:33  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.23  1998/05/12 10:46:58  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

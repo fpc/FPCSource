@@ -57,17 +57,17 @@
    { and only one of the two }
    {$ifndef I386}
       {$ifndef M68K}
-        {$fatalerror One of the switches I386 or M68K must be defined}
+        {$fatal One of the switches I386 or M68K must be defined}
       {$endif M68K}
    {$endif I386}
    {$ifdef I386}
       {$ifdef M68K}
-        {$fatalerror ONLY one of the switches I386 or M68K must be defined}
+        {$fatal ONLY one of the switches I386 or M68K must be defined}
       {$endif M68K}
    {$endif I386}
    {$ifdef support_mmx}
      {$ifndef i386}
-       {$fatalerror I386 switch must be on for MMX support}
+       {$fatal I386 switch must be on for MMX support}
      {$endif i386}
    {$endif support_mmx}
 {$endif}
@@ -195,6 +195,13 @@ var
 procedure myexit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
+{$ifdef UseBrowser}
+  if browser_file_open then
+    begin
+       close(browserfile);
+       browser_file_open:=false;
+    end;
+{$endif UseBrowser}
 {$ifdef tp}
   if use_big then
    symbolstream.done;
@@ -353,7 +360,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-05-12 10:47:00  peter
+  Revision 1.11  1998-05-20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.10  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

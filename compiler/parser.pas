@@ -123,9 +123,7 @@ unit parser;
 
          { some variables to save the compiler state }
          oldtoken : ttoken;
-{$ifdef UseTokenInfo}
          oldtokenpos : tfileposinfo;
-{$endif UseTokenInfo}
          oldpattern : stringid;
 
          oldpreprocstack : ppreprocstack;
@@ -237,9 +235,7 @@ unit parser;
          oldmacros:=macros;
          oldpattern:=pattern;
          oldtoken:=token;
-{$ifdef UseTokenInfo}
          oldtokenpos:=tokenpos;
-{$endif UseTokenInfo}
          oldorgpattern:=orgpattern;
          old_block_type:=block_type;
          oldpreprocstack:=preprocstack;
@@ -284,7 +280,7 @@ unit parser;
          { init code generator for a new module }
          codegen_newmodule;
          macros:=new(psymtable,init(macrosymtable));
-
+         macros^.name:=stringdup('Conditionals for '+filename);
          define_macros;
 
          { startup scanner }
@@ -306,7 +302,6 @@ unit parser;
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_main:=true;
-
          { open assembler response }
          if (compile_level=1) then
           AsmRes.Init('ppas');
@@ -320,6 +315,7 @@ unit parser;
               }
               hp:=loadunit(upper(target_info.system_unit),true,true);
               systemunit:=hp^.symtable;
+              make_ref:=false;
               readconstdefs;
               { we could try to overload caret by default }
               symtablestack:=systemunit;
@@ -328,6 +324,7 @@ unit parser;
               if assigned(srsym) and (srsym^.typ=procsym) and
                  (overloaded_operators[STARSTAR]=nil) then
                 overloaded_operators[STARSTAR]:=pprocsym(srsym);
+              make_ref:=true;
            end
          else
            begin
@@ -364,6 +361,7 @@ unit parser;
               systemunit:=nil;
            end;
          registerdef:=true;
+         make_ref:=true;
 
          { current return type is void }
          procinfo.retdef:=voiddef;
@@ -447,16 +445,16 @@ done:
          procprefix:=oldprocprefix;
 
          { close the inputfiles }
-{$ifndef UseBrowser}
-         { but not if we want the names for the browser ! }
+{$ifdef UseBrowser}
+         {  we need the names for the browser ! }
+         current_module^.sourcefiles.close_all;
+{$else UseBrowser}
          current_module^.sourcefiles.done;
 {$endif not UseBrowser}
          { restore scanner state }
          pattern:=oldpattern;
          token:=oldtoken;
-{$ifdef UseTokenInfo}
          tokenpos:=oldtokenpos;
-{$endif UseTokenInfo}
          orgpattern:=oldorgpattern;
          block_type:=old_block_type;
 
@@ -508,7 +506,17 @@ done:
 end.
 {
   $Log$
-  Revision 1.16  1998-05-12 10:47:00  peter
+  Revision 1.17  1998-05-20 09:42:34  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.16  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

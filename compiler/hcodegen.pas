@@ -50,6 +50,8 @@ unit hcodegen;
           _class : pobjectdef;
           { return type }
           retdef : pdef;
+          { the definition of the proc itself }
+          def : pdef;
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
@@ -140,14 +142,15 @@ unit hcodegen;
 
 
     { convert/concats a label for constants in the consts section }
-    function constlabel2str(p:plabel;ctype:tconsttype):string;
+    function constlabel2str(l : plabel;ctype:tconsttype):string;
+    function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
     procedure concat_constlabel(p:plabel;ctype:tconsttype);
 
 
 implementation
 
      uses
-        cobjects,globals,files,strings;
+        systems,cobjects,globals,files,strings;
 
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
@@ -353,12 +356,22 @@ implementation
       consttypestr : array[tconsttype] of string[6]=
         ('ord','string','real','bool','int','char','set');
 
-    function constlabel2str(p:plabel;ctype:tconsttype):string;
+      { Peter this gives problems for my inlines !! }
+      { we must use the number directly !!! (PM) }
+    function constlabel2str(l : plabel;ctype:tconsttype):string;
       begin
         if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
-         constlabel2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb)
+         constlabel2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
         else
-         constlabel2str:=lab2str(p);
+         constlabel2str:=lab2str(l);
+      end;
+
+    function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
+      begin
+        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
+         constlabelnb2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
+        else
+         constlabelnb2str:=target_asm.labelprefix+tostr(pnb);
       end;
 
 
@@ -385,7 +398,17 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-05-07 00:17:01  peter
+  Revision 1.5  1998-05-20 09:42:34  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.4  1998/05/07 00:17:01  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

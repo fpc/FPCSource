@@ -32,7 +32,7 @@ unit radi386;
   implementation
 
      uses
-        i386,hcodegen,globals,scanner,aasm,
+        files,i386,hcodegen,globals,scanner,aasm,
         cobjects,symtable,types,verbose,asmutils;
 
     function assemble : ptree;
@@ -73,10 +73,13 @@ unit radi386;
          retstr:=upper(tostr(procinfo.retoffset)+'('+att_reg2str[procinfo.framepointer]+')')
        else
          retstr:='';
-       c:=asmgetchar;
+         c:=asmgetchar;
          code:=new(paasmoutput,init);
          while not(ende) do
            begin
+              tokenpos.line:=current_module^.current_inputfile^.line_no;
+              tokenpos.column:=get_current_col;
+              tokenpos.fileindex:=current_module^.current_index;
               case c of
                  'A'..'Z','a'..'z','_' : begin
                       hs:='';
@@ -236,7 +239,17 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-08 16:58:06  pierre
+  Revision 1.3  1998-05-20 09:42:36  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.2  1998/04/08 16:58:06  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

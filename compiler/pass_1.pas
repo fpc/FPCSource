@@ -35,7 +35,7 @@ unit pass_1;
   implementation
 
      uses
-        cobjects,verbose,systems,globals,aasm,symtable,
+        scanner,cobjects,verbose,systems,globals,aasm,symtable,
         types,strings,hcodegen,files
 {$ifdef i386}
         ,i386
@@ -125,16 +125,20 @@ unit pass_1;
       end;
 
 
-    { calculates the needed registers for a binary operator }
-    procedure calcregisters(p : ptree;r32,fpu,mmx : word);
-
+    procedure left_right_max(p : ptree);
       begin
          p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
          p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
 {$endif SUPPORT_MMX}
+      end;
 
+    { calculates the needed registers for a binary operator }
+    procedure calcregisters(p : ptree;r32,fpu,mmx : word);
+
+      begin
+         left_right_max(p);
          { Nur wenn links und rechts ein Unterschied < ben”tige Anzahl ist, }
          { wird ein zus„tzliches Register ben”tigt, da es dann keinen       }
          { schwierigeren Ast gibt, welcher erst ausgewertet werden kann     }
@@ -164,7 +168,8 @@ unit pass_1;
         end;
 
     function isconvertable(def_from,def_to : pdef;
-             var doconv : tconverttype;fromtreetype : ttreetyp) : boolean;
+             var doconv : tconverttype;fromtreetype : ttreetyp;
+             explicit : boolean) : boolean;
 
       { from_is_cstring muá true sein, wenn def_from die Definition einer }
       { Stringkonstanten ist, n”tig wegen der Konvertierung von String-   }
@@ -260,7 +265,9 @@ unit pass_1;
                      doconv:=tc_real_2_real;
                    { comp isn't a floating type }
 {$ifdef i386}
-                   if (pfloatdef(def_to)^.typ=s64bit) then
+                   if (pfloatdef(def_to)^.typ=s64bit) and
+                      (pfloatdef(def_from)^.typ<>s64bit)  and
+                      not (explicit) then
                      Message(parser_w_convert_real_2_comp);
 {$endif}
                 end;
@@ -1356,13 +1363,7 @@ unit pass_1;
          if codegenerror then
            exit;
 
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
-         if p^.registers32<2 then p^.registers32:=2;
-
+         left_right_max(p);
          p^.resulttype:=s32bitdef;
          p^.location.loc:=LOC_REGISTER;
       end;
@@ -1887,7 +1888,7 @@ unit pass_1;
            Message(cg_e_upper_lower_than_lower);
          { both types must be compatible }
          if not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,
-           ct,ordconstn)) and
+           ct,ordconstn,false)) and
            not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) then
            Message(sym_e_type_mismatch);
       end;
@@ -1910,7 +1911,7 @@ unit pass_1;
            begin
               if not(isconvertable(p^.right^.resulttype,
                 parraydef(p^.left^.resulttype)^.rangedef,
-                ct,ordconstn)) and
+                ct,ordconstn,false)) and
               not(is_equal(p^.right^.resulttype,
                 parraydef(p^.left^.resulttype)^.rangedef)) then
                 Message(sym_e_type_mismatch);
@@ -2306,7 +2307,8 @@ unit pass_1;
        p^.registersmmx:=p^.left^.registersmmx;
 {$endif}
        set_location(p^.location,p^.left^.location);
-       if (not(isconvertable(p^.left^.resulttype,p^.resulttype,p^.convtyp,p^.left^.treetype))) then
+       if (not(isconvertable(p^.left^.resulttype,p^.resulttype,
+           p^.convtyp,p^.left^.treetype,p^.explizit))) then
          begin
             if is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
               begin
@@ -2431,7 +2433,8 @@ unit pass_1;
                             end
                           else
                             begin
-                               if not isconvertable(s32bitdef,p^.resulttype,p^.convtyp,ordconstn { nur Dummy} ) then
+                               if not isconvertable(s32bitdef,p^.resulttype,p^.convtyp,
+                               ordconstn { nur Dummy},false ) then
                                  Message(cg_e_illegal_type_conversion);
                             end;
 
@@ -2451,7 +2454,8 @@ unit pass_1;
                               end
                             else
                               begin
-                                 if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn { nur Dummy} ) then
+                                 if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,
+                                   ordconstn { nur Dummy},false ) then
                                    Message(cg_e_illegal_type_conversion);
                               end;
                          end
@@ -2472,7 +2476,8 @@ unit pass_1;
                               begin
                                  { this is wrong because it converts to a 4 byte long var !!
                                    if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
-                                 if not isconvertable(p^.left^.resulttype,u8bitdef,p^.convtyp,ordconstn { nur Dummy} ) then
+                                 if not isconvertable(p^.left^.resulttype,u8bitdef,
+                                   p^.convtyp,ordconstn { nur Dummy},false ) then
                                    Message(cg_e_illegal_type_conversion);
                               end;
                          end
@@ -2567,7 +2572,8 @@ unit pass_1;
                       must_be_valid:=false;
                     { here we must add something for the implicit type }
                     { conversion from array of char to pchar }
-                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,p^.left^.treetype) then
+                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,
+                      p^.left^.treetype,false) then
                       if convtyp=tc_array_to_pointer then
                         must_be_valid:=false;
                     firstpass(p^.left);
@@ -2657,10 +2663,11 @@ unit pass_1;
          pd : pprocdef;
          actprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
-         pt : ptree;
-         exactmatch : boolean;
+         pt,inlinecode : ptree;
+         exactmatch,inlined : boolean;
          paralength,l : longint;
          pdc : pdefcoll;
+         curtokenpos : tfileposinfo;
 
          { only Dummy }
          hcvt : tconverttype;
@@ -2696,10 +2703,19 @@ unit pass_1;
          store_valid:=must_be_valid;
          must_be_valid:=false;
 
+         inlined:=false;
+         if assigned(p^.procdefinition) and
+            ((p^.procdefinition^.options and poinline)<>0) then
+           begin
+              inlinecode:=p^.right;
+              if assigned(inlinecode) then
+                begin
+                   inlined:=true;
+                   p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+                end;
+              p^.right:=nil;
+           end;
          { procedure variable ? }
-         { right contains inline code for inlined procedures }
-         if (not assigned(p^.procdefinition)) or
-            ((p^.procdefinition^.options and poinline)=0) then
          if assigned(p^.right) then
            begin
               { procedure does a call }
@@ -2887,7 +2903,8 @@ unit pass_1;
                           begin
                              { erst am Anfang }
                              while (assigned(procs)) and
-                               not(isconvertable(pt^.resulttype,procs^.nextpara^.data,hcvt,pt^.left^.treetype)) do
+                               not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
+                                 hcvt,pt^.left^.treetype,false)) do
                                begin
                                   hp:=procs^.next;
                                   dispose(procs);
@@ -2898,7 +2915,7 @@ unit pass_1;
                              while (assigned(hp)) and assigned(hp^.next) do
                                begin
                                   if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
-                                    hcvt,pt^.left^.treetype)) then
+                                    hcvt,pt^.left^.treetype,false)) then
                                     begin
                                        hp2:=hp^.next^.next;
                                        dispose(hp^.next);
@@ -3077,7 +3094,11 @@ unit pass_1;
                      end;
 {$endif CHAINPROCSYMS}
      {$ifdef UseBrowser}
-                   add_new_ref(procs^.data^.lastref);
+                   if make_ref then
+                     begin
+                        get_cur_file_pos(curtokenpos);
+                        add_new_ref(procs^.data^.lastref,@curtokenpos);
+                     end;
      {$endif UseBrowser}
 
                    p^.procdefinition:=procs^.data;
@@ -3100,14 +3121,6 @@ unit pass_1;
 {$endif CHAINPROCSYMS}
                end;{ end of procedure to call determination }
 
-              { work trough all parameters to insert the type conversions }
-              if assigned(p^.left) then
-                begin
-                   old_count_ref:=count_ref;
-                   count_ref:=true;
-                   firstcallparan(p^.left,p^.procdefinition^.para1);
-                   count_ref:=old_count_ref;
-                end;
               { handle predefined procedures }
               if (p^.procdefinition^.options and pointernproc)<>0 then
                 begin
@@ -3135,6 +3148,7 @@ unit pass_1;
                 end
               else
                 { no intern procedure => we do a call }
+              { calc the correture value for the register }
               { handle predefined procedures }
               if (p^.procdefinition^.options and poinline)<>0 then
                 begin
@@ -3146,16 +3160,32 @@ unit pass_1;
                    if not assigned(p^.right) then
                      begin
                         if assigned(p^.procdefinition^.code) then
-                          p^.right:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
+                          inlinecode:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
                         else
                           comment(v_fatal,'no code for inline procedure stored');
-                        firstpass(p^.right);
+                        if assigned(inlinecode) then
+                          begin
+                             firstpass(inlinecode);
+                             { consider it has not inlined if called
+                               again inside the args }
+                             p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+                             inlined:=true;
+                          end;
+
                      end;
                 end
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
 
-              { calc the correture value for the register }
+              { work trough all parameters to insert the type conversions }
+              { !!! done now after internproc !! (PM) }
+              if assigned(p^.left) then
+                begin
+                   old_count_ref:=count_ref;
+                   count_ref:=true;
+                   firstcallparan(p^.left,p^.procdefinition^.para1);
+                   count_ref:=old_count_ref;
+                end;
 {$ifdef i386}
               for regi:=R_EAX to R_EDI do
                 begin
@@ -3246,6 +3276,11 @@ unit pass_1;
               end;
            end;
 
+         if inlined then
+           begin
+              p^.right:=inlinecode;
+              p^.procdefinition^.options:=p^.procdefinition^.options or  poinline;
+           end;
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)         }
          if assigned(p^.right) then
@@ -3301,7 +3336,7 @@ unit pass_1;
 
       var
          hp,hpp : ptree;
-         isreal,store_valid,file_is_typed : boolean;
+         store_count_ref,isreal,store_valid,file_is_typed : boolean;
 
       procedure do_lowhigh(adef : pdef);
 
@@ -3336,9 +3371,16 @@ unit pass_1;
         end;
 
       begin
+         store_valid:=must_be_valid;
+         store_count_ref:=count_ref;
+         count_ref:=false;
          { if we handle writeln; p^.left contains no valid address }
          if assigned(p^.left) then
            begin
+              if p^.left^.treetype=callparan then
+                firstcallparan(p^.left,nil)
+              else
+                firstpass(p^.left);
               p^.registers32:=p^.left^.registers32;
               p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -3346,7 +3388,6 @@ unit pass_1;
 {$endif SUPPORT_MMX}
               set_location(p^.location,p^.left^.location);
            end;
-           store_valid:=must_be_valid;
            if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
                                        in_typeof_x,in_ord_x,
                                        in_reset_typedfile,in_rewrite_typedfile]) then
@@ -3492,9 +3533,8 @@ unit pass_1;
                      (penumdef(p^.resulttype)^.has_jumps) then
                     begin
                       Message(parser_e_succ_and_pred_enums_with_assign_not_possible);
-                      exit;
-                    end;
-                       if p^.left^.treetype=ordconstn then
+                    end
+                  else if p^.left^.treetype=ordconstn then
                          begin
                             if p^.inlinenumber=in_pred_x then
                               hp:=genordinalconstnode(p^.left^.value+1,
@@ -3840,6 +3880,7 @@ unit pass_1;
                  else internalerror(8);
              end;
            must_be_valid:=store_valid;
+           count_ref:=store_count_ref;
        end;
 
     procedure firstsubscriptn(var p : ptree);
@@ -4021,11 +4062,7 @@ unit pass_1;
          if codegenerror then
            exit;
 
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+         left_right_max(p);
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if psetdef(p^.right^.resulttype)^.settype<>smallset then
@@ -4053,6 +4090,7 @@ unit pass_1;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=p^.right^.registersmmx;
 {$endif SUPPORT_MMX}
+         { left is the next in the list }
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -4534,11 +4572,7 @@ unit pass_1;
          if codegenerror then
            exit;
 
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+         left_right_max(p);
 
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
@@ -4567,11 +4601,13 @@ unit pass_1;
          if codegenerror then
            exit;
 
+         left_right_max(p);
+(*       this was wrong,no ??
          p^.registersfpu:=max(p^.left^.registersfpu,p^.left^.registersfpu);
          p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+{$endif SUPPORT_MMX}             *)
 
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
@@ -4626,14 +4662,7 @@ unit pass_1;
                    firstpass(p^.right);
                    p^.right:=gentypeconvnode(p^.right,s32bitdef);
                    firstpass(p^.right);
-                   p^.registersfpu:=max(p^.left^.registersfpu,
-                     p^.right^.registersfpu);
-                   p^.registers32:=max(p^.left^.registers32,
-                     p^.right^.registers32);
-{$ifdef SUPPORT_MMX}
-                   p^.registersmmx:=max(p^.left^.registersmmx,
-                     p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+                   left_right_max(p);
                 end;
            end;
       end;
@@ -4652,14 +4681,7 @@ unit pass_1;
                if codegenerror then
                  exit;
 
-               p^.registers32:=max(p^.left^.registers32,
-                 p^.right^.registers32);
-               p^.registersfpu:=max(p^.left^.registersfpu,
-                 p^.right^.registersfpu);
-{$ifdef SUPPORT_MMX}
-               p^.registersmmx:=max(p^.left^.registersmmx,
-                 p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+               left_right_max(p);
                p^.resulttype:=voiddef;
             end
          else
@@ -4838,7 +4860,7 @@ unit pass_1;
                 begin
                    comment(v_debug,'tree changed after first counting pass '
                      +tostr(longint(p^.treetype)));
-                   compare_trees(p,oldp);
+                   compare_trees(oldp,p);
                 end;
               dispose(oldp);
            end;
@@ -4872,7 +4894,17 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.18  1998-05-11 13:07:55  peter
+  Revision 1.19  1998-05-20 09:42:34  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.18  1998/05/11 13:07:55  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

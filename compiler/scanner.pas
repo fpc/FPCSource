@@ -160,15 +160,7 @@ unit scanner;
         preprocstack   : ppreprocstack;
 
 
-{$ifdef UseTokenInfo}
-{    type
-      ttokeninfo = record
-                 token : ttoken;
-                 fi : tfileposinfo;
-                 end;
-      ptokeninfo = ^ttokeninfo; }
       var tokenpos : tfileposinfo;
-{$endif UseTokenInfo}
 
       {public}
         procedure syntaxerror(const s : string);
@@ -659,24 +651,17 @@ unit scanner;
         function yylex : ttoken;
      var
         y    : ttoken;
-{$ifdef UseTokenInfo}
-        fileindex,line,column : longint;
-{$endif UseTokenInfo}
         code : word;
         l    : longint;
         mac  : pmacrosym;
         hp   : pinputfile;
         hp2  : pchar;
-{$ifdef UseTokenInfo}
       label
          exit_label;
-{$endif UseTokenInfo}
      begin
-{$ifdef UseTokenInfo}
-        line:=current_module^.current_inputfile^.line_no;
-        column:=get_current_col;
-        fileindex:=current_module^.current_index;
-{$endif UseTokenInfo}
+        tokenpos.line:=current_module^.current_inputfile^.line_no;
+        tokenpos.column:=get_current_col;
+        tokenpos.fileindex:=current_module^.current_index;
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
         { this is a floating point number or range like 1..3                 }
@@ -686,39 +671,29 @@ unit scanner;
              if c='.' then
                begin
                   readchar;
-{$ifndef UseTokenInfo}
-                  yylex:=POINTPOINT;
-                  exit;
-               end;
-             yylex:=POINT;
-             exit;
-{$else UseTokenInfo}
                   yylex:=POINTPOINT;
                   goto exit_label;
                end;
              yylex:=POINT;
              goto exit_label;
-{$endif UseTokenInfo}
           end;
 
         repeat
           case c of
            '{' : skipcomment;
-   ' ',#9..#13 : skipspace;
+           ' ',#9..#13 : skipspace;
           else
            break;
           end;
         until false;
 
         lasttokenpos:=longint(inputpointer);
-{$ifdef UseTokenInfo}
-        line:=current_module^.current_inputfile^.line_no;
-        column:=get_current_col;
-        fileindex:=current_module^.current_index;
+        tokenpos.line:=current_module^.current_inputfile^.line_no;
+        tokenpos.column:=get_current_col;
+        tokenpos.fileindex:=current_module^.current_index;
         { will become line:=lasttokenpos ??;}
-{$endif UseTokenInfo}
         case c of
-       '_','A'..'Z',
+           '_','A'..'Z',
            'a'..'z' : begin
                         orgpattern:=readstring;
                         pattern:=upper(orgpattern);
@@ -740,6 +715,9 @@ unit scanner;
                                  hp^.next:=current_module^.current_inputfile;
                                  current_module^.current_inputfile:=hp;
                                  status.currentsource:=current_module^.current_inputfile^.name^;
+                                 { I don't think that we should do that
+                                   because otherwise the file will be searched !! (PM)
+                                   but there is the problem of index !! }
                                  current_module^.sourcefiles.register_file(hp);
                                  current_module^.current_index:=hp^.ref_index;
                                { set an own buffer }
@@ -772,29 +750,17 @@ unit scanner;
                             end;
                            yylex:=ID;
                          end;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '$' : begin
                          pattern:=readnumber;
                          yylex:=INTCONST;
-{$ifndef UseTokenInfo}
-                         exit;
-{$else UseTokenInfo}
                          goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '%' : begin
                          pattern:=readnumber;
                          yylex:=INTCONST;
-{$ifndef UseTokenInfo}
-                         exit;
-{$else UseTokenInfo}
                          goto exit_label;
-{$endif UseTokenInfo}
                       end;
            '0'..'9' : begin
                         pattern:=readnumber;
@@ -805,11 +771,7 @@ unit scanner;
                                   begin
                                     s_point:=true;
                                     yylex:=INTCONST;
-{$ifndef UseTokenInfo}
-                                    exit;
-{$else UseTokenInfo}
                                     goto exit_label;
-{$endif UseTokenInfo}
                                   end;
                                  pattern:=pattern+'.';
                                  while c in ['0'..'9'] do
@@ -818,11 +780,7 @@ unit scanner;
                                     readchar;
                                   end;
                                  yylex:=REALNUMBER;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                      'e','E' : begin
                                  pattern:=pattern+'E';
@@ -840,46 +798,26 @@ unit scanner;
                                     readchar;
                                   end;
                                  yylex:=REALNUMBER;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                         end;
                         yylex:=INTCONST;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 ';' : begin
                         readchar;
                         yylex:=SEMICOLON;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '[' : begin
                         readchar;
                         yylex:=LECKKLAMMER;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 ']' : begin
                         readchar;
                         yylex:=RECKKLAMMER;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '(' : begin
                         readchar;
@@ -894,20 +832,12 @@ unit scanner;
                            exit;
                          end;
                         yylex:=LKLAMMER;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 ')' : begin
                         readchar;
                         yylex:=RKLAMMER;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '+' : begin
                         readchar;
@@ -915,18 +845,10 @@ unit scanner;
                          begin
                            readchar;
                            yylex:=_PLUSASN;
-{$ifndef UseTokenInfo}
-                           exit;
-{$else UseTokenInfo}
                            goto exit_label;
-{$endif UseTokenInfo}
                          end;
                         yylex:=PLUS;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '-' : begin
                         readchar;
@@ -934,18 +856,10 @@ unit scanner;
                          begin
                            readchar;
                            yylex:=_MINUSASN;
-{$ifndef UseTokenInfo}
-                           exit;
-{$else UseTokenInfo}
                            goto exit_label;
-{$endif UseTokenInfo}
                          end;
                         yylex:=MINUS;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 ':' : begin
                         readchar;
@@ -953,18 +867,10 @@ unit scanner;
                          begin
                            readchar;
                            yylex:=ASSIGNMENT;
-{$ifndef UseTokenInfo}
-                           exit;
-{$else UseTokenInfo}
                            goto exit_label;
-{$endif UseTokenInfo}
                          end;
                         yylex:=COLON;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '*' : begin
                         readchar;
@@ -979,11 +885,7 @@ unit scanner;
                          end
                         else
                           yylex:=STAR;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '/' : begin
                         readchar;
@@ -993,11 +895,7 @@ unit scanner;
                                   begin
                                     readchar;
                                     yylex:=_SLASHASN;
-{$ifndef UseTokenInfo}
-                                    exit;
-{$else UseTokenInfo}
                                     goto exit_label;
-{$endif UseTokenInfo}
                                   end;
                                end;
                          '/' : begin
@@ -1011,20 +909,12 @@ unit scanner;
                                end;
                         end;
                         yylex:=SLASH;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
            '='      : begin
                         readchar;
                         yylex:=EQUAL;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
            '.'      : begin
                         readchar;
@@ -1032,19 +922,11 @@ unit scanner;
                          begin
                            readchar;
                            yylex:=POINTPOINT;
-{$ifndef UseTokenInfo}
-                           exit;
-{$else UseTokenInfo}
                            goto exit_label;
-{$endif UseTokenInfo}
                          end
                         else
                          yylex:=POINT;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '@' : begin
                         readchar;
@@ -1055,20 +937,12 @@ unit scanner;
                          end
                         else
                          yylex:=KLAMMERAFFE;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 ',' : begin
                         readchar;
                         yylex:=COMMA;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
       '''','#','^' :  begin
                         if c='^' then
@@ -1084,11 +958,7 @@ unit scanner;
                            else
                             begin
                               yylex:=CARET;
-{$ifndef UseTokenInfo}
-                              exit;
-{$else UseTokenInfo}
                               goto exit_label;
-{$endif UseTokenInfo}
                             end;
                          end
                         else
@@ -1135,11 +1005,7 @@ unit scanner;
                          yylex:=CCHAR
                         else
                          yylex:=CSTRING;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '>' : begin
                         readchar;
@@ -1147,37 +1013,21 @@ unit scanner;
                          '=' : begin
                                  readchar;
                                  yylex:=GTE;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                          '>' : begin
                                  readchar;
                                  yylex:=_SHR;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                          '<' : begin { >< is for a symetric diff for sets }
                                  readchar;
                                  yylex:=SYMDIF;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                         end;
                         yylex:=GT;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 '<' : begin
                         readchar;
@@ -1185,57 +1035,32 @@ unit scanner;
                          '>' : begin
                                  readchar;
                                  yylex:=UNEQUAL;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                          '=' : begin
                                  readchar;
                                  yylex:=LTE;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                          '<' : begin
                                  readchar;
                                  yylex:=_SHL;
-{$ifndef UseTokenInfo}
-                                 exit;
-{$else UseTokenInfo}
                                  goto exit_label;
-{$endif UseTokenInfo}
                                end;
                         end;
                         yylex:=LT;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
                 #26 : begin
                         yylex:=_EOF;
-{$ifndef UseTokenInfo}
-                        exit;
-{$else UseTokenInfo}
                         goto exit_label;
-{$endif UseTokenInfo}
                       end;
            else
             begin
               Message(scan_f_illegal_char);
             end;
            end;
-{$ifdef UseTokenInfo}
-      exit_label:
-        tokenpos.fileindex:=fileindex;
-        tokenpos.line:=line;
-        tokenpos.column:=column;
-{$endif UseTokenInfo}
+       exit_label:
      end;
 
 
@@ -1248,6 +1073,9 @@ unit scanner;
           end
          else
           readchar;
+        tokenpos.line:=current_module^.current_inputfile^.line_no;
+        tokenpos.column:=get_current_col;
+        tokenpos.fileindex:=current_module^.current_index;
          case c of
           '{' : begin
                   skipcomment;
@@ -1326,7 +1154,8 @@ unit scanner;
         current_module^.current_index:=fileinfo.fileindex;
         current_module^.current_inputfile:=
           pinputfile(current_module^.sourcefiles.get_file(fileinfo.fileindex));
-        current_module^.current_inputfile^.line_no:=fileinfo.line;
+        if assigned(current_module^.current_inputfile) then
+          current_module^.current_inputfile^.line_no:=fileinfo.line;
         {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
         { should allways be the same !! }
         { fileinfo.column:=get_current_col; }
@@ -1389,7 +1218,17 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.18  1998-05-12 10:47:00  peter
+  Revision 1.19  1998-05-20 09:42:37  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.18  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

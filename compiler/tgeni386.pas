@@ -58,7 +58,12 @@ unit tgeni386;
     procedure setfirsttemp(l : longint);
     function gettempsize : longint;
     function gettempofsize(size : longint) : longint;
+    { special call for inlined procedures }
+    function gettempofsizepersistant(size : longint) : longint;
+    { for parameter func returns }
+    procedure persistanttemptonormal(pos : longint);
     procedure ungettemp(pos : longint;size : longint);
+    procedure ungetpersistanttemp(pos : longint;size : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
@@ -321,6 +326,7 @@ unit tgeni386;
           next : pfreerecord;
           pos : longint;
           size : longint;
+          persistant : boolean; { used for inlined procedures }
 {$ifdef EXTDEBUG}
           line : longint;
 {$endif}
@@ -348,7 +354,7 @@ unit tgeni386;
            begin
 {$ifdef EXTDEBUG}
               Comment(V_Warning,'temporary assignment of size '
-                       +tostr(templist^.size)+' from '+tostr(templist^.line)+
+                       +tostr(templist^.size)+' from line '+tostr(templist^.line)+
                        +' at pos '+tostr(templist^.pos)+
                        ' not freed at the end of the procedure');
 {$endif}
@@ -378,12 +384,14 @@ unit tgeni386;
     function gettempofsize(size : longint) : longint;
 
       var
-         last,hp : pfreerecord;
+         tl,last,hp : pfreerecord;
+         ofs : longint;
 
       begin
          { this code comes from the heap management of FPC ... }
          if (size mod 4)<>0 then
            size:=size+(4-(size mod 4));
+           ofs:=0;
            if assigned(tmpfreelist) then
              begin
                 last:=nil;
@@ -393,7 +401,7 @@ unit tgeni386;
                      { first fit }
                      if hp^.size>=size then
                        begin
-                          gettempofsize:=hp^.pos;
+                          ofs:=hp^.pos;
                           if hp^.pos-size < maxtemp then
                             maxtemp := hp^.size-size;
                           { the whole block is needed ? }
@@ -410,17 +418,45 @@ unit tgeni386;
                                  tmpfreelist:=nil;
                                dispose(hp);
                             end;
-                          exit;
+                          break;
                        end;
                      last:=hp;
                      hp:=hp^.next;
                   end;
              end;
           { nothing free is big enough : expand temp }
-          gettempofsize:=lastoccupied-size;
-          lastoccupied:=lastoccupied-size;
-          if lastoccupied < maxtemp then
-            maxtemp := lastoccupied;
+          if ofs=0 then
+            begin
+              ofs:=lastoccupied-size;
+              lastoccupied:=lastoccupied-size;
+              if lastoccupied < maxtemp then
+                maxtemp := lastoccupied;
+            end;
+         new(tl);
+         tl^.pos:=ofs;
+         tl^.size:=size;
+         tl^.next:=templist;
+         tl^.persistant:=false;
+         templist:=tl;
+{$ifdef EXTDEBUG}
+         tl^.line:=current_module^.current_inputfile^.line_no;
+{$endif}
+         gettempofsize:=ofs;
+      end;
+
+    function gettempofsizepersistant(size : longint) : longint;
+
+      var
+         l : longint;
+
+      begin
+         l:=gettempofsize(size);
+         templist^.persistant:=true;
+{$ifdef EXTDEBUG}
+         Comment(V_Debug,'temp managment  : call to gettempofsizepersistant()'+
+                     ' with size '+tostr(size)+' returned '+tostr(l));
+{$endif}
+         gettempofsizepersistant:=l;
       end;
 
     function gettempsize : longint;
@@ -434,29 +470,77 @@ unit tgeni386;
 
     procedure gettempofsizereference(l : longint;var ref : treference);
 
-      var
-         tl : pfreerecord;
-
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(l);
          ref.base:=procinfo.framepointer;
-         new(tl);
-         tl^.pos:=ref.offset;
-         tl^.size:=l;
-         tl^.next:=templist;
-         templist:=tl;
-{$ifdef EXTDEBUG}
-         tl^.line:=current_module^.current_inputfile^.line_no;
-{$endif}
       end;
 
     function istemp(const ref : treference) : boolean;
 
       begin
+         { ref.index = R_NO was missing
+           led to problems with local arrays
+           with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo.framepointer) and
-           (ref.offset<firsttemp));
+           (ref.offset<firsttemp) and (ref.index=R_NO));
+      end;
+
+    procedure persistanttemptonormal(pos : longint);
+
+      var hp : pfreerecord;
+
+      begin
+         hp:=templist;
+         while assigned(hp) do
+           if (hp^.persistant) and (hp^.pos=pos) then
+             begin
+{$ifdef EXTDEBUG}
+                   Comment(V_Debug,'temp managment : persistanttemptonormal()'+
+                     ' at pos '+tostr(pos)+ ' found !');
+{$endif}
+                hp^.persistant:=false;
+                exit;
+             end
+           else
+             hp:=hp^.next;
+{$ifdef EXTDEBUG}
+                   Comment(V_Debug,'temp managment problem : persistanttemptonormal()'+
+                     ' at pos '+tostr(pos)+ ' not found !');
+{$endif}
+      end;
+      
+    procedure ungetpersistanttemp(pos : longint;size : longint);
+      var
+         prev,hp : pfreerecord;
+
+      begin
+         ungettemp(pos,size);
+         prev:=nil;
+         hp:=templist;
+         while assigned(hp) do
+           begin
+              if (hp^.persistant) and (hp^.pos=pos) and (hp^.size=size) then
+                begin
+                   if assigned(prev) then
+                     prev^.next:=hp^.next
+                   else
+                     templist:=hp^.next;
+{$ifdef EXTDEBUG}
+                   Comment(V_Debug,'temp managment  : ungetpersistanttemp()'+
+                     ' at pos '+tostr(pos)+ ' found !');
+{$endif}
+                   dispose(hp);
+                   exit;
+                end;
+              prev:=hp;
+              hp:=hp^.next;
+           end;
+{$ifdef EXTDEBUG}
+       Comment(V_Warning,'temp managment problem : ungetpersistanttemp()'+
+                ' at pos '+tostr(pos)+ ' not found !');
+{$endif}
       end;
 
     procedure ungettemp(pos : longint;size : longint);
@@ -469,6 +553,7 @@ unit tgeni386;
            size:=size+(4-(size mod 4));
          if size = 0 then
            exit;
+
          if pos<=lastoccupied then
            if pos=lastoccupied then
              begin
@@ -493,7 +578,8 @@ unit tgeni386;
            else
              begin
 {$ifdef EXTDEBUG}
-              Comment(V_Warning,'temp managment problem : ungettemp() pos < lastoccupied !');
+              Comment(V_Warning,'temp managment problem : ungettemp()'+
+                'pos '+tostr(pos)+ '< lastoccupied '+tostr(lastoccupied)+' !');
 {$endif}
              end
          else
@@ -564,9 +650,24 @@ unit tgeni386;
               tl:=templist;
               while assigned(tl) do
                 begin
-                   if ref.offset=tl^.pos then
+                   { no release of persistant blocks this way!! }
+                   if tl^.persistant then
+                     if (ref.offset>=tl^.pos) and
+                        (ref.offset<tl^.pos+tl^.size) then
+                       begin
+{$ifdef EXTDEBUG}
+                          Comment(V_Debug,'temp '+
+                            ' at pos '+tostr(ref.offset)+ ' not released because persistant !');
+{$endif}
+                          exit;
+                       end;
+                   if (ref.offset=tl^.pos) then
                      begin
                         ungettemp(ref.offset,tl^.size);
+{$ifdef TEMPDEBUG}
+                   Comment(V_Debug,'temp managment  : ungettemp()'+
+                     ' at pos '+tostr(tl^.pos)+ ' found !');
+{$endif}
                         if assigned(prev) then
                           prev^.next:=tl^.next
                         else
@@ -598,7 +699,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-05-11 13:07:58  peter
+  Revision 1.6  1998-05-20 09:42:38  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+  Revision 1.5  1998/05/11 13:07:58  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments
