@@ -30,6 +30,7 @@ interface
        cpubase,
        aasmbase,aasmtai,aasmcpu,
        node,
+       tgobj,
        symtype,symppu;
 
     type
@@ -90,6 +91,7 @@ interface
          hookoncopy                 : ptempinfo;
          ref                        : treference;
          restype                    : ttype;
+         temptype                   : ttemptype;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
        end;
@@ -98,8 +100,8 @@ interface
        { size (the size is separate to allow creating "void" temps with a custom size) }
        ttempcreatenode = class(tnode)
           size: longint;
+          temptype: ttemptype;
           tempinfo: ptempinfo;
-          persistent: boolean;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
           { when the temp has to be freed (using a ttempdeletenode)             }
@@ -107,7 +109,7 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you should use only one reference    }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(const _restype: ttype; _size: longint; _persistent: boolean); virtual;
+          constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
@@ -569,14 +571,14 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _persistent: boolean);
+    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype);
       begin
         inherited create(tempcreaten);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
-        persistent := _persistent;
+        temptype := _temptype;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -585,7 +587,7 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
-        n.persistent := persistent;
+        n.temptype := temptype;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
@@ -728,7 +730,7 @@ implementation
         inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
-        if not temp.persistent then
+        if temp.temptype <> tt_persistent then
           internalerror(200204211);
       end;
 
@@ -798,7 +800,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-05-13 19:14:41  peter
+  Revision 1.51  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.50  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

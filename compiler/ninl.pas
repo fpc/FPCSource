@@ -376,7 +376,7 @@ implementation
 
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
+            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
             addstatement(newstatement,filetemp);
 
             { make sure the resulttype of the temp (and as such of the }
@@ -409,7 +409,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
+                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
@@ -525,7 +525,7 @@ implementation
                   begin
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
-                      para.left.resulttype.def.size,true);
+                      para.left.resulttype.def.size,tt_persistent);
                     addstatement(newstatement,temp);
                     { assign result to temp }
                     addstatement(newstatement,
@@ -753,7 +753,7 @@ implementation
                           restype := @u32bittype;
 
                         { create the parameter list: the temp ... }
-                        temp := ctempcreatenode.create(restype^,restype^.def.size,true);
+                        temp := ctempcreatenode.create(restype^,restype^.def.size,tt_persistent);
                         addstatement(newstatement,temp);
 
                         { ... and the file }
@@ -916,7 +916,7 @@ implementation
         if not assigned(codepara) or
            (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
           begin
-            tempcode := ctempcreatenode.create(s32bittype,4,true);
+            tempcode := ctempcreatenode.create(s32bittype,4,tt_persistent);
             addstatement(newstatement,tempcode);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
@@ -2351,7 +2351,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2003-05-11 21:37:03  peter
+  Revision 1.112  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.111  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

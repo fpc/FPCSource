@@ -986,9 +986,9 @@ implementation
     procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
      begin
-       tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistant,envbuf);
-       tg.GetTemp(list,JMP_BUF_SIZE,tt_persistant,jmpbuf);
-       tg.GetTemp(list,sizeof(aword),tt_persistant,href);
+       tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,envbuf);
+       tg.GetTemp(list,JMP_BUF_SIZE,tt_persistent,jmpbuf);
+       tg.GetTemp(list,sizeof(aword),tt_persistent,href);
        new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
      end;
 
@@ -1554,7 +1554,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-05-16 14:33:31  peter
+  Revision 1.62  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.61  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.60  2003/05/13 19:14:41  peter

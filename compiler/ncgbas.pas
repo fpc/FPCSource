@@ -256,8 +256,6 @@ interface
 *****************************************************************************}
 
     procedure tcgtempcreatenode.pass_2;
-      var
-        temptype : ttemptype;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -266,10 +264,6 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        if persistent then
-          temptype:=tt_persistant
-        else
-          temptype:=tt_normal;
         tg.GetTemp(exprasmlist,size,temptype,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
@@ -316,7 +310,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-04-27 11:21:33  peter
+  Revision 1.34  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.33  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

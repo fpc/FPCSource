@@ -191,7 +191,7 @@ implementation
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon,nmem,
       nutils,
-      rgobj,cginfo,cgbase
+      tgobj,rgobj,cginfo,cgbase
       ;
 
 type
@@ -1773,7 +1773,7 @@ type
                     hiddentree:=internalstatements(newstatement,false);
                     { need to use resulttype instead of procdefinition.rettype,
                       because they can be different }
-                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,true);
+                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent);
                     addstatement(newstatement,temp);
                     addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                     addstatement(newstatement,ctemprefnode.create(temp));
@@ -2212,10 +2212,10 @@ type
                 take_addr := (curparaitem.paratyp in [vs_var,vs_out]) or
                              ((curparaitem.paratype.def.deftype = formaldef));
                 if not(take_addr) then
-                  temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true)
+                  temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,tt_persistent)
                 else
                   begin
-                    temp := ctempcreatenode.create(voidpointertype,pointer_size,true);
+                    temp := ctempcreatenode.create(voidpointertype,pointer_size,tt_persistent);
                     orgtype := @curpara.left.resulttype;
                   end;
                 addstatement(newstatement,temp);
@@ -2712,7 +2712,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2003-05-16 14:33:31  peter
+  Revision 1.156  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.155  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.154  2003/05/14 19:35:50  jonas

@@ -40,7 +40,7 @@ unit tgobj;
 
     type
       ttemptype = (tt_none,
-                   tt_free,tt_normal,tt_persistant,
+                   tt_free,tt_normal,tt_persistent,
                    tt_noreuse,tt_freenoreuse,
                    tt_ansistring,tt_freeansistring,
                    tt_widestring,tt_freewidestring,
@@ -536,7 +536,7 @@ unit tgobj;
 
     procedure ttgobj.UnGetTemp(list: taasmoutput; const ref : treference);
       begin
-        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistant,tt_ansistring,tt_widestring,tt_interfacecom]);
+        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent,tt_ansistring,tt_widestring,tt_interfacecom]);
       end;
 
 
@@ -554,7 +554,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2003-05-13 20:13:41  florian
+  Revision 1.34  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.33  2003/05/13 20:13:41  florian
     * fixed temp. management for CPUs were the temp. space grows upwards
 
   Revision 1.32  2003/05/12 21:29:59  peter

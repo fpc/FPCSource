@@ -434,7 +434,7 @@ implementation
                  htype:=p.resulttype
                else
                  htype.setdef(tpointerdef.create(p.resulttype));
-               loadp:=ctempcreatenode.create(htype,POINTER_SIZE,true);
+               loadp:=ctempcreatenode.create(htype,POINTER_SIZE,tt_persistent);
                resulttypepass(loadp);
                if hasimplicitderef then
                 begin
@@ -1175,7 +1175,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-05-15 18:58:53  peter
+  Revision 1.100  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.99  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

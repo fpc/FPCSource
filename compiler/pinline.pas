@@ -60,7 +60,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       cgbase
+       tgobj,cgbase
        ;
 
 
@@ -231,7 +231,7 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,true);
+                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
@@ -312,7 +312,7 @@ implementation
             newblock:=internalstatements(newstatement,true);
 
             { create temp for result }
-            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,true);
+            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { create call to fpc_getmem }
@@ -475,7 +475,7 @@ implementation
             newblock:=internalstatements(newstatement,true);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,true);
+            temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -646,7 +646,7 @@ implementation
             { create temp for result, we've to use a temp because a dynarray
               type is handled differently from a pointer so we can't
               use createinternres() and a function }
-            temp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
+            temp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { create call to fpc_dynarray_copy }
@@ -682,7 +682,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-05-16 14:33:31  peter
+  Revision 1.15  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.14  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.13  2003/05/09 17:47:03  peter

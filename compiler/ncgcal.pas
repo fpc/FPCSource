@@ -597,7 +597,7 @@ implementation
               if assigned(left) then
                begin
                  inlinecode.para_size:=tprocdef(procdefinition).para_size(para_alignment);
-                 tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistant,pararef);
+                 tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistent,pararef);
                  inlinecode.para_offset:=pararef.offset;
                end;
               store_parast_fixup:=tprocdef(procdefinition).parast.address_fixup;
@@ -742,7 +742,7 @@ implementation
          if inlined and
             (resulttype.def.size>0) then
            begin
-             tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistant,returnref);
+             tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistent,returnref);
              inlinecode.retoffset:=returnref.offset;
            end;
 
@@ -1017,7 +1017,7 @@ implementation
           st.symtablelevel:=oldprocdef.localst.symtablelevel;
           if st.datasize>0 then
             begin
-              tg.GetTemp(exprasmlist,st.datasize,tt_persistant,localsref);
+              tg.GetTemp(exprasmlist,st.datasize,tt_persistent,localsref);
               if tg.direction>0 then
                 st.address_fixup:=localsref.offset
               else
@@ -1128,7 +1128,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-05-16 14:33:31  peter
+  Revision 1.67  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.66  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.65  2003/05/15 18:58:53  peter

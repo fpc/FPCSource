@@ -916,7 +916,7 @@ unit rgobj;
              not(r in unusedregsint) then
             begin
               { then save it }
-              tg.GetTemp(list,sizeof(aword),tt_persistant,hr);
+              tg.GetTemp(list,sizeof(aword),tt_persistent,hr);
               saved[r].ofs:=hr.offset;
               r2.enum:=R_INTREGISTER;
               r2.number:=r shl 8 or R_SUBWHOLE;
@@ -957,7 +957,7 @@ unit rgobj;
                  not(r.enum in unusedregsfpu) then
                 begin
                   { then save it }
-                  tg.GetTemp(list,extended_size,tt_persistant,hr);
+                  tg.GetTemp(list,extended_size,tt_persistent,hr);
                   saved[r.enum].ofs:=hr.offset;
                   cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
                   cg.a_reg_dealloc(list,r);
@@ -979,7 +979,7 @@ unit rgobj;
                  not(r.enum in unusedregsmm) then
                 begin
                   { then save it }
-                  tg.GetTemp(list,mmreg_size,tt_persistant,hr);
+                  tg.GetTemp(list,mmreg_size,tt_persistent,hr);
                   saved[r.enum].ofs:=hr.offset;
                   cg.a_loadmm_reg_ref(list,r,hr);
                   cg.a_reg_dealloc(list,r);
@@ -2027,7 +2027,12 @@ end.
 
 {
   $Log$
-  Revision 1.43  2003-05-16 14:33:31  peter
+  Revision 1.44  2003-05-17 13:30:08  jonas
+    * changed tt_persistant to tt_persistent :)
+    * tempcreatenode now doesn't accept a boolean anymore for persistent
+      temps, but a ttemptype, so you can also create ansistring temps etc
+
+  Revision 1.43  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.42  2003/04/26 20:03:49  daniel
