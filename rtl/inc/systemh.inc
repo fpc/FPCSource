@@ -462,7 +462,7 @@ operator ** (bas,expo : int64) i: int64;
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:Longint):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  ptr(sel,off:Longint):farpointer;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -795,7 +795,10 @@ const
 
 {
   $Log$
-  Revision 1.109  2004-11-22 22:48:10  michael
+  Revision 1.110  2004-11-26 22:26:30  peter
+    * internconst for ptr()
+
+  Revision 1.109  2004/11/22 22:48:10  michael
   + Added phony documentation declarations
 
   Revision 1.108  2004/11/17 22:19:04  peter
