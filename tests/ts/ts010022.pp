@@ -41,6 +41,6 @@ begin
    readln(f,st);
    if st<>'Alone test' then halt(1);
    readln(f,st);
-   if st<>'Invalid opcode' then halt(1);
+   if st<>'Invalid Opcode' then halt(1);
    close(f);
 end.
