@@ -711,6 +711,8 @@ procedure tppufile.writeheader;
 var
   opos : integer;
 begin
+  if crc_only then
+   exit;
   { flush buffer }
   writebuf;
   { update size (w/o header!) in the header }
@@ -984,7 +986,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2003-04-25 20:59:34  peter
+  Revision 1.35  2003-05-23 17:03:51  peter
+    * write header for crc_only
+
+  Revision 1.34  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
