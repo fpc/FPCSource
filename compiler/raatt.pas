@@ -55,7 +55,8 @@ unit raatt;
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
         AS_DATA,AS_TEXT,AS_END,
         {------------------ Assembler Operators  --------------------}
-        AS_TYPE,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT);
+        AS_TYPE,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
+        AS_LO,AS_HI);
 
         tasmkeyword = string[10];
 
@@ -75,7 +76,7 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
         '.data','.text','END',
-        'TYPE','%','<<','>>','!','&','|','^','~','@');
+        'TYPE','%','<<','>>','!','&','|','^','~','@','lo','hi');
 
     type
        tattreader = class(tasmreader)
@@ -1202,6 +1203,17 @@ unit raatt;
                 expr:=expr + '(';
                 inc(parenlevel);
               end;
+            AS_RBRACKET:
+              begin
+                if betweenbracket then
+                  break;
+                { write error only once. }
+                if not errorflag then
+                  Message(asmr_e_invalid_constant_expression);
+                { consume tokens until we find COMMA or SEPARATOR }
+                Consume(actasmtoken);
+                errorflag:=TRUE;
+              end;
             AS_RPAREN:
               Begin
                 { end of ref ? }
@@ -1417,7 +1429,9 @@ unit raatt;
                     end;
                  end;
                 { check if there are wrong operator used like / or mod etc. }
-                if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_LPAREN,AS_END]) then
+                if (hs<>'') and
+                   not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,
+                                       AS_LPAREN,AS_RPAREN,AS_RBRACKET,AS_END]) then
                  Message(asmr_e_only_add_relocatable_symbol);
               end;
             AS_END,
@@ -1478,7 +1492,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-12-08 17:43:57  florian
+  Revision 1.8  2003-12-25 01:25:43  peter
+    * sparc assembler reader updates
+
+  Revision 1.7  2003/12/08 17:43:57  florian
     * fixed ldm/stm arm assembler reading
     * fixed a_load_reg_reg with OS_8 on ARM
     * non supported calling conventions cause only a warning now

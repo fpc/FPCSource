@@ -119,125 +119,73 @@ Interface
 
 
     Procedure tSparcReader.BuildReference(oper : tSparcoperand);
-
-      procedure Consume_RParen;
-        begin
-          if actasmtoken <> AS_RPAREN then
-           Begin
-             Message(asmr_e_invalid_reference_syntax);
-             RecoverConsume(true);
-           end
-          else
-           begin
-             Consume(AS_RPAREN);
-             if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
-              Begin
-                Message(asmr_e_invalid_reference_syntax);
-                RecoverConsume(true);
-              end;
-           end;
-        end;
-
       var
         l : longint;
-
+        regs : byte;
+        hasimm : boolean;
       begin
-        Consume(AS_LPAREN);
-        Case actasmtoken of
-          AS_INTNUM,
-          AS_MINUS,
-          AS_PLUS:
-            Begin
-              { offset(offset) is invalid }
-              If oper.opr.Ref.Offset <> 0 Then
-               Begin
-                 Message(asmr_e_invalid_reference_syntax);
-                 RecoverConsume(true);
-               End
-              Else
-               Begin
-                 oper.opr.Ref.Offset:=BuildConstExpression(false,true);
-                 Consume(AS_RPAREN);
-                 if actasmtoken=AS_MOD then
-                   ReadPercent(oper);
-               end;
-              exit;
-            End;
-          AS_REGISTER: { (reg ...  }
-            Begin
-              if ((oper.opr.typ=OPR_REFERENCE) and (oper.opr.ref.base<>NR_NO)) or
-                 ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
-                message(asmr_e_cannot_index_relative_var);
-              oper.opr.ref.base:=actasmregister;
-              Consume(AS_REGISTER);
-              { can either be a register or a right parenthesis }
-              { (reg)        }
-              if actasmtoken=AS_RPAREN then
-               Begin
-                 Consume_RParen;
-                 exit;
-               end;
-              { (reg,reg ..  }
-              Consume(AS_COMMA);
-              if (actasmtoken=AS_REGISTER) and
-                 (oper.opr.Ref.Offset = 0) then
-               Begin
-                 oper.opr.ref.index:=actasmregister;
-                 Consume(AS_REGISTER);
-                 Consume_RParen;
-               end
-              else
-               Begin
-                 Message(asmr_e_invalid_reference_syntax);
-                 RecoverConsume(false);
-               end;
-            end; {end case }
-          AS_ID:
-            Begin
-              ReadSym(oper);
-              { add a constant expression? }
-              if (actasmtoken=AS_PLUS) then
-               begin
-                 l:=BuildConstExpression(true,true);
-                 case oper.opr.typ of
-                   OPR_CONSTANT :
-                     inc(oper.opr.val,l);
-                   OPR_LOCAL :
-                     inc(oper.opr.localsymofs,l);
-                   OPR_REFERENCE :
-                     inc(oper.opr.ref.offset,l);
-                   else
-                     internalerror(200309202);
-                 end;
-               end;
-              Consume(AS_RPAREN);
-              if actasmtoken=AS_MOD then
-                ReadPercent(oper);
-            End;
-          AS_COMMA: { (, ...  can either be scaling, or index }
-            Begin
-              Consume(AS_COMMA);
-              { Index }
-              if (actasmtoken=AS_REGISTER) then
-                Begin
-                  oper.opr.ref.index:=actasmregister;
-                  Consume(AS_REGISTER);
-                  { check for scaling ... }
-                  Consume_RParen;
-                end
-              else
-                begin
+        regs:=0;
+        hasimm:=false;
+        Consume(AS_LBRACKET);
+        repeat
+          Case actasmtoken of
+            AS_INTNUM,
+            AS_MINUS,
+            AS_PLUS:
+              Begin
+                if hasimm or (regs>1) then
+                 Begin
+                   Message(asmr_e_invalid_reference_syntax);
+                   RecoverConsume(true);
+                   break;
+                 End;
+                oper.opr.Ref.Offset:=BuildConstExpression(false,true);
+                hasimm:=true;
+              End;
+
+            AS_REGISTER:
+              Begin
+                if regs<2 then
+                  begin
+                    if regs=0 then
+                      oper.opr.ref.base:=actasmregister
+                    else
+                      oper.opr.ref.index:=actasmregister;
+                    inc(regs);
+                  end
+                else
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                    break;
+                  end;
+                Consume(AS_REGISTER);
+              end;
+
+            AS_ID:
+              Begin
+                l:=BuildConstExpression(true,true);
+                inc(oper.opr.ref.offset,l);
+              End;
+
+            AS_RBRACKET:
+              begin
+                if (regs=0) and (not hasimm) then
                   Message(asmr_e_invalid_reference_syntax);
-                  RecoverConsume(false);
-                end;
-            end;
-        else
-          Begin
-            Message(asmr_e_invalid_reference_syntax);
-            RecoverConsume(false);
+                Consume(AS_RBRACKET);
+                break;
+              end;
+
+            else
+              Begin
+                Message(asmr_e_invalid_reference_syntax);
+                RecoverConsume(false);
+                break;
+              end;
           end;
-        end;
+        until false;
       end;
+
 
     procedure TSparcReader.handlepercent;
       var
@@ -257,17 +205,19 @@ Interface
          uppervar(actasmpattern);
          if is_register(actasmpattern) then
            exit;
-         if(actasmpattern='%HI')or(actasmpattern='%LO')then
-           actasmtoken:=AS_MOD
+         if (actasmpattern='%HI') then
+           actasmtoken:=AS_HI
+         else if (actasmpattern='%LO')then
+           actasmtoken:=AS_LO
          else
            Message(asmr_e_invalid_register);
       end;
+
 
     Procedure tSparcReader.BuildOperand(oper : tSparcoperand);
       var
         expr : string;
         typesize,l : longint;
-
 
         procedure AddLabelOperand(hl:tasmlabel);
           begin
@@ -328,60 +278,13 @@ Interface
             end;
           end;
 
-
-        function MaybeBuildReference:boolean;
-          { Try to create a reference, if not a reference is found then false
-            is returned }
-          begin
-            MaybeBuildReference:=true;
-            case actasmtoken of
-              AS_INTNUM,
-              AS_MINUS,
-              AS_PLUS:
-                Begin
-                  oper.opr.ref.offset:=BuildConstExpression(True,False);
-                  if actasmtoken<>AS_LPAREN then
-                    Message(asmr_e_invalid_reference_syntax)
-                  else
-                    BuildReference(oper);
-                end;
-              AS_LPAREN:
-                BuildReference(oper);
-              AS_ID: { only a variable is allowed ... }
-                Begin
-                  ReadSym(oper);
-                  case actasmtoken of
-                    AS_END,
-                    AS_SEPARATOR,
-                    AS_COMMA: ;
-                    AS_LPAREN:
-                      BuildReference(oper);
-                  else
-                    Begin
-                      Message(asmr_e_invalid_reference_syntax);
-                      Consume(actasmtoken);
-                    end;
-                  end; {end case }
-                end;
-              else
-               MaybeBuildReference:=false;
-            end; { end case }
-          end;
-
-
       var
         tempreg : tregister;
+        tempstr : string;
         hl : tasmlabel;
-        ofs : longint;
       Begin
         expr:='';
         case actasmtoken of
-          AS_LPAREN: { Memory reference or constant expression }
-            Begin
-              oper.InitRef;
-              BuildReference(oper);
-            end;
-
           AS_INTNUM,
           AS_MINUS,
           AS_PLUS,
@@ -391,14 +294,42 @@ Interface
               { This must absolutely be followed by (  }
               oper.InitRef;
               oper.opr.ref.offset:=BuildConstExpression(True,False);
-              if actasmtoken<>AS_LPAREN then
-                begin
-                  ofs:=oper.opr.ref.offset;
-                  BuildConstantOperand(oper);
-                  inc(oper.opr.val,ofs);
-                end
+            end;
+
+          AS_LBRACKET :
+            begin
+              { memory reference }
+              BuildReference(oper);
+            end;
+
+          AS_HI,
+          AS_LO:
+            begin
+              { Low or High part of a constant (or constant
+                memory location) }
+              oper.InitRef;
+              if actasmtoken=AS_LO then
+                oper.opr.ref.symaddr:=refs_lo
               else
-                BuildReference(oper);
+                oper.opr.ref.symaddr:=refs_hi;
+              Consume(actasmtoken);
+              Consume(AS_LPAREN);
+              BuildConstSymbolExpression(false, true,false,l,tempstr);
+              if not assigned(oper.opr.ref.symbol) then
+                oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr)
+              else
+                Message(asmr_e_cant_have_multiple_relocatable_symbols);
+              case oper.opr.typ of
+                OPR_CONSTANT :
+                  inc(oper.opr.val,l);
+                OPR_LOCAL :
+                  inc(oper.opr.localsymofs,l);
+                OPR_REFERENCE :
+                  inc(oper.opr.ref.offset,l);
+                else
+                  internalerror(200309202);
+              end;
+              Consume(AS_RPAREN);
             end;
 
           AS_ID: { A constant expression, or a Variable ref.  }
@@ -503,9 +434,6 @@ Interface
                      end;
                    end
                end;
-              { Do we have a indexing reference, then parse it also }
-              if actasmtoken=AS_LPAREN then
-                BuildReference(oper);
             end;
 
           AS_REGISTER: { Register, a variable reference or a constant reference  }
@@ -520,7 +448,7 @@ Interface
                     oper.opr.typ:=OPR_REGISTER;
                     oper.opr.reg:=tempreg;
                   end
-              else 
+              else
                 Message(asmr_e_syn_operand);
             end;
           AS_END,
@@ -625,12 +553,11 @@ Interface
     because we take the whole remaining string without the leading B }
             actopcode := A_Bxx;
             for cond:=low(TAsmCond) to high(TAsmCond) do
-              if(cond in [C_AE])and(Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
-              begin
-              WriteLn('Bxx');
-                actasmtoken:=AS_OPCODE;
-                is_asmopcode:=true;
-              end;
+              if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
+                begin
+                  actasmtoken:=AS_OPCODE;
+                  is_asmopcode:=true;
+                end;
           end;
       end;
     procedure tSparcReader.ConvertCalljmp(instr : tSparcinstruction);
@@ -694,7 +621,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-12-10 13:16:36  mazen
+  Revision 1.3  2003-12-25 01:25:43  peter
+    * sparc assembler reader updates
+
+  Revision 1.2  2003/12/10 13:16:36  mazen
   * improve hadlign %hi and %lo operators
 
   Revision 1.1  2003/12/08 13:02:21  mazen
