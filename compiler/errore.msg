@@ -1763,7 +1763,7 @@ option_help_pages=11025_[
 **1S<x>_syntax options:
 **2S2_switch some Delphi 2 extensions on
 **2Sc_supports operators like C (*=,+=,/= and -=)
-**2sa_include assertion code.
+**2Sa_include assertion code.
 **2Sd_tries to be Delphi compatible
 **2Se<x>_compiler stops after the <x> errors (default is 1)
 **2Sg_allow LABEL and GOTO
