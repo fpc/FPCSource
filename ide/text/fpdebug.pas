@@ -252,7 +252,7 @@ type
     end;
 
     PRegistersWindow = ^TRegistersWindow;
-    TRegistersWindow = Object(TWindow)
+    TRegistersWindow = Object(TDlgWindow)
       RV : PRegistersView;
       Constructor Init;
       constructor Load(var S: TStream);
@@ -2078,6 +2078,7 @@ end;
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-5;
       inherited Init(R, 'Watches', wnNoNumber);
+      Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcWatches;
       R.Grow(-1,-1);
@@ -2217,14 +2218,26 @@ end;
     begin
        inherited draw;
        If not assigned(Debugger) then
-         exit;
+         begin
+            WriteStr(0,0,'<no values available>',7);
+            exit;
+         end;
 {$ifndef NODEBUG}
        Debugger^.Command('info registers');
        if Debugger^.Error then
-         p:=StrNew(Debugger^.GetError)
+         WriteStr(0,0,'<Debugger error>',7)
        else
          begin
             p:=StrNew(Debugger^.GetOutput);
+            if assigned(p) then
+              begin
+                 {!!!!!!!!! here we crash!! }
+                 move(p^,s,strlen(p));
+                 s[0]:=chr(strlen(p));
+                 WriteStr(0,0,s,7);
+              end
+            else
+              WriteStr(0,0,'<unknown values>',7);
          end;
        { do not open a messagebox for such errors }
        Debugger^.got_error:=false;
@@ -2250,8 +2263,7 @@ end;
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
-       R.Grow(-2,-2);
-       R.Move(1,1);
+       R.Assign(1,1,22,6);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -2371,6 +2383,7 @@ end;
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-5;
       inherited Init(R, 'Call Stack', wnNoNumber);
+      Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcStack;
       R.Grow(-1,-1);
@@ -2565,7 +2578,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2000-01-08 18:26:20  florian
+  Revision 1.38  2000-01-09 21:05:51  florian
+    * some fixes for register view
+
+  Revision 1.37  2000/01/08 18:26:20  florian
     + added a register window, doesn't work yet
 
   Revision 1.36  1999/12/20 14:23:16  pierre
