@@ -63,7 +63,7 @@ _start:
     	str a4,[ip]
 
         /* Fetch address of fini */
-        ldr ip, =__libc_csu_fini
+        ldr ip, =_fini
 
         /* argc already loaded to a2*/
 
@@ -78,7 +78,7 @@ _start:
 
         /* Set up the other arguments in registers */
         ldr a1, =PASCALMAIN
-        ldr a4, =__libc_csu_init
+        ldr a4, =_init
 
         /* Push fini */
         str ip, [sp, #-4]!
@@ -132,6 +132,9 @@ __data_start:
 
 /*
   $Log$
-  Revision 1.2  2004-11-05 13:01:34  florian
+  Revision 1.3  2004-11-05 13:15:07  florian
+    * fixed label names
+
+  Revision 1.2  2004/11/05 13:01:34  florian
     * initial implementation
 */
