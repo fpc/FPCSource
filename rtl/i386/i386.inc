@@ -381,7 +381,7 @@ procedure int_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS'];
 asm
         orl    %esi,%esi
         je     .LHFC_1
-        call   FPC_DISPOSE_CLASS
+        call   INT_DISPOSE_CLASS
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,8(%ebp)
@@ -884,7 +884,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  1999-10-05 20:50:06  pierre
+  Revision 1.57  1999-10-08 14:40:54  pierre
+   * fix for FPC_HELP_FAIL_CLASS
+
+  Revision 1.56  1999/10/05 20:50:06  pierre
    + code for fail for class
 
   Revision 1.55  1999/09/17 17:14:11  peter
