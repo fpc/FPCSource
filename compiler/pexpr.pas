@@ -1677,81 +1677,92 @@ implementation
                         do_resulttypepass(p1);
                       end;
                     case p1.resulttype.def.deftype of
-                       recorddef:
-                         begin
-                            hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
-                            check_hints(hsym);
-                            if assigned(hsym) and
-                               (hsym.typ=varsym) then
-                              p1:=csubscriptnode.create(hsym,p1)
-                            else
-                              begin
-                                Message1(sym_e_illegal_field,pattern);
-                                p1.destroy;
-                                p1:=cerrornode.create;
-                              end;
-                            consume(_ID);
-                          end;
-                        variantdef:
-                          begin
-                          end;
-                        classrefdef:
-                          begin
-                             classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
-                             hsym:=searchsym_in_class(classh,pattern);
-                             check_hints(hsym);
-                             if hsym=nil then
-                              begin
-                                Message1(sym_e_id_no_member,pattern);
-                                p1.destroy;
-                                p1:=cerrornode.create;
-                                { try to clean up }
-                                consume(_ID);
-                              end
-                             else
-                              begin
-                                consume(_ID);
-                                do_member_read(classh,getaddr,hsym,p1,again,[]);
-                              end;
-                           end;
-
-                         objectdef:
-                           begin
-                              store_static:=allow_only_static;
-                              allow_only_static:=false;
-                              classh:=tobjectdef(p1.resulttype.def);
-                              hsym:=searchsym_in_class(classh,pattern);
+                      recorddef:
+                        begin
+                          if token=_ID then
+                            begin
+                              hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
                               check_hints(hsym);
-                              allow_only_static:=store_static;
-                              if hsym=nil then
+                              if assigned(hsym) and
+                                 (hsym.typ=varsym) then
+                                p1:=csubscriptnode.create(hsym,p1)
+                              else
                                 begin
+                                  Message1(sym_e_illegal_field,pattern);
+                                  p1.destroy;
+                                  p1:=cerrornode.create;
+                                end;
+                             end;
+                           consume(_ID);
+                         end;
+                       variantdef:
+                         begin
+                         end;
+                       classrefdef:
+                         begin
+                           if token=_ID then
+                             begin
+                               classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
+                               hsym:=searchsym_in_class(classh,pattern);
+                               check_hints(hsym);
+                               if hsym=nil then
+                                 begin
                                    Message1(sym_e_id_no_member,pattern);
                                    p1.destroy;
                                    p1:=cerrornode.create;
                                    { try to clean up }
                                    consume(_ID);
-                                end
-                              else
-                                begin
+                                 end
+                               else
+                                 begin
                                    consume(_ID);
                                    do_member_read(classh,getaddr,hsym,p1,again,[]);
-                                end;
-                           end;
-
-                         pointerdef:
-                           begin
-                             Message(parser_e_invalid_qualifier);
-                             if tpointerdef(p1.resulttype.def).pointertype.def.deftype in [recorddef,objectdef,classrefdef] then
-                              Message(parser_h_maybe_deref_caret_missing);
-                           end;
-
-                         else
-                           begin
-                             Message(parser_e_invalid_qualifier);
-                             p1.destroy;
-                             p1:=cerrornode.create;
-                             consume(_ID);
-                           end;
+                                 end;
+                             end
+                           else { Error }
+                             Consume(_ID);
+                         end;
+                       objectdef:
+                         begin
+                           if token=_ID then
+                             begin
+                               store_static:=allow_only_static;
+                               allow_only_static:=false;
+                               classh:=tobjectdef(p1.resulttype.def);
+                               hsym:=searchsym_in_class(classh,pattern);
+                               check_hints(hsym);
+                               allow_only_static:=store_static;
+                               if hsym=nil then
+                                 begin
+                                    Message1(sym_e_id_no_member,pattern);
+                                    p1.destroy;
+                                    p1:=cerrornode.create;
+                                    { try to clean up }
+                                    consume(_ID);
+                                 end
+                               else
+                                 begin
+                                    consume(_ID);
+                                    do_member_read(classh,getaddr,hsym,p1,again,[]);
+                                 end;
+                             end
+                           else { Error }
+                             Consume(_ID);
+                         end;
+                       pointerdef:
+                         begin
+                           Message(parser_e_invalid_qualifier);
+                           if tpointerdef(p1.resulttype.def).pointertype.def.deftype in [recorddef,objectdef,classrefdef] then
+                             Message(parser_h_maybe_deref_caret_missing);
+                         end;
+                       else
+                         begin
+                           Message(parser_e_invalid_qualifier);
+                           p1.destroy;
+                           p1:=cerrornode.create;
+                           { Error }
+                           consume(_ID);
+                         end;
                     end;
                   end;
 
@@ -2492,7 +2503,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2004-11-01 15:32:12  peter
+  Revision 1.170  2004-11-04 17:57:58  peter
+  added checking for token=_ID after _POINT is parsed
+
+  Revision 1.169  2004/11/01 15:32:12  peter
     * support @labelsym
 
   Revision 1.168  2004/11/01 10:33:01  peter
