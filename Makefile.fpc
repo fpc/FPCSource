@@ -25,12 +25,8 @@ endif
 
 # New ppc386 (or ppc68k if on m68k machine !)
 ifndef PPNEW
-ifeq ($(findstring /,$(FPC)),)
 ifdef FPC
-PPNEWBASE=$(FPC)
-else
-PPNEWBASE=ppc386
-endif
+PPNEWBASE=$(notdir $(FPC))
 else
 PPNEWBASE=ppc386
 endif
