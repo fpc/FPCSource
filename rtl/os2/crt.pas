@@ -11,12 +11,6 @@
 
 unit crt;
 
-{History:
-
-    3 june 1997 - Creation.
-    9 june 1997 - Now runs under OS/2.
-   12 june 1997 - Now runs under DOS.}
-
 interface
 
 uses dos;
@@ -61,6 +55,7 @@ function keypressed:boolean;
 function readkey:char;
 
 procedure clrscr;
+procedure clreol;
 function whereX:byte;
 function whereY:byte;
 procedure gotoXY(x,y:byte);
@@ -430,6 +425,19 @@ begin
     getcursor(y,x);
     whereY:=y-hi(windmin)+1;
 end;
+
+procedure clreol;
+ð{Clear from current position to end of line.
+Contributed by Michail A. Baikov}
+
+var i:byte;
+
+begin
+    {not fastest, but compatible}
+    for i:=wherex to lo(windmax) do write(' ');
+        gotoxy(1,wherey); {may be not}
+end;
+
 
 procedure delline;
 
