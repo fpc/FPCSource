@@ -71,11 +71,20 @@ function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYST
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME;var FileTime:tFILETIME):WINBOOL;external 'kernel32' name 'SystemTimeToFileTime';
 
+{MvdV: Lazarus mwedit templates}
+function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
+             _para6:lpcstr; _para7:UINT; _para8:pointer):WINBOOL; external 'gdi32' name 'ExtTextOutA';
+function SetScrollInfo(_para1:HWND; _para2:longint; const _para3:TSCROLLINFO; _para4:WINBOOL):longint; external 'user32' name 'SetScrollInfo';
+function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL; external 'user32' name 'PtInRect';
+
 
 end.
 {
   $Log$
-  Revision 1.8  2000-03-19 20:30:27  marco
+  Revision 1.9  2000-04-22 17:46:05  marco
+   * some redef fixes (for lazarus mwedit component)
+
+  Revision 1.8  2000/03/19 20:30:27  marco
    * Some more delphi compatible kernelfunc headers for JCL.
 
   Revision 1.7  2000/02/09 16:59:35  peter

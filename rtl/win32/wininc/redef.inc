@@ -106,10 +106,19 @@ function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYST
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL;
 function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME; var FileTime:TFILETIME):WINBOOL;
 
+{MvdV: Lazarus mwedit templates}
+function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
+             _para6:lpcstr; _para7:UINT; _para8:pointer):WINBOOL;
+
+function SetScrollInfo(_para1:HWND; _para2:longint;const _para3:TSCROLLINFO; _para4:WINBOOL):longint;
+function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL;
 
 {
   $Log$
-  Revision 1.4  2000-03-19 20:29:06  marco
+  Revision 1.5  2000-04-22 17:46:05  marco
+   * some redef fixes (for lazarus mwedit component)
+
+  Revision 1.4  2000/03/19 20:29:06  marco
    * some stuff for JCL
 
   Revision 1.3  2000/02/09 16:59:36  peter
