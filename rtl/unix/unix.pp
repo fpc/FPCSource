@@ -20,7 +20,9 @@ Uses UnixUtil,BaseUnix;
 
 { Get Types and Constants }
 {$i sysconst.inc}
+{$ifndef FPC_USE_LIBC}
 {$i systypes.inc}
+{$endif FPC_USE_LIBC}
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
@@ -1409,7 +1411,10 @@ End.
 
 {
   $Log$
-  Revision 1.59  2004-01-22 13:46:14  marco
+  Revision 1.60  2004-01-23 08:11:18  jonas
+    * only include systypes.inc if FPC_USE_LIBC is not defined
+
+  Revision 1.59  2004/01/22 13:46:14  marco
   bsd
 
   Revision 1.58  2004/01/04 21:05:01  jonas
