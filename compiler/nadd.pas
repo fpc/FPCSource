@@ -605,6 +605,29 @@ implementation
          { if both are orddefs then check sub types }
          else if (ld.deftype=orddef) and (rd.deftype=orddef) then
            begin
+             { optimize multiplacation by a power of 2 }
+             if not(cs_check_overflow in aktlocalswitches) and
+                (nodetype = muln) and
+                (((left.nodetype = ordconstn) and
+                  ispowerof2(tordconstnode(left).value,i)) or
+                 ((right.nodetype = ordconstn) and
+                  ispowerof2(tordconstnode(right).value,i))) then
+               begin
+                 if left.nodetype = ordconstn then
+                   begin
+                     tordconstnode(left).value := i;
+                     result := cshlshrnode.create(shln,right,left);
+                   end
+                 else
+                   begin
+                     tordconstnode(right).value := i;
+                     result := cshlshrnode.create(shln,left,right);
+                   end;
+                 left := nil;
+                 right := nil;
+                 exit;
+               end;
+
              { 2 booleans? Make them equal to the largest boolean }
              if is_boolean(ld) and is_boolean(rd) then
               begin
@@ -1708,7 +1731,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2002-07-23 13:08:16  jonas
+  Revision 1.58  2002-07-26 11:17:52  jonas
+    * the optimization of converting a multiplication with a power of two to
+      a shl is moved from n386add/secondpass to nadd/resulttypepass
+
+  Revision 1.57  2002/07/23 13:08:16  jonas
     * fixed constant set evaluation of new set handling for non-commutative
       operators
 

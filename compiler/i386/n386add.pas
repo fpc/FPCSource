@@ -1443,77 +1443,55 @@ interface
                { the location.register will be filled in later (JM) }
                location_reset(location,LOC_REGISTER,OS_INT);
 
-{$IfNDef NoShlMul}
-               if right.nodetype=ordconstn then
-                swapleftright;
-               If (left.nodetype = ordconstn) and
-                  ispowerof2(tordconstnode(left).value, power) and
-                  not(cs_check_overflow in aktlocalswitches) then
-                 Begin
-                   { This release will be moved after the next }
-                   { instruction by the optimizer. No need to  }
-                   { release left.location, since it's a   }
-                   { constant (JM)                             }
-                   location_release(exprasmlist,right.location);
-                   location.register:=rg.getregisterint(exprasmlist);
-                   cg.a_load_loc_reg(exprasmlist,right.location,location.register);
-                   cg.a_op_const_reg(exprasmlist,OP_SHL,power,location.register);
-                 End
-               Else
-                Begin
-{$EndIf NoShlMul}
-                  regstopush := all_registers;
-                  remove_non_regvars_from_loc(right.location,regstopush);
-                  remove_non_regvars_from_loc(left.location,regstopush);
-                  { now, regstopush does NOT contain EAX and/or EDX if they are }
-                  { used in either the left or the right location, excepts if   }
-                  {they are regvars. It DOES contain them if they are used in   }
-                  { another location (JM)                                       }
-                  if not(R_EAX in rg.unusedregsint) and
-                     (R_EAX in regstopush) then
-                   begin
-                     emit_reg(A_PUSH,S_L,R_EAX);
-                     popeax:=true;
-                   end;
-                  if not(R_EDX in rg.unusedregsint) and
-                     (R_EDX in regstopush) then
-                   begin
-                     emit_reg(A_PUSH,S_L,R_EDX);
-                     popedx:=true;
-                   end;
-                  { left.location can be R_EAX !!! }
-                  rg.getexplicitregisterint(exprasmlist,R_EDI);
-                  { load the left value }
-                  cg.a_load_loc_reg(exprasmlist,left.location,R_EDI);
-                  location_release(exprasmlist,left.location);
-                  { allocate EAX }
-                  if R_EAX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.Alloc(R_EAX));
-                  { load he right value }
-                  cg.a_load_loc_reg(exprasmlist,right.location,R_EAX);
-                  location_release(exprasmlist,right.location);
-                  { allocate EAX if it isn't yet allocated (JM) }
-                  if (R_EAX in rg.unusedregsint) then
-                    exprasmList.concat(tai_regalloc.Alloc(R_EAX));
-                  { also allocate EDX, since it is also modified by }
-                  { a mul (JM)                                      }
-                  if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.Alloc(R_EDX));
-                  emit_reg(A_MUL,S_L,R_EDI);
-                  rg.ungetregisterint(exprasmlist,R_EDI);
-                  if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.DeAlloc(R_EDX));
-                  if R_EAX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
-                  location.register:=rg.getregisterint(exprasmlist);
-                  emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
-                  if popedx then
-                   emit_reg(A_POP,S_L,R_EDX);
-                  if popeax then
-                   emit_reg(A_POP,S_L,R_EAX);
-{$IfNDef NoShlMul}
-                End;
-{$endif NoShlMul}
+               regstopush := all_registers;
+               remove_non_regvars_from_loc(right.location,regstopush);
+               remove_non_regvars_from_loc(left.location,regstopush);
+               { now, regstopush does NOT contain EAX and/or EDX if they are }
+               { used in either the left or the right location, excepts if   }
+               {they are regvars. It DOES contain them if they are used in   }
+               { another location (JM)                                       }
+               if not(R_EAX in rg.unusedregsint) and
+                  (R_EAX in regstopush) then
+                 begin
+                   emit_reg(A_PUSH,S_L,R_EAX);
+                   popeax:=true;
+                 end;
+               if not(R_EDX in rg.unusedregsint) and
+                   (R_EDX in regstopush) then
+                 begin
+                   emit_reg(A_PUSH,S_L,R_EDX);
+                   popedx:=true;
+                 end;
+               { left.location can be R_EAX !!! }
+               rg.getexplicitregisterint(exprasmlist,R_EDI);
+               { load the left value }
+               cg.a_load_loc_reg(exprasmlist,left.location,R_EDI);
+               location_release(exprasmlist,left.location);
+               { allocate EAX }
+               if R_EAX in rg.unusedregsint then
+                 exprasmList.concat(tai_regalloc.Alloc(R_EAX));
+               { load he right value }
+               cg.a_load_loc_reg(exprasmlist,right.location,R_EAX);
+               location_release(exprasmlist,right.location);
+               { allocate EAX if it isn't yet allocated (JM) }
+               if (R_EAX in rg.unusedregsint) then
+                 exprasmList.concat(tai_regalloc.Alloc(R_EAX));
+               { also allocate EDX, since it is also modified by }
+               { a mul (JM)                                      }
+               if R_EDX in rg.unusedregsint then
+                 exprasmList.concat(tai_regalloc.Alloc(R_EDX));
+               emit_reg(A_MUL,S_L,R_EDI);
+               rg.ungetregisterint(exprasmlist,R_EDI);
+               if R_EDX in rg.unusedregsint then
+                 exprasmList.concat(tai_regalloc.DeAlloc(R_EDX));
+               if R_EAX in rg.unusedregsint then
+                 exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
+               location.register:=rg.getregisterint(exprasmlist);
+               emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
+               if popedx then
+                 emit_reg(A_POP,S_L,R_EDX);
+               if popeax then
+                 emit_reg(A_POP,S_L,R_EAX);
                location_freetemp(exprasmlist,left.location);
                location_freetemp(exprasmlist,right.location);
                exit;
@@ -1573,7 +1551,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-07-20 11:58:00  florian
+  Revision 1.45  2002-07-26 11:17:52  jonas
+    * the optimization of converting a multiplication with a power of two to
+      a shl is moved from n386add/secondpass to nadd/resulttypepass
+
+  Revision 1.44  2002/07/20 11:58:00  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
