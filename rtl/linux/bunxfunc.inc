@@ -423,23 +423,33 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
   have changed.
 }
 
+{$ifdef cpui386}
 Var
   SelectArray : Array[1..5] of longint;
+{$endif}
 
 begin
+{$ifdef cpui386}
   SelectArray[1]:=n;
   SelectArray[2]:=longint(Readfds);
   Selectarray[3]:=longint(Writefds);
   selectarray[4]:=longint(exceptfds);
   Selectarray[5]:=longint(TimeOut);
   fpSelect:=do_syscall(syscall_nr_select,longint(@selectarray));
+{$endif}
+{$ifdef cpupowerpc}
+ fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$endif}
 end;
 
 {$endif}
 
 {
  $Log$
- Revision 1.7  2003-12-30 15:43:20  marco
+ Revision 1.8  2004-02-21 23:18:50  marco
+  * powerpc select fix
+
+ Revision 1.7  2003/12/30 15:43:20  marco
   * linux now compiles with FPC_USE_LIBC
 
  Revision 1.6  2003/11/19 14:04:34  marco
