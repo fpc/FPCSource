@@ -167,14 +167,14 @@ Type
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
-  SigSet  = Integer;
+  SigSet  = Longint;
   PSigSet = ^SigSet;
 
   SigActionRec = packed record
-    Sa_Handler : SignalHandler;
-    Sa_Mask : longint;
-    Sa_Flags : Integer;
-    Sa_restorer : SignalRestorer;{ Obsolete - Don't use }
+    Sa_Handler  : SignalHandler;
+    Sa_Mask     : SigSet;
+    Sa_Flags    : Longint;
+    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
   end;
   PSigActionRec = ^SigActionRec;
 
@@ -3742,7 +3742,10 @@ End.
 
 {
   $Log$
-  Revision 1.47  1999-10-06 17:43:58  peter
+  Revision 1.48  1999-10-22 10:37:44  peter
+    * fixed sigset
+
+  Revision 1.47  1999/10/06 17:43:58  peter
     * freemem with wrong size (found with the new heapmanager)
 
   Revision 1.46  1999/09/08 16:14:41  peter
