@@ -277,7 +277,8 @@ implementation
                             end
                            else
                             if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then                             begin
+                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then
+                             begin
                                doconv:=hct;
                                b:=2;
                              end;
@@ -913,7 +914,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2000-06-01 11:00:52  peter
+  Revision 1.64  2000-06-01 19:13:02  peter
+    * fixed long line for tp7
+
+  Revision 1.63  2000/06/01 11:00:52  peter
     * fixed string->pchar conversion for array constructors
 
   Revision 1.62  2000/05/30 18:38:45  florian
