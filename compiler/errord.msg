@@ -1088,7 +1088,7 @@ sym_n_private_method_not_used=05031_N_Private Methode $1.$2 wird nie verwendet
 sym_e_set_expected=05032_E_Mengentyp erwartet
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=05033_W_Funktionsergebnis scheint keine Menge zu sein
+sym_w_function_result_not_set=05033_W_Funktionsergebnis scheint nicht gesetzt zu sein
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
