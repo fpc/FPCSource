@@ -213,6 +213,7 @@ type
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Extended; virtual;
     function GetAsLongint: Longint; virtual;
+    function GetAsInteger: Longint; virtual;
     function GetAsString: string; virtual;
     function GetCanModify: Boolean; virtual;
     function GetDataSize: Word; virtual;
@@ -229,6 +230,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Extended); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
+    procedure SetAsInteger(AValue: Longint); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetSize(AValue: Word); virtual;
@@ -250,6 +252,7 @@ type
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Extended read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
+    property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
     property AttributeSet: string read FAttributeSet write FAttributeSet;
     property Calculated: Boolean read FCalculated write FCalculated;
@@ -1474,7 +1477,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-11-09 21:23:10  michael
+  Revision 1.13  2004-02-25 16:29:26  michael
+  + Added AsInteger to TField. Maps to AsLongint for now
+
+  Revision 1.12  2003/11/09 21:23:10  michael
   + Patch from Micha Nelissen, fixing some Delphi compatibility issues
 
   Revision 1.11  2003/10/06 17:04:27  florian

@@ -309,6 +309,12 @@ begin
   AccessError(SInteger);
 end;
 
+function TField.GetAsInteger: Integer;
+
+begin
+  Result:=GetAsLongint;
+end;
+
 function TField.GetAsString: string;
 
 begin
@@ -447,6 +453,12 @@ procedure TField.SetAsLongint(AValue: Longint);
 
 begin
   AccessError(SInteger);
+end;
+
+procedure TField.SetAsInteger(AValue: Integer);
+
+begin
+  SetAsLongint(AValue);
 end;
 
 procedure TField.SetAsString(const AValue: string);
@@ -1776,7 +1788,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-09-14 13:22:14  michael
+  Revision 1.9  2004-02-25 16:29:26  michael
+  + Added AsInteger to TField. Maps to AsLongint for now
+
+  Revision 1.8  2003/09/14 13:22:14  michael
   + Fixed error in TField.GetCanModify reported by Andrew Johnson
 
   Revision 1.7  2002/09/07 15:15:23  peter
