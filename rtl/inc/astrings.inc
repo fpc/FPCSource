@@ -217,27 +217,31 @@ end;
 {$endif EXTRAANSISHORT}
 
 
-Procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{ the following declaration has exactly the same effect as                   }
+{ procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
+{ which is what the old helper was, so we don't need an extra implementation }
+{ of the old helper (JM)                                                     }
+function fpc_AnsiStr_To_ShortStr (high_of_res: longint;const S2 : Ansistring): shortstring;[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a AnsiString to a ShortString;
 }
 Var
   Size : Longint;
 begin
-  if S2=nil then
-   S1:=''
+  if S2='' then
+   fpc_AnsiStr_To_ShortStr:=''
   else
    begin
-     Size:=PAnsiRec(S2-FirstOff)^.Len;
-     If Size>high(S1) then
-      Size:=high(S1);
-     Move (S2^,S1[1],Size);
-     byte(S1[0]):=Size;
+     Size:=Length(S2);
+     If Size>high_of_res then
+      Size:=high_of_res;
+     Move (S2[1],fpc_AnsiStr_To_ShortStr[1],Size);
+     byte(fpc_AnsiStr_To_ShortStr[0]):=Size;
    end;
 end;
 
 
-Procedure fpc_ShortStr_To_AnsiStr (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a ShortString to a AnsiString;
 }
@@ -245,63 +249,86 @@ Var
   Size : Longint;
 begin
   Size:=Length(S2);
-  Setlength (AnsiString(S1),Size);
+  Setlength (fpc_ShortStr_To_AnsiStr,Size);
   if Size>0 then
-   begin
-     Move (S2[1],Pointer(S1)^,Size);
-     { Terminating Zero }
-     PByte(Pointer(S1)+Size)^:=0;
-   end;
+    Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
 end;
 
+{ old style helper }
+{$ifndef hascompilerproc}
+Procedure fpc_ShortStr_To_AnsiStr (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_ANSISTR'];
+begin
+  s1 := pointer(fpc_ShortStr_To_AnsiStr(s2));
+end;
+{$endif hascompilerproc}
 
-Procedure fpc_Char_To_AnsiStr(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
-  Converts a ShortString to a AnsiString;
+  Converts a Char to a AnsiString;
 }
 begin
-  Setlength (AnsiString(S1),1);
-  PByte(Pointer(S1))^:=byte(c);
+  if c = #0 then
+    { result is automatically set to '' }
+    exit;
+  Setlength (fpc_Char_To_AnsiStr,1);
+  PByte(Pointer(fpc_Char_To_AnsiStr))^:=byte(c);
   { Terminating Zero }
-  PByte(Pointer(S1)+1)^:=0;
+  PByte(Pointer(fpc_Char_To_AnsiStr)+1)^:=0;
 end;
 
+{ old style helper }
+{$ifndef hascompilerproc}
+Procedure fpc_Char_To_AnsiStr(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_TO_ANSISTR'];
+begin
+  s1 := pointer(fpc_Char_To_AnsiStr(c));
+end;
+{$endif hascompilerproc}
 
-Procedure fpc_PChar_To_AnsiStr(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+
+Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   L : Longint;
 begin
-  if pointer(a)<>nil then
-    begin
-       fpc_AnsiStr_Decr_Ref(Pointer(a));
-       pointer(a):=nil;
-    end;
   if (not assigned(p)) or (p[0]=#0) Then
-    Pointer(a):=nil
-  else
-    begin
-      l:=IndexChar(p^,-1,#0);
-      Pointer(a):=NewAnsistring(L);
-      SetLength(A,L);
-      Move (P[0],Pointer(A)^,L)
-    end;
+    { result is automatically set to '' }
+    exit;
+  l:=IndexChar(p^,-1,#0);
+  SetLength(fpc_PChar_To_AnsiStr,L);
+  Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
 end;
 
+{ old style helper }
+{$ifndef hascompilerproc}
+Procedure fpc_PChar_To_AnsiStr(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+  pointer(a) := pointer(fpc_PChar_To_AnsiStr(p));
+end;
+{$endif hascompilerproc}
 
-Procedure fpc_CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+
+Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   i  : longint;
 begin
-  if p[0]=#0 Then
-    Pointer(a):=nil
-  else
-    begin
-      i:=IndexChar(p^,L,#0);
-      Pointer(a):=NewAnsistring(i);
-      SetLength(a,i);
-      Move (P[0],Pointer(A)^,i);
-    end;
+  if arr[0]=#0 Then
+    { result is automatically set to '' }
+    exit;
+  i:=IndexChar(arr,high(arr)+1,#0);
+  SetLength(fpc_CharArray_To_AnsiStr,i);
+  Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
 end;
+
+{ old style helper }
+{$ifndef hascompilerproc}
+{ the declaration below is the same as                                              }
+{ Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; p: pointer; len: longint); }
+{ which is what the old helper was (we need the parameter as "array of char" type   }
+{ so we can pass it to the new style helper (JM)                                    }
+Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; const arr: array of char);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+  pointer(a) := pointer(fpc_CharArray_To_AnsiStr(arr));
+end;
+{$endif hascompilerproc}
 
 
 Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -732,7 +759,13 @@ end;
 
 {
   $Log$
-  Revision 1.18  2001-08-13 12:40:16  jonas
+  Revision 1.19  2001-08-28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.18  2001/08/13 12:40:16  jonas
     * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
       same for all string types
     + added the str(x,y) and val(x,y,z) helpers for int64/qword to

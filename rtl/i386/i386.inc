@@ -706,10 +706,46 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{
-  this procedure must save all modified registers except EDI and ESI !!!
-}
+
+function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+  asm
+        cld
+        movl    __RESULT,%edi
+        movl    sstr,%esi
+        xorl    %eax,%eax
+        movl    len,%ecx
+        lodsb
+        cmpl    %ecx,%eax
+        jbe     .LStrCopy1
+        movl    %ecx,%eax
+.LStrCopy1:
+        stosb
+        cmpl    $7,%eax
+        jl      .LStrCopy2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrCopy2:
+        movl    %eax,%ecx
+        rep
+        movsb
+  end ['ESI','EDI','EAX','ECX'];
+end;
+
+{$ifdef had_openstrings}
+{$p+}
+{$endif had_openstrings}
+
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 begin
   asm
         pushl   %eax
@@ -747,9 +783,8 @@ begin
   end ['ESI','EDI'];
 end;
 
-
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-procedure fpc_shortstr_concat(s1,s2:pointer);
+procedure fpc_shortstr_concat(const s1,s2:shortstring);
   [public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
@@ -789,7 +824,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
-function fpc_shortstr_compare(dstr,sstr:pointer): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         cld
@@ -847,12 +882,12 @@ function strlen(p:pchar):longint;assembler;
 {$include strlen.inc}
 
 {$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
-function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         cld
-        movl    p,%esi
-        movl    l,%ecx
+        movl    arr,%esi
+        movl    arr+4,%ecx
         orl     %esi,%esi
         jnz     .LStrCharArrayNotNil
         movl    $0,%ecx
@@ -1104,7 +1139,13 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.14  2001-08-01 15:00:09  jonas
+  Revision 1.15  2001-08-28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.14  2001/08/01 15:00:09  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

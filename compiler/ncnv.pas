@@ -42,6 +42,7 @@ interface
           function docompare(p: tnode) : boolean; override;
        private
           function resulttype_cord_to_pointer : tnode;
+          function resulttype_chararray_to_string : tnode;
           function resulttype_string_to_string : tnode;
           function resulttype_char_to_string : tnode;
           function resulttype_int_to_real : tnode;
@@ -50,6 +51,7 @@ interface
           function resulttype_cstring_to_pchar : tnode;
           function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
+          function resulttype_pchar_to_string : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -62,7 +64,6 @@ interface
           function first_int_to_real : tnode;virtual;
           function first_real_to_real : tnode;virtual;
           function first_pointer_to_array : tnode;virtual;
-          function first_chararray_to_string : tnode;virtual;
           function first_cchar_to_pchar : tnode;virtual;
           function first_bool_to_int : tnode;virtual;
           function first_int_to_bool : tnode;virtual;
@@ -70,7 +71,6 @@ interface
           function first_proc_to_procvar : tnode;virtual;
           function first_load_smallset : tnode;virtual;
           function first_cord_to_pointer : tnode;virtual;
-          function first_pchar_to_string : tnode;virtual;
           function first_ansistring_to_pchar : tnode;virtual;
           function first_arrayconstructor_to_set : tnode;virtual;
           function first_class_to_intf : tnode;virtual;
@@ -104,7 +104,7 @@ implementation
       globtype,systems,tokens,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,
+      ncon,ncal,nset,nadd,ninl,
       cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
@@ -421,9 +421,20 @@ implementation
           internalerror(200104023);
       end;
 
-
+    function ttypeconvnode.resulttype_chararray_to_string : tnode;
+      begin
+        result := ccallnode.createintern(
+          'fpc_chararray_to_'+lower(tstringdef(resulttype.def).stringtypname),
+          ccallparanode.create(left,nil));
+        left := nil;
+        resulttypepass(result);
+      end;
+    
+    
     function ttypeconvnode.resulttype_string_to_string : tnode;
       var
+        procname: string[31];
+        stringpara : tcallparanode;
         pw : pcompilerwidestring;
         pc : pchar;
       begin
@@ -454,12 +465,36 @@ implementation
              tstringconstnode(left).resulttype:=resulttype;
              result:=left;
              left:=nil;
-          end;
+          end
+         else
+           begin
+             { get the correct procedure name }
+             procname := 'fpc_'+
+               lower(tstringdef(left.resulttype.def).stringtypname+
+               '_to_'+tstringdef(resulttype.def).stringtypname);
+
+             { create parameter (and remove left node from typeconvnode }
+             { since it's reused as parameter)                          }
+             stringpara := ccallparanode.create(left,nil);
+             left := nil;
+
+             { hen converting to shortstrings, we have to pass high(destination) too }
+             if (tstringdef(resulttype.def).string_typ =
+                  st_shortstring) then
+               stringpara.right := ccallparanode.create(cinlinenode.create(
+                 in_high_x,false,self.getcopy),nil);
+                 
+             { and create the callnode }
+             result := ccallnode.createintern(procname,stringpara);
+             resulttypepass(result);
+           end;
       end;
 
 
     function ttypeconvnode.resulttype_char_to_string : tnode;
       var
+         procname: string[31];
+         para : tcallparanode;
          hp : tstringconstnode;
          ws : pcompilerwidestring;
       begin
@@ -477,7 +512,23 @@ implementation
                hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),tstringdef(resulttype.def).string_typ);
               resulttypepass(hp);
               result:=hp;
-           end;
+           end
+         else
+           { shortstrings are handled 'inline' }
+           if tstringdef(resulttype.def).string_typ <> st_shortstring then
+             begin
+               { create the parameter }
+               para := ccallparanode.create(left,nil);
+               left := nil;
+
+               { and the procname }
+               procname := 'fpc_char_to_' +
+                 lower(tstringdef(resulttype.def).stringtypname);
+
+               { and finally the call }
+               result := ccallnode.createintern(procname,para);
+               resulttypepass(result);
+             end;
       end;
 
 
@@ -580,6 +631,16 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_pchar_to_string : tnode;
+      begin
+        result := ccallnode.createintern(
+          'fpc_pchar_to_'+lower(tstringdef(resulttype.def).stringtypname),
+          ccallparanode.create(left,nil));
+        left := nil;
+        resulttypepass(result);
+      end;
+
+
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 
       const
@@ -588,12 +649,12 @@ implementation
           {not_possible} nil,
           { string_2_string } @ttypeconvnode.resulttype_string_to_string,
           { char_2_string } @ttypeconvnode.resulttype_char_to_string,
-          { pchar_2_string } nil,
+          { pchar_2_string } @ttypeconvnode.resulttype_pchar_to_string,
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
           { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
           { ansistring_2_pchar } nil,
           { string_2_chararray } nil,
-          { chararray_2_string } nil,
+          { chararray_2_string } @ttypeconvnode.resulttype_chararray_to_string,
           { array_2_pointer } nil,
           { pointer_2_array } nil,
           { int_2_int } nil,
@@ -1093,16 +1154,6 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_chararray_to_string : tnode;
-      begin
-         first_chararray_to_string:=nil;
-         { the only important information is the location of the }
-         { result                                               }
-         { other stuff is done by firsttypeconv           }
-         location.loc:=LOC_MEM;
-      end;
-
-
     function ttypeconvnode.first_cchar_to_pchar : tnode;
       begin
          first_cchar_to_pchar:=nil;
@@ -1181,13 +1232,6 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_pchar_to_string : tnode;
-      begin
-         first_pchar_to_string:=nil;
-         location.loc:=LOC_REFERENCE;
-      end;
-
-
     function ttypeconvnode.first_ansistring_to_pchar : tnode;
       begin
          first_ansistring_to_pchar:=nil;
@@ -1220,12 +1264,12 @@ implementation
            @ttypeconvnode.first_nothing, {not_possible}
            @ttypeconvnode.first_string_to_string,
            @ttypeconvnode.first_char_to_string,
-           @ttypeconvnode.first_pchar_to_string,
+           @ttypeconvnode.first_nothing, { removed in resulttype_chararray_to_string }
            @ttypeconvnode.first_cchar_to_pchar,
            @ttypeconvnode.first_cstring_to_pchar,
            @ttypeconvnode.first_ansistring_to_pchar,
            @ttypeconvnode.first_string_to_chararray,
-           @ttypeconvnode.first_chararray_to_string,
+           @ttypeconvnode.first_nothing, { removed in resulttype_chararray_to_string }
            @ttypeconvnode.first_array_to_pointer,
            @ttypeconvnode.first_pointer_to_array,
            @ttypeconvnode.first_int_to_int,
@@ -1433,7 +1477,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-08-26 13:36:40  florian
+  Revision 1.33  2001-08-28 13:24:46  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.32  2001/08/26 13:36:40  florian
     * some cg reorganisation
     * some PPC updates
 

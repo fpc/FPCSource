@@ -44,9 +44,7 @@ interface
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
-{$ifdef hascompilerproc}
           constructor createintern(const name: string; params: tnode);
-{$endif hascompilerproc}
           destructor destroy;override;
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -562,7 +560,6 @@ implementation
          procdefinition:=nil;
       end;
 
-{$ifdef hascompilerproc}
      constructor tcallnode.createintern(const name: string; params: tnode);
        var
          srsym: tsym;
@@ -581,10 +578,12 @@ implementation
            end;
          if not assigned(srsym) or
             (srsym.typ <> procsym) then
-           internalerror(200107271);
+           begin
+             writeln('unknown compilerproc ',name);
+             internalerror(200107271);
+           end;
          self.create(params,tprocsym(srsym),symowner,nil);
        end;
-{$endif hascompilerproc}
 
     destructor tcallnode.destroy;
       begin
@@ -1717,7 +1716,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2001-08-26 13:36:39  florian
+  Revision 1.46  2001-08-28 13:24:46  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.45  2001/08/26 13:36:39  florian
     * some cg reorganisation
     * some PPC updates
 

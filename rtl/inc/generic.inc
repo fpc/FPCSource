@@ -482,12 +482,11 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   slen : byte;
-type
-  pstring = ^string;
 begin
+{ these are shortstrings, not pointers! (JM)
   if dstr=nil then
     exit;
   if sstr=nil then
@@ -496,20 +495,49 @@ begin
         pstring(dstr)^[0]:=#0;
       exit;
     end;
+}
+  slen:=length(pstring(sstr)^);
+  if slen<len then
+    len:=slen;
+  { don't forget the length character }
+  if len <> 0 then
+      move(sstr[0],result[0],len+1);
+end;
+
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+var
+  slen : byte;
+type
+  pstring = ^string;
+begin
+{ these are shortstrings, not pointers! (JM)
+  if dstr=nil then
+    exit;
+  if sstr=nil then
+    begin
+      if dstr<>nil then
+        pstring(dstr)^[0]:=#0;
+      exit;
+    end;
+}
   slen:=length(pstring(sstr)^);
   if slen<len then
     len:=slen;
   { don't forget the length character }
   if len <> 0 then
       move(sstr^,dstr^,len+1);
+ { already done by the move above (JM)
   pstring(dstr)^[0]:=chr(len);
+ }
 end;
+
+
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-procedure fpc_shortstr_concat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_concat(const s1,s2:shortstring);[public,alias:'FPC_SHORTSTR_CONCAT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   s1l, s2l : byte;
 type
@@ -529,7 +557,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-function fpc_shortstr_compare(rightstr,leftstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const rightstr,leftstr:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
    s1,s2,max,i : byte;
    d : longint;
@@ -627,7 +655,7 @@ begin
     { longstring }
     2:;
     { widestring }
-    3:;
+    3: ;
   end;
   if len > arraysize then
     len := arraysize;
@@ -829,7 +857,13 @@ end;
 
 {
   $Log$
-  Revision 1.17  2001-08-01 15:00:10  jonas
+  Revision 1.18  2001-08-28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.17  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

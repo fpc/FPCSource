@@ -32,12 +32,12 @@ interface
     type
        ti386typeconvnode = class(ttypeconvnode)
           procedure second_int_to_int;virtual;
-          procedure second_string_to_string;virtual;
+         { procedure second_string_to_string;virtual; }
           procedure second_cstring_to_pchar;virtual;
           procedure second_string_to_chararray;virtual;
           procedure second_array_to_pointer;virtual;
           procedure second_pointer_to_array;virtual;
-          procedure second_chararray_to_string;virtual;
+         { procedure second_chararray_to_string;virtual; }
           procedure second_char_to_string;virtual;
           procedure second_int_to_real;virtual;
           procedure second_real_to_real;virtual;
@@ -47,7 +47,7 @@ interface
           procedure second_int_to_bool;virtual;
           procedure second_load_smallset;virtual;
           procedure second_ansistring_to_pchar;virtual;
-          procedure second_pchar_to_string;virtual;
+         { procedure second_pchar_to_string;virtual; }
           procedure second_class_to_intf;virtual;
           procedure second_char_to_char;virtual;
           procedure second_nothing;virtual;
@@ -198,154 +198,6 @@ implementation
                     end;
                 end;
           end;
-      end;
-
-    procedure ti386typeconvnode.second_string_to_string;
-
-      var
-         pushed : tpushed;
-         regs_to_push: byte;
-
-      begin
-         { does anybody know a better solution than this big case statement ? }
-         { ok, a proc table would do the job                              }
-         case tstringdef(resulttype.def).string_typ of
-
-            st_shortstring:
-              case tstringdef(left.resulttype.def).string_typ of
-                 st_shortstring:
-                   begin
-                      gettempofsizereference(resulttype.def.size,location.reference);
-                      copyshortstring(location.reference,left.location.reference,
-                                      tstringdef(resulttype.def).len,false,true);
-                      ungetiftemp(left.location.reference);
-                   end;
-                 st_ansistring:
-                   begin
-                      gettempofsizereference(resulttype.def.size,location.reference);
-                      loadansi2short(left,self);
-                   end;
-                 st_widestring:
-                   begin
-                      gettempofsizereference(resulttype.def.size,location.reference);
-                      loadwide2short(left,self);
-                   end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-              end;
-
-            st_ansistring:
-              case tstringdef(left.resulttype.def).string_typ of
-                 st_shortstring:
-                   begin
-                      clear_location(location);
-                      location.loc:=LOC_REFERENCE;
-                      gettempansistringreference(location.reference);
-                      decrstringref(cansistringtype.def,location.reference);
-                      { We don't need the source regs anymore (JM) }
-                      regs_to_push := $ff;
-                      remove_non_regvars_from_loc(left.location,regs_to_push);
-                      pushusedregisters(pushed,regs_to_push);
-                      release_loc(left.location);
-                      emit_push_lea_loc(left.location,true);
-                      emit_push_lea_loc(location,false);
-                      saveregvars(regs_to_push);
-                      emitcall('FPC_SHORTSTR_TO_ANSISTR');
-                      maybe_loadself;
-                      popusedregisters(pushed);
-                   end;
-                 st_widestring:
-                   begin
-                      clear_location(location);
-                      location.loc:=LOC_REFERENCE;
-                      gettempansistringreference(location.reference);
-                      decrstringref(cansistringtype.def,location.reference);
-                      { We don't need the source regs anymore (JM) }
-                      regs_to_push := $ff;
-                      remove_non_regvars_from_loc(left.location,regs_to_push);
-                      pushusedregisters(pushed,regs_to_push);
-                      release_loc(left.location);
-                      emit_push_loc(left.location);
-                      emit_push_lea_loc(location,false);
-                      saveregvars(regs_to_push);
-                      emitcall('FPC_WIDESTR_TO_ANSISTR');
-                      maybe_loadself;
-                      popusedregisters(pushed);
-                   end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-              end;
-
-            st_widestring:
-              case tstringdef(left.resulttype.def).string_typ of
-                 st_shortstring:
-                   begin
-                      clear_location(location);
-                      location.loc:=LOC_REFERENCE;
-                      gettempwidestringreference(location.reference);
-                      decrstringref(cwidestringtype.def,location.reference);
-                      { We don't need the source regs anymore (JM) }
-                      regs_to_push := $ff;
-                      remove_non_regvars_from_loc(left.location,regs_to_push);
-                      pushusedregisters(pushed,regs_to_push);
-                      release_loc(left.location);
-                      emit_push_lea_loc(left.location,true);
-                      emit_push_lea_loc(location,false);
-                      saveregvars(regs_to_push);
-                      emitcall('FPC_SHORTSTR_TO_WIDESTR');
-                      maybe_loadself;
-                      popusedregisters(pushed);
-                   end;
-                 st_ansistring:
-                   begin
-                      clear_location(location);
-                      location.loc:=LOC_REFERENCE;
-                      gettempwidestringreference(location.reference);
-                      decrstringref(cwidestringtype.def,location.reference);
-                      { We don't need the source regs anymore (JM) }
-                      regs_to_push := $ff;
-                      remove_non_regvars_from_loc(left.location,regs_to_push);
-                      pushusedregisters(pushed,regs_to_push);
-                      release_loc(left.location);
-                      emit_push_loc(left.location);
-                      emit_push_lea_loc(location,false);
-                      saveregvars(regs_to_push);
-                      emitcall('FPC_ANSISTR_TO_WIDESTR');
-                      maybe_loadself;
-                      popusedregisters(pushed);
-                   end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-              end;
-
-            st_longstring:
-              case tstringdef(left.resulttype.def).string_typ of
-                 st_shortstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-                 st_ansistring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-                 st_widestring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-              end;
-         end;
       end;
 
 
@@ -532,92 +384,7 @@ implementation
       end;
 
 
-    { generates the code for the type conversion from an array of char }
-    { to a string                                                       }
-    procedure ti386typeconvnode.second_chararray_to_string;
-      var
-         pushed : tpushed;
-         regstopush: byte;
-         l : longint;
-      begin
-         { calc the length of the array }
-         l:=tarraydef(left.resulttype.def).highrange-tarraydef(left.resulttype.def).lowrange+1;
-         { this is a type conversion which copies the data, so we can't }
-         { return a reference                                        }
-         clear_location(location);
-         location.loc:=LOC_MEM;
-         case tstringdef(resulttype.def).string_typ of
-           st_shortstring :
-             begin
-               if l>255 then
-                begin
-                  CGMessage(type_e_mismatch);
-                  l:=255;
-                end;
-               gettempofsizereference(resulttype.def.size,location.reference);
-               { we've also to release the registers ... }
-               { Yes, but before pushusedregisters since that one resets unused! }
-               { This caused web bug 1073 (JM)                                   }
-               regstopush := $ff;
-               remove_non_regvars_from_loc(left.location,regstopush);
-               pushusedregisters(pushed,regstopush);
-               if l>=resulttype.def.size then
-                 push_int(resulttype.def.size-1)
-               else
-                 push_int(l);
-               { ... here only the temp. location is released }
-               emit_push_lea_loc(left.location,true);
-               del_reference(left.location.reference);
-               emitpushreferenceaddr(location.reference);
-               saveregvars(regstopush);
-               emitcall('FPC_CHARARRAY_TO_SHORTSTR');
-               maybe_loadself;
-               popusedregisters(pushed);
-             end;
-           st_ansistring :
-             begin
-               gettempansistringreference(location.reference);
-               decrstringref(cansistringtype.def,location.reference);
-               regstopush := $ff;
-               remove_non_regvars_from_loc(left.location,regstopush);
-               pushusedregisters(pushed,regstopush);
-               push_int(l);
-               emitpushreferenceaddr(left.location.reference);
-               release_loc(left.location);
-               emitpushreferenceaddr(location.reference);
-               saveregvars(regstopush);
-               emitcall('FPC_CHARARRAY_TO_ANSISTR');
-               popusedregisters(pushed);
-               maybe_loadself;
-             end;
-           st_widestring :
-             begin
-               gettempwidestringreference(location.reference);
-               decrstringref(cwidestringtype.def,location.reference);
-               regstopush := $ff;
-               remove_non_regvars_from_loc(left.location,regstopush);
-               pushusedregisters(pushed,regstopush);
-               push_int(l);
-               emitpushreferenceaddr(left.location.reference);
-               release_loc(left.location);
-               emitpushreferenceaddr(location.reference);
-               saveregvars(regstopush);
-               emitcall('FPC_CHARARRAY_TO_WIDESTR');
-               popusedregisters(pushed);
-               maybe_loadself;
-             end;
-           st_longstring:
-             begin
-               {!!!!!!!}
-               internalerror(8888);
-             end;
-        end;
-      end;
-
-
     procedure ti386typeconvnode.second_char_to_string;
-      var
-        pushed : tpushed;
 
       begin
          clear_location(location);
@@ -628,32 +395,7 @@ implementation
                gettempofsizereference(256,location.reference);
                loadshortstring(left,self);
              end;
-           st_ansistring :
-             begin
-               gettempansistringreference(location.reference);
-               decrstringref(cansistringtype.def,location.reference);
-               release_loc(left.location);
-               pushusedregisters(pushed,$ff);
-               emit_pushw_loc(left.location);
-               emitpushreferenceaddr(location.reference);
-               saveregvars($ff);
-               emitcall('FPC_CHAR_TO_ANSISTR');
-               popusedregisters(pushed);
-               maybe_loadself;
-             end;
-           st_widestring :
-             begin
-               gettempwidestringreference(location.reference);
-               decrstringref(cwidestringtype.def,location.reference);
-               release_loc(left.location);
-               pushusedregisters(pushed,$ff);
-               emit_pushw_loc(left.location);
-               emitpushreferenceaddr(location.reference);
-               saveregvars($ff);
-               emitcall('FPC_CHAR_TO_WIDESTR');
-               popusedregisters(pushed);
-               maybe_loadself;
-             end;
+           { the rest is removed in the resulttype pass and coverted to compilerprocs }
            else
             internalerror(4179);
         end;
@@ -1049,107 +791,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_pchar_to_string;
-      var
-        pushed : tpushed;
-        regs_to_push: byte;
-      begin
-         case tstringdef(resulttype.def).string_typ of
-           st_shortstring:
-             begin
-                location.loc:=LOC_REFERENCE;
-                gettempofsizereference(resulttype.def.size,location.reference);
-                pushusedregisters(pushed,$ff);
-                case left.location.loc of
-                   LOC_REGISTER,LOC_CREGISTER:
-                     begin
-                        emit_reg(A_PUSH,S_L,left.location.register);
-                        ungetregister32(left.location.register);
-                     end;
-                   LOC_REFERENCE,LOC_MEM:
-                     begin
-                       { Now release the registers (see cgai386.pas:     }
-                       { loadansistring for more info on the order) (JM) }
-                        del_reference(left.location.reference);
-                        emit_push_mem(left.location.reference);
-                     end;
-                end;
-                emitpushreferenceaddr(location.reference);
-                saveregvars($ff);
-                emitcall('FPC_PCHAR_TO_SHORTSTR');
-                maybe_loadself;
-                popusedregisters(pushed);
-             end;
-           st_ansistring:
-             begin
-                location.loc:=LOC_REFERENCE;
-                gettempansistringreference(location.reference);
-                decrstringref(cansistringtype.def,location.reference);
-                { Find out which regs have to be pushed (JM) }
-                regs_to_push := $ff;
-                remove_non_regvars_from_loc(left.location,regs_to_push);
-                pushusedregisters(pushed,regs_to_push);
-                case left.location.loc of
-                  LOC_REFERENCE,LOC_MEM:
-                    begin
-                      { Now release the registers (see cgai386.pas:     }
-                      { loadansistring for more info on the order) (JM) }
-                      del_reference(left.location.reference);
-                      emit_push_mem(left.location.reference);
-                    end;
-                  LOC_REGISTER,LOC_CREGISTER:
-                    begin
-                       { Now release the registers (see cgai386.pas:     }
-                       { loadansistring for more info on the order) (JM) }
-                      emit_reg(A_PUSH,S_L,left.location.register);
-                      ungetregister32(left.location.register);
-                   end;
-                end;
-                emitpushreferenceaddr(location.reference);
-                saveregvars(regs_to_push);
-                emitcall('FPC_PCHAR_TO_ANSISTR');
-                maybe_loadself;
-                popusedregisters(pushed);
-             end;
-           st_widestring:
-             begin
-                location.loc:=LOC_REFERENCE;
-                gettempwidestringreference(location.reference);
-                decrstringref(cwidestringtype.def,location.reference);
-                { Find out which regs have to be pushed (JM) }
-                regs_to_push := $ff;
-                remove_non_regvars_from_loc(left.location,regs_to_push);
-                pushusedregisters(pushed,regs_to_push);
-                case left.location.loc of
-                  LOC_REFERENCE,LOC_MEM:
-                    begin
-                      { Now release the registers (see cgai386.pas:     }
-                      { loadansistring for more info on the order) (JM) }
-                      del_reference(left.location.reference);
-                      emit_push_mem(left.location.reference);
-                    end;
-                  LOC_REGISTER,LOC_CREGISTER:
-                    begin
-                       { Now release the registers (see cgai386.pas:     }
-                       { loadansistring for more info on the order) (JM) }
-                      emit_reg(A_PUSH,S_L,left.location.register);
-                      ungetregister32(left.location.register);
-                   end;
-                end;
-                emitpushreferenceaddr(location.reference);
-                saveregvars(regs_to_push);
-                emitcall('FPC_PCHAR_TO_WIDESTR');
-                maybe_loadself;
-                popusedregisters(pushed);
-             end;
-         else
-          begin
-            internalerror(12121);
-          end;
-         end;
-      end;
-
-
     procedure ti386typeconvnode.second_class_to_intf;
       var
          hreg : tregister;
@@ -1208,14 +849,14 @@ implementation
          secondconvert : array[tconverttype] of pointer = (
            @ti386typeconvnode.second_nothing, {equal}
            @ti386typeconvnode.second_nothing, {not_possible}
-           @ti386typeconvnode.second_string_to_string,
+           @ti386typeconvnode.second_nothing, {second_string_to_string, handled in resulttype pass }
            @ti386typeconvnode.second_char_to_string,
-           @ti386typeconvnode.second_pchar_to_string,
+           @ti386typeconvnode.second_nothing, { pchar_to_string, handled in resulttype pass }
            @ti386typeconvnode.second_nothing, {cchar_to_pchar}
            @ti386typeconvnode.second_cstring_to_pchar,
            @ti386typeconvnode.second_ansistring_to_pchar,
            @ti386typeconvnode.second_string_to_chararray,
-           @ti386typeconvnode.second_chararray_to_string,
+           @ti386typeconvnode.second_nothing, { chararray_to_string, handled in resulttype pass }
            @ti386typeconvnode.second_array_to_pointer,
            @ti386typeconvnode.second_pointer_to_array,
            @ti386typeconvnode.second_int_to_int,
@@ -1425,7 +1066,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-26 13:36:57  florian
+  Revision 1.21  2001-08-28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.20  2001/08/26 13:36:57  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -25,11 +25,12 @@
 {$ifdef hascompilerproc}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer); compilerproc;
-procedure fpc_shortstr_concat(s1,s2:pointer); compilerproc;
-function fpc_shortstr_compare(dstr,sstr:pointer) : longint; compilerproc;
+function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
+procedure fpc_shortstr_concat(const s1,s2:shortstring); compilerproc;
+function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerproc;
+function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 
-function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring; compilerproc;
+function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compilerproc;
 procedure fpc_str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);compilerproc;
 
 function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
@@ -55,11 +56,11 @@ Procedure fpc_AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
-Procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer); compilerproc;
-Procedure fpc_ShortStr_To_AnsiStr (Var S1 : Pointer; Const S2 : ShortString); compilerproc;
-Procedure fpc_Char_To_AnsiStr(var S1 : Pointer; c : Char); compilerproc;
-Procedure fpc_PChar_To_AnsiStr(var a : ansistring;p : pchar); compilerproc;
-Procedure fpc_CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint); compilerproc;
+function fpc_AnsiStr_To_ShortStr (high_of_res: longint;const S2 : Ansistring): shortstring; compilerproc;
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
+Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
+Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; compilerproc;
 Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(len,index : longint); compilerproc;
@@ -71,15 +72,15 @@ Procedure fpc_ansistr_Unique(Var S : AnsiString); compilerproc;
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_WideStr_Incr_Ref (Var S : Pointer); compilerproc;
-Procedure fpc_WideStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer); compilerproc;
-Procedure fpc_ShortStr_To_WideStr (Var S1 : Pointer; Const S2 : ShortString); compilerproc;
-Procedure fpc_WideStr_To_AnsiStr (Var S1 : Pointer;S2 : Pointer); compilerproc;
-Procedure fpc_AnsiStr_To_WideStr (Var S1 : Pointer; Const S2 : Pointer); compilerproc;
+function fpc_WideStr_To_ShortStr (high_of_res: longint;const S2 : WideString): shortstring; compilerproc;
+Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerproc;
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
+Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 Procedure fpc_WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
-Procedure fpc_Char_To_WideStr(var S1 : Pointer; c : Char); compilerproc;
-Procedure fpc_PChar_To_WideStr(var a : widestring;p : pchar); compilerproc;
-Procedure fpc_CharArray_To_WideStr(var a : widestring;p : pchar;l:longint); compilerproc;
+Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
+Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
+Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
 Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
@@ -230,7 +231,13 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.4  2001-08-23 14:28:36  jonas
+  Revision 1.5  2001-08-28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      necessary in the compiler)
+
+  Revision 1.4  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent
