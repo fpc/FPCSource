@@ -840,7 +840,7 @@ ol088=3*2Ao_coff файл, использующий GNU
 ol089=3*2Anasmcoff_coff файл, использующий Nasm
 ol090=3*2Anasmelf_elf32 (linux) файл, использующий Nasm
 ol091=3*2Anasmobj_obj файл, использующий Nasm
-ol092=3*2Amasm_obj использyющий Masm (Mircosoft)
+ol092=3*2Amasm_obj использyющий Masm (Microsoft)
 ol093=3*2Atasm_obj использyющий Tasm (Borland)
 ol094=3*1R<x>_стиль чтения ассемблеpа
 ol095=3*2Ratt_читать как ассемблер стиля AT&T
@@ -888,7 +888,10 @@ ol_end=**1h_показать этy справкy, без ожидания <enter>
 
 #
 # $Log$
-# Revision 1.2  1999-05-18 08:45:05  michael
+# Revision 1.3  1999-06-08 15:49:26  hajny
+#   * mistyping removed
+#
+# Revision 1.2  1999/05/18 08:45:05  michael
 # + Fixes by Michail Baikov
 #
 # Revision 1.1  1999/05/17 09:37:37  michael
