@@ -8,15 +8,25 @@ unitdir=$(CPU_TARGET) . $(OLDDIR)
 incdir=$(OLDDIR)
 targetdir=.
 
+[install]
+packagename=compiler
+sourcesubdirs=0
+
 [require]
+rtl=1
 options=-Sg
 
 [tools]
 tooldiff=1
 toolcmp=1
+tooldate=1
+toolupx=1
 
 
 [presettings]
+# Don't export OS_SOURCE because it can change after the first compile
+unexport OS_SOURCE FPC_VERSION
+
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
 CPU_TARGET=alpha
@@ -35,11 +45,10 @@ endif
 OLDDIR=..
 
 # RTL
-RTL=$(OLDDIR)/../rtl
-UTILS=$(OLDDIR)/../utils
+UTILSDIR=$(OLDDIR)/../utils
 
 # Utils used by compiler development/installation
-COMPILERUTILS=$(OLDDIR)/utils
+COMPILERUTILSDIR=$(OLDDIR)/utils
 
 # Default language for the compiler
 ifndef FPCLANG
@@ -53,12 +62,12 @@ endif
 
 # Local options for the compiler only
 ifndef LOCALOPT
-LOCALOPT=
+LOCALOPT=$(OPT)
 endif
 
 # Options for the RTL only when cycling
 ifndef RTLOPTS
-RTLOPTS=
+RTLOPTS=$(OPT)
 endif
 
 # Message files
@@ -190,13 +199,15 @@ next :
 else
 next :
         $(MAKE) execlean
-        $(MAKE) -C $(RTLDIR) clean
-        $(MAKE) -C $(RTLDIR) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
         $(MAKE) clean
         $(MAKE) all
 endif
 
 clean : execlean fpc_cleanall
+
+ppuclean: fpc_cleanall
 
 execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
@@ -209,9 +220,9 @@ distclean: clean
 # Include depencies
 #####################################################################
 
-$(MAKEDEP): $(UTILS)/ppdep.pp
-        $(COMPILER) $(UTILS)/ppdep.pp
-        $(COPY) $(UTILS)/$(MAKEDEP) $(MAKEDEP)
+$(MAKEDEP): $(UTILSDIR)/ppdep.pp
+        $(COMPILER) $(UTILSDIR)/ppdep.pp
+        $(COPY) $(UTILSDIR)/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
         $(MAKEDEP) pp.pas $(FPCOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
@@ -227,8 +238,8 @@ endif
 # Make targets
 #####################################################################
 
-$(MSG2INC): $(COMPILERUTILS)/msg2inc.pp
-        $(COMPILER) -FE. $(COMPILERUTILS)/msg2inc.pp
+$(MSG2INC): $(COMPILERUTILSDIR)/msg2inc.pp
+        $(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 
 # The msgtxt.inc only depends on the error?.msg file, not on msg2inc,
 # because that one will be new almost everytime
@@ -263,7 +274,7 @@ tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
 remake: $(EXENAME)
         $(MOVE) $(EXENAME) $(TEMPNAME)
         $(MAKE) execlean
-        $(MAKE) -C $(RTLDIR) clean
+        $(MAKE) -C $(UNITDIR_RTL) clean
         $(MAKE) clean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
 
@@ -287,8 +298,8 @@ $(TEMPNAME3) : $(TEMPNAME2)
 
 cycle:
         $(MAKE) clean
-        $(MAKE) -C $(RTLDIR) clean
-        $(MAKE) -C $(RTLDIR) 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
         $(MAKE) remake3
         $(MAKE) echotime
 
@@ -303,11 +314,15 @@ cvstest:
 # Installation
 #####################################################################
 
+.PHONY: quickinstall install installsym
+
+MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
 ifdef inlinux
-        $(MKDIR) $(LIBINSTALLDIR)
-        $(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
 else
         $(MKDIR) $(BININSTALLDIR)
 ifdef UPXPROG
@@ -316,18 +331,18 @@ endif
         $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
 endif
 
-installlib: quickinstall
+install: quickinstall
 ifdef inlinux
-        $(INSTALLEXE) $(COMPILERUTILS)/samplecfg $(LIBINSTALLDIR)/samplecfg
+        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
-install: installlib
+installsymlink: install
 ifdef inlinux
         $(MKDIR) $(BININSTALLDIR)
-        ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
+        ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
 endif
 
 
@@ -335,14 +350,16 @@ endif
 # Misc
 #####################################################################
 
-rtl :
-        $(MAKE) -C $(RTLDIR) all
+.PHONY: rtl rtlclean rtlinstall
 
-rtlclean :
-        $(MAKE) -C $(RTLDIR) clean
+rtl:
+        $(MAKE) -C $(UNITDIR_RTL) all
+
+rtlclean:
+        $(MAKE) -C $(UNITDIR_RTL) clean
 
 rtlinstall:
-        $(MAKE) -C $(RTLDIR) install
+        $(MAKE) -C $(UNITDIR_RTL) install
 
 #####################################################################
 # local user configurable file
@@ -354,17 +371,3 @@ localmake:=$(strip $(wildcard makefile.loc))
 ifdef localmake
 include ./$(localmake)
 endif
-
-
-#####################################################################
-# M68k test targets
-#####################################################################
-
-# just a quick way to get ppc68k
-# needs to be after makefile.def for PASFILES INCFILES
-
-$(M68KEXENAME): $(PASFILES) $(INCFILES)
-        $(MAKE) clean
-        $(FPC) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
-        $(MAKE) clean
-
