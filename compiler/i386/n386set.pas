@@ -96,7 +96,7 @@ implementation
          hr,hr2,
          pleftreg   : tregister;
          href       : treference;
-         opsize     : topsize;
+         opsize     : tcgsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
          adjustment : longint;
@@ -206,7 +206,7 @@ implementation
               separately instead of using the SET_IN_BYTE procedure.
               To do: Build in support for LOC_JUMP }
 
-            opsize := def_opsize(left.resulttype.def);
+            opsize := def_cgsize(left.resulttype.def);
             { If register is used, use only lower 8 bits }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin
@@ -216,24 +216,24 @@ implementation
                  begin
                    pleftreg:=rg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
-                   if opsize <> S_L then
-                     emit_const_reg(A_AND,S_L,255,pleftreg);
-                   opsize := S_L;
+                   if opsize<>OS_INT then
+                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
+                   opsize:=OS_INT;
                  end
                else
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
                    pleftreg:=rg.makeregsize(left.location.register,OS_8);
-                   opsize := S_B;
+                   opsize := OS_8;
                  end;
              end
             else
              begin
                { load the value in a register }
                pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-               opsize := S_L;
-               emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
+               opsize:=OS_INT;
+               cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,pleftreg);
                location_release(exprasmlist,left.location);
              end;
 
@@ -272,20 +272,17 @@ implementation
                           rg.ungetregister(exprasmlist,pleftreg);
                           r:=rg.getregisterint(exprasmlist,OS_INT);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
-                          emit_ref_reg(A_LEA,S_L,href,r);
+                          cg.a_loadaddr_ref_reg(exprasmlist,href,r);
                           { only now change pleftreg since previous value is }
                           { still used in previous instruction               }
                           pleftreg := r;
-                          opsize := S_L;
+                          opsize := OS_32;
                         end
                       else
                         begin
                           { otherwise, the value is already in a register   }
                           { that can be modified                            }
-                          if setparts[i].start-adjustment <> 1 then
-                            emit_const_reg(A_SUB,opsize,
-                              setparts[i].start-adjustment,pleftreg)
-                          else emit_reg(A_DEC,opsize,pleftreg);
+                          cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
                         end;
                     { new total value substracted from x:           }
                     { adjustment + (setparts[i].start - adjustment) }
@@ -295,38 +292,32 @@ implementation
                     { we need a carry in case the element is in the range }
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
-                    emit_const_reg(A_CMP,opsize,
-                      setparts[i].stop-setparts[i].start+1,pleftreg);
-                    { use C_C instead of C_B: the meaning is the same, but }
-                    { then the optimizer can easier trace the jump to its  }
-                    { final destination since the resultflag of this node  }
-                    { is set to the carryflag                              }
-                    emitjmp(C_C,l);
+                    cg.a_cmp_const_reg_label(exprasmlist,opsize,OC_B,setparts[i].stop-setparts[i].start+1,pleftreg,l);
                   end
                 else
                   { if setparts[i].start = 0 and setparts[i].stop = 255,  }
                   { it's always true since "in" is only allowed for bytes }
                   begin
-                    emit_none(A_STC,S_NO);
+                    exprasmlist.concat(taicpu.op_none(A_STC,S_NO));
                     cg.a_jmp_always(exprasmlist,l);
                   end;
               end
              else
               begin
                 { Emit code to check if left is an element }
-                emit_const_reg(A_CMP,opsize,setparts[i].stop-adjustment,
-                  pleftreg);
+                exprasmlist.concat(taicpu.op_const_reg(A_CMP,TCGSize2OpSize[opsize],setparts[i].stop-adjustment,
+                  pleftreg));
                 { Result should be in carry flag when ranges are used }
                 if ranges then
-                 emit_none(A_STC,S_NO);
+                  exprasmlist.concat(taicpu.op_none(A_STC,S_NO));
                 { If found, jump to end }
-                emitjmp(C_E,l);
+                cg.a_jmp_flags(exprasmlist,F_E,l);
               end;
              if ranges and
                 { if the last one was a range, the carry flag is already }
                 { set appropriately                                      }
                 not(setparts[numparts].range) then
-              emit_none(A_CLC,S_NO);
+               exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
              { Now place the end label }
@@ -379,7 +370,7 @@ implementation
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
                       hr:=rg.getregisterint(exprasmlist,OS_INT);
-                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,hr);
+                      cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,hr);
                       location_release(exprasmlist,left.location);
                     end;
                   end;
@@ -397,8 +388,7 @@ implementation
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                         emit_const_reg(A_MOV,S_L,
-                           right.location.value,hr2);
+                         cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
                          rg.ungetregisterint(exprasmlist,hr2);
                        end;
@@ -434,16 +424,15 @@ implementation
                        begin
                           hr:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
-                          emit_const_reg(A_CMP,S_L,31,hr);
-                          emitjmp(C_NA,l);
+                          cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_BE,31,hr,l);
                         { reset carry flag }
-                          emit_none(A_CLC,S_NO);
+                          exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
                           cg.a_jmp_always(exprasmlist,l2);
                           cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                          emit_const_reg(A_MOV,S_L,right.location.value,hr2);
+                          cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
                           rg.ungetregisterint(exprasmlist,hr2);
                        end;
@@ -461,19 +450,18 @@ implementation
                             begin
                                emit_const_ref(A_CMP,S_B,31,left.location.reference);
                             end;
-                       emitjmp(C_NA,l);
-                     { reset carry flag }
-                       emit_none(A_CLC,S_NO);
+                       cg.a_jmp_flags(exprasmlist,F_BE,l);
+                       { reset carry flag }
+                       exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
                        cg.a_jmp_always(exprasmlist,l2);
                        cg.a_label(exprasmlist,l);
                        location_release(exprasmlist,left.location);
                        hr:=rg.getregisterint(exprasmlist,OS_INT);
-                       emit_ref_reg(A_MOV,S_L,left.location.reference,hr);
-                     { We have to load the value into a register because
-                       btl does not accept values only refs or regs (PFV) }
+                       cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hr);
+                       { We have to load the value into a register because
+                         btl does not accept values only refs or regs (PFV) }
                        hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                       emit_const_reg(A_MOV,S_L,
-                         right.location.value,hr2);
+                       cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
                        rg.ungetregisterint(exprasmlist,hr2);
                     end;
@@ -593,7 +581,7 @@ implementation
         first : boolean;
         lastrange : boolean;
         last : TConstExprInt;
-        cond_lt,cond_le : tasmcond;
+        cond_lt,cond_le : tresflags;
 
         procedure genitem(t : pcaserecord);
           begin
@@ -611,7 +599,7 @@ implementation
                   else
                     begin
                       cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aword(t^._low-last), hregister);
-                      emitjmp(C_Z,t^.statement);
+                      cg.a_jmp_flags(exprasmlist,F_E,t^.statement);
                     end;
                   last:=t^._low;
                   lastrange:=false;
@@ -638,12 +626,12 @@ implementation
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
-                        emitjmp(cond_lt,elselabel);
+                        cg.a_jmp_flags(exprasmlist,cond_lt,elselabel);
                     end;
                   {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
                    using a_op_const_reg(OP_SUB) is not possible }
                   emit_const_reg(A_SUB,TCGSize2OpSize[opsize],longint(t^._high-t^._low),hregister);
-                  emitjmp(cond_le,t^.statement);
+                  cg.a_jmp_flags(exprasmlist,cond_le,t^.statement);
                   last:=t^._high;
                   lastrange:=true;
                end;
@@ -655,13 +643,13 @@ implementation
         begin
            if with_sign then
              begin
-                cond_lt:=C_L;
-                cond_le:=C_LE;
+                cond_lt:=F_L;
+                cond_le:=F_LE;
              end
            else
               begin
-                cond_lt:=C_B;
-                cond_le:=C_BE;
+                cond_lt:=F_B;
+                cond_le:=F_BE;
              end;
            { do we need to generate cmps? }
            if (with_sign and (min_label<0)) then
@@ -684,7 +672,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-09-07 22:09:35  peter
+  Revision 1.66  2003-09-28 21:48:20  peter
+    * fix register leaks
+
+  Revision 1.65  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

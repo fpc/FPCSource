@@ -306,6 +306,7 @@ implementation
                 begin
                   hregister:=rg.getregisterint(exprasmlist,OS_INT);
                 end;
+              location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
               cg.a_load_loc_reg(exprasmlist,OS_INT,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
@@ -322,7 +323,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-09-07 22:09:35  peter
+  Revision 1.67  2003-09-28 21:48:20  peter
+    * fix register leaks
+
+  Revision 1.66  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

@@ -290,9 +290,9 @@ interface
             begin
               objectlibrary.getlabel(hl4);
               if unsigned then
-               emitjmp(C_NB,hl4)
+                cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else
-               emitjmp(C_NO,hl4);
+                cg.a_jmp_flags(exprasmlist,F_GE,hl4);
               cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
               cg.a_label(exprasmlist,hl4);
             end;
@@ -815,10 +815,10 @@ interface
            case nodetype of
               ltn,gtn:
                 begin
-                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swaped);
-                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
                    toggleflag(nf_swaped);
                 end;
               lten,gten:
@@ -828,19 +828,19 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                emitjmp(C_NE,falselabel);
+                cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
               unequaln:
-                emitjmp(C_NE,truelabel);
+                cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
            end;
         end;
 
@@ -853,17 +853,17 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   emitjmp(flags_to_cond(getresflags(true)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
                    cg.a_jmp_always(exprasmlist,falselabel);
                 end;
               equaln:
                 begin
-                   emitjmp(C_NE,falselabel);
+                   cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
                    cg.a_jmp_always(exprasmlist,truelabel);
                 end;
               unequaln:
                 begin
-                   emitjmp(C_NE,truelabel);
+                   cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
                    cg.a_jmp_always(exprasmlist,falselabel);
                 end;
            end;
@@ -1051,9 +1051,9 @@ interface
             begin
               objectlibrary.getlabel(hl4);
               if unsigned then
-               emitjmp(C_NB,hl4)
+               cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else
-               emitjmp(C_NO,hl4);
+               cg.a_jmp_flags(exprasmlist,F_GE,hl4);
               cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
               cg.a_label(exprasmlist,hl4);
             end;
@@ -1485,7 +1485,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-09-28 13:35:40  peter
+  Revision 1.79  2003-09-28 21:48:20  peter
+    * fix register leaks
+
+  Revision 1.78  2003/09/28 13:35:40  peter
     * shortstr compare updated for different calling conventions
 
   Revision 1.77  2003/09/10 08:31:48  marco

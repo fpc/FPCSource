@@ -165,7 +165,7 @@ implementation
                 { as double                                  }
                 inc(href.offset,4);
                 hregister:=rg.getregisterint(exprasmlist,OS_32);
-                emit_ref_reg(A_MOV,S_L,href,hregister);
+                cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
                 reference_reset_base(href,NR_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
                 emit_const_reg(A_TEST,S_L,longint($80000000),hregister);
@@ -174,7 +174,7 @@ implementation
                 emit_ref(A_FILD,S_IQ,href);
                 objectlibrary.getdatalabel(l1);
                 objectlibrary.getlabel(l2);
-                emitjmp(C_Z,l2);
+                cg.a_jmp_flags(exprasmlist,F_E,l2);
                 Consts.concat(Tai_label.Create(l1));
                 { I got this constant from a test progtram (FK) }
                 Consts.concat(Tai_const.Create_32bit(0));
@@ -217,7 +217,7 @@ implementation
          emit_reg_reg(A_OR,S_L,r^.base,r^.base);
          rg.ungetregisterint(exprasmlist,R_EDI);
          objectlibrary.getlabel(nillabel);
-         emitjmp(C_E,nillabel);
+         cg.a_jmp_flags(exprasmlist,F_E,nillabel);
          { this is one point where we need vmt_offset (PM) }
          r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
          rg.getexplicitregisterint(exprasmlist,R_EDI);
@@ -332,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-09-03 15:55:01  peter
+  Revision 1.64  2003-09-28 21:48:20  peter
+    * fix register leaks
+
+  Revision 1.63  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.62.2.2  2003/08/31 15:46:26  peter

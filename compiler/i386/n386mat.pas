@@ -126,7 +126,7 @@ implementation
                   { a jump, but less operations }
                   emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
                   objectlibrary.getlabel(hl);
-                  emitjmp(C_NS,hl);
+                  cg.a_jmp_flags(exprasmlist,F_NS,hl);
                   if power=1 then
                     emit_reg(A_INC,S_L,hreg1)
                   else
@@ -287,13 +287,13 @@ implementation
               objectlibrary.getlabel(l2);
               objectlibrary.getlabel(l3);
               emit_const_reg(A_CMP,S_L,64,hregister2);
-              emitjmp(C_L,l1);
+              cg.a_jmp_flags(exprasmlist,F_L,l1);
               emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
               emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
               cg.a_jmp_always(exprasmlist,l3);
               cg.a_label(exprasmlist,l1);
               emit_const_reg(A_CMP,S_L,32,hregister2);
-              emitjmp(C_L,l2);
+              cg.a_jmp_flags(exprasmlist,F_L,l2);
               emit_const_reg(A_SUB,S_L,32,hregister2);
               if nodetype=shln then
                 begin
@@ -569,7 +569,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-09-03 15:55:01  peter
+  Revision 1.61  2003-09-28 21:48:20  peter
+    * fix register leaks
+
+  Revision 1.60  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.59.2.2  2003/08/31 13:50:16  daniel
