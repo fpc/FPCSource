@@ -1,4 +1,4 @@
-This is the Run-Time Library (RTL) tree for FPK Pascal.
+This is the Run-Time Library (RTL) tree for Free Pascal.
 
 In order to use the DJGPP make under dos 
 all / are converted into \ in the RTL,
