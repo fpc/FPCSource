@@ -175,7 +175,7 @@ Begin
      Errno2Inoutres;
      exit;
    end;
-  if FpISDIR(fileinfo.st_mode) then
+  if FpS_ISDIR(fileinfo.st_mode) then
    begin
      InOutRes := 2;
      exit;
@@ -616,7 +616,10 @@ End.
 *)
 {
  $Log$
- Revision 1.5  2003-05-01 08:05:23  florian
+ Revision 1.6  2003-09-27 12:51:33  peter
+   * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+ Revision 1.5  2003/05/01 08:05:23  florian
    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
  Revision 1.4  2002/12/24 19:45:40  peter

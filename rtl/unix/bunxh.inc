@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
+Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
@@ -25,30 +25,30 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  fpFD_ISSET   (fdno:cint;const nset : TFDSet): cint;
 
     Function  fpfdfillset  (var nset : TFDSet):cint;
- 
+
     Function  FpsigEmptySet(var nset : TSigSet): cint;
     Function  FpSigFillSet (var nset : TSigSet): cInt;
     Function  FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigDelSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigIsMember(Const nset : TSigSet; signo : cInt): cInt;
 
-    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; 
-    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; 
+    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt;
+    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt;
     Function  FpSigPending (var nset : TSigSet): cInt;
     Function  FpSigSuspend (Const sigmask : TSigSet): cInt;
 
-    Function  FpUmask	   (cmask : TMode): TMode;
-    Function  FpLink	   (existing : pChar; newone : pChar): cInt;
-    Function  FpMkfifo	   (path : pChar; Mode : TMode): cInt;
-    Function  FpChmod	   (path : pChar; Mode : TMode): cInt;
-    Function  FpChown	   (path : pChar; owner : TUid; group : TGid): cInt;
-    Function  FpUtime	   (path : pChar; times : putimbuf): cInt;
-    Function  FpPipe	   (var fildes : tfildes):cInt;
-    Function  FpDup	   (fildes : cInt): cInt;
-    Function  FpDup2	   (fildes, fildes2 : cInt): cInt;
-    Function  FpTimes	   (var buffer : tms): TClock;
+    Function  FpUmask      (cmask : TMode): TMode;
+    Function  FpLink       (existing : pChar; newone : pChar): cInt;
+    Function  FpMkfifo     (path : pChar; Mode : TMode): cInt;
+    Function  FpChmod      (path : pChar; Mode : TMode): cInt;
+    Function  FpChown      (path : pChar; owner : TUid; group : TGid): cInt;
+    Function  FpUtime      (path : pChar; times : putimbuf): cInt;
+    Function  FpPipe       (var fildes : tfildes):cInt;
+    Function  FpDup        (fildes : cInt): cInt;
+    Function  FpDup2       (fildes, fildes2 : cInt): cInt;
+    Function  FpTimes      (var buffer : tms): TClock;
 
-    Function  FpAlarm	   (seconds : cuint): cuint;
+    Function  FpAlarm      (seconds : cuint): cuint;
     Function  FpPause : cInt;
     Function  FpSleep      (seconds : cuint): cuint;
 
@@ -58,71 +58,74 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  FpGeteuid : TUid;
     Function  FpGetgid  : TGid;
     Function  FpGetegid : TGid;
-    Function  FpSetuid 	   (uid : TUid): cInt;
-    Function  FpSetgid 	   (gid : TGid): cInt;
+    Function  FpSetuid     (uid : TUid): cInt;
+    Function  FpSetgid     (gid : TGid): cInt;
     Function  FpGetgroups (gidsetsize : cInt; var grouplist : tgrparr): cInt;
     Function  FpGetpgrp : TPid;
     Function  FpSetsid  : TPid;
-    Function  FpFcntl	   (fildes : cInt; cmd : cInt): cInt;
-    Function  FpFcntl	   (fildes : cInt; cmd : cInt; arg : cInt): cInt;
-    Function  FpFcntl	   (fildes : cInt; cmd : cInt; var arg : flock): cInt;
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt;
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg : cInt): cInt;
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt;
 
-    Function  FpGetcwd	   (path:pChar; siz:TSize):pChar;
+    Function  FpGetcwd     (path:pChar; siz:TSize):pChar;
     Function  FpFork : TPid;
-    Function  FpExecve	   (path : pChar; argv : ppChar; envp: ppChar): cInt;
-    Function  FpExecv	   (path : pChar; argv : ppChar): cInt;
-    Function  FpWaitpid	   (pid : TPid; stat_loc : pcInt; options: cInt): TPid;
-    Function  FpWait	   (var stat_loc : cInt): TPid;
-    Procedure FpExit	   (Status : cInt);
-    Function  FpKill	   (pid : TPid; sig: cInt): cInt;
-    Function  FpUname	   (var name: utsname): cInt;
+    Function  FpExecve     (path : pChar; argv : ppChar; envp: ppChar): cInt;
+    Function  FpExecv      (path : pChar; argv : ppChar): cInt;
+    Function  FpWaitpid    (pid : TPid; stat_loc : pcInt; options: cInt): TPid;
+    Function  FpWait       (var stat_loc : cInt): TPid;
+    Procedure FpExit       (Status : cInt);
+    Function  FpKill       (pid : TPid; sig: cInt): cInt;
+    Function  FpUname      (var name: utsname): cInt;
     Function  FpOpendir    (dirname : pChar): pDir;
-    Function  FpReaddir	   (var dirp : Dir) : pDirent;
+    Function  FpReaddir    (var dirp : Dir) : pDirent;
     Function  FpClosedir   (var dirp : Dir): cInt;
-    Function  FpChdir	   (path : pChar): cInt;
-    Function  FpOpen	   (path : pChar; flags : cInt; Mode: TMode):cInt;
-    Function  FpMkdir	   (path : pChar; Mode: TMode):cInt;
-    Function  FpUnlink	   (path : pChar): cInt;
-    Function  FpRmdir	   (path : pChar): cInt;
-    Function  FpRename	   (old  : pChar; newpath: pChar): cInt;
-    Function  FpFStat	   (fd : cInt; var sb : stat): cInt;
-    Function  FpStat	   (path: pChar; var buf : stat): cInt;
-    Function  FpAccess	   (pathname : pChar; aMode : cInt): cInt;
-    Function  FpClose	   (fd : cInt): cInt;
-    Function  FpRead	   (fd : cInt; buf: pChar; nbytes : TSize): TSsize;
-    Function  FpWrite	   (fd : cInt; buf:pChar; nbytes : TSize): TSsize;
-    Function  FpLseek	   (fd : cInt; offset : TOff; whence : cInt): TOff;
-    Function  FpTime	   (var tloc : TTime): TTime;
+    Function  FpChdir      (path : pChar): cInt;
+    Function  FpOpen       (path : pChar; flags : cInt; Mode: TMode):cInt;
+    Function  FpMkdir      (path : pChar; Mode: TMode):cInt;
+    Function  FpUnlink     (path : pChar): cInt;
+    Function  FpRmdir      (path : pChar): cInt;
+    Function  FpRename     (old  : pChar; newpath: pChar): cInt;
+    Function  FpFStat      (fd : cInt; var sb : stat): cInt;
+    Function  FpStat       (path: pChar; var buf : stat): cInt;
+    Function  FpAccess     (pathname : pChar; aMode : cInt): cInt;
+    Function  FpClose      (fd : cInt): cInt;
+    Function  FpRead       (fd : cInt; buf: pChar; nbytes : TSize): TSsize;
+    Function  FpWrite      (fd : cInt; buf:pChar; nbytes : TSize): TSsize;
+    Function  FpLseek      (fd : cInt; offset : TOff; whence : cInt): TOff;
+    Function  FpTime       (var tloc : TTime): TTime;
     Function  FpFtruncate  (fd : cInt; flength : TOff): cInt;
-    Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint; 
-    Function  FPSelect 	   (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
-    Function  FpIOCtl      (Handle:cint;Ndx: culong;Data: Pointer):cint;  
+    Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint;
+    Function  FPSelect     (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
+    Function  FpIOCtl      (Handle:cint;Ndx: culong;Data: Pointer):cint;
 
 
-    Function  FpGetEnv	   (name : pChar): pChar;
-    Function  FpGetEnv	   (name : String): pChar;
+    Function  FpGetEnv     (name : pChar): pChar;
+    Function  FpGetEnv     (name : String): pChar;
 
-    Function  FPIsDir	   (m : TMode): Boolean;
-    Function  FPIsChr	   (m : TMode): Boolean;
-    Function  FPIsBlk	   (m : TMode): Boolean;
-    Function  FPIsReg	   (m : TMode): Boolean;
-    Function  FPIsFIFO	   (m : TMode): Boolean;
+    Function  fpS_ISDIR    (m : TMode): Boolean;
+    Function  fpS_ISCHR    (m : TMode): Boolean;
+    Function  fpS_ISBLK    (m : TMode): Boolean;
+    Function  fpS_ISREG    (m : TMode): Boolean;
+    Function  fpS_ISFIFO   (m : TMode): Boolean;
 
 // The following two are very common, but not POSIX.
-    Function FPISLNK       (m:TMode) : Boolean;
-    Function FPISSOCK      (m:TMode) : Boolean;
+    Function  fpS_ISLNK       (m:TMode) : Boolean;
+    Function  fpS_ISSOCK      (m:TMode) : Boolean;
 
     Function  wifexited    (Status : cInt): cInt;
     Function  wexitStatus  (Status : cInt): cInt;
-    Function  wstopsig	   (Status : cInt): cInt;
+    Function  wstopsig     (Status : cInt): cInt;
     Function  wifsignaled  (Status : cInt): cInt;
-    Function  wtermsig	   (Status : cInt): cInt;
+    Function  wtermsig     (Status : cInt): cInt;
 
-{$i bunxovlh.inc}	// overloads and/or redefs.
+{$i bunxovlh.inc}       // overloads and/or redefs.
 
 {
   $Log$
-  Revision 1.8  2003-09-20 12:38:29  marco
+  Revision 1.9  2003-09-27 12:51:33  peter
+    * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+  Revision 1.8  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.7  2003/09/17 11:24:46  marco

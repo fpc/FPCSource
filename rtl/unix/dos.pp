@@ -699,13 +699,13 @@ Begin
    end
   else
    LinAttr:=Info.st_Mode;
-  if fpISDIR(LinAttr) then
+  if fpS_ISDIR(LinAttr) then
    Attr:=$10
   else
    Attr:=$20;
   if fpAccess(strpas(@textrec(f).name),W_OK)<0 then
    Attr:=Attr or $1;
-  if (not fpISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
+  if (not fpS_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
    Attr:=Attr or $2;
 end;
 
@@ -903,7 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2003-09-17 17:30:46  marco
+  Revision 1.18  2003-09-27 12:51:33  peter
+    * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+  Revision 1.17  2003/09/17 17:30:46  marco
    * Introduction of unixutil
 
   Revision 1.16  2003/09/14 20:15:01  marco

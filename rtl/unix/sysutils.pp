@@ -151,7 +151,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpISDIR(Info.st_mode);
+  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpS_ISDIR(Info.st_mode);
 end;
 
 
@@ -159,13 +159,13 @@ Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
-  If fpISDIR(Info.st_mode) then
+  If fpS_ISDIR(Info.st_mode) then
     Result:=Result or faDirectory;
   If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
     Result:=Result or faHidden;
   If (Info.st_Mode and S_IWUSR)=0 Then
      Result:=Result or faReadOnly;
-  If fpISSOCK(Info.st_mode) or fpISBLK(Info.st_mode) or fpISCHR(Info.st_mode) or fpISFIFO(Info.st_mode) Then
+  If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
      Result:=Result or faSysFile;
 end;
 
@@ -493,7 +493,10 @@ end.
 {
 
   $Log$
-  Revision 1.21  2003-09-17 19:07:44  marco
+  Revision 1.22  2003-09-27 12:51:33  peter
+    * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+  Revision 1.21  2003/09/17 19:07:44  marco
    * more fixes for Unix<->unixutil
 
   Revision 1.20  2003/09/17 12:41:31  marco

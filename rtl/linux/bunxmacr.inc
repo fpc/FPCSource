@@ -1,5 +1,5 @@
-{ 
-   $Id$ 
+{
+   $Id$
     Copyright (c) 2000-2002 by Marco van de Voort
 
     The "linux" posixy macro's that are used both in the Baseunx unit as the
@@ -23,42 +23,42 @@
  ****************************************************************************
 }
 
-function FpISDIR(m : TMode): boolean;
+function FpS_ISDIR(m : TMode): boolean;
 
 begin
-  FpISDIR:=((m and S_IFMT) = S_IFDIR);
+  FpS_ISDIR:=((m and S_IFMT) = S_IFDIR);
 end;
 
-function FpISCHR(m : TMode): boolean;
+function FpS_ISCHR(m : TMode): boolean;
 begin
-  FpISCHR:=((m and S_IFMT) = S_IFCHR);
+  FpS_ISCHR:=((m and S_IFMT) = S_IFCHR);
 end;
 
-function FpISBLK(m : TMode): boolean;
+function FpS_ISBLK(m : TMode): boolean;
 begin
- FpISBLK:=((m and S_IFMT) = S_IFBLK);
+ FpS_ISBLK:=((m and S_IFMT) = S_IFBLK);
 end;
 
-function FpISREG(m : TMode): boolean;
+function FpS_ISREG(m : TMode): boolean;
 begin
- FpISREG:=((m and S_IFMT) = S_IFREG);
+ FpS_ISREG:=((m and S_IFMT) = S_IFREG);
 end;
 
-function FpISFIFO(m : TMode): boolean;
+function FpS_ISFIFO(m : TMode): boolean;
 begin
- FpISFIFO:=((m and S_IFMT) = S_IFIFO);
+ FpS_ISFIFO:=((m and S_IFMT) = S_IFIFO);
 end;
 
-Function FPISLNK(m:TMode):boolean;
+Function FPS_ISLNK(m:TMode):boolean;
 
 begin
- FPISLNK:=((m and S_IFMT) = S_IFLNK);
+ FPS_ISLNK:=((m and S_IFMT) = S_IFLNK);
 end;
 
-Function FPISSOCK(m:TMode):boolean;
+Function FPS_ISSOCK(m:TMode):boolean;
 
 begin
- FPISSOCK:=((m and S_IFMT) = S_IFSOCK);
+ FPS_ISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
 function wifexited(status : cint): cint;
@@ -91,7 +91,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-09-17 11:24:46  marco
+  Revision 1.3  2003-09-27 12:51:33  peter
+    * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+  Revision 1.2  2003/09/17 11:24:46  marco
    * fixes for new macro's
 
   Revision 1.1  2002/12/18 16:43:26  marco

@@ -1231,7 +1231,7 @@ end;
 {$ifndef BSD}
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
- 
+
 {
   Get machines domain name. Returns empty string if not set.
 }
@@ -1461,7 +1461,7 @@ var
        fpstat(name,st);
        if linuxerror=0 then
         begin
-          if (fpISDIR(st.st_mode)) and  { if it is a directory }
+          if (fpS_ISDIR(st.st_mode)) and  { if it is a directory }
              (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
              (strpas(@(d^.d_name))<>'..') and
              (strpas(@(d^.d_name))<>'') and
@@ -1714,7 +1714,10 @@ End.
 
 {
   $Log$
-  Revision 1.38  2003-09-20 12:38:29  marco
+  Revision 1.39  2003-09-27 12:51:33  peter
+    * fpISxxx macros renamed to C compliant fpS_ISxxx
+
+  Revision 1.38  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.37  2003/09/17 19:07:44  marco
