@@ -7,7 +7,7 @@ name=ibase
 version=1.9.7
 
 [target]
-units=ibase40 ibase60
+units=ibase40 ibase60 ibase60dyn
 examples=testib40 testib60
 
 [require]
