@@ -116,7 +116,7 @@ endif
 SYSTEMDEPS=$(INC)/system.inc $(INC)/systemh.inc $(INC)/mathh.inc $(INC)/real2str.inc \
 	$(INC)/heaph.inc $(INC)/innr.inc $(INC)/sstrings.inc $(INC)/file.inc \
 	$(INC)/text.inc $(INC)/typefile.inc $(INC)/version.inc $(INC)/filerec.inc \
-	$(INC)/textrec.inc $(INC)/objpas.inc $(INC)/objpash.inc \
+	$(INC)/textrec.inc \
 	$(PROCINC)/math.inc $(PROCINC)/set.inc $(PROCINC)/heap.inc $(PROCINC)/$(CPU).inc
 
 PPUEXT = .ppu
@@ -126,7 +126,7 @@ OEXT = .obj
 
 .PHONY: all clean install diffs diffclean
 
-all : syswin32$(PPUEXT) strings$(PPUEXT) getopts$(PPUEXT) \
+all : syswin32$(PPUEXT) strings$(PPUEXT) objpas$(PPUEXT) getopts$(PPUEXT) \
 	base$(PPUEXT)
 
 
@@ -146,12 +146,17 @@ dos$(PPUEXT) : dos.pp strings$(PPUEXT) syswin32$(PPUEXT)
 base$(PPUEXT) : base.pp syswin32$(PPUEXT)
 	$(PP) $(OPT) base.pp $(REDIR)
 
+objpas$(PPUEXT) : ../objpas/objpas.pp system$(PPUEXT)
+        $(COPY) ../objpas/objpas.pp .
+        $(PP) $(OPT) objpas $(REDIR)
+        $(DEL) objpas.pp
+
 syswin32$(PPUEXT) : syswin32.pp $(SYSTEMDEP)
 	$(COPY) $(INC)/*.inc $(PROCINC)/*.inc .
 	$(PP) $(OPT) -Us -Sg syswin32 $(REDIR)
 	$(DEL) systemh.inc system.inc real2str.inc version.inc $(CPU).inc sstrings.inc
-	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc objpash.inc
-	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc objpas.inc
+	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc
+	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc
 
 clean:
 	-$(DEL) *$(OEXT)
