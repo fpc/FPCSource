@@ -75,7 +75,7 @@ begin
             WideString(Pointer(VOleStr)):='';
           varDispatch,
           varUnknown:
-            NoInterfaces;
+            iinterface(v.vunknown):=nil;
         else
           exit(VAR_BADVARTYPE)
         end;
@@ -711,7 +711,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.15  2005-01-16 16:56:32  florian
+  Revision 1.16  2005-02-07 21:52:08  florian
+    + basic variant<->intf conversion
+
+  Revision 1.15  2005/01/16 16:56:32  florian
     + some missing word handling added
 
   Revision 1.14  2005/01/16 16:15:30  florian
