@@ -876,9 +876,7 @@ implementation
            else
            { it's always not bad }
            genlinearlist(p^.nodes);
-{$IfDef regallocfix}
            ungetregister(hregister);
-{$EndIf regallocfix}
 
 
          { now generate the instructions }
@@ -906,7 +904,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2000-02-09 13:22:48  peter
+  Revision 1.49  2000-03-26 11:33:49  jonas
+    * release the register used to hold the value of the case variable
+      at the end of the case
+
+  Revision 1.48  2000/02/09 13:22:48  peter
     * log truncated
 
   Revision 1.47  2000/01/09 12:35:02  jonas
