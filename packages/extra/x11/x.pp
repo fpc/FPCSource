@@ -1,14 +1,12 @@
 unit x;
 interface
+uses
+  ctypes;
 
 {$ifndef os2}
   {$LinkLib c}
   {$LinkLib X11}
 {$endif}
-
-type
-  culong = dword;
-  cuchar = byte;
 
 {
   Automatically converted by H2Pas 0.99.15 from x.h
@@ -23,14 +21,8 @@ type
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
-  PLongint  = ^Longint;
   PPLongint = ^PLongint;
-  PSmallInt = ^SmallInt;
-  PByte     = ^Byte;
   PPByte    = ^PByte;
-  PWord     = ^Word;
-  PDWord    = ^DWord;
-  PDouble   = ^Double;
   PPChar    = ^PChar;
   PPPChar   = ^PPChar;
   PPWideChar  = ^PWideChar;

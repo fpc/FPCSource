@@ -2,7 +2,7 @@ unit xlib;
 interface
 {$mode objfpc}
 uses
-  x;
+  ctypes,x;
 {$define MACROS}
 
 {$ifndef os2}
@@ -16,25 +16,8 @@ const
 {$endif}
 
 type
-  culong = sizeuint;
-  cuchar = byte;
-
-  clong = sizeint;
-  cint = longint;
-  cuint = longword;
-  cshort = smallint;
-  cushort = word;
-
-  cunsigned = cuint;
-  cchar = shortint;
-
-  Pcint = ^cint;
-  Pcuint = ^cuint;
-  Pculong = ^culong;
-  Pcuchar = ^cuchar;
   PPcint = ^Pcint;
   PPcuchar = ^Pcuchar;
-
 {
   Automatically converted by H2Pas 0.99.15 from xlib.h
   The following command line parameters were used:
