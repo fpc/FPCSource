@@ -234,30 +234,43 @@ implementation
     type
        tfirstconvproc = procedure(var p : ptree);
 
+{$ifdef NEWCNV}
 
+    procedure first_int_to_int(var p : ptree);
+      begin
+        if (p^.registers32=0) and
+           (p^.left^.location.loc<>LOC_REGISTER) and
+           (p^.resulttype^.size>p^.left^.resulttype^.size) then
+         begin
+           p^.registers32:=1;
+           p^.location.loc:=LOC_REGISTER;
+         end;
+      end;
+
+{$else}
     procedure first_bigger_smaller(var p : ptree);
       begin
          if (p^.left^.location.loc<>LOC_REGISTER) and (p^.registers32=0) then
            p^.registers32:=1;
          p^.location.loc:=LOC_REGISTER;
       end;
+{$endif}
 
-
-    procedure first_cstring_charpointer(var p : ptree);
+    procedure first_cstring_to_pchar(var p : ptree);
       begin
          p^.registers32:=1;
          p^.location.loc:=LOC_REGISTER;
       end;
 
 
-    procedure first_string_chararray(var p : ptree);
+    procedure first_string_to_chararray(var p : ptree);
       begin
          p^.registers32:=1;
          p^.location.loc:=LOC_REGISTER;
       end;
 
 
-    procedure first_string_string(var p : ptree);
+    procedure first_string_to_string(var p : ptree);
       begin
          if pstringdef(p^.resulttype)^.string_typ<>
             pstringdef(p^.left^.resulttype)^.string_typ then
@@ -309,7 +322,7 @@ implementation
       end;
 
 
-    procedure first_int_real(var p : ptree);
+    procedure first_int_to_real(var p : ptree);
       var
         t : ptree;
       begin
@@ -338,7 +351,7 @@ implementation
       end;
 
 
-    procedure first_int_fix(var p : ptree);
+    procedure first_int_to_fix(var p : ptree);
       begin
          if p^.left^.treetype=ordconstn then
            begin
@@ -358,7 +371,7 @@ implementation
       end;
 
 
-    procedure first_real_fix(var p : ptree);
+    procedure first_real_to_fix(var p : ptree);
       begin
          if p^.left^.treetype=realconstn then
            begin
@@ -381,7 +394,7 @@ implementation
       end;
 
 
-    procedure first_fix_real(var p : ptree);
+    procedure first_fix_to_real(var p : ptree);
       begin
          if p^.left^.treetype=fixconstn then
            begin
@@ -401,7 +414,7 @@ implementation
       end;
 
 
-    procedure first_real_real(var p : ptree);
+    procedure first_real_to_real(var p : ptree);
       begin
          if p^.registersfpu<1 then
            p^.registersfpu:=1;
@@ -417,7 +430,7 @@ implementation
       end;
 
 
-    procedure first_chararray_string(var p : ptree);
+    procedure first_chararray_to_string(var p : ptree);
       begin
          { the only important information is the location of the }
          { result                                                }
@@ -426,7 +439,7 @@ implementation
       end;
 
 
-    procedure first_cchar_charpointer(var p : ptree);
+    procedure first_cchar_to_pchar(var p : ptree);
       begin
          p^.left:=gentypeconvnode(p^.left,cshortstringdef);
          { convert constant char to constant string }
@@ -436,13 +449,15 @@ implementation
       end;
 
 
+{$ifndef NEWCNV}
     procedure first_locmem(var p : ptree);
       begin
          p^.location.loc:=LOC_MEM;
       end;
+{$endif}
 
 
-    procedure first_bool_int(var p : ptree);
+    procedure first_bool_to_int(var p : ptree);
       begin
          p^.location.loc:=LOC_REGISTER;
          { Florian I think this is overestimated
@@ -456,7 +471,7 @@ implementation
       end;
 
 
-    procedure first_int_bool(var p : ptree);
+    procedure first_int_to_bool(var p : ptree);
       begin
          p^.location.loc:=LOC_REGISTER;
          { Florian I think this is overestimated
@@ -500,6 +515,7 @@ implementation
          p^.location.loc:=LOC_MEM;
       end;
 
+
     procedure first_ansistring_to_pchar(var p : ptree);
       begin
          p^.location.loc:=LOC_REGISTER;
@@ -529,13 +545,39 @@ implementation
       aprocdef : pprocdef;
       proctype : tdeftype;
     const
-       firstconvert : array[tconverttype] of
-         tfirstconvproc = (first_nothing,first_nothing,
+       firstconvert : array[tconverttype] of tfirstconvproc = (
+{$ifdef NEWCNV}
+         first_nothing, {equal}
+         first_nothing, {not_possible}
+         first_string_to_string,
+         first_char_to_string,
+         first_pchar_to_string,
+         first_cchar_to_pchar,
+         first_cstring_to_pchar,
+         first_ansistring_to_pchar,
+         first_string_to_chararray,
+         first_chararray_to_string,
+         first_array_to_pointer,
+         first_pointer_to_array,
+         first_int_to_int,
+         first_bool_to_int,
+         first_int_to_bool,
+         first_real_to_real,
+         first_int_to_real,
+         first_int_to_fix,
+         first_real_to_fix,
+         first_fix_to_real,
+         first_proc_to_procvar,
+         first_arrayconstructor_to_set,
+         first_load_smallset
+       );
+{$else}
+                           first_nothing,first_nothing,
                            first_bigger_smaller,first_nothing,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_string_string,
-                           first_cstring_charpointer,first_string_chararray,
+                           first_bigger_smaller,first_string_to_string,
+                           first_cstring_to_pchar,first_string_to_chararray,
                            first_array_to_pointer,first_pointer_to_array,
                            first_char_to_string,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
@@ -547,16 +589,16 @@ implementation
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
-                           first_bool_int,first_int_bool,
-                           first_int_real,first_real_fix,
-                           first_fix_real,first_int_fix,first_real_real,
+                           first_bool_to_int,first_int_to_bool,
+                           first_int_to_real,first_real_to_fix,
+                           first_fix_to_real,first_int_to_fix,first_real_to_real,
                            first_locmem,first_proc_to_procvar,
-                           first_cchar_charpointer,
+                           first_cchar_to_pchar,
                            first_load_smallset,
                            first_ansistring_to_pchar,
                            first_pchar_to_string,
                            first_arrayconstructor_to_set);
-
+{$endif}
      begin
        aprocdef:=nil;
        { if explicite type cast, then run firstpass }
@@ -689,7 +731,7 @@ implementation
                        aprocdef:=pprocsym(p^.left^.symtableentry)^.definition;
                   end;
 
-                p^.convtyp:=tc_proc2procvar;
+                p^.convtyp:=tc_proc_2_procvar;
                 { Now check if the procedure we are going to assign to
                   the procvar,  is compatible with the procvar's type.
                   Did the original procvar support do such a check?
@@ -913,7 +955,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-11-05 12:03:03  peter
+  Revision 1.9  1998-11-26 13:10:43  peter
+    * new int - int conversion -dNEWCNV
+    * some function renamings
+
+  Revision 1.8  1998/11/05 12:03:03  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

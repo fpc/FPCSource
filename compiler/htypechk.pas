@@ -64,11 +64,26 @@ implementation
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
-      const
+{$ifdef NEWCNV}
       { Tbasetype:  uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
                     bool8bit,bool16bit,boot32bit }
+      type
+        tbasedef=(bvoid,bchar,bint,bbool);
+      const
+        basedeftbl:array[tbasetype] of tbasedef =
+          (bvoid,bvoid,bchar,
+           bint,bint,bint,
+           bint,bint,bint,
+           bbool,bbool,bbool);
+        basedefconverts : array[tbasedef,tbasedef] of tconverttype =
+         ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
+          (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
+          (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
+          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_int_2_bool));
+{$else}
+      const
          basedefconverts : array[tbasetype,tbasetype] of tconverttype =
            {uauto}
            ((tc_not_possible,tc_not_possible,tc_not_possible,
@@ -130,6 +145,7 @@ implementation
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
              tc_int_2_bool,tc_int_2_bool,tc_only_rangechecks32bit));
+{$endif}
 
       var
          b : boolean;
@@ -148,30 +164,49 @@ implementation
          case def_to^.deftype of
            orddef :
              begin
-               if (def_from^.deftype=orddef) then
-                begin
-                  doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
-                  b:=true;
-                  if (doconv=tc_not_possible) or
-                     ((doconv=tc_int_2_bool) and
-                      (not explicit) and
-                      (not is_boolean(def_from))) then
-                   b:=false;
-                end;
+               case def_from^.deftype of
+                 orddef :
+                   begin
+{$ifdef NEWCNV}
+                     doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
+                     b:=true;
+                     if (doconv=tc_not_possible) or
+                        ((doconv=tc_int_2_bool) and
+                         (not explicit) and
+                         (not is_boolean(def_from))) then
+                       b:=false;
+{$else}
+                     doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
+                     b:=true;
+                     if (doconv=tc_not_possible) or
+                        ((doconv=tc_int_2_bool) and
+                         (not explicit) and
+                         (not is_boolean(def_from))) then
+                       b:=false;
+{$endif}
+                   end;
+{$ifdef NEWCNV}
+                 enumdef :
+                   begin
+                     doconv:=tc_int_2_int;
+                     b:=true;
+                   end;
+{$endif}
+               end;
              end;
 
           stringdef :
              begin
                case def_from^.deftype of
                 stringdef : begin
-                              doconv:=tc_string_to_string;
+                              doconv:=tc_string_2_string;
                               b:=true;
                             end;
                    orddef : begin
                             { char to string}
                               if is_char(def_from) then
                                begin
-                                 doconv:=tc_char_to_string;
+                                 doconv:=tc_char_2_string;
                                  b:=true;
                                end;
                             end;
@@ -261,7 +296,7 @@ implementation
                                   if (parraydef(def_to)^.lowrange=0) and
                                      is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
                                    begin
-                                     doconv:=tc_pointer_to_array;
+                                     doconv:=tc_pointer_2_array;
                                      b:=true;
                                    end;
                                 end;
@@ -269,7 +304,7 @@ implementation
                                   { array of char to string }
                                   if is_equal(parraydef(def_to)^.definition,cchardef) then
                                    begin
-                                     doconv:=tc_string_chararray;
+                                     doconv:=tc_string_2_chararray;
                                      b:=true;
                                    end;
                                 end;
@@ -285,16 +320,16 @@ implementation
                              if (fromtreetype=stringconstn) and
                                 is_pchar(def_to) then
                               begin
-                                doconv:=tc_cstring_charpointer;
+                                doconv:=tc_cstring_2_pchar;
                                 b:=true;
                               end;
                            end;
                   orddef : begin
                              { char constant to zero terminated string constant }
                              if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
-                                 is_pchar(def_to) then
+                                is_pchar(def_to) then
                               begin
-                                doconv:=tc_cchar_charpointer;
+                                doconv:=tc_cchar_2_pchar;
                                 b:=true;
                               end;
                            end;
@@ -303,7 +338,7 @@ implementation
                              if (parraydef(def_from)^.lowrange=0) and
                                 is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
                               begin
-                                doconv:=tc_array_to_pointer;
+                                doconv:=tc_array_2_pointer;
                                 b:=true;
                               end;
                            end;
@@ -370,7 +405,7 @@ implementation
                if (def_from^.deftype=procdef) then
                 begin
                   def_from^.deftype:=procvardef;
-                  doconv:=tc_proc2procvar;
+                  doconv:=tc_proc_2_procvar;
                   b:=is_equal(def_from,def_to);
                   def_from^.deftype:=procdef;
                 end
@@ -675,7 +710,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-11-17 00:36:42  peter
+  Revision 1.9  1998-11-26 13:10:42  peter
+    * new int - int conversion -dNEWCNV
+    * some function renamings
+
+  Revision 1.8  1998/11/17 00:36:42  peter
     * more ansistring fixes
 
   Revision 1.7  1998/10/14 13:33:24  peter

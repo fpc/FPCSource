@@ -739,7 +739,7 @@ implementation
                  exprasmlist^.concat(new(pai386,op_reg(asmop,opsize,
                    p^.location.register)));
                  emitoverflowcheck(p);
-                 emitrangecheck(p);
+                 emitrangecheck(p,p^.resulttype);
               end;
             in_dec_x,
             in_inc_x :
@@ -843,7 +843,7 @@ implementation
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(p^.left^.left);
-                emitrangecheck(p^.left^.left);
+                emitrangecheck(p^.left^.left,p^.left^.left^.resulttype);
               end;
             in_assigned_x :
               begin
@@ -970,7 +970,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-11-24 17:04:27  peter
+  Revision 1.19  1998-11-26 13:10:40  peter
+    * new int - int conversion -dNEWCNV
+    * some function renamings
+
+  Revision 1.18  1998/11/24 17:04:27  peter
     * fixed length(char) when char is a variable
 
   Revision 1.17  1998/11/05 12:02:33  peter

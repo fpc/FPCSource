@@ -45,96 +45,125 @@ unit tree;
        pconstset = ^tconstset;
        tconstset = array[0..31] of byte;
 
-       ttreetyp = (addn,            {Represents the + operator.}
-                   muln,            {Represents the * operator.}
-                   subn,            {Represents the - operator.}
-                   divn,            {Represents the div operator.}
-                   symdifn,         {Represents the >< operator.}
-                   modn,            {Represents the mod operator.}
-                   assignn,         {Represents an assignment.}
-                   loadn,           {Represents the use of a variabele.}
-                   rangen,          {Represents a range (i.e. 0..9).}
-                   ltn,             {Represents the < operator.}
-                   lten,            {Represents the <= operator.}
-                   gtn,             {Represents the > operator.}
-                   gten,            {Represents the >= operator.}
-                   equaln,          {Represents the = operator.}
-                   unequaln,        {Represents the <> operator.}
-                   inn,             {Represents the in operator.}
-                   orn,             {Represents the or operator.}
-                   xorn,            {Represents the xor operator.}
-                   shrn,            {Represents the shr operator.}
-                   shln,            {Represents the shl operator.}
-                   slashn,          {Represents the / operator.}
-                   andn,            {Represents the and operator.}
-                   subscriptn,      {??? Field in a record/object?}
-                   derefn,          {Dereferences a pointer.}
-                   addrn,           {Represents the @ operator.}
-                   doubleaddrn,     {Represents the @@ operator.}
-                   ordconstn,       {Represents an ordinal value.}
-                   typeconvn,       {Represents type-conversion/typecast.}
-                   calln,           {Represents a call node.}
-                   callparan,       {Represents a parameter.}
-                   realconstn,      {Represents a real value.}
-                   fixconstn,       {Represents a fixed value.}
-                   umminusn,        {Represents a sign change (i.e. -2).}
-                   asmn,            {Represents an assembler node }
-                   vecn,            {Represents array indexing.}
-                   stringconstn,    {Represents a string constant.}
-                   funcretn,        {Represents the function result var.}
-                   selfn,           {Represents the self parameter.}
-                   notn,            {Represents the not operator.}
-                   inlinen,         {Internal procedures (i.e. writeln).}
-                   niln,            {Represents the nil pointer.}
-                   errorn,          {This part of the tree could not be
-                                     parsed because of a compiler error.}
-                   typen,           {A type name. Used for i.e. typeof(obj).}
-                   hnewn,           {The new operation, constructor call.}
-                   hdisposen,       {The dispose operation with destructor call.}
-                   newn,            {The new operation, constructor call.}
-                   simpledisposen,  {The dispose operation.}
-                   setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
-                   setconstn,       {A set constant (i.e. [1,2]).}
-                   blockn,          {A block of statements.}
-                   statementn,      {One statement in a block of nodes.}
-                   loopn,           { used in genloopnode, must be converted }
-                   ifn,             {An if statement.}
-                   breakn,          {A break statement.}
-                   continuen,       {A continue statement.}
-                   repeatn,         {A repeat until block.}
-                   whilen,          {A while do statement.}
-                   forn,            {A for loop.}
-                   exitn,           {An exit statement.}
-                   withn,           {A with statement.}
-                   casen,           {A case statement.}
-                   labeln,          {A label.}
-                   goton,           {A goto statement.}
-                   simplenewn,      {The new operation.}
-                   tryexceptn,      {A try except block.}
-                   raisen,          {A raise statement.}
-                   switchesn,       {??? Currently unused...}
-                   tryfinallyn,     {A try finally statement.}
-                   onn,             { for an on statement in exception code }
-                   isn,             {Represents the is operator.}
-                   asn,             {Represents the as typecast.}
-                   caretn,          {Represents the ^ operator.}
-                   failn,           {Represents the fail statement.}
-                   starstarn,       {Represents the ** operator exponentiation }
-                   procinlinen,     {Procedures that can be inlined }
-                   arrayconstructn, {Construction node for [...] parsing}
-                   arrayconstructrangen, {Range element to allow sets in array construction tree}
-                   { added for optimizations where we cannot suppress }
-                   nothingn,
-                   loadvmtn);       {???.}
+       ttreetyp = (
+          addn,            {Represents the + operator.}
+          muln,            {Represents the * operator.}
+          subn,            {Represents the - operator.}
+          divn,            {Represents the div operator.}
+          symdifn,         {Represents the >< operator.}
+          modn,            {Represents the mod operator.}
+          assignn,         {Represents an assignment.}
+          loadn,           {Represents the use of a variabele.}
+          rangen,          {Represents a range (i.e. 0..9).}
+          ltn,             {Represents the < operator.}
+          lten,            {Represents the <= operator.}
+          gtn,             {Represents the > operator.}
+          gten,            {Represents the >= operator.}
+          equaln,          {Represents the = operator.}
+          unequaln,        {Represents the <> operator.}
+          inn,             {Represents the in operator.}
+          orn,             {Represents the or operator.}
+          xorn,            {Represents the xor operator.}
+          shrn,            {Represents the shr operator.}
+          shln,            {Represents the shl operator.}
+          slashn,          {Represents the / operator.}
+          andn,            {Represents the and operator.}
+          subscriptn,      {??? Field in a record/object?}
+          derefn,          {Dereferences a pointer.}
+          addrn,           {Represents the @ operator.}
+          doubleaddrn,     {Represents the @@ operator.}
+          ordconstn,       {Represents an ordinal value.}
+          typeconvn,       {Represents type-conversion/typecast.}
+          calln,           {Represents a call node.}
+          callparan,       {Represents a parameter.}
+          realconstn,      {Represents a real value.}
+          fixconstn,       {Represents a fixed value.}
+          umminusn,        {Represents a sign change (i.e. -2).}
+          asmn,            {Represents an assembler node }
+          vecn,            {Represents array indexing.}
+          stringconstn,    {Represents a string constant.}
+          funcretn,        {Represents the function result var.}
+          selfn,           {Represents the self parameter.}
+          notn,            {Represents the not operator.}
+          inlinen,         {Internal procedures (i.e. writeln).}
+          niln,            {Represents the nil pointer.}
+          errorn,          {This part of the tree could not be
+                            parsed because of a compiler error.}
+          typen,           {A type name. Used for i.e. typeof(obj).}
+          hnewn,           {The new operation, constructor call.}
+          hdisposen,       {The dispose operation with destructor call.}
+          newn,            {The new operation, constructor call.}
+          simpledisposen,  {The dispose operation.}
+          setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
+          setconstn,       {A set constant (i.e. [1,2]).}
+          blockn,          {A block of statements.}
+          statementn,      {One statement in a block of nodes.}
+          loopn,           { used in genloopnode, must be converted }
+          ifn,             {An if statement.}
+          breakn,          {A break statement.}
+          continuen,       {A continue statement.}
+          repeatn,         {A repeat until block.}
+          whilen,          {A while do statement.}
+          forn,            {A for loop.}
+          exitn,           {An exit statement.}
+          withn,           {A with statement.}
+          casen,           {A case statement.}
+          labeln,          {A label.}
+          goton,           {A goto statement.}
+          simplenewn,      {The new operation.}
+          tryexceptn,      {A try except block.}
+          raisen,          {A raise statement.}
+          switchesn,       {??? Currently unused...}
+          tryfinallyn,     {A try finally statement.}
+          onn,             { for an on statement in exception code }
+          isn,             {Represents the is operator.}
+          asn,             {Represents the as typecast.}
+          caretn,          {Represents the ^ operator.}
+          failn,           {Represents the fail statement.}
+          starstarn,       {Represents the ** operator exponentiation }
+          procinlinen,     {Procedures that can be inlined }
+          arrayconstructn, {Construction node for [...] parsing}
+          arrayconstructrangen, {Range element to allow sets in array construction tree}
+          { added for optimizations where we cannot suppress }
+          nothingn,
+          loadvmtn
+       );
 
+{$ifdef NEWCNV}
+       tconverttype = (
+          tc_equal,
+          tc_not_possible,
+          tc_string_2_string,
+          tc_char_2_string,
+          tc_pchar_2_string,
+          tc_cchar_2_pchar,
+          tc_cstring_2_pchar,
+          tc_ansistring_2_pchar,
+          tc_string_2_chararray,
+          tc_chararray_2_string,
+          tc_array_2_pointer,
+          tc_pointer_2_array,
+          tc_int_2_int,
+          tc_bool_2_int,
+          tc_int_2_bool,
+          tc_real_2_real,
+          tc_int_2_real,
+          tc_int_2_fix,
+          tc_real_2_fix,
+          tc_fix_2_real,
+          tc_proc_2_procvar,
+          tc_arrayconstructor_2_set,
+          tc_load_smallset
+       );
+{$else}
        tconverttype = (tc_equal,tc_not_possible,tc_u8bit_2_s32bit,
                       tc_only_rangechecks32bit,tc_s8bit_2_s32bit,
                       tc_u16bit_2_s32bit,tc_s16bit_2_s32bit,
                       tc_s32bit_2_s16bit,tc_s32bit_2_u8bit,
-                      tc_s32bit_2_u16bit,tc_string_to_string,
-                      tc_cstring_charpointer,tc_string_chararray,
-                      tc_array_to_pointer,tc_pointer_to_array,
-                      tc_char_to_string,tc_u8bit_2_s16bit,
+                      tc_s32bit_2_u16bit,tc_string_2_string,
+                      tc_cstring_2_pchar,tc_string_2_chararray,
+                      tc_array_2_pointer,tc_pointer_2_array,
+                      tc_char_2_string,tc_u8bit_2_s16bit,
                       tc_u8bit_2_u16bit,tc_s8bit_2_s16bit,
                       tc_s16bit_2_s8bit,tc_s16bit_2_u8bit,
                       tc_u16bit_2_s8bit,tc_u16bit_2_u8bit,
@@ -148,9 +177,10 @@ unit tree;
                       tc_int_2_real,tc_real_2_fix,
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,
-                      tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset,
+                      tc_proc_2_procvar,tc_cchar_2_pchar,tc_load_smallset,
                       tc_ansistring_2_pchar,tc_pchar_2_string,
                       tc_arrayconstructor_2_set);
+{$endif}
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -1622,7 +1652,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.53  1998-11-24 12:52:42  peter
+  Revision 1.54  1998-11-26 13:10:44  peter
+    * new int - int conversion -dNEWCNV
+    * some function renamings
+
+  Revision 1.53  1998/11/24 12:52:42  peter
     * sets are not written twice anymore
     * optimize for emptyset+single element which uses a new routine from
       set.inc FPC_SET_CREATE_ELEMENT
