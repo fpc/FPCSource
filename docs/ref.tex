@@ -550,9 +550,11 @@ Integer \\
 Shortint \\
 SmallInt \\
 Longint \\
+Int64 \\
 Byte \\
 Word \\
 Cardinal \\
+QWord \\
 Boolean \\
 ByteBool \\
 LongBool \\
@@ -563,12 +565,14 @@ The integer types, and their ranges and sizes, that are predefined in
 \begin{FPCltable}{lcr}{Predefined integer types}{integers}
 Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
-Shortint & -127 .. 127 & 1\\
+Shortint & -128 .. 127 & 1\\
 Integer & -32768 .. 32767 & 2\footnote{The integer type is redefined as
-longint if you are in Delphi or ObjFPC mode, and has then size 4} \\
+longint if you are in Delphi or ObjFPC mode, and then has size 4} \\
 Word & 0 .. 65535 & 2 \\
-Longint & -2147483648 .. 2147483648 & 4\\
-Cardinal & 0..4294967296 & 4 \\ \hline
+Longint & -2147483648 .. 2147483647 & 4\\
+Cardinal & 0..4294967295 & 4 \\
+Int64 & -9223372036854775808 .. 9223372036854775807 & 8 \\
+QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 \end{FPCltable}
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
