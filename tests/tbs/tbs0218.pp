@@ -1,6 +1,7 @@
 Program Wrong_Output;
 {}
-Var r,rr:Extended; s:String;
+Var r,rr:Extended; 
+    s:String;
     code : word;
 {}
 Begin
@@ -21,5 +22,10 @@ Begin
   Writeln('r=',s,' (as string)');
   str(r,s);
   val(s,rr,code);
-  if r<>rr then halt(1);
+  if r<>rr then 
+    begin
+      Writeln('r=',r);
+      Writeln('is different from rr=',rr);
+      halt(1);
+    end;
 End.
