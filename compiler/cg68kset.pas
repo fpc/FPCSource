@@ -812,7 +812,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:44:03  peter
+  Revision 1.5  1998-09-17 09:42:29  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:44:03  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/07 18:45:59  peter
@@ -820,7 +824,7 @@ end.
     * renamed ptree.value vars to value_str,value_real,value_set
 
   Revision 1.2  1998/09/04 08:41:49  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386

@@ -111,7 +111,7 @@ implementation
                 begin
                    if (p^.left^.location.loc<>LOC_REFERENCE) and
                       (p^.left^.location.loc<>LOC_MEM) then
-                     Message(type_e_mismatch)
+                     CGMessage(type_e_mismatch)
                    else
                      begin
                         emitpushreferenceaddr(p^.left^.location.reference);
@@ -124,7 +124,7 @@ implementation
          else if (defcoll^.paratyp=vs_var) then
            begin
               if (p^.left^.location.loc<>LOC_REFERENCE) then
-                Message(cg_e_var_must_be_reference);
+                CGMessage(cg_e_var_must_be_reference);
               maybe_push_open_array_high;
               inc(pushedparasize,4);
               emitpushreferenceaddr(p^.left^.location.reference);
@@ -134,7 +134,7 @@ implementation
            begin
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
-               Message(cg_e_file_must_call_by_reference);
+               CGMessage(cg_e_file_must_call_by_reference);
               if (defcoll^.paratyp=vs_const) and
                  dont_copy_const_param(p^.resulttype) then
                 begin
@@ -287,7 +287,7 @@ implementation
                                                                 end;
 {$endif}
                                                       s80real : begin
-                                                                    Message(cg_f_extended_cg68k_not_supported);
+                                                                    CGMessage(cg_f_extended_cg68k_not_supported);
 {                                                                   inc(tempreference.offset,6);
                                                                    emit_push_mem(tempreference);
                                                                    dec(tempreference.offset,4);
@@ -349,7 +349,7 @@ implementation
                                                           end;
                                                      end;
                                                 end;
-                                     else Message(cg_e_illegal_expression);
+                                     else CGMessage(cg_e_illegal_expression);
                                   end;
                                end;
                  LOC_JUMP     : begin
@@ -528,7 +528,7 @@ implementation
                                       { direct call to inherited method }
                                       if (p^.procdefinition^.options and poabstractmethod)<>0 then
                                         begin
-                                           Message(cg_e_cant_call_abstract_method);
+                                           CGMessage(cg_e_cant_call_abstract_method);
                                            goto dont_call;
                                         end;
                                       { generate no virtual call }
@@ -565,7 +565,7 @@ implementation
                                    begin
                                     if not ((aktprocsym^.definition^.options
                                       and (poconstructor or podestructor))<>0) then
-                                        Message(cg_w_member_cd_call_from_method);
+                                        CGMessage(cg_w_member_cd_call_from_method);
                                    end;
                                       { con- and destructors need a pointer to the vmt }
                                       if is_con_or_destructor then
@@ -704,7 +704,7 @@ implementation
                         { always be placed wrong }
                         if is_con_or_destructor then
                           begin
-                             Message(cg_w_member_cd_call_from_method);
+                             CGMessage(cg_w_member_cd_call_from_method);
                              { not insert VMT pointer }                             { VMT-Zeiger nicht eintragen }
                              push_int(0);
                           end;
@@ -766,7 +766,7 @@ implementation
 
               { exported methods should be never called direct }
               if (p^.procdefinition^.options and poexports)<>0 then
-               Message(cg_e_dont_call_exported_direct);
+               CGMessage(cg_e_dont_call_exported_direct);
 
               if ((p^.procdefinition^.options and povirtualmethod)<>0) and
                  not(no_virtual_call) then
@@ -1044,11 +1044,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:43:55  peter
+  Revision 1.5  1998-09-17 09:42:22  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:43:55  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/04 08:41:43  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.2  1998/09/01 12:47:59  peter
     * use pdef^.size instead of orddef^.typ

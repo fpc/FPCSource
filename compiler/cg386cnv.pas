@@ -37,9 +37,10 @@ interface
 implementation
 
    uses
-     cobjects,verbose,globals,
-     symtable,aasm,i386,types,
-     cgi386,cgai386,temp_gen,tgeni386,hcodegen;
+      cobjects,verbose,globals,systems,
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondTypeConv
@@ -614,7 +615,7 @@ implementation
            parraydef(p^.left^.resulttype)^.lowrange+1;
 
          if l>255 then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          { write the length }
              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,l,
@@ -1252,7 +1253,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-09-14 10:43:46  peter
+  Revision 1.20  1998-09-17 09:42:12  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.19  1998/09/14 10:43:46  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.18  1998/09/11 12:29:40  pierre
@@ -1262,7 +1267,7 @@ end.
     * removed explicit range_check was buggy
 
   Revision 1.17  1998/09/04 08:41:38  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.16  1998/09/03 17:39:03  florian
     + better code for type conversation longint/dword to real type

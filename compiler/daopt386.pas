@@ -190,10 +190,7 @@ Var
 
 Implementation
 
-Uses globals, systems, strings, verbose, hcodegen,
-   {$ifdef i386}
-     cgi386;
-   {$endif i386}
+Uses globals, systems, strings, verbose, hcodegen;
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {MOV} (Ch: (C_Op2, C_None, C_None)),
@@ -591,7 +588,7 @@ Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: L
 {Walks through the paasmlist to find the lowest and highest label number;
  Since 0.9.3: also removes unused labels}
 Var LabelFound: Boolean;
-    P, hp1: Pai;
+    P{, hp1}: Pai;
 Begin
   LabelFound := False;
   LowLabel := MaxLongint;
@@ -1472,7 +1469,11 @@ End.
 
 {
  $Log$
- Revision 1.12  1998-09-16 18:00:01  jonas
+ Revision 1.13  1998-09-17 09:42:36  peter
+   + pass_2 for cg386
+   * Message() -> CGMessage() for pass_1/pass_2
+
+ Revision 1.12  1998/09/16 18:00:01  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
 
  Revision 1.11  1998/09/15 14:05:27  jonas

@@ -131,10 +131,10 @@ unit pass_1;
             end;
          end;
 
-         { error message, if more than 8 floating point }
+         { error CGMessage, if more than 8 floating point }
          { registers are needed                         }
          if p^.registersfpu>8 then
-          Message(cg_e_too_complex_expr);
+          CGMessage(cg_e_too_complex_expr);
       end;
 
 
@@ -271,7 +271,7 @@ unit pass_1;
                    if (pfloatdef(def_to)^.typ=s64bit) and
                       (pfloatdef(def_from)^.typ<>s64bit)  and
                       not (explicit) then
-                     Message(type_w_convert_real_2_comp);
+                     CGMessage(type_w_convert_real_2_comp);
 {$endif}
                 end;
               b:=true;
@@ -635,7 +635,7 @@ unit pass_1;
                      if pvarsym(p^.symtableentry)^.is_valid=2 then
                        if (assigned(pvarsym(p^.symtableentry)^.owner) and assigned(aktprocsym)
                        and (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                       Message1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name);
+                       CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name);
                      end;
                    if count_ref then
                      begin
@@ -662,7 +662,7 @@ unit pass_1;
             procsym :
                 begin
                    if assigned(pprocsym(p^.symtableentry)^.definition^.nextoverloaded) then
-                     Message(parser_e_no_overloaded_procvars);
+                     CGMessage(parser_e_no_overloaded_procvars);
                    p^.resulttype:=pprocsym(p^.symtableentry)^.definition;
                 end;
             else internalerror(3);
@@ -777,7 +777,7 @@ unit pass_1;
               t^.left:=gencallparanode(p^.left,nil);
               t^.left:=gencallparanode(p^.right,t^.left);
               if t^.symtableprocentry=nil then
-               Message(parser_e_operator_not_overloaded);
+               CGMessage(parser_e_operator_not_overloaded);
               if p^.treetype=unequaln then
                t:=gensinglenode(notn,t);
               firstpass(t);
@@ -829,7 +829,7 @@ unit pass_1;
                          firstpass(t);
                        end;
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               end;
               disposetree(p);
               firstpass(t);
@@ -855,7 +855,7 @@ unit pass_1;
                equaln : t:=genordinalconstnode(ord(lvd=rvd),booldef);
              unequaln : t:=genordinalconstnode(ord(lvd<>rvd),booldef);
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               end;
               disposetree(p);
               p:=t;
@@ -1023,7 +1023,7 @@ unit pass_1;
                           calcregisters(p,1,0,0);
                         end
                 else
-                  Message(type_e_mismatch);
+                  CGMessage(type_e_mismatch);
                 end;
                 convdone:=true;
               end
@@ -1077,11 +1077,11 @@ unit pass_1;
              { right site must also be a setdef, unless addn is used }
                 if not(p^.treetype in [subn,symdifn,addn,muln,equaln,unequaln]) or
                    ((rd^.deftype<>setdef) and (p^.treetype<>addn)) then
-                  Message(type_e_mismatch);
+                  CGMessage(type_e_mismatch);
 
                 if ((rd^.deftype=setdef) and not(is_equal(rd,ld))) and
                    not((rt=setelementn) and is_equal(psetdef(ld)^.setof,rd)) then
-                  Message(type_e_set_element_are_not_comp);
+                  CGMessage(type_e_set_element_are_not_comp);
 
                 { ranges require normsets }
                 if (psetdef(ld)^.settype=smallset) and
@@ -1221,16 +1221,16 @@ unit pass_1;
                  ltn,lten,gtn,gten:
                    begin
                       if not(cs_extsyntax in aktmoduleswitches) then
-                        Message(type_e_mismatch);
+                        CGMessage(type_e_mismatch);
                    end;
                  subn:
                    begin
                       if not(cs_extsyntax in aktmoduleswitches) then
-                        Message(type_e_mismatch);
+                        CGMessage(type_e_mismatch);
                       p^.resulttype:=s32bitdef;
                       exit;
                    end;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1249,7 +1249,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1268,7 +1268,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1284,7 +1284,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1299,7 +1299,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1312,7 +1312,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1326,7 +1326,7 @@ unit pass_1;
               case p^.treetype of
                 equaln,unequaln : ;
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1341,10 +1341,10 @@ unit pass_1;
               if p^.treetype=addn then
                 begin
                   if not(cs_extsyntax in aktmoduleswitches) then
-                    Message(type_e_mismatch);
+                    CGMessage(type_e_mismatch);
                 end
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               convdone:=true;
             end
          else
@@ -1357,9 +1357,9 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                 addn,subn : if not(cs_extsyntax in aktmoduleswitches) then
-                              Message(type_e_mismatch);
+                              CGMessage(type_e_mismatch);
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1372,7 +1372,7 @@ unit pass_1;
               case p^.treetype of
                  equaln,unequaln : ;
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1391,9 +1391,9 @@ unit pass_1;
                 muln:
                   if not(mmx_type(p^.left^.resulttype) in
                     [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    Message(type_e_mismatch);
+                    CGMessage(type_e_mismatch);
                 else
-                  Message(type_e_mismatch);
+                  CGMessage(type_e_mismatch);
               end;
               p^.location.loc:=LOC_MMXREGISTER;
               calcregisters(p,0,0,1);
@@ -1408,7 +1408,7 @@ unit pass_1;
               case p^.treetype of
                  equaln,unequaln,
                  ltn,lten,gtn,gten : ;
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
             end;
@@ -1419,8 +1419,8 @@ unit pass_1;
               { but an int/int gives real/real! }
               if p^.treetype=slashn then
                 begin
-                   Message(type_w_int_slash_int);
-                   Message(type_h_use_div_for_int);
+                   CGMessage(type_w_int_slash_int);
+                   CGMessage(type_h_use_div_for_int);
                    p^.right:=gentypeconvnode(p^.right,c64floatdef);
                    p^.left:=gentypeconvnode(p^.left,c64floatdef);
                    firstpass(p^.left);
@@ -1683,7 +1683,7 @@ unit pass_1;
                if (cs_mmx_saturation in aktlocalswitches^) and
                  (porddef(parraydef(p^.resulttype)^.definition)^.typ in
                  [s32bit,u32bit]) then
-                 Message(type_e_mismatch);
+                 CGMessage(type_e_mismatch);
                }
              end
 {$endif SUPPORT_MMX}
@@ -1724,7 +1724,7 @@ unit pass_1;
                      end;
                    minusdef:=minusdef^.nextoverloaded;
                 end;
-              Message(type_e_mismatch);
+              CGMessage(type_e_mismatch);
            end;
       end;
 
@@ -1793,7 +1793,7 @@ unit pass_1;
          { we should allow loc_mem for @string }
          if (p^.left^.location.loc<>LOC_REFERENCE) and
             (p^.left^.location.loc<>LOC_MEM) then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -1813,13 +1813,13 @@ unit pass_1;
          if p^.resulttype=nil then
                 p^.resulttype:=voidpointerdef;
          if (p^.left^.resulttype^.deftype)<>procvardef then
-                Message(cg_e_illegal_expression);
+                CGMessage(cg_e_illegal_expression);
 
          if codegenerror then
            exit;
 
          if (p^.left^.location.loc<>LOC_REFERENCE) then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -1917,7 +1917,7 @@ unit pass_1;
 
          { assignements to open arrays aren't allowed }
          if is_open_array(p^.left^.resulttype) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
          { test if we can avoid copying string to temp
            as in s:=s+...; (PM) }
 {$ifdef dummyi386}
@@ -2053,7 +2053,7 @@ unit pass_1;
 {$endif SUPPORT_MMX}
 
          if p^.left^.resulttype^.deftype<>pointerdef then
-          Message(cg_e_invalid_qualifier);
+          CGMessage(cg_e_invalid_qualifier);
 
          p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
          p^.location.loc:=LOC_REFERENCE;
@@ -2072,7 +2072,7 @@ unit pass_1;
          { both types must be compatible }
          if not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) and
             not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,ct,ordconstn,false)) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
          if (p^.left^.treetype=ordconstn) and (p^.right^.treetype=ordconstn) then
           begin
@@ -2080,7 +2080,7 @@ unit pass_1;
           { not if u32bit }
             if (p^.left^.value>p^.right^.value) and
                (( p^.left^.value<0) or (p^.right^.value>=0)) then
-              Message(cg_e_upper_lower_than_lower);
+              CGMessage(cg_e_upper_lower_than_lower);
           end;
         left_right_max(p);
         p^.resulttype:=p^.left^.resulttype;
@@ -2109,7 +2109,7 @@ unit pass_1;
                 ct,ordconstn,false)) and
               not(is_equal(p^.right^.resulttype,
                 parraydef(p^.left^.resulttype)^.rangedef)) then
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
          { maybe type conversion }
@@ -2155,7 +2155,7 @@ unit pass_1;
                 end;
              end
            else
-             Message(type_e_mismatch);
+             CGMessage(type_e_mismatch);
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
            begin
@@ -2450,7 +2450,7 @@ unit pass_1;
            exit;
 
          if (p^.left^.location.loc<>LOC_REFERENCE) then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
 
          p^.registers32:=p^.left^.registers32;
          if p^.registers32<1 then
@@ -2661,7 +2661,7 @@ unit pass_1;
                           firstpass(p^.left);
                           if not is_equal(p^.left^.resulttype,p^.resulttype) then
                             begin
-                               Message(type_e_mismatch);
+                               CGMessage(type_e_mismatch);
                                exit;
                             end
                           else
@@ -2701,13 +2701,13 @@ unit pass_1;
                     if not is_equal(aprocdef,p^.resulttype) then
                       begin
                         aprocdef^.deftype:=proctype;
-                        Message(type_e_mismatch);
+                        CGMessage(type_e_mismatch);
                       end;
                     aprocdef^.deftype:=proctype;
                     firstconvert[p^.convtyp](p);
                   end
                 else
-                  Message(type_e_mismatch);
+                  CGMessage(type_e_mismatch);
                 exit;
              end
            else
@@ -2744,7 +2744,7 @@ unit pass_1;
                             begin
                                if not isconvertable(s32bitdef,p^.resulttype,p^.convtyp,
                                ordconstn { nur Dummy},false ) then
-                                 Message(cg_e_illegal_type_conversion);
+                                 CGMessage(cg_e_illegal_type_conversion);
                             end;
 
                        end
@@ -2765,7 +2765,7 @@ unit pass_1;
                               begin
                                  if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,
                                    ordconstn { nur Dummy},false ) then
-                                   Message(cg_e_illegal_type_conversion);
+                                   CGMessage(cg_e_illegal_type_conversion);
                               end;
                          end
                      {Are we typecasting an ordconst to a char?}
@@ -2787,7 +2787,7 @@ unit pass_1;
                                    if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
                                  if not isconvertable(p^.left^.resulttype,u8bitdef,
                                    p^.convtyp,ordconstn { nur Dummy},false ) then
-                                   Message(cg_e_illegal_type_conversion);
+                                   CGMessage(cg_e_illegal_type_conversion);
                               end;
                          end
                      { only if the same size or formal def }
@@ -2799,7 +2799,7 @@ unit pass_1;
                              (is_equal(p^.left^.resulttype,voiddef)  and
                              (p^.left^.treetype=derefn))
                              ) then
-                         Message(cg_e_illegal_type_conversion);
+                         CGMessage(cg_e_illegal_type_conversion);
                      { the conversion into a strutured type is only }
                      { possible, if the source is no register         }
                      if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
@@ -2807,10 +2807,10 @@ unit pass_1;
                         ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                         {it also works if the assignment is overloaded }
                         not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
-                       Message(cg_e_illegal_type_conversion);
+                       CGMessage(cg_e_illegal_type_conversion);
                 end
               else
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
            end
          end
        else
@@ -2849,7 +2849,7 @@ unit pass_1;
            ((sym^.owner^.symtabletype=unitsymtable) or
             ((sym^.owner^.symtabletype=objectsymtable) and
            (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))) then
-          Message(parser_e_cant_access_protected_member);
+          CGMessage(parser_e_cant_access_protected_member);
       end;
 
     procedure test_protected(p : ptree);
@@ -2968,7 +2968,7 @@ unit pass_1;
                         (pfiledef(p^.left^.resulttype)^.filetype = ft_typed)
                          ) and
                      not(is_equal(p^.left^.resulttype,defcoll^.data))) then
-                       Message(parser_e_call_by_ref_without_typeconv);
+                       CGMessage(parser_e_call_by_ref_without_typeconv);
                    { don't generate an type conversion for open arrays   }
                    { else we loss the ranges                             }
                    if not(is_open_array(defcoll^.data)) then
@@ -2988,7 +2988,7 @@ unit pass_1;
                  is_shortstring(defcoll^.data) and
                  (defcoll^.paratyp=vs_var) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
-                 Message(type_e_strict_var_string_violation);
+                 CGMessage(type_e_strict_var_string_violation);
               { Variablen, die call by reference bergeben werden, }
               { k”nnen nicht in ein Register kopiert werden       }
               { is this usefull here ? }
@@ -3123,7 +3123,7 @@ unit pass_1;
                    pdc:=pdc^.next;
                 end;
               if assigned(pt) or assigned(pdc) then
-                Message(parser_e_illegal_parameter_list);
+                CGMessage(parser_e_illegal_parameter_list);
               { insert type conversions }
               if assigned(p^.left) then
                 begin
@@ -3221,7 +3221,7 @@ unit pass_1;
                    if not assigned(procs) and
                       ((parsing_para_level=0) or assigned(p^.left)) then
                     begin
-                       Message(parser_e_wrong_parameter_size);
+                       CGMessage(parser_e_wrong_parameter_size);
                        actprocsym^.write_parameter_lists;
                        exit;
                     end;
@@ -3320,7 +3320,7 @@ unit pass_1;
                         wrong size is already checked (PFV) }
                       if (parsing_para_level=0) or (p^.left<>nil) then
                        begin
-                          Message(parser_e_wrong_parameter_type);
+                          CGMessage(parser_e_wrong_parameter_type);
                           actprocsym^.write_parameter_lists;
                           exit;
                        end
@@ -3447,7 +3447,7 @@ unit pass_1;
 {$ifndef CHAINPROCSYMS}
                    if assigned(procs^.next) then
                      begin
-                        Message(cg_e_cant_choose_overload_function);
+                        CGMessage(cg_e_cant_choose_overload_function);
                         actprocsym^.write_parameter_lists;
                      end;
 {$else CHAINPROCSYMS}
@@ -3475,7 +3475,7 @@ unit pass_1;
                           end
                         else
                            begin
-                              Message(cg_e_cant_choose_overload_function);
+                              CGMessage(cg_e_cant_choose_overload_function);
                               actprocsym^.write_parameter_lists;
                               error(too_much_matches);
                            end;
@@ -3540,16 +3540,16 @@ unit pass_1;
               if (p^.procdefinition^.options and poinline)<>0 then
                 begin
                    if assigned(p^.methodpointer) then
-                     Message(cg_e_unable_inline_object_methods);
+                     CGMessage(cg_e_unable_inline_object_methods);
                    if assigned(p^.right) and (p^.right^.treetype<>procinlinen) then
-                     Message(cg_e_unable_inline_procvar);
+                     CGMessage(cg_e_unable_inline_procvar);
                    { p^.treetype:=procinlinen; }
                    if not assigned(p^.right) then
                      begin
                         if assigned(p^.procdefinition^.code) then
                           inlinecode:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
                         else
-                          Message(cg_e_no_code_for_inline_stored);
+                          CGMessage(cg_e_no_code_for_inline_stored);
                         if assigned(inlinecode) then
                           begin
                              { consider it has not inlined if called
@@ -3703,7 +3703,7 @@ unit pass_1;
          if must_be_valid and
             (@procinfo=pprocinfo(p^.funcretprocinfo)) and
             not procinfo.funcret_is_valid then
-           Message(sym_w_function_result_not_set);
+           CGMessage(sym_w_function_result_not_set);
          if count_ref then
            pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
       end;
@@ -3819,25 +3819,25 @@ unit pass_1;
                           end;
            in_const_odd : begin
                             if isreal then
-                             Message(type_e_integer_expr_expected)
+                             CGMessage(type_e_integer_expr_expected)
                             else
                              hp:=genordinalconstnode(byte(odd(vl)),booldef);
                           end;
      in_const_swap_word : begin
                             if isreal then
-                             Message(type_e_integer_expr_expected)
+                             CGMessage(type_e_integer_expr_expected)
                             else
                              hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
                           end;
      in_const_swap_long : begin
                             if isreal then
-                             Message(type_e_mismatch)
+                             CGMessage(type_e_mismatch)
                             else
                              hp:=genordinalconstnode((vl and $ffff) shl 16+(vl shr 16),p^.left^.resulttype);
                           end;
            in_const_ptr : begin
                             if isreal then
-                             Message(type_e_mismatch)
+                             CGMessage(type_e_mismatch)
                             else
                              hp:=genordinalconstnode(vl,voidpointerdef);
                           end;
@@ -3862,7 +3862,7 @@ unit pass_1;
                     p^.resulttype:=u16bitdef;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_integer(p^.left^.resulttype) then
-                    Message(type_e_mismatch)
+                    CGMessage(type_e_mismatch)
                   else
                     begin
                       if p^.left^.treetype=ordconstn then
@@ -3927,7 +3927,7 @@ unit pass_1;
                            end
                          { can this happen ? }
                          else if (porddef(p^.left^.resulttype)^.typ=uvoid) then
-                           Message(type_e_mismatch)
+                           CGMessage(type_e_mismatch)
                          else
                            { all other orddef need no transformation }
                            begin
@@ -3946,7 +3946,7 @@ unit pass_1;
                        else
                          begin
                             { can anything else be ord() ?}
-                            Message(type_e_mismatch);
+                            CGMessage(type_e_mismatch);
                          end;
                     end;
                end;
@@ -4000,12 +4000,12 @@ unit pass_1;
                   p^.resulttype:=p^.left^.resulttype;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_ordinal(p^.resulttype) then
-                    Message(type_e_ordinal_expr_expected)
+                    CGMessage(type_e_ordinal_expr_expected)
                   else
                     begin
                       if (p^.resulttype^.deftype=enumdef) and
                          (penumdef(p^.resulttype)^.has_jumps) then
-                        Message(type_e_succ_and_pred_enums_with_assign_not_possible)
+                        CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible)
                       else
                         if p^.left^.treetype=ordconstn then
                          begin
@@ -4030,7 +4030,7 @@ unit pass_1;
                        exit;
                       { first param must be var }
                       if is_constnode(p^.left^.left) then
-                        Message(type_e_variable_id_expected);
+                        CGMessage(type_e_variable_id_expected);
                       { check type }
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
                          is_ordinal(p^.left^.resulttype) then
@@ -4051,14 +4051,14 @@ unit pass_1;
                                   inc(p^.registers32);
 
                                 if assigned(p^.left^.right^.right) then
-                                  Message(cg_e_illegal_expression);
+                                  CGMessage(cg_e_illegal_expression);
                              end;
                         end
                       else
-                        Message(type_e_ordinal_expr_expected);
+                        CGMessage(type_e_ordinal_expr_expected);
                    end
                  else
-                   Message(type_e_mismatch);
+                   CGMessage(type_e_mismatch);
               end;
              in_read_x,
              in_readln_x,
@@ -4091,9 +4091,9 @@ unit pass_1;
                               while (hpp<>hp) do
                                begin
                                  if (hpp^.left^.treetype=typen) then
-                                   Message(type_e_cant_read_write_type);
+                                   CGMessage(type_e_cant_read_write_type);
                                  if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
-                                   Message(type_e_mismatch);
+                                   CGMessage(type_e_mismatch);
                                  hpp:=hpp^.right;
                                end;
                             end;
@@ -4107,7 +4107,7 @@ unit pass_1;
                             while assigned(hp) do
                               begin
                                 if (hp^.left^.treetype=typen) then
-                                  Message(type_e_cant_read_write_type);
+                                  CGMessage(type_e_cant_read_write_type);
                                 if assigned(hp^.left^.resulttype) then
                                   begin
                                     isreal:=false;
@@ -4115,12 +4115,12 @@ unit pass_1;
                                       filedef : begin
                                                 { only allowed as first parameter }
                                                   if assigned(hp^.right) then
-                                                   Message(type_e_cant_read_write_type);
+                                                   CGMessage(type_e_cant_read_write_type);
                                                 end;
                                     stringdef : ;
                                    pointerdef : begin
                                                   if not is_equal(ppointerdef(hp^.left^.resulttype)^.definition,cchardef) then
-                                                    Message(type_e_cant_read_write_type);
+                                                    CGMessage(type_e_cant_read_write_type);
                                                 end;
                                      floatdef : begin
                                                   isreal:=true;
@@ -4136,9 +4136,9 @@ unit pass_1;
                                        bool16bit,bool32bit : if dowrite then
                                                               hp^.left:=gentypeconvnode(hp^.left,booldef)
                                                              else
-                                                              Message(type_e_cant_read_write_type);
+                                                              CGMessage(type_e_cant_read_write_type);
                                                   else
-                                                    Message(type_e_cant_read_write_type);
+                                                    CGMessage(type_e_cant_read_write_type);
                                                   end;
                                                 end;
                                      arraydef : begin
@@ -4153,11 +4153,11 @@ unit pass_1;
                                                         (porddef(parraydef(hp^.left^.resulttype)^.definition)^.typ=uchar) then
                                                        hp^.left:=gentypeconvnode(hp^.left,cstringdef)
                                                      else
-                                                       Message(type_e_cant_read_write_type);
+                                                       CGMessage(type_e_cant_read_write_type);
                                                    end;
                                                 end;
                                     else
-                                      Message(type_e_cant_read_write_type);
+                                      CGMessage(type_e_cant_read_write_type);
                                     end;
 
                                     { some format options ? }
@@ -4168,7 +4168,7 @@ unit pass_1;
                                     if assigned(hpp) and hpp^.is_colon_para then
                                       begin
                                         if (not is_integer(hpp^.resulttype)) then
-                                          Message(type_e_integer_expr_expected)
+                                          CGMessage(type_e_integer_expr_expected)
                                         else
                                           hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                                         hpp:=hpp^.right;
@@ -4177,12 +4177,12 @@ unit pass_1;
                                             if isreal then
                                              begin
                                                if (not is_integer(hpp^.resulttype)) then
-                                                 Message(type_e_integer_expr_expected)
+                                                 CGMessage(type_e_integer_expr_expected)
                                                else
                                                  hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                                              end
                                             else
-                                             Message(parser_e_illegal_colon_qualifier);
+                                             CGMessage(parser_e_illegal_colon_qualifier);
                                           end;
                                       end;  *)
 
@@ -4246,14 +4246,14 @@ unit pass_1;
                           (hp^.left^.resulttype^.deftype<>stringdef) or
                           (hp^.right=nil) or
                           (hp^.left^.location.loc<>LOC_REFERENCE) then
-                         Message(cg_e_illegal_expression);
+                         CGMessage(cg_e_illegal_expression);
                        { !!!! check length of string }
 
                        while assigned(hp^.right) do
                          hp:=hp^.right;
                        { check and convert the first param }
                        if hp^.is_colon_para then
-                         Message(cg_e_illegal_expression);
+                         CGMessage(cg_e_illegal_expression);
 
                        isreal:=false;
                        case hp^.resulttype^.deftype of
@@ -4263,14 +4263,14 @@ unit pass_1;
                                 u8bit,s8bit,
                               u16bit,s16bit : hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
                                    else
-                                     Message(type_e_integer_or_real_expr_expected);
+                                     CGMessage(type_e_integer_or_real_expr_expected);
                                    end;
                                  end;
                       floatdef : begin
                                    isreal:=true;
                                  end;
                        else
-                         Message(type_e_integer_or_real_expr_expected);
+                         CGMessage(type_e_integer_or_real_expr_expected);
                        end;
 
                        { some format options ? }
@@ -4278,7 +4278,7 @@ unit pass_1;
                        if assigned(hpp) and hpp^.is_colon_para then
                          begin
                            if (not is_integer(hpp^.resulttype)) then
-                             Message(type_e_integer_expr_expected)
+                             CGMessage(type_e_integer_expr_expected)
                            else
                              hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                            hpp:=hpp^.right;
@@ -4287,12 +4287,12 @@ unit pass_1;
                                if isreal then
                                 begin
                                   if (not is_integer(hpp^.resulttype)) then
-                                    Message(type_e_integer_expr_expected)
+                                    CGMessage(type_e_integer_expr_expected)
                                   else
                                     hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                                 end
                                else
-                                Message(parser_e_illegal_colon_qualifier);
+                                CGMessage(parser_e_illegal_colon_qualifier);
                              end;
                          end;
 
@@ -4301,7 +4301,7 @@ unit pass_1;
                        count_ref:=true;
                     end
                   else
-                    Message(parser_e_illegal_parameter_list);
+                    CGMessage(parser_e_illegal_parameter_list);
                   { pass all parameters again for the typeconversions }
                   if codegenerror then
                     exit;
@@ -4325,7 +4325,7 @@ unit pass_1;
                       { first param must be var }
                       if (p^.left^.left^.location.loc<>LOC_REFERENCE) and
                          (p^.left^.left^.location.loc<>LOC_CREGISTER) then
-                        Message(cg_e_illegal_expression);
+                        CGMessage(cg_e_illegal_expression);
                       { check type }
                       if (p^.left^.resulttype^.deftype=setdef) then
                         begin
@@ -4341,14 +4341,14 @@ unit pass_1;
                                 firstpass(p^.left^.right^.left);
                                 { only three parameters are allowed }
                                 if assigned(p^.left^.right^.right) then
-                                  Message(cg_e_illegal_expression);
+                                  CGMessage(cg_e_illegal_expression);
                              end;
                         end
                       else
-                        Message(type_e_mismatch);
+                        CGMessage(type_e_mismatch);
                    end
                  else
-                   Message(type_e_mismatch);
+                   CGMessage(type_e_mismatch);
               end;
              in_low_x,in_high_x:
                begin
@@ -4406,11 +4406,11 @@ unit pass_1;
                               firstpass(p);
                            end;
                          else
-                           Message(type_e_mismatch);
+                           CGMessage(type_e_mismatch);
                          end;
                     end
                   else
-                    Message(type_e_varid_or_typeid_expected);
+                    CGMessage(type_e_varid_or_typeid_expected);
                end
                  else internalerror(8);
               end;
@@ -4433,7 +4433,7 @@ unit pass_1;
          { this must be done in the parser
          if count_ref and not must_be_valid then
            if (p^.vs^.properties and sp_protected)<>0 then
-             Message(parser_e_cant_write_protected_member);
+             CGMessage(parser_e_cant_write_protected_member);
          }
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -4452,7 +4452,7 @@ unit pass_1;
            begin
               if (p^.left^.location.loc<>LOC_MEM) and
                 (p^.left^.location.loc<>LOC_REFERENCE) then
-                Message(cg_e_illegal_expression);
+                CGMessage(cg_e_illegal_expression);
               set_location(p^.location,p^.left^.location);
            end;
       end;
@@ -4499,7 +4499,7 @@ unit pass_1;
            p^.registers32:=1;
          {
          if p^.left^.location.loc<>LOC_REFERENCE then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
          }
          p^.location.loc:=LOC_REFERENCE;
          p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
@@ -4533,11 +4533,11 @@ unit pass_1;
 
          { check the type }
          if (p^.left^.resulttype=nil) or (p^.left^.resulttype^.deftype<>pointerdef) then
-           Message(type_e_pointer_type_expected);
+           CGMessage(type_e_pointer_type_expected);
 
          if (p^.left^.location.loc<>LOC_REFERENCE) {and
             (p^.left^.location.loc<>LOC_CREGISTER)} then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -4585,7 +4585,7 @@ unit pass_1;
            exit;
 
          if p^.right^.resulttype^.deftype<>setdef then
-          Message(sym_e_set_expected);
+          CGMessage(sym_e_set_expected);
 
          firstpass(p^.left);
          if codegenerror then
@@ -4625,7 +4625,7 @@ unit pass_1;
          if (not (cs_extsyntax in aktmoduleswitches)) and
             assigned(p^.right^.resulttype) and
             (p^.right^.resulttype<>pdef(voiddef)) then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
          if codegenerror then
            exit;
          p^.registers32:=p^.right^.registers32;
@@ -4673,7 +4673,7 @@ unit pass_1;
                       (hp^.right^.left^.treetype=funcretn) then
                       begin
                          if assigned(hp^.left^.right^.left) then
-                           Message(cg_n_inefficient_code)
+                           CGMessage(cg_n_inefficient_code)
                          else
                            begin
                               hp^.left^.right^.left:=getcopy(hp^.right^.right);
@@ -4691,7 +4691,7 @@ unit pass_1;
                         aktfilepos:=hp^.left^.fileinfo;
                         disposetree(hp^.left);
                         hp^.left:=nil;
-                        Message(cg_w_unreachable_code);
+                        CGMessage(cg_w_unreachable_code);
                         { old lines }
                         aktfilepos:=hp^.right^.fileinfo;
                      end;
@@ -4703,7 +4703,7 @@ unit pass_1;
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp^.right^.resulttype) and
                       (hp^.right^.resulttype<>pdef(voiddef)) then
-                     Message(cg_e_illegal_expression);
+                     CGMessage(cg_e_illegal_expression);
                    if codegenerror then
                      exit;
 
@@ -4750,7 +4750,7 @@ unit pass_1;
          if not((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
-               Message(type_e_mismatch);
+               CGMessage(type_e_mismatch);
                exit;
             end;
 
@@ -4798,7 +4798,7 @@ unit pass_1;
          if not((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
-               Message(type_e_mismatch);
+               CGMessage(type_e_mismatch);
                exit;
             end;
 
@@ -4936,17 +4936,17 @@ unit pass_1;
 {$endif SUPPORT_MMX}
 
          if p^.left^.treetype<>assignn then
-           Message(cg_e_illegal_expression);
+           CGMessage(cg_e_illegal_expression);
 
          { Laufvariable retten }
          p^.t2:=getcopy(p^.left^.left);
 
          { Check count var }
          if (p^.t2^.treetype<>loadn) then
-          Message(cg_e_illegal_count_var);
+          CGMessage(cg_e_illegal_count_var);
 
          if (not(is_ordinal(p^.t2^.resulttype))) then
-          Message(type_e_ordinal_expr_expected);
+          CGMessage(type_e_ordinal_expr_expected);
 
          cleartempgen;
          must_be_valid:=false;
@@ -5150,7 +5150,7 @@ unit pass_1;
          firstpass(p^.right);
 
          if (p^.right^.resulttype^.deftype<>classrefdef) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
          if codegenerror then
            exit;
 
@@ -5159,14 +5159,14 @@ unit pass_1;
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
            not(pobjectdef(p^.left^.resulttype)^.isclass) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
            (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
            pobjectdef(p^.left^.resulttype)))) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          p^.location.loc:=LOC_FLAGS;
          p^.resulttype:=booldef;
@@ -5178,7 +5178,7 @@ unit pass_1;
          firstpass(p^.right);
          firstpass(p^.left);
          if (p^.right^.resulttype^.deftype<>classrefdef) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          if codegenerror then
            exit;
@@ -5188,14 +5188,14 @@ unit pass_1;
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
            not(pobjectdef(p^.left^.resulttype)^.isclass) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
            (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
            pobjectdef(p^.left^.resulttype)))) then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          p^.location:=p^.left^.location;
          p^.resulttype:=pclassrefdef(p^.right^.resulttype)^.definition;
@@ -5226,7 +5226,7 @@ unit pass_1;
               { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
                 ((pobjectdef(p^.left^.resulttype)^.options and oois_class)=0) then
-                Message(type_e_mismatch);
+                CGMessage(type_e_mismatch);
 
               p^.registersfpu:=p^.left^.registersfpu;
               p^.registers32:=p^.left^.registers32;
@@ -5502,7 +5502,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.84  1998-09-16 01:06:17  carl
+  Revision 1.85  1998-09-17 09:42:38  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.84  1998/09/16 01:06:17  carl
     * bugfix of crash with firstaddr on valid code!
 
   Revision 1.83  1998/09/11 15:40:21  pierre
@@ -5558,13 +5562,13 @@ end.
     * problem with -Or fixed
 
   Revision 1.70  1998/09/04 08:42:00  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.69  1998/09/01 17:39:47  peter
     + internal constant functions
 
   Revision 1.68  1998/09/01 09:02:52  peter
-    * moved message() to hcodegen, so pass_2 also uses them
+    * moved CGMessage() to hcodegen, so pass_2 also uses them
 
   Revision 1.67  1998/09/01 07:54:20  pierre
     * UseBrowser a little updated (might still be buggy !!)
@@ -5673,7 +5677,7 @@ end.
     + switch $H partial implemented
 
   Revision 1.39  1998/07/14 21:46:47  peter
-    * updated messages file
+    * updated CGMessages file
 
   Revision 1.38  1998/07/14 14:46:50  peter
     * released NEWINPUT

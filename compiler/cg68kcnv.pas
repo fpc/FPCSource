@@ -680,7 +680,7 @@ implementation
            parraydef(p^.left^.resulttype)^.lowrange+1;
 
          if l>255 then
-           Message(type_e_mismatch);
+           CGMessage(type_e_mismatch);
 
          { write the length }
            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,l,
@@ -1376,7 +1376,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:43:56  peter
+  Revision 1.5  1998-09-17 09:42:23  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:43:56  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/11 12:29:43  pierre

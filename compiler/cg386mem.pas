@@ -44,8 +44,9 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,i386,types,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondLoadVMT
@@ -407,7 +408,7 @@ implementation
                      begin
                         if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
                            (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
-                          Message(parser_e_range_check_error);
+                          CGMessage(parser_e_range_check_error);
 
                         dec(p^.left^.location.reference.offset,
                             get_mul_size*parraydef(p^.left^.resulttype)^.lowrange);
@@ -478,7 +479,7 @@ implementation
               { calculate from left to right }
               if (p^.location.loc<>LOC_REFERENCE) and
                  (p^.location.loc<>LOC_MEM) then
-                Message(cg_e_illegal_expression);
+                CGMessage(cg_e_illegal_expression);
               pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
               if pushed then restore(p);
@@ -643,7 +644,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-09-14 10:43:52  peter
+  Revision 1.11  1998-09-17 09:42:18  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.10  1998/09/14 10:43:52  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.9  1998/09/03 16:03:15  florian

@@ -277,7 +277,7 @@ implementation
             LOC_CREGISTER : loc:=LOC_CREGISTER;
             else
                begin
-                  Message(cg_e_illegal_expression);
+                  CGMessage(cg_e_illegal_expression);
                   exit;
                end;
          end;
@@ -442,7 +442,7 @@ implementation
       begin
          clear_reference(p^.location.reference);
          hr_valid:=false;
-{ !!!!!!! }     
+{ !!!!!!! }
 
 (*         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
@@ -480,7 +480,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-17 09:42:27  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

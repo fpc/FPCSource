@@ -189,7 +189,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          end;
                        end;
         else
-         Message(type_e_mismatch);
+         CGMessage(type_e_mismatch);
         end;
       end;
 
@@ -377,7 +377,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 end;
            end
          else
-          Message(type_e_mismatch);
+          CGMessage(type_e_mismatch);
       end;
 
     procedure emitoverflowcheck(p: ptree);
@@ -595,7 +595,7 @@ begin
     { omit stack frame ? }
     if procinfo.framepointer=stack_pointer then
         begin
-            Message(cg_d_stackframe_omited);
+            CGMessage(cg_d_stackframe_omited);
             nostackframe:=true;
             if (aktprocsym^.definition^.options and (pounitinit or poproginit)<>0) then
                 parasize:=0
@@ -631,7 +631,7 @@ begin
                             if (stackframe > -32767) and (stackframe < 32769) then
                               procinfo.aktentrycode^.insert(new(pai68k,op_reg_const(A_LINK,S_W,R_A6,-stackframe)))
                             else
-                              Message(cg_e_stacklimit_in_local_routine);
+                              CGMessage(cg_e_stacklimit_in_local_routine);
                         end
                     else
                         begin
@@ -655,7 +655,7 @@ begin
                                procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                             end
                           else
-                            Message(cg_e_stacklimit_in_local_routine);
+                            CGMessage(cg_e_stacklimit_in_local_routine);
                         end;
                 end {endif stackframe<>0 }
             else
@@ -762,7 +762,7 @@ begin
                 if procinfo.retdef<>pdef(voiddef) then
                     begin
                         if not procinfo.funcret_is_valid then
-                          Message(sym_w_function_result_not_set);
+                          CGMessage(sym_w_function_result_not_set);
                         new(hr);
                         reset_reference(hr^);
                         hr^.offset:=procinfo.retoffset;
@@ -1191,7 +1191,7 @@ end;
             s80real : s := S_FX;
          else
            begin
-             Message(cg_f_unknown_float_type);
+             CGMessage(cg_f_unknown_float_type);
            end;
         end; { end case }
         location.loc := LOC_FPU;
@@ -1210,7 +1210,7 @@ end;
           end
           else
              { other floating types are not supported in emulation mode }
-            Message(sym_e_type_id_not_defined);
+            CGMessage(sym_e_type_id_not_defined);
         end;
       end;
 
@@ -1258,7 +1258,7 @@ end;
             s80real : s := S_FX;
          else
            begin
-             Message(cg_f_unknown_float_type);
+             CGMessage(cg_f_unknown_float_type);
            end;
         end; { end case }
         if not ((cs_fp_emulation) in aktmoduleswitches) then
@@ -1286,7 +1286,7 @@ end;
           end
           else
              { other floating types are not supported in emulation mode }
-            Message(sym_e_type_id_not_defined);
+            CGMessage(sym_e_type_id_not_defined);
         end;
         location.fpureg:=R_NO;  { no register in LOC_FPU now }
       end;
@@ -1345,7 +1345,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-09-14 10:44:04  peter
+  Revision 1.17  1998-09-17 09:42:30  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.16  1998/09/14 10:44:04  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.15  1998/09/07 18:46:00  peter
@@ -1353,7 +1357,7 @@ end.
     * renamed ptree.value vars to value_str,value_real,value_set
 
   Revision 1.14  1998/09/04 08:41:50  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.13  1998/09/01 12:48:02  peter
     * use pdef^.size instead of orddef^.typ

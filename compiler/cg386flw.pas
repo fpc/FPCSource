@@ -45,8 +45,9 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,i386,types,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -193,7 +194,7 @@ implementation
          cleartempgen;
          secondpass(p^.t2);
          if not(simple_loadn) then
-          Message(cg_e_illegal_count_var);
+          CGMessage(cg_e_illegal_count_var);
 
          { produce start assignment }
          cleartempgen;
@@ -466,7 +467,7 @@ do_jmp:
          if aktbreaklabel<>nil then
            emitl(A_JMP,aktbreaklabel)
          else
-           Message(cg_e_break_not_allowed);
+           CGMessage(cg_e_break_not_allowed);
       end;
 
 
@@ -479,7 +480,7 @@ do_jmp:
          if aktcontinuelabel<>nil then
            emitl(A_JMP,aktcontinuelabel)
          else
-           Message(cg_e_continue_not_allowed);
+           CGMessage(cg_e_continue_not_allowed);
       end;
 
 
@@ -541,7 +542,7 @@ do_jmp:
                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                        p^.left^.location.register)));
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               emitcall('FPC_RAISEEXCEPTION',true);
              end
@@ -733,11 +734,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.16  1998-09-14 10:43:48  peter
+  Revision 1.17  1998-09-17 09:42:14  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.16  1998/09/14 10:43:48  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.15  1998/09/04 08:41:39  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.14  1998/09/03 17:08:39  pierre
     * better lines for stabs
@@ -753,25 +758,6 @@ end.
 
   Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
-    * $log$ to $Log$
-    * $log$ to Revision 1.16  1998-09-14 10:43:48  peter
-    * $log$ to   * all internal RTL functions start with FPC_
-    * $log$ to
-    * $log$ to Revision 1.15  1998/09/04 08:41:39  peter
-    * $log$ to   * updated some error messages
-    * $log$ to
-    * $log$ to Revision 1.14  1998/09/03 17:08:39  pierre
-    * $log$ to   * better lines for stabs
-    * $log$ to     (no scroll back to if before else part
-    * $log$ to     no return to case line at jump outside case)
-    * $log$ to   + source lines also if not in order
-    * $log$ to
-    * $log$ to Revision 1.13  1998/09/01 12:47:58  peter
-    * $log$ to   * use pdef^.size instead of orddef^.typ
-    * $log$ to
-    * $log$ to Revision 1.12  1998/08/28 10:56:58  peter
-    * $log$ to   * removed warnings
-    * $log$ to changed
 
   Revision 1.10  1998/08/04 16:26:26  jonas
     * converted // comment to TP comment

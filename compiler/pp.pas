@@ -114,6 +114,7 @@ uses
   {$O globals}
   {$O hcodegen}
   {$O pass_1}
+  {$O pass_2}
   {$O tree}
   {$O types}
   {$O objects}
@@ -153,45 +154,66 @@ uses
   {$endif gdb}
   {$ifdef i386}
         {$O opts386}
-        {$O cgi386}
+        {$O i386}
+        {$O cgai386}
+        {$O tgeni386}
         {$O cg386add}
         {$O cg386cal}
         {$O cg386cnv}
         {$O cg386con}
         {$O cg386flw}
         {$O cg386ld}
+        {$O cg386inl}
         {$O cg386mat}
         {$O cg386set}
-{$ifndef NOOPT}
-        {$O aopt386}
-{$endif NOOPT}
-        {$O cgai386}
-        {$O i386}
-{$IfNDef Nora386dir}
-        {$O ra386dir}
-{$endif Nora386dir}
-{$IfNDef Nora386int}
-        {$O ra386int}
-{$endif Nora386int}
-{$IfNDef Nora386att}
-        {$O ra386att}
-{$endif Nora386att}
-        {$O tgeni386}
-{$ifndef NoAg386Int}
-        {$O ag386int}
-{$endif NoAg386Int}
-        {$O ag386att}
-{$ifndef NoAg386Nsm}
-        {$O ag386nsm}
-{$endif}
+        {$ifndef NOOPT}
+          {$O aopt386}
+        {$endif}
+        {$IfNDef Nora386dir}
+          {$O ra386dir}
+        {$endif}
+        {$IfNDef Nora386int}
+          {$O ra386int}
+        {$endif}
+        {$IfNDef Nora386att}
+          {$O ra386att}
+        {$endif}
+        {$ifndef NoAg386Int}
+          {$O ag386int}
+        {$endif}
+        {$ifndef NoAg386Att}
+          {$O ag386att}
+        {$endif}
+        {$ifndef NoAg386Nsm}
+          {$O ag386nsm}
+        {$endif}
   {$endif}
   {$ifdef m68k}
         {$O opts68k}
-        {$O cg68k}
-        {$O ra68kmot}
-        {$O ag68kgas}
-        {$O ag68kmot}
-        {$O ag68kmit}
+        {$O m68k}
+        {$O cga68k}
+        {$O tgen68k}
+        {$O cg68kadd}
+        {$O cg68kcal}
+        {$O cg68kcnv}
+        {$O cg68kcon}
+        {$O cg68kflw}
+        {$O cg68kld}
+        {$O cg68kinl}
+        {$O cg68kmat}
+        {$O cg68kset}
+        {$IfNDef Nora68kMot}
+          {$O ra68kmot}
+        {$endif}
+        {$IfNDef Noag68kGas}
+          {$O ag68kgas}
+        {$endif}
+        {$IfNDef Noag68kMot}
+          {$O ag68kmot}
+        {$endif}
+        {$IfNDef Noag68kMit}
+          {$O ag68kmit}
+        {$endif}
   {$endif}
 {$endif useoverlay}
 
@@ -234,7 +256,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1998-08-26 15:31:17  peter
+  Revision 1.29  1998-09-17 09:42:41  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.28  1998/08/26 15:31:17  peter
     * heapblocks for >0.99.5
 
   Revision 1.27  1998/08/11 00:00:00  peter

@@ -195,7 +195,7 @@ implementation
          cleartempgen;
          secondpass(p^.t2);
          if not(simple_loadn) then
-          Message(cg_e_illegal_count_var);
+          CGMessage(cg_e_illegal_count_var);
 
          { produce start assignment }
          cleartempgen;
@@ -499,7 +499,7 @@ do_jmp:
          if aktbreaklabel<>nil then
            emitl(A_JMP,aktbreaklabel)
          else
-           Message(cg_e_break_not_allowed);
+           CGMessage(cg_e_break_not_allowed);
       end;
 
 
@@ -512,7 +512,7 @@ do_jmp:
          if aktcontinuelabel<>nil then
            emitl(A_JMP,aktcontinuelabel)
          else
-           Message(cg_e_continue_not_allowed);
+           CGMessage(cg_e_continue_not_allowed);
       end;
 
 
@@ -574,7 +574,7 @@ do_jmp:
                  LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                    p^.left^.location.register,R_SPPUSH)));
-                 else Message(type_e_mismatch);
+                 else CGMessage(type_e_mismatch);
               end;
               emitcall('FPC_RAISEEXCEPTION',true);
              end
@@ -769,7 +769,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:43:58  peter
+  Revision 1.5  1998-09-17 09:42:24  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:43:58  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/04 08:41:47  peter

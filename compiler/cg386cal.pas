@@ -36,10 +36,9 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      aasm,i386,types,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen,
-      cg386ld;
-
+      aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386,cg386ld;
 
 {*****************************************************************************
                              SecondCallParaN
@@ -133,7 +132,7 @@ implementation
               else
                 begin
                    if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-                     Message(type_e_mismatch)
+                     CGMessage(type_e_mismatch)
                    else
                      begin
                        if inlined then
@@ -153,7 +152,7 @@ implementation
          else if (defcoll^.paratyp=vs_var) then
            begin
               if (p^.left^.location.loc<>LOC_REFERENCE) then
-                Message(cg_e_var_must_be_reference);
+                CGMessage(cg_e_var_must_be_reference);
               maybe_push_open_array_high;
               inc(pushedparasize,4);
               if inlined then
@@ -171,7 +170,7 @@ implementation
            begin
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
-               Message(cg_e_file_must_call_by_reference);
+               CGMessage(cg_e_file_must_call_by_reference);
               if (defcoll^.paratyp=vs_const) and
                  dont_copy_const_param(p^.resulttype) then
                 begin
@@ -463,7 +462,7 @@ implementation
                                end;
                           end;
                         else
-                          Message(cg_e_illegal_expression);
+                          CGMessage(cg_e_illegal_expression);
                         end;
                      end;
                    LOC_JUMP:
@@ -760,7 +759,7 @@ implementation
                                     { direct call to inherited method }
                                     if (p^.procdefinition^.options and poabstractmethod)<>0 then
                                       begin
-                                         Message(cg_e_cant_call_abstract_method);
+                                         CGMessage(cg_e_cant_call_abstract_method);
                                          goto dont_call;
                                       end;
                                     { generate no virtual call }
@@ -798,7 +797,7 @@ implementation
                                          if not ((aktprocsym^.definition^.options
                                            and (poconstructor or podestructor))<>0) then
 
-                                          Message(cg_w_member_cd_call_from_method);
+                                          CGMessage(cg_w_member_cd_call_from_method);
                                       end;
                                     if is_con_or_destructor then
                                       push_int(0)
@@ -926,7 +925,7 @@ implementation
                         { always be placed wrong }
                         if is_con_or_destructor then
                           begin
-                             Message(cg_w_member_cd_call_from_method);
+                             CGMessage(cg_w_member_cd_call_from_method);
                              push_int(0);
                           end;
                      end;
@@ -989,7 +988,7 @@ implementation
                 Why? Bp7 Allows it (PFV)
 
               if (p^.procdefinition^.options and poexports)<>0 then
-                Message(cg_e_dont_call_exported_direct);  }
+                CGMessage(cg_e_dont_call_exported_direct);  }
 
               if (not inlined) and ((pushedparasize mod 4)<>0) then
                 begin
@@ -1406,11 +1405,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-09-14 10:43:45  peter
+  Revision 1.24  1998-09-17 09:42:10  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.23  1998/09/14 10:43:45  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.22  1998/09/04 08:41:37  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.21  1998/09/01 12:47:57  peter
     * use pdef^.size instead of orddef^.typ

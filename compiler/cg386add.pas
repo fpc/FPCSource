@@ -31,9 +31,10 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,
-      symtable,aasm,i386,types,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
+      cobjects,verbose,globals,systems,
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                                 Helpers
@@ -266,7 +267,7 @@ implementation
                ungetiftemp(p^.left^.location.reference);
                ungetiftemp(p^.right^.location.reference);
             end;
-            else Message(type_e_mismatch);
+            else CGMessage(type_e_mismatch);
           end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -382,7 +383,7 @@ implementation
                      p^.location.reference:=href;
                    end;
         else
-          Message(type_e_mismatch);
+          CGMessage(type_e_mismatch);
         end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -493,7 +494,7 @@ implementation
                                  falselabel:=ofl;
                               end;
                        else
-                         Message(type_e_mismatch);
+                         CGMessage(type_e_mismatch);
                        end;
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
@@ -511,7 +512,7 @@ implementation
                        goto do_normal;
                     end
              else
-               Message(type_e_mismatch);
+               CGMessage(type_e_mismatch);
              end
            end
          else
@@ -637,7 +638,7 @@ implementation
                                   unsigned:=false;
                                 end
                                else
-                                Message(type_e_mismatch);
+                                CGMessage(type_e_mismatch);
                              end;
                       muln : begin
                                if is_set then
@@ -679,7 +680,7 @@ implementation
                        orn : op:=A_OR;
                       andn : op:=A_AND;
                    else
-                     Message(type_e_mismatch);
+                     CGMessage(type_e_mismatch);
                    end;
 
                    { left and right no register?  }
@@ -904,7 +905,7 @@ implementation
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
-                      else Message(type_e_mismatch);
+                      else CGMessage(type_e_mismatch);
                    end;
                    unsigned:=true;
                    { left and right no register? }
@@ -989,7 +990,7 @@ implementation
                                             op:=A_FCOMPP;
                                             cmpop:=true;
                                          end;
-                       else Message(type_e_mismatch);
+                       else CGMessage(type_e_mismatch);
                     end;
 
                     if (p^.right^.location.loc<>LOC_FPU) then
@@ -1155,7 +1156,7 @@ implementation
                         op:=A_POR;
                       andn:
                         op:=A_PAND;
-                      else Message(type_e_mismatch);
+                      else CGMessage(type_e_mismatch);
                    end;
                    { left and right no register?  }
                    { then one must be demanded    }
@@ -1268,7 +1269,7 @@ implementation
                      end;
                 end
 {$endif SUPPORT_MMX}
-              else Message(type_e_mismatch);
+              else CGMessage(type_e_mismatch);
            end;
        SetResultLocation(cmpop,unsigned,p);
     end;
@@ -1277,7 +1278,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-09-14 10:43:44  peter
+  Revision 1.13  1998-09-17 09:42:09  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.12  1998/09/14 10:43:44  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.11  1998/09/07 18:45:52  peter
@@ -1289,7 +1294,7 @@ end.
       we need an new version of STRCAT which takes a length parameter
 
   Revision 1.9  1998/09/04 08:41:36  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.8  1998/08/28 10:54:18  peter
     * fixed smallset generation from elements, it has never worked before!

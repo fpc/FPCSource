@@ -33,9 +33,9 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      aasm,i386,types,symtable,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen,
-      cg386ld,cg386cal;
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386,cg386ld,cg386cal;
 
 
 {*****************************************************************************
@@ -160,7 +160,7 @@ implementation
                      { save reference in temporary variables }
                      if node^.left^.location.loc<>LOC_REFERENCE then
                        begin
-                          Message(cg_e_illegal_expression);
+                          CGMessage(cg_e_illegal_expression);
                           exit;
                        end;
 
@@ -199,7 +199,7 @@ implementation
                      node:=node^.right;
                      hp^.right:=nil;
                      if hp^.is_colon_para then
-                       Message(parser_e_illegal_colon_qualifier);
+                       CGMessage(parser_e_illegal_colon_qualifier);
                      if ft=ft_typed then
                        never_copy_const_param:=true;
                      secondcallparan(hp,@dummycoll,false,false,0);
@@ -263,7 +263,7 @@ implementation
                                    secondcallparan(hp,@dummycoll,false,false,0);
                                    hp^.right:=node;
                                    if pararesult^.deftype<>floatdef then
-                                     Message(parser_e_illegal_colon_qualifier);
+                                     CGMessage(parser_e_illegal_colon_qualifier);
                                    if codegenerror then
                                      exit;
                                 end
@@ -352,7 +352,7 @@ implementation
                                        bool8bit,
                                       bool16bit,
                                       bool32bit : if  doread then
-                                                    Message(parser_e_illegal_parameter_list)
+                                                    CGMessage(parser_e_illegal_parameter_list)
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_BOOLEAN',true);
                                      end;
@@ -399,7 +399,7 @@ implementation
              begin
                 p^.left:=reversparameter(p^.left);
                 if npara<>nb_para then
-                  Message(cg_f_internal_error_in_secondinline);
+                  CGMessage(cg_f_internal_error_in_secondinline);
                 hp:=p^.left;
                 while assigned(hp) do
                   begin
@@ -929,7 +929,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:43:49  peter
+  Revision 1.5  1998-09-17 09:42:15  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:43:49  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/05 23:03:57  florian
@@ -940,7 +944,7 @@ end.
         const parameters only if they are passed by reference !
 
   Revision 1.2  1998/09/04 08:41:40  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.1  1998/08/31 12:22:14  peter
     * secondinline moved to cg386inl

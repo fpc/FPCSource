@@ -427,7 +427,7 @@ implementation
                        begin
                      if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
                         (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
-                        Message(parser_e_range_check_error);
+                        CGMessage(parser_e_range_check_error);
 
                      dec(p^.left^.location.reference.offset,
                         p^.resulttype^.size*parraydef(p^.left^.resulttype)^.lowrange);
@@ -496,7 +496,7 @@ implementation
               { calculate from left to right }
               if (p^.location.loc<>LOC_REFERENCE) and
                  (p^.location.loc<>LOC_MEM) then
-                Message(cg_e_illegal_expression);
+                CGMessage(cg_e_illegal_expression);
 
               pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
@@ -568,7 +568,7 @@ implementation
            if assigned(p^.location.reference.symbol) then
            begin
               if p^.location.reference.base <> R_NO then
-               Message(cg_f_secondvecn_base_defined_twice);
+               CGMessage(cg_f_secondvecn_base_defined_twice);
               p^.location.reference.base:=getaddressreg;
               exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_LEA,S_L,newcsymbol(p^.location.reference.symbol^,0),
                 p^.location.reference.base)));
@@ -691,7 +691,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:44:02  peter
+  Revision 1.5  1998-09-17 09:42:28  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:44:02  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/11 12:29:44  pierre

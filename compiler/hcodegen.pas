@@ -122,10 +122,10 @@ unit hcodegen;
        codegenerror : boolean;
 
     { message calls with codegenerror support }
-    procedure message(const t : tmsgconst);
-    procedure message1(const t : tmsgconst;const s : string);
-    procedure message2(const t : tmsgconst;const s1,s2 : string);
-    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessage(const t : tmsgconst);
+    procedure cgmessage1(const t : tmsgconst;const s : string);
+    procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
+    procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
 
 
     { initialize respectively terminates the code generator }
@@ -167,7 +167,7 @@ implementation
             override the message calls to set codegenerror
 *****************************************************************************}
 
-    procedure message(const t : tmsgconst);
+    procedure cgmessage(const t : tmsgconst);
       var
          olderrorcount : longint;
       begin
@@ -179,7 +179,7 @@ implementation
            end;
       end;
 
-    procedure message1(const t : tmsgconst;const s : string);
+    procedure cgmessage1(const t : tmsgconst;const s : string);
       var
          olderrorcount : longint;
       begin
@@ -191,7 +191,7 @@ implementation
            end;
       end;
 
-    procedure message2(const t : tmsgconst;const s1,s2 : string);
+    procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
       var
          olderrorcount : longint;
       begin
@@ -203,7 +203,7 @@ implementation
            end;
       end;
 
-    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
       var
          olderrorcount : longint;
       begin
@@ -383,7 +383,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-09-07 18:46:04  peter
+  Revision 1.17  1998-09-17 09:42:37  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.16  1998/09/07 18:46:04  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

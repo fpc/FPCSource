@@ -159,7 +159,7 @@ implementation
                      { save reference in temporary variables }
                      if node^.left^.location.loc<>LOC_REFERENCE then
                        begin
-                          Message(cg_e_illegal_expression);
+                          CGMessage(cg_e_illegal_expression);
                           exit;
                        end;
 
@@ -198,7 +198,7 @@ implementation
                      node:=node^.right;
                      hp^.right:=nil;
                      if hp^.is_colon_para then
-                       Message(parser_e_illegal_colon_qualifier);
+                       CGMessage(parser_e_illegal_colon_qualifier);
                      if ft=ft_typed then
                        never_copy_const_param:=true;
                      secondcallparan(hp,@dummycoll,false);
@@ -262,7 +262,7 @@ implementation
                                    secondcallparan(hp,@dummycoll,false);
                                    hp^.right:=node;
                                    if pararesult^.deftype<>floatdef then
-                                     Message(parser_e_illegal_colon_qualifier);
+                                     CGMessage(parser_e_illegal_colon_qualifier);
                                    if codegenerror then
                                      exit;
                                 end
@@ -351,7 +351,7 @@ implementation
                                        bool8bit,
                                       bool16bit,
                                       bool32bit : if  doread then
-                                                    Message(parser_e_illegal_parameter_list)
+                                                    CGMessage(parser_e_illegal_parameter_list)
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_BOOLEAN',true);
                                      end;
@@ -398,7 +398,7 @@ implementation
              begin
                 p^.left:=reversparameter(p^.left);
                 if npara<>nb_para then
-                  Message(cg_f_internal_error_in_secondinline);
+                  CGMessage(cg_f_internal_error_in_secondinline);
                 hp:=p^.left;
                 while assigned(hp) do
                   begin
@@ -903,11 +903,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-14 10:43:59  peter
+  Revision 1.4  1998-09-17 09:42:26  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.3  1998/09/14 10:43:59  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.2  1998/09/04 08:41:48  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386

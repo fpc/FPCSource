@@ -108,12 +108,12 @@ implementation
          exprasmlist^.concatlist(p^.p_asm);
          if not p^.object_preserved then
           begin
-{$ifdef i386}   
+{$ifdef i386}
             maybe_loadesi;
 {$endif}
 {$ifdef m68k}
             maybe_loada5;
-{$endif}        
+{$endif}
           end;
        end;
 
@@ -215,7 +215,7 @@ implementation
             codegenerror:=false;
             procedures[p^.treetype](p);
             p^.error:=codegenerror;
-        
+
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
             aktfilepos:=oldpos;
@@ -290,7 +290,6 @@ implementation
       var
          i       : longint;
          regsize : topsize;
-         regi    : tregister;
          hr      : preference;
       label
          nextreg;
@@ -388,22 +387,31 @@ implementation
                                   dec(c_usableregs);
 
                                   { possibly no 32 bit register are needed }
-                                  if  (regvars[i]^.definition^.deftype=orddef) and
+                                  { call by reference/const ? }
+                                  if (regvars[i]^.varspez=vs_var) or
+                                     ((regvars[i]^.varspez=vs_const) and
+                                      dont_copy_const_param(regvars[i]^.definition)) then
+                                    begin
+                                       regvars[i]^.reg:=varregs[i];
+                                       regsize:=S_L;
+                                    end
+                                  else
+                                   if (regvars[i]^.definition^.deftype=orddef) and
                                       (porddef(regvars[i]^.definition)^.typ in [bool8bit,uchar,u8bit,s8bit]) then
                                     begin
-{$ifdef i386}                           
+{$ifdef i386}
 
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
-{$endif}                                
+{$endif}
                                        regsize:=S_B;
                                     end
                                   else if  (regvars[i]^.definition^.deftype=orddef) and
                                            (porddef(regvars[i]^.definition)^.typ in [bool16bit,u16bit,s16bit]) then
                                     begin
-{$ifdef i386}                           
+{$ifdef i386}
 
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
-{$endif}                                
+{$endif}
                                        regsize:=S_W;
                                     end
                                   else
@@ -429,7 +437,7 @@ implementation
 {$ifdef m68k}
                                        procinfo.aktentrycode^.concat(new(pai68k,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
-{$endif m68k}                                   
+{$endif m68k}
 
                                        unused:=unused - [regvars[i]^.reg];
                                     end;
@@ -439,7 +447,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
                                   usedinproc:=usedinproc or ($800 shr word(varregs[i]));
-{$endif m68k}                                   
+{$endif m68k}
 
                                end;
                              nextreg:
@@ -475,7 +483,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-07 18:46:07  peter
+  Revision 1.3  1998-09-17 09:42:40  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.2  1998/09/07 18:46:07  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

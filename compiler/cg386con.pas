@@ -40,9 +40,10 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,
-      symtable,aasm,i386,types,
-      hcodegen,cgai386,temp_gen,tgeni386,cgi386;
+      cobjects,verbose,globals,systems,
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondRealConst
@@ -316,7 +317,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-09-07 18:45:53  peter
+  Revision 1.14  1998-09-17 09:42:13  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.13  1998/09/07 18:45:53  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

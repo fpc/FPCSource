@@ -45,9 +45,10 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,
+      cobjects,verbose,globals,systems,
       symtable,aasm,types,
-      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
+      hcodegen,temp_gen,pass_2,
+      cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondLoad
@@ -292,7 +293,7 @@ implementation
               loc:=LOC_CMMXREGISTER;
             else
                begin
-                  Message(cg_e_illegal_expression);
+                  CGMessage(cg_e_illegal_expression);
                   exit;
                end;
          end;
@@ -551,7 +552,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-09-14 10:43:50  peter
+  Revision 1.15  1998-09-17 09:42:16  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.14  1998/09/14 10:43:50  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.13  1998/09/04 12:24:24  florian

@@ -341,7 +341,7 @@ implementation
                            ungetiftemp(p^.left^.location.reference);
                            ungetiftemp(p^.right^.location.reference);
                         end; { end this case }
-                else Message(type_e_mismatch);
+                else CGMessage(type_e_mismatch);
               end; { end case }
 
         SetResultLocation(cmpop,true,p);
@@ -458,7 +458,7 @@ implementation
                      p^.location.reference:=href;
                    end;
         else
-          Message(type_e_mismatch);
+          CGMessage(type_e_mismatch);
         end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -567,7 +567,7 @@ implementation
                                  falselabel:=ofl;
                               end;
                        else
-                         Message(type_e_mismatch);
+                         CGMessage(type_e_mismatch);
                        end;
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
@@ -585,7 +585,7 @@ implementation
                        goto do_normal;
                     end
              else
-               Message(type_e_mismatch);
+               CGMessage(type_e_mismatch);
              end
            end
          else
@@ -691,7 +691,7 @@ implementation
                                   unsigned:=false;
                                 end
                                else
-                                Message(type_e_mismatch);
+                                CGMessage(type_e_mismatch);
                              end;
                       muln : begin
                                if is_set then
@@ -733,7 +733,7 @@ implementation
                        orn : op:=A_OR;
                       andn : op:=A_AND;
                    else
-                     Message(type_e_mismatch);
+                     CGMessage(type_e_mismatch);
                    end;
 
                    { left and right no register?  }
@@ -863,7 +863,7 @@ implementation
                                             end
                                             else
                                             if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
-                                             Message(cg_f_32bit_not_supported_in_68000)
+                                             CGMessage(cg_f_32bit_not_supported_in_68000)
                                             else
                                               emit_reg_reg(op,opsize,p^.right^.location.register,
                                                 p^.location.register);
@@ -892,7 +892,7 @@ implementation
                                             end
                                             else
                                             if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
-                                             Message(cg_f_32bit_not_supported_in_68000)
+                                             CGMessage(cg_f_32bit_not_supported_in_68000)
                                             else
                                             { When one of the source/destination is a memory reference  }
                                             { and the operator is EOR, the we must load it into the     }
@@ -946,7 +946,7 @@ implementation
                              end
                              else
                              if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
-                              Message(cg_f_32bit_not_supported_in_68000)
+                              CGMessage(cg_f_32bit_not_supported_in_68000)
                              else
 
                                exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,
@@ -978,7 +978,7 @@ implementation
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
-                      else Message(type_e_mismatch);
+                      else CGMessage(type_e_mismatch);
                    end;
                    unsigned:=true;
                    { left and right no register? }
@@ -1063,7 +1063,7 @@ implementation
                                             op:=A_FCMP;
                                             cmpop:=true;
                                          end;
-                       else Message(type_e_mismatch);
+                       else CGMessage(type_e_mismatch);
                     end;
 
                     if (p^.left^.location.loc <> LOC_FPU) and
@@ -1254,7 +1254,7 @@ implementation
                  end
 
 
-              else Message(type_e_mismatch);
+              else CGMessage(type_e_mismatch);
            end;
        SetResultLocation(cmpop,unsigned,p);
     end;
@@ -1263,7 +1263,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:43:54  peter
+  Revision 1.5  1998-09-17 09:42:21  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.4  1998/09/14 10:43:54  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/09/07 18:45:55  peter
@@ -1271,7 +1275,7 @@ end.
     * renamed ptree.value vars to value_str,value_real,value_set
 
   Revision 1.2  1998/09/04 08:41:42  peter
-    * updated some error messages
+    * updated some error CGMessages
 
   Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386

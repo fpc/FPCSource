@@ -35,9 +35,10 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,
-      symtable,aasm,i386,
-      types,cgi386,cgai386,tgeni386,hcodegen;
+      cobjects,verbose,globals,systems,
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondModDiv
@@ -558,7 +559,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-09-09 14:37:37  florian
+  Revision 1.7  1998-09-17 09:42:17  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.6  1998/09/09 14:37:37  florian
     * mod/div for cardinal type fixed
 
   Revision 1.5  1998/08/23 16:07:20  florian

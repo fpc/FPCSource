@@ -35,8 +35,9 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,i386,types,
-      cgi386,cgai386,tgeni386,temp_gen,hcodegen;
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      i386,cgai386,tgeni386;
 
      const
        bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
@@ -783,7 +784,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-09-14 10:43:53  peter
+  Revision 1.17  1998-09-17 09:42:20  peter
+    + pass_2 for cg386
+    * Message() -> CGMessage() for pass_1/pass_2
+
+  Revision 1.16  1998/09/14 10:43:53  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.15  1998/09/09 17:51:59  florian
