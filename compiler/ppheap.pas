@@ -52,7 +52,10 @@ unit ppheap;
   procedure pp_heap_init;
     begin
        if not pp_heap_inited then
-         SetExtraInfo(12,ppextra_info);
+         begin
+            setheaptraceoutput('heap.log');
+            SetExtraInfo(12,ppextra_info);
+         end;
        pp_heap_inited:=true;
     end;
 
@@ -62,7 +65,10 @@ unit ppheap;
 
 {
   $Log$
-  Revision 1.5  1999-01-26 11:32:13  pierre
+  Revision 1.6  1999-05-17 15:09:28  pierre
+   * heaptrc output to heap.log file
+
+  Revision 1.5  1999/01/26 11:32:13  pierre
    * ppheap init code can be called before any getmem
 
 }
