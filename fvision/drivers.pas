@@ -77,8 +77,11 @@ USES
    {$ENDIF}
 
    video,
+{$ifdef HasSysMsgUnit}
+   SysMsg,
+{$endif HasSysMsgUnit}
 {$IFDEF GRAPH_API}                                    { GRAPH CODE }
-  Graph,                                           { Standard unit }
+   Graph,                                             { Standard unit }
 {$ENDIF}
    GFVGraph,                                          { GFV graphics unit }
    FVCommon, Objects;                                 { GFV standard units }
@@ -410,6 +413,15 @@ and the button and double click variables are set appropriately.
 ---------------------------------------------------------------------}
 PROCEDURE GetMouseEvent (Var Event: TEvent);
 
+{$ifdef HasSysMsgUnit}
+{-GetSystemEvent------------------------------------------------------
+Checks whether a system event is available. If a system event has occurred,
+Event.What is set to evCommand appropriately
+10Oct2000 PM
+---------------------------------------------------------------------}
+procedure GetSystemEvent (Var Event: TEvent);
+{$endif HasSysMsgUnit}
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      EVENT HANDLER CONTROL ROUTINES                       }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -573,11 +585,11 @@ VAR
    MouseButtons: Byte;                                { Mouse button state }
    ScreenWidth : Byte;                                { Screen text width }
    ScreenHeight: Byte;                                { Screen text height }
-{$ifdef GRAPH_API}
+{$IFNDEF Use_Video_API}
    ScreenMode  : Sw_Word;                                { Screen mode }
-{$else not GRAPH_API}
+{$Else Use_Video_API}
    ScreenMode  : TVideoMode;                         { Screen mode }
-{$endif GRAPH_API}
+{$Endif Use_Video_API}
    MouseWhere  : TPoint;                              { Mouse position }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -585,6 +597,7 @@ VAR
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 { API Units }
   USES
+  FVConsts,
   Keyboard,Mouse;
 
 {***************************************************************************}
@@ -1136,14 +1149,12 @@ begin
        MouseActionDown :
          begin
            Event.What:=evMouseDown;
-           if (DownButtons=e.Buttons) and
-              (LastWhere.X=MouseWhere.X) and
-              (LastWhere.Y=MouseWhere.Y) and
+           if (DownButtons=e.Buttons) and (LastWhere.X=MouseWhere.X) and (LastWhere.Y=MouseWhere.Y) and
               (GetDosTicks-DownTicks<=DoubleDelay) then
              Event.Double:=true;
            DownButtons:=e.Buttons;
-           DownWhere.X:=MouseWhere.X;
-           DownWhere.Y:=MouseWhere.Y;
+           DownWhere.X:=MouseWhere.x;
+           DownWhere.Y:=MouseWhere.y;
            DownTicks:=GetDosTicks;
            AutoTicks:=GetDosTicks;
            if AutoTicks=0 then
@@ -1152,13 +1163,14 @@ begin
          end;
        MouseActionUp :
          begin
+           AutoTicks:=0;
            Event.What:=evMouseUp;
            AutoTicks:=0;
          end;
      end;
      Event.Buttons:=e.Buttons;
-     Event.Where.X:=MouseWhere.X;
-     Event.Where.Y:=MouseWhere.Y;
+     Event.Where.X:=MouseWhere.x;
+     Event.Where.Y:=MouseWhere.y;
      LastButtons:=Event.Buttons;
      LastWhere.x:=Event.Where.x;
      LastWhere.y:=Event.Where.y;
@@ -1175,6 +1187,41 @@ begin
   else
    FillChar(Event,sizeof(TEvent),0);
 end;
+
+{$ifdef HasSysMsgUnit}
+{---------------------------------------------------------------------------}
+{  GetSystemEvent                                                           }
+{---------------------------------------------------------------------------}
+procedure GetSystemEvent (Var Event: TEvent);
+var
+  SysEvent : TsystemEvent;
+begin
+  if PollSystemEvent(SysEvent) then
+    case SysEvent.typ of
+      SysNothing :
+        Event.What:=evNothing;
+      SysSetFocus :
+        Event.What:=cmReceivedFocus;
+      SysReleaseFocus :
+        Event.What:=cmReleasedFocus;
+      SysClose :
+        begin
+          Event.What:=evCommand;
+          Event.Command:=cmQuitApp;
+        end;
+      SysResize :
+        begin
+          Event.What:=evCommand;
+          Event.Command:=cmResizeApp;
+          Event.Id:=SysEvent.x;
+          Event.InfoWord:=SysEvent.y;
+        end;
+    else
+      Event.What:=evNothing;
+    end;
+end;
+{$endif HasSysMsgUnit}
+
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      EVENT HANDLER CONTROL ROUTINES                       }
@@ -1218,45 +1265,69 @@ END;
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
-VAR {$ifdef Use_Video_API}I, J: Sw_Integer;
-    {$else not Use_Video_API}
-    {$IFDEF OS_DOS} I, J: Integer;Ts: TextSettingsType;{$ENDIF}
-    {$IFDEF OS_WINDOWS} Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric; {$ENDIF}
-    {$IFDEF OS_OS2} Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
-    {$ENDIF}
+VAR
+{$ifdef GRAPH_API}
+  I, J: Integer;
+  Ts : TextSettingsType;
+{$else not GRAPH_API}
+  I, J: Integer;
+{$IFDEF OS_DOS}
+  Ts: TextSettingsType;
+{$ENDIF}
+{$IFDEF OS_WINDOWS}
+  Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric;
+{$ENDIF}
+{$IFDEF OS_OS2}
+  Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics;
+{$ENDIF}
+{$ENDIF}
 BEGIN
 {$ifdef GRAPH_API}
+if Not TextmodeGFV then
+  begin
     I := Detect;                                   { Detect video card }
     J := 0;                                        { Zero select mode }
     InitGraph(I, J, '');                           { Initialize graphics }
     I := Graph.GetMaxX;                            { Fetch max x size }
     J := Graph.GetMaxY;                            { Fetch max y size }
-       If (DefFontHeight = 0) Then                    { Font height not set }
-         J := (Graph.GetMaxY+1) DIV DefLineNum        { Approx font height }
-         Else J := DefFontHeight;                     { Use set font height }
-       I := J DIV (TextHeight('H')+4);                { Approx magnification }
-       If (I < 1) Then I := 1;                        { Must be 1 or above }
-       GetTextSettings(Ts);                           { Get text style }
-       SetTextStyle(Ts.Font, Ts.Direction, I);        { Set new font settings }
-       SysFontWidth := TextWidth('H');                { Transfer font width }
-       SysFontHeight := TextHeight('H')+4;            { Transfer font height }
-       ScreenWidth := (SysScreenWidth+1) DIV
-         SysFontWidth;                                { Calc screen width }
-       ScreenHeight := (SysScreenHeight+1) DIV
-         SysFontHeight;                               { Calc screen height }
-{$else not GRAPH_API}
-   Video.InitVideo;
-   ScreenWidth:=Video.ScreenWidth;
-   ScreenHeight:=Video.ScreenHeight;
-   SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
-   GetVideoMode(ScreenMode);
-   I := ScreenWidth*8 -1;                         { Mouse width }
-   J := ScreenHeight*8 -1;                        { Mouse height }
-   SysScreenWidth := I + 1;
-   SysScreenHeight := J + 1;
-   SysFontWidth := 8;                             { Font width }
-   SysFontHeight := 8;                            { Font height }
-{$endif not GRAPH_API}
+    If (DefFontHeight = 0) Then                    { Font height not set }
+      J := (Graph.GetMaxY+1) DIV DefLineNum        { Approx font height }
+      Else J := DefFontHeight;                     { Use set font height }
+    I := J DIV (TextHeight('H')+4);                { Approx magnification }
+    If (I < 1) Then I := 1;                        { Must be 1 or above }
+    GetTextSettings(Ts);                           { Get text style }
+    SetTextStyle(Ts.Font, Ts.Direction, I);        { Set new font settings }
+    SysFontWidth := TextWidth('H');                { Transfer font width }
+    SysFontHeight := TextHeight('H')+4;            { Transfer font height }
+    ScreenWidth := (SysScreenWidth+1) DIV
+      SysFontWidth;                                { Calc screen width }
+    ScreenHeight := (SysScreenHeight+1) DIV
+      SysFontHeight;                               { Calc screen height }
+{$ifdef USE_VIDEO_API}
+    ScreenMode.color:=true;
+    ScreenMode.col:=ScreenWidth;
+    ScreenMode.row:=ScreenHeight;
+{$endif USE_VIDEO_API}
+  end
+else
+{$endif GRAPH_API}
+  begin
+    Video.InitVideo;
+    ScreenWidth:=Video.ScreenWidth;
+    ScreenHeight:=Video.ScreenHeight;
+    SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
+{$ifndef USE_VIDEO_API}
+   {ScreenMode  : Sw_Word;   }                             { Screen mode }
+{$else not USE_VIDEO_API}
+    GetVideoMode(ScreenMode);
+{$endif USE_VIDEO_API}
+    I := ScreenWidth*8 -1;                         { Mouse width }
+    J := ScreenHeight*8 -1;                        { Mouse height }
+    SysScreenWidth := I + 1;
+    SysScreenHeight := J + 1;
+    SysFontWidth := 8;                             { Font width }
+    SysFontHeight := 8;                            { Font height }
+  end;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1264,13 +1335,16 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneVideo;
 BEGIN
-   {$ifdef GRAPH_API}
-    CloseGraph;
-   {$else not GRAPH_API}
-   {$ifdef USE_video_api}
-   Video.DoneVideo;
-   {$endif USE_video_api}
-   {$endif not GRAPH_API}
+{$ifdef GRAPH_API}
+  if Not TextmodeGFV then
+    CloseGraph
+  else
+{$endif GRAPH_API}
+{$ifdef USE_video_api}
+    Video.DoneVideo;
+{$else not USE_video_api}
+   ; { nothing to do }
+{$endif not USE_video_api}
 END;
 
 {---------------------------------------------------------------------------}
@@ -1278,9 +1352,16 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE ClearScreen;
 BEGIN
-   {$ifndef GRAPH_API}
+{$ifdef GRAPH_API}
+  if Not TextmodeGFV then
+    Graph.ClearDevice
+  else
+{$endif GRAPH_API}
+{$ifdef USE_video_api}
     Video.ClearScreen;
-   {$endif GRAPH_API}
+{$else not USE_video_api}
+   ; { nothing to do }
+{$endif not USE_video_api}
 END;
 
 {---------------------------------------------------------------------------}
@@ -1489,7 +1570,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.14  2002-05-16 20:21:50  pierre
+ Revision 1.15  2002-05-21 12:21:53  pierre
+  * fix various graphic problems
+
+ Revision 1.14  2002/05/16 20:21:50  pierre
   + fix for bug report 1953 adapted from S Wiktor
 
  Revision 1.13  2001/10/02 16:35:50  pierre

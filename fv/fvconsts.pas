@@ -182,6 +182,7 @@ const
   cmNewVideo      = 47;
   cmTransfer      = 48;
   cmResizeApp     = 49;
+  cmQuitApp       = 57;
 
   cmRecordHistory  = 60;
   cmGrabDefault    = 61;
@@ -625,7 +626,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-05-21 12:00:49  pierre
+  Revision 1.4  2002-05-21 12:21:53  pierre
+   * fix various graphic problems
+
+  Revision 1.3  2002/05/21 12:00:49  pierre
    + cmResizeApp added
 
   Revision 1.2  2001/08/05 02:03:13  peter
