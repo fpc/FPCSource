@@ -34,6 +34,7 @@ unit cpupi;
     type
        ti386procinfo = class(tcgprocinfo)
           procedure allocate_interrupt_stackframe;override;
+          procedure allocate_framepointer;override;
        end;
 
 
@@ -50,12 +51,28 @@ unit cpupi;
          inc(procdef.parast.address_fixup,8+6*4+4*2);
       end;
 
+
+    procedure ti386procinfo.allocate_framepointer;
+      begin
+        if framepointer.number=NR_EBP then
+          begin
+            { Make sure the register allocator won't allocate registers
+              into ebp }
+            include(rg.usedintinproc,RS_EBP);
+            exclude(rg.unusedregsint,RS_EBP);
+          end;
+      end;
+
+
 begin
    cprocinfo:=ti386procinfo;
 end.
 {
   $Log$
-  Revision 1.5  2003-05-25 10:26:15  peter
+  Revision 1.6  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.5  2003/05/25 10:26:15  peter
     * fix interrupt stack allocation
 
   Revision 1.4  2003/05/22 21:32:29  peter

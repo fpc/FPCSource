@@ -1269,7 +1269,7 @@ unit cgobj;
             begin
 {$ifdef newra}
               tmpreg := rg.getregisterint(list,size);
-              a_load_ref_reg(list,size,loc.reference,tmpreg);
+              a_load_ref_reg(list,size,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
               rg.ungetregisterint(list,tmpreg);
 {$else newra}
@@ -1718,7 +1718,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.109  2003-06-07 18:57:04  jonas
+  Revision 1.110  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.109  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

@@ -153,7 +153,7 @@ implementation
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
                     {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,hregister);
-                       r:=rg.getexplicitregisterint(exprasmlist,NR_EAX);
+                       r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                     {$endif}
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
@@ -953,7 +953,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-06-09 16:41:52  jonas
+  Revision 1.70  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.69  2003/06/09 16:41:52  jonas
     * fixed regvar optimization for call_by_reference parameters (no need
       to load address in another register)
 

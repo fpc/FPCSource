@@ -53,6 +53,8 @@ uses
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
+         function is_nop:boolean;override;
+         function is_move:boolean;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -228,6 +230,20 @@ implementation
       end;
 
 
+    function taicpu.is_nop:boolean;
+      begin
+        result:=(opcode=A_NOP);
+      end;
+
+
+    function taicpu.is_move:boolean;
+      begin
+        result:=(opcode=A_MOV) and
+                (oper[0].typ=top_reg) and
+                (oper[1].typ=top_reg);
+      end;
+
+
     procedure InitAsm;
       begin
       end;
@@ -240,7 +256,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-06-01 01:03:41  peter
+  Revision 1.29  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.28  2003/06/01 01:03:41  peter
     * remove unsupported combinations
     * reg_ref_reg only allowed for refs_lo,refs_hi
 

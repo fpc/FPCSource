@@ -96,13 +96,17 @@ interface
         secondpass(left);
 
         { are too few registers free? }
+{$ifndef newra}
         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+{$endif}
         if location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
         secondpass(right);
+{$ifndef newra}
         maybe_restore(exprasmlist,left.location,pushedregs);
+{$endif}
         if pushedfpu then
           begin
             tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
@@ -240,7 +244,11 @@ interface
                       left.location.register,location.register)
                   else
                     begin
+{$ifdef newra}
+                      tmpreg := rg.getregisterint(exprasmlist,size);
+{$else}
                       tmpreg := cg.get_scratch_reg_int(exprasmlist,size);
+{$endif}
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -250,7 +258,11 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
                           aword(left.location.value),tmpreg,location.register);
+{$ifdef newra}
+                      rg.ungetregisterint(exprasmlist,tmpreg);
+{$else}
                       cg.free_scratch_reg(exprasmlist,tmpreg);
+{$endif}
                     end;
                   opdone := true;
                 end
@@ -280,13 +292,21 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
+{$ifdef newra}
+                      tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$else}
                       tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$endif}
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_INT,right.location.register,right.location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_AND,OS_INT,right.location.register,tmpreg);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tmpreg,location.register);
+{$ifdef newra}
+                      rg.ungetregisterint(exprasmlist,tmpreg);
+{$else}
                       cg.free_scratch_reg(exprasmlist,tmpreg);
+{$endif}
                     end
                   else
                     begin
@@ -375,7 +395,9 @@ interface
                falselabel:=ofl;
              end;
 
+{$ifndef newra}
             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+{$endif}
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -385,7 +407,9 @@ interface
                  objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
+{$ifndef newra}
             maybe_restore(exprasmlist,left.location,pushedregs);
+{$endif}
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,cgsize,false);
             if isjump then
@@ -730,12 +754,20 @@ interface
             end
           else
             begin
+{$ifdef newra}
+              tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$else}
               tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$endif}
               cg.a_load_const_reg(exprasmlist,OS_INT,
                 aword(left.location.value),tmpreg);
               cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                 right.location.register,tmpreg,location.register);
+{$ifdef newra}
+              rg.ungetregisterint(exprasmlist,tmpreg);
+{$else}
               cg.free_scratch_reg(exprasmlist,tmpreg);
+{$endif}
             end;
         end;
 
@@ -797,7 +829,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-06-10 20:46:17  mazen
+  Revision 1.13  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.12  2003/06/10 20:46:17  mazen
   * fixing a general compile problem related to
     cg.g_overflowcheck declaration that has
     changed

@@ -114,9 +114,13 @@ unit cgbase;
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
-          procedure allocate_interrupt_stackframe;virtual;
+          procedure allocate_interrupt_parameter;virtual;
 
           procedure allocate_implicit_parameter;virtual;
+
+          { Allocate framepointer so it can not be used by the
+            register allocator }
+          procedure allocate_framepointer;virtual;
 
           { Does the necessary stuff before a procedure body is compiled }
           procedure handle_body_start;virtual;
@@ -336,7 +340,12 @@ implementation
       end;
 
 
-    procedure tprocinfo.allocate_interrupt_stackframe;
+    procedure tprocinfo.allocate_interrupt_parameter;
+      begin
+      end;
+
+
+    procedure tprocinfo.allocate_framepointer;
       begin
       end;
 
@@ -539,7 +548,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-06-09 12:23:29  peter
+  Revision 1.55  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.54  2003/06/09 12:23:29  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally

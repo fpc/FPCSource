@@ -78,9 +78,13 @@ implementation
 
       begin
          secondpass(left);
+{$ifndef newra}
          maybe_save(exprasmlist,right.registers32,left.location,saved);
+{$endif}
          secondpass(right);
+{$ifndef newra}
          maybe_restore(exprasmlist,left.location,saved);
+{$endif}
          location_copy(location,left.location);
 
          { put numerator in register }
@@ -97,20 +101,32 @@ implementation
            end;
          if (nodetype = modn) then
            begin
+{$ifdef newra}
+             resultreg := rg.getregisterint(exprasmlist,OS_INT);
+{$else}
              resultreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$endif}
            end;
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
+{$ifdef newra}
+             tmpreg:=rg.getregisterint(exprasmlist,OS_INT);
+{$else}
              tmpreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$endif}
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
              { if signed, tmpreg=right value-1, otherwise 0 }
              cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
              { add to the left value }
              cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
+{$ifdef newra}
+             rg.ungetregisterint(exprasmlist,tmpreg);
+{$else}
              cg.free_scratch_reg(exprasmlist,tmpreg);
+{$endif}
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
            end
          else
@@ -135,7 +151,11 @@ implementation
                rg.UnGetRegisterInt(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
+{$ifdef newra}
+               rg.ungetregisterint(exprasmlist,resultreg);
+{$else}
                cg.free_scratch_reg(exprasmlist,resultreg);
+{$endif}
                resultreg := location.register;
              end
            else
@@ -171,9 +191,13 @@ procedure tSparcshlshrnode.pass_2;
     r:Tregister;
   begin
     secondpass(left);
+{$ifndef newra}
     maybe_save(exprasmlist,right.registers32,left.location,saved);
+{$endif}
     secondpass(right);
+{$ifndef newra}
     maybe_restore(exprasmlist,left.location,saved);
+{$endif}
     if is_64bitint(left.resulttype.def)
     then
       begin
@@ -181,8 +205,7 @@ procedure tSparcshlshrnode.pass_2;
         location_copy(location,left.location);
         hregisterhigh := location.registerhigh;
         hregisterlow := location.registerlow;
-        if (location.loc = LOC_CREGISTER)
-        then
+        if (location.loc = LOC_CREGISTER) then
           begin
             location.loc := LOC_REGISTER;
             location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -228,8 +251,7 @@ procedure tSparcshlshrnode.pass_2;
           begin
             location_force_reg(exprasmlist,right.location,OS_S32,true);
             hregister1 := right.location.register;
-            if nodetype = shln
-            then
+            if nodetype = shln then
               begin
                 asmop1 := A_SLL;
                 asmop2 := A_SRL;
@@ -242,24 +264,7 @@ procedure tSparcshlshrnode.pass_2;
                 location.registerhigh := location.registerlow;
                 location.registerlow := resultreg;
               end;
-            //rg.getexplicitregisterint(exprasmlist,NR_O0);
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_O0;
 {$warning TODO shl 64bit no-const}
-{            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_0,hregister1,32));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerhigh,hregisterhigh,hregister1));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,R_0,hregisterlow,R_0));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,location.registerhigh,location.registerhigh,R_0));
-            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBI,R_0,hregister1,32));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,R_0,hregisterlow,R_0));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,location.registerhigh,location.registerhigh,R_0));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerlow,hregisterlow,hregister1));}
-            rg.UnGetRegisterInt(exprasmlist,r);
-            if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]
-            then
-              cg.free_scratch_reg(exprasmlist,hregister1)
-            else
-              rg.UnGetRegisterInt(exprasmlist,hregister1);
           end
       end
     else
@@ -352,7 +357,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-06-04 20:59:37  mazen
+  Revision 1.11  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.10  2003/06/04 20:59:37  mazen
   + added size of destination in code gen methods
   + making g_overflowcheck declaration same as
     ancestor's method declaration

@@ -1090,11 +1090,10 @@ implementation
 
              { Update parameter information }
              current_procinfo.allocate_implicit_parameter;
-{$ifdef i386}
+
              { add implicit pushes for interrupt routines }
              if (po_interrupt in pd.procoptions) then
-               current_procinfo.allocate_interrupt_stackframe;
-{$endif i386}
+               current_procinfo.allocate_interrupt_parameter;
 
              { Calculate offsets }
              current_procinfo.after_header;
@@ -1269,7 +1268,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2003-06-09 12:23:30  peter
+  Revision 1.126  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.125  2003/06/09 12:23:30  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally

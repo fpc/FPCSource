@@ -1238,18 +1238,20 @@ unit rgobj;
 
 
     procedure trgobj.makeregvarint(reg:Tsuperregister);
-    begin
-      dec(countusableregsint);
-    {$ifndef newra}
-      dec(countunusedregsint);
-    {$endif}
-      exclude(usableregsint,reg);
-      exclude(unusedregsint,reg);
-      include(is_reg_var_int,reg);
-{$ifndef i386}
-      include(usedintbyproc,reg);
-{$endif not i386}
-    end;
+      begin
+        dec(countusableregsint);
+      {$ifndef newra}
+        dec(countunusedregsint);
+      {$endif}
+        exclude(usableregsint,reg);
+        exclude(unusedregsint,reg);
+        include(is_reg_var_int,reg);
+{$ifndef newra}
+  {$ifndef i386}
+        include(usedintbyproc,reg);
+  {$endif not i386}
+{$endif newra}
+      end;
 
     procedure trgobj.makeregvarother(reg: tregister);
       begin
@@ -1594,7 +1596,8 @@ unit rgobj;
 
     begin
       d:=degree[m];
-      dec(degree[m]);
+      if degree[m]>0 then
+        dec(degree[m]);
       if d=cpu_registers then
         begin
           {Enable moves for m.}
@@ -2463,7 +2466,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-06-09 14:54:26  jonas
+  Revision 1.52  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.51  2003/06/09 14:54:26  jonas
     * (de)allocation of registers for parameters is now performed properly
       (and checked on the ppc)
     - removed obsolete allocation of all parameter registers at the start

@@ -139,7 +139,11 @@ implementation
            (ref.offset<simm13lo) or
            (ref.offset>simm13hi) then
           begin
+{$ifdef newra}
+            tmpreg:=rg.getregisterint(list,OS_INT);
+{$else}
             tmpreg:=get_scratch_reg_int(list,OS_INT);
+{$endif}
             reference_reset(tmpref);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
@@ -175,7 +179,13 @@ implementation
                ((ref.offset<>0) or assigned(ref.symbol)) then
               begin
                 if tmpreg.number=NR_NO then
-                  tmpreg:=get_scratch_reg_int(list,OS_INT);
+                  begin
+{$ifdef newra}
+                    tmpreg:=rg.getregisterint(list,OS_INT);
+{$else}
+                    tmpreg:=get_scratch_reg_int(list,OS_INT);
+{$endif}
+                  end;
                 if (ref.index.number<>NR_NO) then
                   begin
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
@@ -188,7 +198,13 @@ implementation
         else
           list.concat(taicpu.op_ref_reg(op,ref,reg));
         if (tmpreg.number<>NR_NO) then
-          free_scratch_reg(list,tmpreg);
+          begin
+{$ifdef newra}
+            rg.ungetregisterint(list,tmpreg);
+{$else}
+            free_scratch_reg(list,tmpreg);
+{$endif}
+          end;
       end;
 
 
@@ -199,11 +215,19 @@ implementation
         if (longint(a)<simm13lo) or
            (longint(a)>simm13hi) then
           begin
+{$ifdef newra}
+            tmpreg:=rg.getregisterint(list,OS_INT);
+{$else}
             tmpreg:=get_scratch_reg_int(list,OS_INT);
+{$endif}
             list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,tmpreg));
             list.concat(taicpu.op_reg_const_reg(A_OR,tmpreg,a and aword($3ff),tmpreg));
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
+{$ifdef newra}
+            rg.ungetregisterint(list,tmpreg);
+{$else}
             free_scratch_reg(list,tmpreg);
+{$endif}
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -260,10 +284,18 @@ implementation
                 reference_reset(ref);
                 ref.base:=locpara.reference.index;
                 ref.offset:=locpara.reference.offset;
+{$ifdef newra}
+                tmpreg:=rg.getregisterint(list,OS_INT);
+{$else}
                 tmpreg := get_scratch_reg_int(list,sz);
+{$endif}
                 a_load_ref_reg(list,sz,sz,r,tmpreg);
                 a_load_reg_ref(list,sz,sz,tmpreg,ref);
+{$ifdef newra}
+                rg.ungetregisterint(list,tmpreg);
+{$else}
                 free_scratch_reg(list,tmpreg);
+{$endif}
               end;
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
               begin
@@ -295,10 +327,18 @@ implementation
               reference_reset(ref);
               ref.base := locpara.reference.index;
               ref.offset := locpara.reference.offset;
+{$ifdef newra}
+              tmpreg:=rg.getaddressregister(list);
+{$else}
               tmpreg := get_scratch_reg_address(list);
+{$endif}
               a_loadaddr_ref_reg(list,r,tmpreg);
               a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
+{$ifdef newra}
+              rg.ungetregisterint(list,tmpreg);
+{$else}
               free_scratch_reg(list,tmpreg);
+{$endif}
             end;
           else
             internalerror(2002080701);
@@ -613,28 +653,32 @@ implementation
       end;
 
 
-procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
-  begin
-    List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
-  end;
-procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
-  var
-    ai:TAiCpu;
-  begin
-    ai:=TAiCpu.Op_sym(A_BA,l);
-    ai.SetCondition(TOpCmp2AsmCond[cond]);
-    list.Concat(ai);
-    list.Concat(TAiCpu.Op_none(A_NOP));
-  end;
-procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
-  var
-    ai:taicpu;
-  begin
-    ai := Taicpu.op_sym(A_BA,l);
-    ai.SetCondition(flags_to_cond(f));
-    list.Concat(ai);
-    list.Concat(TAiCpu.Op_none(A_NOP));
-  end;
+    procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
+      begin
+        List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
+      end;
+
+
+    procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
+      var
+        ai:TAiCpu;
+      begin
+        ai:=TAiCpu.Op_sym(A_BA,l);
+        ai.SetCondition(TOpCmp2AsmCond[cond]);
+        list.Concat(ai);
+        list.Concat(TAiCpu.Op_none(A_NOP));
+      end;
+
+
+    procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
+      var
+        ai:taicpu;
+      begin
+        ai := Taicpu.op_sym(A_BA,l);
+        ai.SetCondition(flags_to_cond(f));
+        list.Concat(ai);
+        list.Concat(TAiCpu.Op_none(A_NOP));
+      end;
 
 
     procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);
@@ -648,100 +692,100 @@ procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
         list.Concat(ai);
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
-procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
-  var
-    hl : tasmlabel;
-    r:Tregister;
-  begin
-    if not(cs_check_overflow in aktlocalswitches)
-    then
-      exit;
-    objectlibrary.getlabel(hl);
-    if not((def.deftype=pointerdef)or
-          ((def.deftype=orddef)and
-           (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit])))
-    then
+
+
+    procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
+      var
+        hl : tasmlabel;
+        r  : Tregister;
       begin
-        //r.enum:=R_CR7;
-        //list.concat(taicpu.op_reg(A_MCRXR,r));
-        //a_jmp_cond(list,A_BA,C_OV,hl)
-        a_jmp_always(list,hl)
-      end
-    else
-      a_jmp_cond(list,OC_AE,hl);
-    a_call_name(list,'FPC_OVERFLOW');
-    a_label(list,hl);
-  end;
+        if not(cs_check_overflow in aktlocalswitches) then
+          exit;
+        objectlibrary.getlabel(hl);
+        if not((def.deftype=pointerdef)or
+              ((def.deftype=orddef)and
+               (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+          begin
+            //r.enum:=R_CR7;
+            //list.concat(taicpu.op_reg(A_MCRXR,r));
+            //a_jmp_cond(list,A_BA,C_OV,hl)
+            a_jmp_always(list,hl)
+          end
+        else
+          a_jmp_cond(list,OC_AE,hl);
+        a_call_name(list,'FPC_OVERFLOW');
+        a_label(list,hl);
+      end;
 
   { *********** entry/exit code and address loading ************ }
 
-  procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
-    var
-      r : tregister;
-    begin
-      { Althogh the SPARC architecture require only word alignment, software
-        convention and the operating system require every stack frame to be double word
-        aligned }
-      LocalSize:=align(LocalSize,8);
-      { Execute the SAVE instruction to get a new register window and create a new
-        stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
-        before execution of the SAVE instrucion so it is the caller %i6, when the %i6
-        after execution of that instruction is the called function stack pointer}
-      r.enum:=R_INTREGISTER;
-      r.number:=NR_STACK_POINTER_REG;
-      list.concat(Taicpu.Op_reg_const_reg(A_SAVE,r,aword(-LocalSize),r));
-    end;
+    procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
+      var
+        r : tregister;
+      begin
+        { Althogh the SPARC architecture require only word alignment, software
+          convention and the operating system require every stack frame to be double word
+          aligned }
+        LocalSize:=align(LocalSize,8);
+        { Execute the SAVE instruction to get a new register window and create a new
+          stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
+          before execution of the SAVE instrucion so it is the caller %i6, when the %i6
+          after execution of that instruction is the called function stack pointer}
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_STACK_POINTER_REG;
+        list.concat(Taicpu.Op_reg_const_reg(A_SAVE,r,aword(-LocalSize),r));
+      end;
 
 
-  procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;accused,acchiused:boolean);
-    begin
-      { The sparc port uses the sparc standard calling convetions so this function has no used }
-    end;
+    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;accused,acchiused:boolean);
+      begin
+        { The sparc port uses the sparc standard calling convetions so this function has no used }
+      end;
 
 
-  procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
-    begin
-       { This function intontionally does nothing as frame pointer is restored in the
-         delay slot of the return instrucion done in g_return_from_proc}
-    end;
+    procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
+      begin
+         { This function intontionally does nothing as frame pointer is restored in the
+           delay slot of the return instrucion done in g_return_from_proc}
+      end;
 
 
-  procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);
-    begin
-      { The sparc port uses the sparc standard calling convetions so this function has no used }
-    end;
+    procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);
+      begin
+        { The sparc port uses the sparc standard calling convetions so this function has no used }
+      end;
 
 
-  procedure TCgSparc.g_return_from_proc(list:TAasmOutput;parasize:aword);
-    begin
-      { According to the SPARC ABI, the stack is cleared using the RESTORE instruction
-        which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
-        real RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
-        delay slot, so an inversion is possible such as
-        RET      (=JMPL  %i7+8,%g0)
-        RESTORE  (=RESTORE %g0,0,%g0)
-        If no inversion we can use just
-        RESTORE  (=RESTORE %g0,0,%g0)
-        RET      (=JMPL  %i7+8,%g0)
-        NOP
-      }
-      list.concat(Taicpu.op_none(A_RET));
-      { We use trivial restore in the delay slot of the JMPL instruction, as we
-        already set result onto %i0 }
-      list.concat(Taicpu.op_none(A_RESTORE));
-    end;
+    procedure TCgSparc.g_return_from_proc(list:TAasmOutput;parasize:aword);
+      begin
+        { According to the SPARC ABI, the stack is cleared using the RESTORE instruction
+          which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
+          real RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
+          delay slot, so an inversion is possible such as
+          RET      (=JMPL  %i7+8,%g0)
+          RESTORE  (=RESTORE %g0,0,%g0)
+          If no inversion we can use just
+          RESTORE  (=RESTORE %g0,0,%g0)
+          RET      (=JMPL  %i7+8,%g0)
+          NOP
+        }
+        list.concat(Taicpu.op_none(A_RET));
+        { We use trivial restore in the delay slot of the JMPL instruction, as we
+          already set result onto %i0 }
+        list.concat(Taicpu.op_none(A_RESTORE));
+      end;
 
 
-  procedure TCgSparc.g_save_all_registers(list : taasmoutput);
-    begin
-      { The sparc port uses the sparc standard calling convetions so this function has no used }
-    end;
+    procedure TCgSparc.g_save_all_registers(list : taasmoutput);
+      begin
+        { The sparc port uses the sparc standard calling convetions so this function has no used }
+      end;
 
 
-  procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc:Tsupregset);
-    begin
-      { The sparc port uses the sparc standard calling convetions so this function has no used }
-    end;
+    procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc:Tsupregset);
+      begin
+        { The sparc port uses the sparc standard calling convetions so this function has no used }
+      end;
 
 
     { ************* concatcopy ************ }
@@ -786,7 +830,11 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
         { load the address of source into src.base }
         if loadref then
           begin
+{$ifdef newra}
+            src.base:=rg.getaddressregister(list);
+{$else}
             src.base := get_scratch_reg_address(list);
+{$endif}
             a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
@@ -797,7 +845,11 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
               ((source.offset+longint(len))>high(smallint))
             ) then
            begin
+{$ifdef newra}
+             src.base:=rg.getaddressregister(list);
+{$else}
              src.base := get_scratch_reg_address(list);
+{$endif}
              a_loadaddr_ref_reg(list,source,src.base);
              orgsrc := false;
            end
@@ -815,7 +867,11 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
             ((dest.offset + longint(len)) > high(smallint))
            ) then
           begin
+{$ifdef newra}
+            dst.base:=rg.getaddressregister(list);
+{$else}
             dst.base := get_scratch_reg_address(list);
+{$endif}
             a_loadaddr_ref_reg(list,dest,dst.base);
             orgdst := false;
           end
@@ -836,8 +892,12 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
             inc(src.offset,8);
             list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
             list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
-            countreg := get_scratch_reg_int(list,OS_32);
-            a_load_const_reg(list,OS_32,count,countreg);
+{$ifdef newra}
+            countreg:=rg.getregisterint(list,OS_INT);
+{$else}
+            countreg := get_scratch_reg_int(list,OS_INT);
+{$endif}
+            a_load_const_reg(list,OS_INT,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
             { (for holding date that's being copied)                    }
             r.enum:=R_F0;
@@ -848,7 +908,11 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
             list.concat(taicpu.op_ref_reg(A_LDF,src,r));
             list.concat(taicpu.op_reg_ref(A_STD,r,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
+{$ifdef newra}
+            rg.ungetregisterint(list,countreg);
+{$else}
             free_scratch_reg(list,countreg);
+{$endif}
             a_reg_dealloc(list,r);
             len := len mod 8;
           end;
@@ -870,35 +934,59 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
           end;
         if (len and 4) <> 0 then
           begin
+{$ifdef newra}
+            r:=rg.getregisterint(list,OS_INT);
+{$else}
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
+{$endif}
             a_load_ref_reg(list,OS_32,OS_32,src,r);
             a_load_reg_ref(list,OS_32,OS_32,r,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
+{$ifdef newra}
+            rg.ungetregisterint(list,r);
+{$else}
             a_reg_dealloc(list,r);
+{$endif}
           end;
         { copy the leftovers }
         if (len and 2) <> 0 then
           begin
+{$ifdef newra}
+            r:=rg.getregisterint(list,OS_INT);
+{$else}
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
+{$endif}
             a_load_ref_reg(list,OS_16,OS_16,src,r);
             a_load_reg_ref(list,OS_16,OS_16,r,dst);
             inc(src.offset,2);
             inc(dst.offset,2);
+{$ifdef newra}
+            rg.ungetregisterint(list,r);
+{$else}
             a_reg_dealloc(list,r);
+{$endif}
           end;
         if (len and 1) <> 0 then
           begin
+{$ifdef newra}
+            r:=rg.getregisterint(list,OS_INT);
+{$else}
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
+{$endif}
             a_load_ref_reg(list,OS_8,OS_8,src,r);
             a_load_reg_ref(list,OS_8,OS_8,r,dst);
+{$ifdef newra}
+            rg.ungetregisterint(list,r);
+{$else}
             a_reg_dealloc(list,r);
+{$endif}
           end;
         if orgsrc then
           begin
@@ -906,9 +994,17 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef
               reference_release(list,source);
           end
         else
+{$ifdef newra}
+            rg.ungetregisterint(list,src.base);
+{$else}
           free_scratch_reg(list,src.base);
+{$endif}
         if not orgdst then
+{$ifdef newra}
+            rg.ungetregisterint(list,dst.base);
+{$else}
           free_scratch_reg(list,dst.base);
+{$endif}
       end;
 
 {****************************************************************************
@@ -996,7 +1092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-06-04 20:59:37  mazen
+  Revision 1.58  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.57  2003/06/04 20:59:37  mazen
   + added size of destination in code gen methods
   + making g_overflowcheck declaration same as
     ancestor's method declaration

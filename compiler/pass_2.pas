@@ -205,6 +205,7 @@ implementation
                  Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
              end;
 
+{$ifndef newra}
             { check if all scratch registers are freed }
             for i:=1 to max_scratch_regs do
               if not(scratch_regs[i] in cg.unusedscratchregisters) then
@@ -212,6 +213,7 @@ implementation
                    printnode(stdout,p);
                    internalerror(2003042201);
                 end;
+{$endif newra}
 {$endif EXTDEBUG}
             if codegenerror then
               include(p.flags,nf_error);
@@ -287,15 +289,8 @@ implementation
 {$ifndef i386}
 //              cleanup_regvars(current_procinfo.aktexitcode);
 {$endif i386}
-{$ifdef newra}
-              if current_procinfo.framepointer.number=NR_EBP then
-                begin
-                  {Make sure the register allocator won't allocate registers
-                   into ebp.}
-                  include(rg.usedintinproc,RS_EBP);
-                  exclude(rg.unusedregsint,RS_EBP);
-                end;
-{$endif}
+
+              current_procinfo.allocate_framepointer;
 
               do_secondpass(p);
 
@@ -309,7 +304,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-06-09 12:23:30  peter
+  Revision 1.56  2003-06-12 16:43:07  peter
+    * newra compiles for sparc
+
+  Revision 1.55  2003/06/09 12:23:30  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally
