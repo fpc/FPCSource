@@ -2089,6 +2089,8 @@ begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
   create_breakpoint_hook:=@CreateBreakPointHook;
+  signal_string:=nil;
+  signal_name:=nil;
 end;
 
 
@@ -2559,7 +2561,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-02-06 14:42:45  pierre
+  Revision 1.4  2002-03-26 16:24:49  pierre
+   * set signal names to nil at start
+
+  Revision 1.3  2002/02/06 14:42:45  pierre
    + code to handle signals
 
   Revision 1.2  2002/02/05 11:03:59  marco
