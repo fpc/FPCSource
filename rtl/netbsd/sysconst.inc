@@ -92,9 +92,17 @@ Const
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 
+// a type, and a wrong one. only for quick port atm.
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
+
+
 {
   $Log$
-  Revision 1.2  2003-01-17 22:13:47  marco
+  Revision 1.3  2003-01-21 15:39:45  marco
+   * NetBSD first rtl. Still not 100%, but close
+
+  Revision 1.2  2003/01/17 22:13:47  marco
    * some updates
 
   Revision 1.1.2.1  2001/08/10 11:07:17  pierre

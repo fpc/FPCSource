@@ -172,7 +172,7 @@ begin
 { Is it a dir ? }
   if not((st.mode and $f000)=$4000)then
    begin
-     errno:=sys_enotdir;
+     errno:=Esysenotdir;
      exit
    end;
 { Open it}
@@ -343,7 +343,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-01-17 22:13:47  marco
+  Revision 1.3  2003-01-21 15:39:45  marco
+   * NetBSD first rtl. Still not 100%, but close
+
+  Revision 1.2  2003/01/17 22:13:47  marco
    * some updates
 
   Revision 1.1.2.4  2002/09/20 07:04:44  pierre

@@ -105,7 +105,7 @@ type
   PStat=^Stat;
   TStat=Stat;
 
-  Statfs = packed record
+  TStatfs = packed record
     spare2,	       { place holder}
     bsize,	       { fundamental block size}
     iosize,            { optimal block size }
@@ -123,8 +123,7 @@ type
     mountpoint     : array[0..89] of char;
     mnfromname     : array[0..89] of char;
   end;
-  PStatFS=^StatFS;
-  TStatFS=StatFS;
+  PStatFS=^TStatFS;
 
   fdSet=array[0..7] of longint;{=256 bits}
   pfdset=^fdset;
@@ -159,7 +158,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2003-01-17 22:13:47  marco
+  Revision 1.3  2003-01-21 15:39:45  marco
+   * NetBSD first rtl. Still not 100%, but close
+
+  Revision 1.2  2003/01/17 22:13:47  marco
    * some updates
 
   Revision 1.1.2.2  2001/08/30 23:00:18  marco
