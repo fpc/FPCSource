@@ -122,7 +122,7 @@ asm
         jz      .DoAnsiStringFinal
         decb    %al
         jz      .DoAnsiStringFinal
-        subb    $2,%al
+        subb    $3,%al
         jz      .DoArrayFinal
         decb    %al
         jz      .DoRecordFinal
@@ -374,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-12-19 00:22:09  florian
+  Revision 1.15  1998-12-20 14:08:06  michael
+  + Finalize fixed after florians fix :)
+
+  Revision 1.14  1998/12/19 00:22:09  florian
     * Finalize fixed, constant for ansistrings is 9, not 10
 
   Revision 1.13  1998/12/15 22:42:59  peter
