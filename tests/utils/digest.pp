@@ -55,6 +55,7 @@ begin
   if next_should_be_run and
      (pos(failed_to_run,st)<>1) and
      (pos(successfully_run,st)<>1) and
+     (pos(skipping_known_bug,st)<>1) and
      (pos(skipping_run_test,st)<>1) and
      (pos(skipping_run_unit,st)<>1) then
     begin
@@ -239,7 +240,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-10-13 14:19:02  peter
+  Revision 1.5  2003-10-31 16:51:46  peter
+    * skip known bug for run
+
+  Revision 1.4  2003/10/13 14:19:02  peter
     * digest updated for max version limit
 
   Revision 1.3  2002/12/24 21:47:49  peter
