@@ -36,6 +36,15 @@ program morph3d;
 {$Mode objfpc}
 {$INLINE ON}
 
+{$MACRO ON}
+
+{$ifdef win32}
+  {$define extdecl := stdcall;}
+{$endif}
+{$ifdef linux}
+  {$define extdecl := cdecl;}
+{$endif}
+
 {
 This document is VERY incomplete, but tries to describe the mathematics used
 in the program. At this moment it just describes how the polyhedra are
@@ -134,7 +143,7 @@ So the angle is:
 }
 
 uses
-  GL,GLU,GLUT;
+  GL,GLUT;
 
 type
   float = single;
@@ -700,7 +709,7 @@ begin
 end;
 
 
-procedure do_draw;cdecl;
+procedure do_draw;extdecl
 begin
   glClear( GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT );
 
@@ -727,13 +736,13 @@ begin
 end;
 
 
-procedure do_idle;cdecl;
+procedure do_idle;extdecl
 begin
   glutPostRedisplay();
 end;
 
 
-procedure do_reshape(width,height:longint);cdecl;
+procedure do_reshape(width,height:longint);extdecl
 begin
   WindW:=width;
   WindH:=height;
@@ -843,9 +852,9 @@ begin
 end;
 
 
-procedure do_key(k:char;x,y:integer);cdecl;
+procedure do_key(k:char;x,y:integer);extdecl
 begin
-{  case k of
+  case k of
     '1' : _object:=1;
     '2' : _object:=2;
     '3' : _object:=3;
@@ -855,11 +864,23 @@ begin
     #13 : smooth:=not smooth;
     #27 : halt(0);
   end;
-  pinit;}
+  pinit;
 end;
 
 
 begin
+  if not GLInitialized then
+   begin
+     writeln('OpenGL Not Availble');
+     halt(1);
+   end;
+
+  if not GLUTInitialized then
+   begin
+     writeln('GLUT Not Availble');
+     halt(1);
+   end;
+
   writeln('Morph 3D - Shows morphing platonic polyhedra');
   writeln('Author: Marcelo Fernandes Vianna (vianna@cat.cbpf.br)');
   writeln('  [1]    - Tetrahedron');
@@ -919,7 +940,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:45  peter
+  Revision 1.2  2000-09-03 22:17:17  peter
+    * merged
+
+  Revision 1.1.2.1  2000/09/03 22:10:47  peter
+    * fixed for win32
+
+  Revision 1.1  2000/09/03 21:25:45  peter
     * new updated version
     * gtkglarea unit and demo
     * win32 opengl headers

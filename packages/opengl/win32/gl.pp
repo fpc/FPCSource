@@ -1490,7 +1490,7 @@ var
 function GetProc(handle: HInstance; name: PChar): Pointer;
 begin
   Result := GetProcAddress(handle, name);
-  if (Result = nil) and GLUDumpUnresolvedFunctions then
+  if (Result = nil) and GLDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
 
@@ -2032,7 +2032,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:46  peter
+  Revision 1.2  2000-09-03 22:17:17  peter
+    * merged
+
+  Revision 1.1.2.1  2000/09/03 22:14:40  peter
+    * regenerated
+
+  Revision 1.1  2000/09/03 21:25:45  peter
     * new updated version
     * gtkglarea unit and demo
     * win32 opengl headers
@@ -2049,10 +2055,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:46  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.2  2000-09-03 22:17:17  peter
+    * merged
+
+  Revision 1.1.2.1  2000/09/03 22:14:40  peter
+    * regenerated
 
 }

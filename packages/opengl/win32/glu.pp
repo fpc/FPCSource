@@ -349,11 +349,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:46  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.2  2000-09-03 22:17:18  peter
+    * merged
+
+  Revision 1.1.2.1  2000/09/03 22:14:41  peter
+    * regenerated
 
   Revision 1.1  2000/07/13 06:34:18  michael
   + Initial import
@@ -366,10 +366,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:46  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.2  2000-09-03 22:17:18  peter
+    * merged
+
+  Revision 1.1.2.1  2000/09/03 22:14:41  peter
+    * regenerated
 
 }

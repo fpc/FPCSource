@@ -190,7 +190,7 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=gl glut glaux gl_sl glut_sl glaux_sl gtkglarea
+override UNITOBJECTS+=gl glut glaux gl_sl glut_sl glaux_sl
 
 # Clean
 

@@ -45,7 +45,7 @@ var
 function GetProc(handle: HInstance; name: PChar): Pointer;
 begin
   Result := GetProcAddress(handle, name);
-  if (Result = nil) and GLUDumpUnresolvedFunctions then
+  if (Result = nil) and GLUTDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
 

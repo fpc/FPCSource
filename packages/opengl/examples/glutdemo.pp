@@ -10,6 +10,15 @@
 {$MODE objfpc}
 {$H+}
 
+{$MACRO ON}
+
+{$ifdef win32}
+  {$define extdecl := stdcall;}
+{$endif}
+{$ifdef linux}
+  {$define extdecl := cdecl;}
+{$endif}
+
 program GLUTDemo;
 uses
   GL, GLU,GLUT;
@@ -60,7 +69,7 @@ begin
 end;
 
 
-procedure DisplayWindow; cdecl;
+procedure DisplayWindow; extdecl
 var
   x, y: Integer;
 begin
@@ -94,7 +103,7 @@ begin
   glutSwapBuffers;
 end;
 
-procedure OnTimer(value: Integer); cdecl;
+procedure OnTimer(value: Integer); extdecl
 begin
   glutPostRedisplay;
   glutTimerFunc(20, @OnTimer, 0);

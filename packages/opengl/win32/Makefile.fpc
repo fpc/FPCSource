@@ -9,7 +9,7 @@ defaulttarget=win32
 packages=gtk
 
 [targets]
-units=gl glut glaux gl_sl glut_sl glaux_sl gtkglarea
+units=gl glut glaux gl_sl glut_sl glaux_sl
 
 [dirs]
 fpcdir=../../..
