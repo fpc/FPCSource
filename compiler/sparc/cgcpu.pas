@@ -80,6 +80,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
     procedure g_restore_all_registers(list:TAasmOutput;selfused,accused,acchiused:boolean);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
+    procedure g_restore_standard_registers(list:taasmoutput;usedinproc:tregisterset);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
     procedure g_save_all_registers(list : taasmoutput);override;
     procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
@@ -964,6 +965,10 @@ procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
 {This function intontionally does nothing as frame pointer is restored in the
 delay slot of the return instrucion done in g_return_from_proc}
   end;
+procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:tregisterset);
+  begin
+    {$WARNING FIX ME TCgSparc.g_restore_standard_registers}
+  end;
 procedure TCgSparc.g_return_from_proc(list:TAasmOutput;parasize:aword);
 
 var r,r2:Tregister;
@@ -1410,7 +1415,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.36  2003-01-22 22:30:03  mazen
+  Revision 1.37  2003-02-05 21:48:34  mazen
+  * fixing run time errors related to unimplemented abstract methods in CG
+  + giving empty emplementations for some RTL functions
+
+  Revision 1.36  2003/01/22 22:30:03  mazen
   - internal errors rmoved from a_loar_reg_reg when reg sizes differs from 32
 
   Revision 1.35  2003/01/20 22:21:36  mazen

@@ -137,6 +137,14 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$define SYSPROCDEFINED}
 {$endif iA64}
 
+{$ifdef SPARC}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$define ENDIAN_BIG}
+  {$i sparc.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif SPARC}
 
 procedure fillchar(var x;count : longint;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
@@ -757,7 +765,11 @@ end;
 
 {
   $Log$
-  Revision 1.38  2002-12-07 14:36:33  carl
+  Revision 1.39  2003-02-05 21:48:34  mazen
+  * fixing run time errors related to unimplemented abstract methods in CG
+  + giving empty emplementations for some RTL functions
+
+  Revision 1.38  2002/12/07 14:36:33  carl
     - avoid warnings (add typecast)
 
   Revision 1.37  2002/11/18 18:33:51  peter
