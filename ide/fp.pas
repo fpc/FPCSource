@@ -15,6 +15,10 @@
  **********************************************************************}
 program FP;
 
+{$ifdef win32}
+{$R fpw32.rc}
+{$endif win32}
+
 {$I globdir.inc}
 (**********************************************************************)
 (* CONDITIONAL DEFINES                                                *)
@@ -32,6 +36,9 @@ uses
 {$ifdef IDEHeapTrc}
   PPheap,
 {$endif IDEHeapTrc}
+{$ifdef Use_DBGHEAP}
+  dbgheap,
+{$endif Use_DBGHEAP}
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
@@ -487,7 +494,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.17  2002-12-12 00:08:09  pierre
+  Revision 1.18  2003-01-07 00:29:13  pierre
+   + win32 version infos
+
+  Revision 1.17  2002/12/12 00:08:09  pierre
    Use fpregs unit
 
   Revision 1.16  2002/11/28 12:49:20  pierre
