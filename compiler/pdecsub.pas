@@ -1848,13 +1848,12 @@ const
         Add definition aprocdef to the overloaded definitions of aprocsym. If a
         forwarddef is found and reused it returns true
       }
-      const
-        po_comp = po_compatibility_options - [po_iocheck];
       var
         hd    : tprocdef;
         ad,fd : tsym;
+        i     : cardinal;
         forwardfound : boolean;
-        i : cardinal;
+        po_comp : tprocoptions;
       begin
         forwardfound:=false;
 
@@ -1947,7 +1946,11 @@ const
                         aprocdef.setmangledname(hd.mangledname);
                     end;
 
-                   { Check procedure options }
+                   { Check procedure options, Delphi requires that class is
+                     repeated in the implementation for class methods }
+                   po_comp:=po_compatibility_options-[po_iocheck,po_staticmethod];
+                   if (m_delphi in aktmodeswitches) then
+                     include(po_comp,po_classmethod);
                    if ((po_comp * hd.procoptions)<>(po_comp * aprocdef.procoptions)) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
@@ -2112,7 +2115,12 @@ const
 end.
 {
   $Log$
-  Revision 1.95  2002-12-27 15:25:14  peter
+  Revision 1.96  2002-12-29 14:55:44  peter
+    * fix static method check
+    * don't require class for class methods in the implementation for
+      non delphi modes
+
+  Revision 1.95  2002/12/27 15:25:14  peter
     * check procoptions when a forward is found
     * exclude some call directives for constructor/destructor
 
