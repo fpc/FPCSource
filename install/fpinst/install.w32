@@ -21,10 +21,11 @@ package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
 package=ufclw32.zip,~F~ree Component Libary (FCL)
 package=uapiw32.zip,~A~PI units (needed by FV)
-package=ubasw32.zip,Basic units (needed by FCL)
-package=ugtkw32.zip,GTK units (needed by FCL)
-package=unetw32.zip,Networking units
-package=umisw32.zip,Miscellaneous units
+package=ubasw32.zip,~B~asic units (needed by FCL)
+package=ugtkw32.zip,~G~TK units
+package=unetw32.zip,~N~etworking units
+package=udbw32.zip,Da~t~abase (interbase,mysql) units
+package=umisw32.zip,~M~iscellaneous units
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 #
