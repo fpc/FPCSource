@@ -1934,6 +1934,9 @@ Begin
                       continue;
                     end;
                 End;
+(*
+Optimization is not safe; xor clears the carry flag.
+See test/tgadint64 in the test suite.
               A_MOV:
                 if (Taicpu(p).oper[0].typ = Top_Const) And
                    (Taicpu(p).oper[0].val = 0) And
@@ -1943,6 +1946,7 @@ Begin
                     Taicpu(p).opcode := A_XOR;
                     Taicpu(p).LoadReg(0,Taicpu(p).oper[1].reg);
                   End;
+*)
               A_MOVZX:
                 { if register vars are on, it's possible there is code like }
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }
@@ -2054,7 +2058,10 @@ End.
 
 {
   $Log$
-  Revision 1.40  2003-02-25 07:41:54  daniel
+  Revision 1.41  2003-02-26 13:24:59  daniel
+    * Disabled mov reg,0 -> xor reg,reg optimization
+
+  Revision 1.40  2003/02/25 07:41:54  daniel
     * Properly fixed reversed operands bug
 
   Revision 1.39  2003/02/24 21:27:01  daniel
