@@ -22,7 +22,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL0'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -131,7 +131,7 @@ begin{asm}
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL6'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -237,7 +237,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-05-23 22:36:39  florian
+  Revision 1.5  2003-06-02 22:05:03  mazen
+  * fixing naming conflict in public clause of
+   FPC_SYSCALL? definition
+
+  Revision 1.4  2003/05/23 22:36:39  florian
     * fixed compilation of sparc system unit
 
   Revision 1.3  2003/01/05 21:32:35  mazen
