@@ -1317,7 +1317,7 @@ implementation
                            c:=upcase(c);
                            if (block_type=bt_type) or
                               (lasttoken=ID) or
-                              (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) then
+                              (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) or (lasttoken=CARET) then
                             begin
                               token:=CARET;
                               goto exit_label;
@@ -1582,7 +1582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  1999-03-26 00:05:45  peter
+  Revision 1.78  1999-03-26 19:10:06  peter
+    * support also ^^
+
+  Revision 1.77  1999/03/26 00:05:45  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct
