@@ -210,12 +210,17 @@ implementation
              if (right.nodetype = ordconstn) then
                begin
                  shiftval := tordconstnode(right).value;
+                 shiftval := shiftval and 63;
+{
+              I think the statements below is much more correct instead of the hack above,
+              but then we fail tshlshr.pp :/ 
+
                  if shiftval > 63 then
                    begin
                      cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reglo);
                      cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reglo);
                    end
-                 else if shiftval > 31 then
+                 else } if shiftval > 31 then
                    begin
                      if nodetype = shln then
                        begin
@@ -521,7 +526,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-10-31 21:45:03  peter
+  Revision 1.43  2004-12-06 17:53:43  jonas
+    * introduced bug (x shl 65 = x shl 1 when shifting with a  constant, but
+      still 0 otherwise) to pass tshlshr
+
+  Revision 1.42  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
