@@ -9,7 +9,7 @@ main=rtl
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
       windows ole2 activex opengl32 os_types winsock initc \
-      dos crt objects graph \
+      dos crt objects graph message\
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
       wincrt winmouse winevent sockets printer dynlibs \
@@ -115,6 +115,9 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp
+
+messages$(PPUEXT): messages.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(WININC) messages.pp
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
