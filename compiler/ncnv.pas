@@ -1030,7 +1030,8 @@ implementation
           ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
             ccallparanode.create(left,nil)
           ),resulttype);
-        left := nil;
+        resulttypepass(result);
+        left:=nil;
       end;
 
 
@@ -1040,9 +1041,10 @@ implementation
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
           ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
-            ccallparanode.create(left,nil)
+            ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil)
           ),resulttype);
-        result:=nil;
+        resulttypepass(result);
+        left:=nil;
       end;
 
 
@@ -2484,7 +2486,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.164  2004-11-26 22:34:28  peter
+  Revision 1.165  2004-12-05 12:15:11  florian
+    * fixed compiler side of variant <-> dyn. array conversion
+
+  Revision 1.164  2004/11/26 22:34:28  peter
     * internal flag for compare_defs_ext
 
   Revision 1.163  2004/11/21 15:35:23  peter
