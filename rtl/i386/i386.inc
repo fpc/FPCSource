@@ -94,7 +94,8 @@ begin
         asm
         cld
         movl    x,%edi
-        movl    value,%eax      { Only lower 8 bits will be used }
+        { movl    value,%eax      Only lower 8 bits will be used }
+        movb    value,%al
         movl    count,%ecx
         cmpl    $7,%ecx
         jl      .LFill1
@@ -237,15 +238,15 @@ asm
       { get VMT-pointer (from Self) to %ebx }
       { the offset is in %edi since the calling and has not been changed !! }
         movl    (%eax,%edi,1),%ebx
+      { I think for precaution }
+      { that we should clear the VMT here }
+        movl    $0,(%eax,%edi,1)
       { temporary Variable }
         subl    $4,%esp
         movl    %esp,%edi
       { And put size on the Stack }
         pushl   (%ebx)
       { SELF }
-      { I think for precaution }
-      { that we should clear the VMT here }
-        movl    $0,(%eax)
         movl    %eax,(%edi)
         pushl   %edi
         call    FPC_FREEMEM
@@ -738,7 +739,10 @@ end;
 
 {
   $Log$
-  Revision 1.39  1999-02-05 12:26:25  pierre
+  Revision 1.40  1999-02-22 13:23:22  pierre
+   * VMT field zeroed at destructor forgot offset !!
+
+  Revision 1.39  1999/02/05 12:26:25  pierre
    + code for FPC_TESTOBJEXT conditionnal
 
   Revision 1.38  1999/02/02 11:04:27  florian
