@@ -15,7 +15,7 @@
  **********************************************************************}
 
 Type
-  jmp_buf = record
+  jmp_buf = packed record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
     end;
@@ -26,7 +26,10 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:19  peter
+  Revision 1.4  2002-09-15 10:04:31  carl
+    * make the record packed (just in case)
+
+  Revision 1.3  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

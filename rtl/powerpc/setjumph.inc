@@ -16,7 +16,7 @@
  **********************************************************************}
 
 type
-   jmp_buf = record
+   jmp_buf = packed record
     {$warning FIXME!!!!}
    end;
    pjmp_buf = ^jmp_buf;
@@ -26,7 +26,10 @@ procedure longjmp(var S : jmp_buf;value : longint);
 
 {
   $Log$
-  Revision 1.4  2002-08-10 17:14:36  jonas
+  Revision 1.5  2002-09-15 10:03:04  carl
+    * make the record packed (just in case)
+
+  Revision 1.4  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
