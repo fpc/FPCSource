@@ -55,10 +55,11 @@ const
 {$endif VER1_0}
 
 Type
-  TTextLineBreakStyle = (tlbsLF, tlbsCRLF);   // Must move to system unit, and add Mac tlbsCR too ?
+  TTextLineBreakStyle = (tlbsLF, tlbsCRLF,tlbsCR);   // Must move to system unit, and add Mac tlbsCR too ?
 
 Const
-  DefaultTextLineBreakStyle: TTextLineBreakStyle = {$ifdef unix} tlbsLF {$else} tlbsCRLF {$endif};
+  DefaultTextLineBreakStyle: TTextLineBreakStyle = 
+    {$ifdef unix} tlbsLF {$else} {$ifdef macos} tlbsCR {$else} tlbsCRLF {$endif} {$endif} ;
 
 
 Const
@@ -192,7 +193,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.8  2004-08-07 16:56:28  florian
+  Revision 1.9  2004-08-30 13:07:03  michael
+  + Added MACOS linebreakstyle (tlbsCR)
+
+  Revision 1.8  2004/08/07 16:56:28  florian
     + TryStrToInt* added
 
   Revision 1.7  2004/06/20 20:42:37  florian
