@@ -1747,6 +1747,9 @@ implementation
       var
         s1,s2 : string;
       begin
+        if (def2.deftype=errordef) or
+           (def1.deftype=errordef) then
+          exit;
         s1:=def1.typename;
         s2:=def2.typename;
         { When the names are the same try to include the unit name }
@@ -1757,8 +1760,7 @@ implementation
             if (def2.owner.symtabletype in [globalsymtable,staticsymtable]) then
               s2:=def2.owner.realname^+'.'+s2;
           end;
-        if def2.deftype<>errordef then
-          CGMessage2(type_e_incompatible_types,s1,s2);
+        CGMessage2(type_e_incompatible_types,s1,s2);
       end;
 
 
@@ -2283,8 +2285,6 @@ implementation
         globaltypecount:=1;
         pglobaltypecount:=@globaltypecount;
 {$endif GDB}
-        { defs for internal use }
-        voidprocdef:=tprocdef.create(unknown_level);
         { create error syms and def }
         generrorsym:=terrorsym.create;
         generrortype.setdef(terrordef.create);
@@ -2297,7 +2297,6 @@ implementation
 
    procedure DoneSymtable;
       begin
-        voidprocdef.free;
         generrorsym.free;
         generrortype.def.free;
 {$ifdef UNITALIASES}
@@ -2308,7 +2307,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-05-22 23:34:28  peter
+  Revision 1.147  2004-05-23 20:56:14  peter
+    * don't generate incompatible types when there is an errordef
+
+  Revision 1.146  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.145  2004/04/29 19:56:37  daniel
