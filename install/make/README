@@ -21,6 +21,8 @@ OPTDEF          Commandline defines, which also need to be passed to
 NEEDOPT         Realy needed commandline options, also used when
                 RELEASE=1. Example: NEEDOPT=-Sg to allow goto
 
+NEEDUNITDIR     Realy needed unitdir
+
 PP              compiler to use, default is ppc386
                 Example to compile with version 0.99.8: PP=ppc998
 
@@ -53,6 +55,9 @@ LIBTYPE         can be set to shared or static to set the library type you
 
 DEFAULTUNITS    if this is set then a 'make all' will only compile the units
                 and not the exes
+
+NODEFAULTRULES  Don't include the default compiler rules. This is needed for
+                top-makefiles which call other files in subdirs
 
 
 Location:
@@ -99,15 +104,16 @@ PWD             GNU PWD (automaticly searched)
 
 
 Directories:
-------------
+-----------
 BASEDIR         Current working directory (automaticly loaded using PWD)
 
-RTLDIR          Base directory of the Free Pascal RTL. Can also be loaded
-                from the RTL variable
-                Default: $BASEDIR/../rtl
+FPCDIR          Base directory of Free Pascal
 
-UNITDIR         Unit directory to add.
-                Default: $RTLDIR/$OS_TARGET
+RTLDIR          Directory to the used RTL. This contains already the target
+                Default: $FPCDIR/rtl/$OS_TARGET
+
+UNITDIR         Directory to the currently used units for the target
+                Default: $FPCDIR/units/$OS_TARGET
 
 
 Installation directories:

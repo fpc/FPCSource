@@ -17,7 +17,8 @@
 #####################################################################
 
 # Latest release version
-override RELEASEVER:=0.99.9
+override RELEASEVER:=0.99.11
+
 
 #####################################################################
 # Autodetect OS (Linux or Dos or Windows NT)
@@ -47,6 +48,21 @@ ifndef inlinux
 ifeq ($(OS),Windows_NT)
 inWinNT=1
 endif
+endif
+
+
+#####################################################################
+# Check for FPCDIR environment
+#####################################################################
+
+ifndef FPCDIR
+nofpcdir:
+	@echo
+	@echo You need to set the FPCDIR environment variable to use
+	@echo this Makefile.
+	@echo Example: SET FPCDIR=/pp
+	@echo
+	@exit
 endif
 
 
@@ -100,7 +116,7 @@ ifndef AS
 AS=as
 endif
 
-# linker, but probably not used 
+# linker, but probably not used
 ifndef LD
 LD=ld
 endif
@@ -114,6 +130,7 @@ endif
 ifdef VERBOSE
 override OPT+=-vwni
 endif
+
 
 #####################################################################
 # Shell commands
@@ -246,15 +263,19 @@ endif
 # set the directory to the rtl base
 ifndef RTLDIR
 ifdef RTL
-RTLDIR=$(RTL)
+RTLDIR=$(RTL)/$(OS_TARGET)
 else
-RTLDIR:=$(BASEDIR)/../rtl
+RTLDIR:=$(FPCDIR)/rtl/$(OS_TARGET)
 endif
 endif
 
 # specify where units are.
 ifndef UNITDIR
-UNITDIR=$(RTLDIR)/$(OS_TARGET)
+ifdef UNITS
+UNITDIR=$(UNITS)/$(OS_TARGET)
+else
+UNITDIR=$(FPCDIR)/units/$(OS_TARGET)
+endif
 endif
 
 # set the prefix directory where to install everything
@@ -262,7 +283,7 @@ ifndef PREFIXINSTALLDIR
 ifdef inlinux
 PREFIXINSTALLDIR=/usr
 else
-PREFIXINSTALLDIR=/pp
+PREFIXINSTALLDIR=$(FPCDIR)
 endif
 endif
 
@@ -298,51 +319,6 @@ BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
 endif
 
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-ifdef inlinux
-UNITINSTALLDIR=$(BASEINSTALLDIR)/linuxunits
-else
-UNITINSTALLDIR=$(BASEINSTALLDIR)/rtl/$(OS_TARGET)
-endif
-endif
-
-# set the directory where to install the units.
-ifndef STATIC_UNITINSTALLDIR
-ifdef inlinux
-STATIC_UNITINSTALLDIR=$(BASEINSTALLDIR)/staticunits
-else
-STATIC_UNITINSTALLDIR=$(BASEINSTALLDIR)/rtl/$(OS_TARGET)/static
-endif
-endif
-
-# set the directory where to install the units.
-ifndef SHARED_UNITINSTALLDIR
-ifdef inlinux
-SHARED_UNITINSTALLDIR=$(BASEINSTALLDIR)/sharedunits
-else
-SHARED_UNITINSTALLDIR=$(BASEINSTALLDIR)/rtl/$(OS_TARGET)/shared
-endif
-endif
-
-# set the directory where to install the libs (must exist)
-ifndef STATIC_LIBINSTALLDIR
-ifdef inlinux
-STATIC_LIBINSTALLDIR=$(BASEINSTALLDIR)/staticunits
-else
-STATIC_LIBINSTALLDIR=$(STATIC_UNITINSTALLDIR)
-endif
-endif
-
-# set the directory where to install the libs (must exist)
-ifndef SHARED_LIBINSTALLDIR
-ifdef inlinux
-SHARED_LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
-else
-SHARED_LIBINSTALLDIR=$(SHARED_UNITINSTALLDIR)
-endif
-endif
-
 # Where the .msg files will be stored
 ifndef MSGINSTALLDIR
 ifdef inlinux
@@ -361,18 +337,71 @@ DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
 endif
 endif
 
+########################
+# Unit Directories
+########################
+
+# this can be set to 'rtl' when the RTL units are installed
+ifndef UNITPREFIX
+UNITPREFIX=units
+endif
+
+# set the directory where to install the units.
+ifndef UNITINSTALLDIR
+ifdef inlinux
+UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)
+else
+UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)/$(OS_TARGET)
+endif
+endif
+
+# set the directory where to install the units.
+ifndef STATIC_UNITINSTALLDIR
+STATIC_UNITINSTALLDIR=$(UNITINSTALLDIR)/static
+endif
+
+# set the directory where to install the units.
+ifndef SHARED_UNITINSTALLDIR
+SHARED_UNITINSTALLDIR=$(UNITINSTALLDIR)/shared
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef STATIC_LIBINSTALLDIR
+STATIC_LIBINSTALLDIR=$(STATIC_UNITINSTALLDIR)
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef SHARED_LIBINSTALLDIR
+ifdef inlinux
+SHARED_LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
+else
+SHARED_LIBINSTALLDIR=$(SHARED_UNITINSTALLDIR)
+endif
+endif
+
 
 #####################################################################
 # Compiler Command Line
 #####################################################################
 
 # Load commandline OPTDEF and add CPU define
-override PPOPTDEF=$(OPTDEF) -d$(CPU)
+override PPOPTDEF:=$(OPTDEF) -d$(CPU)
 
 # Load commandline OPT and add target and unit dir to be sure
-override PPOPT=$(OPT) -T$(OS_TARGET) -Fu$(UNITDIR) $(NEEDOPT)
+override PPOPT:=$(OPT) -T$(OS_TARGET) $(NEEDOPT)
 
-# Add include dirs INC and PROCINC
+# RTL first and then Unit dir (a unit can override RTLunit)
+ifdef RTLDIR
+override PPOPT+=$(addprefix -Fu,$(RTLDIR))
+endif
+ifdef UNITDIR
+override PPOPT+=$(addprefix -Fu,$(UNITDIR))
+endif
+ifdef NEEDUNITDIR
+override PPOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
+endif
+
+# Add include dirs INC and PROCINC and OSINC
 ifdef INC
 override PPOPT+=-I$(INC)
 endif
@@ -509,7 +538,8 @@ endif
 # Export commandline values, so nesting use the same values
 #####################################################################
 
-export OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
+export FPCDIR FPCMAKE
+export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
 export SMARTLINK LIBTYPE LIBNAME
 export BASEINSTALLDIR
 
@@ -518,15 +548,22 @@ export BASEINSTALLDIR
 # General compile rules
 #####################################################################
 
+ifndef NODEFAULTRULES
+
 # Create Filenames
 EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
 .PHONY : all clean install \
-         info cfginfo objectinfo installinfo filesinfo
+	 info cfginfo objectinfo installinfo filesinfo
 
 .SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT)
+
+
+#####################################################################
+# Default
+#####################################################################
 
 ifdef DEFAULTUNITS
 all: units
@@ -546,24 +583,65 @@ exes: $(EXEFILES)
 	$(COMPILER) $<
 
 
+#####################################################################
+# Library
+#####################################################################
+
+staticlib:
+	$(MAKE) libsclean
+	$(MAKE) all SMARTLINK=YES LIBTYPE=static
+
+
+sharedlib:
+ifdef inlinux
+	$(MAKE) libsclean
+	$(MAKE) all LIBTYPE=shared
+else
+	@echo Shared Libraries not supported
+endif
+
+
+libsclean : clean
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+
 
 #####################################################################
 # Install rules
 #####################################################################
 
 install : all
+ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
 	$(MKDIR) $(BININSTALLDIR)
 	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
 endif
+endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(UNITINSTALLDIR)
 ifeq ($(SMARTLINK),YES)
 	$(INSTALL) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
 else
-	$(INSTALL) $(UNITFILES) $(UNITOFILES) $(UNITINSTALLDIR)
+	-$(INSTALL) *$(OEXT) $(UNITINSTALLDIR)
 endif
 endif
+
+
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(STATIC_UNITINSTALLDIR)
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+
+
+sharedlibinstall: sharedlib
+	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(SHARED_UNITINSTALLDIR)
+	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+	$(INSTALLEXE) *$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+
+
+libinstall: staticlibinstall sharedlibinstall
 
 
 #####################################################################
@@ -585,6 +663,7 @@ endif
 depend:
 	makedep $(UNITOBJECTS)
 
+
 #####################################################################
 # Info rules
 #####################################################################
@@ -595,6 +674,10 @@ cfginfo:
 	@echo
 	@echo  == Configuration info ==
 	@echo
+	@echo  FPCDir.... $(FPCDIR)
+	@echo  FPCMake... $(FPCMAKE)
+	@echo
+	@echo  Target.... $(OS_TARGET)
 	@echo  Source.... $(OS_SOURCE)
 	@echo  Target.... $(OS_TARGET)
 	@echo  Basedir... $(BASEDIR)
@@ -655,3 +738,4 @@ ifdef ASFILES
 	@echo  As  files are $(ASFILES)
 endif
 
+endif #NODEFAULTRULES

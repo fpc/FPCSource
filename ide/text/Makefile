@@ -16,22 +16,14 @@
 # Defaults
 #####################################################################
 
-# Where are the files located
-MAKEFILEFPC=makefile.fpc
-#RTL=
-#INC=
-#PROCINC=
-#OSINC=
-
-# Needed options, without it won't compile
-#NEEDOPT=
-
 # Add this dir also to the path as first
-UNITDIR=../fake
+ifdef FULL
+NEEDUNITDIR=../../compiler
+NEEDOPT=-dBrowserCol
+else
+NEEDUNITDIR=../fake
+endif
 
-# Where need we to place the executables/ppu/objects
-#TARGETDIR=
-#UNITTARGETDIR=
 
 #####################################################################
 # Real targets
@@ -40,22 +32,43 @@ UNITDIR=../fake
 UNITOBJECTS=
 EXEOBJECTS=fp
 
+
 #####################################################################
 # Include default makefile
 #####################################################################
 
-include $(MAKEFILEFPC)
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+nofpcmake:
+	@echo
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@echo
+	@exit
+else
+include $(FPCMAKE)
+endif
+
 
 #####################################################################
 # Dependencies
 #####################################################################
 
+full:
+	make all FULL=1
+
 #
 # $Log$
-# Revision 1.1  1998-12-22 14:27:54  peter
-#   * moved
-#
-# Revision 1.1  1998/12/12 19:21:14  peter
-#   + Makefile
+# Revision 1.2  1999-01-19 18:21:49  peter
+#   * Use FPCDIR and FPCMAKE environment to find makefile.fpc
+#   * better install dir setting
 #
 #

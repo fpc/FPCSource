@@ -16,9 +16,7 @@
 # Defaults
 #####################################################################
 
-# Where are the files located
-MAKEFILEFPC=makefile.fpc
-RTL=
+# Where are the include files located
 INC=
 PROCINC=
 OSINC=
@@ -26,8 +24,8 @@ OSINC=
 # Needed options, without it won't compile
 NEEDOPT=
 
-# Add this dir also to the path as first
-UNITDIR=
+# Needed unit dir, which is searched as the first path
+NEEDUNITDIR=
 
 # Where need we to place the executables/ppu/objects
 TARGETDIR=
@@ -49,7 +47,25 @@ EXEOBJECTS=
 # Include default makefile
 #####################################################################
 
-include $(MAKEFILEFPC)
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+nofpcmake:
+	@echo
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@echo
+	@exit
+else
+include $(FPCMAKE)
+endif
 
 
 #####################################################################
@@ -59,7 +75,9 @@ include $(MAKEFILEFPC)
 
 #
 # $Log$
-# Revision 1.3  1998-12-12 19:14:42  peter
-#   + DEFAULTUNITS to have a make all only compile the units
+# Revision 1.4  1999-01-19 18:21:51  peter
+#   * Use FPCDIR and FPCMAKE environment to find makefile.fpc
+#   * better install dir setting
+#
 #
 #
