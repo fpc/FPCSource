@@ -73,6 +73,7 @@ implementation
             sym : tsym;
             srsymtable : tsymtable;
             st  : tsymtable;
+            p   : tnode;
           begin
             result:=true;
             def:=nil;
@@ -156,7 +157,21 @@ implementation
                        repeat
                          if def.deftype=arraydef then
                           begin
-                            idx:=get_intconst;
+                            idx:=0;
+                            p:=comp_expr(true);
+                            if (not codegenerror) then
+                             begin
+                               if (p.nodetype=ordconstn) then
+                                 begin
+                                   if compare_defs(p.resulttype.def,tarraydef(def).rangetype.def,nothingn)>=te_equal then
+                                     idx:=tordconstnode(p).value
+                                   else
+                                     IncompatibleTypes(p.resulttype.def,tarraydef(def).rangetype.def);
+                                 end
+                               else
+                                Message(cg_e_illegal_expression)
+                             end;
+                            p.free;
                             pl.addconst(sl_vec,idx);
                             def:=tarraydef(def).elementtype.def;
                           end
@@ -1150,7 +1165,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-02-26 16:10:23  peter
+  Revision 1.69  2004-03-04 17:24:42  peter
+    * support enums in property array ranges
+
+  Revision 1.68  2004/02/26 16:10:23  peter
     * another procvar directive fix, this time for initialized vars
 
   Revision 1.67  2004/02/20 21:55:59  peter
