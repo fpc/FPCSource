@@ -857,7 +857,8 @@
     constructor tvarsym.init_C(const n,mangled : string;p : pdef);
 
       begin
-         init(n,p);
+      { The tarsym is necessary for 0.99.5 (PFV) }
+         tvarsym.init(n,p);
          var_options:=var_options or vo_is_C_var;
          _mangledname:=strpnew(target_os.Cprefix+mangled);
       end;
@@ -865,7 +866,8 @@
     constructor tvarsym.load_C;
 
       begin
-         load;
+      { Adding tvarsym removes the warning }
+         tvarsym.load;
          typ:=varsym;
          var_options:=readbyte;
          _mangledname:=strpnew(readstring);
@@ -1645,7 +1647,10 @@
 
 {
   $Log$
-  Revision 1.15  1998-06-17 14:10:18  peter
+  Revision 1.16  1998-06-19 15:40:42  peter
+    * removed cosntructor/constructor warning and 0.99.5 recompiles it again
+
+  Revision 1.15  1998/06/17 14:10:18  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 
