@@ -65,6 +65,22 @@ interface
        tclass  = class of tobject;
        pclass  = ^tclass;
 
+
+       { to access the message table from outside }
+       tmsgstrtable = record
+          name : pshortstring;
+          method : pointer;
+       end;
+
+       pmsgstrtable = ^tmsgstrtable;
+
+       tstringmessagetable = record
+          count : dword;
+          msgstrtable : array[0..0] of tmsgstrtable;
+       end;
+
+       pstringmessagetable = ^tstringmessagetable;
+
        tobject = class
           { please don't change the order of virtual methods, because      }
           { their vmt offsets are used by some assembler code which uses   }
@@ -88,7 +104,7 @@ interface
           class function classparent : tclass;
           class function instancesize : longint;
           class function inheritsfrom(aclass : tclass) : boolean;
-
+          class function stringmessagetable : pstringmessagetable;
           { message handling routines }
           procedure dispatch(var message);
           procedure dispatchstr(var message);
@@ -378,6 +394,15 @@ Procedure AssignFile(Var f:TypedFile;c:char);
            InheritsFrom:=false;
         end;
 
+      class function TObject.stringmessagetable : pstringmessagetable;
+
+        type
+           pdword = ^dword;
+
+        begin
+           stringmessagetable:=pstringmessagetable((pdword(Self)+vmtMsgStrPtr)^);
+        end;
+
       procedure TObject.Dispatch(var message);
 
         type
@@ -427,13 +452,6 @@ Procedure AssignFile(Var f:TypedFile;c:char);
       procedure TObject.DispatchStr(var message);
 
         type
-           tmsgstrtable = record
-              name : pshortstring;
-              method : pointer;
-           end;
-
-           pmsgstrtable = ^tmsgstrtable;
-
            pdword = ^dword;
 
         var
@@ -597,7 +615,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-02-23 14:04:36  pierre
+  Revision 1.22  1999-04-16 20:47:20  florian
+    + tobject.messagestringtable function for Megido/GTK support
+      added
+
+  Revision 1.21  1999/02/23 14:04:36  pierre
    * call %edi => call *%edi
 
   Revision 1.20  1999/02/22 23:30:54  florian
