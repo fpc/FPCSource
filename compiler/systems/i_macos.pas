@@ -79,7 +79,6 @@ unit i_macos;
                 varalignmax     : 4;
                 localalignmin   : 8;
                 localalignmax   : 8;
-                paraalign       : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 16
@@ -103,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-08-08 15:54:01  olle
+  Revision 1.12  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.11  2003/08/08 15:54:01  olle
     * merged macos entry/exit code generation into the general one.
 
   Revision 1.10  2002/08/18 17:10:15  olle

@@ -88,7 +88,6 @@ unit i_emx;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -117,7 +116,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-03-23 23:28:33  hajny
+  Revision 1.2  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.1  2003/03/23 23:28:33  hajny
     + emx target added
 
 }

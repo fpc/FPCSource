@@ -80,7 +80,6 @@ unit i_wdosx;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 16
@@ -105,7 +104,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-10-02 21:17:08  peter
+  Revision 1.5  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.4  2003/10/02 21:17:08  peter
     * use as,ld,ar instead of asw,ldw,arw for win32
 
   Revision 1.3  2003/03/23 23:31:54  hajny

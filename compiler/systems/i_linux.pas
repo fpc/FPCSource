@@ -80,7 +80,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -144,7 +143,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -208,7 +206,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -274,7 +271,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -338,7 +334,6 @@ unit i_linux;
                 varalignmax     : 1;
                 localalignmin   : 0;
                 localalignmax   : 1;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -402,7 +397,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
@@ -466,7 +460,6 @@ unit i_linux;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 4;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
@@ -522,7 +515,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2003-09-23 17:58:38  peter
+  Revision 1.15  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.14  2003/09/23 17:58:38  peter
     * recordminalign for sparc 0
 
   Revision 1.13  2003/09/07 09:08:26  olle

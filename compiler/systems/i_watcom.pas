@@ -82,7 +82,6 @@ unit i_watcom;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 2;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -105,7 +104,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-09-30 08:39:50  michael
+  Revision 1.3  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.2  2003/09/30 08:39:50  michael
   + Patch from Wiktor Sywula for watcom support
 
   Revision 1.1  2003/09/06 10:01:11  florian

@@ -82,7 +82,6 @@ unit i_bsd;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -146,7 +145,6 @@ unit i_bsd;
                 varalignmax     : 1;
                 localalignmin   : 0;
                 localalignmax   : 1;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -210,7 +208,6 @@ unit i_bsd;
                 varalignmax     : 1;
                 localalignmin   : 0;
                 localalignmax   : 1;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -274,7 +271,6 @@ unit i_bsd;
                 varalignmax     : 4;
                 localalignmin   : 0;
                 localalignmax   : 4;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -341,7 +337,6 @@ unit i_bsd;
                 varalignmax     : 1;
                 localalignmin   : 0;
                 localalignmax   : 1;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -381,7 +376,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-05-28 23:18:31  florian
+  Revision 1.4  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.3  2003/05/28 23:18:31  florian
     * started to fix and clean up the sparc port
 
   Revision 1.2  2003/05/25 23:15:04  marco

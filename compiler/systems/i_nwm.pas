@@ -80,7 +80,6 @@ unit i_nwm;
                 varalignmax     : 1;
                 localalignmin   : 0;
                 localalignmax   : 1;
-                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -103,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-03-23 23:32:33  hajny
+  Revision 1.3  2003-10-03 22:09:49  peter
+    * removed paraalign
+
+  Revision 1.2  2003/03/23 23:32:33  hajny
     + platform extensions unified
 
   Revision 1.1  2002/09/06 15:03:51  carl
