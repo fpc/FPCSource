@@ -127,8 +127,6 @@ var
    { misc. functions }
    function GetLastError : DWORD;
      external 'kernel32' name 'GetLastError';
-   function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
-     external 'user32' name 'MessageBoxA';
 
    { time and date functions }
    function GetTickCount : longint;
@@ -970,6 +968,82 @@ var
 
 {$endif Set_i386_Exception_handler}
 
+
+{****************************************************************************
+                    Error Message writing using messageboxes
+****************************************************************************}
+
+function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
+   external 'user32' name 'MessageBoxA';
+
+var
+  ErrorBuf : array[0..1024] of char;
+  ErrorLen : longint;
+
+Function ErrorWrite(Var F: TextRec): Integer;
+{
+  An error message should always end with #13#10#13#10
+}
+var
+  p : pchar;
+  i : longint;
+Begin
+  if F.BufPos>0 then
+   begin
+     Move(F.BufPtr^,ErrorBuf[ErrorLen],F.BufPos);
+     inc(ErrorLen,F.BufPos);
+     ErrorBuf[ErrorLen]:=#0;
+   end;
+  if ErrorLen>3 then
+   begin
+     p:=@ErrorBuf[ErrorLen];
+     for i:=1to 4 do
+      begin
+        dec(p);
+        if not(p^ in [#10,#13]) then
+         break;
+      end;
+     if (i=4) then
+      begin
+        MessageBox(0,@ErrorBuf,pchar('Error'),0);
+        ErrorLen:=0;
+      end;
+   end;
+  F.BufPos:=0;
+  ErrorWrite:=0;
+End;
+
+
+Function ErrorClose(Var F: TextRec): Integer;
+begin
+  if ErrorLen>0 then
+   begin
+     MessageBox(0,@ErrorBuf,pchar('Error'),0);
+     ErrorLen:=0;
+   end;
+  ErrorLen:=0;
+  ErrorClose:=0;
+end;
+
+
+Function ErrorOpen(Var F: TextRec): Integer;
+Begin
+  TextRec(F).InOutFunc:=@ErrorWrite;
+  TextRec(F).FlushFunc:=@ErrorWrite;
+  TextRec(F).CloseFunc:=@ErrorClose;
+  ErrorOpen:=0;
+End;
+
+
+procedure AssignError(Var T: Text);
+begin
+  Assign(T,'');
+  TextRec(T).OpenFunc:=@ErrorOpen;
+  Rewrite(T);
+end;
+
+
+
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
@@ -992,14 +1066,25 @@ begin
 { Setup heap }
   InitHeap;
   InitExceptions;
-{ Setup stdin, stdout and stderr }
+{ Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
+  displayed in and messagebox }
   StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
   StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
   StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  if not IsConsole then
+   begin
+     AssignError(stderr);
+     AssignError(stdout);
+     Assign(Output,'');
+     Assign(Input,'');
+   end
+  else
+   begin
+     OpenStdIO(Input,fmInput,StdInputHandle);
+     OpenStdIO(Output,fmOutput,StdOutputHandle);
+     OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+     OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+   end;
 { Arguments }
   setup_arguments;
 { Reset IO Error }
@@ -1010,7 +1095,11 @@ end.
 
 {
   $Log$
-  Revision 1.46  1999-10-22 14:47:19  peter
+  Revision 1.47  1999-10-26 12:25:51  peter
+    * report stderr,stdout to message box for errors
+    * close input,output when GUI app is made
+
+  Revision 1.46  1999/10/22 14:47:19  peter
     * allocate an extra byte for argv[0]
 
   Revision 1.45  1999/10/03 19:39:05  peter
