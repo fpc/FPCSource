@@ -80,15 +80,20 @@ begin
 {$IFDEF NEWST}
   current_module^.linkothersharedlibs.
    insert(new(Plinkitem,init(SplitName(module),link_allways)));
+  { do nothing with the procedure, only set the mangledname }
+  if name<>'' then
+    aktprocdef^.setmangledname(name)
+  else
+    message(parser_e_empty_import_name);
 {$ELSE}
   current_module^.linkothersharedlibs.
    insert(SplitName(module),link_allways);
-{$ENDIF NEWST}
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
   else
     message(parser_e_empty_import_name);
+{$ENDIF NEWST}
 end;
 
 
@@ -467,7 +472,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-03-02 13:12:37  daniel
+  Revision 1.13  2000-03-12 08:24:03  daniel
+    * Modification for new symtable
+
+  Revision 1.12  2000/03/02 13:12:37  daniel
     * Removed a comment to fix gtk.
 
   Revision 1.11  2000/02/28 17:23:57  daniel
