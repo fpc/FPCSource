@@ -994,16 +994,27 @@ begin
   Result:=Buffer;
 end;
 
+Function StrToFloat(Const S: String): Extended;
 
-function StrToFloat(Value: string): Extended;
+Begin
+  If Not TextToFloat(Pchar(S),Result) then
+    Raise EConvertError.createfmt(SInValidFLoat,[S]);
+End;
+      
+Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
 
-var Error: word;
+Var
+  E,P : Integer;
+  S : String;
 
-begin
-  Val(Value, result, Error);
-  if Error <> 0 then raise
-     EConvertError.createfmt(SInValidFLoat,[Value]);
-end ;
+Begin
+  S:=StrPas(Buffer);
+  P:=Pos(DecimalSeparator,S);
+  If (P<>0) Then 
+    S[P] := '.';
+  Val(S,Value,E);
+  Result:=(E=0);
+End;
 
 Function FloatToStr(Value: Extended): String;
 Begin
@@ -1758,12 +1769,11 @@ End;
 Function FormatFloat(Const format: String; Value: Extended): String;
 
 Var
-  Temp: shortstring;
+  Temp: ShortString;
   buf : Array[0..1024] of char;
   
 Begin
-  Temp := format;
-  Buf[FloatToTextFmt(@Buf[0],Value,@Temp)]:=#0;
+  Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format))]:=#0;
   Result:=StrPas(@Buf);
 End;
       
@@ -1922,7 +1932,10 @@ const
 
 {
   $Log$
-  Revision 1.22  2002-11-28 20:29:26  michael
+  Revision 1.23  2002-11-28 22:26:30  michael
+  + Fixed float<>string conversion routines
+
+  Revision 1.22  2002/11/28 20:29:26  michael
   + made it compile again
 
   Revision 1.21  2002/11/28 20:15:37  michael
@@ -1930,6 +1943,11 @@ const
 
   Revision 1.20  2002/09/15 17:50:35  peter
     * Fixed AnsiStrComp crashes
+  Revision 1.1.2.16  2002/11/28 22:25:01  michael
+  + Fixed float<>string conversion routines
+
+  Revision 1.1.2.15  2002/11/28 20:24:11  michael
+  + merged some fixes from mainbranch
 
   Revision 1.19  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed

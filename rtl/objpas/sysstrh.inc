@@ -102,7 +102,8 @@ Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Arra
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStr(Value: Extended): String;
-Function StrToFloat(Value : String) : Extended;
+Function StrToFloat(Const S : String) : Extended;
+Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
@@ -145,11 +146,17 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.13  2002-11-28 20:29:26  michael
+  Revision 1.14  2002-11-28 22:26:30  michael
+  + Fixed float<>string conversion routines
+
+  Revision 1.13  2002/11/28 20:29:26  michael
   + made it compile again
 
   Revision 1.12  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
+  Revision 1.1.2.6  2002/11/28 22:25:01  michael
+  + Fixed float<>string conversion routines
+
   Revision 1.1.2.5  2002/11/28 20:24:12  michael
   + merged some fixes from mainbranch
 
