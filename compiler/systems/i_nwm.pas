@@ -96,13 +96,16 @@ unit i_nwm;
 initialization
 {$ifdef CPU86}
   {$ifdef netware}
-    set_source_info(target_i386_netware_info);
+    set_source_info(system_i386_netware_info);
   {$endif netware}
 {$endif CPU86}
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
+  Revision 1.5  2004-07-30 19:22:14  armin
+  * typo in set_source_info
+
+  Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated
 
 }
