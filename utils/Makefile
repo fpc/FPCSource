@@ -25,7 +25,7 @@ DEFAULTFPCDIR=..
 # Real targets
 #####################################################################
 
-EXEOBJECTS=ppudump ppumove ppdep ptop
+EXEOBJECTS=ppudump ppumove ppdep ptop rstconv
 UNITOBJECTS=
 
 EXTRACLEANUNITS=ppu ptopu
@@ -134,7 +134,10 @@ h2pas_install:
 
 #
 # $Log$
-# Revision 1.3  1999-07-16 13:45:37  peter
+# Revision 1.4  1999-07-23 18:23:45  michael
+# + Added rstconv
+#
+# Revision 1.3  1999/07/16 13:45:37  peter
 #   * 0.99.12b updates
 #   * merges
 #
