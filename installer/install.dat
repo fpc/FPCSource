@@ -25,6 +25,7 @@ targetname=go32v2
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
+
 filecheck=*go32.zip
 # Dos 1
 package=basego32.zip,~B~asic system for Go32v2 (required)
@@ -64,6 +65,7 @@ targetname=win32
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
+setpathfile=setpath.bat
 filecheck=*w32.zip
 # Win32 1
 package=basew32.zip,~B~asic system for Win32 (required)
@@ -503,6 +505,16 @@ ShowReadme=1
 [Files]
 OpenExts="*.pas;*.pp;*.inc"
 
+endcfg
+
+
+defaultsetpath=
+@echo off
+echo Setting PATH for use with $TARGET Free Pascal compiler
+set A=$1\bin\$TARGET;%PATH%
+set Path=
+set PATH=%A%
+set A=
 endcfg
 
 #
