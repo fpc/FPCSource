@@ -43,6 +43,7 @@ unit systems;
           exeext,
           objext,
           dllext,
+          arext,
           unitext,
           libext,
           asmext,
@@ -82,6 +83,7 @@ unit systems;
             exeext : '';
             objext : '.O1';
             dllext : '.DLL';
+            arext : '.A';
             unitext : '.PP1';
             libext : '.PPL';
             asmext : '.S1';
@@ -102,6 +104,7 @@ unit systems;
             exeext : '';
             objext : '.oo2';
             dllext : '.ao2';
+            arext : '.a';
             unitext : '.ppo';
             libext : '.ppl';
             asmext : '.so2';
@@ -122,6 +125,7 @@ unit systems;
             exeext : '';
             objext : '.o';
             dllext : '.so';
+            arext : '.a';
             unitext : '.ppu';
             libext : '.ppl';
             asmext : '.s';
@@ -142,6 +146,7 @@ unit systems;
             exeext : '.exe';
             objext : '.o';
             dllext : '.dll';
+            arext : '.a';
             unitext : '.ppw';
             libext : '.ppl';
             asmext : '.s';
@@ -162,6 +167,7 @@ unit systems;
             exeext : '.EXE';
             objext : '.O';
             dllext : '.DLL';
+            arext : '.A';
             unitext : '.PPU';
             libext : '.PPL';
             asmext : '.S';
@@ -182,6 +188,7 @@ unit systems;
             exeext : '';
             objext : '.o';
             dllext : '.library';
+            arext : '.a';
             unitext : '.ppa';
             libext : '.ppl';
             asmext : '.asm';
@@ -202,6 +209,7 @@ unit systems;
             exeext : '.ttp';
             objext : '.o';
             dllext : '.dll';
+            arext : '.a';
             unitext : '.PPT';
             libext : '.PPL';
             asmext : '.s';
@@ -222,6 +230,7 @@ unit systems;
             exeext : '';
             objext : '.o';
             dllext : '.dll';
+            arext : '.a';
             unitext : '.ppm';
             libext : '.ppl';
             asmext : '.asm';
@@ -357,7 +366,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-04-16 10:50:45  daniel
+  Revision 1.4  1998-04-27 15:45:20  peter
+    + -Xl for smartlink
+    + target_info.arext = .a
+
+  Revision 1.3  1998/04/16 10:50:45  daniel
   * Fixed some things that were broken for OS/2.
 
   Revision 1.2  1998/03/30 15:53:01  florian
