@@ -1317,6 +1317,10 @@ begin
     begin
 {      El['calling-conv'] := 'stdcall';}
       ExpectToken(tkSemicolon);
+    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'DEPRECATED') then
+    begin
+{      El['calling-conv'] := 'cdecl';}
+      ExpectToken(tkSemicolon);
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'EXTERNAL') then
     begin
       repeat
@@ -1812,7 +1816,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-11-22 12:14:14  sg
+  Revision 1.5  2004-04-15 22:15:57  michael
+  + Added support for deprecated after function/procedures
+
+  Revision 1.4  2003/11/22 12:14:14  sg
   * Added support for source line number information
 
   Revision 1.3  2003/06/24 12:59:07  michael
