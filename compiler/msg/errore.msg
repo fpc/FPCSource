@@ -301,6 +301,9 @@ scan_w_appid_not_support=02059_W_APPID is only supported for PalmOS
 % The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
 scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
 % The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
+scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 255 chars
+% A single string constant can contain at most 255 chars. Try splitting up the
+% string in multiple smaller parts and concatenate them with a + operator.
 % \end{description}
 #
 # Parser

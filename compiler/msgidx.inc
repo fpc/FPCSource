@@ -77,6 +77,7 @@ const
   scan_e_invalid_interface_type=02058;
   scan_w_appid_not_support=02059;
   scan_w_appname_not_support=02060;
+  scan_e_string_exceeds_255_chars=02061;
   parser_e_syntax_error=03000;
   parser_w_proc_far_ignored=03001;
   parser_w_proc_near_ignored=03002;
@@ -601,9 +602,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 33610;
+  MsgTxtSize = 33666;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,61,182,38,41,41,98,17,35,42,
+    17,62,182,38,41,41,98,17,35,42,
     30,1,1,1,1,1,1,1,1,1
   );

@@ -1853,10 +1853,12 @@ implementation
     procedure tscannerfile.readtoken;
       var
         code    : integer;
+        len,
         low,high,mid : longint;
         m       : longint;
         mac     : tmacro;
         asciinr : string[6];
+        msgwritten,
         iswidestring : boolean;
       label
          exit_label;
@@ -2230,6 +2232,9 @@ implementation
 
              '''','#','^' :
                begin
+                 len:=0;
+                 msgwritten:=false;
+                 pattern:='';
                  iswidestring:=false;
                  if c='^' then
                   begin
@@ -2244,15 +2249,14 @@ implementation
                      end
                     else
                      begin
+                       inc(len);
                        if c<#64 then
-                        pattern:=chr(ord(c)+64)
+                        pattern[len]:=chr(ord(c)+64)
                        else
-                        pattern:=chr(ord(c)-64);
+                        pattern[len]:=chr(ord(c)-64);
                        readchar;
                      end;
-                  end
-                 else
-                  pattern:='';
+                  end;
                  repeat
                    case c of
                      '#' :
@@ -2284,9 +2288,13 @@ implementation
                            begin
                               if (m>=0) and (m<=65535) then
                                 begin
-                                   ascii2unicode(@pattern[1],length(pattern),patternw);
-                                   concatwidestringchar(patternw,tcompilerwidechar(m));
-                                   iswidestring:=true;
+                                  if not iswidestring then
+                                   begin
+                                     ascii2unicode(@pattern[1],len,patternw);
+                                     iswidestring:=true;
+                                     len:=0;
+                                   end;
+                                  concatwidestringchar(patternw,tcompilerwidechar(m));
                                 end
                               else
                                 Message(scan_e_illegal_char_const)
@@ -2294,7 +2302,21 @@ implementation
                          else if iswidestring then
                            concatwidestringchar(patternw,asciichar2unicode(char(m)))
                          else
-                           pattern:=pattern+chr(m);
+                           begin
+                             if len<255 then
+                              begin
+                                inc(len);
+                                pattern[len]:=chr(m);
+                              end
+                             else
+                              begin
+                                if not msgwritten then
+                                 begin
+                                   Message(scan_e_string_exceeds_255_chars);
+                                   msgwritten:=true;
+                                 end;
+                              end;
+                           end;
                        end;
                      '''' :
                        begin
@@ -2315,7 +2337,21 @@ implementation
                            if iswidestring then
                              concatwidestringchar(patternw,asciichar2unicode(c))
                            else
-                             pattern:=pattern+c;
+                             begin
+                               if len<255 then
+                                begin
+                                  inc(len);
+                                  pattern[len]:=c;
+                                end
+                               else
+                                begin
+                                  if not msgwritten then
+                                   begin
+                                     Message(scan_e_string_exceeds_255_chars);
+                                     msgwritten:=true;
+                                   end;
+                                end;
+                             end;
                          until false;
                        end;
                      '^' :
@@ -2330,7 +2366,21 @@ implementation
                          if iswidestring then
                            concatwidestringchar(patternw,asciichar2unicode(c))
                          else
-                           pattern:=pattern+c;
+                           begin
+                             if len<255 then
+                              begin
+                                inc(len);
+                                pattern[len]:=c;
+                              end
+                             else
+                              begin
+                                if not msgwritten then
+                                 begin
+                                   Message(scan_e_string_exceeds_255_chars);
+                                   msgwritten:=true;
+                                 end;
+                              end;
+                           end;
 
                          readchar;
                        end;
@@ -2605,7 +2655,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.25  2001-10-17 22:41:05  florian
+  Revision 1.26  2001-10-22 19:55:44  peter
+    * give error with string constants longer than 255 chars, this is
+      compatible with kylix
+
+  Revision 1.25  2001/10/17 22:41:05  florian
     * several widechar fixes, case works now
 
   Revision 1.24  2001/10/12 16:02:34  peter
