@@ -1,8 +1,8 @@
-unit impluni1;
+unit uimpluni1;
 
 interface
 
-uses impluni2;
+uses uimpluni2;
 
 const
   ICanUseThis = 1;

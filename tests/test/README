@@ -33,8 +33,8 @@ case .................. tcase1.pp      tests case statements with byte and word
                         tcase2.pp      tests case with sub enum types
 Arrays ................ tarray1.pp     open arrays with classes
                         tarray2.pp     Array of const
-			tarray3.pp     Array of Char #1
-			tarray4.pp     Array of Char #2
+			tarray3.pp     Array of Char #1 (Known bug)
+			tarray4.pp     Array of Char #2 (Known bug)
 Enumerations .......... tenum1.pp      tests assignments of subrange
                                        enumerations
 Codegenerration ....... tcg1.pp        i386 pushw
