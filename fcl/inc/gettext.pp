@@ -158,14 +158,14 @@ var
 begin
   for i := 0 to StringCount - 1 do
   begin
-    FreeMem(OrigStrings^[i]);
-    FreeMem(TranslStrings^[i]);
+    Dispose(OrigStrings^[i]);
+    Dispose(TranslStrings^[i]);
   end;
-  FreeMem(OrigTable);
-  FreeMem(TranslTable);
-  FreeMem(OrigStrings);
-  FreeMem(TranslStrings);
-  FreeMem(HashTable);
+  Dispose(OrigTable);
+  Dispose(TranslTable);
+  Dispose(OrigStrings);
+  Dispose(TranslStrings);
+  Dispose(HashTable);
   inherited Destroy;
 end;
 
@@ -310,7 +310,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:15  peter
+  Revision 1.9  2005-03-15 16:27:04  peter
+    * use dispose instead of freemem to also release the initialize types
+
+  Revision 1.8  2005/02/14 17:13:15  peter
     * truncate log
 
 }
