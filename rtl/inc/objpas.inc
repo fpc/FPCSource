@@ -187,7 +187,8 @@
 
         begin
            getmem(p,instancesize);
-           InitInstance(p);
+           if p <> nil then
+              InitInstance(p);
            NewInstance:=TObject(p);
         end;
 
@@ -695,7 +696,10 @@
 
 {
   $Log$
-  Revision 1.18  2001-12-26 21:03:56  peter
+  Revision 1.19  2002-03-30 14:52:59  carl
+  * don't crash everything if the class allocation failed
+
+  Revision 1.18  2001/12/26 21:03:56  peter
     * merged fixes from 1.0.x
 
   Revision 1.17  2001/09/29 21:32:47  jonas
