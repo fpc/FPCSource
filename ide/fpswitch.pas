@@ -1021,6 +1021,7 @@ begin
      AddStringItem(opt_librarydirectories,'l',idNone,true,true);
      AddStringItem(opt_objectdirectories,'o',idNone,true,true);
      AddStringItem(opt_exeppudirectories,'E',idNone,true,true);
+     AddStringItem(opt_ppuoutputdirectory,'U',idNone,true,true);
      AddStringItem(opt_cross_tools_directory,'D',idNone,true,true);
    end;
 
@@ -1281,7 +1282,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2004-11-03 12:05:54  florian
+  Revision 1.19  2004-11-14 21:45:29  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.18  2004/11/03 12:05:54  florian
     + supported targets are now read dynamically from the included compiler
 
   Revision 1.17  2004/09/14 20:46:13  hajny

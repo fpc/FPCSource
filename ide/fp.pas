@@ -75,7 +75,9 @@ uses
   FPDebug,FPRegs,
 {$endif}
   FPTemplt,FPRedir,FPDesk,
-  FPCodTmp,FPCodCmp;
+  FPCodTmp,FPCodCmp,
+
+  systems;
 
 
 {$ifdef fpc}
@@ -340,6 +342,9 @@ BEGIN
   InitCodeTemplates;
   InitCodeComplete;
 
+  { init target information etc. }
+  InitSystems;
+
   IDEApp.Init;
   CheckINIFile;
   ReadSwitches(SwitchesPath);
@@ -496,7 +501,13 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.25  2004-11-08 20:28:25  peter
+  Revision 1.26  2004-11-14 21:45:28  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.25  2004/11/08 20:28:25  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

@@ -484,7 +484,7 @@ end;
 constructor TCompilerStatusDialog.Init;
 var R: TRect;
 begin
-  R.Assign(0,0,50,11);
+  R.Assign(0,0,56,11);
   ClearFormatParams; AddFormatParamStr(KillTilde(SwitchesModeName[SwitchesMode]));
   inherited Init(R, FormatStrF(dialog_compilingwithmode, FormatParams));
   GetExtent(R); R.B.Y:=11;
@@ -566,15 +566,17 @@ begin
   AddFormatParamStr(StatusS);
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
-  AddFormatParamInt(MemAvail div 1024);
   AddFormatParamInt(Status.CompiledLines);
+  AddFormatParamInt((Heapsize-MemAvail) div 1024);
+  AddFormatParamInt(Heapsize div 1024);
   AddFormatParamInt(Status.ErrorCount);
   ST^.SetText(
    FormatStrF(
     'Main file: %s'#13+
     '%s'+#13#13+
-    'Target: %12s    '+     'Line number: %7d'+#13+
-    'Free memory: %6dK    '+'Total lines: %7d'+#13+
+    'Target: %s'#13+
+    'Line number: %6d     '+'Total lines:      %6d'+#13+
+    'Used memory: %6dK    '+'Allocated memory: %6dK'#13+
     'Total errors: %5d',
    FormatParams)
   );
@@ -1232,7 +1234,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-11-08 20:28:26  peter
+  Revision 1.30  2004-11-14 21:45:28  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.29  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

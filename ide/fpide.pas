@@ -612,7 +612,7 @@ begin
     begin
       CtrlCCatched:=true;
 {$ifdef DEBUG}
-      Writeln(stderr,'One CtrlC caught');
+      Writeln(stderr,'One Ctrl-C caught');
 {$endif DEBUG}
     end
   else
@@ -1240,7 +1240,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  2004-11-08 21:55:09  peter
+  Revision 1.32  2004-11-14 21:45:28  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.31  2004/11/08 21:55:09  peter
     * fixed run directory
     * Open dialog starts in dir of last editted file
 

@@ -500,7 +500,7 @@ implementation
 uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
-  cpubase,
+  systems,cpubase,
   {$if defined(I386) or defined(x64_86)}
      rax86,
   {$endif}
@@ -4022,38 +4022,14 @@ begin
   C^.Insert(NewStr(S));
 end;
 begin
-  OSStr:='';
-{$ifdef go32v2}
-  OSStr:='Dos';
-{$endif}
-{$ifdef tp}
-  OSStr:='Dos';
-{$endif}
-{$ifdef linux}
-  OSStr:='Linux';
-{$endif}
-{$ifdef win32}
-  OSStr:='Win32';
-{$endif}
-{$ifdef os2}
-  OSStr:='OS/2';
-{$endif}
-{$ifdef FreeBSD}
-  OSStr:='FreeBSD';
-{$endif}
-{$ifdef NetBSD}
-  OSStr:='NetBSD';
-{$endif}
-{$ifdef OpenBSD}
-  OSStr:='OpenBSD';
-{$endif}
-
-  R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
+  R.Assign(0,0,58,14{$ifdef NODEBUG}-1{$endif});
   inherited Init(R, dialog_about);
   HelpCtx:=hcAbout;
   GetExtent(R); R.Grow(-3,-2);
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+OSStr)));
+  Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+source_info.name)));
+  R2.Move(0,1);
+  Insert(New(PStaticText, Init(R2, ^C'Target CPU: '+target_cpu_string)));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr+' '+{$i %date%})));
   R2.Move(0,1);
@@ -4463,7 +4439,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.49  2004-11-11 15:20:52  florian
+  Revision 1.50  2004-11-14 21:45:29  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.49  2004/11/11 15:20:52  florian
     * applied Peter's patch from yesterday
 
   Revision 1.48  2004/11/08 21:55:09  peter

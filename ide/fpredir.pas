@@ -519,8 +519,8 @@ end;
 
   {............................................................................}
 
-  procedure RestoreRedirIn;
 
+  procedure RestoreRedirIn;
   begin
     If not RedirChangedIn then Exit;
 {$ifndef FPC}
@@ -679,6 +679,10 @@ end;
 {............................................................................}
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+{$ifdef win32}
+var
+  mode : word;
+{$endif win32}
 Begin
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
   ExecuteResult:=0;
@@ -696,6 +700,12 @@ Begin
   ExecuteRedir:=(IOStatus=0) and (RedirErrorOut=0) and
                 (RedirErrorIn=0) and (RedirErrorError=0) and
                 (ExecuteResult=0);
+{$ifdef win32}
+  // reenable mouse events
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @mode);
+  mode:=mode or ENABLE_MOUSE_INPUT;
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), mode);
+{$endif win32}
 End;
 
 {............................................................................}
@@ -980,7 +990,13 @@ finalization
 End.
 {
   $Log$
-  Revision 1.9  2004-11-06 19:56:14  armin
+  Revision 1.10  2004-11-14 21:45:28  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.9  2004/11/06 19:56:14  armin
   * support target netware
 
   Revision 1.8  2004/09/21 14:55:45  armin

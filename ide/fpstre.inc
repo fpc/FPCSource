@@ -823,7 +823,8 @@ const
       opt_includedirectories = '~I~nclude directories';
       opt_librarydirectories = '~L~ibrary directories';
       opt_objectdirectories = '~O~bject directories';
-      opt_exeppudirectories = '~E~XE & PPU directories';
+      opt_exeppudirectories = '~E~XE output directory';
+      opt_ppuoutputdirectory = '~P~PU output directory';
       opt_cross_tools_directory = '~C~ross tools directory';
       { Library options }
       opt_librariesdefault = '~T~arget default';
@@ -1056,7 +1057,13 @@ const
 
 {
   $Log$
-  Revision 1.20  2004-11-08 20:28:26  peter
+  Revision 1.21  2004-11-14 21:45:28  florian
+    * fixed non working mouse after tools call
+    * better handling of source/target info
+    * more info in about dialog
+    * better info in compiler status dialiog
+
+  Revision 1.20  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
