@@ -60,26 +60,28 @@ Begin
   If (InOutRes<>0) then
    exit;
   case TextRec(f).mode of
-    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+    { fmAppend gets changed to fmOutPut in do_open (JM) }
+    fmOutput:
       if len=-1 then
         variantmanager.write0variant(f,v)
       else
         variantmanager.writevariant(f,v,len);
-    fmInput: InOutRes:=105
+    fmInput: 
+      InOutRes:=105
     else InOutRes:=103;
   end;
 End;
 
+
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
-{$warning TODO fpc_variant_to_dynarray}
-    result:=nil;
+    variantmanager.vartodynarray(result,v,typeinfo);
   end;
+  
 
-function fpc_dynarray_to_variant(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
   begin
-{$warning TODO fpc_dynarray_to_variant}
-    result:=nil;
+    variantmanager.varfromdynarray(result,dynarr,typeinfo);
   end;
 
 { ---------------------------------------------------------------------
@@ -601,7 +603,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.18  2004-08-18 21:03:35  florian
+  Revision 1.19  2004-12-05 11:49:06  florian
+    * implemented helper for variant<->dyn. array type cast
+
+  Revision 1.18  2004/08/18 21:03:35  florian
     * sparc uses wait4 as well
 
   Revision 1.17  2004/05/31 20:25:04  peter
