@@ -44,6 +44,13 @@ const
 
   MaxListSize = Maxint div 16;
 
+{ values for TShortCut }
+
+  scShift = $2000;
+  scCtrl = $4000;
+  scAlt = $8000;
+  scNone = 0;
+
 { TStream seek origins }
 
   soFromBeginning = 0;
@@ -1071,7 +1078,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.16  1999-09-13 08:35:16  fcl
+  Revision 1.17  1999-10-20 20:24:21  florian
+    + sc* constants added as suggested by Shane Miller
+
+  Revision 1.16  1999/09/13 08:35:16  fcl
   * Changed some argument names (Root->ARoot etc.) because the new compiler
     now performs more ambiguity checks  (sg)
 
