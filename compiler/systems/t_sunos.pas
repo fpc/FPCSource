@@ -482,19 +482,26 @@ end;
 *****************************************************************************}
 
 initialization
+{$ifdef i386}
   RegisterExternalLinker(system_i386_sunos_info,TLinkerSunos);
   RegisterImport(system_i386_sunos,TImportLibSunos);
   RegisterExport(system_i386_sunos,TExportLibSunos);
   RegisterTarget(system_i386_sunos_info);
+{$endif i386}
 
+{$ifdef sparc}
   RegisterExternalLinker(system_sparc_sunos_info,TLinkerSunos);
   RegisterImport(system_sparc_sunos,TImportLibSunos);
   RegisterExport(system_sparc_sunos,TExportLibSunos);
   RegisterTarget(system_sparc_sunos_info);
+{$endif sparc}
 end.
 {
   $Log$
-  Revision 1.12  2004-10-14 18:16:17  mazen
+  Revision 1.13  2004-11-03 12:04:03  florian
+    * fixed sparc <-> i386 mixture
+
+  Revision 1.12  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 
