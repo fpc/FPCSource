@@ -41,12 +41,24 @@ uses
 
   {$packrecords C}
 {$else}
-  const
-    gdkdll='gdk';
-  {$linklib c}
-  {$linklib X11}
+  {$ifdef os2}
+    const
+      gdkdll='gdk12';
+    {$define gtkos2}
 
-  {$packrecords C}
+    {$packrecords C}
+  {$else}
+    const
+    {$ifdef FreeBSD}
+      gdkdll='gdk12';
+    {$else}
+      gdkdll='gdk';
+    {$endif}
+    {$linklib c}
+    {$linklib X11}
+
+    {$packrecords C}
+  {$endif}
 {$endif}
 
 Type
@@ -86,18 +98,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:07  peter
+  Revision 1.5  2002-08-18 19:36:58  marco
+   * small fixes for NetBSD that doesn't adhere to the gtk12/glib12 etc naming for older GTK versions.
+
+  Revision 1.4  2003/03/02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.3  2002/09/07 15:42:58  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/31 04:16:48  marco
+   * BSD Libname fixes (eases Lazarus compilation).
+
+  Revision 1.1  2002/01/29 17:55:07  peter
     * splitted to base and extra
 
-  Revision 1.5  2000/09/09 18:41:38  peter
-    * fixes for gtk win32
-
-  Revision 1.4  2000/09/06 21:14:28  peter
-    * packrecords 4 for win32, packrecords c for linux
-
-  Revision 1.3  2000/08/06 10:46:23  peter
-    * force smartlink (merged)
-
-  Revision 1.2  2000/07/13 11:33:19  michael
-  + removed logs
 }
