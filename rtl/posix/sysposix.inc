@@ -103,10 +103,8 @@ function paramstr(l: longint) : string;
  end;
 
 Procedure Randomize;
-var
- t: time_t;
 Begin
-  randseed:=longint(sys_time(t));
+  randseed:=longint(sys_time(nil));
 End;
 
 
@@ -657,7 +655,10 @@ End.
 *)
 {
  $Log$
- Revision 1.6  2002-10-27 17:21:29  marco
+ Revision 1.7  2002-11-14 12:18:03  marco
+  * fixed sys_time call to (NIL)
+
+ Revision 1.6  2002/10/27 17:21:29  marco
   * Only "difficult" functions + execvp + termios + rewinddir left to do
 
  Revision 1.5  2002/10/26 18:27:52  marco
