@@ -290,7 +290,7 @@ implementation
 
     function taicpu.is_reg_move:boolean;
       begin
-        result:=(opcode=A_MOV) and
+        result:=((opcode=A_MOV) or (opcode=A_MVF)) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
@@ -344,7 +344,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-12-28 16:20:09  jonas
+  Revision 1.21  2004-01-20 21:02:55  florian
+    * fixed symbol type writing for arm-linux
+    * fixed assembler generation for abs
+
+  Revision 1.20  2003/12/28 16:20:09  jonas
     - removed unused methods from old generic spilling code
 
   Revision 1.19  2003/12/26 14:02:30  peter

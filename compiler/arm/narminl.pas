@@ -101,7 +101,7 @@ implementation
     procedure tarminlinenode.second_abs_real;
       begin
         load_fpu_location;
-        exprasmlist.concat(taicpu.op_reg(A_ABS,location.register));
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,location.register),PF_E));
       end;
 
 
@@ -123,7 +123,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-11-02 14:30:03  florian
+  Revision 1.3  2004-01-20 21:02:56  florian
+    * fixed symbol type writing for arm-linux
+    * fixed assembler generation for abs
+
+  Revision 1.2  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.1  2003/08/28 00:05:29  florian

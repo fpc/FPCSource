@@ -651,9 +651,19 @@ var
                       (tai(hp.next).typ in [ait_const_symbol,ait_const_rva,
                          ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
                          ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]) then
-                    AsmWriteLn(',@object')
+                     begin
+                       if target_info.system = system_arm_linux then
+                         AsmWriteLn(',#object')
+                       else
+                         AsmWriteLn(',@object')
+                     end
                    else
-                    AsmWriteLn(',@function');
+                     begin
+                       if target_info.system = system_arm_linux then
+                         AsmWriteLn(',#function')
+                       else
+                         AsmWriteLn(',@function');
+                     end;
                    if tai_symbol(hp).sym.size>0 then
                     begin
                       AsmWrite(#9'.size'#9);
@@ -839,7 +849,11 @@ var
 end.
 {
   $Log$
-  Revision 1.43  2004-01-12 16:39:40  peter
+  Revision 1.44  2004-01-20 21:02:54  florian
+    * fixed symbol type writing for arm-linux
+    * fixed assembler generation for abs
+
+  Revision 1.43  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.42  2004/01/07 17:40:06  jonas

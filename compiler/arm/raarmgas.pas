@@ -176,7 +176,13 @@ Unit raarmgas;
             Begin
               oper.opr.ref.index:=actasmregister;
               Consume(AS_REGISTER);
+            end
+          else if actasmtoken=AS_HASH then
+            begin
+              Consume(AS_HASH);
+              inc(oper.opr.ref.offset,BuildConstExpression(false,true));
             end;
+          Consume_RBracket;
         end;
 
 
@@ -742,7 +748,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-12-18 17:06:21  florian
+  Revision 1.7  2004-01-20 21:02:56  florian
+    * fixed symbol type writing for arm-linux
+    * fixed assembler generation for abs
+
+  Revision 1.6  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.5  2003/12/08 17:43:57  florian
