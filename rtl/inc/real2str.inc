@@ -347,8 +347,13 @@ begin
         end
       else
         begin
-          delete(temp,1,1);
-          dot := 2;
+          if not sign then
+            begin
+              delete(temp,1,1);
+              dot := 2
+            end
+          else
+            dot := 3;
           { set zeroes and dot }
           if correct>=0 then
             begin
@@ -376,7 +381,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2000-02-27 14:41:25  peter
+  Revision 1.26  2000-03-02 07:35:57  jonas
+    * sign was not written in some cases
+
+  Revision 1.25  2000/02/27 14:41:25  peter
     * removed warnings/notes
 
   Revision 1.24  2000/02/26 18:53:11  jonas
