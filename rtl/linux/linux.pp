@@ -514,6 +514,8 @@ Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
+Function  ReName (OldName,NewName : Pchar) : Boolean;
+Function  ReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimbuf):boolean;
@@ -1644,6 +1646,22 @@ begin
   linuxerror:=errno;
 end;
 
+
+Function  ReName (OldName,NewName : Pchar) : Boolean;
+
+begin
+  Rename:=Sys_rename(OldName,NewName)=0;
+  LinuxError:=Errno;
+end;
+
+
+Function  ReName (OldName,NewName : String) : Boolean;
+
+begin
+  OldName:=OldName+#0;
+  NewName:=NewName+#0;
+  Rename:=Rename (@OldName[1],@NewName[1]);
+end;
 
 Function Umask(Mask:Integer):integer;
 {
@@ -3487,7 +3505,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  1998-09-18 09:56:33  peter
+  Revision 1.20  1998-10-11 12:23:11  michael
+  + Implemented Rename
+
+  Revision 1.19  1998/09/18 09:56:33  peter
     * merged
 
   Revision 1.18.2.1  1998/09/18 09:53:46  peter
