@@ -166,7 +166,7 @@ fakegdbinfo:
 # required because it needs to detect which compiler version
 # to use.
 #
-builddirs: fpc_packages compilerunits fakegdbunits
+builddirs: compilerunits fakegdbunits
 
 buildfp: fpc_all
 
