@@ -44,6 +44,7 @@ implementation
     uses
       globtype,systems,cclasses,
       cutils,globals,
+      procinfo,
       cgbase,symdef
 {$ifdef extdebug}
       ,verbose,htypechk
@@ -117,6 +118,8 @@ implementation
          oldpos    : tfileposinfo;
          hp : tnode;
       begin
+         if (nf_pass1_done in p.flags) then
+           exit;
          if not(nf_error in p.flags) then
            begin
               oldcodegenerror:=codegenerror;
@@ -125,6 +128,9 @@ implementation
               codegenerror:=false;
               aktfilepos:=p.fileinfo;
               aktlocalswitches:=p.localswitches;
+              { checks make always a call }
+              if ([cs_check_range,cs_check_overflow,cs_check_stack] * aktlocalswitches <> []) then
+                include(current_procinfo.flags,pi_do_call);
               { determine the resulttype if not done }
               if (p.resulttype.def=nil) then
                begin
@@ -176,6 +182,7 @@ implementation
 {$endif EXTDEBUG}
                   end;
                end;
+              include(p.flags,nf_pass1_done);
               codegenerror:=codegenerror or oldcodegenerror;
               aktlocalswitches:=oldlocalswitches;
               aktfilepos:=oldpos;
@@ -214,7 +221,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-10-01 20:34:49  peter
+  Revision 1.33  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.32  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

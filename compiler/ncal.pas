@@ -1571,8 +1571,8 @@ type
          else
            resulttype:=restype;
 
-         if resulttype.def.needs_inittable then
-           include(current_procinfo.flags,pi_needs_implicit_finally);
+         {if resulttype.def.needs_inittable then
+           include(current_procinfo.flags,pi_needs_implicit_finally);}
 
          if assigned(methodpointer) then
           begin
@@ -1838,6 +1838,12 @@ type
 
            end;
 
+         { implicit finally needed ? }
+         if resulttype.def.needs_inittable and
+            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
+            not assigned(funcretnode) then
+           include(current_procinfo.flags,pi_needs_implicit_finally);
+
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
@@ -2050,7 +2056,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.233  2004-05-12 13:21:09  karoly
+  Revision 1.234  2004-05-23 15:06:20  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.233  2004/05/12 13:21:09  karoly
     * few small changes to add syscall support to M68k/Amiga target
 
   Revision 1.232  2004/05/01 22:05:01  florian

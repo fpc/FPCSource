@@ -51,7 +51,6 @@ interface
        tasmnode = class(tnode)
           p_asm : taasmoutput;
           currenttai : tai;
-          getposition : boolean;
           { Used registers in assembler block }
           used_regs_int,
           used_regs_fpu : tcpuregisterset;
@@ -523,7 +522,6 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=p;
-        getposition:=false;
         currenttai:=nil;
         used_regs_int:=[];
         used_regs_fpu:=[];
@@ -534,7 +532,7 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=nil;
-        getposition:=true;
+        include(flags,nf_get_asm_position);
         currenttai:=nil;
       end;
 
@@ -552,8 +550,7 @@ implementation
         hp : tai;
       begin
         inherited ppuload(t,ppufile);
-        getposition:=boolean(ppufile.getbyte);
-        if not getposition then
+        if not(nf_get_asm_position in flags) then
           begin
             p_asm:=taasmoutput.create;
             repeat
@@ -574,9 +571,8 @@ implementation
         hp : tai;
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(byte(getposition));
 {$warning FIXME Add saving of register sets}
-        if not getposition then
+        if not(nf_get_asm_position in flags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -595,7 +591,7 @@ implementation
         hp : tai;
       begin
         inherited buildderefimpl;
-        if not getposition then
+        if not(nf_get_asm_position in flags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -612,7 +608,7 @@ implementation
         hp : tai;
       begin
         inherited derefimpl;
-        if not getposition then
+        if not(nf_get_asm_position in flags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -635,7 +631,6 @@ implementation
             n.p_asm.concatlistcopy(p_asm);
           end
         else n.p_asm := nil;
-        n.getposition:=getposition;
         n.currenttai:=currenttai;
         getcopy := n;
       end;
@@ -643,17 +638,17 @@ implementation
 
     function tasmnode.det_resulttype:tnode;
       begin
-         result:=nil;
-         resulttype:=voidtype;
-         if not getposition then
-           include(current_procinfo.flags,pi_uses_asm);
+        result:=nil;
+        resulttype:=voidtype;
+        if not(nf_get_asm_position in flags) then
+          include(current_procinfo.flags,pi_uses_asm);
       end;
 
 
     function tasmnode.pass_1 : tnode;
       begin
-         result:=nil;
-         expectloc:=LOC_VOID;
+        result:=nil;
+        expectloc:=LOC_VOID;
       end;
 
 
@@ -756,7 +751,10 @@ implementation
       begin
          result := nil;
          expectloc:=LOC_VOID;
+         if (tempinfo^.restype.def.needs_inittable) then
+           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
+
 
     function ttempcreatenode.det_resulttype: tnode;
       begin
@@ -764,6 +762,7 @@ implementation
         { a tempcreatenode doesn't have a resulttype, only temprefnodes do }
         resulttype := voidtype;
       end;
+
 
     function ttempcreatenode.docompare(p: tnode): boolean;
       begin
@@ -1013,7 +1012,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2004-03-10 20:41:17  peter
+  Revision 1.82  2004-05-23 15:06:20  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.81  2004/03/10 20:41:17  peter
     * maybe_in_reg moved to tempinfo
     * fixed expectloc for maybe_in_reg
 

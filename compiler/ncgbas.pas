@@ -211,7 +211,7 @@ interface
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         if getposition then
+         if (nf_get_asm_position in flags) then
            begin
              { Add a marker, to be sure the list is not empty }
              exprasmlist.concat(tai_marker.create(marker_position));
@@ -476,7 +476,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-03-15 08:44:51  michael
+  Revision 1.61  2004-05-23 15:06:20  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.60  2004/03/15 08:44:51  michael
   + Fix from peter: fixes crash when inlining assembler code referencing local vars
 
   Revision 1.59  2004/03/10 20:41:17  peter

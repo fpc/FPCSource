@@ -34,6 +34,9 @@ interface
 
     type
       tcgprocinfo = class(tprocinfo)
+      private
+        procedure add_entry_exit_code;
+      public
         { code for the subroutine as tree }
         code : tnode;
         { positions in the tree for init/final }
@@ -51,7 +54,6 @@ interface
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
         procedure parse_body;
-        procedure add_entry_exit_code;
       end;
 
 
@@ -132,6 +134,27 @@ implementation
       end;
 
 
+    procedure check_finalize_paras(p : tnamedindexitem;arg:pointer);
+      begin
+        if (tsym(p).typ=varsym) and
+           (tvarsym(p).varspez=vs_value) and
+           not is_class(tvarsym(p).vartype.def) and
+           tvarsym(p).vartype.def.needs_inittable then
+          include(current_procinfo.flags,pi_needs_implicit_finally);
+      end;
+
+
+    procedure check_finalize_locals(p : tnamedindexitem;arg:pointer);
+      begin
+        if (tsym(p).typ=varsym) and
+           (tvarsym(p).refs>0) and
+           not(vo_is_funcret in tvarsym(p).varoptions) and
+           not(is_class(tvarsym(p).vartype.def)) and
+           tvarsym(p).vartype.def.needs_inittable then
+          include(current_procinfo.flags,pi_needs_implicit_finally);
+      end;
+
+
     function block(islibrary : boolean) : tnode;
       begin
          { parse const,types and vars }
@@ -205,14 +228,6 @@ implementation
                if symtablestack.symtabletype=localsymtable then
                  symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
             end;
-         if (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
-             (not current_module.is_unit) then
-           begin
-             { there's always a call to FPC_DO_EXIT in the main program }
-             include(current_procinfo.flags,pi_do_call);
-           end;
-         if ([cs_check_range,cs_check_overflow,cs_check_stack] * aktlocalswitches <> []) then
-           include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -273,8 +288,7 @@ implementation
               begin
                 if is_class(current_procinfo.procdef._class) then
                   begin
-                    if (cs_implicit_exceptions in aktmoduleswitches) then
-                      include(current_procinfo.flags,pi_needs_implicit_finally);
+                    include(current_procinfo.flags,pi_needs_implicit_finally);
                     srsym:=search_class_member(current_procinfo.procdef._class,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -532,7 +546,8 @@ implementation
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         newblock:=internalstatements(newstatement);
-        if (pi_needs_implicit_finally in flags) and
+        if (cs_implicit_exceptions in aktmoduleswitches) and
+           (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
@@ -555,6 +570,8 @@ implementation
                finalcode,
                exceptcode));
             addstatement(newstatement,exitlabel_asmnode);
+            { set flag the implicit finally has been generated }
+            include(flags,pi_has_implicit_finally);
           end
         else
           begin
@@ -567,7 +584,7 @@ implementation
             addstatement(newstatement,bodyexitcode);
             addstatement(newstatement,final_asmnode);
           end;
-        resulttypepass(newblock);
+        do_firstpass(newblock);
         code:=newblock;
         aktfilepos:=oldfilepos;
       end;
@@ -632,11 +649,23 @@ implementation
         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
         symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
 
+        { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
+        if (procdef.localst.symtablelevel=main_program_level) and
+           (not current_module.is_unit) then
+          include(flags,pi_do_call);
+
+        { set implicit_finally flag when there are locals/paras to be finalized }
+        current_procinfo.procdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_finalize_paras,nil);
+        current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_finalize_locals,nil);
+
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
         if code.registersfpu>0 then
           include(current_procinfo.flags,pi_uses_fpu);
+
+        { add implicit entry and exit code }
+        add_entry_exit_code;
 
         { only do secondpass if there are no errors }
         if ErrorCount=0 then
@@ -773,6 +802,14 @@ implementation
             aktfilepos:=exitpos;
             gen_stackfree_code(templist,usesacc,usesacchi);
             aktproccode.concatlist(templist);
+
+            { check if the implicit finally has been generated. The flag
+              should already be set in pass1 }
+            if (cs_implicit_exceptions in aktmoduleswitches) and
+               not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
+               (pi_needs_implicit_finally in flags) and
+               not(pi_has_implicit_finally in flags) then
+             internalerror(200405231);
 
 {$ifndef NoOpt}
             if not(cs_no_regalloc in aktglobalswitches) then
@@ -985,9 +1022,6 @@ implementation
            begin
              { get a better entry point }
              entrypos:=code.fileinfo;
-
-             { add implicit entry and exit code }
-             add_entry_exit_code;
 
              { Finish type checking pass }
              do_resulttypepass(code);
@@ -1345,7 +1379,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.190  2004-05-20 21:54:33  florian
+  Revision 1.191  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.190  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 

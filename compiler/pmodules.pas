@@ -851,7 +851,6 @@ implementation
             internalerror(200304253);
         end;
         tcgprocinfo(current_procinfo).code:=cnothingnode.create;
-        tcgprocinfo(current_procinfo).add_entry_exit_code;
         tcgprocinfo(current_procinfo).generate_code;
         release_main_proc(pd);
       end;
@@ -1489,7 +1488,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2004-05-19 21:16:13  peter
+  Revision 1.154  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.153  2004/05/19 21:16:13  peter
     * add DEBUGINFO symbol to reference the .o file that includes the
       stabs info for types and global/static variables
     * debuginfo flag added to ppu to indicate whether debuginfo is

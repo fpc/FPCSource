@@ -200,6 +200,7 @@ interface
          nf_error,
 
          { general }
+         nf_pass1_done,
          nf_write,       { Node is written to            }
          nf_isproperty,
 
@@ -243,7 +244,10 @@ interface
          nf_explicit,
 
          { tinlinenode }
-         nf_inlineconst
+         nf_inlineconst,
+
+         { tasmnode }
+         nf_get_asm_position
        );
 
        tnodeflags = set of tnodeflag;
@@ -752,6 +756,7 @@ implementation
          { node type and not one of tnode!                            }
          p:=tnodeclass(classtype).createforcopy;
          p.nodetype:=nodetype;
+         p.expectloc:=expectloc;
          p.location:=location;
          p.parent:=parent;
          p.flags:=flags;
@@ -1088,7 +1093,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-05-20 21:54:33  florian
+  Revision 1.83  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.82  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 

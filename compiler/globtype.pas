@@ -85,8 +85,8 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-	 cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,
-	 cs_link_map,cs_link_pthread
+         cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,
+         cs_link_map,cs_link_pthread
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -119,7 +119,7 @@ interface
        { Win32, OS/2 & MacOS application types }
        tapptype = (
          app_none,
-         app_gui,		{ graphic user-interface application}
+         app_gui,               { graphic user-interface application}
          app_cui,       { console application}
          app_fs,        { full-screen type application (OS/2 and EMX only) }
          app_tool       { tool application, (MPW tool for MacOS, MacOS only)}
@@ -267,7 +267,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2004-05-23 14:32:17  peter
+  Revision 1.56  2004-05-23 15:06:20  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.55  2004/05/23 14:32:17  peter
     * tprocinfoflag moved to globtype
 
   Revision 1.54  2004/05/02 11:48:46  peter

@@ -200,6 +200,11 @@ implementation
 
     function do_secondpass(var p : tnode) : boolean;
       begin
+         { exprasmlist must be empty }
+         if not exprasmlist.empty then
+           internalerror(200405201);
+
+         { clear errors before starting }
          codegenerror:=false;
          if not(nf_error in p.flags) then
            secondpass(p);
@@ -210,7 +215,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2003-11-10 22:02:52  peter
+  Revision 1.75  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.74  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.73  2003/10/30 16:22:40  peter

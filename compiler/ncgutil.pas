@@ -785,12 +785,9 @@ implementation
       begin
         if (tsym(p).typ=varsym) and
            (tvarsym(p).refs>0) and
-           assigned(tvarsym(p).vartype.def) and
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
-           if (cs_implicit_exceptions in aktmoduleswitches) then
-            include(current_procinfo.flags,pi_needs_implicit_finally);
            oldexprasmlist:=exprasmlist;
            exprasmlist:=taasmoutput(arg);
            hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
@@ -815,7 +812,6 @@ implementation
             begin
               if (tvarsym(p).refs>0) and
                  not(vo_is_funcret in tvarsym(p).varoptions) and
-                 assigned(tvarsym(p).vartype.def) and
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
                 dofinalize:=true;
@@ -829,6 +825,7 @@ implementation
         end;
         if dofinalize then
           begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
             oldexprasmlist:=exprasmlist;
             exprasmlist:=taasmoutput(arg);
             hp:=finalize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
@@ -856,8 +853,6 @@ implementation
            case tvarsym(p).varspez of
              vs_value :
                begin
-                 if (cs_implicit_exceptions in aktmoduleswitches) then
-                  include(current_procinfo.flags,pi_needs_implicit_finally);
                  if tvarsym(p).localloc.loc<>LOC_REFERENCE then
                    internalerror(200309187);
                  reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
@@ -895,6 +890,7 @@ implementation
          begin
            if (tvarsym(p).varspez=vs_value) then
             begin
+              include(current_procinfo.flags,pi_needs_implicit_finally);
               if tvarsym(p).localloc.loc<>LOC_REFERENCE then
                 internalerror(200309188);
               reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
@@ -929,8 +925,6 @@ implementation
            if assigned(hp^.def) and
               hp^.def.needs_inittable then
             begin
-              if (cs_implicit_exceptions in aktmoduleswitches) then
-                include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
               cg.g_initialize(list,hp^.def,href,false);
             end;
@@ -952,6 +946,7 @@ implementation
            if assigned(hp^.def) and
               hp^.def.needs_inittable then
             begin
+              include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
               cg.g_finalize(list,hp^.def,href,false);
             end;
@@ -2139,7 +2134,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.200  2004-05-22 23:34:28  peter
+  Revision 1.201  2004-05-23 15:06:21  peter
+    * implicit_finally flag must be set in pass1
+    * add check whether the implicit frame is generated when expected
+
+  Revision 1.200  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.199  2004/05/19 21:16:12  peter
