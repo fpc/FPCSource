@@ -102,7 +102,7 @@ implementation
         result := nil;
         if registersfpu<1 then
           registersfpu:=1;
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -271,6 +271,12 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
       begin
+(*
+         !!!!!!!!!!!!!!!!!!
+         Causes problems with "boolvar := boolean(bytevar)" on the ppc
+         (the conversion isn't done in that case), don't know why it works
+         on the 80x86 (JM)
+
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
@@ -280,7 +286,11 @@ implementation
               location_copy(location,left.location);
               exit;
            end;
-         location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
+*)
+         secondpass(left);
+         if codegenerror then
+           exit;
+         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          opsize := def_cgsize(left.resulttype.def);
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
@@ -289,21 +299,19 @@ implementation
                   begin
                     reference_release(exprasmlist,left.location.reference);
                     hreg2:=rg.getregisterint(exprasmlist,OS_INT);
-                     if left.location.size in [OS_64,OS_S64] then
-                       begin
-                         cg.a_load_ref_reg(exprasmlist,OS_INT,
-                          left.location.reference,hreg2);
-                         hreg1:=rg.getregisterint(exprasmlist,OS_INT);
-                         href:=left.location.reference;
-                         inc(href.offset,4);
-                         cg.a_load_ref_reg(exprasmlist,OS_INT,
-                           href,hreg1);
-                         cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,hreg2,hreg1);
-                         rg.ungetregisterint(exprasmlist,hreg1);
-                          { it's shrunk down to 32 bit }
-                         location.size:=OS_32;
+                    if left.location.size in [OS_64,OS_S64] then
+                      begin
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,
+                         left.location.reference,hreg2);
+                        hreg1:=rg.getregisterint(exprasmlist,OS_INT);
+                        href:=left.location.reference;
+                        inc(href.offset,4);
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,
+                          href,hreg1);
+                        cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,hreg1,hreg2);
+                        rg.ungetregisterint(exprasmlist,hreg1);
                       end
-                     else
+                    else
                       cg.a_load_ref_reg(exprasmlist,opsize,
                         left.location.reference,hreg2);
                   end
@@ -312,10 +320,8 @@ implementation
                      if left.location.size in [OS_64,OS_S64] then
                        begin
                           hreg2:=rg.getregisterint(exprasmlist,OS_32);
-                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,left.location.registerhigh,left.location.registerlow);
+                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,left.location.registerlow,hreg2);
                           location_release(exprasmlist,left.location);
-                          { it's shrunk down to 32 bit }
-                          location.size:=OS_32;
                        end
                      else
                        hreg2 := left.location.register;
@@ -422,7 +428,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-05-02 15:13:38  jonas
+  Revision 1.35  2003-05-11 13:06:44  jonas
+    * fixed second_int_to_bool() (but still problem with typecasts used for
+      var parameters, not sure about solution)
+
+  Revision 1.34  2003/05/02 15:13:38  jonas
     * yet another final fix for second_int_to_real() :) (tested this time)
 
   Revision 1.33  2003/04/24 22:29:58  florian
