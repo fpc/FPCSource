@@ -1616,6 +1616,8 @@ end;
         newp.FIndexnr:=oldp.FIndexnr;
         newp.FIndexNext:=oldp.FIndexNext;
         data^[newp.FIndexnr]:=newp;
+        if First=oldp then
+          First:=newp;
         { update Linked List backward }
         i:=newp.FIndexnr;
         while (i>0) do
@@ -1866,7 +1868,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2003-06-09 12:19:34  peter
+  Revision 1.24  2003-09-24 13:02:10  marco
+   * (Peter) patch to fix snapshot
+
+  Revision 1.23  2003/06/09 12:19:34  peter
     * insertlistafter added
 
   Revision 1.22  2002/12/15 19:34:31  florian

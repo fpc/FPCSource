@@ -79,7 +79,6 @@ type
     PSymbolMemInfo = ^TSymbolMemInfo;
     TSymbolMemInfo = record
       Addr      : longint;
-      LocalAddr : longint;
       Size      : longint;
       PushSize  : longint;
     end;
@@ -268,7 +267,7 @@ uses
   CUtils,
   globtype,globals,comphook,
   finput,fmodule,
-  cpuinfo,aasmbase,aasmtai,paramgr,
+  cpuinfo,cginfo,aasmbase,aasmtai,paramgr,
   symsym,symdef,symtype,symbase;
 
 const
@@ -1438,11 +1437,13 @@ end;
                    Symbol^.Flags:=(Symbol^.Flags or sfPointer);
                    Symbol^.RelatedTypeID:=longint(tpointerdef(vartype.def).pointertype.def);
                  end;
-               MemInfo.Addr:=address;
-               if assigned(localvarsym) then
-                 MemInfo.LocalAddr:=localvarsym.address
+               if  Table.symtabletype in [recordsymtable,objectsymtable] then
+                 MemInfo.Addr:=fieldoffset
                else
-                 MemInfo.LocalAddr:=0;
+                 if localloc.loc=LOC_REFERENCE then
+                   MemInfo.Addr:=localloc.reference.offset
+                 else
+                   MemInfo.Addr:=0;
                if assigned(vartype.def) and (vartype.def.deftype=arraydef) then
                  begin
                    if tarraydef(vartype.def).highrange<tarraydef(vartype.def).lowrange then
@@ -2111,7 +2112,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-09-07 22:09:34  peter
+  Revision 1.35  2003-09-24 13:02:10  marco
+   * (Peter) patch to fix snapshot
+
+  Revision 1.34  2003/09/07 22:09:34  peter
     * preparations for different default calling conventions
     * various RA fixes
 
