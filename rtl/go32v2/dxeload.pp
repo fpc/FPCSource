@@ -27,7 +27,7 @@ type
      magic,
      symbol_offset,
      element_size,
-     nrelocs       : longint;
+     nrelocs       : cardinal;
   end;
 
 function dxe_load(filename : string) : pointer;
@@ -44,6 +44,7 @@ type
   pointer_array = array[0..maxlongint] of pointer;
   tpa = ^pointer_array;
   plongint = ^longint;
+  pcardinal = ^cardinal;
   ppointer = ^pointer;
 var
   dh     : dxe_header;
@@ -51,7 +52,7 @@ var
   f      : file;
   relocs : tpa;
   i      : longint;
-  addr   : plongint;
+  addr   : pcardinal;
 begin
    dxe_load:=nil;
 { open the file }
@@ -88,7 +89,7 @@ begin
    for i:=0 to dh.nrelocs-1 do
      begin
         cardinal(addr):=cardinal(data)+cardinal(relocs^[i]);
-        addr^:=addr^+pointer(data);
+        addr^:=addr^+cardinal(data);
      end;
    dxe_load:=pointer( dh.symbol_offset + cardinal(data));
 end;
@@ -96,7 +97,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
+  Revision 1.3  2000-12-16 15:57:52  jonas
+    * avoid the longint + cardinal to int64 conversion (merged Pierre's patch)
+
+  Revision 1.2  2000/07/13 11:33:40  michael
   + removed logs
- 
+
 }
