@@ -190,7 +190,7 @@ bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
-bug0127.pp   problem with cdecl in implementation part             OK 0.99.6 (MVC)
+bug0127.pp   problem with cdecl in implementation part
 bug0132.pp   segmentation fault with type loop
 bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 bug0143.pp   cannot concat string and array of char in $X+ mode
