@@ -12,7 +12,7 @@ begin
     I:=I*2;
     If I/k*100>100 then
       begin
-        Writeln('Error')
+        Writeln('Error');
         err:=true;
       end
     else
