@@ -53,11 +53,14 @@ implementation
     procedure secondmoddiv(var p : ptree);
       var
          hreg1 : tregister;
-         pushed,popeax,popedx : boolean;
+         shrdiv, andmod, pushed,popeax,popedx : boolean;
+
          power : longint;
          hl : plabel;
 
       begin
+         shrdiv := false;
+         andmod := false;
          secondpass(p^.left);
          set_location(p^.location,p^.left^.location);
          pushed:=maybe_push(p^.right^.registers32,p);
@@ -87,29 +90,46 @@ implementation
 
            if (p^.treetype=divn) and (p^.right^.treetype=ordconstn) and
                ispowerof2(p^.right^.value,power) then
-             begin
-                 exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg1,hreg1)));
-                 getlabel(hl);
-                 emitjmp(C_NS,hl);
-                 if power=1 then
-                   exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
-                 else
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
-                 emitlab(hl);
-                 exprasmlist^.concat(new(pai386,op_const_reg(A_SAR,S_L,power,hreg1)));
-             end
+             Begin
+               shrdiv := true;
+               {for signed numbers, the numerator must be adjusted before the
+                shift instruction, but not wih unsigned numbers! Otherwise,
+                "Cardinal($ffffffff) div 16" overflows! (JM)}
+               If is_signed(p^.left^.resulttype) Then
+                 Begin
+                   exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg1,hreg1)));
+                   getlabel(hl);
+                   emitjmp(C_NS,hl);
+                   if power=1 then
+                     exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
+                   else
+                     exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
+                   emitlab(hl);
+                   exprasmlist^.concat(new(pai386,op_const_reg(A_SAR,S_L,power,hreg1)));
+                 End
+               Else
+                 exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,power,hreg1)));
+             End
+           else
+             if (p^.treetype=modn) and (p^.right^.treetype=ordconstn) and
+               ispowerof2(p^.right^.value,power) and Not(is_signed(p^.left^.resulttype)) Then
+              {is there a similar trick for MOD'ing signed numbers? (JM)}
+              Begin
+                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,p^.right^.value-1,hreg1)));
+                andmod := true;
+              End
            else
              begin
                  { bring denominator to EDI }
                  { EDI is always free, it's }
                  { only used for temporary  }
                  { purposes                 }
-                 if (p^.right^.location.loc<>LOC_REGISTER) and
-                     (p^.right^.location.loc<>LOC_CREGISTER) then
-                    begin
-                       del_reference(p^.right^.location.reference);
-                       p^.left^.location.loc:=LOC_REGISTER;
-                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
+              if (p^.right^.location.loc<>LOC_REGISTER) and
+                 (p^.right^.location.loc<>LOC_CREGISTER) then
+                begin
+                  del_reference(p^.right^.location.reference);
+                  p^.left^.location.loc:=LOC_REGISTER;
+                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
                 end
               else
                 begin
@@ -120,14 +140,14 @@ implementation
               popeax:=false;
               if hreg1=R_EDX then
                 begin
-                       if not(R_EAX in unused) then
+                  if not(R_EAX in unused) then
                      begin
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
                         popeax:=true;
                      end;
-                   emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
+                  emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
                 end
-                 else
+              else
                 begin
                    if not(R_EDX in unused) then
                      begin
@@ -166,18 +186,47 @@ implementation
                      end
                    else
                      if hreg1<>R_EAX then
-                       emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
+                       Begin
+                         ungetregister32(hreg1);
+                         hreg1 := getexplicitregister32(R_EAX);
+                         { I don't think it's possible that now hreg1 <> R_EAX
+                           since popeax is false, but for all certainty I do
+                           support that situation (JM)}
+                         if hreg1 <> R_EAX then
+                           emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
+                       end;
                 end
               else
-                emit_reg_reg(A_MOV,S_L,R_EDX,hreg1);
+                {if we did the mod by an "and", the result is in hreg1 and
+                 EDX certainly hasn't been pushed (JM)}
+                if not(andmod) Then
+                  if popedx then
+                   {the mod was done by an (i)div (so the result is now in
+                    edx), but edx was occupied prior to the division, so
+                    move the result into a safe place (JM)}
+                    emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
+                  else
+                    Begin
+                  {Get rid of the unnecessary hreg1 if possible (same as with
+                   EAX in divn) (JM)}
+                      ungetregister32(hreg1);
+                      hreg1 := getexplicitregister32(R_EDX);
+                      if hreg1 <> R_EDX then
+                        emit_reg_reg(A_MOV,S_L,R_EDX,hreg1);;
+                    End;
               if popeax then
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
               if popedx then
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
              end;
-           { this registers are always used when div/mod are present }
-         usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-         usedinproc:=usedinproc or ($80 shr byte(R_EDX));
+         If not(andmod or shrdiv) then
+          {andmod and shrdiv only use hreg1 (which is already in usedinproc,
+           since it was acquired with getregister), the others also use both
+           EAX and EDX (JM)}
+           Begin
+             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+             usedinproc:=usedinproc or ($80 shr byte(R_EDX));
+           End;
          clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hreg1;
@@ -768,7 +817,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-05-01 13:24:11  peter
+  Revision 1.23  1999-05-08 20:41:08  jonas
+    + positive number MOD power of 2 now done with AND instruction
+    * fix to division of positive numbers by power of 2
+    * the result of a MOD is left in EDX if possible
+
+  Revision 1.22  1999/05/01 13:24:11  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
