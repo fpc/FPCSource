@@ -345,6 +345,16 @@ program install;
         constructor init;
      end;
 
+  type
+     tapp = object(tapplication)
+         procedure initmenubar;virtual;
+         procedure handleevent(var event : tevent);virtual;
+         procedure do_installdialog;
+     end;
+
+  var
+     installapp : tapp;
+
 
   constructor tinstalldialog.init;
     var
@@ -396,6 +406,8 @@ program install;
        if mask_components=0 then
         begin
           messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
+          { this clears the screen at least PM }
+          installapp.done;
           halt(1);
         end;
 
@@ -423,14 +435,6 @@ program install;
 
   const
      cmstart = 1000;
-
-  type
-     tapp = object(tapplication)
-         procedure initmenubar;virtual;
-         procedure handleevent(var event : tevent);virtual;
-         procedure do_installdialog;
-     end;
-
 
   procedure tapp.do_installdialog;
     var
@@ -517,8 +521,6 @@ program install;
     end;
 
 
-var
-  installapp : tapp;
 begin
    getdir(0,startpath);
    successfull:=false;
@@ -539,7 +541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-09-15 12:06:06  peter
+  Revision 1.6  1998-09-15 13:11:14  pierre
+  small fix to cleanup if no package
+
+  Revision 1.5  1998/09/15 12:06:06  peter
     * install updated to support w32 and dos and config file
 
   Revision 1.4  1998/09/10 10:50:49  florian
