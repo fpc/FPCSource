@@ -94,6 +94,9 @@ end;
 Const
  CMemoryManager : TMemoryManager =
     (
+{$ifndef VER1_0}
+      NeedLock : false;
+{$endif VER1_0}
       GetMem : {$ifdef fpc}@{$endif}CGetmem;
       FreeMem : {$ifdef fpc}@{$endif}CFreeMem;
       FreememSize : {$ifdef fpc}@{$endif}CFreememSize;
@@ -118,7 +121,10 @@ end.
 
 {
  $Log$
- Revision 1.6  2002-09-08 15:43:47  michael
+ Revision 1.7  2002-11-01 17:56:39  peter
+   * needlock field added for 1.1
+
+ Revision 1.6  2002/09/08 15:43:47  michael
  + Fixed calling conventions
 
  Revision 1.5  2002/09/07 15:42:54  peter
