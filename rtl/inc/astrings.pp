@@ -176,11 +176,6 @@ begin
   If S2<>nil then
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
       Inc(PAnsiRec(S2-FirstOff)^.ref);
-{      Temp:=S2;
-      end;
-    end
-  else
-    temp:=S2; }
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
@@ -198,7 +193,6 @@ function Ansi_String_Concat (S1,S2 : Pointer) : pointer;
      S3 : pointer;
 
 begin
-  if S2=Nil then exit;
   if (S1=Nil) then
      AssignAnsiString(S3,S2)
   else
@@ -701,7 +695,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1998-11-04 10:20:48  peter
+  Revision 1.28  1998-11-04 15:39:44  michael
+  + Small fixes to assign and add
+
+  Revision 1.27  1998/11/04 10:20:48  peter
     * ansistring fixes
 
   Revision 1.26  1998/11/02 09:46:12  michael
