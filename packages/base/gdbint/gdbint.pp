@@ -144,11 +144,9 @@ interface
   {$LINKLIB intl}
   {$LINKLIB iconv}
   {$LINKLIB iberty}
-  {$LINKLIB termcap}
-  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
   {$LINKLIB gcc}
   {$LINKLIB cygwin} { alias of libm.a and libc.a }
-  {$LINKLIB ncurses}
   {$LINKLIB imagehlp}
   {$LINKLIB kernel32}
   {$LINKLIB user32}
@@ -2468,7 +2466,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-11-04 23:58:08  peter
+  Revision 1.21  2004-11-05 12:30:27  peter
+  fixed win32 libraries
+
+  Revision 1.20  2004/11/04 23:58:08  peter
   6.2.1 has extra field in symtab
 
   Revision 1.19  2004/11/04 17:56:36  peter
