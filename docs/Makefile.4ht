@@ -21,6 +21,7 @@ preamble4:
 	tex4ht $< -i$(HTFONTS)
 	install -d $(basename $<) -m755
 	t4ht $< -d$(basename $<)/ -m644
+	rm $(basename $<)*.html
 
 
 user: htmlincludes preamble3 user.html 
