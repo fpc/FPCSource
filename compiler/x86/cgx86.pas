@@ -119,6 +119,7 @@ unit cgx86;
         procedure opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
       private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
+        procedure make_simple_ref(list:taasmoutput;var ref: treference);
 
         procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
@@ -321,6 +322,46 @@ unit cgx86;
        end;
 
 
+    procedure tcgx86.make_simple_ref(list:taasmoutput;var ref: treference);
+{$ifdef x86_64}
+      var
+        hreg : tregister;
+{$endif x86_64}
+      begin
+{$ifdef x86_64}
+        { Only 32bit is allowed }
+        if ((ref.offset<low(longint)) or (ref.offset>high(longint))) then
+          begin
+            { Load constant value to register }
+            hreg:=GetAddressRegister(list);
+            list.concat(taicpu.op_const_reg(A_MOV,S_Q,ref.offset,hreg));
+            ref.offset:=0;
+            {if assigned(ref.symbol) then
+              begin
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_Q,ref.symbol,0,hreg));
+                ref.symbol:=nil;
+              end;}
+            { Add register to reference }
+            if ref.index=NR_NO then
+              ref.index:=hreg
+            else
+              begin
+                if ref.scalefactor<>0 then
+                  begin
+                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                    ref.base:=hreg;
+                  end
+                else
+                  begin
+                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.index,hreg));
+                    ref.index:=hreg;
+                  end;
+               end;
+          end;
+{$endif x86_64}
+      end;
+
+
     procedure tcgx86.floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
       begin
          case t of
@@ -355,10 +396,12 @@ unit cgx86;
       var
          op : tasmop;
          s : topsize;
-
+         tmpref : treference;
       begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
          floatloadops(t,op,s);
-         list.concat(Taicpu.Op_ref(op,s,ref));
+         list.concat(Taicpu.Op_ref(op,s,tmpref));
          inc_fpu_stack;
       end;
 
@@ -398,10 +441,12 @@ unit cgx86;
       var
          op : tasmop;
          s : topsize;
-
+         tmpref : treference;
       begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
          floatstoreops(t,op,s);
-         list.concat(Taicpu.Op_ref(op,s,ref));
+         list.concat(Taicpu.Op_ref(op,s,tmpref));
          dec_fpu_stack;
       end;
 
@@ -454,25 +499,23 @@ unit cgx86;
 
 
     procedure tcgx86.a_load_const_ref(list : taasmoutput; tosize: tcgsize; a : aint;const ref : treference);
-
-{$ifdef x86_64}
       var
-        href : treference;
-{$endif x86_64}
+        tmpref : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
         if (tosize in [OS_S64,OS_64]) and
-            ((a<low(longint)) or (a>high(longint))) then
+           ((a<low(longint)) or (a>high(longint))) then
           begin
-            href:=ref;
-            a_load_const_ref(list,OS_32,longint(a and $ffffffff),href);
-            inc(href.offset,4);
-            a_load_const_ref(list,OS_32,longint(a shr 32),href);
+            a_load_const_ref(list,OS_32,longint(a and $ffffffff),tmpref);
+            inc(tmpref.offset,4);
+            a_load_const_ref(list,OS_32,longint(a shr 32),tmpref);
           end
         else
 {$endif x86_64}
-          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[tosize],a,ref));
+          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[tosize],a,tmpref));
       end;
 
 
@@ -481,8 +524,11 @@ unit cgx86;
         op: tasmop;
         s: topsize;
         tmpsize : tcgsize;
-        tmpreg : tregister;
+        tmpreg  : tregister;
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(fromsize,reg);
         sizes2load(fromsize,tosize,op,s);
         case s of
@@ -505,10 +551,10 @@ unit cgx86;
 {$endif x86_64}
                 tmpsize:=tosize;
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
-              a_load_reg_ref(list,tmpsize,tosize,tmpreg,ref);
+              a_load_reg_ref(list,tmpsize,tosize,tmpreg,tmpref);
             end;
         else
-          list.concat(taicpu.op_reg_ref(op,s,reg,ref));
+          list.concat(taicpu.op_reg_ref(op,s,reg,tmpref));
         end;
       end;
 
@@ -517,7 +563,10 @@ unit cgx86;
       var
         op: tasmop;
         s: topsize;
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(tosize,reg);
         sizes2load(fromsize,tosize,op,s);
  {$ifdef x86_64}
@@ -527,7 +576,7 @@ unit cgx86;
         if s in [S_BL,S_WL,S_L] then
           reg:=makeregsize(list,reg,OS_32);
 {$endif x86_64}
-        list.concat(taicpu.op_ref_reg(op,s,ref,reg));
+        list.concat(taicpu.op_ref_reg(op,s,tmpref,reg));
       end;
 
 
@@ -566,6 +615,8 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
+      var
+        tmpref  : treference;
       begin
         with ref do
           if (base=NR_NO) and (index=NR_NO) then
@@ -582,7 +633,11 @@ unit cgx86;
                   (offset=0) and (symbol=nil) then
             a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
           else
-            list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],ref,r));
+            begin
+              tmpref:=ref;
+              make_simple_ref(list,tmpref);
+              list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
+            end;
       end;
 
 
@@ -652,13 +707,15 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+       var
+         tmpref  : treference;
        begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
          if shuffle=nil then
-           begin
-             list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,ref,reg));
-           end
+           list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
          else if shufflescalar(shuffle) then
-           list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,ref,reg))
+           list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,tmpref,reg))
          else
            internalerror(200312252);
        end;
@@ -667,21 +724,22 @@ unit cgx86;
     procedure tcgx86.a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle);
        var
          hreg : tregister;
+         tmpref  : treference;
        begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
          if shuffle=nil then
-           begin
-             list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
-           end
+           list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
          else if shufflescalar(shuffle) then
            begin
              if tosize<>fromsize then
                begin
                  hreg:=getmmregister(list,tosize);
                  list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg,hreg));
-                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,ref));
+                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref));
                end
              else
-               list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,ref))
+               list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,tmpref));
            end
          else
            internalerror(200312252);
@@ -881,7 +939,10 @@ unit cgx86;
 {$ifdef x86_64}
         tmpreg : tregister;
 {$endif x86_64}
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
         if (size in [OS_S64,OS_64]) and
@@ -889,7 +950,7 @@ unit cgx86;
           begin
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
-            a_op_reg_ref(list,op,size,tmpreg,ref);
+            a_op_reg_ref(list,op,size,tmpreg,tmpref);
             exit;
           end;
 {$endif x86_64}
@@ -905,7 +966,7 @@ unit cgx86;
                       opcode := A_SAR;
                   end;
                   list.concat(taicpu.op_const_ref(opcode,
-                    TCgSize2OpSize[size],power,ref));
+                    TCgSize2OpSize[size],power,tmpref));
                   exit;
                 end;
               { the rest should be handled specifically in the code      }
@@ -918,12 +979,12 @@ unit cgx86;
                  ispowerof2(int64(a),power) then
                 begin
                   list.concat(taicpu.op_const_ref(A_SHL,TCgSize2OpSize[size],
-                    power,ref));
+                    power,tmpref));
                   exit;
                 end;
               { can't multiply a memory location directly with a constant }
               if op = OP_IMUL then
-                inherited a_op_const_ref(list,op,size,a,ref)
+                inherited a_op_const_ref(list,op,size,a,tmpref)
               else
                 { OP_MUL should be handled specifically in the code        }
                 { generator because of the silly register usage restraints }
@@ -934,14 +995,14 @@ unit cgx86;
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],ref))
+                list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
               else
-                list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],ref))
+                list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                a_load_const_ref(list,size,0,ref)
+                a_load_const_ref(list,size,0,tmpref)
             else if (aword(a) = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -949,19 +1010,19 @@ unit cgx86;
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_ref(A_MOV,TCgSize2OpSize[size],aint(high(aword)),ref));
+                         list.concat(taicpu.op_const_ref(A_MOV,TCgSize2OpSize[size],aint(high(aword)),tmpref));
                        OP_XOR:
-                         list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],ref));
+                         list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],tmpref));
                      end
                    end
             else
               list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
-                TCgSize2OpSize[size],a,ref));
+                TCgSize2OpSize[size],a,tmpref));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 then
                 list.concat(taicpu.op_const_ref(
-                  TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,ref));
+                  TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,tmpref));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -1008,12 +1069,16 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
+      var
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(size,reg);
         case op of
           OP_NEG,OP_NOT,OP_IMUL:
             begin
-              inherited a_op_ref_reg(list,op,size,ref,reg);
+              inherited a_op_ref_reg(list,op,size,tmpref,reg);
             end;
           OP_MUL,OP_DIV,OP_IDIV:
             { special stuff, needs separate handling inside code }
@@ -1022,26 +1087,30 @@ unit cgx86;
           else
             begin
               reg := makeregsize(list,reg,size);
-              list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],ref,reg));
+              list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],tmpref,reg));
             end;
         end;
       end;
 
 
     procedure tcgx86.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference);
+      var
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(size,reg);
         case op of
           OP_NEG,OP_NOT:
             begin
               if reg<>NR_NO then
                 internalerror(200109237);
-              list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],ref));
+              list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],tmpref));
             end;
           OP_IMUL:
             begin
               { this one needs a load/imul/store, which is the default }
-              inherited a_op_ref_reg(list,op,size,ref,reg);
+              inherited a_op_ref_reg(list,op,size,tmpref,reg);
             end;
           OP_MUL,OP_DIV,OP_IDIV:
             { special stuff, needs separate handling inside code }
@@ -1049,7 +1118,7 @@ unit cgx86;
             internalerror(200109238);
           else
             begin
-              list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,ref));
+              list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,tmpref));
             end;
         end;
       end;
@@ -1179,23 +1248,26 @@ unit cgx86;
     procedure tcgx86.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
       l : tasmlabel);
 
-{$ifdef x86_64}
       var
+{$ifdef x86_64}
         tmpreg : tregister;
 {$endif x86_64}
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
         if (size in [OS_S64,OS_64]) and
-            ((a<low(longint)) or (a>high(longint))) then
+           ((a<low(longint)) or (a>high(longint))) then
           begin
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
-            a_cmp_reg_ref_label(list,size,cmp_op,tmpreg,ref,l);
+            a_cmp_reg_ref_label(list,size,cmp_op,tmpreg,tmpref,l);
             exit;
           end;
 {$endif x86_64}
-        list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,ref));
+        list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,tmpref));
         a_jmp_cond(list,cmp_op,l);
       end;
 
@@ -1212,17 +1284,25 @@ unit cgx86;
 
 
     procedure tcgx86.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister;l : tasmlabel);
+      var
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(size,reg);
-        list.concat(taicpu.op_ref_reg(A_CMP,TCgSize2OpSize[size],ref,reg));
+        list.concat(taicpu.op_ref_reg(A_CMP,TCgSize2OpSize[size],tmpref,reg));
         a_jmp_cond(list,cmp_op,l);
       end;
 
 
     procedure tcgx86.a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;const ref: treference; l : tasmlabel);
+      var
+        tmpref  : treference;
       begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
         check_register_size(size,reg);
-        list.concat(taicpu.op_reg_ref(A_CMP,TCgSize2OpSize[size],reg,ref));
+        list.concat(taicpu.op_reg_ref(A_CMP,TCgSize2OpSize[size],reg,tmpref));
         a_jmp_cond(list,cmp_op,l);
       end;
 
@@ -1271,10 +1351,13 @@ unit cgx86;
      procedure tcgx86.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference);
        var
          ai : taicpu;
+         tmpref  : treference;
        begin
+          tmpref:=ref;
+          make_simple_ref(list,tmpref);
           if not(size in [OS_8,OS_S8]) then
-            a_load_const_ref(list,size,0,ref);
-          ai:=Taicpu.op_ref(A_SETcc,S_B,ref);
+            a_load_const_ref(list,size,0,tmpref);
+          ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
           ai.setcondition(flags_to_cond(f));
           list.concat(ai);
        end;
@@ -1637,7 +1720,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.135  2004-11-01 15:42:47  florian
+  Revision 1.136  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.135  2004/11/01 15:42:47  florian
     * cvt*2* can't write to memory location, fixed
 
   Revision 1.134  2004/11/01 10:30:06  peter

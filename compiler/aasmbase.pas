@@ -198,7 +198,7 @@ interface
        end;
        TAsmObjectDataClass = class of TAsmObjectData;
 
-       tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))] of tasmsymbol;
+       tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))-1] of tasmsymbol;
        pasmsymbolidxarr = ^tasmsymbolidxarr;
 
        TAsmLibraryData = class(TLinkedListItem)
@@ -941,7 +941,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2004-10-31 21:45:02  peter
+  Revision 1.24  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.23  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 

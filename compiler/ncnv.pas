@@ -1327,7 +1327,7 @@ implementation
                      { Insert typeconv for ordinal to the correct size first on left, after
                        that the other conversion can be done }
                      htype.reset;
-                     case resulttype.def.size of
+                     case longint(resulttype.def.size) of
                        1 :
                          htype:=s8inttype;
                        2 :
@@ -2467,7 +2467,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2004-11-01 17:15:47  peter
+  Revision 1.160  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.159  2004/11/01 17:15:47  peter
     * no checkpointer code for dynarr to openarr
 
   Revision 1.158  2004/11/01 15:31:58  peter

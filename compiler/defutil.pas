@@ -671,7 +671,7 @@ implementation
          if error then
           begin
              { Fix the value to fit in the allocated space for this type of variable }
-             case def.size of
+             case longint(def.size) of
                1: l := l and $ff;
                2: l := l and $ffff;
                { work around sign extension bug (to be fixed) (JM) }
@@ -680,7 +680,7 @@ implementation
              { do sign extension if necessary (JM) }
              if is_signed(def) then
               begin
-                case def.size of
+                case longint(def.size) of
                   1: l := shortint(l);
                   2: l := smallint(l);
                   4: l := longint(l);
@@ -888,7 +888,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-10-31 21:45:02  peter
+  Revision 1.21  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.20  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 

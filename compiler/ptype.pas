@@ -341,7 +341,7 @@ implementation
         procedure array_dec;
         var
           lowval,
-          highval   : longint;
+          highval   : aint;
           arraytype : ttype;
           ht        : ttype;
 
@@ -361,6 +361,9 @@ implementation
                   if torddef(t.def).typ in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
+{$ifdef cpu64bit}
+                    u32bit,s64bit,
+{$endif cpu64bit}
                     bool8bit,bool16bit,bool32bit,
                     uwidechar] then
                     begin
@@ -384,8 +387,8 @@ implementation
                 consume(_LECKKLAMMER);
                 { defaults }
                 arraytype:=generrortype;
-                lowval:=longint($80000000);
-                highval:=$7fffffff;
+                lowval:=low(aint);
+                highval:=high(aint);
                 tt.reset;
                 repeat
                   { read the expression and check it, check apart if the
@@ -656,7 +659,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-06-20 08:55:30  florian
+  Revision 1.69  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.68  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.67  2004/06/16 20:07:09  florian

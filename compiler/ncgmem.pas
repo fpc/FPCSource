@@ -60,7 +60,7 @@ interface
        private
          procedure rangecheck_array;
        protected
-         function get_mul_size : longint;
+         function get_mul_size : aint;
          {# This routine is used to calculate the address of the reference.
             On entry reg contains the index in the array,
            and l contains the size of each element in the array.
@@ -437,7 +437,7 @@ implementation
                             TCGVECNODE
 *****************************************************************************}
 
-     function tcgvecnode.get_mul_size : longint;
+     function tcgvecnode.get_mul_size : aint;
        begin
          if nf_memindex in flags then
           get_mul_size:=1
@@ -557,14 +557,15 @@ implementation
 
       var
          offsetdec,
-         extraoffset : longint;
-         t : tnode;
-         href : treference;
-         otl,ofl : tasmlabel;
-         newsize : tcgsize;
-         mulsize: longint;
-         isjump  : boolean;
-         paraloc1,paraloc2 : tcgpara;
+         extraoffset : aint;
+         t        : tnode;
+         href     : treference;
+         otl,ofl  : tasmlabel;
+         newsize  : tcgsize;
+         mulsize  : aint;
+         isjump   : boolean;
+         paraloc1,
+         paraloc2 : tcgpara;
       begin
          paraloc1.init;
          paraloc2.init;
@@ -877,7 +878,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2004-11-01 17:15:47  peter
+  Revision 1.101  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.100  2004/11/01 17:15:47  peter
     * no checkpointer code for dynarr to openarr
 
   Revision 1.99  2004/11/01 15:31:57  peter

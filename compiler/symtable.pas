@@ -87,7 +87,7 @@ interface
 
        tabstractrecordsymtable = class(tstoredsymtable)
        public
-          datasize       : longint;
+          datasize       : aint;
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), -1 is C style }
           recordalignment,       { alignment required when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
@@ -2314,7 +2314,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2004-10-15 09:14:17  mazen
+  Revision 1.160  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.159  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -519,7 +519,7 @@ implementation
                   if equal_defs(p.resulttype.def,t.def) or
                      is_subequal(p.resulttype.def,t.def) then
                    begin
-                     case p.resulttype.def.size of
+                     case longint(p.resulttype.def.size) of
                        1 : curconstSegment.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
                        2 : curconstSegment.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
                        4 : curconstSegment.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
@@ -1089,7 +1089,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2004-11-01 15:32:12  peter
+  Revision 1.94  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.93  2004/11/01 15:32:12  peter
     * support @labelsym
 
   Revision 1.92  2004/10/15 09:14:17  mazen

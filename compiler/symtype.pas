@@ -80,7 +80,7 @@ interface
          function  gettypename:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;abstract;
-         function  size:longint;virtual;abstract;
+         function  size:aint;virtual;abstract;
          function  alignment:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
@@ -162,7 +162,7 @@ interface
         next   : psymlistitem;
         case byte of
           0 : (sym : tsym; symderef : tderef);
-          1 : (value  : longint);
+          1 : (value  : TConstExprInt);
           2 : (tt : ttype);
       end;
 
@@ -176,7 +176,7 @@ interface
         function  empty:boolean;
         procedure addsym(slt:tsltype;p:tsym);
         procedure addsymderef(slt:tsltype;const d:tderef);
-        procedure addconst(slt:tsltype;v:longint);
+        procedure addconst(slt:tsltype;v:TConstExprInt);
         procedure addtype(slt:tsltype;const tt:ttype);
         procedure clear;
         function  getcopy:tsymlist;
@@ -709,7 +709,7 @@ implementation
       end;
 
 
-    procedure tsymlist.addconst(slt:tsltype;v:longint);
+    procedure tsymlist.addconst(slt:tsltype;v:TConstExprInt);
       var
         hp : psymlistitem;
       begin
@@ -1043,7 +1043,7 @@ implementation
         typ    : tdereftype;
         st     : tsymtable;
         idx    : word;
-        i      : longint;
+        i      : aint;
         len    : byte;
         data   : array[0..255] of byte;
       begin
@@ -1487,7 +1487,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.45  2004-10-12 14:34:49  peter
+  Revision 1.46  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.45  2004/10/12 14:34:49  peter
     * fixed visibility for procsyms
     * fixed override check when there was no entry yet
 

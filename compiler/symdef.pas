@@ -77,7 +77,7 @@ interface
           procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
-          function  size:longint;override;
+          function  size:aint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
@@ -100,7 +100,7 @@ interface
           function is_intregable : boolean;
           function is_fpuregable : boolean;
        private
-          savesize  : longint;
+          savesize  : aint;
        end;
 
        tparaitem = class(TLinkedListItem)
@@ -241,7 +241,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  size:longint;override;
+          function  size:aint;override;
           function  alignment : longint;override;
           function  padalignment: longint;
           function  gettypename:string;override;
@@ -297,7 +297,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  getparentdef:tdef;override;
-          function  size : longint;override;
+          function  size : aint;override;
           function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
@@ -372,7 +372,7 @@ interface
 
        tarraydef = class(tstoreddef)
           lowrange,
-          highrange  : longint;
+          highrange  : aint;
           rangetype  : ttype;
           IsConvertedPointer,
           IsDynamicArray,
@@ -382,9 +382,10 @@ interface
        protected
           _elementtype : ttype;
        public
-          function elesize : longint;
+          function elesize : aint;
+          function elecount : aint;
           constructor create_from_pointer(const elemt : ttype);
-          constructor create(l,h : longint;const t : ttype);
+          constructor create(l,h : aint;const t : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
@@ -396,7 +397,7 @@ interface
 {$endif GDB}
           procedure buildderef;override;
           procedure deref;override;
-          function size : longint;override;
+          function size : aint;override;
           function alignment : longint;override;
           { returns the label of the range check string }
           function needs_inittable : boolean;override;
@@ -484,7 +485,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
-          function  size : longint;override;
+          function  size : aint;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           function  is_methodpointer:boolean;override;
@@ -626,19 +627,19 @@ interface
 
        tstringdef = class(tstoreddef)
           string_typ : tstringtype;
-          len        : longint;
+          len        : aint;
           constructor createshort(l : byte);
           constructor loadshort(ppufile:tcompilerppufile);
-          constructor createlong(l : longint);
+          constructor createlong(l : aint);
           constructor loadlong(ppufile:tcompilerppufile);
        {$ifdef ansistring_bits}
-          constructor createansi(l:longint;bits:Tstringbits);
+          constructor createansi(l:aint;bits:Tstringbits);
           constructor loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
        {$else}
-          constructor createansi(l : longint);
+          constructor createansi(l : aint);
           constructor loadansi(ppufile:tcompilerppufile);
        {$endif}
-          constructor createwide(l : longint);
+          constructor createwide(l : aint);
           constructor loadwide(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
@@ -659,13 +660,13 @@ interface
 
        tenumdef = class(tstoreddef)
           minval,
-          maxval    : longint;
+          maxval    : aint;
           has_jumps : boolean;
           firstenum : tsym;  {tenumsym}
           basedef   : tenumdef;
           basedefderef : tderef;
           constructor create;
-          constructor create_subrange(_basedef:tenumdef;_min,_max:longint);
+          constructor create_subrange(_basedef:tenumdef;_min,_max:aint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -674,10 +675,10 @@ interface
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
-          procedure setmax(_max:longint);
-          procedure setmin(_min:longint);
-          function  min:longint;
-          function  max:longint;
+          procedure setmax(_max:aint);
+          procedure setmin(_min:aint);
+          function  min:aint;
+          function  max:aint;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -1050,7 +1051,7 @@ implementation
       end;
 
 
-    function tstoreddef.size : longint;
+    function tstoreddef.size : aint;
       begin
          size:=savesize;
       end;
@@ -1307,7 +1308,7 @@ implementation
       end;
 
 
-    constructor tstringdef.createlong(l : longint);
+    constructor tstringdef.createlong(l : aint);
       begin
          inherited create;
          string_typ:=st_longstring;
@@ -1322,12 +1323,12 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_longstring;
-         len:=ppufile.getlongint;
+         len:=ppufile.getaint;
          savesize:=sizeof(aint);
       end;
 
 {$ifdef ansistring_bits}
-    constructor tstringdef.createansi(l:longint;bits:Tstringbits);
+    constructor tstringdef.createansi(l:aint;bits:Tstringbits);
       begin
          inherited create;
          case bits of
@@ -1355,11 +1356,11 @@ implementation
            sb_64:
              string_typ:=st_ansistring64;
          end;
-         len:=ppufile.getlongint;
+         len:=ppufile.getaint;
          savesize:=POINTER_SIZE;
       end;
 {$else}
-    constructor tstringdef.createansi(l:longint);
+    constructor tstringdef.createansi(l:aint);
       begin
          inherited create;
          string_typ:=st_ansistring;
@@ -1374,12 +1375,12 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_ansistring;
-         len:=ppufile.getlongint;
+         len:=ppufile.getaint;
          savesize:=sizeof(aint);
       end;
 {$endif}
 
-    constructor tstringdef.createwide(l : longint);
+    constructor tstringdef.createwide(l : aint);
       begin
          inherited create;
          string_typ:=st_widestring;
@@ -1394,7 +1395,7 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_widestring;
-         len:=ppufile.getlongint;
+         len:=ppufile.getaint;
          savesize:=sizeof(aint);
       end;
 
@@ -1437,7 +1438,7 @@ implementation
             ppufile.putbyte(byte(len))
            end
          else
-           ppufile.putlongint(len);
+           ppufile.putaint(len);
          case string_typ of
             st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);
@@ -1457,7 +1458,7 @@ implementation
     function tstringdef.stabstring : pchar;
       var
         bytest,charst,longst : string;
-        slen : longint;
+        slen : aint;
       begin
         case string_typ of
            st_shortstring:
@@ -1645,7 +1646,7 @@ implementation
          correct_owner_symtable;
       end;
 
-    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:longint);
+    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:aint);
       begin
          inherited create;
          deftype:=enumdef;
@@ -1666,9 +1667,9 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=enumdef;
          ppufile.getderef(basedefderef);
-         minval:=ppufile.getlongint;
-         maxval:=ppufile.getlongint;
-         savesize:=ppufile.getlongint;
+         minval:=ppufile.getaint;
+         maxval:=ppufile.getaint;
+         savesize:=ppufile.getaint;
          has_jumps:=false;
          firstenum:=Nil;
       end;
@@ -1676,37 +1677,40 @@ implementation
 
     procedure tenumdef.calcsavesize;
       begin
-        if (aktpackenum=4) or (min<0) or (max>65535) then
-         savesize:=4
+        if (aktpackenum=8) or (min<low(longint)) or (max>high(cardinal)) then
+         savesize:=8
         else
-         if (aktpackenum=2) or (min<0) or (max>255) then
+         if (aktpackenum=4) or (min<low(smallint)) or (max>high(word)) then
+          savesize:=4
+        else
+         if (aktpackenum=2) or (min<low(shortint)) or (max>high(byte)) then
           savesize:=2
         else
          savesize:=1;
       end;
 
 
-    procedure tenumdef.setmax(_max:longint);
+    procedure tenumdef.setmax(_max:aint);
       begin
         maxval:=_max;
         calcsavesize;
       end;
 
 
-    procedure tenumdef.setmin(_min:longint);
+    procedure tenumdef.setmin(_min:aint);
       begin
         minval:=_min;
         calcsavesize;
       end;
 
 
-    function tenumdef.min:longint;
+    function tenumdef.min:aint;
       begin
         min:=minval;
       end;
 
 
-    function tenumdef.max:longint;
+    function tenumdef.max:aint;
       begin
         max:=maxval;
       end;
@@ -1738,9 +1742,9 @@ implementation
       begin
          inherited ppuwritedef(ppufile);
          ppufile.putderef(basedefderef);
-         ppufile.putlongint(min);
-         ppufile.putlongint(max);
-         ppufile.putlongint(savesize);
+         ppufile.putaint(min);
+         ppufile.putaint(max);
+         ppufile.putaint(savesize);
          ppufile.writeentry(ibenumdef);
       end;
 
@@ -1816,7 +1820,7 @@ implementation
       begin
          rttiList.concat(Tai_const.Create_8bit(tkEnumeration));
          write_rtti_name;
-         case savesize of
+         case longint(savesize) of
             1:
               rttiList.concat(Tai_const.Create_8bit(otUByte));
             2:
@@ -2794,7 +2798,7 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l,h : longint;const t : ttype);
+    constructor tarraydef.create(l,h : aint;const t : ttype);
       begin
          inherited create;
          deftype:=arraydef;
@@ -2825,8 +2829,8 @@ implementation
          { the addresses are calculated later }
          ppufile.gettype(_elementtype);
          ppufile.gettype(rangetype);
-         lowrange:=ppufile.getlongint;
-         highrange:=ppufile.getlongint;
+         lowrange:=ppufile.getaint;
+         highrange:=ppufile.getaint;
          IsArrayOfConst:=boolean(ppufile.getbyte);
          IsDynamicArray:=boolean(ppufile.getbyte);
          IsVariant:=false;
@@ -2855,8 +2859,8 @@ implementation
          inherited ppuwritedef(ppufile);
          ppufile.puttype(_elementtype);
          ppufile.puttype(rangetype);
-         ppufile.putlongint(lowrange);
-         ppufile.putlongint(highrange);
+         ppufile.putaint(lowrange);
+         ppufile.putaint(highrange);
          ppufile.putbyte(byte(IsArrayOfConst));
          ppufile.putbyte(byte(IsDynamicArray));
          ppufile.writeentry(ibarraydef);
@@ -2882,65 +2886,78 @@ implementation
 {$endif GDB}
 
 
-    function tarraydef.elesize : longint;
+    function tarraydef.elesize : aint;
       begin
         elesize:=_elementtype.def.size;
       end;
 
 
-    function tarraydef.size : longint;
+    function tarraydef.elecount : aint;
+{$ifdef cpu64bit}
       var
-        newsize : TConstExprInt;
+        qhigh,qlow : qword;
+{$endif cpu64bit}
+      begin
+        if IsDynamicArray then
+          begin
+            result:=0;
+            exit;
+          end;
+{$ifdef cpu64bit}
+        if (highrange>0) and (lowrange<0) then
+          begin
+            qhigh:=highrange;
+            qlow:=qword(-lowrange);
+            { prevent overflow, return -1 to indicate overflow }
+            if qhigh+qlow>qword(high(aint)-1) then
+              result:=-1
+            else
+              result:=qhigh+qlow+1;
+          end
+        else
+{$endif cpu64bit}
+          result:=int64(highrange)-lowrange+1;
+      end;
+
+
+    function tarraydef.size : aint;
+      var
+        cachedelecount,
+        cachedelesize : aint;
       begin
         if IsDynamicArray then
           begin
             size:=sizeof(aint);
             exit;
           end;
-        {Tarraydef.size may never be called for an open array!}
+        { Tarraydef.size may never be called for an open array! }
         if highrange<lowrange then
-            internalerror(99080501);
-        newsize:=(int64(highrange)-int64(lowrange)+1)*elesize;
-        { prevent an overflow }
-        if newsize>high(longint) then
-          result:=high(longint)
+          internalerror(99080501);
+        cachedelesize:=elesize;
+        cachedelecount:=elecount;
+        { prevent overflow, return -1 to indicate overflow }
+        if (cachedelesize <> 0) and
+	   (
+	    (cachedelecount < 0) or
+            ((high(aint) div cachedelesize) < cachedelecount) or
+            { also lowrange*elesize must be < high(aint) to prevent overflow when
+              accessing the array, see ncgmem (PFV) }
+            ((high(aint) div cachedelesize) < abs(lowrange))
+ 	   ) then
+          result:=-1
         else
-          result:=newsize;
+          result:=cachedelesize*cachedelecount;
       end;
 
 
     procedure tarraydef.setelementtype(t: ttype);
-      var
-        cachedsize : TConstExprInt;
       begin
         _elementtype:=t;
        if not(IsDynamicArray or
               IsConvertedPointer or
               (highrange<lowrange)) then
          begin
-           { cache element size for performance on multidimensional arrays }
-           cachedsize := elesize;
-           if (cachedsize>0) and
-               (
-{$ifdef cpu64bit}
-{$ifdef VER1_0}
-                { 1.0.x can't handle this and while bootstrapping with 1.0.x we can forget about it }
-                false
-{$else}
-                (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffffffffffff) or
-
-                { () are needed around cachedsize-1 to avoid a possible
-                  integer overflow for cachedsize=1 !! PM }
-                (($7fffffffffffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
-{$endif VER1_0}
-{$else cpu64bit}
-                (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
-
-                { () are needed around cachedsize-1 to avoid a possible
-                  integer overflow for cachedsize=1 !! PM }
-                (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
-{$endif cpu64bit}
-               ) Then
+           if (size=-1) then
              Message(sym_e_segment_too_large);
          end;
       end;
@@ -2980,9 +2997,8 @@ implementation
 {$endif cpurequiresproperalignment}
          { size of elements }
          rttiList.concat(Tai_const.Create_aint(elesize));
-         { count of elements, prevent overflow for 0..maxlongint }
          if not(IsDynamicArray) then
-           rttiList.concat(Tai_const.Create_aint(min(int64(highrange)-lowrange+1,maxlongint)));
+           rttiList.concat(Tai_const.Create_aint(elecount));
          { element type }
          rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
@@ -3042,8 +3058,8 @@ implementation
       var
         newrec:Pchar;
         spec:string[3];
-        varsize:longint;
-        state:^Trecord_stabgen_state;
+        varsize : aint;
+        state   : ^Trecord_stabgen_state;
       begin
         state:=arg;
         { static variables from objects are like global objects }
@@ -3136,7 +3152,7 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=recorddef;
          symtable:=trecordsymtable.create(0);
-         trecordsymtable(symtable).datasize:=ppufile.getlongint;
+         trecordsymtable(symtable).datasize:=ppufile.getaint;
          trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
@@ -3196,7 +3212,7 @@ implementation
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
-         ppufile.putlongint(trecordsymtable(symtable).datasize);
+         ppufile.putaint(trecordsymtable(symtable).datasize);
          ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
          ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
@@ -3205,7 +3221,7 @@ implementation
       end;
 
 
-    function trecorddef.size:longint;
+    function trecorddef.size:aint;
       begin
         result:=trecordsymtable(symtable).datasize;
       end;
@@ -4561,7 +4577,7 @@ implementation
       end;
 
 
-    function tprocvardef.size : longint;
+    function tprocvardef.size : aint;
       begin
          if (po_methodpointer in procoptions) and
             not(po_addressonly in procoptions) then
@@ -4776,7 +4792,7 @@ implementation
          objrealname:=stringdup(ppufile.getstring);
          objname:=stringdup(upper(objrealname^));
          symtable:=tobjectsymtable.create(objrealname^,0);
-         tobjectsymtable(symtable).datasize:=ppufile.getlongint;
+         tobjectsymtable(symtable).datasize:=ppufile.getaint;
          tobjectsymtable(symtable).fieldalignment:=ppufile.getbyte;
          tobjectsymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
@@ -4853,7 +4869,7 @@ implementation
          inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(objecttype));
          ppufile.putstring(objrealname^);
-         ppufile.putlongint(tobjectsymtable(symtable).datasize);
+         ppufile.putaint(tobjectsymtable(symtable).datasize);
          ppufile.putbyte(tobjectsymtable(symtable).fieldalignment);
          ppufile.putbyte(tobjectsymtable(symtable).recordalignment);
          ppufile.putlongint(vmt_offset);
@@ -5077,7 +5093,7 @@ implementation
      end;
 
 
-    function tobjectdef.size : longint;
+    function tobjectdef.size : aint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
           result:=sizeof(aint)
@@ -6200,7 +6216,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.262  2004-11-01 15:33:12  florian
+  Revision 1.263  2004-11-01 23:30:11  peter
+    * support > 32bit accesses for x86_64
+    * rewrote array size checking to support 64bit
+
+  Revision 1.262  2004/11/01 15:33:12  florian
     * fixed type information for dyn. arrays on 64 bit systems
 
   Revision 1.261  2004/10/31 21:45:03  peter
