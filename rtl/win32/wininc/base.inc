@@ -115,6 +115,7 @@
      HRGN = HANDLE;
      HRSRC = HANDLE;
      HSTMT = HANDLE;
+     HSTR  = HANDLE;
      HSZ = HANDLE;
      HWINSTA = HANDLE;
      HWND = HANDLE;
@@ -937,7 +938,10 @@ type
 
 {
   $Log$
-  Revision 1.17  2003-04-23 11:35:00  peter
+  Revision 1.18  2003-08-20 23:12:32  marco
+   * HSTR fix
+
+  Revision 1.17  2003/04/23 11:35:00  peter
     * wndproc definition fixed
 
   Revision 1.16  2003/04/01 15:37:17  peter
