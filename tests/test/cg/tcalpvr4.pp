@@ -32,14 +32,14 @@ type
   troutineresult = function (x: longint; y: byte): int64;popstack;
 
   tsimpleobject = object
-    constructor init;popstack;
+    constructor init;
     procedure test_normal(x: byte);popstack;
     procedure test_static(x: byte);static;popstack;
     procedure test_virtual(x: byte);virtual;popstack;
   end;
 
   tsimpleclass = class
-    constructor create;popstack;
+    constructor create;
     procedure test_normal(x: byte);popstack;
     class procedure test_static(x: byte);popstack;
     procedure test_virtual(x: byte);virtual;popstack;
@@ -174,7 +174,7 @@ var
 
  {****************************************************************************************************}
 
-  constructor tsimpleobject.init;popstack;
+  constructor tsimpleobject.init;
    begin
    end;
 
@@ -194,7 +194,7 @@ var
    end;
 
  {****************************************************************************************************}
-  constructor tsimpleclass.create;popstack;
+  constructor tsimpleclass.create;
    begin
     inherited create;
    end;
@@ -601,7 +601,11 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-09-07 15:40:54  peter
+   Revision 1.3  2002-12-29 15:30:55  peter
+     * updated for 1.1 compiler that does not allow calling conventions
+       for constructor/destructor
+
+   Revision 1.2  2002/09/07 15:40:54  peter
      * old logs removed and tabs fixed
 
    Revision 1.1  2002/05/05 13:58:50  carl

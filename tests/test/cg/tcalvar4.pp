@@ -276,7 +276,7 @@ var
 
   procedure proc_var_openstring(var s: OpenString);cdecl;
    begin
-    global_u8bit := high(s);
+    global_u8bit := {high(s) is not available with cdecl}255;
     s:=RESULT_SMALLSTRING;
    end;
 
@@ -379,7 +379,7 @@ procedure proc_var_formaldef_string(var buf);cdecl;
 
   procedure proc_var_openstring_mixed(b1 : byte; var s: OpenString; b2: byte);cdecl;
    begin
-    global_u8bit := high(s);
+    global_u8bit := {high(s) is not available with cdecl}255;
     s:=RESULT_SMALLSTRING;
     value_u8bit := RESULT_U8BIT;
    end;
@@ -715,7 +715,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-12-05 15:54:20  pierre
+  Revision 1.8  2002-12-29 15:30:55  peter
+    * updated for 1.1 compiler that does not allow calling conventions
+      for constructor/destructor
+
+  Revision 1.7  2002/12/05 15:54:20  pierre
    * update as openstrings are transformed into normal string in cdecl'ared functions
 
   Revision 1.6  2002/11/20 19:39:21  carl

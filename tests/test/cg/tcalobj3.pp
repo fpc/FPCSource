@@ -194,7 +194,7 @@ type
    constructor constructor_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_init;
-   destructor destructor_params_done;cdecl;
+   destructor destructor_params_done;
    procedure method_normal_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);cdecl;
    procedure method_virtual_params_mixed(u8 :byte; u16: word;
@@ -431,7 +431,7 @@ constructor tvmtobject.constructor_init;
    object_s64bit := 0;
  end;
 
-destructor tvmtobject.destructor_params_done;cdecl;
+destructor tvmtobject.destructor_params_done;
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -3294,7 +3294,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-10-29 20:44:30  carl
+  Revision 1.8  2002-12-29 15:30:55  peter
+    * updated for 1.1 compiler that does not allow calling conventions
+      for constructor/destructor
+
+  Revision 1.7  2002/10/29 20:44:30  carl
     * updated with corrects testing (removed cdecl in constructors)
 
   Revision 1.6  2002/10/21 19:21:28  carl
