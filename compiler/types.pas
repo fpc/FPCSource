@@ -145,8 +145,9 @@ interface
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
 
-    { if l isn't in the range of def a range check error is generated }
-    procedure testrange(def : pdef;l : longint);
+    { if l isn't in the range of def a range check error is generated and
+      the value is placed within the range }
+    procedure testrange(def : pdef;var l : longint);
 
     { returns the range of def }
     procedure getrange(def : pdef;var l : longint;var h : longint);
@@ -471,7 +472,7 @@ implementation
       end;
 
     { test if l is in the range of def, outputs error if out of range }
-    procedure testrange(def : pdef;l : longint);
+    procedure testrange(def : pdef;var l : longint);
       var
          lv,hv: longint;
       begin
@@ -506,10 +507,13 @@ implementation
            end
          else if (l<lv) or (l>hv) then
            begin
-              if (cs_check_range in aktlocalswitches) then
+              if (def^.deftype=enumdef) or
+                 (cs_check_range in aktlocalswitches) then
                 Message(parser_e_range_check_error)
               else
                 Message(parser_w_range_check_error);
+              { Fix the value to be in range }
+              l:=lv+(l mod (hv-lv+1));
            end;
       end;
 
@@ -872,7 +876,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-05-28 11:00:51  peter
+  Revision 1.67  1999-05-31 22:54:19  peter
+    * when range check error is found then fix the value to be within the
+      range
+
+  Revision 1.66  1999/05/28 11:00:51  peter
     * removed ungettempoftype
 
   Revision 1.65  1999/05/23 18:42:23  florian
