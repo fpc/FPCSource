@@ -36,6 +36,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -79,6 +80,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -123,6 +125,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -168,6 +171,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -214,6 +218,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -261,6 +266,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -310,6 +316,7 @@ asm
   testl %ecx,%ecx
   jne   .LThread
   movl  %eax,Errno+4
+  jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
   call  *%ecx
@@ -344,7 +351,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-03-03 22:03:10  peter
+  Revision 1.13  2004-03-03 22:10:48  peter
+    * fixed previous commit
+
+  Revision 1.12  2004/03/03 22:03:10  peter
     * regcall fix for threadvar
 
   Revision 1.11  2004/02/06 23:06:16  florian
