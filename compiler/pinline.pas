@@ -419,7 +419,7 @@ implementation
            while assigned(ppn.right) do
             begin
               set_varstate(ppn.left,vs_used,true);
-              inserttypeconv(ppn.left,s32inttype);
+              inserttypeconv(ppn.left,sinttype);
               inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
@@ -476,7 +476,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(s32inttype,dims*s32inttype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(sinttype,dims*sinttype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -485,7 +485,7 @@ implementation
             while assigned(ppn.right) do
              begin
                addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*s32inttype.def.size),
+                   ctemprefnode.create_offset(temp,counter*sinttype.def.size),
                    ppn.left));
                ppn.left:=nil;
                inc(counter);
@@ -754,7 +754,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-11-02 12:55:16  peter
+  Revision 1.36  2004-11-02 18:37:08  florian
+    * dyn. array dimensions are now stored as sinttype so it's target register size dependend
+
+  Revision 1.35  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 
