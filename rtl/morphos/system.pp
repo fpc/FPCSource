@@ -55,9 +55,14 @@ var
   MOS_DOSBase  : Pointer;
 
   MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  MOS_origDir  : LongInt; { original directory on startup }
 
 
-{ MorphOS functions }
+{*****************************************************************************
+                           MorphOS functions
+*****************************************************************************}
+
+{ exec.library functions }
 
 function exec_OpenLibrary(libname: PChar location 'a1'; 
                           libver: LongInt location 'd0'): Pointer; SysCall MOS_ExecBase 552;
@@ -71,6 +76,9 @@ function exec_AllocPooled(poolHeader: Pointer location 'a0';
                           memSize: LongInt location 'd0'): Pointer; SysCall MOS_ExecBase 708;
 function exec_SetSignal(newSignals: LongInt location 'd0';
                         signalMask: LongInt location 'd1'): LongInt; SysCall MOS_ExecBase 306;
+
+
+{ dos.library functions }
 
 function dos_Output: LongInt; SysCall MOS_DOSBase 60;
 function dos_Input: LongInt; SysCall MOS_DOSBase 54;
@@ -105,13 +113,48 @@ function dos_GetCurrentDirName(buf: PChar location 'd1';
 
 function dos_Lock(lname: PChar location 'd1';
                   accessMode: LongInt location 'd2'): LongInt; SysCall MOS_DOSBase 84;
+procedure dos_Unlock(lock: LongInt location 'd1'); SysCall MOS_DOSBase 90;
+function dos_CurrentDir(lock: LongInt location 'd1'): LongInt; SysCall MOS_DOSBase 126;
+function dos_Examine(lock: LongInt location 'd1';
+                     FileInfoBlock: Pointer location 'd2'): Boolean; SysCall MOS_DOSBase 102;
+function dos_CreateDir(dname: PChar location 'd1'): LongInt; SysCall MOS_DOSBase 120;
+
 
 implementation
 
 {$I system.inc}
 
 
-{ OS dependant parts  }
+{*****************************************************************************
+                    System Dependent Structures/Consts
+*****************************************************************************}
+
+{ Used system structures }
+Type
+  TDateStamp = packed record
+    ds_Days   : LongInt;      { Number of days since Jan. 1, 1978 }
+    ds_Minute : LongInt;      { Number of minutes past midnight }
+    ds_Tick   : LongInt;      { Number of ticks past minute }
+  end;
+  PDateStamp = ^TDateStamp;
+
+  PFileInfoBlock = ^TFileInfoBlock;
+  TFileInfoBlock = packed record
+    fib_DiskKey      : LongInt;
+    fib_DirEntryType : LongInt;
+    { Type of Directory. If < 0, then a plain file. If > 0 a directory }
+    fib_FileName     : Array [0..107] of Char;
+    { Null terminated. Max 30 chars used for now }
+    fib_Protection   : LongInt;
+    { bit mask of protection, rwxd are 3-0. }
+    fib_EntryType    : LongInt;
+    fib_Size         : LongInt;      { Number of bytes in file }
+    fib_NumBlocks    : LongInt;      { Number of blocks in file }
+    fib_Date         : TDateStamp; { Date file last changed }
+    fib_Comment      : Array [0..79] of Char;
+    { Null terminated comment associated with file }
+    fib_Reserved     : Array [0..35] of Char;
+  end;
 
 { Errors from dos_IoErr(), etc. }
 const
@@ -168,6 +211,13 @@ const
   OFFSET_CURRENT   = 0;
   OFFSET_END       = 1;
 
+{ Lock AccessMode }
+const
+  SHARED_LOCK      = -2;
+  ACCESS_READ      = SHARED_LOCK;
+  EXCLUSIVE_LOCK   = -1;
+  ACCESS_WRITE     = EXCLUSIVE_LOCK;
+
 { Memory flags }
 const
   MEMF_ANY      = 0;
@@ -191,6 +241,99 @@ const
 
 
 {*****************************************************************************
+                  MorphOS File-handling Support Functions
+*****************************************************************************}
+type
+  { AmigaOS does not automatically close opened files on exit back to  }
+  { the operating system, therefore as a precuation we close all files }
+  { manually on exit.                                                  }
+  PFileList = ^TFileList;
+  TFileList = record { no packed, must be correctly aligned }
+    handle : LongInt;      { Handle to file    }
+    next   : PFileList;      { Next file in list }
+  end;
+
+var
+  MOS_fileList: PFileList; { List pointer to opened files }
+
+{ Function to be called at program shutdown, to close all opened files }
+procedure CloseList(l: PFileList);
+var 
+  tmpNext   : PFileList;
+  tmpHandle : LongInt;
+begin
+  if l=nil then exit;
+
+  { First, close all tracked files }
+  tmpNext:=l^.next;
+  while tmpNext<>nil do begin
+    tmpHandle:=tmpNext^.handle;
+    if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle) 
+       and (tmpHandle<>StdErrorHandle) then begin
+      dos_Close(tmpHandle);
+    end;
+    tmpNext:=tmpNext^.next;
+  end;
+ 
+  { Next, erase the linked list }
+  while l<>nil do begin
+    tmpNext:=l;
+    l:=l^.next;
+    dispose(tmpNext);
+  end;
+end;
+
+{ Function to be called to add a file to the opened file list }
+procedure AddToList(var l: PFileList; h: LongInt);
+var
+  p     : PFileList;
+  inList: Boolean;
+begin
+  inList:=False;
+  if l<>nil then begin
+    { if there is a valid filelist, search for the value }
+    { in the list to avoid double additions }
+    p:=l;
+    while (p^.next<>nil) and (not inList) do
+      if p^.next^.handle=h then inList:=True
+                           else p:=p^.next;
+    p:=nil;
+  end else begin
+    { if the list is not yet allocated, allocate it. }
+    New(l);
+    l^.next:=nil;
+  end;
+
+  if not inList then begin
+    New(p);
+    p^.handle:=h;
+    p^.next:=l^.next;
+    l^.next:=p;
+  end;
+end;
+
+{ Function to be called to remove a file from the list }
+procedure RemoveFromList(var l: PFileList; h: longint);
+var
+  p     : PFileList;
+  inList: Boolean;
+begin
+  if l=nil then exit;
+
+  inList:=False;
+  p:=l;
+  while (p^.next<>nil) and (not inList) do
+    if p^.next^.handle=h then inList:=True
+                         else p:=p^.next;
+
+  if p^.next<>nil then begin
+    dispose(p^.next);
+    p^.next:=p^.next^.next;
+  end;
+end;
+
+
+{*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
 
@@ -198,6 +341,17 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
 begin
+  { We must remove the CTRL-C FALG here because halt }
+  { may call I/O routines, which in turn might call  }
+  { halt, so a recursive stack crash                 }
+  if BreakOn then begin
+    if (exec_SetSignal(0,0) and SIGBREAKF_CTRL_C)<>0 then
+      exec_SetSignal(0,SIGBREAKF_CTRL_C);
+  end;
+
+  { Closing opened files }
+  CloseList(MOS_fileList);
+
   if MOS_DOSBase<>NIL then exec_CloseLibrary(MOS_DOSBase);
   if MOS_heapPool<>NIL then exec_DeletePool(MOS_heapPool);
   haltproc(ExitCode);
@@ -261,6 +415,7 @@ begin
   end;
 end;
 
+
 {*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
@@ -303,13 +458,13 @@ var
 { first address of heap }
 function getheapstart:pointer;
 begin
-   getheapstart:=@int_heap;
+  getheapstart:=@int_heap;
 end;
 
 { current length of heap }
 function getheapsize:longint;
 begin
-   getheapsize:=int_heapsize;
+  getheapsize:=int_heapsize;
 end;
 
 { function to allocate size bytes more for the program }
@@ -326,33 +481,98 @@ end;
                            Directory Handling
 *****************************************************************************}
 procedure mkdir(const s : string);[IOCheck];
+var
+  buffer : array[0..255] of char;
+  j : Integer;
+  tmpStr : string;
+  tmpLock : LongInt;
 begin
   checkCTRLC;
-  InOutRes:=1;
+  if (s='') or (InOutRes<>0) then exit;
+  tmpStr:=s;
+
+  for j:=1 to length(tmpStr) do
+    if tmpStr[j]='\' then tmpStr[j]:='/';
+  move(tmpStr[1],buffer,length(tmpStr));
+  buffer[length(tmpStr)]:=#0;
+
+  tmpLock:=dos_CreateDir(buffer);
+  if tmpLock=0 then begin
+    dosError2InOut(dos_IoErr);
+    exit;
+  end;
+  dos_UnLock(tmpLock);
 end;
 
 procedure rmdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
   j : Integer;
-  temp : string;
+  tmpStr : string;
 begin
   checkCTRLC;
   if (s='.') then InOutRes:=16;
   If (s='') or (InOutRes<>0) then exit;
-  temp:=s;
-  for j:=1 to length(temp) do
-    if temp[j] = '\' then temp[j] := '/';
-  move(temp[1],buffer,length(temp));
-  buffer[length(temp)]:=#0;
+  tmpStr:=s;
+  for j:=1 to length(tmpStr) do
+    if tmpStr[j] = '\' then tmpStr[j] := '/';
+  move(tmpStr[1],buffer,length(tmpStr));
+  buffer[length(tmpStr)]:=#0;
   if not dos_DeleteFile(buffer) then
     dosError2InOut(dos_IoErr);
 end;
 
 procedure chdir(const s : string);[IOCheck];
+var
+  buffer : array[0..255] of char;
+  alock : LongInt;
+  FIB : PFileInfoBlock;
+  j : Integer;
+  tmpStr : string;
 begin
   checkCTRLC;
-  InOutRes:=1;
+  If (s='') or (InOutRes<>0) then exit;
+  tmpStr:=s;
+
+  for j:=1 to length(tmpStr) do
+    if tmpStr[j]='\' then tmpStr[j]:='/';
+
+  { Return parent directory }
+  if s='..' then begin
+    getdir(0,tmpStr);
+    j:=length(tmpStr);
+    { Look through the previous paths }
+    while (tmpStr[j]<>'/') and (tmpStr[j]<>':') and (j>0) do
+      dec(j);
+    if j>0 then
+      tmpStr:=copy(tmpStr,1,j);
+  end;
+  alock:=0;
+
+  move(tmpStr[1],buffer,length(tmpStr));
+  buffer[length(tmpStr)]:=#0;
+  { Changing the directory is a pretty complicated affair }
+  {   1) Obtain a lock on the directory                   }
+  {   2) CurrentDir the lock                              }
+  alock:=dos_Lock(buffer,SHARED_LOCK);
+  if alock=0 then begin
+    dosError2InOut(dos_IoErr);
+    exit;
+  end;
+
+  FIB:=nil;
+  new(FIB);
+ 
+  if (dos_Examine(alock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
+    alock := dos_CurrentDir(alock);
+    if MOS_OrigDir=0 then begin
+      MOS_OrigDir:=alock;
+      alock:=0;
+    end;
+  end;
+
+  if alock<>0 then dos_Unlock(alock);
+  if assigned(FIB) then dispose(FIB)
 end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
@@ -375,6 +595,7 @@ end;
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
+  RemoveFromList(MOS_fileList,handle);
   { Do _NOT_ check CTRL_C on Close, because it will conflict 
     with System_Exit! }
   if not dos_Close(handle) then
@@ -493,7 +714,7 @@ procedure do_open(var f;p:pchar;flags:longint);
 }
 var
   i,j : LongInt;
-  openflags: LongInt;
+  openflags : LongInt;
   path : String;
   buffer : array[0..255] of Char;
   index : Integer;
@@ -511,7 +732,7 @@ begin
       delete(path,1,3);
       getdir(0,s);
       j:=length(s);
-      while (s[j] <> '/') AND (s[j] <> ':') AND (j > 0 ) do
+      while (s[j]<>'/') and (s[j]<>':') and (j>0) do
         dec(j);
       if j > 0 then
         s:=copy(s,1,j);
@@ -524,7 +745,7 @@ begin
     begin
       delete(path,1,2);
       getdir(0,s);
-      if (s[length(s)] <> '/') and (s[length(s)] <> ':') then
+      if (s[length(s)]<>'/') and (s[length(s)]<>':') then
         s:=s+'/';
       path:=s+path;
     end;
@@ -581,7 +802,7 @@ begin
     begin
       dosError2InOut(dos_IoErr);
     end else begin
-      {AddToList(FileList,i);}
+      AddToList(MOS_fileList,i);
       filerec(f).handle:=i;
     end;
 
@@ -694,11 +915,16 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+  MOS_origDir:=0;
+  MOS_fileList:=nil;
 End.
 
 {
   $Log$
-  Revision 1.4  2004-05-02 02:06:57  karoly
+  Revision 1.5  2004-05-09 02:02:42  karoly
+    * more things got implemented
+
+  Revision 1.4  2004/05/02 02:06:57  karoly
     + most of file I/O calls implemented
 
   Revision 1.3  2004/05/01 15:09:47  karoly
