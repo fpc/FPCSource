@@ -34,6 +34,8 @@ Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): 
      pushl %eax
   .LINoPush:
      push %esi
+     // reset EDX for routines that return only EAX
+     xorl %edx,%edx
      call %edi
      // now the result is in EDX:EAX
   end;
@@ -151,7 +153,11 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.2  2001-08-04 11:03:42  peter
+  Revision 1.3  2001-10-20 17:25:22  peter
+    * reset %edx in getordprop so functions returning only %eax don't
+      generate rangecheck errors
+
+  Revision 1.2  2001/08/04 11:03:42  peter
     * moved i386 specific code to include file
 
   Revision 1.1.2.1  2001/08/02 23:31:13  pierre
