@@ -110,7 +110,7 @@ const
      cmMsgGotoSource     = 221;
      cmMsgTrackSource    = 222;
      cmGotoCursor        = 223;
-     cmToggleBreakpoint  = 224;
+     {cmToggleBreakpoint  = 224; never disabled =>2403 }
      cmAddWatch          = 225;
      cmTraceInto         = 226;
      cmStepOver          = 227;
@@ -126,7 +126,7 @@ const
      cmBreakpointList    = 237;
      cmWatches           = 238;
      cmUntilReturn       = 239;
-     { WARNING these two are also defined in weditor.pas PM } 
+     { WARNING these two are also defined in weditor.pas PM }
      cmCopyWin           = 240;
      cmPasteWin          = 241;
 
@@ -186,6 +186,11 @@ const
 
      cmTrackReference    = 2300;
      cmGotoReference     = 2301;
+
+     cmEditBreakpoint    = 2400;
+     cmNewBreakpoint     = 2401;
+     cmDeleteBreakpoint  = 2402;
+     cmToggleBreakpoint  = 2403;
 
      { Help constants }
      hcSourceWindow      = 8000;
@@ -257,7 +262,8 @@ const
 
      hcShowClipboard     = hcShift+cmShowClipboard;
      hcCopyWin           = hcShift+cmCopyWin;
-     hcPasteWin          = hcShift+cmPasteWin;                                                                                                                                                                                                                 
+     hcPasteWin          = hcShift+cmPasteWin;
+
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;
      hcModules           = hcShift+cmModules;
@@ -291,6 +297,9 @@ const
      hcMsgGotoSource     = hcShift+cmMsgGotoSource;
      hcMsgTrackSource    = hcShift+cmMsgTrackSource;
      hcGotoCursor        = hcShift+cmGotoCursor;
+     hcNewBreakpoint     = hcShift+cmNewBreakpoint;
+     hcEditBreakpoint    = hcShift+cmEditBreakpoint;
+     hcDeleteBreakpoint  = hcShift+cmDeleteBreakpoint;
      hcToggleBreakpoint  = hcShift+cmToggleBreakpoint;
      hcEvaluate          = hcShift+cmEvaluate;
      hcAddWatch          = hcShift+cmAddWatch;
@@ -348,7 +357,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.25  1999-09-09 14:15:27  pierre
+  Revision 1.26  1999-09-09 16:31:45  pierre
+   * some breakpoint related fixes and Help contexts
+
+  Revision 1.25  1999/09/09 14:15:27  pierre
    + cmCopyWin,cmPasteWin
 
   Revision 1.24  1999/08/16 18:25:14  peter

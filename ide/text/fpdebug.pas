@@ -330,6 +330,7 @@ begin
   LoadFile(f);
   SetArgs(GetRunParameters);
   Debugger:=@self;
+  switch_to_user:=true;
   InsertBreakpoints;
   ReadWatches;
 end;
@@ -949,10 +950,10 @@ begin
   if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
   M:=NewMenu(
     NewItem('~G~oto source','',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
-    NewItem('~E~dit breakpoint','',kbNoKey,cmEdit,hcNoContext,
-    NewItem('~N~ew breakpoint','',kbNoKey,cmNew,hcNoContext,
-    NewItem('~D~elete breakpoint','',kbNoKey,cmDelete,hcNoContext,
-    NewItem('~T~oggle state','',kbNoKey,cmToggleBreakpoint,hcNoContext,
+    NewItem('~E~dit breakpoint','',kbNoKey,cmEditBreakpoint,hcEditBreakpoint,
+    NewItem('~N~ew breakpoint','',kbNoKey,cmNewBreakpoint,hcNewBreakpoint,
+    NewItem('~D~elete breakpoint','',kbNoKey,cmDeleteBreakpoint,hcDeleteBreakpoint,
+    NewItem('~T~oggle state','',kbNoKey,cmToggleBreakpoint,hcToggleBreakpoint,
     nil))))));
   GetLocalMenu:=M;
 end;
@@ -977,7 +978,7 @@ begin
       case Event.Command of
         cmListItemSelected :
           if Event.InfoPtr=@Self then
-            Message(@Self,evCommand,cmEdit,nil);
+            Message(@Self,evCommand,cmEditBreakpoint,nil);
       end;
     evCommand :
       begin
@@ -986,13 +987,13 @@ begin
           cmMsgTrackSource :
             if Range>0 then
               TrackSource;
-          cmEdit :
+          cmEditBreakpoint :
               EditCurrent;
           cmToggleBreakpoint :
               ToggleCurrent;
-          cmDelete :
+          cmDeleteBreakpoint :
               DeleteCurrent;
-          cmNew :
+          cmNewBreakpoint :
               EditNew;
           cmMsgClear :
             Clear;
@@ -1231,13 +1232,16 @@ end;
 
 procedure TBreakpointsListBox.Store(var S: TStream);
 var OL: PCollection;
+    OldR : integer;
 begin
   OL:=List;
+  OldR:=Range;
   New(List, Init(1,1));
 
   inherited Store(S);
 
   Dispose(List, Done);
+  Range:=OldR;
   List:=OL;
   { ^^^ nasty trick - has anyone a better idea how to avoid storing the
     collection? Pasting here a modified version of TListBox.Store+
@@ -1296,13 +1300,13 @@ begin
   Insert(New(PButton, Init(R, '~C~lose', cmClose, bfDefault)));
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~N~ew', cmNew, bfNormal)));
+  Insert(New(PButton, Init(R, '~N~ew', cmNewBreakpoint, bfNormal)));
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~E~dit', cmEdit, bfNormal)));
+  Insert(New(PButton, Init(R, '~E~dit', cmEditBreakpoint, bfNormal)));
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~D~elete', cmDelete, bfNormal)));
+  Insert(New(PButton, Init(R, '~D~elete', cmDeleteBreakpoint, bfNormal)));
   BreakLB^.Select;
   Update;
   BreakpointsWindow:=@self;
@@ -1358,15 +1362,23 @@ procedure TBreakpointsWindow.HandleEvent(var Event: TEvent);
 var DontClear : boolean;
 begin
   case Event.What of
+    evKeyDown :
+      begin
+        if (Event.KeyCode=kbEnter) or (Event.KeyCode=kbEsc) then
+          begin
+            ClearEvent(Event);
+            Hide;
+          end;
+      end;
     evCommand :
       begin
        DontClear:=False;
        case Event.Command of
-         cmNew :
+         cmNewBreakpoint :
            BreakLB^.EditNew;
-         cmEdit :
+         cmEditBreakpoint :
            BreakLB^.EditCurrent;
-         cmDelete :
+         cmDeleteBreakpoint :
            BreakLB^.DeleteCurrent;
          cmClose :
            Hide;
@@ -2089,7 +2101,7 @@ end;
       If not assigned(Debugger) then
         exit;
       Debugger^.Command('f '+IntToStr(Focused));
-      { for local vars } 
+      { for local vars }
       Debugger^.ReadWatches;
       { goto source }
       inherited GotoSource;
@@ -2280,7 +2292,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  1999-09-09 14:20:05  pierre
+  Revision 1.29  1999-09-09 16:31:45  pierre
+   * some breakpoint related fixes and Help contexts
+
+  Revision 1.28  1999/09/09 14:20:05  pierre
    + Stack Window
 
   Revision 1.27  1999/08/24 22:04:33  pierre

@@ -153,6 +153,9 @@ begin
 
     hcDebugMenu     : S:='Debug Program';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
+    hcNewBreakpoint    : S:='Create a new breakpoint';
+    hcEditBreakpoint   : S:='Edit focused breakpoint';
+    hcDeleteBreakpoint : S:='Delete focused breakpoint';
     hcOpenGDBWindow : S:='Open direct window to GDB';
     hcAddWatch      : S:='Add a new expression to watch';
     hcWatches       : S:='Open the Watches Window';
@@ -160,7 +163,8 @@ begin
     hcBreakpointList : S:='Edit breakpoints';
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
-{    hcGrep          : S:='Run grep';}
+    hcGrep          : S:='Run grep';
+    hcMsgGotoSource : S:='Edit source';
 
     hcToolsMessages : S:='Open the message window';
     hcToolsBase..
@@ -405,7 +409,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  1999-09-09 14:15:27  pierre
+  Revision 1.23  1999-09-09 16:31:45  pierre
+   * some breakpoint related fixes and Help contexts
+
+  Revision 1.22  1999/09/09 14:15:27  pierre
    + cmCopyWin,cmPasteWin
 
   Revision 1.21  1999/08/16 18:25:17  peter
