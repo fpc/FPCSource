@@ -143,6 +143,8 @@ type
           function  GetLast:TLinkedListItem;
           { inserts another List at the begin and make this List empty }
           procedure insertList(p : TLinkedList);
+          { inserts another List before the provided item and make this List empty }
+          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList);
           { inserts another List after the provided item and make this List empty }
           procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList);
           { concats another List at the end and make this List empty }
@@ -959,6 +961,35 @@ end;
          if (FLast=nil) then
            Flast:=p.Flast;
          inc(FCount,p.FCount);
+         { p becomes empty }
+         p.FFirst:=nil;
+         p.Flast:=nil;
+         p.FCount:=0;
+      end;
+
+
+    procedure TLinkedList.insertListBefore(Item:TLinkedListItem;p : TLinkedList);
+      begin
+         { empty List ? }
+         if (p.FFirst=nil) then
+           exit;
+         if (Item=nil) then
+           begin
+             { Insert at begin }
+             InsertList(p);
+             exit;
+           end
+         else
+           begin
+             p.FLast.Next:=Item;
+             p.FFirst.Previous:=Item.Previous;
+             if assigned(Item.Previous) then
+               Item.Previous.Next:=p.FFirst
+             else
+               FFirst:=p.FFirst;
+             Item.Previous:=p.FLast;
+             inc(FCount,p.FCount);
+           end;
          { p becomes empty }
          p.FFirst:=nil;
          p.Flast:=nil;
@@ -2325,7 +2356,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2004-09-13 20:26:26  peter
+  Revision 1.37  2004-10-04 20:43:28  peter
+    * insertlistbefore added
+
+  Revision 1.36  2004/09/13 20:26:26  peter
     * stringlist.find case insensitive
 
   Revision 1.35  2004/06/20 08:55:28  florian
