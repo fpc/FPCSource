@@ -946,7 +946,8 @@ begin
   { we have always need at least 1 line }
   Lines^.Insert(NewLine(''));
   { ^^^ why? setlinetext() inserts automatically if neccessary and
-    getlinetext() checks whether you're in range... }
+    getlinetext() checks whether you're in range...
+    because otherwise you search for line with index -1 (PM) }
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
   SetHighlightRow(-1);
@@ -2976,6 +2977,7 @@ destructor TCodeEditor.Done;
 begin
   inherited Done;
   Dispose(Lines, Done);
+  Dispose(Actions, Done);
 end;
 
 constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
@@ -3423,11 +3425,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  1999-03-01 15:42:10  peter
+  Revision 1.24  1999-03-03 16:45:07  pierre
+   * Actions were not dispose in TCodeEditor.Done
+
+  Revision 1.23  1999/03/01 15:42:10  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
