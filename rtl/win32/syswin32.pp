@@ -505,7 +505,8 @@ begin
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
 { get errors }
-  if filerec(f).handle=0 then
+  if (filerec(f).handle=0) or (filerec(f).handle=-1) then
+{ handle -1 is returned sometimes !! (PM) }
     begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -761,11 +762,9 @@ end.
 
 {
   $Log$
-  Revision 1.18  1998-08-31 11:54:00  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
+  Revision 1.19  1998-09-02 09:03:46  pierre
+    * do_open sometimes returns -1 as handle on fail
+      was not checked correctly
 
   Revision 1.16  1998/08/24 14:45:22  pierre
     * sbrk was wrong
