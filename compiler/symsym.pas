@@ -137,7 +137,7 @@ interface
           function search_procdef_bypara(params:Tparalinkedlist):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-		                                              matchtype:Tdefmatch):Tprocdef;
+                                                              matchtype:Tdefmatch):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -897,7 +897,7 @@ implementation
     function Tprocsym.procdef(nr:byte):Tprocdef;
 
     var i:byte;
-	    pd:Pprocdeflist;
+            pd:Pprocdeflist;
 
     begin
         pd:=defs;
@@ -919,11 +919,11 @@ implementation
                 pd:=pd^.next;
             end;
     end;
-    
+
     procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
-    
+
     var pd:Pprocdeflist;
-    
+
     begin
         pd:=defs;
         while assigned(defs) do
@@ -966,9 +966,9 @@ implementation
     end;
 
     function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-    
+
     var p:Pprocdeflist;
-    
+
     begin
         search_procdef_bytype:=nil;
         p:=defs;
@@ -1000,7 +1000,7 @@ implementation
                 pd:=pd^.next;
             end;
     end;
-    
+
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
 
     var pd:Pprocdeflist;
@@ -1433,8 +1433,7 @@ implementation
          { Note: This needs to write everything of tvarsym.write }
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         if read_member then
-           ppufile.putlongint(address);
+         ppufile.putlongint(address);
          { write only definition or definitionsym }
          ppufile.puttype(vartype);
          hvo:=varoptions-[vo_regable];
@@ -1566,10 +1565,7 @@ implementation
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
-         if read_member then
-           address:=ppufile.getlongint
-         else
-           address:=0;
+         address:=ppufile.getlongint;
          localvarsym:=nil;
          ppufile.gettype(vartype);
          ppufile.getsmallset(varoptions);
@@ -1596,8 +1592,7 @@ implementation
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         if read_member then
-          ppufile.putlongint(address);
+         ppufile.putlongint(address);
          ppufile.puttype(vartype);
          { symbols which are load are never candidates for a register,
            turn off the regable }
@@ -2686,7 +2681,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-08-20 10:31:26  daniel
+  Revision 1.55  2002-08-20 16:54:40  peter
+    * write address of varsym always
+
+  Revision 1.54  2002/08/20 10:31:26  daniel
    * Tcallnode.det_resulttype rewritten
 
   Revision 1.53  2002/08/18 20:06:27  peter

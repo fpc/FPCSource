@@ -899,8 +899,7 @@ begin
            begin
              readcommonsym('Variable symbol ');
              writeln(space,'        Type: ',getbyte);
-             if read_member then
-               writeln(space,'     Address: ',getlongint);
+             writeln(space,'     Address: ',getlongint);
              write  (space,'    Var Type: ');
              readtype;
              i:=getlongint;
@@ -1828,7 +1827,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-08-19 19:36:44  peter
+  Revision 1.29  2002-08-20 16:54:40  peter
+    * write address of varsym always
+
+  Revision 1.28  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
