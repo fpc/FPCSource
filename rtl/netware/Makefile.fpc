@@ -10,12 +10,12 @@ loaders=nwpre prelude
 units=$(SYSTEMUNIT) systhrds objpas strings \
       winsock \
       dos crt objects \
-      sysutils typinfo math \
+      sysutils classes typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       sockets aio varutils \
       video mouse keyboard types \
       nwsnut nwserv nwnit nwprot
-rsts=math typinfo varutils
+rsts=math typinfo varutils classes
 
 [require]
 nortl=y
@@ -141,9 +141,13 @@ objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) nwsys.inc
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

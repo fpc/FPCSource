@@ -11,11 +11,11 @@ units=$(SYSTEMUNIT) baseunix strings systhrds objpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) unix $(LINUXUNIT2) initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
-      sysutils typinfo math varutils \
+      sysutils typinfo classes math varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types
-rsts=math varutils typinfo variants
+rsts=math varutils typinfo variants classes
 
 [require]
 nortl=y
@@ -153,7 +153,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # $(SYSTEMUNIT) Dependent Units
 #
 
-unix$(PPUEXT) : unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  unixsysc.inc
 
@@ -200,9 +200,13 @@ ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) 
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

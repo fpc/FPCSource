@@ -13,12 +13,12 @@ loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas strings baseunix \
       $(LINUXUNIT) unix initc \
       dos crt objects printer \
-      sysutils typinfo math varutils \
+      sysutils classes typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard  serial variants types systhrds sysctl
 units_netbsd_i386=mmx cpu
-rsts=math varutils typinfo
+rsts=math varutils typinfo variants classes
 
 [require]
 nortl=y
@@ -165,9 +165,13 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

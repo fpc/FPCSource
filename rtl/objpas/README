@@ -11,8 +11,8 @@ math.pp : Contains basic mathematical functions, as well as some financial
 
 sysutils.pp : Contains the exception support of the Free Pascal Compiler.
 
-*h.inc : Contain parts of the sysutils unit, with function declarations.
-*.inc  : Contain parts of the sysutils unit, with implementations of:
+sysutils/*h.inc : Contain parts of the sysutils unit, with function declarations.
+sysutils/*.inc  : Contain parts of the sysutils unit, with implementations of:
        dati : Date & Time handling functions.
        fina : FileName handling functions.
        sysstr : miscellaneous string handling functions, and conversion 

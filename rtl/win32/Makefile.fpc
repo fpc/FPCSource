@@ -11,11 +11,11 @@ units=$(SYSTEMUNIT) systhrds objpas strings \
       lineinfo heaptrc \
       windows ole2 activex winsock initc \
       dos crt objects graph messages \
-      sysutils typinfo math varutils variants \
+      sysutils classes typinfo math varutils variants \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer dynlibs \
       video mouse keyboard types comobj dateutils rtlconst sysconst
-rsts=math varutils typinfo
+rsts=math varutils typinfo variants classes dateutils
 
 [require]
 nortl=y
@@ -172,9 +172,13 @@ graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEX
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
