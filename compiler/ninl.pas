@@ -1973,10 +1973,12 @@ implementation
                   { We've checked the whole statement for correctness, now we
                     can remove it if assertions are off }
                   if not(cs_do_assertion in aktlocalswitches) then
-                   begin
-                     { we need a valid node, so insert a nothingn }
-                     result:=cnothingnode.create;
-                   end;
+                    begin
+                      { we need a valid node, so insert a nothingn }
+                      result:=cnothingnode.create;
+                    end
+                   else
+                     include(current_procinfo.flags,pi_do_call);
                 end;
 
                else
@@ -2356,7 +2358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2003-11-29 16:19:54  peter
+  Revision 1.124  2003-12-08 21:17:12  jonas
+    * if there are assertions, include pi_do_call in procinfo.flags
+
+  Revision 1.123  2003/11/29 16:19:54  peter
     * Initialize() added
 
   Revision 1.122  2003/11/10 22:02:52  peter
