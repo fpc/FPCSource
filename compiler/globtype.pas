@@ -161,7 +161,7 @@ interface
          );
 
        { Default calling convention }
-       pocall_default = pocall_oldfpccall;
+       pocall_default = pocall_stdcall;
 
     type
        stringid = string[maxidlen];
@@ -210,7 +210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-09-07 22:09:35  peter
+  Revision 1.43  2003-09-28 13:39:58  peter
+    * default calling convention changed to stdcall
+
+  Revision 1.42  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 
