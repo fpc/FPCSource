@@ -429,6 +429,8 @@ asm
         call    AsmGetMem
         movl    $-1,8(%ebp)
         popal
+      { Avoid 80386DX bug }
+        nop
       { Memory position to %esi }
         movl    (%esi),%esi
         addl    $4,%esp
@@ -454,11 +456,7 @@ asm
         ret
 .LHC_7:
       { set zero inside the object }
-{        pushal - crashes the 386 CPU }
-        pushl   %eax
-        pushl   %edi
-        pushl   %ecx
-
+        pushal
         cld
         movl    (%eax),%ecx
         movl    %esi,%edi
@@ -471,9 +469,9 @@ asm
         movl    %ebx,%ecx
         rep
         stosb
-        popl    %ecx
-        popl    %edi
-        popl    %eax
+        popal
+        { avoid the 80386DX bug }
+        nop
       { set the VMT address for the new created object }
       { the offset is in %edi since the calling and has not been changed !! }
         movl    %eax,(%esi,%edi,1)
@@ -549,6 +547,8 @@ asm
         addl    $4,%esp
 .LHD_3:
         popal
+        { avoid the 80386DX bug }
+        nop
 end;
 
 
@@ -1116,8 +1116,8 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.10  2001-04-16 11:22:53  peter
-    * merged popal fix
+  Revision 1.11  2001-04-21 12:18:09  peter
+    * add nop after popa (merged)
 
   Revision 1.9  2001/04/08 13:19:28  jonas
     * optimized FPC_HELP_CONSTRUCTOR a bit

@@ -837,6 +837,8 @@ begin
 _exit:
   asm
      popal
+     { avoid 386DX popad bug }
+     nop
   end;
 end;
 
@@ -1152,7 +1154,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.11  2001-04-13 18:05:34  peter
+  Revision 1.12  2001-04-21 12:18:09  peter
+    * add nop after popa (merged)
+
+  Revision 1.11  2001/04/13 18:05:34  peter
     * win32 getenv version
 
   Revision 1.10  2001/04/13 01:18:08  peter
