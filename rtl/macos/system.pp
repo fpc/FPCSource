@@ -1048,7 +1048,7 @@ procedure pascalmain; external name 'PASCALMAIN';
 {Main entry point in C style, needed to capture program parameters.
  For this to work, the system unit must be before the main program
  in the linking order.}
-procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl;
+procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
 
 begin
   argc:= argcparam;
@@ -1138,7 +1138,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-29 22:34:52  olle
+  Revision 1.11  2004-01-04 21:06:43  jonas
+    * make the C-main public
+
+  Revision 1.10  2003/10/29 22:34:52  olle
     + handles program parameters for MPW
     + program start stub
     * improved working directory handling
