@@ -19,17 +19,6 @@
 {$ENDIF SYS_LINUX}
 
 
-Type
-
-  TSysResult = Longint; // all platforms, cint=32-bit.
-			// On platforms with off_t =64-bit, people should
-			// use int64, and typecast all other calls to cint.
-
-// I don't think this is going to work on several platforms 64-bit machines
-// don't have only 64-bit params.
-
-  TSysParam  = Longint; 
-
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
@@ -227,7 +216,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-11-09 20:32:14  marco
+  Revision 1.2  2002-12-22 16:00:28  jonas
+    + added syscallh.inc, adapted syscall.inc
+
+  Revision 1.1  2002/11/09 20:32:14  marco
    * powerpc version. Threadsafe errno access not yet done.
 
   Revision 1.1  2002/10/14 19:39:44  peter
