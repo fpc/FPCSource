@@ -11,9 +11,12 @@ packages=paszlib
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp \
-      fpreadbmp bmpcomn fpreadpnm fpwritepnm freetypeh freetype ftfont \
+      fpreadbmp bmpcomn fpreadpnm fpwritepnm  \
       ellipses
-rsts=pscanvas      
+units_win32=freetypeh freetype ftfont
+units_linux=freetypeh freetype ftfont
+units_freebsd=freetypeh freetype ftfont
+rsts=pscanvas
 examples=imgconv
 
 [compiler]

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Auxiliary routines for image support.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,6 +18,7 @@ unit FPImgCmn;
 
 interface
 
+{$ifdef VER1_0}
 type
 {$ifdef CPU68K}
   { 1.0 m68k cpu compiler does not allow
@@ -29,6 +30,7 @@ type
   TByteArray = array[0..maxint] of byte;
 {$endif CPU68K}
   PByteArray = ^TByteArray;
+{$endif VER1_0}
 
 function Swap(This : Longword): longword;
 function Swap(This : integer): integer;

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Basic canvas definitions.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,7 +18,7 @@ unit ftfont;
 
 interface
 
-uses classes, FPCanvas, fpimgcmn, freetype, freetypeh;
+uses SysUtils, Classes, FPCanvas, fpimgcmn, freetype, freetypeh;
 
 type
 
@@ -67,7 +67,7 @@ procedure DoneEngine;
 
 implementation
 
-uses sysutils, fpimage;
+uses fpimage;
 
 procedure InitEngine;
 
