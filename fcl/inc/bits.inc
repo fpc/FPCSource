@@ -19,7 +19,7 @@
 
 function TBits.getSize : longint;
 begin
-   result := (FSize shl BITSHIFT) - 1;   
+   result := (FSize shl BITSHIFT) - 1;
 end;
 
 procedure TBits.setSize(value : longint);
@@ -48,20 +48,20 @@ begin
       begin
          startIndex := loop * 32;
          for loop2 := startIndex to startIndex + 31 do
-	 begin
+         begin
             if get(loop2) = False then
-	    begin
+            begin
                result := loop2;
-	       break; { use this as the index to return }
-	    end;
-	 end;
-	 break;  {stop looking for empty bit in records }
+               break; { use this as the index to return }
+            end;
+         end;
+         break;  {stop looking for empty bit in records }
       end;
    end;
 
    if result = -1 then
       if FSize < MaxBitRec then
-          result := FSize * 32;  {first bit of next record} 
+          result := FSize * 32;  {first bit of next record}
 end;
 
 { ******************** TBits ***************************** }
@@ -97,23 +97,7 @@ begin
 
    if newSize > FSize then
    begin
-{$IFDEF VER80}
-      if FBits = nil then
-         FBits := AllocMem(newSize * SizeOf(longint))
-      else
-         FBits := ReAllocMem(bits, currentSize * SizeOf(longint), newSize * SizeOf(longint));
-{$ELSE}
-{$IFDEF FPC}
-      if FBits = nil then
-         FBits := AllocMem(newSize * SizeOf(longint))
-      else
-         ReAllocMem(FBits, FSize * SizeOf(longint), newSize * SizeOf(longint));
-{$ELSE}
-   { Delphi 2 & 3 keep track of the current size for you }
       ReAllocMem(FBits, newSize * SizeOf(longint));
-{$ENDIF}
-{$ENDIF}
-
       if FBits <> nil then
       begin
          if newSize > FSize then
@@ -305,14 +289,14 @@ begin
       begin
          startIndex := loop * 32;
          for loop2 := startIndex to startIndex + 31 do
-	 begin
+         begin
             if get(loop2) = state then
-	    begin
+            begin
                result := loop2;
-	       break; { use this as the index to return }
-	    end;
-	 end;
-	 break;  {stop looking for bit in records }
+               break; { use this as the index to return }
+            end;
+         end;
+         break;  {stop looking for bit in records }
       end;
    end;
 
@@ -330,14 +314,14 @@ begin
    if findIndex > -1 then { must have called FindFirstBit first }
    begin                  { or set the start index              }
       maxVal := (FSize * 32) - 1;
-   
+
       for loop := findIndex + 1 to maxVal  do
       begin
          if get(loop) = findState then
-	 begin
+         begin
             result := loop;
-	    break;
-	 end;
+            break;
+         end;
       end;
 
       findIndex := result;
@@ -356,10 +340,10 @@ begin
       for loop := findIndex - 1 downto 0  do
       begin
          if get(loop) = findState then
-	 begin
+         begin
             result := loop;
-	    break;
-	 end;
+            break;
+         end;
       end;
 
       findIndex := result;
@@ -369,7 +353,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-04-09 12:13:31  michael
+  Revision 1.5  1999-11-01 13:56:58  peter
+    * adapted for new reallocmem
+
+  Revision 1.4  1999/04/09 12:13:31  michael
   + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
 
   Revision 1.3  1998/11/04 14:36:29  michael
