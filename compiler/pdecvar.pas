@@ -495,6 +495,8 @@ implementation
               registerdef:=false;
               UnionDef:=trecorddef.create(unionsymtable);
               uniondef.isunion:=true;
+              if assigned(symtablestack.defowner) then
+                Uniondef.owner:=symtablestack.defowner.owner;
               registerdef:=true;
               symtablestack:=UnionSymtable;
               startvarrecsize:=symtablestack.datasize;
@@ -564,6 +566,7 @@ implementation
               trecordsymtable(Unionsymtable).Insert_in(symtablestack,offset);
               Unionsym.owner:=nil;
               unionsym.free;
+              uniondef.owner:=nil;
               uniondef.free;
            end;
          block_type:=old_block_type;
@@ -575,7 +578,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-11-15 01:58:53  peter
+  Revision 1.39  2002-11-15 16:29:31  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.38  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

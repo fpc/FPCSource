@@ -115,7 +115,7 @@ interface
              if not assigned(p.altsymbol) then
                objectlibrary.GenerateAltSymbol(p);
              p:=p.altsymbol;
-             inc(p.refs);
+             p.increfs;
            end;
         end;
 
@@ -288,7 +288,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-11-15 01:58:51  peter
+  Revision 1.25  2002-11-15 16:29:30  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.24  2002/11/15 01:58:51  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

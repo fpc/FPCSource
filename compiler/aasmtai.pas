@@ -806,7 +806,7 @@ uses
          sym:=_sym;
          offset:=0;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
     constructor tai_const_symbol.Create_offset(_sym:tasmsymbol;ofs:longint);
@@ -816,7 +816,7 @@ uses
          sym:=_sym;
          offset:=ofs;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
     constructor tai_const_symbol.Create_rva(_sym:tasmsymbol);
@@ -826,7 +826,7 @@ uses
          sym:=_sym;
          offset:=0;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
     constructor tai_const_symbol.Createname(const name:string);
@@ -836,7 +836,7 @@ uses
          sym:=objectlibrary.newasmsymbol(name);
          offset:=0;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
     constructor tai_const_symbol.Createname_offset(const name:string;ofs:longint);
@@ -846,7 +846,7 @@ uses
          sym:=objectlibrary.newasmsymbol(name);
          offset:=ofs;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
     constructor tai_const_symbol.Createname_rva(const name:string);
@@ -856,7 +856,7 @@ uses
          sym:=objectlibrary.newasmsymbol(name);
          offset:=0;
          { update sym info }
-         inc(sym.refs);
+         sym.increfs;
       end;
 
 
@@ -886,7 +886,7 @@ uses
       begin
         getcopy:=inherited getcopy;
         { we need to increase the reference number }
-        inc(sym.refs);
+        sym.increfs;
       end;
 
 
@@ -1408,8 +1408,6 @@ uses
         case oper[i].typ of
           top_ref:
             dispose(oper[i].ref);
-          top_symbol:
-            dec(tasmsymbol(oper[i].sym).refs);
         end;
         inherited destroy;
       end;
@@ -1447,7 +1445,7 @@ uses
            symofs:=sofs;
            typ:=top_symbol;
          end;
-        inc(s.refs);
+        s.increfs;
       end;
 
 
@@ -1469,7 +1467,7 @@ uses
            typ:=top_ref;
            { mark symbol as used }
            if assigned(ref^.symbol) then
-             inc(ref^.symbol.refs);
+             ref^.symbol.increfs;
          end;
       end;
 
@@ -1648,7 +1646,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2002-11-15 01:58:45  peter
+  Revision 1.12  2002-11-15 16:29:30  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.11  2002/11/15 01:58:45  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

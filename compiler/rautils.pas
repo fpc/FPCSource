@@ -1131,7 +1131,7 @@ begin
    begin
      objectlibrary.getlabel(lab);
      { this label is forced to be used so it's always written }
-     inc(lab.refs);
+     lab.increfs;
    end;
   Gettasmlabel:=lab;
 end;
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  2002-09-03 16:26:27  daniel
+  Revision 1.47  2002-11-15 16:29:31  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.46  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.45  2002/08/25 19:25:20  peter

@@ -47,6 +47,11 @@ interface
        TAsmSectionSizes = array[TSection] of longint;
 
        TAsmSymbol = class(TNamedIndexItem)
+       private
+         { this need to be incremented with every symbol loading into the
+           paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
+         refs    : longint;
+       public
          defbind,
          currbind  : TAsmsymbind;
          typ       : TAsmsymtype;
@@ -54,9 +59,6 @@ interface
          section : TSection;
          address,
          size    : longint;
-         { this need to be incremented with every symbol loading into the
-           paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
-         refs    : longint;
          { Alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : tasmsymbol;
@@ -74,6 +76,8 @@ interface
          constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
+         procedure increfs;
+         procedure decrefs;
          procedure setaddress(_pass:byte;sec:TSection;offset,len:longint);
        end;
 
@@ -247,6 +251,7 @@ implementation
         refs:=0;
       end;
 
+
     procedure tasmsymbol.reset;
       begin
         { reset section info }
@@ -261,10 +266,26 @@ implementation
         taiowner:=nil;
       end;
 
+
     function tasmsymbol.is_used:boolean;
       begin
         is_used:=(refs>0);
       end;
+
+
+    procedure tasmsymbol.increfs;
+      begin
+        inc(refs);
+      end;
+
+
+    procedure tasmsymbol.decrefs;
+      begin
+        dec(refs);
+        if refs<0 then
+          internalerror(200211121);
+      end;
+
 
     procedure tasmsymbol.setaddress(_pass:byte;sec:TSection;offset,len:longint);
       begin
@@ -310,7 +331,7 @@ implementation
         is_addr := false;
         proclocal := false;
         { write it always }
-        refs:=1;
+        increfs;
       end;
 
     constructor tasmlabel.createaddr(nr:longint);
@@ -322,7 +343,7 @@ implementation
     function tasmlabel.getname:string;
       begin
         getname:=inherited getname;
-        inc(refs);
+        increfs;
       end;
 
 
@@ -808,7 +829,7 @@ implementation
          begin
            with hp do
             begin
-              if (refs>0) and
+              if is_used and
                  (section=Sec_none) and
                  not(currbind in [AB_EXTERNAL,AB_COMMON]) then
                Message1(asmw_e_undefined_label,name);
@@ -867,7 +888,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-11-15 01:58:45  peter
+  Revision 1.11  2002-11-15 16:29:30  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.10  2002/11/15 01:58:45  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -497,9 +497,9 @@ Var
                 exit;
               if not GetFinalDestination(asml, Taicpu(p1),succ(level)) then
                 exit;
-              Dec(tasmlabel(hp.oper[0].sym).refs);
+              tasmlabel(hp.oper[0].sym).decrefs;
               hp.oper[0].sym:=Taicpu(p1).oper[0].sym;
-              inc(tasmlabel(hp.oper[0].sym).refs);
+              tasmlabel(hp.oper[0].sym).increfs;
             End
           Else
             If (Taicpu(p1).condition = inverse_cond[hp.condition]) then
@@ -511,9 +511,9 @@ Var
   {$endif finaldestdebug}
                   objectlibrary.getlabel(l);
                   insertllitem(asml,p1,p1.next,Tai_label.Create(l));
-                  dec(tasmlabel(Taicpu(hp).oper[0].sym).refs);
+                  tasmlabel(Taicpu(hp).oper[0].sym).decrefs;
                   hp.oper[0].sym := l;
-                  inc(l.refs);
+                  l.increfs;
   {               this won't work, since the new label isn't in the labeltable }
   {               so it will fail the rangecheck. Labeltable should become a   }
   {               hashtable to support this:                                   }
@@ -525,7 +525,7 @@ Var
                   insertllitem(asml,p1,p1.next,tai_comment.Create(
                     strpnew('next label reused'))));
   {$endif finaldestdebug}
-                  inc(l.refs);
+                  l.increfs;
                   hp.oper[0].sym := l;
                   if not GetFinalDestination(asml, hp,succ(level)) then
                     exit;
@@ -634,9 +634,9 @@ Begin
                                 p:=Tai(p.next);
                                 continue;
                               end;
-                             Dec(Tai_label(hp2).l.refs);
+                             Tai_label(hp2).l.decrefs;
                              Taicpu(p).oper[0].sym:=Taicpu(hp1).oper[0].sym;
-                             Inc(Taicpu(p).oper[0].sym.refs);
+                             Taicpu(p).oper[0].sym.increfs;
                              asml.remove(hp1);
                              hp1.free;
                              If (LabDif <> 0) Then
@@ -2044,7 +2044,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  2002-08-18 20:06:30  peter
+  Revision 1.35  2002-11-15 16:30:54  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.34  2002/08/18 20:06:30  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

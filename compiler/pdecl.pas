@@ -256,7 +256,7 @@ implementation
                   begin
                     objectlibrary.getdatalabel(hl);
                     { we still want a warning if unused }
-                    hl.refs:=0;
+                    hl.decrefs;
                   end
                 else
                   objectlibrary.getlabel(hl);
@@ -624,7 +624,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-10-20 15:34:16  peter
+  Revision 1.58  2002-11-15 16:29:30  peter
+    * made tasmsymbol.refs private (merged)
+
+  Revision 1.57  2002/10/20 15:34:16  peter
     * removed df_unique flag. It breaks code. For a good type=type <id>
       a def copy is required
 
