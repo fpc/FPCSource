@@ -124,11 +124,11 @@ implementation
                          (not is_boolean(def_to))) then
                        b:=0;
                    end;
-                 enumdef :
+{                 enumdef :
                    begin
                      doconv:=tc_int_2_int;
                      b:=1;
-                   end;
+                   end;}
                end;
              end;
 
@@ -662,7 +662,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-06-17 13:19:51  pierre
+  Revision 1.29  1999-06-18 11:02:51  daniel
+  - Enumerations no longer compatible with integer types.
+
+  Revision 1.28  1999/06/17 13:19:51  pierre
    * merged from 0_99_12 branch
 
   Revision 1.27.2.1  1999/06/17 12:51:42  pierre
