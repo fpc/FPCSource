@@ -18,6 +18,7 @@ Procedure mark(var p : pointer);
 Procedure markheap(var oldfreelist,oldheapptr : pointer);
 Procedure releaseheap(oldfreelist,oldheapptr : pointer);
 Function  cal_memavail : longint;
+Function  heapsize : longint;
 {$ifdef TEMPHEAP}
   Procedure split_heap;
   Procedure switch_to_base_heap;
@@ -35,8 +36,8 @@ var
 
 {
   $Log$
-  Revision 1.4  1998-07-02 12:13:49  carl
-    - function heapsize MUST be removed, create conflicts with HEAPSIZE var
+  Revision 1.5  1998-07-02 14:11:30  michael
+  Reinstated the heapsize function.
 
   Revision 1.3  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
