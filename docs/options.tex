@@ -1,0 +1,81 @@
+\chapter{Options and settings}
+In \seet{booloptions} a summary of available boolean compiler directives 
+and the corresponding command-line options are listed. Other directives and
+the corresponding options are shown in \seet{options}. For more information
+about the command-line options, \seec{CompilerConfiguration}. For more
+information about the directives, see the \progref.
+
+% Directive
+\newcommand{\dir}[1]{\var{\$#1}}
+% Boolean directive (short)
+\newcommand{\bdir}[1]{\var{\$#1[+/-]}}
+% Boolean directive (long)
+\newcommand{\lbdir}[1]{\var{\$#1[ON/OFF]}}
+% Command line option.
+\newcommand{\copt}[1]{\var{-#1}}
+\begin{FPCltable}{llll}{Boolean Options and directves}{booloptions}
+Short & long & Opt & Explanation \\ \hline
+\bdir{A} & \lbdir{ALIGN} &  & Data alignment \\
+\bdir{B} & \lbdir{BOOLEVAL} & & Boolean evaluation mode \\
+\bdir{C} & \lbdir{ASSERTIONS} & \copt{Sa} & Include assertions \\
+\bdir{D} & \lbdir{DEBUGINFO} & \copt{g} & Include debug info \\
+\bdir{E} & & & Coprocessor emulation \\
+\bdir{F} & & & Far or near function (ignored) \\
+\bdir{G} & & & generate 80286 code (ignored) \\
+\bdir{H} & \lbdir{LONGSTRINGS} & \copt{Sh} & Use ansistrings\\
+\bdir{I} & \lbdir{IOCHECKS} & \copt{Ci} & Check I/O operation result  \\
+\bdir{L} & \lbdir{LOCALSYMBOLS} & & Local symbol information \\
+\bdir{M} & \lbdir{TYPEINFO} & & Generate RTTI for classes \\
+\bdir{N} & & & Floating point sypport \\
+\bdir{O} & & & Support overlays (ignored) \\
+\bdir{P} & \lbdir{OPENSTRINGS} & & Support open strings \\
+\bdir{Q} & \lbdir{OVERFLOWCHECKS} & \copt{Co} & Overflow checking \\
+\bdir{R} & \lbdir{RANGECHEKS} & \copt{Cr} & Range checks \\
+\bdir{S} & & \copt{Ct} & Stack checks \\ 
+\bdir{T} & \lbdir{TYPEDADDRESS} & & Types addresses \\ \hline
+%
+%
+\end{FPCltable}
+
+\begin{FPCltable}{llll}{Options and directves}{options}
+Short & long & Opt & Explanation \\ \hline
+         & \dir{APPTYPE} &  & Application type (Win32) \\
+         & \dir{ASMMODE} & \copt{R} & Assembler reader modus \\
+         & \dir{DEFINE} & \copt{d} & Define symbol \\
+         & \dir{DESCRIPTION} & & Set program description \\ 
+         & \dir{ELSE} & & Conditional compilation switch \\
+         & \dir{ENDIF} & & Conditional compilation end \\
+         & \dir{FATAL} & & report fatal error \\
+         & \lbdir{GOTO} & \copt{Sg} & Support \var{GOTO} and \var{Label}\\
+         & \dir{HINT} & & Emit hint message\\
+         & \bdir{HINTS} & \copt{vh} & Show hints \\
+\dir{I file} & \dir{INCLUDE} & & Include file or literal text \\
+         & \dir{IF} & & Conditional compilation start \\
+         & \dir{IFDEF NAME} & & Conditional compilation start \\
+         & \dir{IFNDEF} & & Conditional compilation start \\
+         & \dir{IFOPT} & & Conditional compilation start \\
+         & \dir{INCLUDEPATH} & \copt{Fi} & set include path \\
+         & \dir{INFO} & & Emit information message \\
+         & \bdir{INLINE} & \copt{Si} & Allow inline code \\
+\dir{L file} & \dir{LINK} & & Link object file \\
+         & \dir{LIBRARYPATH} & \copt{Fl} & Set library path\\
+         & \dir{LINKLIB name} & & link library \\
+\dir{M MIN,MAX}  & \dir{MEMORY} & & Set memory sizes \\
+         & \dir{MACRO} & \copt{Sm} & Allow use of macros \\
+         & \dir{MESSAGE} & & Emit message \\
+         & \bdir{MMX} & & Intel MMX support \\
+         & \dir{MODE} & & Set compatibility mode \\
+         & \dir{NOTE} & & Emite note message \\
+         & \dir{NOTES} & \copt{vn} & Emit notes \\ 
+         & \dir{OBJECTPATH} & \copt{Fo} & Set object path \\
+         & \dir{OUTPUT} & \copt{A} & Set output format \\
+         & \dir{PACKENUM} & & Enumeration type size \\
+         & \dir{PACKRECORDS} & & Record element alignment \\
+         & \dir{SATURATION} & & Saturation (ignored) \\
+         & \bdir{SMARTLINK} & \copt{CX} & Use smartlinking \\
+         & \lbdir{STATIC} & \copt{St} & Allow use of \var{static} \\
+         & \dir{STOP} & &  Stop compilation \\
+         & \lbdir{UNDEF} & \copt{u} & Undefine symbol \\ \hline
+%
+%        
+\end{FPCltable}
