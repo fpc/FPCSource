@@ -2841,8 +2841,8 @@ Const local_symtable_index : longint = $8001;
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
          { it !                                  }
-         if (objname^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
-           isclass and (childof=pointer($ffffffff)) then
+         if (objname^='TOBJECT') and
+           isclass and (childof=nil) then
            class_tobject:=@self;
          has_rtti:=true;
        end;
@@ -3380,7 +3380,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.117  1999-05-17 21:57:15  florian
+  Revision 1.118  1999-05-19 12:08:11  florian
+    * tobject wasn't set as default anchestor, was a problem with the new ppu
+      handling
+
+  Revision 1.117  1999/05/17 21:57:15  florian
     * new temporary ansistring handling
 
   Revision 1.116  1999/05/16 02:26:51  peter
