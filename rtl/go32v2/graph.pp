@@ -560,9 +560,11 @@ Begin
   LogLn('Last array index written to: '+strf(index));
   LogLn('amount left: '+strf(amount)+' starting at x = '+strf(index+1));
 {$Endif logging}
+  dec(x1,startXViewPort);
   For Count := 1 to amount Do
-    WordArray(Data)[index+Count] := getpixel16(index+Count,y);
+    WordArray(Data)[index+Count] := getpixel16(x1+index+Count,y);
 {$ifdef logging}
+  inc(x1,startXViewPort);
   LogLn('First 32 bytes gotten with getscanline16: ');
   If x2-x1+1 >= 32 Then
     Count2 := 32
@@ -2581,7 +2583,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-03-19 11:20:12  peter
+  Revision 1.9  2000-05-09 04:23:11  jonas
+    * fixed bug in getscanline16 (affects floodfil and getimage under VGA
+      640x480x16 (VGA/VGAHI)
+
+  Revision 1.8  2000/03/19 11:20:12  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added
