@@ -253,44 +253,22 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 
 procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
-{
-  this procedure must save all modified registers except EDI and ESI !!!
-}
+var
+  slen : byte;
 begin
-  asm
-        pushl   %eax
-        pushl   %ecx
-        cld
-        movl    16(%ebp),%edi
-        movl    12(%ebp),%esi
-        xorl    %eax,%eax
-        movl    8(%ebp),%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrCopy1
-        movl    %ecx,%eax
-.LStrCopy1:
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrCopy2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrCopy2:
-        movl    %eax,%ecx
-        rep
-        movsb
-        popl    %ecx
-        popl    %eax
-  end ['ESI','EDI'];
+  if dstr=nil then
+    exit;
+  if sstr=nil then
+    begin
+      if dstr<>nil then
+        pstring(dstr)^[0]:=#0;
+      exit;
+    end;
+  slen:=length(pstring(sstr)^);
+  if slen<len then
+    len:=slen;
+  move(sstr^,dstr^,len);
+  pstring(dstr)^[0]:=chr(len);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
@@ -298,93 +276,48 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
+var
+  s1l, s2l : byte;
 begin
-  asm
-        xorl    %ecx,%ecx
-        movl    12(%ebp),%edi
-        movl    8(%ebp),%esi
-        movl    %edi,%ebx
-        movb    (%edi),%cl
-        lea     1(%edi,%ecx),%edi
-        negl    %ecx
-        xor     %eax,%eax
-        addl    $0xff,%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrConcat1
-        movl    %ecx,%eax
-.LStrConcat1:
-        addb    %al,(%ebx)
-        cmpl    $7,%eax
-        jl      .LStrConcat2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrConcat2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['EBX','ECX','EAX','ESI','EDI'];
+  if (s1=nil) or (s2=nil) then
+    exit;
+  s1l:=length(pstring(s1)^);
+  s2l:=length(pstring(s2)^);
+  if s1l+s2l>255 then
+    s1l:=255-s2l;
+  move(@(pstring(s1)^[1]),@(pstring(s2)^[s2l+1]),s1l);
+  pstring(s2)^[0]:=chr(s1l+s2l);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-procedure int_strcmp(dstr,sstr:pointer);[public,alias:'FPC_SHORTSTR_COMPARE'];
+function int_strcmp(dstr,sstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE'];
+var
+   s1,s2,max,i : byte;
+   d : longint;
 begin
-  asm
-        cld
-        xorl    %ebx,%ebx
-        xorl    %eax,%eax
-        movl    12(%ebp),%esi
-        movl    8(%ebp),%edi
-        movb    (%esi),%al
-        movb    (%edi),%bl
-        movl    %eax,%edx
-        incl    %esi
-        incl    %edi
-        cmpl    %ebx,%eax
-        jbe     .LStrCmp1
-        movl    %ebx,%eax
-.LStrCmp1:
-        cmpl    $7,%eax
-        jl      .LStrCmp2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        orl     %ecx,%ecx
-        rep
-        cmpsb
-        jne     .LStrCmp3
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        orl     %ecx,%ecx
-        rep
-        cmpsl
-        je      .LStrCmp2
-        movl    $4,%eax
-        sub     %eax,%esi
-        sub     %eax,%edi
-.LStrCmp2:
-        movl    %eax,%ecx
-        orl     %eax,%eax
-        rep
-        cmpsb
-        jne     .LStrCmp3
-        cmp     %ebx,%edx
-.LStrCmp3:
-  end ['EDX','ECX','EBX','EAX','ESI','EDI'];
+  s1:=length(pstring(dstr)^);
+  s2:=length(pstring(sstr)^);
+  if s1<s2 then
+    max:=s1
+  else
+    max:=s2;
+  for i:=1 to max do
+    begin
+     d:=byte(pstring(dstr)^[i])-byte(pstring(sstr)^[i]);
+     if d>0 then
+       exit(1)
+     else if d<0 then
+       exit(-1);
+    end;
+  if s1>s2 then
+    exit(1)
+  else if s1<s2 then
+    exit(-1)
+  else
+    exit(0);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -392,62 +325,46 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
+var
+  l : longint;
+
 begin
-  asm
-        cld
-        movl    p,%edi
-        movl    $0xff,%ecx
-        orl     %edi,%edi
-        jnz     .LStrPasNotNil
-        decl    %ecx
-        jmp     .LStrPasNil
-.LStrPasNotNil:
-        xorl    %eax,%eax
-        movl    %edi,%esi
-        repne
-        scasb
-.LStrPasNil:
-        movl    %ecx,%eax
-        movl    __RESULT,%edi
-        notb    %al
-        decl    %eax
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrPas2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrPas2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['ECX','EAX','ESI','EDI'];
+  if p=nil then
+    l:=0
+  else
+    l:=strlen(p);
+  if l>255 then
+    l:=255;
+  if l>0 then
+    move(p^,@(strpas[1]),l);
+  strpas[0]:=chr(l);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
+
+function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+begin
+  if l>=256 then
+    l:=255
+  else if l<0 then
+    l:=0;
+  move(p^,@(strchararray[1]),l);
+  strchararray[0]:=chr(l);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 {$ifndef FPC_SYSTEM_HAS_STRLEN}
 
-function strlen(p:pchar):longint;assembler;
-asm
-        movl    p,%edi
-        movl    $0xffffffff,%ecx
-        xorl    %eax,%eax
-        cld
-        repne
-        scasb
-        movl    $0xfffffffe,%eax
-        subl    %ecx,%eax
-end ['EDI','ECX','EAX'];
+function strlen(p:pchar):longint;
+var i : longint;
+begin
+  i:=0;
+  while p[i]<>#0 do inc(i);
+  exit(i);
+end;
 
 {$endif ndef FPC_SYSTEM_HAS_STRLEN}
 
@@ -600,7 +517,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-07-05 20:04:22  peter
+  Revision 1.3  1999-12-21 11:12:16  pierre
+     * some assembler functions translated to pascal
+       WARNING these are not yet TESTED !!!
+     + FPC_CHARARRAY_TO_SHORTSTRING added
+
+  Revision 1.2  1999/07/05 20:04:22  peter
     * removed temp defines
 
   Revision 1.1  1999/05/31 21:59:58  pierre
