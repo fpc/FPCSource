@@ -125,7 +125,7 @@ unit pexpr;
                Must_be_valid:=false;
                firstpass(p);
                Must_be_valid:=Store_valid;
-               if p^.resulttype^.deftype=procvardef then
+               if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
                     p1:=gencallnode(nil,nil);
                     p1^.right:=p;
@@ -2044,7 +2044,29 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112.2.6  1999-07-01 21:31:59  peter
+  Revision 1.112.2.7  1999-07-07 07:53:10  michael
+  + Merged patches from florian
+
+  Revision 1.120  1999/07/06 22:38:11  florian
+    * another fix for TP/Delphi styled procedure variables
+
+  Revision 1.119  1999/07/05 20:13:16  peter
+    * removed temp defines
+
+  Revision 1.118  1999/07/01 21:33:57  peter
+    * merged
+
+  Revision 1.117  1999/06/30 15:43:20  florian
+    * two bugs regarding method variables fixed
+      - if you take in a method the address of another method
+        don't need self anymore
+      - if the class pointer was in a register, wrong code for a method
+        variable load was generated
+
+  Revision 1.116  1999/06/26 00:24:53  pierre
+   * mereg from fixes-0_99_12 branch
+
+  Revision 1.112.2.6  1999/07/01 21:31:59  peter
     * procvar fixes again
 
   Revision 1.112.2.5  1999/07/01 15:17:17  peter

@@ -234,6 +234,9 @@ unit pdecl;
          consume(SEMICOLON);
       end;
 
+    const
+       variantrecordlevel : longint = 0;
+
 
     procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
     { reads the filed of a record into a        }
@@ -298,6 +301,8 @@ unit pdecl;
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
              p:=read_type('');
+             if (variantrecordlevel>0) and p^.needs_inittable then
+               Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
              symdone:=false;
              if is_gpc_name then
@@ -560,8 +565,10 @@ unit pdecl;
                 consume(COLON);
                 { read the vars }
                 consume(LKLAMMER);
+                inc(variantrecordlevel);
                 if token<>RKLAMMER then
                   read_var_decs(true,false,false);
+                dec(variantrecordlevel);
                 consume(RKLAMMER);
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,symtablestack^.datasize);
@@ -2114,7 +2121,29 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.127.2.2  1999-07-05 20:03:27  peter
+  Revision 1.127.2.3  1999-07-07 07:53:22  michael
+  + Merged patches from florian
+
+  Revision 1.131  1999/07/06 21:48:23  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.130  1999/07/05 20:25:39  peter
+    * merged
+
+  Revision 1.129  1999/07/02 13:02:26  peter
+    * merged
+
+  Revision 1.128  1999/06/30 22:16:19  florian
+    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
+    * small qword problems fixed
+
+  Revision 1.127.2.2  1999/07/05 20:03:27  peter
     * removed warning/notes
 
   Revision 1.127.2.1  1999/07/02 12:59:49  peter

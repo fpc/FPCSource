@@ -76,7 +76,7 @@
        { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
          (poassembler+pomsgstr+pomsgint+
-          povirtualmethod+pooverridingmethod);
+          povirtualmethod+pooverridingmethod+poexternal);
 
        { options for objects and classes }
        oo_is_abstract  = $1;         { true, if the object/class has an abstract }
@@ -111,7 +111,19 @@
 
 {
   $Log$
-  Revision 1.11  1999-06-03 09:34:11  peter
+  Revision 1.11.2.1  1999-07-07 07:53:25  michael
+  + Merged patches from florian
+
+  Revision 1.12  1999/07/06 21:48:26  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.11  1999/06/03 09:34:11  peter
     * better methodpointer check for proc->procvar
 
   Revision 1.10  1999/06/01 19:27:56  peter

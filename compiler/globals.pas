@@ -60,7 +60,7 @@ unit globals;
 
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
-          m_pointer_2_procedure,m_autoderef];
+          m_pointer_2_procedure,m_autoderef,m_tp_procvar];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support];
@@ -1162,7 +1162,23 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-05-27 19:44:29  peter
+  Revision 1.8.2.1  1999-07-07 07:53:21  michael
+  + Merged patches from florian
+
+  Revision 1.10  1999/07/06 21:48:16  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.9  1999/07/03 00:29:48  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.8  1999/05/27 19:44:29  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
