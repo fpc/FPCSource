@@ -456,29 +456,21 @@ implementation
            l1,l2 : longint;
            w : integer;
         begin
-           hs1:=read_factor;
-           while true do
-             begin
-                if (current_scanner.preproc_token=_ID) then
-                  begin
-                     if readpreproc='AND' then
-                       begin
-                          preproc_consume(_ID);
-                          hs2:=read_expr;
-                          valint(hs1,l1,w); valint(hs2,l2,w);
-                          if (l1>0) and (l2>0) then
-                            hs1:='1'
-                          else
-                            hs1:='0';
-                          read_term := hs1;
-                          exit;
-                       end
-                     else
-                       break;
-                  end
-                else
-                  break;
-             end;
+          hs1:=read_factor;
+          repeat
+            if (current_scanner.preproc_token<>_ID) then
+              break;
+            if readpreproc<>'AND' then
+              break;
+            preproc_consume(_ID);
+            hs2:=read_expr;
+            valint(hs1,l1,w);
+            valint(hs2,l2,w);
+            if (l1>0) and (l2>0) then
+              hs1:='1'
+            else
+              hs1:='0';
+           until false;
            read_term:=hs1;
         end;
 
@@ -489,30 +481,22 @@ implementation
            l1,l2 : longint;
            w : integer;
         begin
-           hs1:=read_term;
-           while true do
-             begin
-                if (current_scanner.preproc_token=_ID) then
-                  begin
-                     if readpreproc='OR' then
-                       begin
-                          preproc_consume(_ID);
-                          hs2:=read_expr;
-                          valint(hs1,l1,w); valint(hs2,l2,w);
-                          if (l1>0) or (l2>0) then
-                            hs1:='1'
-                          else
-                            hs1:='0';
-                          read_simple_expr := hs1;
-                          exit;
-                       end
-                     else
-                       break;
-                  end
-                else
-                  break;
-             end;
-           read_simple_expr:=hs1;
+          hs1:=read_term;
+          repeat
+            if (current_scanner.preproc_token<>_ID) then
+              break;
+            if readpreproc<>'OR' then
+              break;
+            preproc_consume(_ID);
+            hs2:=read_expr;
+            valint(hs1,l1,w);
+            valint(hs2,l2,w);
+            if (l1>0) or (l2>0) then
+              hs1:='1'
+            else
+              hs1:='0';
+          until false;
+          read_simple_expr:=hs1;
         end;
 
         function read_expr : string;
@@ -641,7 +625,7 @@ implementation
                            #26 :
                              current_scanner.end_of_file;
                          end;
-                         macrobuffer^[macropos]:=c;
+                         macrobuffer^[macropos]:=upcase(c);
                          inc(macropos);
                          if macropos>maxmacrolen then
                           Message(scan_f_macro_buffer_overflow);
@@ -2932,7 +2916,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.67  2004-02-07 23:28:34  daniel
+  Revision 1.68  2004-02-11 14:13:10  daniel
+    * Compiler was partially case sensitive in macro expansion
+    * Multiple and/or preprocessor statements caused problems
+
+  Revision 1.67  2004/02/07 23:28:34  daniel
     * Take advantage of our new with statement optimization
 
   Revision 1.66  2003/11/12 16:57:59  peter
