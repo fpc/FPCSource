@@ -939,7 +939,7 @@ In case of an error, the function returns \var{False}.
  
 \begin{functionl}{DiskFree}{DiskFreeSys}
 \Declaration
-Function DiskFree(Drive : Byte) : Longint;
+Function DiskFree(Drive : Byte) : Int64;
 \Description
 \var{DiskFree} returns the free space (in bytes) on disk \var{Drive}.
 Drive is the number of the disk drive: 
@@ -967,7 +967,7 @@ On error, \var{-1} is returned.
  
 \begin{functionl}{DiskSize}{DiskSizeSys}
 \Declaration
-Function DiskSize(Drive : Byte) : Longint;
+Function DiskSize(Drive : Byte) : Int64;
 \Description
 \var{DiskSize} returns the size (in bytes) of disk \var{Drive}.
 Drive is the number of the disk drive: 
