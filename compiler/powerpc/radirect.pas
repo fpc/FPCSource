@@ -200,8 +200,7 @@ interface
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
-                                            end;
-{$ifdef dummy}
+                                            end
                                           { I added that but it creates a problem in line.ppi
                                           because there is a local label wbuffer and
                                           a static variable WBUFFER ...
@@ -226,7 +225,7 @@ interface
                                                      procsym :
                                                        begin
                                                          { procs can be called or the address can be loaded }
-                                                         if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
+                                                         if (pos('BL',upper(s))>0) {or (pos('LEA',upper(s))>0))}  then
                                                           begin
                                                             if assigned(tprocsym(sym).defs^.def) then
                                                               Message1(asmr_w_direct_global_is_overloaded_func,hs);
@@ -238,6 +237,7 @@ interface
                                                        Message(asmr_e_wrong_sym_type);
                                                    end;
                                                  end
+{$ifdef dummy}
                                                else if upper(hs)='__SELF' then
                                                  begin
                                                     if assigned(procinfo^._class) then
@@ -267,8 +267,8 @@ interface
                                                  end;
                                                }
                                                end;
-                                            end;
 {$endif dummy}
+                                            end;
                                        end;
                                   end;
                              end;
@@ -314,7 +314,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-18 21:36:42  florian
+  Revision 1.3  2002-08-31 15:59:31  florian
+    + HEAP* stuff must be generated for Linux/PPC as well
+    + direct assembler reader searches now global and static symtables as well
+
+  Revision 1.2  2002/08/18 21:36:42  florian
     + handling of local variables in direct reader implemented
 
   Revision 1.1  2002/08/10 14:52:52  carl

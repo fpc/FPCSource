@@ -284,14 +284,14 @@ implementation
             system_i386_OS2:
               ;
 {$endif i386}
+{$ifdef powerpc}
+            system_powerpc_macos:
+              ;
+{$endif powerpc}
 {$ifdef alpha}
             system_alpha_linux:
               ;
 {$endif alpha}
-{$ifdef powerpc}
-            system_powerpc_linux:
-              ;
-{$endif powerpc}
 {$ifdef m68k}
             system_m68k_Mac:
               bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
@@ -1387,7 +1387,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-08-25 19:25:20  peter
+  Revision 1.75  2002-08-31 15:59:30  florian
+    + HEAP* stuff must be generated for Linux/PPC as well
+    + direct assembler reader searches now global and static symtables as well
+
+  Revision 1.74  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
