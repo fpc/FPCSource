@@ -55,17 +55,17 @@ export RTLOPTS
 CFG=../rtl/cfg
 
 # At least set -Sg
-LOCALOPT+=-Sg
+override LOCALOPT+=-Sg
 
 # set correct defines (-d$(CPU) is automaticly added in makefile.cfg)
-LOCALDEF+=-dGDB -dFPC
+override LOCALDEF+=-dGDB -dFPC
 
 # for i386 also insert MMX support
-ifdef i386
-LOCALDEF+=-dSUPPORT_MMX
+ifneq ($(findstring -di386,$(LOCALDEF)),)
+override LOCALDEF+=-dSUPPORT_MMX
 endif
 
-LOCALOPT+=$(LOCALDEF)
+override LOCALOPT+=$(LOCALDEF)
 
 
 #####################################################################
@@ -230,7 +230,6 @@ remake: $(EXENAME)
 	$(MOVE) $(EXENAME) $(TEMPNAME)
 	make execlean
 	make -C $(UNITDIR) libsclean
-	make -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' 'OPT=$(RTLOPTS)' all
 	make clean
 	make 'PP=./$(TEMPNAME)' all
 
@@ -255,10 +254,12 @@ $(TEMPNAME3) : $(TEMPNAME2)
 cycle:
 	make clean
 	make -C $(UNITDIR) libsclean
-	make -C $(UNITDIR)
+	make -C $(UNITDIR) 'OPT=$(RTLOPTS)' all
 	make remake3
 	make echotime
 
+cvstest:
+	make cycle 'LOCALOPT=-n' 'RTLOPTS=-n'
 
 #####################################################################
 # Installation
@@ -324,11 +325,15 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.7  1998-09-29 18:34:45  peter
+# Revision 1.8  1998-10-09 08:54:18  pierre
+#   + added cvstest target
+#     uses -n option to avoid use of local ppc386.cfg
+#
+# Revision 1.7  1998/09/29 18:34:45  peter
 #   + chmod 755 makecfg
 #
 # Revision 1.6  1998/09/23 15:41:42  pierre
-#  export for RTLOPTS (useful for $(MAKE)) !!
+#  export for RTLOPTS (useful for make) !!
 #
 # Revision 1.5  1998/09/22 13:09:24  pierre
 #   + added possibility to read makefile.loc if it exists
