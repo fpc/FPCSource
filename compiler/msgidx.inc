@@ -52,11 +52,13 @@
 type
   tmsgconst = (
 general_i_compilername,
-general_i_unitsearchpath,
 general_d_sourceos,
 general_i_targetos,
 general_u_exepath,
-general_u_gcclibpath,
+general_u_unitpath,
+general_u_includepath,
+general_u_librarypath,
+general_u_objectpath,
 general_i_abslines_compiled,
 general_f_no_memory_left,
 {

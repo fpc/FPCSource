@@ -75,7 +75,7 @@ uses
     dpmiexcp,
   {$endif GO32V2}
   {$ifdef LINUX}
-    catch,
+{    catch, }
   {$endif LINUX}
 {$endif}
 {$ifdef USEEXCEPT}
@@ -174,11 +174,13 @@ begin
 
 { show some info }
   Message1(general_i_compilername,FixFileName(paramstr(0)));
-  Message1(general_i_unitsearchpath,unitsearchpath);
   Message1(general_d_sourceos,source_os.name);
   Message1(general_i_targetos,target_os.name);
   Message1(general_u_exepath,exepath);
-  Message1(general_u_gcclibpath,Linker.librarysearchpath);
+  Message1(general_u_unitpath,unitsearchpath);
+  Message1(general_u_includepath,includesearchpath);
+  Message1(general_u_librarypath,Linker.librarysearchpath);
+  Message1(general_u_objectpath,objectsearchpath);
 {$ifdef TP}
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
 {$endif}
@@ -224,7 +226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-08-10 14:49:56  peter
+  Revision 1.3  1998-08-11 00:01:20  peter
+    * -vu displays now all searchpaths
+
+  Revision 1.2  1998/08/10 14:49:56  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.1  1998/08/10 10:18:24  peter

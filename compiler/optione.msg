@@ -74,6 +74,7 @@ Report bugs,suggestions etc to:
 **1L_set language
 **2LD_german
 **2LE_english
+**2LN_dutch
 **1l_write logo
 **1i_information
 **1n_don't read the default config file
