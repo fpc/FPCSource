@@ -260,8 +260,8 @@ implementation
                                    if assigned(aktprocsym) then
                                      begin
                                        if not(assigned(procinfo^._class)) and
-                                          not(aktprocsym.definition.proctypeoption in [potype_constructor,potype_destructor]) and
-                                          not(po_interrupt in aktprocsym.definition.procoptions) and
+                                          not(aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) and
+                                          not(po_interrupt in aktprocdef.procoptions) and
                                           ((procinfo^.flags and pi_do_call)=0) and
                                           (lexlevel>=normal_function_level) then
                                          begin
@@ -280,7 +280,7 @@ implementation
                                              dec(procinfo^.retoffset,4);
 
                                            dec(procinfo^.para_offset,4);
-                                           aktprocsym.definition.parast.address_fixup:=procinfo^.para_offset;
+                                           aktprocdef.parast.address_fixup:=procinfo^.para_offset;
                                          end;
                                      end;
                                     *)
@@ -291,7 +291,7 @@ implementation
               cleanup_regvars(procinfo^.aktexitcode);
 
               if assigned(aktprocsym) and
-                 (aktprocsym.definition.proccalloption=pocall_inline) then
+                 (aktprocdef.proccalloption=pocall_inline) then
                 make_const_global:=true;
               do_secondpass(p);
 
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-10-25 21:22:35  peter
+  Revision 1.20  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.19  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.18  2001/08/26 13:36:44  florian

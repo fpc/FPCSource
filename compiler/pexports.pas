@@ -72,16 +72,26 @@ implementation
                    orgs:=orgpattern;
                    consume_sym(srsym,srsymtable);
                    hp.sym:=srsym;
-                   if ((hp.sym.typ<>procsym) or
-                       ((tf_need_export in target_info.flags) and
-                        not(po_exports in tprocdef(tprocsym(srsym).definition).procoptions)
-                       )
-                      ) and
-                      (srsym.typ<>varsym) and (srsym.typ<>typedconstsym) then
-                    Message(parser_e_illegal_symbol_exported)
-                   else
+                   InternalProcName:='';
+                   case srsym.typ of
+                     varsym :
+                       InternalProcName:=tvarsym(srsym).mangledname;
+                     typedconstsym :
+                       InternalProcName:=ttypedconstsym(srsym).mangledname;
+                     procsym :
+                       begin
+                         if assigned(tprocsym(srsym).defs^.next) or
+                            ((tf_need_export in target_info.flags) and
+                             not(po_exports in tprocsym(srsym).defs^.def.procoptions)) then
+                           Message(parser_e_illegal_symbol_exported)
+                         else
+                           InternalProcName:=tprocsym(srsym).defs^.def.mangledname;
+                       end;
+                     else
+                       Message(parser_e_illegal_symbol_exported)
+                   end;
+                   if InternalProcName<>'' then
                     begin
-                      InternalProcName:=srsym.mangledname;
                       { This is wrong if the first is not
                         an underline }
                       if InternalProcName[1]='_' then
@@ -163,7 +173,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2001-04-18 22:01:57  peter
+  Revision 1.16  2001-11-02 22:58:04  peter
+    * procsym definition rewrite
+
+  Revision 1.15  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.14  2001/04/13 01:22:12  peter

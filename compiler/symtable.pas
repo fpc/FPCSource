@@ -61,7 +61,7 @@ interface
           procedure resetstab(p : TNamedIndexItem);
           procedure concattypestab(p : TNamedIndexItem);
 {$endif}
-          procedure order_overloads(p : TNamedIndexItem);
+          procedure unchain_overloads(p : TNamedIndexItem);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
           procedure writedefs(ppufile:tcompilerppufile);
@@ -82,9 +82,7 @@ interface
           procedure check_forwards;
           procedure checklabels;
           function  needs_init_final : boolean;
-{$ifdef CHAINPROCSYMS}
-          procedure chainprocsyms;
-{$endif CHAINPROCSYMS}
+          procedure unchain_overloaded;
           procedure chainoperators;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);virtual;
@@ -605,16 +603,13 @@ implementation
         hp:=tstoredsym(inherited speedsearch(s,speedvalue));
         if assigned(hp) then
          begin
-           { reject non static members in static procedures,
-             be carefull aktprocsym.definition is not allways
-             loaded already (PFV) }
+           { reject non static members in static procedures }
            if (symtabletype=objectsymtable) and
               not(sp_static in hp.symoptions) and
-              allow_only_static
-              {assigned(aktprocsym) and
-              assigned(aktprocsym.definition) and
-              ((aktprocsym.definition.options and postaticmethod)<>0)} then
-                  Message(sym_e_only_static_in_static);
+              allow_only_static then
+             Message(sym_e_only_static_in_static);
+
+           { unit uses count }
            if (unitid<>0) and
               (symtabletype = globalsymtable) and
               assigned(tglobalsymtable(self).unitsym) then
@@ -625,7 +620,10 @@ implementation
              this might be the cause of the class debug problems
              as TCHILDCLASS.Create did not generate appropriate
              stabs debug info if TCHILDCLASS wasn't used anywhere else PM }
-           if (hp.typ=typesym) and make_ref then
+{$warning TODO: turn on debuginfo check}
+           if // (cs_debuginfo in aktmoduleswitches) and
+              (hp.typ=typesym) and
+              make_ref then
              begin
                if assigned(ttypesym(hp).restype.def) then
                  tstoreddef(ttypesym(hp).restype.def).numberstring
@@ -633,6 +631,7 @@ implementation
                  ttypesym(hp).isusedinstab:=true;
              end;
 {$endif GDB}
+
            { unitsym are only loaded for browsing PM    }
            { this was buggy anyway because we could use }
            { unitsyms from other units in _USES !!      }
@@ -640,7 +639,8 @@ implementation
               assigned(current_module) and (current_module.globalsymtable<>.load) then
              hp:=nil;}
            if assigned(hp) and
-              (cs_browser in aktmoduleswitches) and make_ref then
+              make_ref and
+              (cs_browser in aktmoduleswitches) then
              begin
                 newref:=tref.create(hp.lastref,@akttokenpos);
                 { for symbols that are in tables without
@@ -798,10 +798,10 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.order_overloads(p : TNamedIndexItem);
+    procedure tstoredsymtable.unchain_overloads(p : TNamedIndexItem);
       begin
          if tsym(p).typ=procsym then
-           tprocsym(p).order_overloaded;
+           tprocsym(p).unchain_overload;
       end;
 
 {$ifdef GDB}
@@ -870,6 +870,7 @@ implementation
     procedure tstoredsymtable.chainoperators;
       var
         p : tprocsym;
+        pd : pprocdeflist;
         t : ttoken;
         def : tprocdef;
         srsym : tsym;
@@ -900,30 +901,24 @@ implementation
                     begin
                        if (srsym.typ<>procsym) then
                          internalerror(12344321);
-                       if assigned(p) then
-                         begin
-{$ifdef CHAINPROCSYMS}
-                           p.nextprocsym:=tprocsym(srsym);
-{$endif CHAINPROCSYMS}
-                           def.nextoverloaded:=tprocsym(srsym).definition;
-                         end
+                       { use this procsym as start ? }
+                       if not assigned(overloaded_operators[t]) then
+                        overloaded_operators[t]:=tprocsym(srsym)
                        else
-                         overloaded_operators[t]:=tprocsym(srsym);
-                       p:=tprocsym(srsym);
-                       def:=p.definition;
-                       while assigned(def.nextoverloaded) and
-                         (def.nextoverloaded.owner=p.owner) do
-                         def:=def.nextoverloaded;
-                       def.nextoverloaded:=nil;
+                        begin
+                          { already got a procsym, only add defs of the current procsym }
+                          pd:=tprocsym(srsym).defs;
+                          while assigned(pd) do
+                           begin
+                             overloaded_operators[t].addprocdef(pd^.def);
+                             pd:=pd^.next;
+                           end;
+                        end;
                        symtablestack:=srsym.owner.next;
                     end
                   else
                     begin
                       symtablestack:=nil;
-{$ifdef CHAINPROCSYMS}
-                      if assigned(p) then
-                        p.nextprocsym:=nil;
-{$endif CHAINPROCSYMS}
                     end;
                   { search for same procsym in other units }
                 end;
@@ -969,12 +964,10 @@ implementation
       end;
 
 
-{$ifdef CHAINPROCSYMS}
-    procedure tstoredsymtable.chainprocsyms;
+    procedure tstoredsymtable.unchain_overloaded;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}chainprocsym);
+         foreach({$ifdef FPCPROCVAR}@{$endif}unchain_overloads);
       end;
-{$endif CHAINPROCSYMS}
 
 
 {$ifdef GDB}
@@ -1024,9 +1017,6 @@ implementation
          aktrecordsymtable:=self;
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
-
-         { order procsym overloads }
-         foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
          inherited write(ppufile);
 
@@ -1188,9 +1178,6 @@ implementation
          aktlocalsymtable:=self;
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
-
-         { order procsym overloads }
-         foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
          { write definitions }
          writedefs(ppufile);
@@ -1468,9 +1455,6 @@ implementation
       begin
         aktstaticsymtable:=self;
 
-        { order procsym overloads }
-        foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
-
         inherited write(ppufile);
       end;
 
@@ -1597,9 +1581,6 @@ implementation
 
     procedure tglobalsymtable.write(ppufile:tcompilerppufile);
       begin
-        { order procsym overloads }
-        foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
-
         { write the symtable entries }
         inherited write(ppufile);
 
@@ -2104,7 +2085,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2001-10-12 20:27:43  jonas
+  Revision 1.48  2001-11-02 22:58:08  peter
+    * procsym definition rewrite
+
+  Revision 1.47  2001/10/12 20:27:43  jonas
     * fixed crashing bug in unit reference counting
 
   Revision 1.46  2001/09/30 21:29:47  peter

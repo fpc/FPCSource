@@ -89,34 +89,34 @@ implementation
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (token=_ASM) and (m_delphi in aktmodeswitches) then
-          include(aktprocsym.definition.procoptions,po_assembler);
+          include(aktprocdef.procoptions,po_assembler);
 
          { Handle assembler block different }
-         if (po_assembler in aktprocsym.definition.procoptions) then
+         if (po_assembler in aktprocdef.procoptions) then
           begin
             read_declarations(false);
             block:=assembler_block;
             exit;
           end;
 
-         if not is_void(aktprocsym.definition.rettype.def) then
+         if not is_void(aktprocdef.rettype.def) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
               storepos:=akttokenpos;
               akttokenpos:=aktprocsym.fileinfo;
-              aktprocsym.definition.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocsym.definition.rettype);
+              aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
               { insert in local symtable }
-              symtablestack.insert(aktprocsym.definition.funcretsym);
+              symtablestack.insert(aktprocdef.funcretsym);
               akttokenpos:=storepos;
-              if ret_in_acc(aktprocsym.definition.rettype.def) or
-                 (aktprocsym.definition.rettype.def.deftype=floatdef) then
-                procinfo^.return_offset:=-tfuncretsym(aktprocsym.definition.funcretsym).address;
+              if ret_in_acc(aktprocdef.rettype.def) or
+                 (aktprocdef.rettype.def.deftype=floatdef) then
+                procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
                begin
-                 aktprocsym.definition.resultfuncretsym:=tfuncretsym.create('RESULT',aktprocsym.definition.rettype);
-                 symtablestack.insert(aktprocsym.definition.resultfuncretsym);
+                 aktprocdef.resultfuncretsym:=tfuncretsym.create('RESULT',aktprocdef.rettype);
+                 symtablestack.insert(aktprocdef.resultfuncretsym);
                end;
            end;
          read_declarations(islibrary);
@@ -131,12 +131,12 @@ implementation
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if not is_void(aktprocsym.definition.rettype.def) then
+         if not is_void(aktprocdef.rettype.def) then
            begin
-              if ret_in_acc(aktprocsym.definition.rettype.def) or (aktprocsym.definition.rettype.def.deftype=floatdef) then
+              if ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
                 begin
                    { the space has been set in the local symtable }
-                   procinfo^.return_offset:=-tfuncretsym(aktprocsym.definition.funcretsym).address;
+                   procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
                    if ((procinfo^.flags and pi_operator)<>0) and
                       assigned(otsym) then
                      otsym.address:=-procinfo^.return_offset;
@@ -145,13 +145,13 @@ implementation
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
-                   if is_64bitint(aktprocsym.definition.rettype.def) then
+                   if is_64bitint(aktprocdef.rettype.def) then
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
                    usedinproc:=usedinproc + [accumulator];
 
-                   if is_64bitint(aktprocsym.definition.rettype.def) then
+                   if is_64bitint(aktprocdef.rettype.def) then
                      usedinproc:=usedinproc  + [scratch_reg];
 {$endif}
 {$endif newcg}
@@ -237,7 +237,7 @@ implementation
           Message(parser_e_too_much_lexlevel);
 
          { static is also important for local procedures !! }
-         if (po_staticmethod in aktprocsym.definition.procoptions) then
+         if (po_staticmethod in aktprocdef.procoptions) then
            allow_only_static:=true
          else if (lexlevel=normal_function_level) then
            allow_only_static:=false;
@@ -251,7 +251,7 @@ implementation
          getlabel(aktexitlabel);
          getlabel(aktexit2label);
          { exit for fail in constructors }
-         if (aktprocsym.definition.proctypeoption=potype_constructor) then
+         if (aktprocdef.proctypeoption=potype_constructor) then
            begin
              getlabel(faillabel);
              getlabel(quickexitlabel);
@@ -281,13 +281,13 @@ implementation
            for checking of same names used in interface and implementation !! }
          if lexlevel>=normal_function_level then
            begin
-              aktprocsym.definition.parast.next:=symtablestack;
-              symtablestack:=aktprocsym.definition.parast;
+              aktprocdef.parast.next:=symtablestack;
+              symtablestack:=aktprocdef.parast;
               symtablestack.symtablelevel:=lexlevel;
            end;
          { insert localsymtable in symtablestack}
-         aktprocsym.definition.localst.next:=symtablestack;
-         symtablestack:=aktprocsym.definition.localst;
+         aktprocdef.localst.next:=symtablestack;
+         symtablestack:=aktprocdef.localst;
          symtablestack.symtablelevel:=lexlevel;
          { constant symbols are inserted in this symboltable }
          constsymtable:=symtablestack;
@@ -346,7 +346,7 @@ implementation
          if assigned(code) then
           begin
             { the procedure is now defined }
-            aktprocsym.definition.forwarddef:=false;
+            aktprocdef.forwarddef:=false;
 
              { only generate the code if no type errors are found, else
                finish at least the type checking pass }
@@ -354,7 +354,7 @@ implementation
             if (status.errorcount=0) then
               begin
                 generatecode(code);
-                aktprocsym.definition.code:=code;
+                aktprocdef.code:=code;
 {$ifdef newcg}
                 stackframe:=gettempsize;
 {$else newcg}
@@ -391,9 +391,9 @@ implementation
 
                 { now all the registers used are known }
 {$ifdef newcg}
-                aktprocsym.definition.usedregisters:=tg.usedinproc;
+                aktprocdef.usedregisters:=tg.usedinproc;
 {$else newcg}
-                aktprocsym.definition.usedregisters:=usedinproc;
+                aktprocdef.usedregisters:=usedinproc;
 {$endif newcg}
                 procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
                 procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
@@ -438,17 +438,21 @@ implementation
            begin
              if (Errorcount=0) then
                begin
-                 tstoredsymtable(aktprocsym.definition.localst).check_forwards;
-                 tstoredsymtable(aktprocsym.definition.localst).checklabels;
+                 { check if forwards are resolved }
+                 tstoredsymtable(aktprocdef.localst).check_forwards;
+                 { check if all labels are used }
+                 tstoredsymtable(aktprocdef.localst).checklabels;
+                 { remove cross unit overloads }
+                 tstoredsymtable(aktprocdef.localst).unchain_overloaded;
                end;
              if (procinfo^.flags and pi_uses_asm)=0 then
                begin
                   { not for unit init, becuase the var can be used in finalize,
                     it will be done in proc_unit }
-                  if not(aktprocsym.definition.proctypeoption
+                  if not(aktprocdef.proctypeoption
                      in [potype_proginit,potype_unitinit,potype_unitfinalize]) then
-                     tstoredsymtable(aktprocsym.definition.localst).allsymbolsused;
-                  tstoredsymtable(aktprocsym.definition.parast).allsymbolsused;
+                     tstoredsymtable(aktprocdef.localst).allsymbolsused;
+                  tstoredsymtable(aktprocdef.parast).allsymbolsused;
                end;
            end;
 
@@ -460,11 +464,11 @@ implementation
          { so no dispose here !!                              }
          if assigned(code) and
             not(cs_browser in aktmoduleswitches) and
-            (aktprocsym.definition.proccalloption<>pocall_inline) then
+            (aktprocdef.proccalloption<>pocall_inline) then
            begin
              if lexlevel>=normal_function_level then
-               aktprocsym.definition.localst.free;
-             aktprocsym.definition.localst:=nil;
+               aktprocdef.localst.free;
+             aktprocdef.localst:=nil;
            end;
 
 {$ifdef newcg}
@@ -480,7 +484,7 @@ implementation
 {$endif newcg}
 
          { remove code tree, if not inline procedure }
-         if assigned(code) and (aktprocsym.definition.proccalloption<>pocall_inline) then
+         if assigned(code) and (aktprocdef.proccalloption<>pocall_inline) then
            code.free;
 
          { remove class member symbol tables }
@@ -519,12 +523,12 @@ implementation
            if copy(name,1,3)='val' then
             begin
               s:=Copy(name,4,255);
-              if not(po_assembler in aktprocsym.definition.procoptions) then
+              if not(po_assembler in aktprocdef.procoptions) then
                begin
                  vs:=tvarsym.create(s,vartype);
                  vs.fileinfo:=fileinfo;
                  vs.varspez:=varspez;
-                 aktprocsym.definition.localst.insert(vs);
+                 aktprocdef.localst.insert(vs);
                  include(vs.varoptions,vo_is_local_copy);
                  vs.varstate:=vs_assigned;
                  localvarsym:=vs;
@@ -534,7 +538,7 @@ implementation
                end
               else
                begin
-                 aktprocsym.definition.parast.rename(name,s);
+                 aktprocdef.parast.rename(name,s);
                end;
             end;
          end;
@@ -547,15 +551,17 @@ implementation
         generates the code for it
       }
       var
-        oldprefix     : string;
+        oldprefix        : string;
         oldprocsym       : tprocsym;
+        oldprocdef       : tprocdef;
         oldprocinfo      : pprocinfo;
         oldconstsymtable : tsymtable;
         oldfilepos       : tfileposinfo;
-        pdflags         : word;
-        prevdef,stdef   : tprocdef;
+        pdflags          : word;
+        prevdef,stdef    : tprocdef;
       begin
       { save old state }
+         oldprocdef:=aktprocdef;
          oldprocsym:=aktprocsym;
          oldprefix:=procprefix;
          oldconstsymtable:=constsymtable;
@@ -576,15 +582,15 @@ implementation
 
          parse_proc_dec;
 
-         procinfo^.procdef:=aktprocsym.definition;
+         procinfo^.procdef:=aktprocdef;
 
-      { set the default function options }
+         { set the default function options }
          if parse_only then
           begin
-            aktprocsym.definition.forwarddef:=true;
+            aktprocdef.forwarddef:=true;
             { set also the interface flag, for better error message when the
               implementation doesn't much this header }
-            aktprocsym.definition.interfacedef:=true;
+            aktprocdef.interfacedef:=true;
             pdflags:=pd_interface;
           end
          else
@@ -595,25 +601,25 @@ implementation
             if (not current_module.is_unit) or (cs_create_smart in aktmoduleswitches) then
              pdflags:=pdflags or pd_global;
             procinfo^.exported:=false;
-            aktprocsym.definition.forwarddef:=false;
+            aktprocdef.forwarddef:=false;
           end;
 
-      { parse the directives that may follow }
+         { parse the directives that may follow }
          inc(lexlevel);
          parse_proc_directives(pdflags);
          dec(lexlevel);
 
-      { hint directives, these can be separated by semicolons here,
-        that need to be handled here with a loop (PFV) }
+         { hint directives, these can be separated by semicolons here,
+           that need to be handled here with a loop (PFV) }
          while try_consume_hintdirective(aktprocsym.symoptions) do
           Consume(_SEMICOLON);
 
-      { set aktfilepos to the beginning of the function declaration }
+         { set aktfilepos to the beginning of the function declaration }
          oldfilepos:=aktfilepos;
-         aktfilepos:=aktprocsym.definition.fileinfo;
+         aktfilepos:=aktprocdef.fileinfo;
 
-      { For varargs directive also cdecl and external must be defined }
-         if (po_varargs in aktprocsym.definition.procoptions) then
+         { For varargs directive also cdecl and external must be defined }
+         if (po_varargs in aktprocdef.procoptions) then
           begin
             { check first for external in the interface, if available there
               then the cdecl must also be there since there is no implementation
@@ -621,42 +627,41 @@ implementation
             if parse_only then
              begin
                { if external is available, then cdecl must also be available }
-               if (po_external in aktprocsym.definition.procoptions) and
-                  not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+               if (po_external in aktprocdef.procoptions) and
+                  not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
              end
             else
              begin
                { both must be defined now }
-               if not(po_external in aktprocsym.definition.procoptions) or
-                  not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+               if not(po_external in aktprocdef.procoptions) or
+                  not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
              end;
           end;
 
-      { search for forward declarations }
-         if not check_identical_proc(prevdef) then
+         { search for forward declarations }
+         if not proc_add_definition(aktprocsym,aktprocdef) then
            begin
-           { A method must be forward defined (in the object declaration) }
-             if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
+             { A method must be forward defined (in the object declaration) }
+             if assigned(procinfo^._class) and
+                (not assigned(oldprocinfo^._class)) then
               begin
-                Message1(parser_e_header_dont_match_any_member,
-                         aktprocsym.definition.fullprocname);
-                aktprocsym.write_parameter_lists(aktprocsym.definition);
+                Message1(parser_e_header_dont_match_any_member,aktprocdef.fullprocname);
+                aktprocsym.write_parameter_lists(aktprocdef);
               end
              else
               begin
                 { Give a better error if there is a forward def in the interface and only
                   a single implementation }
-                if (not aktprocsym.definition.forwarddef) and
-                   assigned(aktprocsym.definition.nextoverloaded) and
-                   aktprocsym.definition.nextoverloaded.forwarddef and
-                   aktprocsym.definition.nextoverloaded.interfacedef and
-                   not(assigned(aktprocsym.definition.nextoverloaded.nextoverloaded)) then
+                if (not aktprocdef.forwarddef) and
+                   assigned(aktprocsym.defs^.next) and
+                   aktprocsym.defs^.def.forwarddef and
+                   aktprocsym.defs^.def.interfacedef and
+                   not(assigned(aktprocsym.defs^.next^.next)) then
                  begin
-                   Message1(parser_e_header_dont_match_forward,
-                            aktprocsym.definition.fullprocname);
-                   aktprocsym.write_parameter_lists(aktprocsym.definition);
+                   Message1(parser_e_header_dont_match_forward,aktprocdef.fullprocname);
+                   aktprocsym.write_parameter_lists(aktprocdef);
                  end
                 else
                  begin
@@ -669,13 +674,13 @@ implementation
               end;
            end;
 
-         { update procinfo, because the aktprocsym.definition can be
+         { update procinfo, because the aktprocdef can be
            changed by check_identical_proc (PFV) }
-         procinfo^.procdef:=aktprocsym.definition;
+         procinfo^.procdef:=aktprocdef;
 
 {$ifdef i386}
          { add implicit pushes for interrupt routines }
-         if (po_interrupt in aktprocsym.definition.procoptions) then
+         if (po_interrupt in aktprocdef.procoptions) then
            begin
              { we push Flags and CS as long
                to cope with the IRETD
@@ -685,60 +690,63 @@ implementation
 {$endif i386}
 
          { pointer to the return value ? }
-         if ret_in_param(aktprocsym.definition.rettype.def) then
+         if ret_in_param(aktprocdef.rettype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
             inc(procinfo^.para_offset,target_info.size_of_pointer);
           end;
          { allows to access the parameters of main functions in nested functions }
-         aktprocsym.definition.parast.address_fixup:=procinfo^.para_offset;
+         aktprocdef.parast.address_fixup:=procinfo^.para_offset;
 
          { when it is a value para and it needs a local copy then rename
            the parameter and insert a copy in the localst. This is not done
            for assembler procedures }
-         if (not parse_only) and (not aktprocsym.definition.forwarddef) then
-           aktprocsym.definition.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara);
+         if (not parse_only) and (not aktprocdef.forwarddef) then
+           aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara);
 
-      { restore file pos }
+         { restore file pos }
          aktfilepos:=oldfilepos;
 
-      { compile procedure when a body is needed }
+         { compile procedure when a body is needed }
          if (pdflags and pd_body)<>0 then
            begin
              Message1(parser_p_procedure_start,
-                      aktprocsym.definition.fullprocname);
-             aktprocsym.definition.aliasnames.insert(aktprocsym.definition.mangledname);
+                      aktprocdef.fullprocname);
+             aktprocdef.aliasnames.insert(aktprocdef.mangledname);
             { set _FAIL as keyword if constructor }
-            if (aktprocsym.definition.proctypeoption=potype_constructor) then
+            if (aktprocdef.proctypeoption=potype_constructor) then
               tokeninfo^[_FAIL].keyword:=m_all;
-            if assigned(aktprocsym.definition._class) then
+            if assigned(aktprocdef._class) then
               tokeninfo^[_SELF].keyword:=m_all;
 
              compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo^._class));
 
             { reset _FAIL as normal }
-            if (aktprocsym.definition.proctypeoption=potype_constructor) then
+            if (aktprocdef.proctypeoption=potype_constructor) then
               tokeninfo^[_FAIL].keyword:=m_none;
-            if assigned(aktprocsym.definition._class) and (lexlevel=main_program_level) then
+            if assigned(aktprocdef._class) and (lexlevel=main_program_level) then
               tokeninfo^[_SELF].keyword:=m_none;
              consume(_SEMICOLON);
            end;
-      { close }
+         { close }
          codegen_doneprocedure;
-      { Restore old state }
+         { Restore old state }
          constsymtable:=oldconstsymtable;
          { from now on all refernece to mangledname means
            that the function is already used }
-         aktprocsym.definition.count:=true;
+         aktprocdef.count:=true;
+{$ifdef notused}
          { restore the interface order to maintain CRC values PM }
-         if assigned(prevdef) and assigned(aktprocsym.definition.nextoverloaded) then
+         if assigned(prevdef) and assigned(aktprocdef.nextoverloaded) then
            begin
-             stdef:=aktprocsym.definition;
-             aktprocsym.definition:=stdef.nextoverloaded;
+             stdef:=aktprocdef;
+             aktprocdef:=stdef.nextoverloaded;
              stdef.nextoverloaded:=prevdef.nextoverloaded;
              prevdef.nextoverloaded:=stdef;
            end;
+{$endif notused}
          aktprocsym:=oldprocsym;
+         aktprocdef:=oldprocdef;
          procprefix:=oldprefix;
          procinfo:=oldprocinfo;
          otsym:=nil;
@@ -754,11 +762,11 @@ implementation
         procedure Not_supported_for_inline(t : ttoken);
         begin
            if assigned(aktprocsym) and
-              (aktprocsym.definition.proccalloption=pocall_inline) then
+              (aktprocdef.proccalloption=pocall_inline) then
              Begin
                 Message1(parser_w_not_supported_for_inline,tokenstring(t));
                 Message(parser_w_inlining_disabled);
-                aktprocsym.definition.proccalloption:=pocall_fpccall;
+                aktprocdef.proccalloption:=pocall_fpccall;
              End;
         end;
 
@@ -843,7 +851,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-10-25 21:22:37  peter
+  Revision 1.41  2001-11-02 22:58:06  peter
+    * procsym definition rewrite
+
+  Revision 1.40  2001/10/25 21:22:37  peter
     * calling convention rewrite
 
   Revision 1.39  2001/10/22 21:20:46  peter

@@ -416,7 +416,7 @@ implementation
                  if assigned(getprocvardef) then
                   hp3:=getprocvardef
                  else
-                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).definition);
+                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).defs^.def);
 
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create);
@@ -928,7 +928,7 @@ implementation
             for i:=1 to tablecount do
              begin
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocsym.definition.localst) then
+                  (tloadnode(left).symtable=aktprocdef.localst) then
                 symtable.direct_with:=true;
                symtable.withnode:=self;
                symtable:=twithsymtable(symtable.next);
@@ -985,7 +985,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-10-28 17:22:25  peter
+  Revision 1.23  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.22  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

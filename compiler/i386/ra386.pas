@@ -195,10 +195,10 @@ Begin
   if res and (procinfo^.return_offset=0) then
    begin
      opr.typ:=OPR_REGISTER;
-     if is_fpu(aktprocsym.definition.rettype.def) then
+     if is_fpu(aktprocdef.rettype.def) then
        begin
          opr.reg:=R_ST0;
-         case tfloatdef(aktprocsym.definition.rettype.def).typ of
+         case tfloatdef(aktprocdef.rettype.def).typ of
            s32real : size:=S_FS;
            s64real : size:=S_FL;
            s80real : size:=S_FX;
@@ -210,8 +210,8 @@ Begin
            end;
          end;
        end
-     else if ret_in_acc(aktprocsym.definition.rettype.def) then
-       case aktprocsym.definition.rettype.def.size of
+     else if ret_in_acc(aktprocdef.rettype.def) then
+       case aktprocdef.rettype.def.size of
        1 : begin
              opr.reg:=R_AL;
              size:=S_B;
@@ -683,7 +683,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-08-26 13:37:01  florian
+  Revision 1.13  2001-11-02 22:58:11  peter
+    * procsym definition rewrite
+
+  Revision 1.12  2001/08/26 13:37:01  florian
     * some cg reorganisation
     * some PPC updates
 

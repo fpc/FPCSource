@@ -70,12 +70,12 @@ implementation
                 if is_class(aktclass) then
                   begin
                      { CLASS constructors return the created instance }
-                     aktprocsym.definition.rettype.def:=aktclass;
+                     aktprocdef.rettype.def:=aktclass;
                   end
                 else
                   begin
                      { OBJECT constructors return a boolean }
-                     aktprocsym.definition.rettype:=booltype;
+                     aktprocdef.rettype:=booltype;
                   end;
              end;
         end;
@@ -202,18 +202,20 @@ implementation
         { returns the matching procedure to access a property }
         function get_procdef : tprocdef;
           var
-             p : tprocdef;
+             p : pprocdeflist;
           begin
-             p:=tprocsym(sym).definition;
              get_procdef:=nil;
+             p:=tprocsym(sym).defs;
              while assigned(p) do
                begin
-                  if equal_paras(p.para,propertyparas,cp_value_equal_const) or
-                     convertable_paras(p.para,propertyparas,cp_value_equal_const) then
-                    break;
-                  p:=p.nextoverloaded;
+                  if equal_paras(p^.def.para,propertyparas,cp_value_equal_const) or
+                     convertable_paras(p^.def.para,propertyparas,cp_value_equal_const) then
+                    begin
+                      get_procdef:=p^.def;
+                      exit;
+                    end;
+                  p:=p^.next;
                end;
-             get_procdef:=p;
           end;
 
         var
@@ -226,12 +228,14 @@ implementation
            s : string;
            tt : ttype;
            declarepos : tfileposinfo;
-           pp : tprocdef;
+           pp : pprocdeflist;
+           pd : tprocdef;
            pt : tnode;
            propname : stringid;
         begin
            { check for a class }
            aktprocsym:=nil;
+           aktprocdef:=nil;
            if not((is_class_or_interface(aktclass)) or
               ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
@@ -382,11 +386,11 @@ implementation
                       case sym.typ of
                         procsym :
                           begin
-                            pp:=get_procdef;
-                            if not(assigned(pp)) or
-                               not(is_equal(pp.rettype.def,p.proptype.def)) then
+                            pd:=get_procdef;
+                            if not(assigned(pd)) or
+                               not(is_equal(pd.rettype.def,p.proptype.def)) then
                               Message(parser_e_ill_property_access_sym);
-                            p.readaccess.setdef(pp);
+                            p.readaccess.setdef(pd);
                           end;
                         varsym :
                           begin
@@ -417,12 +421,12 @@ implementation
                           begin
                             { insert data entry to check access method }
                             propertyparas.insert(datacoll);
-                            pp:=get_procdef;
+                            pd:=get_procdef;
                             { ... and remove it }
                             propertyparas.remove(datacoll);
-                            if not(assigned(pp)) then
+                            if not(assigned(pd)) then
                               Message(parser_e_ill_property_access_sym);
-                            p.writeaccess.setdef(pp);
+                            p.writeaccess.setdef(pd);
                           end;
                         varsym :
                           begin
@@ -461,19 +465,20 @@ implementation
                                case sym.typ of
                                  procsym :
                                    begin
-                                     pp:=tprocsym(sym).definition;
+                                     pp:=tprocsym(sym).defs;
                                      while assigned(pp) do
                                       begin
                                         { the stored function shouldn't have any parameters }
-                                        if pp.Para.empty then
+                                        if pp^.def.Para.empty then
                                          break;
-                                        pp:=pp.nextoverloaded;
+                                        pp:=pp^.next;
                                       end;
                                      { found we a procedure and does it really return a bool? }
-                                     if not(assigned(pp)) or
-                                        not(is_boolean(pp.rettype.def)) then
+                                     if assigned(pp) and
+                                        is_boolean(pp^.def.rettype.def) then
+                                       p.storedaccess.setdef(pp^.def)
+                                     else
                                        Message(parser_e_ill_property_storage_sym);
-                                     p.storedaccess.setdef(pp);
                                    end;
                                  varsym :
                                    begin
@@ -570,11 +575,11 @@ implementation
             Message(parser_e_destructorname_must_be_done);
            include(aktclass.objectoptions,oo_has_destructor);
            consume(_SEMICOLON);
-           if not(aktprocsym.definition.Para.empty) then
+           if not(aktprocdef.Para.empty) then
              if not (m_tp in aktmodeswitches) then
                Message(parser_e_no_paras_for_destructor);
            { no return value }
-           aktprocsym.definition.rettype:=voidtype;
+           aktprocdef.rettype:=voidtype;
         end;
 
       var
@@ -583,6 +588,7 @@ implementation
          tt     : ttype;
          oldprocinfo : pprocinfo;
          oldprocsym : tprocsym;
+         oldprocdef : tprocdef;
          oldparse_only : boolean;
          storetypecanbeforward : boolean;
 
@@ -877,17 +883,16 @@ implementation
         begin
            if is_cppclass(aktclass) then
              begin
-                aktprocsym.definition.proccalloption:=pocall_cppdecl;
-                aktprocsym.definition.setmangledname(
-                  target_info.Cprefix+aktprocsym.definition.cplusplusmangledname);
+                aktprocdef.proccalloption:=pocall_cppdecl;
+                aktprocdef.setmangledname(
+                  target_info.Cprefix+aktprocdef.cplusplusmangledname);
              end;
         end;
 
-      var
-        temppd : tprocdef;
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
+         oldprocdef:=aktprocdef;
          oldprocsym:=aktprocsym;
          { forward is resolved }
          if assigned(fd) then
@@ -943,123 +948,140 @@ implementation
               if (sp_protected in actmembertype) then
                 include(aktclass.objectoptions,oo_has_protected);
               case token of
-              _ID : begin
-                      case idtoken of
-                       _PRIVATE : begin
-                                    if is_interface(aktclass) then
-                                      Message(parser_e_no_access_specifier_in_interfaces);
-                                    consume(_PRIVATE);
-                                    actmembertype:=[sp_private];
-                                    current_object_option:=[sp_private];
-                                  end;
-                     _PROTECTED : begin
-                                    if is_interface(aktclass) then
-                                      Message(parser_e_no_access_specifier_in_interfaces);
-                                    consume(_PROTECTED);
-                                    current_object_option:=[sp_protected];
-                                    actmembertype:=[sp_protected];
-                                  end;
-                        _PUBLIC : begin
-                                    if is_interface(aktclass) then
-                                      Message(parser_e_no_access_specifier_in_interfaces);
-                                    consume(_PUBLIC);
-                                    current_object_option:=[sp_public];
-                                    actmembertype:=[sp_public];
-                                  end;
-                     _PUBLISHED : begin
-                                    if is_interface(aktclass) then
-                                      Message(parser_e_no_access_specifier_in_interfaces)
-                                    else
-                                      if not(oo_can_have_published in aktclass.objectoptions) then
-                                        Message(parser_e_cant_have_published);
-                                    consume(_PUBLISHED);
-                                    current_object_option:=[sp_published];
-                                    actmembertype:=[sp_published];
-                                  end;
-                      else
-                        if is_interface(aktclass) then
-                          Message(parser_e_no_vars_in_interfaces);
-                        read_var_decs(false,true,false);
-                      end;
-                    end;
-        _PROPERTY : begin
-                      property_dec;
-                    end;
-       _PROCEDURE,
-        _FUNCTION,
-           _CLASS : begin
-                      oldparse_only:=parse_only;
-                      parse_only:=true;
-                      parse_proc_dec;
-                      { this is for error recovery as well as forward }
-                      { interface mappings, i.e. mapping to a method  }
-                      { which isn't declared yet                      }
-                      if assigned(aktprocsym) then
+                _ID :
+                  begin
+                    case idtoken of
+                      _PRIVATE :
                         begin
-{$ifndef newcg}
-                            parse_object_proc_directives(aktprocsym);
-{$endif newcg}
-                            { check if there are duplicates }
-                            check_identical_proc(temppd);
-                            if (po_msgint in aktprocsym.definition.procoptions) then
-                             include(aktclass.objectoptions,oo_has_msgint);
-
-                            if (po_msgstr in aktprocsym.definition.procoptions) then
-                              include(aktclass.objectoptions,oo_has_msgstr);
-
-                            if (po_virtualmethod in aktprocsym.definition.procoptions) then
-                              include(aktclass.objectoptions,oo_has_virtual);
-
-                            chkcpp;
+                          if is_interface(aktclass) then
+                             Message(parser_e_no_access_specifier_in_interfaces);
+                           consume(_PRIVATE);
+                           actmembertype:=[sp_private];
+                           current_object_option:=[sp_private];
                          end;
-
-                      parse_only:=oldparse_only;
+                       _PROTECTED :
+                         begin
+                           if is_interface(aktclass) then
+                             Message(parser_e_no_access_specifier_in_interfaces);
+                           consume(_PROTECTED);
+                           current_object_option:=[sp_protected];
+                           actmembertype:=[sp_protected];
+                         end;
+                       _PUBLIC :
+                         begin
+                           if is_interface(aktclass) then
+                             Message(parser_e_no_access_specifier_in_interfaces);
+                           consume(_PUBLIC);
+                           current_object_option:=[sp_public];
+                           actmembertype:=[sp_public];
+                         end;
+                       _PUBLISHED :
+                         begin
+                           if is_interface(aktclass) then
+                             Message(parser_e_no_access_specifier_in_interfaces)
+                           else
+                             if not(oo_can_have_published in aktclass.objectoptions) then
+                               Message(parser_e_cant_have_published);
+                           consume(_PUBLISHED);
+                           current_object_option:=[sp_published];
+                           actmembertype:=[sp_published];
+                         end;
+                       else
+                         begin
+                           if is_interface(aktclass) then
+                            Message(parser_e_no_vars_in_interfaces);
+                           read_var_decs(false,true,false);
+                         end;
                     end;
-     _CONSTRUCTOR : begin
-                      if not(sp_public in actmembertype) then
-                        Message(parser_w_constructor_should_be_public);
-                      if is_interface(aktclass) then
-                        Message(parser_e_no_con_des_in_interfaces);
-                      oldparse_only:=parse_only;
-                      parse_only:=true;
-                      constructor_head;
-{$ifndef newcg}
-                      parse_object_proc_directives(aktprocsym);
-{$endif newcg}
-                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
-                        include(aktclass.objectoptions,oo_has_virtual);
+                  end;
+                _PROPERTY :
+                  begin
+                    property_dec;
+                  end;
+                _PROCEDURE,
+                _FUNCTION,
+                _CLASS :
+                  begin
+                    oldparse_only:=parse_only;
+                    parse_only:=true;
+                    parse_proc_dec;
+                    { this is for error recovery as well as forward }
+                    { interface mappings, i.e. mapping to a method  }
+                    { which isn't declared yet                      }
+                    if assigned(aktprocsym) then
+                      begin
+                          parse_object_proc_directives(aktprocsym);
 
-                      chkcpp;
+                          { add definition to procsym }
+                          proc_add_definition(aktprocsym,aktprocdef);
 
-                      parse_only:=oldparse_only;
-                    end;
-      _DESTRUCTOR : begin
-                      if there_is_a_destructor then
-                        Message(parser_n_only_one_destructor);
-                      if is_interface(aktclass) then
-                        Message(parser_e_no_con_des_in_interfaces);
-                      there_is_a_destructor:=true;
-                      if not(sp_public in actmembertype) then
-                        Message(parser_w_destructor_should_be_public);
-                      oldparse_only:=parse_only;
-                      parse_only:=true;
-                      destructor_head;
-{$ifndef newcg}
-                      parse_object_proc_directives(aktprocsym);
-{$endif newcg}
-                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
-                        include(aktclass.objectoptions,oo_has_virtual);
+                          { add procdef options to objectdef options }
+                          if (po_msgint in aktprocdef.procoptions) then
+                           include(aktclass.objectoptions,oo_has_msgint);
+                          if (po_msgstr in aktprocdef.procoptions) then
+                            include(aktclass.objectoptions,oo_has_msgstr);
+                          if (po_virtualmethod in aktprocdef.procoptions) then
+                            include(aktclass.objectoptions,oo_has_virtual);
 
-                      chkcpp;
+                          chkcpp;
+                       end;
 
-                      parse_only:=oldparse_only;
-                    end;
-             _END : begin
-                      consume(_END);
-                      break;
-                    end;
-              else
-               consume(_ID); { Give a ident expected message, like tp7 }
+                    parse_only:=oldparse_only;
+                  end;
+                _CONSTRUCTOR :
+                  begin
+                    if not(sp_public in actmembertype) then
+                      Message(parser_w_constructor_should_be_public);
+                    if is_interface(aktclass) then
+                      Message(parser_e_no_con_des_in_interfaces);
+                    oldparse_only:=parse_only;
+                    parse_only:=true;
+                    constructor_head;
+                    parse_object_proc_directives(aktprocsym);
+
+                    { add definition to procsym }
+                    proc_add_definition(aktprocsym,aktprocdef);
+
+                    { add procdef options to objectdef options }
+                    if (po_virtualmethod in aktprocdef.procoptions) then
+                      include(aktclass.objectoptions,oo_has_virtual);
+
+                    chkcpp;
+
+                    parse_only:=oldparse_only;
+                  end;
+                _DESTRUCTOR :
+                  begin
+                    if there_is_a_destructor then
+                      Message(parser_n_only_one_destructor);
+                    if is_interface(aktclass) then
+                      Message(parser_e_no_con_des_in_interfaces);
+                    there_is_a_destructor:=true;
+                    if not(sp_public in actmembertype) then
+                      Message(parser_w_destructor_should_be_public);
+                    oldparse_only:=parse_only;
+                    parse_only:=true;
+                    destructor_head;
+                    parse_object_proc_directives(aktprocsym);
+
+                    { add definition to procsym }
+                    proc_add_definition(aktprocsym,aktprocdef);
+
+                    { add procdef options to objectdef options }
+                    if (po_virtualmethod in aktprocdef.procoptions) then
+                      include(aktclass.objectoptions,oo_has_virtual);
+
+                    chkcpp;
+
+                    parse_only:=oldparse_only;
+                  end;
+                _END :
+                  begin
+                    consume(_END);
+                    break;
+                  end;
+                else
+                  consume(_ID); { Give a ident expected message, like tp7 }
               end;
             until false;
             current_object_option:=[sp_public];
@@ -1087,6 +1109,7 @@ implementation
          procinfo:=oldprocinfo;
          {Restore the aktprocsym.}
          aktprocsym:=oldprocsym;
+         aktprocdef:=oldprocdef;
 
          object_dec:=aktclass;
       end;
@@ -1094,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-10-25 21:22:35  peter
+  Revision 1.33  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.32  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.31  2001/10/21 13:10:50  peter

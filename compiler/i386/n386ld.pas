@@ -87,7 +87,7 @@ implementation
                        location.reference.offset:=tabsolutesym(symtableentry).address;
                      end
                     else
-                     location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                     location.reference.symbol:=newasmsymbol(tabsolutesym(symtableentry).mangledname);
                  end;
               constsym:
                 begin
@@ -106,13 +106,13 @@ implementation
                     { C variable }
                     if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                       begin
-                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                         location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                       end
                     { DLL variable }
                     else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                       begin
                          hregister:=getregister32;
-                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                         location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                          emit_ref_reg(A_MOV,S_L,newreference(location.reference),hregister);
                          location.reference.symbol:=nil;
                          location.reference.base:=hregister;
@@ -120,7 +120,7 @@ implementation
                     { external variable }
                     else if (vo_is_external in tvarsym(symtableentry).varoptions) then
                       begin
-                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                         location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                       end
                     { thread variable }
                     else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
@@ -128,7 +128,7 @@ implementation
                          popeax:=not(R_EAX in unused);
                          if popeax then
                            emit_reg(A_PUSH,S_L,R_EAX);
-                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                         location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                          emit_ref(A_PUSH,S_L,newreference(location.reference));
                          { the called procedure isn't allowed to change }
                          { any register except EAX                    }
@@ -219,7 +219,7 @@ implementation
                                    globalsymtable,
                                    staticsymtable :
                                      begin
-                                       location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                                       location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                                      end;
                                    stt_exceptsymtable:
                                      begin
@@ -231,7 +231,7 @@ implementation
                                         getexplicitregister32(R_ESI);
                                         if (sp_static in tvarsym(symtableentry).symoptions) then
                                           begin
-                                             location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                                             location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                                           end
                                         else
                                           begin
@@ -392,7 +392,7 @@ implementation
                  end;
               typedconstsym :
                  begin
-                    location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
+                    location.reference.symbol:=newasmsymbol(ttypedconstsym(symtableentry).mangledname);
                  end;
               else internalerror(4);
          end;
@@ -1085,7 +1085,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-10-28 17:22:25  peter
+  Revision 1.26  2001-11-02 22:58:11  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

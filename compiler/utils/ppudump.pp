@@ -378,12 +378,37 @@ end;
 
 
 procedure readsymlist(const s:string);
+type
+  tsltype = (sl_none,
+    sl_load,
+    sl_call,
+    sl_subscript,
+    sl_vec
+  );
+const
+  slstr : array[tsltype] of string[9] = ('',
+    'load',
+    'call',
+    'subscript',
+    'vec'
+  );
+var
+  sl : tsltype;
 begin
   readdefref;
   repeat
-    write(s);
-    if not readsymref then
+    sl:=tsltype(ppufile.getbyte);
+    if sl=sl_none then
      break;
+    write(s,'(',slstr[sl],') ');
+    case sl of
+      sl_call,
+      sl_load,
+      sl_subscript :
+        readsymref;
+      sl_vec :
+        writeln(ppufile.getlongint);
+    end;
   until false;
 end;
 
@@ -391,17 +416,20 @@ end;
 { Read abstract procdef and return if inline procdef }
 type
   tproccalloption=(pocall_none,
-    pocall_clearstack,    { Use IBM flat calling convention. (Used by GCC.) }
-    pocall_leftright,     { Push parameters from left to right }
     pocall_cdecl,         { procedure uses C styled calling }
-    pocall_register,      { procedure uses register (fastcall) calling }
-    pocall_stdcall,       { procedure uses stdcall call }
-    pocall_safecall,      { safe call calling conventions }
-    pocall_palmossyscall, { procedure is a PalmOS system call }
-    pocall_system,
+    pocall_cppdecl,       { C++ calling conventions }
+    pocall_compilerproc,  { Procedure is used for internal compiler calls }
+    pocall_far16,         { Far16 for OS/2 }
+    pocall_fpccall,       { FPC default calling }
     pocall_inline,        { Procedure is an assembler macro }
+    pocall_internconst,   { procedure has constant evaluator intern }
     pocall_internproc,    { Procedure has compiler magic}
-    pocall_internconst    { procedure has constant evaluator intern }
+    pocall_palmossyscall, { procedure is a PalmOS system call }
+    pocall_pascal,        { pascal standard left to right }
+    pocall_register,      { procedure uses register (fastcall) calling }
+    pocall_safecall,      { safe call calling conventions }
+    pocall_stdcall,       { procedure uses stdcall call }
+    pocall_system         { system call }
   );
   tproccalloptions=set of tproccalloption;
   tproctypeoption=(potype_none,
@@ -434,7 +462,7 @@ type
     po_varargs            { printf like arguments }
   );
   tprocoptions=set of tprocoption;
-function read_abstract_proc_def:tproccalloptions;
+function read_abstract_proc_def:tproccalloption;
 type
   tproccallopt=record
     mask : tproccalloption;
@@ -449,21 +477,22 @@ type
     str  : string[30];
   end;
 const
-  proccallopts=12;
-  proccallopt : array[1..proccallopts] of tproccallopt=(
-     (mask:pocall_none;         str:''),
-     (mask:pocall_clearstack;   str:'ClearStack'),
-     (mask:pocall_leftright;    str:'LeftRight'),
-     (mask:pocall_cdecl;        str:'Cdecl'),
-     (mask:pocall_register;     str:'Register'),
-     (mask:pocall_stdcall;      str:'StdCall'),
-     (mask:pocall_safecall;     str:'SafeCall'),
-     (mask:pocall_palmossyscall;str:'PalmOSSysCall'),
-     (mask:pocall_system;       str:'System'),
-     (mask:pocall_inline;       str:'Inline'),
-     (mask:pocall_internproc;   str:'InternProc'),
-     (mask:pocall_internconst;  str:'InternConst')
-  );
+  proccalloptionStr : array[tproccalloption] of string[14]=('',
+     'CDecl',
+     'CPPDecl',
+     'CompilerProc',
+     'Far16',
+     'FPCCall',
+     'Inline',
+     'InternConst',
+     'InternProc',
+     'PalmOSSysCall',
+     'Pascal',
+     'Register',
+     'SafeCall',
+     'StdCall',
+     'System'
+   );
   proctypeopts=6;
   proctypeopt : array[1..proctypeopts] of tproctypeopt=(
      (mask:potype_proginit;    str:'ProgInit'),
@@ -494,10 +523,10 @@ const
      (mask:po_overload;        str:'Overload'),
      (mask:po_varargs;         str:'VarArgs')
   );
-  tvarspez : array[0..2] of string[5]=('Value','Const','Var  ');
+  tvarspez : array[0..3] of string[5]=('Value','Const','Var  ','Out  ');
 var
   proctypeoption  : tproctypeoption;
-  proccalloptions : tproccalloptions;
+  proccalloption  : tproccalloption;
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
@@ -505,7 +534,7 @@ begin
   write(space,'      Return type : ');
   readtype;
   writeln(space,'         Fpu used : ',ppufile.getbyte);
-  proctypeoption:=tproctypeoption(ppufile.getlongint);
+  proctypeoption:=tproctypeoption(ppufile.getbyte);
   if proctypeoption<>potype_none then
    begin
      write(space,'       TypeOption : ');
@@ -521,23 +550,9 @@ begin
        end;
      writeln;
    end;
-  ppufile.getsmallset(proccalloptions);
-  read_abstract_proc_def:=proccalloptions;
-  if proccalloptions<>[] then
-   begin
-     write(space,'      CallOptions : ');
-     first:=true;
-     for i:=1to proccallopts do
-      if (proccallopt[i].mask in proccalloptions) then
-       begin
-         if first then
-           first:=false
-         else
-           write(', ');
-         write(proccallopt[i].str);
-       end;
-     writeln;
-   end;
+  proccalloption:=tproccalloption(ppufile.getbyte);
+  read_abstract_proc_def:=proccalloption;
+  writeln(space,'       CallOption : ',proccalloptionStr[proccalloption]);
   ppufile.getsmallset(procoptions);
   if procoptions<>[] then
    begin
@@ -713,8 +728,9 @@ begin
          ibprocsym :
            begin
              readcommonsym('Procedure symbol ');
-             write(space,'  Definition: ');
-             readdefref;
+             repeat
+               write(space,'  Definition: ');
+             until not readdefref;
            end;
 
          ibconstsym :
@@ -933,7 +949,7 @@ var
   oldread_member : boolean;
   totaldefs,l,j,
   defcnt : longint;
-  calloption : tproccalloptions;
+  calloption : tproccalloption;
 begin
   defcnt:=0;
   with ppufile do
@@ -1016,13 +1032,13 @@ begin
              writeln(space,'    Used Register : ',getbyte);
              writeln(space,'     Mangled name : ',getstring);
              writeln(space,'           Number : ',getlongint);
-             write  (space,'             Next : ');
-             readdefref;
              write  (space,'            Class : ');
              readdefref;
+             write  (space,'          Procsym : ');
+             readsymref;
              write  (space,'         File Pos : ');
              readposinfo;
-             if (pocall_inline in calloption) then
+             if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
                 readdefref;
@@ -1032,7 +1048,7 @@ begin
              readdefinitions(false);
              readsymbols;
              { localst }
-             if (pocall_inline in calloption) or
+             if (calloption=pocall_inline) or
                 ((ppufile.header.flags and uf_local_browser) <> 0) then
               begin
                 readdefinitions(false);
@@ -1627,7 +1643,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-09-22 04:52:27  carl
+  Revision 1.9  2001-11-02 22:58:12  peter
+    * procsym definition rewrite
+
+  Revision 1.8  2001/09/22 04:52:27  carl
   * updated targets
 
   Revision 1.7  2001/08/30 20:55:02  peter

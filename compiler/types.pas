@@ -246,7 +246,7 @@ implementation
 
     uses
        globtype,globals,systems,tokens,verbose,
-       symconst,symtable,nld;
+       symconst,symtable;
 
 
     function needs_prop_entry(sym : tsym) : boolean;
@@ -450,18 +450,18 @@ implementation
 
     function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
       var
-        matchprocdef,
-        currprocdef : tprocdef;
+        matchprocdef : tprocdef;
+        pd : pprocdeflist;
       begin
         { This function will return the pprocdef of pprocsym that
           is the best match for procvardef. When there are multiple
           matches it returns nil }
         { exact match }
-        currprocdef:=p.definition;
         matchprocdef:=nil;
-        while assigned(currprocdef) do
+        pd:=p.defs;
+        while assigned(pd) do
          begin
-           if proc_to_procvar_equal(currprocdef,d,true) then
+           if proc_to_procvar_equal(pd^.def,d,true) then
             begin
               { already found a match ? Then stop and return nil }
               if assigned(matchprocdef) then
@@ -469,18 +469,18 @@ implementation
                  matchprocdef:=nil;
                  break;
                end;
-              matchprocdef:=currprocdef;
+              matchprocdef:=pd^.def;
             end;
-           currprocdef:=currprocdef.nextoverloaded;
+           pd:=pd^.next;
          end;
         { convertable match, if no exact match was found }
         if not assigned(matchprocdef) and
-           not assigned(currprocdef) then
+           not assigned(pd) then
          begin
-           currprocdef:=p.definition;
-           while assigned(currprocdef) do
+           pd:=p.defs;
+           while assigned(pd) do
             begin
-              if proc_to_procvar_equal(currprocdef,d,false) then
+              if proc_to_procvar_equal(pd^.def,d,false) then
                begin
                  { already found a match ? Then stop and return nil }
                  if assigned(matchprocdef) then
@@ -488,9 +488,9 @@ implementation
                     matchprocdef:=nil;
                     break;
                   end;
-                 matchprocdef:=currprocdef;
+                 matchprocdef:=pd^.def;
                end;
-              currprocdef:=currprocdef.nextoverloaded;
+              pd:=pd^.next;
             end;
          end;
         get_proc_2_procvar_def:=matchprocdef;
@@ -1252,51 +1252,50 @@ implementation
 
     function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
        var
-          passproc : tprocdef;
+          passprocs : pprocdeflist;
           convtyp : tconverttype;
        begin
           assignment_overloaded:=nil;
-          if assigned(overloaded_operators[_ASSIGNMENT]) then
-            passproc:=overloaded_operators[_ASSIGNMENT].definition
-          else
+          if not assigned(overloaded_operators[_ASSIGNMENT]) then
             exit;
 
           { look for an exact match first }
-          while passproc<>nil do
+          passprocs:=overloaded_operators[_ASSIGNMENT].defs;
+          while assigned(passprocs) do
             begin
-              if is_equal(passproc.rettype.def,to_def) and
-                (TParaItem(passproc.Para.first).paratype.def=from_def) then
+              if is_equal(passprocs^.def.rettype.def,to_def) and
+                (TParaItem(passprocs^.def.Para.first).paratype.def=from_def) then
                 begin
-                   assignment_overloaded:=passproc;
+                   assignment_overloaded:=passprocs^.def;
                    exit;
                 end;
-              passproc:=passproc.nextoverloaded;
+              passprocs:=passprocs^.next;
             end;
 
-          passproc:=overloaded_operators[_ASSIGNMENT].definition;
           { .... then look for an equal match }
-          while passproc<>nil do
+          passprocs:=overloaded_operators[_ASSIGNMENT].defs;
+          while assigned(passprocs) do
             begin
-              if is_equal(passproc.rettype.def,to_def) and
-                 is_equal(TParaItem(passproc.Para.first).paratype.def,from_def) then
+              if is_equal(passprocs^.def.rettype.def,to_def) and
+                 is_equal(TParaItem(passprocs^.def.Para.first).paratype.def,from_def) then
                 begin
-                   assignment_overloaded:=passproc;
+                   assignment_overloaded:=passprocs^.def;
                    exit;
                 end;
-              passproc:=passproc.nextoverloaded;
+              passprocs:=passprocs^.next;
             end;
 
-          passproc:=overloaded_operators[_ASSIGNMENT].definition;
           {  .... then for convert level 1 }
-          while passproc<>nil do
+          passprocs:=overloaded_operators[_ASSIGNMENT].defs;
+          while assigned(passprocs) do
             begin
-              if is_equal(passproc.rettype.def,to_def) and
-               (isconvertable(from_def,TParaItem(passproc.Para.first).paratype.def,convtyp,ordconstn,false)=1) then
+              if is_equal(passprocs^.def.rettype.def,to_def) and
+                 (isconvertable(from_def,TParaItem(passprocs^.def.Para.first).paratype.def,convtyp,ordconstn,false)=1) then
                 begin
-                   assignment_overloaded:=passproc;
+                   assignment_overloaded:=passprocs^.def;
                    exit;
                 end;
-              passproc:=passproc.nextoverloaded;
+              passprocs:=passprocs^.next;
             end;
        end;
 
@@ -1859,7 +1858,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2001-10-28 17:22:25  peter
+  Revision 1.55  2001-11-02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.54  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

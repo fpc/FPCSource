@@ -59,7 +59,6 @@ interface
           procedure write(ppufile:tcompilerppufile);virtual;abstract;
           procedure writesym(ppufile:tcompilerppufile);
           procedure deref;override;
-          function  mangledname : string;override;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -73,11 +72,11 @@ interface
           lab     : tasmlabel;
           used,
           defined : boolean;
-          code : pointer; { should be ptree! }
+          code : pointer; { should be tnode }
           constructor create(const n : string; l : tasmlabel);
           destructor destroy;override;
           constructor load(ppufile:tcompilerppufile);
-          function mangledname : string;override;
+          function mangledname : string;
           procedure write(ppufile:tcompilerppufile);override;
        end;
 
@@ -99,24 +98,20 @@ interface
        end;
 
        tprocsym = class(tstoredsym)
-          definition  : tprocdef;
-{$ifdef CHAINPROCSYMS}
-          nextprocsym : tprocsym;
-{$endif CHAINPROCSYMS}
-          is_global   : boolean;
+          defs      : pprocdeflist; { linked list of overloaded procdefs }
+          is_global : boolean;
           constructor create(const n : string);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
-          function mangledname : string;override;
           { writes all declarations except the specified one }
-          procedure write_parameter_lists(skitdef:tprocdef);
+          procedure write_parameter_lists(skipdef:tprocdef);
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
-          procedure order_overloaded;
+          procedure unchain_overload;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure addprocdef(p:tprocdef);
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -158,7 +153,7 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure setmangledname(const s : string);
-          function  mangledname : string;override;
+          function  mangledname : string;
           procedure insert_in_data;override;
           function  getsize : longint;
           function  getvaluesize : longint;
@@ -218,7 +213,7 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor load(ppufile:tcompilerppufile);
           procedure deref;override;
-          function  mangledname : string;override;
+          function  mangledname : string;
           procedure write(ppufile:tcompilerppufile);override;
           procedure insert_in_data;override;
 {$ifdef GDB}
@@ -234,7 +229,7 @@ interface
           constructor createtype(const n : string;const tt : ttype;writable : boolean);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
-          function  mangledname : string;override;
+          function  mangledname : string;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  getsize:longint;
@@ -260,7 +255,7 @@ interface
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          function  mangledname : string;override;
+          function  mangledname : string;
           procedure deref;override;
           procedure write(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
@@ -301,7 +296,7 @@ interface
           constructor create(const n:string;rt:trttitype);
           constructor load(ppufile:tcompilerppufile);
           procedure write(ppufile:tcompilerppufile);override;
-          function  mangledname:string;override;
+          function  mangledname:string;
           function  get_label:tasmsymbol;
        end;
 
@@ -321,10 +316,11 @@ interface
     var
        aktprocsym : tprocsym;      { pointer to the symbol for the
                                      currently be parsed procedure }
+       aktprocdef : tprocdef;
 
-       aktcallprocsym : tprocsym;  { pointer to the symbol for the
-                                     currently be called procedure,
-                                     only set/unset in firstcall }
+       aktcallprocdef : tprocdef;  { pointer to the definition of the
+                                     currently called procedure,
+                                     only set/unset in ncal }
 
        aktvarsym : tvarsym;     { pointer to the symbol for the
                                      currently read var, only used
@@ -512,12 +508,6 @@ implementation
       end;
 
 
-    function tstoredsym.mangledname : string;
-      begin
-         mangledname:=name;
-      end;
-
-
     { for most symbol types there is nothing to do at all }
     procedure tstoredsym.insert_in_data;
       begin
@@ -686,17 +676,25 @@ implementation
       begin
          inherited create(n);
          typ:=procsym;
-         definition:=nil;
+         defs:=nil;
          owner:=nil;
          is_global := false;
       end;
 
 
     constructor tprocsym.load(ppufile:tcompilerppufile);
+      var
+         pd : tprocdef;
       begin
          inherited loadsym(ppufile);
          typ:=procsym;
-         definition:=tprocdef(ppufile.getderef);
+         defs:=nil;
+         repeat
+           pd:=tprocdef(ppufile.getderef);
+           if pd=nil then
+            break;
+           addprocdef(pd);
+         until false;
          is_global := false;
       end;
 
@@ -707,151 +705,132 @@ implementation
       end;
 
 
-    function tprocsym.mangledname : string;
-      begin
-         mangledname:=definition.mangledname;
-      end;
-
-
-    procedure tprocsym.write_parameter_lists(skitdef:tprocdef);
+    procedure tprocsym.write_parameter_lists(skipdef:tprocdef);
       var
-         p : tprocdef;
+         p : pprocdeflist;
       begin
-         p:=definition;
+         p:=defs;
          while assigned(p) do
            begin
-              if p<>skitdef then
-                MessagePos1(p.fileinfo,sym_b_param_list,p.fullprocname);
-              p:=p.nextoverloaded;
+              if p^.def<>skipdef then
+                MessagePos1(p^.def.fileinfo,sym_b_param_list,p^.def.fullprocname);
+              p:=p^.next;
            end;
       end;
 
 
     procedure tprocsym.check_forward;
       var
-         pd : tprocdef;
+         p : pprocdeflist;
       begin
-         pd:=definition;
-         while assigned(pd) do
+         p:=defs;
+         while assigned(p) do
            begin
-              if pd.forwarddef then
+              if (p^.def.procsym=self) and
+                 (p^.def.forwarddef) then
                 begin
-                   MessagePos1(fileinfo,sym_e_forward_not_resolved,pd.fullprocname);
+                   MessagePos1(fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname);
                    { Turn futher error messages off }
-                   pd.forwarddef:=false;
+                   p^.def.forwarddef:=false;
                 end;
-              pd:=pd.nextoverloaded;
-              { do not check defs of operators in other units }
-              if assigned(pd) and (pd.procsym<>self) then
-                pd:=nil;
+              p:=p^.next;
            end;
       end;
 
 
     procedure tprocsym.deref;
       var
-        pd : tprocdef;
+         p : pprocdeflist;
       begin
-         resolvedef(tdef(definition));
-         pd:=definition;
-         while assigned(pd) do
+         p:=defs;
+         while assigned(p) do
            begin
-              pd.procsym:=self;
-              pd:=pd.nextoverloaded;
+             resolvedef(tdef(p^.def));
+             p:=p^.next;
            end;
       end;
 
-    procedure tprocsym.order_overloaded;
-      var firstdef,currdef,lastdef,nextotdef : tprocdef;
+
+    procedure tprocsym.addprocdef(p:tprocdef);
+      var
+        pd : pprocdeflist;
       begin
-         if not assigned(definition) then
-           exit;
-         firstdef:=definition;
-         currdef:=definition;
-         while assigned(currdef) and (currdef.owner=firstdef.owner) do
-           begin
-             currdef.count:=false;
-             currdef:=currdef.nextoverloaded;
-           end;
-         nextotdef:=currdef;
-         definition:=definition.nextoverloaded;
-         firstdef.nextoverloaded:=nil;
-         while (definition<>nextotdef) do
-           begin
-             currdef:=firstdef;
-             lastdef:=definition;
-             definition:=definition.nextoverloaded;
-             if lastdef.mangledname<firstdef.mangledname then
-               begin
-                 lastdef.nextoverloaded:=firstdef;
-                 firstdef:=lastdef;
-               end
-             else
-               begin
-                 while assigned(currdef.nextoverloaded) and
-                    (lastdef.mangledname>currdef.nextoverloaded.mangledname) do
-                   currdef:=currdef.nextoverloaded;
-                 lastdef.nextoverloaded:=currdef.nextoverloaded;
-                 currdef.nextoverloaded:=lastdef;
-               end;
-           end;
-         definition:=firstdef;
-         currdef:=definition;
-         while assigned(currdef) do
-           begin
-             currdef.count:=true;
-             lastdef:=currdef;
-             currdef:=currdef.nextoverloaded;
-           end;
-         lastdef.nextoverloaded:=nextotdef;
+        new(pd);
+        pd^.def:=p;
+        pd^.next:=defs;
+        defs:=pd;
       end;
+
 
     procedure tprocsym.write(ppufile:tcompilerppufile);
+      var
+         p : pprocdeflist;
       begin
          inherited writesym(ppufile);
-         ppufile.putderef(definition);
+         p:=defs;
+         while assigned(p) do
+           begin
+             ppufile.putderef(p^.def);
+             p:=p^.next;
+           end;
+         ppufile.putderef(nil);
          ppufile.writeentry(ibprocsym);
       end;
 
 
-    procedure tprocsym.load_references(ppufile:tcompilerppufile;locals:boolean);
-      (*var
-        prdef,prdef2 : tprocdef;
-        b : byte; *)
-      begin
-         inherited load_references(ppufile,locals);
-         (*prdef:=definition;
-           done in tsymtable.load_browser (PM)
-         { take care about operators !!  }
-         if (current_module^.flags and uf_has_browser) <>0 then
-           while assigned(prdef) and (prdef.owner=definition.owner) do
-             begin
-                b:=ppufile.readentry;
-                if b<>ibdefref then
-                  Message(unit_f_ppu_read_error);
-                prdef2:=tprocdef(readdefref);
-                resolvedef(prdef2);
-                if prdef<>prdef2 then
-                  Message(unit_f_ppu_read_error);
-                prdef.load_references(ppufile);
-                prdef:=prdef.nextoverloaded;
-             end; *)
-      end;
-
     function tprocsym.write_references(ppufile:tcompilerppufile;locals:boolean) : boolean;
       var
-        prdef : tprocdef;
+        p : pprocdeflist;
       begin
          write_references:=false;
          if not inherited write_references(ppufile,locals) then
            exit;
          write_references:=true;
-         prdef:=definition;
-         while assigned(prdef) and (prdef.owner=definition.owner) do
-          begin
-            prdef.write_references(ppufile,locals);
-            prdef:=prdef.nextoverloaded;
-          end;
+         p:=defs;
+         while assigned(p) do
+           begin
+              if (p^.def.procsym=self) then
+                p^.def.write_references(ppufile,locals);
+              p:=p^.next;
+           end;
+      end;
+
+
+    procedure tprocsym.unchain_overload;
+      var
+         p,hp,
+         first,
+         last : pprocdeflist;
+      begin
+         { remove all overloaded procdefs from the
+           procdeflist that are not in the current symtable }
+         first:=nil;
+         last:=nil;
+         p:=defs;
+         while assigned(p) do
+           begin
+              hp:=p^.next;
+              if (p^.def.procsym=self) then
+                begin
+                  { keep in list }
+                  if not assigned(first) then
+                   begin
+                     first:=p;
+                     last:=p;
+                   end
+                  else
+                   last^.next:=p;
+                  last:=p;
+                  p^.next:=nil;
+                end
+              else
+                begin
+                  { remove }
+                  dispose(p);
+                end;
+              p:=hp;
+           end;
+         defs:=first;
       end;
 
 
@@ -877,14 +856,15 @@ implementation
           but this is no true anymore !! PM
         if (owner.symtabletype=localsymtable) and assigned(owner.name) then
          info := ','+name+','+owner.name^;  }
-        if (owner.symtabletype=localsymtable) and assigned(owner.defowner) and
+        if (owner.symtabletype=localsymtable) and
+           assigned(owner.defowner) and
            assigned(tprocdef(owner.defowner).procsym) then
           info := ','+name+','+tprocdef(owner.defowner).procsym.name;
       end;
-     stabsstr:=definition.mangledname;
+     stabsstr:=defs^.def.mangledname;
      getmem(p,length(stabsstr)+255);
      strpcopy(p,'"'+obj+':'+RetType
-           +tstoreddef(definition.rettype.def).numberstring+info+'",'+tostr(n_function)
+           +tstoreddef(defs^.def.rettype.def).numberstring+info+'",'+tostr(n_function)
            +',0,'+
            tostr(aktfilepos.line)
            +',');
@@ -895,18 +875,18 @@ implementation
 
     procedure tprocsym.concatstabto(asmlist : taasmoutput);
     begin
-      if (definition.proccalloption=pocall_internproc) then exit;
+      if (defs^.def.proccalloption=pocall_internproc) then exit;
       if not isstabwritten then
         asmList.concat(Tai_stabs.Create(stabstring));
       isstabwritten := true;
-      if assigned(definition.parast) then
-        tstoredsymtable(definition.parast).concatstabto(asmlist);
+      if assigned(defs^.def.parast) then
+        tstoredsymtable(defs^.def.parast).concatstabto(asmlist);
       { local type defs and vars should not be written
         inside the main proc stab }
-      if assigned(definition.localst) and
+      if assigned(defs^.def.localst) and
          (lexlevel>main_program_level) then
-        tstoredsymtable(definition.localst).concatstabto(asmlist);
-      definition.is_def_stab_written := written;
+        tstoredsymtable(defs^.def.localst).concatstabto(asmlist);
+      defs^.def.is_def_stab_written := written;
     end;
 {$endif GDB}
 
@@ -1219,7 +1199,14 @@ implementation
       begin
          case abstyp of
            tovar :
-             mangledname:=ref.mangledname;
+             begin
+               case ref.typ of
+                 varsym :
+                   mangledname:=tvarsym(ref).mangledname;
+                 else
+                   internalerror(200111011);
+               end;
+             end;
            toasm :
              mangledname:=asmname^;
            toaddr :
@@ -2490,7 +2477,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-10-25 21:22:40  peter
+  Revision 1.26  2001-11-02 22:58:08  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/25 21:22:40  peter
     * calling convention rewrite
 
   Revision 1.24  2001/10/23 21:49:43  peter

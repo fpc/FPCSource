@@ -1392,7 +1392,7 @@ end;
       constchar:
         Name:=''''+chr(sym.valueord)+'''';
       constset:
-{        Name:=SetToStr(pnormalset(sym.valueptr)) }; 
+{        Name:=SetToStr(pnormalset(sym.valueptr)) };
       constnil: ;
     end;
     GetConstValueName:=Name;
@@ -1488,13 +1488,13 @@ end;
           procsym :
             begin
               with tprocsym(sym) do
-              if assigned(definition) then
+              if assigned(defs^.def) then
               begin
                 if cs_local_browser in aktmoduleswitches then
-                  ProcessSymTable(Symbol,Symbol^.Items,definition.parast);
-                if assigned(definition.parast) then
+                  ProcessSymTable(Symbol,Symbol^.Items,defs^.def.parast);
+                if assigned(defs^.def.parast) then
                   begin
-                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(definition));
+                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(defs^.def));
                   end
                 else { param-definition is NOT assigned }
                   if assigned(Table.Name) then
@@ -1504,9 +1504,9 @@ end;
                   end;
                 if cs_local_browser in aktmoduleswitches then
                  begin
-                   if assigned(definition.localst) and
-                     (definition.localst.symtabletype<>staticsymtable) then
-                    ProcessSymTable(Symbol,Symbol^.Items,definition.localst);
+                   if assigned(defs^.def.localst) and
+                     (defs^.def.localst.symtabletype<>staticsymtable) then
+                    ProcessSymTable(Symbol,Symbol^.Items,defs^.def.localst);
                  end;
               end;
             end;
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-09-04 11:53:48  jonas
+  Revision 1.22  2001-11-02 22:58:00  peter
+    * procsym definition rewrite
+
+  Revision 1.21  2001/09/04 11:53:48  jonas
     * fixed compiling errors
 
   Revision 1.20  2001/08/07 17:08:49  peter

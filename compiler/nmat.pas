@@ -198,7 +198,7 @@ implementation
         power: longint;
       begin
         result := nil;
-        
+
         { divide/mod an unsigned number by a constant which is a power of 2? }
         if (right.nodetype = ordconstn) and
            not is_signed(resulttype.def) and
@@ -220,7 +220,7 @@ implementation
             firstpass(result);
             exit;
           end;
-          
+
         { otherwise create a call to a helper }
         if nodetype = divn then
           procname := 'fpc_div_'
@@ -352,7 +352,7 @@ implementation
     function tunaryminusnode.det_resulttype : tnode;
       var
          t : tnode;
-         minusdef : tprocdef;
+         minusdef : pprocdeflist;
       begin
          result:=nil;
          resulttypepass(left);
@@ -404,13 +404,13 @@ implementation
          else
            begin
               if assigned(overloaded_operators[_minus]) then
-                minusdef:=overloaded_operators[_minus].definition
+                minusdef:=overloaded_operators[_minus].defs
               else
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if is_equal(tparaitem(minusdef.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(minusdef.para.first).next=nil) then
+                   if is_equal(tparaitem(minusdef^.def.para.first).paratype.def,left.resulttype.def) and
+                      (tparaitem(minusdef^.def.para.first).next=nil) then
                      begin
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_minus],nil,nil);
@@ -418,7 +418,7 @@ implementation
                         result:=t;
                         exit;
                      end;
-                   minusdef:=minusdef.nextoverloaded;
+                   minusdef:=minusdef^.next;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -486,7 +486,7 @@ implementation
     function tnotnode.det_resulttype : tnode;
       var
          t : tnode;
-         notdef : tprocdef;
+         notdef : pprocdeflist;
          v : tconstexprint;
       begin
          result:=nil;
@@ -555,13 +555,13 @@ implementation
          else
            begin
               if assigned(overloaded_operators[_op_not]) then
-                notdef:=overloaded_operators[_op_not].definition
+                notdef:=overloaded_operators[_op_not].defs
               else
                 notdef:=nil;
               while assigned(notdef) do
                 begin
-                   if is_equal(tparaitem(notdef.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(notdef.para.first).next=nil) then
+                   if is_equal(tparaitem(notdef^.def.para.first).paratype.def,left.resulttype.def) and
+                      (tparaitem(notdef^.def.para.first).next=nil) then
                      begin
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_op_not],nil,nil);
@@ -569,7 +569,7 @@ implementation
                         result:=t;
                         exit;
                      end;
-                   notdef:=notdef.nextoverloaded;
+                   notdef:=notdef^.next;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -640,7 +640,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-10-12 13:51:51  jonas
+  Revision 1.25  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.24  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes

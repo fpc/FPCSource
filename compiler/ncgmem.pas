@@ -334,7 +334,7 @@ implementation
 
                usetemp:=false;
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocsym.definition.localst) then
+                  (tloadnode(left).symtable=aktprocdef.localst) then
                  begin
                     { for locals use the local storage }
                     withreference^:=left.location.reference;
@@ -386,13 +386,13 @@ implementation
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                          '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                          tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset))));
-                      mangled_length:=length(aktprocsym.definition.mangledname);
+                      mangled_length:=length(aktprocdef.mangledname);
                       getmem(pp,mangled_length+50);
                       strpcopy(pp,'192,0,0,'+withstartlabel.name);
                       if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
+                          strpcopy(strend(pp),aktprocdef.mangledname);
                         end;
                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                     end;
@@ -414,7 +414,7 @@ implementation
                       if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
+                          strpcopy(strend(pp),aktprocdef.mangledname);
                         end;
                        withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                        freemem(pp,mangled_length+50);
@@ -444,7 +444,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-09-30 16:17:17  jonas
+  Revision 1.2  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.1  2001/09/30 16:17:17  jonas
     * made most constant and mem handling processor independent
 
 

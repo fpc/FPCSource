@@ -1533,7 +1533,7 @@ implementation
     var
       pl : tasmlabel;
     begin
-      if (po_assembler in aktprocsym.definition.procoptions) then
+      if (po_assembler in aktprocdef.procoptions) then
        exit;
       case target_info.target of
          target_i386_win32,
@@ -2076,7 +2076,7 @@ implementation
          (aktoptprocessor in [classp5,classp6]) then
          begin
             ls:=0;
-            aktprocsym.definition.localst.foreach({$ifndef TP}@{$endif}largest_size);
+            aktprocdef.localst.foreach({$ifndef TP}@{$endif}largest_size);
             if ls>=8 then
               aList.insert(Taicpu.Op_const_reg(A_AND,S_L,-8,R_ESP));
          end;
@@ -2107,7 +2107,7 @@ implementation
     begin
        oldexprasmlist:=exprasmlist;
        exprasmlist:=alist;
-       if (not inlined) and (aktprocsym.definition.proctypeoption=potype_proginit) then
+       if (not inlined) and (aktprocdef.proctypeoption=potype_proginit) then
            begin
               emitinsertcall('FPC_INITIALIZEUNITS');
               { initialize profiling for win32 }
@@ -2134,7 +2134,7 @@ implementation
 {$endif GDB}
 
       { a constructor needs a help procedure }
-      if (aktprocsym.definition.proctypeoption=potype_constructor) then
+      if (aktprocdef.proctypeoption=potype_constructor) then
         begin
           if is_class(procinfo^._class) then
             begin
@@ -2164,7 +2164,7 @@ implementation
 
       { When message method contains self as a parameter,
         we must load it into ESI }
-      If (po_containsself in aktprocsym.definition.procoptions) then
+      If (po_containsself in aktprocdef.procoptions) then
         begin
            new(hr);
            reset_reference(hr^);
@@ -2174,9 +2174,9 @@ implementation
            exprasmList.insert(Tairegalloc.Alloc(R_ESI));
         end;
       { should we save edi,esi,ebx like C ? }
-      if (po_savestdregs in aktprocsym.definition.procoptions) then
+      if (po_savestdregs in aktprocdef.procoptions) then
        begin
-         if (aktprocsym.definition.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+         if (aktprocdef.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
          exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
          exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
@@ -2184,7 +2184,7 @@ implementation
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-      if (po_saveregisters in aktprocsym.definition.procoptions) then
+      if (po_saveregisters in aktprocdef.procoptions) then
         begin
           exprasmList.insert(Taicpu.Op_none(A_PUSHA,S_L));
         end;
@@ -2195,20 +2195,20 @@ implementation
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
-              if (aktprocsym.definition.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym.definition.parast.datasize+procinfo^.para_offset-4;
+                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-4;
               if stackframe<>0 then
                 exprasmList.insert(Taicpu.op_const_reg(A_SUB,S_L,stackframe,R_ESP));
           end
         else
           begin
               alignstack(alist);
-              if (aktprocsym.definition.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym.definition.parast.datasize+procinfo^.para_offset-8;
+                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-8;
               nostackframe:=false;
               if stackframe<>0 then
                begin
@@ -2266,22 +2266,22 @@ implementation
                end;
           end;
 
-      if (po_interrupt in aktprocsym.definition.procoptions) then
+      if (po_interrupt in aktprocdef.procoptions) then
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
-      if (not is_void(aktprocsym.definition.rettype.def)) and
-         (aktprocsym.definition.rettype.def.needs_inittable) then
+      if (not is_void(aktprocdef.rettype.def)) and
+         (aktprocdef.rettype.def.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
            r.offset:=procinfo^.return_offset;
            r.base:=procinfo^.framepointer;
-           initialize(aktprocsym.definition.rettype.def,r,ret_in_param(aktprocsym.definition.rettype.def));
+           initialize(aktprocdef.rettype.def,r,ret_in_param(aktprocdef.rettype.def));
         end;
 
       { initialisize local data like ansistrings }
-      case aktprocsym.definition.proctypeoption of
+      case aktprocdef.proctypeoption of
          potype_unitinit:
            begin
               { using current_module.globalsymtable is hopefully      }
@@ -2292,25 +2292,25 @@ implementation
          { units have seperate code for initilization and finalization }
          potype_unitfinalize: ;
          else
-           aktprocsym.definition.localst.foreach_static({$ifndef TP}@{$endif}initialize_data);
+           aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data);
       end;
 
       { initialisizes temp. ansi/wide string data }
       inittempvariables;
 
       { generate copies of call by value parameters }
-      if not(po_assembler in aktprocsym.definition.procoptions) and
-         not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
-        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas);
+      if not(po_assembler in aktprocdef.procoptions) and
+         not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
+        aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas);
 
-      if assigned( aktprocsym.definition.parast) then
-        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}init_paras);
+      if assigned( aktprocdef.parast) then
+        aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras);
 
       { do we need an exception frame because of ansi/widestrings/interfaces ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
-        not(aktprocsym.definition.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+        not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -2342,11 +2342,11 @@ implementation
       if not inlined then
        begin
          if (cs_profile in aktmoduleswitches) or
-            (aktprocsym.definition.owner.symtabletype=globalsymtable) or
+            (aktprocdef.owner.symtabletype=globalsymtable) or
             (assigned(procinfo^._class) and (procinfo^._class.owner.symtabletype=globalsymtable)) then
               make_global:=true;
 
-         hs:=aktprocsym.definition.aliasnames.getfirst;
+         hs:=aktprocdef.aliasnames.getfirst;
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and target_info.use_function_relative_addresses then
@@ -2366,7 +2366,7 @@ implementation
               exprasmList.insert(Tai_stab_function_name.Create(strpnew(hs)));
 {$endif GDB}
 
-            hs:=aktprocsym.definition.aliasnames.getfirst;
+            hs:=aktprocdef.aliasnames.getfirst;
           end;
 
          if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
@@ -2400,21 +2400,21 @@ implementation
        op : Tasmop;
        s : Topsize;
   begin
-      if not is_void(aktprocsym.definition.rettype.def) then
+      if not is_void(aktprocdef.rettype.def) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(otsym) then
                 procinfo^.funcret_is_valid:=
                   procinfo^.funcret_is_valid or (otsym.refs>0);}
-              if (tfuncretsym(aktprocsym.definition.funcretsym).funcretstate<>vs_assigned) and not inlined { and
+              if (tfuncretsym(aktprocdef.funcretsym).funcretstate<>vs_assigned) and not inlined { and
                 ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (aktprocsym.definition.rettype.def.deftype in [orddef,enumdef]) then
+              if (aktprocdef.rettype.def.deftype in [orddef,enumdef]) then
                 begin
                   uses_eax:=true;
                   exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-                  case aktprocsym.definition.rettype.def.size of
+                  case aktprocdef.rettype.def.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
@@ -2435,16 +2435,16 @@ implementation
                   end;
                 end
               else
-                if ret_in_acc(aktprocsym.definition.rettype.def) then
+                if ret_in_acc(aktprocdef.rettype.def) then
                   begin
                     uses_eax:=true;
                     exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                   end
               else
-                 if (aktprocsym.definition.rettype.def.deftype=floatdef) then
+                 if (aktprocdef.rettype.def.deftype=floatdef) then
                    begin
-                      floatloadops(tfloatdef(aktprocsym.definition.rettype.def).typ,op,s);
+                      floatloadops(tfloatdef(aktprocdef.rettype.def).typ,op,s);
                       exprasmList.concat(Taicpu.Op_ref(op,s,hr));
                    end
               else
@@ -2459,12 +2459,12 @@ implementation
        op : Tasmop;
        s : Topsize;
     begin
-      if not is_void(aktprocsym.definition.rettype.def) then
+      if not is_void(aktprocdef.rettype.def) then
           begin
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (aktprocsym.definition.rettype.def.deftype in [orddef,enumdef]) then
+              if (aktprocdef.rettype.def.deftype in [orddef,enumdef]) then
                 begin
-                  case aktprocsym.definition.rettype.def.size of
+                  case aktprocdef.rettype.def.size of
                    8:
                      begin
                         emit_reg_ref(A_MOV,S_L,R_EAX,hr);
@@ -2483,14 +2483,14 @@ implementation
                   end;
                 end
               else
-                if ret_in_acc(aktprocsym.definition.rettype.def) then
+                if ret_in_acc(aktprocdef.rettype.def) then
                   begin
                     emit_reg_ref(A_MOV,S_L,R_EAX,hr);
                   end
               else
-                 if (aktprocsym.definition.rettype.def.deftype=floatdef) then
+                 if (aktprocdef.rettype.def.deftype=floatdef) then
                    begin
-                      floatstoreops(tfloatdef(aktprocsym.definition.rettype.def).typ,op,s);
+                      floatstoreops(tfloatdef(aktprocdef.rettype.def).typ,op,s);
                       exprasmlist.concat(taicpu.op_ref(op,s,hr));
                    end
               else
@@ -2531,7 +2531,7 @@ implementation
         exprasmList.concat(Tai_label.Create(aktexitlabel));
 
       { call the destructor help procedure }
-      if (aktprocsym.definition.proctypeoption=potype_destructor) and
+      if (aktprocdef.proctypeoption=potype_destructor) and
          assigned(procinfo^._class) then
         begin
           if is_class(procinfo^._class) then
@@ -2571,7 +2571,7 @@ implementation
       finalizetempvariables;
 
       { finalize local data like ansistrings}
-      case aktprocsym.definition.proctypeoption of
+      case aktprocdef.proctypeoption of
          potype_unitfinalize:
            begin
               { using current_module.globalsymtable is hopefully      }
@@ -2582,21 +2582,21 @@ implementation
          { units have seperate code for initialization and finalization }
          potype_unitinit: ;
          else
-           aktprocsym.definition.localst.foreach_static({$ifndef TP}@{$endif}finalize_data);
+           aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data);
       end;
 
       { finalize paras data }
-      if assigned(aktprocsym.definition.parast) then
-        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}final_paras);
+      if assigned(aktprocdef.parast) then
+        aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
-        not(aktprocsym.definition.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+        not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
            { the exception helper routines modify all registers }
-           aktprocsym.definition.usedregisters:=$ff;
+           aktprocdef.usedregisters:=$ff;
 
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
@@ -2605,7 +2605,7 @@ implementation
            exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
            ungetregister32(R_EAX);
            emitjmp(C_E,noreraiselabel);
-           if (aktprocsym.definition.proctypeoption=potype_constructor) then
+           if (aktprocdef.proctypeoption=potype_constructor) then
              begin
                 if assigned(procinfo^._class) then
                   begin
@@ -2648,15 +2648,15 @@ implementation
              end
            else
            { must be the return value finalized before reraising the exception? }
-           if (not is_void(aktprocsym.definition.rettype.def)) and
-             (aktprocsym.definition.rettype.def.needs_inittable) and
-             ((aktprocsym.definition.rettype.def.deftype<>objectdef) or
-              not is_class(aktprocsym.definition.rettype.def)) then
+           if (not is_void(aktprocdef.rettype.def)) and
+             (aktprocdef.rettype.def.needs_inittable) and
+             ((aktprocdef.rettype.def.deftype<>objectdef) or
+              not is_class(aktprocdef.rettype.def)) then
              begin
                 reset_reference(hr);
                 hr.offset:=procinfo^.return_offset;
                 hr.base:=procinfo^.framepointer;
-                finalize(aktprocsym.definition.rettype.def,hr,ret_in_param(aktprocsym.definition.rettype.def));
+                finalize(aktprocdef.rettype.def,hr,ret_in_param(aktprocdef.rettype.def));
              end;
 
            emitcall('FPC_RERAISE');
@@ -2664,7 +2664,7 @@ implementation
         end;
 
       { call __EXIT for main program }
-      if (not DLLsource) and (not inlined) and (aktprocsym.definition.proctypeoption=potype_proginit) then
+      if (not DLLsource) and (not inlined) and (aktprocdef.proctypeoption=potype_proginit) then
        begin
          emitcall('FPC_DO_EXIT');
        end;
@@ -2673,8 +2673,8 @@ implementation
       uses_eax:=false;
       uses_edx:=false;
       uses_esi:=false;
-      if not(po_assembler in aktprocsym.definition.procoptions) then
-          if (aktprocsym.definition.proctypeoption<>potype_constructor) then
+      if not(po_assembler in aktprocdef.procoptions) then
+          if (aktprocdef.proctypeoption<>potype_constructor) then
             handle_return_value(inlined,uses_eax,uses_edx)
           else
               begin
@@ -2723,13 +2723,13 @@ implementation
           emitlab(stabsendlabel);
         end;
       { gives problems for long mangled names }
-      {List.concat(Tai_symbol.Create(aktprocsym.definition.mangledname+'_end'));}
+      {List.concat(Tai_symbol.Create(aktprocdef.mangledname+'_end'));}
 
       { should we restore edi ? }
       { for all i386 gcc implementations }
-      if (po_savestdregs in aktprocsym.definition.procoptions) then
+      if (po_savestdregs in aktprocdef.procoptions) then
         begin
-          if (aktprocsym.definition.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+          if (aktprocdef.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
           exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
           exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
@@ -2737,14 +2737,14 @@ implementation
             but that is risky because it only works
             if genexitcode is called after genentrycode
             so lets skip this for the moment PM
-          aktprocsym.definition.usedregisters:=
-            aktprocsym.definition.usedregisters or not ($80 shr byte(R_EBX));
+          aktprocdef.usedregisters:=
+            aktprocdef.usedregisters or not ($80 shr byte(R_EBX));
           }
         end;
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-      if (po_saveregisters in aktprocsym.definition.procoptions) then
+      if (po_saveregisters in aktprocdef.procoptions) then
         begin
           if uses_esi then
             exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,4)));
@@ -2769,13 +2769,13 @@ implementation
 
       { parameters are limited to 65535 bytes because }
       { ret allows only imm16                    }
-      if (parasize>65535) and not(po_clearstack in aktprocsym.definition.procoptions) then
+      if (parasize>65535) and not(po_clearstack in aktprocdef.procoptions) then
        CGMessage(cg_e_parasize_too_big);
 
       { at last, the return is generated }
 
       if not inlined then
-      if (po_interrupt in aktprocsym.definition.procoptions) then
+      if (po_interrupt in aktprocdef.procoptions) then
           begin
              if uses_esi then
                exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16)));
@@ -2795,11 +2795,11 @@ implementation
        begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (po_clearstack in aktprocsym.definition.procoptions) then
+         if (po_clearstack in aktprocdef.procoptions) then
            begin
 {$ifndef OLD_C_STACK}
              { complex return values are removed from stack in C code PM }
-             if ret_in_param(aktprocsym.definition.rettype.def) then
+             if ret_in_param(aktprocdef.rettype.def) then
                exprasmList.concat(Taicpu.Op_const(A_RET,S_NO,4))
              else
 {$endif not OLD_C_STACK}
@@ -2812,7 +2812,7 @@ implementation
        end;
 
       if not inlined then
-        exprasmList.concat(Tai_symbol_end.Createname(aktprocsym.definition.mangledname));
+        exprasmList.concat(Tai_symbol_end.Createname(aktprocdef.mangledname));
 
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
@@ -2822,10 +2822,10 @@ implementation
                 if (not assigned(procinfo^.parent) or
                    not assigned(procinfo^.parent^._class)) then
                   begin
-                    if (po_classmethod in aktprocsym.definition.procoptions) or
-                       ((po_virtualmethod in aktprocsym.definition.procoptions) and
-                        (potype_constructor=aktprocsym.definition.proctypeoption)) or
-                       (po_staticmethod in aktprocsym.definition.procoptions) then
+                    if (po_classmethod in aktprocdef.procoptions) or
+                       ((po_virtualmethod in aktprocdef.procoptions) and
+                        (potype_constructor=aktprocdef.proctypeoption)) or
+                       (po_staticmethod in aktprocdef.procoptions) then
                       begin
                         exprasmList.concat(Tai_stabs.Create(strpnew(
                          '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
@@ -2860,50 +2860,50 @@ implementation
                  '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
                  tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset))));
 
-              if (not is_void(aktprocsym.definition.rettype.def)) then
+              if (not is_void(aktprocdef.rettype.def)) then
                 begin
-                  if ret_in_param(aktprocsym.definition.rettype.def) then
+                  if ret_in_param(aktprocdef.rettype.def) then
                     exprasmList.concat(Tai_stabs.Create(strpnew(
-                     '"'+aktprocsym.name+':X*'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                     '"'+aktprocsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                      tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
                   else
                     exprasmList.concat(Tai_stabs.Create(strpnew(
-                     '"'+aktprocsym.name+':X'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                     '"'+aktprocsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                      tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))));
                   if (m_result in aktmodeswitches) then
-                    if ret_in_param(aktprocsym.definition.rettype.def) then
+                    if ret_in_param(aktprocdef.rettype.def) then
                       exprasmList.concat(Tai_stabs.Create(strpnew(
-                       '"RESULT:X*'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                       '"RESULT:X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
                     else
                       exprasmList.concat(Tai_stabs.Create(strpnew(
-                       '"RESULT:X'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                       '"RESULT:X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))));
                 end;
-              mangled_length:=length(aktprocsym.definition.mangledname);
+              mangled_length:=length(aktprocdef.mangledname);
               getmem(p,2*mangled_length+50);
               strpcopy(p,'192,0,0,');
-              strpcopy(strend(p),aktprocsym.definition.mangledname);
+              strpcopy(strend(p),aktprocdef.mangledname);
               if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
-                  strpcopy(strend(p),aktprocsym.definition.mangledname);
+                  strpcopy(strend(p),aktprocdef.mangledname);
                 end;
               exprasmList.concat(Tai_stabn.Create(strnew(p)));
               {List.concat(Tai_stabn.Create(strpnew('192,0,0,'
-               +aktprocsym.definition.mangledname))));
+               +aktprocdef.mangledname))));
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
               strpcopy(p,'224,0,0,'+stabsendlabel.name);
               if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
-                  strpcopy(strend(p),aktprocsym.definition.mangledname);
+                  strpcopy(strend(p),aktprocdef.mangledname);
                 end;
               exprasmList.concatlist(withdebuglist);
               exprasmList.concat(Tai_stabn.Create(strnew(p)));
                { strpnew('224,0,0,'
-               +aktprocsym.definition.mangledname+'_end'))));}
+               +aktprocdef.mangledname+'_end'))));}
               freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
@@ -2974,7 +2974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-10-25 21:22:41  peter
+  Revision 1.9  2001-11-02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.8  2001/10/25 21:22:41  peter
     * calling convention rewrite
 
   Revision 1.7  2001/10/20 17:22:57  peter

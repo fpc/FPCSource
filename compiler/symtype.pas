@@ -91,7 +91,6 @@ interface
          function  realname:string;
          procedure deref;virtual;abstract;
          function  gettypedef:tdef;virtual;
-         function  mangledname : string;virtual;abstract;
       end;
 
 {************************************************
@@ -518,7 +517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-10-21 12:33:07  peter
+  Revision 1.11  2001-11-02 22:58:08  peter
+    * procsym definition rewrite
+
+  Revision 1.10  2001/10/21 12:33:07  peter
     * array access for properties added
 
   Revision 1.9  2001/08/30 20:13:57  peter

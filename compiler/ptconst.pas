@@ -385,9 +385,21 @@ implementation
                              end;
                              hp:=tbinarynode(hp).left;
                           end;
-                        if tloadnode(hp).symtableentry.typ=constsym then
-                          Message(type_e_variable_id_expected);
-                        curconstSegment.concat(Tai_const_symbol.Createname_offset(tloadnode(hp).symtableentry.mangledname,offset));
+                        srsym:=tloadnode(hp).symtableentry;
+                        case srsym.typ of
+                          procsym :
+                            begin
+                              if assigned(tprocsym(srsym).defs^.next) then
+                                Message(parser_e_no_overloaded_procvars);
+                              curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).defs^.def.mangledname,offset));
+                            end;
+                          varsym :
+                            curconstSegment.concat(Tai_const_symbol.Createname_offset(tvarsym(srsym).mangledname,offset));
+                          typedconstsym :
+                            curconstSegment.concat(Tai_const_symbol.Createname_offset(ttypedconstsym(srsym).mangledname,offset));
+                          else
+                            Message(type_e_variable_id_expected);
+                        end;
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -707,7 +719,7 @@ implementation
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
                  curconstSegment.concat(Tai_const_symbol.createname(
-                   tprocsym(tloadnode(p).symtableentry).definition.mangledname));
+                   tprocsym(tloadnode(p).symtableentry).defs^.def.mangledname));
                end
               else
                Message(cg_e_illegal_expression);
@@ -959,7 +971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-10-29 14:59:48  jonas
+  Revision 1.38  2001-11-02 22:58:06  peter
+    * procsym definition rewrite
+
+  Revision 1.37  2001/10/29 14:59:48  jonas
     * typed constants that are "procedure of object" and which are assigned
       nil require 8 bytes of "0" (not 4)
     * fixed web bug 1655 (reject the code)

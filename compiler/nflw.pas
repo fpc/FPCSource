@@ -643,12 +643,12 @@ implementation
          begin
            if assigned(left) then
             begin
-              inserttypeconv(left,aktprocsym.definition.rettype);
-              if ret_in_param(aktprocsym.definition.rettype.def) or
+              inserttypeconv(left,aktprocdef.rettype);
+              if ret_in_param(aktprocdef.rettype.def) or
                  (procinfo^.no_fast_exit) or
                  ((procinfo^.flags and pi_uses_exceptions)<>0) then
                begin
-                 pt:=cfuncretnode.create(aktprocsym.definition.funcretsym);
+                 pt:=cfuncretnode.create(aktprocdef.funcretsym);
                  left:=cassignmentnode.create(pt,left);
                end;
             end;
@@ -1178,7 +1178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-10-16 15:10:35  jonas
+  Revision 1.26  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/16 15:10:35  jonas
     * fixed goto/label/try bugs
 
   Revision 1.24  2001/09/02 21:12:07  peter

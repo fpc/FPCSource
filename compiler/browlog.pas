@@ -369,13 +369,13 @@ implementation
                   end;
                 procsym :
                   begin
-                     symt:=tprocsym(sym).definition.parast;
+                     symt:=tprocsym(sym).defs^.def.parast;
                      symb:=tstoredsym(symt.search(ss));
                      if symb=nil then
                        symb:=tstoredsym(symt.search(upper(ss)));
                      if not assigned(symb) then
                        begin
-                          symt:=tprocsym(sym).definition.localst;
+                          symt:=tprocsym(sym).defs^.def.localst;
                           sym:=tstoredsym(symt.search(ss));
                           if symb=nil then
                             symb:=tstoredsym(symt.search(upper(ss)));
@@ -413,7 +413,7 @@ implementation
     procedure writesymtable(p:tsymtable);
       var
         hp : tstoredsym;
-        prdef : tprocdef;
+        prdef : pprocdeflist;
       begin
         if cs_browser in aktmoduleswitches then
          begin
@@ -446,22 +446,22 @@ implementation
                   end;
                 procsym :
                   begin
-                    prdef:=tprocsym(hp).definition;
+                    prdef:=tprocsym(hp).defs;
                     while assigned(prdef) do
                      begin
-                       if assigned(prdef.defref) then
+                       if assigned(prdef^.def.defref) then
                         begin
-                          browserlog.AddLog('***'+prdef.mangledname);
-                          browserlog.AddLogRefs(prdef.defref);
+                          browserlog.AddLog('***'+prdef^.def.mangledname);
+                          browserlog.AddLogRefs(prdef^.def.defref);
                           if (current_module.flags and uf_local_browser)<>0 then
                             begin
-                               if assigned(prdef.parast) then
-                                 writesymtable(prdef.parast);
-                               if assigned(prdef.localst) then
-                                 writesymtable(prdef.localst);
+                               if assigned(prdef^.def.parast) then
+                                 writesymtable(prdef^.def.parast);
+                               if assigned(prdef^.def.localst) then
+                                 writesymtable(prdef^.def.localst);
                             end;
                         end;
-                       prdef:=tprocdef(prdef).nextoverloaded;
+                       prdef:=prdef^.next;
                      end;
                   end;
               end;
@@ -514,7 +514,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-08-19 09:39:27  peter
+  Revision 1.10  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.9  2001/08/19 09:39:27  peter
     * local browser support fixed
 
   Revision 1.8  2001/04/18 22:01:53  peter

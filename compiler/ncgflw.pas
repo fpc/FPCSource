@@ -435,7 +435,7 @@ implementation
               else
                 internalerror(2001);
               end;
-              case aktprocsym.definition.rettype.def.deftype of
+              case aktprocdef.rettype.def.deftype of
            pointerdef,
            procvardef : begin
                           cleanleft;
@@ -451,7 +451,7 @@ implementation
              floatdef : begin
                           cleanleft;
                           if is_mem then
-                           floatload(tfloatdef(aktprocsym.definition.rettype.def).typ,left.location.reference);
+                           floatload(tfloatdef(aktprocdef.rettype.def).typ,left.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -462,7 +462,7 @@ implementation
                    cleanleft;
                    cg.a_reg_alloc(exprasmlist,accumulator);
                    allocated_acc := true;
-                   case aktprocsym.definition.rettype.def.size of
+                   case aktprocdef.rettype.def.size of
                     { it can be a qword/int64 too ... }
                     8 :
                       if is_mem then
@@ -582,7 +582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-10-04 14:33:28  jonas
+  Revision 1.4  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.3  2001/10/04 14:33:28  jonas
     * fixed range check errors
 
   Revision 1.2  2001/09/30 16:19:58  jonas

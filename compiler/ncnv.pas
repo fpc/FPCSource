@@ -852,7 +852,7 @@ implementation
                  else
                   begin
                     if (left.nodetype<>addrn) then
-                      aprocdef:=tprocsym(tloadnode(left).symtableentry).definition;
+                      aprocdef:=tprocsym(tloadnode(left).symtableentry).defs^.def;
                   end;
                  convtype:=tc_proc_2_procvar;
                  { Now check if the procedure we are going to assign to
@@ -1597,7 +1597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2001-10-28 17:22:25  peter
+  Revision 1.43  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.42  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

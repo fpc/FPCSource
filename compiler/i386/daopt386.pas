@@ -393,18 +393,18 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
   end;
 
 begin
-    case aktprocsym.definition.rettype.def.deftype of
+    case aktprocdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
       orddef:
-        if aktprocsym.definition.rettype.def.size <> 0 then
+        if aktprocdef.rettype.def.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
             { for int64/qword }
-            if aktprocsym.definition.rettype.def.size = 8 then
+            if aktprocdef.rettype.def.size = 8 then
               DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
           end;
     end;
@@ -414,18 +414,18 @@ procedure getNoDeallocRegs(var regs: TRegSet);
 var regCounter: TRegister;
 begin
   regs := [];
-    case aktprocsym.definition.rettype.def.deftype of
+    case aktprocdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
        regs := [R_EAX];
       orddef:
-        if aktprocsym.definition.rettype.def.size <> 0 then
+        if aktprocdef.rettype.def.size <> 0 then
           begin
             regs := [R_EAX];
             { for int64/qword }
-            if aktprocsym.definition.rettype.def.size = 8 then
+            if aktprocdef.rettype.def.size = 8 then
               regs := regs + [R_EDX];
           end;
     end;
@@ -2591,7 +2591,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  2001-10-27 10:20:43  jonas
+  Revision 1.24  2001-11-02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.23  2001/10/27 10:20:43  jonas
     + replace mem accesses to locations to which a reg was stored recently with that reg
 
   Revision 1.22  2001/10/12 13:58:05  jonas

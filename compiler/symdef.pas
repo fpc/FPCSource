@@ -461,7 +461,6 @@ interface
        public
           extnumber  : longint;
           messageinf : tmessageinf;
-          nextoverloaded : tprocdef;
 {$ifndef EXTDEBUG}
           { where is this function defined, needed here because there
             is only one symbol for all overloaded functions
@@ -530,6 +529,13 @@ interface
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
+       end;
+
+       { single linked list of overloaded procs }
+       pprocdeflist = ^tprocdeflist;
+       tprocdeflist = record
+         def  : tprocdef;
+         next : pprocdeflist;
        end;
 
        tstringdef = class(tstoreddef)
@@ -3221,7 +3227,6 @@ implementation
          deftype:=procdef;
          has_mangledname:=false;
          _mangledname:=nil;
-         nextoverloaded:=nil;
          fileinfo:=aktfilepos;
          extnumber:=-1;
          aliasnames:=tstringlist.create;
@@ -3291,8 +3296,8 @@ implementation
          _mangledname:=stringdup(ppufile.getstring);
 
          extnumber:=ppufile.getlongint;
-         nextoverloaded:=tprocdef(ppufile.getderef);
          _class := tobjectdef(ppufile.getderef);
+         procsym := tsym(ppufile.getderef);
          ppufile.getposinfo(fileinfo);
          { inline stuff }
          if proccalloption=pocall_inline then
@@ -3400,18 +3405,8 @@ implementation
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putstring(mangledname);
          ppufile.putlongint(extnumber);
-         if (proctypeoption<>potype_operator) then
-           ppufile.putderef(nextoverloaded)
-         else
-           begin
-              { only write the overloads from the same unit }
-              if assigned(nextoverloaded) and
-                 (nextoverloaded.owner=owner) then
-                ppufile.putderef(nextoverloaded)
-              else
-                ppufile.putderef(nil);
-           end;
          ppufile.putderef(_class);
+         ppufile.putderef(procsym);
          ppufile.putposinfo(fileinfo);
 
          { inline stuff references to localsymtable, no influence
@@ -3648,13 +3643,15 @@ implementation
         oldlocalsymtable : tsymtable;
       begin
          inherited deref;
-         resolvedef(tdef(nextoverloaded));
          resolvedef(tdef(_class));
          { parast }
          oldlocalsymtable:=aktlocalsymtable;
          aktlocalsymtable:=parast;
          tparasymtable(parast).deref;
          aktlocalsymtable:=oldlocalsymtable;
+         { procsym that originaly defined this definition, should be in the
+           same symtable }
+         resolvesym(procsym);
       end;
 
 
@@ -3662,6 +3659,7 @@ implementation
       var
         oldlocalsymtable : tsymtable;
       begin
+         { locals }
          if assigned(localst) then
           begin
             { localst }
@@ -4228,7 +4226,7 @@ implementation
    procedure tobjectdef._searchdestructor(sym : tnamedindexitem);
 
      var
-        p : tprocdef;
+        p : pprocdeflist;
 
      begin
         { if we found already a destructor, then we exit }
@@ -4236,15 +4234,15 @@ implementation
           exit;
         if tsym(sym).typ=procsym then
           begin
-             p:=tprocsym(sym).definition;
+             p:=tprocsym(sym).defs;
              while assigned(p) do
                begin
-                  if p.proctypeoption=potype_destructor then
+                  if p^.def.proctypeoption=potype_destructor then
                     begin
-                       sd:=p;
+                       sd:=p^.def;
                        exit;
                     end;
-                  p:=p.nextoverloaded;
+                  p:=p^.next;
                end;
           end;
      end;
@@ -4349,15 +4347,19 @@ implementation
           para : TParaItem;
           arglength : byte;
           sp : char;
-
+          pdl : pprocdeflist;
       begin
         If tsym(p).typ = procsym then
          begin
-           pd := tprocsym(p).definition;
+           pd := tprocsym(p).defs^.def;
            { this will be used for full implementation of object stabs
            not yet done }
-           ipd := pd;
-           while assigned(ipd.nextoverloaded) do ipd := ipd.nextoverloaded;
+           pdl:=tprocsym(p).defs;
+           while assigned(pdl) do
+            begin
+              ipd:=pdl^.def;
+              pdl:=pdl^.next;
+            end;
            if (po_virtualmethod in pd.procoptions) then
              begin
                lindex := pd.extnumber;
@@ -5394,7 +5396,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2001-10-25 21:22:37  peter
+  Revision 1.55  2001-11-02 22:58:06  peter
+    * procsym definition rewrite
+
+  Revision 1.54  2001/10/25 21:22:37  peter
     * calling convention rewrite
 
   Revision 1.53  2001/10/20 17:21:54  peter

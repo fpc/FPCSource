@@ -37,6 +37,7 @@ implementation
 {$endif Delphi}
        cutils,cclasses,
        aasm,fmodule,globtype,globals,systems,verbose,
+       symconst,symsym,
        script,gendef,
        cpubase,cpuasm,
 {$ifdef GDB}
@@ -709,7 +710,14 @@ implementation
                    address_table.concat(Tai_const.Create_32bit(0));
                    inc(current_index);
                 end;
-              address_table.concat(Tai_const_symbol.Createname_rva(hp.sym.mangledname));
+              case hp.sym.typ of
+                varsym :
+                  address_table.concat(Tai_const_symbol.Createname_rva(tvarsym(hp.sym).mangledname));
+                typedconstsym :
+                  address_table.concat(Tai_const_symbol.Createname_rva(ttypedconstsym(hp.sym).mangledname));
+                procsym :
+                  address_table.concat(Tai_const_symbol.Createname_rva(tprocsym(hp.sym).defs^.def.mangledname));
+              end;
               inc(current_index);
               hp:=texported_item(hp.next);
            end;
@@ -728,13 +736,24 @@ implementation
     procedure texportlibwin32.generatenasmlib;
       var
          hp : texported_item;
-         p : pchar;
+         p  : pchar;
+         s  : string;
       begin
          exportssection.concat(tai_section.create(sec_code));
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-             p:=strpnew(#9+'export '+hp.sym.mangledname+' '+hp.name^+' '+tostr(hp.index));
+             case hp.sym.typ of
+               varsym :
+                 s:=tvarsym(hp.sym).mangledname;
+               typedconstsym :
+                 s:=ttypedconstsym(hp.sym).mangledname;
+               procsym :
+                 s:=tprocsym(hp.sym).defs^.def.mangledname;
+               else
+                 s:='';
+             end;
+             p:=strpnew(#9+'export '+s+' '+hp.name^+' '+tostr(hp.index));
              exportssection.concat(tai_direct.create(p));
              hp:=texported_item(hp.next);
            end;
@@ -783,8 +802,7 @@ Var
   HPath   : TStringListItem;
   s,s2    : string;
   i       : integer;
-  linklibc,
-  found   : boolean;
+  linklibc : boolean;
 begin
   WriteResponseFile:=False;
   linklibc:=false;
@@ -1585,7 +1603,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2001-10-12 16:06:27  peter
+  Revision 1.21  2001-11-02 22:58:12  peter
+    * procsym definition rewrite
+
+  Revision 1.20  2001/10/12 16:06:27  peter
     * duplicate imports fix for gdb (merged)
 
   Revision 1.19  2001/09/30 21:29:47  peter

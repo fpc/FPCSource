@@ -34,7 +34,7 @@ interface
        tloadnode = class(tunarynode)
           symtableentry : tsym;
           symtable : tsymtable;
-          procsymdef : tprocdef;
+          procdeflist : tprocdef;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           procedure set_mp(p:tnode);
@@ -125,7 +125,7 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procsymdef:=nil;
+         procdeflist:=nil;
       end;
 
     constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : tsymtable);
@@ -135,7 +135,7 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procsymdef:=d;
+         procdeflist:=d;
       end;
 
     procedure tloadnode.set_mp(p:tnode);
@@ -239,14 +239,14 @@ implementation
                   resulttype:=ttypedconstsym(symtableentry).typedconsttype;
             procsym :
                 begin
-                   if not assigned(procsymdef) then
+                   if not assigned(procdeflist) then
                     begin
-                      if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
+                      if assigned(tprocsym(symtableentry).defs^.next) then
                        CGMessage(parser_e_no_overloaded_procvars);
-                      resulttype.setdef(tprocsym(symtableentry).definition);
+                      resulttype.setdef(tprocsym(symtableentry).defs^.def);
                     end
                    else
-                    resulttype.setdef(procsymdef);
+                    resulttype.setdef(procdeflist);
                    { if the owner of the procsym is a object,  }
                    { left must be set, if left isn't set       }
                    { it can be only self                       }
@@ -335,8 +335,8 @@ implementation
                      { this will create problem with local var set by
                      under_procedures
                      if (assigned(tvarsym(symtableentry).owner) and assigned(aktprocsym)
-                       and ((tvarsym(symtableentry).owner = aktprocsym.definition.localst)
-                       or (tvarsym(symtableentry).owner = aktprocsym.definition.localst))) then }
+                       and ((tvarsym(symtableentry).owner = aktprocdef.localst)
+                       or (tvarsym(symtableentry).owner = aktprocdef.localst))) then }
                    if t_times<1 then
                      inc(tvarsym(symtableentry).refs)
                    else
@@ -821,7 +821,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-10-31 17:34:20  jonas
+  Revision 1.29  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.28  2001/10/31 17:34:20  jonas
     * fixed web bug 1651
 
   Revision 1.27  2001/10/28 17:22:25  peter

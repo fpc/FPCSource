@@ -437,9 +437,11 @@ implementation
          hp2 : tmodule;
          hp3 : tsymtable;
          oldprocsym:tprocsym;
+         oldprocdef:tprocdef;
          unitsym : tunitsym;
       begin
          oldprocsym:=aktprocsym;
+         oldprocdef:=aktprocdef;
          consume(_USES);
 {$ifdef DEBUG}
          test_symtablestack;
@@ -539,6 +541,7 @@ implementation
               hp:=tused_unit(hp.next);
            end;
           aktprocsym:=oldprocsym;
+          aktprocdef:=oldprocdef;
       end;
 
 
@@ -634,6 +637,7 @@ implementation
     procedure gen_main_procsym(const name:string;options:tproctypeoption;st:tsymtable);
       var
         stt : tsymtable;
+        procdefs : pprocdeflist;
       begin
         {Generate a procsym for main}
         make_ref:=false;
@@ -643,16 +647,21 @@ implementation
         {Try to insert in in static symtable ! }
         stt:=symtablestack;
         symtablestack:=st;
-        aktprocsym.definition:=tprocdef.create;
+        aktprocdef:=tprocdef.create;
+        new(procdefs);
+        procdefs^.def:=aktprocdef;
+        procdefs^.next:=aktprocsym.defs;
+        aktprocsym.defs:=procdefs;
+        aktprocdef.procsym:=aktprocsym;
         symtablestack:=stt;
-        aktprocsym.definition.proctypeoption:=options;
-        aktprocsym.definition.setmangledname(target_info.cprefix+name);
-        aktprocsym.definition.forwarddef:=false;
+        aktprocdef.proctypeoption:=options;
+        aktprocdef.setmangledname(target_info.cprefix+name);
+        aktprocdef.forwarddef:=false;
         make_ref:=true;
         { The localst is a local symtable. Change it into the static
           symtable }
-        aktprocsym.definition.localst.free;
-        aktprocsym.definition.localst:=st;
+        aktprocdef.localst.free;
+        aktprocdef.localst:=st;
         { and insert the procsym in symtable }
         st.insert(aktprocsym);
         { set some informations about the main program }
@@ -662,7 +671,7 @@ implementation
            para_offset:=8;
            framepointer:=frame_pointer;
            flags:=0;
-           procdef:=aktprocsym.definition;
+           procdef:=aktprocdef;
          end;
       end;
 
@@ -897,13 +906,13 @@ implementation
          { Compile the unit }
          codegen_newprocedure;
          gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
-         aktprocsym.definition.aliasnames.insert('INIT$$'+current_module.modulename^);
-         aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
+         aktprocdef.aliasnames.insert('INIT$$'+current_module.modulename^);
+         aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
          compile_proc_body(true,false);
          codegen_doneprocedure;
 
          { avoid self recursive destructor call !! PM }
-         aktprocsym.definition.localst:=nil;
+         aktprocdef.localst:=nil;
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
@@ -929,8 +938,8 @@ implementation
               { Compile the finalize }
               codegen_newprocedure;
               gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              aktprocsym.definition.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
+              aktprocdef.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(true,false);
               codegen_doneprocedure;
            end
@@ -956,9 +965,9 @@ implementation
           end;
 
          { avoid self recursive destructor call !! PM }
-         aktprocsym.definition.localst:=nil;
+         aktprocdef.localst:=nil;
          { absence does not matter here !! }
-         aktprocsym.definition.forwarddef:=false;
+         aktprocdef.forwarddef:=false;
          { test static symtable }
          if (Errorcount=0) then
            begin
@@ -994,11 +1003,14 @@ implementation
 
          reset_global_defs;
 
-         { tests, if all (interface) forwards are resolved }
          if (Errorcount=0) then
            begin
+             { tests, if all (interface) forwards are resolved }
              tstoredsymtable(symtablestack).check_forwards;
+             { check if all private fields are used }
              tstoredsymtable(symtablestack).allprivatesused;
+             { remove cross unit overloads }
+             tstoredsymtable(symtablestack).unchain_overloaded;
            end;
 
          current_module.in_implementation:=false;
@@ -1200,18 +1212,18 @@ implementation
          if islibrary then
           begin
             gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
-            aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
-            aktprocsym.definition.aliasnames.insert('PASCALMAIN');
+            aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
+            aktprocdef.aliasnames.insert('PASCALMAIN');
             { this code is called from C so we need to save some
               registers }
-            include(aktprocsym.definition.procoptions,po_savestdregs);
+            include(aktprocdef.procoptions,po_savestdregs);
           end
          else
           begin
             gen_main_procsym('main',potype_proginit,st);
-            aktprocsym.definition.aliasnames.insert('program_init');
-            aktprocsym.definition.aliasnames.insert('PASCALMAIN');
-            aktprocsym.definition.aliasnames.insert(target_info.cprefix+'main');
+            aktprocdef.aliasnames.insert('program_init');
+            aktprocdef.aliasnames.insert('PASCALMAIN');
+            aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
          compile_proc_body(true,false);
 
@@ -1223,7 +1235,7 @@ implementation
            codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
 
          { avoid self recursive destructor call !! PM }
-         aktprocsym.definition.localst:=nil;
+         aktprocdef.localst:=nil;
 
          { consider these symbols as global ones for browser
            but the typecasting of the globalsymtable with tglobalsymtable
@@ -1250,8 +1262,8 @@ implementation
               { Compile the finalize }
               codegen_newprocedure;
               gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              aktprocsym.definition.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
+              aktprocdef.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(true,false);
               codegen_doneprocedure;
            end;
@@ -1339,7 +1351,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2001-09-18 11:30:48  michael
+  Revision 1.48  2001-11-02 22:58:05  peter
+    * procsym definition rewrite
+
+  Revision 1.47  2001/09/18 11:30:48  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix

@@ -219,24 +219,24 @@ implementation
     procedure tclassheader.insertmsgint(p : tnamedindexitem);
 
       var
-         hp : tprocdef;
+         hp : pprocdeflist;
          pt : pprocdeftree;
 
       begin
          if tsym(p).typ=procsym then
            begin
-              hp:=tprocsym(p).definition;
+              hp:=tprocsym(p).defs;
               while assigned(hp) do
                 begin
-                   if (po_msgint in hp.procoptions) then
+                   if (po_msgint in hp^.def.procoptions) then
                      begin
                         new(pt);
-                        pt^.data:=hp;
+                        pt^.data:=hp^.def;
                         pt^.l:=nil;
                         pt^.r:=nil;
                         insertint(pt,root);
                      end;
-                   hp:=hp.nextoverloaded;
+                   hp:=hp^.next;
                 end;
            end;
       end;
@@ -244,24 +244,24 @@ implementation
     procedure tclassheader.insertmsgstr(p : tnamedindexitem);
 
       var
-         hp : tprocdef;
+         hp : pprocdeflist;
          pt : pprocdeftree;
 
       begin
          if tsym(p).typ=procsym then
            begin
-              hp:=tprocsym(p).definition;
+              hp:=tprocsym(p).defs;
               while assigned(hp) do
                 begin
-                   if (po_msgstr in hp.procoptions) then
+                   if (po_msgstr in hp^.def.procoptions) then
                      begin
                         new(pt);
-                        pt^.data:=hp;
+                        pt^.data:=hp^.def;
                         pt^.l:=nil;
                         pt^.r:=nil;
                         insertstr(pt,root);
                      end;
-                   hp:=hp.nextoverloaded;
+                   hp:=hp^.next;
                 end;
            end;
       end;
@@ -459,9 +459,9 @@ implementation
       begin
          if (tsym(p).typ=procsym) and (sp_published in tsym(p).symoptions) then
            begin
-              hp:=tprocsym(p).definition;
-              if assigned(hp.nextoverloaded) then
+              if assigned(tprocsym(p).defs^.next) then
                 internalerror(1209992);
+              hp:=tprocsym(p).defs^.def;
               getdatalabel(l);
 
               Consts.concat(Tai_label.Create(l));
@@ -502,7 +502,7 @@ implementation
 
       var
          procdefcoll : pprocdefcoll;
-         hp : tprocdef;
+         hp : pprocdeflist;
          symcoll : psymcoll;
          _name : string;
          stored : boolean;
@@ -517,34 +517,34 @@ implementation
            symcoll^.next:=wurzel;
            symcoll^.data:=nil;
            wurzel:=symcoll;
-           hp:=tprocsym(sym).definition;
 
            { inserts all definitions }
+           hp:=tprocsym(sym).defs;
            while assigned(hp) do
              begin
                 new(procdefcoll);
-                procdefcoll^.data:=hp;
+                procdefcoll^.data:=hp^.def;
                 procdefcoll^.next:=symcoll^.data;
                 symcoll^.data:=procdefcoll;
 
                 { if it's a virtual method }
-                if (po_virtualmethod in hp.procoptions) then
+                if (po_virtualmethod in hp^.def.procoptions) then
                   begin
                      { then it gets a number ... }
-                     hp.extnumber:=nextvirtnumber;
+                     hp^.def.extnumber:=nextvirtnumber;
                      { and we inc the number }
                      inc(nextvirtnumber);
                      has_virtual_method:=true;
                   end;
 
-                if (hp.proctypeoption=potype_constructor) then
+                if (hp^.def.proctypeoption=potype_constructor) then
                   has_constructor:=true;
 
                 { check, if a method should be overridden }
-                if (po_overridingmethod in hp.procoptions) then
-                  MessagePos1(hp.fileinfo,parser_e_nothing_to_be_overridden,_class.objname^+'.'+_name+hp.demangled_paras);
+                if (po_overridingmethod in hp^.def.procoptions) then
+                  MessagePos1(hp^.def.fileinfo,parser_e_nothing_to_be_overridden,_class.objname^+'.'+_name+hp^.def.demangled_paras);
                 { next overloaded method }
-                hp:=hp.nextoverloaded;
+                hp:=hp^.next;
              end;
         end;
 
@@ -552,26 +552,26 @@ implementation
 
         begin
            new(procdefcoll);
-           procdefcoll^.data:=hp;
+           procdefcoll^.data:=hp^.def;
            procdefcoll^.next:=symcoll^.data;
            symcoll^.data:=procdefcoll;
 
            { if it's a virtual method }
-           if (po_virtualmethod in hp.procoptions) then
+           if (po_virtualmethod in hp^.def.procoptions) then
              begin
                 { then it gets a number ... }
-                hp.extnumber:=nextvirtnumber;
+                hp^.def.extnumber:=nextvirtnumber;
                 { and we inc the number }
                 inc(nextvirtnumber);
                 has_virtual_method:=true;
              end;
 
-           if (hp.proctypeoption=potype_constructor) then
+           if (hp^.def.proctypeoption=potype_constructor) then
              has_constructor:=true;
 
            { check, if a method should be overridden }
-           if (po_overridingmethod in hp.procoptions) then
-             MessagePos1(hp.fileinfo,parser_e_nothing_to_be_overridden,_class.objname^+'.'+_name+hp.demangled_paras);
+           if (po_overridingmethod in hp^.def.procoptions) then
+             MessagePos1(hp^.def.fileinfo,parser_e_nothing_to_be_overridden,_class.objname^+'.'+_name+hp^.def.demangled_paras);
         end;
 
       label
@@ -589,7 +589,7 @@ implementation
                    if _name=symcoll^.name^ then
                      begin
                         { walk through all defs of the symbol }
-                        hp:=tprocsym(sym).definition;
+                        hp:=tprocsym(sym).defs;
                         while assigned(hp) do
                           begin
                              { compare with all stored definitions }
@@ -598,35 +598,35 @@ implementation
                              while assigned(procdefcoll) do
                                begin
                                   { compare parameters }
-                                  if equal_paras(procdefcoll^.data.para,hp.para,cp_all) and
+                                  if equal_paras(procdefcoll^.data.para,hp^.def.para,cp_all) and
                                      (
                                        (po_virtualmethod in procdefcoll^.data.procoptions) or
-                                       (po_virtualmethod in hp.procoptions)
+                                       (po_virtualmethod in hp^.def.procoptions)
                                      ) then
                                     begin { same parameters }
                                        { wenn sie gleich sind }
                                        { und eine davon virtual deklariert ist }
                                        { Fehler falls nur eine VIRTUAL }
                                        if (po_virtualmethod in procdefcoll^.data.procoptions)<>
-                                          (po_virtualmethod in hp.procoptions) then
+                                          (po_virtualmethod in hp^.def.procoptions) then
                                          begin
                                             { in classes, we hide the old method }
                                             if is_class(_class) then
                                               begin
                                                  { warn only if it is the first time,
                                                    we hide the method }
-                                                 if _class=hp._class then
-                                                   Message1(parser_w_should_use_override,hp.fullprocname);
+                                                 if _class=hp^.def._class then
+                                                   Message1(parser_w_should_use_override,hp^.def.fullprocname);
                                               end
                                             else
-                                              if _class=hp._class then
+                                              if _class=hp^.def._class then
                                                 begin
                                                    if (po_virtualmethod in procdefcoll^.data.procoptions) then
                                                      Message1(parser_w_overloaded_are_not_both_virtual,
-                                                              hp.fullprocname)
+                                                              hp^.def.fullprocname)
                                                    else
                                                      Message1(parser_w_overloaded_are_not_both_non_virtual,
-                                                              hp.fullprocname);
+                                                              hp^.def.fullprocname);
                                                 end;
                                             { was newentry; exit; (FK) }
                                             newdefentry;
@@ -636,45 +636,45 @@ implementation
                                        { the flags have to match      }
                                        { except abstract and override }
                                        { only if both are virtual !!  }
-                                       if (procdefcoll^.data.proccalloption<>hp.proccalloption) or
-                                          (procdefcoll^.data.proctypeoption<>hp.proctypeoption) or
+                                       if (procdefcoll^.data.proccalloption<>hp^.def.proccalloption) or
+                                          (procdefcoll^.data.proctypeoption<>hp^.def.proctypeoption) or
                                           ((procdefcoll^.data.procoptions-
                                               [po_abstractmethod,po_overridingmethod,po_assembler,po_overload])<>
-                                           (hp.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload])) then
-                                         Message1(parser_e_header_dont_match_forward,hp.fullprocname);
+                                           (hp^.def.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload])) then
+                                         Message1(parser_e_header_dont_match_forward,hp^.def.fullprocname);
 
                                        { check, if the overridden directive is set }
                                        { (povirtualmethod is set! }
 
                                        { class ? }
                                        if is_class(_class) and
-                                          not(po_overridingmethod in hp.procoptions) then
+                                          not(po_overridingmethod in hp^.def.procoptions) then
                                          begin
                                             { warn only if it is the first time,
                                               we hide the method }
-                                            if _class=hp._class then
-                                              Message1(parser_w_should_use_override,hp.fullprocname);
+                                            if _class=hp^.def._class then
+                                              Message1(parser_w_should_use_override,hp^.def.fullprocname);
                                             { was newentry; (FK) }
                                             newdefentry;
                                             exit;
                                          end;
 
                                        { error, if the return types aren't equal }
-                                       if not(is_equal(procdefcoll^.data.rettype.def,hp.rettype.def)) and
+                                       if not(is_equal(procdefcoll^.data.rettype.def,hp^.def.rettype.def)) and
                                          not((procdefcoll^.data.rettype.def.deftype=objectdef) and
-                                           (hp.rettype.def.deftype=objectdef) and
+                                           (hp^.def.rettype.def.deftype=objectdef) and
                                            is_class(procdefcoll^.data.rettype.def) and
-                                           is_class(hp.rettype.def) and
-                                           (tobjectdef(hp.rettype.def).is_related(
+                                           is_class(hp^.def.rettype.def) and
+                                           (tobjectdef(hp^.def.rettype.def).is_related(
                                                tobjectdef(procdefcoll^.data.rettype.def)))) then
-                                         Message2(parser_e_overridden_methods_not_same_ret,hp.fullprocnamewithret,
+                                         Message2(parser_e_overridden_methods_not_same_ret,hp^.def.fullprocnamewithret,
                                            procdefcoll^.data.fullprocnamewithret);
 
 
                                        { now set the number }
-                                       hp.extnumber:=procdefcoll^.data.extnumber;
+                                       hp^.def.extnumber:=procdefcoll^.data.extnumber;
                                        { and exchange }
-                                       procdefcoll^.data:=hp;
+                                       procdefcoll^.data:=hp^.def;
                                        stored:=true;
                                        goto handlenextdef;
                                     end;  { same parameters }
@@ -685,23 +685,23 @@ implementation
                              if not(stored) then
                                begin
                                   new(procdefcoll);
-                                  procdefcoll^.data:=hp;
+                                  procdefcoll^.data:=hp^.def;
                                   procdefcoll^.next:=symcoll^.data;
                                   symcoll^.data:=procdefcoll;
                                   { if the method is virtual ... }
-                                  if (po_virtualmethod in hp.procoptions) then
+                                  if (po_virtualmethod in hp^.def.procoptions) then
                                     begin
                                        { ... it will get a number }
-                                       hp.extnumber:=nextvirtnumber;
+                                       hp^.def.extnumber:=nextvirtnumber;
                                        inc(nextvirtnumber);
                                     end;
                                   { check, if a method should be overridden }
-                                  if (po_overridingmethod in hp.procoptions) then
-                                   MessagePos1(hp.fileinfo,parser_e_nothing_to_be_overridden,
-                                     hp.fullprocname);
+                                  if (po_overridingmethod in hp^.def.procoptions) then
+                                   MessagePos1(hp^.def.fileinfo,parser_e_nothing_to_be_overridden,
+                                     hp^.def.fullprocname);
                                end;
                           handlenextdef:
-                             hp:=hp.nextoverloaded;
+                             hp:=hp^.next;
                           end;
                         exit;
                      end;
@@ -980,18 +980,24 @@ implementation
     function tclassheader.gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
       var
         sym: tprocsym;
-        implprocdef: tprocdef;
+        implprocdef : pprocdeflist;
       begin
-        implprocdef:=nil;
+        gintfgetcprocdef:=nil;
         sym:=tprocsym(search_class_member(_class,name));
         if assigned(sym) and (sym.typ=procsym) then
           begin
-            implprocdef:=sym.definition;
-            while assigned(implprocdef) and not equal_paras(proc.para,implprocdef.para,cp_none) and
-              (proc.proccalloption<>implprocdef.proccalloption) do
-              implprocdef:=implprocdef.nextoverloaded;
+            implprocdef:=sym.defs;
+            while assigned(implprocdef) do
+             begin
+               if equal_paras(proc.para,implprocdef^.def.para,cp_none) and
+                  (proc.proccalloption=implprocdef^.def.proccalloption) then
+                begin
+                  gintfgetcprocdef:=implprocdef^.def;
+                  exit;
+                end;
+               implprocdef:=implprocdef^.next;
+             end;
           end;
-        gintfgetcprocdef:=implprocdef;
       end;
 
 
@@ -1275,7 +1281,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-10-25 21:22:35  peter
+  Revision 1.8  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.7  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.6  2001/10/20 19:28:38  peter

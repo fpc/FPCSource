@@ -331,9 +331,9 @@ implementation
                    { concat function result to exit }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if {ret_in_acc(aktprocsym.definition.rettype.def) and }
-                      (is_ordinal(aktprocsym.definition.rettype.def) or
-                       is_smallset(aktprocsym.definition.rettype.def)) and
+                   if {ret_in_acc(aktprocdef.rettype.def) and }
+                      (is_ordinal(aktprocdef.rettype.def) or
+                       is_smallset(aktprocdef.rettype.def)) and
                       assigned(hp.left) and
                       assigned(tstatementnode(hp.left).right) and
                       (tstatementnode(hp.left).right.nodetype=exitn) and
@@ -625,7 +625,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-09-02 21:12:06  peter
+  Revision 1.18  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.17  2001/09/02 21:12:06  peter
     * move class of definitions into type section for delphi
 
   Revision 1.16  2001/08/26 13:36:38  florian

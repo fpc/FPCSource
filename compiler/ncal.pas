@@ -94,7 +94,7 @@ interface
 
        tprocinlinenode = class(tnode)
           inlinetree : tnode;
-          inlineprocsym : tprocsym;
+          inlineprocdef : tprocdef;
           retoffset,para_offset,para_size : longint;
           constructor create(callp,code : tnode);virtual;
           destructor destroy;override;
@@ -274,9 +274,9 @@ implementation
           begin
             if is_array_of_const(defcoll.paratype.def) then
              begin
-               if assigned(aktcallprocsym) and
-                  (aktcallprocsym.definition.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
-                  (po_external in aktcallprocsym.definition.procoptions) then
+               if assigned(aktcallprocdef) and
+                  (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
+                  (po_external in aktcallprocdef.procoptions) then
                  include(left.flags,nf_cargs);
                { force variant array }
                include(left.flags,nf_forcevaria);
@@ -295,9 +295,9 @@ implementation
            test_local_to_procvar(tprocvardef(left.resulttype.def),defcoll.paratype.def);
 
          { generate the high() value tree }
-         if not(assigned(aktcallprocsym) and
-                (aktcallprocsym.definition.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
-                (po_external in aktcallprocsym.definition.procoptions)) and
+         if not(assigned(aktcallprocdef) and
+                (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
+                (po_external in aktcallprocdef.procoptions)) and
             push_high_param(defcoll.paratype.def) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
 
@@ -604,7 +604,7 @@ implementation
         restypeset := true;
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if ret_in_param(restype.def) xor ret_in_param(symtableprocentry.definition.rettype.def) then
+        if ret_in_param(restype.def) xor ret_in_param(symtableprocentry.defs^.def.rettype.def) then
           internalerror(200108291);
       end;
 
@@ -655,8 +655,8 @@ implementation
          end;
       var
          hp,procs,hp2 : pprocdefcoll;
-         pd : tprocdef;
-         oldcallprocsym : tprocsym;
+         pd : pprocdeflist;
+         oldcallprocdef : tprocdef;
          def_from,def_to,conv_to : tdef;
          hpt : tnode;
          pt : tcallparanode;
@@ -749,8 +749,8 @@ implementation
 
          procs:=nil;
 
-         oldcallprocsym:=aktcallprocsym;
-         aktcallprocsym:=nil;
+         oldcallprocdef:=aktcallprocdef;
+         aktcallprocdef:=nil;
 
          { determine length of parameter list }
          pt:=tcallparanode(left);
@@ -802,60 +802,34 @@ implementation
          else
          { not a procedure variable }
            begin
-              aktcallprocsym:=tprocsym(symtableprocentry);
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-{$ifdef TEST_PROCSYMS}
-                 if (unit_specific) or
-                    assigned(methodpointer) then
-                   nextprocsym:=nil
-                 else while not assigned(procs) do
-                  begin
-                     symt:=symtableproc;
-                     srsym:=nil;
-                     while assigned(symt^.next) and not assigned(srsym) do
-                       begin
-                          symt:=symt^.next;
-                          srsym:=searchsymonlyin(symt,actprocsym.name);
-                          if assigned(srsym) then
-                            if srsym.typ<>procsym then
-                              begin
-                                 { reject all that is not a procedure }
-                                 srsym:=nil;
-                                 { don't search elsewhere }
-                                 while assigned(symt^.next) do
-                                   symt:=symt^.next;
-                              end;
-                       end;
-                     nextprocsym:=srsym;
-                  end;
-{$endif TEST_PROCSYMS}
                    { link all procedures which have the same # of parameters }
-                   pd:=aktcallprocsym.definition;
+                   pd:=symtableprocentry.defs;
                    while assigned(pd) do
                      begin
                         { only when the # of parameter are supported by the
                           procedure }
-                        if (paralength>=pd.minparacount) and
-                           ((po_varargs in pd.procoptions) or { varargs }
-                            (paralength<=pd.maxparacount)) then
+                        if (paralength>=pd^.def.minparacount) and
+                           ((po_varargs in pd^.def.procoptions) or { varargs }
+                            (paralength<=pd^.def.maxparacount)) then
                           begin
                              new(hp);
-                             hp^.data:=pd;
+                             hp^.data:=pd^.def;
                              hp^.next:=procs;
-                             hp^.firstpara:=tparaitem(pd.Para.first);
-                             if not(po_varargs in pd.procoptions) then
+                             hp^.firstpara:=tparaitem(pd^.def.Para.first);
+                             if not(po_varargs in pd^.def.procoptions) then
                               begin
                                 { if not all parameters are given, then skip the
                                   default parameters }
-                                for i:=1 to pd.maxparacount-paralength do
+                                for i:=1 to pd^.def.maxparacount-paralength do
                                  hp^.firstpara:=tparaitem(hp^.firstPara.next);
                               end;
                              hp^.nextpara:=hp^.firstpara;
                              procs:=hp;
                           end;
-                        pd:=pd.nextoverloaded;
+                        pd:=pd^.next;
                      end;
 
                    { no procedures found? then there is something wrong
@@ -879,7 +853,7 @@ implementation
                           if assigned(left) then
                            aktfilepos:=left.fileinfo;
                           CGMessage(parser_e_wrong_parameter_size);
-                          aktcallprocsym.write_parameter_lists(nil);
+                          symtableprocentry.write_parameter_lists(nil);
                         end;
                       goto errorexit;
                     end;
@@ -1016,7 +990,7 @@ implementation
                           CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
                             pt.resulttype.def.typename,lastparatype.typename);
                         end;
-                      aktcallprocsym.write_parameter_lists(nil);
+                      symtableprocentry.write_parameter_lists(nil);
                       goto errorexit;
                     end;
 
@@ -1273,17 +1247,9 @@ implementation
                    if not(assigned(procs)) or assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
-                        aktcallprocsym.write_parameter_lists(nil);
+                        symtableprocentry.write_parameter_lists(nil);
                         goto errorexit;
                      end;
-{$ifdef TEST_PROCSYMS}
-                   if (procs=nil) and assigned(nextprocsym) then
-                     begin
-                        symtableprocentry:=nextprocsym;
-                        symtableproc:=symt;
-                     end;
-                 end ; { of while assigned(symtableprocentry) do }
-{$endif TEST_PROCSYMS}
                    if make_ref then
                      begin
                         procs^.data.lastref:=tref.create(procs^.data.lastref,@fileinfo);
@@ -1298,21 +1264,6 @@ implementation
                    but neede for overloaded operators !! }
                    if symtableproc=nil then
                      symtableproc:=procdefinition.owner;
-
-{$ifdef CHAINPROCSYMS}
-                   { object with method read;
-                     call to read(x) will be a usual procedure call }
-                   if assigned(methodpointer) and
-                     (procdefinition._class=nil) then
-                     begin
-                        { not ok for extended }
-                        case methodpointer^.nodetype of
-                           typen,hnewn : fatalerror(no_para_match);
-                        end;
-                        methodpointer.free;
-                        methodpointer:=nil;
-                     end;
-{$endif CHAINPROCSYMS}
                end; { end of procedure to call determination }
 
 
@@ -1416,13 +1367,16 @@ implementation
 
          { insert type conversions }
          if assigned(left) then
-          tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
+          begin
+            aktcallprocdef:=tprocdef(procdefinition);
+            tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
+          end;
 
       errorexit:
          { Reset some settings back }
          if assigned(procs) then
            dispose(procs);
-         aktcallprocsym:=oldcallprocsym;
+         aktcallprocdef:=oldcallprocdef;
       end;
 
 
@@ -1671,11 +1625,11 @@ implementation
 
       begin
          inherited create(procinlinen);
-         inlineprocsym:=tcallnode(callp).symtableprocentry;
+         inlineprocdef:=tcallnode(callp).symtableprocentry.defs^.def;
          retoffset:=-target_info.size_of_pointer; { less dangerous as zero (PM) }
          para_offset:=0;
-         para_size:=inlineprocsym.definition.para_size(target_info.alignment.paraalign);
-         if ret_in_param(inlineprocsym.definition.rettype.def) then
+         para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
+         if ret_in_param(inlineprocdef.rettype.def) then
            inc(para_size,target_info.size_of_pointer);
          { copy args }
          if assigned(code) then
@@ -1686,7 +1640,7 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=code.registersmmx;
 {$endif SUPPORT_MMX}
-         resulttype:=inlineprocsym.definition.rettype;
+         resulttype:=inlineprocdef.rettype;
       end;
 
     destructor tprocinlinenode.destroy;
@@ -1707,7 +1661,7 @@ implementation
            n.inlinetree:=inlinetree.getcopy
          else
            n.inlinetree:=nil;
-         n.inlineprocsym:=inlineprocsym;
+         n.inlineprocdef:=inlineprocdef;
          n.retoffset:=retoffset;
          n.para_offset:=para_offset;
          n.para_size:=para_size;
@@ -1733,7 +1687,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           inlinetree.isequal(tprocinlinenode(p).inlinetree) and
-          (inlineprocsym = tprocinlinenode(p).inlineprocsym);
+          (inlineprocdef = tprocinlinenode(p).inlineprocdef);
       end;
 
 begin
@@ -1743,7 +1697,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2001-10-28 17:22:25  peter
+  Revision 1.54  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.53  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

@@ -1118,9 +1118,9 @@ implementation
                  (objdef.owner.symtabletype=globalsymtable) and
                  (objdef.owner.unitid<>0) then
                 begin
-                  if assigned(aktprocsym.definition._class) then
+                  if assigned(aktprocdef._class) then
                     begin
-                       if not aktprocsym.definition._class.is_related(objdef) then
+                       if not aktprocdef._class.is_related(objdef) then
                          Message(parser_e_cant_access_protected_member);
                     end
                   else
@@ -1137,7 +1137,7 @@ implementation
                                    (getprocvar and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
-                                      proc_to_procvar_equal(tprocsym(sym).definition,getprocvardef,false)
+                                      proc_to_procvar_equal(tprocsym(sym).defs^.def,getprocvardef,false)
                                      )
                                     )
                                    ),again,p1);
@@ -1283,7 +1283,7 @@ implementation
                     { are we in a class method ? }
                     if (srsym.owner.symtabletype=objectsymtable) and
                        assigned(aktprocsym) and
-                       (po_classmethod in aktprocsym.definition.procoptions) then
+                       (po_classmethod in aktprocdef.procoptions) then
                       Message(parser_e_only_class_methods);
                     if (sp_static in srsym.symoptions) then
                      begin
@@ -1471,13 +1471,13 @@ implementation
                     { are we in a class method ? }
                     possible_error:=(srsym.owner.symtabletype=objectsymtable) and
                                     assigned(aktprocsym) and
-                                    (po_classmethod in aktprocsym.definition.procoptions);
+                                    (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
                                  getaddr or
                                  (getprocvar and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
-                                    proc_to_procvar_equal(tprocsym(srsym).definition,getprocvardef,false)
+                                    proc_to_procvar_equal(tprocsym(srsym).defs^.def,getprocvardef,false)
                                    )
                                   )
                                  ),again,p1);
@@ -1499,7 +1499,7 @@ implementation
                     { are we in a class method ? }
                     if (srsym.owner.symtabletype=objectsymtable) and
                        assigned(aktprocsym) and
-                       (po_classmethod in aktprocsym.definition.procoptions) then
+                       (po_classmethod in aktprocdef.procoptions) then
                      Message(parser_e_only_class_methods);
                     { no method pointer }
                     p1:=nil;
@@ -1965,7 +1965,7 @@ implementation
                 end
                else
                 begin
-                  if (po_classmethod in aktprocsym.definition.procoptions) then
+                  if (po_classmethod in aktprocdef.procoptions) then
                    begin
                      { self in class methods is a class reference type }
                      htype.setdef(procinfo^._class);
@@ -2513,7 +2513,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2001-10-28 17:22:25  peter
+  Revision 1.49  2001-11-02 22:58:05  peter
+    * procsym definition rewrite
+
+  Revision 1.48  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 

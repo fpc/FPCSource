@@ -40,7 +40,6 @@ interface
       pd_notobjintf= $80;   { directive can not be used interface declaration }
 
     function  is_proc_directive(tok:ttoken):boolean;
-    function  check_identical_proc(var p : tprocdef) : boolean;
 
     procedure parameter_dec(aktprocdef:tabstractprocdef);
 
@@ -52,6 +51,8 @@ interface
     procedure parse_proc_dec;
     procedure parse_var_proc_directives(var sym : tsym);
     procedure parse_object_proc_directives(var sym : tprocsym);
+
+    function proc_add_definition(aprocsym:tprocsym;var aprocdef : tprocdef) : boolean;
 
 
 implementation
@@ -89,7 +90,7 @@ implementation
         if tsym(p).typ=varsym then
          with tvarsym(p) do
           if copy(name,1,3)='val' then
-           aktprocsym.definition.parast.symsearch.rename(name,copy(name,4,length(name)));
+           aktprocdef.parast.symsearch.rename(name,copy(name,4,length(name)));
       end;
 
 
@@ -329,468 +330,482 @@ implementation
       end;
 
 
-
-
-procedure parse_proc_head(options:tproctypeoption);
-var orgsp,sp:stringid;
-    pd:tprocdef;
-    paramoffset:longint;
-    sym:tsym;
-    hs:string;
-    doinsert : boolean;
-    st : tsymtable;
-    srsymtable : tsymtable;
-    overloaded_level:word;
-    storepos,procstartfilepos : tfileposinfo;
-    i: longint;
-begin
-{ Save the position where this procedure really starts and set col to 1 which
-  looks nicer }
-  procstartfilepos:=akttokenpos;
-{  procstartfilepos.column:=1; I do not agree here !!
-   lets keep excat position PM }
-
-  if (options=potype_operator) then
-    begin
-      sp:=overloaded_names[optoken];
-      orgsp:=sp;
-    end
-  else
-    begin
-      sp:=pattern;
-      orgsp:=orgpattern;
-      consume(_ID);
-    end;
-
-    { examine interface map: function/procedure iname.functionname=locfuncname }
-    if parse_only and
-       assigned(procinfo^._class) and
-       assigned(procinfo^._class.implementedinterfaces) and
-       (procinfo^._class.implementedinterfaces.count>0) and
-       try_to_consume(_POINT) then
+    procedure parse_proc_head(options:tproctypeoption);
+      var
+        orgsp,sp:stringid;
+        paramoffset:longint;
+        sym:tsym;
+        hs:string;
+        doinsert : boolean;
+        st : tsymtable;
+        srsymtable : tsymtable;
+        pdl     : pprocdeflist;
+        overloaded_level:word;
+        storepos,procstartfilepos : tfileposinfo;
+        i: longint;
+        procdefs : pprocdeflist;
       begin
-         storepos:=akttokenpos;
-         akttokenpos:=procstartfilepos;
-         { get interface syms}
-         searchsym(sp,sym,srsymtable);
-         if not assigned(sym) then
+        { Save the position where this procedure really starts }
+        procstartfilepos:=akttokenpos;
+
+        aktprocdef:=nil;
+
+        if (options=potype_operator) then
           begin
-            identifier_not_found(orgsp);
-            sym:=generrorsym;
+            sp:=overloaded_names[optoken];
+            orgsp:=sp;
+          end
+        else
+          begin
+            sp:=pattern;
+            orgsp:=orgpattern;
+            consume(_ID);
           end;
-         akttokenpos:=storepos;
-         { load proc name }
-         if sym.typ=typesym then
-           i:=procinfo^._class.implementedinterfaces.searchintf(ttypesym(sym).restype.def);
-         { qualifier is interface name? }
-         if (sym.typ<>typesym) or (ttypesym(sym).restype.def.deftype<>objectdef) or
-            (i=-1) then
-           begin
-              Message(parser_e_interface_id_expected);
-              aktprocsym:=nil;
-           end
-         else
-           begin
-              aktprocsym:=tprocsym(procinfo^._class.implementedinterfaces.interfaces(i).symtable.search(sp));
-              { the method can be declared after the mapping FK
+
+          { examine interface map: function/procedure iname.functionname=locfuncname }
+          if parse_only and
+             assigned(procinfo^._class) and
+             assigned(procinfo^._class.implementedinterfaces) and
+             (procinfo^._class.implementedinterfaces.count>0) and
+             try_to_consume(_POINT) then
+            begin
+               storepos:=akttokenpos;
+               akttokenpos:=procstartfilepos;
+               { get interface syms}
+               searchsym(sp,sym,srsymtable);
+               if not assigned(sym) then
+                begin
+                  identifier_not_found(orgsp);
+                  sym:=generrorsym;
+                end;
+               akttokenpos:=storepos;
+               { load proc name }
+               if sym.typ=typesym then
+                 i:=procinfo^._class.implementedinterfaces.searchintf(ttypesym(sym).restype.def);
+               { qualifier is interface name? }
+               if (sym.typ<>typesym) or (ttypesym(sym).restype.def.deftype<>objectdef) or
+                  (i=-1) then
+                 begin
+                    Message(parser_e_interface_id_expected);
+                    aktprocsym:=nil;
+                 end
+               else
+                 begin
+                    aktprocsym:=tprocsym(procinfo^._class.implementedinterfaces.interfaces(i).symtable.search(sp));
+                    { the method can be declared after the mapping FK
+                      if not(assigned(aktprocsym)) then
+                        Message(parser_e_methode_id_expected);
+                    }
+                 end;
+               consume(_ID);
+               consume(_EQUAL);
+               if (token=_ID) { and assigned(aktprocsym) } then
+                 procinfo^._class.implementedinterfaces.addmappings(i,sp,pattern);
+               consume(_ID);
+               exit;
+          end;
+
+        { method  ? }
+        if not(parse_only) and
+           (lexlevel=normal_function_level) and
+           try_to_consume(_POINT) then
+         begin
+           { search for object name }
+           storepos:=akttokenpos;
+           akttokenpos:=procstartfilepos;
+           searchsym(sp,sym,srsymtable);
+           if not assigned(sym) then
+            begin
+              identifier_not_found(orgsp);
+              sym:=generrorsym;
+            end;
+           akttokenpos:=storepos;
+           { consume proc name }
+           sp:=pattern;
+           orgsp:=orgpattern;
+           procstartfilepos:=akttokenpos;
+           consume(_ID);
+           { qualifier is class name ? }
+           if (sym.typ<>typesym) or
+              (ttypesym(sym).restype.def.deftype<>objectdef) then
+             begin
+                Message(parser_e_class_id_expected);
+                aktprocsym:=nil;
+                aktprocdef:=nil;
+             end
+           else
+             begin
+                { used to allow private syms to be seen }
+                aktobjectdef:=tobjectdef(ttypesym(sym).restype.def);
+                procinfo^._class:=tobjectdef(ttypesym(sym).restype.def);
+                aktprocsym:=tprocsym(procinfo^._class.symtable.search(sp));
+                {The procedure has been found. So it is
+                 a global one. Set the flags to mark this.}
+                procinfo^.flags:=procinfo^.flags or pi_is_global;
+                aktobjectdef:=nil;
+                { we solve this below }
                 if not(assigned(aktprocsym)) then
                   Message(parser_e_methode_id_expected);
-              }
-           end;
-         consume(_ID);
-         consume(_EQUAL);
-         if (token=_ID) { and assigned(aktprocsym) } then
-           procinfo^._class.implementedinterfaces.addmappings(i,sp,pattern);
-         consume(_ID);
-         exit;
-    end;
-
-  { method  ? }
-  if not(parse_only) and
-     (lexlevel=normal_function_level) and
-     try_to_consume(_POINT) then
-   begin
-     { search for object name }
-     storepos:=akttokenpos;
-     akttokenpos:=procstartfilepos;
-     searchsym(sp,sym,srsymtable);
-     if not assigned(sym) then
-      begin
-        identifier_not_found(orgsp);
-        sym:=generrorsym;
-      end;
-     akttokenpos:=storepos;
-     { consume proc name }
-     sp:=pattern;
-     orgsp:=orgpattern;
-     procstartfilepos:=akttokenpos;
-     consume(_ID);
-     { qualifier is class name ? }
-     if (sym.typ<>typesym) or
-        (ttypesym(sym).restype.def.deftype<>objectdef) then
-       begin
-          Message(parser_e_class_id_expected);
-          aktprocsym:=nil;
-       end
-     else
-       begin
-          { used to allow private syms to be seen }
-          aktobjectdef:=tobjectdef(ttypesym(sym).restype.def);
-          procinfo^._class:=tobjectdef(ttypesym(sym).restype.def);
-          aktprocsym:=tprocsym(procinfo^._class.symtable.search(sp));
-          {The procedure has been found. So it is
-           a global one. Set the flags to mark this.}
-          procinfo^.flags:=procinfo^.flags or pi_is_global;
-          aktobjectdef:=nil;
-          { we solve this below }
-          if not(assigned(aktprocsym)) then
-            Message(parser_e_methode_id_expected);
-       end;
-   end
-  else
-   begin
-     { check for constructor/destructor which is not allowed here }
-     if (not parse_only) and
-        (options in [potype_constructor,potype_destructor]) then
-        Message(parser_e_constructors_always_objects);
-
-     akttokenpos:=procstartfilepos;
-     aktprocsym:=tprocsym(symtablestack.search(sp));
-
-     if not(parse_only) then
-       begin
-         {The procedure we prepare for is in the implementation
-          part of the unit we compile. It is also possible that we
-          are compiling a program, which is also some kind of
-          implementaion part.
-
-          We need to find out if the procedure is global. If it is
-          global, it is in the global symtable.}
-         if not assigned(aktprocsym) and
-            (symtablestack.symtabletype=staticsymtable) and
-            assigned(symtablestack.next) and
-            (symtablestack.next.unitid=0) then
-          begin
-            {Search the procedure in the global symtable.}
-            aktprocsym:=tprocsym(symtablestack.next.search(sp));
-            if assigned(aktprocsym) then
-             begin
-               {Check if it is a procedure.}
-               if aktprocsym.typ<>procsym then
-                DuplicateSym(aktprocsym);
-               {The procedure has been found. So it is
-                a global one. Set the flags to mark this.}
-               procinfo^.flags:=procinfo^.flags or pi_is_global;
              end;
-          end;
-       end;
-   end;
-
-{ Create the mangledname }
-{$ifndef UseNiceNames}
-  if assigned(procinfo^._class) then
-   begin
-     if (pos('_$$_',procprefix)=0) then
-      hs:=procprefix+'_$$_'+upper(procinfo^._class.objname^)+'_$$_'+sp
-     else
-      hs:=procprefix+'_$'+sp;
-   end
-  else
-   begin
-     if lexlevel=normal_function_level then
-      hs:=procprefix+'_'+sp
-     else
-      hs:=procprefix+'_$'+sp;
-   end;
-{$else UseNiceNames}
-  if assigned(procinfo^._class) then
-   begin
-     if (pos('_5Class_',procprefix)=0) then
-      hs:=procprefix+'_5Class_'+procinfo^._class.name^+'_'+tostr(length(sp))+sp
-     else
-      hs:=procprefix+'_'+tostr(length(sp))+sp;
-   end
-  else
-   begin
-     if lexlevel=normal_function_level then
-      hs:=procprefix+'_'+tostr(length(sp))+sp
-     else
-      hs:=lowercase(procprefix)+'_'+tostr(length(sp))+sp;
-   end;
-{$endif UseNiceNames}
-
-  doinsert:=true;
-  if assigned(aktprocsym) then
-   begin
-     { Check if overloaded is a procsym }
-     if aktprocsym.typ<>procsym then
-      begin
-        { when the other symbol is a unit symbol then hide the unit
-          symbol. Only in tp mode because it's bad programming }
-        if (m_tp in aktmodeswitches) and
-           (aktprocsym.typ=unitsym) then
-         begin
-           aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
          end
         else
          begin
-           {  we use a different error message for tp7 so it looks more compatible }
-           if (m_fpc in aktmodeswitches) then
-            Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
-           else
-            DuplicateSym(aktprocsym);
-           { don't reinsert as that will generated another error }
-           doinsert:=false;
+           { check for constructor/destructor which is not allowed here }
+           if (not parse_only) and
+              (options in [potype_constructor,potype_destructor]) then
+              Message(parser_e_constructors_always_objects);
+
+           akttokenpos:=procstartfilepos;
+           aktprocsym:=tprocsym(symtablestack.search(sp));
+
+           if not(parse_only) then
+             begin
+               {The procedure we prepare for is in the implementation
+                part of the unit we compile. It is also possible that we
+                are compiling a program, which is also some kind of
+                implementaion part.
+
+                We need to find out if the procedure is global. If it is
+                global, it is in the global symtable.}
+               if not assigned(aktprocsym) and
+                  (symtablestack.symtabletype=staticsymtable) and
+                  assigned(symtablestack.next) and
+                  (symtablestack.next.unitid=0) then
+                begin
+                  {Search the procedure in the global symtable.}
+                  aktprocsym:=tprocsym(symtablestack.next.search(sp));
+                  if assigned(aktprocsym) then
+                   begin
+                     {Check if it is a procedure.}
+                     if aktprocsym.typ<>procsym then
+                      DuplicateSym(aktprocsym);
+                     {The procedure has been found. So it is
+                      a global one. Set the flags to mark this.}
+                     procinfo^.flags:=procinfo^.flags or pi_is_global;
+                   end;
+                end;
+             end;
          end;
-        { generate a new aktprocsym }
-        aktprocsym:=nil;
-      end;
-   end;
 
-  { test again if assigned, it can be reset to recover }
-  if not assigned(aktprocsym) then
-   begin
-     { create a new procsym and set the real filepos }
-     akttokenpos:=procstartfilepos;
-     { for operator we have only one definition for each overloaded
-       operation }
-     if (options=potype_operator) then
-       begin
-          { create the procsym with saving the original case }
-          aktprocsym:=tprocsym.create('$'+sp);
-          { the only problem is that nextoverloaded might not be in a unit
-            known for the unit itself }
-          { not anymore PM }
-          if assigned(overloaded_operators[optoken]) then
-            aktprocsym.definition:=overloaded_operators[optoken].definition;
-          overloaded_operators[optoken]:=aktprocsym;
-       end
-      else
-       aktprocsym:=tprocsym.create(orgsp);
-      if doinsert then
-       symtablestack.insert(aktprocsym);
-   end;
-
-  st:=symtablestack;
-  pd:=tprocdef.create;
-  pd.symtablelevel:=symtablestack.symtablelevel;
-
-  if assigned(procinfo^._class) then
-    pd._class := procinfo^._class;
-
-  { set the options from the caller (podestructor or poconstructor) }
-  pd.proctypeoption:=options;
-
-  { calculate the offset of the parameters }
-  paramoffset:=8;
-
-  { calculate frame pointer offset }
-  if lexlevel>normal_function_level then
-    begin
-      procinfo^.framepointer_offset:=paramoffset;
-      inc(paramoffset,target_info.size_of_pointer);
-      { this is needed to get correct framepointer push for local
-        forward functions !! }
-      pd.parast.symtablelevel:=lexlevel;
-    end;
-
-  if assigned (procinfo^._Class)  and
-     is_object(procinfo^._Class) and
-     (pd.proctypeoption in [potype_constructor,potype_destructor]) then
-    inc(paramoffset,target_info.size_of_pointer);
-
-  { self pointer offset                       }
-  { self isn't pushed in nested procedure of methods }
-  if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
-    begin
-      procinfo^.selfpointer_offset:=paramoffset;
-      if assigned(aktprocsym.definition) and
-         not(po_containsself in aktprocsym.definition.procoptions) then
-        inc(paramoffset,target_info.size_of_pointer);
-    end;
-
-  { con/-destructor flag ? }
-  if assigned (procinfo^._Class) and
-     is_class(procinfo^._class) and
-     (pd.proctypeoption in [potype_destructor,potype_constructor]) then
-    inc(paramoffset,target_info.size_of_pointer);
-
-  procinfo^.para_offset:=paramoffset;
-
-  pd.parast.datasize:=0;
-
-  pd.nextoverloaded:=aktprocsym.definition;
-  aktprocsym.definition:=pd;
-  { this is probably obsolete now PM }
-  aktprocsym.definition.fileinfo:=procstartfilepos;
-  aktprocsym.definition.setmangledname(hs);
-  aktprocsym.definition.procsym:=aktprocsym;
-
-  if not parse_only then
-    begin
-       overloaded_level:=0;
-       { we need another procprefix !!! }
-       { count, but only those in the same unit !!}
-       while assigned(pd) and
-          (pd.owner.symtabletype in [globalsymtable,staticsymtable]) do
+      { Create the mangledname }
+      {$ifndef UseNiceNames}
+        if assigned(procinfo^._class) then
          begin
-            { only count already implemented functions }
-            if  not(pd.forwarddef) then
-              inc(overloaded_level);
-            pd:=pd.nextoverloaded;
+           if (pos('_$$_',procprefix)=0) then
+            hs:=procprefix+'_$$_'+upper(procinfo^._class.objname^)+'_$$_'+sp
+           else
+            hs:=procprefix+'_$'+sp;
+         end
+        else
+         begin
+           if lexlevel=normal_function_level then
+            hs:=procprefix+'_'+sp
+           else
+            hs:=procprefix+'_$'+sp;
          end;
-       if overloaded_level>0 then
-         procprefix:=hs+'$'+tostr(overloaded_level)+'$'
-       else
-         procprefix:=hs+'$';
-    end;
+      {$else UseNiceNames}
+        if assigned(procinfo^._class) then
+         begin
+           if (pos('_5Class_',procprefix)=0) then
+            hs:=procprefix+'_5Class_'+procinfo^._class.name^+'_'+tostr(length(sp))+sp
+           else
+            hs:=procprefix+'_'+tostr(length(sp))+sp;
+         end
+        else
+         begin
+           if lexlevel=normal_function_level then
+            hs:=procprefix+'_'+tostr(length(sp))+sp
+           else
+            hs:=lowercase(procprefix)+'_'+tostr(length(sp))+sp;
+         end;
+      {$endif UseNiceNames}
 
-  { this must also be inserted in the right symtable !! PM }
-  { otherwise we get subbtle problems with
-    definitions of args defs in staticsymtable for
-    implementation of a global method }
-  if token=_LKLAMMER then
-    parameter_dec(aktprocsym.definition);
+        doinsert:=true;
+        if assigned(aktprocsym) then
+         begin
+           { Check if overloaded is a procsym }
+           if aktprocsym.typ<>procsym then
+            begin
+              { when the other symbol is a unit symbol then hide the unit
+                symbol. Only in tp mode because it's bad programming }
+              if (m_tp in aktmodeswitches) and
+                 (aktprocsym.typ=unitsym) then
+               begin
+                 aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
+               end
+              else
+               begin
+                 {  we use a different error message for tp7 so it looks more compatible }
+                 if (m_fpc in aktmodeswitches) then
+                  Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
+                 else
+                  DuplicateSym(aktprocsym);
+                 { don't reinsert as that will generated another error }
+                 doinsert:=false;
+               end;
+              { generate a new aktprocsym }
+              aktprocsym:=nil;
+            end;
+         end;
 
-  { so we only restore the symtable now }
-  symtablestack:=st;
-  if (options=potype_operator) then
-    overloaded_operators[optoken]:=aktprocsym;
-end;
-
-
-procedure parse_proc_dec;
-var
-  hs : string;
-  isclassmethod : boolean;
-begin
-  inc(lexlevel);
-{ read class method }
-  if token=_CLASS then
-   begin
-     consume(_CLASS);
-     isclassmethod:=true;
-   end
-  else
-   isclassmethod:=false;
-  case token of
-     _FUNCTION : begin
-                   consume(_FUNCTION);
-                   parse_proc_head(potype_none);
-                   if token<>_COLON then
+        { test again if assigned, it can be reset to recover }
+        if not assigned(aktprocsym) then
+         begin
+           { create a new procsym and set the real filepos }
+           akttokenpos:=procstartfilepos;
+           { for operator we have only one procsym for each overloaded
+             operation }
+           if (options=potype_operator) then
+             begin
+               { is the current overload sym already in the current unit }
+               if assigned(overloaded_operators[optoken]) and
+                  (overloaded_operators[optoken].owner=symtablestack) then
+                 aktprocsym:=overloaded_operators[optoken]
+               else
+                 begin
+                   { create the procsym with saving the original case }
+                   aktprocsym:=tprocsym.create('$'+sp);
+                   { add already known overloaded defs }
+                   if assigned(overloaded_operators[optoken]) then
                     begin
-                       if assigned(aktprocsym) and
-                          not(is_interface(aktprocsym.definition._class)) and
-                          not(aktprocsym.definition.forwarddef) or
-                         (m_repeat_forward in aktmodeswitches) then
+                      pdl:=overloaded_operators[optoken].defs;
+                      while assigned(pdl) do
                        begin
-                         consume(_COLON);
-                         consume_all_until(_SEMICOLON);
+                         aktprocsym.addprocdef(pdl^.def);
+                         pdl:=pdl^.next;
                        end;
-                    end
-                   else
-                    begin
-                      consume(_COLON);
-                      inc(testcurobject);
-                      single_type(aktprocsym.definition.rettype,hs,false);
-                      aktprocsym.definition.test_if_fpu_result;
-                      dec(testcurobject);
                     end;
                  end;
-    _PROCEDURE : begin
-                   consume(_PROCEDURE);
-                   parse_proc_head(potype_none);
-                   if assigned(aktprocsym) then
-                     aktprocsym.definition.rettype:=voidtype;
-                 end;
-  _CONSTRUCTOR : begin
-                   consume(_CONSTRUCTOR);
-                   parse_proc_head(potype_constructor);
-                   if assigned(procinfo^._class) and
-                      is_class(procinfo^._class) then
-                    begin
-                      { CLASS constructors return the created instance }
-                      aktprocsym.definition.rettype.setdef(procinfo^._class);
-                    end
-                   else
-                    begin
-                      { OBJECT constructors return a boolean }
-                      aktprocsym.definition.rettype:=booltype;
-                    end;
-                 end;
-   _DESTRUCTOR : begin
-                   consume(_DESTRUCTOR);
-                   parse_proc_head(potype_destructor);
-                   aktprocsym.definition.rettype:=voidtype;
-                 end;
-     _OPERATOR : begin
-                   if lexlevel>normal_function_level then
-                     Message(parser_e_no_local_operator);
-                   consume(_OPERATOR);
-                   if (token in [first_overloaded..last_overloaded]) then
-                    begin
-                      procinfo^.flags:=procinfo^.flags or pi_operator;
-                      optoken:=token;
-                    end
-                   else
-                    begin
-                      Message(parser_e_overload_operator_failed);
-                      { Use the dummy NOTOKEN that is also declared
-                        for the overloaded_operator[] }
-                      optoken:=NOTOKEN;
-                    end;
-                   consume(Token);
-                   parse_proc_head(potype_operator);
-                   if token<>_ID then
-                     begin
-                        otsym:=nil;
-                        if not(m_result in aktmodeswitches) then
-                          consume(_ID);
-                     end
-                   else
-                     begin
-                       otsym:=tvarsym.create(pattern,voidtype);
-                       consume(_ID);
-                     end;
-                   if not try_to_consume(_COLON) then
-                     begin
-                       consume(_COLON);
-                       aktprocsym.definition.rettype:=generrortype;
-                       consume_all_until(_SEMICOLON);
-                     end
-                   else
-                    begin
-                      single_type(aktprocsym.definition.rettype,hs,false);
-                      aktprocsym.definition.test_if_fpu_result;
-                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                         ((aktprocsym.definition.rettype.def.deftype<>
-                         orddef) or (torddef(aktprocsym.definition.
-                         rettype.def).typ<>bool8bit)) then
-                        Message(parser_e_comparative_operator_return_boolean);
-                       if assigned(otsym) then
-                         otsym.vartype.def:=aktprocsym.definition.rettype.def;
-                       { We need to add the return type in the mangledname
-                         to allow overloading with just different results !! (PM) }
-                       aktprocsym.definition.setmangledname(
-                         aktprocsym.definition.mangledname+'$$'+hs);
-                       if (optoken=_ASSIGNMENT) and
-                          is_equal(aktprocsym.definition.rettype.def,
-                             tvarsym(aktprocsym.definition.parast.symindex.first).vartype.def) then
-                         message(parser_e_no_such_assignment)
-                       else if not isoperatoracceptable(aktprocsym.definition,optoken) then
-                         Message(parser_e_overload_impossible);
-                     end;
-                 end;
-  end;
-  if isclassmethod and
-     assigned(aktprocsym) then
-    include(aktprocsym.definition.procoptions,po_classmethod);
-  { support procedure proc;stdcall export; in Delphi mode only }
-  if not((m_delphi in aktmodeswitches) and
-     is_proc_directive(token)) then
-   consume(_SEMICOLON);
-  dec(lexlevel);
-end;
+             end
+            else
+             aktprocsym:=tprocsym.create(orgsp);
+            if doinsert then
+             symtablestack.insert(aktprocsym);
+         end;
+
+        st:=symtablestack;
+        aktprocdef:=tprocdef.create;
+        aktprocdef.symtablelevel:=symtablestack.symtablelevel;
+
+        if assigned(procinfo^._class) then
+          aktprocdef._class := procinfo^._class;
+
+        { set the options from the caller (podestructor or poconstructor) }
+        aktprocdef.proctypeoption:=options;
+
+        { calculate the offset of the parameters }
+        paramoffset:=8;
+
+        { calculate frame pointer offset }
+        if lexlevel>normal_function_level then
+          begin
+            procinfo^.framepointer_offset:=paramoffset;
+            inc(paramoffset,target_info.size_of_pointer);
+            { this is needed to get correct framepointer push for local
+              forward functions !! }
+            aktprocdef.parast.symtablelevel:=lexlevel;
+          end;
+
+        if assigned (procinfo^._Class)  and
+           is_object(procinfo^._Class) and
+           (aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
+          inc(paramoffset,target_info.size_of_pointer);
+
+        { self pointer offset                       }
+        { self isn't pushed in nested procedure of methods }
+        if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
+          begin
+            procinfo^.selfpointer_offset:=paramoffset;
+            if assigned(aktprocdef) and
+               not(po_containsself in aktprocdef.procoptions) then
+              inc(paramoffset,target_info.size_of_pointer);
+          end;
+
+        { con/-destructor flag ? }
+        if assigned (procinfo^._Class) and
+           is_class(procinfo^._class) and
+           (aktprocdef.proctypeoption in [potype_destructor,potype_constructor]) then
+          inc(paramoffset,target_info.size_of_pointer);
+
+        procinfo^.para_offset:=paramoffset;
+
+        aktprocdef.parast.datasize:=0;
+
+        { add procsym to the procdef }
+        aktprocdef.procsym:=aktprocsym;
+
+        { save file position }
+        aktprocdef.fileinfo:=procstartfilepos;
+
+        { store mangledname }
+        aktprocdef.setmangledname(hs);
+
+        if not parse_only then
+          begin
+             overloaded_level:=1;
+             { we need another procprefix !!! }
+             { count, but only those in the same unit !!}
+             procdefs:=aktprocsym.defs;
+             while assigned(procdefs) and
+                   (procdefs^.def.owner.symtabletype in [globalsymtable,staticsymtable]) do
+               begin
+                  { only count already implemented functions }
+                  if not(procdefs^.def.forwarddef) then
+                    inc(overloaded_level);
+                  procdefs:=procdefs^.next;
+               end;
+             if overloaded_level>0 then
+               procprefix:=hs+'$'+tostr(overloaded_level)+'$'
+             else
+               procprefix:=hs+'$';
+          end;
+
+        { this must also be inserted in the right symtable !! PM }
+        { otherwise we get subbtle problems with
+          definitions of args defs in staticsymtable for
+          implementation of a global method }
+        if token=_LKLAMMER then
+          parameter_dec(aktprocdef);
+
+        { so we only restore the symtable now }
+        symtablestack:=st;
+        if (options=potype_operator) then
+          overloaded_operators[optoken]:=aktprocsym;
+      end;
+
+
+    procedure parse_proc_dec;
+      var
+        hs : string;
+        isclassmethod : boolean;
+      begin
+        inc(lexlevel);
+      { read class method }
+        if token=_CLASS then
+         begin
+           consume(_CLASS);
+           isclassmethod:=true;
+         end
+        else
+         isclassmethod:=false;
+        case token of
+           _FUNCTION : begin
+                         consume(_FUNCTION);
+                         parse_proc_head(potype_none);
+                         if token<>_COLON then
+                          begin
+                             if assigned(aktprocsym) and
+                                not(is_interface(aktprocdef._class)) and
+                                not(aktprocdef.forwarddef) or
+                               (m_repeat_forward in aktmodeswitches) then
+                             begin
+                               consume(_COLON);
+                               consume_all_until(_SEMICOLON);
+                             end;
+                          end
+                         else
+                          begin
+                            consume(_COLON);
+                            inc(testcurobject);
+                            single_type(aktprocdef.rettype,hs,false);
+                            aktprocdef.test_if_fpu_result;
+                            dec(testcurobject);
+                          end;
+                       end;
+          _PROCEDURE : begin
+                         consume(_PROCEDURE);
+                         parse_proc_head(potype_none);
+                         if assigned(aktprocsym) then
+                           aktprocdef.rettype:=voidtype;
+                       end;
+        _CONSTRUCTOR : begin
+                         consume(_CONSTRUCTOR);
+                         parse_proc_head(potype_constructor);
+                         if assigned(procinfo^._class) and
+                            is_class(procinfo^._class) then
+                          begin
+                            { CLASS constructors return the created instance }
+                            aktprocdef.rettype.setdef(procinfo^._class);
+                          end
+                         else
+                          begin
+                            { OBJECT constructors return a boolean }
+                            aktprocdef.rettype:=booltype;
+                          end;
+                       end;
+         _DESTRUCTOR : begin
+                         consume(_DESTRUCTOR);
+                         parse_proc_head(potype_destructor);
+                         aktprocdef.rettype:=voidtype;
+                       end;
+           _OPERATOR : begin
+                         if lexlevel>normal_function_level then
+                           Message(parser_e_no_local_operator);
+                         consume(_OPERATOR);
+                         if (token in [first_overloaded..last_overloaded]) then
+                          begin
+                            procinfo^.flags:=procinfo^.flags or pi_operator;
+                            optoken:=token;
+                          end
+                         else
+                          begin
+                            Message(parser_e_overload_operator_failed);
+                            { Use the dummy NOTOKEN that is also declared
+                              for the overloaded_operator[] }
+                            optoken:=NOTOKEN;
+                          end;
+                         consume(Token);
+                         parse_proc_head(potype_operator);
+                         if token<>_ID then
+                           begin
+                              otsym:=nil;
+                              if not(m_result in aktmodeswitches) then
+                                consume(_ID);
+                           end
+                         else
+                           begin
+                             otsym:=tvarsym.create(pattern,voidtype);
+                             consume(_ID);
+                           end;
+                         if not try_to_consume(_COLON) then
+                           begin
+                             consume(_COLON);
+                             aktprocdef.rettype:=generrortype;
+                             consume_all_until(_SEMICOLON);
+                           end
+                         else
+                          begin
+                            single_type(aktprocdef.rettype,hs,false);
+                            aktprocdef.test_if_fpu_result;
+                            if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
+                               ((aktprocdef.rettype.def.deftype<>
+                               orddef) or (torddef(aktprocdef.
+                               rettype.def).typ<>bool8bit)) then
+                              Message(parser_e_comparative_operator_return_boolean);
+                             if assigned(otsym) then
+                               otsym.vartype.def:=aktprocdef.rettype.def;
+                             { We need to add the return type in the mangledname
+                               to allow overloading with just different results !! (PM) }
+                             aktprocdef.setmangledname(
+                               aktprocdef.mangledname+'$$'+hs);
+                             if (optoken=_ASSIGNMENT) and
+                                is_equal(aktprocdef.rettype.def,
+                                   tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
+                               message(parser_e_no_such_assignment)
+                             else if not isoperatoracceptable(aktprocdef,optoken) then
+                               Message(parser_e_overload_impossible);
+                           end;
+                       end;
+        end;
+        if isclassmethod and
+           assigned(aktprocsym) then
+          include(aktprocdef.procoptions,po_classmethod);
+        { support procedure proc;stdcall export; in Delphi mode only }
+        if not((m_delphi in aktmodeswitches) and
+           is_proc_directive(token)) then
+         consume(_SEMICOLON);
+        dec(lexlevel);
+      end;
 
 
 {****************************************************************************
@@ -816,40 +831,40 @@ begin
   { only os/2 needs this }
   if target_info.target=target_i386_os2 then
    begin
-     aktprocsym.definition.aliasnames.insert(aktprocsym.realname);
+     aktprocdef.aliasnames.insert(aktprocsym.realname);
      procinfo^.exported:=true;
      if cs_link_deffile in aktglobalswitches then
-       deffile.AddExport(aktprocsym.definition.mangledname);
+       deffile.AddExport(aktprocdef.mangledname);
    end;
 end;
 
 procedure pd_forward;
 begin
-  aktprocsym.definition.forwarddef:=true;
+  aktprocdef.forwarddef:=true;
 end;
 
 procedure pd_alias;
 begin
   consume(_COLON);
-  aktprocsym.definition.aliasnames.insert(get_stringconst);
+  aktprocdef.aliasnames.insert(get_stringconst);
 end;
 
 procedure pd_asmname;
 begin
-  aktprocsym.definition.setmangledname(target_info.Cprefix+pattern);
-  aktprocsym.definition.has_mangledname:=true;
+  aktprocdef.setmangledname(target_info.Cprefix+pattern);
+  aktprocdef.has_mangledname:=true;
   if token=_CCHAR then
     consume(_CCHAR)
   else
     consume(_CSTRING);
   { we don't need anything else }
-  aktprocsym.definition.forwarddef:=false;
+  aktprocdef.forwarddef:=false;
 end;
 
 procedure pd_intern;
 begin
   consume(_COLON);
-  aktprocsym.definition.extnumber:=get_intconst;
+  aktprocdef.extnumber:=get_intconst;
 end;
 
 procedure pd_interrupt;
@@ -864,12 +879,12 @@ end;
 
 procedure pd_abstract;
 begin
-  if (po_virtualmethod in aktprocsym.definition.procoptions) then
-    include(aktprocsym.definition.procoptions,po_abstractmethod)
+  if (po_virtualmethod in aktprocdef.procoptions) then
+    include(aktprocdef.procoptions,po_abstractmethod)
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
-  aktprocsym.definition.forwarddef:=false;
+  aktprocdef.forwarddef:=false;
 end;
 
 procedure pd_virtual;
@@ -878,19 +893,19 @@ var
   pt : tnode;
 {$endif WITHDMT}
 begin
-  if (aktprocsym.definition.proctypeoption=potype_constructor) and
-     is_object(aktprocsym.definition._class) then
+  if (aktprocdef.proctypeoption=potype_constructor) and
+     is_object(aktprocdef._class) then
     Message(parser_e_constructor_cannot_be_not_virtual);
 {$ifdef WITHDMT}
-  if is_object(aktprocsym.definition._class) and
+  if is_object(aktprocdef._class) and
     (token<>_SEMICOLON) then
     begin
        { any type of parameter is allowed here! }
        pt:=comp_expr(true);
        if is_constintnode(pt) then
          begin
-           include(aktprocsym.definition.procoptions,po_msgint);
-           aktprocsym.definition.messageinf.i:=pt^.value;
+           include(aktprocdef.procoptions,po_msgint);
+           aktprocdef.messageinf.i:=pt^.value;
          end
        else
          Message(parser_e_ill_msg_expr);
@@ -904,13 +919,13 @@ begin
   if (cs_static_keyword in aktmoduleswitches) then
     begin
       include(aktprocsym.symoptions,sp_static);
-      include(aktprocsym.definition.procoptions,po_staticmethod);
+      include(aktprocdef.procoptions,po_staticmethod);
     end;
 end;
 
 procedure pd_override;
 begin
-  if not(is_class_or_interface(aktprocsym.definition._class)) then
+  if not(is_class_or_interface(aktprocdef._class)) then
     Message(parser_e_no_object_override);
 end;
 
@@ -924,22 +939,22 @@ var
   pt : tnode;
 begin
   { check parameter type }
-  if not(po_containsself in aktprocsym.definition.procoptions) and
-     ((aktprocsym.definition.minparacount<>1) or
-      (aktprocsym.definition.maxparacount<>1) or
-      (TParaItem(aktprocsym.definition.Para.first).paratyp<>vs_var)) then
+  if not(po_containsself in aktprocdef.procoptions) and
+     ((aktprocdef.minparacount<>1) or
+      (aktprocdef.maxparacount<>1) or
+      (TParaItem(aktprocdef.Para.first).paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
   if pt.nodetype=stringconstn then
     begin
-      include(aktprocsym.definition.procoptions,po_msgstr);
-      aktprocsym.definition.messageinf.str:=strnew(tstringconstnode(pt).value_str);
+      include(aktprocdef.procoptions,po_msgstr);
+      aktprocdef.messageinf.str:=strnew(tstringconstnode(pt).value_str);
     end
   else
    if is_constintnode(pt) then
     begin
-      include(aktprocsym.definition.procoptions,po_msgint);
-      aktprocsym.definition.messageinf.i:=tordconstnode(pt).value;
+      include(aktprocdef.procoptions,po_msgint);
+      aktprocdef.messageinf.i:=tordconstnode(pt).value;
     end
   else
     Message(parser_e_ill_msg_expr);
@@ -955,8 +970,8 @@ end;
 
 procedure pd_syscall;
 begin
-  aktprocsym.definition.forwarddef:=false;
-  aktprocsym.definition.extnumber:=get_intconst;
+  aktprocdef.forwarddef:=false;
+  aktprocdef.extnumber:=get_intconst;
 end;
 
 
@@ -974,7 +989,7 @@ var
   import_name : string;
   import_nr   : word;
 begin
-  aktprocsym.definition.forwarddef:=false;
+  aktprocdef.forwarddef:=false;
 { forbid local external procedures }
   if lexlevel>normal_function_level then
    Message(parser_e_no_local_external);
@@ -998,32 +1013,31 @@ begin
          consume(_INDEX);
          import_nr:=get_intconst;
        end;
+      { default is to used the realname of the procedure }
       if (import_nr=0) and (import_name='') then
-        {if (aktprocsym.definition.options and pocdecl)<>0 then
-          import_name:=aktprocsym.definition.mangledname
-        else
-          Message(parser_w_empty_import_name);}
-        { this should work both for win32 and Linux !! PM }
         import_name:=aktprocsym.realname;
+      { create importlib if not already done }
       if not(current_module.uses_imports) then
        begin
          current_module.uses_imports:=true;
          importlib.preparelib(current_module.modulename^);
        end;
+{$ifdef notused}
       if not(m_repeat_forward in aktmodeswitches) and
-        { if the procedure is declared with the overload option     }
-        { it requires a full declaration in the implementation part }
-        not(sp_has_overloaded in aktprocsym.symoptions) then
+         { if the procedure is declared with the overload option     }
+         { it requires a full declaration in the implementation part }
+         not(sp_has_overloaded in aktprocsym.symoptions) then
         begin
           { we can only have one overloaded here ! }
-          if assigned(aktprocsym.definition.nextoverloaded) then
-            importlib.importprocedure(aktprocsym.definition.nextoverloaded.mangledname,
+          if assigned(aktprocdef.defs.next) then
+            importlib.importprocedure(aktprocdef.defs.next.mangledname,
               import_dll,import_nr,import_name)
           else
-            importlib.importprocedure(aktprocsym.mangledname,import_dll,import_nr,import_name);
+            importlib.importprocedure(aktprocdef.mangledname,import_dll,import_nr,import_name);
         end
       else
-        importlib.importprocedure(aktprocsym.mangledname,import_dll,import_nr,import_name);
+{$endif notused}
+      importlib.importprocedure(aktprocdef.mangledname,import_dll,import_nr,import_name);
     end
   else
     begin
@@ -1031,8 +1045,8 @@ begin
        begin
          consume(_NAME);
          import_name:=get_stringconst;
-         aktprocsym.definition.setmangledname(import_name);
-         aktprocsym.definition.has_mangledname:=true;
+         aktprocdef.setmangledname(import_name);
+         aktprocdef.has_mangledname:=true;
        end;
     end;
 end;
@@ -1445,9 +1459,9 @@ const
           exit;
 
       { Conflicts between directives ? }
-        if (aktprocsym.definition.proctypeoption in proc_direcdata[p].mutexclpotype) or
-           (aktprocsym.definition.proccalloption in proc_direcdata[p].mutexclpocall) or
-           ((aktprocsym.definition.procoptions*proc_direcdata[p].mutexclpo)<>[]) then
+        if (aktprocdef.proctypeoption in proc_direcdata[p].mutexclpotype) or
+           (aktprocdef.proccalloption in proc_direcdata[p].mutexclpocall) or
+           ((aktprocdef.procoptions*proc_direcdata[p].mutexclpo)<>[]) then
          begin
            Message1(parser_e_proc_dir_conflict,name);
            exit;
@@ -1456,30 +1470,30 @@ const
       { set calling convention }
         if proc_direcdata[p].pocall<>pocall_none then
          begin
-           if aktprocsym.definition.proccalloption<>pocall_none then
+           if aktprocdef.proccalloption<>pocall_none then
             begin
               Message2(parser_w_proc_overriding_calling,
-                proccalloptionStr[aktprocsym.definition.proccalloption],
+                proccalloptionStr[aktprocdef.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
-           aktprocsym.definition.proccalloption:=proc_direcdata[p].pocall;
+           aktprocdef.proccalloption:=proc_direcdata[p].pocall;
          end;
 
-        if aktprocsym.definition.deftype=procdef then
+        if aktprocdef.deftype=procdef then
          begin
            { Check if the directive is only for objects }
            if ((proc_direcdata[p].pd_flags and pd_object)<>0) and
-              not assigned(aktprocsym.definition._class) then
+              not assigned(aktprocdef._class) then
             exit;
 
            { check if method and directive not for object public }
            if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
-              assigned(aktprocsym.definition._class) then
+              assigned(aktprocdef._class) then
             exit;
 
            { check if method and directive not for interface }
            if ((proc_direcdata[p].pd_flags and pd_notobjintf)<>0) and
-              is_interface(aktprocsym.definition._class) then
+              is_interface(aktprocdef._class) then
             exit;
          end;
 
@@ -1514,7 +1528,7 @@ const
           pdflags:=pdflags or pd_global;
 
       { Add the correct flag }
-        aktprocsym.definition.procoptions:=aktprocsym.definition.procoptions+proc_direcdata[p].pooption;
+        aktprocdef.procoptions:=aktprocdef.procoptions+proc_direcdata[p].pooption;
 
       { Call the handler }
         if pointer({$ifndef FPCPROCVAR}@{$endif}proc_direcdata[p].handler)<>nil then
@@ -1700,7 +1714,7 @@ const
            else
             break;
          end;
-        handle_calling_convention(aktprocsym,aktprocsym.definition);
+        handle_calling_convention(aktprocsym,aktprocdef);
       end;
 
 
@@ -1708,9 +1722,11 @@ const
       var
         pdflags : word;
         oldsym  : tprocsym;
+        olddef  : tprocdef;
         pd      : tabstractprocdef;
       begin
         oldsym:=aktprocsym;
+        olddef:=aktprocdef;
         pdflags:=pd_procvar;
         { we create a temporary aktprocsym to read the directives }
         aktprocsym:=tprocsym.create(sym.name);
@@ -1726,14 +1742,14 @@ const
         end;
         if pd.deftype<>procvardef then
          internalerror(994932433);
-        tabstractprocdef(aktprocsym.definition):=pd;
+        tabstractprocdef(aktprocdef):=pd;
         { names should never be used anyway }
         inc(lexlevel);
         parse_proc_directives(pdflags);
         dec(lexlevel);
-        aktprocsym.definition:=nil;
         aktprocsym.free;
         aktprocsym:=oldsym;
+        aktprocdef:=olddef;
       end;
 
 
@@ -1745,271 +1761,253 @@ const
         inc(lexlevel);
         parse_proc_directives(pdflags);
         dec(lexlevel);
-        if (po_containsself in aktprocsym.definition.procoptions) and
-           (([po_msgstr,po_msgint]*aktprocsym.definition.procoptions)=[]) then
+        if (po_containsself in aktprocdef.procoptions) and
+           (([po_msgstr,po_msgint]*aktprocdef.procoptions)=[]) then
           Message(parser_e_self_in_non_message_handler);
       end;
 
 
-    function check_identical_proc(var p : tprocdef) : boolean;
+    function proc_add_definition(aprocsym:tprocsym;var aprocdef : tprocdef) : boolean;
       {
-        Search for idendical definitions,
-        if there is a forward, then kill this.
-
-        Returns the result of the forward check.
-
-        Removed from unter_dec to keep the source readable
+        Add definition aprocdef to the overloaded definitions of aprocsym. If a
+        forwarddef is found and reused it returns true
       }
       var
-        hd,pd : tprocdef;
+        hd    : tprocdef;
+        pdl   : pprocdeflist;
         ad,fd : tsym;
+        forwardfound : boolean;
       begin
-        check_identical_proc:=false;
-        p:=nil;
-        pd:=aktprocsym.definition;
-        if assigned(pd) then
+        forwardfound:=false;
+
+        { check overloaded functions if the same function already exists }
+        pdl:=aprocsym.defs;
+        while assigned(pdl) do
          begin
-         { Is there an overload/forward ? }
-           if assigned(pd.nextoverloaded) then
-            begin
-            { walk the procdef list }
-              while (assigned(pd)) and (assigned(pd.nextoverloaded)) do
-               begin
-                 hd:=pd.nextoverloaded;
+           hd:=pdl^.def;
 
-                 { check the parameters, for delphi/tp it is possible to
-                   leave the parameters away in the implementation (forwarddef=false).
-                   But for an overload declared function this is not allowed }
-                 if { check if empty implementation arguments match is allowed }
-                    (
-                     not(m_repeat_forward in aktmodeswitches) and
-                     (aktprocsym.definition.maxparacount=0) and
-                     not(aktprocsym.definition.forwarddef) and
-                     not(po_overload in hd.procoptions)
-                    ) or
-                    { check arguments }
-                    (
-                     equal_paras(aktprocsym.definition.para,hd.para,cp_none) and
-                     { for operators equal_paras is not enough !! }
-                     ((aktprocsym.definition.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-                      is_equal(hd.rettype.def,aktprocsym.definition.rettype.def))
-                    ) then
-                   begin
-                     if not equal_paras(aktprocsym.definition.para,hd.para,cp_all) and
-                        ((m_repeat_forward in aktmodeswitches) or
-                         (aktprocsym.definition.maxparacount>0)) then
-                       begin
-                          MessagePos1(aktprocsym.definition.fileinfo,parser_e_header_dont_match_forward,
-                                      aktprocsym.definition.fullprocname);
-                          exit;
-                       end;
-                     if hd.forwarddef then
-                     { remove the forward definition  but don't delete it,      }
-                     { the symtable is the owner !!  }
-                       begin
-                       { Check if the procedure type and return type are correct }
-                         if (hd.proctypeoption<>aktprocsym.definition.proctypeoption) or
-                            (not(is_equal(hd.rettype.def,aktprocsym.definition.rettype.def)) and
-                            (m_repeat_forward in aktmodeswitches)) then
-                           begin
-                             MessagePos1(aktprocsym.definition.fileinfo,parser_e_header_dont_match_forward,
-                                         aktprocsym.definition.fullprocname);
-                             exit;
-                           end;
-                        { no check for internconst,internproc which
-                          are only defined in interface or implementation }
-                         if (aktprocsym.definition.proccalloption in [pocall_internconst,pocall_internproc]) then
-                           hd.proccalloption:=aktprocsym.definition.proccalloption
-                         else
-                           if (hd.proccalloption in [pocall_internconst,pocall_internproc]) then
-                             aktprocsym.definition.proccalloption:=hd.proccalloption;
-                         { Check calling convention }
-                         if (hd.proccalloption<>aktprocsym.definition.proccalloption) then
-                          begin
-                            { only trigger an error, becuase it doesn't hurt, for delphi check
-                              if the current implementation has no proccalloption, then
-                              take the options from the interface }
-                            if (m_delphi in aktmodeswitches) then
-                             begin
-                               if (aktprocsym.definition.proccalloption=pocall_none) then
-                                aktprocsym.definition.proccalloption:=hd.proccalloption
-                               else
-                                MessagePos(aktprocsym.definition.fileinfo,parser_e_call_convention_dont_match_forward);
-                             end
-                            else
-                             MessagePos(aktprocsym.definition.fileinfo,parser_e_call_convention_dont_match_forward);
-                            { set the mangledname to the interface name so it doesn't trigger
-                              the Note about different manglednames (PFV) }
-                            aktprocsym.definition.setmangledname(hd.mangledname);
-                          end;
-                         { manglednames are equal? }
-                         hd.count:=false;
-                         if (m_repeat_forward in aktmodeswitches) or
-                            aktprocsym.definition.haspara then
-                          begin
-                            if (hd.mangledname<>aktprocsym.definition.mangledname) then
-                             begin
-                               if not(po_external in aktprocsym.definition.procoptions) then
-                                 MessagePos2(aktprocsym.definition.fileinfo,parser_n_interface_name_diff_implementation_name,hd.mangledname,
-                                   aktprocsym.definition.mangledname);
-                             { reset the mangledname of the interface part to be sure }
-                             { this is wrong because the mangled name might have been used already !! }
-                                if hd.is_used then
-                                  renameasmsymbol(hd.mangledname,aktprocsym.definition.mangledname);
-                                hd.setmangledname(aktprocsym.definition.mangledname);
-                             end
-                            else
-                             begin
-                             { If mangled names are equal, therefore    }
-                             { they have the same number of parameters  }
-                             { Therefore we can check the name of these }
-                             { parameters...                      }
-                               if hd.forwarddef and aktprocsym.definition.forwarddef then
-                                 begin
-                                   MessagePos1(aktprocsym.definition.fileinfo,
-                                               parser_e_function_already_declared_public_forward,
-                                               aktprocsym.definition.fullprocname);
-                                   check_identical_proc:=true;
-                                 { Remove other forward from the list to reduce errors }
-                                   pd.nextoverloaded:=pd.nextoverloaded.nextoverloaded;
-                                   exit;
-                                 end;
-                               { both symtables are in the same order from left to right }
-                               ad:=tsym(hd.parast.symindex.first);
-                               fd:=tsym(aktprocsym.definition.parast.symindex.first);
-                               while assigned(ad) and assigned(fd) do
-                                begin
-                                  if ad.name<>fd.name then
-                                   begin
-                                     { don't give an error if the default parameter is not
-                                       specified in the implementation }
-                                     if ((copy(fd.name,1,3)='def') and
-                                         (copy(ad.name,1,3)<>'def')) then
-                                       MessagePos3(aktprocsym.definition.fileinfo,parser_e_header_different_var_names,
-                                                   aktprocsym.name,ad.name,fd.name);
-                                     break;
-                                   end;
-                                  ad:=tsym(ad.indexnext);
-                                  fd:=tsym(fd.indexnext);
-                                end;
-                             end;
-                          end;
-                       { also the para_offset }
-                         hd.parast.address_fixup:=aktprocsym.definition.parast.address_fixup;
-                         hd.count:=true;
-
-                       { remove pd.nextoverloaded from the list }
-                       { and add aktprocsym.definition }
-                         pd.nextoverloaded:=pd.nextoverloaded.nextoverloaded;
-                         hd.nextoverloaded:=aktprocsym.definition.nextoverloaded;
-                       { Alert! All fields of aktprocsym.definition that are modified
-                         by the procdir handlers must be copied here!.}
-                         hd.forwarddef:=false;
-                         hd.hasforward:=true;
-                         hd.proccalloption:=aktprocsym.definition.proccalloption;
-                         hd.procoptions:=hd.procoptions + aktprocsym.definition.procoptions;
-                         if aktprocsym.definition.extnumber=-1 then
-                           aktprocsym.definition.extnumber:=hd.extnumber
-                         else
-                           if hd.extnumber=-1 then
-                             hd.extnumber:=aktprocsym.definition.extnumber;
-                         { copy all aliasnames }
-                         while not aktprocsym.definition.aliasnames.empty do
-                          hd.aliasnames.insert(aktprocsym.definition.aliasnames.getfirst);
-                         if pd=aktprocsym.definition then
-                           p:=nil
-                         else
-                           p:=pd;
-                         aktprocsym.definition:=hd;
-                         { for compilerproc defines we need to rename and update the
-                           mangledname }
-                         if (aktprocsym.definition.proccalloption=pocall_compilerproc) then
-                          begin
-                            { rename to lowercase so users can't access it }
-                            aktprocsym.owner.rename(aktprocsym.name,lower(aktprocsym.name));
-                            { also update the realname that is stored in the ppu }
-                            stringdispose(aktprocsym._realname);
-                            aktprocsym._realname:=stringdup('$'+aktprocsym.name);
-                            { the mangeled name is already changed by the pd_compilerproc }
-                            { handler. It must be done immediately because if we have a   }
-                            { call to a compilerproc before it's implementation is        }
-                            { encountered, it must already use the new mangled name (JM)  }
-                          end;
-                         check_identical_proc:=true;
-                         break;
-                       end
-                     else
-                     { abstract methods aren't forward defined, but this }
-                     { needs another error message                   }
-                       if (po_abstractmethod in pd.nextoverloaded.procoptions) then
-                          MessagePos(aktprocsym.definition.fileinfo,parser_e_abstract_no_definition)
-                       else
-                          MessagePos(aktprocsym.definition.fileinfo,parser_e_overloaded_have_same_parameters);
+           { check the parameters, for delphi/tp it is possible to
+             leave the parameters away in the implementation (forwarddef=false).
+             But for an overload declared function this is not allowed }
+           if { check if empty implementation arguments match is allowed }
+              (
+               not(m_repeat_forward in aktmodeswitches) and
+               not(aprocdef.forwarddef) and
+               (aprocdef.maxparacount=0) and
+               not(po_overload in hd.procoptions)
+              ) or
+              { check arguments }
+              (
+               equal_paras(aprocdef.para,hd.para,cp_none) and
+               { for operators equal_paras is not enough !! }
+               ((aprocdef.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
+                is_equal(hd.rettype.def,aprocdef.rettype.def))
+              ) then
+             begin
+               { Check if we've found the forwarddef, if found then
+                 we need to update the forward def with the current
+                 implementation settings }
+               if hd.forwarddef then
+                 begin
+                   { Check if the procedure type and return type are correct }
+                   if (hd.proctypeoption<>aprocdef.proctypeoption) or
+                      (not(is_equal(hd.rettype.def,aprocdef.rettype.def)) and
+                      (m_repeat_forward in aktmodeswitches)) then
+                     begin
+                       MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
+                                   aprocdef.fullprocname);
                        break;
-                   end;
-
-                 { check for allowing overload directive }
-                 if not(m_fpc in aktmodeswitches) then
-                  begin
-                    { overload directive turns on overloading }
-                    if ((po_overload in aktprocsym.definition.procoptions) or
-                        (po_overload in hd.procoptions)) then
-                     begin
-                       { check if all procs have overloading, but not if the proc was
-                         already declared forward, then the check is already done }
-                       if not(hd.hasforward or
-                              (aktprocsym.definition.forwarddef<>hd.forwarddef) or
-                              ((po_overload in aktprocsym.definition.procoptions) and
-                               (po_overload in hd.procoptions))) then
-                        begin
-                          MessagePos1(aktprocsym.definition.fileinfo,parser_e_no_overload_for_all_procs,aktprocsym.realname);
-                          break;
-                        end;
-                     end
-                    else
-                     begin
-                       if not(hd.forwarddef) then
-                        begin
-                          MessagePos(aktprocsym.definition.fileinfo,parser_e_procedure_overloading_is_off);
-                          break;
-                        end;
                      end;
-                  end;
 
-                 { try next overloaded }
-                 pd:=pd.nextoverloaded;
-               end;
-            end
-           else
+                   { Check if both are declared forward }
+                   if hd.forwarddef and aprocdef.forwarddef then
+                    begin
+                      MessagePos1(aprocdef.fileinfo,parser_e_function_already_declared_public_forward,
+                                  aprocdef.fullprocname);
+                    end;
+
+                   { internconst or internproc only need to be defined once }
+                   if (hd.proccalloption in [pocall_internconst,pocall_internproc]) then
+                    aprocdef.proccalloption:=hd.proccalloption
+                   else
+                    if (aprocdef.proccalloption in [pocall_internconst,pocall_internproc]) then
+                     hd.proccalloption:=aprocdef.proccalloption;
+
+                   { Check calling convention }
+                   if (hd.proccalloption<>aprocdef.proccalloption) then
+                    begin
+                      { For delphi check if the current implementation has no proccalloption, then
+                        take the options from the interface }
+                      if (m_delphi in aktmodeswitches) then
+                       begin
+                         if (aprocdef.proccalloption=pocall_none) then
+                          aprocdef.proccalloption:=hd.proccalloption
+                         else
+                          MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                       end
+                      else
+                       MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                      { restore interface settings for error recovery }
+                      aprocdef.proccalloption:=hd.proccalloption;
+                      aprocdef.setmangledname(hd.mangledname);
+                    end;
+
+                   { Check manglednames }
+                   hd.count:=false;
+                   if (m_repeat_forward in aktmodeswitches) or
+                      aprocdef.haspara then
+                    begin
+                      if (hd.mangledname<>aprocdef.mangledname) then
+                       begin
+                         if not(po_external in aprocdef.procoptions) then
+                           MessagePos2(aprocdef.fileinfo,parser_n_interface_name_diff_implementation_name,
+                                       hd.mangledname,aprocdef.mangledname);
+                         { if the mangledname is already used, then rename it to the
+                           new mangledname of the implementation }
+                         if hd.is_used then
+                           renameasmsymbol(hd.mangledname,aprocdef.mangledname);
+                         { reset the mangledname of the interface }
+                         hd.setmangledname(aprocdef.mangledname);
+                       end
+                      else
+                       begin
+                         { If mangled names are equal then they have the same amount of arguments }
+                         { We can check the names of the arguments }
+                         { both symtables are in the same order from left to right }
+                         ad:=tsym(hd.parast.symindex.first);
+                         fd:=tsym(aprocdef.parast.symindex.first);
+                         while assigned(ad) and assigned(fd) do
+                          begin
+                            if ad.name<>fd.name then
+                             begin
+                               { don't give an error if the default parameter is not
+                                 specified in the implementation }
+                               if ((copy(fd.name,1,3)='def') and
+                                   (copy(ad.name,1,3)<>'def')) then
+                                 MessagePos3(aprocdef.fileinfo,parser_e_header_different_var_names,
+                                             aprocsym.name,ad.name,fd.name);
+                               break;
+                             end;
+                            ad:=tsym(ad.indexnext);
+                            fd:=tsym(fd.indexnext);
+                          end;
+                       end;
+                    end;
+                   hd.count:=true;
+
+                   { Everything is checked, now we can update the forward declaration
+                     with the new data from the implementation }
+                   hd.forwarddef:=aprocdef.forwarddef;
+                   hd.hasforward:=true;
+                   hd.parast.address_fixup:=aprocdef.parast.address_fixup;
+                   hd.procoptions:=hd.procoptions+aprocdef.procoptions;
+                   if hd.extnumber=-1 then
+                     hd.extnumber:=aprocdef.extnumber;
+                   while not aprocdef.aliasnames.empty do
+                    hd.aliasnames.insert(aprocdef.aliasnames.getfirst);
+
+                   { for compilerproc defines we need to rename and update the
+                     symbolname to lowercase }
+                   if (aprocdef.proccalloption=pocall_compilerproc) then
+                    begin
+                      { rename to lowercase so users can't access it }
+                      aprocsym.owner.rename(aprocsym.name,lower(aprocsym.name));
+                      { also update the realname that is stored in the ppu }
+                      stringdispose(aprocsym._realname);
+                      aprocsym._realname:=stringdup('$'+aprocsym.name);
+                      { the mangeled name is already changed by the pd_compilerproc }
+                      { handler. It must be done immediately because if we have a   }
+                      { call to a compilerproc before it's implementation is        }
+                      { encountered, it must already use the new mangled name (JM)  }
+                    end;
+
+                   { return the forwarddef }
+                   aprocdef:=hd;
+
+                   forwardfound:=true;
+                 end
+               else
+                begin
+                  { abstract methods aren't forward defined, but this }
+                  { needs another error message                   }
+                  if (po_abstractmethod in hd.procoptions) then
+                    MessagePos(aprocdef.fileinfo,parser_e_abstract_no_definition)
+                  else
+                    MessagePos(aprocdef.fileinfo,parser_e_overloaded_have_same_parameters);
+                 end;
+
+               { we found one proc with the same arguments, there are no others
+                 so we can stop }
+               break;
+             end;
+
+           { check for allowing overload directive }
+           if not(m_fpc in aktmodeswitches) then
             begin
-            { there is no overloaded, so its always identical with itself }
-              check_identical_proc:=true;
-            end;
+              { overload directive turns on overloading }
+              if ((po_overload in aprocdef.procoptions) or
+                  (po_overload in hd.procoptions)) then
+               begin
+                 { check if all procs have overloading, but not if the proc was
+                   already declared forward, then the check is already done }
+                 if not(hd.hasforward or
+                        (aprocdef.forwarddef<>hd.forwarddef) or
+                        ((po_overload in aprocdef.procoptions) and
+                         (po_overload in hd.procoptions))) then
+                  begin
+                    MessagePos1(aprocdef.fileinfo,parser_e_no_overload_for_all_procs,aprocsym.realname);
+                    break;
+                  end;
+               end
+              else
+               begin
+                 if not(hd.forwarddef) then
+                  begin
+                    MessagePos(aprocdef.fileinfo,parser_e_procedure_overloading_is_off);
+                    break;
+                  end;
+               end;
+            end; { equal arguments }
+
+           { try next overloaded }
+           pdl:=pdl^.next;
          end;
-      { insert otsym only in the right symtable }
-        if ((procinfo^.flags and pi_operator)<>0) and assigned(otsym)
-           and not parse_only then
+
+        { if we didn't reuse a forwarddef then we add the procdef to the overloaded
+          list }
+        if not forwardfound then
+         aprocsym.addprocdef(aprocdef);
+
+        { insert otsym only in the right symtable }
+        if ((procinfo^.flags and pi_operator)<>0) and
+           assigned(otsym) and
+           not parse_only then
           begin
-            if ret_in_param(aktprocsym.definition.rettype.def) then
+            if ret_in_param(aprocdef.rettype.def) then
               begin
-                tprocdef(aktprocsym.definition).parast.insert(otsym);
-              { this increases the data size }
-              { correct this to get the right ret $value }
-                dec(tprocdef(aktprocsym.definition).parast.datasize,
-                    align(otsym.getpushsize,tprocdef(aktprocsym.definition).parast.dataalignment));
+                aprocdef.parast.insert(otsym);
+                { this increases the data size }
+                { correct this to get the right ret $value }
+                dec(aprocdef.parast.datasize,
+                    align(otsym.getpushsize,aktprocdef.parast.dataalignment));
                 { this allows to read the funcretoffset }
                 otsym.address:=-4;
                 otsym.varspez:=vs_var;
               end
             else
-              tprocdef(aktprocsym.definition).localst.insert(otsym);
+              aprocdef.localst.insert(otsym);
           end;
+
+        proc_add_definition:=forwardfound;
       end;
 
 end.
 {
   $Log$
-  Revision 1.40  2001-10-25 21:22:37  peter
+  Revision 1.41  2001-11-02 22:58:03  peter
+    * procsym definition rewrite
+
+  Revision 1.40  2001/10/25 21:22:37  peter
     * calling convention rewrite
 
   Revision 1.39  2001/10/23 21:49:42  peter
@@ -2095,7 +2093,7 @@ end.
 
   Revision 1.27  2001/06/04 18:12:26  peter
     * fixed crash with procvar directive parsing. Be carefull as the procvar
-      directive parsing uses aktprocsym.definition that is a tprocdef, but
+      directive parsing uses aktprocdef that is a tprocdef, but
       for procvar the type is tprocvardef. So some fields are not available
 
   Revision 1.26  2001/06/04 11:53:13  peter

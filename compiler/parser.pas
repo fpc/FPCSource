@@ -38,7 +38,7 @@ implementation
     uses
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
-      symbase,symtable,symsym,fmodule,fppu,aasm,
+      symbase,symtable,symdef,symsym,fmodule,fppu,aasm,
       cgbase,
       script,gendef,
 {$ifdef BrowserLog}
@@ -67,6 +67,7 @@ implementation
 
          { Symtable }
          aktprocsym:=nil;
+         aktprocdef:=nil;
 
          current_module:=nil;
          compiled_module:=nil;
@@ -242,6 +243,7 @@ implementation
          oldsymtablestack : tsymtable;
          oldprocprefix    : string;
          oldaktprocsym    : tprocsym;
+         oldaktprocdef    : tprocdef;
          oldoverloaded_operators : toverloaded_operators;
        { cg }
          oldnextlabelnr : longint;
@@ -305,6 +307,7 @@ implementation
          oldrefsymtable:=refsymtable;
          oldprocprefix:=procprefix;
          oldaktprocsym:=aktprocsym;
+         oldaktprocdef:=aktprocdef;
          oldaktdefproccall:=aktdefproccall;
          move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
        { save scanner state }
@@ -539,6 +542,7 @@ implementation
               defaultsymtablestack:=olddefaultsymtablestack;
               aktdefproccall:=oldaktdefproccall;
               aktprocsym:=oldaktprocsym;
+              aktprocdef:=oldaktprocdef;
               procprefix:=oldprocprefix;
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
               aktlocalswitches:=oldaktlocalswitches;
@@ -607,7 +611,7 @@ implementation
              begin
                { init parts are not needed in units !! }
                if current_module.is_unit then
-                 aktprocsym.definition.forwarddef:=false;
+                 aktprocdef.forwarddef:=false;
                dispose(aktprocsym,done);
              end; *)
           end;
@@ -625,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-10-25 21:22:35  peter
+  Revision 1.26  2001-11-02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.24  2001/10/23 21:49:42  peter

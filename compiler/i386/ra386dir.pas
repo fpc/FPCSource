@@ -74,19 +74,19 @@ interface
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
-           if assigned(aktprocsym.definition.funcretsym) and
+           if assigned(aktprocdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
            s:='';
          end;
 
      begin
        ende:=false;
        s:='';
-       if assigned(aktprocsym.definition.funcretsym) and
-          is_fpu(aktprocsym.definition.rettype.def) then
-         tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
-       if (not is_void(aktprocsym.definition.rettype.def)) then
+       if assigned(aktprocdef.funcretsym) and
+          is_fpu(aktprocdef.rettype.def) then
+         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+       if (not is_void(aktprocdef.rettype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
@@ -131,22 +131,22 @@ interface
                              FwaitWarning
                             else
                             { access to local variables }
-                            if assigned(aktprocsym) then
+                            if assigned(aktprocdef) then
                               begin
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    ret_in_acc(aktprocsym.definition.rettype.def) and
+                                    ret_in_acc(aktprocdef.rettype.def) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
-                                      if assigned(aktprocsym.definition.localst) and
+                                      if assigned(aktprocdef.localst) and
                                          (lexlevel >= normal_function_level) then
-                                        sym:=tsym(aktprocsym.definition.localst.search(upper(hs)))
+                                        sym:=tsym(aktprocdef.localst.search(upper(hs)))
                                       else
                                         sym:=nil;
                                       if assigned(sym) then
@@ -175,13 +175,13 @@ interface
                                            if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
                                               (pos('LEA',upper(s))>0)) then
                                              begin
-                                                hs:=tprocsym(sym).definition.mangledname;
+                                                hs:=tprocsym(sym).defs^.def.mangledname;
                                              end;
                                         end
                                       else
                                         begin
-                                           if assigned(aktprocsym.definition.parast) then
-                                             sym:=tsym(aktprocsym.definition.parast.search(upper(hs)))
+                                           if assigned(aktprocdef.parast) then
+                                             sym:=tsym(aktprocdef.parast.search(upper(hs)))
                                            else
                                              sym:=nil;
                                            if assigned(sym) then
@@ -190,7 +190,7 @@ interface
                                                   begin
                                                      l:=tvarsym(sym).address;
                                                      { set offset }
-                                                     inc(l,aktprocsym.definition.parast.address_fixup);
+                                                     inc(l,aktprocdef.parast.address_fixup);
                                                      hs:=tostr(l)+'('+att_reg2str[procinfo^.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        tvarsym(sym).varstate:=vs_used;
@@ -203,30 +203,37 @@ interface
                                       else
 
                                         begin
-{$ifndef IGNOREGLOBALVAR}
                                            searchsym(upper(hs),sym,srsymtable);
                                            if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
                                              begin
-                                                if (sym.typ = varsym) or (sym.typ = typedconstsym) then
-                                                  begin
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym.mangledname);
-                                                     hs:=sym.mangledname;
-                                                     if sym.typ=varsym then
-                                                       inc(tvarsym(sym).refs);
-                                                  end;
-                                                { procs can be called or the address can be loaded }
-                                                if (sym.typ=procsym) and
-                                                   ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
-                                                  begin
-                                                     if assigned(tprocsym(sym).definition.nextoverloaded) then
-                                                       Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym.mangledname);
-                                                     hs:=sym.mangledname;
-                                                  end;
+                                               case sym.typ of
+                                                 varsym :
+                                                   begin
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
+                                                     hs:=tvarsym(sym).mangledname;
+                                                     inc(tvarsym(sym).refs);
+                                                   end;
+                                                 typedconstsym :
+                                                   begin
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                     hs:=ttypedconstsym(sym).mangledname;
+                                                   end;
+                                                 procsym :
+                                                   begin
+                                                     { procs can be called or the address can be loaded }
+                                                     if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
+                                                      begin
+                                                        if assigned(tprocsym(sym).defs^.def) then
+                                                          Message1(asmr_w_direct_global_is_overloaded_func,hs);
+                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
+                                                        hs:=tprocsym(sym).defs^.def.mangledname;
+                                                      end;
+                                                   end;
+                                                 else
+                                                   Message(asmr_e_wrong_sym_type);
+                                               end;
                                              end
-                                           else
-{$endif TESTGLOBALVAR}
-                                           if upper(hs)='__SELF' then
+                                           else if upper(hs)='__SELF' then
                                              begin
                                                 if assigned(procinfo^._class) then
                                                   hs:=tostr(procinfo^.selfpointer_offset)+
@@ -236,7 +243,7 @@ interface
                                              end
                                            else if upper(hs)='__RESULT' then
                                              begin
-                                                if (not is_void(aktprocsym.definition.rettype.def)) then
+                                                if (not is_void(aktprocdef.rettype.def)) then
                                                   hs:=retstr
                                                 else
                                                   Message(asmr_e_void_function);
@@ -260,7 +267,7 @@ interface
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+                        tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
                      writeasmline;
                      c:=current_scanner.asmgetchar;
                    end;
@@ -295,7 +302,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-08-26 13:37:02  florian
+  Revision 1.12  2001-11-02 22:58:11  peter
+    * procsym definition rewrite
+
+  Revision 1.11  2001/08/26 13:37:02  florian
     * some cg reorganisation
     * some PPC updates
 

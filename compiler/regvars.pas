@@ -71,7 +71,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                  with pregvarinfo(aktprocsym.definition.regvarinfo)^ do
+                  with pregvarinfo(aktprocdef.regvarinfo)^ do
                    if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxvarregs-1 downto i do
@@ -110,7 +110,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
-                  with pregvarinfo(aktprocsym.definition.regvarinfo)^ do
+                  with pregvarinfo(aktprocdef.regvarinfo)^ do
                    if ((fpuregvars[i]=nil) or (j>fpuregvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
@@ -162,7 +162,7 @@ implementation
         begin
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
-          aktprocsym.definition.regvarinfo := regvarinfo;
+          aktprocdef.regvarinfo := regvarinfo;
           if (p.registers32<4) then
             begin
               parasym:=false;
@@ -293,7 +293,7 @@ implementation
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
     begin
-      regvarinfo := pregvarinfo(aktprocsym.definition.regvarinfo);
+      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
@@ -364,7 +364,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      regvarinfo := pregvarinfo(aktprocsym.definition.regvarinfo);
+      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       reg := reg32(reg);
@@ -379,7 +379,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      regvarinfo := pregvarinfo(aktprocsym.definition.regvarinfo);
+      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
@@ -400,7 +400,7 @@ implementation
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         begin
-          regvarinfo := pregvarinfo(aktprocsym.definition.regvarinfo);
+          regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
@@ -498,11 +498,11 @@ implementation
     begin
 {$ifdef i386}
       { can happen when inlining assembler procedures (JM) }
-      if not assigned(aktprocsym.definition.regvarinfo) then
+      if not assigned(aktprocdef.regvarinfo) then
         exit;
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
-        with pregvarinfo(aktprocsym.definition.regvarinfo)^ do
+        with pregvarinfo(aktprocdef.regvarinfo)^ do
           begin
             for i:=1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
@@ -520,7 +520,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2001-08-26 13:36:49  florian
+  Revision 1.19  2001-11-02 22:58:06  peter
+    * procsym definition rewrite
+
+  Revision 1.18  2001/08/26 13:36:49  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -329,7 +329,7 @@ implementation
               right:=nil;
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
-              tprocdef(procdefinition).parast.symtablelevel:=aktprocsym.definition.localst.symtablelevel;
+              tprocdef(procdefinition).parast.symtablelevel:=aktprocdef.localst.symtablelevel;
               if assigned(params) then
                 inlinecode.para_offset:=gettempofsizepersistant(inlinecode.para_size);
               store_parast_fixup:=tprocdef(procdefinition).parast.address_fixup;
@@ -355,7 +355,7 @@ implementation
            begin
               if (cs_check_io in aktlocalswitches) and
                  (po_iocheck in procdefinition.procoptions) and
-                 not(po_iocheck in aktprocsym.definition.procoptions) then
+                 not(po_iocheck in aktprocdef.procoptions) then
                 begin
                    getaddrlabel(iolabel);
                    emitlab(iolabel);
@@ -607,8 +607,6 @@ implementation
 
                                     { a class destructor needs a flag }
                                     if is_class(tobjectdef(methodpointer.resulttype.def)) and
-                                       {assigned(aktprocsym) and
-                                       (aktprocsym.definition.proctypeoption=potype_destructor)}
                                        (procdefinition.proctypeoption=potype_destructor) then
                                       begin
                                         push_int(0);
@@ -617,8 +615,6 @@ implementation
 
                                     if not(is_con_or_destructor and
                                            is_class(methodpointer.resulttype.def) and
-                                           {assigned(aktprocsym) and
-                                          (aktprocsym.definition.proctypeoption in [potype_constructor,potype_destructor])}
                                            (procdefinition.proctypeoption in [potype_constructor,potype_destructor])
                                           ) then
                                       emit_reg(A_PUSH,S_L,R_ESI);
@@ -628,9 +624,9 @@ implementation
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
                                       is_object(methodpointer.resulttype.def) and
-                                      assigned(aktprocsym) then
+                                      assigned(aktprocdef) then
                                       begin
-                                         if not(aktprocsym.definition.proctypeoption in
+                                         if not(aktprocdef.proctypeoption in
                                                 [potype_constructor,potype_destructor]) then
                                           CGMessage(cg_w_member_cd_call_from_method);
                                       end;
@@ -639,8 +635,8 @@ implementation
                                     if is_con_or_destructor and
                                       not(
                                         is_class(methodpointer.resulttype.def) and
-                                        assigned(aktprocsym) and
-                                        (aktprocsym.definition.proctypeoption=potype_destructor)) then
+                                        assigned(aktprocdef) and
+                                        (aktprocdef.proctypeoption=potype_destructor)) then
                                       begin
                                          { a constructor needs also a flag }
                                          if is_class(methodpointer.resulttype.def) then
@@ -765,8 +761,8 @@ implementation
                      begin
                         if (po_classmethod in procdefinition.procoptions) and
                           not(
-                            assigned(aktprocsym) and
-                            (po_classmethod in aktprocsym.definition.procoptions)
+                            assigned(aktprocdef) and
+                            (po_classmethod in aktprocdef.procoptions)
                           ) then
                           begin
                              { class method needs current VMT }
@@ -909,10 +905,10 @@ implementation
                    { Here it is quite tricky because it also depends }
                    { on the methodpointer                        PM }
                    getexplicitregister32(R_ESI);
-                   if assigned(aktprocsym) then
+                   if assigned(aktprocdef) then
                      begin
-                       if (((sp_static in aktprocsym.symoptions) or
-                        (po_classmethod in aktprocsym.definition.procoptions)) and
+                       if (((sp_static in aktprocdef.procsym.symoptions) or
+                        (po_classmethod in aktprocdef.procoptions)) and
                         ((methodpointer=nil) or (methodpointer.nodetype=typen)))
                         or
                         (po_staticmethod in procdefinition.procoptions) or
@@ -944,7 +940,7 @@ implementation
                          end;
                      end
                    else
-                     { aktprocsym should be assigned, also in main program }
+                     { aktprocdef should be assigned, also in main program }
                      internalerror(12345);
                    {
                      begin
@@ -1122,7 +1118,7 @@ implementation
             (procdefinition.proctypeoption=potype_constructor) and
             assigned(methodpointer) and
             (methodpointer.nodetype=typen) and
-            (aktprocsym.definition.proctypeoption=potype_constructor) then
+            (aktprocdef.proctypeoption=potype_constructor) then
            begin
              emitjmp(C_Z,faillabel);
            end;
@@ -1398,7 +1394,7 @@ implementation
 
     procedure ti386procinlinenode.pass_2;
        var st : tsymtable;
-           oldprocsym : tprocsym;
+           oldprocdef : tprocdef;
            ps, i : longint;
            tmpreg: tregister;
            oldprocinfo : pprocinfo;
@@ -1422,9 +1418,9 @@ implementation
 {$endif GDB}
        begin
           { deallocate the registers used for the current procedure's regvars }
-          if assigned(aktprocsym.definition.regvarinfo) then
+          if assigned(aktprocdef.regvarinfo) then
             begin
-              with pregvarinfo(aktprocsym.definition.regvarinfo)^ do
+              with pregvarinfo(aktprocdef.regvarinfo)^ do
                 for i := 1 to maxvarregs do
                   if assigned(regvars[i]) then
                     store_regvar(exprasmlist,regvars[i].reg);
@@ -1443,8 +1439,8 @@ implementation
               resetusableregisters;
               clearregistercount;
               cleartempgen;
-              if assigned(inlineprocsym.definition.regvarinfo) then
-                with pregvarinfo(inlineprocsym.definition.regvarinfo)^ do
+              if assigned(inlineprocdef.regvarinfo) then
+                with pregvarinfo(inlineprocdef.regvarinfo)^ do
                  for i := 1 to maxvarregs do
                   if assigned(regvars[i]) then
                     begin
@@ -1467,18 +1463,17 @@ implementation
           { we're inlining a procedure }
           inlining_procedure:=true;
           { save old procinfo }
-          oldprocsym:=aktprocsym;
           getmem(oldprocinfo,sizeof(tprocinfo));
           move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
           { set new procinfo }
-          aktprocsym:=inlineprocsym;
+          aktprocdef:=inlineprocdef;
           procinfo^.return_offset:=retoffset;
           procinfo^.para_offset:=para_offset;
           procinfo^.no_fast_exit:=false;
           { arg space has been filled by the parent secondcall }
-          st:=aktprocsym.definition.localst;
+          st:=aktprocdef.localst;
           { set it to the same lexical level }
-          st.symtablelevel:=oldprocsym.definition.localst.symtablelevel;
+          st.symtablelevel:=oldprocdef.localst.symtablelevel;
           if st.datasize>0 then
             begin
               st.address_fixup:=gettempofsizepersistant(st.datasize)+st.datasize;
@@ -1498,23 +1493,23 @@ implementation
               getaddrlabel(startlabel);
               getaddrlabel(endlabel);
               emitlab(startlabel);
-              inlineprocsym.definition.localst.symtabletype:=inlinelocalsymtable;
-              inlineprocsym.definition.parast.symtabletype:=inlineparasymtable;
+              inlineprocdef.localst.symtabletype:=inlinelocalsymtable;
+              inlineprocdef.parast.symtabletype:=inlineparasymtable;
 
               { Here we must include the para and local symtable info }
-              inlineprocsym.concatstabto(withdebuglist);
+              tprocsym(inlineprocdef.procsym).concatstabto(withdebuglist);
 
               { set it back for safety }
-              inlineprocsym.definition.localst.symtabletype:=localsymtable;
-              inlineprocsym.definition.parast.symtabletype:=parasymtable;
+              inlineprocdef.localst.symtabletype:=localsymtable;
+              inlineprocdef.parast.symtabletype:=parasymtable;
 
-              mangled_length:=length(oldprocsym.definition.mangledname);
+              mangled_length:=length(oldprocdef.mangledname);
               getmem(pp,mangled_length+50);
               strpcopy(pp,'192,0,0,'+startlabel.name);
               if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(pp),'-');
-                  strpcopy(strend(pp),oldprocsym.definition.mangledname);
+                  strpcopy(strend(pp),oldprocdef.mangledname);
                 end;
               withdebugList.concat(Tai_stabn.Create(strnew(pp)));
             end;
@@ -1525,12 +1520,12 @@ implementation
           ps:=para_size;
           make_global:=false; { to avoid warning }
           genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
-          if po_assembler in aktprocsym.definition.procoptions then
+          if po_assembler in aktprocdef.procoptions then
             inlineentrycode.insert(Tai_marker.Create(asmblockstart));
           exprasmList.concatlist(inlineentrycode);
           secondpass(inlinetree);
           genexitcode(inlineexitcode,0,false,true);
-          if po_assembler in aktprocsym.definition.procoptions then
+          if po_assembler in aktprocdef.procoptions then
             inlineexitcode.concat(Tai_marker.Create(asmblockend));
           exprasmList.concatlist(inlineexitcode);
 
@@ -1558,14 +1553,14 @@ implementation
              if (target_info.use_function_relative_addresses) then
                begin
                  strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),oldprocsym.definition.mangledname);
+                 strpcopy(strend(pp),oldprocdef.mangledname);
                end;
               withdebugList.concat(Tai_stabn.Create(strnew(pp)));
               freemem(pp,mangled_length+50);
             end;
 {$endif GDB}
           { restore }
-          aktprocsym:=oldprocsym;
+          aktprocdef:=oldprocdef;
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
@@ -1574,7 +1569,7 @@ implementation
           { reallocate the registers used for the current procedure's regvars, }
           { since they may have been used and then deallocated in the inlined  }
           { procedure (JM)                                                     }
-          if assigned(aktprocsym.definition.regvarinfo) then
+          if assigned(aktprocdef.regvarinfo) then
             begin
               unused := oldunused;
               usableregs := oldusableregs;
@@ -1597,7 +1592,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-10-25 21:22:41  peter
+  Revision 1.36  2001-11-02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.35  2001/10/25 21:22:41  peter
     * calling convention rewrite
 
   Revision 1.34  2001/10/21 12:33:07  peter

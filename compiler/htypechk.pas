@@ -588,7 +588,7 @@ implementation
                         begin
                           if (assigned(hsym.owner) and
                              assigned(aktprocsym) and
-                             (hsym.owner = aktprocsym.definition.localst)) then
+                             (hsym.owner = aktprocdef.localst)) then
                            begin
                              if tloadnode(p).symtable.symtabletype=localsymtable then
                               CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
@@ -974,7 +974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-10-20 20:30:21  peter
+  Revision 1.38  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.37  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.36  2001/10/12 13:51:51  jonas

@@ -137,8 +137,8 @@ interface
          if inlining_procedure then
            begin
              CreateUsedAsmSymbolList;
-             localfixup:=aktprocsym.definition.localst.address_fixup;
-             parafixup:=aktprocsym.definition.parast.address_fixup;
+             localfixup:=aktprocdef.localst.address_fixup;
+             parafixup:=aktprocdef.parast.address_fixup;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -204,7 +204,7 @@ interface
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
-             if (aktprocsym.definition.proccalloption=pocall_inline) then
+             if (aktprocdef.proccalloption=pocall_inline) then
                exprasmList.concatlistcopy(p_asm)
              else
                exprasmList.concatlist(p_asm);
@@ -279,7 +279,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-10-25 21:22:35  peter
+  Revision 1.9  2001-11-02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.8  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.7  2001/08/26 13:36:39  florian

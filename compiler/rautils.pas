@@ -726,7 +726,7 @@ Function TOperand.SetupResult:boolean;
 Begin
   SetupResult:=false;
   { replace by correct offset. }
-  if (not is_void(aktprocsym.definition.rettype.def)) then
+  if (not is_void(aktprocdef.rettype.def)) then
    begin
      if (procinfo^.return_offset=0) and ((m_tp in aktmodeswitches) or
         (m_delphi in aktmodeswitches)) then
@@ -738,7 +738,7 @@ Begin
      opr.ref.base:= procinfo^.framepointer;
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
-     tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+     tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
      SetupResult:=true;
    end
   else
@@ -853,7 +853,7 @@ Begin
               opr.ref.offset:=tvarsym(sym).address;
               if (lexlevel=tvarsym(sym).owner.symtablelevel) then
                 begin
-                  opr.ref.offsetfixup:=aktprocsym.definition.parast.address_fixup;
+                  opr.ref.offsetfixup:=aktprocdef.parast.address_fixup;
                   opr.ref.options:=ref_parafixup;
                 end
               else
@@ -892,7 +892,7 @@ Begin
                   opr.ref.offset:=-(tvarsym(sym).address);
                   if (lexlevel=tvarsym(sym).owner.symtablelevel) then
                     begin
-                      opr.ref.offsetfixup:=aktprocsym.definition.localst.address_fixup;
+                      opr.ref.offsetfixup:=aktprocdef.localst.address_fixup;
                       opr.ref.options:=ref_localfixup;
                     end
                   else
@@ -974,11 +974,11 @@ Begin
       end;
     procsym :
       begin
-        if assigned(tprocsym(sym).definition.nextoverloaded) then
+        if assigned(tprocsym(sym).defs^.next) then
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=newasmsymbol(tprocsym(sym).definition.mangledname);
+        opr.symbol:=newasmsymbol(tprocsym(sym).defs^.def.mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1581,7 +1581,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2001-09-02 21:18:28  peter
+  Revision 1.25  2001-11-02 22:58:06  peter
+    * procsym definition rewrite
+
+  Revision 1.24  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

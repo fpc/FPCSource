@@ -80,7 +80,7 @@ begin
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
-    aktprocsym.definition.setmangledname(name)
+    aktprocdef.setmangledname(name)
   else
     message(parser_e_empty_import_name);
 end;
@@ -161,15 +161,21 @@ begin
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
-     if not hp2.is_var then
+     if (not hp2.is_var) and
+        (hp2.sym.typ=procsym) then
       begin
+        { the manglednames can already be the same when the procedure
+          is declared with cdecl }
+        if tprocsym(hp2.sym).defs^.def.mangledname<>hp2.name^ then
+         begin
 {$ifdef i386}
-        { place jump in codesegment }
-        codesegment.concat(Tai_align.Create_op(4,$90));
-        codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym.mangledname)));
-        codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
+           { place jump in codesegment }
+           codesegment.concat(Tai_align.Create_op(4,$90));
+           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
+           codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
+         end;
       end
      else
       Message1(parser_e_no_export_of_variables_for_target,'beos');
@@ -529,7 +535,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-10-12 16:05:34  peter
+  Revision 1.10  2001-11-02 22:58:11  peter
+    * procsym definition rewrite
+
+  Revision 1.9  2001/10/12 16:05:34  peter
     * system lib search fixed (merged)
 
   Revision 1.8  2001/09/18 11:32:00  michael

@@ -908,7 +908,11 @@ Begin
                      typedconstsym :
                        hs:=ttypedconstsym(sym).mangledname;
                      procsym :
-                       hs:=tprocsym(sym).mangledname;
+                       begin
+                         if assigned(tprocsym(sym).defs^.next) then
+                          Message(asmr_w_calling_overload_func);
+                         hs:=tprocsym(sym).defs^.def.mangledname;
+                       end;
                      typesym :
                        begin
                          if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
@@ -1843,10 +1847,10 @@ Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  if assigned(aktprocsym.definition.funcretsym) and
-     (is_fpu(aktprocsym.definition.rettype.def) or
-     ret_in_acc(aktprocsym.definition.rettype.def)) then
-    tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+  if assigned(aktprocdef.funcretsym) and
+     (is_fpu(aktprocdef.rettype.def) or
+     ret_in_acc(aktprocdef.rettype.def)) then
+    tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1964,7 +1968,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2001-09-17 21:29:14  peter
+  Revision 1.19  2001-11-02 22:58:11  peter
+    * procsym definition rewrite
+
+  Revision 1.18  2001/09/17 21:29:14  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.17  2001/08/26 13:37:03  florian

@@ -408,7 +408,7 @@ implementation
                            symtab:=twithsymtable.Create(obj,obj.symtable.symsearch);
                            withsymtable:=symtab;
                            if (p.nodetype=loadn) and
-                              (tloadnode(p).symtable=aktprocsym.definition.localst) then
+                              (tloadnode(p).symtable=aktprocdef.localst) then
                              twithsymtable(symtab).direct_with:=true;
                            twithsymtable(symtab).withrefnode:=p;
                            levelcount:=1;
@@ -418,7 +418,7 @@ implementation
                               symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch);
                               symtab:=symtab.next;
                               if (p.nodetype=loadn) and
-                                 (tloadnode(p).symtable=aktprocsym.definition.localst) then
+                                 (tloadnode(p).symtable=aktprocdef.localst) then
                                 twithsymtable(symtab).direct_with:=true;
                               twithsymtable(symtab).withrefnode:=p;
                               obj:=obj.childof;
@@ -432,7 +432,7 @@ implementation
                            levelcount:=1;
                            withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch);
                            if (p.nodetype=loadn) and
-                              (tloadnode(p).symtable=aktprocsym.definition.localst) then
+                              (tloadnode(p).symtable=aktprocdef.localst) then
                            twithsymtable(withsymtable).direct_with:=true;
                            twithsymtable(withsymtable).withrefnode:=p;
                            withsymtable.next:=symtablestack;
@@ -727,7 +727,7 @@ implementation
               consume(_RKLAMMER);
               if (block_type=bt_except) then
                 Message(parser_e_exit_with_argument_not__possible);
-              if is_void(aktprocsym.definition.rettype.def) then
+              if is_void(aktprocdef.rettype.def) then
                 Message(parser_e_void_function);
            end
          else
@@ -761,11 +761,11 @@ implementation
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
-               if (aktprocsym.definition.proccalloption=pocall_inline) then
+               if (aktprocdef.proccalloption=pocall_inline) then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    aktprocsym.definition.proccalloption:=pocall_fpccall;
+                    aktprocdef.proccalloption:=pocall_fpccall;
                  End;
                asmstat:=tasmnode(ra386dir.assemble);
              end;
@@ -940,7 +940,7 @@ implementation
              code:=cnothingnode.create;
            _FAIL :
              begin
-                if (aktprocsym.definition.proctypeoption<>potype_constructor) then
+                if (aktprocdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
                 code:=cfailnode.create;
@@ -1053,10 +1053,10 @@ implementation
 
          { assembler code does not allocate }
          { space for the return value       }
-          if not is_void(aktprocsym.definition.rettype.def) then
+          if not is_void(aktprocdef.rettype.def) then
            begin
-              aktprocsym.definition.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocsym.definition.rettype);
-              if ret_in_acc(aktprocsym.definition.rettype.def) then
+              aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
+              if ret_in_acc(aktprocdef.rettype.def) then
                 begin
                    { in assembler code the result should be directly in %eax
                    procinfo^.retoffset:=procinfo^.firsttemp-procinfo^.retdef.size;
@@ -1088,23 +1088,23 @@ implementation
            { at -8(%ebp) (JM)                                      }
            { why if se use %esp then self is still at the correct address PM }
            if {not(assigned(procinfo^._class)) and}
-              (po_assembler in aktprocsym.definition.procoptions) and
-              (aktprocsym.definition.localst.datasize=0) and
-              (aktprocsym.definition.parast.datasize=0) and
-              not(ret_in_param(aktprocsym.definition.rettype.def)) then
+              (po_assembler in aktprocdef.procoptions) and
+              (aktprocdef.localst.datasize=0) and
+              (aktprocdef.parast.datasize=0) and
+              not(ret_in_param(aktprocdef.rettype.def)) then
              begin
                procinfo^.framepointer:=stack_pointer;
                { set the right value for parameters }
-               dec(aktprocsym.definition.parast.address_fixup,target_info.size_of_pointer);
+               dec(aktprocdef.parast.address_fixup,target_info.size_of_pointer);
                dec(procinfo^.para_offset,target_info.size_of_pointer);
              end;
           { only insert now in the symtable, otherwise the              }
-          { "aktprocsym.definition.localst.datasize=0" check above will }
+          { "aktprocdef.localst.datasize=0" check above will }
           { always fail (JM)                                            }
-          if not is_void(aktprocsym.definition.rettype.def) then
+          if not is_void(aktprocdef.rettype.def) then
             begin
               { insert in local symtable }
-              symtablestack.insert(aktprocsym.definition.funcretsym);
+              symtablestack.insert(aktprocdef.funcretsym);
             end;
           { force the asm statement }
             if token<>_ASM then
@@ -1119,7 +1119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2001-10-26 22:36:42  florian
+  Revision 1.43  2001-11-02 22:58:05  peter
+    * procsym definition rewrite
+
+  Revision 1.42  2001/10/26 22:36:42  florian
     * fixed ranges in case statements with widechars
 
   Revision 1.41  2001/10/25 21:22:37  peter
