@@ -1041,6 +1041,14 @@ Begin
       Val(S,Currency(Value),E);
     fvExtended:
       Val(S,Extended(Value),E);
+    fvDouble:
+      Val(S,Double(Value),E);
+    fvSingle:
+      Val(S,Single(Value),E);
+    fvComp:
+      Val(S,Comp(Value),E);
+    fvReal:
+      Val(S,Real(Value),E);
   end;
   Result:=(E=0);
 End;
@@ -1961,8 +1969,8 @@ const
 
 {
   $Log$
-  Revision 1.24  2002-12-23 23:12:34  florian
-    + TextToFloat: D6 compatibility added
+  Revision 1.25  2002-12-23 23:26:08  florian
+    + addition to previous commit, forgot to save in the editor
 
   Revision 1.23  2002/11/28 22:26:30  michael
   + Fixed float<>string conversion routines
