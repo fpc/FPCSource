@@ -66,6 +66,7 @@ const P_AND = 317;
 const POINT = 318;
 const DEREF = 319;
 const STICK = 320;
+const SIGNED = 321;
 
 
 implementation

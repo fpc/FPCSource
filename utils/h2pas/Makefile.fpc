@@ -3,7 +3,7 @@
 #
 
 [targets]
-programs=h2pas
+programs=h2pas h2paspp
 
 [clean]
 units=options lexlib scan yacclib converu

@@ -21,40 +21,34 @@ program h2pas;
 
  ****************************************************************************)
 
+   uses
+{$ifdef Delphi}
+     SysUtils,
+{$else Delphi}
+     strings,
+{$endif Delphi}
+     options,scan,converu,lexlib,yacclib;
 
-
-  uses
-   {$ifdef go32v2}
-   {$ifndef NOEXCP}
-   dpmiexcp,
-   {$endif NOEXCP}
-   {$endif}
-   {$IFDEF WIN32}
-   SysUtils,
-   {$else}
-   strings,
-   {$endif}
-   options,scan,converu,lexlib,yacclib;
-
-  type
+   type
      YYSTYPE = presobject;
 
-  const
-     INT_STR = 'longint';
-     SHORT_STR = 'smallint';
-     UINT_STR = 'dword';
+   const
+     SHORT_STR  = 'smallint';
      USHORT_STR = 'word';
-     CHAR_STR = 'char';
-     INT64_STR = 'int64';
-     QWORD_STR = 'qword';
-     { should we use byte or char for 'unsigned char' ?? }
-     UCHAR_STR = 'byte';
-     REAL_STR = 'double';
+     INT_STR    = 'longint';
+     UINT_STR   = 'dword';
+     CHAR_STR   = 'char';
+     UCHAR_STR  = 'byte'; { should we use byte or char for 'unsigned char' ?? }
+     INT64_STR  = 'int64';
+     QWORD_STR  = 'qword';
+     REAL_STR   = 'double';
+     WCHAR_STR  = 'widechar';
 
   var
      hp,ph    : presobject;
      extfile  : text;  (* file for implementation headers extern procs *)
      IsExtern : boolean;
+     NeedEllipsisOverload : boolean;
      must_write_packed_field : boolean;
      tempfile : text;
      No_pop   : boolean;
@@ -87,7 +81,7 @@ program h2pas;
              dec(space_index);
              if space_index<0 then
                internalerror(20);
-             dec(byte(aktspace[0]),space_array[space_index]);
+             delete(aktspace,1,space_array[space_index]);
           end;
 
     function str(i : longint) : string;
@@ -134,8 +128,66 @@ program h2pas;
          writeln('line ',line_no,': ',msg);
       end;
 
-    procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
 
+    function FixId(const s:string):string;
+      var
+        b : boolean;
+        up : string;
+      begin
+        if s='' then
+         begin
+           FixId:='';
+           exit;
+         end;
+        b:=false;
+        up:=Uppercase(s);
+        case up[1] of
+          'C' : b:=(up='CLASS');
+          'D' : b:=(up='DISPOSE');
+          'F' : b:=(up='FUNCTION') or (up='FALSE');
+          'N' : b:=(up='NEW');
+          'P' : b:=(up='PROPERTY') or (up='PROCEDURE');
+          'R' : b:=(up='RECORD');
+          'S' : b:=(up='STRING');
+          'T' : b:=(up='TYPE') or (up='TRUE');
+        end;
+        if b then
+         FixId:='_'+s
+        else
+         FixId:=s;
+      end;
+
+
+
+    function TypeName(const s:string):string;
+      var
+        i : longint;
+      begin
+        i:=1;
+        if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
+         i:=2;
+        if PrependTypes then
+         TypeName:='T'+Copy(s,i,255)
+        else
+         TypeName:=Copy(s,i,255);
+      end;
+
+
+    function PointerName(const s:string):string;
+      var
+        i : longint;
+      begin
+        i:=1;
+        if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
+         i:=2;
+        if UsePPointers then
+         PointerName:='P'+Copy(s,i,255)
+        else
+         PointerName:=Copy(s,i,255);
+      end;
+
+
+    procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
       var
          hp1,hp2,hp3 : presobject;
          is_sized : boolean;
@@ -188,7 +240,8 @@ program h2pas;
                         { get function in implementation }
                         write(extfile,aktspace,'function ',name);
                         write(extfile,'(var a : ',ph,') : ');
-                        shift(2);
+                        if not compactmode then
+                         shift(2);
                         write_p_a_def(extfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(extfile,';');
                         writeln(extfile,aktspace,'begin');
@@ -197,8 +250,9 @@ program h2pas;
                         writeln(extfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
                         popshift;
                         writeln(extfile,aktspace,'end;');
-                        popshift;
-                        writeln(extfile);
+                        if not compactmode then
+                         popshift;
+                        writeln(extfile,'');
                         { set function in interface }
                         write(outfile,aktspace,'procedure set_',name);
                         write(outfile,'(var a : ',ph,'; __',name,' : ');
@@ -209,7 +263,8 @@ program h2pas;
                         { set function in implementation }
                         write(extfile,aktspace,'procedure set_',name);
                         write(extfile,'(var a : ',ph,'; __',name,' : ');
-                        shift(2);
+                        if not compactmode then
+                         shift(2);
                         write_p_a_def(extfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(extfile,');');
                         writeln(extfile,aktspace,'begin');
@@ -219,8 +274,9 @@ program h2pas;
                         writeln(extfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
                         popshift;
                         writeln(extfile,aktspace,'end;');
-                        popshift;
-                        writeln(extfile);
+                        if not compactmode then
+                         popshift;
+                        writeln(extfile,'');
                      end
                    else if is_sized then
                      begin
@@ -235,13 +291,27 @@ program h2pas;
          block_type:=bt_no;
       end;
 
+
     procedure write_expr(var outfile:text; p : presobject);
       begin
       if assigned(p) then
         begin
          case p^.typ of
-            t_id,t_ifexpr : write(outfile,p^.p);
-            t_funexprlist : write_funexpr(outfile,p);
+            t_id,
+            t_ifexpr :
+              write(outfile,FixId(p^.p));
+            t_funexprlist :
+              write_funexpr(outfile,p);
+             t_exprlist :
+               begin
+                 if assigned(p^.p1) then
+                   write_expr(outfile,p^.p1);
+                 if assigned(p^.next) then
+                   begin
+                     write(', ');
+                     write_expr(outfile,p^.next);
+                   end;
+               end;
             t_preop : begin
                          write(outfile,p^.p,'(');
                          write_expr(outfile,p^.p1);
@@ -267,7 +337,23 @@ program h2pas;
                        write_expr(outfile,p^.p2);
                        if p^.p2^.typ<>t_id then
                          write(outfile,')');
-                    flush(outfile);
+                       flush(outfile);
+                    end;
+            t_arrayop :
+                    begin
+                      write_expr(outfile,p^.p1);
+                      write(outfile,p^.p,'[');
+                      write_expr(outfile,p^.p2);
+                      write(outfile,']');
+                      flush(outfile);
+                    end;
+            t_callop :
+                    begin
+                      write_expr(outfile,p^.p1);
+                      write(outfile,p^.p,'(');
+                      write_expr(outfile,p^.p2);
+                      write(outfile,')');
+                      flush(outfile);
                     end;
             else internalerror(2);
             end;
@@ -295,6 +381,7 @@ program h2pas;
          flush(outfile);
       end;
 
+
     procedure write_all_ifexpr(var outfile:text; p : presobject);
       begin
       if assigned(p) then
@@ -303,6 +390,8 @@ program h2pas;
              t_id :;
              t_preop :
                write_all_ifexpr(outfile,p^.p1);
+             t_callop,
+             t_arrayop,
              t_bop :
                begin
                   write_all_ifexpr(outfile,p^.p1);
@@ -352,7 +441,8 @@ program h2pas;
                end;
              t_funcname :
                begin
-                  shift(2);
+                  if not compactmode then
+                   shift(2);
                   if if_nb>0 then
                     begin
                        writeln(outfile,aktspace,'var');
@@ -378,7 +468,8 @@ program h2pas;
                   writeln(outfile,';');
                   popshift;
                   writeln(outfile,aktspace,'end;');
-                  popshift;
+                  if not compactmode then
+                   popshift;
                   flush(outfile);
                end;
              t_funexprlist :
@@ -421,10 +512,12 @@ program h2pas;
          length,para : longint;
          old_in_args : boolean;
          varpara : boolean;
-
+         lastp : presobject;
       begin
+         NeedEllipsisOverload:=false;
          para:=1;
          length:=0;
+         lastp:=nil;
          old_in_args:=in_args;
          in_args:=true;
          write(outfile,'(');
@@ -440,18 +533,29 @@ program h2pas;
               if not assigned(p^.p1^.p1) and
                  not assigned(p^.p1^.next) then
                 begin
-                   { write(outfile,'...'); }
                    write(outfile,'args:array of const');
-                   { if variable number of args we must allways pop }
+                   (* if variable number of args we must allways pop *)
                    no_pop:=false;
+                   (* Needs 2 declarations, also one without args, becuase
+                      in C you can omit the second parameter. Default parameter
+                      doesn't help as that isn't possible with array of const *)
+                   NeedEllipsisOverload:=true;
+                   (* Remove this para *)
+                   if assigned(lastp) then
+                    lastp^.next:=nil;
+                   dispose(p,done);
+                   (* leave the loop as p isnot valid anymore *)
+                   break;
                 end
               (* we need to correct this in the pp file after *)
               else
                 begin
                    (* generate a call by reference parameter ?       *)
-                   varpara:=usevarparas and assigned(p^.p1^.p2^.p1) and
-                     ((p^.p1^.p2^.p1^.typ=t_pointerdef) or
-                      (p^.p1^.p2^.p1^.typ=t_addrdef));
+                   varpara:=usevarparas and
+                            assigned(p^.p1^.p2^.p1) and
+                            (p^.p1^.p2^.p1^.typ in [t_addrdef,t_pointerdef]) and
+                            assigned(p^.p1^.p2^.p1^.p1) and
+                            (p^.p1^.p2^.p1^.p1^.typ<>t_procdef);
                    (* do not do it for char pointer !!               *)
                    (* para : pchar; and var para : char; are         *)
                    (* completely different in pascal                 *)
@@ -478,13 +582,13 @@ program h2pas;
                      begin
                        If removeUnderscore then
                          begin
-                         Write (outfile,'para',para);
-                         Length:=(Length+5);
+                           Write (outfile,'para',para);
+                           inc(Length,5);
                          end
                        else
                          begin
-                         write(outfile,'_para',para);
-                         length:=length+6;
+                           write(outfile,'_para',para);
+                           inc(Length,6);
                          end;
                      end;
                    write(outfile,':');
@@ -494,6 +598,7 @@ program h2pas;
                      write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1);
 
                 end;
+              lastp:=p;
               p:=p^.next;
               if assigned(p) then
                 begin
@@ -517,6 +622,7 @@ program h2pas;
       var
          i : longint;
          error : integer;
+         pointerwritten,
          constant : boolean;
 
       begin
@@ -566,8 +672,30 @@ program h2pas;
                                      end
                                    else
                                      begin
-                                        write(outfile,'P');
-                                        write_p_a_def(outfile,p^.p1,simple_type);
+                                       pointerwritten:=false;
+                                       if (p^.p1=nil) and UsePPointers then
+                                        begin
+                                          if (simple_type^.typ=t_id) then
+                                           begin
+                                             write(outfile,PointerName(simple_type^.p));
+                                             pointerwritten:=true;
+                                           end
+                                          { structure }
+                                          else if (simple_type^.typ in [t_uniondef,t_structdef]) and
+                                                  (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
+                                           begin
+                                             write(outfile,PointerName(simple_type^.p2^.p));
+                                             pointerwritten:=true;
+                                           end;
+                                        end;
+                                      if not pointerwritten then
+                                       begin
+                                         if in_args then
+                                          write(outfile,'P')
+                                         else
+                                          write(outfile,'^');
+                                         write_p_a_def(outfile,p^.p1,simple_type);
+                                       end;
                                      end;
                                 end;
                            end;
@@ -604,22 +732,57 @@ program h2pas;
          hp1,hp2,hp3,lastexpr : presobject;
          i,l,w : longint;
          error : integer;
+         current_power,
          mask : cardinal;
-         flag_index,current_power : longint;
+         flag_index : longint;
          current_level : byte;
+         pointerwritten,
          is_sized : boolean;
 
       begin
          case p^.typ of
             t_id :
-              write(outfile,p^.p);
+              begin
+                if p^.intname then
+                 write(outfile,p^.p)
+                else
+                 write(outfile,TypeName(p^.p));
+              end;
             { what can we do with void defs  ? }
             t_void :
               write(outfile,'void');
             t_pointerdef :
               begin
-                 write(outfile,'P');
-                 write_type_specifier(outfile,p^.p1);
+                 pointerwritten:=false;
+                 if (p^.p1^.typ=t_void) then
+                  begin
+                    write(outfile,'pointer');
+                    pointerwritten:=true;
+                  end
+                 else
+                  if UsePPointers then
+                   begin
+                     if (p^.p1^.typ=t_id) then
+                      begin
+                        write(outfile,PointerName(p^.p1^.p));
+                        pointerwritten:=true;
+                      end
+                     { structure }
+                     else if (p^.p1^.typ in [t_uniondef,t_structdef]) and
+                             (p^.p1^.p1=nil) and (p^.p1^.p2^.typ=t_id) then
+                      begin
+                        write(outfile,PointerName(p^.p1^.p2^.p));
+                        pointerwritten:=true;
+                      end;
+                   end;
+                 if not pointerwritten then
+                  begin
+                    if in_args then
+                     write(outfile,'P')
+                    else
+                     write(outfile,'^');
+                    write_type_specifier(outfile,p^.p1);
+                  end;
               end;
             t_enumdef :
               begin
@@ -711,10 +874,10 @@ program h2pas;
                  flag_index:=-1;
                  is_sized:=false;
                  current_level:=0;
-                 if (typedef_level>1) and (p^.p1=nil) and
-                    (p^.p2^.typ=t_id) then
+                 if ((in_args) or (typedef_level>1)) and
+                    (p^.p1=nil) and (p^.p2^.typ=t_id) then
                    begin
-                      write(outfile,p^.p2^.p);
+                     write(outfile,TypeName(p^.p2^.p));
                    end
                  else
                    begin
@@ -745,7 +908,7 @@ program h2pas;
                                           is_sized:=false;
                                        end;
 
-                                     write(outfile,aktspace,hp3^.p1^.p2^.p);
+                                     write(outfile,aktspace,FixId(hp3^.p1^.p2^.p));
                                      write(outfile,' : ');
                                      shift(2);
                                      write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
@@ -777,7 +940,7 @@ program h2pas;
                                                    mask:=0;
                                                    for i:=1 to l do
                                                      begin
-                                                        mask:=mask+current_power;
+                                                        inc(mask,current_power);
                                                         current_power:=current_power*2;
                                                      end;
                                                    write(tempfile,'bm_&',hp3^.p1^.p2^.p);
@@ -862,7 +1025,7 @@ program h2pas;
                            while assigned(hp3) do
                              begin
                                 write(outfile,aktspace,l,' : ( ');
-                                write(outfile,hp3^.p1^.p2^.p,' : ');
+                                write(outfile,FixId(hp3^.p1^.p2^.p),' : ');
                                 shift(2);
                                 write_p_a_def(outfile,hp3^.p1^.p1,hp2^.p1);
                                 popshift;
@@ -938,17 +1101,25 @@ program h2pas;
 %left POINT DEREF
 %left COMMA
 %left STICK
+%token SIGNED
 %%
 
 file : declaration_list
      ;
 
+maybe_space :
+     SPACE_DEFINE
+     {
+       $$:=nil;
+     } |
+     {
+       $$:=nil;
+     }
+     ;
+
 error_info : {
-               if not stripinfo then
-                begin
                   writeln(outfile,'(* error ');
                   writeln(outfile,yyline);
-                end;
              };
 
 declaration_list : declaration_list  declaration
@@ -990,21 +1161,14 @@ systrap_specifier:
 
 declaration :
      dec_specifier type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
-     { IsExtern:=false;
-       (* by default we must pop the args pushed on stack *)
-       no_pop:=false;
-    (* writeln(outfile,'{ dec_specifier type_specifier declarator_list SEMICOLON}');
-
-     if assigned($3) then writeln(outfile,'{*$3}');
-     if assigned($3)and assigned($3.p1)
-         then writeln(outfile,'{*$3^.p1}');
-     if assigned($3)and assigned($3^.p1)and assigned($3^.p1^.p1)
-         then writeln(outfile,'{*$3^.p1^.p1}');
-    *)
-
+     {
+      IsExtern:=false;
+      (* by default we must pop the args pushed on stack *)
+      no_pop:=false;
       if (assigned($4)and assigned($4^.p1)and assigned($4^.p1^.p1))
         and ($4^.p1^.p1^.typ=t_procdef) then
          begin
+            repeat
             If UseLib then
               IsExtern:=true
             else
@@ -1070,10 +1234,10 @@ declaration :
               end
             else
               begin
-                writeln(extfile,';');
                 writeln(outfile,';');
                 if not IsExtern then
                  begin
+                   writeln(extfile,';');
                    writeln(extfile,aktspace,'begin');
                    writeln(extfile,aktspace,'  { You must implemented this function }');
                    writeln(extfile,aktspace,'end;');
@@ -1082,6 +1246,7 @@ declaration :
             IsExtern:=false;
             if not compactmode then
              writeln(outfile);
+           until not NeedEllipsisOverload;
          end
        else (* $4^.p1^.p1^.typ=t_procdef *)
        if assigned($4)and assigned($4^.p1) then
@@ -1103,7 +1268,7 @@ declaration :
             while assigned(hp) and assigned(hp^.p1) do
               begin
                  (* write new var name *)
-                 if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
+                 if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
                    write(outfile,aktspace,hp^.p1^.p2^.p);
                  write(outfile,' : ');
                  shift(2);
@@ -1112,12 +1277,11 @@ declaration :
                  if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
                    begin
                       if isExtern then
-                        write(outfile,';cvar;external ''')
+                        write(outfile,';cvar;external')
                       else
-                        write(outfile,';cvar;export ''');
-                      write(outfile,hp^.p1^.p2^.p);
+                        write(outfile,';cvar;public');
                    end;
-                 writeln(outfile,''';');
+                 writeln(outfile,';');
                  popshift;
                  hp:=hp^.p2;
               end;
@@ -1139,17 +1303,12 @@ declaration :
          end;
        shift(3);
        (* write new type name *)
-       TN:=strpas($1^.p2^.p);
-       if RemoveUnderScore and (length(tn)>1) and (tn[1]='_') then
-        Delete(TN,1,1);
-       if UsePPointers and
-          (($1^.typ=t_structdef) or ($1^.typ=t_uniondef)) then
-        begin
-          PN:='P'+TN;
-          if PrependTypes then
-           TN:='T'+TN;
-          Writeln (outfile,aktspace,PN,' = ^',TN,';');
-        end;
+       TN:=TypeName($1^.p2^.p);
+       PN:=PointerName($1^.p2^.p);
+       (* define a Pointer type also for structs *)
+       if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+          assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
+         writeln(outfile,aktspace,PN,' = ^',TN,';');
        write(outfile,aktspace,TN,' = ');
        shift(2);
        hp:=$1;
@@ -1168,6 +1327,7 @@ declaration :
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
      {
+       (* TYPEDEF STRUCT dname dname SEMICOLON *)
        if block_type<>bt_type then
          begin
             if not(compactmode) then
@@ -1175,15 +1335,8 @@ declaration :
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
-       PN:=$3^.p;
-       TN:=$4^.p;
-       if RemoveUnderscore then
-        begin
-          if (length(pn)>1) and (PN[1]='_') then
-           Delete(Pn,1,1);
-          if (length(tn)>1) and (tN[1]='_') then
-           Delete(tn,1,1);
-        end;
+       PN:=TypeName($3^.p);
+       TN:=TypeName($4^.p);
        if Uppercase(tn)<>Uppercase(pn) then
         begin
           shift(3);
@@ -1195,8 +1348,9 @@ declaration :
        if assigned($4) then
         dispose($4,done);
      } |
-     TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER LKLAMMER argument_declaration_list RKLAMMER
+     TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON
      {
+       (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
        if block_type<>bt_type then
          begin
             if not(compactmode) then
@@ -1208,28 +1362,20 @@ declaration :
        shift(3);
        (* walk through all declarations *)
        hp:=$5;
-       ph:=nil;
        if assigned(hp) then
         begin
-          hp:=$8;
+          hp:=$5;
           while assigned(hp^.p1) do
            hp:=hp^.p1;
-          hp^.p1:=new(presobject,init_two(t_procdef,nil,$8));
+          hp^.p1:=new(presobject,init_two(t_procdef,nil,$9));
           hp:=$5;
-          if assigned(hp^.p1) and assigned(hp^.p1^.p2) then
+          if assigned(hp^.p1) and assigned(hp^.p1^.p1) then
            begin
              writeln(outfile);
              (* write new type name *)
-             write(outfile,aktspace,hp^.p1^.p2^.p);
-             write(outfile,' = ');
+             write(outfile,aktspace,TypeName(hp^.p2^.p),' = ');
              shift(2);
-             if assigned(ph) then
-               write_p_a_def(outfile,hp^.p1^.p1,ph)
-             else
-               write_p_a_def(outfile,hp^.p1^.p1,$2);
-             (* simple def ? keep the name for the other defs *)
-             if (ph=nil) and (hp^.p1^.p1=nil) then
-               ph:=hp^.p1^.p2;
+             write_p_a_def(outfile,hp^.p1,$2);
              popshift;
              (* if no_pop it is normal fpc calling convention *)
              if is_procvar and
@@ -1244,11 +1390,12 @@ declaration :
        dispose($2,done);
        if assigned($4)then
        dispose($4,done);
-       if assigned($5)then (* disposes also $8 *)
+       if assigned($5)then (* disposes also $9 *)
        dispose($5,done);
      } |
      TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON
      {
+       (* TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON *)
        if block_type<>bt_type then
          begin
             if not(compactmode) then
@@ -1256,56 +1403,60 @@ declaration :
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
-
        no_pop:=assigned($3) and ($3^.str='no_pop');
        shift(3);
-       (* walk through all declarations *)
-       hp:=$4;
-       ph:=nil;
+       (* Get the name to write the type definition for, try
+          to use the tag name first *)
+       if assigned($2^.p2) then
+        begin
+          ph:=$2^.p2;
+        end
+       else
+        begin
+          if not assigned($4^.p1^.p2) then
+           internalerror(4444);
+          ph:=$4^.p1^.p2;
+        end;
+       (* write type definition *)
        is_procvar:=false;
+       writeln(outfile);
+       TN:=TypeName(ph^.p);
+       PN:=PointerName(ph^.p);
+       if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+          assigned($2) and ($2^.typ<>t_procdef) then
+         writeln(outfile,aktspace,PN,' = ^',TN,';');
+       (* write new type name *)
+       write(outfile,aktspace,TN,' = ');
+       shift(2);
+       write_type_specifier(outfile,$2);
+       popshift;
+       (* if no_pop it is normal fpc calling convention *)
+       if is_procvar and
+          (not no_pop) then
+         write(outfile,';cdecl');
+       writeln(outfile,';');
+       flush(outfile);
+       (* write alias names, ph points to the name already used *)
+       hp:=$4;
        while assigned(hp) do
-         begin
-            if assigned(hp^.p1) and assigned(hp^.p1^.p2) then
-             begin
-               writeln(outfile);
-               (* write new type name *)
-               write(outfile,aktspace,hp^.p1^.p2^.p);
-               write(outfile,' = ');
-               shift(2);
-               if assigned(ph) then
-                 write_p_a_def(outfile,hp^.p1^.p1,ph)
-               else
-                 write_p_a_def(outfile,hp^.p1^.p1,$2);
-               (* simple def ? keep the name for the other defs *)
-               if (ph=nil) and (hp^.p1^.p1=nil) then
-                 ph:=hp^.p1^.p2;
-               popshift;
-               (* if no_pop it is normal fpc calling convention *)
-               if is_procvar and
-                  (not no_pop) then
-                 write(outfile,';cdecl');
-               writeln(outfile,';');
-               flush(outfile);
-             end;
-            hp:=hp^.next;
-         end;
-       (* write tag name *)
-       if assigned(ph) and
-         (($2^.typ=t_structdef) or
-         ($2^.typ=t_enumdef) or
-         ($2^.typ=t_uniondef)) and
-         assigned($2^.p2) then
+        begin
+          if (hp<>ph) and assigned(hp^.p1^.p2) then
            begin
-              writeln(outfile);
-              write(outfile,aktspace,$2^.p2^.p,' = ');
-              if assigned(ph) then
-                writeln(outfile,ph^.p,';')
-              else
-                begin
-                   write_p_a_def(outfile,hp^.p1^.p1,$2);
-                   writeln(outfile,';');
-                end;
+             PN:=TypeName(ph^.p);
+             TN:=TypeName(hp^.p1^.p2^.p);
+             if Uppercase(TN)<>Uppercase(PN) then
+              begin
+                write(outfile,aktspace,TN,' = ');
+                write_p_a_def(outfile,hp^.p1^.p1,ph);
+                writeln(outfile,';');
+                PN:=PointerName(hp^.p1^.p2^.p);
+                if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+                  assigned($2) and ($2^.typ<>t_procdef) then
+                 writeln(outfile,aktspace,PN,' = ^',TN,';');
+              end;
            end;
+          hp:=hp^.next;
+        end;
        popshift;
        if must_write_packed_field then
          if assigned(ph) then
@@ -1351,20 +1502,24 @@ declaration :
      ;
 
 define_dec :
-     DEFINE dname LKLAMMER enum_list RKLAMMER SPACE_DEFINE def_expr NEW_LINE
+     DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE
      {
-       writeln (outfile,aktspace,'{ was #define dname(params) def_expr }');
-       writeln (extfile,aktspace,'{ was #define dname(params) def_expr }');
-       if assigned($4) then
-         begin
-            writeln (outfile,aktspace,'{ argument types are unknown }');
-            writeln (extfile,aktspace,'{ argument types are unknown }');
-         end;
-       if not assigned($7^.p3) then
-         begin
-            writeln(outfile,aktspace,'{ return type might be wrong }   ');
-            writeln(extfile,aktspace,'{ return type might be wrong }   ');
-         end;
+       (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
+       if not stripinfo then
+        begin
+          writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');
+          writeln (extfile,aktspace,'{ was #define dname(params) para_def_expr }');
+          if assigned($4) then
+           begin
+             writeln (outfile,aktspace,'{ argument types are unknown }');
+             writeln (extfile,aktspace,'{ argument types are unknown }');
+           end;
+          if not assigned($6^.p3) then
+           begin
+             writeln(outfile,aktspace,'{ return type might be wrong }   ');
+             writeln(extfile,aktspace,'{ return type might be wrong }   ');
+           end;
+        end;
        block_type:=bt_func;
        write(outfile,aktspace,'function ',$2^.p);
        write(extfile,aktspace,'function ',$2^.p);
@@ -1382,27 +1537,25 @@ define_dec :
             write(outfile,' : longint)');
             write(extfile,' : longint)');
          end;
-       if not assigned($7^.p3) then
+       if not assigned($6^.p3) then
          begin
             writeln(outfile,' : longint;');
-            writeln(outfile,aktspace,'  { return type might be wrong }   ');
-            flush(outfile);
             writeln(extfile,' : longint;');
-            writeln(extfile,aktspace,'  { return type might be wrong }   ');
+            flush(outfile);
          end
        else
          begin
             write(outfile,' : ');
-            write_type_specifier(outfile,$7^.p3);
+            write_type_specifier(outfile,$6^.p3);
             writeln(outfile,';');
             flush(outfile);
             write(extfile,' : ');
-            write_type_specifier(extfile,$7^.p3);
+            write_type_specifier(extfile,$6^.p3);
             writeln(extfile,';');
          end;
        writeln(outfile);
        flush(outfile);
-       hp:=new(presobject,init_two(t_funcname,$2,$7));
+       hp:=new(presobject,init_two(t_funcname,$2,$6));
        write_funexpr(extfile,hp);
        writeln(extfile);
        flush(extfile);
@@ -1410,6 +1563,7 @@ define_dec :
      }|
      DEFINE dname SPACE_DEFINE NEW_LINE
      {
+       (* DEFINE dname SPACE_DEFINE NEW_LINE *)
        writeln(outfile,'{$define ',$2^.p,'}');
        flush(outfile);
        if assigned($2)then
@@ -1424,6 +1578,7 @@ define_dec :
      } |
      DEFINE dname SPACE_DEFINE def_expr NEW_LINE
      {
+       (* DEFINE dname SPACE_DEFINE def_expr NEW_LINE *)
        if ($4^.typ=t_exprlist) and
           $4^.p1^.is_const and
           not assigned($4^.next) then
@@ -1434,14 +1589,13 @@ define_dec :
                  writeln(outfile,aktspace,'const');
               end;
             block_type:=bt_const;
-
-            aktspace:=aktspace+'   ';
+            shift(3);
             write(outfile,aktspace,$2^.p);
             write(outfile,' = ');
             flush(outfile);
             write_expr(outfile,$4^.p1);
             writeln(outfile,';');
-            dec(byte(aktspace[0]),3);
+            popshift;
             if assigned($2) then
             dispose($2,done);
             if assigned($4) then
@@ -1449,12 +1603,15 @@ define_dec :
          end
        else
          begin
-            aktspace:=aktspace+'  ';
-            writeln (outfile,aktspace,'{ was #define dname def_expr }');
-            writeln (extfile,aktspace,'{ was #define dname def_expr }');
+            if not stripinfo then
+             begin
+               writeln (outfile,aktspace,'{ was #define dname def_expr }');
+               writeln (extfile,aktspace,'{ was #define dname def_expr }');
+             end;
             block_type:=bt_func;
             write(outfile,aktspace,'function ',$2^.p);
             write(extfile,aktspace,'function ',$2^.p);
+            shift(2);
             if not assigned($4^.p3) then
               begin
                  writeln(outfile,' : longint;');
@@ -1477,7 +1634,7 @@ define_dec :
             flush(outfile);
             hp:=new(presobject,init_two(t_funcname,$2,$4));
             write_funexpr(extfile,hp);
-            dec(byte(aktspace[0]),2);
+            popshift;
             dispose(hp,done);
             writeln(extfile);
             flush(extfile);
@@ -1623,73 +1780,92 @@ dname : ID { (*dname*)
            }
      ;
 
-special_type_name : INT
+special_type_name :
+     SIGNED special_type_name
      {
-       $$:=new(presobject,init_id(INT_STR));
+       hp:=$2;
+       $$:=hp;
+       if assigned(hp) then
+        begin
+          s:=strpas(hp^.p);
+          if s=UINT_STR then
+           s:=INT_STR
+          else if s=USHORT_STR then
+           s:=SHORT_STR
+          else if s=UCHAR_STR then
+           s:=CHAR_STR
+          else if s=QWORD_STR then
+           s:=INT64_STR
+          else
+           s:='';
+          if s<>'' then
+           hp^.setstr(s);
+        end;
      } |
-     UNSIGNED INT
+     UNSIGNED special_type_name
      {
-       $$:=new(presobject,init_id(UINT_STR));
+       hp:=$2;
+       $$:=hp;
+       if assigned(hp) then
+        begin
+          s:=strpas(hp^.p);
+          if s=INT_STR then
+           s:=UINT_STR
+          else if s=SHORT_STR then
+           s:=USHORT_STR
+          else if s=CHAR_STR then
+           s:=UCHAR_STR
+          else if s=INT64_STR then
+           s:=QWORD_STR
+          else
+           s:='';
+          if s<>'' then
+           hp^.setstr(s);
+        end;
+     } |
+     INT
+     {
+       $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG
      {
-       $$:=new(presobject,init_id(INT_STR));
-     } |
-     REAL
-     {
-       $$:=new(presobject,init_id(REAL_STR));
+       $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG INT
      {
-       $$:=new(presobject,init_id(INT_STR));
-     } |
-     LONG LONG INT
-     {
-       $$:=new(presobject,init_id(INT64_STR));
-     } |
-     UNSIGNED LONG LONG INT
-     {
-       $$:=new(presobject,init_id(QWORD_STR));
+       $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG LONG
      {
-       $$:=new(presobject,init_id(INT64_STR));
+       $$:=new(presobject,init_intid(INT64_STR));
      } |
-     UNSIGNED LONG LONG
+     LONG LONG INT
      {
-       $$:=new(presobject,init_id(QWORD_STR));
+       $$:=new(presobject,init_intid(INT64_STR));
      } |
-     UNSIGNED LONG INT
+     SHORT
      {
-       $$:=new(presobject,init_id(UINT_STR));
+       $$:=new(presobject,init_intid(SHORT_STR));
      } |
-     UNSIGNED LONG
+     SHORT INT
      {
-       $$:=new(presobject,init_id(UINT_STR));
+       $$:=new(presobject,init_intid(SHORT_STR));
      } |
-     UNSIGNED
+     REAL
      {
-       $$:=new(presobject,init_id(UINT_STR));
-     } |
-     UNSIGNED SHORT
-     {
-       $$:=new(presobject,init_id(USHORT_STR));
-     } |
-     UNSIGNED _CHAR
-     {
-       $$:=new(presobject,init_id(UCHAR_STR));
+       $$:=new(presobject,init_intid(REAL_STR));
      } |
      VOID
      {
        $$:=new(presobject,init_no(t_void));
      } |
-     SHORT
-     {
-       $$:=new(presobject,init_id(SHORT_STR));
-     } |
      _CHAR
      {
-       $$:=new(presobject,init_id(CHAR_STR));
+       $$:=new(presobject,init_intid(CHAR_STR));
+     } |
+     UNSIGNED
+     {
+       $$:=new(presobject,init_intid(UINT_STR));
      }
      ;
 
@@ -1762,7 +1938,6 @@ argument_declaration_list : argument_declaration
      ELLIPSIS
      {
        $$:=new(presobject,init_two(t_arglist,ellipsisarg,nil));
-       (*** ELLIPSIS PROBLEM ***)
      }
      ;
 
@@ -1976,6 +2151,10 @@ unary_expr:
      {
      $$:=$1;
      } |
+     special_type_name
+     {
+     $$:=$1;
+     } |
      CSTRING
      {
      (* remove L prefix for widestrings *)
@@ -2042,6 +2221,14 @@ unary_expr:
      LKLAMMER shift_expr RKLAMMER
      {
      $$:=$2;
+     } |
+     LKLAMMER STAR unary_expr RKLAMMER maybe_space LKLAMMER exprlist RKLAMMER
+     {
+       $$:=new(presobject,init_two(t_callop,$3,$7));
+     } |
+     dname LECKKLAMMER exprlist RECKKLAMMER
+     {
+       $$:=new(presobject,init_two(t_arrayop,$1,$3));
      }
      ;
 
@@ -2071,8 +2258,9 @@ enum_element :
      };
 
 
-def_expr : unary_expr
-         {
+def_expr :
+     unary_expr
+     {
          if $1^.typ=t_funexprlist then
            $$:=$1
          else
@@ -2081,8 +2269,19 @@ def_expr : unary_expr
             we know the return type *)
          if ($1^.typ=t_typespec) then
            $$^.p3:=$1^.p1^.get_copy;
-         }
-         ;
+     }
+     ;
+
+para_def_expr :
+     SPACE_DEFINE def_expr
+     {
+     $$:=$2;
+     } |
+     maybe_space LKLAMMER def_expr RKLAMMER
+     {
+     $$:=$3
+     }
+     ;
 
 exprlist : exprelem COMMA exprlist
     { (*exprlist COMMA expr*)
@@ -2140,10 +2339,11 @@ begin
   if not includefile then
    begin
      writeln(outfile,'unit ',unitname,';');
-     writeln(outfile,aktspace,'interface');
+     writeln(outfile,'interface');
      writeln(outfile);
-     writeln(outfile,'{ Automatically converted by H2Pas ',version,' from ',inputfilename,' }');
-     writeln(outfile,'{ The following command line parameters were used:');
+     writeln(outfile,'{');
+     writeln(outfile,'  Automatically converted by H2Pas ',version,' from ',inputfilename);
+     writeln(outfile,'  The following command line parameters were used:');
      for i:=1 to paramcount do
        writeln(outfile,'    ',paramstr(i));
      writeln(outfile,'}');
@@ -2180,7 +2380,7 @@ begin
    if not(includefile) then
     begin
       writeln(outfile);
-      writeln(outfile,aktspace,'implementation');
+      writeln(outfile,'implementation');
       writeln(outfile);
     end;
    { here we have a problem if a line is longer than 255 chars !! }
@@ -2202,58 +2402,13 @@ begin
    erase(tempfile);
 end.
 
-(*
- $Log$
- Revision 1.1  2000-07-13 10:16:23  michael
- + Initial import
+{
+  $Log$
+  Revision 1.2  2000-12-27 21:59:59  peter
+    * big update, it now converts much more files without serious errors
+    + h2pas preprocessor to remove specific defines from a .h file
+      (you need to run h2paspp manual)
 
- Revision 1.7  2000/04/01 20:19:38  florian
-   + implemented support for 64 bit int types
-   + options are written now to output file
-   * improved compact mode
-   * fixed writing of variables
-
- Revision 1.6  2000/04/01 14:16:32  peter
-   * addition for another procvar style decl (not working correct yet)
-
- Revision 1.5  2000/03/28 06:56:31  michael
- + RemoveUNderscore now also does not add underscores to generated parameter names
-
- Revision 1.4  2000/03/27 21:39:20  peter
-   + -S, -T, -c modes added
-   * crash fixes
-   * removed double opening of inputfile
-
- Revision 1.3  2000/02/09 16:44:15  peter
-   * log truncated
-
- Revision 1.2  2000/01/07 16:46:05  daniel
-   * copyright 2000
-
-       #ifdef ID  to {$ifdef ID}
-       #ifundef ID  to {$ifundef ID}
-       #else to {$else}
-       #define ID to {$define ID}
-       #endif to {$endif}
-
-      -"extern" fully handled . Adds proc/func + 'external _ExternalLibrary;'to
-        implementation section
-       you must assign _ExternalLibrary later.
-
-      -"const" skips in func/proc arguments.
-
-      changes in convert.y and scan.l
-      - "convert" renamed to "h2pas"
-      - Inserted the checking "IsAssigned(Pointer)" everywhere access to pointers
-       It preserv from Acces Violation Errors.
-      - A little remade for TP Lex and Yacc 4.01 -
-           changed function "input" to "get_char"
-      -!!! because of peculiarity TPLY4.01 you must create unit CONVERU.PAS by
-       your hand! Cut const definitions from CONVERT.PAS and paste into CONVERU.PAS
-
- What need
-   * handle struct a {  }; in the right way
-   * all predefined C types
-   * misplaced comments
-   * handle functions without result
-*)
+  Revision 1.1  2000/07/13 10:16:23  michael
+  + Initial import
+}
