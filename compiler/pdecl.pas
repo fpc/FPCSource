@@ -1432,11 +1432,13 @@ unit pdecl;
               datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
 
               { generate message and dynamic tables }
-              { why generate those if empty ??? }
               if (aktclass^.options and oo_hasmsgstr)<>0 then
                 strmessagetable:=genstrmsgtab(aktclass);
               if (aktclass^.options and oo_hasmsgint)<>0 then
-                intmessagetable:=genintmsgtab(aktclass);
+                intmessagetable:=genintmsgtab(aktclass)
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+                
 
               { table for string messages }
               if (aktclass^.options and oo_hasmsgstr)<>0 then
@@ -2121,8 +2123,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.127.2.3  1999-07-07 07:53:22  michael
+  Revision 1.127.2.4  1999-07-11 21:48:01  michael
+  + merged dispatch fix
+
+  Revision 1.127.2.3  1999/07/07 07:53:22  michael
   + Merged patches from florian
+
+  Revision 1.132  1999/07/11 21:24:31  michael
+  + Fixed integer message table
 
   Revision 1.131  1999/07/06 21:48:23  florian
     * a lot bug fixes:
