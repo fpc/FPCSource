@@ -135,7 +135,7 @@ Type
   ValUInt = Cardinal;
   ValReal = Double;
 
-  { map comp to int64, but this doesn't mean to compile the comp support in! }
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
 {$endif CPUPOWERPC}
@@ -150,7 +150,7 @@ Type
   ValUInt = Cardinal;
   ValReal = Double;
 
-  { map comp to int64, but this doesn't mean to compile the comp support in! }
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
 {$endif CPUSPARC}
@@ -169,8 +169,9 @@ Type
   ValUInt = Cardinal;
   ValReal = Real;
 
-  { Comp type does not exist on fpu }
-  Comp    = int64;
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
 {$endif CPUARM}
 
 {$ifdef CPU64}
@@ -720,7 +721,10 @@ const
 
 {
   $Log$
-  Revision 1.82  2004-01-20 23:13:53  hajny
+  Revision 1.83  2004-01-26 11:48:24  florian
+    * compilation on arm fixed
+
+  Revision 1.82  2004/01/20 23:13:53  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.81  2003/12/29 19:24:12  florian
