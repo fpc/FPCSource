@@ -14,7 +14,7 @@
  **********************************************************************}
 
 { Include syscall itself }
-{$i syscall.inc}
+{$i syscallo.inc}
 
 {*****************************************************************************
                --- Time:Time handling related calls ---
@@ -435,7 +435,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2002-10-14 19:39:17  peter
+  Revision 1.16  2002-11-11 21:40:26  marco
+   * rename syscall.inc -> syscallo.inc
+
+  Revision 1.15  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.14  2002/09/10 21:32:14  jonas
