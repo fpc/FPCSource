@@ -873,7 +873,8 @@ implementation
            { property allowed? calln has a property check itself }
            if (nf_isproperty in hp.flags) then
             begin
-              if (valid_property in opts) then
+              if (hp.nodetype<>calln) or
+                 (valid_property in opts) then
                result:=true
               else
                begin
@@ -1201,7 +1202,7 @@ implementation
     function  valid_for_formal_const(p : tnode) : boolean;
       begin
         valid_for_formal_const:=(p.resulttype.def.deftype=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const,valid_property]);
+          valid_for_assign(p,[valid_void,valid_const]);
       end;
 
 
@@ -2048,7 +2049,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2005-03-25 22:20:18  peter
+  Revision 1.121  2005-03-28 15:04:40  peter
+  valid_property is only used for calln. Fields are always allowed
+
+  Revision 1.120  2005/03/25 22:20:18  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.119  2005/03/10 00:15:20  peter
