@@ -57,7 +57,7 @@ Begin
   If InOutRes <> 0 then
    exit;
   Case FileRec(f).mode Of
-   fmInOut : Close(f);
+   fmInOut,fmInput,fmOutput : Close(f);
    fmClosed : ;
   else
    Begin
@@ -83,7 +83,7 @@ Begin
   If InOutRes <> 0 then
    Exit;
   Case FileRec(f).mode Of
-   fmInOut : Close(f);
+   fmInOut,fmInput,fmOutput : Close(f);
    fmClosed : ;
   else
    Begin
@@ -131,11 +131,14 @@ Begin
   Result:=0;
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   Result:=Do_Write(FileRec(f).Handle,Longint(@Buf),Count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
@@ -187,11 +190,14 @@ Begin
   Result:=0;
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
@@ -244,11 +250,14 @@ Begin
   FilePos:=0;
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
@@ -261,11 +270,14 @@ Begin
   FileSize:=0;
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   if (FileRec(f).RecSize>0) then
    FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
@@ -279,11 +291,14 @@ Begin
   Eof:=false;
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   {Can't use do_ routines because we need record support}
   Eof:=(FileSize(f)<=FilePos(f));
 End;
@@ -296,11 +311,14 @@ Procedure Seek(var f:File;Pos:Longint);[IOCheck];
 Begin
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   Do_Seek(FileRec(f).Handle,Pos*FileRec(f).RecSize);
 End;
 
@@ -312,11 +330,14 @@ Procedure Truncate(Var f:File);[IOCheck];
 Begin
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   Do_Truncate(FileRec(f).Handle,FilePos(f)*FileRec(f).RecSize);
 End;
 
@@ -328,11 +349,14 @@ Procedure Close(var f:File);[IOCheck];
 Begin
   If InOutRes <> 0 then
    exit;
-  if FileRec(f).Mode<>fmInOut then
-   begin
-     InOutRes:=103;
-     exit;
-   end;
+  case FileRec(f).Mode of
+    fmInOut,fmInput,fmOutput : ;
+  else
+    begin
+      InOutRes:=103;
+      exit;
+    end;
+  end;
   FileRec(f).mode:=fmClosed;
   if FileRec(f).Handle>4 then
    Do_Close(FileRec(f).Handle);
@@ -385,7 +409,10 @@ End;
 
 {
   $Log$
-  Revision 1.9  1998-11-29 22:28:11  peter
+  Revision 1.10  1998-11-29 23:10:12  peter
+    * also check fmInput,fmOutput
+
+  Revision 1.9  1998/11/29 22:28:11  peter
     + io-error 103 added
 
   Revision 1.8  1998/09/17 16:34:16  peter
