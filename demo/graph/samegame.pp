@@ -562,7 +562,7 @@ BEGIN
     Writeln('No mouse found. A mouse is required!');
     HALT;
    END;
-  FOR I:=1 TO 10 DO
+  FOR I:=0 TO 9 DO
    HighScore[I].Score:=I*1500;
   LoadHighScore(FileName);
   InitMouse;
@@ -594,7 +594,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:50  marco
+  Revision 1.3  2002-02-22 21:41:22  carl
+  * range check error fix
+
+  Revision 1.2  2001/11/11 21:09:50  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter

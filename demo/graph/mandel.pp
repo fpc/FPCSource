@@ -271,7 +271,7 @@ const
   gmdefault = m640x480;
 
 begin
-  gm:=$ffff;
+  gm:=-1;
   if paramcount>0 then
     begin
        val(paramstr(1),gm,error);
@@ -348,7 +348,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:49  marco
+  Revision 1.3  2002-02-22 21:40:45  carl
+  * range check error fix
+
+  Revision 1.2  2001/11/11 21:09:49  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter
