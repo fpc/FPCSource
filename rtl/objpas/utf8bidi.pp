@@ -20,7 +20,7 @@ type
 
 function UnicodeToUtf8(aChar:TUCS32Char):TUTF8Char;
 function UnicodeToUtf8(aChar:WideChar):TUTF8Char;
-procedure insert(var uString:TUTF8Str; CharToInsert:TUTF8Char; var CursorPos:Integer);
+procedure insert(CharToInsert:TUTF8Char; var uString:TUTF8Str; var CursorPos:Integer);
 
 implementation
 
@@ -53,7 +53,7 @@ begin
   UnicodeToUtf8(Word(aChar));
 end;
 
-procedure insert(var uString:TUTF8Str; CharToInsert:TUTF8Char; var CursorPos:Integer);
+procedure insert(CharToInsert:TUTF8Char; var uString:TUTF8Str; var CursorPos:Integer);
 var
 {At beginning of the line we don't know which direction, thus the first
  character usually decides of paragrph direction}
