@@ -1686,9 +1686,15 @@ unit pexpr;
                        sym:=pvarsym(srsymtable^.search(pattern));
                        if assigned(sym) then
                         begin
-                          p1:=genzeronode(typen);
-                          p1^.resulttype:=classh;
-                          pd:=p1^.resulttype;
+                          { only for procsyms we need to set the type (PFV) }
+                          if sym^.typ=procsym then
+                           begin
+                             p1:=genzeronode(typen);
+                             p1^.resulttype:=classh;
+                             pd:=p1^.resulttype;
+                           end
+                          else
+                           p1:=nil;
                           consume(_ID);
                           do_member_read(false,sym,p1,pd,again);
                           break;
@@ -2103,7 +2109,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.152  1999-10-27 16:06:19  peter
+  Revision 1.153  1999-11-05 00:10:30  peter
+    * fixed inherited with properties
+
+  Revision 1.152  1999/10/27 16:06:19  peter
     * check for object in extended new
 
   Revision 1.151  1999/10/26 12:30:44  peter
