@@ -35,7 +35,10 @@ unit n386;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:47  peter
+  Revision 1.1  2000-10-15 09:33:31  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.1  2000/10/14 10:14:47  peter
     * moehrendorf oct 2000 rewrite
 
 }

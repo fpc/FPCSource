@@ -1547,7 +1547,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-15 09:08:58  peter
+  Revision 1.1  2000-10-15 09:33:31  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.2  2000/10/15 09:08:58  peter
     * use System for the systemunit instead of target dependent
 
   Revision 1.1  2000/10/14 10:14:49  peter

@@ -1017,7 +1017,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-14 21:52:54  peter
+  Revision 1.1  2000-10-15 09:33:32  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.2  2000/10/14 21:52:54  peter
     * fixed memory leaks
 
   Revision 1.1  2000/10/14 10:14:49  peter
