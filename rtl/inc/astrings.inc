@@ -407,7 +407,6 @@ end;
 
 Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
-  Writeln('Check range ',len,'>=',index);
   if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
@@ -880,7 +879,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  2005-04-06 07:43:02  michael
+  Revision 1.57  2005-04-06 07:45:14  michael
+  + Removed erroneously committed debug statement
+
+  Revision 1.56  2005/04/06 07:43:02  michael
   + Variant type conversion rules
 
   Revision 1.55  2005/02/14 17:13:22  peter
