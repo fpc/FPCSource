@@ -179,7 +179,7 @@ procedure gdk_gc_set_clip_region(gc:PGdkGC; region:PGdkRegion);cdecl;external gd
 procedure gdk_gc_set_subwindow(gc:PGdkGC; mode:TGdkSubwindowMode);cdecl;external gdkdll name 'gdk_gc_set_subwindow';
 procedure gdk_gc_set_exposures(gc:PGdkGC; exposures:gint);cdecl;external gdkdll name 'gdk_gc_set_exposures';
 procedure gdk_gc_set_line_attributes(gc:PGdkGC; line_width:gint; line_style:TGdkLineStyle; cap_style:TGdkCapStyle; join_style:TGdkJoinStyle);cdecl;external gdkdll name 'gdk_gc_set_line_attributes';
-procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:gchar;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
+procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:array of gchar;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
 procedure gdk_gc_copy(dst_gc:PGdkGC; src_gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_copy';
 function  gdk_pixmap_new(window:PGdkWindow; width:gint; height:gint; depth:gint):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_new';
 function  gdk_bitmap_create_from_data(window:PGdkWindow; data:Pgchar; width:gint; height:gint):PGdkBitmap;cdecl;external gdkdll name 'gdk_bitmap_create_from_data';
@@ -355,7 +355,12 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.2  2000-01-24 23:56:58  peter
+  Revision 1.3  2000-01-26 19:16:24  lazarus
+  Implemented TPen.Style properly for GTK. Done SelectObject for pen objects.
+  Misc bug fixes.
+  Corrected GDK declaration for gdk_gc_set_slashes.
+
+  Revision 1.2  2000/01/24 23:56:58  peter
     * win32 fixes for the latest dll (2000-01-04)
 
   Revision 1.1  1999/11/24 23:36:33  peter
