@@ -22,6 +22,15 @@ unit {$ifdef VER1_0}syspalm{$else}system{$endif};
 
   Interface
 
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = false;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+ FileNameCaseSensitive = false;
+
     Type
        { type and constant declartions doesn't hurt }
        LongInt  = $80000000..$7fffffff;
@@ -94,7 +103,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-03-21 21:17:58  hajny
+  Revision 1.3  2001-06-13 22:21:53  hajny
+    + platform specific information
+
+  Revision 1.2  2001/03/21 21:17:58  hajny
     * system unit name change corrections
 
   Revision 1.1  2001/03/16 20:01:48  hajny

@@ -15,6 +15,15 @@
 
  **********************************************************************}
 
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = true;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ':';
+ FileNameCaseSensitive = true;
+
 {$ifdef m68k}
 { used for single computations }
 const
@@ -34,7 +43,7 @@ const
 
   FileNameCaseSensitive : boolean = true;
 
-  sLineBreak : string[1] = #10;
+  sLineBreak : string[1] = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
@@ -44,7 +53,10 @@ var
 
 {
   $Log$
-  Revision 1.7  2001-04-13 23:49:49  peter
+  Revision 1.8  2001-06-13 22:20:11  hajny
+    + platform specific information
+
+  Revision 1.7  2001/04/13 23:49:49  peter
     * fixes for the stricter compiler
 
   Revision 1.6  2001/04/13 22:30:55  peter

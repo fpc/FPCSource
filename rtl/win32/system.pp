@@ -17,6 +17,15 @@
 unit {$ifdef VER1_0}SysWin32{$else}System{$endif};
 interface
 
+{Platform specific information}
+const
+ LineEnding = #13#10;
+ LFNSupport = true;
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
+
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -57,7 +66,7 @@ const
 
    FileNameCaseSensitive : boolean = true;
 
-   sLineBreak : string[2] = #13#10;
+   sLineBreak : string[2] = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
    { Thread count for DLL }
@@ -1554,7 +1563,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2001-06-10 17:56:57  hajny
+  Revision 1.13  2001-06-13 22:20:11  hajny
+    + platform specific information
+
+  Revision 1.12  2001/06/10 17:56:57  hajny
     * errno changed to a threadvar if MT enabled
 
   Revision 1.11  2001/06/07 21:16:30  peter

@@ -29,6 +29,15 @@ interface
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
+{Platform specific information}
+const
+ LineEnding = #13#10;
+{ LFNSupport is a variable here, defined below!!! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
+
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -46,7 +55,7 @@ const
 
   FileNameCaseSensitive : boolean = false;
 
-  sLineBreak : string[2] = #13#10;
+  sLineBreak : string[2] = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 { Default memory segments (Tp7 compatibility) }
@@ -69,6 +78,9 @@ var
 {$ifndef RTLLITE}
 { System info }
   LFNSupport : boolean;
+{$ELSE RTLLITE}
+const
+  LFNSupport = false;
 {$endif RTLLITE}
 
 type
@@ -1533,7 +1545,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  2001-06-07 21:16:30  peter
+  Revision 1.10  2001-06-13 22:21:53  hajny
+    + platform specific information
+
+  Revision 1.9  2001/06/07 21:16:30  peter
     * fixed empty arguments
 
   Revision 1.8  2001/06/01 22:23:21  peter

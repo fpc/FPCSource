@@ -21,6 +21,15 @@ unit system;
 
 interface
 
+{Platform specific information}
+const
+ LineEnding = #13#10;
+ LFNSupport = true;
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+ FileNameCaseSensitive = false;
+
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -276,7 +285,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2001-03-25 11:06:35  hajny
+  Revision 1.5  2001-06-13 22:21:53  hajny
+    + platform specific information
+
+  Revision 1.4  2001/03/25 11:06:35  hajny
     * GetDir fixed
 
   Revision 1.3  2001/03/16 20:42:44  hajny

@@ -2185,10 +2185,6 @@ function FExpand (const Path: PathStr): PathStr;
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
-const
-  LFNSupport = true;
-  FileNameCaseSensitive = true;
-
 {$I fexpand.inc}
 
 {$UNDEF FPC_FEXPAND_GETENVPCHAR}
@@ -2893,7 +2889,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2001-06-03 20:19:09  peter
+  Revision 1.10  2001-06-13 22:20:11  hajny
+    + platform specific information
+
+  Revision 1.9  2001/06/03 20:19:09  peter
     * FSStat to StatFS
     * StatFS structure to TStatFS
 

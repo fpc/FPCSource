@@ -28,6 +28,16 @@ unit {$ifdef VER1_0}sysatari{$else}{$ifdef VER0_99}sysatari{$ELSE}system{$endif}
 
   interface
 
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = true;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+ FileNameCaseSensitive = false;
+
+ sLineBreak: string [1] = LineEnding;
     { used for single computations }
     const BIAS4 = $7f-1;
 
@@ -747,7 +757,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-03-16 20:01:47  hajny
+  Revision 1.2  2001-06-13 22:22:59  hajny
+    + platform specific information
+
+  Revision 1.1  2001/03/16 20:01:47  hajny
     + system unit name change
 
   Revision 1.2  2000/07/14 10:30:58  michael

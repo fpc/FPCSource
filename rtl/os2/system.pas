@@ -50,6 +50,15 @@ Coding style:
 
 interface
 
+{Platform specific information}
+const
+ LineEnding = #13#10;
+{ LFNSupport is defined separately below!!! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
+
 {Link the startup code.}
 {$l prt1.oo2}
 
@@ -127,9 +136,10 @@ const   UnusedHandle=$ffff;
         StdOutputHandle=1;
         StdErrorHandle=2;
 
-        FileNameCaseSensitive : boolean = false;
+        LFNSupport: boolean = true;
+        FileNameCaseSensitive: boolean = false;
 
-        sLineBreak : string[2] = #13#10;
+        sLineBreak : string[2] = LineEnding;
 
 var
 { C-compatible arguments and environment }
@@ -1056,7 +1066,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-05-20 18:40:32  hajny
+  Revision 1.14  2001-06-13 22:21:53  hajny
+    + platform specific information
+
+  Revision 1.13  2001/05/20 18:40:32  hajny
     * merging Carl's fixes from the fixes branch
 
   Revision 1.12  2001/04/20 19:05:11  hajny

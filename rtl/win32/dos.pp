@@ -693,9 +693,6 @@ function FExpand (const Path: PathStr): PathStr;
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
-const
-  LFNSupport = true;
-
 {$I fexpand.inc}
 
 {$UNDEF FPC_FEXPAND_DRIVES}
@@ -1012,7 +1009,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-03-16 20:09:58  hajny
+  Revision 1.9  2001-06-13 22:21:53  hajny
+    + platform specific information
+
+  Revision 1.8  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.7  2000/12/18 17:28:58  jonas

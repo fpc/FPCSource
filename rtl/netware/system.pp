@@ -31,6 +31,15 @@ interface
 {$endif i386}
 
 
+{Platform specific information}
+const
+ LineEnding = #13#10;
+ LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
+
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -51,7 +60,7 @@ CONST
 
    FileNameCaseSensitive : boolean = false;
 
-   sLineBreak : STRING [2] = #13#10;
+   sLineBreak : STRING [2] = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 VAR
@@ -561,7 +570,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2001-04-16 18:39:50  florian
+  Revision 1.4  2001-06-13 22:20:11  hajny
+    + platform specific information
+
+  Revision 1.3  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/04/11 14:17:00  florian

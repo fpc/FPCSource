@@ -25,8 +25,6 @@
 unit dos;
 interface
 
-CONST LFNSupport = FALSE;
-
 Const
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
@@ -860,7 +858,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-16 18:39:50  florian
+  Revision 1.4  2001-06-13 22:20:11  hajny
+    + platform specific information
+
+  Revision 1.3  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/04/11 14:17:00  florian

@@ -23,6 +23,15 @@ unit System;
 
 interface
 
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = true;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ':';
+ FileNameCaseSensitive = true;
+
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -513,7 +522,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-06-02 19:26:03  peter
+  Revision 1.2  2001-06-13 22:20:10  hajny
+    + platform specific information
+
+  Revision 1.1  2001/06/02 19:26:03  peter
     * BeOS target!
 
 }
