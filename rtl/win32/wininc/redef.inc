@@ -250,7 +250,7 @@ function CallNamedPipe(lpNamedPipeName: PChar; lpInBuffer: Pointer; nInBufferSiz
 function CallNamedPipeA(lpNamedPipeName: LPCSTR; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL; external 'kernel32' name 'CallNamedPipeA';
 function CallNamedPipeW(lpNamedPipeName: LPWSTR; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL; external 'kernel32' name 'CallNamedPipeW';
 {$ifdef ver1_0}
-  function CoRegisterClassObject(const _para1:TCLSID; _para2:IUnknown; _para3:DWORD; _para4:DWORD; var _para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
+  function CoRegisterClassObject(const _para1:TCLSID; _para2:Pointer; _para3:DWORD; _para4:DWORD; var _para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
 {$else}
   function CoRegisterClassObject(const _para1:TCLSID; _para2:IUnknown; _para3:DWORD; _para4:DWORD; out_para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
 {$endif}
@@ -1060,7 +1060,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2004-05-07 13:26:31  marco
+  Revision 1.23  2004-05-09 10:46:34  peter
+  fix compile with 1.0.x
+
+  Revision 1.22  2004/05/07 13:26:31  marco
    * COM related fixes from bug 3090
 
   Revision 1.21  2004/05/05 20:08:38  marco
