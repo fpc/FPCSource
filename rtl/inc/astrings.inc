@@ -251,7 +251,7 @@ Procedure PChar_To_AnsiStr(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PC
 Var
   L : Longint;
 begin
-  if p[0]=#0 Then
+  if (not assigned(p)) or (p[0]=#0) Then
     Pointer(a):=nil
   else
     begin
@@ -761,7 +761,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1999-04-13 09:02:06  michael
+  Revision 1.22  1999-04-22 10:51:17  peter
+    * fixed pchar 2 ansi
+
+  Revision 1.21  1999/04/13 09:02:06  michael
   + 1 byte too much allocated in new_ansiStringastrings.inc
 
   Revision 1.20  1999/04/09 07:33:15  michael
