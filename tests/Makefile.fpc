@@ -168,7 +168,7 @@ distclean: clean
 # Main rules
 #
 
-.PHONY: all full rundigest
+.PHONY: all full rundigest dailytest
 
 rundigest :
 	-$(DIGEST)
@@ -183,4 +183,29 @@ info :
         @echo Targets:
         @echo   all   - continue all tests
         @echo   full  - clean and run all tests
+	@echo   dailytest - run full and save results
+	@echo               in files having the date as extension
         @echo
+
+override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d) 
+
+ifneq ($(wildcard log.$(DATESUFFIX)),)
+override DATESUFFIX=$(shell $(DATE) +%Y.%m.%d.%H.%M) 
+endif
+
+ifneq ($(wildcard lastdate.txt),)
+LASTDATESUFFIX:=$(shell cat lastdate.txt) 
+endif
+
+dailytest : full
+	$(COPY) faillist faillist.$(DATESUFFIX)
+	$(COPY) log log.$(DATESUFFIX)
+	$(COPY) longlog longlog.$(DATESUFFIX)
+	-$(DIGEST) > digest.$(DATESUFFIX)
+ifdef LASTDATESUFFIX
+	-diff -u log.$(LASTDATESUFFIX) log.$(DATESUFFIX) > difflog.$(DATESUFFIX)
+	-diff -u digest.$(LASTDATESUFFIX) digest.$(DATESUFFIX) > diffdigest.$(DATESUFFIX)
+	-diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
+endif
+	@echo $(DATESUFFIX) > lastdate.txt
+			

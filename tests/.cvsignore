@@ -23,3 +23,5 @@
 fp.dsk
 fp.ini
 fp.cfg
+longlog*
+faillist*
