@@ -559,7 +559,8 @@ implementation
                                          else
                                            begin
                                              exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,S_L,
-                                               newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
+                                               newcsymbol(pobjectdef(
+                                               p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
                                              maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                                pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                            end;
@@ -1299,7 +1300,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-02-08 11:29:04  pierre
+  Revision 1.66  1999-02-09 15:45:46  florian
+    + complex results for assembler functions, fixes bug0155
+
+  Revision 1.65  1999/02/08 11:29:04  pierre
    * fix for bug0214
      several problems where combined
      search_class_member did not set srsymtable

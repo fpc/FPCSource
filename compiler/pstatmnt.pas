@@ -1221,16 +1221,20 @@ unit pstatmnt;
                    usedinproc:=usedinproc or ($800 shr word(R_D0))
 {$endif}
                 end
+              {
               else if not is_fpu(procinfo.retdef) then
-              { should we allow assembler functions of big elements ? }
+               should we allow assembler functions of big elements ?
+                YES (FK)!!
                Message(parser_e_asm_incomp_with_function_return);
-           end;
+              }
+            end;
            { set the framepointer to esp for assembler functions }
            { but only if the are no local variables              }
            { added no parameter also (PM)                        }
            if ((aktprocsym^.definition^.options and poassembler)<>0) and
                (aktprocsym^.definition^.localst^.datasize=0) and
-               (aktprocsym^.definition^.parast^.datasize=0) then
+               (aktprocsym^.definition^.parast^.datasize=0) and
+               not(ret_in_param(aktprocsym^.definition^.retdef)) then
                begin
 {$ifdef i386}
                   procinfo.framepointer:=R_ESP;
@@ -1255,7 +1259,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.62  1999-01-27 13:06:57  pierre
+  Revision 1.63  1999-02-09 15:45:47  florian
+    + complex results for assembler functions, fixes bug0155
+
+  Revision 1.62  1999/01/27 13:06:57  pierre
    * memory leak in case optimization fixed
 
   Revision 1.61  1999/01/25 22:49:09  peter
