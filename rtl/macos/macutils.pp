@@ -38,7 +38,7 @@ function MacOSErr2RTEerr(err: OSErr): Integer;
 {the path is intended for use in MPW, and the environment variable Boot is}
 {prepended. Otherwise the actual boot volume name is appended.}
 {All kinds of paths are attempted to be translated, except relative path on}
-{a certion drive: C:xxx\yyy, are atteted to  }
+{a certain drive, like: C:xxx\yyy }
 
 function TranslatePathToMac (const path: string; mpw: Boolean): string;
 
@@ -70,10 +70,10 @@ function LaunchFSSpec (tofront: Boolean; const applicationFileSpec: FSSpec): OSE
 
 implementation
 
+{Actually defined in system.pp. Declared here to be used in macutils.inc: }
 var
   {emulated working directory}
   workingDirectorySpec: FSSpec; cvar; external;
-    {Actually defined in system.pp. Declared here to be used in macutils.inc }
 
 {$I macutils.inc}
 
