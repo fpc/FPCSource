@@ -38,7 +38,11 @@ DEFAULTUNITS=1
 # Real targets
 #####################################################################
 
-UNITOBJECTS=classes
+# INCUNITS is defined in makefile.inc
+# They are default units for all platforms.
+include $(INC)/Makefile.inc
+
+UNITOBJECTS=$(INCUNITS)
 EXEOBJECTS=
 
 
@@ -116,14 +120,18 @@ endif
 
 vpath %$(PASEXT) $(INC)
 
-include $(INC)/Makefile.inc
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
 classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
+inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
+
 #
 # $Log$
-# Revision 1.5  1999-04-08 10:19:05  peter
+# Revision 1.6  1999-04-12 14:40:17  michael
+# + Fixed inifiles dependencies
+#
+# Revision 1.5  1999/04/08 10:19:05  peter
 #   * makefile updates
 #
 #
