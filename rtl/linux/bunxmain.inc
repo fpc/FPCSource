@@ -21,8 +21,9 @@
 
 { $I ostypes.inc}
 
-{$ifdef uselibc}
- {$I oscdeclh.inc}
+{$ifdef FPC_USE_LIBC}
+// {$I oscdeclh.inc}
+ {$linklib c}
 {$else}
  {$I sysdeclh.inc}
 {$endif}
@@ -32,7 +33,10 @@
 
 {
  $Log$
- Revision 1.3  2003-06-01 16:28:56  marco
+ Revision 1.4  2003-12-30 15:43:20  marco
+  * linux now compiles with FPC_USE_LIBC
+
+ Revision 1.3  2003/06/01 16:28:56  marco
   * small rearrangements
 
  Revision 1.2  2003/01/02 22:39:19  marco

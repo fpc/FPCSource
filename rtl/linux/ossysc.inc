@@ -16,14 +16,23 @@
  ****************************************************************************
 }
 
-{$ifdef uselibc}
+{$I ostypes.inc}
+
+{$ifdef FPC_USE_LIBC}
+  {$Linklib c}
+  // Out of date atm.
+
+{$ifdef FPC_IS_SYSTEM}
+{$i oscdeclh.inc}
+{$endif}
+{$I bunxmacr.inc}
+
 {$else}
 
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-{$I ostypes.inc}
 {$I syscallh.inc}
 {$I syscall.inc}
 {$I sysnr.inc}
@@ -324,14 +333,6 @@ begin
  Fpdup2:=do_syscall(syscall_nr_dup2,TSysParam(fildes),TSysParam(fildes2));
 end;
 
-CONST
-
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$20;
-
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
-  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 
 type
   tmmapargs=packed record
@@ -380,15 +381,6 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),TSysParam(Len));
 end;
 
-Function sbrk(size : longint) : pointer;
-begin
-  sbrk:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk=pointer(-1) then
-    sbrk:=nil
-  else
-    errno:=0;
-end;
-
 {
   Interface to Unix ioctl call.
   Performs various operations on the filedescriptor Handle.
@@ -406,20 +398,6 @@ begin
   FpIOCtl:=do_SysCall(syscall_nr_ioctl,tsysparam(fd),tsysparam(Request),TSysParam(data));
 end;
 
-Function Do_IsDevice(Handle:cint):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-
-var
-  Data : array[0..255] of byte; {Large enough for termios info}
-begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
-end;
 
 Function FpGetPid:pid_t;   [public, alias : 'FPC_SYSC_GETPID'];
 {
@@ -452,9 +430,47 @@ end;
 
 {$ENDIF}
 
+CONST
+
+  { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$20;
+
+  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+
+
+Function sbrk(size : longint) : pointer;
+begin
+  sbrk:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if sbrk=pointer(-1) then
+    sbrk:=nil
+  else
+    errno:=0;
+end;
+
+Function Do_IsDevice(Handle:cint):boolean;
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+
+var
+  Data : array[0..255] of byte; {Large enough for termios info}
+begin
+  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+end;
+
+
 {
  $Log$
- Revision 1.10  2003-12-16 09:43:04  daniel
+ Revision 1.11  2003-12-30 15:43:20  marco
+  * linux now compiles with FPC_USE_LIBC
+
+ Revision 1.10  2003/12/16 09:43:04  daniel
    * Use of 0 instead of nil fixed
 
  Revision 1.9  2003/10/17 20:56:24  olle

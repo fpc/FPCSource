@@ -13,7 +13,7 @@
 
 **********************************************************************}
 
-
+{$ifndef FPC_USE_LIBC}
 Function  fsync (fd : cint) : cint;
 begin
   fsync := do_SysCall(syscall_nr_fsync, fd);
@@ -46,44 +46,6 @@ begin
   fStatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,longint(@info)));
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
-
-{
-  Sets up a pair of file variables, which act as a pipe. The first one can
-  be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
-}
-var
-  pip  : tpipe;
-begin
-  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip));
-  pipe_in:=pip[1];
-  pipe_out:=pip[2];
-end;
-
-Function PClose(Var F:text) :cint;
-var
-  pl  : ^cint;
-  res : cint;
-begin
-  do_SysCall (syscall_nr_close,Textrec(F).Handle);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
-
-Function PClose(Var F:file) : cint;
-var
-  pl : ^cint;
-  res : cint;
-begin
-  do_SysCall (Syscall_nr_close,filerec(F).Handle);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
 
 {--------------------------------
       Port IO functions
@@ -108,10 +70,58 @@ begin
 end;
 
 {$endif cpui386}
+{$endif}
+
+Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+var
+  pip  : tpipe;
+begin
+  {$ifdef FPC_USE_LIBC}
+  assignpipe:=pipe(pip);
+  {$else}
+  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip));
+  {$endif}
+  pipe_in:=pip[1];
+  pipe_out:=pip[2];
+end;
+
+Function PClose(Var F:text) :cint;
+var
+  pl  : ^cint;
+  res : cint;
+begin
+  fpclose(Textrec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(textrec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+Function PClose(Var F:file) : cint;
+var
+  pl : ^cint;
+  res : cint;
+begin
+  fpclose(filerec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(filerec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
 
 {
   $Log$
-  Revision 1.22  2003-12-30 12:36:56  marco
+  Revision 1.23  2003-12-30 15:43:20  marco
+   * linux now compiles with FPC_USE_LIBC
+
+  Revision 1.22  2003/12/30 12:36:56  marco
    * FPC_USE_LIBC
 
   Revision 1.21  2003/11/19 11:46:55  marco

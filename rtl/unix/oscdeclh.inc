@@ -28,11 +28,11 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external name 'access';
     function  FpChdir	(path : pchar): cint; cdecl; external name 'chdir';
     function  FpClose	(fd : cint): cint; cdecl; external name 'close';
-{$ifndef FPC_IS_SYSTEM}
+//{$ifndef FPC_IS_SYSTEM}
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external name 'closedir';
-{$else}
+//{$else}
     function  FpClosedir (dirp : pdir): cint; cdecl; external name 'closedir';
-{$endif}
+//{$endif}
     function  FpDup	(oldd:cint):cint; cdecl; external name 'dup';
     function  FpDup2	(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
     function  FpExecve	(path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external name 'execve';
@@ -44,18 +44,18 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpOpen	(path: pchar; flags : cint; mode: TMode):cint; cdecl; external name 'open';
     function  FpOpendir	(dirname : pchar): pdir; cdecl; external name 'opendir';
     function  FpRead	(fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external name 'read';
-{$ifdef FPC_IS_SYSTEM}
+//{$ifdef FPC_IS_SYSTEM}
     function  FpReaddir	(dirp : pdir) : pdirent;cdecl; external name 'readdir';
-{$ELSE}
+//{$ELSE}
     Function  FpReaddir    (var dirp : Dir) : pDirent;cdecl; external name 'readdir';
-{$endif}
+//{$endif}
     function  FpRename	(old : pchar; newpath: pchar): cint; cdecl;external name 'rename';
     function  FpRmdir	(path : pchar): cint; cdecl; external name 'rmdir';
-    {$ifdef FPC_IS_SYSTEM}
+//    {$ifdef FPC_IS_SYSTEM}
     function  FpSigaction (sig: cint;var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
-    {$else}
+//    {$else}
     Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external name 'sigaction';
-    {$endif}
+//    {$endif}
 
     {$ifdef BSD}
     function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; external name 'sigprocmask';
@@ -91,7 +91,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
    $Log$
-   Revision 1.2  2003-12-30 12:24:01  marco
+   Revision 1.3  2003-12-30 15:43:20  marco
+    * linux now compiles with FPC_USE_LIBC
+
+   Revision 1.2  2003/12/30 12:24:01  marco
     * FPC_USE_LIBC
 
    Revision 1.1  2003/06/01 15:23:46  marco

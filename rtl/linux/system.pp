@@ -70,16 +70,24 @@ end;
 {$I heap.inc}
 
 {*****************************************************************************
-                           UnTyped File Handling
+                 UnTyped File Handling
 *****************************************************************************}
 
 {$i file.inc}
 
 {*****************************************************************************
-                           Typed File Handling
+                 Typed File Handling
 *****************************************************************************}
 
 {$i typefile.inc}
+
+{*****************************************************************************
+                 Extra cdecl declarations for FPC_USE_LIBC for this os
+*****************************************************************************}
+
+{$ifdef FPC_USE_LIBC}
+Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
+{$endif}
 
 procedure SysInitStdIO;
 begin
@@ -133,7 +141,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2003-12-30 12:36:56  marco
+  Revision 1.10  2003-12-30 15:43:20  marco
+   * linux now compiles with FPC_USE_LIBC
+
+  Revision 1.9  2003/12/30 12:36:56  marco
    * FPC_USE_LIBC
 
   Revision 1.8  2003/09/14 20:15:01  marco

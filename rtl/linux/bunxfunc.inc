@@ -16,10 +16,13 @@
 
  **********************************************************************}
 
+{$i ostypes.inc}
+
+{$ifndef FPC_USE_LIBC}
 {$i syscallh.inc}       // do_syscall declarations themselves
 {$i sysnr.inc}          // syscall numbers.
-{$i ostypes.inc}
 {$i ossysch.inc}        // external interface to syscalls in system unit.
+{$endif}
 //{$i genfuncs.inc}
 
 {$i bunxmacr.inc}       // macro's.
@@ -27,6 +30,7 @@
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}
 
+{$ifndef FPC_USE_LIBC}
 Function fpKill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -431,9 +435,14 @@ begin
   fpSelect:=do_syscall(syscall_nr_select,longint(@selectarray));
 end;
 
+{$endif}
+
 {
  $Log$
- Revision 1.6  2003-11-19 14:04:34  marco
+ Revision 1.7  2003-12-30 15:43:20  marco
+  * linux now compiles with FPC_USE_LIBC
+
+ Revision 1.6  2003/11/19 14:04:34  marco
   * fix for sleep from johill
 
  Revision 1.5  2003/09/27 13:45:58  peter

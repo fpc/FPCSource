@@ -43,7 +43,7 @@ Const
   LOCK_NB = 4;
 
 Type
-  Tpipe = array[1..2] of cint;
+  Tpipe = baseunix.tfildes;	// compability.
 
   pglob = ^tglob;
   tglob = record
@@ -609,11 +609,21 @@ Begin
   EpochToLocal(fptime,year,month,day,hour,minute,second);
 End;
 
-{$ifndef BSD}
+{$ifndef BSD}			// this can be done nicer, but I still have
+				// to think about what to do with this func.
+	
 {$ifdef linux}
-Function stime (t : cint) : Boolean;
+{$ifdef FPC_USE_LIBC}
+function intstime (t:ptime_t):cint; external name 'stime';
+{$endif}
+
+Function stime (t : cint) : boolean;
 begin
-  stime:=do_SysCall(Syscall_nr_stime,cint(@t))=0;
+  {$ifdef FPC_USE_LIBC}
+   stime:=intstime(@t)=0;
+  {$else}
+   stime:=do_SysCall(Syscall_nr_stime,cint(@t))=0;
+  {$endif}
 end;
 {$endif}
 {$endif}
@@ -1398,7 +1408,10 @@ End.
 
 {
   $Log$
-  Revision 1.53  2003-12-30 12:24:01  marco
+  Revision 1.54  2003-12-30 15:43:20  marco
+   * linux now compiles with FPC_USE_LIBC
+
+  Revision 1.53  2003/12/30 12:24:01  marco
    * FPC_USE_LIBC
 
   Revision 1.52  2003/12/08 17:16:30  peter
