@@ -839,8 +839,8 @@ const msgtxt : array[0..000157,1..240] of char=(
   '**2Sh_Use ansistrings'#010+
   '**2Si_support C++ styled INLINE'#010+
   '**2SI<x>_set interface style to <x>'#010+
-  '**3SIcom COM compatible interface (default)'#010+
-  '**3SIcorba CORBA compatib','le interface'#010+
+  '**3SIcom_COM compatible interface (default)'#010+
+  '**3SIcorba_CORBA compatib','le interface'#010+
   '**2Sm_support macros like C (global)'#010+
   '**2So_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
