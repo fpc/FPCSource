@@ -1171,7 +1171,7 @@ begin
     exit;
   cnt := 0;
   { count number of environment pointers }
-  DosGetInfoBlocks (PPThreadInfoBlocks (@TIB), PPProcessInfoBlock (@PIB));
+  DosGetInfoBlocks (PPThreadInfoBlock (@TIB), PPProcessInfoBlock (@PIB));
   ptr := pchar(PIB^.env);
   { stringz,stringz...,#0 }
   i := 0;
@@ -1222,7 +1222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-02-20 17:09:49  hajny
+  Revision 1.25  2003-02-20 17:37:00  hajny
+    * correction for previous mistyping
+
+  Revision 1.24  2003/02/20 17:09:49  hajny
     * fixes for OS/2 v2.1 incompatibility
 
   Revision 1.23  2003/01/04 15:43:50  hajny
