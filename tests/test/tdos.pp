@@ -78,6 +78,7 @@ end;
 procedure TestDisk;
 var
   Dir : SearchRec;
+  DT  : DateTime;
 begin
   writeln;
   writeln('Disk Functions');
@@ -96,7 +97,8 @@ begin
   FindFirst('*.*',$20,Dir);
   while (DosError=0) do
    begin
-     Writeln(dir.Name,' ',dir.Size);
+     UnpackTime(dir.Time,DT);
+     Writeln(dir.Name,' ',dir.Size,' ',DT.Year,'-',DT.Month,'-',DT.Day);
      FindNext(Dir);
    end;
   write('Press Enter');
