@@ -303,9 +303,13 @@ done:
 {$endif Splitheap}
 
          { restore old state, close trees }
-{$ifndef go32v2}
-  {$ifndef linux}
+{$ifdef VER0_99_5}	 
          if dispose_asm_lists then
+{$else}	 
+  {$ifndef go32v2}
+    {$ifndef linux}
+         if dispose_asm_lists then
+    {$endif}
   {$endif}
 {$endif}
            codegen_donemodule;
@@ -395,7 +399,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.33  1998-08-10 14:50:07  peter
+  Revision 1.34  1998-08-10 23:58:56  peter
+    * fixed asmlist dispose for 0.99.5
+
+  Revision 1.33  1998/08/10 14:50:07  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.32  1998/08/10 10:18:28  peter
