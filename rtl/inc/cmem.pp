@@ -88,6 +88,7 @@ begin
     begin
       if p<>nil then
         begin
+          dec(size,sizeof(ptrint));
           free(p);
           p:=nil;
         end;
@@ -164,7 +165,10 @@ end.
 
 {
  $Log$
- Revision 1.3  2004-03-17 12:50:53  michael
+ Revision 1.4  2004-03-23 22:35:20  peter
+   * dec ptr before free in reallocmem
+
+ Revision 1.3  2004/03/17 12:50:53  michael
  * Fixed: Macavail -> CMaxAvail (from Marc Weustinc)
 
  Revision 1.2  2004/03/16 15:25:16  peter
