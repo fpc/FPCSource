@@ -22,22 +22,13 @@
 %
 % Preamble
 %
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{a4}
-\usepackage{makeidx}
 \usepackage{html}
 \usepackage{htmllist}
-\usepackage{fancyhdr}
 \usepackage{epsfig}
 \usepackage{multicol}
 \usepackage{fpc}
 \latex{%
   \ifpdf
-  \usepackage[pdftex,bookmarks=true]{hyperref}
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Reference guide)
@@ -47,23 +38,13 @@
 }
 %
 \html{\input{fpc-html.tex}}
-%
-% Settings
-%
-\pagestyle{fancy}
-\fancyhead[LO,RE]{}
 \makeindex
 %
 % Syntax style
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
-\latex{
-\usepackage{listings}%
-\lstset{language=Delphi}%
-\lstset{pre=\sffamily}%
-\lstset{keywordstyle=\bfseries}%
-}
+\usepackage{layout}
 %
 % Start of document.
 %
@@ -87,6 +68,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this guide
+\layout
 \section*{About this guide}
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
@@ -486,6 +468,38 @@ Const
 \end{verbatim}
 The order of the fields in a constant record needs to be the same as in the type declaration,
 otherwise you'll get a compile-time error.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% resource strings
+\section{Resource strings}
+\label{se:resourcestring}
+A special kind of constant declaration part is the \var{Resourestring}
+part. This part is like a \var{Const} section, but it only allows
+to declare constant of type string. This part is only available in the
+\var{Delphi} or \var{objfpc} mode.
+
+The following is an example of a resourcestring definition:
+\begin{verbatim}
+Resourcestring
+
+  FileMenu = '&File...';
+  EditMenu = '&Edit...';
+\end{verbatim}
+All string constants defined in the resourcestring section are stored 
+in special tables, allowing to manipulate the values of the strings 
+at runtime with some special mechanisms.
+
+Semantically, the strings are like constants; you cannot assign values to
+them, except through the special mechanisms in the objpas unit. However,
+you can use them in assignments or expressions as normal constants.
+The main use of the resourcestring section is to provide an easy means
+of internationalization.
+
+More on the subject of resourcestrings can be found in the \progref, and 
+in the chapter on the \file{objpas} later in this manual.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Types
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Types}
 All variables have a type. \fpc supports the same basic types as Turbo
 Pascal, with some extra types from Delphi.
@@ -3362,10 +3376,298 @@ Far & \fpc is a 32-bit compiler. \\
 %External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Operator overloading
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Operator overloading}
+\label{ch:operatoroverloading}
+
+\section{Introduction}
+\fpc supports operator overloading. This means that it is possible to
+define the action of some operators on self-defined types, and thus allow
+the use of these types in mathematical expressions. 
+
+Defining the action of an operator is much like the definition of a 
+function or procedure, only there are some restrictions on the possible
+definitions, as will be shown in the subsequent.
+
+Operator overloading is, in essence, a powerful notational tool; 
+but it is also not more than that, since the same results can be 
+obtained with regular function calls. When using operator overloading,
+It is important to keep in mind that some implicit rules may produce
+some unexpected results. This will be indicated.
+
+\section{Operator declarations}
+To define the action of an operator is much like defining a function:
+\input{syntax/operator.syn}
+The parameter list for a comparision operator or an arithmetic operator
+must always contain 2 parameters. The result type of the comparision
+operator must be \var{Boolean}.
+
+The statement block contains the necessary statements to determine the
+result of the operation. It can contain artbitrary large pieces of code;
+it is executed whenever the operation is encountered in some expression.
+The result of the statement block must always be defined; error conditions
+are not checked bythe compiler, and the code must take care of all possible
+cases, throwing a run-time error if some error condition is encountered.
+
+In the following, the three types of operator definitions will be examined.
+As an example, throughout this chapter the following type will be used to
+define overloaded operators on :
+\begin{verbatim}
+type 
+  complex = record
+    re : real;
+    im : real;
+  end;        
+\end{verbatim}
+this type will be used in all examples.
+
+The sources of the Run-Time Library contain a unit \file{ucomplex}, 
+which contains a complete calculus for complex numbers, based on 
+operator overloading.
+
+\section{Assignment operators}
+
+The assignment operator defines the action of a assignent of one type of
+variable to another. The result type must match the type of the variable
+at the left of the assignment statement, the single parameter to the
+assignment operator must have the same type as the expression at the 
+right of the assignment operator.
+
+To be able to assign a real type to a complex type as follows:
+\begin{verbatim}
+var 
+  R : real;
+  C : complex;
+
+begin
+  C:=R;
+end;
+\end{verbatim}
+the following assignment operator must be defined: 
+
+\begin{verbatim}
+Operator := (r : real) z : complex;
+\end{verbatim}
+As can be seen from this statement, it defines the action of the operator
+\var{:=} with at the right a real expression, and at the left a complex
+expression. 
+
+an example implementation of this could be as follows:
+\begin{verbatim}
+operator := (r : real) z : complex;
+    
+begin
+  z.re:=r;
+  z.im:=0.0;
+end;
+\end{verbatim}
+As can be seen in the example, the result identifier (\var{z} in this case)
+is used to store the result of the assignment. When compiling in Delphi mode
+or objfpc mode, the use of the special identifier \var{Result} is also
+allowed, and can be substituted for the \var{z}, so the above would be
+equivalent to
+\begin{verbatim}
+operator := (r : real) z : complex;
+    
+begin
+  Result.re:=r;
+  Result.im:=0.0;
+end;
+\end{verbatim}
+
+The assignment operator is also used to convert types from one type to
+another. The compiler will consider all overloaded assignment operators
+till it finds one that matches the types of the left hand and right hand
+expressions. If no such operator is found, a 'type mismatch' error
+is given.
+
+\begin{remark}
+The assignment operator is not commutative; the compiler will never reverse
+the role of the two arguments. in other words, given the above definition of
+the assignment operator, the following is {\em not} possible:
+\begin{verbatim}
+var 
+  R : real;
+  C : complex;
+
+begin
+  R:=C;
+end;
+\end{verbatim}
+if the reverse assignment should be possible (this is not so for reals and
+complex numbers) then the assigment operator must be defined for that as well.
+\end{remark}
+
+\begin{remark}
+The assignment operator is also used in implicit type conversions. This can
+have unwanted effects. Consider the following definitions:
+\begin{verbatim}
+operator := (r : real) z : complex;
+function exp(c : complex) : complex;
+\end{verbatim}
+then the following assignment will give a type mismatch:
+\begin{verbatim}
+Var 
+  r1,r2 : real;
+
+begin
+  r1:=exp(r2);
+end;
+\end{verbatim}
+because the compiler will encounter the definition of the \var{exp} function 
+with the complex argument. It implicitly converts r2 to a complex, so it can
+use the above \var{exp} function. The result of this function is a complex, 
+which cannot be assigned to r1, so the compiler will give a 'type mismatch' 
+error. The compiler will not look further for another \var{exp} which has 
+the correct arguments.
+
+It is possible to avoid this particular problem by specifying
+\begin{verbatim}
+  r1:=system.exp(r2);
+\end{verbatim}
+An experimental solution for this problem exists in the compiler, but is
+not enabled by default. Maybe someday it will be.
+\end{remark}
+
+\section{Arithmetic operators}
+
+Arithmetic operators define the action of a binary operator. Possible 
+operations are:
+\begin{description}
+\item[multiplication] to multiply two types, the \var{*} multiplication
+operator must be overloaded.
+\item[division] to divide two types, the \var{/} division
+operator must be overloaded.
+\item[addition] to add two types, the \var{+} addition
+operator must be overloaded.
+\item[substraction] to substract two types, the \var{-} substraction
+operator must be overloaded.
+\item[exponentiation] to exponentiate two types, the \var{**} exponentiation
+operator must be overloaded.
+\end{description}
+
+The definition of an arithmetic operator takes two parameters. The first
+parameter must be of the type that occurs at the left of the operator, 
+the second parameter must be of the type that is at the right of the
+arithmetic operator. The result type must match the type that results
+after the arithmetic operation.
+
+To compile an expression as
+\begin{verbatim}
+var 
+  R : real;
+  C,Z : complex;
+
+begin
+  C:=R*Z;
+end;
+\end{verbatim}
+one needs a definition of the multiplication operator as:
+\begin{verbatim}
+Operator * (r : real; z1 : complex) z : complex;
+ 
+begin
+  z.re := z1.re * r;
+  z.im := z1.im * r;
+end;
+\end{verbatim}
+As can be seen, the first operator is a real, and the second is
+a complex. The result type is complex.
+
+Multiplication and addition of reals and complexes are commutative 
+operations. The compiler, however, has no notion of this fact so even 
+if a multiplication between a real and a complex is defined, the 
+compiler will not use that definition when it encounters a complex 
+and a real (in that order). It is necessary to define both operations.
+
+So, given the above definition of the multiplication, 
+the compiler will not accept the following statement:
+\begin{verbatim}
+var 
+  R : real;
+  C,Z : complex;
+
+begin
+  C:=Z*R;
+end;
+\end{verbatim}
+since the types of \var{Z} and \var{R} don't match the types in the
+operator definition.
+
+The reason for this behaviour is that it is possible that a multiplication
+is not always commutative. e.g. the multiplication of a \var{(n,m)} with a
+\var{(m,n)} matrix will result in a \var{(n,n)} matrix, while the
+mutiplication of a \var{(m,n)} with a \var{(n,m)} matrix is a \var{(m,m)}
+matrix, which needn't be the same in all cases.
+
+\section{Comparision operator}
+The comparision operator can be overloaded to compare two different types
+or to compare two equal types that are not basic types. The result type of
+a comparision operator is always a boolean.
+
+The comparision operators that can be overloaded are:
+\begin{description}
+\item[equal to] (=) to determine if two variables are equal.
+\item[less than] ($<$) to determine if one variable is less than another.
+\item[greater than] ($>$) to determine if one variable is greater than another.
+\item[greater than or equal to] ($>=$) to determine if one variable is greater than
+or equal to another.
+\item[less than or equal to] ($<=$) to determine if one variable is greater 
+than or equal to another.
+\end{description}
+There is no separate operator for {\em unequal to} ($<>$). To evaluate a
+statement that contans the {\em unequal to} operator, the compiler uses the 
+{\em equal to} operator (=), and negates the result.
+
+
+As an example, the following opetrator allows to compare two complex
+numbers:
+\begin{verbatim}
+operator = (z1, z2 : complex) b : boolean;
+\end{verbatim}
+the above definition allows comparisions of the following form:
+\begin{verbatim}
+Var
+  C1,C2 : Complex;
+
+begin
+  If C1=C2 then
+    Writeln('C1 and C2 are equal');
+end;
+\end{verbatim}
+
+The comparision operator definition needs 2 parameters, with the types that
+the operator is meant to compare. Here also, the compiler doesn't apply
+commutativity; if the two types are different, then it necessary to
+define 2 comparision operators. 
+
+In the case of complex numbers, it is, for instance necessary to define
+2 comparsions: one with the complex type first, and one with the real type
+first.
+
+Given the definitions
+\begin{verbatim}
+operator = (z1 : complex;r : real) b : boolean;
+operator = (r : real; z1 : complex) b : boolean;
+\end{verbatim}
+the following two comparisions are possible:
+\begin{verbatim}
+Var 
+  R,S : Real;
+  C : Complex;
+
+begin
+  If (C=R) or (S=C) then
+   Writeln ('Ok');
+end;
+\end{verbatim}
+Note that the order of the real and complex type in the two comparisions 
+is reversed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Programs, Units, Blocks
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Programs, units, blocks}
