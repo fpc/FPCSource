@@ -164,6 +164,7 @@ interface
        terrordef = class(tstoreddef)
           constructor create;
           function  gettypename:string;override;
+          function  getmangledparaname : string;override;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -348,9 +349,9 @@ interface
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
-       protected   
+       protected
           _elementtype : ttype;
-       public   
+       public
           function elesize : longint;
           constructor create(l,h : longint;const t : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -2715,7 +2716,7 @@ implementation
                integer overflow for elesize=1 !! PM }
              (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
             ) Then
-          Begin  
+          Begin
              Message(sym_e_segment_too_large);
              size:=4;
           end
@@ -2726,7 +2727,7 @@ implementation
         else
            size:=newsize;
       end;
-      
+
       procedure tarraydef.setelementtype(t: ttype);
        var
         cachedsize: TConstExprInt;
@@ -2737,7 +2738,7 @@ implementation
          if (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) then
              Message(sym_e_segment_too_large);
        end;
-      
+
 
 
     function tarraydef.alignment : longint;
@@ -5409,6 +5410,12 @@ implementation
          gettypename:='<erroneous type>';
       end;
 
+    function terrordef.getmangledparaname:string;
+
+      begin
+         getmangledparaname:='error';
+      end;
+
 
 {****************************************************************************
                                GDB Helpers
@@ -5559,7 +5566,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2002-10-05 12:43:28  carl
+  Revision 1.98  2002-10-05 15:14:26  peter
+    * getparamangeldname for errordef
+
+  Revision 1.97  2002/10/05 12:43:28  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
