@@ -18,7 +18,7 @@ unit WEditor;
 interface
 
 uses
-  Objects,Drivers,Views,Menus,Commands;
+  Dos,Objects,Drivers,Views,Menus,Commands;
 
 const
       cmFileNameChanged      = 51234;
@@ -345,6 +345,7 @@ const
      NumberChars        : set of char = ['0'..'9'];
      RealNumberChars    : set of char = ['E','e','.','+','-'];
      DefaultSaveExt     : string[12] = '.pas';
+     FileDir            : DirStr = '';
 
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
      UseTabsPattern     : function(Editor: PFileEditor): boolean = DefUseTabsPattern;
@@ -354,7 +355,6 @@ procedure RegisterCodeEditors;
 implementation
 
 uses
-  Dos,
   MsgBox,Dialogs,App,StdDlg,HistList,Validate,
   WUtils,WViews;
 
@@ -3494,6 +3494,8 @@ var
   T: TPoint;
   Re: word;
   Name: string;
+  DriveNumber : byte; 
+  StoreDir,StoreDir2 : DirStr;
 begin
   case Dialog of
     edOutOfMemory:
@@ -3516,16 +3518,38 @@ begin
    nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs:
       begin
-   Name:=PString(Info)^;
-   Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*'+DefaultSaveExt,
-   'Save file as', '~N~ame', fdOkButton, 101)), @Name);
-   if (Re<>cmCancel) and (Name<>PString(Info)^) then
-     if ExistsFile(Name) then
-       if EditorDialog(edReplaceFile,@Name)<>cmYes then
-         Re:=cmCancel;
-   if Re<>cmCancel then
-     PString(Info)^:=Name;
-   StdEditorDialog := Re;
+        Name:=PString(Info)^;
+        GetDir(0,StoreDir);
+        DriveNumber:=0;
+        if (Length(FileDir)>1) and (FileDir[2]=':') then
+          begin
+            { does not assume that lowercase are greater then uppercase ! }
+            if (FileDir[1]>='a') and (FileDir[1]>='z') then
+              DriveNumber:=Ord(FileDir[1])-ord('a')+1
+            else
+              DriveNumber:=Ord(FileDir[1])-ord('A')+1;
+            GetDir(DriveNumber,StoreDir2);
+            ChDir(Copy(FileDir,1,2));
+          end;
+        ChDir(FileDir);
+        Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*'+DefaultSaveExt,
+          'Save file as', '~N~ame', fdOkButton, 101)), @Name);
+        if (Re<>cmCancel) and (Name<>PString(Info)^) then
+          begin
+            FileDir:=DirOf(FExpand(Name));
+            if ExistsFile(Name) then
+              if EditorDialog(edReplaceFile,@Name)<>cmYes then
+                Re:=cmCancel;
+          end;
+        if DriveNumber<>0 then
+          ChDir(StoreDir2);
+        if (Length(StoreDir)>1) and (StoreDir[2]=':') then                                                                                                                                                                                                     
+          ChDir(Copy(StoreDir,1,2));                                                                                                                                                                                                                           
+        ChDir(StoreDir);                                                                                                                                                                                                                                       
+
+        if Re<>cmCancel then
+          PString(Info)^:=Name;
+        StdEditorDialog := Re;
       end;
     edGotoLine:
       StdEditorDialog :=
@@ -3578,7 +3602,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  1999-06-21 23:36:12  pierre
+  Revision 1.33  1999-06-25 00:31:51  pierre
+   + FileDir remembers the last directory for Open and Save
+
+  Revision 1.32  1999/06/21 23:36:12  pierre
    * Size for Cluster is word (TP compatibility)
 
   Revision 1.31  1999/05/22 13:44:35  peter
