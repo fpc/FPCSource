@@ -100,7 +100,11 @@ type
              target_i386_qnx,           { 20 }
              target_i386_wdosx,         { 21 }
              target_sparc_sunos,        { 22 }
-             target_sparc_linux         { 23 }
+             target_sparc_linux,        { 23 }
+             target_i386_openbsd,       { 24 }
+             target_m68k_openbsd,       { 25 }
+             system_x86_64_linux,       { 26 }
+             system_powerpc_macosx      { 27 }
        );
 const
   Targets : array[ttarget] of string[16]=(
@@ -127,7 +131,11 @@ const
   { 20 }  'Qnx-i386',
   { 21 }  'WDOSX-i386',
   { 22 }  'Solaris-sparc',
-  { 23 }  'Linux-sparc'
+  { 23 }  'Linux-sparc',
+  { 24 }  'OpenBSD-i386',
+  { 25 }  'OpenBSD-m68k',
+  { 26 }  'Linux-x86-64',
+  { 27 }  'MacOSX-ppc'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -1852,7 +1860,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-09-26 12:03:54  florian
+  Revision 1.31  2002-09-27 21:22:04  carl
+    * update system information
+
+  Revision 1.30  2002/09/26 12:03:54  florian
     + support of constguid and constwchar const symbols added
 
   Revision 1.29  2002/08/20 16:54:40  peter
