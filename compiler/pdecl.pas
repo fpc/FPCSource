@@ -362,8 +362,15 @@ unit pdecl;
                  { consume the ; when export or external is used }
                    if extern_csym or export_csym then
                     consume(SEMICOLON);
-                 { insert in the symtable }
+                   { insert in the symtable }
                    Csym:=new(pvarsym,init_C(s,C_name,p));
+                   Csym^.fileinfo:=filepos;
+                   { locally defined procvar type with
+                     CDECL need to use C calling convention }
+                   if (p^.deftype=procvardef) and
+                      (p^.sym=nil) then
+                     pprocvardef(p)^.options:=
+                       pprocvardef(p)^.options or (pocdecl+poclearstack);
                    if export_Csym then
                     inc(Csym^.refs);
                    if extern_Csym then
@@ -1900,7 +1907,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.39  1998-08-19 00:42:40  peter
+  Revision 1.40  1998-08-21 15:48:58  pierre
+    * more cdecl chagnes
+      - better line info
+      - changes the definition options of a procvar
+        if it is a unnamed type
+
+  Revision 1.39  1998/08/19 00:42:40  peter
     + subrange types for enums
     + checking for bounds type with ranges
 
