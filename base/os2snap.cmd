@@ -16,7 +16,10 @@ rem *** stripped from the created compiler), "release" (code optimization,
 rem *** debug info stripped out), and "verbose" (compiler messages are
 rem *** shown; the same can be accomplished with setting environment
 rem *** variable DOVERBOSE to 1). Parameters "debug" and "release" are
-rem *** mutually exclusive (the later is used if both are present).
+rem *** mutually exclusive (the later one is used if both are present).
+rem *** Parameter "ppas" forces only PPAS script to be created
+rem *** by the compiler and called manually afterwards. This might help
+rem *** to resolve LD crashes due to low stack (e.g. under WinXX).
 rem *** Parameters _must_ be in lowercase to be recognized correctly,
 rem *** unless running under 4os2 or compatible.
 rem *** Meaning of parameters:
@@ -181,7 +184,8 @@ rem Place for debug or release options, empty by default
 set CURRENTOPT1=
 set CURRENTOPT2=
 rem Stack size for the compiler
-set STACKOPT=-Cs64500
+rem set STACKOPT=-Cs64500
+set STACKOPT=-Cs256000
 rem Path to object files
 set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
@@ -194,10 +198,16 @@ rem Path to compiler object files
 set COMPOBJP=-Fo%COMPSPATH%
 rem Target path for RTL units
 set OS2UNITT=-FU%FPCSNAPRTL%
+rem Fake target path for executables for RTL compilation (path for PPAS)
+set OS2UNITE=-FE%FPCSNAPRTL%
 rem Target path for executables
 set OS2EXET=-FE%FPCSNAPBIN%
 rem Path to include files
 set OS2INCP=-Fi%OS2RTL%;%OS2RTLC%;%OS2RTLO%;%OS2RTLP%
+rem PPAS step disabled by default
+set FORCEPPAS=
+rem Name of the PPAS script
+set PPASNAME=PPAS.CMD
 rem Default compiler for the first compilation
 set CYCLE=0
 set COMPILER=%FPCCOMPILER%
@@ -253,6 +263,7 @@ if %1 == debug set CURRENTOPT2=%DEBUGOPT2%
 if %1 == release set CURRENTOPT1=%RELEASEOPT1%
 if %1 == release set CURRENTOPT2=%RELEASEOPT2%
 if %1 == verbose set DOVERBOSE=1
+if %1 == ppas set FORCEPPAS=1
 goto ParLoop
 :Shl1
 set PARAMS=%@LOWER[%PARAMS%]
@@ -261,6 +272,7 @@ if %@LOWER[%1] == debug set CURRENTOPT2=%DEBUGOPT2%
 if %@LOWER[%1] == release set CURRENTOPT1=%RELEASEOPT1%
 if %@LOWER[%1] == release set CURRENTOPT2=%RELEASEOPT2%
 if %@LOWER[%1] == verbose set DOVERBOSE=1
+if %@LOWER[%1] == ppas set FORCEPPAS=1
 goto ParLoop
 :NoPars
 if %PARAMS% == clean goto CleanRTL
@@ -384,67 +396,121 @@ echo %OS2OBJP% >> %OS2OPTF%
 echo %OS2UNITP% >> %OS2OPTF%
 echo %OS2INCP% >> %OS2OPTF%
 echo %OS2UNITT% >> %OS2OPTF%
+echo %OS2UNITE% >> %OS2OPTF%
 echo -FD%REALTOOLS% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
 if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
+if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
+if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
 if not .%DOVERBOSE% == .1 goto CompStart1
-echo *Start of options used for compilation >> %FPCERRLOG%
+echo *Start of basic options used for compilation >> %FPCERRLOG%
 type %OS2OPTF% >> %FPCERRLOG%
-echo *End of options used for compilation >> %FPCERRLOG%
+echo *End of basic options used for compilation >> %FPCERRLOG%
+if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
 :CompStart1
 echo *Assembling the helpers ... >> %FPCERRLOG%
-%REALTOOLS%\as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as
-%REALTOOLS%\as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as
-%REALTOOLS%\as -o %FPCSNAPRTL%\code2.oo2 %OS2RTL%\code2.as
-%REALTOOLS%\as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as
+%REALTOOLS%\as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as >> %FPCERRLOG%
+%REALTOOLS%\as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as >> %FPCERRLOG%
+%REALTOOLS%\as -o %FPCSNAPRTL%\code2.oo2 %OS2RTL%\code2.as >> %FPCERRLOG%
+%REALTOOLS%\as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as >> %FPCERRLOG%
 echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Objects ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\OBJECTS.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Strings ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\STRINGS.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit HeapTrace ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\HEAPTRC.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit CPU ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\CPU.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MMX ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit TypInfo ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\TYPINFO.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DosCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOSCALLS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DOS ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit CRT ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\CRT.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Printer ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PRINTER.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Math ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\MATH.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit UComplex ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\UCOMPLEX.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit GetOpts ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\GETOPTS.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit KbdCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KBDCALLS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MouCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MOUCALLS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit VioCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VIOCALLS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MonCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MONCALLS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Ports ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PORTS.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling PM units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMWIN.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMBITMAP.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMGPI.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling MMOS2 units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DIVE.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 del %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 
 if %PARAMS% == rtl goto End
 
@@ -466,14 +532,22 @@ echo %OS2EXET% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
 if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
+if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
+if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
 if not .%DOVERBOSE% == .1 goto CompStart2
-echo *Start of options used for compilation >> %FPCERRLOG%
+echo *Start of basic options used for compilation >> %FPCERRLOG%
 type %OS2OPTF% >> %FPCERRLOG%
-echo *End of options used for compilation >> %FPCERRLOG%
+echo *End of basic options used for compilation >> %FPCERRLOG%
+if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
 :CompStart2
 echo *Compiling the compiler ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
 :Comp2
 ren %FPCSNAPBIN%\pp.exe ppos2.exe >> %FPCERRLOG%
 if exist %FPCSNAPBIN%\ppos2.exe goto OKCompiler
@@ -497,7 +571,6 @@ del %FPCSNAPBIN%\ppas.cmd >> %FPCERRLOG%
 goto Comp2
 
 :OKCompiler
-
 if %PARAMS% == compiler goto End
 if %PARAMS% == both goto End
 if %PARAMS% == cycle goto Cycle
@@ -575,7 +648,10 @@ goto End
 
 
   $Log$
-  Revision 1.9  2000-03-05 19:13:25  hajny
+  Revision 1.10  2000-03-12 13:37:24  hajny
+    * support for calling PPAS script, compiler stack increased
+
+  Revision 1.9  2000/03/05 19:13:25  hajny
     * new snapshot structure
 
   Revision 1.8  2000/01/29 16:24:01  hajny
