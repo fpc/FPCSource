@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.7  2002-07-11 14:41:34  florian
+  Revision 1.8  2002-07-21 16:58:59  jonas
+    + include ncgset unit
+
+  Revision 1.7  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.6  2002/07/11 07:42:31  jonas
