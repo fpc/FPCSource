@@ -615,12 +615,14 @@ Var
 begin
   fd:=FileOpen('/dev/null',fmOpenRead);
   If Not(Fd<0) then
-    begin
-    fpfd_zero(fds);
-    fpfd_set(0,fds);
-    timeout.tv_sec:=Milliseconds div 1000;
-    timeout.tv_usec:=(Milliseconds mod 1000) * 1000;
-    fpSelect(1,Nil,Nil,@fds,@timeout);
+    try
+      fpfd_zero(fds);
+      fpfd_set(0,fds);
+      timeout.tv_sec:=Milliseconds div 1000;
+      timeout.tv_usec:=(Milliseconds mod 1000) * 1000;
+      fpSelect(1,Nil,Nil,@fds,@timeout);
+    finally
+      FileClose(fd);
     end;
 end;
 
@@ -713,7 +715,10 @@ end.
 {
 
   $Log$
-  Revision 1.47  2004-10-10 10:28:34  michael
+  Revision 1.48  2004-10-12 15:22:23  michael
+  + Fixed sleep: file needs to be closed again
+
+  Revision 1.47  2004/10/10 10:28:34  michael
   + Implementation of GetTempDir and GetTempFileName
 
   Revision 1.46  2004/08/30 11:20:39  michael
