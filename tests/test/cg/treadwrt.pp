@@ -5,6 +5,22 @@
   {$define HASWIDESTR}
 {$endif VER1_0}
 
+function getint64_1 : int64;
+var
+ value : longint;
+begin
+ value:=1;
+ getint64_1 := int64(value) shl 40; 
+end;
+
+function getint64_2 : int64;
+var
+ value : longint;
+begin
+ value:=65535;
+ getint64_2 := value; 
+end;
+
 procedure test_rwtext;
 var
   t: text;
@@ -21,6 +37,9 @@ var
   arr: array[1..10] of char;
   p: pchar;
   r: real;
+  vl : int64;
+  vl1 : int64;
+  tmplong : longint;
 begin
   bool := true;
   writeln('ShortString const test');
@@ -46,6 +65,10 @@ begin
 
   a := 'this is an ansistring';
   writeln(a);
+  
+  vl:=getint64_1;
+  vl1:=getint64_2;
+  writeln('int64 test : ',vl, ' ',vl1);
 
 {$ifdef HASWIDESTR}
   wc := 'y';
@@ -66,9 +89,13 @@ begin
   writeln(t,l);
   writeln(t,c);
   writeln(t,b);
+  writeln(t,vl);
+  writeln(t,vl1);
   l := 0;
   c := #32;
   b := 5;
+  vl:=1;
+  vl1 := 2;
   close(t);
   reset(t);
   readln(t,s);
@@ -82,6 +109,13 @@ begin
     halt(1);
   readln(t,b);
   if b <> 60 then
+    halt(1);
+  { 64-bit read testing }
+  readln(t,vl);
+  if vl <> getint64_1 then
+    halt(1);
+  readln(t,vl1);
+  if vl1 <> getint64_2 then
     halt(1);
   close(t);
   erase(t);

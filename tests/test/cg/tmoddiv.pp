@@ -6,6 +6,7 @@
 { PRE-REQUISITES: secondload()                                   }
 {                 secondassign()                                 }
 {                 secondtypeconv()                               }
+{                 secondshlshr()                                 }
 {****************************************************************}
 { DEFINES:                                                       }
 {            FPC     = Target is FreePascal compiler             }
@@ -46,6 +47,15 @@ function getint64cnt: int64;
    getint64cnt := -10;
  end;
 
+function getint64cnt_2 : int64;
+ var
+  longval : longint;
+ begin
+  longval := 1;
+  getint64cnt_2 := int64(longval) shl 33;
+ end; 
+ 
+
   {$ENDIF}
 
 procedure test(value, required: longint);
@@ -67,6 +77,7 @@ var
   cardinalcnt : cardinal;
   int64res : int64;
   int64cnt : int64;
+  longval : longint;
 {$ENDIF}
 begin
   WriteLn('------------------- LONGINT ------------------------');
@@ -241,33 +252,6 @@ begin
   test(cardinalres, 1);
 
   WriteLn('--------------------- INT64 ------------------------');
-  { special tests for results }
-  Writeln('special numeric values tests...');
-  int64res := $7FFFFFFF shl 32;
-  int64cnt := $80000000 shl 32;
-  int64res := int64res div int64cnt;
-  Write('Value should be 0...');
-  test(int64res and $FFFFFFFF, 0);
-
-  Writeln('special numeric values tests...');
-  int64res := $7FFFFFFF shl 32;
-  int64cnt := $80000000 shl 32;
-  int64res := int64cnt div int64res;
-  Write('Value should be -1...');
-  test(int64res and $FFFFFFFF, -1);
-
-  int64res := $7FFFFFFF;
-  int64cnt := $80000000;
-  int64res := int64res div int64cnt;
-  Write('Value should be 0...');
-  test(int64res and $FFFFFFFF, 0);
-
-  Writeln('special numeric values tests...');
-  int64res := $7FFFFFFF;
-  int64cnt := $80000000;
-  int64res := int64cnt div int64res;
-  Write('Value should be 1...');
-  test(int64res and $FFFFFFFF, 1);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : ordinal constant');
   { RIGHT : power of 2 ordconstn   }
@@ -293,6 +277,17 @@ begin
   int64res := int64res div int64cnt;
   Write('Value should be -10...');
   test(int64res and $FFFFFFFF, -10);
+
+  
+  { RIGHT : LOC_REFERENCE      }
+  { LEFT : LOC_REFERENCE       }
+  longval := 1;
+  int64res := int64(longval) shl 33;
+  int64cnt := 100;
+  int64res := int64res div int64cnt;
+  Write('Value should be 85899345...');
+  test(int64res and $FFFFFFFF, 85899345);
+  
 
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
@@ -330,6 +325,42 @@ begin
   int64res := getint64cnt mod int64cnt;
   Write('Value should be -1...');
   test(int64res and $FFFFFFFF, -1);
+  
+  { RIGHT : LOC_REFERENCE      }
+  { LEFT : LOC_REGISTER        }
+  int64cnt := 100;
+  int64res := getint64cnt_2 div int64cnt;
+  Write('Value should be 85899345...');
+  test(int64res and $FFFFFFFF, 85899345);
+  
+  { SPECIAL-------------------------------------------------}
+  { special tests for results }
+  Writeln('special numeric values tests...');
+  int64res := $7FFFFFFF shl 32;
+  int64cnt := $80000000 shl 32;
+  int64res := int64res div int64cnt;
+  Write('Value should be 0...');
+  test(int64res and $FFFFFFFF, 0);
+
+  Writeln('special numeric values tests...');
+  int64res := int64($7FFFFFFF) shl 32;
+  int64cnt := int64($80000000) shl 32;
+  int64res := int64cnt div int64res;
+  Write('Value should be -1...');
+  test(int64res and $FFFFFFFF, -1);
+
+  int64res := $7FFFFFFF;
+  int64cnt := $80000000;
+  int64res := int64res div int64cnt;
+  Write('Value should be 0...');
+  test(int64res and $FFFFFFFF, 0);
+
+  Writeln('special numeric values tests...');
+  int64res := $7FFFFFFF;
+  int64cnt := $80000000;
+  int64res := int64cnt div int64res;
+  Write('Value should be 1...');
+  test(int64res and $FFFFFFFF, 1);
 
 {$ENDIF}
 end.

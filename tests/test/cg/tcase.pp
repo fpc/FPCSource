@@ -169,13 +169,15 @@ procedure TestCmpListTwoInt64;
  procedure TestCmpListThreeInt64;
   var
    s: int64;
+   l : longint;
    failed :boolean;
   begin
-   Write('Linear Comparison list without ranges (int64)...');
-    s := (3000000 shl 32);
+    Write('Linear Comparison list without ranges (int64)...');
+    l:=1;
+    s := (int64(l) shl 32);
     failed := true;
     case s of
-    (3000000 shl 32) : failed := false;
+    (int64(3000000) shl 32) : failed := false;
     10 : ;
     3 : ;
     end;
@@ -356,7 +358,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-09-07 15:40:55  peter
+   Revision 1.3  2002-09-29 14:37:22  carl
+     * must more 64-bit testing (to detect endian specific problems)
+
+   Revision 1.2  2002/09/07 15:40:55  peter
      * old logs removed and tabs fixed
 
    Revision 1.1  2002/07/28 09:45:24  carl

@@ -48,7 +48,7 @@ var
       i: longint;
      begin
        i:=1;
-       getint64_2 := i shl 36;
+       getint64_2 := int64(i) shl 36;
      end;
 {$endif}
 
@@ -118,7 +118,7 @@ begin
  Test('int64 -> longbool : Value should be TRUE...',lb1);
  { does it indirectly, since it might not work in direct mode }
  value:=1;
- fromint64 := value shl 36 ;
+ fromint64 := int64(value) shl int64(36) ;
  lb1 := longbool(fromint64);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
@@ -200,7 +200,10 @@ end.
 
 {
    $Log$
-   Revision 1.5  2002-09-27 17:46:01  carl
+   Revision 1.6  2002-09-29 14:37:22  carl
+     * must more 64-bit testing (to detect endian specific problems)
+
+   Revision 1.5  2002/09/27 17:46:01  carl
      + big-endian testing
 
    Revision 1.4  2002/09/07 15:40:55  peter

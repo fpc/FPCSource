@@ -39,6 +39,17 @@ begin
     writeln('Passed!');
 end;
 
+type
+tint64record = packed record
+{$ifdef ENDIAN_BIG}
+   highval : longint;
+   lowval  : longint;
+{$else}
+   lowval  : longint;
+   highval : longint;
+{$endif}
+end;
+
 
 var
  longres :  longint;
@@ -48,6 +59,7 @@ var
 {$IFDEF FPC}
  int64res : int64;
  int64cnt : int64;
+ int64rec : tint64record;
 {$ENDIF}
 Begin
    WriteLn('------------------------------ LONGINT --------------------------------');
@@ -203,9 +215,6 @@ Begin
    Write('(SHR) Value should be 1...');
    test(int64res and $FFFFFFFF, 1);
 
-{   int64res:=-1;
-   int64res := int64res shr 15;
-   Write('(SHR) Value should be 131071...');}
    int64res:=$FFFF;
    int64res := int64res shr 65;
    Write('(SHR) Value should be 0...');
@@ -232,6 +241,14 @@ Begin
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be -32768...');
    test(int64res and $FFFFFFFF, -32768);
+   
+   int64res := 1;
+   int64cnt := 33;
+   int64res := int64res shl int64cnt;
+   Write('(SHL) Value should be 2 in high longint (85899345)...');
+   move(int64res,int64rec, sizeof(int64));
+   test(int64rec.highval, 2);
+{   test(int64res, 8589934592);}
 
 
    int64res := 1;
@@ -288,6 +305,14 @@ Begin
    int64res := int64res shr bytecnt;
    Write('(SHR) Value should be 1...');
    test(int64res and $FFFFFFFF, 1);
+   
+   int64res := 1;
+   bytecnt := 33;
+   int64res := int64res shl bytecnt;
+   Write('(SHL) Value should be 2 in high longint (85899345)...');
+   move(int64res,int64rec, sizeof(int64));
+   test(int64rec.highval, 2);
+   
 {   int64res:=-1;
    bytecnt := 15;
    int64res := int64res shr bytecnt;
@@ -298,7 +323,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:56  peter
+  Revision 1.6  2002-09-29 14:37:22  carl
+    * must more 64-bit testing (to detect endian specific problems)
+
+  Revision 1.5  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/03/29 18:43:55  peter
