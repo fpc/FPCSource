@@ -104,6 +104,10 @@ Changes in the syntax or semantic of FPC:
                timer:=ptr($40,$6c);
                writeln(timer^);
              end.
-
+  07/12/00   constant handling has been rewritten: hex constants <=$ffffffff
+             are now always parsed as unsigned numbers (because of the int64
+             constant support, the were always sign-extended before). This
+             may force you to add longint typecasts round hex numbers in
+             your programs to avoid range check errors.
 
 
