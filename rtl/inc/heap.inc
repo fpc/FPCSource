@@ -193,7 +193,7 @@ begin
 end;
 
 
-procedure FreeMem(Var p:pointer;Size:Longint);
+procedure FreeMem(p:pointer;Size:Longint);
 begin
 {$ifdef MT}
   if IsMultiThreaded then
@@ -210,7 +210,6 @@ begin
    begin
      MemoryManager.FreeMemSize(p,Size);
    end;
-  p:=nil;
 end;
 
 
@@ -296,7 +295,7 @@ end;
 
 
 { Delphi style }
-function FreeMem(var p:pointer):Longint;
+function FreeMem(p:pointer):Longint;
 begin
 {$ifdef MT}
   if IsMultiThreaded then
@@ -376,15 +375,17 @@ begin
 end;
 
 
+{$ifdef ValueGetmem}
+
 { Needed for calls from Assembler }
-procedure AsmGetMem(var p:pointer;size:longint);[public,alias:'FPC_GETMEM'];
+function AsmGetMem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
 {$ifdef MT}
   if IsMultiThreaded then
    begin
      try
        EnterCriticalSection(cs_systemheap);
-       p:=MemoryManager.GetMem(size);
+       AsmGetMem:=MemoryManager.GetMem(size);
      finally
        LeaveCriticalSection(cs_systemheap);
      end;
@@ -392,12 +393,23 @@ begin
   else
 {$endif MT}
    begin
-     p:=MemoryManager.GetMem(size);
+     AsmGetMem:=MemoryManager.GetMem(size);
    end;
 end;
 
+{$else ValueGetmem}
 
-procedure AsmFreeMem(var p:pointer);[public,alias:'FPC_FREEMEM'];
+{ Needed for calls from Assembler }
+procedure AsmGetMem(var p:pointer;size:longint);[public,alias:'FPC_GETMEM'];
+begin
+  p:=MemoryManager.GetMem(size);
+end;
+
+{$endif ValueGetmem}
+
+{$ifdef ValueFreemem}
+
+procedure AsmFreeMem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
 {$ifdef MT}
   if IsMultiThreaded then
@@ -405,10 +417,7 @@ begin
      try
        EnterCriticalSection(cs_systemheap);
        if p <> nil then
-        begin
-          MemoryManager.FreeMem(p);
-          p:=nil;
-        end;
+         MemoryManager.FreeMem(p);
      finally
        LeaveCriticalSection(cs_systemheap);
      end;
@@ -417,12 +426,19 @@ begin
 {$endif MT}
    begin
      if p <> nil then
-      begin
-        MemoryManager.FreeMem(p);
-        p:=nil;
-      end;
+       MemoryManager.FreeMem(p);
    end;
 end;
+
+{$else ValueFreemem}
+
+procedure AsmFreeMem(var p:pointer);[public,alias:'FPC_FREEMEM'];
+begin
+  if p <> nil then
+    MemoryManager.FreeMem(p);
+end;
+
+{$endif ValueFreemem}
 
 
 {*****************************************************************************
@@ -800,7 +816,7 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-Function SysFreeMem(var p : pointer):Longint;
+Function SysFreeMem(p : pointer):Longint;
 var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
@@ -831,7 +847,6 @@ begin
      inc(freecount[s]);
 {$endif SYSTEMDEBUG}
    end;
-  p:=nil;
   SysFreeMem:=pcurrsize;
 {$ifdef TestFreeLists}
   if test_each then
@@ -844,7 +859,7 @@ end;
                               SysFreeMemSize
 *****************************************************************************}
 
-Function SysFreeMemSize(var p : pointer;size : longint):longint;
+Function SysFreeMemSize(p : pointer;size : longint):longint;
 var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
@@ -854,7 +869,6 @@ begin
    begin
      if size<0 then
       HandleError(204);
-     p:=nil;
      exit;
    end;
   if p=nil then
@@ -888,7 +902,6 @@ begin
      inc(freecount[s]);
 {$endif SYSTEMDEBUG}
    end;
-  p:=nil;
   SysFreeMemSize:=pcurrsize;
 {$ifdef TestFreeLists}
   if test_each then
@@ -1241,7 +1254,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-10-25 21:22:34  peter
+  Revision 1.9  2001-12-03 21:39:20  peter
+    * freemem(var) -> freemem(value)
+
+  Revision 1.8  2001/10/25 21:22:34  peter
     * moved locking of heap
 
   Revision 1.7  2001/10/23 21:51:03  peter

@@ -427,8 +427,13 @@ asm
         pushal
       { Memory size }
         pushl   (%eax)
+{$ifdef valuegetmem}
+        call    AsmGetMem
+        movl    %eax,(%esi)
+{$else valuegetmem}
         pushl   %esi
         call    AsmGetMem
+{$endif valuegetmem}
         movl    $-1,8(%ebp)
         popal
       { Avoid 80386DX bug }
@@ -506,9 +511,14 @@ asm
         movl    (%esi,%edi,1),%eax
         movl    %esi,12(%ebp)
         { push object position }
+{$ifdef valuefreemem}
+        pushl   %esi
+        call    AsmFreeMem
+{$else valuefreemem}
         leal    12(%ebp),%eax
         pushl   %eax
         call    AsmFreeMem
+{$endif valuefreemem}
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,12(%ebp)
@@ -539,6 +549,11 @@ asm
       { I think for precaution }
       { that we should clear the VMT here }
         movl    $0,(%eax,%edi,1)
+{$ifdef valuefreemem}
+      { Freemem }
+        pushl   %eax
+        call    AsmFreeMem
+{$else valuefreemem}
       { temporary Variable }
         subl    $4,%esp
         movl    %esp,%edi
@@ -547,6 +562,7 @@ asm
         pushl   %edi
         call    AsmFreeMem
         addl    $4,%esp
+{$endif valuefreemem}
 .LHD_3:
         popal
         { avoid the 80386DX bug }
@@ -1154,7 +1170,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.18  2001-10-09 02:43:58  carl
+  Revision 1.19  2001-12-03 21:39:19  peter
+    * freemem(var) -> freemem(value)
+
+  Revision 1.18  2001/10/09 02:43:58  carl
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.17  2001/08/30 15:43:14  jonas

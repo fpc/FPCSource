@@ -30,6 +30,14 @@ type
 
 {$ifdef hascompilerproc}
 
+{ Needed to solve overloading problem with call from assembler (PFV) }
+{$ifdef valuegetmem}
+Function  AsmGetmem(size:Longint):pointer;compilerproc;
+{$endif}
+{$ifdef valuefreemem}
+Procedure AsmFreemem(p:pointer);compilerproc;
+{$endif valuefreemem}
+
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
@@ -247,7 +255,10 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.11  2001-09-29 21:32:47  jonas
+  Revision 1.12  2001-12-03 21:39:20  peter
+    * freemem(var) -> freemem(value)
+
+  Revision 1.11  2001/09/29 21:32:47  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10

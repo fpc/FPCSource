@@ -421,7 +421,7 @@ end;
                                 TraceFreeMem
 *****************************************************************************}
 
-function TraceFreeMemSize(var p:pointer;size:longint):longint;
+function TraceFreeMemSize(p:pointer;size:longint):longint;
 var
   i,bp, ppsize : longint;
   pp : pheap_mem_info;
@@ -507,7 +507,6 @@ begin
             if pp=heap_valid_first then
               heap_valid_first:=nil;
             TraceFreememsize:=size;
-            p:=nil;
             exit;
          end;
        pp2:=heap_valid_last;
@@ -519,7 +518,6 @@ begin
                  if pp=heap_valid_first then
                    heap_valid_first:=pp2;
                  TraceFreememsize:=size;
-                 p:=nil;
                  exit;
               end
             else
@@ -527,7 +525,6 @@ begin
          end;
 {$endif EXTRA}
        TraceFreememsize:=size;
-       p:=nil;
        exit;
     end;
    { release the normal memory at least }
@@ -554,7 +551,7 @@ begin
 end;
 
 
-function TraceFreeMem(var p:pointer):longint;
+function TraceFreeMem(p:pointer):longint;
 var
   size : longint;
   pp : pheap_mem_info;
@@ -1148,7 +1145,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.15  2001-07-29 13:43:57  peter
+  Revision 1.16  2001-12-03 21:39:20  peter
+    * freemem(var) -> freemem(value)
+
+  Revision 1.15  2001/07/29 13:43:57  peter
     * m68k updates merged
 
   Revision 1.14  2001/06/06 17:20:22  jonas

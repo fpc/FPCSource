@@ -19,8 +19,8 @@ type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     Getmem      : Function(Size:Longint):Pointer;
-    Freemem     : Function(var p:pointer):Longint;
-    FreememSize : Function(var p:pointer;Size:Longint):Longint;
+    Freemem     : Function(p:pointer):Longint;
+    FreememSize : Function(p:pointer;Size:Longint):Longint;
     AllocMem    : Function(Size:longint):Pointer;
     ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
     MemSize     : function(p:pointer):Longint;
@@ -42,8 +42,8 @@ var
 
 { Default MemoryManager functions }
 Function  SysGetmem(Size:Longint):Pointer;
-Function  SysFreemem(var p:pointer):Longint;
-Function  SysFreememSize(var p:pointer;Size:Longint):Longint;
+Function  SysFreemem(p:pointer):Longint;
+Function  SysFreememSize(p:pointer;Size:Longint):Longint;
 Function  SysMemSize(p:pointer):Longint;
 Function  SysAllocMem(size:longint):Pointer;
 function  SysTryResizeMem(var p:pointer;size : longint):boolean;
@@ -54,7 +54,7 @@ Function  Sysheapsize:longint;
 
 { Tp7 functions }
 Procedure Getmem(Var p:pointer;Size:Longint);
-Procedure Freemem(Var p:pointer;Size:Longint);
+Procedure Freemem(p:pointer;Size:Longint);
 Function  memavail:Longint;
 Function  maxavail:Longint;
 
@@ -64,21 +64,28 @@ Function  heapsize:longint;
 
 { Delphi functions }
 function GetMem(size:longint):pointer;
-function Freemem(var p:pointer):longint;
+function Freemem(p:pointer):longint;
 function AllocMem(Size:Longint):pointer;
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
-
-{ Needed to solve overloading problem with call from assembler (PFV) }
-Procedure AsmGetmem(var p:pointer;size:Longint);
-Procedure AsmFreemem(var p:pointer);
 
 { Do nothing functions, are only here for tp7 compat }
 Procedure mark(var p : pointer);
 Procedure release(var p : pointer);
 
+{$ifndef ValueGetmem}
+{ Needed to solve overloading problem with call from assembler (PFV) }
+Procedure AsmGetmem(var p:pointer;size:Longint);
+{$endif ValueGetmem}
+{$ifndef ValueFreemem}
+Procedure AsmFreemem(var p:pointer);
+{$endif ValueFreemem}
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2001-12-03 21:39:20  peter
+    * freemem(var) -> freemem(value)
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }
