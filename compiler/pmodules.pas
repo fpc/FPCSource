@@ -1299,10 +1299,8 @@ implementation
             aktprocdef.aliasnames.insert('PASCALMAIN');
             aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
-	  writeLn ('1');
 	 insertLocalThreadvarsTablesTable;
          compile_proc_body(true,false);
-	  writeln ('2');
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
@@ -1429,7 +1427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-03-28 16:07:52  armin
+  Revision 1.53  2002-03-29 09:00:56  armin
+  + forgot to delete a debug writeln
+
+  Revision 1.52  2002/03/28 16:07:52  armin
   + initialize threadvars defined local in units
 
   Revision 1.51  2002/01/24 18:25:49  peter
