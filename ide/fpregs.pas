@@ -60,6 +60,13 @@ uses
        r : array [0..31] of dword;
        pc,ps,cr,lr,ctr,xer : dword;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+{$define cpu_known}
+       o : array [0..7] of dword;
+       i : array [0..7] of dword;
+       l : array [0..7] of dword;
+       g : array [0..7] of dword;
+{$endif cpusparc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        reg : array [0..MaxRegs-1] of string;
@@ -100,6 +107,9 @@ uses
 {$ifdef cpupowerpc}
        f : array [0..31] of string;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+       f : array [0..31] of string;
+{$endif cpusparc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        freg : array [0..MaxRegs-1] of string;
@@ -298,10 +308,19 @@ Const
 {$else cpu_known}
                       strlcopy(buffer,p,p1-p);
                       reg:=strpas(buffer);
-                      p:=strscan(p,'$');
+                      p1:=strscan(p,'$');
+                      { some targets use 0x instead of $ }
+                      if p1=nil then
+                        p:=strpos(p,'0x')
+                      else
+                        p:=p1;
                       p1:=strscan(p,#9);
                       strlcopy(buffer,p,p1-p);
                       value:=strpas(buffer);
+
+                      { replace the $? }
+                      if copy(value,1,2)='0x' then
+                        value:='$'+copy(value,3,length(value)-2);
                       val(value,v,code);
 {$ifdef cpui386}
                       if reg='eax' then
@@ -396,6 +415,34 @@ Const
                       else if (reg='xer') then
                         rs.xer:=v;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+                      if (reg[1]='o') then
+                        begin
+                          for i:=0 to 7 do
+                            if reg='o'+inttostr(i) then
+                              rs.o[i]:=v;
+                        end
+                      else if (reg[1]='i') then
+                        begin
+                          for i:=0 to 7 do
+                            if reg='i'+inttostr(i) then
+                              rs.i[i]:=v;
+                        end
+                      else if (reg[1]='l') then
+                        begin
+                          for i:=0 to 7 do
+                            if reg='l'+inttostr(i) then
+                              rs.l[i]:=v;
+                        end
+                      else if (reg[1]='g') then
+                        begin
+                          for i:=0 to 7 do
+                            if reg='g'+inttostr(i) then
+                              rs.g[i]:=v;
+                        end
+                      else if reg='fp' then
+                        rs.i[6]:=v;
+{$endif cpusparc}
 {$endif not cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -598,6 +645,25 @@ Const
             SetColor(rs.xer,OldReg.xer);
             WriteStr(15,18,'xer '+HexStr(longint(rs.xer),8),color);
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+            for i:=0 to 7 do
+              begin
+                SetColor(rs.g[i],OldReg.g[i]);
+                WriteStr(1,i,'g'+IntToStr(i)+' '+HexStr(longint(rs.g[i]),8),color);
+                SetColor(rs.l[i],OldReg.l[i]);
+                WriteStr(1,i+8,'l'+IntToStr(i)+' '+HexStr(longint(rs.l[i]),8),color);
+              end;
+            for i:=0 to 7 do
+              begin
+                SetColor(rs.i[i],OldReg.i[i]);
+                if i=6 then
+                  WriteStr(15,i,'fp '+HexStr(longint(rs.i[i]),8),color)
+                else
+                  WriteStr(15,i,'i'+IntToStr(i)+' '+HexStr(longint(rs.i[i]),8),color);
+                SetColor(rs.o[i],OldReg.o[i]);
+                WriteStr(15,i+8,'o'+IntToStr(i)+' '+HexStr(longint(rs.o[i]),8),color);
+              end;
+{$endif cpusparc}
 {$else cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -641,6 +707,10 @@ Const
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+       R.A.X:=R.B.X-29;
+       R.B.Y:=R.A.Y+22;
+{$endif cpusparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
@@ -833,6 +903,12 @@ Const
                           if reg='f'+inttostr(i) then
                             rs.f[i]:=v;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+                      if reg[1]='f' then
+                        for i:=0 to 31 do
+                          if reg='f'+inttostr(i) then
+                            rs.f[i]:=v;
+{$endif cpusparc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -1002,6 +1078,16 @@ Const
                   WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
               end;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+            for i:=0 to 31 do
+              begin
+                SetColor(rs.f[i],OldReg.f[i]);
+                if i<10 then
+                  WriteStr(1,i,'f'+IntToStr(i)+'  '+rs.f[i],color)
+                else
+                  WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
+              end;
+{$endif cpusparc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1045,6 +1131,10 @@ Const
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+       R.A.X:=R.B.X-44;
+       R.B.Y:=R.A.Y+33;
+{$endif cpusparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
@@ -1194,6 +1284,8 @@ Const
                           if reg='v'+inttostr(i) then
                             rs.m[i]:=v;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+{$endif cpusparc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -1316,6 +1408,9 @@ Const
                   WriteStr(1,i,'m'+IntToStr(i)+' '+rs.m[i],color);
               end;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+            { no mm regs on the sparc }
+{$endif cpusparc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1359,6 +1454,10 @@ Const
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
 {$endif cpupowerpc}
+{$ifdef cpusparc}
+       R.A.X:=R.B.X-60;
+       R.B.Y:=R.A.Y+33;
+{$endif cpusparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
@@ -1481,7 +1580,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2005-01-10 20:52:11  florian
+  Revision 1.8  2005-01-12 21:48:31  florian
+    + register view for sparc
+
+  Revision 1.7  2005/01/10 20:52:11  florian
     * compilation fixed
 
   Revision 1.6  2005/01/08 11:43:18  florian
