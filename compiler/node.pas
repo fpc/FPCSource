@@ -227,12 +227,6 @@ interface
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
 
-         { flags used by loop nodes }
-         nf_backward,   { set if it is a for ... downto ... do loop }
-         nf_varstate,   { do we need to parse childs to set var state }
-         nf_testatbegin,{ Do a test at the begin of the loop?}
-         nf_checknegate,{ Negate the loop test?}
-
          { taddrnode }
          nf_procvarload,
 
@@ -282,7 +276,7 @@ interface
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error,nf_static_call,nf_backward];
+       flagsequal : tnodeflagset = [nf_error,nf_static_call];
 
     type
        tnodelist = class
@@ -979,7 +973,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-10-05 00:48:57  peter
+  Revision 1.45  2002-11-28 11:17:04  florian
+    * loop node flags from node flags splitted
+
+  Revision 1.44  2002/10/05 00:48:57  peter
     * support inherited; support for overload as it is handled by
       delphi. This is only for delphi mode as it is working is
       undocumented and hard to predict what is done

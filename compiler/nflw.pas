@@ -36,8 +36,24 @@ interface
        symppu,symtype,symbase,symdef,symsym;
 
     type
+       { flags used by loop nodes }
+       tloopflags = (
+         { set if it is a for ... downto ... do loop }
+         lnf_backward,
+         { Do we need to parse childs to set var state? }
+         lnf_varstate,
+         { Do a test at the begin of the loop?}
+         lnf_testatbegin,
+         { Negate the loop test? }
+         lnf_checknegate);
+    const
+         { loop flags which must match to consider loop nodes equal regarding the flags }
+         loopflagsequal = [lnf_backward];
+
+    type
        tloopnode = class(tbinarynode)
           t1,t2 : tnode;
+          loopflags : set of tloopflags;
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -322,6 +338,7 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
+          (loopflags*loopflagsequal=tloopnode(p).loopflags*loopflagsequal) and
           t1.isequal(tloopnode(p).t1) and
           t2.isequal(tloopnode(p).t2);
       end;
@@ -335,9 +352,9 @@ implementation
     begin
         inherited create(whilerepeatn,l,r,_t1,nil);
         if tab then
-            include(flags,nf_testatbegin);
+            include(loopflags, lnf_testatbegin);
         if cn then
-            include(flags,nf_checknegate);
+            include(loopflags,lnf_checknegate);
     end;
 
     function twhilerepeatnode.det_resulttype:tnode;
@@ -360,7 +377,7 @@ implementation
                 RunError(255);
 {$else}
                 {Symdif operator, in case you are wondering:}
-                flags:=flags >< [nf_checknegate];
+                loopflags:=loopflags >< [lnf_checknegate];
 {$endif}
             end;
          { loop instruction }
@@ -435,7 +452,7 @@ implementation
         done:=false;
         firsttest:=true;
         {For repeat until statements, first do a pass through the code.}
-        if not(nf_testatbegin in flags) then
+        if not(lnf_testatbegin in flags) then
             begin
                 code:=right.getcopy;
                 if code.track_state_pass(exec_known) then
@@ -635,8 +652,8 @@ implementation
       begin
          inherited create(forn,l,r,_t1,_t2);
          if back then
-           include(flags,nf_backward);
-         include(flags,nf_testatbegin);
+           include(loopflags,lnf_backward);
+         include(loopflags,lnf_testatbegin);
       end;
 
 {$ifdef var_notification}
@@ -664,14 +681,14 @@ implementation
          {Can we spare the first comparision?}
          if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
             if (
-                (nf_backward in flags) and
+                (lnf_backward in loopflags) and
                 (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
                )
              or not(
-                    (nf_backward in flags) and
+                    (lnf_backward in loopflags) and
                     (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)
                    ) then
-                exclude(flags,nf_testatbegin);
+                exclude(loopflags,lnf_testatbegin);
 
          { save counter var }
          t2:=tassignmentnode(left).left.getcopy;
@@ -1412,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2002-11-25 17:43:18  peter
+  Revision 1.57  2002-11-28 11:17:02  florian
+    * loop node flags from node flags splitted
+
+  Revision 1.56  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

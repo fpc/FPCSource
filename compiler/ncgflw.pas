@@ -125,7 +125,7 @@ implementation
          load_all_regvars(exprasmlist);
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
-         if nf_testatbegin in flags then
+         if lnf_testatbegin in loopflags then
            cg.a_jmp_always(exprasmlist,lcont);
 
          if not(cs_littlesize in aktglobalswitches) then
@@ -145,7 +145,7 @@ implementation
          cg.a_label(exprasmlist,lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
-         if nf_checknegate in flags then
+         if lnf_checknegate in loopflags then
           begin
             truelabel:=lbreak;
             falselabel:=lloop;
@@ -352,7 +352,7 @@ implementation
          secondpass(left);
          count_var_is_signed:=is_signed(t2.resulttype.def);
 
-         if nf_backward in flags then
+         if lnf_backward in loopflags then
            if count_var_is_signed then
              hcond:=OC_LT
            else
@@ -372,7 +372,7 @@ implementation
            end
          else
            begin
-             if nf_testatbegin in flags then
+             if lnf_testatbegin in loopflags then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
                    aword(tordconstnode(right).value),
@@ -380,7 +380,7 @@ implementation
                end;
            end;
 
-         if nf_backward in flags then
+         if lnf_backward in loopflags then
            hop:=OP_ADD
          else
            hop:=OP_SUB;
@@ -392,7 +392,7 @@ implementation
          cg.a_label(exprasmlist,l3);
 
          { according to count direction DEC or INC... }
-         if nf_backward in flags then
+         if lnf_backward in loopflags then
            hop:=OP_SUB
          else
            hop:=OP_ADD;
@@ -411,7 +411,7 @@ implementation
          { makes no problems there }
          rg.cleartempgen;
 
-         if nf_backward in flags then
+         if lnf_backward in loopflags then
            if count_var_is_signed then
              hcond:=OC_GT
            else
@@ -1247,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-11-25 17:43:17  peter
+  Revision 1.45  2002-11-28 11:17:01  florian
+    * loop node flags from node flags splitted
+
+  Revision 1.44  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
