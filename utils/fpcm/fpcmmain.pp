@@ -1122,7 +1122,7 @@ implementation
         SetVariable('FPCDIR',s,false);
         { PACKAGESDIR }
         if GetVariable('PACKAGESDIR',false)='' then
-         SetVariable('PACKAGESDIR','$(FPCDIR)/packages',false);
+         SetVariable('PACKAGESDIR','$(FPCDIR)/packages/base $(FPCDIR)/packages/extra',false);
         { UNITSDIR }
         if GetVariable('UNITSDIR',false)='' then
          SetVariable('UNITSDIR','$(FPCDIR)/units/$(TARGET)',false);
@@ -1477,7 +1477,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-01-27 21:42:35  peter
+  Revision 1.21  2002-01-29 17:48:53  peter
+    * packages splitted to base and extra
+
+  Revision 1.20  2002/01/27 21:42:35  peter
     * -r option to process target dirs also
     * default changed to build only for current target
     * removed auto building of required packages
