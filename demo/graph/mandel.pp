@@ -27,7 +27,8 @@ program mandel;
 
 uses
 {$ifdef Win32}
- Windows,
+  WinCrt,
+  Windows,
 {$endif}
   dos,Graph;
 
@@ -338,7 +339,12 @@ begin
   GetTime(hour, minute, second, sec100);
   neededtime:=((hour*60+minute)*60+second)*100+sec100-starttime;
 {$ifndef fpc_profile}
+  {$ifndef Win32}
   readln;
+  {$else: Win32}
+  repeat
+  until keypressed;
+  {$endif}
 {$endif fpc_profile}
   CloseGraph;
   {$ifndef Win32}
@@ -348,7 +354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-02-25 21:32:13  carl
+  Revision 1.5  2002-04-11 19:47:48  pierre
+   * avoid RTE 103 for win32
+
+  Revision 1.4  2002/02/25 21:32:13  carl
   + $goto on added for makefiles
 
   Revision 1.3  2002/02/22 21:40:45  carl
