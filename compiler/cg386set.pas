@@ -483,6 +483,7 @@ implementation
                        emit_none(A_CLC,S_NO);
                        emitjmp(C_NONE,l2);
                        emitlab(l);
+                       del_reference(p^.left^.location.reference);
                        hr:=getregister32;
                        emit_ref_reg(A_MOV,S_L,
                          newreference(p^.left^.location.reference),hr);
@@ -493,7 +494,6 @@ implementation
                          p^.right^.location.reference.offset,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
                        ungetregister32(hr2);
-                      del_reference(p^.left^.location.reference);
                     end;
                     emitlab(l2);
                   end;
@@ -919,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-08-19 13:08:53  pierre
+  Revision 1.39  1999-08-23 23:46:42  pierre
+   * del_reference moved to respect registers32 in secondin
+
+  Revision 1.38  1999/08/19 13:08:53  pierre
    * emit_??? used
 
   Revision 1.37  1999/08/04 00:22:54  florian
