@@ -16,7 +16,7 @@ exampledirs=examples
 
 [compiler]
 sourcedir=glib gdk gtk
-targetdir=.
+
 
 [libs]
 libname=libfpgtk.so

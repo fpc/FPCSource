@@ -2,12 +2,14 @@
 #   Makefile.fpc for Compiler units for IDE inclusion
 #
 
+[package]
+main=ide
+
 [target]
 units=compunit
 
 [compiler]
 options=-Ur -dNOCATCH
-targetdir=.
 unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets $(COMPILERDIR)/systems
 includedir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET)
 

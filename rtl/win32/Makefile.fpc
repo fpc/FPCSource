@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       dos crt objects graph messages \
       sysutils classes typinfo math varutils variants \
       cpu mmx charset ucomplex getopts \
-      wincrt winmouse winevent sockets printer dynlibs \
+      wincrt winmouse winevent sockets printer dynlibs signals \
       video mouse keyboard types comobj dateutils rtlconst sysconst winsysut \
       strutils convutils
 
@@ -32,7 +32,6 @@ target=win32
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -46,7 +45,6 @@ UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 PRT0=wprt0
-override FPCOPT+=-dMT
 else
 SYSTEMUNIT=syswin32
 PRT0=wprt0_10
@@ -93,14 +91,11 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 wprt0$(OEXT) : $(PRT0).as
-        $(AS) -o wprt0$(OEXT) $(PRT0).as
+        $(AS) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(PRT0).as
 
 gprt0$(OEXT) : gprt0.as
-        $(AS) -o gprt0$(OEXT) gprt0.as
-
 
 wdllprt0$(OEXT) : wdllprt0.as
-        $(AS) -o wdllprt0$(OEXT) wdllprt0.as
 
 
 #

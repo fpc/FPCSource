@@ -2,6 +2,9 @@
 #   Makefile.fpc for Fake GDB
 #
 
+[package]
+main=ide
+
 [target]
 units=gdbcon gdbint
 

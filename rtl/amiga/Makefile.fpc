@@ -28,7 +28,6 @@ cpu=m68k
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -139,7 +138,7 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
 
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
         $(COMPILER) printer $(REDIR)
-	
+
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
         $(COMPILER) $(INC)/objects.pp $(REDIR)
 
@@ -149,13 +148,20 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	
+
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp $(REDIR)
 
 #
 # $Log$
-# Revision 1.9  2004-08-25 16:57:22  olle
+# Revision 1.10  2004-10-30 12:36:48  peter
+#   * units are now created in separate directory units/cpu-os/
+#   * distclean uses cleanall rule and removes units dir
+#   * cross compile support fixed, it is now possible to cycle a ppcsparc
+#     without deleting ppc386
+#   * bintutilsperfix defaults to cpu-os-
+#
+# Revision 1.9  2004/08/25 16:57:22  olle
 #   * fix so that macpas.pp really is compiled
 #
 # Revision 1.8  2004/08/16 16:22:17  olle

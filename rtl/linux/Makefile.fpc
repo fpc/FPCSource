@@ -118,22 +118,22 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/prt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-        $(AS) -o dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
-        $(AS) -o gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
-        $(AS) -o cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
 
 gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
-        $(AS) -o gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
 
 
 #

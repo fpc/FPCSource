@@ -15,7 +15,6 @@ packages=gtk x11
 
 [compiler]
 sourcedir=imlib gdk_imlib
-targetdir=.
 
 [install]
 fpcpackage=y

@@ -12,7 +12,6 @@ dirs=units utilunits
 [compiler]
 sourcedir=units utilunits
 includedir=inc
-targetdir=.
 
 [install]
 fpcpackage=y

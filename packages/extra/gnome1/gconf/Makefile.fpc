@@ -16,7 +16,6 @@ exampledirs=examples
 
 [compiler]
 sourcedir=gconf gconfclient
-targetdir=.
 
 [libs]
 libname=libfpgconf.so

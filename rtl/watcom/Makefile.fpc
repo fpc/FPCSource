@@ -33,7 +33,6 @@ cpu=i386
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]

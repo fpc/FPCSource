@@ -9,7 +9,6 @@ programs=fpc ppufiles ppudump ppumove
 units=ppu crc
 
 [compiler]
-targetdir=.
 unitdir=..
 sourcedir=..
 

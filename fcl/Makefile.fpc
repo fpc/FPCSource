@@ -20,7 +20,7 @@ packages_win32=netdb
 units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads
 
 [target]
-dirs=xml image db shedit passrc net 
+dirs=xml image db shedit passrc net
 units=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex rttiutils
@@ -37,7 +37,6 @@ exampledirs=tests
 
 [compiler]
 options=-S2
-targetdir=$(OS_TARGET)
 includedir=$(OS_TARGET) inc
 includedir_linux=unix
 includedir_freebsd=unix
@@ -60,14 +59,14 @@ fpcpackage=y
 fpcdir=..
 
 [prerules]
-# Also build classes for 1.0.x 
+# Also build classes for 1.0.x
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 CLASSES10=classes
 endif
 
 [rules]
 ifdef CLASSES10
-classes$(PPUEXT):
+classes$(PPUEXT): $(COMPILER_UNITTARGETDIR)
 	$(COMPILER) -Ficlasses -Ficlasses/$(OS_TARGET) classes/$(OS_TARGET)/classes.pp
 endif
 

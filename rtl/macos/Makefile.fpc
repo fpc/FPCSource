@@ -28,7 +28,6 @@ target=macos
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -145,11 +144,11 @@ getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp $(REDIR)
-				
+
 unixutil$(PPUEXT) : ../unix/unixutil.pp
-        $(COMPILER) ../unix/unixutil.pp $(REDIR)				
-				
+        $(COMPILER) ../unix/unixutil.pp $(REDIR)
+
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
-				
+
 cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 				

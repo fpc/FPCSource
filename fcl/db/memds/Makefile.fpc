@@ -10,9 +10,6 @@ units=memds
 examples=testpop testopen testld testcp
 rsts=memds
 
-[compiler]
-targetdir=../../$(OS_TARGET)
-
 [install]
 fpcpackage=y
 

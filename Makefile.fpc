@@ -34,11 +34,11 @@ endif
 ifeq ($(CPU_TARGET),x86_64)
 PPSUF=x64
 endif
-ifeq ($(CPU_TARGET),powerpc)
-PPSUF=ppc
-endif
 ifeq ($(CPU_TARGET),sparc)
 PPSUF=sparc
+endif
+ifeq ($(CPU_TARGET),powerpc)
+PPSUF=ppc
 endif
 ifeq ($(CPU_TARGET),alpha)
 PPSUF=axp
@@ -64,11 +64,16 @@ else
 CVSINSTALL=.
 endif
 
-# Install target
+# Install target, for snapshots we don't install examples.
+# Cross installation only needs the .ppu files
 ifdef SNAPSHOT
 INSTALLTARGET=install
 else
+ifdef CROSSINSTALL
+INSTALLTARGET=install
+else
 INSTALLTARGET=distinstall
+endif
 endif
 
 # All target
@@ -76,7 +81,7 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
-SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
+SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd
 ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
 ALLTARGET=smart
 else
@@ -101,11 +106,11 @@ PKGUNITSPRE=u
 endif
 
 # Cross compile needs a prefix to not conflict with original packages
-#ifdef CROSSCOMPILE
-#PKGPRE=$(FULL_TARGET)-
-#else
+ifdef CROSSINSTALL
+PKGPRE=$(FULL_TARGET)-
+else
 PKGPRE=
-#endif
+endif
 
 # Always compile for release
 override RELEASE=1
@@ -120,14 +125,11 @@ endif
 BASEPACKDIR=$(BASEDIR)/basepack
 
 # Newly created fpcmake
-TEMPMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
-ifneq ($(CPU_SOURCE),$(CPU_TARGET))
-TEMPMAKENEW=fpcmake
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
+else
+FPCMAKENEW=fpcmake
 endif
-ifneq ($(OS_SOURCE),$(OS_TARGET))
-TEMPMAKENEW=fpcmake
-endif
-FPCMAKENEW=$(TEMPMAKENEW)
 
 # Build/install options
 CLEANOPTS=FPC=$(PPNEW)
@@ -241,18 +243,19 @@ optcompzip:
 # Packaging
 ##########################################################################
 
-.PHONY: all clean distclean build install installbase zipinstall zipinstallbase zipinstallfcl \
-        zipinstallpackages
+BUILDSTAMP=build-stamp.$(FULL_TARGET)
+
+.PHONY: all clean distclean build install installbase zipinstall singlezipinstall
 
 all: build
 
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
-        $(DEL) build-stamp.$(OS_TARGET)
+        $(DEL) build-stamp.*
 
 distclean: clean
 
-build: build-stamp.$(OS_TARGET)
-build-stamp.$(OS_TARGET):
+build: $(BUILDSTAMP)
+$(BUILDSTAMP):
 # create new compiler
         $(MAKE) compiler_cycle RELEASE=1
 # clean
@@ -275,15 +278,16 @@ ifdef IDE
         $(MAKE) ide_all $(BUILDOPTS)
         $(MAKE) installer_all $(BUILDOPTS)
 endif
-        $(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
+        $(ECHOREDIR) Build > $(BUILDSTAMP)
 
-installbase: build-stamp.$(OS_TARGET)
+installbase:
 # create dirs
         $(MKDIR) $(INSTALL_BASEDIR)
-        $(MKDIR) $(INSTALL_DOCDIR)
         $(MKDIR) $(INSTALL_BINDIR)
 ifndef SNAPSHOT
+ifndef CROSSINSTALL
 # readme & whatsnew and docs
+        $(MKDIR) $(INSTALL_DOCDIR)
         -$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
@@ -309,11 +313,12 @@ ifeq ($(OS_TARGET),qnx)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 endif
+endif
 # install generated things
         $(MAKE) compiler_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
 
-install: build-stamp.$(OS_TARGET)
+install: $(BUILDSTAMP)
         $(MAKE) installbase $(INSTALLOPTS)
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
@@ -322,7 +327,7 @@ ifdef IDE
         $(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
 
-zipinstall: build-stamp.$(OS_TARGET)
+zipinstall: $(BUILDSTAMP)
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=$(PKGPRE)base$(ZIPSUFFIX) $(INSTALLOPTS)
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
         $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
@@ -330,6 +335,28 @@ zipinstall: build-stamp.$(OS_TARGET)
 ifdef IDE
         $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)ide$(ZIPSUFFIX)
 endif
+
+singlezipinstall: $(BUILDSTAMP)
+        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(FULL_TARGET) $(INSTALLOPTS)
+
+
+##########################################################################
+# Cross installation (installation of cross compiler and units)
+##########################################################################
+
+.PHONY: crossall crossinstall crosszipinstall crosssinglezipinstall
+
+crossall:
+        $(MAKE) all CROSSINSTALL=1
+
+crossinstall:
+        $(MAKE) install CROSSINSTALL=1
+
+crosszipinstall:
+        $(MAKE) zipinstall CROSSINSTALL=1
+
+crosssinglezipinstall:
+        $(MAKE) fpc_zipinstall ZIPTARGET=crossinstall ZIPNAME=fpc-cross-$(FULL_TARGET) $(INSTALLOPTS)
 
 
 ##########################################################################

@@ -18,8 +18,7 @@ units=
 packages=odbc
 
 [compiler]
-options=-S2 
-targetdir=../../$(OS_TARGET)
+options=-S2
 
 [install]
 fpcpackage=y

@@ -28,7 +28,7 @@ cpu=i386
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC)
-targetdir=.
+
 
 [prerules]
 RTL=..
@@ -71,16 +71,16 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/prt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 func$(OEXT) : $(CPU_TARGET)/func.as
-        $(AS) -o func$(OEXT) $(CPU_TARGET)/func.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)func$(OEXT) $(CPU_TARGET)/func.as
 
 dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
-        $(AS) -o dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
 
 #
 # system Units (system, Objpas, Strings)

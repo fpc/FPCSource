@@ -31,7 +31,6 @@ cpu=i386
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -80,7 +79,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 %$(OEXT) : %.as
-        $(AS) -o $*$(OEXT) $*.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)$*$(OEXT) $*.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)

@@ -11,9 +11,6 @@ units=sqliteds
 [require]
 packages=sqlite
 
-[compiler]
-targetdir=../../$(OS_TARGET)
-
 [install]
 fpcpackage=y
 

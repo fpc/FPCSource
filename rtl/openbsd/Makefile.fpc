@@ -28,12 +28,12 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=netbsd
+target=openbsd
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(TARGETPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
-targetdir=.
+
 
 [lib]
 libname=libfprtl.so
@@ -109,10 +109,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
-        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
+        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 #
 # System Units (System, Objpas, Strings)
@@ -241,4 +241,4 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT)
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER): $(OBJPASDIR)/rtlconst.pp
-        
+

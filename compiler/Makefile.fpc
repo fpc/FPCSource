@@ -7,10 +7,12 @@ name=compiler
 version=1.9.4
 
 [target]
+programs=pp
 dirs=utils
 
 [compiler]
 targetdir=$(CPU_UNITDIR)
+unittargetdir=$(CPU_UNITDIR)/units/$(FULL_TARGET)
 unitdir=$(COMPILERSOURCEDIR)
 includedir=$(PPC_TARGET)
 
@@ -219,17 +221,6 @@ endif
 override COMPILER+=-XX
 endif
 
-# Used to avoid unnecessary steps in remake3
-ifdef DIFF
-ifdef OLDFPC
-DIFFRESULT:=$(shell $(DIFF) $(OLDFPC) $(FPC))
-else
-DIFFRESULT=Not equal
-endif
-else
-DIFFRESULT=No diff program
-endif
-
 
 #####################################################################
 # Setup os-independent filenames
@@ -272,15 +263,18 @@ sparc:
 arm:
         $(MAKE) PPC_TARGET=arm CPU_UNITDIR=arm all
 
+x86_64:
+        $(MAKE) PPC_TARGET=x86_64 CPU_UNITDIR=x86_64 all
+
 #####################################################################
 # Default makefile
 #####################################################################
 
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 
-all: $(EXENAME) $(addsuffix _all,$(TARGET_DIRS))
+all: compiler $(addsuffix _all,$(TARGET_DIRS))
 
-compiler: $(EXENAME)
+compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -307,17 +301,22 @@ ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
         -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 
+tempclean:
+        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
+        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
 
 $(addsuffix _clean,$(CYCLETARGETS)):
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
+        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
 
-clean : execlean fpc_cleanall $(addsuffix _clean,$(TARGET_DIRS)) $(addsuffix _clean,$(CYCLETARGETS))
+cycleclean: cleanall
+        -$(DEL) $(EXENAME)
 
-distclean: execlean fpc_cleanall $(addsuffix _distclean,$(TARGET_DIRS))
-        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+clean: tempclean execlean cleanall $(addsuffix _clean,$(TARGET_DIRS))
+
+distclean: tempclean execlean cleanall $(addsuffix _distclean,$(TARGET_DIRS))
 
 
 #####################################################################
@@ -354,43 +353,28 @@ msgtxt.inc: $(MSGFILE)
 msg: msgtxt.inc
 
 # Make only the compiler
-ifndef COMPLETE
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
         $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
-else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
-             $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
-             $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
-        $(COMPILER) pp.pas
-        $(EXECPPAS)
-        $(COMPILER) pp.pas
-        $(EXECPPAS)
-        $(COMPILER) pp.pas
-        $(EXECPPAS)
-        $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
-endif
 
-tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
-        $(COMPILER) tokendat.pas
-        ./tokendat
 
 #####################################################################
 # Cycle targets
 #
 # 1. Source CPU = Target CPU  and  Source OS = Target OS
 #    Normal cycle
+#
 # 2. Source CPU = Target CPU  and  Source OS <> Target OS
 #    First source native compiler
-#    Second target native compiler
+#    Second target native compiler  (skipped for cross installation)
 #
 # 3. Source CPU <> Target CPU
 #    First source native compiler
 #    Second cross compiler
-#    Third target native compiler
+#    Third target native compiler (skipped for cross installation)
 #
 #####################################################################
 
@@ -402,21 +386,30 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 # Normal cycle
 #
 
+# Used to avoid unnecessary steps
+ifdef DIFF
+ifdef OLDFPC
+DIFFRESULT:=$(shell $(DIFF) $(OLDFPC) $(FPC))
+else
+DIFFRESULT=Not equal
+endif
+else
+DIFFRESULT=No diff program
+endif
+
 ifndef DIFFRESULT
 next :
         @echo $(OLDFPC) and $(FPC) are equal
         $(COPY) $(FPC) $(EXENAME)
 else
 next :
-        $(MAKE) execlean
-        $(MAKE) -C $(UNITDIR_RTL) clean
-        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
-        $(MAKE) clean
-        $(MAKE) $(EXENAME)
+        $(MAKE) rtlclean rtl
+        $(MAKE) cycleclean compiler
         $(MAKE) echotime
 endif
 
-$(TEMPNAME1) : $(EXENAME)
+$(TEMPNAME1) :
+        $(MAKE) 'OLDFPC=' next
         -$(DEL) $(TEMPNAME1)
         $(MOVE) $(EXENAME) $(TEMPNAME1)
 
@@ -430,24 +423,10 @@ $(TEMPNAME3) : $(TEMPNAME2)
         -$(DEL) $(TEMPNAME3)
         $(MOVE) $(EXENAME) $(TEMPNAME3)
 
-# This target remakes the units with the currently made version
-remake: $(EXENAME)
-        $(MOVE) $(EXENAME) $(TEMPNAME)
-        $(MAKE) execlean
-        $(MAKE) -C $(UNITDIR_RTL) clean
-        $(MAKE) clean
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
-
-remake3: $(TEMPNAME3)
+cycle:
+        $(MAKE) tempclean $(TEMPNAME3)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
         $(DIFF) $(TEMPNAME3) $(EXENAME)
-
-
-cycle:
-        $(MAKE) clean
-        $(MAKE) -C $(UNITDIR_RTL) clean
-        $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
-        $(MAKE) remake3
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
         $(MAKE) echotime
 
@@ -460,13 +439,15 @@ else
 cycle:
 # ppc (source native)
         $(MAKE) OS_TARGET=$(OS_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 clean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 clean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppc<ARCH> (target native)
+ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 
 endif
 
@@ -477,19 +458,21 @@ else
 #
 # ppc1 = native
 # ppc2 = cross running on this platform
-# ppc3/ppcXXX = native
+# ppc3/ppcXXX = native (skipped for cross installation)
 #
 
 cycle:
 # ppc (source native)
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 clean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 clean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppc<ARCH> (target native)
+ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 
 endif
 
@@ -522,6 +505,7 @@ fullcycle:
 #####################################################################
 # Docs
 #####################################################################
+
 htmldocs:
         $(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 
@@ -535,50 +519,42 @@ MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
 override PPEXEFILE:=$(wildcard $(EXENAME))
 
 ifdef UNIXHier
-ifdef CROSSCOMPILE
-PPCCPULOCATION= $(INSTALL_BINDIR)
-PPCCROSSLOCATION=$(INSTALL_BASEDIR)/cross/$(FULL_TARGET)
+PPCCPULOCATION=$(INSTALL_BASEDIR)
 else
-PPCCPULOCATION= $(INSTALL_BASEDIR)
-endif
-else
-ifdef CROSSCOMPILE
-PPCCPULOCATION= $(INSTALL_BINDIR)
-PPCCROSSLOCATION=$(INSTALL_BINDIR)/cross/$(FULL_TARGET)
-else
-PPCCPULOCATION=  $(INSTALL_BINDIR)
-endif
+PPCCPULOCATION=$(INSTALL_BINDIR)
 endif
 
 # This will only install the ppcXXX executable, not the message files etc.
 quickinstall: $(addsuffix _install,$(TARGET_DIRS))
-# Install ppcXXX executable
+# Install ppcXXX executable, for a cross installation we install
+# the ppcrossXXX as ppcXXX. The target native build ppcXXX is not used
+# for this installation type
 ifneq ($(PPEXEFILE),)
 ifdef UPXPROG
         -$(UPXPROG) $(EXENAME)
 endif
         $(MKDIR) $(PPCCPULOCATION)
+ifdef CROSSINSTALL
+        $(INSTALLEXE) $(PPCROSSNAME) $(PPCCPULOCATION)/$(EXENAME)
+else
         $(INSTALLEXE) $(EXENAME) $(PPCCPULOCATION)
-ifdef CROSSCOMPILE
-        $(MKDIR) $(PPCCROSSLOCATION)
-        $(ECHO) $(PPCROSSNAME)
-        $(ECHO $(PPCCROSSLOCATION)
-        $(INSTALLEXE) $(PPCROSSNAME) $(PPCCROSSLOCATION)
 endif
 endif
 
 install: quickinstall
+ifndef CROSSINSTALL
 ifdef UNIXHier
         $(MKDIR) $(INSTALL_BASEDIR)
         $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
+endif
 
 # This also installs a link from bin to the actual executable.
 # The .deb does that later.
 installsymlink: install
-ifdef UNIXHier
+ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
         $(MKDIR) $(INSTALL_BINDIR)
         ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
@@ -591,13 +567,13 @@ endif
 .PHONY: rtl rtlclean rtlinstall
 
 rtl:
-        $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(PACKAGEDIR_RTL) 'OPT=$(RTLOPTS)' all
 
 rtlclean:
-        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(PACKAGEDIR_RTL) clean
 
 rtlinstall:
-        $(MAKE) -C $(UNITDIR_RTL) install
+        $(MAKE) -C $(PACKAGEDIR_RTL) install
 
 
 #####################################################################

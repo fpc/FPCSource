@@ -2,6 +2,10 @@
 #   Makefile.fpc for Pascal lex/yacc
 #
 
+[package]
+name=lexyacc
+version=1.9.4
+
 [target]
 programs=plex pyacc
 units=lexlib yacclib
@@ -38,5 +42,7 @@ CODPATH=$(INSTALL_BINDIR)
 endif
 
 install: fpc_install
+ifndef CROSSINSTALL
         $(MKDIR) $(CODPATH)
         $(COPY) yylex.cod yyparse.cod $(CODPATH)
+endif

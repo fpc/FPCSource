@@ -32,7 +32,7 @@ target=darwin
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
-targetdir=.
+
 
 [lib]
 libname=libfprtl.so
@@ -164,7 +164,7 @@ printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/p
 #
 
 sysutils$(PPUEXT) : objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) 
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : sysutils$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) typinfo$(PPUEXT) unix$(PPUEXT) systhrds$(PPUEXT) classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

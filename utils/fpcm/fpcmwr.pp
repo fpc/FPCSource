@@ -30,7 +30,7 @@ interface
       );
 
       trules=(
-        r_all,r_debug,r_smart,r_release,
+        r_all,r_debug,r_smart,r_release,r_units,
         r_examples,
         r_shared,
         r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
@@ -42,7 +42,7 @@ interface
 
     const
       rule2str : array[trules] of string=(
-        'all','debug','smart','release',
+        'all','debug','smart','release','units',
         'examples',
         'shared',
         'install','sourceinstall','exampleinstall','distinstall',
@@ -52,7 +52,7 @@ interface
       );
 
       rule2sec : array[trules] of tsections=(
-        sec_compile,sec_compile,sec_compile,sec_compile,
+        sec_compile,sec_compile,sec_compile,sec_compile,sec_compile,
         sec_examples,
         sec_libs,
         sec_install,sec_install,sec_install,sec_distinstall,
@@ -78,6 +78,7 @@ interface
         procedure AddTargetVariable(const inivar:string);
         procedure AddVariable(const inivar:string);
         function  AddTargetDefines(const inivar,prefix:string):string;
+        procedure AddMainPackage(const pack:string);
         procedure AddRequiredPackages;
         procedure AddTool(const varname,exename,altexename:string);
         procedure AddTools(const inivar:string);
@@ -628,6 +629,17 @@ implementation
       end;
 
 
+    procedure TMakefileWriter.AddMainPackage(const pack:string);
+      var
+        packdirvar : string;
+      begin
+        { create needed variables }
+        packdirvar:='PACKAGEDIR_MAIN';
+        { Search packagedir by looking for Makefile.fpc }
+        FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
+      end;
+
+
     procedure TMakefileWriter.AddRequiredPackages;
 
         procedure AddPackage(const pack,prefix:string);
@@ -638,16 +650,12 @@ implementation
           { create needed variables }
           packdirvar:='PACKAGEDIR_'+VarName(pack);
           unitdirvar:='UNITDIR_'+VarName(pack);
-          { Search packagedir by looking for Makefile.fpc, for the RTL look
-            direct in the corresponding target directory }
-          if pack='rtl' then
-           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/$(OS_TARGET)/Makefile.fpc,$(PACKAGESDIR))))))')
-          else
-           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
+          { Search packagedir by looking for Makefile.fpc }
+          FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');
           { Create unit dir, check if os dependent dir exists }
-          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/$(OS_TARGET)),)');
-          FOutput.Add(unitdirvar+'=$('+packdirvar+')/$(OS_TARGET)');
+          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(FULL_TARGET)),)');
+          FOutput.Add(unitdirvar+'=$('+packdirvar+')/units/$(FULL_TARGET)');
           FOutput.Add('else');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
           FOutput.Add('endif');
@@ -727,6 +735,7 @@ implementation
         AddTool('CPPROG','cp','');
         AddTool('RMPROG','rm','');
         AddTool('MVPROG','mv','');
+        AddTool('MKDIRPROG','gmkdir','mkdir');
         AddIniSection('shelltools');
         AddTool('PPUMOVE','ppumove','');
         AddTool('FPCMAKE','fpcmake','');
@@ -844,6 +853,9 @@ implementation
            AddVariable('package_name');
            AddVariable('package_version');
            AddVariable('package_targets');
+           { Directory of main package }
+           if CheckVariable('package_main') then
+             AddMainPackage(FInput.GetVariable('package_main',false));
            { LCL rules }
            if FInput.UsesLCL then
             begin
@@ -963,7 +975,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-08-01 08:12:07  michael
+  Revision 1.34  2004-10-30 12:36:48  peter
+    * units are now created in separate directory units/cpu-os/
+    * distclean uses cleanall rule and removes units dir
+    * cross compile support fixed, it is now possible to cycle a ppcsparc
+      without deleting ppc386
+    * bintutilsperfix defaults to cpu-os-
+
+  Revision 1.33  2004/08/01 08:12:07  michael
   + Patch from Vincent Snijders to fix CPU-specific installs
 
   Revision 1.32  2004/07/12 06:42:52  michael

@@ -31,7 +31,6 @@ target=netware
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -93,10 +92,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 nwpre$(OEXT) : nwpre.as
-        $(AS) -o nwpre$(OEXT) nwpre.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)nwpre$(OEXT) nwpre.as
 
 prelude$(OEXT) : prelude.as
-        $(AS) -o prelude$(OEXT) prelude.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)prelude$(OEXT) prelude.as
 
 #
 # System Units (System, Objpas, Strings)

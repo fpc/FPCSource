@@ -32,7 +32,6 @@ packages=netdb libasync
 
 [compiler]
 options=-S2h
-targetdir=../$(OS_TARGET)
 
 [install]
 fpcpackage=y

@@ -9,9 +9,6 @@ main=fcl
 units=sdfdata
 examples=testsdf testfix
 
-[compiler]
-targetdir=../../$(OS_TARGET)
-
 [install]
 fpcpackage=y
 

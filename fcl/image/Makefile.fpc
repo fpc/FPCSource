@@ -19,9 +19,6 @@ units_freebsd=freetypeh freetype ftfont
 rsts=pscanvas
 examples=imgconv
 
-[compiler]
-targetdir=../$(OS_TARGET)
-
 [install]
 fpcpackage=y
 

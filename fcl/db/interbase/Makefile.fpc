@@ -16,8 +16,7 @@ units=ibas40 ibase60
 packages=ibase
 
 [compiler]
-options=-S2 
-targetdir=../../$(OS_TARGET)
+options=-S2
 
 [install]
 fpcpackage=y

@@ -19,8 +19,6 @@ fpcpackage=y
 
 [compiler]
 options=-Sg
-targetdir=.
-unitdir=compiler
 
 [require]
 packages=fv gdbint regexpr
@@ -54,7 +52,7 @@ endif
 # To detect 1.0.x compilers we look for finput.ppu. If this unit
 # is not found then we include 1.0.x compiler
 #
-ifeq ($(wildcard compiler/finput.*),)
+ifeq ($(wildcard units/$(FULL_TARGET)/finput.*),)
 override FPCOPT+=-dCOMPILER_1_0
 endif
 
@@ -227,7 +225,14 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.21  2004-05-30 09:15:35  florian
+# Revision 1.22  2004-10-30 12:36:43  peter
+#   * units are now created in separate directory units/cpu-os/
+#   * distclean uses cleanall rule and removes units dir
+#   * cross compile support fixed, it is now possible to cycle a ppcsparc
+#     without deleting ppc386
+#   * bintutilsperfix defaults to cpu-os-
+#
+# Revision 1.21  2004/05/30 09:15:35  florian
 #   * first part of version number update
 #
 # Revision 1.20  2004/04/12 18:16:15  florian

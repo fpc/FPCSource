@@ -8,7 +8,7 @@ version=1.0.10
 
 [target]
 units=amigados amigaguide amigalib amigaprinter asl audio bootblock \
-	bullet cd clipboard colorwheel commodities configregs configvars \	
+	bullet cd clipboard colorwheel commodities configregs configvars \
 	console conunit datatypes diskfont expansion expansionbase \
 	gadtools gameport gradientslider graphics hardblocks hardware \
 	icon iffparse input inputevent intuition keyboard keymap layers \
@@ -19,7 +19,6 @@ units=amigados amigaguide amigalib amigaprinter asl audio bootblock \
 [compiler]
 sourcedir=.
 includedir=../inc
-targetdir=.
 unitdir=../utilunits
 
 

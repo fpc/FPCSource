@@ -16,7 +16,6 @@ exampledirs=examples
 
 [compiler]
 sourcedir=zvt
-targetdir=.
 
 [libs]
 libname=libfpzvt.so

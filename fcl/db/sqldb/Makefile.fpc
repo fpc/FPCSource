@@ -15,10 +15,8 @@ dirs_win32=interbase postgres mysql
 units=sqldb
 rsts=sqldb
 
-
 [compiler]
-options=-S2 
-targetdir=../../$(OS_TARGET)
+options=-S2
 
 [install]
 fpcpackage=y

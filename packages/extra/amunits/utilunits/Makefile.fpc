@@ -15,7 +15,6 @@ units=amigautils consoleio deadkeys doublebuffer easyasl hisoft \
 [compiler]
 sourcedir=.
 includedir=../inc
-targetdir=.
 unitdir=../units
 
 [install]

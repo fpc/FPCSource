@@ -11,7 +11,6 @@ examples_i386=testdbf
 
 [compiler]
 options=-S2 -Sh
-targetdir=../../$(OS_TARGET)
 
 [default]
 fpcdir=../../..

@@ -32,7 +32,6 @@ target=netwlibc
 [compiler]
 includedir=$(INC) $(PROCINC)
 sourcedir=$(INC) $(PROCINC)
-targetdir=.
 
 
 [prerules]
@@ -105,10 +104,10 @@ nwplibc$(OEXT) :
         cp pre/libcpre.gcc.o nwplibc.o
 
 nwl_main$(OEXT) : nwl_main.as
-        $(AS) -o nwl_main$(OEXT) nwl_main.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
 
 nwl_dlle$(OEXT) : nwl_dlle.as
-        $(AS) -o nwl_dlle$(OEXT) nwl_dlle.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)nwl_dlle$(OEXT) nwl_dlle.as
 
 #
 # System Units (System, Objpas, Strings)

@@ -17,8 +17,7 @@ units=mysql mysql_com mysql_version
 packages=mysql
 
 [compiler]
-options=-S2 
-targetdir=../../$(OS_TARGET)
+options=-S2
 
 [install]
 fpcpackage=y

@@ -12,8 +12,7 @@ units=mysql4conn
 packages=mysql
 
 [compiler]
-options=-S2 
-targetdir=../../../$(OS_TARGET)
+options=-S2
 
 [install]
 fpcpackage=y
