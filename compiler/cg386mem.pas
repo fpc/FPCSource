@@ -412,54 +412,46 @@ implementation
            is_widestring(p^.left^.resulttype) then
            begin
               reset_reference(p^.location.reference);
-              p^.location.loc:=LOC_REFERENCE;
-              if is_ansistring(p^.left^.resulttype) then
+              if p^.callunique then
                 begin
-                   if p^.callunique then
+                   if p^.left^.location.loc<>LOC_REFERENCE then
                      begin
-                        pushusedregisters(pushed,$ff);
-                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('FPC_ANSISTR_UNIQUE',true);
-                        maybe_loadesi;
-                        popusedregisters(pushed);
+                        CGMessage(cg_e_illegal_expression);
+                        exit;
                      end;
-                   { check for a zero length ansistring }
-                   if (cs_check_range in aktlocalswitches) then
-                     begin
-                        pushusedregisters(pushed,$ff);
-                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.left^.location.reference))));
-                        emitcall('FPC_ANSISTR_CHECKZERO',true);
-                        maybe_loadesi;
-                        popusedregisters(pushed);
-                     end;
+                   pushusedregisters(pushed,$ff);
+                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                   if is_ansistring(p^.left^.resulttype) then
+                     emitcall('FPC_ANSISTR_UNIQUE',true)
+                   else
+                     emitcall('FPC_WIDESTR_UNIQUE',true);
+                   maybe_loadesi;
+                   popusedregisters(pushed);
+                end;
+
+              if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                begin
+                   p^.location.reference.base:=p^.left^.location.register;
                 end
               else
                 begin
-                   if p^.callunique then
-                     begin
-                        pushusedregisters(pushed,$ff);
-                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('FPC_WIDESTR_UNIQUE',true);
-                        maybe_loadesi;
-                        popusedregisters(pushed);
-                     end;
-                   { check for a zero length widestring,
-                     we can use the ansistring routine here }
-                   if (cs_check_range in aktlocalswitches) then
-                     begin
-                        pushusedregisters(pushed,$ff);
-                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.left^.location.reference))));
-                        emitcall('FPC_ANSISTR_CHECKZERO',true);
-                        maybe_loadesi;
-                        popusedregisters(pushed);
-                     end;
+                   del_reference(p^.left^.location.reference);
+                   p^.location.reference.base:=getregister32;
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                     newreference(p^.left^.location.reference),
+                     p^.location.reference.base)));
                 end;
-              del_reference(p^.left^.location.reference);
-              p^.location.reference.base:=getregister32;
 
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                newreference(p^.left^.location.reference),
-                p^.location.reference.base)));
+              { check for a zero length string,
+                we can use the ansistring routine here }
+              if (cs_check_range in aktlocalswitches) then
+                begin
+                   pushusedregisters(pushed,$ff);
+                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.reference.base)));
+                   emitcall('FPC_ANSISTR_CHECKZERO',true);
+                   maybe_loadesi;
+                   popusedregisters(pushed);
+                end;
 
               if is_ansistring(p^.left^.resulttype) then
                 { in ansistrings S[1] is pchar(S)[0] !! }
@@ -736,6 +728,42 @@ implementation
              if p^.memseg then
                p^.location.reference.segment:=R_FS;
            end;
+
+         { have to remove a temp. wide/ansistring ?
+           c:=(s1+s2)[i]
+           for example
+         }
+         if (p^.location.loc=LOC_MEM) and
+           (p^.left^.resulttype^.deftype=stringdef) then
+           begin
+              case pstringdef(p^.left^.resulttype)^.string_typ of
+                 st_ansistring:
+                   begin
+                      del_reference(p^.location.reference);
+                      hr:=reg32toreg8(getregister32);
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
+                        newreference(p^.location.reference),hr)));
+                      clear_reference(p^.location.reference);
+                      p^.location.loc:=LOC_REGISTER;
+                      p^.location.register:=hr;
+                      { we can remove all temps }
+                      removetemps(exprasmlist,temptoremove);
+                      temptoremove^.clear;
+                   end;
+                 st_widestring:
+                   begin
+                      del_reference(p^.location.reference);
+                      hr:=reg32toreg16(getregister32);
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
+                        newreference(p^.location.reference),hr)));                      clear_reference(p^.location.reference);
+                      p^.location.loc:=LOC_REGISTER;
+                      p^.location.register:=hr;
+                      { we can remove all temps }
+                      removetemps(exprasmlist,temptoremove);
+                      temptoremove^.clear;
+                   end;
+              end;
+           end;
       end;
 
 {*****************************************************************************
@@ -821,7 +849,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-02-04 10:49:41  florian
+  Revision 1.27  1999-02-04 11:44:46  florian
+    * fixed indexed access of ansistrings to temp. ansistring, i.e.
+      c:=(s1+s2)[i], the temp is now correctly remove and the generated
+      code is also fixed
+
+  Revision 1.26  1999/02/04 10:49:41  florian
     + range checking for ansi- and widestrings
     * made it compilable with TP
 

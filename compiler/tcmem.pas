@@ -485,7 +485,11 @@ implementation
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
 {$endif SUPPORT_MMX}
-         p^.location.loc:=p^.left^.location.loc;
+         if p^.left^.location.loc in [LOC_CREGISTER,LOC_REFERENCE] then
+           p^.location.loc:=LOC_REFERENCE
+         else
+           p^.location.loc:=LOC_MEM;
+
       end;
 
 
@@ -549,7 +553,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-01-22 12:18:34  pierre
+  Revision 1.10  1999-02-04 11:44:47  florian
+    * fixed indexed access of ansistrings to temp. ansistring, i.e.
+      c:=(s1+s2)[i], the temp is now correctly remove and the generated
+      code is also fixed
+
+  Revision 1.9  1999/01/22 12:18:34  pierre
    * with bug introduced with DIRECTWITH removed
 
   Revision 1.8  1999/01/21 16:41:08  pierre
