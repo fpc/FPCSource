@@ -892,6 +892,7 @@ unit pdecl;
     procedure resolve_type_forward(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
       var
         hpd,pd : pdef;
+        stpos : tfileposinfo;
       begin
          { Check only typesyms or record/object fields }
          case psym(p)^.typ of
@@ -915,7 +916,13 @@ unit pdecl;
                if hpd^.deftype=forwarddef then
                 begin
                   { try to resolve the forward }
+                  { get the correct position for it }
+                  stpos:=tokenpos;
+                  tokenpos:=pforwarddef(hpd)^.forwardpos;
+                  resolving_forward:=true;
                   getsym(pforwarddef(hpd)^.tosymname,false);
+                  resolving_forward:=false;
+                  tokenpos:=stpos;
                   { we don't need the forwarddef anymore, dispose it }
                   dispose(hpd,done);
                   { was a type sym found ? }
@@ -962,6 +969,8 @@ unit pdecl;
          typename : stringid;
          newtype  : ptypesym;
          sym      : psym;
+         typedef  : pdef;
+         defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
       begin
          old_block_type:=block_type;
@@ -970,6 +979,7 @@ unit pdecl;
          typecanbeforward:=true;
          repeat
            typename:=pattern;
+           defpos:=tokenpos;
            consume(_ID);
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
@@ -1000,8 +1010,12 @@ unit pdecl;
            { no old type reused ? Then insert this new type }
            if not assigned(newtype) then
             begin
-              newtype:=new(ptypesym,init(typename,read_type(typename)));
+              typedef:=read_type(typename);
+              storetokenpos:=tokenpos;
+              tokenpos:=defpos;
+              newtype:=new(ptypesym,init(typename,typedef));
               newtype:=ptypesym(symtablestack^.insert(newtype));
+              tokenpos:=storetokenpos;
             end;
            consume(_SEMICOLON);
            if assigned(newtype^.definition) and
@@ -1015,7 +1029,7 @@ unit pdecl;
 
 
     procedure var_dec;
-    { parses varaible declarations and inserts them in }
+    { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
@@ -1186,7 +1200,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.170  1999-11-09 23:06:45  peter
+  Revision 1.171  1999-11-09 23:43:08  pierre
+   * better browser info
+
+  Revision 1.170  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

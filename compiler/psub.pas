@@ -104,8 +104,9 @@ var sp:stringid;
 begin
 { Save the position where this procedure really starts and set col to 1 which
   looks nicer }
-  procstartfilepos:=aktfilepos;
-  procstartfilepos.column:=1;
+  procstartfilepos:=tokenpos;
+{  procstartfilepos.column:=1; I do not agree here !!
+   lets keep excat position PM }
 
   if (options=potype_operator) then
     begin
@@ -122,11 +123,13 @@ begin
 { method ? }
   if not(parse_only) and try_to_consume(_POINT) then
    begin
+     tokenpos:=procstartfilepos;
      getsym(sp,true);
      sym:=srsym;
      { load proc name }
      sp:=pattern;
      realname:=orgpattern;
+     procstartfilepos:=tokenpos;
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
         (ptypesym(sym)^.definition^.deftype<>objectdef) then
@@ -139,9 +142,9 @@ begin
        begin
           { used to allow private syms to be seen }
           aktobjectdef:=pobjectdef(ptypesym(sym)^.definition);
-          consume(_ID);
           procinfo^._class:=pobjectdef(ptypesym(sym)^.definition);
           aktprocsym:=pprocsym(procinfo^._class^.symtable^.search(sp));
+          consume(_ID);
           {The procedure has been found. So it is
            a global one. Set the flags to mark this.}
           procinfo^.flags:=procinfo^.flags or pi_is_global;
@@ -158,6 +161,7 @@ begin
         (options in [potype_constructor,potype_destructor]) then
         Message(parser_e_constructors_always_objects);
 
+     tokenpos:=procstartfilepos;
      aktprocsym:=pprocsym(symtablestack^.search(sp));
 
      if not(parse_only) then
@@ -229,6 +233,7 @@ begin
          begin
            DuplicateSym(aktprocsym);
            { try to recover by creating a new aktprocsym }
+           tokenpos:=procstartfilepos;
            aktprocsym:=new(pprocsym,init(sp));
          end
         else
@@ -244,6 +249,7 @@ begin
          begin
            Message1(parser_e_overloaded_no_procedure,aktprocsym^.name);
            { try to recover by creating a new aktprocsym }
+           tokenpos:=procstartfilepos;
            aktprocsym:=new(pprocsym,init(sp));
          end;
       end;
@@ -251,6 +257,7 @@ begin
   else
    begin
      { create a new procsym and set the real filepos }
+     tokenpos:=procstartfilepos;
      aktprocsym:=new(pprocsym,init(sp));
      { for operator we have only one definition for each overloaded
        operation }
@@ -314,12 +321,10 @@ begin
 
   pd^.nextoverloaded:=aktprocsym^.definition;
   aktprocsym^.definition:=pd;
+  { this is probably obsolete now PM }
   aktprocsym^.definition^.fileinfo:=procstartfilepos;
   aktprocsym^.definition^.setmangledname(hs);
   aktprocsym^.definition^.procsym:=aktprocsym;
-
-  { update also the current filepos for aktprocsym }
-  aktprocsym^.fileinfo:=procstartfilepos;
 
   if not parse_only then
     begin
@@ -1902,7 +1907,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  1999-11-09 23:06:45  peter
+  Revision 1.33  1999-11-09 23:43:08  pierre
+   * better browser info
+
+  Revision 1.32  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

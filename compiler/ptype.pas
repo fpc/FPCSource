@@ -121,29 +121,34 @@ uses
     { the type to allow name mangling          }
       var
         is_unit_specific : boolean;
+        pos : tfileposinfo;
       begin
          s:=pattern;
-         consume(_ID);
+         pos:=tokenpos;
          { classes can be used also in classes }
          if (curobjectname=pattern) and aktobjectdef^.is_class then
            begin
               id_type:=aktobjectdef;
+              consume(_ID);
               exit;
            end;
          { objects can be parameters }
          if (testcurobject=2) and (curobjectname=pattern) then
            begin
               id_type:=aktobjectdef;
+              consume(_ID);
               exit;
            end;
          { try to load the symbol to see if it's a unitsym }
          is_unit_specific:=false;
          getsym(s,false);
+         consume(_ID);
          if assigned(srsym) and
             (srsym^.typ=unitsym) then
            begin
               consume(_POINT);
               getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+              pos:=tokenpos;
               s:=pattern;
               consume(_ID);
               is_unit_specific:=true;
@@ -152,7 +157,7 @@ uses
          if isforwarddef and
             not(is_unit_specific) then
           begin
-            id_type:=new(pforwarddef,init(s));
+            id_type:=new(pforwarddef,init(s,pos));
             exit;
           end;
          { unknown sym ? }
@@ -1598,7 +1603,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  1999-11-08 14:02:16  florian
+  Revision 1.8  1999-11-09 23:43:09  pierre
+   * better browser info
+
+  Revision 1.7  1999/11/08 14:02:16  florian
     * problem with "index X"-properties solved
     * typed constants of class references are now allowed
 
