@@ -113,7 +113,7 @@ type
   PFileList = ^TFileList;
   TFileList = record { no packed, must be correctly aligned }
     handle : LongInt;      { Handle to file    }
-    next   : PFileList;      { Next file in list }
+    next   : PFileList;    { Next file in list }
   end;
 
 var
@@ -214,6 +214,11 @@ begin
 
   { Closing opened files }
   CloseList(MOS_fileList);
+
+  { Changing back to original directory if changed }
+  if MOS_origDir<>0 then begin
+    CurrentDir(MOS_origDir);
+  end;
 
   if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
   if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
@@ -389,6 +394,34 @@ begin
   end;
 end;
 
+{ Converts an Unix-like path to Amiga-like path }
+function PathConv(path: string): string;
+var tmppos: longint;
+begin
+  { check for short paths }
+  if length(path)<=2 then begin
+    if (path='.') or (path='./') then path:='';
+    if path='..' then path:='/'; 
+  end else begin
+    { convert parent directories }
+    tmppos:=pos('../',path);
+    while tmppos<>0 do begin
+      { delete .. to have / as parent dir sign }
+      delete(path,tmppos,2); 
+      tmppos:=pos('../',path);
+    end;
+    { convert current directories }
+    tmppos:=pos('./',path);
+    while tmppos<>0 do begin
+      { delete ./ since we doesn't need to sign current directory }
+      delete(path,tmppos,2);
+      tmppos:=pos('./',path);
+    end;  
+  end;
+  PathConv:=path;
+end;
+
+
 
 {*****************************************************************************
                              ParamStr/Randomize
@@ -453,21 +486,13 @@ end;
 *****************************************************************************}
 procedure mkdir(const s : string);[IOCheck];
 var
-  buffer : array[0..255] of char;
-  j : Integer;
-  tmpStr : string;
-  tmpLock : LongInt;
+  tmpStr : array[0..255] of char;
+  tmpLock: LongInt;
 begin
   checkCTRLC;
   if (s='') or (InOutRes<>0) then exit;
-  tmpStr:=s;
-
-  for j:=1 to length(tmpStr) do
-    if tmpStr[j]='\' then tmpStr[j]:='/';
-  move(tmpStr[1],buffer,length(tmpStr));
-  buffer[length(tmpStr)]:=#0;
-
-  tmpLock:=CreateDir(buffer);
+  tmpStr:=PathConv(s)+#0;
+  tmpLock:=CreateDir(@tmpStr);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
@@ -477,56 +502,32 @@ end;
 
 procedure rmdir(const s : string);[IOCheck];
 var
-  buffer : array[0..255] of char;
-  j : Integer;
-  tmpStr : string;
+  tmpStr : array[0..255] of Char;
 begin
   checkCTRLC;
   if (s='.') then InOutRes:=16;
   If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=s;
-  for j:=1 to length(tmpStr) do
-    if tmpStr[j] = '\' then tmpStr[j] := '/';
-  move(tmpStr[1],buffer,length(tmpStr));
-  buffer[length(tmpStr)]:=#0;
-  if not DeleteFile(buffer) then
+  tmpStr:=PathConv(s)+#0;
+  if not DeleteFile(@tmpStr) then
     dosError2InOut(IoErr);
 end;
 
 procedure chdir(const s : string);[IOCheck];
 var
-  buffer : array[0..255] of char;
-  alock : LongInt;
-  FIB : PFileInfoBlock;
-  j : Integer;
-  tmpStr : string;
+  tmpStr : array[0..255] of Char;
+  tmpLock: LongInt;
+  FIB    : PFileInfoBlock;
 begin
   checkCTRLC;
   If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=s;
+  tmpStr:=PathConv(s)+#0;
+  tmpLock:=0;
 
-  for j:=1 to length(tmpStr) do
-    if tmpStr[j]='\' then tmpStr[j]:='/';
-
-  { Return parent directory }
-  if s='..' then begin
-    getdir(0,tmpStr);
-    j:=length(tmpStr);
-    { Look through the previous paths }
-    while (tmpStr[j]<>'/') and (tmpStr[j]<>':') and (j>0) do
-      dec(j);
-    if j>0 then
-      tmpStr:=copy(tmpStr,1,j);
-  end;
-  alock:=0;
-
-  move(tmpStr[1],buffer,length(tmpStr));
-  buffer[length(tmpStr)]:=#0;
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
-  alock:=Lock(buffer,SHARED_LOCK);
-  if alock=0 then begin
+  tmpLock:=Lock(@tmpStr,SHARED_LOCK);
+  if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
   end;
@@ -534,16 +535,16 @@ begin
   FIB:=nil;
   new(FIB);
 
-  if (Examine(alock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
-    alock := CurrentDir(alock);
+  if (Examine(tmpLock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
+    tmpLock := CurrentDir(tmpLock);
     if MOS_OrigDir=0 then begin
-      MOS_OrigDir:=alock;
-      alock:=0;
+      MOS_OrigDir:=tmpLock;
+      tmpLock:=0;
     end;
   end;
 
-  if alock<>0 then Unlock(alock);
-  if assigned(FIB) then dispose(FIB)
+  if tmpLock<>0 then Unlock(tmpLock);
+  if assigned(FIB) then dispose(FIB);
 end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
@@ -684,58 +685,23 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 var
-  i,j : LongInt;
-  openflags : LongInt;
-  path : String;
-  buffer : array[0..255] of Char;
-  index : Integer;
-  s : String;
+  handle   : LongInt;
+  openflags: LongInt;
+  tmpStr   : array[0..255] of Char;
 begin
-  path:=strpas(p);
-  for index:=1 to length(path) do
-    if path[index]='\' then path[index]:='/';
-  { remove any dot characters and replace by their current }
-  { directory equivalent.                                  }
+  tmpStr:=PathConv(strpas(p))+#0;
 
-  { look for parent directory }
-  if pos('../',path) = 1 then
-    begin
-      delete(path,1,3);
-      getdir(0,s);
-      j:=length(s);
-      while (s[j]<>'/') and (s[j]<>':') and (j>0) do
-        dec(j);
-      if j > 0 then
-        s:=copy(s,1,j);
-      path:=s+path;
-    end
-  else
-
-  { look for current directory }
-  if pos('./',path) = 1 then
-    begin
-      delete(path,1,2);
-      getdir(0,s);
-      if (s[length(s)]<>'/') and (s[length(s)]<>':') then
-        s:=s+'/';
-      path:=s+path;
-    end;
-
-  move(path[1],buffer,length(path));
-  buffer[length(path)]:=#0;
-
-   { close first if opened }
-  if ((flags and $10000)=0) then
-    begin
-      case filerec(f).mode of
-        fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
-        fmclosed : ;
-        else begin
-          inoutres:=102; {not assigned}
-          exit;
-        end;
+  { close first if opened }
+  if ((flags and $10000)=0) then begin
+    case filerec(f).mode of
+      fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
+      fmclosed : ;
+      else begin
+        inoutres:=102; {not assigned}
+        exit;
       end;
     end;
+  end;
 
   { reset file handle }
   filerec(f).handle:=UnusedHandle;
@@ -754,35 +720,33 @@ begin
   if (flags and $1000)<>0 then openflags := 1006;
 
   { empty name is special }
-  if p[0]=#0 then
-    begin
-      case filerec(f).mode of
-        fminput :
-          filerec(f).handle:=StdInputHandle;
-        fmappend,
-        fmoutput : begin
-          filerec(f).handle:=StdOutputHandle;
-          filerec(f).mode:=fmoutput; {fool fmappend}
-        end;
+  if p[0]=#0 then begin
+    case filerec(f).mode of
+      fminput :
+        filerec(f).handle:=StdInputHandle;
+      fmappend,
+      fmoutput : begin
+        filerec(f).handle:=StdOutputHandle;
+        filerec(f).mode:=fmoutput; {fool fmappend}
       end;
-      exit;
     end;
+    exit;
+  end;
 
-  i:=Open(buffer,openflags);
-  if i=0 then
-    begin
-      dosError2InOut(IoErr);
-    end else begin
-      AddToList(MOS_fileList,i);
-      filerec(f).handle:=i;
-    end;
+  handle:=Open(@tmpStr,openflags);
+  if handle=0 then begin
+    dosError2InOut(IoErr);
+  end else begin
+    AddToList(MOS_fileList,handle);
+    filerec(f).handle:=handle;
+  end;
 
   { append mode }
-  if ((Flags and $100)<>0) and (FileRec(F).Handle<>UnusedHandle) then
-    begin
-      do_seekend(filerec(f).handle);
-      filerec(f).mode:=fmoutput; {fool fmappend}
-    end;
+  if ((Flags and $100)<>0) and 
+      (FileRec(F).Handle<>UnusedHandle) then begin
+    do_seekend(filerec(f).handle);
+    filerec(f).mode:=fmoutput; {fool fmappend}
+  end;
 end;
 
 function do_isdevice(handle:longint):boolean;
@@ -892,7 +856,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2004-11-04 09:32:31  peter
+  Revision 1.22  2004-11-15 23:18:16  karoly
+   * Reworked path handling to be less messy
+
+  Revision 1.21  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.20  2004/10/25 15:38:59  peter
