@@ -19,13 +19,28 @@ interface
 procedure dump_heap;
 procedure mark_heap;
 
+type
+    fill_extra_info_type = procedure(p : pointer);
+
+    { allows to add several longint value that can help
+      to debug :
+      see for instance ppheap.pas unit of the compiler source PM }
+      
+procedure set_extra_info( size : longint;func : fill_extra_info_type);
+
 const
   tracesize = 8;
   quicktrace : boolean=true;
   keepreleased : boolean=true;
 
-
 implementation
+
+const
+  { allows to add custom info in heap_mem_info }
+  extra_info_size : longint = 0;
+  exact_info_size : longint = 0;
+  { function to fill this info up }
+  fill_extra_info : fill_extra_info_type = nil;
 
 type
   pheap_mem_info = ^theap_mem_info;
@@ -41,6 +56,8 @@ type
     size     : longint;
     sig      : longint;
     calls    : array [1..tracesize] of longint;
+    extra_info : record
+                 end;
   end;
 
 var
@@ -55,6 +72,8 @@ var
                                 Helpers
 *****************************************************************************}
 
+type plongint = ^longint;
+
 procedure call_stack(pp : pheap_mem_info);
 var
   i  : longint;
@@ -63,6 +82,8 @@ begin
   for i:=1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(stderr,'  0x',hexstr(pp^.calls[i],8));
+  for i:=0 to (exact_info_size div 4)-1 do
+    writeln(stderr,'info ',i,'=',plongint(@pp^.extra_info+4*i)^);
 end;
 
 procedure call_free_stack(pp : pheap_mem_info);
@@ -78,6 +99,8 @@ begin
   for i:=(tracesize div 2)+1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(stderr,'  0x',hexstr(pp^.calls[i],8));
+  for i:=0 to (exact_info_size div 4)-1 do
+    writeln(stderr,'info ',i,'=',plongint(@pp^.extra_info+4*i)^);
 end;
 
 
@@ -132,7 +155,7 @@ var
 begin
   inc(getmem_size,size);
 { Do the real GetMem, but alloc also for the info block }
-  SysGetMem(p,size+sizeof(theap_mem_info));
+  SysGetMem(p,size+sizeof(theap_mem_info)+extra_info_size);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -148,8 +171,10 @@ begin
   pheap_mem_info(p)^.previous:=heap_mem_root;
   pheap_mem_info(p)^.next:=nil;
   heap_mem_root:=p;
+  if assigned(fill_extra_info) then
+    fill_extra_info(@pheap_mem_info(p)^.extra_info);
 { update the pointer }
-  inc(p,sizeof(theap_mem_info));
+  inc(p,sizeof(theap_mem_info)+extra_info_size);
   inc(getmem_cnt);
 end;
 
@@ -164,8 +189,8 @@ procedure TraceFreeMem(var p:pointer;size:longint);
   pp : pheap_mem_info;
 begin
   inc(freemem_size,size);
-  inc(size,sizeof(theap_mem_info));
-  dec(p,sizeof(theap_mem_info));
+  inc(size,sizeof(theap_mem_info)+extra_info_size);
+  dec(p,sizeof(theap_mem_info)+extra_info_size);
   pp:=pheap_mem_info(p);
   if not quicktrace and not(is_in_getmem_list(p)) then
     RunError(204);
@@ -214,9 +239,9 @@ var
 begin
   pp:=heap_mem_root;
   Writeln(stderr,'Heap dump by heaptrc unit');
-  Writeln(stderr,getmem_cnt,' memory blocks allocated : ',getmem_size);
-  Writeln(stderr,freemem_cnt,' memory blocks allocated : ',freemem_size);
-  Writeln(stderr,'Unfreed memory size : ',getmem_size-freemem_size);
+  Writeln(stderr,getmem_cnt, ' memory blocks allocated : ',getmem_size);
+  Writeln(stderr,freemem_cnt,' memory blocks freed     : ',freemem_size);
+  Writeln(stderr,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
   i:=getmem_cnt-freemem_cnt;
   while pp<>nil do
    begin
@@ -271,6 +296,23 @@ begin
   Dump_heap;
 end;
 
+procedure set_extra_info( size : longint;func : fill_extra_info_type);
+
+  begin
+     if getmem_cnt>0 then
+       begin
+         writeln(stderr,'settting extra info is only possible at start !! ');
+         dump_heap;
+       end
+     else
+       begin
+          { the total size must stay multiple of 8 !! }
+          exact_info_size:=size;
+          extra_info_size:=((size+7) div 8)*8;
+          fill_extra_info:=func;
+       end;
+  end;
+  
 
 begin
   SetMemoryManager(TraceManager);
@@ -279,7 +321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-10-06 17:09:13  pierre
+  Revision 1.4  1998-10-08 14:49:05  pierre
+   + added possibility for more info
+
+  Revision 1.3  1998/10/06 17:09:13  pierre
    + added trace of first dispose for errors
 
   Revision 1.2  1998/10/02 10:35:38  peter
