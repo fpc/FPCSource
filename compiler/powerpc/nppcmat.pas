@@ -196,7 +196,12 @@ implementation
              if (right.nodetype = ordconstn) then
                begin
                  shiftval := tordconstnode(right).value;
-                 if tordconstnode(right).value > 31 then
+                 if shiftval > 63 then
+                   begin
+                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                   end
+                 else if shiftval > 31 then
                    begin
                      if nodetype = shln then
                        begin
@@ -508,7 +513,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-12-28 23:49:30  jonas
+  Revision 1.37  2003-12-31 18:12:23  jonas
+    * (64 bit int) shl/shr (value > 63) := 0
+
+  Revision 1.36  2003/12/28 23:49:30  jonas
     * fixed tnotnode for < 32 bit quantities
 
   Revision 1.35  2003/10/17 01:22:08  florian
