@@ -220,6 +220,8 @@ implementation
                         ungetiftemp(p^.right^.location.reference);
                      end;
                 end;
+               { the result of ansicompare is signed }
+               SetResultLocation(cmpop,false,p);
              end;
            st_shortstring:
              begin
@@ -346,9 +348,9 @@ implementation
                      end;
                    else CGMessage(type_e_mismatch);
                 end;
+               SetResultLocation(cmpop,true,p);
              end;
           end;
-          SetResultLocation(cmpop,true,p);
       end;
 
 
@@ -1402,7 +1404,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-10-29 15:42:43  florian
+  Revision 1.24  1998-11-07 12:49:30  peter
+    * fixed ansicompare which returns signed
+
+  Revision 1.23  1998/10/29 15:42:43  florian
     + partial disposing of temp. ansistrings
 
   Revision 1.22  1998/10/28 18:26:12  pierre
