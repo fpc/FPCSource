@@ -401,8 +401,8 @@ begin
   if AClass>=V_Info then
 {$else}
   if (AClass and V_LineInfo)=V_LineInfo then
-    Line:=0;
 {$endif}
+    Line:=0;
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
   if (@Self=CompilerMessageWindow) and ((AClass = V_fatal) or (AClass = V_Error)) then
     begin
@@ -1332,7 +1332,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2003-01-11 15:52:54  peter
+  Revision 1.20  2003-01-13 09:05:18  pierre
+   * fix error in last commit
+
+  Revision 1.19  2003/01/11 15:52:54  peter
     * adapted for new 1.1 compiler verbosity
 
   Revision 1.18  2002/12/02 13:58:29  pierre
