@@ -245,9 +245,14 @@ unit cgcpu;
 
     procedure tcgarm.a_call_name(list : taasmoutput;const s : string);
       begin
-         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
-         if not(pi_do_call in current_procinfo.flags) then
-           internalerror(2003060703);
+        list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+{
+        the compiler does not properly set this flag anymore in pass 1, and
+        for now we only need it after pass 2 (I hope) (JM)
+          if not(pi_do_call in current_procinfo.flags) then
+            internalerror(2003060703);
+}
+        include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -257,8 +262,13 @@ unit cgcpu;
       begin
         list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
         list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
-        if not(pi_do_call in current_procinfo.flags) then
-          internalerror(2003060704);
+{
+        the compiler does not properly set this flag anymore in pass 1, and
+        for now we only need it after pass 2 (I hope) (JM)
+          if not(pi_do_call in current_procinfo.flags) then
+            internalerror(2003060703);
+}
+        include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -1277,7 +1287,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-10-31 16:04:30  florian
+  Revision 1.61  2004-10-31 16:47:43  florian
+    * fixed ie with pi_do_call
+
+  Revision 1.60  2004/10/31 16:04:30  florian
     * fixed compilation of system unit on arm
 
   Revision 1.59  2004/10/31 12:37:11  florian
