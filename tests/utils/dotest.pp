@@ -407,6 +407,32 @@ begin
 end;
 
 
+function ExitWithInternalError(const OutName:string):boolean;
+var
+  t : text;
+  s : string;
+begin
+  ExitWithInternalError:=false;
+  { open logfile }
+  assign(t,Outname);
+  {$I-}
+   reset(t);
+  {$I+}
+  if ioresult<>0 then
+   exit;
+  while not eof(t) do
+   begin
+     readln(t,s);
+     if pos('Fatal: Internal error ',s)>0 then
+      begin
+        ExitWithInternalError:=true;
+        break;
+      end;
+   end;
+  close(t);
+end;
+
+
 function RunCompiler:boolean;
 var
   outname,
@@ -422,6 +448,25 @@ begin
   { also get the output from as and ld that writes to stderr sometimes }
   ExecuteRedir(CompilerBin,args,'',OutName,OutName);
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
+
+  { Check for internal error }
+  if ExitWithInternalError(OutName) then
+   begin
+     AddLog(FailLogFile,TestName);
+     if Note<>'' then
+      AddLog(FailLogFile,Note);
+     AddLog(ResLogFile,'Failed to compile '+PPFileInfo);
+     AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+     AddLog(LongLogFile,'Failed to compile '+PPFileInfo);
+     if Note<>'' then
+      AddLog(LongLogFile,Note);
+     CopyFile(OutName,LongLogFile,true);
+     { avoid to try again }
+     AddLog(ForceExtension(PPFile,'elg'),'Failed to compile '++PPFileInfo);
+     Verbose(V_Abort,'Internal error in compiler');
+     exit;
+   end;
+
   { Shoud the compile fail ? }
   if Config.ShouldFail then
    begin
@@ -685,7 +730,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-03-03 13:27:28  hajny
+  Revision 1.14  2002-04-21 18:15:32  peter
+    * Check for internal errors
+
+  Revision 1.13  2002/03/03 13:27:28  hajny
     + added support for OS/2 units (.ppo)
 
   Revision 1.12  2002/01/29 13:24:16  pierre
