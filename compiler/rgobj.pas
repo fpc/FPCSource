@@ -122,9 +122,15 @@ unit rgobj;
         property bitmap[x,y:tsuperregister]:boolean read getbitmap write setbitmap;default;
       end;
 
+      Tmovelistheader=record
+        count,
+        maxcount,
+        sorted_until : cardinal;
+      end;
+
       Tmovelist=record
-        count,sorted_until:cardinal;
-        data:array[0..$ffff] of Tlinkedlistitem;
+        header : Tmovelistheader;
+        data : array[tsuperregister] of Tlinkedlistitem;
       end;
       Pmovelist=^Tmovelist;
 
@@ -322,14 +328,14 @@ implementation
     begin
       with ml^ do
         begin
-          if count<2 then
+          if header.count<2 then
             exit;
           p:=1;
-          while 2*p<count do
+          while 2*p<header.count do
             p:=2*p;
           while p<>0 do
             begin
-              for h:=p to count-1 do
+              for h:=p to header.count-1 do
                 begin
                   i:=h;
                   t:=data[i];
@@ -343,7 +349,7 @@ implementation
                 end;
               p:=p shr 1;
             end;
-          sorted_until:=count-1;
+          header.sorted_until:=header.count-1;
         end;
     end;
 
@@ -698,26 +704,26 @@ implementation
 {$endif EXTDEBUG}
 
     procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
-
-    var cursize:cardinal;
-
     begin
       with reginfo[u] do
         begin
           if movelist=nil then
             begin
-              getmem(movelist,64);
-              movelist^.count:=0;
-              movelist^.sorted_until:=0;
+              getmem(movelist,sizeof(tmovelistheader)+60*sizeof(pointer));
+              movelist^.header.maxcount:=60;
+              movelist^.header.count:=0;
+              movelist^.header.sorted_until:=0;
             end
           else
             begin
-              cursize:=memsize(movelist);
-              if (4*(movelist^.count+2)=cursize) then
-                reallocmem(movelist,cursize*2);
+              if movelist^.header.count>=movelist^.header.maxcount then
+                begin
+                  movelist^.header.maxcount:=movelist^.header.maxcount*2;
+                  reallocmem(movelist,sizeof(tmovelistheader)+movelist^.header.maxcount*sizeof(pointer));
+                end;
             end;
-          movelist^.data[movelist^.count]:=data;
-          inc(movelist^.count);
+          movelist^.data[movelist^.header.count]:=data;
+          inc(movelist^.header.count);
         end;
     end;
 
@@ -773,7 +779,7 @@ implementation
       with reginfo[n] do
         if movelist<>nil then
           with movelist^ do
-            for i:=0 to count-1 do
+            for i:=0 to header.count-1 do
               if Tmoveins(data[i]).moveset in [ms_worklist_moves,ms_active_moves] then
                 begin
                   move_related:=true;
@@ -872,7 +878,7 @@ implementation
     begin
       with reginfo[n] do
         if movelist<>nil then
-          for i:=0 to movelist^.count-1 do
+          for i:=0 to movelist^.header.count-1 do
             begin
               m:=movelist^.data[i];
               if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
@@ -1084,17 +1090,17 @@ implementation
            number of items is less than 8 times the numer of unsorted items,
            we'll sort the list.}
           with reginfo[u].movelist^ do
-            if count<8*(count-sorted_until) then
+            if header.count<8*(header.count-header.sorted_until) then
               sort_movelist(reginfo[u].movelist);
 
           if assigned(reginfo[v].movelist) then
             begin
-              for n:=0 to reginfo[v].movelist^.count-1 do
+              for n:=0 to reginfo[v].movelist^.header.count-1 do
                 begin
                   {Binary search the sorted part of the list.}
                   searched:=reginfo[v].movelist^.data[n];
                   p:=0;
-                  q:=reginfo[u].movelist^.sorted_until;
+                  q:=reginfo[u].movelist^.header.sorted_until;
                   i:=0;
                   if q<>0 then
                     repeat
@@ -1108,7 +1114,7 @@ implementation
                     if searched<>data[i] then
                       begin
                         {Linear search the unsorted part of the list.}
-                        for i:=sorted_until+1 to count-1 do
+                        for i:=header.sorted_until+1 to header.count-1 do
                           if searched=data[i] then
                             goto l1;
                         {Not found -> add}
@@ -1212,7 +1218,7 @@ implementation
 
     begin
       if reginfo[u].movelist<>nil then
-        for i:=0 to reginfo[u].movelist^.count-1 do
+        for i:=0 to reginfo[u].movelist^.header.count-1 do
           begin
             m:=reginfo[u].movelist^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
@@ -2015,7 +2021,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2004-03-14 20:06:17  peter
+  Revision 1.124  2004-03-14 22:50:04  peter
+    * rewrote add_to_movelist, it now uses a field to store the number
+      of allocated entries. Also made it using less hardcoded values
+
+  Revision 1.123  2004/03/14 20:06:17  peter
     * check if movelist is valid
 
   Revision 1.122  2004/02/12 15:54:03  peter
