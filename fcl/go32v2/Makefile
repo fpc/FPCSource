@@ -20,6 +20,10 @@
 # Default place of the makefile.fpc
 DEFAULTFPCDIR=../..
 
+# set target and cpu which are required
+override OS_TARGET=go32v2
+override CPU=i386
+
 # Include files
 INC=../inc
 PROCINC=../$(CPU)
@@ -38,7 +42,11 @@ DEFAULTUNITS=1
 # Real targets
 #####################################################################
 
-UNITOBJECTS=classes
+# INCUNITS is defined in makefile.inc
+# They are default units for all platforms.
+include $(INC)/Makefile.inc
+
+UNITOBJECTS=$(INCUNITS)
 EXEOBJECTS=
 
 
@@ -47,9 +55,9 @@ EXEOBJECTS=
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \ staticinstall sharedinstall
+	libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -116,14 +124,18 @@ endif
 
 vpath %$(PASEXT) $(INC)
 
-include $(INC)/Makefile.inc
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
 classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
+inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
+
 #
 # $Log$
-# Revision 1.3  1999-04-08 10:18:48  peter
+# Revision 1.4  1999-04-22 10:50:44  peter
+#   * set target always
+#
+# Revision 1.3	1999/04/08 10:18:48  peter
 #   * makefile updates
 #
 #

@@ -20,6 +20,10 @@
 # Default place of the makefile.fpc
 DEFAULTFPCDIR=../..
 
+# set target and cpu which are required
+override OS_TARGET=linux
+override CPU=i386
+
 # Include files
 INC=../inc
 PROCINC=../$(CPU)
@@ -51,9 +55,9 @@ EXEOBJECTS=
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -113,7 +117,6 @@ testfpcmake:
 endif
 
 
-
 #####################################################################
 # Dependencies
 #####################################################################
@@ -124,12 +127,17 @@ INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
 classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
+inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
+
 #
 # $Log$
-# Revision 1.8  1999-04-08 15:58:44  michael
+# Revision 1.9  1999-04-22 10:50:45  peter
+#   * set target always
+#
+# Revision 1.8	1999/04/08 15:58:44  michael
 # + INCUNITS added
 #
-# Revision 1.7  1999/04/08 10:18:59  peter
+# Revision 1.7	1999/04/08 10:18:59  peter
 #   * makefile updates
 #
 #

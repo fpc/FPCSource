@@ -20,6 +20,10 @@
 # Default place of the makefile.fpc
 DEFAULTFPCDIR=../..
 
+# set target and cpu which are required
+override OS_TARGET=win32
+override CPU=i386
+
 # Include files
 INC=../inc
 PROCINC=../$(CPU)
@@ -51,9 +55,9 @@ EXEOBJECTS=
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -128,10 +132,13 @@ inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
 
 #
 # $Log$
-# Revision 1.6  1999-04-12 14:40:17  michael
+# Revision 1.7  1999-04-22 10:50:46  peter
+#   * set target always
+#
+# Revision 1.6	1999/04/12 14:40:17  michael
 # + Fixed inifiles dependencies
 #
-# Revision 1.5  1999/04/08 10:19:05  peter
+# Revision 1.5	1999/04/08 10:19:05  peter
 #   * makefile updates
 #
 #
