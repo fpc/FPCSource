@@ -750,7 +750,7 @@ Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
   info : BaseUnix.stat;
 Begin
-  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) then
+  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
     FSearch:=path
   else
     FSearch:=Unix.FSearch(path,dirlist);
@@ -892,7 +892,10 @@ End.
 
 {
   $Log$
-  Revision 1.42  2004-12-05 21:04:56  hajny
+  Revision 1.43  2004-12-18 16:29:09  michael
+  + Patch from Michalis Kamburelis so FSearch does not find a directory
+
+  Revision 1.42  2004/12/05 21:04:56  hajny
     * compilation fix for dosh.inc changes
 
   Revision 1.41  2004/12/05 20:33:32  hajny
