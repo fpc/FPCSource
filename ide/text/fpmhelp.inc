@@ -186,7 +186,7 @@ begin
                               LS^.StoreDocuments(BS^);
                               if BS^.Status<>stOK then
                                 begin
-                                  ErrorBox(msg_errorstoringindexdata,nil);
+                                  ErrorBox(FormatStrInt(msg_errorstoringindexdata,BS^.Status),nil);
                                   Re:=cmCancel;
                                 end;
                               Dispose(BS, Done);
@@ -252,7 +252,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-05-02 08:42:28  pierre
+  Revision 1.11  2000-05-29 10:44:57  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.10  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.9  2000/04/25 08:42:33  pierre

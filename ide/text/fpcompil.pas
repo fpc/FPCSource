@@ -96,7 +96,7 @@ uses
   CompHook, Compiler, systems, browcol, switches,
   WEditor,
   FPString,FPRedir,FPDesk,FPUsrScr,FPHelp,
-  FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
+  FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
 const
@@ -695,6 +695,9 @@ begin
   do_stop:=@CompilerStop;
   do_comment:=@CompilerComment;
 {$endif TP}
+  do_initsymbolinfo:=InitBrowserCol;
+  do_donesymbolinfo:=DoneBrowserCol;
+  do_extractsymbolinfo:=CreateBrowserCol;
 { Compile ! }
 {$ifdef redircompiler}
   ChangeRedirOut(FPOutFileName,false);
@@ -712,7 +715,7 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
-  FpIntF.Compile(FileName);
+  FpIntF.Compile(FileName,SwitchesPath);
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and IsExe and
@@ -900,7 +903,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  2000-05-02 08:42:27  pierre
+  Revision 1.58  2000-05-29 10:44:56  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.57  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.56  2000/04/25 08:42:32  pierre

@@ -84,11 +84,31 @@ type
         function SearchItem(Key: pointer; Rel: TSearchRelation; var Index: integer): boolean; virtual;
       end;}
 
+      PNamedMark = ^TNamedMark;
+      TNamedMark = object(TObject)
+        constructor Init(const AName: string; AX, AY: integer);
+        function    GetName: string;
+        destructor  Done; virtual;
+      private
+        Name: PString;
+        Pos: TPoint;
+      end;
+
+      PNamedMarkCollection = ^TNamedMarkCollection;
+      TNamedMarkCollection = object(TSortedCollection)
+        function At(Index: sw_Integer): PNamedMark;
+        function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+        function SearchMark(const Name: string): PNamedMark;
+        function GetMarkPos(const Name: string; var P: TPoint): boolean;
+        procedure Add(const Name: string; P: TPoint);
+      end;
+
       PHelpTopic = ^THelpTopic;
       THelpTopic = object(TObject)
         Topic: PTopic;
         Lines: PUnsortedStringCollection;
         Links: PLinkCollection;
+        NamedMarks: PNamedMarkCollection;
         ColorAreas: PColorAreaCollection;
       public
         constructor Init(ATopic: PTopic);
@@ -307,11 +327,73 @@ begin
   Search:=Index<>-1;
 end;}
 
+constructor TNamedMark.Init(const AName: string; AX, AY: integer);
+begin
+  inherited Init;
+  Name:=NewStr(AName);
+  Pos.X:=AX; Pos.Y:=AY;
+end;
+
+function TNamedMark.GetName: string;
+begin
+  GetName:=GetStr(Name);
+end;
+
+destructor TNamedMark.Done;
+begin
+  if Assigned(Name) then DisposeStr(Name); Name:=nil;
+  inherited Done;
+end;
+
+function TNamedMarkCollection.At(Index: sw_Integer): PNamedMark;
+begin
+  At:=inherited At(Index);
+end;
+
+function TNamedMarkCollection.Compare(Key1, Key2: Pointer): sw_Integer;
+var K1: PNamedMark absolute Key1;
+    K2: PNamedMark absolute Key2;
+    R: integer;
+    N1,N2: string;
+begin
+  N1:=UpcaseStr(K1^.GetName); N2:=UpcaseStr(K2^.GetName);
+  if N1<N2 then R:=-1 else
+  if N1>N2 then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+function TNamedMarkCollection.SearchMark(const Name: string): PNamedMark;
+var M,P: PNamedMark;
+    I: sw_integer;
+begin
+  New(M, Init(Name,0,0));
+  if Search(M,I)=false then P:=nil else
+    P:=At(I);
+  Dispose(M, Done);
+  SearchMark:=P;
+end;
+
+function TNamedMarkCollection.GetMarkPos(const Name: string; var P: TPoint): boolean;
+var M: PNamedMark;
+begin
+  M:=SearchMark(Name);
+  if Assigned(M) then
+    P:=M^.Pos;
+  GetMarkPos:=Assigned(M);
+end;
+
+procedure TNamedMarkCollection.Add(const Name: string; P: TPoint);
+begin
+  Insert(New(PNamedMark, Init(Name, P.X, P.Y)));
+end;
+
 constructor THelpTopic.Init(ATopic: PTopic);
 begin
   inherited Init;
   Topic:=ATopic;
   New(Lines, Init(100,100)); New(Links, Init(50,50)); New(ColorAreas, Init(50,50));
+  New(NamedMarks, Init(10,10));
 end;
 
 procedure THelpTopic.SetParams(AMargin, AWidth: sw_integer);
@@ -324,7 +406,7 @@ begin
 end;
 
 procedure THelpTopic.ReBuild;
-var TextPos,LinkNo: sw_word;
+var TextPos,LinkNo,NamedMarkNo: sw_word;
     Line,CurWord: string;
     C: char;
     InLink,InColorArea: boolean;
@@ -404,12 +486,13 @@ begin
      end;
 end;
 begin
-  Lines^.FreeAll; Links^.FreeAll;
+  Lines^.FreeAll; Links^.FreeAll; NamedMarks^.FreeAll;
   if Topic=nil then Lines^.Insert(NewStr('No help available for this topic.')) else
   begin
     LineStart:=0; NextLineStart:=0;
     TextPos:=0; ClearLine; CurWord:=''; Line:='';
     CurPos.X:=Margin+LineStart; CurPos.Y:=0; LinkNo:=0;
+    NamedMarkNo:=0;
     InLink:=false; InColorArea:=false; ZeroLevel:=0;
     LineAlign:=laLeft;
     FirstLink:=0; LastLink:=0;
@@ -467,6 +550,12 @@ begin
              LineAlign:=laCenter;
         hscRight  :
              LineAlign:=laCenter;
+        hscNamedMark :
+             begin
+               if NamedMarkNo<Topic^.NamedMarks^.Count then
+                 NamedMarks^.Add(GetStr(Topic^.NamedMarks^.At(NamedMarkNo)),CurPos);
+               Inc(NamedMarkNo);
+             end;
         #32: if InLink then CurWord:=CurWord+C else
                 begin CheckZeroLevel; AddWord(CurWord+C); CurWord:=''; end;
       else begin CheckZeroLevel; CurWord:=CurWord+C; end;
@@ -539,6 +628,7 @@ destructor THelpTopic.Done;
 begin
   inherited Done;
   Dispose(Lines, Done); Dispose(Links, Done); Dispose(ColorAreas, Done);
+  Dispose(NamedMarks, Done);
   if (Topic<>nil) then DisposeTopic(Topic);
 end;
 
@@ -778,6 +868,8 @@ begin
 end;
 
 procedure THelpViewer.SetTopic(Topic: PTopic);
+var Bookmark: string;
+    P: TPoint;
 begin
   CurLink:=-1;
   if (HelpTopic=nil) or (Topic<>HelpTopic^.Topic) then
@@ -799,6 +891,17 @@ begin
   RenderTopic;
   BuildTopicWordList;
   Lookup('');
+  if Assigned(Topic) then
+  if Topic^.StartNamedMark>0 then
+   if Topic^.NamedMarks^.Count>=Topic^.StartNamedMark then
+    begin
+      Bookmark:=GetStr(Topic^.NamedMarks^.At(Topic^.StartNamedMark-1));
+      if HelpTopic^.NamedMarks^.GetMarkPos(Bookmark,P) then
+      begin
+        SetCurPtr(P.X,P.Y);
+        ScrollTo(0,Max(0,P.Y-1));
+      end;
+    end;
   SetSelection(CurPos,CurPos);
   DrawView;
   if Owner<>nil then Owner^.UnLock;
@@ -1154,7 +1257,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2000-04-25 08:42:35  pierre
+  Revision 1.15  2000-05-29 10:45:00  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.14  2000/04/25 08:42:35  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.13  2000/04/18 11:42:39  pierre

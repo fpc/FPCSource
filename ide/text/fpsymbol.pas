@@ -741,9 +741,12 @@ begin
 end;
 
 procedure TSymbolScopeView.Draw;
+var DeltaX: sw_integer;
 begin
   inherited Draw;
-  SetCursor(2+SymbolTypLen+length(LookUpStr),Focused-TopItem);
+  if Assigned(HScrollBar)=false then DeltaX:=0 else
+    DeltaX:=HScrollBar^.Value-HScrollBar^.Min;
+  SetCursor(2+SymbolTypLen+length(LookUpStr)-DeltaX,Focused-TopItem);
 end;
 
 procedure TSymbolScopeView.LookUp(S: string);
@@ -1555,7 +1558,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2000-05-02 08:42:28  pierre
+  Revision 1.27  2000-05-29 10:44:57  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.26  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.25  2000/04/18 11:42:37  pierre

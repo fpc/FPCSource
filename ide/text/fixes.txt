@@ -1,3 +1,21 @@
+Gabors's log to 29/5/2000 commits
+========================= Already fixed ================================
+
+ [*] TOAHelpFile.Init contained a bug, which caused an invalid pointer
+     operation when the help file version was incorrect (it resulted in
+     fatal exit)
+ [*] the cursor position in TSymbolScopeView was independant of the current
+     horizontal scroll offset
+ [*] the value of string constant wasn't displayed correctly in the symbol
+     browser (they were typecasted to PStrings, however they are PChars now)
+ [*] partial syntax highlight messed up CodeComplete
+ [*] the HTML link scanner wasn't aware of bookmark links
+
+========================== Other improvements ============================
+
+ [+] added support for TP5.5 format help files
+ [+] added support for HTML bookmarks in the help system
+ [+] fix calls into browcol turned into hooks (for future use in CodeInsight)
 Gabor's log 1/5/2000 commits
 ========================= Already fixed ================================
 

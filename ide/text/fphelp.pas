@@ -267,21 +267,24 @@ procedure InitHelpSystem;
   procedure AddOAFile(HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-    HelpFacility^.AddOAHelpFile(HelpFile);
+    if HelpFacility^.AddOAHelpFile(HelpFile)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
   procedure AddHTMLFile(TOCEntry,HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-    HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
+    if HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
   procedure AddHTMLIndexFile(HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-    HelpFacility^.AddHTMLIndexHelpFile(HelpFile);
+    if HelpFacility^.AddHTMLIndexHelpFile(HelpFile)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
@@ -298,7 +301,7 @@ begin
       if P>0 then
         begin TopicTitle:=copy(S,P+1,255); S:=copy(S,1,P-1); end;
       if TopicTitle='' then TopicTitle:=S;
-      if copy(UpcaseStr(ExtOf(S)),1,length(HTMLExt))=HTMLExt then { this recognizes both .htm and .html }
+      if copy(UpcaseStr(ExtOf(S)),1,length(HTMLExt))=UpcaseStr(HTMLExt) then { this recognizes both .htm and .html }
           AddHTMLFile(TopicTitle,S) else
       if UpcaseStr(ExtOf(S))=UpcaseStr(HTMLIndexExt) then
           AddHTMLIndexFile(S) else
@@ -456,7 +459,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  2000-05-02 08:42:27  pierre
+  Revision 1.31  2000-05-29 10:44:56  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.30  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.29  2000/04/25 08:42:33  pierre

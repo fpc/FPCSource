@@ -490,7 +490,7 @@ const
       msg_filedoesnotcontainanylinks = '%s doesn''t contain any links, thus it isn''t suitable for indexing.';
       msg_filealreadyexistsoverwrite = 'File %s already exists. Overwrite?';
       msg_storinghtmlindexinfile = 'Storing HTML index in %s';
-      msg_errorstoringindexdata = 'Error storing index data';
+      msg_errorstoringindexdata = 'Error storing index data (%d)';
 
       dialog_switchesmode = 'SwitchesMode';
       static_switchesmode_switchesmode = 'Switches Mode';
@@ -647,6 +647,7 @@ const
       msg_loadinghelpfile = 'Loading help file...';
       msg_buildinghelpindex = 'Building Help Index...';
       msg_locatingtopic = 'Locating topic...';
+      msg_failedtoloadhelpfile = 'Failed to load help file %s';
 
       { Browser messages }
       msg_symbolnotfound = #3'Symbol %s not found';
@@ -943,7 +944,10 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-05-02 08:42:28  pierre
+  Revision 1.2  2000-05-29 10:44:57  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.1  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
 

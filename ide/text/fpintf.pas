@@ -23,7 +23,7 @@ function  GetRunParameters: string;
 procedure SetRunParameters(const Params: string);
 
 { Compile }
-procedure Compile(const FileName: string);
+procedure Compile(const FileName, ConfigFile: string);
 procedure SetPrimaryFile(const fn:string);
 
 
@@ -63,7 +63,7 @@ end;
                                    Compile
 ****************************************************************************}
 
-procedure Compile(const FileName: string);
+procedure Compile(const FileName, ConfigFile: string);
 var
   cmd : string;
 {$ifdef USE_EXTERNAL_COMPILER}
@@ -76,9 +76,13 @@ var
 {$endif USE_EXTERNAL_COMPILER}
 begin
 {$ifndef USE_EXTERNAL_COMPILER}
-  cmd:='[fp.cfg] -d'+SwitchesModeStr[SwitchesMode];
+  cmd:='-d'+SwitchesModeStr[SwitchesMode];
+  if ConfigFile<>'' then
+    cmd:='['+ConfigFile+'] '+cmd;
 {$else USE_EXTERNAL_COMPILER}
-  cmd:='-n @fp.cfg -d'+SwitchesModeStr[SwitchesMode];
+  cmd:='-n -d'+SwitchesModeStr[SwitchesMode];
+  if ConfigFile<>'' then
+    cmd:='@'+ConfigFile+' '+cmd;
   if not UseExternalCompiler then
 {$endif USE_EXTERNAL_COMPILER}
     if LinkAfter then
@@ -208,7 +212,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-05-02 08:42:27  pierre
+  Revision 1.11  2000-05-29 10:44:56  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.10  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.9  2000/03/01 22:37:25  pierre

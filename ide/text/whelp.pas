@@ -18,10 +18,14 @@ unit WHelp;
 
 interface
 
-uses Objects;
+uses Objects,
+     WUtils;
 
 const
-      MinFormatVersion  = $34;
+      MinFormatVersion  = $04; { was $34 }
+
+      TP55FormatVersion = $04;
+      TP70FormatVersion = $34;
 
       Signature      = '$*$* &&&&$*$'#0;
       ncRawChar      = $F;
@@ -44,6 +48,7 @@ const
       hscCode        = #5;
       hscCenter      = #10;
       hscRight       = #11;
+      hscNamedMark   = #12;
 
 type
       FileStamp      = array [0..32] of char; {+ null terminator + $1A }
@@ -107,6 +112,21 @@ type
         Keywords      : array[0..0] of THLPKeywordDescriptor;
       end;
 
+      THLPKeywordDescriptor55 = packed record
+        PosY          : byte;
+        StartX        : byte;
+        EndX          : byte;
+        Dunno         : array[0..1] of word;
+        KwContext     : word;
+      end;
+
+      THLPKeyWordRecord55 = packed record
+        UpContext     : word;
+        DownContext   : word;
+        KeyWordCount  : byte;
+        Keywords      : array[0..0] of THLPKeywordDescriptor55;
+      end;
+
       TRecord = packed record
         SClass   : byte;
         Size     : word;
@@ -140,7 +160,10 @@ type
         LastAccess    : longint;
         FileID        : word;
         Param         : PString;
+        StartNamedMark: integer;
+        NamedMarks    : PUnsortedStringCollection;
         function LinkSize: sw_word;
+        function GetNamedMarkIndex(const MarkName: string): sw_integer;
       end;
 
       PTopicCollection = ^TTopicCollection;
@@ -243,7 +266,7 @@ uses
 {$ifdef Win32}
   windows,
 {$endif Win32}
-  WUtils,WViews,WHTMLHlp;
+  WViews,WHTMLHlp;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -285,6 +308,7 @@ begin
   New(P); FillChar(P^,SizeOf(P^), 0);
   P^.HelpCtx:=HelpCtx; P^.FileOfs:=Pos; P^.FileID:=FileID;
   P^.Param:=NewStr(Param);
+  New(P^.NamedMarks, Init(100,100));
   NewTopic:=P;
 end;
 
@@ -299,12 +323,17 @@ begin
        FreeMem(P^.Links,P^.LinkSize);
     P^.Links:=nil;
     if P^.Param<>nil then DisposeStr(P^.Param); P^.Param:=nil;
+    if Assigned(P^.NamedMarks) then Dispose(P^.NamedMarks, Done); P^.NamedMarks:=nil;
     Dispose(P);
   end;
 end;
 
 function CloneTopic(T: PTopic): PTopic;
 var NT: PTopic;
+procedure CloneMark(P: PString); {$ifndef FPC}far;{$endif}
+begin
+  NT^.NamedMarks^.InsertStr(GetStr(P));
+end;
 begin
   New(NT); Move(T^,NT^,SizeOf(NT^));
   if NT^.Text<>nil then
@@ -313,6 +342,11 @@ begin
      begin GetMem(NT^.Links,NT^.LinkSize); Move(T^.Links^,NT^.Links^,NT^.LinkSize); end;
   if NT^.Param<>nil then
      NT^.Param:=NewStr(T^.Param^);
+  if Assigned(T^.NamedMarks) then
+  begin
+    New(NT^.NamedMarks, Init(T^.NamedMarks^.Count,10));
+    T^.NamedMarks^.ForEach(@CloneMark);
+  end;
   CloneTopic:=NT;
 end;
 
@@ -336,6 +370,20 @@ end;
 function TTopic.LinkSize: sw_word;
 begin
   LinkSize:=LinkCount*SizeOf(Links^[0]);
+end;
+
+function TTopic.GetNamedMarkIndex(const MarkName: string): sw_integer;
+var I,Index: sw_integer;
+begin
+  Index:=-1;
+  if Assigned(NamedMarks) then
+  for I:=0 to NamedMarks^.Count-1 do
+    if CompareText(GetStr(NamedMarks^.At(I)),MarkName)=0 then
+     begin
+       Index:=I;
+       Break;
+     end;
+  GetNamedMarkIndex:=Index;
 end;
 
 function TTopicCollection.At(Index: sw_Integer): PTopic;
@@ -531,10 +579,13 @@ begin
     F^.Seek(P+length(Signature)-1);
     F^.Read(Version,SizeOf(Version));
     OK:=(F^.Status=stOK) and (Version.FormatVersion>=MinFormatVersion);
-    if OK then OK:=ReadRecord(R,true);
-    OK:=OK and (R.SClass=rtFileHeader) and (R.Size=SizeOf(Header));
-    if OK then Move(R.Data^,Header,SizeOf(Header));
-    DisposeRecord(R);
+    if OK then
+    begin
+      OK:=ReadRecord(R,true);
+      OK:=OK and (R.SClass=rtFileHeader) and (R.Size=SizeOf(Header));
+      if OK then Move(R.Data^,Header,SizeOf(Header));
+      DisposeRecord(R);
+    end;
   end;
   ReadHeader:=OK;
 end;
@@ -644,6 +695,36 @@ end;
 function TOAHelpFile.ReadTopic(T: PTopic): boolean;
 var SrcPtr,DestPtr,TopicSize: sw_word;
     NewR: TRecord;
+    LinkPosCount: integer;
+    LinkPos: array[1..50] of TRect;
+function IsLinkPosStart(X,Y: integer): boolean;
+var OK: boolean;
+    I: integer;
+begin
+  OK:=false;
+  for I:=1 to LinkPosCount do
+    with LinkPos[I] do
+      if (A.X=X) and (A.Y=Y) then
+        begin
+          OK:=true;
+          Break;
+        end;
+  IsLinkPosStart:=OK;
+end;
+function IsLinkPosEnd(X,Y: integer): boolean;
+var OK: boolean;
+    I: integer;
+begin
+  OK:=false;
+  for I:=1 to LinkPosCount do
+    with LinkPos[I] do
+      if (B.X=X) and (B.Y=Y) then
+        begin
+          OK:=true;
+          Break;
+        end;
+  IsLinkPosEnd:=OK;
+end;
 function ExtractTextRec(var R: TRecord): boolean;
 function GetNextNibble: byte;
 var B,N: byte;
@@ -653,11 +734,40 @@ begin
   Inc(SrcPtr);
   GetNextNibble:=N;
 end;
-procedure AddChar(C: char);
+procedure RealAddChar(C: char);
 begin
   if Assigned(NewR.Data) then
     PByteArray(NewR.Data)^[DestPtr]:=ord(C);
   Inc(DestPtr);
+end;
+var CurX,CurY: integer;
+    InLink: boolean;
+procedure AddChar(C: char);
+begin
+  if IsLinkPosStart(CurX+2,CurY) then
+    begin
+      RealAddChar(hscLink);
+      InLink:=true;
+    end
+  else
+    if (C=hscLineBreak) and (InLink) then
+      begin
+        RealAddChar(hscLink);
+        InLink:=false;
+      end;
+  RealAddChar(C);
+  if IsLinkPosEnd(CurX+2,CurY) then
+    begin
+      RealAddChar(hscLink);
+      InLink:=false;
+    end;
+  if C<>hscLineBreak then
+    Inc(CurX)
+  else
+    begin
+      CurX:=0;
+      Inc(CurY);
+    end;
 end;
 var OK: boolean;
     C: char;
@@ -689,6 +799,7 @@ begin
        ctNone   : ;
        ctNibble :
          begin
+           CurX:=0; CurY:=0; InLink:=false;
            NewR.SClass:=0;
            NewR.Size:=0;
            NewR.Data:=nil;
@@ -698,8 +809,10 @@ begin
              C:=GetNextChar;
              AddChar(C);
            end;
+           if InLink then AddChar(hscLineBreak);
            TopicSize:=DestPtr;
 
+           CurX:=0; CurY:=0; InLink:=false;
            NewR.SClass:=R.SClass;
            NewR.Size:=Min(MaxHelpTopicSize,TopicSize);
            GetMem(NewR.Data, NewR.Size);
@@ -709,6 +822,7 @@ begin
              C:=GetNextChar;
              AddChar(C);
            end;
+           if InLink then AddChar(hscLineBreak);
            DisposeRecord(R); R:=NewR;
            if (R.Size>DestPtr) then
            begin
@@ -727,6 +841,7 @@ begin
   OK:=T<>nil;
   if OK and (T^.Text=nil) then
   begin
+    LinkPosCount:=0; FillChar(LinkPos,Sizeof(LinkPos),0);
     FillChar(TextR,SizeOf(TextR),0); FillChar(KeyWR,SizeOf(KeyWR),0);
     F^.Seek(T^.FileOfs); OK:=F^.Status=stOK;
     if OK then OK:=ReadRecord(TextR,true);
@@ -734,26 +849,50 @@ begin
     if OK then OK:=ReadRecord(KeyWR,true);
     OK:=OK and (KeyWR.SClass=rtKeyword);
 
-    if OK then OK:=ExtractTextRec(TextR);
     if OK then
     begin
+      case Version.FormatVersion of
+        TP55FormatVersion :
+           with THLPKeywordRecord55(KeyWR.Data^) do
+           begin
+             T^.LinkCount:=KeywordCount;
+             GetMem(T^.Links,T^.LinkSize);
+             if T^.LinkCount>0 then
+             for I:=0 to T^.LinkCount-1 do
+             with Keywords[I] do
+             begin
+               T^.Links^[I].Context:=KwContext;
+               T^.Links^[I].FileID:=ID;
+               Inc(LinkPosCount);
+               with LinkPos[LinkPosCount] do
+               begin
+                 A.Y:=PosY-1; B.Y:=PosY-1;
+                 A.X:=StartX-1; B.X:=EndX-1;
+               end;
+             end;
+           end;
+      else
+           with THLPKeywordRecord(KeyWR.Data^) do
+           begin
+             T^.LinkCount:=KeywordCount;
+             GetMem(T^.Links,T^.LinkSize);
+             if KeywordCount>0 then
+             for I:=0 to KeywordCount-1 do
+             begin
+               T^.Links^[I].Context:=Keywords[I].KwContext;
+               T^.Links^[I].FileID:=ID;
+             end;
+           end;
+      end;
+    end;
+
+    if OK then OK:=ExtractTextRec(TextR);
+    if OK then
       if TextR.Size>0 then
       begin
         T^.Text:=TextR.Data; T^.TextSize:=TextR.Size;
         TextR.Data:=nil; TextR.Size:=0;
       end;
-      with THLPKeywordRecord(KeyWR.Data^) do
-      begin
-        T^.LinkCount:=KeywordCount;
-        GetMem(T^.Links,T^.LinkSize);
-        if KeywordCount>0 then
-        for I:=0 to KeywordCount-1 do
-        begin
-          T^.Links^[I].Context:=Keywords[I].KwContext;
-          T^.Links^[I].FileID:=ID;
-        end;
-      end;
-    end;
 
     DisposeRecord(TextR); DisposeRecord(KeyWR);
   end;
@@ -985,7 +1124,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2000-04-25 08:42:35  pierre
+  Revision 1.20  2000-05-29 10:44:59  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.19  2000/04/25 08:42:35  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.18  2000/04/18 11:42:38  pierre

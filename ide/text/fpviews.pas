@@ -781,6 +781,13 @@ begin
   { But why do we need to check all ??
     Probably because of the ones which were not inserted into
     Desktop as the Messages view
+
+    Exactly. Some windows are inserted directly in the Application and not
+    in the Desktop. btw. Does TStatusLine.HelpCtx really change? Why?
+    Only GetHelpCtx should return different values depending on the
+    focused view (and it's helpctx), but TStatusLine's HelpCtx field
+    shouldn't change...  Gabor
+
   if Assigned(W)=false then W:=Desktop^.FirstThat(@Match);}
   SearchWindow:=PWindow(W);
 end;
@@ -3402,7 +3409,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.70  2000-05-16 21:50:53  pierre
+  Revision 1.71  2000-05-29 10:44:57  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.70  2000/05/16 21:50:53  pierre
    * avoid to typecast the status line to a TWindow
 
   Revision 1.69  2000/05/02 08:42:29  pierre

@@ -490,7 +490,7 @@ const
       msg_filedoesnotcontainanylinks = 'a %s nem tartalmaz kapcsokat, °gy nem alkalmas indexelÇsre.';
       msg_filealreadyexistsoverwrite = 'A %s f†jl m†r lÇtezik. FelÅl°rja?';
       msg_storinghtmlindexinfile = 'HTML index t†rol†sa a %s f†jlban';
-      msg_errorstoringindexdata = 'Hiba az index adatok t†rol†sa kîzben';
+      msg_errorstoringindexdata = 'Hiba az index adatok t†rol†sa kîzben (%d)';
 
       dialog_switchesmode = 'SwitchesMode';
       static_switchesmode_switchesmode = 'Switches Mode';
@@ -647,6 +647,7 @@ const
       msg_loadinghelpfile = 'S£g¢ f†jl betîltÇse...';
       msg_buildinghelpindex = 'S£g¢index kÇsz°tÇse...';
       msg_locatingtopic = 'TÇma betîltÇse...';
+      msg_failedtoloadhelpfile = 'Nem sikerÅlt betîlteni a %s s£g¢-f†jlt';
 
       { Browser messages }
       msg_symbolnotfound = #3'Nem tal†lom a %s szimb¢lumot';
@@ -943,7 +944,10 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-05-02 08:42:28  pierre
+  Revision 1.2  2000-05-29 10:44:57  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.1  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
 

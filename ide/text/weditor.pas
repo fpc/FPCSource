@@ -660,7 +660,7 @@ procedure RegisterWEditor;
 implementation
 
 uses
-  MsgBox,Dialogs,App,StdDlg,HistList,Validate,
+  MsgBox,Dialogs,App,StdDlg,Validate,
 {$ifdef WinClipSupported}
   Strings,WinClip,
 {$endif WinClipSupported}
@@ -3044,6 +3044,7 @@ begin
 {$ifdef TEST_PARTIAL_SYNTAX}
     evIdle :
       begin
+        CCAction:=ccDontCare;
         { Complete syntax by 20 lines increment }
         { could already be quite lengthy on slow systems }
         if not GetSyntaxCompleted then
@@ -5841,7 +5842,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.90  2000-05-17 11:58:26  pierre
+  Revision 1.91  2000-05-29 10:44:58  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.90  2000/05/17 11:58:26  pierre
    * remove openbrace because of multiple comment level problem
 
   Revision 1.89  2000/05/17 09:44:46  pierre

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal Integrated Development Environment
-    Copyright (c) 1998 by Berczi Gabor
+    Copyright (c) 1998-2000 by Berczi Gabor
 
     Main program of the IDE
 
@@ -42,7 +42,7 @@ uses
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
-  FPSymbol,FPCodTmp,FPCodCmp;
+  FPCodTmp,FPCodCmp;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -248,7 +248,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.45  2000-05-02 08:42:26  pierre
+  Revision 1.46  2000-05-29 10:44:56  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.45  2000/05/02 08:42:26  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.44  2000/04/25 08:42:32  pierre
