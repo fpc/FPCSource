@@ -905,16 +905,14 @@ end;
 Procedure TDataset.UpdateIndexDefs;
 
 begin
-  //!! To be implemented
+  // Empty Abstract
 end;
-
-
 
 Function TDataset.ControlsDisabled: Boolean;
 
 
 begin
-  //!! To be implemented
+  Result := (FDisableControlsCount > 0);
 end;
 
 Function TDataset.ActiveBuffer: PChar;
@@ -1744,7 +1742,11 @@ end;
 
 {
   $Log$
-  Revision 1.29  2004-12-13 19:18:51  michael
+  Revision 1.30  2005-01-12 10:27:57  michael
+    * Patch from Joost Van der Sluis:
+    - implemented ControlsDisabled
+
+  Revision 1.29  2004/12/13 19:18:51  michael
     * Patch from Joost van der Sluis
     - TDataset.IsSequenced returns True, like Delphi does
     - TDataset.RecNo returns -1, just like Delphi
