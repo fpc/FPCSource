@@ -394,7 +394,7 @@ end;
 
 function genrand_MT19937: longint;
 const
-  mag01 : array [0..1] of longint =(0, MT19937MATRIX_A);
+  mag01 : array [0..1] of longint =(0, longint(MT19937MATRIX_A));
 var
   y: longint;
   kk: longint;
@@ -405,6 +405,12 @@ begin
      if mti = (MT19937N+1) then  // if sgenrand_MT19937() has not been called,
        begin
          sgenrand_MT19937(randseed);   // default initial seed is used
+         { hack: randseed is not used more than once in this algorithm. Most }
+         {  user changes are re-initialising reandseed with the value it had }
+         {  at the start -> with the "not", we will detect this change.      }
+         {  Detecting other changes is not useful, since the generated       }
+         {  numbers will be different anyway.                                }
+         randseed := not(randseed);
          oldrandseed := randseed;
        end;
      for kk:=0 to MT19937N-MT19937M-1 do begin
@@ -847,7 +853,12 @@ end;
 
 {
   $Log$
-  Revision 1.45  2003-10-26 21:15:43  hajny
+  Revision 1.46  2003-10-29 18:23:45  jonas
+    * hack to allow repeatable random sequences using the new random number
+      generator
+    * fixed range warning/error
+
+  Revision 1.45  2003/10/26 21:15:43  hajny
     * minor fix for new Random
 
   Revision 1.44  2003/10/26 18:46:02  jonas
