@@ -548,7 +548,8 @@ implementation
 
       begin
          if (psym(p)^.typ=varsym) then
-           pvarsym(p)^.refs:=0;
+           if pvarsym(p)^.refs>1 then
+             pvarsym(p)^.refs:=1;
       end;
 
     procedure generatecode(var p : ptree);
@@ -843,7 +844,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2000-04-02 12:11:38  florian
+  Revision 1.63  2000-04-06 11:28:17  pierre
+   * avoid bug 911, worng unused parameter hints
+
+  Revision 1.62  2000/04/02 12:11:38  florian
     * enumerations with size 1 or 2 weren't handled corretly if they were register
       variables: in fact they got 32 bit register assigned; fixed
 
