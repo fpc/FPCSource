@@ -1,0 +1,14 @@
+#!/bin/csh
+foreach f ( *.png )
+  set s=`basename $f .png`.eps
+  if ( ! -e "$s" ) then
+    echo no matching $s for $f...
+    convert $f $s
+  else 
+     test $f -nt $s
+     if ( $? == 0 ) then 
+       echo $f newer than $f...
+       convert $f $s
+     endif
+  endif
+end
