@@ -739,7 +739,6 @@ procedure ObjectBinaryToText(Input, Output: TStream);
       ext: Extended;
 
     begin
-      OutStr('(' + IntToStr(Ord(Valuetype)) + ') ');
       case ValueType of
         vaList: begin
             OutStr('(');
@@ -783,8 +782,10 @@ procedure ObjectBinaryToText(Input, Output: TStream);
             end;
             OutLn(']');
           end;
-        vaLString: Stop('!!LString!!');
-        vaNil: Stop('nil');
+        vaLString:
+          Stop('!!LString!!');
+        vaNil:
+          OutLn('nil');
         vaCollection: begin
             OutStr('<');
             while Input.ReadByte <> 0 do begin
@@ -1181,16 +1182,26 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-10-15 09:27:48  peter
+  Revision 1.6  2001-03-08 19:39:25  michael
+  + Merged fixes
+
+  Revision 1.5  2000/10/15 09:27:48  peter
     + Added some index checking. Centralized error handling (merged)
 
   Revision 1.4  2000/10/13 12:33:23  sg
   * Some small cosmetic changes and minor fixes
+
+  Revision 1.1.2.4  2000/12/13 10:16:33  michael
+  + Applied patch from Mattias Gaertner, bug 1292
+
+  Revision 1.1.2.3  2000/12/11 09:29:59  michael
+  + Fix from Mattias Gaertner
+
+  Revision 1.1.2.2  2000/10/13 10:48:10  sg
 
   Revision 1.3  2000/07/22 14:55:56  sg
   * Fixed some DFM parser bugs
 
   Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
-
 }
