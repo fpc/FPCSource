@@ -147,7 +147,7 @@ implementation
         if left.resulttype.def.deftype=floatdef then
          begin
            location_release(exprasmlist,left.location);
-{$ifdef x86}
+{$ifdef i386}
            if tempparaloc.loc<>LOC_REFERENCE then
              internalerror(200309291);
            case left.location.loc of
@@ -216,14 +216,28 @@ implementation
              else
                internalerror(200204243);
            end;
-{$else x86}
+{$else i386}
            case left.location.loc of
+             LOC_MMREGISTER,
+             LOC_CMMREGISTER:
+               cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
                cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
              LOC_REFERENCE,
-             LOC_CREFERENCE :
-               cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc);
+             LOC_CREFERENCE:
+               case tempparaloc.loc of
+                 LOC_MMREGISTER,
+                 LOC_CMMREGISTER:
+                   cg.a_parammm_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc,mms_movescalar);
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE,
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc);
+                 else
+                   internalerror(200204243);
+               end;
              else
                internalerror(200204243);
            end;
@@ -238,7 +252,7 @@ implementation
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
-{$ifdef x86}
+{$ifdef i386}
               if tempparaloc.loc<>LOC_REFERENCE then
                 internalerror(200309292);
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -254,9 +268,9 @@ implementation
               else
                 reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
               cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
-{$else x86}
+{$else i386}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempparaloc);
-{$endif x86}
+{$endif i386}
             end
            else
             begin
@@ -665,15 +679,10 @@ implementation
                        end;
                      LOC_MMREGISTER:
                        begin
-{
-                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
                          paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
                          paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
                          cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                           ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register, shuffle???);
-}
-                         internalerror(2003102910);
+                           ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register,mms_movescalar);
                        end;
                      LOC_REFERENCE:
                        begin
@@ -1210,7 +1219,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2004-02-20 21:55:59  peter
+  Revision 1.156  2004-02-20 22:16:35  florian
+    * handling of float parameters passed in mm registers fixed
+
+  Revision 1.155  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.154  2004/02/11 19:59:06  peter

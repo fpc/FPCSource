@@ -1138,12 +1138,22 @@ implementation
 
     procedure tcg.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);
       var
-         hr : tregister;
+         href : treference;
       begin
-         hr:=getfpuregister(list,size);
-         a_loadfpu_ref_reg(list,size,ref,hr);
-         a_paramfpu_reg(list,size,hr,locpara);
-         ungetregister(list,hr);
+        case locpara.loc of
+          LOC_FPUREGISTER,LOC_CFPUREGISTER:
+            a_loadfpu_ref_reg(list,size,ref,locpara.register);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              reference_reset(href);
+              href.base:=locpara.reference.index;
+              href.offset:=locpara.reference.offset;
+              { concatcopy should choose the best way to copy the data }
+              g_concatcopy(list,ref,href,tcgsize2size[size],false,false);
+            end
+          else
+            internalerror(200402201);
+        end;
       end;
 
 
@@ -2143,7 +2153,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.157  2004-02-12 15:54:03  peter
+  Revision 1.158  2004-02-20 22:16:34  florian
+    * handling of float parameters passed in mm registers fixed
+
+  Revision 1.157  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.156  2004/02/08 18:08:59  jonas
