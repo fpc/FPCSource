@@ -254,13 +254,31 @@ end;
 
 Procedure TProcess.FreeStreams;
 
+var FreedStreams: TList;
+
+  procedure FreeStream(var AnObject: TObject);
+
+  begin
+    if FreedStreams.IndexOf(AnObject)<0 then 
+      begin
+      FreedStreams.Add(AnObject);
+      AnObject.Free;
+      end;
+    AnObject:=nil;
+  end;
+                              
 begin
-  FParentErrorStream.Free;
-  FParentInputSTream.Free;
-  FParentOutputStream.Free;
-  FChildErrorStream.free;
-  FChildInputSTream.Free;
-  FChildOutPutStream.Free;
+  FreedStreams:=TList.Create;
+  try
+    FreeStream(FParentErrorStream);
+    FreeStream(FParentInputStream);
+    FreeStream(FParentOutputStream);
+    FreeStream(FChildErrorStream);
+    FreeStream(FChildInputStream);
+    FreeStream(FChildOutputStream);
+  finally
+    FreedStreams.Free;
+  end;
 end;
 
 Function TProcess.GetExitStatus : Integer;
@@ -899,7 +917,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-12-15 19:53:37  michael
+  Revision 1.12  2001-12-15 20:01:16  michael
+  + Applied FreeStreams fix from Mattias Gaertner
+
+  Revision 1.11  2001/12/15 19:53:37  michael
   + Removed DWord and THandle
 
   Revision 1.10  2001/12/14 07:53:32  michael
