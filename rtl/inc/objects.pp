@@ -2261,7 +2261,7 @@ VAR Found, Stop: Boolean; Header: THeader;
 BEGIN
    TObject.Init;                                      { Initialize object }
    Found := False;                                    { Preset false }
-   If (Stream<>Nil) Then Begin
+   If (AStream<>Nil) Then Begin
      Stream := AStream;                               { Hold stream }
      BasePos := Stream^.GetPos;                       { Get position }
      Repeat
@@ -2680,7 +2680,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.14  1998-11-24 17:11:22  peter
+  Revision 1.15  1998-11-26 14:41:22  michael
+  + Fixed TREsourcefile.init
+
+  Revision 1.14  1998/11/24 17:11:22  peter
     * made a real fpc only version, no platform.inc
     * applied fixes from the mailinglist
     + included some routines from callspec
