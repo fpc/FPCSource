@@ -55,7 +55,7 @@ Var
 
 Procedure Init;              {initialize everything}
 begin
-  //SetGraphBufSize(10);       {make the buffer big enough for big floodfills}
+  //SetGraphBufSize(10);
   GraphDriver:=VGA;
   GraphMode:=VGAHi;
   InitGraph(GraphDriver,GraphMode,'');
@@ -279,7 +279,7 @@ begin
       if s<>'' then Val(s,angle[player],i);
       SetFillStyle(SolidFill,Black);
       ok:=(i=0) and (angle[player]>=0.0) and (angle[player]<=360);
-      if not ok then Bar(0,0,screen.ex-1,8);
+      if not ok then Bar(0,10,screen.ex-1,18);
     Until ok;
     Repeat                        {get initial velocity}
       MoveTo(0,20);
@@ -292,7 +292,7 @@ begin
       if s<>'' then Val(s,v0[player],i);
       SetFillStyle(SolidFill,Black);
       ok:=(i=0) and (v0[player]>=0.0) and (v0[player]<=10.0);
-      if not ok then Bar(0,10,screen.ex-1,18);
+      if not ok then Bar(0,20,screen.ex-1,28);
     Until ok;
     k:=pi*angle[player]/180.0;   {angle in radians}
     vx:=v0[player]*cos(k);
