@@ -113,99 +113,314 @@ const
 
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
-  MemMgr:=MemoryManager;
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MemMgr:=MemoryManager;
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MemMgr:=MemoryManager;
+   end;
 end;
 
 
 procedure SetMemoryManager(const MemMgr:TMemoryManager);
 begin
-  MemoryManager:=MemMgr;
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MemoryManager:=MemMgr;
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MemoryManager:=MemMgr;
+   end;
 end;
 
 
 function IsMemoryManagerSet:Boolean;
 begin
-  IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
-                      (MemoryManager.FreeMem<>@SysFreeMem);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
+                           (MemoryManager.FreeMem<>@SysFreeMem);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
+                         (MemoryManager.FreeMem<>@SysFreeMem);
+   end;
 end;
 
 
 procedure GetMem(Var p:pointer;Size:Longint);
 begin
-  p:=MemoryManager.GetMem(Size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       p:=MemoryManager.GetMem(Size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     p:=MemoryManager.GetMem(Size);
+   end;
 end;
 
 
 procedure FreeMem(Var p:pointer;Size:Longint);
 begin
-  MemoryManager.FreeMemSize(p,Size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MemoryManager.FreeMemSize(p,Size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MemoryManager.FreeMemSize(p,Size);
+   end;
   p:=nil;
 end;
 
 
 function MaxAvail:Longint;
 begin
-  MaxAvail:=MemoryManager.MaxAvail();
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MaxAvail:=MemoryManager.MaxAvail();
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MaxAvail:=MemoryManager.MaxAvail();
+   end;
 end;
 
 
 function MemAvail:Longint;
 begin
-  MemAvail:=MemoryManager.MemAvail();
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MemAvail:=MemoryManager.MemAvail();
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MemAvail:=MemoryManager.MemAvail();
+   end;
 end;
 
 
 { FPC Additions }
 function HeapSize:Longint;
 begin
-  HeapSize:=MemoryManager.HeapSize();
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       HeapSize:=MemoryManager.HeapSize();
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     HeapSize:=MemoryManager.HeapSize();
+   end;
 end;
 
 
 function MemSize(p:pointer):Longint;
 begin
-  MemSize:=MemoryManager.MemSize(p);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       MemSize:=MemoryManager.MemSize(p);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     MemSize:=MemoryManager.MemSize(p);
+   end;
 end;
 
 
 { Delphi style }
 function FreeMem(var p:pointer):Longint;
 begin
-  Freemem:=MemoryManager.FreeMem(p);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       Freemem:=MemoryManager.FreeMem(p);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     Freemem:=MemoryManager.FreeMem(p);
+   end;
 end;
 
 
 function GetMem(size:longint):pointer;
 begin
-  GetMem:=MemoryManager.GetMem(Size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       GetMem:=MemoryManager.GetMem(Size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     GetMem:=MemoryManager.GetMem(Size);
+   end;
 end;
 
 
 function AllocMem(Size:Longint):pointer;
 begin
-  AllocMem:=MemoryManager.AllocMem(size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       AllocMem:=MemoryManager.AllocMem(size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     AllocMem:=MemoryManager.AllocMem(size);
+   end;
 end;
 
 
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
 begin
-  ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+   end;
 end;
 
 
 { Needed for calls from Assembler }
 procedure AsmGetMem(var p:pointer;size:longint);[public,alias:'FPC_GETMEM'];
 begin
-  p:=MemoryManager.GetMem(size);
+{$ifdef MT}
+  if IsMultiThreaded then
+   begin
+     try
+       EnterCriticalSection(cs_systemheap);
+       p:=MemoryManager.GetMem(size);
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     p:=MemoryManager.GetMem(size);
+   end;
 end;
 
 
 procedure AsmFreeMem(var p:pointer);[public,alias:'FPC_FREEMEM'];
 begin
-  if p <> nil then
+{$ifdef MT}
+  if IsMultiThreaded then
    begin
-     MemoryManager.FreeMem(p);
-     p:=nil;
+     try
+       EnterCriticalSection(cs_systemheap);
+       if p <> nil then
+        begin
+          MemoryManager.FreeMem(p);
+          p:=nil;
+        end;
+     finally
+       LeaveCriticalSection(cs_systemheap);
+     end;
+   end
+  else
+{$endif MT}
+   begin
+     if p <> nil then
+      begin
+        MemoryManager.FreeMem(p);
+        p:=nil;
+      end;
    end;
 end;
 
@@ -216,31 +431,13 @@ end;
 
 function SysHeapsize : longint;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   Sysheapsize:=internal_heapsize;
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
 function SysMemavail : longint;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   Sysmemavail:=internal_memavail;
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -248,10 +445,6 @@ function SysMaxavail : longint;
 var
   hp : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   Sysmaxavail:=heapend-heapptr;
   hp:=freelists[0];
   while assigned(hp) do
@@ -260,11 +453,6 @@ begin
        Sysmaxavail:=hp^.size;
      hp:=hp^.next;
    end;
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -274,10 +462,6 @@ var
   s,i,j : longint;
   hp  : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   for i:=1 to maxblock do
    begin
      hp:=freelists[i];
@@ -301,11 +485,6 @@ begin
      hp:=hp^.next;
    end;
   writeln('Main: ',j,' maxsize: ',s);
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 {$endif}
 
@@ -316,10 +495,6 @@ var
   i,j : longint;
   hp  : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   for i:=0 to maxblock do
    begin
      j:=0;
@@ -334,11 +509,6 @@ begin
       if j<>freecount[i] then
         RunError(204);
     end;
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 {$endif TestFreeLists}
 
@@ -360,10 +530,6 @@ var
   pbest : pfreerecord;
 {$endif}
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
 { Something to allocate ? }
   if size<=0 then
    begin
@@ -560,11 +726,6 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -644,10 +805,6 @@ var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   if p=nil then
    HandleError(204);
 { fix p to point to the heaprecord }
@@ -680,11 +837,6 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -697,10 +849,6 @@ var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   SysFreeMemSize:=0;
   if size<=0 then
    begin
@@ -746,11 +894,6 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -763,7 +906,7 @@ begin
 {$ifdef MT}
   try
     EnterCriticalSection(cs_systemheap);
-{$endif MT}    
+{$endif MT}
   SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
 {$ifdef MT}
   finally
@@ -801,10 +944,6 @@ var
   pnew,
   pcurr : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
 { fix needed size }
   size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
 { fix p to point to the heaprecord }
@@ -936,11 +1075,6 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -953,10 +1087,6 @@ var
   oldsize : longint;
   p2 : pointer;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
   { Free block? }
   if size=0 then
    begin
@@ -981,11 +1111,6 @@ begin
       p:=p2;
     end;
   SysReAllocMem:=p;
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -1013,10 +1138,6 @@ var
   NewPos    : longint;
   pcurr     : pfreerecord;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}    
 {$ifdef DUMPGROW}
   writeln('grow ',size);
   DumpBlocks;
@@ -1092,11 +1213,6 @@ begin
 {$ifdef TestFreeLists}
   TestFreeLists;
 {$endif TestFreeLists}
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
 end;
 
 
@@ -1125,7 +1241,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-10-23 21:51:03  peter
+  Revision 1.8  2001-10-25 21:22:34  peter
+    * moved locking of heap
+
+  Revision 1.7  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.6  2001/06/06 17:20:22  jonas
