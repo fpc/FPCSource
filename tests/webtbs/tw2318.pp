@@ -17,7 +17,7 @@ End;
 
 Function tObject.GetVMT:Pointer;
 Begin
-  GetVMT:=Typeof(self);
+  GetVMT:=self;
 End;
 
 
