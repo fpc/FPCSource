@@ -1263,4 +1263,5 @@ install: fpc_install
 	$(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(INSTALL_DATADIR)
 	$(INSTALL) readme.ide $(INSTALL_DOCDIR)
 clean_compiler:
-	$(MAKE) -C ../../compiler clean
+	$(MAKE) -C compiler clean
+	$(MAKE) -C ../compiler ppuclean

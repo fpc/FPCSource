@@ -206,4 +206,5 @@ install: fpc_install
 # Misc
 #
 clean_compiler:
-        $(MAKE) -C ../../compiler clean
+        $(MAKE) -C compiler clean
+        $(MAKE) -C ../compiler ppuclean
