@@ -21,7 +21,7 @@ uses strings;
 
 const
   sys_errn=125;
-  sys_errlist:array[0..sys_errn-1] of string[47] = (
+  sys_errlist:array[0..sys_errn-1] of pchar = (
         'Success',                              { 0 }
         'Operation not permitted',              { EPERM }
         'No such file or directory',            { ENOENT }
@@ -162,7 +162,7 @@ begin
      StrError:='Unknown Error ('+s+')';
    end
   else
-   StrError:=Sys_ErrList[err];
+   StrError:=StrPas(Sys_ErrList[err]);
 end;
 
 
@@ -175,7 +175,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-09-04 19:39:28  peter
+    * string to pchar (merged)
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }
