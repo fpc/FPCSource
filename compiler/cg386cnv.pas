@@ -412,12 +412,10 @@ implementation
                        decrstringref(cansistringdef,pto^.location.reference);
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location,true);
-                      emit_push_lea_loc(pto^.location,true);
+                      emit_push_lea_loc(pto^.location,false);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR');
                       maybe_loadesi;
                       popusedregisters(pushed);
-
-                      ungetiftemp(pfrom^.location.reference);
                    end;
                  st_longstring:
                    begin
@@ -1457,7 +1455,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  1999-09-01 09:42:13  peter
+  Revision 1.87  1999-09-23 21:20:37  peter
+    * fixed temp allocation for short->ansi
+
+  Revision 1.86  1999/09/01 09:42:13  peter
     * update for new push_lea_loc
 
   Revision 1.85  1999/08/19 13:08:46  pierre
