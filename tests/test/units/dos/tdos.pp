@@ -35,13 +35,13 @@ begin
   writeln('**************');
   writeln('Dosversion     : ',lo(DosVersion),'.',hi(DosVersion));
   GetDate(Dt.Year,Dt.Month,Dt.Day,wday);
-  writeln('Current Date   : ',Dt.Month,'-',Dt.Day,'-',Dt.Year,' weekday ',wday);
+  writeln('Current Date (MM-DD-YYYY)  : ',Dt.Month,'-',Dt.Day,'-',Dt.Year,' weekday ',wday);
   GetTime(Dt.Hour,Dt.Min,Dt.Sec,HSecs);
-  writeln('Current Time   : ',Dt.Hour,':',Dt.Min,':',Dt.Sec,' hsecs ',HSecs);
+  writeln('Current Time (HH:MM:SS)  : ',Dt.Hour,':',Dt.Min,':',Dt.Sec,' hsecs ',HSecs);
   PackTime(Dt,ptime);
   writeln('Packed like dos: ',ptime);
   UnpackTime(ptime,DT);
-  writeln('Unpacked again : ',Dt.Month,'-',Dt.Day,'-',Dt.Year,'  ',Dt.Hour,':',Dt.Min,':',Dt.Sec);
+  writeln('Unpacked again (MM-DD-YYYY) ',Dt.Month,'-',Dt.Day,'-',Dt.Year,'  ',Dt.Hour,':',Dt.Min,':',Dt.Sec);
   writeln;
   write('Press Enter');
   Readln;
@@ -197,7 +197,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:56  peter
+  Revision 1.7  2002-10-20 11:47:39  carl
+    * add format date to make test clearer
+
+  Revision 1.6  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/07/06 11:46:08  carl
