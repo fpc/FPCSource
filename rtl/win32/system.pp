@@ -315,9 +315,9 @@ end;
      stdcall;external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
      stdcall;external 'kernel32' name 'GetFileSize';
-   function CreateFile(name : pointer;access,sharing : longint;
-     security : PSecurityAttributes;how,attr,template : longint) : longint;
-     stdcall;external 'kernel32' name 'CreateFileA';
+   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD; 
+                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
+                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : longbool;
      stdcall;external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
@@ -1539,7 +1539,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2003-11-03 09:42:28  marco
+  Revision 1.49  2003-11-24 23:08:37  michael
+  + Redefined Fileopen so it corresponds to ascdef.inc definition
+
+  Revision 1.48  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.47  2003/10/17 22:15:10  olle
