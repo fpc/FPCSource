@@ -95,6 +95,7 @@ const
   ieMiscOptions      = 'MiscOptions';
   ieDesktopLocation  = 'DesktopLocation';
   ieDesktopFlags     = 'DesktopFileFlags';
+  ieCenterDebuggerRow= 'CenterCurrentLineWhileDebugging';
 
 procedure InitINIFile;
 var S: string;
@@ -382,6 +383,8 @@ begin
 *)
   { Desktop }
   DesktopFileFlags:=INIFile^.GetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
+  { Debugger }
+  IniCenterDebuggerRow:=INIFile^.GetIntEntry(secPreferences,ieCenterDebuggerRow,1)<>0;
   { Preferences }
   AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
@@ -517,6 +520,7 @@ begin
   end;
   { Desktop }
   INIFile^.SetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
+  INIFile^.SetIntEntry(secPreferences,ieCenterDebuggerRow,byte(IniCenterDebuggerRow));
   { Preferences }
   INIFile^.SetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   INIFile^.SetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
@@ -529,7 +533,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-11-05 13:47:19  pierre
+  Revision 1.26  2000-02-04 00:08:35  pierre
+   + IniCenterDebuggerRow
+
+  Revision 1.25  1999/11/05 13:47:19  pierre
    * Breakpoint conditions were not reloaded correctly
 
   Revision 1.24  1999/09/16 14:34:59  pierre

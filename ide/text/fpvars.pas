@@ -74,6 +74,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
+      IniCenterDebuggerRow : boolean = true;
       SleepTimeOut     : longint = trunc(10*18.2);
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
@@ -89,7 +90,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.25  1999-09-16 14:34:59  pierre
+  Revision 1.26  2000-02-04 00:08:35  pierre
+   + IniCenterDebuggerRow
+
+  Revision 1.25  1999/09/16 14:34:59  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
