@@ -166,7 +166,7 @@ function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 implementation
 
 uses
-  Drivers,Views,App,
+  Verbose,Drivers,Views,App,
   aasm,globtype,globals,files,comphook;
 
 {****************************************************************************
@@ -273,7 +273,13 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-  R:=0;
+    begin
+      S1:=K1^.GetName;
+      S2:=K2^.GetName;
+      if S1<S2 then R:=-1 else
+      if S1>S2 then R:=1 else
+       R:=0;
+    end;
   Compare:=R;
 end;
 
@@ -300,11 +306,12 @@ begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
       LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
+      LeftS:=Upper(LeftP^.GetName);
+      MidS:=Upper(MidP^.GetName);
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+          Idx:=Mid; FoundS:=UpS{copy(MidS,1,length(S)) same and easier };
         end;
 {      else}
         if UpS<MidS then
@@ -368,7 +375,13 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-  R:=0;
+    begin
+      S1:=K1^.GetName;
+      S2:=K2^.GetName;
+      if S1<S2 then R:=-1 else
+      if S1>S2 then R:=1 else
+       R:=0;
+    end;
   Compare:=R;
 end;
 
@@ -390,11 +403,12 @@ begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
       LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
+      LeftS:=Upper(LeftP^.GetName);
+      MidS:=Upper(MidP^.GetName);
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+          Idx:=Mid; FoundS:=UpS;
         end;
 {      else}
         if UpS<MidS then
@@ -976,6 +990,12 @@ procedure CreateBrowserCol;
             begin
               with pprocsym(sym)^ do
               if assigned(definition) then
+               if assigned(definition^.nextoverloaded) then
+                begin
+                  { Several overloaded functions } 
+                  Symbol^.Params:=TypeNames^.Add('...');
+                end
+               else
               begin
                 if cs_local_browser in aktmoduleswitches then
                   ProcessSymTable(Symbol,Symbol^.Items,definition^.parast);
@@ -1047,7 +1067,15 @@ procedure CreateBrowserCol;
             Ref:=Ref^.nextref;
           end;
         if Assigned(Symbol) then
-          Owner^.Insert(Symbol);
+          begin
+             If Not Owner^.Search(Symbol,i) then
+               Owner^.Insert(Symbol)
+             else
+               begin
+                 Comment(V_Warning,sym^.name+' already in SymbolCollection '+sym^.owner^.name^);
+                 dispose(Symbol,Done);
+               end;
+          end;
         sym:=psym(sym^.next);
       end;
   end;
@@ -1230,7 +1258,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1999-06-22 16:24:39  pierre
+  Revision 1.18  1999-06-25 00:27:41  pierre
+   merged from fixes-0_99_12
+
+  Revision 1.16.2.1  1999/06/25 00:22:23  pierre
+    * avoid problem with lowercase symbols
+      (compare returns zero only if excat match,
+       ordering is first done case unsensitive
+       for a correct browser order)
+      this solves memory leaks :
+      TV and FV do not delete not inserted items in
+      a sorted collection without duplicates (is this a bug or a feature ?)
+
+  Revision 1.17  1999/06/22 16:24:39  pierre
    * local browser stuff corrected
 
   Revision 1.16  1999/05/13 21:59:20  peter
