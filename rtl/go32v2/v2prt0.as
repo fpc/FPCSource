@@ -382,7 +382,8 @@ brk_common:
         movl    %edx, __what_we_return_to_app_as_old_size
         movl    %eax, __what_size_app_thinks_it_is
 
-        jc      10f                                          /* Wrap for multi-zone */
+        /* multi code is not present */
+        /* jc      10f                                           Wrap for multi-zone */
         cmpl    __what_size_dpmi_thinks_we_are, %eax        /* don't bother shrinking */
         jbe     brk_nochange
 
@@ -917,7 +918,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.14  2000-05-18 06:40:52  pierre
+  Revision 1.15  2000-07-11 09:37:55  pierre
+   * get it to compile with AS v 2.10
+
+  Revision 1.14  2000/05/18 06:40:52  pierre
    * avoid FPU exception on startup if no coprocessor and loaded from another DPMI program
 
   Revision 1.13  2000/04/06 13:05:15  pierre
