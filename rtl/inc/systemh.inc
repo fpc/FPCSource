@@ -195,10 +195,12 @@ Type
   PChar               = ^Char;
   PPChar              = ^PChar;
 
+  { AnsiChar is equivalent of Char, so we need
+    to use type renamings }
   TAnsiChar           = Char;
-  AnsiChar            = TAnsiChar;
-  PAnsiChar           = ^TAnsiChar;
-  PPAnsiChar          = ^PAnsiChar;
+  AnsiChar            = Char;
+  PAnsiChar           = PChar;
+  PPAnsiChar          = PPChar;
 
   UCS4Char            = type LongWord;
   PUCS4Char           = ^UCS4Char;
@@ -753,7 +755,10 @@ const
 
 {
   $Log$
-  Revision 1.99  2004-08-29 10:23:12  peter
+  Revision 1.100  2004-09-21 15:04:22  peter
+    * AnsiChar is equivalent of Char, use only type renamings
+
+  Revision 1.99  2004/08/29 10:23:12  peter
   no message
 
   Revision 1.98  2004/07/18 20:21:44  florian
