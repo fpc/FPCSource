@@ -222,3 +222,6 @@ bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
+bug0171.pp   missing typecasting in constant expressions
+bug0172.pp   with with absolute seg:ofs should not be possible
+bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode
