@@ -73,26 +73,24 @@ procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET
   on entry: p in r3, b in r4
 }
 var
-  saveR5, saveR6, saveR7: longint;
+  saveR5, saveR6: longint;
 asm
        stw      r5,saveR5
-       li       r5,1
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r6,r4,29,3,31     // r6 := (r4 rotl(32-3)) and (0x0fffffff8)
-       stw      r7,saveR7
-       // load dword in which the bit has to be set
-       lwzx     r7,r3,r6
+       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       // load dword in which the bit has to be set (and update r3 to this address)
+       lwzxu    r6,r3,r5
+       li       r5,1
        // generate bit which has to be inserted
        rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
        // insert it
-       or       r7,r7,r4
        lwz      r5,saveR5
-       // store result
-       stwx     r7,r3,r6
+       or       r7,r7,r4
        lwz      r6,saveR6
-       lwz      r7,saveR7
-end ['R4'];
+       // store result
+       stw      r7,(r3)
+end ['R3','R4'];
 
 
 procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE'];
@@ -103,25 +101,24 @@ procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_U
   on entry: p in r3, b in r4
 }
 var
-  saveR5, saveR6, saveR7: longint;
+  saveR5, saveR6: longint;
 asm
        stw      r5,saveR5
-       li       r5,1
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r6,r4,29,3,31     // r6 := (r4 rotl(32-3)) and (0x0fffffff8)
-       stw      r7,saveR7
-       // load dword in which the bit has to be set
-       lwzx     r7,r3,r6
-       // bit which has to be unset
+       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       // load dword in which the bit has to be set (and update r3 to this address)
+       lwzxu    r6,r3,r5
+       li       r5,1
+       // generate bit which has to be inserted
        rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
-       // unset it
-       nor      r7,r7,r4
+       // insert it
        lwz      r5,saveR5
-       stwx     r7,r3,r6
+       nor      r7,r7,r4
        lwz      r6,saveR6
-       lwz      r7,saveR7
-end ['R4'];
+       // store result
+       stw      r7,(r3)
+end ['R3','R4'];
 
 
 procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
@@ -169,27 +166,28 @@ end ['R4'];
 
 procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
-  tests if the element b is in the set p the carryflag is set if it present
+  tests if the element b is in the set p, the **zero** flag is cleared if it's present
 
   on entry: p in r3, b in r4
 }
 var
-  saveR5, saveR6, saveR7: longint;
+  saveR5, saveR6: longint;
 asm
        stw      r5,saveR5
-       li       r5,1
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r6,r4,29,3,31     // r6 := (r4 rotl(32-3)) and (0x0fffffff8)
-       stw      r7,saveR7
-       // load dword in which the bit has to be set
-       lwzx     r7,r3,r6
-       // bit which has to be checked
+       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       // load dword in which the bit has to be set (and update r3 to this address)
+       lwzx     r6,r3,r5
+       li       r5,1
+       // generate bit which has to be inserted
        rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
+       // insert it
        lwz      r5,saveR5
        and.     r7,r7,r4
        lwz      r6,saveR6
-       lwz      r7,saveR7
+       // store result
+       stw      r7,(r3)
 end ['R4'];
 
 
@@ -220,7 +218,7 @@ asm
       lwz       r6,saveR6
       lwz       r7,saveR7
       lwz       r8,saveR8
-end [];
+end ['R3','R4','R5'];
 
 
 
@@ -249,7 +247,7 @@ asm
        lwz      r6,saveR6
        lwz      r7,saveR7
        lwz      r8,saveR8
-end [];
+end ['R3','R4','R5'];
 
 
 procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
@@ -278,7 +276,7 @@ asm
        lwz      r6,saveR6
        lwz      r7,saveR7
        lwz      r8,saveR8
-end [];
+end ['R3','R4','R5'];
 
 
 procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
@@ -307,7 +305,7 @@ asm
        lwz      r6,saveR6
        lwz      r7,saveR7
        lwz      r8,saveR8
-end [];
+end ['R3','R4','R5'];
 
 
 procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
@@ -317,27 +315,26 @@ procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COM
   on entry: set1 in r3, set2 in r4
 }
 var
-  saveR6, saveR7, saveR8: longint;
+  saveR5, saveR6, saveR7: longint;
 asm
+       stw      r5,saveR5
+       mfctr    r5
        stw      r6,saveR6
-       stw      r7,saveR7
        li       r6,8
-       stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
+       stw      r7,saveR7
+       mtctr    r6
+       lwz      r6,(r3)
+       lwz      r7,(r4)
     .LMCOMPSETS1:
-       cmplw    cr2,r7,r8
-       subi.    r6,r6,1
-       crandc   cr3,cr2,cr0
-       lwzu     r7,4(r3)
-       lwzu     r8,4(r4)
-       be       cr3,.LMCOMPSETS1
+       cmplw    cr0,r6,r7
+       lwzu     r6,4(r3)
+       lwzu     r7,4(r4)
+       bdnzeq   cr0,.LMCOMPSETS1
+       mtctr    r5
+       lwz      r5,saveR5
        lwz      r6,saveR6
        lwz      r7,saveR7
-       // get result of last compare
-       crmove   cr0,cr2
-       lwz      r8,saveR8
-end [];
+end ['R3','R4'];
 
 {$IfNDef NoSetInclusion}
 procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
@@ -346,32 +343,26 @@ procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET
   on entry: set1 in r3, set2 in r4
 }
 var
-  saveR6, saveR7, saveR8: longint;
+  saveR5, saveR6, saveR7: longint;
 asm
+       stw      r5,saveR5
+       mfctr    r5
        stw      r6,saveR6
-       stw      r7,saveR7
        li       r6,8
-       stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
-    .LMCONTAINSSETS1:
-       // set1 and not(set2) == 0? -> ok
-       andc.    r7,r7,r8
-       // save result
-       crmove   cr2,cr0
-       // any dwords left to compare?
-       subi.    r6,r6,1
-       // we only have to continue if (set1 <= set2) and not(r6=0)
-       crandc   cr3,cr2,cr0
-       lwzu     r8,4(r4)
-       lwzu     r7,4(r3)
-       be       cr3,.LMCONTAINSSETS1
+       stw      r7,saveR7
+       mtctr    r6
+       lwz      r6,(r3)
+       lwz      r7,(r4)
+    .LMCOMPSETS1:
+       andc.    r7,r6,r7
+       lwzu     r6,4(r3)
+       lwzu     r7,4(r4)
+       bdnzeq   cr0,.LMCOMPSETS1
+       mtctr    r5
+       lwz      r5,saveR5
        lwz      r6,saveR6
        lwz      r7,saveR7
-       // get result of last set compare
-       cror     cr0,cr2,cr2
-       lwz      r8,saveR8
-end [];
+end ['R3','R4'];
 {$EndIf SetInclusion}
 
 {$ifdef LARGESETS}
@@ -539,9 +530,8 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-06-29 08:42:03  jonas
-    * optimized several routines
-    + implemented do_contains_sets
+  Revision 1.3  2000-06-30 10:32:43  jonas
+    * some optimizations suggested by Anton Rang in c.s.powerpc.misc
 
   Revision 1.1  2000/06/28 13:43:29  jonas
     * inital version, everything not yet implemented
