@@ -214,6 +214,13 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 
+{$IFDEF Darwin}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_DARWIN}
+  {$DEFINE OS_UNIX}
+  {$DEFINE HasSysMsgUnit}
+{$ENDIF}
+
 {---------------------------------------------------------------------------}
 {  FPC GO32V2 COMPILER changes operating system - Updated 27Aug98 LdB       }
 {---------------------------------------------------------------------------}
@@ -403,7 +410,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.10  2002-09-07 15:06:38  peter
+ Revision 1.11  2004-02-06 20:59:29  jonas
+   + darwin support
+
+ Revision 1.10  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
  Revision 1.9  2002/06/07 14:15:10  pierre
