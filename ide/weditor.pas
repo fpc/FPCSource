@@ -68,7 +68,6 @@ const
       MaxLineLength     = 255;
       MaxLineCount      = {$ifdef FPC}2000000{$else}16380{$endif};
 
-      CodeCompleteMinLen = 4; { minimum length of text to try to complete }
 
       CodeTemplateCursorChar = '|'; { char to signal cursor pos in templates }
 
@@ -726,6 +725,8 @@ const
        GetShiftState to be considered for extending
        selection (PM) }
      DontConsiderShiftState: boolean  = false;
+
+     CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
@@ -7112,7 +7113,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2002-09-04 08:39:55  pierre
+  Revision 1.28  2002-09-04 14:02:54  pierre
+   * changed CodeCompleteMinLen type from a const to a variable
+
+  Revision 1.27  2002/09/04 08:39:55  pierre
    * only suppress current word in CodeTemplate if it matches Template name
 
   Revision 1.26  2002/09/03 13:56:21  pierre
