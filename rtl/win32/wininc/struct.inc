@@ -657,8 +657,8 @@
      TLOGFONT = LOGFONT;
      TLOGFONTA = LOGFONT;
      PLOGFONT = ^LOGFONT;
+     PLOGFONTA = PLOGFONT;
 
-     PLogFontW = ^TLogFontW;
      LOGFONTW = record
        lfHeight: LONG;
        lfWidth: LONG;
@@ -678,6 +678,7 @@
      LPLOGFONTW = ^LOGFONTW;
      NPLOGFONTW = ^LOGFONTW;
      TLogFontW = LOGFONTW;
+     PLogFontW = ^TLogFontW;
 
      {CHOOSEFONT = record conflicts with ChosseFont function }
      TCHOOSEFONT = record
@@ -4653,6 +4654,34 @@
      TTEXTMETRIC = TEXTMETRIC;
      PTEXTMETRIC = ^TEXTMETRIC;
 
+     TEXTMETRICW = record
+          tmHeight : LONG;
+          tmAscent : LONG;
+          tmDescent : LONG;
+          tmInternalLeading : LONG;
+          tmExternalLeading : LONG;
+          tmAveCharWidth : LONG;
+          tmMaxCharWidth : LONG;
+          tmWeight : LONG;
+          tmOverhang : LONG;
+          tmDigitizedAspectX : LONG;
+          tmDigitizedAspectY : LONG;
+          tmFirstChar : WCHAR;
+          tmLastChar : WCHAR;
+          tmDefaultChar : WCHAR;
+          tmBreakChar : WCHAR;
+          tmItalic : BYTE;
+          tmUnderlined : BYTE;
+          tmStruckOut : BYTE;
+          tmPitchAndFamily : BYTE;
+          tmCharSet : BYTE;
+       end;
+     LPTEXTMETRICW = ^TEXTMETRICW;
+     tagTEXTMETRICW = TEXTMETRICW;
+     TTEXTMETRICW = TEXTMETRICW;
+     PTEXTMETRICW = ^TEXTMETRICW;
+
+
      OUTLINETEXTMETRIC = record
           otmSize : UINT;
           otmTextMetrics : TEXTMETRIC;
@@ -7168,7 +7197,10 @@ type
 
 {
   $Log$
-  Revision 1.32  2005-01-19 14:24:46  marco
+  Revision 1.33  2005-02-03 18:41:12  florian
+    * more clx compilation fixed
+
+  Revision 1.32  2005/01/19 14:24:46  marco
    * some comments about COMSTAT added
 
   Revision 1.31  2005/01/08 14:43:34  florian

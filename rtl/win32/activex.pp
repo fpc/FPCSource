@@ -1151,6 +1151,7 @@ TYPE
    LPCLIPFORMAT                 = ^TCLIPFORMAT;
    TCLIPFORMAT                  = Word;
    CLIPFORMAT                   = TCLIPFORMAT;
+   PClipFormat									= LPCLIPFORMAT;
 
    tagFORMATETC                 = Record
                                     CfFormat :  Word {TCLIPFORMAT};
@@ -1162,6 +1163,7 @@ TYPE
    FORMATETC                    = TagFORMATETC;
    TFORMATETC                   = FORMATETC;
    LPFORMATETC                  = ^FORMATETC;
+   PFormatEtc	                = LPFORMATETC;
 
     // Stats for data; used by several enumerations and by at least one
     // implementation of IDataAdviseHolder; if a field is not used, it
@@ -1192,6 +1194,8 @@ TYPE
                                       End;
    USTGMEDIUM                   = TagSTGMEDIUM;
    STGMEDIUM                    = USTGMEDIUM;
+   TStgMedium										= TagSTGMEDIUM;
+   PStgMedium                   = ^TStgMedium;
 
 //
 //  wireSTGMEDIUM
@@ -2656,8 +2660,23 @@ TYPE
      Function RequestNewObjectLayout:HResult;StdCall;
      End;
 
+  IOleWindow = interface(IUnknown)
+    ['{00000114-0000-0000-C000-000000000046}']
+    function GetWindow(out wnd: HWnd): HResult; stdcall;
+    function ContextSensitiveHelp(fEnterMode: BOOL): HResult; stdcall;
+  end;
 
 {$ENDIF}
+
+  tagOleMenuGroupWidths = record
+    width : array[0..5] Of LONG;
+  end;
+  OLEMENUGROUPWIDTHS = tagOleMenuGroupWidths;
+  TOleMenuGroupWidths = tagOleMenuGroupWidths;
+  LPOLEMENUGROUPWIDTHS = ^OLEMENUGROUPWIDTHS;
+  POleMenuGroupWidths = LPOLEMENUGROUPWIDTHS;
+
+
 { ******************************************************************************************************************
                                                           stuff from objbase.h
   ****************************************************************************************************************** }
@@ -2684,7 +2703,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-05-07 13:26:31  marco
+  Revision 1.13  2005-02-03 18:41:12  florian
+    * more clx compilation fixed
+
+  Revision 1.12  2004/05/07 13:26:31  marco
    * COM related fixes from bug 3090
 
   Revision 1.11  2003/10/05 20:30:09  florian
