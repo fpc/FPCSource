@@ -65,9 +65,13 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
+  HInstance,
   MainInstance,
   cmdshow     : longint;
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
+{* Changes made by Ozerski 26.10.1998}
+  DLLreason,DLLparam:longint;
+{* End Changes}
 
 implementation
 
@@ -623,12 +627,14 @@ procedure getdir(drivenr:byte;var dir:shortstring);
 
 var
   ModuleName : array[0..255] of char;
+
 function GetCommandFile:pchar;
 begin
   GetModuleFileName(0,@ModuleName,255);
   GetCommandFile:=@ModuleName;
 end;
 
+{* End changes}
 
 procedure setup_arguments;
 var
@@ -684,6 +690,7 @@ begin
 end;
 
 
+{$ifndef FPC_WIN32_DLL_SUPPORT}
 {$ASMMODE DIRECT}
 var
   fpucw : word;
@@ -705,6 +712,8 @@ begin
    ExitProcess(0);
 end;
 
+{$else FPC_WIN32_DLL_SUPPORT}
+
 {$ifdef dummy}
 Function SetUpStack : longint;
 { This routine does the following :                            }
@@ -724,14 +733,40 @@ end;
 {$endif}
 {$ASMMODE ATT}
 
+procedure Exe_entry;[public, alias : 'FPC_EXE_Entry'];
+  begin
+     IsLibrary:=false;
+     asm
+        call PASCALMAIN
+     end;
+     { if we pass here there was no error ! }
+     ExitProcess(0);
+  end;
+  
+procedure Dll_entry;[public, alias : 'FPC_DLL_Entry'];
+  begin
+     IsLibrary:=true;
+     case DLLreason of
+       1,2 : asm
+                call PASCALMAIN
+             end;
+       else
+          asm
+             call FPC_DO_EXIT
+          end;
+     end;
+  end;
+{$endif def FPC_WIN32_DLL_SUPPORT}
+  
 begin
 { get some helpful informations }
   GetStartupInfo(@startupinfo);
 { some misc Win32 stuff }
   hprevinst:=0;
-  MainInstance:=getmodulehandle(GetCommandFile);
-  IsLibrary:=MainInstance=0;
-  IsConsole:=true;
+  if not IsLibrary then
+    HInstance:=getmodulehandle(GetCommandFile);
+  MainInstance:=HInstance;
+  { No idea how to know this issue !! }
   IsMultithreaded:=false;
   cmdshow:=startupinfo.wshowwindow;
 { to test stack depth }
@@ -757,7 +792,11 @@ end.
 
 {
   $Log$
-  Revision 1.24  1998-11-16 15:48:54  peter
+  Revision 1.25  1998-11-30 09:16:58  pierre
+    + added the changes from Pavel Ozerski after several modifications
+      to be able to create DLLs
+
+  Revision 1.24  1998/11/16 15:48:54  peter
     * fixed longbool returns for api calls
 
   Revision 1.23  1998/11/16 14:14:58  pierre

@@ -72,6 +72,7 @@ include $(CFG)/makefile.cfg
 
 # Define Win32 Units
 SYSTEMPPU=syswin32$(PPUEXT)
+LOADERS=wprt0 wdllprt0
 OBJECTS=strings dos \
 	windows objects \
 	cpu mmx getopts heaptrc objpas sysutils
@@ -136,6 +137,12 @@ clean :
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
+
+wprt0$(OEXT) : wprt0.as
+	$(AS) -o wprt0$(OEXT) wprt0.as
+
+wdllprt0$(OEXT) : wdllprt0.as
+	$(AS) -o wdllprt0$(OEXT) wdllprt0.as
 
 $(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg syswin32.pp $(REDIR)
@@ -386,7 +393,11 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.12  1998-11-24 19:52:10  jonas
+# Revision 1.13  1998-11-30 09:16:57  pierre
+#   + added the changes from Pavel Ozerski after several modifications
+#     to be able to create DLLs
+#
+# Revision 1.12  1998/11/24 19:52:10  jonas
 #   + added warning about TABs
 #
 # Revision 1.11  1998/11/18 09:28:07  pierre
