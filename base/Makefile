@@ -1586,6 +1586,7 @@ sourcezip:
 	$(MAKE) fcl_zipsourceinstall
 	$(MAKE) packages_zipsourceinstall
 	$(MAKE) utils_zipsourceinstall
+	$(MAKE) ide_zipsourceinstall
 #        $(MAKE) installersrc
 #        $(MAKE) docsrc
 
