@@ -367,6 +367,7 @@ unit ag386att;
       s        : string;
       found    : boolean;
       i,pos,l  : longint;
+      InlineLevel : longint;
       co       : comp;
       sin      : single;
       d        : double;
@@ -378,6 +379,7 @@ unit ag386att;
     begin
       if not assigned(p) then
        exit;
+      InlineLevel:=0;
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches) and (p=codesegment));
@@ -422,15 +424,16 @@ unit ag386att;
                          lastinfile^.close;
                      end;
                    if (hp^.fileinfo.line<>lastfileinfo.line) and
-                      (hp^.fileinfo.line<infile^.maxlinebuf) then
+                      ((hp^.fileinfo.line<infile^.maxlinebuf) or (InlineLevel>0)) then
                      begin
                        if (hp^.fileinfo.line<>0) and
-                          (infile^.linebuf^[hp^.fileinfo.line]>=0) then
+                          ((infile^.linebuf^[hp^.fileinfo.line]>=0) or (InlineLevel>0)) then
                          AsmWriteLn(target_asm.comment+'['+tostr(hp^.fileinfo.line)+'] '+
                            fixline(infile^.GetLineStr(hp^.fileinfo.line)));
                        { set it to a negative value !
                        to make that is has been read already !! PM }
-                       infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
+                       if (infile^.linebuf^[hp^.fileinfo.line]>=0) then
+                         infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
                      end;
                  end;
 {$ifdef LINEINFO}
@@ -801,7 +804,10 @@ unit ag386att;
              end;
 
            ait_marker :
-             ;
+             if pai_marker(hp)^.kind=InlineStart then
+               inc(InlineLevel)
+             else if pai_marker(hp)^.kind=InlineEnd then
+               dec(InlineLevel);
 
            else
              internalerror(10000);
@@ -888,7 +894,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.29  2000-02-20 21:20:28  marco
+  Revision 1.30  2000-02-29 23:56:49  pierre
+   * write source line again for inline procs
+
+  Revision 1.29  2000/02/20 21:20:28  marco
    * Put some call under Ifdef GDB, so that compiling without -dGDB works
 
   Revision 1.28  2000/02/18 21:54:07  pierre
