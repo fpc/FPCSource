@@ -90,6 +90,11 @@ begin
     for I := 1 to Length (Pa) do
         if Pa [I] = '/' then
             Pa [I] := DirSep;
+{$ELSE}            
+    {Allow backslash as slash}
+    for I := 1 to Length (Pa) do
+        if Pa [I] = '\' then
+            Pa [I] := DirSep;
 {$ENDIF UNIX}
 {$IFDEF FPC_FEXPAND_VOLUMES}
     PathStart := Succ (Pos (DriveSep, Pa));
@@ -297,7 +302,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-04-09 19:28:40  hajny
+  Revision 1.9  2002-03-03 15:19:36  carl
+  * fixes unix conversion of slashes
+
+  Revision 1.8  2001/04/09 19:28:40  hajny
     * yet another fix for FExpand under Unix
 
   Revision 1.5  2001/03/21 21:08:20  hajny
