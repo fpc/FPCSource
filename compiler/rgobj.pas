@@ -1408,10 +1408,6 @@ unit rgobj;
             r:=newreg(regtype,u,subreg);
             if assigned(live_start) then
               begin
-{$ifdef EXTDEBUG}
-                if live_start=live_end then
-                  Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
-{$endif EXTDEBUG}
                 list.insertbefore(Tai_regalloc.alloc(r,live_start),live_start);
                 { Insert live end deallocation before reg allocations
                   to reduce conflicts }
@@ -1996,7 +1992,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.140  2004-10-06 20:14:08  peter
+  Revision 1.141  2004-10-11 15:47:03  peter
+    * removed warning about register used only once
+
+  Revision 1.140  2004/10/06 20:14:08  peter
     * live_registers must be restored after the spilling store code
       is generate to add correct conflicts for extra temporary registers
 
