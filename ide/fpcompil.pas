@@ -661,12 +661,15 @@ begin
   CompilerStatus:=false;
 end;
 
+const
+  LONGJMPCALLED = -1;
+
 procedure CompilerStop; {$ifndef FPC}far;{$endif}
 begin
 {$ifndef GABOR}
 {$ifdef HasSignal}
   if StopJmpValid then
-    Longjmp(StopJmp,1)
+    Longjmp(StopJmp,LONGJMPCALLED)
   else
     Halt(1);
 {$endif}
@@ -988,6 +991,7 @@ begin
       Inc(status.errorCount);
 {$ifdef HasSignal}
       Case JmpRet of
+        LONGJMPCALLED : s:='Error';
         SIGINT : s := 'Interrupted by Ctrl-C';
         SIGILL : s := 'Illegal instruction';
         SIGSEGV : s := 'Signal Segmentation violation';
@@ -997,8 +1001,11 @@ begin
       end;
       CompilerMessageWindow^.AddMessage(V_error,s+' during compilation','',0,0);
 {$endif HasSignal}
-      CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
-      SetStatus('Long jumped out of compilation...');
+      if JmpRet<>LONGJMPCALLED then
+        begin
+          CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
+          SetStatus('Long jumped out of compilation...');
+        end;
     end;
 {$ifdef HasSignal}
   StopJmpValid:=StoreStopJumpValid;
@@ -1315,7 +1322,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-11-20 17:35:00  pierre
+  Revision 1.18  2002-12-02 13:58:29  pierre
+   * avoid longjmp messages if quitting after compilation error
+
+  Revision 1.17  2002/11/20 17:35:00  pierre
    * use target_os.ExeExt for compiled executable
 
   Revision 1.16  2002/10/23 19:19:40  hajny

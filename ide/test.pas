@@ -157,7 +157,22 @@ var i : longint;
     Length : longint;
 
 BEGIN
+{$ifdef m68k}
+  asm
+    beq	@L13
+    bhi @L13
+    blo @L13
+    dbeq d0,@L13
+    dbcs d0,@L13
+ //   dblo d0,@L13
+@L13:
+  end;
+{$endif}
   ClassVar1:=TClass2.create;
+  Obj1.Init;
+  pointer2:=@Obj1;
+  Writeln('Obj1.Z=',Obj1.Z);
+  Obj1.done;
   X:=nil;
   // fg
   for i:=1 to 2000 do
