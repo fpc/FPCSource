@@ -109,289 +109,331 @@ unit pexpr;
 
     function statement_syssym(l : longint;var pd : pdef) : ptree;
       var
-         p1,p2 : ptree;
-         paras : ptree;
-         prev_in_args : boolean;
-         Store_valid : boolean;
+        p1,p2,paras  : ptree;
+        prev_in_args : boolean;
+        Store_valid  : boolean;
       begin
-         prev_in_args:=in_args;
-         Store_valid:=Must_be_valid;
-         case l of
-        in_ord_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     Must_be_valid:=true;
-                     p1:=comp_expr(true);
-                     consume(RKLAMMER);
-                     do_firstpass(p1);
-                     p1:=geninlinenode(in_ord_x,false,p1);
-                     do_firstpass(p1);
-                     statement_syssym := p1;
-                     pd:=p1^.resulttype;
-                   end;
-        in_break : begin
-                     statement_syssym:=genzeronode(breakn);
-                     pd:=voiddef;
-                   end;
-     in_continue : begin
-                     statement_syssym:=genzeronode(continuen);
-                     pd:=voiddef;
-                   end;
-      in_typeof_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     consume(RKLAMMER);
-                     pd:=voidpointerdef;
-                     if p1^.treetype=typen then
-                      begin
-                        if (p1^.resulttype=nil) then
-                         begin
-                           Message(type_e_mismatch);
-                           statement_syssym:=genzeronode(errorn);
-                         end
-                        else
-                         if p1^.resulttype^.deftype=objectdef then
-                          statement_syssym:=geninlinenode(in_typeof_x,false,p1)
-                        else
-                         begin
-                           Message(type_e_mismatch);
-                           statement_syssym:=genzeronode(errorn);
-                         end;
-                      end
-                     else
-                      begin
-                        Must_be_valid:=false;
-                        do_firstpass(p1);
-                        if (p1^.resulttype=nil) then
-                         begin
-                           Message(type_e_mismatch);
-                           statement_syssym:=genzeronode(errorn)
-                         end
-                        else
-                         if p1^.resulttype^.deftype=objectdef then
-                          statement_syssym:=geninlinenode(in_typeof_x,false,p1)
-                        else
-                         begin
-                           Message(type_e_mismatch);
-                           statement_syssym:=genzeronode(errorn)
-                         end;
-                      end;
-                   end;
-     in_sizeof_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     consume(RKLAMMER);
-                     pd:=s32bitdef;
-                     if p1^.treetype=typen then
-                      begin
-                        statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
-                        { p1 not needed !}
-                        disposetree(p1);
-                      end
-                     else
-                      begin
-                        Must_be_valid:=false;
-                        do_firstpass(p1);
-                        if ((p1^.resulttype^.deftype=objectdef) and
-                           ((pobjectdef(p1^.resulttype)^.options and oo_hasvirtual)<>0))
-                          or is_open_array(p1^.resulttype) then
-                         statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
-                        else
-                         begin
-                           statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
-                           { p1 not needed !}
-                           disposetree(p1);
-                         end;
-                      end;
-                   end;
-   in_assigned_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     Must_be_valid:=true;
-                     do_firstpass(p1);
-                     case p1^.resulttype^.deftype of
-                  pointerdef,
-                  procvardef,
-                 classrefdef : ;
-                   objectdef : if not(pobjectdef(p1^.resulttype)^.isclass) then
-                                Message(parser_e_illegal_parameter_list);
-                     else
-                       Message(parser_e_illegal_parameter_list);
-                     end;
-                     p2:=gencallparanode(p1,nil);
-                     p2:=geninlinenode(in_assigned_x,false,p2);
-                     consume(RKLAMMER);
-                     pd:=booldef;
-                     statement_syssym:=p2;
-                   end;
-        in_ofs_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     p1:=gensinglenode(addrn,p1);
-                     Must_be_valid:=false;
-                     do_firstpass(p1);
-                   { Ofs() returns a longint, not a pointer }
-                     p1^.resulttype:=u32bitdef;
-                     pd:=p1^.resulttype;
-                     consume(RKLAMMER);
-                     statement_syssym:=p1;
-                   end;
-        in_seg_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     do_firstpass(p1);
-                     if p1^.location.loc<>LOC_REFERENCE then
-                       Message(cg_e_illegal_expression);
-                     p1:=genordinalconstnode(0,s32bitdef);
-                     Must_be_valid:=false;
-                     pd:=s32bitdef;
-                     consume(RKLAMMER);
-                     statement_syssym:=p1;
-                   end;
-       in_high_x,
-        in_low_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     do_firstpass(p1);
-                     Must_be_valid:=false;
-                     p2:=geninlinenode(l,false,p1);
-                     consume(RKLAMMER);
-                     pd:=s32bitdef;
-                     statement_syssym:=p2;
-                   end;
-       in_succ_x,
-       in_pred_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     do_firstpass(p1);
-                     Must_be_valid:=false;
-                     p2:=geninlinenode(l,false,p1);
-                     consume(RKLAMMER);
-                     pd:=p1^.resulttype;
-                     statement_syssym:=p2;
-                   end;
-        in_inc_x,
-        in_dec_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     Must_be_valid:=false;
-                     if token=COMMA then
-                      begin
-                        consume(COMMA);
-                        p2:=gencallparanode(comp_expr(true),nil);
-                      end
-                     else
-                      p2:=nil;
-                     p2:=gencallparanode(p1,p2);
-                     statement_syssym:=geninlinenode(l,false,p2);
-                     consume(RKLAMMER);
-                     pd:=voiddef;
-                   end;
-     in_concat_x : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p2:=nil;
-                     while true do
-                      begin
-                        p1:=comp_expr(true);
-                        Must_be_valid:=true;
-                        do_firstpass(p1);
-                        if not((p1^.resulttype^.deftype=stringdef) or
-                               ((p1^.resulttype^.deftype=orddef) and
-                                (porddef(p1^.resulttype)^.typ=uchar))) then
-                          Message(parser_e_illegal_parameter_list);
-                        if p2<>nil then
-                         p2:=gennode(addn,p2,p1)
-                        else
-                         p2:=p1;
-                        if token=COMMA then
-                         consume(COMMA)
-                        else
-                         break;
-                      end;
-                     consume(RKLAMMER);
-                     pd:=cstringdef;
-                     statement_syssym:=p2;
-                   end;
-       in_read_x,
-     in_readln_x : begin
-                     if token=LKLAMMER then
-                      begin
-                        consume(LKLAMMER);
-                        in_args:=true;
-                        Must_be_valid:=false;
-                        paras:=parse_paras(false,false);
-                        consume(RKLAMMER);
-                      end
-                     else
-                      paras:=nil;
-                     pd:=voiddef;
-                     p1:=geninlinenode(l,false,paras);
-                     do_firstpass(p1);
-                     statement_syssym := p1;
-                   end;
-      in_write_x,
-    in_writeln_x : begin
-                     if token=LKLAMMER then
-                      begin
-                        consume(LKLAMMER);
-                        in_args:=true;
-                        Must_be_valid:=true;
-                        paras:=parse_paras(true,false);
-                        consume(RKLAMMER);
-                      end
-                     else
-                      paras:=nil;
-                     pd:=voiddef;
-                     p1 := geninlinenode(l,false,paras);
-                     do_firstpass(p1);
-                     statement_syssym := p1;
-                   end;
- in_str_x_string : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     paras:=parse_paras(true,false);
-                     consume(RKLAMMER);
-                     p1 := geninlinenode(l,false,paras);
-                     do_firstpass(p1);
-                     statement_syssym := p1;
-                     pd:=voiddef;
-                   end;
-  in_include_x_y,
-  in_exclude_x_y : begin
-                     consume(LKLAMMER);
-                     in_args:=true;
-                     p1:=comp_expr(true);
-                     Must_be_valid:=false;
-                     consume(COMMA);
-                     p2:=comp_expr(true);
-                     { just a bit lisp feeling }
-                     statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
-                     consume(RKLAMMER);
-                     pd:=voiddef;
-                   end;
-       {in_val_x : begin
-                     consume(LKLAMMER);
-                     paras:=parse_paras(false);
-                     consume(RKLAMMER);
-                     p1 := geninlinenode(l,false,paras);
-                     do_firstpass(p1);
-                     statement_syssym := p1;
-                     pd:=voiddef;
-                   end; }
-         else
-           internalerror(15);
-         end;
-         in_args:=prev_in_args;
-         Must_be_valid:=Store_valid;
+        prev_in_args:=in_args;
+        Store_valid:=Must_be_valid;
+        case l of
+          in_ord_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              Must_be_valid:=true;
+              p1:=comp_expr(true);
+              consume(RKLAMMER);
+              do_firstpass(p1);
+              p1:=geninlinenode(in_ord_x,false,p1);
+              do_firstpass(p1);
+              statement_syssym := p1;
+              pd:=p1^.resulttype;
+            end;
+
+          in_break :
+            begin
+              statement_syssym:=genzeronode(breakn);
+              pd:=voiddef;
+            end;
+
+          in_continue :
+            begin
+              statement_syssym:=genzeronode(continuen);
+              pd:=voiddef;
+            end;
+
+          in_typeof_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              consume(RKLAMMER);
+              pd:=voidpointerdef;
+              if p1^.treetype=typen then
+               begin
+                 if (p1^.resulttype=nil) then
+                  begin
+                    Message(type_e_mismatch);
+                    statement_syssym:=genzeronode(errorn);
+                  end
+                 else
+                  if p1^.resulttype^.deftype=objectdef then
+                   statement_syssym:=geninlinenode(in_typeof_x,false,p1)
+                 else
+                  begin
+                    Message(type_e_mismatch);
+                    statement_syssym:=genzeronode(errorn);
+                  end;
+               end
+              else
+               begin
+                 Must_be_valid:=false;
+                 do_firstpass(p1);
+                 if (p1^.resulttype=nil) then
+                  begin
+                    Message(type_e_mismatch);
+                    statement_syssym:=genzeronode(errorn)
+                  end
+                 else
+                  if p1^.resulttype^.deftype=objectdef then
+                   statement_syssym:=geninlinenode(in_typeof_x,false,p1)
+                 else
+                  begin
+                    Message(type_e_mismatch);
+                    statement_syssym:=genzeronode(errorn)
+                  end;
+               end;
+            end;
+
+          in_sizeof_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              consume(RKLAMMER);
+              pd:=s32bitdef;
+              if p1^.treetype=typen then
+               begin
+                 statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                 { p1 not needed !}
+                 disposetree(p1);
+               end
+              else
+               begin
+                 Must_be_valid:=false;
+                 do_firstpass(p1);
+                 if ((p1^.resulttype^.deftype=objectdef) and
+                    ((pobjectdef(p1^.resulttype)^.options and oo_hasvirtual)<>0))
+                   or is_open_array(p1^.resulttype) then
+                  statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
+                 else
+                  begin
+                    statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                    { p1 not needed !}
+                    disposetree(p1);
+                  end;
+               end;
+            end;
+
+          in_assigned_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              Must_be_valid:=true;
+              do_firstpass(p1);
+              case p1^.resulttype^.deftype of
+           pointerdef,
+           procvardef,
+          classrefdef : ;
+            objectdef : if not(pobjectdef(p1^.resulttype)^.isclass) then
+                         Message(parser_e_illegal_parameter_list);
+              else
+                Message(parser_e_illegal_parameter_list);
+              end;
+              p2:=gencallparanode(p1,nil);
+              p2:=geninlinenode(in_assigned_x,false,p2);
+              consume(RKLAMMER);
+              pd:=booldef;
+              statement_syssym:=p2;
+            end;
+
+          in_ofs_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              p1:=gensinglenode(addrn,p1);
+              Must_be_valid:=false;
+              do_firstpass(p1);
+              { Ofs() returns a longint, not a pointer }
+              p1^.resulttype:=u32bitdef;
+              pd:=p1^.resulttype;
+              consume(RKLAMMER);
+              statement_syssym:=p1;
+            end;
+
+          in_seg_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              do_firstpass(p1);
+              if p1^.location.loc<>LOC_REFERENCE then
+                Message(cg_e_illegal_expression);
+              p1:=genordinalconstnode(0,s32bitdef);
+              Must_be_valid:=false;
+              pd:=s32bitdef;
+              consume(RKLAMMER);
+              statement_syssym:=p1;
+            end;
+
+          in_high_x,
+          in_low_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              do_firstpass(p1);
+              Must_be_valid:=false;
+              p2:=geninlinenode(l,false,p1);
+              consume(RKLAMMER);
+              pd:=s32bitdef;
+              statement_syssym:=p2;
+            end;
+
+          in_succ_x,
+          in_pred_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              do_firstpass(p1);
+              Must_be_valid:=false;
+              p2:=geninlinenode(l,false,p1);
+              consume(RKLAMMER);
+              pd:=p1^.resulttype;
+              statement_syssym:=p2;
+            end;
+
+          in_inc_x,
+          in_dec_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              Must_be_valid:=false;
+              if token=COMMA then
+               begin
+                 consume(COMMA);
+                 p2:=gencallparanode(comp_expr(true),nil);
+               end
+              else
+               p2:=nil;
+              p2:=gencallparanode(p1,p2);
+              statement_syssym:=geninlinenode(l,false,p2);
+              consume(RKLAMMER);
+              pd:=voiddef;
+            end;
+
+          in_concat_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p2:=nil;
+              while true do
+               begin
+                 p1:=comp_expr(true);
+                 Must_be_valid:=true;
+                 do_firstpass(p1);
+                 if not((p1^.resulttype^.deftype=stringdef) or
+                        ((p1^.resulttype^.deftype=orddef) and
+                         (porddef(p1^.resulttype)^.typ=uchar))) then
+                   Message(parser_e_illegal_parameter_list);
+                 if p2<>nil then
+                  p2:=gennode(addn,p2,p1)
+                 else
+                  p2:=p1;
+                 if token=COMMA then
+                  consume(COMMA)
+                 else
+                  break;
+               end;
+              consume(RKLAMMER);
+              pd:=cstringdef;
+              statement_syssym:=p2;
+            end;
+
+          in_read_x,
+          in_readln_x :
+            begin
+              if token=LKLAMMER then
+               begin
+                 consume(LKLAMMER);
+                 in_args:=true;
+                 Must_be_valid:=false;
+                 paras:=parse_paras(false,false);
+                 consume(RKLAMMER);
+               end
+              else
+               paras:=nil;
+              pd:=voiddef;
+              p1:=geninlinenode(l,false,paras);
+              do_firstpass(p1);
+              statement_syssym := p1;
+            end;
+
+          in_write_x,
+          in_writeln_x :
+            begin
+              if token=LKLAMMER then
+               begin
+                 consume(LKLAMMER);
+                 in_args:=true;
+                 Must_be_valid:=true;
+                 paras:=parse_paras(true,false);
+                 consume(RKLAMMER);
+               end
+              else
+               paras:=nil;
+              pd:=voiddef;
+              p1 := geninlinenode(l,false,paras);
+              do_firstpass(p1);
+              statement_syssym := p1;
+            end;
+
+          in_str_x_string :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              paras:=parse_paras(true,false);
+              consume(RKLAMMER);
+              p1 := geninlinenode(l,false,paras);
+              do_firstpass(p1);
+              statement_syssym := p1;
+              pd:=voiddef;
+            end;
+
+          in_include_x_y,
+          in_exclude_x_y :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              Must_be_valid:=false;
+              consume(COMMA);
+              p2:=comp_expr(true);
+              statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
+              consume(RKLAMMER);
+              pd:=voiddef;
+            end;
+
+          in_assert_x_y :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              if token=COMMA then
+               begin
+                 consume(COMMA);
+                 p2:=comp_expr(true);
+               end
+              else
+               begin
+                 { then insert an empty string }
+                 p2:=genstringconstnode('');
+               end;
+              statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
+              consume(RKLAMMER);
+              pd:=voiddef;
+            end;
+
+          else
+            internalerror(15);
+
+        end;
+        in_args:=prev_in_args;
+        Must_be_valid:=Store_valid;
       end;
 
 
@@ -1783,7 +1825,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.59  1998-10-01 14:56:24  peter
+  Revision 1.60  1998-10-05 12:32:46  peter
+    + assert() support
+
+  Revision 1.59  1998/10/01 14:56:24  peter
     * crash preventions
 
   Revision 1.58  1998/09/30 07:40:35  florian

@@ -58,11 +58,10 @@ begin
   p^.insert(new(psyssym,init('INCLUDE',in_include_x_y)));
   p^.insert(new(psyssym,init('BREAK',in_break)));
   p^.insert(new(psyssym,init('CONTINUE',in_continue)));
-{$ifndef OLDINC}
   p^.insert(new(psyssym,init('DEC',in_dec_x)));
   p^.insert(new(psyssym,init('INC',in_inc_x)));
-{$endif}
   p^.insert(new(psyssym,init('STR',in_str_x_string)));
+  p^.insert(new(psyssym,init('ASSERT',in_assert_x_y)));
 end;
 
 
@@ -236,7 +235,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-09-24 23:49:17  peter
+  Revision 1.7  1998-10-05 12:32:48  peter
+    + assert() support
+
+  Revision 1.6  1998/09/24 23:49:17  peter
     + aktmodeswitches
 
   Revision 1.5  1998/08/10 14:50:19  peter

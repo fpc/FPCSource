@@ -117,10 +117,8 @@ var
   StackBottom,
   LowestStack,
   RandSeed    : Longint;
-
-Const
-  ErrorProc   : Pointer = nil;
-  AbstractErrorHandler : Pointer = Nil;
+{ Error handlers }
+  ErrorProc         : Pointer;
 
 {****************************************************************************
                         Processor specific routines
@@ -386,6 +384,18 @@ Procedure AddExitProc(Proc:TProcedure);
 Procedure halt;
 
 {*****************************************************************************
+                              Abstract/Assert
+*****************************************************************************}
+
+procedure AbstractError;
+Procedure SysAssert(Const Msg,FName:string;LineNo,ErrorAddr:Longint);
+
+const
+  AssertErrorProc   : Pointer=@SysAssert;
+  AbstractErrorProc : Pointer=nil;
+
+
+{*****************************************************************************
                           SetJmp/LongJmp
 *****************************************************************************}
 
@@ -393,7 +403,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.34  1998-10-01 14:54:48  peter
+  Revision 1.35  1998-10-05 12:32:52  peter
+    + assert() support
+
+  Revision 1.34  1998/10/01 14:54:48  peter
     * export also stackframe functions
 
   Revision 1.33  1998/09/28 14:02:33  michael

@@ -809,8 +809,35 @@ implementation
                     end
                   else
                     CGMessage(type_e_varid_or_typeid_expected);
-               end
-                 else internalerror(8);
+               end;
+
+            in_assert_x_y :
+               begin
+                 p^.resulttype:=voiddef;
+                 if assigned(p^.left) then
+                   begin
+                      firstcallparan(p^.left,nil);
+                      p^.registers32:=p^.left^.registers32;
+                      p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+                      p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+                      { check type }
+                      if is_boolean(p^.left^.resulttype) then
+                        begin
+                           { must always be a string }
+                           p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,cstringdef);
+                           firstpass(p^.left^.right^.left);
+                        end
+                      else
+                        CGMessage(type_e_mismatch);
+                   end
+                 else
+                   CGMessage(type_e_mismatch);
+               end;
+
+              else
+                internalerror(8);
               end;
             end;
            must_be_valid:=store_valid;
@@ -821,7 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-10-02 09:24:23  peter
+  Revision 1.3  1998-10-05 12:32:49  peter
+    + assert() support
+
+  Revision 1.2  1998/10/02 09:24:23  peter
     * more constant expression evaluators
 
   Revision 1.1  1998/09/23 20:42:24  peter

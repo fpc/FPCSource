@@ -50,7 +50,7 @@ const
    in_exclude_x_y       = 38;
    in_break             = 39;
    in_continue          = 40;
-   in_assert_x          = 41;
+   in_assert_x_y        = 41;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -72,7 +72,10 @@ const
    in_const_sin        = 116;
 {
   $Log$
-  Revision 1.9  1998-10-02 09:24:20  peter
+  Revision 1.10  1998-10-05 12:32:45  peter
+    + assert() support
+
+  Revision 1.9  1998/10/02 09:24:20  peter
     * more constant expression evaluators
 
   Revision 1.4  1998/09/14 10:48:17  peter

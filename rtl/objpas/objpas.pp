@@ -108,9 +108,6 @@ interface
 
        TExceptProc = Procedure (Obj : TObject; Addr: Pointer);
 
-       var
-          abstracterrorproc : pointer;
-
        Const
           ExceptProc : Pointer {TExceptProc} = Nil;
 
@@ -191,31 +188,19 @@ interface
 
     procedure finalize(data,typeinfo : pointer);external name 'FPC_FINALIZE';
 
+
     { the reverse order of the parameters make code generation easier }
     function int_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
-
       begin
          int_do_is:=aobject.inheritsfrom(aclass);
       end;
 
+
     { the reverse order of the parameters make code generation easier }
     procedure int_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
-
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
            runerror(219);
-      end;
-
-    procedure abstracterror;
-
-      type
-         proc = procedure;
-
-      begin
-         if assigned(abstracterrorproc) then
-           proc(abstracterrorproc)()
-         else
-           runerror(211);
       end;
 
 
@@ -411,11 +396,13 @@ interface
 
 begin
   InitExceptions;
-  AbstractErrorHandler:=@AbstractError;
 end.
 {
   $Log$
-  Revision 1.16  1998-10-03 15:07:16  florian
+  Revision 1.17  1998-10-05 12:32:53  peter
+    + assert() support
+
+  Revision 1.16  1998/10/03 15:07:16  florian
     + TObject.AfterConstruction and TObject.BeforeDestruction of Delphi 4
 
   Revision 1.15  1998/09/24 16:13:48  michael

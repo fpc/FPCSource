@@ -287,16 +287,6 @@ begin
 end;
 
 
-procedure abstracterror;[public,alias : 'FPC_ABSTRACTERROR'];
-
-Type TAbstractErrorHandler = Procedure;
-
-begin
-  If AbstractErrorHandler<>nil then
-    TAbstractErrorHAndler(AbstractErrorHAndler);
-  Runerror(211);
-end;
-
 Function IOResult:Word;
 Begin
   IOResult:=InOutRes;
@@ -442,17 +432,37 @@ End;
 
 
 {*****************************************************************************
-                           Assert() support.
+                          Abstract/Assert support.
 *****************************************************************************}
 
-Procedure do_assert (Const Name,Msg : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
+procedure AbstractError;[public,alias : 'FPC_ABSTRACTERROR'];
+Type
+  TAbstractErrorProc=Procedure;
+begin
+  If AbstractErrorProc<>nil then
+    TAbstractErrorProc(AbstractErrorProc);
+  RunError(211);
+end;
+
+
+Procedure int_assert(Const Msg,FName:string;LineNo,ErrorAddr:Longint); [Public,Alias : 'FPC_ASSERT'];
+type
+  TAssertErrorProc=procedure(const msg,fname:string;lineno,erroraddr:longint);
+begin
+  if AssertErrorProc<>nil then
+   TAssertErrorProc(AssertErrorProc)(Msg,FName,LineNo,ErrorAddr)
+  else
+   HandleError(227);
+end;
+
+
+Procedure SysAssert(Const Msg,FName:string;LineNo,ErrorAddr:Longint);
 begin
   If msg='' then
-    write (stderr,'Assertion failed. ')
+    write(stderr,'Assertion failed')
   else
-    write (stderr,msg);
-  writeln (stderr,'(File : ',name,', line ',LineNo,'.');
-  HandleError (227);
+    write(stderr,msg);
+  writeln(stderr,' (',FName,', line ',LineNo,').');
 end;
 
 
@@ -465,7 +475,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  1998-10-02 09:25:11  peter
+  Revision 1.36  1998-10-05 12:32:51  peter
+    + assert() support
+
+  Revision 1.35  1998/10/02 09:25:11  peter
     * more constant expression evals
 
   Revision 1.34  1998/09/22 15:30:54  peter

@@ -32,7 +32,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      cobjects,verbose,globals,systems,files,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386,cg386ld,cg386cal;
@@ -507,40 +507,45 @@ implementation
 
       var
          r : preference;
+         hp : ptree;
          l : longint;
          ispushed : boolean;
          hregister : tregister;
-         otlabel,oflabel,filenamestring : plabel;
+         otlabel,oflabel   : plabel;
          oldpushedparasize : longint;
       begin
       { save & reset pushedparasize }
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
          case p^.inlinenumber of
-            in_assert_x:
+            in_assert_x_y:
               begin
                  otlabel:=truelabel;
                  oflabel:=falselabel;
                  getlabel(truelabel);
                  getlabel(falselabel);
-                 getlabel(filenamestring);
-                 secondpass(p^.left);
-                 if codegenerror then
-                   exit;
+                 secondpass(p^.left^.left);
                  if cs_do_assertion in aktlocalswitches then
                    begin
-                      maketojumpbool(p^.left);
+                      maketojumpbool(p^.left^.left);
                       emitl(A_LABEL,falselabel);
-                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                        p^.fileinfo.line)));
-                      { generate string }
-                      { push string
-                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                        p^.fileinfo.line)));
-                      }
-                      emitcall('FPC_DO_ASSERT',true);
+                      { erroraddr }
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
+                      { lineno }
+                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,aktfilepos.line)));
+                      { filename string }
+                      hp:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex));
+                      secondpass(hp);
+                      if codegenerror then
+                       exit;
+                      emitpushreferenceaddr(exprasmlist,hp^.location.reference);
+                      disposetree(hp);
+                      { push msg }
+                      secondpass(p^.left^.right^.left);
+                      emitpushreferenceaddr(exprasmlist,p^.left^.right^.left^.location.reference);
+                      { call }
+                      emitcall('FPC_ASSERT',true);
                       emitl(A_LABEL,truelabel);
-
                    end;
                  truelabel:=otlabel;
                  falselabel:=oflabel;
@@ -939,8 +944,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-02 17:04:51  peter
-    * fix for tp7
+  Revision 1.10  1998-10-05 12:32:44  peter
+    + assert() support
 
   Revision 1.8  1998/10/02 10:35:09  peter
     * support for inc(pointer,value) which now increases with value instead
