@@ -92,9 +92,6 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
 
-        procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
-        procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);override;
-
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
@@ -483,7 +480,7 @@ const
                 end;
                 exit;
               end
-            else if (longint(a) >= 0)) and
+            else if (longint(a) >= 0) and
                (longint(a) <= high(word)) and
                (op <> OP_ADD) and
                ((op <> OP_AND) or
@@ -640,16 +637,6 @@ const
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
-
-     procedure tcgppc.g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);
-       begin
-         {$warning FIX ME}
-       end;
-
-     procedure tcgppc.g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);
-       begin
-         {$warning FIX ME}
-       end;
 
      procedure tcgppc.g_save_standard_registers(list : taasmoutput);
        begin
@@ -1458,7 +1445,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-08-04 12:57:55  jonas
+  Revision 1.34  2002-08-05 08:58:53  jonas
+    * fixed compilation problems
+
+  Revision 1.33  2002/08/04 12:57:55  jonas
     * more misc. fixes, mostly constant-related
 
   Revision 1.32  2002/08/02 11:10:42  jonas

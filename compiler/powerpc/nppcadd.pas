@@ -206,7 +206,7 @@ interface
                   (right.location.value > high(word))) or
                  (not unsigned and
                   (right.location.value < low(smallint)) or
-                   (right.location.value > high(smallint)))) then
+                   (right.location.value > high(smallint))) then
                 // we can then maybe use a constant in the 'othersigned' case
                 // (the sign doesn't matter for // equal/unequal)
                 unsigned := not unsigned;
@@ -625,8 +625,11 @@ interface
               tmpreg := cg.get_scratch_reg_int(exprasmlist);
               if left.location.loc = LOC_CONSTANT then
                 begin
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND_,OS_INT,
-                    not(aword(left.location.value)),right.location.register,tmpreg);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
+                    not(left.location.value),right.location.register,tmpreg);
+                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,tmpreg,0));
+                  // the two instructions above should be folded together by
+                  // the peepholeoptimizer
                 end
               else
                 begin
@@ -1299,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-08-04 12:57:56  jonas
+  Revision 1.5  2002-08-05 08:58:54  jonas
+    * fixed compilation problems
+
+  Revision 1.4  2002/08/04 12:57:56  jonas
     * more misc. fixes, mostly constant-related
 
   Revision 1.3  2002/07/28 16:02:49  jonas
