@@ -22,6 +22,7 @@ constructor TBufDataset.Create(AOwner : TComponent);
 
 begin
   Inherited Create(AOwner);
+  SetLength(FUpdateBuffer,0);
 // temporary set it here
   FPacketRecords := 10;
 end;
@@ -68,6 +69,7 @@ var i : integer;
 
 begin
   FOpen:=False;
+  CancelUpdates;
   for i := 0 to FBRecordCount-1 do FreeRecordBuffer(FBBuffers[i]);
   If FBRecordCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
@@ -92,6 +94,12 @@ begin
 end;
 
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+
+var x         : longint;
+    RecUpdBuf : PRecUpdateBuffer;
+    FieldUpdBuf : PFieldUpdateBuffer;
+    NullMask     : pbyte;
+
 begin
   begin
     Result := grOK;
@@ -143,10 +151,59 @@ begin
       BookmarkData := FBCurrentRecord;
       BookmarkFlag := bfCurrent;
       end;
-      move(FBBuffers[FBCurrentRecord]^,buffer^,RecordSize);
+    move(FBBuffers[FBCurrentRecord]^,buffer^,RecordSize);
+// Cached Updates:
+    If GetRecordUpdateBuffer(FBCurrentRecord,RecUpdBuf) then
+      begin
+      NullMask := pbyte(buffer);
+      inc(buffer,FNullmaskSize);
+
+      for x := 0 to FieldDefs.count-1 do
+        begin
+        if GetFieldUpdateBuffer(x,RecUpdBuf,FieldUpdBuf) then
+          If not FieldUpdBuf^.IsNull then
+            begin
+            NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+            move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
+            end
+          else
+            NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+        Inc(Buffer, GetFieldSize(FieldDefs[x]));
+        end;
+      end;
     end
   else if (Result = grError) and doCheck then
     DatabaseError('No record');
+end;
+
+function TBufDataset.GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
+
+var r : integer;
+
+begin
+  Result := False;
+  for r := 0 to high(FUpdateBuffer) do
+    if (FUpdateBuffer[r].RecordNo = rno) and (@FUpdateBuffer[r] <> FEditBuf) then // Neglect the edit-buffer
+      begin
+      RecUpdBuf := @FUpdateBuffer[r];
+      Result := True;
+      Break;
+      end;
+end;
+
+function TBufDataset.GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
+
+var f : integer;
+
+begin
+  Result := False;
+  for f := 0 to High(RecUpdBuf^.FieldsUpdateBuffer) do
+    if RecUpdBuf^.FieldsUpdateBuffer[f].FieldNo = fieldno then
+      begin
+      FieldUpdBuf := @RecUpdBuf^.FieldsUpdateBuffer[f];
+      Result := True;
+      Break;
+      end;
 end;
 
 procedure TBufDataset.InternalSetToRecord(Buffer: PChar);
@@ -267,7 +324,10 @@ begin
   
   If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
     begin
-    CurrBuff := ActiveBuffer;
+    if state = dsOldValue then
+      CurrBuff := FBBuffers[GetRecNo]
+    else
+      CurrBuff := ActiveBuffer;
 
     if ord(currbuff[(Field.Fieldno-1) div 8]) and (1 shl ((Field.Fieldno-1) mod 8)) > 0 then
       begin
@@ -294,40 +354,143 @@ var
   x        : longint;
   CurrBuff : pointer;
   NullMask : pbyte;
+  FieldUpdBuf : PFieldUpdateBuffer;
 
 begin
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
     CurrBuff := ActiveBuffer;
-    
-    if buffer = nil  then
-      NullMask[(Field.fieldno-1) div 8] := (NullMask[(Field.fieldno-1) div 8]) or (1 shl ((Field.fieldno-1) mod 8))
-    else
+    NullMask := CurrBuff;
+
+    inc(Currbuff,FNullmaskSize);
+
+    for x := 0 to FieldDefs.count-1 do
       begin
-      NullMask[(Field.fieldno-1) div 8] := (NullMask[(Field.fieldno-1) div 8]) and not (1 shl ((Field.fieldno-1) mod 8));
-
-      inc(Currbuff,FNullmaskSize);
-
-      for x := 0 to FieldDefs.count-1 do
+      if (Field.FieldName = FieldDefs[x].Name) then
         begin
-        if (Field.FieldName = FieldDefs[x].Name) then
+        if assigned(buffer) then
           begin
           Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[x]));
-          Break;
+          NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
           end
-        else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
-        end;
+        else
+          NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+
+        // cached updates
+        with FEditBuf^ do
+          begin
+          if not GetFieldUpdateBuffer(x,FEditBuf,FieldUpdBuf) then
+            begin
+            SetLength(FieldsUpdateBuffer,length(FieldsUpdateBuffer)+1);
+            FieldUpdBuf := @FieldsUpdateBuffer[high(FieldsUpdateBuffer)];
+            GetMem(FieldUpdBuf^.NewValue,GetFieldSize(FieldDefs[x]));
+            FieldUpdBuf^.FieldNo := x;
+            end;
+          if assigned(buffer) then
+            begin
+            Move(Buffer^, FieldUpdBuf^.NewValue^, GetFieldSize(FieldDefs[x]));
+            FieldUpdBuf^.IsNull := False;
+            end
+          else FieldUpdBuf^.IsNull := True;
+          end;
+        Break;
+        end
+      else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
       end;
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
     end;
 end;
 
-procedure TBufDataset.internalpost;
+procedure TBufDataset.InternalEdit;
+
+begin
+  if not GetRecordUpdateBuffer(recno,FEditBuf) then
+    begin
+    If not assigned(FEditBuf) then
+      begin
+      SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
+      FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
+      end;
+    FEditBuf^.RecordNo := getrecno;
+    end;
+end;
+
+function TBufDataset.ApplyRecUpdate : boolean;
+
+begin
+  Result := False;
+end;
+
+procedure TBufDataset.CancelUpdates;
+
+var r,f : integer;
+
+begin
+  for r := 0 to high(FUpdateBuffer) do
+    for f := 0 to high(FUpdateBuffer[r].FieldsUpdateBuffer) do
+      FreeMem(FUpdateBuffer[r].FieldsUpdateBuffer[f].newvalue);
+  SetLength(FUpdateBuffer,0);
+end;
+
+procedure TBufDataset.ApplyUpdates;
+
+var SaveBookmark : Integer;
+    r,i          : Integer;
+    buffer       : PChar;
+    x            : integer;
+    FieldUpdBuf : PFieldUpdateBuffer;
+    NullMask    : pbyte;
+
+begin
+  SaveBookMark := GetRecNo;
+  
+  r := 0;
+  while r < Length(FUpdateBuffer) do
+    begin
+    if @FUpdateBuffer[r] <> FEditBuf then // Neglect edit-buffer
+      begin
+      SetRecNo(FUpdateBuffer[r].RecordNo);
+      if ApplyRecUpdate then
+        begin
+        buffer := FBBuffers[FUpdateBuffer[r].RecordNo];
+        NullMask := pbyte(buffer);
+
+        inc(buffer,FNullmaskSize);
+
+        for x := 0 to FieldDefs.count-1 do
+          begin
+          if GetFieldUpdateBuffer(x,@FUpdateBuffer[r],FieldUpdBuf) then
+            If not FieldUpdBuf^.IsNull then
+              begin
+              NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+              move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
+              FreeMem(FieldUpdBuf^.NewValue);
+              end
+            else
+              NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+          Inc(Buffer, GetFieldSize(FieldDefs[x]));
+          end;
+
+        for i := r to high(FUpdateBuffer)-1 do
+          FUpdateBuffer[i] := FupdateBuffer[i+1];
+        dec(r);
+        SetLength(FUpdateBuffer,high(FUpdateBuffer));
+        end;
+      end;
+    inc(r);
+    end;
+  Refresh;
+  SetRecNo(SaveBookMark);
+end;
+
+procedure TBufDataset.InternalPost;
 
 begin
   if state=dsEdit then
     begin
+    if Length(FUpdateBuffer[High(FUpdateBuffer)].FieldsUpdateBuffer) > 0 then
+      FEditBuf := nil;
     end;
 end;
 
@@ -362,9 +525,7 @@ end;
 function TBufDataset.GetRecNo: Longint;
 
 begin
-  If FBCurrentRecord = -1 then Result := 0
-    else if FBCurrentRecord = FBRecordcount then Result := FBCurrentRecord-1
-    else Result := FBCurrentRecord;
+  GetBookmarkData(ActiveBuffer,@Result);
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;
