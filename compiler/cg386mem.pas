@@ -400,7 +400,6 @@ implementation
          { to detect if it is an ansistring                          }
          { because in constant nodes which constant index              }
          { the left tree is removed                                  }
-         rl : pdef;
          t   : ptree;
          hp  : preference;
          href : treference;
@@ -410,7 +409,6 @@ implementation
          hl,otl,ofl : pasmlabel;
       begin
          secondpass(p^.left);
-         rl:=p^.left^.resulttype;
          { we load the array reference to p^.location }
 
          { an ansistring needs to be dereferenced }
@@ -883,7 +881,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-11-30 10:40:43  peter
+  Revision 1.63  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.62  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.61  1999/11/15 21:54:38  peter

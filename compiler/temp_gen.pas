@@ -497,16 +497,20 @@ unit temp_gen;
 
 
     procedure ungetiftemp(const ref : treference);
+{$ifdef EXTDEBUG}
       var
          tt : ttemptype;
+{$endif}
       begin
          if istemp(ref) then
            begin
               { first check if ansistring }
               if ungetiftempansi(ref) then
                 exit;
+{$ifndef EXTDEBUG}
+              ungettemp(ref.offset,tt_normal);
+{$else}
               tt:=ungettemp(ref.offset,tt_normal);
-{$ifdef EXTDEBUG}
               if tt=tt_persistant then
                 Comment(V_Debug,'temp at pos '+tostr(ref.offset)+ ' not released because persistant!');
               if tt=tt_none then
@@ -527,7 +531,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  1999-11-06 14:34:31  peter
+  Revision 1.39  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.38  1999/11/06 14:34:31  peter
     * truncated log to 20 revs
 
   Revision 1.37  1999/09/27 23:45:02  peter

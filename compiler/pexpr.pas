@@ -718,7 +718,7 @@ unit pexpr;
                           p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccess^.firstsym^.sym),st,p1);
                           { we know the procedure to call, so
                             force the usage of that procedure }
-//                          p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccess^.def);
+                          p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccess^.def);
                           { insert paras }
                           p1^.left:=paras;
                           p1^.isproperty:=true;
@@ -2098,7 +2098,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.162  1999-11-30 10:40:44  peter
+  Revision 1.163  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.162  1999/11/30 10:40:44  peter
     + ttype, tsymlist
 
   Revision 1.161  1999/11/18 15:34:47  pierre

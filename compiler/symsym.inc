@@ -660,7 +660,7 @@
       begin
         if (ppo_is_override in propoptions) then
          begin
-           resolvesym(propoverriden);
+           resolvesym(psym(propoverriden));
            dooverride(propoverriden);
          end
         else
@@ -2123,7 +2123,11 @@
 
 {
   $Log$
-  Revision 1.131  1999-11-30 10:40:55  peter
+  Revision 1.132  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.131  1999/11/30 10:40:55  peter
     + ttype, tsymlist
 
   Revision 1.130  1999/11/26 00:19:12  peter

@@ -445,10 +445,10 @@ unit cgobj;
 
       begin
          if (psym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.definition) and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.definition)^.is_class) and
-            pvarsym(p)^.definition^.needs_inittable then
+            assigned(pvarsym(p)^.vartype.def) and
+            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+            pvarsym(p)^.vartype.def^.needs_inittable then
            begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
@@ -461,7 +461,7 @@ unit cgobj;
                 begin
                    hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
                 end;
-              g_initialize(list,pvarsym(p)^.definition,hr,false);
+              g_initialize(list,pvarsym(p)^.vartype.def,hr,false);
            end;
       end;
 
@@ -474,14 +474,14 @@ unit cgobj;
 
       begin
          if (psym(p)^.typ=varsym) and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.definition)^.is_class) and
-            pvarsym(p)^.definition^.needs_inittable and
+            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+            pvarsym(p)^.vartype.def^.needs_inittable and
             ((pvarsym(p)^.varspez=vs_value)) then
            begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
-              hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
+              hr.symbol:=pvarsym(p)^.vartype.def^.get_inittable_label;
               a_param_ref_addr(list,hr,2);
               reset_reference(hr);
               hr.base:=procinfo^.framepointer;
@@ -501,10 +501,10 @@ unit cgobj;
 
       begin
          if (psym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.definition) and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.is_class) and
-            pvarsym(p)^.definition^.needs_inittable then
+            assigned(pvarsym(p)^.vartype.def) and
+            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+            pvarsym(p)^.vartype.def^.needs_inittable then
            begin
               { not all kind of parameters need to be finalized  }
               if (psym(p)^.owner^.symtabletype=parasymtable) and
@@ -528,7 +528,7 @@ unit cgobj;
                  else
                    hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
               end;
-              g_finalize(list,pvarsym(p)^.definition,hr,false);
+              g_finalize(list,pvarsym(p)^.vartype.def,hr,false);
            end;
       end;
 
@@ -718,12 +718,12 @@ unit cgobj;
   {$endif GDB}
 
          { initialize return value }
-         if assigned(procinfo^.retdef) and
-	   is_ansistring(procinfo^.retdef) or
-           is_widestring(procinfo^.retdef) then
+         if assigned(procinfo^.returntype.def) and
+           is_ansistring(procinfo^.returntype.def) or
+           is_widestring(procinfo^.returntype.def) then
            begin
               reset_reference(hr);
-              hr.offset:=procinfo^.retoffset;
+              hr.offset:=procinfo^.return_offset;
               hr.base:=procinfo^.framepointer;
               a_load_const_ref(list,OS_32,0,hr);
            end;
@@ -855,15 +855,15 @@ unit cgobj;
               a_reg_dealloc(list,accumulator);
 
               { must be the return value finalized before reraising the exception? }
-              if (procinfo^.retdef<>pdef(voiddef)) and
-                (procinfo^.retdef^.needs_inittable) and
-                ((procinfo^.retdef^.deftype<>objectdef) or
-                not(pobjectdef(procinfo^.retdef)^.is_class)) then
+              if (procinfo^.returntype.def<>pdef(voiddef)) and
+                (procinfo^.returntype.def^.needs_inittable) and
+                ((procinfo^.returntype.def^.deftype<>objectdef) or
+                not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
                 begin
                    reset_reference(hr);
-                   hr.offset:=procinfo^.retoffset;
+                   hr.offset:=procinfo^.return_offset;
                    hr.base:=procinfo^.framepointer;
-                   g_finalize(list,procinfo^.retdef,hr,ret_in_param(procinfo^.retdef));
+                   g_finalize(list,procinfo^.returntype.def,hr,ret_in_param(procinfo^.returntype.def));
                 end;
 
               a_call_name(list,'FPC_RERAISE',0);
@@ -942,25 +942,25 @@ unit cgobj;
                      '"$t:r'+procinfo^._class^.numberstring+'",'+
                      tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
                   }
-                if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
+                if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
                   begin
-                    if ret_in_param(aktprocsym^.definition^.retdef) then
+                    if ret_in_param(aktprocsym^.definition^.rettype.def) then
                       list^.concat(new(pai_stabs,init(strpnew(
-                       '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                       '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                     else
                       list^.concat(new(pai_stabs,init(strpnew(
-                       '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                       '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                     if (m_result in aktmodeswitches) then
-                      if ret_in_param(aktprocsym^.definition^.retdef) then
+                      if ret_in_param(aktprocsym^.definition^.rettype.def) then
                         list^.concat(new(pai_stabs,init(strpnew(
-                         '"RESULT:X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                         '"RESULT:X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                       else
                         list^.concat(new(pai_stabs,init(strpnew(
-                         '"RESULT:X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                         '"RESULT:X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                   end;
                 mangled_length:=length(aktprocsym^.definition^.mangledname);
                 getmem(p,mangled_length+50);
@@ -1090,7 +1090,7 @@ unit cgobj;
       end;
 
     procedure tcg.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
-    
+
       begin
         abstract;
       end;
@@ -1116,7 +1116,11 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.31  1999-11-05 13:15:00  florian
+  Revision 1.32  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.31  1999/11/05 13:15:00  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.30  1999/11/05 07:05:56  jonas

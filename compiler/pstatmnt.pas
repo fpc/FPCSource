@@ -370,11 +370,13 @@ unit pstatmnt;
     function _with_statement : ptree;
 
       var
-         right,p,hp : ptree;
+         right,p : ptree;
          i,levelcount : longint;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
-
+{$ifdef tp}
+         hp : ptree;
+{$endif}
       begin
          p:=comp_expr(true);
          do_firstpass(p);
@@ -453,7 +455,11 @@ unit pstatmnt;
             if token=_COMMA then
              begin
                consume(_COMMA);
-               hp:=_with_statement{$ifndef tp}(){$endif};
+{$ifdef tp}
+               hp:=_with_statement;
+{$else}
+               _with_statement();
+{$endif}
              end
             else
              begin
@@ -1316,7 +1322,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.113  1999-11-30 10:40:45  peter
+  Revision 1.114  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.113  1999/11/30 10:40:45  peter
     + ttype, tsymlist
 
   Revision 1.112  1999/11/20 01:19:10  pierre

@@ -1183,8 +1183,7 @@ end;
 
 Procedure T386IntelOperand.BuildOperand;
 var
-  expr,
-  tempstr : string;
+  expr    : string;
   tempreg : tregister;
   l       : longint;
   hl      : PAsmLabel;
@@ -1259,7 +1258,6 @@ var
   end;
 
 Begin
-  tempstr:='';
   expr:='';
   case actasmtoken of
 
@@ -1451,11 +1449,9 @@ end;
 Procedure T386IntelInstruction.BuildOpCode;
 var
   PrefixOp,OverrideOp: tasmop;
-  expr : string;
   size : topsize;
   operandnum : longint;
 Begin
-  expr:='';
   PrefixOp:=A_None;
   OverrideOp:=A_None;
   { prefix seg opcode / prefix opcode }
@@ -1772,7 +1768,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  1999-11-30 10:40:53  peter
+  Revision 1.55  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.54  1999/11/30 10:40:53  peter
     + ttype, tsymlist
 
   Revision 1.53  1999/11/17 17:05:03  pierre

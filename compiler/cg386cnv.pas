@@ -603,18 +603,13 @@ implementation
                   CGMessage(type_e_mismatch);
                   l:=255;
                 end;
-               { first get the memory for the string }
-               gettempofsizereference(256,pto^.location.reference);
-               { write the length }
-               emit_const_ref(A_MOV,S_B,l,
-                 newreference(pto^.location.reference));
-               { copy to first char of string }
-               inc(pto^.location.reference.offset);
-               { generates the copy code      }
-               { and we need the source never }
-               concatcopy(pfrom^.location.reference,pto^.location.reference,l,true,false);
-               { correct the string location }
-               dec(pto^.location.reference.offset);
+               gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+               pushusedregisters(pushed,$ff);
+               emit_push_lea_loc(pfrom^.location,true);
+               emitpushreferenceaddr(pto^.location.reference);
+               emitcall('FPC_PCHAR_TO_SHORTSTR');
+               maybe_loadesi;
+               popusedregisters(pushed);
              end;
            st_ansistring :
              begin
@@ -1491,7 +1486,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  1999-11-29 22:15:25  pierre
+  Revision 1.95  1999-12-01 12:42:31  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.94  1999/11/29 22:15:25  pierre
    * fix for internalerror(12) on ord(booleanarray[1])
 
   Revision 1.93  1999/11/06 14:34:17  peter

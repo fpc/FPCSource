@@ -740,7 +740,8 @@ implementation
            { is one of the operands a string?,
              chararrays are also handled as strings (after conversion) }
            if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
-              (is_chararray(rd) and is_chararray(ld)) then
+              ((is_chararray(rd) or is_char(rd)) and
+               (is_chararray(ld) or is_char(ld))) then
             begin
               if is_widestring(rd) or is_widestring(ld) then
                 begin
@@ -1187,7 +1188,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-11-30 10:40:56  peter
+  Revision 1.59  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.58  1999/11/30 10:40:56  peter
     + ttype, tsymlist
 
   Revision 1.57  1999/11/26 13:51:29  pierre

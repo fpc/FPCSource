@@ -25,7 +25,7 @@ unit cgbase;
   interface
 
     uses
-       globtype,cobjects,aasm,symtable,verbose,tree,cpuasm,cpubase;
+       globtype,cobjects,aasm,symconst,symtable,verbose,tree,cpuasm,cpubase;
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -50,33 +50,29 @@ unit cgbase;
        TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64);
 
        pprocinfo = ^tprocinfo;
-       tprocinfo = record
+       tprocinfo = object
           { pointer to parent in nested procedures }
           parent : pprocinfo;
           { current class, if we are in a method }
           _class : pobjectdef;
           { return type }
-          retdef : pdef;
-          { return type }
-          sym : pprocsym;
+          returntype : ttype;
           { symbol of the function, and the sym for result variable }
           resultfuncretsym,
           funcretsym : pfuncretsym;
+          funcret_state : tvarstate;
           { the definition of the proc itself }
-          { why was this a pdef only ?? PM    }
           def : pprocdef;
+          sym : pprocsym;
+
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
           selfpointer_offset : longint;
           { result value offset }
-          retoffset : longint;
-
+          return_offset : longint;
           { firsttemp position }
-          firsttemp : longint;
-
-          funcret_is_valid : boolean;
-
+          firsttemp_offset : longint;
           { parameter offset }
           call_offset : longint;
 
@@ -101,6 +97,9 @@ unit cgbase;
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : paasmoutput;
           { local data is used for smartlink }
+
+          constructor init;
+          destructor done;
        end;
 
        { some kind of temp. types needs to be destructed }
@@ -308,6 +307,48 @@ unit cgbase;
            end;
       end;
 
+
+{****************************************************************************
+                                 TProcInfo
+****************************************************************************}
+
+    constructor tprocinfo.init;
+      begin
+        parent:=nil;
+        _class:=nil;
+        returntype.reset;
+        resultfuncretsym:=nil;
+        funcretsym:=nil;
+        funcret_state:=vs_none;
+        def:=nil;
+        sym:=nil;
+        framepointer_offset:=0;
+        selfpointer_offset:=0;
+        return_offset:=0;
+        firsttemp_offset:=0;
+        call_offset:=0;
+        registerstosave:=[];
+        flags:=0;
+        framepointer:=R_NO;
+        globalsymbol:=false;
+        exported:=false;
+        aktentrycode:=new(paasmoutput,init);
+        aktexitcode:=new(paasmoutput,init);
+        aktproccode:=new(paasmoutput,init);
+        aktlocaldata:=new(paasmoutput,init);
+      end;
+
+
+    destructor tprocinfo.done;
+      begin
+         dispose(aktentrycode,done);
+         dispose(aktexitcode,done);
+         dispose(aktproccode,done);
+         dispose(aktlocaldata,done);
+      end;
+
+
+
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
 *****************************************************************************}
@@ -316,27 +357,17 @@ unit cgbase;
       begin
          aktbreaklabel:=nil;
          aktcontinuelabel:=nil;
-         new(procinfo);
+         new(procinfo,init);
          { aktexitlabel:=0; is store in oldaktexitlabel
            so it must not be reset to zero before this storage !}
-         { the type of this lists isn't important }
-         { because the code of this lists is      }
-         { copied to the code segment             }
-         procinfo^.aktentrycode:=new(paasmoutput,init);
-         procinfo^.aktexitcode:=new(paasmoutput,init);
-         procinfo^.aktproccode:=new(paasmoutput,init);
-         procinfo^.aktlocaldata:=new(paasmoutput,init);
       end;
 
 
 
     procedure codegen_doneprocedure;
       begin
-         dispose(procinfo^.aktentrycode,done);
-         dispose(procinfo^.aktexitcode,done);
-         dispose(procinfo^.aktproccode,done);
-         dispose(procinfo^.aktlocaldata,done);
-         dispose(procinfo);
+         dispose(procinfo,done);
+         procinfo:=nil;
       end;
 
 
@@ -481,7 +512,11 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.12  1999-11-05 13:15:00  florian
+  Revision 1.13  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.12  1999/11/05 13:15:00  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.11  1999/10/14 14:57:54  florian

@@ -288,15 +288,19 @@ implementation
         framepointer:=R_NO;
         globalsymbol:=false;
         exported:=false;
-        aktproccode:=nil;
-        aktentrycode:=nil;
-        aktexitcode:=nil;
-        aktlocaldata:=nil;
+        aktentrycode:=new(paasmoutput,init);
+        aktexitcode:=new(paasmoutput,init);
+        aktproccode:=new(paasmoutput,init);
+        aktlocaldata:=new(paasmoutput,init);
       end;
 
 
     destructor tprocinfo.done;
       begin
+         dispose(aktentrycode,done);
+         dispose(aktexitcode,done);
+         dispose(aktproccode,done);
+         dispose(aktlocaldata,done);
       end;
 
 
@@ -312,23 +316,12 @@ implementation
            so it must not be reset to zero before this storage !}
          { new procinfo }
          new(procinfo,init);
-         { the type of this lists isn't important }
-         { because the code of this lists is      }
-         { copied to the code segment        }
-         procinfo^.aktentrycode:=new(paasmoutput,init);
-         procinfo^.aktexitcode:=new(paasmoutput,init);
-         procinfo^.aktproccode:=new(paasmoutput,init);
-         procinfo^.aktlocaldata:=new(paasmoutput,init);
       end;
 
 
 
     procedure codegen_doneprocedure;
       begin
-         dispose(procinfo^.aktentrycode,done);
-         dispose(procinfo^.aktexitcode,done);
-         dispose(procinfo^.aktproccode,done);
-         dispose(procinfo^.aktlocaldata,done);
          dispose(procinfo,done);
          procinfo:=nil;
       end;
@@ -407,7 +400,11 @@ end.
 
 {
   $Log$
-  Revision 1.50  1999-11-30 10:40:43  peter
+  Revision 1.51  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.50  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.49  1999/11/17 17:04:59  pierre

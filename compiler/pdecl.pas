@@ -322,6 +322,7 @@ unit pdecl;
          newtype : ptypesym;
          is_dll,
          is_gpc_name,is_cdecl,extern_aktvarsym,export_aktvarsym : boolean;
+         old_current_object_option : tsymoptions;
          dll_name,
          C_name : string;
          tt,casetype : ttype;
@@ -606,14 +607,23 @@ unit pdecl;
              { insert it in the symtable, if not done yet }
              if not symdone then
                begin
+                  { save object option, because we can turn of the sp_published }
+                  old_current_object_option:=current_object_option;
                   if (sp_published in current_object_option) and
                     (not((tt.def^.deftype=objectdef) and (pobjectdef(tt.def)^.is_class))) then
-                    Message(parser_e_cant_publish_that)
-                  else if (sp_published in current_object_option) and
-                    not(oo_can_have_published in pobjectdef(tt.def)^.objectoptions) then
-                    Message(parser_e_only_publishable_classes_can__be_published);
-
-                  insert_syms(symtablestack,sc,tt,is_threadvar)
+                   begin
+                     Message(parser_e_cant_publish_that);
+                     exclude(current_object_option,sp_published);
+                   end
+                  else
+                   if (sp_published in current_object_option) and
+                      not(oo_can_have_published in pobjectdef(tt.def)^.objectoptions) then
+                    begin
+                      Message(parser_e_only_publishable_classes_can__be_published);
+                      exclude(current_object_option,sp_published);
+                    end;
+                  insert_syms(symtablestack,sc,tt,is_threadvar);
+                  current_object_option:=old_current_object_option;
                end;
            end;
          { Check for Case }
@@ -1160,7 +1170,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.173  1999-11-30 10:40:44  peter
+  Revision 1.174  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.173  1999/11/30 10:40:44  peter
     + ttype, tsymlist
 
   Revision 1.172  1999/11/29 15:18:27  pierre

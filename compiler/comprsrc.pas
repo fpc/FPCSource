@@ -40,7 +40,6 @@ uses
 
 procedure CompileResourceFiles;
 var
-  resnr : longint;
   s     : string;
 
   procedure CompileResource(const fn:string);
@@ -99,7 +98,6 @@ var
   end;
 
 begin
-  resnr:=0;
   While not Current_module^.ResourceFiles.Empty do
    begin
      S:=Current_module^.ResourceFiles.get;
@@ -111,7 +109,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-11-12 11:03:50  peter
+  Revision 1.8  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.7  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.6  1999/07/18 10:19:49  florian

@@ -3009,9 +3009,9 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.stabstring : pchar;
       var
          nss : pchar;
-         i   : longint;
+        { i   : longint; }
       begin
-        i := para^.count;
+        { i := para^.count; }
         getmem(nss,1024);
         { it is not a function but a function pointer !! (PM) }
 
@@ -3841,7 +3841,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.178  1999-12-01 10:26:38  pierre
+  Revision 1.179  1999-12-01 12:42:33  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.178  1999/12/01 10:26:38  pierre
    * restore the correct way for stabs of forward defs
 
   Revision 1.177  1999/11/30 10:40:54  peter

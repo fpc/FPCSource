@@ -285,7 +285,7 @@ unit tree;
 
           { this node is the anchestor for all classes with at least }
           { one child, you have to use it if you want to use         }
-          { true- and falselabel				     }
+          { true- and falselabel                                     }
           punarynode = ^tunarynode;
           tunarynode = object(tnode)
              left : pnode;
@@ -606,7 +606,7 @@ unit tree;
           'arrayconstructrangen',
           'nothingn',
           'loadvmtn',
-	  'pointerconstn');
+          'pointerconstn');
 
       begin
          write(indention,'(',treetype2str[treetype]);
@@ -677,7 +677,7 @@ unit tree;
 
       begin
          { we could change that depending on the number of }
-         { required registers			           }
+         { required registers                              }
          left^.parent:=@self;
          left^.concattolist(l);
          left^.parent:=@self;
@@ -1013,7 +1013,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
-         p^.resulttype:=v^.definition;
+         p^.resulttype:=v^.vartype.def;
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
@@ -1384,7 +1384,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
-         p^.resulttype:=sym^.definition;
+         p^.resulttype:=sym^.typedconsttype.def;
          p^.symtableentry:=pvarsym(sym);
          p^.symtable:=st;
          p^.disposetyp:=dt_nothing;
@@ -2044,7 +2044,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.16  1999-11-05 13:15:01  florian
+  Revision 1.17  1999-12-01 12:42:34  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.16  1999/11/05 13:15:01  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.15  1999/10/12 21:20:47  florian

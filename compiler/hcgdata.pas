@@ -444,7 +444,8 @@ implementation
                                        { only if both are virtual !!  }
                                        if (procdefcoll^.data^.proccalloptions<>hp^.proccalloptions) or
                                           (procdefcoll^.data^.proctypeoption<>hp^.proctypeoption) or
-                                          ((procdefcoll^.data^.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])<>
+                                          ((procdefcoll^.data^.procoptions-
+                                              [po_abstractmethod,po_overridingmethod,po_assembler])<>
                                            (hp^.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])) then
                                          Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
 
@@ -615,7 +616,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-11-30 10:40:43  peter
+  Revision 1.21  1999-12-01 12:42:32  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.20  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.19  1999/11/29 23:42:49  pierre

@@ -204,7 +204,6 @@ implementation
            typedtyp,
            pararesult : pdef;
            orgfloattype : tfloattype;
-           has_length : boolean;
            dummycoll  : tparaitem;
            iolabel    : pasmlabel;
            npara      : longint;
@@ -224,7 +223,6 @@ implementation
            else
              iolabel:=nil;
            { for write of real with the length specified }
-           has_length:=false;
            hp:=nil;
            { reserve temporary pointer to data variable }
            aktfile.symbol:=nil;
@@ -379,7 +377,6 @@ implementation
                                    hp^.right:=node;
                                    if codegenerror then
                                      exit;
-                                   has_length:=true;
                                 end
                               else
                                 if pararesult^.deftype<>floatdef then
@@ -524,7 +521,7 @@ implementation
         var
            hp,node : ptree;
            dummycoll : tparaitem;
-           is_real,has_length : boolean;
+           is_real : boolean;
            realtype : tfloattype;
            procedureprefix : string;
 
@@ -534,7 +531,6 @@ implementation
            pushusedregisters(pushed,$ff);
            node:=p^.left;
            is_real:=false;
-           has_length:=false;
            while assigned(node^.right) do node:=node^.right;
            { if a real parameter somewhere then call REALSTR }
            if (node^.left^.resulttype^.deftype=floatdef) then
@@ -588,7 +584,6 @@ implementation
                 hp:=node;
                 node:=node^.right;
                 hp^.right:=nil;
-                has_length:=true;
              end
            else
              if is_real then
@@ -1440,7 +1435,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  1999-11-30 10:40:42  peter
+  Revision 1.82  1999-12-01 12:42:31  peter
+    * fixed bug 698
+    * removed some notes about unused vars
+
+  Revision 1.81  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.80  1999/11/29 00:30:06  pierre
