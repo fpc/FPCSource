@@ -18,14 +18,14 @@
 #define ST_FLUSH_WINDOWS 3
 #define RW_FP [%fp + 0x48]
 }
-procedure longjmp(var s : jmp_buf;value:longint);assembler;[Public,alias:'FPC_LONGJMP'];
+procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];
   asm
     // Store our arguments in global registers so we can still
     // use them while unwinding frames and their register windows.
 
-    ld [%i0+4], %g3         // Cache target FP in register %g3.
-    mov %i0, %g1            // s in %g1
-    orcc %i1, %g0, %g2      // value in %g2
+    ld [%o0+4], %g3         // Cache target FP in register %g3.
+    mov %o0, %g1            // s in %g1
+    orcc %o1, %g0, %g2      // value in %g2
     be,a .L0                // Branch if zero; else skip delay slot.
     mov 1, %g2              // Delay slot only hit if zero: VAL = 1.
 .L0:
@@ -61,7 +61,7 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;[Public,alias:'FPC_LO
     ld      [%g1], %fp      // Set saved SP on restore below.
     sub     %fp, 64, %sp    // Allocate a register frame.
     st      %g3, [%fp+48]   // Set saved FP on restore below.
-    ret
+    retl
     restore %g2, 0, %o0     // Restore values from above register frame.
 
 .Lfound:
@@ -75,18 +75,22 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;[Public,alias:'FPC_LO
   end;
 
 
-function setjmp(var S:jmp_buf):longint;assembler;[Public,alias:'FPC_SETJMP'];
+function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC_SETJMP'];
   asm
-    // Save our PC, SP and FP.
-    st      %i7, [%i0+8]
-    st      %sp, [%i0]
-    st      %fp, [%i0+4]
-    mov     %g0, %i0
+    // We don't create a stackframe so we can save PC,SP and FP of the caller
+    st      %o7, [%o0+8]
+    st      %sp, [%o0]
+    st      %fp, [%o0+4]
+    mov     %g0, %o0
   end;
 
 {
   $Log$
-  Revision 1.7  2004-05-30 12:08:32  florian
+  Revision 1.8  2004-05-31 10:43:00  peter
+    * don't create stackframes so we can retrieve the info from
+      the caller
+
+  Revision 1.7  2004/05/30 12:08:32  florian
     * setjmp on sparc improved
 
   Revision 1.6  2004/05/25 21:38:11  peter
