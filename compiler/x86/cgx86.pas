@@ -1659,6 +1659,7 @@ unit cgx86;
                     r.number:=NR_EDI;
                     list.concat(Taicpu.op_reg(A_DEC,S_L,r));
                     a_jmp_cond(list,OC_NE,again);
+                    r.enum:=R_EDI;
                     rg.ungetregisterint(list,r);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize,rsp));
                  end
@@ -1910,7 +1911,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.29  2003-01-13 14:54:34  daniel
+  Revision 1.30  2003-01-13 23:00:18  daniel
+    * Fixed internalerror
+
+  Revision 1.29  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 
