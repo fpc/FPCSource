@@ -2395,6 +2395,7 @@ implementation
       var
         def : tstoreddef;
       begin
+        new_section(list,sec_code,'',0);
         def:=tstoreddef(st.defindex.first);
         while assigned(def) do
           begin
@@ -2407,7 +2408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.263  2005-03-02 19:44:11  jonas
+  Revision 1.264  2005-03-09 22:37:24  peter
+  put intf wrappers in code section
+
+  Revision 1.263  2005/03/02 19:44:11  jonas
     * use expectloc in firstcomplex()
 
   Revision 1.262  2005/02/15 21:39:48  peter
