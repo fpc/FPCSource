@@ -34,6 +34,10 @@ Begin
  { generate a sigsegv by writing to null-address }
  sel:=0;
  v:=nil;
+{$ifdef go32v2}
+  { on win9X no zero page protection :( }
+  v:=pointer(-2);
+{$endif go32v2}
  word(v^):=sel;
  { we should not go to here }
  Writeln('Error : signal not called');
