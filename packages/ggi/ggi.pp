@@ -86,13 +86,13 @@ type
   PGGIColor = ^TGGIColor;
 
   TGGIColor = record
-    r, g, b, a: SmallInt;
+    r, g, b, a: Word;
   end;
 
   PGGIClut = ^TGGIClut;
 
   TGGIClut = record
-    size: SmallInt;
+    size: Word;
     data: PGGIColor;
   end;
 
@@ -566,22 +566,22 @@ function  ggiParseMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libg
 // Normal flush
 function  ggiFlush(vis: TGGIVisual): Integer; cdecl; external libggi;
 
-// Flush only the specified region if it would improve performance */
+// Flush only the specified region if it would improve performance
 function  ggiFlushRegion(vis: TGGIVisual; x, y, w, h: Integer): Integer; cdecl; external libggi;
 
 
 // Graphics context
 
-function  ggiSetGCForeground(vis: TGGIVisual; Color: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiSetGCForeground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiGetGCForeground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
-function  ggiSetGCBackground(vis: TGGIVisual; Color: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiSetGCBackground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiGetGCBackground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiSetGCClipping(vis: TGGIVisual; left, top, right, bottom: Integer): Integer; cdecl; external libggi;
 function  ggiGetGCClipping(vis: TGGIVisual; var left, top, right, bottom: Integer): Integer; cdecl; external libggi;
 
 
 // Color palette manipulation
-function  ggiMapColor(vis: TGGIVisual; Color: TGGIColor): TGGIPixel; cdecl; external libggi;
+function  ggiMapColor(vis: TGGIVisual; var Color: TGGIColor): TGGIPixel; cdecl; external libggi;
 function  ggiUnmapPixel(vis: TGGIVisual; pixel: TGGIPixel; var Color: TGGIColor): Integer; cdecl; external libggi;
 function  ggiPackColors(vis: TGGIVisual; var buf; var cols: TGGIColor; len: Integer): Integer; cdecl; external libggi;
 function  ggiUnpackPixels(vis: TGGIVisual; var buf; var cols: TGGIColor; len: Integer): Integer; cdecl; external libggi;
@@ -623,7 +623,7 @@ function  ggiFillscreen(vis: TGGIVisual): Integer; cdecl; external libggi;
 
 function  ggiDrawPixel(vis: TGGIVisual; x, y: Integer): Integer; cdecl; external libggi;
 function  ggiPutPixel(vis: TGGIVisual; x, y: Integer; pixel: TGGIPixel): Integer; cdecl; external libggi;
-function  ggiGutPixel(vis: TGGIVisual; x, y: Integer; var pixel: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiGetPixel(vis: TGGIVisual; x, y: Integer; var pixel: TGGIPixel): Integer; cdecl; external libggi;
 
 function  ggiDrawLine(vis: TGGIVisual; x, y, xe, ye: Integer): Integer; cdecl; external libggi;
 function  ggiDrawHLine(vis: TGGIVisual; x, y, w: Integer): Integer; cdecl; external libggi;
@@ -788,7 +788,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-11-12 18:47:34  sg
+  Revision 1.3  2000-04-14 16:57:58  sg
+  * Fixed some wrong argument lists
+
+  Revision 1.2  1999/11/12 18:47:34  sg
   * Fixed a small typo...
 
   Revision 1.1  1999/11/10 14:14:34  sg
