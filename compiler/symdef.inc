@@ -846,6 +846,14 @@
          rangenr:=0;
       end;
 
+    function torddef.getrangecheckstring : string;
+
+      begin
+         if (cs_smartlink in aktmoduleswitches) then
+           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+         else
+           getrangecheckstring:='R_'+tostr(rangenr);
+      end;
 
     procedure torddef.genrangecheck;
       begin
@@ -854,9 +862,9 @@
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.modulename^+tostr(rangenr))))
+                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
               else
-                datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr))));
+                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
               if low<=high then
                 begin
                    datasegment^.concat(new(pai_const,init_32bit(low)));
@@ -1432,6 +1440,15 @@
          rangenr:=0;
       end;
 
+    function tarraydef.getrangecheckstring : string;
+
+      begin
+         if (cs_smartlink in aktmoduleswitches) then
+           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+         else
+           getrangecheckstring:='R_'+tostr(rangenr);
+      end;
+
 
     procedure tarraydef.genrangecheck;
       begin
@@ -1439,7 +1456,10 @@
            begin
               { generates the data for range checking }
               getlabelnr(rangenr);
-              datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr))));
+              if (cs_smartlink in aktmoduleswitches) then
+                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)))
+              else
+                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)));
               datasegment^.concat(new(pai_const,init_32bit(lowrange)));
               datasegment^.concat(new(pai_const,init_32bit(highrange)));
            end;
@@ -3025,7 +3045,10 @@
 
 {
   $Log$
-  Revision 1.51  1998-09-25 12:01:41  florian
+  Revision 1.52  1998-10-02 07:20:38  florian
+    * range checking in units doesn't work if the units are smartlinked, fixed
+
+  Revision 1.51  1998/09/25 12:01:41  florian
     * tobjectdef.publicsyms.datasize was set to savesize, this is wrong now
       because the symtable size is read from the ppu file
 

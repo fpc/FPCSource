@@ -120,7 +120,7 @@ implementation
                 end
               else internalerror(6);
               hp:=new_reference(R_NO,0);
-              hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr));
+              hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
               if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    getlabel(neglabel);
@@ -132,7 +132,7 @@ implementation
               if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    hp:=new_reference(R_NO,0);
-                   hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr+1));
+                   hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
                    emitl(A_JMP,poslabel);
                    emitl(A_LABEL,neglabel);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hp)));
@@ -183,13 +183,13 @@ implementation
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                        newreference(p^.location.reference),R_EDI)));
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup('R_'+tostr(porddef(hp^.resulttype)^.rangenr));
+                   hpp^.symbol:=stringdup(porddef(hp^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
 
                    { then we do a normal range check }
                    porddef(p^.resulttype)^.genrangecheck;
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
+                   hpp^.symbol:=stringdup(porddef(p^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                 end
               else
@@ -225,7 +225,7 @@ implementation
                      end
                    else internalerror(6);
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
+                   hpp^.symbol:=stringdup(porddef(p^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                    (*
                    if (p^.location.loc=LOC_REGISTER) or
@@ -453,7 +453,6 @@ implementation
                  st_shortstring:
                    begin
                       pushusedregisters(pushed,$ff);
-                      push_int(p^.resulttype^.size-1);
                       gettempofsizereference(p^.resulttype^.size,p^.location.reference);
                       emitpushreferenceaddr(exprasmlist,p^.location.reference);
                       case p^.left^.location.loc of
@@ -1311,7 +1310,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1998-09-30 12:14:24  peter
+  Revision 1.26  1998-10-02 07:20:35  florian
+    * range checking in units doesn't work if the units are smartlinked, fixed
+
+  Revision 1.25  1998/09/30 12:14:24  peter
     * fixed boolean(longbool) conversion
 
   Revision 1.24  1998/09/27 10:16:22  florian

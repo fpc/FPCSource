@@ -209,6 +209,9 @@
 
        parraydef = ^tarraydef;
        tarraydef = object(tdef)
+       private
+          rangenr    : longint;
+       public
           lowrange,
           highrange  : longint;
           definition : pdef;
@@ -216,7 +219,6 @@
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
-          rangenr    : longint;
           function elesize : longint;
           constructor init(l,h : longint;rd : pdef);
           constructor load;
@@ -230,6 +232,9 @@
           { generates the ranges needed by the asm instruction BOUND (i386)
             or CMP2 (Motorola) }
           procedure genrangecheck;
+
+          { returns the label of the range check string }
+          function getrangecheckstring : string;
           function needs_inittable : boolean;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_table;virtual;
@@ -279,6 +284,8 @@
           { generates the ranges needed by the asm instruction BOUND }
           { or CMP2 (Motorola)                                       }
           procedure genrangecheck;
+          { returns the label of the range check string }
+          function getrangecheckstring : string;
           procedure write_rtti_data;virtual;
           function is_publishable : boolean;virtual;
        end;
@@ -470,7 +477,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-09-23 12:03:57  peter
+  Revision 1.2  1998-10-02 07:20:40  florian
+    * range checking in units doesn't work if the units are smartlinked, fixed
+
+  Revision 1.1  1998/09/23 12:03:57  peter
     * overloading fix for array of const
 
 }

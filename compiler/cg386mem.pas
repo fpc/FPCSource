@@ -568,7 +568,7 @@ implementation
                    begin
                       hp:=new_reference(R_NO,0);
                       parraydef(p^.left^.resulttype)^.genrangecheck;
-                      hp^.symbol:=stringdup('R_'+tostr(parraydef(p^.left^.resulttype)^.rangenr));
+                      hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
                       exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
                    end;
               end;
@@ -673,7 +673,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-09-27 10:16:23  florian
+  Revision 1.14  1998-10-02 07:20:37  florian
+    * range checking in units doesn't work if the units are smartlinked, fixed
+
+  Revision 1.13  1998/09/27 10:16:23  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 
