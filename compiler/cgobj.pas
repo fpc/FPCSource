@@ -652,7 +652,11 @@ unit cgobj;
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
-            internalerror(200109092);
+            begin
+               writeln(ord(loc.loc));
+               runerror(216);
+               internalerror(200109092);
+            end;
         end;
       end;
 
@@ -1396,7 +1400,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2002-07-29 21:16:02  florian
+  Revision 1.41  2002-07-30 20:50:43  florian
+    * the code generator knows now if parameters are in registers
+
+  Revision 1.40  2002/07/29 21:16:02  florian
     * some more ppc fixes
 
   Revision 1.39  2002/07/28 15:56:00  jonas

@@ -155,7 +155,21 @@ unit cpupara;
                    end;
                  LOC_FPUREGISTER:
                    begin
-                      if nextfloatreg<=R_F8 then
+                      if hp.paratyp in [vs_var,vs_out] then
+                        begin
+                           if nextintreg<=R_8 then
+                             begin
+                                hp.paraloc.loc:=LOC_REGISTER;
+                                hp.paraloc.register:=nextintreg;
+                                inc(nextintreg);
+                             end
+                           else
+                              begin
+                                 {!!!!!!!}
+                                 internalerror(2002071006);
+                             end;
+                        end
+                      else if nextfloatreg<=R_F8 then
                         begin
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
@@ -169,7 +183,7 @@ unit cpupara;
                    end;
                  LOC_REFERENCE:
                    begin
-                      if push_addr_param(hp.paratype.def) then
+                      if push_addr_param(hp.paratype.def) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
                            if nextintreg<=R_8 then
                              begin
@@ -210,7 +224,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-07-28 20:45:22  florian
+  Revision 1.5  2002-07-30 20:50:44  florian
+    * the code generator knows now if parameters are in registers
+
+  Revision 1.4  2002/07/28 20:45:22  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.3  2002/07/26 22:22:10  florian

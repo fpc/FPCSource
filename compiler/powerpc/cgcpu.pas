@@ -209,11 +209,7 @@ const
                  internalerror(2002072801);
             end;
           else
-            begin
-               runerror(216);
-               writeln(ord(locpara.loc));
-               internalerror(2002081103);
-            end;
+            internalerror(2002081103);
         end;
         if locpara.sp_fixup<>0 then
           internalerror(2002081104);
@@ -1457,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-07-29 21:23:44  florian
+  Revision 1.31  2002-07-30 20:50:44  florian
+    * the code generator knows now if parameters are in registers
+
+  Revision 1.30  2002/07/29 21:23:44  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 

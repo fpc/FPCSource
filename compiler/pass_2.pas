@@ -52,7 +52,7 @@ implementation
 {$endif}
      globtype,systems,verbose,
      cclasses,globals,
-     symconst,symbase,symtype,symsym,
+     symconst,symbase,symtype,symsym,paramgr,
      aasmbase,aasmtai,
      pass_1,cpubase,cgbase,regvars,nflw,rgobj;
 
@@ -301,6 +301,11 @@ implementation
                 end;
 {$endif OMITSTACKFRAME}
 
+              { assign parameter locations }
+{$ifndef i386}
+              setparalocs(procinfo^.procdef);
+{$endif i386}
+
               { process register variable stuff (JM) }
               assign_regvars(p);
               load_regvars(procinfo^.aktentrycode,p);
@@ -323,7 +328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-07-19 11:41:36  daniel
+  Revision 1.33  2002-07-30 20:50:44  florian
+    * the code generator knows now if parameters are in registers
+
+  Revision 1.32  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

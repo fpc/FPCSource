@@ -56,6 +56,8 @@ unit paramgr;
           }
        end;
 
+    procedure setparalocs(p : tprocdef);
+
     var
        paralocdummy : tparalocation;
        paramanager : tparamanager;
@@ -64,7 +66,7 @@ unit paramgr;
 
     uses
        cpuinfo,
-       symconst,symbase,
+       symconst,symbase,symsym,
        defbase;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
@@ -129,13 +131,33 @@ unit paramgr;
          end;
       end;
 
+    procedure setparalocs(p : tprocdef);
+
+      var
+         hp : tparaitem;
+
+      begin
+         hp:=tparaitem(p.para.first);
+         while assigned(hp) do
+           begin
+              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
+              { if the parameter isn't regable, we've to work with the local copy }
+                (vo_regable in tvarsym(hp.parasym).varoptions) then
+                tvarsym(hp.parasym).reg:=hp.paraloc.register;
+              hp:=tparaitem(hp.next);
+           end;
+      end;
+
 finalization
   paramanager.free;
 end.
 
 {
    $Log$
-   Revision 1.5  2002-07-26 21:15:39  florian
+   Revision 1.6  2002-07-30 20:50:43  florian
+     * the code generator knows now if parameters are in registers
+
+   Revision 1.5  2002/07/26 21:15:39  florian
      * rewrote the system handling
 
    Revision 1.4  2002/07/20 11:57:55  florian
