@@ -230,7 +230,7 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings baseunix $(LINUXUNIT) unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx charset ucomplex getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial variants types systhrds sysctl
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings baseunix $(LINUXUNIT) unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx charset ucomplex getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard  serial variants types systhrds sysctl
 override TARGET_LOADERS+=prt0 cprt0
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y y
@@ -1314,7 +1314,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : $(UNIXINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
+baseunix$(PPUEXT) : $(BSDINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
 	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
 	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
 	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \

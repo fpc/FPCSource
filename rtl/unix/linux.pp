@@ -161,7 +161,7 @@ Type
 
 {$ifdef bsd}
 function Do_SysCall(sysnr:longint):longint;
-function Do_Syscall(sysnr,param1:integer):longint;
+//function Do_Syscall(sysnr,param1:integer):longint;
 function Do_SysCall(sysnr,param1:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  2003-03-11 08:26:50  michael
+  Revision 1.29  2003-05-30 19:37:14  marco
+   * small changes
+
+  Revision 1.28  2003/03/11 08:26:50  michael
   * stringtoppchar should use tabs instead of backspace as delimiter
 
   Revision 1.27  2003/01/05 19:11:32  marco
