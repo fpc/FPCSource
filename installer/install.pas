@@ -98,7 +98,7 @@ program install;
      installercopyright='Copyright (c) 1993-2004 Florian Klaempfl';
 
 
-     maxpacks=10;
+     maxpacks=30;
      maxpackages=20;
      maxdefcfgs=1024;
 
@@ -1625,7 +1625,10 @@ end;
                     begin
                       writeln('Too many packs');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'Too many packs');
+                        close(log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].name:=s;
@@ -1637,7 +1640,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defcfgfile:=s
@@ -1649,7 +1655,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defidecfgfile:=s
@@ -1661,7 +1670,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].setpathfile:=s
@@ -1673,7 +1685,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defideinifile:=s
@@ -1685,7 +1700,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].ppc386:=s;
@@ -1697,7 +1715,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].binsub:=s;
@@ -1721,7 +1742,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].targetname:=s;
@@ -1733,7 +1757,10 @@ end;
                     begin
                       writeln('No pack set');
                       if CreateLog then
+                      begin
                         WriteLn (Log, 'No pack set');
+                        Close(Log);
+                      end;
                       halt(1);
                     end;
                    with cfg.pack[cfg.packs] do
@@ -2003,7 +2030,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-12-31 18:36:44  florian
+  Revision 1.26  2005-01-05 17:43:44  armin
+  * maxpacks increased tp 30, close logfile before halt
+
+  Revision 1.25  2004/12/31 18:36:44  florian
     * spelling fixed
     * compiler is fpc instead ppc386
 
