@@ -162,9 +162,9 @@ scan_f_cannot_open_includefile=F_Can't open include file $1
 
 scan_e_too_much_endifs=E_Too many $ENDIFs or $ELSEs
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
-scan_w_only_pack_records=W_Records fields can be aligned to 1,2,4 or 16 bytes only
+scan_w_only_pack_records=W_Records fields can be aligned to 1,2,4,8,16 or 32 bytes only
 % You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
-% \var{n}. Only 1,2,4 or 16 are valid in this case.
+% \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
 scan_w_only_pack_enum=W_Enumerated can be saved in 1,2 or 4 bytes only
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
@@ -1083,6 +1083,9 @@ sym_w_function_result_not_set=W_Function result does not seem to be set
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
+sym_w_wrong_C_pack=W_Type $1 is not aligned correctly in current record for C
+% Arrays with sizes not multiples of 4 will be wrongly aligned
+% for C structures.
 sym_e_illegal_field=E_Unknown record field identifier $1
 % The field doesn't exist in the record definition.
 sym_n_uninitialized_local_variable=W_Local variable $1 does not seem to be initialized

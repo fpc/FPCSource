@@ -296,6 +296,7 @@ type tmsgconst=(
   sym_n_private_method_not_used,
   sym_e_set_expected,
   sym_w_function_result_not_set,
+  sym_w_wrong_C_pack,
   sym_e_illegal_field,
   sym_n_uninitialized_local_variable,
   sym_n_uninitialized_variable,
@@ -698,4 +699,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = 1557951445;
+  MsgCRCValue : longint = -90958003;
