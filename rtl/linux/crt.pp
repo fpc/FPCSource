@@ -122,8 +122,7 @@ Const
   OldTextAttr : byte = $07;
 Var
   CurrX,CurrY : Byte;
-  ExitSave    : Pointer;
-  OutputRedir, InputRedir       : boolean; { is the output/input being redirected (not a TTY) }
+  OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
 
 
 {*****************************************************************************
@@ -1603,25 +1602,7 @@ begin
 end;
 
 
-Procedure CrtExit;
-{
-  We need to restore normal keyboard mode upon exit !!
-}
-Begin
-  ttyFlushOutput;
-  SetRawMode(False);
-{ remove console buf }
-  if Assigned(ConsoleBuf) then
-   FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
-  ExitProc:=ExitSave;
-End;
-
-
-
-Begin
-{Hook Exit}
-  ExitSave:=ExitProc;
-  ExitProc:=@CrtExit;
+Initialization
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -1630,9 +1611,9 @@ Begin
   Reset(Input);
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
- OutputRedir:= not IsAtty(TextRec(Output).Handle);
+  OutputRedir:= not IsAtty(TextRec(Output).Handle);
 { does the input come from another console or from a file? }
- InputRedir :=
+  InputRedir :=
    not IsAtty(TextRec(Input).Handle) or
    (not OutputRedir and
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
@@ -1660,10 +1641,21 @@ Begin
    {Reset Attribute (TextAttr=7 at startup)}
       ttySendStr(#27'[m');
     end;
+
+Finalization
+  ttyFlushOutput;
+  SetRawMode(False);
+{ remove console buf }
+  if Assigned(ConsoleBuf) then
+   FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
+
 End.
 {
   $Log$
-  Revision 1.31  2000-06-22 18:37:49  peter
+  Revision 1.32  2000-07-08 21:29:13  peter
+    * use initialization/finalization instead of exitproc
+
+  Revision 1.31  2000/06/22 18:37:49  peter
     * removed unused vars
 
   Revision 1.30  2000/06/20 08:52:16  jonas
