@@ -239,6 +239,26 @@ var
  function vga_screenon: Longint;  Cdecl; External;
  function vga_getgraphmem: PByteArray; cdecl; external;
 
+
+
+var
+  OldIO : TermIos;
+Procedure SetRawMode(b:boolean);
+Var
+  Tio : Termios;
+Begin
+  if b then
+   begin
+     TCGetAttr(1,Tio);
+     OldIO:=Tio;
+     CFMakeRaw(Tio);
+   end
+  else
+   Tio:=OldIO;
+  TCSetAttr(1,TCSANOW,Tio);
+End;
+
+
 { ---------------------------------------------------------------------
     Required procedures
   ---------------------------------------------------------------------}
@@ -295,6 +315,7 @@ begin
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
     InitColors;
+  SetRawMode(True);
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -476,6 +497,7 @@ end;
         _graphresult := grnoinitgraph;
         exit
       end;
+    SetRawMode(False);
     RestoreVideoState;
     isgraphmode := false;
  end;
@@ -567,7 +589,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-03-25 19:12:00  florian
+  Revision 1.14  2000-04-13 16:01:22  sg
+  * The new terminal started by svgalib after a switch to graphics mode is
+    now set to raw mode, so that some functions of the CRT unit such as
+    ReadKey can work correctly now.
+
+  Revision 1.13  2000/03/25 19:12:00  florian
     * fixed values of MaxX and MaxY
 
   Revision 1.12  2000/03/19 11:20:14  peter
