@@ -116,6 +116,8 @@ implementation
         href       : treference;
         pushed,
         cmpop      : boolean;
+        savedunused : tregisterset;
+
       begin
         { string operations are not commutative }
         if p^.swaped then
@@ -126,10 +128,50 @@ implementation
                 case p^.treetype of
                    addn:
                      begin
-                        { we do not need destination anymore }
-                        del_reference(p^.left^.location.reference);
-                        del_reference(p^.right^.location.reference);
-                        { concatansistring(p); }
+                        cmpop:=false;
+                        secondpass(p^.left);
+                        pushed:=maybe_push(p^.right^.registers32,p);
+                        secondpass(p^.right);
+                        if pushed then restore(p);
+                        { release used registers }
+                        case p^.right^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            del_reference(p^.right^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            ungetregister32(p^.right^.location.register);
+                        end;
+                        case p^.left^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            del_reference(p^.left^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            ungetregister32(p^.left^.location.register);
+                        end;
+                        { that's not nice, but how can we avoid, }
+
+                        savedunused:=unused;
+                        { push the still used registers }
+                        pushusedregisters(pushedregs,$ff);
+                        { push data }
+                        case p^.right^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            emit_push_mem(p^.right^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                        end;
+                        case p^.left^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            emit_push_mem(p^.left^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                        end;
+                        emitcall('FPC_ANSICAT',true);
+                        unused:=savedunused;
+                        p^.location.register:=getexplicitregister32(R_EAX);
+                        emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
+                        popusedregisters(pushedregs);
+                        maybe_loadesi;
+                        ungetiftemp(p^.left^.location.reference);
+                        ungetiftemp(p^.right^.location.reference);
                      end;
                    ltn,lten,gtn,gten,
                    equaln,unequaln:
@@ -302,7 +344,7 @@ implementation
                 end;
              end;
           end;
-        SetResultLocation(cmpop,true,p);
+          SetResultLocation(cmpop,true,p);
       end;
 
 
@@ -1324,7 +1366,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-10-20 15:09:21  florian
+  Revision 1.20  1998-10-21 08:39:56  florian
+    + ansistring operator +
+    + $h and string[n] for n>255 added
+    * small problem with TP fixed
+
+  Revision 1.19  1998/10/20 15:09:21  florian
     + binary operators for ansi strings
 
   Revision 1.18  1998/10/20 08:06:38  pierre

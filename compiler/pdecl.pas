@@ -549,23 +549,14 @@ unit pdecl;
               do_firstpass(p);
               if not is_constintnode(p) then
                 Message(cg_e_illegal_expression);
-{$ifndef UseAnsiString}
-              if (p^.value<1) or (p^.value>255) then
+              if (p^.value<0) then
                 begin
                    Message(parser_e_string_too_long);
                    p^.value:=255;
                 end;
               consume(RECKKLAMMER);
-              if p^.value<>255 then
-                d:=new(pstringdef,init(p^.value))
-{$ifndef GDB}
-                 else d:=new(pstringdef,init(255));
-{$else GDB}
-                 else d:=globaldef('STRING');
-{$endif GDB}
-{$else UseAnsiString}
               if p^.value>255 then
-                d:=new(pstringdef,ansiinit(p^.value))
+                d:=new(pstringdef,longinit(p^.value))
               else if p^.value<>255 then
                 d:=new(pstringdef,init(p^.value))
 {$ifndef GDB}
@@ -573,8 +564,6 @@ unit pdecl;
 {$else GDB}
                  else d:=globaldef('STRING');
 {$endif GDB}
-              consume(RECKKLAMMER);
-{$endif UseAnsiString}
               disposetree(p);
            end
            { should string without suffix be an ansistring also
@@ -2081,7 +2070,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.74  1998-10-20 13:09:13  peter
+  Revision 1.75  1998-10-21 08:39:59  florian
+    + ansistring operator +
+    + $h and string[n] for n>255 added
+    * small problem with TP fixed
+
+  Revision 1.74  1998/10/20 13:09:13  peter
     * fixed object(unknown) crash
 
   Revision 1.73  1998/10/19 08:54:56  pierre

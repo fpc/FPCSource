@@ -44,6 +44,8 @@ unit tgeni386;
 
     function getregister32 : tregister;
     procedure ungetregister32(r : tregister);
+    { tries to allocate the passed register, if possible }
+    function getexplicitregister32(r : tregister) : tregister;
 {$ifdef SUPPORT_MMX}
     function getregistermmx : tregister;
     procedure ungetregistermmx(r : tregister);
@@ -303,6 +305,21 @@ implementation
          else internalerror(10);
       end;
 
+    function getexplicitregister32(r : tregister) : tregister;
+
+      begin
+         if r in unused then
+           begin
+              unused:=unused-[r];
+              usedinproc:=usedinproc or ($80 shr byte(r));
+              getexplicitregister32:=R_ECX;
+              exprasmlist^.concat(new(pairegalloc,init(r)));
+              getexplicitregister32:=r;
+           end
+         else
+           getexplicitregister32:=getregister32;
+      end;
+
     procedure cleartempgen;
 
       begin
@@ -349,7 +366,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-09-20 17:11:24  jonas
+  Revision 1.13  1998-10-21 08:40:03  florian
+    + ansistring operator +
+    + $h and string[n] for n>255 added
+    * small problem with TP fixed
+
+  Revision 1.12  1998/09/20 17:11:24  jonas
     * released REGALLOC
 
   Revision 1.11  1998/09/16 17:58:33  jonas

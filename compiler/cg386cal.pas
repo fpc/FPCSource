@@ -1257,7 +1257,7 @@ implementation
                         else
 {$endif test_dest_loc}
                           begin
-                             hregister:=getregister32;
+                             hregister:=getexplicitregister32(R_EAX);
                              emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                              p^.location.register:=hregister;
                           end;
@@ -1285,7 +1285,7 @@ implementation
                                else
 {$endif test_dest_loc}
                                  begin
-                                    hregister:=getregister32;
+                                    hregister:=getexplicitregister32(R_EAX);
                                     emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                                     p^.location.register:=hregister;
                                  end;
@@ -1298,7 +1298,7 @@ implementation
                                      else
 {$endif test_dest_loc}
                                        begin
-                                          hregister:=getregister32;
+                                          hregister:=getexplicitregister32(R_EAX);
                                           emit_reg_reg(A_MOV,S_B,R_AL,reg32toreg8(hregister));
                                           p^.location.register:=reg32toreg8(hregister);
                                        end;
@@ -1311,7 +1311,7 @@ implementation
                                      else
 {$endif test_dest_loc}
                                        begin
-                                          hregister:=getregister32;
+                                          hregister:=getexplicitregister32(R_EAX);
                                           emit_reg_reg(A_MOV,S_W,R_AX,reg32toreg16(hregister));
                                           p^.location.register:=reg32toreg16(hregister);
                                        end;
@@ -1330,7 +1330,7 @@ implementation
                                              else
 {$endif test_dest_loc}
                                                begin
-                                                  hregister:=getregister32;
+                                                  hregister:=getexplicitregister32(R_EAX);
                                                   emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                                                   p^.location.register:=hregister;
                                                end;
@@ -1347,7 +1347,7 @@ implementation
                               else
 {$endif test_dest_loc}
                                 begin
-                                    hregister:=getregister32;
+                                    hregister:=getexplicitregister32(R_EAX);
                                     emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                                     p^.location.register:=hregister;
                                 end;
@@ -1514,7 +1514,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1998-10-20 08:06:39  pierre
+  Revision 1.37  1998-10-21 08:39:57  florian
+    + ansistring operator +
+    + $h and string[n] for n>255 added
+    * small problem with TP fixed
+
+  Revision 1.36  1998/10/20 08:06:39  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
