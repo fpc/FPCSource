@@ -32,6 +32,25 @@ const
 type
     PBrowserWindow = ^TBrowserWindow;
 
+    PGDBValueCollection = ^TGDBValueCollection;
+
+    PGDBValue = ^TGDBValue;
+    TGDBValue = Object(TObject)
+      constructor Init(Const AExpr : String;ASym : PSymbol);
+      procedure GetValue;
+      function  GetText : String;
+      expr : Pstring;
+      St   : Pstring;
+      S    : PSymbol;
+      GDBI : longint;
+      destructor Done;virtual;
+      end;
+
+    TGDBValueCollection = Object(TCollection)
+      function  At(Index: sw_Integer): PGDBValue;
+      end;
+
+
     PSymbolView = ^TSymbolView;
     TSymbolView = object(TListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
@@ -49,6 +68,7 @@ type
     TSymbolScopeView = object(TSymbolView)
       constructor Init(var Bounds: TRect; ASymbols: PSymbolCollection; AHScrollBar, AVScrollBar: PScrollBar);
       destructor  Done; virtual;
+      procedure   SetGDBCol;
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Draw; virtual;
@@ -57,6 +77,7 @@ type
       procedure   TrackItem(Item: sw_integer); virtual;
     private
       Symbols: PSymbolCollection;
+      SymbolsValue : PGDBValueCollection;
       LookupStr: string;
     end;
 
@@ -98,7 +119,7 @@ type
       procedure    Selected(I: Integer); virtual;
       function     GetPalette: PPalette; virtual;
     private
-      Root: PObjectSymbol;
+      Root         : PObjectSymbol;
       MyBW         : PBrowserWindow;
     end;
 
@@ -135,6 +156,7 @@ type
       procedure   Close; virtual;
       procedure   SelectTab(BrowserTab: Sw_integer); virtual;
       function    GetPalette: PPalette; virtual;
+      destructor  Done;virtual;
     private
       PageTab       : PBrowserTab;
       ST            : PStaticText;
@@ -145,7 +167,7 @@ type
       MemInfoView   : PSymbolMemInfoView;
       Prefix        : PString;
       IsValid       : boolean;
-      DebuggerRunCount : longint;
+      DebuggerValue : PGDBValue;
     end;
 
 procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;S : PSymbol;
@@ -237,7 +259,8 @@ end;
 procedure OpenOneSymbolBrowser(Name : String);
 
 var Index : sw_integer;
-    PS : PSymbol;
+    PS,S : PSymbol;
+    Anc : PObjectSymbol;
     P : Pstring;
     Symbols: PSymbolCollection;
 
@@ -253,13 +276,22 @@ begin
        PS:=BrowCol.Modules^.FirstThat(@Search);
        If assigned(PS) then
          begin
-           Symbols:=PS^.Items^.At(Index)^.Items;
+           S:=PS^.Items^.At(Index);
+           Symbols:=S^.Items;
            if (not assigned(symbols) or (symbols^.count=0)) and
-              assigned(PS^.Items^.At(Index)^.Ancestor) then
-             Symbols:=PS^.Items^.At(Index)^.Ancestor^.Items;
+              assigned(S^.Ancestor) then
+             Symbols:=S^.Ancestor^.Items;
+           if (S^.Flags and sfObject)=0 then
+             Anc:=nil
+           else if S^.Ancestor=nil then
+             Anc:=ObjectTree
+           else
+             Anc:=SearchObjectForSymbol(S^.Ancestor);
            OpenSymbolBrowser(0,20,
-                PS^.Items^.At(Index)^.GetName,'',PS^.Items^.At(Index),nil,
-                Symbols,PS^.Items^.At(Index)^.References,nil,PS^.MemInfo);
+                PS^.Items^.At(Index)^.GetName,
+                PS^.Items^.At(Index)^.GetText,
+                PS^.Items^.At(Index),nil,
+                Symbols,PS^.Items^.At(Index)^.References,Anc,PS^.MemInfo);
          end
        else
          begin
@@ -384,6 +416,61 @@ end;*)
 
 
 {****************************************************************************
+                               TGDBValue
+****************************************************************************}
+
+constructor TGDBValue.Init(Const AExpr : String;ASym : PSymbol);
+begin
+  St := nil;
+  S := ASym;
+  Expr:=NewStr(AExpr);
+  GDBI:=-1;
+end;
+
+destructor TGDBValue.Done;
+begin
+  If Assigned(St) then
+    DisposeStr(St);
+  If Assigned(Expr) then
+    DisposeStr(Expr);
+end;
+
+procedure TGDBValue.GetValue;
+begin
+{$ifndef NODEBUG}
+  if not assigned(Debugger) then
+    exit;
+  if not Debugger^.IsRunning then
+    exit;
+  if (S^.typ<>varsym) or (GDBI=Debugger^.RunCount) then
+    exit;
+  If Assigned(St) then
+    DisposeStr(St);
+  if assigned(Expr) then
+    begin
+      St:=NewStr(GetPChar(Debugger^.GetValue(Expr^)));
+      GDBI:=Debugger^.RunCount;
+    end;
+{$endif ndef NODEBUG}
+end;
+
+function TGDBValue.GetText : String;
+begin
+  GetValue;
+  if assigned(St) then
+    GetText:=S^.GetText+' = '+GetStr(St)
+  else
+    GetText:=S^.GetText;
+end;
+
+{****************************************************************************
+                               TGDBValueCollection
+****************************************************************************}
+function  TGDBValueCollection.At(Index: sw_Integer): PGDBValue;
+begin
+  At:= Inherited At(Index);
+end;
+{****************************************************************************
                                TSymbolView
 ****************************************************************************}
 
@@ -497,6 +584,7 @@ begin
   inherited Init(Bounds,AHScrollBar, AVScrollBar);
   Symbols:=ASymbols;
   NewList(ASymbols);
+  New(SymbolsValue,Init(50,50));
   SetRange(Symbols^.Count);
 end;
 
@@ -571,28 +659,36 @@ procedure TSymbolScopeView.TrackItem(Item: sw_integer);
 var S: PSymbol;
 begin
   if Range=0 then Exit;
-  S:=List^.At(Focused);
+  S:=List^.At(Item);
   if (S^.References<>nil) and (S^.References^.Count>0) then
     TrackReference(S^.References^.At(0));
+end;
+
+procedure TSymbolScopeView.SetGDBCol;
+var S : PSymbol;
+    I : sw_integer;
+begin
+  if assigned(MyBW) and (SymbolsValue^.Count=0) then
+    begin
+      For i:=0 to Symbols^.Count-1 do
+        begin
+          S:=Symbols^.At(I);
+          SymbolsValue^.Insert(New(PGDBValue,Init(GetStr(MyBW^.Prefix)+S^.GetName,S)));
+        end;
+    end;
 end;
 
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
 var S1: string;
     S : PSymbol;
+    SG : PGDBValue;
 begin
   S:=Symbols^.At(Item);
-{$ifndef NODEBUG}
-  if assigned(Debugger) and Debugger^.IsRunning and
-     assigned(MyBW) and MyBW^.IsValid  and
-     (S^.typ=varsym) and (S^.DebuggerCount<>Debugger^.RunCount) then
-    begin
-      If Assigned(S^.DebuggerValue) then
-        DisposeStr(S^.DebuggerValue);
-      S^.DebuggerValue:=NewStr(GetPChar(Debugger^.GetValue(GetStr(MyBW^.Prefix)+S^.GetName)));
-      S^.DebuggerCount:=Debugger^.RunCount;
-    end;
-{$endif ndef NODEBUG}
-  S1:=S^.GetText;
+  SG:=SymbolsValue^.At(Item);
+  if assigned(SG) then
+    S1:=SG^.getText
+  else
+    S1:=S^.GetText;
   GetText:=copy(S1,1,MaxLen);
 end;
 
@@ -780,7 +876,9 @@ begin
   if S=nil then exit;
 
   st:=S^.GetName;
-  if S^.Ancestor=nil then Anc:=nil else
+  if S^.Ancestor=nil then
+    Anc:=ObjectTree
+  else
     Anc:=SearchObjectForSymbol(S^.Ancestor);
   OpenSymbolBrowser(Origin.X-1,FOC-Delta.Y+1,
     st,
@@ -961,18 +1059,18 @@ begin
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
-  if assigned(Debugger) and Debugger^.IsRunning and
-     assigned(Sym) and (Sym^.typ=varsym) and (Sym^.DebuggerCount<>Debugger^.RunCount) then
+  if {assigned(Debugger) and Debugger^.IsRunning and}
+     assigned(Sym) and (Sym^.typ=varsym) then
     begin
-      If Assigned(Sym^.DebuggerValue) then
-        DisposeStr(Sym^.DebuggerValue);
-      Sym^.DebuggerValue:=NewStr(GetPChar(Debugger^.GetValue(ATitle)));
-      Sym^.DebuggerCount:=Debugger^.RunCount;
-      New(ST, Init(R, ' '+AName+' = '+GetStr(Sym^.DebuggerValue)));
+      New(DebuggerValue,Init(ATitle,Sym));
+      New(ST, Init(R, ' '+DebuggerValue^.GetText));
     end
   else
 {$endif NODEBUG}
-    New(ST, Init(R, ' '+AName));
+    begin
+      New(ST, Init(R, ' '+AName));
+      DebuggerValue:=nil;
+    end;
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
 
@@ -985,6 +1083,7 @@ begin
       ScopeView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(ScopeView);
       ScopeView^.MyBW:=@Self;
+      ScopeView^.SetGDBCol;
     end;
   if assigned(AReferences) and (AReferences^.Count>0) then
     begin
@@ -1031,6 +1130,16 @@ begin
     SelectTab(btInheritance);
 end;
 
+destructor  TBrowserWindow.Done;
+begin
+  if assigned(DebuggerValue) then
+    begin
+      Dispose(DebuggerValue,Done);
+      DebuggerValue:=nil;
+    end;
+  inherited Done;
+end;
+
 procedure TBrowserWindow.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     S: PSymbol;
@@ -1041,6 +1150,17 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
+        cmDebuggerStopped :
+          begin
+            if Assigned(DebuggerValue) and
+               (DebuggerValue^.GDBI<>Event.InfoLong) then
+              begin
+                If Assigned(ST^.Text) then
+                  DisposeStr(ST^.Text);
+                ST^.Text:=NewStr(DebuggerValue^.GetText);
+                ST^.DrawView;
+              end;
+          end;
         cmSearchWindow :
           ClearEvent(Event);
         cmListItemSelected :
@@ -1247,7 +1367,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2000-03-08 16:53:21  pierre
+  Revision 1.23  2000-03-15 10:29:03  pierre
+   * TGDBValue object
+
+  Revision 1.22  2000/03/08 16:53:21  pierre
    * Value of vars in browsers cleaned up
 
   Revision 1.21  2000/03/07 21:55:16  pierre
