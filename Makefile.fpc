@@ -515,6 +515,8 @@ renametoshort:
         -mv upaszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIX).zip
         -mv uuncgi$(ZIPSUFFIX).zip ucgi$(ZIPSUFFIX).zip
         -mv uunzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIX).zip
+        -mv uftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIX).zip
+        -mv uhwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIX).zip
 
 shortsrc:
         $(MAKE) renametoshort ZIPSUFFIX=src
