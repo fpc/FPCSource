@@ -714,9 +714,14 @@ implementation
                        hr,p^.location.registerhigh);
                   end;
               end;
+            {
             emit_reg(A_NEG,S_L,p^.location.registerlow);
             emit_const_reg(A_ADC,S_L,0,p^.location.registerhigh);
             emit_reg(A_NEG,S_L,p^.location.registerhigh);
+            }
+            emit_reg(A_NOT,S_L,p^.location.registerhigh);
+            emit_reg(A_NEG,S_L,p^.location.registerlow);
+            emit_const_reg(A_SBB,S_L,-1,p^.location.registerhigh);
            end
          else
            begin
@@ -996,7 +1001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2000-01-09 12:35:01  jonas
+  Revision 1.41  2000-01-27 15:46:00  florian
+    * slighly improved code for -<qword> and -<int64>
+
+  Revision 1.40  2000/01/09 12:35:01  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
