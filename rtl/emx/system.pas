@@ -32,6 +32,8 @@ interface
 {$I heaph.inc}
 
 {Platform specific information}
+type
+  THandle = Longint;
 const
  LineEnding = #13#10;
 { LFNSupport is defined separately below!!! }
@@ -1246,7 +1248,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-10-12 18:07:30  hajny
+  Revision 1.15  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.14  2003/10/12 18:07:30  hajny
     * wrong use of Intel syntax
 
   Revision 1.13  2003/10/12 17:59:40  hajny

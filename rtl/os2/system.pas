@@ -49,6 +49,9 @@ type
 {$I heaph.inc}
 
 {Platform specific information}
+type
+  THandle = Longint;
+
 const
  LineEnding = #13#10;
 { LFNSupport is defined separately below!!! }
@@ -1162,7 +1165,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-10-14 21:10:06  hajny
+  Revision 1.47  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.46  2003/10/14 21:10:06  hajny
     * another longint2cardinal fix
 
   Revision 1.45  2003/10/13 21:17:31  hajny

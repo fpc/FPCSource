@@ -39,6 +39,8 @@ interface
 
 
 {Platform specific information}
+type
+  THandle = Longint;
 const
  LineEnding = #13#10;
 { LFNSupport is a variable here, defined below!!! }
@@ -1511,7 +1513,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.26  2003-10-03 21:46:25  peter
+  Revision 1.27  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.26  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.25  2003/09/29 18:39:59  hajny

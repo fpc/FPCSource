@@ -21,6 +21,13 @@ interface
 {$I systemh.inc}
 
 {Platform specific information}
+type
+{$ifdef CPU64}
+  THandle = Int64;
+{$else CPU64}
+  THandle = Longint;
+{$endif CPU64}
+
 const
  LineEnding = #13;
  LFNSupport = true;
@@ -807,7 +814,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-27 11:52:35  peter
+  Revision 1.8  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.7  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.6  2003/09/12 12:45:15  olle

@@ -28,6 +28,13 @@ const
 {$endif}
 
 {Platform specific information}
+type
+{$ifdef CPU64}
+  THandle = Int64;
+{$else CPU64}
+  THandle = Longint;
+{$endif CPU64}
+
 const
  LineEnding = #10;
  LFNSupport = true;
@@ -55,7 +62,10 @@ var
 
 {
   $Log$
-  Revision 1.16  2002-10-15 19:30:15  peter
+  Revision 1.17  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.16  2002/10/15 19:30:15  peter
     * remove threadh.inc include
 
   Revision 1.15  2002/09/07 16:01:28  peter

@@ -32,6 +32,9 @@ INTERFACE
 {$include heaph.inc}
 
 {Platform specific information}
+type
+  THandle = Longint;
+
 const
  LineEnding = #13#10;
 { LFNSupport is a variable here, defined below!!! }
@@ -1139,7 +1142,10 @@ END.
 
 {
   $Log$
-  Revision 1.5  2003-10-03 21:59:28  peter
+  Revision 1.6  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.5  2003/10/03 21:59:28  peter
     * stdcall fixes
 
   Revision 1.4  2003/09/29 18:52:36  hajny

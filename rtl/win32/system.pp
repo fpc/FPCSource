@@ -32,6 +32,13 @@ interface
 {$I systemh.inc}
 
 {Platform specific information}
+type
+{$ifdef CPU64}
+  THandle = QWord;
+{$else CPU64}
+  THandle = DWord;
+{$endif CPU64}
+
 const
  LineEnding = #13#10;
  LFNSupport = true;
@@ -1532,7 +1539,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-10-06 23:52:53  florian
+  Revision 1.46  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.45  2003/10/06 23:52:53  florian
     * some data types cleaned up
 
   Revision 1.44  2003/09/27 11:52:36  peter

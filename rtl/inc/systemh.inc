@@ -265,12 +265,6 @@ Type
 
 { procedure type }
   TProcedure  = Procedure;
-  
-{$ifdef CPU64}
-  THandle = QWord;
-{$else CPU64}
-  THandle = DWord;
-{$endif CPU64}
 
 const
 { Maximum value of the biggest signed and unsigned integer type available}
@@ -699,7 +693,10 @@ const
 
 {
   $Log$
-  Revision 1.74  2003-10-08 16:24:47  florian
+  Revision 1.75  2003-10-16 15:43:13  peter
+    * THandle is platform dependent
+
+  Revision 1.74  2003/10/08 16:24:47  florian
     * fixed some variant issues
     * improved type declarations
 
