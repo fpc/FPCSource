@@ -845,6 +845,16 @@ begin
   syscall(syscall_nr_pause,sr);
 end;
 
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+
+var Sr : Syscallregs;
+
+begin
+  sr.reg2:=longint(@req);
+  sr.reg3:=longint(@rem);
+  NanoSleep:=Syscall(syscall_nr_nanosleep,sr);
+  LinuxError:=Errno;
+end;
 
 Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 {
@@ -1170,11 +1180,14 @@ begin
         insb
   end ['ECX','EDI','EDX'];
 end;
-{$ENDIF}  
+{$ENDIF}
 
 {
   $Log$
-  Revision 1.3  2000-10-02 17:57:37  peter
+  Revision 1.4  2000-10-26 22:51:12  peter
+    * nano sleep (merged)
+
+  Revision 1.3  2000/10/02 17:57:37  peter
     * removed warning (merged)
 
   Revision 1.2  2000/09/18 13:14:50  marco
@@ -1188,5 +1201,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }

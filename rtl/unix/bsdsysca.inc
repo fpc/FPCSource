@@ -592,6 +592,12 @@ begin
 end;
 
 
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+begin
+  NanoSleep:=Do_SysCall(syscall_nr_nanosleep,longint(@req),longint(@rem));
+  LinuxError:=Errno;
+end;
+
 
 Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 {
@@ -631,8 +637,8 @@ begin
      sa.handler.sh:=handler;
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
-{     if (sigintr and signum) =0 then {restart behaviour needs libc}
-      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
+{     if (sigintr and signum) =0 then {restart behaviour needs libc}
+      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
      sigaction(signum,@sa,@osa);
      if ErrNo<>0 then
       signal:=NIL
@@ -645,39 +651,42 @@ end;
 
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; assembler;
 asm
-	pushl	%esi
-	movl	12(%ebp), %esi	// get stack addr
-	subl	$4, %esi
-	movl	20(%ebp), %eax	// get __arg
-	movl	%eax, (%esi)
-	subl	$4, %esi
-	movl	8(%ebp), %eax	// get __fn
-	movl	%eax, (%esi)
-	pushl	16(%ebp)
-	pushl	%esi
-	mov	syscall_nr_rfork, %eax
-	int     $0x80                  // call actualsyscall
-	jb 	.L2
-	test    %edx, %edx
-	jz	.L1
-	movl	%esi,%esp
-	popl	%eax
-	call	%eax
-	addl	$8, %esp
-        call	halt		// Does not return
-.L2:	
-	mov	%eax,ErrNo
-	mov	$-1,%eax
-	jmp     .L1
-//	jmp	PIC_PLT(HIDENAME(cerror))
+        pushl   %esi
+        movl    12(%ebp), %esi  // get stack addr
+        subl    $4, %esi
+        movl    20(%ebp), %eax  // get __arg
+        movl    %eax, (%esi)
+        subl    $4, %esi
+        movl    8(%ebp), %eax   // get __fn
+        movl    %eax, (%esi)
+        pushl   16(%ebp)
+        pushl   %esi
+        mov     syscall_nr_rfork, %eax
+        int     $0x80                  // call actualsyscall
+        jb      .L2
+        test    %edx, %edx
+        jz      .L1
+        movl    %esi,%esp
+        popl    %eax
+        call    %eax
+        addl    $8, %esp
+        call    halt            // Does not return
+.L2:
+        mov     %eax,ErrNo
+        mov     $-1,%eax
+        jmp     .L1
+//      jmp     PIC_PLT(HIDENAME(cerror))
 .L1:
-	addl	$8, %esp
-	popl	%esi
+        addl    $8, %esp
+        popl    %esi
 end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2000-10-26 22:51:12  peter
+    * nano sleep (merged)
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.3  2000/09/11 14:05:31  marco
@@ -685,5 +694,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }

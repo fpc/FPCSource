@@ -33,7 +33,8 @@ var
 {********************
       Process
 ********************}
-const {Checked for BSD using Linuxthreads port}
+const
+  {Checked for BSD using Linuxthreads port}
   { cloning flags }
   CSIGNAL       = $000000ff; // signal mask to be sent at exit
   CLONE_VM      = $00000100; // set if VM shared between processes
@@ -103,6 +104,12 @@ const
   F_SetLkW = 7;
   F_GetOwn = 8;
   F_SetOwn = 9;
+
+{********************
+   IOCtl(TermIOS)
+********************}
+
+{Is too freebsd/Linux specific}
 
 {$I termios.inc}
 
@@ -344,6 +351,7 @@ Procedure SigRaise(Sig:integer);
 Function  Alarm(Sec : Longint) : longint;
 Procedure Pause;
 {$endif}
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 {**************************
   IOCtl/Termios Functions
@@ -1789,8 +1797,6 @@ end;
 ******************************************************************************}
 
 
-
-
 Function TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 begin
  {$ifndef BSD}
@@ -1806,7 +1812,7 @@ Function TCSetAttr(fd:longint;OptAct:longint;var tios:TermIOS):boolean;
 var
   nr:longint;
 begin
- {$ifndef BSD} 
+ {$ifndef BSD}
   case OptAct of
    TCSANOW   : nr:=TCSETS;
    TCSADRAIN : nr:=TCSETSW;
@@ -1842,7 +1848,7 @@ end;
 
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Longint);
 begin
-  {$ifndef BSD} 
+  {$ifndef BSD}
    CFSetISpeed(tios,speed);
   {$else}
    tios.c_ospeed:=speed;
@@ -1867,19 +1873,18 @@ begin
   with tios do
    begin
      c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
-		PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
-		IGNPAR));   
+                PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
+                IGNPAR));
      c_iflag:=c_iflag OR IGNBRK;
      c_oflag:=c_oflag and (not OPOST);
-     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or 
-				ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
+     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or
+                                ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
      c_cc[VMIN]:=1;
      c_cc[VTIME]:=0;
-   end;  
+   end;
  {$endif}
 end;
-
 
 
 Function TCSendBreak(fd,duration:longint):boolean;
@@ -2603,7 +2608,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-10-11 13:59:16  marco
+  Revision 1.5  2000-10-26 22:51:12  peter
+    * nano sleep (merged)
+
+  Revision 1.4  2000/10/11 13:59:16  marco
    * FreeBSD TermIOS support and minor changes to some related files.
 
   Revision 1.3  2000/10/10 12:02:35  marco
@@ -2618,7 +2626,6 @@ End.
 
   Revision 1.6  2000/09/11 14:05:31  marco
    * FreeBSD support and removed old signalhandling
-
 
   Revision 1.5  2000/09/06 20:47:34  peter
     * removed previous fsplit() patch as it's not the correct behaviour for
