@@ -746,6 +746,7 @@ const
      HashChars          : set of char = ['#'];
      AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
      NumberChars        : set of char = ['0'..'9'];
+     HexNumberChars     : set of char = ['0'..'9','A'..'F','a'..'f'];
      RealNumberChars    : set of char = ['E','e','.'{,'+','-'}];
 
 procedure RegisterWEditor;
@@ -2054,7 +2055,9 @@ end;
 
 function TCustomCodeEditorCore.DoUpdateAttrs(Editor: PCustomCodeEditor; FromLine: sw_integer; Attrs: byte): sw_integer;
 type
-    TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccRealNumber,ccHash,ccSymbol);
+    TCharClass = (ccWhiteSpace,ccTab,ccAlpha,
+      ccNumber,ccHexNumber,ccRealNumber,
+      ccHash,ccSymbol);
 var
   SymbolIndex: Sw_integer;
   CurrentCommentType : Byte;
@@ -2176,6 +2179,7 @@ var
     if C in TabChars then CC:=ccTab else
     if C in HashChars then CC:=ccHash else
     if C in NumberChars then CC:=ccNumber else
+    if (LastCC=ccHexNumber) and (C in HexNumberChars) then CC:=ccHexNumber else
     if (LastCC=ccNumber) and (C in RealNumberChars) then
       begin
         if (C='.') then
@@ -2219,14 +2223,15 @@ var
       end
     else
     case SClass of
-      ccWhiteSpace : C:=coWhiteSpaceColor;
-      ccTab : C:=coTabColor;
+      ccWhiteSpace :
+        C:=coWhiteSpaceColor;
+      ccTab :
+        C:=coTabColor;
+      ccHexNumber:
+        C:=coHexNumberColor;
       ccNumber,
       ccRealNumber :
-        if copy(WordS,1,1)='$' then
-          C:=coHexNumberColor
-        else
-          C:=coNumberColor;
+        C:=coNumberColor;
       ccHash :
         C:=coStringColor;
       ccSymbol :
@@ -2281,7 +2286,7 @@ var
         if CC=ccRealNumber then
           Inc(EX);
         if (C='$') and (MatchedSymbol=false) and (IsDirectivePrefix=false) then
-          CC:=ccNumber;
+          CC:=ccHexNumber;
         if CC<>ccSymbol then SymbolConcat:='';
         FormatWord(LastCC,ClassStart,EX);
         ClassStart:=EX+1;
@@ -7081,7 +7086,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2001-09-25 22:45:09  pierre
+  Revision 1.12  2001-09-27 16:30:16  pierre
+   * fix Hexadecimal number highlighting
+
+  Revision 1.11  2001/09/25 22:45:09  pierre
    * fix recognition of directives broken by last patch
 
   Revision 1.10  2001/09/25 11:59:20  pierre
