@@ -787,32 +787,37 @@ implementation
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 sizetopush:=align(p.resulttype.def.size,alignment);
-                 tempreference:=p.location.reference;
-                 inc(tempreference.offset,sizetopush);
-                 while (sizetopush>0) do
-                  begin
-                    if sizetopush>=4 then
-                     begin
-                       cgsize:=OS_32;
-                       inc(pushedparasize,4);
-                       dec(tempreference.offset,4);
-                       dec(sizetopush,4);
-                     end
-                    else
-                     begin
-                       cgsize:=OS_16;
-                       inc(pushedparasize,2);
-                       dec(tempreference.offset,2);
-                       dec(sizetopush,2);
+                 if locpara.loc=LOC_FPUREGISTER then
+                   cg.a_paramfpu_ref(list,def_cgsize(p.resulttype.def),p.location.reference,locpara)
+                 else
+                   begin
+                     sizetopush:=align(p.resulttype.def.size,alignment);
+                     tempreference:=p.location.reference;
+                     inc(tempreference.offset,sizetopush);
+                     while (sizetopush>0) do
+                      begin
+                        if sizetopush>=4 then
+                         begin
+                           cgsize:=OS_32;
+                           inc(pushedparasize,4);
+                           dec(tempreference.offset,4);
+                           dec(sizetopush,4);
+                         end
+                        else
+                         begin
+                           cgsize:=OS_16;
+                           inc(pushedparasize,2);
+                           dec(tempreference.offset,2);
+                           dec(sizetopush,2);
+                         end;
+                        if calloption=pocall_inline then
+                         begin
+                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                           cg.a_load_ref_ref(list,cgsize,tempreference,href);
+                         end
+                        else
+                         cg.a_param_ref(list,cgsize,tempreference,locpara);
                      end;
-                    if calloption=pocall_inline then
-                     begin
-                       reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_ref_ref(list,cgsize,tempreference,href);
-                     end
-                    else
-                     cg.a_param_ref(list,cgsize,tempreference,locpara);
                   end;
                end;
              else
@@ -2052,7 +2057,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2003-04-25 20:59:33  peter
+  Revision 1.90  2003-04-26 17:21:08  florian
+    * fixed passing of fpu values by fpu register
+
+  Revision 1.89  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

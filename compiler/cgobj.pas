@@ -210,6 +210,7 @@ unit cgobj;
           procedure a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
           procedure a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
           procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);virtual;
+          procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);virtual;
 
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
@@ -993,6 +994,17 @@ unit cgobj;
             else
               internalerror(2002071004);
          end;
+      end;
+
+
+    procedure tcg.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);
+      var
+         hr : tregister;
+      begin
+         hr:=rg.getregisterfpu(list);
+         a_loadfpu_ref_reg(list,size,ref,hr);
+         a_paramfpu_reg(list,size,hr,locpara);
+         rg.ungetregisterfpu(list,hr);
       end;
 
 
@@ -1842,7 +1854,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.88  2003-04-23 20:16:03  peter
+  Revision 1.89  2003-04-26 17:21:08  florian
+    * fixed passing of fpu values by fpu register
+
+  Revision 1.88  2003/04/23 20:16:03  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors
