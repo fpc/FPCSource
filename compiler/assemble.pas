@@ -892,7 +892,7 @@ Implementation
         fileinfo : tfileposinfo;
       begin
         FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-        n_line:=n_textline;
+        n_line:=n_bssline;
         funcname:=nil;
         linecount:=1;
         includecount:=0;
@@ -1660,7 +1660,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-03-02 17:32:12  florian
+  Revision 1.65  2004-03-15 21:50:09  peter
+    * start with bssline
+
+  Revision 1.64  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
