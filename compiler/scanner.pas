@@ -1034,6 +1034,8 @@ implementation
 
     procedure tscannerfile.tempcloseinputfile;
       begin
+        if inputfile.closed then
+         exit;
         inputfile.setpos(inputstart+(inputpointer-inputbuffer));
         inputfile.tempclose;
       { reset buffer }
@@ -2801,7 +2803,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.57  2003-01-09 21:52:37  peter
+  Revision 1.58  2003-04-26 00:30:27  peter
+    * don't close inputfile when still closed
+
+  Revision 1.57  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 
