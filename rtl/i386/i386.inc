@@ -20,128 +20,123 @@
                                 Move / Fill
 ****************************************************************************}
 
-procedure Move(var source;var dest;count:longint);
-begin
-        asm
-        movl    dest,%edi
-        movl    source,%esi
-        movl    %edi,%eax
-        movl    count,%ebx
-{ Check for back or forward }
-        sub     %esi,%eax
-        jz      .LMoveEnd               { Do nothing when source=dest }
-        jc      .LFMove                 { Do forward, dest<source }
-        cmp     %ebx,%eax
-        jb      .LBMove                 { Dest is in range of move, do backward }
-{ Forward Copy }
+{$I386_ATT}
+
+procedure Move(var source;var dest;count:longint);assembler;
+
+asm
+    movl    dest,%edi
+    movl    source,%esi
+    movl    %edi,%eax
+    movl    count,%ebx
+    {Check for back or forward}
+    sub     %esi,%eax
+    jz      .LMoveEnd       {Do nothing when source=dest}
+    jc      .LFMove         {Do forward, dest<source}
+    cmp     %ebx,%eax
+    jb      .LBMove         {Dest is in range of move, do backward}
+    {Forward Copy}
 .LFMove:
-        cld
-        cmpl    $15,%ebx
-        jl      .LFMove1
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%ebx
-        rep
-        movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
-        shrl    $2,%ecx
-        rep
-        movsl
+    cld
+    cmpl    $7,%ebx
+    jl      .LFMove1
+    movl    %edi,%ecx       {Align on 32bits}
+    negl    %ecx
+    andl    $3,%ecx
+    subl    %ecx,%ebx
+    rep
+    movsb
+    movl    %ebx,%ecx
+    andl    $3,%ebx
+    shrl    $2,%ecx
+    rep
+    movsl
 .LFMove1:
-        movl    %ebx,%ecx
-        rep
-        movsb
-        jmp .LMoveEnd
-{ Backward Copy }
+    movl    %ebx,%ecx
+    rep
+    movsb
+    jmp     .LMoveEnd
+    {Backward Copy}
 .LBMove:
-        std
-        addl    %ebx,%esi
-        addl    %ebx,%edi
-        movl    %edi,%ecx
-        decl    %esi
-        decl    %edi
-        cmpl    $15,%ebx
-        jl      .LBMove1
-        negl    %ecx            { Align on 32bits }
-        andl    $3,%ecx
-        subl    %ecx,%ebx
-        rep
-        movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
-        shrl    $2,%ecx
-        subl    $3,%esi
-        subl    $3,%edi
-        rep
-        movsl
-        addl    $3,%esi
-        addl    $3,%edi
+    std
+    addl    %ebx,%esi
+    addl    %ebx,%edi
+    movl    %edi,%ecx
+    decl    %esi
+    decl    %edi
+    cmpl    $7,%ebx
+    jl      .LBMove1
+    negl    %ecx            {Align on 32bits}
+    andl    $3,%ecx
+    subl    %ecx,%ebx
+    rep
+    movsb
+    movl    %ebx,%ecx
+    andl    $3,%ebx
+    shrl    $2,%ecx
+    subl    $3,%esi
+    subl    $3,%edi
+    rep
+    movsl
+    movl    %ebx,%ecx
+    addl    $3,%esi
+    addl    $3,%edi
 .LBMove1:
-        movl    %ebx,%ecx
-        rep
-        movsb
-        cld
+    rep
+    movsb
+    cld
 .LMoveEnd:
-        end;
 end;
 
-
-Procedure FillChar(var x;count:longint;value:byte);[alias: 'FILL_OBJECT'];
-begin
-        asm
-        cld
-        movl    x,%edi
-        movl    value,%eax      { Only lower 8 bits will be used }
-        movl    count,%ecx
-        cmpl    $7,%ecx
-        jl      .LFill1
-        movb    %al,%ah
-        movl    %eax,%ebx
-        shll    $16,%eax
-        movl    %ecx,%edx
-        movw    %bx,%ax
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%edx
-        rep
-        stosb
-        movl    %edx,%ecx
-        andl    $3,%edx
-        shrl    $2,%ecx
-        rep
-        stosl
-        movl    %edx,%ecx
+Procedure FillChar(var x;count:longint;value:byte);[alias: '.FILL_OBJECT'];assembler;
+asm
+    cld
+    movl    x,%edi
+    movl    value,%eax
+    movl    count,%ecx
+    cmpl    $7,%ecx
+    jl      .LFill1
+    movl    %ecx,%edx
+    imul    $0x01010101,%eax
+    movl    %edi,%ecx
+    negl    %ecx
+    andl    $3,%ecx
+    subl    %ecx,%edx
+    rep
+    stosb
+    movl    %edx,%ecx
+    andb    $3,%dl      {Saves some bytes, no speed penalties.}
+    shrl    $2,%ecx
+    rep
+    stosl
+    {Ecx is zero.}
+    movb    %dl,%cl
 .LFill1:
-        rep
-        stosb
-        end;
+    rep
+    stosb
 end;
 
+{$ifndef RTLLITE}
+procedure fillword(var x;count : longint;value : word);assembler;
 
-procedure fillword(var x;count : longint;value : word);
-begin
-  asm
-        movl 8(%ebp),%edi
-        movl 12(%ebp),%ecx
-        movl 16(%ebp),%eax
-        movl %eax,%edx
-        shll $16,%eax
-        movw %dx,%ax
-        movl %ecx,%edx
-        shrl $1,%ecx
-        cld
-        rep
-        stosl
-        movl %edx,%ecx
-        andl $1,%ecx
-        rep
-        stosw
-  end ['EAX','ECX','EDX','EDI'];
-end;
-
+asm
+    movl x,%edi
+    movl count,%ecx
+    movl value,%eax
+    {fill EAX with 4 bytes:}
+    imul $0x00010001,%eax
+    movl %ecx,%edx
+    shrl $1,%ecx
+    cld
+    rep
+    stosl
+    {Ecx is zero.}
+    movb %dl,%cl
+    andb $1,%cl         {Saves some bytes, no speed penalties.}
+    rep
+    stosw
+end ['EAX','ECX','EDX','EDI'];
+{$endif RTLLITE}
 
 
 {****************************************************************************
@@ -506,8 +501,12 @@ end ['EDI','ECX','EAX'];
 
 Function Sptr : Longint;assembler;
 asm
-        movl    %esp,%eax
-        addl    $4,%eax         // Don't count the Call
+    {Size optimized instead of speed optimized...}
+    movl %esp,%eax
+    incl %eax
+    incl %eax
+    incl %eax
+    incl %eax
 end ['EAX'];
 
 
@@ -724,7 +723,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-05-12 10:42:41  peter
+  Revision 1.7  1998-05-20 08:09:24  daniel
+  * Some extra use of ;assembler;.
+
+  Revision 1.6  1998/05/12 10:42:41  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs
