@@ -31,6 +31,62 @@ interface
 const
   def_alignment = 4;
 
+  { if you change one of the following contants, }
+  { you have also to change the typinfo unit}
+  { and the rtl/i386,template/rttip.inc files    }
+  tkUnknown  = 0;
+  tkInteger  = 1;
+  tkChar     = 2;
+  tkEnumeration   = 3;
+  tkFloat    = 4;
+  tkSet      = 5;
+  tkMethod   = 6;
+  tkSString  = 7;
+  tkString   = tkSString;
+  tkLString  = 8;
+  tkAString  = 9;
+  tkWString  = 10;
+  tkVariant  = 11;
+  tkArray    = 12;
+  tkRecord   = 13;
+  tkInterface= 14;
+  tkClass    = 15;
+  tkObject   = 16;
+  tkWChar    = 17;
+  tkBool     = 18;
+  tkInt64    = 19;
+  tkQWord    = 20;
+
+  otSByte    = 0;
+  otUByte    = 1;
+  otSWord    = 2;
+  otUWord    = 3;
+  otSLong    = 4;
+  otULong    = 5;
+
+  ftSingle   = 0;
+  ftDouble   = 1;
+  ftExtended = 2;
+  ftComp     = 3;
+  ftCurr     = 4;
+  ftFixed16  = 5;
+  ftFixed32  = 6;
+
+  mkProcedure= 0;
+  mkFunction = 1;
+  mkConstructor   = 2;
+  mkDestructor    = 3;
+  mkClassProcedure= 4;
+  mkClassFunction = 5;
+
+  pfvar      = 1;
+  pfConst    = 2;
+  pfArray    = 4;
+  pfAddress  = 8;
+  pfReference= 16;
+  pfOut      = 32;
+
+
 type
   { symbol options }
   tsymoption=(sp_none,
@@ -221,7 +277,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-05 13:25:06  peter
+  Revision 1.5  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.4  2000/08/05 13:25:06  peter
     * packenum 1 fixes (merged)
 
   Revision 1.3  2000/07/13 12:08:27  michael

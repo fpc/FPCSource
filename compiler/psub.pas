@@ -632,7 +632,8 @@ var
 begin
   { check parameter type }
   if not(po_containsself in aktprocsym^.definition^.procoptions) and
-     ((aktprocsym^.definition^.para^.count<>1) or
+     ((aktprocsym^.definition^.minparacount<>1) or
+      (aktprocsym^.definition^.maxparacount<>1) or
       (pparaitem(aktprocsym^.definition^.para^.first)^.paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
@@ -1248,7 +1249,7 @@ begin
 
            { check the parameters }
            if (not(m_repeat_forward in aktmodeswitches) and
-               (aktprocsym^.definition^.para^.count=0)) or
+               (aktprocsym^.definition^.maxparacount=0)) or
               (equal_paras(aktprocsym^.definition^.para,hd^.para,cp_none) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
@@ -1256,7 +1257,7 @@ begin
              begin
                if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) and
                   ((m_repeat_forward in aktmodeswitches) or
-                   (aktprocsym^.definition^.para^.count>0)) then
+                   (aktprocsym^.definition^.maxparacount>0)) then
                  begin
                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
                                 aktprocsym^.demangledName);
@@ -2074,7 +2075,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-08-06 14:17:15  peter
+  Revision 1.6  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.5  2000/08/06 14:17:15  peter
     * overload fixes (merged)
 
   Revision 1.4  2000/07/30 17:04:43  peter

@@ -98,6 +98,13 @@
           defaultvalue : psym; { pconstsym }
        end;
 
+       { this is only here to override the count method,
+         which can't be used }
+       pparalinkedlist = ^tparalinkedlist;
+       tparalinkedlist = object(tlinkedlist)
+          function count:longint;
+       end;
+
        tfiletyp = (ft_text,ft_typed,ft_untyped);
 
        pfiledef = ^tfiledef;
@@ -345,7 +352,9 @@
           proctypeoption  : tproctypeoption;
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
-          para            : plinkedlist;
+          para            : pparalinkedlist;
+          maxparacount,
+          minparacount    : longint;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
           constructor init;
@@ -539,7 +548,10 @@
 
 {
   $Log$
-  Revision 1.6  2000-08-06 14:17:15  peter
+  Revision 1.7  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.6  2000/08/06 14:17:15  peter
     * overload fixes (merged)
 
   Revision 1.5  2000/08/03 13:17:26  jonas

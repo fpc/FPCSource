@@ -24,61 +24,17 @@
                      TDEF (base class for definitions)
 ****************************************************************************}
 
-    const
-       { if you change one of the following contants, }
-       { you have also to change the typinfo unit     }
-       { and the rtl/i386,template/rttip.inc files    }
-       tkUnknown       = 0;
-       tkInteger       = 1;
-       tkChar          = 2;
-       tkEnumeration   = 3;
-       tkFloat         = 4;
-       tkSet           = 5;
-       tkMethod        = 6;
-       tkSString       = 7;
-       tkString        = tkSString;
-       tkLString       = 8;
-       tkAString       = 9;
-       tkWString       = 10;
-       tkVariant       = 11;
-       tkArray         = 12;
-       tkRecord        = 13;
-       tkInterface     = 14;
-       tkClass         = 15;
-       tkObject        = 16;
-       tkWChar         = 17;
-       tkBool          = 18;
-       tkInt64         = 19;
-       tkQWord         = 20;
+    function tparalinkedlist.count:longint;
+      begin
+        { You must use tabstractprocdef.minparacount and .maxparacount instead }
+        internalerror(432432978);
+        count:=0;
+      end;
 
-       otSByte         = 0;
-       otUByte         = 1;
-       otSWord         = 2;
-       otUWord         = 3;
-       otSLong         = 4;
-       otULong         = 5;
 
-       ftSingle        = 0;
-       ftDouble        = 1;
-       ftExtended      = 2;
-       ftComp          = 3;
-       ftCurr          = 4;
-       ftFixed16       = 5;
-       ftFixed32       = 6;
-
-       mkProcedure     = 0;
-       mkFunction      = 1;
-       mkConstructor   = 2;
-       mkDestructor    = 3;
-       mkClassProcedure= 4;
-       mkClassFunction = 5;
-
-       pfvar           = 1;
-       pfConst         = 2;
-       pfArray         = 4;
-       pfAddress       = 8;
-       pfReference     = 16;
-       pfOut           = 32;
+{****************************************************************************
+                     TDEF (base class for definitions)
+****************************************************************************}
 
 
     constructor tdef.init;
@@ -2370,6 +2326,8 @@
       begin
          inherited init;
          new(para,init);
+         minparacount:=0;
+         maxparacount:=0;
          fpu_used:=0;
          proctypeoption:=potype_none;
          proccalloptions:=[];
@@ -2397,6 +2355,9 @@
         hp^.register:=R_NO;
         hp^.defaultvalue:=defval;
         para^.insert(hp);
+        if not assigned(defval) then
+         inc(minparacount);
+        inc(maxparacount);
       end;
 
 
@@ -2421,6 +2382,7 @@
          while assigned(hp) do
           begin
             hp^.paratype.resolve;
+            resolvesym(psym(hp^.defaultvalue));
             hp:=pparaitem(hp^.next);
           end;
       end;
@@ -2433,6 +2395,8 @@
       begin
          inherited load;
          new(para,init);
+         minparacount:=0;
+         maxparacount:=0;
          rettype.load;
          fpu_used:=readbyte;
          proctypeoption:=tproctypeoption(readlong);
@@ -2447,6 +2411,10 @@
             { hp^.register:=tregister(readbyte); }
             hp^.register:=R_NO;
             hp^.paratype.load;
+            hp^.defaultvalue:=readsymref;
+            if not assigned(hp^.defaultvalue) then
+             inc(minparacount);
+            inc(maxparacount);
             para^.concat(hp);
           end;
       end;
@@ -2463,13 +2431,14 @@
          writelong(ord(proctypeoption));
          writesmallset(proccalloptions);
          writesmallset(procoptions);
-         writeword(para^.count);
+         writeword(maxparacount);
          hp:=pparaitem(para^.first);
          while assigned(hp) do
           begin
             writebyte(byte(hp^.paratyp));
             { writebyte(byte(hp^.register)); }
             hp^.paratype.write;
+            writesymref(hp^.defaultvalue);
             hp:=pparaitem(hp^.next);
           end;
       end;
@@ -2951,7 +2920,7 @@ Const local_symtable_index : longint = $8001;
       oldrec := stabrecstring;
       getmem(StabRecString,1024);
       strpcopy(StabRecString,'f'+rettype.def^.numberstring);
-      i:=para^.count;
+      i:=maxparacount;
       if i>0 then
         begin
         strpcopy(strend(StabRecString),','+tostr(i)+';');
@@ -3183,7 +3152,7 @@ Const local_symtable_index : longint = $8001;
          nss : pchar;
         { i   : longint; }
       begin
-        { i := para^.count; }
+        { i := maxparacount; }
         getmem(nss,1024);
         { it is not a function but a function pointer !! (PM) }
 
@@ -3243,7 +3212,7 @@ Const local_symtable_index : longint = $8001;
              rttilist^.concat(new(pai_const,init_8bit(methodkind)));
 
              { get # of parameters }
-             rttilist^.concat(new(pai_const,init_8bit(para^.count)));
+             rttilist^.concat(new(pai_const,init_8bit(maxparacount)));
 
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
@@ -4195,7 +4164,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.6  2000-08-06 14:17:15  peter
+  Revision 1.7  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.6  2000/08/06 14:17:15  peter
     * overload fixes (merged)
 
   Revision 1.5  2000/08/03 13:17:26  jonas

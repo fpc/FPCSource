@@ -305,6 +305,7 @@ unit tree;
 {$ELSE}
     function genwithnode(symtable:pwithsymtable;l,r : ptree;count : longint) : ptree;
 {$ENDIF NEWST}
+    function genconstsymtree(p:pconstsym):ptree;
 
     function getcopy(p : ptree) : ptree;
 
@@ -1452,6 +1453,51 @@ unit tree;
          gensetconstnode:=p;
       end;
 
+
+    function genconstsymtree(p:pconstsym):ptree;
+      var
+        p1  : ptree;
+        len : longint;
+        pc  : pchar;
+      begin
+        p1:=nil;
+        case p^.consttyp of
+          constint :
+            p1:=genordinalconstnode(p^.value,s32bitdef);
+          conststring :
+            begin
+              len:=p^.len;
+              if not(cs_ansistrings in aktlocalswitches) and (len>255) then
+               len:=255;
+              getmem(pc,len+1);
+              move(pchar(p^.value)^,pc^,len);
+              pc[len]:=#0;
+              p1:=genpcharconstnode(pc,len);
+            end;
+          constchar :
+            p1:=genordinalconstnode(p^.value,cchardef);
+          constreal :
+            p1:=genrealconstnode(pbestreal(p^.value)^,bestrealdef^);
+          constbool :
+            p1:=genordinalconstnode(p^.value,booldef);
+          constset :
+            p1:=gensetconstnode(pconstset(p^.value),psetdef(p^.consttype.def));
+          constord :
+            p1:=genordinalconstnode(p^.value,p^.consttype.def);
+          constpointer :
+            p1:=genpointerconstnode(p^.value,p^.consttype.def);
+          constnil :
+            p1:=genzeronode(niln);
+          constresourcestring:
+            begin
+              p1:=genloadnode(pvarsym(p),pvarsym(p)^.owner);
+              p1^.resulttype:=cansistringdef;
+            end;
+        end;
+        genconstsymtree:=p1;
+      end;
+
+
 {$ifdef extdebug}
     procedure compare_trees(oldp,p : ptree);
 
@@ -2087,7 +2133,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-04 22:00:52  peter
+  Revision 1.4  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.3  2000/08/04 22:00:52  peter
     * merges from fixes
 
   Revision 1.2  2000/07/13 11:32:52  michael

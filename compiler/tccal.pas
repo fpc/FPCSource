@@ -474,6 +474,7 @@ implementation
 
       var
         is_const : boolean;
+        i : longint;
       begin
          { release registers! }
          { if procdefinition<>nil then we called firstpass already }
@@ -606,14 +607,19 @@ implementation
                    pd:=aktcallprocsym^.definition;
                    while assigned(pd) do
                      begin
-                        { only when the # of parameter are equal }
-                        if (pd^.para^.count=paralength) then
+                        { only when the # of parameter are supported by the
+                          procedure }
+                        if (paralength>=pd^.minparacount) and (paralength<=pd^.maxparacount) then
                           begin
                              new(hp);
                              hp^.data:=pd;
                              hp^.next:=procs;
-                             hp^.nextpara:=pparaitem(pd^.para^.first);
                              hp^.firstpara:=pparaitem(pd^.para^.first);
+                             { if not all parameters are given, then skip the
+                               default parameters }
+                             for i:=1 to pd^.maxparacount-paralength do
+                              hp^.firstpara:=pparaitem(hp^.firstpara^.next);
+                             hp^.nextpara:=hp^.firstpara;
                              procs:=hp;
                           end;
                         pd:=pd^.nextoverloaded;
@@ -1054,10 +1060,23 @@ implementation
               else
                 procinfo^.flags:=procinfo^.flags or pi_do_call;
 
-              {if (po_interrupt in p^.procdefinition^.procoptions) then
-                CGmessage1(cg_e_no_call_to_interrupt,p^.symtableprocentry^.name);}
+              { add needed default parameters }
+              if assigned(procs) and
+                 (paralength<p^.procdefinition^.maxparacount) then
+               begin
+                 { add default parameters, just read back the skipped
+                   paras starting from firstpara^.previous }
+                 pdc:=pparaitem(procs^.firstpara^.previous);
+                 while assigned(pdc) do
+                  begin
+                    if not assigned(pdc^.defaultvalue) then
+                     internalerror(751349858);
+                    p^.left:=gencallparanode(genconstsymtree(pconstsym(pdc^.defaultvalue)),p^.left);
+                    pdc:=pparaitem(pdc^.previous);
+                  end;
+               end;
+
               { work trough all parameters to insert the type conversions }
-              { !!! done now after internproc !! (PM) }
               if assigned(p^.left) then
                 begin
                    firstcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),true);
@@ -1229,7 +1248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-08-06 19:39:28  peter
+    * default parameters working !
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:51  michael
