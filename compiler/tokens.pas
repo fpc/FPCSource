@@ -458,15 +458,15 @@ begin
     if d='' then
       assign(f,'tokens.dat')
     else
-      assign(f,d+'\tokens.dat');
+      assign(f,d+'tokens.dat');
     {$I-}
     reset(f,1);
     {We are not sure that the msg file is loaded!}
     if ioresult<>0 then
         begin
-            close(f);
             { Very nice indeed !!! PM }
             writeln('Fatal: File tokens.dat not found.');
+            close(f);
             halt(3);
         end;
     blockread(f,header,1);
@@ -475,8 +475,8 @@ begin
     if (ioresult<>0) or
        (header<>tokheader) or (a<>sizeof(ttokenarray)) then
      begin
-       close(f);
        writeln('Fatal: File tokens.dat corrupt.');
+       close(f);
        halt(3);
      end;
     new(tokeninfo);
@@ -511,7 +511,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-02-09 13:23:08  peter
+  Revision 1.21  2000-02-12 23:53:18  carl
+    * bugfixes in tokens using TP conditional
+
+  Revision 1.20  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.19  2000/01/07 01:14:48  peter
