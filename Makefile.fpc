@@ -173,6 +173,8 @@ help:
         @$(ECHO)
         @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,emxzip,beoszip,sunoszip,qnxzip,amigazip
         @$(ECHO)
+        @$(ECHO) Or type 'make all' to build everything
+        @$(ECHO)
         @exit
 
 
