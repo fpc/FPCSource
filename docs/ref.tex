@@ -5404,7 +5404,7 @@ None.
 \Declaration
 Procedure SetLength(var S : String; Len : Longint);
 \Description
-\var{SetLength} sets the lentgth of the string \var{S} to \var{Len}. \var{S}
+\var{SetLength} sets the length of the string \var{S} to \var{Len}. \var{S}
 can be an ansistring or a short string. 
 For \var{ShortStrings}, \var{Len} can maximally be 255. For \var{AnsiStrings}
 it can have any value. For \var{AnsiString} strings, \var{SetLength} {\em
@@ -5461,7 +5461,7 @@ angle in radians.
 \Errors
 None.
 \SeeAlso
-\seef{Cos}, \seef{Pi}, \seef{Exp}
+\seef{Cos}, \seef{Pi}, \seef{Exp}, \seef{Ln}
 \end{function}
 
 \FPCexample{ex62}
@@ -5471,8 +5471,8 @@ None.
 Function SizeOf (X : Any Type) : Longint;
 
 \Description
-\var{SizeOf} Returns the size, in bytes, of any variable or type-identifier.
- {\em Remark:} this isn't Really a RTL function. Its result is calculated at
+\var{SizeOf} returns the size, in bytes, of any variable or type-identifier.
+ {\em Remark:} this isn't really a RTL function. Its result is calculated at
 compile-time, and hard-coded in your executable.
 \Errors
 None.
@@ -5492,7 +5492,7 @@ Function Sptr  : Pointer;
 \Errors
 None.
 \SeeAlso
-
+\seef{SSeg}
 \end{function}
 
 \FPCexample{ex64}
@@ -5532,7 +5532,7 @@ Function SSeg  : Longint;
 
 \Description
  \var{SSeg} returns the Stack Segment. This function is only
- supported for compatibolity reasons, as \var{Sptr} returns the
+ supported for compatibility reasons, as \var{Sptr} returns the
 correct contents of the stackpointer.
 \Errors
 None.
@@ -5566,7 +5566,7 @@ Function Succ (X : Any ordinal type) : Same type;
 \Description
  \var{Succ} returns the element that succeeds the element that was passed
 to it. If it is applied to the last value of the ordinal type, and the
-program was compiled with range checking on (\var{\{\$R+\}}, then a run-time
+program was compiled with range checking on (\var{\{\$R+\}}), then a run-time
 error will be generated.
 
 \Errors
@@ -5598,12 +5598,12 @@ None.
 Function Trunc (X : Real) : Longint;
 
 \Description
-\var{Trunc} returns the integer part of \var{X},
-which is always smaller than (or equal to)  \var{X}.
+\var{Trunc} returns the integer part of \var{X}, 
+which is always smaller than (or equal to) \var{X} in absolute value.
 \Errors
 None.
 \SeeAlso
-\seef{Frac}, \seef{Int}, \seef{Trunc}
+\seef{Frac}, \seef{Int}, \seef{Round}
 \end{function}
 
 \FPCexample{ex70}
@@ -5652,7 +5652,7 @@ value, and stores this value in the variable \var{V}, which
 can be of type \var{Longint}, \var{Real} and \var{Byte}.
 If the conversion isn't succesfull, then the parameter \var{Code} contains
 the index of the character in \var{S} which prevented the conversion.
-The string \var{S} isn't allow to contain spaces.
+The string \var{S} isn't allowed to contain spaces.
 \Errors
 If the conversion doesn't succeed, the value of \var{Code} indicates the
 position where the conversion went wrong.
@@ -5688,7 +5688,7 @@ representation requires less than \var{NumChars} characters then the output
 is filled up with spaces, to the left of the generated string, thus
 resulting in a right-aligned representation.
 If no formatting is specified, then the number is written using its natural
-length, with a space in front of it if it's positive, and a minus sign if
+length, with nothing in front of it if it's positive, and a minus sign if
 it's negative.
 Real numbers are, by default, written in scientific notation.
 
