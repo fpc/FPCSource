@@ -448,6 +448,10 @@ What is written to \var{StreamOut}, will go to the standard input of
 Reading and writing happens through the usual \var{Readln(StreamIn,...)} and
 \var{Writeln (StreamOut,...)} procedures.
 
+{\em Remark:} You should {\em not} use \var{Reset} or \var{Rewrite} on a 
+file opened with \var{POpen}. This will close the file before re-opening 
+it again, thereby closing the connection with the program.
+
 \Errors
  \var{LinuxError} is used to report errors:
 \begin{description}
