@@ -39,6 +39,7 @@ var OrigCurType: TVioCursorInfo;
     OrigCurRow: word;
     OrigCurCol: word;
     CellHeight: byte;
+    OldVideoBuf: PVideoBuf;
 
 procedure TargetEntry;
 
@@ -165,6 +166,9 @@ procedure InitVideo;
 var MI: TVioModeInfo;
 
 begin
+    if InitVideoCalled then
+        FreeMem (OldVideoBuf, VideoBufSize);
+    OldVideoBuf := nil;
     InitVideoCalled := true;
     VideoBufSize := 0;
     MI.cb := SizeOf (MI);
@@ -189,6 +193,8 @@ begin
             VideoBuf := SelToFlat (TFarPtr (VideoBuf));
 {$ENDIF}
             SetHighBitBlink (true);
+            GetMem (OldVideoBuf, VideoBufSize);
+            Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
         end
     else
         ErrorHandler (errVioInit, nil);
@@ -292,6 +298,8 @@ begin
             VioSetState (OrigHighBit, 0);
             VioSetCurType (OrigCurType, 0);
             VioSetCurPos (OrigCurRow, OrigCurCol, 0);
+            FreeMem (OldVideoBuf, VideoBufSize);
+            OldVideoBuf := nil;
             VideoBufSize := 0;
             InitVideoCalled := false;
             if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
@@ -396,19 +404,55 @@ procedure ClearScreen;
 
 begin
     VioScrollDn (0, 0, word (-1), word (-1), word (-1), PWord (@EmptyCell)^, 0);
+    Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
 end;
 
 
+{$ASMMODE INTEL}
+
 procedure UpdateScreen (Force: boolean);
+
+var SOfs: cardinal;
+
 begin
-    VioShowBuf (0, VideoBufSize, 0);
+    if LockUpdateScreen = 0 then
+        begin
+            if not (Force) then
+                begin
+                    asm
+                        mov esi, VideoBuf
+                        mov edi, OldVideoBuf
+                        mov ecx, VideoBufSize
+                        shr ecx
+                        shr ecx
+                        repnz
+                        cmpsd
+                        mov SOfs, ecx
+                        or ecx, ecx
+                        jz @no_update
+                        mov Force, 1
+@no_update:
+                    end;
+                    Inc (SOfs);
+                    SOfs := VideoBufSize - (SOfs shl 2);
+                end else
+                    SOfs := 0;
+            if Force then
+                begin
+                    VioShowBuf (SOfs, VideoBufSize - SOfs, 0);
+                    Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
+                end;
+        end;
 end;
 
 
 {
 
   $Log$
-  Revision 1.7  2000-10-08 18:40:58  hajny
+  Revision 1.8  2000-10-10 20:28:18  hajny
+    * screen updates speeded up
+
+  Revision 1.7  2000/10/08 18:40:58  hajny
     * SetCursorType corrected
 
   Revision 1.6  2000/10/08 14:13:19  hajny
