@@ -134,7 +134,7 @@ type
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
-  tppuheader=packed record
+  tppuheader=packed record { 40 bytes }
     id       : array[1..3] of char; { = 'PPU' }
     ver      : array[1..3] of char;
     compiler : word;
@@ -145,6 +145,7 @@ type
     checksum : longint; { checksum for this ppufile }
 {$ifdef Double_checksum}
     interface_checksum : longint;
+    future   : array[0..2] of longint;
 {$endif def Double_checksum}
   end;
 
@@ -875,7 +876,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-04-17 13:16:20  peter
+  Revision 1.28  1999-04-26 09:33:07  peter
+    * header extended to 40 bytes so there is room for future
+
+  Revision 1.27  1999/04/17 13:16:20  peter
     * fixes for storenumber
 
   Revision 1.26  1999/04/07 15:39:31  pierre
