@@ -17,13 +17,11 @@
 Function  fdFlush (fd : Longint) : Boolean;
 begin
   fdFlush := (do_SysCall(syscall_nr_fsync, fd)=0);
-  LinuxError:=fpgetErrno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
 begin
   flock:=do_Syscall(Syscall_nr_flock,fd,mode)=0;
-  LinuxError:=fpgeterrno;
 end;
 
 Function StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
@@ -35,7 +33,6 @@ Function StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
 begin
   path:=path+#0;
   StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info))=0);
-  LinuxError:=fpgeterrno;
 end;
 
 Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
@@ -46,7 +43,6 @@ Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 }
 begin
   StatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,longint(@info))=0);
-  LinuxError:=fpgeterrno;
 end;
 
 Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
@@ -62,7 +58,6 @@ begin
   assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip))=0;
   pipe_in:=pip[1];
   pipe_out:=pip[2];
-  linuxerror:=fpgeterrno;
 end;
 
 Function PClose(Var F:text) :longint;
@@ -103,21 +98,22 @@ Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 
 begin
   IOPerm:=do_Syscall(Syscall_nr_ioperm,from,num,value)=0;
-  LinuxError:=fpgetErrno;
 end;
 
 Function IoPL(Level : longint) : Boolean;
 
 begin
   IOPL:=do_Syscall(Syscall_nr_iopl,level)=0;
-  LinuxError:=fpgetErrno;
 end;
 
 {$endif cpui386}
 
 {
   $Log$
-  Revision 1.16  2003-11-09 13:48:55  marco
+  Revision 1.17  2003-11-13 13:36:23  marco
+   * Linuxerror removed
+
+  Revision 1.16  2003/11/09 13:48:55  marco
    * small fix
 
   Revision 1.15  2003/10/30 16:42:25  marco
