@@ -75,7 +75,7 @@ uses
   dos,
 {$endif Delphi}
   version,
-  cutils,messages
+  cutils,cmsgs
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -1597,7 +1597,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.55  2001-08-19 11:22:23  peter
+  Revision 1.56  2001-08-20 10:58:48  florian
+    * renamed messages unit to cmsgs to avoid conflicts with the
+      win32 messages unit
+
+  Revision 1.55  2001/08/19 11:22:23  peter
     * palmos support from v10 merged
 
   Revision 1.54  2001/08/12 17:57:06  peter

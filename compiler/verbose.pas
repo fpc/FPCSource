@@ -32,7 +32,7 @@ interface
 uses
   cutils,
   globals,finput,
-  messages;
+  cmsgs;
 
 {$ifndef EXTERN_MSG}
   {$i msgtxt.inc}
@@ -680,7 +680,11 @@ var
 end.
 {
   $Log$
-  Revision 1.15  2001-08-04 10:23:55  peter
+  Revision 1.16  2001-08-20 10:58:49  florian
+    * renamed messages unit to cmsgs to avoid conflicts with the
+      win32 messages unit
+
+  Revision 1.15  2001/08/04 10:23:55  peter
     * updates so it works with the ide
 
   Revision 1.14  2001/05/27 14:30:55  florian
