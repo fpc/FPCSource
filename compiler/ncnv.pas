@@ -1219,7 +1219,7 @@ implementation
       var
         htype : ttype;
         hp : tnode;
-        currprocdef,
+        currprocdef : tabstractprocdef;
         aprocdef : tprocdef;
         eq : tequaltype;
         cdoptions : tcompare_defs_options;
@@ -1241,11 +1241,11 @@ implementation
             exit;
           end;
 
-        { tp procvar support. Skip typecasts to record or set. Those
+        { tp procvar support. Skip typecasts to procvar, record or set. Those
           convert on the procvar value. This is used to access the
           fields of a methodpointer }
         if not(nf_load_procvar in flags) and
-           not(resulttype.def.deftype in [recorddef,setdef]) then
+           not(resulttype.def.deftype in [procvardef,recorddef,setdef]) then
           maybe_call_procvar(left,true);
 
         { convert array constructors to sets, because there is no conversion
@@ -1343,14 +1343,14 @@ implementation
                               is checked below }
                             convtype:=tc_equal;
                             hp:=tcallnode(left).right.getcopy;
-                            currprocdef:=tprocdef(hp.resulttype.def);
+                            currprocdef:=tabstractprocdef(hp.resulttype.def);
                           end
                          else
                           begin
                             convtype:=tc_proc_2_procvar;
                             currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                             hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                                currprocdef,tcallnode(left).symtableproc);
+                                tprocdef(currprocdef),tcallnode(left).symtableproc);
                             if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
                              begin
                                if assigned(tcallnode(left).methodpointer) then
@@ -2497,7 +2497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.168  2004-12-26 16:22:01  peter
+  Revision 1.169  2004-12-27 16:54:29  peter
+    * also don't call procvar when converting to procvar
+
+  Revision 1.168  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.167  2004/12/07 16:11:52  peter
