@@ -223,13 +223,13 @@ ifeq ($(OS_TARGET),win32)
 override TARGET_UNITS+=process fileinfo resolve ssockets
 endif
 ifeq ($(OS_TARGET),freebsd)
-override TARGET_UNITS+=process asyncio ssockets http resolve http
+override TARGET_UNITS+=process asyncio ssockets http resolve http fpasync
 endif
 ifeq ($(OS_TARGET),netbsd)
-override TARGET_UNITS+=process asyncio ssockets http resolve http
+override TARGET_UNITS+=process asyncio ssockets http resolve http fpasync
 endif
 ifeq ($(OS_TARGET),openbsd)
-override TARGET_UNITS+=process asyncio ssockets http resolve http
+override TARGET_UNITS+=process asyncio ssockets http resolve http fpasync
 endif
 override TARGET_RSTS+=classes ssockets cachecls resolve
 override TARGET_EXAMPLEDIRS+=tests
@@ -849,6 +849,7 @@ ifeq ($(OS_TARGET),freebsd)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
+REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_IBASE=1
 endif
@@ -860,6 +861,7 @@ ifeq ($(OS_TARGET),netbsd)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
+REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_IBASE=1
 endif
@@ -887,6 +889,7 @@ ifeq ($(OS_TARGET),openbsd)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
+REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_IBASE=1
 endif
