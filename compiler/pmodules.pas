@@ -1189,14 +1189,26 @@ implementation
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
          codegen_newprocedure;
-         gen_main_procsym('main',potype_proginit,st);
-         aktprocsym.definition.aliasnames.insert('program_init');
-         aktprocsym.definition.aliasnames.insert('PASCALMAIN');
-         aktprocsym.definition.aliasnames.insert(target_info.cprefix+'main');
+         if islibrary then
+          begin
+            gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
+            aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
+            aktprocsym.definition.aliasnames.insert('PASCALMAIN');
+            { this code is called from C so we need to save some
+              registers }
+            include(aktprocsym.definition.procoptions,po_savestdregs);
+          end
+         else
+          begin
+            gen_main_procsym('main',potype_proginit,st);
+            aktprocsym.definition.aliasnames.insert('program_init');
+            aktprocsym.definition.aliasnames.insert('PASCALMAIN');
+            aktprocsym.definition.aliasnames.insert(target_info.cprefix+'main');
 {$ifdef m68k}
-         if target_info.target=target_m68k_PalmOS then
-           aktprocsym.definition.aliasnames.insert('PilotMain');
+            if target_info.target=target_m68k_PalmOS then
+              aktprocsym.definition.aliasnames.insert('PilotMain');
 {$endif m68k}
+          end;
          compile_proc_body(true,false);
 
          { avoid self recursive destructor call !! PM }
@@ -1316,7 +1328,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-05-19 23:05:19  peter
+  Revision 1.34  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.33  2001/05/19 23:05:19  peter
     * support uses <unit> in <file> construction
 
   Revision 1.32  2001/05/18 22:26:36  peter

@@ -1417,7 +1417,8 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             objext       : '.ow';
             resext       : '.rc';
             resobjext    : '.owr';
-            libprefix    : 'libp';
+            staticlibprefix : 'libp';
+            sharedlibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
             assem        : as_i386_pecoff;
@@ -1451,7 +1452,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-06-02 19:22:44  peter
+  Revision 1.9  2001-06-03 15:15:32  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.8  2001/06/02 19:22:44  peter
     * extradefines field added
 
   Revision 1.7  2001/04/21 13:33:16  peter

@@ -479,7 +479,8 @@ end;
             objext       : '.on';
             resext       : '.res';
             resobjext    : '.or';
-            libprefix    : '';
+            staticlibprefix : '';
+            sharedlibprefix : '';
             Cprefix      : '';
             newline      : #13#10;
             assem        : as_i386_elf32;
@@ -510,7 +511,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-06-02 19:22:44  peter
+  Revision 1.6  2001-06-03 15:15:32  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.5  2001/06/02 19:22:44  peter
     * extradefines field added
 
   Revision 1.4  2001/05/30 21:35:49  peter

@@ -164,13 +164,18 @@ begin
    begin
      if not hp2.is_var then
       begin
+        { the manglednames can already be the same when the procedure
+          is declared with cdecl }
+        if hp2.sym.mangledname<>hp2.name^ then
+         begin
 {$ifdef i386}
-        { place jump in codesegment }
-        codesegment.concat(Tai_align.Create_op(4,$90));
-        codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym.mangledname)));
-        codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
+           { place jump in codesegment }
+           codesegment.concat(Tai_align.Create_op(4,$90));
+           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym.mangledname)));
+           codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
+         end;
       end
      else
       Message1(parser_e_no_export_of_variables_for_target,'linux');
@@ -200,7 +205,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';
+     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
@@ -215,11 +220,7 @@ begin
       end
      else
       DynamicLinker:='/lib/ld-linux.so.1';
-     {$ifdef BSD}
-      DynamicLinker:='';
-     {$endif}
    end;
-
 end;
 
 
@@ -239,13 +240,22 @@ begin
 { set special options for some targets }
   linkdynamic:=not(SharedLibFiles.empty);
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-  prtobj:='prt0';
-  cprtobj:='cprt0';
-  gprtobj:='gprt0';
-  if glibc21 then
+  if isdll then
    begin
-     cprtobj:='cprt21';
-     gprtobj:='gprt21';
+     prtobj:='dllprt0';
+     cprtobj:='dllprt0';
+     gprtobj:='dllprt0';
+   end
+  else
+   begin
+     prtobj:='prt0';
+     cprtobj:='cprt0';
+     gprtobj:='gprt0';
+     if glibc21 then
+      begin
+        cprtobj:='cprt21';
+        gprtobj:='gprt21';
+      end;
    end;
   if cs_profile in aktmoduleswitches then
    begin
@@ -410,6 +420,9 @@ end;
 
 Function TLinkerLinux.MakeSharedLibrary:boolean;
 var
+  InitStr,
+  FiniStr,
+  SoNameStr : string[80];
   binstr,
   cmdstr  : string;
   success : boolean;
@@ -421,11 +434,19 @@ begin
 { Write used files and libraries }
   WriteResponseFile(true);
 
+ { Create some replacements }
+  InitStr:='-init FPC_LIB_START';
+  FiniStr:='-fini FPC_LIB_EXIT';
+  SoNameStr:='-soname '+SplitFileName(current_module.sharedlibfilename^);
+
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$INIT',InitStr);
+  Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$SONAME',SoNameStr);
   success:=DoExec(FindUtil(binstr),cmdstr,true,false);
 
 { Strip the library ? }
@@ -473,7 +494,8 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            libprefix    : 'libp';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             assem        : as_i386_elf32;
@@ -521,7 +543,8 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            libprefix    : 'libp';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             assem        : as_m68k_as;
@@ -569,7 +592,8 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            libprefix    : 'libp';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             assem        : as_powerpc_as;
@@ -615,7 +639,8 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            libprefix    : 'libp';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             assem        : as_alpha_as;
@@ -667,7 +692,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-06-02 19:22:44  peter
+  Revision 1.7  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.6  2001/06/02 19:22:44  peter
     * extradefines field added
 
   Revision 1.5  2001/04/21 15:34:01  peter

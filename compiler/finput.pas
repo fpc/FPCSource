@@ -626,11 +626,11 @@ uses
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
-         staticlibfilename:=stringdup(p+target_info.libprefix+n+target_info.staticlibext);
+         staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
          if target_info.target=target_i386_WIN32 then
            sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
          else
-           sharedlibfilename:=stringdup(p+target_info.libprefix+n+target_info.sharedlibext);
+           sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
@@ -683,7 +683,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  2001-04-18 22:01:53  peter
+  Revision 1.10  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.9  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.8  2001/04/13 01:22:07  peter

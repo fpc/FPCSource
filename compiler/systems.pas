@@ -154,7 +154,8 @@ interface
           objext,
           resext,
           resobjext    : string[4];
-          libprefix    : string[4];
+          staticlibprefix : string[4];
+          sharedlibprefix : string[4];
           Cprefix      : string[2];
           newline      : string[2];
           assem        : tasm;
@@ -573,7 +574,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2001-06-02 19:21:45  peter
+  Revision 1.18  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.17  2001/06/02 19:21:45  peter
     * extradefines field added to target_info, so that targets don't
       need to put code in options.pas for it
 

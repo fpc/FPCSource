@@ -323,8 +323,8 @@ begin
   if s='' then
    exit;
 { remove prefix 'lib' }
-  if Copy(s,1,length(target_info.libprefix))=target_info.libprefix then
-   Delete(s,1,length(target_info.libprefix));
+  if Copy(s,1,length(target_info.sharedlibprefix))=target_info.sharedlibprefix then
+   Delete(s,1,length(target_info.sharedlibprefix));
 { remove extension if any }
   if Copy(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
    Delete(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext)+1);
@@ -482,7 +482,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2001-04-18 22:01:54  peter
+  Revision 1.17  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.16  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.15  2001/04/13 01:22:08  peter

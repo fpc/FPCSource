@@ -132,7 +132,6 @@ interface
           destructor destroy;override;
           procedure reset;virtual;
           procedure numberunits;
-          procedure setfilename(const fn:string;allowoutput:boolean);
        end;
 
        tused_unit = class(tlinkedlistitem)
@@ -553,56 +552,6 @@ uses
       end;
 
 
-    procedure tmodule.setfilename(const fn:string;allowoutput:boolean);
-      var
-        p : dirstr;
-        n : NameStr;
-        e : ExtStr;
-      begin
-         stringdispose(objfilename);
-         stringdispose(asmfilename);
-         stringdispose(ppufilename);
-         stringdispose(staticlibfilename);
-         stringdispose(sharedlibfilename);
-         stringdispose(exefilename);
-         stringdispose(outputpath);
-         stringdispose(path);
-         { Create names }
-         fsplit(fn,p,n,e);
-         n:=FixFileName(n);
-         { set path }
-         path:=stringdup(FixPath(p,false));
-         { obj,asm,ppu names }
-         p:=path^;
-         if AllowOutput then
-          begin
-            if (OutputUnitDir<>'') then
-             p:=OutputUnitDir
-            else
-             if (OutputExeDir<>'') then
-              p:=OutputExeDir;
-          end;
-         outputpath:=stringdup(p);
-         objfilename:=stringdup(p+n+target_info.objext);
-         asmfilename:=stringdup(p+n+target_info.asmext);
-         ppufilename:=stringdup(p+n+target_info.unitext);
-         { lib and exe could be loaded with a file specified with -o }
-         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
-          n:=OutputFile;
-         staticlibfilename:=stringdup(p+target_info.libprefix+n+target_info.staticlibext);
-         if target_info.target=target_i386_WIN32 then
-           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
-         else
-           sharedlibfilename:=stringdup(p+target_info.libprefix+n+target_info.sharedlibext);
-         { output dir of exe can be specified separatly }
-         if AllowOutput and (OutputExeDir<>'') then
-          p:=OutputExeDir
-         else
-          p:=path^;
-         exefilename:=stringdup(p+n+target_info.exeext);
-      end;
-
-
     procedure tmodule.numberunits;
       var
         counter : longint;
@@ -636,7 +585,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.15  2001-05-09 14:11:10  jonas
+  Revision 1.16  2001-06-03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.15  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.14  2001/05/06 14:49:16  peter
