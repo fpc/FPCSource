@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -731,7 +732,7 @@ Function  GraphResult: smallint;
 function  GetModeName(ModeNumber: smallint): string;
 procedure SetGraphMode(Mode: smallint);
 function GetGraphMode: smallint;
-function GetMaxMode: word;
+function GetMaxMode: smallint;
 procedure RestoreCrtMode;
 procedure GetModeRange(GraphDriver: smallint; var LoMode, HiMode: smallint);
 Function  GetX: smallint;
@@ -807,7 +808,11 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.4  2000-08-12 12:27:14  jonas
+  Revision 1.5  2001-06-01 11:13:22  jonas
+    * GetMaxMode() now returns a smallint instead of a word (since the type
+      of the modenumbers is smallint too) (merged)
+
+  Revision 1.4  2000/08/12 12:27:14  jonas
     + setallpalette hook
     + setallpalette implemented for standard vga and VESA 2.0+
 

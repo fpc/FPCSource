@@ -343,7 +343,7 @@ end;
       GetGraphMode := IntCurrentMode;
      end;
 
-   function GetMaxMode: word;
+   function GetMaxMode: smallint;
    { I know , i know, this routine is very slow, and it would }
    { be much easier to sort the linked list of possible modes }
    { instead of doing this, but I'm lazy!! And anyways, the   }
@@ -598,7 +598,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-04-14 16:06:03  jonas
+  Revision 1.7  2001-06-01 11:13:22  jonas
+    * GetMaxMode() now returns a smallint instead of a word (since the type
+      of the modenumbers is smallint too) (merged)
+
+  Revision 1.6  2001/04/14 16:06:03  jonas
     * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
 
   Revision 1.5  2001/04/13 23:49:48  peter
