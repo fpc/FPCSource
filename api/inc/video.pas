@@ -109,6 +109,7 @@ var
   CursorLines  : Byte;
 const
   LowAscii     : Boolean=true;
+  FVMaxWidth = 132;
 
 procedure InitVideo;
 { Initializes the video subsystem }
@@ -155,6 +156,7 @@ var
   VideoSeg    : word;
 {$endif go32v2}
 implementation
+
 
 { Include system dependent part }
 { must declare TargetEntry and TargetExit procedures
@@ -228,7 +230,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-04 11:53:31  pierre
+  Revision 1.4  2000-10-15 09:22:40  peter
+    * FVMaxWidth
+
+  Revision 1.3  2000/10/04 11:53:31  pierre
    Add TargetEntry and TargetExit (merged)
 
   Revision 1.2  2000/09/24 19:52:21  hajny
