@@ -337,7 +337,13 @@
     function tsym.stabstring : pchar;
 
       begin
-         stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',0');
+         stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+tostr(
+{$ifdef NEWINPUT}
+           fileinfo.line
+{$else}
+           line_no
+{$endif}
+           )+',0');
       end;
 
     procedure tsym.concatstabto(asmlist : paasmoutput);
@@ -1123,7 +1129,8 @@
               end;
             stabstring := strpnew('"'+name+':'+st
                   +definition^.numberstring+'",'+
-                  tostr(N_PSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(address+owner^.call_offset))
+                  tostr(N_PSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+
+                    tostr(address+owner^.call_offset))
                   {offset to ebp => will not work if the framepointer is esp
                   so some optimizing will make things harder to debug }
          end
@@ -1135,13 +1142,15 @@
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'
                         +definition^.numberstring+'",'+
-                        tostr(N_RSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
+                        tostr(N_RSYM)+',0,'+tostr(
+              {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
            end
          else
    {$endif i386}
            stabstring := strpnew('"'+name+':'
                   +definition^.numberstring+'",'+
-                  tostr(N_LSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',-'+tostr(address))
+                  tostr(N_LSYM)+',0,'+tostr(
+           {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',-'+tostr(address))
        else
          stabstring := inherited stabstring;
   end;
@@ -1160,7 +1169,8 @@
            { this is the register order for GDB}
               stab_str:=strpnew('"'+name+':r'
                      +definition^.numberstring+'",'+
-                     tostr(N_RSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
+                     tostr(N_RSYM)+',0,'+tostr(
+                     {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
               asmlist^.concat(new(pai_stabs,init(stab_str)));
            end;
 {$endif i386}
@@ -1278,7 +1288,8 @@
     else
       st := 'S';
     stabstring := strpnew('"'+name+':'+st
-            +definition^.numberstring+'",'+tostr(n_STSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
+            +definition^.numberstring+'",'+tostr(n_STSYM)+',0,'+tostr(
+            {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
     end;
 {$endif GDB}
 
@@ -1402,7 +1413,8 @@
          { sets are not recognized by GDB}
             {***}
         end;
-    stabstring := strpnew('"'+name+':c='+st+'",'+tostr(N_function)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',0');
+    stabstring := strpnew('"'+name+':c='+st+'",'+tostr(N_function)+',0,'+tostr(
+    {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',0');
     end;
 
     procedure tconstsym.concatstabto(asmlist : paasmoutput);
@@ -1632,7 +1644,10 @@
 
 {
   $Log$
-  Revision 1.20  1998-07-10 00:00:05  peter
+  Revision 1.21  1998-07-13 21:17:38  florian
+    * changed to compile with TP
+
+  Revision 1.20  1998/07/10 00:00:05  peter
     * fixed ttypesym bug finally
     * fileinfo in the symtable and better using for unused vars
 
