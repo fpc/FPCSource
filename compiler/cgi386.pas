@@ -252,7 +252,9 @@ implementation
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) then
+                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
+                             { call by value open arrays are also indirect addressed }
+                             is_open_array(pvarsym(p^.symtableentry)^.definition) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -2282,6 +2284,33 @@ implementation
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right : boolean);
 
+      procedure maybe_push_open_array_high;
+
+        var
+           r : preference;
+
+        begin
+           { open array ? }
+           { defcoll^.data can be nil for read/write }
+           if assigned(defcoll^.data) and
+             is_open_array(defcoll^.data) then
+             begin
+                { push high }
+                if is_open_array(p^.left^.resulttype) then
+                  begin
+                     new(r);
+                     reset_reference(r^);
+                     r^.base:=highframepointer;
+                     r^.offset:=highoffset+4;
+                     exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
+                  end
+                else
+                  push_int(parraydef(p^.left^.resulttype)^.highrange-
+                           parraydef(p^.left^.resulttype)^.lowrange);
+                inc(pushedparasize,4);
+             end;
+        end;
+
       var
          size : longint;
          stackref : treference;
@@ -2311,7 +2340,7 @@ implementation
               { allow @var }
               if p^.left^.treetype=addrn then
                 begin
-                   { allways a register }
+                   { always a register }
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                    ungetregister32(p^.left^.location.register);
                 end
@@ -2333,25 +2362,7 @@ implementation
            begin
               if (p^.left^.location.loc<>LOC_REFERENCE) then
                 Message(cg_e_var_must_be_reference);
-              { open array ? }
-              { defcoll^.data can be nil for read/write }
-              if assigned(defcoll^.data) and
-                is_open_array(defcoll^.data) then
-                begin
-                   { push high }
-                   if is_open_array(p^.left^.resulttype) then
-                     begin
-                        new(r);
-                        reset_reference(r^);
-                        r^.base:=highframepointer;
-                        r^.offset:=highoffset+4;
-                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
-                     end
-                   else
-                     push_int(parraydef(p^.left^.resulttype)^.highrange-
-                              parraydef(p^.left^.resulttype)^.lowrange);
-                   inc(pushedparasize,4);
-                end;
+              maybe_push_open_array_high;
               emitpushreferenceaddr(p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
               inc(pushedparasize,4);
@@ -2364,6 +2375,7 @@ implementation
               if (defcoll^.paratyp=vs_const) and
                  dont_copy_const_param(p^.resulttype) then
                 begin
+                   maybe_push_open_array_high;
                    emitpushreferenceaddr(p^.left^.location.reference);
                    del_reference(p^.left^.location.reference);
                    inc(pushedparasize,4);
@@ -2371,138 +2383,152 @@ implementation
               else
                 case p^.left^.location.loc of
                    LOC_REGISTER,
-                   LOC_CREGISTER : begin
-                                     case p^.left^.location.register of
-                                        R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
-                                        R_EDI,R_ESP,R_EBP :
-                                          begin
-                                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
-                                             inc(pushedparasize,4);
-                                             ungetregister32(p^.left^.location.register);
-                                          end;
-                                        R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
-                                          begin
-                                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,p^.left^.location.register)));
-                                              inc(pushedparasize,2);
-                                              ungetregister32(reg16toreg32(p^.left^.location.register));
-                                           end;
-                                        R_AL,R_BL,R_CL,R_DL:
-                                          begin
-                                             { we must push always 16 bit }
-                                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,
-                                               reg8toreg16(p^.left^.location.register))));
-                                             inc(pushedparasize,2);
-                                             ungetregister32(reg8toreg32(p^.left^.location.register));
-                                          end;
-                                     end;
-                                  end;
-                       LOC_FPU : begin
-                                        size:=pfloatdef(p^.left^.resulttype)^.size;
-                                        inc(pushedparasize,size);
-                                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
-                                        new(r);
-                                        reset_reference(r^);
-                                        r^.base:=R_ESP;
-                                        floatstoreops(pfloatdef(p^.left^.resulttype)^.typ,op,s);
-                                        exprasmlist^.concat(new(pai386,op_ref(op,s,r)));
-                                     end;
-                   LOC_REFERENCE,LOC_MEM :
-                                      begin
-                                          tempreference:=p^.left^.location.reference;
-                                  del_reference(p^.left^.location.reference);
-                                  case p^.resulttype^.deftype of
-                                     orddef : begin
-                                                   case porddef(p^.resulttype)^.typ of
-                                                      s32bit,u32bit :
-                                                        begin
-                                                           emit_push_mem(tempreference);
-                                                           inc(pushedparasize,4);
-                                                        end;
-                                                      s8bit,u8bit,uchar,bool8bit,s16bit,u16bit : begin
-                                                          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
-                                                            newreference(tempreference))));
-                                                          inc(pushedparasize,2);
-                                                      end;
-                                                    end;
+                   LOC_CREGISTER:
+                     begin
+                        case p^.left^.location.register of
+                           R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
+                           R_EDI,R_ESP,R_EBP :
+                             begin
+                                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                                inc(pushedparasize,4);
+                                ungetregister32(p^.left^.location.register);
+                             end;
+                           R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
+                             begin
+                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,p^.left^.location.register)));
+                                 inc(pushedparasize,2);
+                                 ungetregister32(reg16toreg32(p^.left^.location.register));
+                              end;
+                           R_AL,R_BL,R_CL,R_DL:
+                             begin
+                                { we must push always 16 bit }
+                                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,
+                                  reg8toreg16(p^.left^.location.register))));
+                                inc(pushedparasize,2);
+                                ungetregister32(reg8toreg32(p^.left^.location.register));
+                             end;
+                        end;
+                     end;
+                   LOC_FPU:
+                     begin
+                        size:=pfloatdef(p^.left^.resulttype)^.size;
+                        inc(pushedparasize,size);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+                        new(r);
+                        reset_reference(r^);
+                        r^.base:=R_ESP;
+                        floatstoreops(pfloatdef(p^.left^.resulttype)^.typ,op,s);
+                        exprasmlist^.concat(new(pai386,op_ref(op,s,r)));
+                     end;
+                   LOC_REFERENCE,LOC_MEM:
+                     begin
+                        tempreference:=p^.left^.location.reference;
+                        del_reference(p^.left^.location.reference);
+                        case p^.resulttype^.deftype of
+                           orddef : begin
+                                         case porddef(p^.resulttype)^.typ of
+                                            s32bit,u32bit :
+                                              begin
+                                                 emit_push_mem(tempreference);
+                                                 inc(pushedparasize,4);
                                               end;
-                                     floatdef : begin
-                                                   case pfloatdef(p^.resulttype)^.typ of
-                                                      f32bit,
-                                                      s32real :
-                                                        begin
-                                                           emit_push_mem(tempreference);
-                                                           inc(pushedparasize,4);
-                                                        end;
-                                                      s64real,
-                                                      s64bit : begin
-                                                                   inc(tempreference.offset,4);
-                                                                   emit_push_mem(tempreference);
-                                                                   dec(tempreference.offset,4);
-                                                                   emit_push_mem(tempreference);
-                                                                   inc(pushedparasize,8);
-                                                                end;
-                                                      s80real : begin
-                                                                   inc(tempreference.offset,6);
-                                                                   emit_push_mem(tempreference);
-                                                                   dec(tempreference.offset,4);
-                                                                   emit_push_mem(tempreference);
-                                                                   dec(tempreference.offset,2);
-                                                                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
-                                                                     newreference(tempreference))));
-                                                                   inc(pushedparasize,extended_size);
-                                                                end;
-                                                   end;
-                                                end;
-                                     pointerdef,procvardef,
-                     enumdef,classrefdef:
-                       begin
-                                          emit_push_mem(tempreference);
-                                          inc(pushedparasize,4);
-                                       end;
-                                     arraydef,recorddef,stringdef,setdef,objectdef :
-                                                begin
-                                                   if ((p^.resulttype^.deftype=setdef) and
-                                                     (psetdef(p^.resulttype)^.settype=smallset)) then
-                                                     begin
-                                                        emit_push_mem(tempreference);
-                                                        inc(pushedparasize,4);
-                                                     end
-                                                   else
-                                                     begin
-                                                        size:=p^.resulttype^.size;
+                                            s8bit,u8bit,uchar,bool8bit,s16bit,u16bit : begin
+                                                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
+                                                  newreference(tempreference))));
+                                                inc(pushedparasize,2);
+                                            end;
+                                          end;
+                                    end;
+                           floatdef : begin
+                                         case pfloatdef(p^.resulttype)^.typ of
+                                            f32bit,
+                                            s32real :
+                                              begin
+                                                 emit_push_mem(tempreference);
+                                                 inc(pushedparasize,4);
+                                              end;
+                                            s64real,
+                                            s64bit : begin
+                                                         inc(tempreference.offset,4);
+                                                         emit_push_mem(tempreference);
+                                                         dec(tempreference.offset,4);
+                                                         emit_push_mem(tempreference);
+                                                         inc(pushedparasize,8);
+                                                      end;
+                                            s80real : begin
+                                                         inc(tempreference.offset,6);
+                                                         emit_push_mem(tempreference);
+                                                         dec(tempreference.offset,4);
+                                                         emit_push_mem(tempreference);
+                                                         dec(tempreference.offset,2);
+                                                         exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
+                                                           newreference(tempreference))));
+                                                         inc(pushedparasize,extended_size);
+                                                      end;
+                                         end;
+                                      end;
+                           pointerdef,procvardef,
+                           enumdef,classrefdef:
+                             begin
+                                emit_push_mem(tempreference);
+                                inc(pushedparasize,4);
+                             end;
+                           arraydef,recorddef,stringdef,setdef,objectdef :
+                             begin
+                                { small set ? }
+                                if ((p^.resulttype^.deftype=setdef) and
+                                  (psetdef(p^.resulttype)^.settype=smallset)) then
+                                  begin
+                                     emit_push_mem(tempreference);
+                                     inc(pushedparasize,4);
+                                  end
+                                { call by value open array ? }
+                                else if (p^.resulttype^.deftype=arraydef) and
+                                  assigned(defcoll^.data) and
+                                  is_open_array(defcoll^.data) then
+                                  begin
+                                     { first, push high }
+                                     maybe_push_open_array_high;
+                                     emitpushreferenceaddr(p^.left^.location.reference);
+                                     inc(pushedparasize,4);
+                                  end
+                                else
+                                  begin
 
-                                                        { Alignment }
-                                                        {
-                                                        if (size>=4) and ((size and 3)<>0) then
-                                                          inc(size,4-(size and 3))
-                                                        else if (size>=2) and ((size and 1)<>0) then
-                                                          inc(size,2-(size and 1))
-                                                        else
-                                                        if size=1 then size:=2;
-                                                        }
-                                                        { create stack space }
-                                                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
-                                                        inc(pushedparasize,size);
-                                                        { create stack reference }
-                                                        stackref.symbol := nil;
-                                                        clear_reference(stackref);
-                                                        stackref.base:=R_ESP;
-                                                        { produce copy }
-                                                        if p^.resulttype^.deftype=stringdef then
-                                                          begin
-                                                             copystring(stackref,p^.left^.location.reference,
-                                                               pstringdef(p^.resulttype)^.len);
-                                                          end
-                                                        else
-                                                          begin
-                                                             concatcopy(p^.left^.location.reference,
-                                                             stackref,p^.resulttype^.size,true);
-                                                          end;
-                                                     end;
-                                                end;
-                                              else Message(cg_e_illegal_expression);
+                                     size:=p^.resulttype^.size;
+
+                                     { Alignment }
+                                     {
+                                     if (size>=4) and ((size and 3)<>0) then
+                                       inc(size,4-(size and 3))
+                                     else if (size>=2) and ((size and 1)<>0) then
+                                       inc(size,2-(size and 1))
+                                     else
+                                     if size=1 then size:=2;
+                                     }
+                                     { create stack space }
+                                     exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+                                     inc(pushedparasize,size);
+                                     { create stack reference }
+                                     stackref.symbol := nil;
+                                     clear_reference(stackref);
+                                     stackref.base:=R_ESP;
+                                     { produce copy }
+                                     if p^.resulttype^.deftype=stringdef then
+                                       begin
+                                          copystring(stackref,p^.left^.location.reference,
+                                            pstringdef(p^.resulttype)^.len);
+                                       end
+                                     else
+                                       begin
+                                          concatcopy(p^.left^.location.reference,
+                                          stackref,p^.resulttype^.size,true);
+                                       end;
                                   end;
-                               end;
+                             end;
+                           else Message(cg_e_illegal_expression);
+                        end;
+                     end;
                    LOC_JUMP:
                      begin
                         getlabel(hlabel);
@@ -5725,7 +5751,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.10  1998-04-12 22:39:43  florian
+  Revision 1.11  1998-04-13 08:42:51  florian
+    * call by reference and call by value open arrays fixed
+
+  Revision 1.10  1998/04/12 22:39:43  florian
     * problem with read access to properties solved
     * correct handling of hidding methods via virtual (COM)
     * correct result type of constructor calls (COM), the resulttype

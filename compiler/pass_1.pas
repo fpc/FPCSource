@@ -464,7 +464,9 @@ unit pass_1;
                    if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                       dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)
-                      ) then
+                      ) or
+                      { call by value open arrays are also indirect addressed }
+                      is_open_array(pvarsym(p^.symtableentry)^.definition) then
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      p^.registers32:=1;
@@ -4500,7 +4502,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.7  1998-04-12 22:39:44  florian
+  Revision 1.8  1998-04-13 08:42:52  florian
+    * call by reference and call by value open arrays fixed
+
+  Revision 1.7  1998/04/12 22:39:44  florian
     * problem with read access to properties solved
     * correct handling of hidding methods via virtual (COM)
     * correct result type of constructor calls (COM), the resulttype
