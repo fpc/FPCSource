@@ -522,8 +522,14 @@
       begin
         if (owner^.symtabletype = objectsymtable) then
          obj := owner^.name^+'__'+name;
+        { this code was correct only as long as the local symboltable
+          of the parent had the same name as the function
+          but this is no true anymore !! PM
         if (owner^.symtabletype=localsymtable) and assigned(owner^.name) then
-         info := ','+name+','+owner^.name^;
+         info := ','+name+','+owner^.name^;  }
+        if (owner^.symtabletype=localsymtable) and assigned(owner^.defowner) and
+           assigned(owner^.defowner^.sym) then
+          info := ','+name+','+owner^.defowner^.sym^.name;
       end;
      stabsstr:=definition^.mangledname;
      getmem(p,length(stabsstr)+255);
@@ -1769,7 +1775,10 @@
 
 {
   $Log$
-  Revision 1.71  1999-01-23 23:29:41  florian
+  Revision 1.72  1999-02-08 09:51:22  pierre
+   * gdb info for local functions was wrong
+
+  Revision 1.71  1999/01/23 23:29:41  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

@@ -2144,6 +2144,8 @@
          extnumber:=-1;
          localst:=new(psymtable,init(localsymtable));
          parast:=new(psymtable,init(parasymtable));
+         localst^.defowner:=@self;
+         parast^.defowner:=@self;
          { this is used by insert
           to check same names in parast and localst }
          localst^.next:=parast;
@@ -3289,7 +3291,10 @@
 
 {
   $Log$
-  Revision 1.90  1999-01-26 09:57:29  pierre
+  Revision 1.91  1999-02-08 09:51:21  pierre
+   * gdb info for local functions was wrong
+
+  Revision 1.90  1999/01/26 09:57:29  pierre
    * open arrays stabs changed
 
   Revision 1.89  1999/01/22 17:29:30  pierre
