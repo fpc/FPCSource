@@ -1258,12 +1258,19 @@ End;
 
 
 Function CrtRead(Var F: TextRec): Integer;
-
 {
   Read from CRT associated file.
 }
+var
+  i : longint;
 Begin
   F.BufEnd:=fdRead(F.Handle, F.BufPtr^, F.BufSize);
+{ fix #13 only's -> #10 to overcome terminal setting }
+  for i:=1to F.BufEnd do
+   begin
+     if (F.BufPtr^[i-1]=#13) and (F.BufPtr^[i]<>#10) then
+      F.BufPtr^[i-1]:=#10;
+   end;  
   F.BufPos:=F.BufEnd;
   CrtWrite(F);
   CrtRead:=0;
@@ -1272,7 +1279,6 @@ End;
 
 
 Function CrtInOut(Var F: TextRec): Integer;
-
 {
   InOut function for CRT associated file.
 }
@@ -1366,13 +1372,10 @@ Begin
      TCGetAttr(1,Tio);
      OldIO:=Tio;
      CFMakeRaw(Tio);
-{ Removed because it maps the enter key to #10 }     
-{      Tio.C_IFlag:=Tio.C_IFlag or ICRNL;}
    end
   else
    Tio:=OldIO;
   TCSetAttr(1,TCSANOW,Tio);
-
 End;
 
 
@@ -1462,7 +1465,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  1998-06-19 14:47:52  michael
+  Revision 1.6  1998-06-19 16:51:50  peter
+    * added #13 -> #10 translation for CrtRead to overcome readln probs
+
+  Revision 1.5  1998/06/19 14:47:52  michael
   + Enter key maps again to #13
 
   Revision 1.4  1998/05/06 12:35:26  michael
