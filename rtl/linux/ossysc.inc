@@ -207,7 +207,11 @@ function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint
 }
 
 begin
+{$ifdef CPUARM}
+  do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),8);
+{$else CPUARM}
   do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
+{$endif CPUARM}
 end;
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
@@ -483,7 +487,10 @@ end;
 
 {
  $Log$
- Revision 1.18  2004-02-21 16:27:29  marco
+ Revision 1.19  2004-03-27 14:34:23  florian
+   * use rt_sigaction syscall on arm
+
+ Revision 1.18  2004/02/21 16:27:29  marco
   * hmprf, Linux has different ioctls kernel<->libc
 
  Revision 1.17  2004/02/21 15:14:55  marco
