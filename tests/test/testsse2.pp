@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { %version=1.1}
 uses
    mmx;
