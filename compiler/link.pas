@@ -175,7 +175,7 @@ begin
               { if smart not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Hint,'unit '+modulename^+' can''t be static linked, switching to smart linking');
+                 Comment(V_Tried,'unit '+modulename^+' can''t be static linked, switching to smart linking');
                  mask:=mask or link_smart;
                end
               else
@@ -192,7 +192,7 @@ begin
               { if smart not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Hint,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                 Comment(V_Tried,'unit '+modulename^+' can''t be smart linked, switching to static linking');
                  mask:=mask or link_static;
                end
               else
@@ -209,7 +209,7 @@ begin
               { if shared not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Hint,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                 Comment(V_Tried,'unit '+modulename^+' can''t be shared linked, switching to static linking');
                  mask:=mask or link_static;
                end
               else
@@ -525,7 +525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
-  + removed logs
+  Revision 1.3  2000-07-26 13:08:19  jonas
+    * merged from fixes branch (v_hint to v_tried changed when attempting
+      to smart/static/shared link)
 
+  Revision 1.2  2000/07/13 11:32:43  michael
+  + removed logs
 }
