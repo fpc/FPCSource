@@ -40,7 +40,7 @@ OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12 ex13 ex14 \
         ex67 ex68 ex69 ex70 ex71 ex72 ex73 ex74 ex75 ex76 ex77 ex78 ex79 \
 	ex80 ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88 ex89 \
 	ex90 ex91 ex92 ex93 ex94 ex95 ex96 ex97 ex98 ex99 ex100 ex101 ex102\
-        ex103 ex104 ex105 ex106 ex107 ex108 ex109
+        ex103 ex104 ex105 ex106 ex107 ex108 ex109 ex110
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
