@@ -681,10 +681,9 @@ implementation
               if (po_methodpointer in tprocvardef(t.def).procoptions) then
                 Message(parser_e_no_procvarobj_const);
                 { parse the rest too, so we can continue with error checking }
-              getprocvar:=true;
               getprocvardef:=tprocvardef(t.def);
               p:=comp_expr(true);
-              getprocvar:=false;
+              getprocvardef:=nil;
               if codegenerror then
                begin
                  p.free;
@@ -971,7 +970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-12-06 17:57:38  florian
+  Revision 1.40  2002-01-06 21:47:32  peter
+    * removed getprocvar, use only getprocvardef
+
+  Revision 1.39  2001/12/06 17:57:38  florian
     + parasym to tparaitem added
 
   Revision 1.38  2001/11/02 22:58:06  peter

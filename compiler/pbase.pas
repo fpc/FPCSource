@@ -39,8 +39,7 @@ interface
        { true, if we are after an assignement }
        afterassignment : boolean = false;
 
-       { sspecial for handling procedure vars }
-       getprocvar : boolean = false;
+       { special for handling procedure vars }
        getprocvardef : tprocvardef = nil;
 
     type
@@ -369,7 +368,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2001-06-03 21:57:35  peter
+  Revision 1.14  2002-01-06 21:47:32  peter
+    * removed getprocvar, use only getprocvardef
+
+  Revision 1.13  2001/06/03 21:57:35  peter
     + hint directive parsing support
 
   Revision 1.12  2001/05/06 14:49:17  peter

@@ -206,7 +206,7 @@ implementation
                set_varstate(p,false);
                { reset varstateset to maybe set used state later web bug769 PM }
                unset_varstate(p);
-               if not(getprocvar) and (p.resulttype.def.deftype=procvardef) then
+               if (getprocvardef=nil) and (p.resulttype.def.deftype=procvardef) then
                  begin
                     p1:=ccallnode.create(nil,nil,nil,nil);
                     tcallnode(p1).set_procvar(p);
@@ -887,7 +887,7 @@ implementation
 
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
-              if getprocvar then
+              if assigned(getprocvardef) then
                aprocdef:=get_proc_2_procvar_def(tprocsym(sym),getprocvardef)
               else
                aprocdef:=nil;
@@ -1005,13 +1005,14 @@ implementation
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         getprocvar:=(tpropertysym(sym).proptype.def.deftype=procvardef);
+                         if tpropertysym(sym).proptype.def.deftype=procvardef then
+                           getprocvardef:=tprocvardef(tpropertysym(sym).proptype.def);
                          p2:=comp_expr(true);
-                         if getprocvar then
-                           handle_procvar(tprocvardef(tpropertysym(sym).proptype.def),p2,getaddr);
+                         if assigned(getprocvardef) then
+                           handle_procvar(getprocvardef,p2,getaddr);
                          tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
                          include(tcallnode(p1).flags,nf_isproperty);
-                         getprocvar:=false;
+                         getprocvardef:=nil;
                        end;
                      varsym :
                        begin
@@ -1110,7 +1111,7 @@ implementation
                    begin
                       do_proc_call(sym,sym.owner,
                                    getaddr or
-                                   (getprocvar and
+                                   (assigned(getprocvardef) and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
                                       proc_to_procvar_equal(tprocsym(sym).defs^.def,getprocvardef,false)
@@ -1118,7 +1119,7 @@ implementation
                                     )
                                    ),again,p1);
                       if (block_type=bt_const) and
-                         getprocvar then
+                         assigned(getprocvardef) then
                         handle_procvar(getprocvardef,p1,getaddr);
                       { we need to know which procedure is called }
                       do_resulttypepass(p1);
@@ -1450,7 +1451,7 @@ implementation
                                     (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
                                  getaddr or
-                                 (getprocvar and
+                                 (assigned(getprocvardef) and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
                                     proc_to_procvar_equal(tprocsym(srsym).defs^.def,getprocvardef,false)
@@ -1458,7 +1459,7 @@ implementation
                                   )
                                  ),again,p1);
                     if (block_type=bt_const) and
-                       getprocvar then
+                       assigned(getprocvardef) then
                      handle_procvar(getprocvardef,p1,getaddr);
                     { we need to know which procedure is called }
                     if possible_error then
@@ -1830,7 +1831,8 @@ implementation
                     begin
                       if (p1.resulttype.def.deftype=procvardef) then
                        begin
-                         if getprocvar and is_equal(p1.resulttype.def,getprocvardef) then
+                         if assigned(getprocvardef) and
+                            is_equal(p1.resulttype.def,getprocvardef) then
                            again:=false
                          else
                            if (token=_LKLAMMER) or
@@ -2152,7 +2154,7 @@ implementation
                 p1:=factor(true);
                got_addrn:=false;
                p1:=caddrnode.create(p1);
-               if getprocvar then
+               if assigned(getprocvardef) then
                 taddrnode(p1).getprocvardef:=getprocvardef;
              end;
 
@@ -2394,14 +2396,11 @@ implementation
              begin
                 consume(_ASSIGNMENT);
                 if (p1.resulttype.def.deftype=procvardef) then
-                  begin
-                     getprocvar:=true;
-                     getprocvardef:=tprocvardef(p1.resulttype.def);
-                  end;
+                  getprocvardef:=tprocvardef(p1.resulttype.def);
                 p2:=sub_expr(opcompare,true);
-                if getprocvar then
+                if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2,true);
-                getprocvar:=false;
+                getprocvardef:=nil;
                 p1:=cassignmentnode.create(p1,p2);
              end;
            _PLUSASN :
@@ -2484,7 +2483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2001-12-31 16:59:42  peter
+  Revision 1.54  2002-01-06 21:47:32  peter
+    * removed getprocvar, use only getprocvardef
+
+  Revision 1.53  2001/12/31 16:59:42  peter
     * protected/private symbols parsing fixed
 
   Revision 1.52  2001/12/06 17:57:36  florian
