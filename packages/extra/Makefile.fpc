@@ -6,20 +6,20 @@ dirs=uncgi
 dirs_linux=unzip \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
-           utmp cmem bfd zlib gdbm ncurses tcl cdrom \
+           utmp bfd zlib gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk unixutil
 dirs_netbsd=unzip \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+            utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 dirs_freebsd=unzip \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 dirs_openbsd=unzip  \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 dirs_win32=unzip opengl gtk zlib mmsystem tcl cdrom fpgtk winver
 dirs_os2=os2units \
          rexx \
@@ -36,7 +36,7 @@ dirs_emx=os2units \
          zlib tcl \
          imlib fpgtk
 dirs_go32v2=unzip
-dirs_netware=cmem zlib
+dirs_netware=zlib
 
 [install]
 fpcpackage=y
