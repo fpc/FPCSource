@@ -16,11 +16,6 @@
   Possible Defines:
 
   EOF_CTRLZ       Is Ctrl-Z (#26) a EOF mark for textfiles
-  SHORT_LINEBREAK Use short Linebreaks #10 instead of #10#13
-  MAC_LINEBREAK   Use Mac Linebreaks: #13 instead of #10 or #10#13
-
-  SHORT_LINEBREAK is defined in the Linux system unit (syslinux.pp)
-
 }
 
 {****************************************************************************
@@ -85,7 +80,7 @@ End;
 
 Procedure assign(var t:Text;const s:String);
 Begin
-  FillChar(t,SizEof(TextRec),0);
+  FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
   TextRec(t).mode:=fmClosed;
@@ -846,6 +841,12 @@ Begin
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;
+    {$ifdef MACOS}
+    if prev = #13 then
+      {StdInput on macos never have dos line ending, so this is safe.}
+      if TextRec(f).Handle = StdInputHandle then
+        exit;
+    {$endif MACOS}
     if TextRec(f).BufPos>=TextRec(f).BufEnd Then
       begin
         FileFunc(TextRec(f).InOutFunc)(TextRec(f));
@@ -1273,7 +1274,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2004-05-01 20:52:50  peter
+  Revision 1.24  2004-06-21 18:48:48  olle
+    + handles mac line endings without blocking the console, on Mac OS only
+
+  Revision 1.23  2004/05/01 20:52:50  peter
     * ValSInt fixed for 64 bit
 
   Revision 1.22  2004/04/29 18:59:43  peter
