@@ -40,39 +40,16 @@ const
 {$endif TEST_24BPP}
        );
 
-  G640x400x256      = $100;
-  G640x480x256      = $101;
-  G800x600x256      = $103;
-  G1024x768x256     = $105;
-
-  G1280x1024x256    = $107;   { Additional modes. }
-
-  G640x480x32K      = $110;
-  G640x480x64K      = $111;
-  G640x480x16M      = $112;
-  
-  G800x600x32K      = $113;
-  G800x600x64K      = $114;
-  G800x600x16M      = $115;
-
-  G1024x768x32K     = $116;
-  G1024x768x64K     = $117;
-  G1024x768x16M     = $118;
-
-  G1280x1024x32K    = $119;
-  G1280x1024x64K    = $11A;
-  G1280x1024x16M    = $11B;
-
-(*   G320x200x16M32    = 33;       { 32-bit per pixel modes. }
-  G640x480x16M32    = 34;
-  G800x600x16M32    = 35;
-  G1024x768x16M32   = 36;
-  G1280x1024x16M32  = 37; *)
-
 
 {
   $Log$
-  Revision 1.3  1998-11-18 09:34:36  pierre
+  Revision 1.4  1998-11-19 15:09:39  pierre
+    * several bugfixes for sector/ellipse/floodfill
+    + graphic driver mode const in interface G800x600x256...
+    + added backput mode as in linux graph.pp
+      (clears the background of textoutput)
+
+  Revision 1.3  1998/11/18 09:34:36  pierre
    * wrong VesaNumber with 24 bit modes
 
   Revision 1.2  1998/11/18 09:31:38  pierre

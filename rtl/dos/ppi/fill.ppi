@@ -33,14 +33,13 @@ var start,ende,xx : integer;
     col           : longint;
  
 begin  
-{$ifdef ExtDebug}
-     Writeln(stderr,'Fill ',x,' ',y);
-{$endif def ExtDebug}
   xx:=x; col:=getpixel(xx,y);
 {$ifdef ExtDebug}
      Writeln(stderr,'Fill ',x,' ',y,' ',col);
 {$endif def ExtDebug}
-  if (col=bordercol) or (col=fillcol) or (test_bkfill and (col=fillbkcol)) then exit;
+  if (col=bordercol) or (col=fillcol) or
+     (test_bkfill and (col=fillbkcol)) then
+    exit;
   while (col<>bordercol) and (xx > viewport.x1) and
      (col<>fillcol) and (not test_bkfill or (col<>fillbkcol))
     do begin
@@ -52,7 +51,8 @@ begin
   else
     start:=xx+1;
 
-  xx:=x+1; col:=getpixel(xx,y);
+  xx:=x;
+  col:=getpixel(xx,y);
   while (col<>bordercol) and (xx < viewport.x2) and (col<>fillcol)
       and (not test_bkfill or (col<>fillbkcol)) 
     do begin
@@ -88,7 +88,7 @@ begin
     until xx > ende;
   end;
 
-  if (y >= viewport.y1) and (y<viewport.y2) then
+  if (y<viewport.y2) then
    begin
     xx:=start;
     repeat
@@ -103,12 +103,17 @@ begin
 end;
 
 begin
-  fillchar(buffermem^,buffersize,0);
+  {fillchar(buffermem^,buffersize,0);
+    not used !! }
   if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
   viewport.x2:=viewport.x2-viewport.x1;
   viewport.y2:=viewport.y2-viewport.y1;
   viewport.x1:=0;
   viewport.y1:=0;
+  { reject invalid points !! }
+  if (x>viewport.x2) or (x<viewport.x1) or
+     (y>viewport.y2) or (y<viewport.y1) then
+    exit;
   bordercol:=convert(border);
   if BytesPerPixel=1
   then begin
@@ -117,7 +122,7 @@ begin
     fillbkCol:=aktfillbkcolor and $FF;
   end
 {$ifdef TEST_24BPP}
-  else if BytesPerPixel=3
+  else if BytesPerPixel>=3
   then begin
     bordercol:=bordercol and $FFFFFF;
     fillcol:=aktfillsettings.color and $FFFFFF;
@@ -141,7 +146,8 @@ begin
   else
     test_bkfill:=true;
 {$ifdef ExtDebug}
-     Writeln(stderr,'Fillcol ',fillcol,' bordercol',bordercol);
+     Writeln(stderr,'FloodFill(',x,',',y,') Fillcol ',fillcol);
+     Writeln(stderr,' bordercol ',bordercol,' fillbkcol ',fillbkcol);
 {$endif def ExtDebug}
   fill(x,y);
 end;
@@ -258,7 +264,13 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-11-19 09:48:48  pierre
+  Revision 1.5  1998-11-19 15:09:37  pierre
+    * several bugfixes for sector/ellipse/floodfill
+    + graphic driver mode const in interface G800x600x256...
+    + added backput mode as in linux graph.pp
+      (clears the background of textoutput)
+
+  Revision 1.4  1998/11/19 09:48:48  pierre
     + added some functions missing like sector ellipse getarccoords
       (the filling of sector and ellipse is still buggy
        I use floodfill but sometimes the starting point

@@ -873,12 +873,12 @@ begin
       _graphresult:=grNoInitGraph;;
       exit;
     end;
-  if (writemode and $7F<>xorput) and (writemode and $7F<>normalput) then
+  if ((writemode and 7)<>xorput) and ((writemode and 7)<>normalput) then
    begin
       _graphresult:=grError;
       exit;
    end;
-  aktwritemode:=(writemode and $F);
+  aktwritemode:=(writemode and 7);
   if (writemode and BackPut)<>0 then
     ClearText:=true
   else
@@ -932,7 +932,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-11-19 09:48:45  pierre
+  Revision 1.9  1998-11-19 15:09:33  pierre
+    * several bugfixes for sector/ellipse/floodfill
+    + graphic driver mode const in interface G800x600x256...
+    + added backput mode as in linux graph.pp
+      (clears the background of textoutput)
+
+  Revision 1.8  1998/11/19 09:48:45  pierre
     + added some functions missing like sector ellipse getarccoords
       (the filling of sector and ellipse is still buggy
        I use floodfill but sometimes the starting point

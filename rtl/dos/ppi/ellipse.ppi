@@ -18,8 +18,9 @@
      var aq,bq,xq,yq,abq : Longint;
          xp,yp,count     : integer;
      begin
-     XRadius:=(XRadius*10000) div XAsp;
-     YRadius:=(YRadius*10000) div YAsp;
+     {XRadius:=(XRadius*10000) div XAsp;
+     YRadius:=(YRadius*10000) div YAsp; }
+     { must be changed before !! }
      aq :=XRadius * XRadius;
      bq :=YRadius * YRadius;
      abq:=aq * bq;
@@ -75,6 +76,8 @@
               exit;
            end;
 
+    XRadius:=(XRadius*10000) div XAsp;
+    YRadius:=(YRadius*10000) div YAsp;
     Count:=CalcEllipse(x,y,XRadius,YRadius);
     if Count=0 then exit;
     Count8:=Count-8;
@@ -113,6 +116,7 @@
        xp,yp             : integer;
        xradius,yradius   : word;
        first,ready       : Boolean;
+       ofscount          : byte;
 
    procedure DrawArc(index1,index2,index3:byte);
    var ende,incr:integer;
@@ -141,6 +145,7 @@
      if (((xp=xe[0]) or (xp=xe[1]) or (xp=xe[2])) and
          ((yp=ye[0]) or (yp=ye[1]) or (yp=ye[2]))) then
          begin
+           putpixeli(xp,yp,aktcolor);
            ready:=true;
            exit;
          end;
@@ -154,6 +159,8 @@
    begin
      first:=true; ready:=false;
      XRadius:=XRad; YRadius:=YRad;
+     XRadius:=(XRadius*10000) div XAsp;
+     YRadius:=(YRadius*10000) div YAsp;
 
      alpha:=alpha mod 360; beta:=beta mod 360;
      case alpha of
@@ -162,7 +169,6 @@
        180..269  : ofs:=2;
        270..359  : ofs:=3;
      end;
-     x:=x+aktviewport.x1; y:=y+aktviewport.y1;
      xa[1]:=x+round(sin((alpha+90)*Pi/180) * XRadius);
      ya[1]:=y+round(cos((alpha+90)*Pi/180) * YRadius);
      xe[1]:=x+round(sin((beta+90)*Pi/180) * XRadius);
@@ -176,10 +182,12 @@
      xa[0]:=xa[1]-1; xa[2]:=xa[1]+1; ya[0]:=ya[1]-1; ya[2]:=ya[1]+1;
      xe[0]:=xe[1]-1; xe[2]:=xe[1]+1; ye[0]:=ye[1]-1; ye[2]:=ye[1]+1;
      index:=Calcellipse(x,y,XRadius,YRadius);
+     ofscount:=0;
      repeat
        DrawArc(i[ofs*3],i[ofs*3+1],i[ofs*3+2]);
        ofs:=(ofs+1) mod 7;
-     until ready;
+       inc(ofscount);
+     until ready or (ofscount>7);
   end;
 
   procedure Sector(X,Y,alpha,beta:integer;XRadius,YRadius: Word);
@@ -190,7 +198,10 @@
      LineTo(x,y);
      LineTo(ActArcCoords.xend,ActArcCoords.yend);
      alpha:=alpha mod 360; beta:=beta mod 360;
-     angle:=(alpha+beta)/2;
+     if alpha<=beta then
+       angle:=(alpha+beta)/2
+     else
+       angle:=(alpha-360+beta)/2;
 {$ifdef ExtDebug}
      Writeln(stderr,'Center ',x,' ',y);
      Writeln(stderr,'Start  ',ActArcCoords.xstart,' ',ActArcCoords.ystart);
@@ -199,11 +210,15 @@
        y+round(cos((angle+90)*Pi/180)*YRadius/2));
 {$endif ExtDebug}
      { fill from the point in the middle of the slice }
+     XRadius:=(XRadius*10000) div XAsp;
+     YRadius:=(YRadius*10000) div YAsp;
      FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
        y+round(cos((angle+90)*Pi/180)*YRadius/2),truecolor);
   end;
 
   procedure Circle(x,y:integer;radius:word);
+  var
+     xradius,yradius : word;
   begin
     _graphresult:=grOk;
     if not isgraphmode then
@@ -211,12 +226,20 @@
         _graphresult:=grnoinitgraph;
         exit;
       end;
-    _Ellipse(CalcEllipse(x,y,radius,radius));
+     XRadius:=(Radius*10000) div XAsp;
+     YRadius:=(Radius*10000) div YAsp;
+    _Ellipse(CalcEllipse(x,y,xradius,yradius));
   end;  
  
 {
   $Log$
-  Revision 1.3  1998-11-19 09:48:47  pierre
+  Revision 1.4  1998-11-19 15:09:36  pierre
+    * several bugfixes for sector/ellipse/floodfill
+    + graphic driver mode const in interface G800x600x256...
+    + added backput mode as in linux graph.pp
+      (clears the background of textoutput)
+
+  Revision 1.3  1998/11/19 09:48:47  pierre
     + added some functions missing like sector ellipse getarccoords
       (the filling of sector and ellipse is still buggy
        I use floodfill but sometimes the starting point
