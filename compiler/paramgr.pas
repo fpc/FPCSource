@@ -385,32 +385,6 @@ unit paramgr;
          hp : tparaitem;
 
       begin
-         hp:=tparaitem(p.para.first);
-         while assigned(hp) do
-           begin
-              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
-                 LOC_MMREGISTER]) and
-                 (
-                  (vo_regable in tvarsym(hp.parasym).varoptions) or
-                  (vo_fpuregable in tvarsym(hp.parasym).varoptions) or
-                   paramanager.push_addr_param(hp.paratype.def,p.proccalloption) or
-                   (hp.paratyp in [vs_var,vs_out])
-                 ) then
-                begin
-                   case hp.paraloc.loc of
-                     LOC_REGISTER:
-                       hp.paraloc.loc := LOC_CREGISTER;
-                     LOC_FPUREGISTER:
-                       hp.paraloc.loc := LOC_CFPUREGISTER;
-{$ifdef SUPPORT_MMX}
-                     LOC_MMREGISTER:
-                       hp.paraloc.loc := LOC_CMMREGISTER;
-{$endif}
-                   end;
-                   tvarsym(hp.parasym).paraitem:=hp;
-                end;
-              hp:=tparaitem(hp.next);
-           end;
       end;
 
 initialization
@@ -421,7 +395,12 @@ end.
 
 {
    $Log$
-   Revision 1.41  2003-06-07 18:57:04  jonas
+   Revision 1.42  2003-06-08 10:54:41  jonas
+     - disabled changing of LOC_*REGISTER to LOC_C*REGISTER in setparalocs,
+       this is not necessary anymore (doesn't do anything anymore actually,
+       except making sure the interface crc changes)
+
+   Revision 1.41  2003/06/07 18:57:04  jonas
      + added freeintparaloc
      * ppc get/freeintparaloc now check whether the parameter regs are
        properly allocated/deallocated (and get an extra list para)
