@@ -128,9 +128,7 @@ unit pdecl;
                 end;
              end;
            recorddef :
-             { only check anonymous records }
-             if not assigned(precorddef(p)^.sym) then
-              precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+             precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
            objectdef :
              { Don't check objectdefs in objects/records, because these can't
                exist (anonymous objects aren't allowed) }
@@ -2606,8 +2604,8 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.160  1999-10-01 11:15:57  peter
-    * fixed forward checking within class/record
+  Revision 1.161  1999-10-01 11:18:02  peter
+    * class/record type forward checking fixed
 
   Revision 1.159  1999/10/01 10:05:42  peter
     + procedure directive support in const declarations, fixes bug 232
