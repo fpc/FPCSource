@@ -170,6 +170,9 @@ interface
       { please keep the size of this record <=12 bytes and keep it properly aligned }
       toper = record
         ot : longint;
+{$ifdef cpuarm}
+        dummy1,dummy2,dummy3 : byte;
+{$endif cpuarm}
         case typ : toptype of
           top_none   : ();
           top_reg    : (reg:tregister);
@@ -1840,7 +1843,7 @@ implementation
                   p.oper[i]^.shifterop^:=oper[i]^.shifterop^;
                 end;
 {$endif ARM}
-            end;    
+            end;
           end;
         getcopy:=p;
       end;
@@ -2006,7 +2009,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-03-15 16:09:03  peter
+  Revision 1.81  2004-03-16 22:12:10  florian
+    * some alignment issues resolved
+    * compiler doesn't generate anymore instructions not supported by the linux fpe
+
+  Revision 1.80  2004/03/15 16:09:03  peter
     * fix lineinfo broken by valgrind patch
 
   Revision 1.79  2004/03/15 08:44:51  michael

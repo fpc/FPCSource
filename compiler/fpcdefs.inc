@@ -32,6 +32,9 @@
       {$define USEEXCEPT}
     {$endif}
   {$endif}
+{$ifdef cpuarm}
+{$packrecords c}
+{$endif cpuarm}
 {$endif}
 
 {$ifdef DELPHI}
@@ -95,7 +98,11 @@
 
 {
   $Log$
-  Revision 1.34  2004-03-10 11:55:22  mazen
+  Revision 1.35  2004-03-16 22:12:10  florian
+    * some alignment issues resolved
+    * compiler doesn't generate anymore instructions not supported by the linux fpe
+
+  Revision 1.34  2004/03/10 11:55:22  mazen
   * $M directive renamed to $MEMORY : Long directive name
 
   Revision 1.33  2004/02/17 15:57:49  peter

@@ -35,14 +35,18 @@ interface
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
         function first_arctan_real: tnode; override;
+        { lgn isn't supported by the linux fpe
         function first_ln_real: tnode; override;
+        }
         function first_cos_real: tnode; override;
         function first_sin_real: tnode; override;
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
         procedure second_arctan_real; override;
+        { lgn isn't supported by the linux fpe
         procedure second_ln_real; override;
+        }
         procedure second_cos_real; override;
         procedure second_sin_real; override;
       private
@@ -115,6 +119,7 @@ implementation
       end;
 
 
+    { lgn isn't supported by the linux fpe
     function tarminlinenode.first_ln_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -122,7 +127,7 @@ implementation
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
-
+    }
 
     function tarminlinenode.first_cos_real: tnode;
       begin
@@ -170,12 +175,13 @@ implementation
       end;
 
 
+    { lgn isn't supported by the linux fpe
     procedure tarminlinenode.second_ln_real;
       begin
         load_fpu_location;
         exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,location.register),get_fpu_postfix(resulttype.def)));
       end;
-
+    }
 
     procedure tarminlinenode.second_cos_real;
       begin
@@ -196,7 +202,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-02-03 22:32:54  peter
+  Revision 1.6  2004-03-16 22:12:10  florian
+    * some alignment issues resolved
+    * compiler doesn't generate anymore instructions not supported by the linux fpe
+
+  Revision 1.5  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
