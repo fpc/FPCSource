@@ -21,7 +21,27 @@
 # so a make html and make install goes quickly
 #INSTALLDEBUG=1
 
-HOSTOS=$(shell ppc386 -iSO)
+ifndef FPC
+ifdef PP
+FPC=$(PP)
+endif
+endif
+ifndef FPC
+FPCPROG:=$(strip $(wildcard $(addsuffix /fpc$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(FPCPROG),)
+FPCPROG:=$(firstword $(FPCPROG))
+FPC:=$(shell $(FPCPROG) -PB)
+ifneq ($(findstring Error,$(FPC)),)
+override FPC=ppc386
+endif
+else
+override FPC=ppc386
+endif
+endif
+override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
+override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
+
+HOSTOS=$(shell $(FPC) -iSO)
 # Which docs are made when 'html' is specified
 HTML = user units ref prog fpdoc fcl chart
 
@@ -42,7 +62,7 @@ PREFIXINSTALLDIR=/usr
 endif
 
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
+DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell $(FPC) -iV)
 endif
 
 ifndef FPDOC
@@ -558,7 +578,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.26  2004-05-18 22:10:56  michael
+# Revision 1.27  2004-07-17 21:02:28  marco
+#  * x86 dependancy fixed, reported by Claviola
+#
+# Revision 1.26  2004/05/18 22:10:56  michael
 # + Updates for 1.9.4. Mostly MACPas related
 #
 # Revision 1.25  2004/03/19 17:39:03  peter
