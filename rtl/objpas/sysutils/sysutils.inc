@@ -168,12 +168,13 @@
 {$define STACKCHECK_WAS_ON}
 {$S-}
 {$endif OPT S }
-Procedure CatchUnhandledException (Obj : TObject; Addr,Frame: Pointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
+Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
   Message : String;
   {$IFDEF VIRTUALPASCAL}
   stdout:text absolute output;
   {$ENDIF}
+  i : longint;
 begin
   Writeln(stdout,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
   if Obj is exception then
@@ -183,7 +184,12 @@ begin
    end
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
-  Writeln(stdout,'');
+  if (FrameCount>0) then
+    begin
+      Writeln(stdout,BackTraceStrFunc(Addr));
+      for i:=0 to FrameCount-1 do
+        Writeln(stdout,BackTraceStrFunc(Frames[i]));
+    end;
   Halt(217);
 end;
 
@@ -457,14 +463,14 @@ end;
 { ---------------------------------------------------------------------
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
-  
+
 
 function ForceDirectories(Const Dir: string): Boolean;
 
 var
   E: EInOutError;
   ADir : String;
-  
+
 begin
   Result:=True;
   ADir:=ExcludeTrailingPathDelimiter(Dir);
@@ -474,14 +480,14 @@ begin
     E.ErrorCode:=3;
     Raise E;
     end;
-  if Not DirectoryExists(ADir) then 
-    begin 
+  if Not DirectoryExists(ADir) then
+    begin
     Result:=ForceDirectories(ExtractFilePath(ADir));
     If Result then
       CreateDir(ADir);
-    end;  
+    end;
 end;
-                                  
+
 
 {
   Revision 1.1  2003/10/06 21:01:06  peter

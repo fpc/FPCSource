@@ -125,6 +125,13 @@ Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
   [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   Newobj : PExceptObject;
+  framebufsize,
+  framecount  : longint;
+  frames      : PPointer;
+  prev_frame,
+  curr_frame,
+  caller_frame,
+  caller_addr : Pointer;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
@@ -142,8 +149,32 @@ begin
     end;
   ExceptObjectStack^.FObject:=Obj;
   ExceptObjectStack^.Addr:=AnAddr;
-  ExceptObjectStack^.Frame:=AFrame;
-  ExceptObjectStack^.refcount := 0;
+  ExceptObjectStack^.refcount:=0;
+  { Backtrace }
+  curr_frame:=AFrame;
+  prev_frame:=AFrame-1;
+  frames:=nil;
+  framebufsize:=0;
+  framecount:=0;
+  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) Do
+   Begin
+     caller_addr := get_caller_addr(curr_frame);
+     caller_frame := get_caller_frame(curr_frame);
+     if (caller_addr=nil) or
+        (caller_frame=nil) then
+       break;
+     if (framecount>=framebufsize) then
+       begin
+         inc(framebufsize,16);
+         reallocmem(frames,framebufsize*sizeof(pointer));
+       end;
+     frames[framecount]:=caller_addr;
+     inc(framecount);
+     prev_frame:=curr_frame;
+     curr_frame:=caller_frame;
+   End;
+  ExceptObjectStack^.framecount:=framecount;
+  ExceptObjectStack^.frames:=frames;
 end;
 
 {$ifdef hascompilerproc}
@@ -154,9 +185,9 @@ Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external 
 
 Procedure DoUnHandledException;
 begin
-  If ExceptProc<>Nil then
-    If ExceptObjectStack<>Nil then
-      TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,ExceptObjectStack^.Addr,ExceptObjectStack^.Frame);
+  If (ExceptProc<>Nil) and (ExceptObjectStack<>Nil) then
+    with ExceptObjectStack^ do
+      TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
   RunError(217);
 end;
 
@@ -171,7 +202,8 @@ begin
   If ExceptAddrStack=Nil then
     DoUnhandledException;
   if (RaiseProc <> nil) and (ExceptObjectStack <> nil) then
-    RaiseProc(Obj, AnAddr, AFrame);
+    with ExceptObjectStack^ do
+      RaiseProc(FObject,Addr,FrameCount,Frames);
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
@@ -226,6 +258,8 @@ begin
        end;
        hp:=ExceptObjectStack;
        ExceptObjectStack:=ExceptObjectStack^.next;
+       if assigned(hp^.frames) then
+         freemem(hp^.frames);
        dispose(hp);
     end;
 end;
@@ -251,6 +285,8 @@ begin
        fpc_PopSecondObjectStack:=ExceptObjectStack^.next^.FObject;
        hp:=ExceptObjectStack^.next;
        ExceptObjectStack^.next:=hp^.next;
+       if assigned(hp^.frames) then
+         freemem(hp^.frames);
        dispose(hp);
     end;
 end;
@@ -310,7 +346,12 @@ begin
 end;
 {
   $Log$
-  Revision 1.16  2004-10-24 20:01:41  peter
+  Revision 1.17  2005-01-26 17:07:10  peter
+    * retrieve backtrace when exception is raised
+    * RaiseMaxFrameCount added to limit the number of backtraces, setting
+      it to 0 disables backtraces. Default is 16
+
+  Revision 1.16  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.15  2004/04/27 18:47:51  florian

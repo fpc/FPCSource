@@ -200,21 +200,23 @@
 
 {$endif HASINTF}
 
-       TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
+       TExceptProc = Procedure (Obj : TObject; Addr : Pointer; FrameCount:Longint; Frame: PPointer);
 
        { Exception object stack }
        PExceptObject = ^TExceptObject;
        TExceptObject = record
-         FObject : TObject;
-         Addr,
-         Frame   : pointer;
-         Next    : PExceptObject;
-         refcount: Longint;
+         FObject    : TObject;
+         Addr       : pointer;
+         Next       : PExceptObject;
+         refcount   : Longint;
+         Framecount : Longint;
+         Frames     : PPointer;
        end;
 
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;
+       RaiseMaxFrameCount : Longint = 16;
 
     Function RaiseList : PExceptObject;
 
@@ -299,7 +301,12 @@
 
 {
   $Log$
-  Revision 1.24  2004-04-28 19:52:41  peter
+  Revision 1.25  2005-01-26 17:07:10  peter
+    * retrieve backtrace when exception is raised
+    * RaiseMaxFrameCount added to limit the number of backtraces, setting
+      it to 0 disables backtraces. Default is 16
+
+  Revision 1.24  2004/04/28 19:52:41  peter
     * vtype changed to ptrint
 
   Revision 1.23  2004/04/26 21:06:00  peter
