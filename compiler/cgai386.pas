@@ -2767,7 +2767,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
           pvarsym(p)^.vartype.def^.needs_inittable then
          begin
-            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            if assigned(procinfo) then
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             if psym(p)^.owner^.symtabletype in [localsymtable,inlinelocalsymtable] then
               begin
@@ -2831,7 +2832,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                (pvarsym(p)^.varspez=vs_const) { and
                (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
               exit;
-            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            if assigned(procinfo) then
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             case psym(p)^.owner^.symtabletype of
                localsymtable,inlinelocalsymtable:
@@ -3894,7 +3896,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.93  2000-04-02 10:18:18  florian
+  Revision 1.94  2000-04-03 20:51:22  florian
+    * initialize/finalize_data checks if procinfo is assigned else
+      crashes happend at end of compiling if there were ansistrings in the
+      interface/implementation part of units: it was the result of the fix
+      of 701 :(
+
+  Revision 1.93  2000/04/02 10:18:18  florian
     * bug 701 fixed: ansistrings in interface and implementation part of the units
       are now finalized correctly even if there are no explicit initialization/
       finalization statements
