@@ -17,7 +17,17 @@
 
 
 procedure TPersistent.AssignError(Source: TPersistent);
+
+Var SourceName : String;
+
 begin
+  If Source<>Nil then 
+    SourceName:=Source.ClassName
+  else
+    SourceName:='Nil';
+  Writeln ('Error assigning to ',ClassName,' from : ',SourceName);
+  RunError(255);
+  //!! raise EConvertError.CreateFmt (SAssignError,[SourceName,ClassName]);
 end;
 
 
@@ -26,6 +36,7 @@ procedure TPersistent.AssignTo(Dest: TPersistent);
 
 
 begin
+  Dest.AssignError(Self);
 end;
 
 
@@ -38,26 +49,43 @@ end;
 function  TPersistent.GetOwner: TPersistent;
 
 begin
+  Result:=Nil;
 end;
 
 destructor TPersistent.Destroy; 
 
 begin
+  Inherited Destroy;
 end;
 
 
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin
+  If Source<>Nil then 
+    Source.AssignTo(Self)
+  else
+    AssignError(Nil);
 end;
 
 function  TPersistent.GetNamePath: string;
 
+Var OwnerName :String;
+
 begin
+ Result:=ClassNAme;
+ If GetOwner<>Nil then 
+   begin
+   OwnerName:=GetOwner.GetNamePath;
+   If OwnerName<>'' then Result:=OwnerName+'.'+Result;
+   end;
 end;
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:12  michael
+  Revision 1.2  1998-05-27 12:22:14  michael
+  + Implemented TPersistent
+
+  Revision 1.1  1998/05/04 14:30:12  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
 }
