@@ -146,6 +146,7 @@ Type
 {$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
+  wchar               = Widechar;
 {$endif HASWIDECHAR}
 {$ifdef HASWIDESTRING}
   PWideString         = ^WideString;
@@ -528,7 +529,10 @@ const
 
 {
   $Log$
-  Revision 1.31  2001-07-30 21:38:55  peter
+  Revision 1.32  2001-07-31 08:57:22  marco
+   * Either I did something wrong, or Peter's merge killed wchar decl. Fixed.
+
+  Revision 1.31  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.29  2001/07/29 13:49:15  peter
