@@ -69,19 +69,25 @@ begin
   for opCount := 1 to MaxCh do
     case InsProp[p^.opcode].Ch[opCount] of
       Ch_MOp1,CH_WOp1,CH_RWOp1:
-        if p^.oper[0].typ = top_ref then
+        if (p^.oper[0].typ = top_ref) or
+           ((p^.oper[0].typ = top_reg) and
+            not(reg32(p^.oper[0].reg) in (usableregs+[R_EDI]))) then
           begin
             modifiesMemLocation := true;
             exit
           end;
       Ch_MOp2,CH_WOp2,CH_RWOp2:
-        if p^.oper[1].typ = top_ref then
+        if (p^.oper[1].typ = top_ref) or
+           ((p^.oper[1].typ = top_reg) and
+            not(reg32(p^.oper[1].reg) in (usableregs+[R_EDI]))) then
           begin
             modifiesMemLocation := true;
             exit
           end;
       Ch_MOp3,CH_WOp3,CH_RWOp3:
-        if p^.oper[2].typ = top_ref then
+        if (p^.oper[2].typ = top_ref) or
+           ((p^.oper[2].typ = top_reg) and
+            not(reg32(p^.oper[2].reg) in (usableregs+[R_EDI]))) then
           begin
             modifiesMemLocation := true;
             exit
@@ -1489,7 +1495,11 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-09-25 09:50:29  jonas
+  Revision 1.12  2000-09-26 11:49:41  jonas
+    * writes to register variables and to the self pointer now also count as
+      memore writes
+
+  Revision 1.11  2000/09/25 09:50:29  jonas
     - removed TP conditional code
 
   Revision 1.10  2000/09/24 15:06:14  peter
