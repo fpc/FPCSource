@@ -28,11 +28,15 @@ interface
        wordversion = (0 shl 12)+99;
 
        { version string }
+
        version_nr = '0';
        release_nr = '99';
        patch_nr   = '13';
+{$ifdef newcg}
        minorpatch = '';
-
+{$else newcg}
+       minorpatch = 'newcg';
+{$endif newcg}
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
        full_version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 
@@ -69,7 +73,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-07-01 21:35:02  peter
+  Revision 1.10  1999-08-01 23:36:42  florian
+    * some changes to compile the new code generator
+
+  Revision 1.9  1999/07/01 21:35:02  peter
     * 0.99.13 instead of 0.99.13a
 
   Revision 1.8  1999/06/27 15:49:19  michael

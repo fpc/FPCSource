@@ -1098,16 +1098,37 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
                      R_EDI,R_ESP,R_EBP :
                         begin
-                          inc(pushedparasize,4);
-                          if inlined then
+                          if p^.resulttype^.size=8 then
                             begin
-                               r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                 p^.location.register,r)));
+                               inc(pushedparasize,8);
+                               if inlined then
+                                 begin
+                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                      p^.location.registerlow,r)));
+                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
+                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                      p^.location.registerhigh,r)));
+                                 end
+                               else
+                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.registerhigh)));
+                               ungetregister32(p^.location.registerhigh);
+                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.registerlow)));
+                               ungetregister32(p^.location.registerlow);
                             end
                           else
-                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.register)));
-                          ungetregister32(p^.location.register);
+                            begin
+                               inc(pushedparasize,4);
+                               if inlined then
+                                 begin
+                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                      p^.location.register,r)));
+                                 end
+                               else
+                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.register)));
+                               ungetregister32(p^.location.register);
+                            end;
                         end;
                      R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
                         begin
@@ -1156,6 +1177,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,opsize,hreg)));
                           ungetregister32(reg8toreg32(p^.location.register));
                         end;
+                     else internalerror(1899);
                   end;
                end;
              LOC_FPU:
@@ -3118,7 +3140,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.21  1999-08-01 17:32:31  florian
+  Revision 1.22  1999-08-01 23:36:39  florian
+    * some changes to compile the new code generator
+
+  Revision 1.21  1999/08/01 17:32:31  florian
     * more fixes for inittable call
 
   Revision 1.20  1999/08/01 17:17:37  florian

@@ -61,7 +61,7 @@ unit parser;
 {$ifdef newcg}
       cgobj,
   {$ifdef i386}
-      cg386,
+      cgcpu,
   {$endif i386}
 {$endif newcg}
       comphook,tree,scanner,pbase,pdecl,psystem,pmodules,cresstr;
@@ -471,7 +471,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.78  1999-07-24 16:22:18  michael
+  Revision 1.79  1999-08-01 23:36:40  florian
+    * some changes to compile the new code generator
+
+  Revision 1.78  1999/07/24 16:22:18  michael
   + Improved resourcestring handling
 
   Revision 1.77  1999/07/23 16:05:22  peter

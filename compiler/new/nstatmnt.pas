@@ -33,6 +33,7 @@ unit nstatmnt;
          constructor init(l : pnode);
          procedure det_temp;virtual;
          procedure det_resulttype;virtual;
+          procedure secondpass;virtual;
        end;
 
        pstatementnode = ^tstatementnode;
@@ -134,11 +135,21 @@ unit nstatmnt;
            end;
       end;
 
+    procedure tblocknode.secondpass;
+
+      begin
+         if assigned(left) then
+           left^.secondpass;
+      end;
+
 
 end.
 {
   $Log$
-  Revision 1.1  1999-01-23 23:35:02  florian
+  Revision 1.2  1999-08-01 23:36:43  florian
+    * some changes to compile the new code generator
+
+  Revision 1.1  1999/01/23 23:35:02  florian
     + first versions
 
 }

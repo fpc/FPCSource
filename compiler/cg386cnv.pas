@@ -339,11 +339,12 @@ implementation
               begin
                  exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,
                    hregister2,hregister2)));
-                 if (porddef(pto^.resulttype)^.typ=s64bitint) then
+                 if (porddef(pto^.resulttype)^.typ=s64bitint) and
+                   is_signed(pfrom^.resulttype) then
                    begin
                       getlabel(l);
                       exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
-                        $80000000,hregister)));
+                        $80000000,makereg32(hregister))));
                       emitjmp(C_Z,l);
                       exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,
                         hregister2)));
@@ -1462,7 +1463,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  1999-07-22 09:37:34  florian
+  Revision 1.80  1999-08-01 23:36:38  florian
+    * some changes to compile the new code generator
+
+  Revision 1.79  1999/07/22 09:37:34  florian
     + resourcestring implemented
     + start of longstring support
 
