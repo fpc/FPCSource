@@ -84,6 +84,9 @@ uses
     function setroundingmode(i : taicpu;rm : troundingmode) : taicpu;
     function setcondition(i : taicpu;c : tasmcond) : taicpu;
 
+    { inserts pc relative symbols at places where they are reachable }
+    procedure insertpcrelativedata(list,listtoinsert : taasmoutput);
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -341,10 +344,75 @@ implementation
       end;
 
 
+    procedure insertpcrelativedata(list,listtoinsert : taasmoutput);
+      var
+        curpos : longint;
+        lastpos : longint;
+        curop : longint;
+        curtai : tai;
+        curdatatai,hp : tai;
+        curdata : taasmoutput;
+        l : tasmlabel;
+      begin
+        curdata:=taasmoutput.create;
+        lastpos:=-1;
+        curpos:=0;
+        curtai:=tai(list.first);
+        while assigned(curtai) do
+          begin
+            { instruction? }
+            if curtai.typ=ait_instruction then
+              begin
+                { walk through all operand of the instruction }
+                for curop:=0 to taicpu(curtai).ops-1 do
+                  begin
+                    { reference? }
+                    if (taicpu(curtai).oper[curop]^.typ=top_ref) then
+                      begin
+                        { pc relative symbol? }
+                        curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
+                        if assigned(curdatatai) then
+                          begin
+                            { if yes, insert till next symbol }
+                            repeat
+                              hp:=tai(curdatatai.next);
+                              listtoinsert.remove(curdatatai);
+                              curdata.concat(curdatatai);
+                              curdatatai:=hp;
+                            until (curdatatai=nil) or (curdatatai.typ=ait_label);
+                            if lastpos=-1 then
+                              lastpos:=curpos;
+                          end;
+                      end;
+                  end;
+                inc(curpos);
+              end;
+
+            if (curpos-lastpos)>1020 then
+              begin
+                lastpos:=curpos;
+                hp:=tai(curtai.next);
+                objectlibrary.getlabel(l);
+                curdata.insert(taicpu.op_sym(A_B,l));
+                curdata.concat(tai_label.create(l));
+                list.insertlistafter(curtai,curdata);
+                curtai:=hp;
+              end
+            else
+              curtai:=tai(curtai.next);
+          end;
+        list.concatlist(curdata);
+        curdata.free;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.21  2004-01-20 21:02:55  florian
+  Revision 1.22  2004-01-21 19:01:03  florian
+    * fixed handling of max. distance of pc relative symbols
+
+  Revision 1.21  2004/01/20 21:02:55  florian
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 

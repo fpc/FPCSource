@@ -428,10 +428,13 @@ unit cgcpu;
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
           else
             begin
-               objectlibrary.getdatalabel(l);
-               current_procinfo.aktlocaldata.concat(tai_symbol.Create(l,0));
-               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
                reference_reset(hr);
+
+               objectlibrary.getlabel(l);
+               cg.a_label(current_procinfo.aktlocaldata,l);
+               hr.symboldata:=current_procinfo.aktlocaldata.last;
+               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
+
                hr.symbol:=l;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
@@ -478,12 +481,12 @@ unit cgcpu;
             )
            ) then
           begin
-            { check consts distance }
-            { !!!! }
-
+            reference_reset(tmpref);
             { create consts entry }
-            objectlibrary.getdatalabel(l);
-            current_procinfo.aktlocaldata.concat(Tai_symbol.Create(l,0));
+            objectlibrary.getlabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
             if assigned(ref.symbol) then
               current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
             else
@@ -491,7 +494,6 @@ unit cgcpu;
 
             { load consts entry }
             tmpreg:=getintregister(list,OS_INT);
-            reference_reset(tmpref);
             tmpref.symbol:=l;
             tmpref.base:=NR_R15;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
@@ -896,20 +898,18 @@ unit cgcpu;
           A proper solution would be to change refoptions to a set and store the information
           if the symbol is absolute or relative there.
         }
-
-        { check consts distance }
-        {!!!!!}
-
         { create consts entry }
-        objectlibrary.getdatalabel(l);
-        current_procinfo.aktlocaldata.concat(Tai_symbol.Create(l,0));
+        reference_reset(tmpref);
+        objectlibrary.getlabel(l);
+        cg.a_label(current_procinfo.aktlocaldata,l);
+        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
         if assigned(ref.symbol) then
           current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
-        reference_reset(tmpref);
         tmpreg:=getintregister(list,OS_INT);
         tmpref.symbol:=l;
         tmpref.base:=NR_PC;
@@ -1207,7 +1207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2004-01-21 15:41:56  florian
+  Revision 1.34  2004-01-21 19:01:03  florian
+    * fixed handling of max. distance of pc relative symbols
+
+  Revision 1.33  2004/01/21 15:41:56  florian
     * fixed register allocator problems with concatcopy
 
   Revision 1.32  2004/01/21 14:22:00  florian

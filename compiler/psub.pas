@@ -95,6 +95,9 @@ implementation
        { codegen }
        tgobj,cgobj,
        ncgutil,regvars
+{$ifdef arm}
+       ,aasmcpu
+{$endif arm}
        {$ifndef NOOPT}
          {$ifdef i386}
            ,aopt386
@@ -783,6 +786,10 @@ implementation
             gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
 
+{$ifdef ARM}
+            insertpcrelativedata(aktproccode,aktlocaldata);
+{$endif ARM}
+
             { save local data (casetable) also in the same file }
             if assigned(aktlocaldata) and
                (not aktlocaldata.empty) then
@@ -1335,7 +1342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2003-12-21 19:42:43  florian
+  Revision 1.182  2004-01-21 19:01:03  florian
+    * fixed handling of max. distance of pc relative symbols
+
+  Revision 1.181  2003/12/21 19:42:43  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff

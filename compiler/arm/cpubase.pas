@@ -212,13 +212,14 @@ unit cpubase;
       { reference record }
       preference = ^treference;
       treference = packed record
+         symbol      : tasmsymbol;
+         offset      : longint;
+         offsetfixup : longint;
          base,
          index       : tregister;
-         shiftimm    : byte;
+         symboldata  : tlinkedlistitem;
          signindex   : shortint;
-         offset      : longint;
-         symbol      : tasmsymbol;
-         offsetfixup : longint;
+         shiftimm    : byte;
          options     : trefoptions;
          addressmode : taddressmode;
          shiftmode   : tshiftmode;
@@ -565,7 +566,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.22  2003-12-26 14:02:30  peter
+  Revision 1.23  2004-01-21 19:01:03  florian
+    * fixed handling of max. distance of pc relative symbols
+
+  Revision 1.22  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 
