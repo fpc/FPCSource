@@ -40,7 +40,7 @@ type
       FCount, FCapacity : integer;
       procedure SetCount (Value:integer);
       function GetCount : integer;
-      procedure SetColor (index:integer; Value:TFPColor);
+      procedure SetColor (index:integer; const Value:TFPColor);
       function GetColor (index:integer) : TFPColor;
       procedure CheckIndex (index:integer);
       procedure EnlargeData;
@@ -49,8 +49,8 @@ type
       destructor destroy; override;
       procedure Build (Img : TFPCustomImage);
       procedure Merge (pal : TFPPalette);
-      function IndexOf (AColor:TFPColor) : integer;
-      function Add (Value:TFPColor) : integer;
+      function IndexOf (const AColor: TFPColor) : integer;
+      function Add (const Value: TFPColor) : integer;
       property Color [Index : integer] : TFPColor read GetColor write SetColor; default;
       property Count : integer read GetCount write SetCount;
   end;
@@ -62,15 +62,15 @@ type
       FHeight, FWidth : integer;
       procedure SetHeight (Value : integer);
       procedure SetWidth (Value : integer);
-      procedure SetExtra (key:String; AValue:string);
-      function GetExtra (key:String) : string;
-      procedure SetExtraValue (index:integer; AValue:string);
+      procedure SetExtra (const key:String; const AValue:string);
+      function GetExtra (const key:String) : string;
+      procedure SetExtraValue (index:integer; const AValue:string);
       function GetExtraValue (index:integer) : string;
-      procedure SetExtraKey (index:integer; AValue:string);
+      procedure SetExtraKey (index:integer; const AValue:string);
       function GetExtraKey (index:integer) : string;
       procedure CheckIndex (x,y:integer);
       procedure CheckPaletteIndex (PalIndex:integer);
-      procedure SetColor (x,y:integer; Value:TFPColor);
+      procedure SetColor (x,y:integer; const Value:TFPColor);
       function GetColor (x,y:integer) : TFPColor;
       procedure SetPixel (x,y:integer; Value:integer);
       function GetPixel (x,y:integer) : integer;
@@ -78,7 +78,7 @@ type
       procedure SetUsePalette (Value:boolean);
     protected
       // Procedures to store the data. Implemented in descendants
-      procedure SetInternalColor (x,y:integer; Value:TFPColor); virtual;
+      procedure SetInternalColor (x,y:integer; const Value:TFPColor); virtual;
       function GetInternalColor (x,y:integer) : TFPColor; virtual;
       procedure SetInternalPixel (x,y:integer; Value:integer); virtual; abstract;
       function GetInternalPixel (x,y:integer) : integer; virtual; abstract;
@@ -87,9 +87,9 @@ type
       destructor destroy; override;
       // Saving and loading
       procedure LoadFromStream (Str:TStream; Handler:TFPCustomImageReader);
-      procedure LoadFromFile (filename:String; Handler:TFPCustomImageReader);
+      procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
       procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
-      procedure SaveToFile (filename:String; Handler:TFPCustomImageWriter);
+      procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
       // Size and data
       procedure SetSize (AWidth, AHeight : integer); virtual;
       property  Height : integer read FHeight write SetHeight;
@@ -100,10 +100,10 @@ type
       property  Palette : TFPPalette read FPalette;
       property  Pixels [x,y:integer] : integer read GetPixel write SetPixel;
       // Info unrelated with the image representation
-      property  Extra [key:string] : string read GetExtra write SetExtra;
+      property  Extra [const key:string] : string read GetExtra write SetExtra;
       property  ExtraValue [index:integer] : string read GetExtraValue write SetExtraValue;
       property  ExtraKey [index:integer] : string read GetExtraKey write SetExtraKey;
-      procedure RemoveExtra (key:string);
+      procedure RemoveExtra (const key:string);
       function  ExtraCount : integer;
   end;
   TFPCustomImageClass = class of TFPCustomImage;
@@ -141,7 +141,7 @@ type
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); virtual; abstract;
       function  InternalCheck (Str:TStream) : boolean; virtual; abstract;
     public
-      constructor create; override;
+      constructor Create; override;
       function ImageRead (Str:TStream; Img:TFPCustomImage) : TFPCustomImage;
       // reads image
       function CheckContents (Str:TStream) : boolean;
@@ -170,55 +170,75 @@ type
   TImageHandlersManager = class
     private
       FData : TList;
-      function Getreader (TypeName:string) : TFPCustomImageReaderClass;
-      function GetWriter (TypeName:string) : TFPCustomImageWriterClass;
-      function GetExt (TypeName:string) : string;
-      function GetDefExt (TypeName:string) : string;
+      function GetReader (const TypeName:string) : TFPCustomImageReaderClass;
+      function GetWriter (const TypeName:string) : TFPCustomImageWriterClass;
+      function GetExt (const TypeName:string) : string;
+      function GetDefExt (const TypeName:string) : string;
       function GetTypeName (index:integer) : string;
-      function GetData (ATypeName:string) : TIHData;
+      function GetData (const ATypeName:string) : TIHData;
       function GetCount : integer;
     public
       constructor Create;
       destructor Destroy; override;
-      procedure RegisterImageHandlers (ATypeName,TheExtentions:string;
+      procedure RegisterImageHandlers (const ATypeName,TheExtentions:string;
                    AReader:TFPCustomImageReaderClass; AWriter:TFPCustomImageWriterClass);
-      procedure RegisterImageReader (ATypeName,TheExtentions:string;
+      procedure RegisterImageReader (const ATypeName,TheExtentions:string;
                    AReader:TFPCustomImageReaderClass);
-      procedure RegisterImageWriter (ATypeName,TheExtentions:string;
+      procedure RegisterImageWriter (const ATypeName,TheExtentions:string;
                    AWriter:TFPCustomImageWriterClass);
       property Count : integer read GetCount;
-      property ImageReader [TypeName:string] : TFPCustomImageReaderClass read GetReader;
-      property ImageWriter [TypeName:string] : TFPCustomImageWriterClass read GetWriter;
-      property Extentions [TypeName:string] : string read GetExt;
-      property DefaultExtention [TypeName:string] : string read GetDefExt;
+      property ImageReader [const TypeName:string] : TFPCustomImageReaderClass read GetReader;
+      property ImageWriter [const TypeName:string] : TFPCustomImageWriterClass read GetWriter;
+      property Extentions [const TypeName:string] : string read GetExt;
+      property DefaultExtention [const TypeName:string] : string read GetDefExt;
       property TypeNames [index:integer] : string read GetTypeName;
     end;
 
 function ShiftAndFill (initial:word; CorrectBits:byte):word;
 function FillOtherBits (initial:word;CorrectBits:byte):word;
-function ConvertColor (From : TDeviceColor) : TFPColor;
-function ConvertColor (From : TColorData; FromFmt:TColorFormat) : TFPColor;
-function ConvertColorToData (From : TFPColor; Fmt : TColorFormat) : TColorData;
-function ConvertColorToData (From : TDeviceColor; Fmt : TColorFormat) : TColorData;
-function ConvertColor (From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
-function ConvertColor (From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
+function ConvertColor (const From : TDeviceColor) : TFPColor;
+function ConvertColor (const From : TColorData; FromFmt:TColorFormat) : TFPColor;
+function ConvertColorToData (const From : TFPColor; Fmt : TColorFormat) : TColorData;
+function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TColorData;
+function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
+function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 
 operator = (const c,d:TFPColor) : boolean;
 
 var ImageHandlers : TImageHandlersManager;
 
 type
-  TErrorTextIndices = (StrInvalidIndex, StrNoImageToWrite, StrNoFile,
-    StrNoStream, StrPalette, StrImageX, StrImageY, StrImageExtra,
-    StrTypeAlreadyExist,StrTypeReaderAlreadyExist,StrTypeWriterAlreadyExist,
-    StrNoPaletteAvailable);
+  TErrorTextIndices = (
+    StrInvalidIndex,
+    StrNoImageToWrite,
+    StrNoFile,
+    StrNoStream,
+    StrPalette,
+    StrImageX,
+    StrImageY,
+    StrImageExtra,
+    StrTypeAlreadyExist,
+    StrTypeReaderAlreadyExist,
+    StrTypeWriterAlreadyExist,
+    StrNoPaletteAvailable
+    );
 
 const
+  // MG: ToDo: move to implementation and add a function to map to resourcestrings
   ErrorText : array[TErrorTextIndices] of string =
-    ('Invalid %s index %d', 'No image to write', 'File "%s" does not exist',
-     'No stream to write to', 'palette', 'horizontal pixel', 'vertical pixel', 'extra',
-     'Image type "%s" already exists','Image type "%s" already has a reader class',
-     'Image type "%s" already has a writer class', 'No palette available');
+    ('Invalid %s index %d',
+     'No image to write',
+     'File "%s" does not exist',
+     'No stream to write to',
+     'palette',
+     'horizontal pixel',
+     'vertical pixel',
+     'extra',
+     'Image type "%s" already exists',
+     'Image type "%s" already has a reader class',
+     'Image type "%s" already has a writer class',
+     'No palette available'
+     );
 
 {$i FPColors.inc}
 

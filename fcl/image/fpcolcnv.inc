@@ -82,7 +82,7 @@ begin
   result := FillOtherBits (w ,BitDepths[CFmt]);
 end;
 
-function ConvertColor (From : TColorData; FromFmt:TColorFormat) : TFPColor;
+function ConvertColor (const From : TColorData; FromFmt:TColorFormat) : TFPColor;
   function SetGrayScale (value : word) : TFPColor;
   begin
     with result do
@@ -139,17 +139,19 @@ begin
   end;
 end;
 
-function ConvertColor (From : TDeviceColor) : TFPColor;
+function ConvertColor (const From : TDeviceColor) : TFPColor;
 begin
   result := ConvertColor (From.data, From.Fmt)
 end;
 
-function CalculateGray (c : TFPcolor; Bits:byte) : TColorData;
-var r : longword;
+function CalculateGray (const c : TFPcolor; Bits:byte) : TColorData;
 begin
+  // MG: ToDo
+  if (c.alpha=0) or (Bits=0) then ;
+  Result:=0;
 end;
 
-function CalculateGrayA (c : TFPcolor; Bits:byte) : TColorData;
+function CalculateGrayA (const c : TFPcolor; Bits:byte) : TColorData;
 var r : longword;
     d : byte;
 begin
@@ -160,7 +162,7 @@ begin
   result := result or r;
 end;
 
-function ConvertColorToData (From : TFPColor; Fmt : TColorFormat) : TColorData;
+function ConvertColorToData (const From : TFPColor; Fmt : TColorFormat) : TColorData;
 var sb : TShiftBits;
     cb : TColorBits;
   function MakeSample (Value:word; ToShift:shortint; ToUse:TColorData) : TColorData;
@@ -205,20 +207,20 @@ begin
   end;
 end;
 
-function ConvertColor (From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
+function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
 begin
   result.Fmt := Fmt;
   result.data := convertColorToData(From, Fmt);
 end;
 
-function ConvertColorToData (From : TDeviceColor; Fmt : TColorFormat) : TColorData;
+function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TColorData;
 var c : TFPColor;
 begin
   c := ConvertColor (From);
   result := ConvertColorToData (c, Fmt);
 end;
 
-function ConvertColor (From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
+function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 begin
   result.Fmt := Fmt;
   result.data := ConvertColorToData (From, Fmt);

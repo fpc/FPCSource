@@ -23,15 +23,20 @@ begin
   Handler.ImageRead (Str, self);
 end;
 
-procedure TFPCustomImage.LoadFromFile (filename:String; Handler:TFPCustomImageReader);
-var str : TStream;
+procedure TFPCustomImage.LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
+
+var 
+  fs : TStream;
+
 begin
   if FileExists (filename) then
+    begin
+    fs := TFileStream.Create (filename, fmOpenRead);
     try
-      str := TFileStream.Create (filename, fmOpenRead);
-      LoadFromStream (str, handler);
+      LoadFromStream (fs, handler);
     finally
-      str.Free;
+      fs.Free;
+    end;
     end
   else
     FPImgError (StrNoFile, [filename]);
@@ -42,14 +47,17 @@ begin
   Handler.ImageWrite (Str, Self);
 end;
 
-procedure TFPCustomImage.SaveToFile (filename:String; Handler:TFPCustomImageWriter);
-var str : TStream;
+procedure TFPCustomImage.SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
+
+var 
+  fs : TStream;
+
 begin
+  fs := TFileStream.Create (filename, fmCreate);
   try
-    str := TFileStream.Create (filename, fmCreate);
-    SaveToStream (str, handler);
+    SaveToStream (fs, handler);
   finally
-    str.Free;
+    fs.Free;
   end
 end;
 
@@ -71,7 +79,7 @@ begin
   FHeight := AHeight;
 end;
 
-procedure TFPCustomImage.SetExtraValue (index:integer; AValue:string);
+procedure TFPCustomImage.SetExtraValue (index:integer; const AValue:string);
 var s : string;
     p : integer;
 begin
@@ -95,7 +103,7 @@ begin
     result := '';
 end;
 
-procedure TFPCustomImage.SetExtraKey (index:integer; AValue:string);
+procedure TFPCustomImage.SetExtraKey (index:integer; const AValue:string);
 var s : string;
     p : integer;
 begin
@@ -113,12 +121,12 @@ begin
   result := FExtra.Names[index];
 end;
 
-procedure TFPCustomImage.SetExtra (key:String; AValue:string);
+procedure TFPCustomImage.SetExtra (const key:String; const AValue:string);
 begin
   FExtra.values[key] := AValue;
 end;
 
-function TFPCustomImage.GetExtra (key:String) : string;
+function TFPCustomImage.GetExtra (const key:String) : string;
 begin
   result := FExtra.values[key];
 end;
@@ -128,10 +136,10 @@ begin
   result := FExtra.count;
 end;
 
-procedure TFPCustomImage.RemoveExtra (key:string);
+procedure TFPCustomImage.RemoveExtra (const key:string);
 var p : integer;
 begin
-  p := FExtra.indexOfName(key);
+  p := FExtra.IndexOfName(key);
   if p >= 0 then
     FExtra.Delete (p);
 end;
@@ -149,7 +157,7 @@ begin
   result := GetInternalPixel(x,y);
 end;
 
-procedure TFPCustomImage.SetColor (x,y:integer; Value:TFPColor);
+procedure TFPCustomImage.SetColor (x,y:integer; const Value:TFPColor);
 begin
   CheckIndex (x,y);
   SetInternalColor (x,y,Value);
@@ -161,7 +169,7 @@ begin
   result := GetInternalColor(x,y);
 end;
 
-procedure TFPCustomImage.SetInternalColor (x,y:integer; Value:TFPColor);
+procedure TFPCustomImage.SetInternalColor (x,y:integer; const Value:TFPColor);
 var i : integer;
 begin
   i := FPalette.IndexOf (Value);
@@ -220,7 +228,9 @@ end;
 
 destructor TFPMemoryImage.Destroy;
 begin
-  FreeMem (FData);
+  // MG: missing if
+  if FData<>nil then
+    FreeMem (FData);
   inherited Destroy;
 end;
 
@@ -246,7 +256,8 @@ procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
 var w, h, r, old : integer;
     NewData : PFPIntegerArray;
 begin
-  if (AWidth <> Width) and (AHeight <> Height) then
+  // MG: bug: was 'and'
+  if (AWidth <> Width) or (AHeight <> Height) then
     begin
     old := Height * Width;
     r := SizeOf(integer)*AWidth*AHeight;
@@ -257,7 +268,8 @@ begin
       GetMem (NewData, r);
       Fillchar (Newdata^[0], r, $FF);
       end;
-    if (old <> 0) and assigned(FData) then
+    // MG: missing "and (NewData<>nil)"
+    if (old <> 0) and assigned(FData) and (NewData<>nil) then
       begin
       if r <> 0 then
         begin

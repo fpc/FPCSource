@@ -47,7 +47,7 @@ var p, l : TStringList;
     c, len, r, t : integer;
   procedure BuildPaletteStrings;
   var r,c,e : integer;
-    procedure MakeCodes (head:string; charplace:integer);
+    procedure MakeCodes (const head:string; charplace:integer);
     var r : integer;
     begin
       r := 1;

@@ -525,6 +525,8 @@ end;
 
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
+  if Str<>TheStream then
+    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');
   with Header do
     Img.SetSize (Width, Height);
   ZData := TMemoryStream.Create;

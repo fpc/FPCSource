@@ -194,7 +194,7 @@ var l : TStringList;
       end;
   end;
 
-  procedure AddPalette (code:string;Acolor:TFPColor);
+  procedure AddPalette (const code:string;const Acolor:TFPColor);
   var r : integer;
   begin
     r := Palette.Add(code);
@@ -243,7 +243,7 @@ var l : TStringList;
       AddToPalette (l[r]);
   end;
 
-  procedure ReadLine (s : string; imgindex : integer);
+  procedure ReadLine (const s : string; imgindex : integer);
   var color, r, p : integer;
       code : string;
   begin

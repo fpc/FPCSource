@@ -25,7 +25,7 @@ begin
     result := copy(TheExtentions, 1, p-1);
 end;
 
-procedure TImageHandlersManager.RegisterImageHandlers (ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageHandlers (const ATypeName,TheExtentions:string;
                    AReader:TFPCustomImageReaderClass; AWriter:TFPCustomImageWriterClass);
 var ih : TIHData;
 begin
@@ -44,7 +44,7 @@ begin
   FData.Add (ih);
 end;
 
-procedure TImageHandlersManager.RegisterImageReader (ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageReader (const ATypeName,TheExtentions:string;
                    AReader:TFPCustomImageReaderClass);
 var ih : TIHData;
 begin
@@ -71,7 +71,7 @@ begin
     end;
 end;
 
-procedure TImageHandlersManager.RegisterImageWriter (ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageWriter (const ATypeName,TheExtentions:string;
                    AWriter:TFPCustomImageWriterClass);
 var ih : TIHData;
 begin
@@ -103,7 +103,7 @@ begin
   result := FData.Count;
 end;
 
-function TImageHandlersManager.GetData (ATypeName:string) : TIHData;
+function TImageHandlersManager.GetData (const ATypeName:string) : TIHData;
 var r : integer;
 begin
   r := FData.count;
@@ -123,7 +123,7 @@ begin
   result := ih.FTypeName;
 end;
 
-function TImageHandlersManager.GetReader (TypeName:string) : TFPCustomImageReaderClass;
+function TImageHandlersManager.GetReader (const TypeName:string) : TFPCustomImageReaderClass;
 var ih : TIHData;
 begin
   ih := GetData (TypeName);
@@ -133,7 +133,7 @@ begin
     result := nil;
 end;
 
-function TImageHandlersManager.GetWriter (TypeName:string) : TFPCustomImageWriterClass;
+function TImageHandlersManager.GetWriter (const TypeName:string) : TFPCustomImageWriterClass;
 var ih : TIHData;
 begin
   ih := GetData (TypeName);
@@ -143,7 +143,7 @@ begin
     result := nil;
 end;
 
-function TImageHandlersManager.GetExt (TypeName:string) : string;
+function TImageHandlersManager.GetExt (const TypeName:string) : string;
 var ih : TIHData;
 begin
   ih := GetData (TypeName);
@@ -153,7 +153,7 @@ begin
     result := '';
 end;
 
-function TImageHandlersManager.GetDefExt (TypeName:string) : string;
+function TImageHandlersManager.GetDefExt (const TypeName:string) : string;
 var ih : TIHData;
 begin
   ih := GetData (TypeName);

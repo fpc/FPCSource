@@ -43,7 +43,7 @@ begin
     FPImgError (StrInvalidIndex,[ErrorText[StrPalette],index]);
 end;
 
-function TFPPalette.Add (Value:TFPColor) : integer;
+function TFPPalette.Add (const Value:TFPColor) : integer;
 begin
   result := FCount;
   inc (FCount);
@@ -52,7 +52,7 @@ begin
   FData^[result] := Value;
 end;
 
-procedure TFPPalette.SetColor (index:integer; Value:TFPColor);
+procedure TFPPalette.SetColor (index:integer; const Value:TFPColor);
 begin
   if index = FCount then
     Add (Value)
@@ -84,7 +84,8 @@ begin
   else if FCapacity <= 128 then
     FCapacity := 256
   else
-    inc (FCapacity, 256);
+    // MG: changed to exponential growth
+    inc (FCapacity, FCapacity);
   GetMem (NewData, sizeof(TFPColor)*FCapacity);
   if old > 0 then
     begin
@@ -119,7 +120,7 @@ begin
     end;
 end;
 
-function TFPPalette.IndexOf (AColor:TFPColor) : integer;
+function TFPPalette.IndexOf (const AColor:TFPColor) : integer;
 begin
   result := FCount;
   repeat
