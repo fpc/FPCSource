@@ -302,6 +302,7 @@ Begin
       AppendMenu(Menu,MF_STRING,0,'&Help');
       SetMenu(hWindow,menu);
       ShowWindow(hWindow,CmdShow);
+      ShowWindow(hWindow,SW_SHOW);
       UpdateWindow(hWindow);
     End;
   Result := hWindow;
@@ -340,7 +341,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2002-02-21 11:43:54  pierre
+  Revision 1.3  2002-02-22 13:37:49  pierre
+   * fix problem if started through cygwin bash
+
+  Revision 1.2  2002/02/21 11:43:54  pierre
    * fix range check problems and wrong uses of HEdit and HStatus handles
 
   Revision 1.1  2001/05/03 21:39:34  peter

@@ -79,6 +79,7 @@ begin
 
   if hWindow <> 0 then begin
     ShowWindow(hWindow, CmdShow);
+    ShowWindow(hWindow, SW_SHOW);
     UpdateWindow(hWindow);
   end;
 
@@ -110,7 +111,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-09-04 01:08:09  carl
+  Revision 1.3  2002-02-22 13:37:49  pierre
+   * fix problem if started through cygwin bash
+
+  Revision 1.2  2001/09/04 01:08:09  carl
   * bugfix of range check errors (bug #1588)
   + added win32 types for easier porting to win64
 
@@ -119,5 +123,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:10  michael
   + removed logs
- 
+
 }
