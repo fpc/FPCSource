@@ -472,7 +472,8 @@ implementation
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
                      end;
 
-                   ungetregister32(hregister2);
+                   if hregister2 <> R_ECX then
+                     ungetregister32(hregister2);
 
                    { the damned shift instructions work only til a count of 32 }
                    { so we've to do some tricks here                           }
@@ -532,7 +533,8 @@ implementation
 
                    { maybe put ECX back }
                    if popecx then
-                     emit_reg(A_POP,S_L,R_ECX);
+                     emit_reg(A_POP,S_L,R_ECX)
+                   else ungetregister32(R_ECX);
 
                    p^.location.registerlow:=hregisterlow;
                    p^.location.registerhigh:=hregisterhigh;
@@ -986,7 +988,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:48  michael
+  Revision 1.4  2000-07-28 13:28:25  jonas
+    * fixed bug in secondshlshr where ecx was released too soon in some
+      cases causing a combination of -Or and -dnewoptimizations to generate
+      wrong code
+      (merged from fixes branch and since in 1.1 -dnewoptimizations has
+      been released, it always generated wrong code here when using -O2 or
+      higher)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:35  michael
