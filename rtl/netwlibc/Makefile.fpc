@@ -14,10 +14,10 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
-      rtlconst math varutils freebidi utf8bidi \
+      rtlconsts math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets ctypes
 
-rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconst system
+rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconsts system
 
 [require]
 nortl=y
