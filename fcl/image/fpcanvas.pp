@@ -100,7 +100,9 @@ type
 
   TFPPenStyle = (psClear, psSolid, psDash, psDot, psDashDot, psDashDotDot, psPattern);
   TFPPenStyleSet = set of TFPPenStyle;
-  TFPPenMode = (pmCopy, pmAnd, pmOr, pmXor);
+  TFPPenMode = (pmBlack, pmWhite, pmNop, pmNot, pmCopy, pmNotCopy,
+                pmMergePenNot, pmMaskPenNot, pmMergeNotPen, pmMaskNotPen, pmMerge,
+                pmNotMerge, pmMask, pmNotMask, pmXor, pmNotXor);
   TPenPattern = Longword;
 
   TFPCustomPen = class (TFPCanvasHelper)
