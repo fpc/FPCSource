@@ -51,9 +51,6 @@ info:
 # Compiler
 #######################################
 
-compiler_clean:
-	$(MAKE) -C compiler distclean
-
 compiler_cycle:
         $(MAKE) -C compiler cycle
 
