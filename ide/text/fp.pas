@@ -169,7 +169,9 @@ BEGIN
 
   repeat
     MyApp.Run;
-    if (AutoSaveOptions and asEditorFiles)=0 then CanExit:=true else
+    if (AutoSaveOptions and asEditorFiles)=0 then
+      CanExit:=true
+    else
       CanExit:=MyApp.SaveAll;
   until CanExit;
 
@@ -198,7 +200,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.31  1999-09-13 11:43:59  peter
+  Revision 1.32  1999-12-10 13:02:05  pierre
+  + VideoMode save/restore
+
+  Revision 1.31  1999/09/13 11:43:59  peter
     * fixes from gabor, idle event, html fix
 
   Revision 1.30  1999/08/22 22:24:15  pierre

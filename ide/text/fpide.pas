@@ -196,6 +196,7 @@ begin
   GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));
   Insert(HeapView);
+  Drivers.ShowMouse;
 end;
 
 procedure TIDEApp.InitDesktop;
@@ -595,7 +596,6 @@ begin
   InitMouse;
   InitEvents;
   InitSysError;
-  Redraw;
   CurDirChanged;
   Message(Application,evBroadcast,cmUpdate,nil);
   UpdateScreen(true);
@@ -854,7 +854,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.44  1999-11-25 00:26:49  pierre
+  Revision 1.45  1999-12-10 13:02:05  pierre
+  + VideoMode save/restore
+
+  Revision 1.44  1999/11/25 00:26:49  pierre
    * RecentFiles missed the last char
 
   Revision 1.43  1999/11/10 17:19:06  pierre

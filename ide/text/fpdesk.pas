@@ -22,6 +22,7 @@ const
                                       then you should also change this }
 
      ResDesktopFlags    = 'FLAGS';
+     ResVideo           = 'VIDEOMODE';
      ResHistory         = 'HISTORY';
      ResClipboard       = 'CLIPBOARD';
      ResWatches         = 'WATCHES';
@@ -37,7 +38,8 @@ procedure DoneDesktopFile;
 implementation
 
 uses Dos,
-     Objects,Drivers,Views,App,HistList,BrowCol,
+     Objects,Drivers,Video,
+     Views,App,HistList,BrowCol,
      WResource,WViews,WEditor,
 {$ifndef NODEBUG}
      fpdebug,
@@ -316,6 +318,25 @@ begin
     size);
 end;
 
+function WriteVideoMode(F: PResourceFile): boolean;
+begin
+  F^.CreateResource(resVideo,rcBinary,0);
+  WriteVideoMode:=F^.AddResourceEntry(resVideo,langDefault,0,ScreenMode,
+    SizeOf(TVideoMode));
+end;
+
+function ReadVideoMode(F: PResourceFile;var NewScreenMode : TVideoMode): boolean;
+var
+  size : sw_word;
+  test : boolean;
+begin
+  test:=F^.ReadResourceEntry(resVideo,langDefault,NewScreenMode,
+    size);
+  if not test then
+    NewScreenMode:=ScreenMode;
+  ReadVideoMode:= test and (size = SizeOf(TVideoMode));
+end;
+
 function ReadSymbols(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
@@ -353,8 +374,9 @@ begin
 end;
 
 function LoadDesktop: boolean;
-var OK: boolean;
+var OK,VOK: boolean;
     F: PResourceFile;
+    VM : TVideoMode;
 begin
   PushStatus('Reading desktop file...');
   New(F, LoadFile(DesktopPath));
@@ -364,17 +386,24 @@ begin
   if OK then
   begin
     OK:=ReadFlags(F);
-    if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
-      OK:=ReadHistory(F);
-    if OK and ((DesktopFileFlags and dfWatches)<>0) then
-      OK:=ReadWatches(F);
-    if OK and ((DesktopFileFlags and dfBreakpoints)<>0) then
-      OK:=ReadBreakpoints(F);
-    if OK and ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=ReadOpenWindows(F);
+    if OK then
+      begin
+        VOK:=ReadVideoMode(F,VM);
+        if VOK and ((VM.Col<>ScreenMode.Col) or
+           (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color)) then
+          Application^.SetScreenVideoMode(VM);
+      end;
+    if {OK and} ((DesktopFileFlags and dfHistoryLists)<>0) then
+      OK:=OK and ReadHistory(F);
+    if {OK and} ((DesktopFileFlags and dfWatches)<>0) then
+      OK:=OK and ReadWatches(F);
+    if {OK and} ((DesktopFileFlags and dfBreakpoints)<>0) then
+      OK:=OK and ReadBreakpoints(F);
+    if {OK and} ((DesktopFileFlags and dfOpenWindows)<>0) then
+      OK:=OK and ReadOpenWindows(F);
     { no errors if no browser info available PM }
-    if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
-      OK:=ReadSymbols(F);
+    if {OK and} ((DesktopFileFlags and dfSymbolInformation)<>0) then
+      OK:=OK and ReadSymbols(F);
     Dispose(F, Done);
   end;
 
@@ -396,19 +425,21 @@ begin
       Clipboard^.Flags:=Clipboard^.Flags and not efStoreContent;
 
   OK:=Assigned(F);
-  if OK then
-    OK:=WriteFlags(F);
-  if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
-    OK:=WriteHistory(F);
-  if OK and ((DesktopFileFlags and dfWatches)<>0) then
-    OK:=WriteWatches(F);
-  if OK and ((DesktopFileFlags and dfBreakpoints)<>0) then
-    OK:=WriteBreakpoints(F);
-  if OK and ((DesktopFileFlags and dfOpenWindows)<>0) then
-    OK:=WriteOpenWindows(F);
+  {if OK then}
+    OK:=OK and WriteFlags(F);
+  {if OK then}
+    OK:=OK and WriteVideoMode(F);
+  if {OK and} ((DesktopFileFlags and dfHistoryLists)<>0) then
+    OK:=OK and WriteHistory(F);
+  if {OK and} ((DesktopFileFlags and dfWatches)<>0) then
+    OK:=OK and WriteWatches(F);
+  if {OK and} ((DesktopFileFlags and dfBreakpoints)<>0) then
+    OK:=OK and WriteBreakpoints(F);
+  if {OK and} ((DesktopFileFlags and dfOpenWindows)<>0) then
+    OK:=OK and WriteOpenWindows(F);
   { no errors if no browser info available PM }
-  if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
-    OK:=WriteSymbols(F) or not Assigned(Modules);
+  if {OK and} ((DesktopFileFlags and dfSymbolInformation)<>0) then
+    OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
   Dispose(F, Done);
   PopStatus;
   SaveDesktop:=OK;
@@ -417,7 +448,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-11-26 17:09:51  pierre
+  Revision 1.16  1999-12-10 13:02:05  pierre
+  + VideoMode save/restore
+
+  Revision 1.15  1999/11/26 17:09:51  pierre
    * Force Desktop into Screen
 
   Revision 1.14  1999/11/25 00:25:43  pierre
