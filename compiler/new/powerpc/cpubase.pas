@@ -27,7 +27,7 @@ interface
 {$endif}
 
 uses
-  strings,cobjects,aasm;
+  strings,cobjects,aasm,cpuinfo;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -95,7 +95,7 @@ type
     a_mcrfs, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
     a_mfsrin, a_mftb, a_mtfcrf, a_a_mtfd0, a_mtfsb1, a_mtfsf, a_mtfsf_,
     a_mtfsfi, a_mtfsfi_, a_mtmsr, a_mtspr, a_mtsr, a_mtsrin, a_mulhw,
-    a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullh, a_mullw_, a_mullwo,
+    a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
     a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
     a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
     a_rlwinm, a_tlwinm_, a_rlwnm, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
@@ -115,11 +115,14 @@ type
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
     a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
     a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
-    nop, a_li, a_la, a_mr, a_not, a_mtcr);
+    nop, a_li, a_lis, a_la, a_mr, a_not, a_mtcr);
 
   op2strtable=array[tasmop] of string[8];
 
+
+
 const
+
   firstop = low(tasmop);
   lastop  = high(tasmop);
 
@@ -132,6 +135,13 @@ type
   TAsmCond=(C_None,
     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU
   );
+
+const
+  AsmCond2BO: Array[TAsmCond] of Byte =
+    (0,12,4,12,4,12,4,4,4,12,4,12,4);
+  AsmCond2BI: Array[TAsmCond] of Byte =
+    (0,0,1,2,0,1,0,2,1,3,3,3,3);
+
 (*
   TAsmCondBO = (B_T,B_F,B_DNZ,B_DNZT,B_DNZF,B_DZ,B_DZT,B_DZF);
   TasmCondSuffix = (SU_NO,SU_A,SU_LR,SU_CTR,SU_L,SU_LA,SU_LRL,SU_CTRL);
@@ -274,7 +284,7 @@ type
   preference = ^treference;
   treference = packed record
      is_immediate : boolean; { is this used as reference or immediate }
-     base: tregister;
+     base, index: tregister;
      offset      : longint;
      symbol      : pasmsymbol;
      offsetfixup : longint;
@@ -287,7 +297,7 @@ type
 *****************************************************************************}
 
 type
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+  toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool);
 
   toper=record
     ot  : longint;
@@ -295,8 +305,9 @@ type
      top_none   : ();
      top_reg    : (reg:tregister);
      top_ref    : (ref:preference);
-     top_const  : (val:longint);
+     top_const  : (val:aword);
      top_symbol : (sym:pasmsymbol;symofs:longint);
+     top_bool  :  (b: boolean);
   end;
 
 
@@ -323,28 +334,25 @@ type
   tlocation = packed record
      case loc : tloc of
         LOC_MEM,LOC_REFERENCE : (reference : treference);
-        LOC_FPUREGISTER, LOC_CFPUREGISTER : (register: tregister);
-        LOC_MMREGISTER, LOC_CMMREGISTER : (register: tregister);
+        LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+          LOC_REGISTER,LOC_CREGISTER : (
+            case longint of
+              1 : (registerlow,registerhigh : tregister);
+              { overlay a registerlow }
+              2 : (register : tregister);
+            );
+
         LOC_JUMP : ();
         LOC_FLAGS : (resflags : tresflags);
         LOC_INVALID : ();
 
         { segment in reference at the same place as in loc_register }
-        LOC_REGISTER,LOC_CREGISTER : (
-        case longint of
-          1 : (register,registerhigh : tregister);
-          { overlay a registerlow }
-          2 : (registerlow : tregister);
-        );
   end;
 
 
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
-
-{type
-  tcpuflags = (cf_registers64);}
 
 const
   availabletempregsint = [R_11..R_30];
@@ -354,6 +362,8 @@ const
   c_countusableregsint = 21;
   c_countusableregsfpu = 32;
   c_countusableregsmm  = 32;
+
+  max_operands = 5;
 
   maxvarregs = 18;
 
@@ -365,20 +375,35 @@ const
   fpuregs = [R_F0..R_F31];
   mmregs = [R_M0..R_M31];
 
-  registers_saved_on_cdecl = [R_11..R_30];
+  cpuflags = [];
+
+  registers_saved_on_cdecl = [R_13..R_29];
 
   { generic register names }
   stack_pointer = R_1;
-  frame_pointer = R_31;
+  R_RTOC          = R_2;
+  frame_pointer = R_NO;
   self_pointer  = R_9;
   accumulator   = R_3;
-  scratchregister = R_0;
+  vmt_offset_reg = R_0;
+  max_scratch_regs = 3;
+  scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_0,R_30,R_31);
 
 (*  cpuflags : set of tcpuflags = []; *)
 
   { sizes }
   pointersize   = 4;
   extended_size = 8;
+
+  LinkageAreaSize = 24;
+ { offset in the linkage area for the saved stack pointer }
+  LA_SP = 0;
+ { offset in the linkage area for the saved conditional register}
+  LA_CR = 4;
+ { offset in the linkage area for the saved link register}
+  LA_LR = 8;
+ { offset in the linkage area for the saved RTOC register}
+  LA_RTOC = 20;
 
 {*****************************************************************************
                                   Helpers
@@ -464,7 +489,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-05 14:58:18  florian
+  Revision 1.4  1999-08-06 16:41:12  jonas
+    * PowerPC compiles again, several routines implemented in cgcpu.pas
+    * added constant to cpubase of alpha and powerpc for maximum
+      number of operands
+
+  Revision 1.3  1999/08/05 14:58:18  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

@@ -27,24 +27,12 @@ interface
 uses
   cobjects,
   aasm,globals,verbose,
-  cpubase;
+  cpubase, tainst;
 
 type
-  pairegalloc = ^tairegalloc;
-  tairegalloc = object(tai)
-     allocation : boolean;
-     reg        : tregister;
-     constructor alloc(r : tregister);
-     constructor dealloc(r : tregister);
-  end;
 
-  pappc = ^tappc;
-  tappc = object(tai)
-     is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
-     opcode    : tasmop;
-     ops       : longint;
-     condition : TasmCond;
-     oper      : array[0..4] of toper;
+  paippc = ^taippc;
+  taippc = object(tainstruction)
 
      constructor op_none(op : tasmop);
 
@@ -61,7 +49,7 @@ type
      constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
      constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
      constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
-     constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3: preference);
      constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
      constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
 
@@ -74,7 +62,7 @@ type
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
-     constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint);
+     constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint;_op3: pasmsymbol);
 
 
      constructor op_sym(op : tasmop;_op1 : pasmsymbol);
@@ -82,262 +70,264 @@ type
      constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
      constructor op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
 
+     procedure loadbool(opidx:longint;_b:boolean);
+
      destructor done;virtual;
-     function  getcopy:plinkedlist_item;virtual;
   private
-     segprefix : tregister;
-     procedure init(op : tasmop); { this need to be called by all constructor }
   end;
 
 
 implementation
 
 {*****************************************************************************
-                                 TaiRegAlloc
+                                 taippc Constructors
 *****************************************************************************}
 
-    constructor tairegalloc.alloc(r : tregister);
+    procedure taippc.loadbool(opidx:longint;_b:boolean);
       begin
-        inherited init;
-        typ:=ait_regalloc;
-        allocation:=true;
-        reg:=r;
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ=top_ref then
+            disposereference(ref);
+           b:=_b;
+           typ:=top_bool;
+         end;
       end;
 
 
-    constructor tairegalloc.dealloc(r : tregister);
+    constructor taippc.op_none(op : tasmop);
       begin
-        inherited init;
-        typ:=ait_regalloc;
-        allocation:=false;
-        reg:=r;
+         inherited init(op);
       end;
 
 
-{*****************************************************************************
-                                 tappc Constructors
-*****************************************************************************}
-
-    procedure tappc.init(op : tasmop);
+    constructor taippc.op_reg(op : tasmop;_op1 : tregister);
       begin
-         typ:=ait_instruction;
-         is_jmp:=false;
-         segprefix:=R_NO;
-         opcode:=op;
-         ops:=0;
-         condition:=c_none;
-         fillchar(oper,sizeof(oper),0);
-      end;
-
-    constructor tappc.op_none(op : tasmop);
-      begin
-         inherited init;
-         init(op);
-      end;
-
-
-    constructor tappc.op_reg(op : tasmop;_op1 : tregister);
-      begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=1;
+         loadreg(0,_op1);
       end;
 
 
-    constructor tappc.op_const(op : tasmop;_op1 : longint);
+    constructor taippc.op_const(op : tasmop;_op1 : longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=1;
+         loadconst(0,_op1);
       end;
 
 
-    constructor tappc.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
+    constructor taippc.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
       end;
 
-    constructor tappc.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+    constructor taippc.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadreg(0,_op1);
+         loadconst(1,_op2);
       end;
 
-     constructor tappc.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+     constructor taippc.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadconst(0,_op1);
+         loadreg(1,_op2);
       end;
 
 
-    constructor tappc.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
+    constructor taippc.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadreg(0,_op1);
+         loadref(1,_op2);
       end;
 
 
-    constructor tappc.op_const_const(op : tasmop;_op1,_op2 : longint);
+    constructor taippc.op_const_const(op : tasmop;_op1,_op2 : longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadconst(0,_op1);
+         loadconst(1,_op2);
       end;
 
 
-    constructor tappc.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
+    constructor taippc.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadreg(2,_op3);
       end;
 
-     constructor tappc.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor taippc.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
        begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadconst(2,_op3);
       end;
 
-     constructor tappc.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
+     constructor taippc.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
        begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadsymbol(0,_op3,_op3ofs);
       end;
 
-     constructor tappc.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor taippc.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;  _op3: preference);
        begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadref(2,_op3);
       end;
 
-    constructor tappc.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
+    constructor taippc.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadconst(0,_op1);
+         loadreg(1,_op2);
+         loadreg(2,_op3);
       end;
 
-     constructor tappc.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+     constructor taippc.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadconst(0,_op1);
+         loadreg(1,_op2);
+         loadconst(2,_op3);
       end;
 
 
-     constructor tappc.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+     constructor taippc.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=4;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadreg(2,_op3);
+         loadreg(3,_op4);
       end;
 
-     constructor tappc.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
+     constructor taippc.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=4;
+         loadreg(0,_op1);
+         loadbool(1,_op2);
+         loadreg(2,_op3);
+         loadreg(3,_op4);
       end;
 
-     constructor tappc.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
+     constructor taippc.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=4;
+         loadreg(0,_op1);
+         loadbool(0,_op2);
+         loadreg(0,_op3);
+         loadconst(0,_op4);
       end;
 
-     constructor tappc.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
+     constructor taippc.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=5;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadconst(2,_op3);
+         loadconst(3,_op4);
+         loadconst(4,_op5);
       end;
 
-    constructor tappc.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
+    constructor taippc.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          condition:=cond;
          ops:=1;
+         loadsymbol(0,_op1,0);
       end;
 
-     constructor tappc.op_const_const_sym(op : tasmop;_op1,_op2 : longint);
+     constructor taippc.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: pasmsymbol);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=3;
+         loadconst(0,_op1);
+         loadconst(1,_op2);
+         loadsymbol(2,_op3,0);
       end;
 
 
-    constructor tappc.op_sym(op : tasmop;_op1 : pasmsymbol);
+    constructor taippc.op_sym(op : tasmop;_op1 : pasmsymbol);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=1;
+         loadsymbol(0,_op1,0);
       end;
 
 
-    constructor tappc.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taippc.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=1;
+         loadsymbol(0,_op1,_op1ofs);
       end;
 
 
-     constructor tappc.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
+     constructor taippc.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadreg(0,_op1);
+         loadsymbol(1,_op2,_op2ofs);
       end;
 
 
-    constructor tappc.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taippc.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
-         inherited init;
-         init(op);
+         inherited init(op);
          ops:=2;
+         loadsymbol(0,_op1,_op1ofs);
+         loadref(1,_op2);
       end;
 
-    destructor tappc.done;
+    destructor taippc.done;
       var
         i : longint;
       begin
-          for i:=1 to ops do
-            if (oper[i-1].typ=top_ref) then
-              dispose(oper[i-1].ref);
+          for i:=ops-1 downto 0 do
+            if (oper[i].typ=top_ref) then
+              dispose(oper[i].ref);
         inherited done;
-      end;
-
-    function tappc.getcopy:plinkedlist_item;
-      var
-        i : longint;
-        p : plinkedlist_item;
-      begin
-        p:=inherited getcopy;
-        { make a copy of the references }
-        for i:=1 to ops do
-         if (pappc(p)^.oper[i-1].typ=top_ref) then
-          begin
-            new(pappc(p)^.oper[i-1].ref);
-            pappc(p)^.oper[i-1].ref^:=oper[i-1].ref^;
-          end;
-        getcopy:=p;
       end;
 
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 12:59:24  jonas
+  Revision 1.3  1999-08-06 16:41:11  jonas
+    * PowerPC compiles again, several routines implemented in cgcpu.pas
+    * added constant to cpubase of alpha and powerpc for maximum
+      number of operands
+
+  Revision 1.2  1999/08/04 12:59:24  jonas
     * all tokes now start with an underscore
     * PowerPC compiles!!
 

@@ -129,6 +129,8 @@ Const
   c_countusableregsfpu = 31;
   c_countusableregsmm  = 0;
 
+  max_operands = 4;
+
   registers_saved_on_cdecl = [R_9..R_14,R_F2..R_F9];
   maxvarregs = 6;
 
@@ -253,7 +255,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-06 16:04:08  michael
+  Revision 1.13  1999-08-06 16:41:10  jonas
+    * PowerPC compiles again, several routines implemented in cgcpu.pas
+    * added constant to cpubase of alpha and powerpc for maximum
+      number of operands
+
+  Revision 1.12  1999/08/06 16:04:08  michael
   + introduced tainstruction
 
   Revision 1.11  1999/08/06 15:53:52  florian
