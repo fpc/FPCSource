@@ -86,7 +86,7 @@ interface
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-       c:=current_scanner.asmgetchar;
+       c:=current_scanner.asmgetcharstart;
        code:=TAAsmoutput.Create;
        while not(ende) do
          begin
@@ -343,7 +343,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-10-01 20:34:51  peter
+  Revision 1.11  2003-11-10 19:08:32  peter
+    * line numbering is now only done when #10, #10#13 is really parsed
+      instead of when it is the next character
+
+  Revision 1.10  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -1866,7 +1866,7 @@ Begin
   { setup label linked list }
   LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
-  c:=current_scanner.asmgetchar;
+  c:=current_scanner.asmgetcharstart;
   gettoken;
   { main loop }
   repeat
@@ -1971,7 +1971,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.63  2003-10-30 19:59:00  peter
+  Revision 1.64  2003-11-10 19:08:32  peter
+    * line numbering is now only done when #10, #10#13 is really parsed
+      instead of when it is the next character
+
+  Revision 1.63  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 

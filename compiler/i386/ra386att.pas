@@ -1889,7 +1889,7 @@ Begin
   { setup label linked list }
   LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
-  c:=current_scanner.asmgetchar;
+  c:=current_scanner.asmgetcharstart;
   gettoken;
   { main loop }
   repeat
@@ -2119,7 +2119,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.56  2003-10-29 16:47:18  peter
+  Revision 1.57  2003-11-10 19:08:32  peter
+    * line numbering is now only done when #10, #10#13 is really parsed
+      instead of when it is the next character
+
+  Revision 1.56  2003/10/29 16:47:18  peter
     * fix field offset in reference
 
   Revision 1.55  2003/10/26 13:37:22  florian

@@ -38,7 +38,6 @@ interface
        max_macro_nesting=16;
        maxmacrolen=16*1024;
        preprocbufsize=32*1024;
-       Newline = #10;
 
 
     type
@@ -151,6 +150,7 @@ interface
           procedure skipoldtpcomment;
           procedure readtoken;
           function  readpreproc:ttoken;
+          function  asmgetcharstart : char;
           function  asmgetchar:char;
        end;
 
@@ -603,6 +603,8 @@ implementation
                               dec(bracketcount);
                            '{' :
                              inc(bracketcount);
+                           #10,#13 :
+                             current_scanner.linebreak;
                            #26 :
                              current_scanner.end_of_file;
                          end;
@@ -838,10 +840,8 @@ implementation
            if current_scanner.inputfilecount<max_include_nesting then
              begin
                inc(current_scanner.inputfilecount);
-               { save old postion and decrease linebreak }
-               if c=newline then
-                dec(current_scanner.line_no);
-               dec(longint(current_scanner.inputpointer));
+               { we need to reread the current char }
+               dec(current_scanner.inputpointer);
                { shutdown current file }
                current_scanner.tempcloseinputfile;
                { load new file }
@@ -852,12 +852,6 @@ implementation
                 Message1(scan_f_cannot_open_includefile,hs);
                Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
                current_scanner.reload;
-               { process first read char }
-               case c of
-                #26 : current_scanner.reload;
-                #10,
-                #13 : current_scanner.linebreak;
-               end;
              end
            else
              Message(scan_f_include_deep_ten);
@@ -1009,12 +1003,6 @@ implementation
         if not openinputfile then
           Message1(scan_f_cannot_open_input,inputfile.name^);
         reload;
-      { process first read char }
-        case c of
-         #26 : reload;
-         #10,
-         #13 : linebreak;
-        end;
       end;
 
 
@@ -1197,7 +1185,7 @@ implementation
                 (inputpointer-inputbuffer<bufsize) then
               begin
                 c:=' ';
-                inc(longint(inputpointer));
+                inc(inputpointer);
                 exit;
               end;
            { can we read more from this file ? }
@@ -1235,7 +1223,7 @@ implementation
               end;
            { load next char }
              c:=inputpointer^;
-             inc(longint(inputpointer));
+             inc(inputpointer);
            until c<>#0; { if also end, then reload again }
          end;
       end;
@@ -1245,10 +1233,8 @@ implementation
       var
         hp : tinputfile;
       begin
-      { save old postion and decrease linebreak }
-        if c=newline then
-         dec(line_no);
-        dec(longint(inputpointer));
+        { save old postion }
+        dec(inputpointer);
         tempcloseinputfile;
       { create macro 'file' }
         { use special name to dispose after !! }
@@ -1269,7 +1255,7 @@ implementation
         lasttokenpos:=0;
       { load new c }
         c:=inputpointer^;
-        inc(longint(inputpointer));
+        inc(inputpointer);
       end;
 
 
@@ -1320,27 +1306,28 @@ implementation
         with inputfile do
          begin
            if (byte(inputpointer^)=0) and not(endoffile) then
-            begin
-              cur:=c;
-              reload;
-              if byte(cur)+byte(c)<>23 then
-                dec(longint(inputpointer));
-            end
+             begin
+               cur:=c;
+               reload;
+               if byte(cur)+byte(c)<>23 then
+                 dec(inputpointer);
+             end
            else
-            begin
-            { Fix linebreak to be only newline (=#10) for all types of linebreaks }
-              if (byte(inputpointer^)+byte(c)=23) then
-                inc(longint(inputpointer));
-            end;
-           c:=newline;
-         { increase line counters }
+             begin
+               { Support all combination of #10 and #13 as line break }
+               if (byte(inputpointer^)+byte(c)=23) then
+                 inc(inputpointer);
+             end;
+           { Always return #10 as line break }
+           c:=#10;
+           { increase line counters }
            lastlinepos:=bufstart+(inputpointer-inputbuffer);
            inc(line_no);
-         { update linebuffer }
+           { update linebuffer }
            if cs_asm_source in aktglobalswitches then
              inputfile.setline(line_no,lastlinepos);
-         { update for status and call the show status routine,
-           but don't touch aktfilepos ! }
+           { update for status and call the show status routine,
+             but don't touch aktfilepos ! }
            oldaktfilepos:=aktfilepos;
            oldtokenpos:=akttokenpos;
            gettokenpos; { update for v_status }
@@ -1357,9 +1344,9 @@ implementation
         s : string;
       begin
         if c in [#32..#255] then
-         s:=''''+c+''''
+          s:=''''+c+''''
         else
-         s:='#'+tostr(ord(c));
+          s:='#'+tostr(ord(c));
         Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
       end;
 
@@ -1558,14 +1545,9 @@ implementation
       begin
         c:=inputpointer^;
         if c=#0 then
-         reload
+          reload
         else
-         inc(longint(inputpointer));
-        case c of
-         #26 : reload;
-         #10,
-         #13 : linebreak;
-        end;
+          inc(inputpointer);
       end;
 
 
@@ -1576,40 +1558,34 @@ implementation
         i:=0;
         repeat
           case c of
-                 '_',
+            '_',
             '0'..'9',
-            'A'..'Z' : begin
-                         if i<255 then
-                          begin
-                            inc(i);
-                            orgpattern[i]:=c;
-                            pattern[i]:=c;
-                          end;
-                         c:=inputpointer^;
-                         inc(longint(inputpointer));
-                       end;
-            'a'..'z' : begin
-                         if i<255 then
-                          begin
-                            inc(i);
-                            orgpattern[i]:=c;
-                            pattern[i]:=chr(ord(c)-32)
-                          end;
-                         c:=inputpointer^;
-                         inc(longint(inputpointer));
-                       end;
-              #0 : reload;
-              #26 : begin
-                      reload;
-                      if c=#26 then
-                        break;
-                    end;
-             #13,#10 : begin
-                         linebreak;
-                         break;
-                       end;
-          else
-           break;
+            'A'..'Z' :
+              begin
+                if i<255 then
+                 begin
+                   inc(i);
+                   orgpattern[i]:=c;
+                   pattern[i]:=c;
+                 end;
+                c:=inputpointer^;
+                inc(inputpointer);
+              end;
+            'a'..'z' :
+              begin
+                if i<255 then
+                 begin
+                   inc(i);
+                   orgpattern[i]:=c;
+                   pattern[i]:=chr(ord(c)-32)
+                 end;
+                c:=inputpointer^;
+                inc(inputpointer);
+              end;
+            #0 :
+              reload;
+            else
+              break;
           end;
         until false;
         orgpattern[0]:=chr(i);
@@ -1623,29 +1599,32 @@ implementation
         i  : longint;
       begin
         case c of
-         '%' : begin
-                 readchar;
-                 base:=2;
-                 pattern[1]:='%';
-                 i:=1;
-               end;
-         '&' : begin
-                 readchar;
-                 base:=8;
-                 pattern[1]:='&';
-                 i:=1;
-               end;
-         '$' : begin
-                 readchar;
-                 base:=16;
-                 pattern[1]:='$';
-                 i:=1;
-               end;
-        else
-         begin
-           base:=10;
-           i:=0;
-         end;
+          '%' :
+            begin
+              readchar;
+              base:=2;
+              pattern[1]:='%';
+              i:=1;
+            end;
+          '&' :
+            begin
+              readchar;
+              base:=8;
+              pattern[1]:='&';
+              i:=1;
+            end;
+          '$' :
+            begin
+              readchar;
+              base:=16;
+              pattern[1]:='$';
+              i:=1;
+            end;
+          else
+            begin
+              base:=10;
+              i:=0;
+            end;
         end;
         while ((base>=10) and (c in ['0'..'9'])) or
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
@@ -1657,19 +1636,8 @@ implementation
               inc(i);
               pattern[i]:=c;
             end;
-        { get next char }
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
+           readchar;
          end;
-      { was the next char a linebreak ? }
-        case c of
-         #26 : reload;
-         #10,
-         #13 : linebreak;
-        end;
         pattern[0]:=chr(i);
       end;
 
@@ -1699,69 +1667,71 @@ implementation
         i:=0;
         repeat
           case c of
-           '{' :
-             if aktcommentstyle=comment_tp then
-              inc_comment_level;
-           '}' :
-             if aktcommentstyle=comment_tp then
+            '{' :
               begin
-                readchar;
-                dec_comment_level;
-                if comment_level=0 then
-                 break
-                else
-                 continue;
+                if aktcommentstyle=comment_tp then
+                  inc_comment_level;
               end;
-           '*' :
-             if aktcommentstyle=comment_oldtp then
+            '}' :
               begin
-                readchar;
-                if c=')' then
-                 begin
-                   readchar;
-                   dec_comment_level;
-                   break;
-                 end
-                else
-                 { Add both characters !!}
-                 if (i<255) then
-                   begin
-                   inc(i);
-                   readcomment[i]:='*';
-                   if (i<255) then
-                     begin
-                     inc(i);
-                     readcomment[i]:='*';
-                     end;
-                   end;
-              end
-             else
-              { Not old TP comment, so add...}
-              begin
-              if (i<255) then
-               begin
-               inc(i);
-               readcomment[i]:='*';
-               end;
+                if aktcommentstyle=comment_tp then
+                  begin
+                    readchar;
+                    dec_comment_level;
+                    if comment_level=0 then
+                      break
+                    else
+                      continue;
+                  end;
               end;
-           #26 :
+            '*' :
+              begin
+                if aktcommentstyle=comment_oldtp then
+                  begin
+                    readchar;
+                    if c=')' then
+                      begin
+                        readchar;
+                        dec_comment_level;
+                        break;
+                      end
+                    else
+                    { Add both characters !!}
+                      if (i<255) then
+                        begin
+                          inc(i);
+                          readcomment[i]:='*';
+                          if (i<255) then
+                            begin
+                              inc(i);
+                              readcomment[i]:='*';
+                            end;
+                        end;
+                  end
+                else
+                { Not old TP comment, so add...}
+                  begin
+                    if (i<255) then
+                      begin
+                        inc(i);
+                        readcomment[i]:='*';
+                      end;
+                  end;
+              end;
+            #10,#13 :
+              linebreak;
+            #26 :
               end_of_file;
-          else
-            begin
-              if (i<255) then
-               begin
-                 inc(i);
-                 readcomment[i]:=c;
-               end;
-            end;
+            else
+              begin
+                if (i<255) then
+                  begin
+                    inc(i);
+                    readcomment[i]:=c;
+                  end;
+              end;
           end;
-          c:=inputpointer^;
-          if c=#0 then
-           reload
-          else
-           inc(longint(inputpointer));
-          if c in [#10,#13] then
-           linebreak;
+          readchar;
         until false;
         readcomment[0]:=chr(i);
       end;
@@ -1792,21 +1762,25 @@ implementation
 
     procedure tscannerfile.skipspace;
       begin
-        while c in [' ',#9..#13] do
-         begin
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
-           case c of
+        repeat
+          case c of
             #26 :
-              reload;
+              begin
+                reload;
+                if (c=#26) and not assigned(inputfile.next) then
+                  break;
+                continue;
+              end;
             #10,
             #13 :
               linebreak;
-           end;
-         end;
+            #9,#11,#12,' ' :
+              ;
+            else
+              break;
+          end;
+          readchar;
+        until false;
       end;
 
 
@@ -1823,8 +1797,16 @@ implementation
          oldcommentstyle:=aktcommentstyle;
          repeat
            case c of
+             #10,
+             #13 :
+               linebreak;
              #26 :
-               end_of_file;
+               begin
+                 reload;
+                 if (c=#26) and not assigned(inputfile.next) then
+                   end_of_file;
+                 continue;
+               end;
              '{' :
                begin
                  if not(m_nested_comment in aktmodeswitches) or
@@ -1872,7 +1854,7 @@ implementation
                     case c of
                       #26 :
                         end_of_file;
-                      newline :
+                      #10,#13 :
                         break;
                       '''' :
                         begin
@@ -1905,9 +1887,8 @@ implementation
                           skipoldtpcomment;
                           aktcommentstyle:=oldcommentstyle;
                         end;
-                     end
-                    else
-                     next_char_loaded:=true;
+                     end;
+                    next_char_loaded:=true;
                   end
                  else
                   found:=0;
@@ -1921,9 +1902,8 @@ implementation
                      begin
                        skipdelphicomment;
                        aktcommentstyle:=oldcommentstyle;
-                     end
-                    else
-                     next_char_loaded:=true;
+                     end;
+                    next_char_loaded:=true;
                   end
                  else
                   found:=0;
@@ -1934,18 +1914,7 @@ implementation
            if next_char_loaded then
              next_char_loaded:=false
            else
-             begin
-                c:=inputpointer^;
-                if c=#0 then
-                  reload
-                else
-                  inc(longint(inputpointer));
-                case c of
-                  #26 : reload;
-                  #10,
-                  #13 : linebreak;
-                end;
-             end;
+             readchar;
          until (found=2);
       end;
 
@@ -1966,20 +1935,21 @@ implementation
         while (comment_level>0) do
          begin
            case c of
-            '{' : inc_comment_level;
-            '}' : dec_comment_level;
-            #26 : end_of_file;
+            '{' :
+              inc_comment_level;
+            '}' :
+              dec_comment_level;
+            #10,#13 :
+              linebreak;
+            #26 :
+              begin
+                reload;
+                if (c=#26) and not assigned(inputfile.next) then
+                  end_of_file;
+                continue;
+              end;
            end;
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
-           case c of
-            #26 : reload;
-            #10,
-            #13 : linebreak;
-           end;
+           readchar;
          end;
         aktcommentstyle:=comment_none;
       end;
@@ -1994,8 +1964,8 @@ implementation
         if c='$' then
           Message(scan_e_wrong_styled_switch);
         { skip comment }
-        while not (c in [newline,#26]) do
-         readchar;
+        while not (c in [#10,#13,#26]) do
+          readchar;
         dec_comment_level;
         aktcommentstyle:=comment_none;
       end;
@@ -2021,7 +1991,14 @@ implementation
            repeat
              case c of
                #26 :
-                 end_of_file;
+                 begin
+                   reload;
+                   if (c=#26) and not assigned(inputfile.next) then
+                     end_of_file;
+                   continue;
+                 end;
+               #10,#13 :
+                 linebreak;
                '*' :
                  begin
                    if found=3 then
@@ -2053,16 +2030,7 @@ implementation
                    found:=0;
                  end;
              end;
-             c:=inputpointer^;
-             if c=#0 then
-              reload
-             else
-              inc(longint(inputpointer));
-             case c of
-              #26 : reload;
-              #10,
-              #13 : linebreak;
-             end;
+             readchar;
            until (found=2);
          end;
         aktcommentstyle:=comment_none;
@@ -2105,6 +2073,12 @@ implementation
           case c of
             '{' :
               skipcomment;
+            #26 :
+              begin
+                reload;
+                if (c=#26) and not assigned(inputfile.next) then
+                  break;
+              end;
             ' ',#9..#13 :
               begin
 {$ifdef PREPROCWRITE}
@@ -2125,7 +2099,7 @@ implementation
 
       { Save current token position, for EOF its already loaded }
         if c<>#26 then
-         gettokenpos;
+          gettokenpos;
 
       { Check first for a identifier/keyword, this is 20+% faster (PFV) }
         if c in ['A'..'Z','a'..'z','_'] then
@@ -2173,14 +2147,7 @@ implementation
                          mac.fileinfo.line,mac.fileinfo.fileindex);
                      { handle empty macros }
                        if c=#0 then
-                        begin
-                          reload;
-                          case c of
-                           #26 : reload;
-                           #10,
-                           #13 : linebreak;
-                          end;
-                        end;
+                         reload;
                        readtoken;
                        { that's all folks }
                        dec(yylexcount);
@@ -2558,7 +2525,7 @@ implementation
                            case c of
                              #26 :
                                end_of_file;
-                             newline :
+                             #10,#13 :
                                Message(scan_f_string_exceeds_line);
                              '''' :
                                begin
@@ -2785,6 +2752,15 @@ exit_label:
       end;
 
 
+    function tscannerfile.asmgetcharstart : char;
+      begin
+        { return first the character already
+          available in c }
+        lastasmgetchar:=c;
+        result:=asmgetchar;
+      end;
+
+
     function tscannerfile.asmgetchar : char;
       begin
          if lastasmgetchar<>#0 then
@@ -2807,6 +2783,19 @@ exit_label:
              '{' :
                skipcomment;
 {$endif arm}
+             #10,#13 :
+               begin
+                 linebreak;
+                 asmgetchar:=c;
+                 exit;
+               end;
+             #26 :
+               begin
+                 reload;
+                 if (c=#26) and not assigned(inputfile.next) then
+                   end_of_file;
+                 continue;
+               end;
              '/' :
                begin
                   readchar;
@@ -2906,7 +2895,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.63  2003-10-29 21:02:51  peter
+  Revision 1.64  2003-11-10 19:08:32  peter
+    * line numbering is now only done when #10, #10#13 is really parsed
+      instead of when it is the next character
+
+  Revision 1.63  2003/10/29 21:02:51  peter
     * set ms_compiled after the program/unit is parsed
     * check for ms_compiled before checking preproc matches
 
