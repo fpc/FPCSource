@@ -92,7 +92,11 @@ implementation
                   hp:=genenumnode(enum);
                   disposetree(p);
                   p:=hp;
-               end
+               end;
+             arraydef:
+               begin
+                  halt;
+               end;
            end;
         end;
 
@@ -1000,7 +1004,8 @@ implementation
                             begin
                               if p^.inlinenumber=in_low_x then
                                begin
-                                 hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,s32bitdef);
+                                 hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,
+                                   Parraydef(p^.left^.resulttype)^.rangedef);
                                  disposetree(p);
                                  p:=hp;
                                  firstpass(p);
@@ -1018,7 +1023,8 @@ implementation
                                   end
                                  else
                                   begin
-                                    hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.highrange,s32bitdef);
+                                    hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.highrange,
+                                      Parraydef(p^.left^.resulttype)^.rangedef);
                                     disposetree(p);
                                     p:=hp;
                                     firstpass(p);
@@ -1101,7 +1107,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-06-15 18:58:36  peter
+  Revision 1.37  1999-06-25 10:02:56  florian
+    * bug 459 fixed
+
+  Revision 1.36  1999/06/15 18:58:36  peter
     * merged
 
   Revision 1.35.2.1  1999/06/15 18:54:54  peter
