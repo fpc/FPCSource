@@ -46,7 +46,7 @@ Procedure Ansi_String_Concat (Var S1 : Pointer; Var S2 : Pointer); forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString); forward;
-Function  AnsiCompare (Var S1,S2 : Pointer): Longint; forward;
+Function  AnsiCompare (S1,S2 : Pointer): Longint; forward;
 Function  AnsiCompare (var S1 : Pointer; Var S2 : ShortString): Longint; forward;
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
 
@@ -713,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  1998-10-21 08:38:46  florian
+  Revision 1.21  1998-10-21 08:56:58  michael
+  + Fix so it compiles
+
+  Revision 1.20  1998/10/21 08:38:46  florian
     * ansistringconcat fixed
 
   Revision 1.19  1998/10/20 12:46:11  florian
