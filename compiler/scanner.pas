@@ -577,7 +577,8 @@ implementation
 
     procedure tscannerfile.dec_comment_level;
       begin
-         if cs_tp_compatible in aktswitches then
+         if (cs_tp_compatible in aktswitches) or
+            (cs_delphi2_compatible in aktswitches) then
            comment_level:=0
          else
            dec(comment_level);
@@ -1548,7 +1549,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.36  1998-07-20 22:17:17  florian
+  Revision 1.37  1998-07-23 12:40:41  michael
+  No nested comments in Delphi mode.
+
+  Revision 1.36  1998/07/20 22:17:17  florian
     * hex constants in numeric char (#$54#$43 ...) are now allowed
     * there was a bug in record_var_dec which prevents the used
       of nested variant records (for example drivers.tevent of tv)
