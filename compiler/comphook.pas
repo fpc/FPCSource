@@ -122,18 +122,18 @@ type
   tgetnamedfiletimefunc = function(const filename: string): longint;
 
 const
-  do_stop          : tstopprocedure   = {$ifndef tp}@{$endif}def_stop;
-  do_halt          : thaltprocedure   = {$ifndef tp}@{$endif}def_halt;
-  do_status        : tstatusfunction  = {$ifndef tp}@{$endif}def_status;
-  do_comment       : tcommentfunction = {$ifndef tp}@{$endif}def_comment;
-  do_internalerror : tinternalerrorfunction = {$ifndef tp}@{$endif}def_internalerror;
+  do_stop          : tstopprocedure   = {$ifdef FPCPROCVAR}@{$endif}def_stop;
+  do_halt          : thaltprocedure   = {$ifdef FPCPROCVAR}@{$endif}def_halt;
+  do_status        : tstatusfunction  = {$ifdef FPCPROCVAR}@{$endif}def_status;
+  do_comment       : tcommentfunction = {$ifdef FPCPROCVAR}@{$endif}def_comment;
+  do_internalerror : tinternalerrorfunction = {$ifdef FPCPROCVAR}@{$endif}def_internalerror;
 
-  do_initsymbolinfo : tinitsymbolinfoproc = {$ifndef tp}@{$endif}def_initsymbolinfo;
-  do_donesymbolinfo : tdonesymbolinfoproc = {$ifndef tp}@{$endif}def_donesymbolinfo;
-  do_extractsymbolinfo : textractsymbolinfoproc = {$ifndef tp}@{$endif}def_extractsymbolinfo;
+  do_initsymbolinfo : tinitsymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_initsymbolinfo;
+  do_donesymbolinfo : tdonesymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_donesymbolinfo;
+  do_extractsymbolinfo : textractsymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_extractsymbolinfo;
 
-  do_openinputfile : topeninputfilefunc = {$ifndef tp}@{$endif}def_openinputfile;
-  do_getnamedfiletime : tgetnamedfiletimefunc = {$ifndef tp}@{$endif}def_getnamedfiletime;
+  do_openinputfile : topeninputfilefunc = {$ifdef FPCPROCVAR}@{$endif}def_openinputfile;
+  do_getnamedfiletime : tgetnamedfiletimefunc = {$ifdef FPCPROCVAR}@{$endif}def_getnamedfiletime;
 
 implementation
 
@@ -351,7 +351,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-06-06 17:20:21  jonas
+  Revision 1.15  2001-06-07 21:25:57  peter
+    * Regenerated
+
+  Revision 1.14  2001/06/06 17:20:21  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)

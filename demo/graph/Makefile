@@ -5,7 +5,7 @@ default: all
 override PATH:=$(subst \,/,$(PATH))
 ifeq ($(findstring ;,$(PATH)),)
 inUnix=1
-SEARCHPATH:=$(subst .,,$(subst :, ,$(PATH)))
+SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
 else
 SEARCHPATH:=$(subst ;, ,$(PATH))
 endif
@@ -227,15 +227,6 @@ ifndef MKDIR
 MKDIR:=$(GINSTALL) -m 755 -d
 endif
 export ECHOREDIR COPY COPYTREE MOVE DEL DELTREE INSTALL INSTALLEXE MKDIR
-ifndef PPUFILES
-PPUFILES:=$(strip $(wildcard $(addsuffix /ppufiles$(SRCEXEEXT),$(SEARCHPATH))))
-ifeq ($(PPUFILES),)
-PPUFILES=
-else
-PPUFILES:=$(firstword $(PPUFILES))
-endif
-endif
-export PPUFILES
 ifndef PPUMOVE
 PPUMOVE:=$(strip $(wildcard $(addsuffix /ppumove$(SRCEXEEXT),$(SEARCHPATH))))
 ifeq ($(PPUMOVE),)
@@ -329,7 +320,7 @@ ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
-LIBPREFIX=lib
+STATICLIBPREFIX=libp
 RSTEXT=.rst
 FPCMADE=fpcmade
 ifeq ($(OS_TARGET),go32v1)
@@ -339,12 +330,12 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-LIBPREFIX=
+STATICLIBPREFIX=
 FPCMADE=fpcmade.v1
 PACKAGESUFFIX=v1
 endif
 ifeq ($(OS_TARGET),go32v2)
-LIBPREFIX=
+STATICLIBPREFIX=
 FPCMADE=fpcmade.dos
 ZIPSUFFIX=go32
 endif
@@ -442,7 +433,9 @@ endif
 ifndef INSTALL_UNITDIR
 INSTALL_UNITDIR:=$(INSTALL_BASEDIR)/units/$(OS_TARGET)
 ifdef INSTALL_FPCPACKAGE
+ifdef PACKAGE_NAME
 INSTALL_UNITDIR:=$(INSTALL_UNITDIR)/$(PACKAGE_NAME)
+endif
 endif
 endif
 ifndef INSTALL_LIBDIR
@@ -654,7 +647,7 @@ fpc_units: $(UNITPPUFILES)
 .PHONY: fpc_exes
 ifdef TARGET_PROGRAMS
 override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
-override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(LIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
+override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
 override ALLTARGET+=fpc_exes
 override INSTALLEXEFILES+=$(EXEFILES)
 override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
@@ -697,14 +690,9 @@ ifdef INSTALL_UNITS
 override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
 endif
 ifdef INSTALLPPUFILES
-ifdef PPUFILES
-override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
-override INSTALLPPULINKFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(shell $(PPUFILES) -S -O $(INSTALLPPUFILES)))
-else
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(LIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
 override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
 override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPULINKFILES)))
-endif
 endif
 ifdef INSTALLEXEFILES
 override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
@@ -756,13 +744,9 @@ ifdef CLEAN_UNITS
 override CLEANPPUFILES+=$(addsuffix $(PPUEXT),$(CLEAN_UNITS))
 endif
 ifdef CLEANPPUFILES
+override CLEANPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES)))
 override CLEANPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(CLEANPPUFILES))
-ifdef PPUFILES
-CLEANPPULINKFILES:=$(shell $(PPUFILES) $(CLEANPPUFILES))
-else
-CLEANPPULINKFILES:=$(wildcard $(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(addprefix $(LIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES))))
-endif
-override CLEANPPULINKFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(CLEANPPULINKFILES))
+override CLEANPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(CLEANPPULINKFILES)))
 endif
 fpc_clean: $(CLEANTARGET)
 ifdef CLEANEXEFILES
@@ -835,7 +819,6 @@ fpc_info:
 	@$(ECHO)  Date...... $(DATE)
 	@$(ECHO)  FPCMake... $(FPCMAKE)
 	@$(ECHO)  PPUMove... $(PPUMOVE)
-	@$(ECHO)  PPUFiles.. $(PPUFILES)
 	@$(ECHO)  Upx....... $(UPXPROG)
 	@$(ECHO)  Zip....... $(ZIPPROG)
 	@$(ECHO)
