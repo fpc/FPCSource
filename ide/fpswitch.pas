@@ -851,7 +851,8 @@ end;
 *****************************************************************************}
 
 procedure InitSwitches;
-
+var
+  t : tsystem;
 begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
@@ -927,6 +928,11 @@ begin
   New(TargetSwitches,InitSelect('T'));
   with TargetSwitches^ do
    begin
+     { better, we've a correct target list without "tilded" names instead a wrong one }
+     for t:=low(tsystem) to high(tsystem) do
+       if assigned(targetinfos[t]) then
+         AddSelectItem(targetinfos[t]^.name,targetinfos[t]^.shortname,idNone);
+{$ifdef dummy}
 {$ifdef I386}
      {AddSelectItem('DOS (GO32V~1~)','go32v1',idNone);}
      AddSelectItem('~D~OS (GO32V2)','go32v2',idNone);
@@ -953,6 +959,7 @@ begin
      AddSelectItem('~M~ac OS','macos',idNone);
      AddSelectItem('Macos ~X~(Darwin)','darwin',idNone);
 {$endif powerpc}
+{$endif dummy}
    end;
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
@@ -1274,7 +1281,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2004-09-14 20:46:13  hajny
+  Revision 1.18  2004-11-03 12:05:54  florian
+    + supported targets are now read dynamically from the included compiler
+
+  Revision 1.17  2004/09/14 20:46:13  hajny
     * compilation fix - for loop counter issues
 
   Revision 1.16  2004/09/04 23:33:39  armin

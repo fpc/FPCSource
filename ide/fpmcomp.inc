@@ -23,7 +23,7 @@ var R,R2: TRect;
     L: longint;
 begin
   TargetCount:=TargetSwitches^.ItemCount;
-  R.Assign(0,0,36,4+TargetCount);
+  R.Assign(0,0,60,4+TargetCount);
   New(D, Init(R, dialog_target));
   with D^ do
   begin
@@ -130,7 +130,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:43  peter
+  Revision 1.3  2004-11-03 12:05:54  florian
+    + supported targets are now read dynamically from the included compiler
+
+  Revision 1.2  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
 }
