@@ -173,7 +173,7 @@ unit systems;
           bindbin       : array[1..2]of string[8];
           bindcmd       : array[1..2]of string[127];
           stripopt      : string[2];
-          stripbind     : boolean;     (* Strip symbols in binder?        *)
+          stripbind     : boolean;     { Strip symbols in binder? }
           libpathprefix : string[13];
           libpathsuffix : string[2];
           groupstart    : string[8];
@@ -817,9 +817,8 @@ implementation
             linkcmd : '-o $EXE @$RES';
             binders : 1;
             bindbin : ('emxbind','');
-            bindcmd : ('-b -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB','');
-            stripopt   : '-s';
-            bindcmd : ('-b $STRIP -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB','');
+            bindcmd : ('-b $STRIP -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB',
+                       '');
             stripopt   : '-s';
             stripbind  : true;
             libpathprefix : '-L';
@@ -1501,7 +1500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  1999-06-02 14:20:31  hajny
+  Revision 1.81  1999-06-02 20:46:39  peter
+    * fixed os2 bindcmd which was double
+
+  Revision 1.80  1999/06/02 14:20:31  hajny
     * fixed my mistake from previously commited version
 
   Revision 1.79  1999/06/02 13:25:34  hajny
