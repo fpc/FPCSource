@@ -3705,6 +3705,9 @@ implementation
               not(is_void(rettype.def)) then
               s:=s+':'+rettype.def.gettypename;
         end;
+        { forced calling convention? }
+        if (po_hascallingconvention in procoptions) then
+          s:=s+';'+ProcCallOptionStr[proccalloption];
         fullprocname:=s;
       end;
 
@@ -4082,7 +4085,7 @@ implementation
 
     function tprocdef.gettypename : string;
       begin
-         gettypename := FullProcName(false)+';'+ProcCallOptionStr[proccalloption];
+         gettypename := FullProcName(false);
       end;
 
 
@@ -5915,7 +5918,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2003-10-07 16:06:30  peter
+  Revision 1.175  2003-10-07 20:43:49  peter
+    * Add calling convention in fullprocname when it is specified
+
+  Revision 1.174  2003/10/07 16:06:30  peter
     * tsymlist.def renamed to tsymlist.procdef
     * tsymlist.procdef is now only used to store the procdef
 
