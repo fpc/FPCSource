@@ -34,7 +34,7 @@ function dxe_load(filename : string) : pointer;
 }
 type
   { to avoid range check problems }
-  pointer_array = array[0..maxlongint div sizeof(pointer)] of pointer;
+  pointer_array = array[0..maxlongint div sizeof(pointer)-1] of pointer;
   tpa = ^pointer_array;
 var
   dh     : dxe_header;
@@ -88,7 +88,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-09-15 19:20:51  hajny
+  Revision 1.8  2004-11-02 20:06:16  peter
+    * data too large
+
+  Revision 1.7  2004/09/15 19:20:51  hajny
     * dxegen compilable for any target now
 
   Revision 1.6  2002/09/07 16:01:18  peter
