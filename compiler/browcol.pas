@@ -867,6 +867,7 @@ begin
   S:=GetStr(Name)+' '+IntToStr(Index);
   if Assigned(Symbol) and (UpcaseStr(Symbol^.GetName)<>UpcaseStr(GetStr(Name))) then
     S:=S+' ('+Symbol^.GetName+')';
+  GetDisplayText:=S;
 end;
 
 destructor TExport.Done;
@@ -2077,7 +2078,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2000-06-16 06:08:44  pierre
+  Revision 1.41  2000-06-19 19:56:43  pierre
+   * small error fix
+
+  Revision 1.40  2000/06/16 06:08:44  pierre
    *Gabor's changes
 
   Revision 1.39  2000/05/29 10:04:40  pierre
