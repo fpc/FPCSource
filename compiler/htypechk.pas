@@ -584,6 +584,11 @@ implementation
         gotpointer:=false;
         gotwith:=false;
         hp:=p;
+        if is_void(hp.resulttype) then
+         begin
+           CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+           exit;
+         end;
         while assigned(hp) do
          begin
            { property allowed? calln has a property check itself }
@@ -906,7 +911,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-02-04 11:12:17  jonas
+  Revision 1.22  2001-02-20 21:46:26  peter
+    * don't allow assign to void type (merged)
+
+  Revision 1.21  2001/02/04 11:12:17  jonas
     * fixed web bug 1377 & const pointer arithmtic
 
   Revision 1.20  2000/12/09 13:04:05  florian
