@@ -162,7 +162,7 @@ cat <<EOFCFG > $thefile
 #-Cr
 #-Ct
 
-# Optimizer switches
+# Optimizer switches for i386 compiler
 # -Og        generate smaller code
 # -OG        generate faster code (default)
 # -Or        keep certain variables in registers (still BUGGY!!!)

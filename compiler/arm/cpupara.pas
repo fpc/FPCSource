@@ -159,12 +159,15 @@ unit cpupara;
 
     function tarmparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
+        result:=false;
         if varspez in [vs_var,vs_out] then
           begin
             result:=true;
             exit;
           end;
         case def.deftype of
+          variantdef,
+          formaldef,
           recorddef:
             result:=true;
           arraydef:
@@ -172,14 +175,14 @@ unit cpupara;
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
+          objectdef :
+            result:=is_object(def);
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
             result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
           procvardef :
             result:=po_methodpointer in tprocvardef(def).procoptions;
-          else
-            result:=inherited push_addr_param(varspez,def,calloption);
         end;
       end;
 
@@ -446,7 +449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2005-01-15 21:45:35  florian
+  Revision 1.30  2005-02-03 20:04:49  peter
+    * push_addr_param must be defined per target
+
+  Revision 1.29  2005/01/15 21:45:35  florian
     * arm compiler fixed
 
   Revision 1.28  2005/01/01 19:30:17  florian

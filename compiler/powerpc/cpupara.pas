@@ -173,6 +173,7 @@ unit cpupara;
 
     function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
+        result:=false;
         { var,out always require address }
         if varspez in [vs_var,vs_out] then
           begin
@@ -180,6 +181,9 @@ unit cpupara;
             exit;
           end;
         case def.deftype of
+          variantdef,
+          formaldef :
+            result:=true;
           recorddef:
             result :=(target_info.abi<>abi_powerpc_aix);
           arraydef:
@@ -187,14 +191,14 @@ unit cpupara;
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
+          objectdef :
+            result:=is_object(def);
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
             result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
           procvardef :
             result:=po_methodpointer in tprocvardef(def).procoptions;
-          else
-            result:=inherited push_addr_param(varspez,def,calloption);
         end;
       end;
 
@@ -645,7 +649,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2005-01-31 17:46:25  peter
+  Revision 1.87  2005-02-03 20:04:49  peter
+    * push_addr_param must be defined per target
+
+  Revision 1.86  2005/01/31 17:46:25  peter
     * fixed parseparaloc
 
   Revision 1.85  2005/01/20 17:47:01  peter

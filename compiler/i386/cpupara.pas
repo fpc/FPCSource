@@ -84,7 +84,10 @@ unit cpupara;
         while assigned(paraloc) do
           begin
             if (paraloc^.loc<>LOC_REFERENCE) then
-              result:=false;
+              begin
+                result:=false;
+                exit;
+              end;
             paraloc:=paraloc^.next;
           end;
       end;
@@ -116,38 +119,63 @@ unit cpupara;
 
     function ti386paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        case target_info.system of
-          system_i386_win32 :
+        result:=false;
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
+        { Only vs_const, vs_value here }
+        case def.deftype of
+          variantdef,
+          formaldef :
+            result:=true;
+          recorddef :
             begin
-              case def.deftype of
-                recorddef :
-                  begin
-                    { Win32 passes small records on the stack for call by
-                      value }
-                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
-                       (varspez=vs_value) and
-                       (def.size<=8) then
-                     begin
-                       result:=false;
-                       exit;
-                     end;
-                  end;
-                arraydef :
-                  begin
-                    { Win32 passes arrays on the stack for call by
-                      value }
-                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
-                       (varspez=vs_value) and
-                       (tarraydef(def).highrange>=tarraydef(def).lowrange) then
-                     begin
-                       result:=false;
-                       exit;
-                     end;
-                  end;
-              end;
+              { Win32 passes small records on the stack for call by
+                value }
+              if (target_info.system=system_i386_win32) and
+                 (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                 (varspez=vs_value) and
+                 (def.size<=8) then
+                result:=false
+              else
+                result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>sizeof(aint));
             end;
+          arraydef :
+            begin
+              { Win32 passes arrays on the stack for call by
+                value }
+              if (target_info.system=system_i386_win32) and
+                 (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                 (varspez=vs_value) and
+                 (tarraydef(def).highrange>=tarraydef(def).lowrange) then
+                result:=false
+              else
+              { array of const values are pushed on the stack }
+                if (calloption in [pocall_cdecl,pocall_cppdecl]) then
+                  result:=not is_array_of_const(def)
+              else
+                begin
+                  result:=(
+                           (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                           (def.size>sizeof(aint))
+                          ) or
+                          is_open_array(def) or
+                          is_array_of_const(def) or
+                          is_array_constructor(def);
+                end;
+            end;
+          objectdef :
+            result:=is_object(def);
+          stringdef :
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+          procvardef :
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
         end;
-        result:=inherited push_addr_param(varspez,def,calloption);
       end;
 
 
@@ -602,7 +630,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2005-01-30 11:03:22  peter
+  Revision 1.65  2005-02-03 20:04:49  peter
+    * push_addr_param must be defined per target
+
+  Revision 1.64  2005/01/30 11:03:22  peter
     * revert last commit
 
   Revision 1.62  2005/01/18 22:19:20  peter

@@ -52,7 +52,7 @@ unit paramgr;
           { Returns true if a parameter is too large to copy and only
             the address is pushed
           }
-          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;abstract;
           { return the size of a push }
           function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
           {# Returns a structure giving the information on
@@ -154,53 +154,6 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
-      end;
-
-
-    { true if a parameter is too large to copy and only the address is pushed }
-    function tparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        result:=false;
-        { var,out always require address }
-        if varspez in [vs_var,vs_out] then
-          begin
-            result:=true;
-            exit;
-          end;
-        { Only vs_const, vs_value here }
-        case def.deftype of
-          variantdef,
-          formaldef :
-            result:=true;
-          recorddef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>sizeof(aint));
-          arraydef :
-            begin
-              if (calloption in [pocall_cdecl,pocall_cppdecl]) then
-               begin
-                 { array of const values are pushed on the stack }
-                 result:=not is_array_of_const(def);
-               end
-              else
-               begin
-                 result:=(
-                          (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                          (def.size>sizeof(aint))
-                         ) or
-                         is_open_array(def) or
-                         is_array_of_const(def) or
-                         is_array_constructor(def);
-               end;
-            end;
-          objectdef :
-            result:=is_object(def);
-          stringdef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
-          procvardef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
-          setdef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
-        end;
       end;
 
 
@@ -433,7 +386,10 @@ end.
 
 {
    $Log$
-   Revision 1.85  2005-01-20 17:47:01  peter
+   Revision 1.86  2005-02-03 20:04:49  peter
+     * push_addr_param must be defined per target
+
+   Revision 1.85  2005/01/20 17:47:01  peter
      * remove copy_value_on_stack and a_param_copy_ref
 
    Revision 1.84  2005/01/18 22:19:20  peter

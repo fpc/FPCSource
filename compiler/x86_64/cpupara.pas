@@ -40,6 +40,8 @@ unit cpupara;
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint);
        public
+          function param_use_paraloc(const cgpara:tcgpara):boolean;override;
+          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
@@ -136,6 +138,66 @@ unit cpupara;
                { default for pointers,enums,etc }
                loc1:=LOC_REGISTER;
              end;
+        end;
+      end;
+
+
+    function tx86_64paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        if not assigned(cgpara.location) then
+          internalerror(200410102);
+        result:=true;
+        { All locations are LOC_REFERENCE }
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            if (paraloc^.loc<>LOC_REFERENCE) then
+              begin
+                result:=false;
+                exit;
+              end;
+            paraloc:=paraloc^.next;
+          end;
+      end;
+
+
+    { true if a parameter is too large to copy and only the address is pushed }
+    function tx86_64paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        result:=false;
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
+        { Only vs_const, vs_value here }
+        case def.deftype of
+          variantdef,
+          formaldef :
+            result:=true;
+          recorddef :
+            result:=(def.size>sizeof(aint));
+          arraydef :
+            begin
+              result:=(
+                       (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                       (def.size>sizeof(aint))
+                      ) or
+                      is_open_array(def) or
+                      is_array_of_const(def) or
+                      is_array_constructor(def);
+            end;
+          objectdef :
+            result:=is_object(def);
+          stringdef :
+            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+          procvardef :
+            result:=(po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            result:=(tsetdef(def).settype<>smallset);
         end;
       end;
 
@@ -350,10 +412,7 @@ unit cpupara;
                             end
                           else
                             begin
-                              if (paralen<=sizeof(aint)) then
-                                l:=paralen
-                              else
-                                l:=sizeof(aint);
+                              l:=paralen;
                               paraloc^.size:=int_cgsize(l);
                             end;
                           if side=callerside then
@@ -433,7 +492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2005-02-03 18:32:25  peter
+  Revision 1.16  2005-02-03 20:04:49  peter
+    * push_addr_param must be defined per target
+
+  Revision 1.15  2005/02/03 18:32:25  peter
     * fix extended paraloc
 
   Revision 1.14  2005/01/29 11:36:52  peter
