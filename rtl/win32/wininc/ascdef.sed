@@ -15,7 +15,7 @@ s/\:=\(.*\)A *;/:=\1;/
 # unit name
 s/ascfun;/ascdef;/
 # cvs name
-s/ascfun.pp,v/ascdef.pp,v/
+s/ascfun.inc,v/ascdef.inc,v/
 # unit conditionnal
 s/ASCIIFUNCTIONS/ASCIIFUNCTIONSDEFAULT/
 

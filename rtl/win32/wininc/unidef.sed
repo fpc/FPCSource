@@ -15,7 +15,7 @@ s/\:=\(.*\)W *;/:=\1;/
 # unit name
 s/unifun;/unidef;/
 # cvs name
-s/unifun.pp,v/unidef.pp,v/
+s/unifun.inc,v/unidef.inc,v/
 # unit conditionnal
 s/UNICODEFUNCTIONS/UNICODEFUNCTIONSDEFAULT/
 
