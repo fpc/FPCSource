@@ -221,13 +221,18 @@ end;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
   Accept:=SocketCall(Socket_Sys_Accept,Sock,longint(@Addr),longint(@AddrLen));
+  If Accept<0 Then 
+    Accept:=-1;
 end;
 
 
 
 Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
+
 begin
   Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen);
+  If Connect<0 Then
+    Connect:=-1;
 end;
 
 
@@ -448,7 +453,7 @@ Var FD : Longint;
 
 begin
   FD:=DoConnect(Sock,addr);
-  If Not(FD<0) then
+  If Not(FD=-1) then
    begin
      Sock2Text(Sock,SockIn,SockOut);
      Connect:=true;
@@ -465,7 +470,7 @@ Var FD : Longint;
 
 begin
   FD:=DoConnect(Sock,addr);
-  if Not(FD<0) then
+  if Not(FD=-1) then
    begin
      Sock2File(Sock,SockIn,SockOut);
      Connect:=true;
@@ -505,7 +510,7 @@ Var FD : Longint;
 
 begin
   FD:=DoConnect(Sock,addr);
-  If Not(FD<0) then
+  If Not(FD=-1) then
    begin
      Sock2Text(FD,SockIn,SockOut);
      Connect:=true;
@@ -522,7 +527,7 @@ Var FD : Longint;
 
 begin
   FD:=DoConnect(Sock,addr);
-  If Not (FD<0) then
+  If Not (FD=-1) then
    begin
      Sock2File(FD,SockIn,SockOut);
      Connect:=true;
@@ -570,7 +575,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-06-08 18:19:24  michael
+  Revision 1.7  1999-06-08 18:35:24  michael
+  + Beter return values for connect and accept
+
+  Revision 1.6  1999/06/08 18:19:24  michael
   + Fixes for connect calls
 
   Revision 1.5  1999/06/08 16:08:33  michael
