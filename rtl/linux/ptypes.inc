@@ -89,8 +89,10 @@ Type
     clock_t  = culong;
     time_t   = clong;           { used for returning the time  }
 {$endif}
+    wint_t    = cint32;
     TSize     = size_t;
     pSize     = ^size_t;
+    psize_t   = pSize;
     TSSize    = ssize_t;
     pSSize    = ^ssize_t;
     TClock    = clock_t;
@@ -98,6 +100,9 @@ Type
     TTime     = time_t;
     pTime     = ^time_t;
     ptime_t   = ^time_t;
+
+    wchar_t   = widechar;
+    pwchar_t  = ^wchar_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = uid_t;
@@ -238,7 +243,10 @@ CONST
 
 {
    $Log$
-   Revision 1.13  2005-02-14 17:13:30  peter
+   Revision 1.14  2005-03-16 22:26:12  florian
+     + ansi<->wide implemented using iconv
+
+   Revision 1.13  2005/02/14 17:13:30  peter
      * truncate log
 
 }
