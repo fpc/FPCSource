@@ -2120,6 +2120,7 @@ Const
 
   function setVESAMode(mode:word):boolean;
     var i:word;
+        res: boolean;
   begin
    { Init mode information, for compatibility with VBE < 1.1 }
    FillChar(VESAModeInfo, sizeof(TVESAModeInfo), #0);
@@ -2189,10 +2190,11 @@ Const
     sub ax,004Fh
     cmp ax,1
     sbb al,al
-{$ifndef ver0_99_12}
-    mov @RESULT,al
-{$endif ver0_99_12}
+    mov res,al
    end;
+   if not res then
+     _GraphResult := GrNotDetected
+   else _GraphResult := grOk;
   end;
  end;
 
@@ -2403,7 +2405,6 @@ Const
 {$endif fpc}
       mov  [VideoMode], al
     end;
-(*
 {$ifdef logging}
         LogLn('Prepare to save VESA video state');
 {$endif logging}
@@ -2473,7 +2474,6 @@ Const
         regs.ebx := 0;
         RealIntr($10,regs);
       end;
-*)
   end;
 
  procedure RestoreStateVESA; {$ifndef fpc}far;{$endif fpc}
@@ -2647,7 +2647,11 @@ Const
 
 {
   $Log$
-  Revision 1.3  2000-07-16 07:08:22  jonas
+  Revision 1.4  2000-08-01 06:03:13  jonas
+    * set _graphresult to grnotdetected if the vesa setmode interrupt
+      call returns an error (merged from fixes branch)
+
+  Revision 1.3  2000/07/16 07:08:22  jonas
     * fixed wrongly matched comment pair for log section
 
   Revision 1.2  2000/07/13 11:33:41  michael
