@@ -681,7 +681,7 @@ begin
                           'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
                           'd' : SetCompileMode('DELPHI',true);
                           'e' : begin
-                                  SetErrorFlags(more);
+                                  SetErrorFlags(copy(more,j+1,length(more)));
                                   break;
                                 end;
                           'g' : initmoduleswitches:=initmoduleswitches+[cs_support_goto];
@@ -1555,7 +1555,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2001-03-23 00:16:07  florian
+  Revision 1.38  2001-03-25 12:27:31  peter
+    * fixed -Se (merged)
+
+  Revision 1.37  2001/03/23 00:16:07  florian
     + some stuff to compile FreeCLX added
 
   Revision 1.36  2001/03/13 20:59:56  peter
