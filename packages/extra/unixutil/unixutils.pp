@@ -562,7 +562,7 @@ end;
 Function  FSTypeToString(FSType : Integer) : String;
 
 begin
-  Case FStype of
+  Case LongWord(FStype) of
     $ADFF : Result:='affs';
     $137D : Result:='ext';
     $EF51,$EF53 : Result:='ext2';
