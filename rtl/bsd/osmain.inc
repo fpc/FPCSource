@@ -155,7 +155,7 @@ begin
   InoutRes:=Errno2InoutRes;
 end;
 
-Procedure Do_Close(Handle:Longint);
+Procedure Do_Close(Handle:thandle);
 Begin
   Fpclose(cint(Handle));
 End;
@@ -184,7 +184,7 @@ Begin
 End;
 
 { truncate at a given position }
-procedure do_truncate (handle,fpos:longint);
+procedure do_truncate (handle:thandle;fpos:longint);
 begin
   { should be simulated in cases where it is not }
   { available.                                   }
@@ -205,7 +205,7 @@ Begin
 End;
 
 
-Function Do_Write(Handle:Longint;Addr:Pointer;Len:Longint):longint;
+Function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
 
 var j : cint;
 Begin
@@ -223,7 +223,7 @@ Begin
 End;
 
 
-Function Do_Read(Handle:Longint;Addr:Pointer;Len:Longint):Longint;
+Function Do_Read(Handle:thandle;Addr:Pointer;Len:Longint):Longint;
 
 var j:cint;
 
@@ -241,7 +241,7 @@ Begin
    InOutRes:=0;
 End;
 
-function Do_FilePos(Handle: Longint):longint;
+function Do_FilePos(Handle: thandle):longint;
 Begin
   do_FilePos:=Fplseek(Handle, 0, SEEK_CUR);
   If Do_FilePos<0 Then
@@ -250,7 +250,7 @@ Begin
    InOutRes:=0;
 End;
 
-Procedure Do_Seek(Handle,Pos:Longint);
+Procedure Do_Seek(Handle:thandle;Pos:Longint);
 Begin
   If Fplseek(Handle, pos, SEEK_SET)<0 Then
    Errno2Inoutres
@@ -258,7 +258,7 @@ Begin
    InOutRes:=0;
 End;
 
-Function Do_SeekEnd(Handle:Longint): Longint;
+Function Do_SeekEnd(Handle:thandle): Longint;
 begin
   Do_SeekEnd:=Fplseek(Handle,0,SEEK_END);
   If Do_SeekEnd<0 Then
@@ -267,7 +267,7 @@ begin
    InOutRes:=0;
 end;
 
-Function Do_FileSize(Handle:Longint): Longint;
+Function Do_FileSize(Handle:thandle): Longint;
 var
   Info : Stat;
   Ret  : Longint;
@@ -593,7 +593,10 @@ end;
 
 {
    $Log$
-   Revision 1.13  2004-04-22 21:10:56  peter
+   Revision 1.14  2004-05-16 18:51:20  peter
+     * use thandle in do_*
+
+   Revision 1.13  2004/04/22 21:10:56  peter
      * do_read/do_write addr argument changed to pointer
 
    Revision 1.12  2004/01/06 15:42:05  marco

@@ -949,7 +949,7 @@ begin
    if p[i]='/' then p[i]:='\';
 end;
 
-procedure do_close(handle : longint);
+procedure do_close(handle : thandle);
 var
   regs : trealregs;
 begin
@@ -1019,7 +1019,7 @@ begin
 end;
 
 
-function do_write(h:longint;addr:pointer;len : longint) : longint;
+function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var
   regs      : trealregs;
   size,
@@ -1054,7 +1054,7 @@ begin
 end;
 
 
-function do_read(h:longint;addr:pointer;len : longint) : longint;
+function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
   regs     : trealregs;
   size,
@@ -1090,7 +1090,7 @@ begin
 end;
 
 
-function do_filepos(handle : longint) : longint;
+function do_filepos(handle : thandle) : longint;
 var
   regs : trealregs;
 begin
@@ -1109,7 +1109,7 @@ begin
 end;
 
 
-procedure do_seek(handle,pos : longint);
+procedure do_seek(handle:thandle;pos : longint);
 var
   regs : trealregs;
 begin
@@ -1124,7 +1124,7 @@ end;
 
 
 
-function do_seekend(handle:longint):longint;
+function do_seekend(handle:thandle):longint;
 var
   regs : trealregs;
 begin
@@ -1143,7 +1143,7 @@ begin
 end;
 
 
-function do_filesize(handle : longint) : longint;
+function do_filesize(handle : thandle) : longint;
 var
   aktfilepos : longint;
 begin
@@ -1154,7 +1154,7 @@ end;
 
 
 { truncate at a given position }
-procedure do_truncate (handle,pos:longint);
+procedure do_truncate (handle:thandle;pos:longint);
 var
   regs : trealregs;
 begin
@@ -1607,7 +1607,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.34  2004-04-22 21:10:56  peter
+  Revision 1.35  2004-05-16 18:51:20  peter
+    * use thandle in do_*
+
+  Revision 1.34  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.33  2004/01/25 13:05:08  jonas

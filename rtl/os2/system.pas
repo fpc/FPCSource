@@ -593,7 +593,7 @@ begin
         if p[i]='/' then p[i]:='\';
 end;
 
-procedure do_close(h:longint);
+procedure do_close(h:thandle);
 begin
 { Only three standard handles under real OS/2 }
   if h>2 then
@@ -618,7 +618,7 @@ begin
   inoutres:=DosMove(p1, p2);
 end;
 
-function do_read(h:longint;addr:pointer;len:longint):longint;
+function do_read(h:thandle;addr:pointer;len:longint):longint;
 Var
   T: cardinal;
 begin
@@ -632,7 +632,7 @@ begin
 {$endif}
 end;
 
-function do_write(h:longint;addr:pointer;len:longint) : longint;
+function do_write(h:thandle;addr:pointer;len:longint) : longint;
 Var
   T: cardinal;
 begin
@@ -646,7 +646,7 @@ begin
 {$endif}
 end;
 
-function do_filepos(handle:longint): longint;
+function do_filepos(handle:thandle): longint;
 var
   PosActual: cardinal;
 begin
@@ -657,7 +657,7 @@ begin
 {$endif}
 end;
 
-procedure do_seek(handle,pos:longint);
+procedure do_seek(handle:thandle;pos:longint);
 var
   PosActual: cardinal;
 begin
@@ -667,7 +667,7 @@ begin
 {$endif}
 end;
 
-function do_seekend(handle:longint):longint;
+function do_seekend(handle:thandle):longint;
 var
   PosActual: cardinal;
 begin
@@ -678,7 +678,7 @@ begin
 {$endif}
 end;
 
-function do_filesize(handle:longint):longint;
+function do_filesize(handle:thandle):longint;
 var aktfilepos: cardinal;
 begin
   aktfilepos:=do_filepos(handle);
@@ -686,7 +686,7 @@ begin
   do_seek(handle,aktfilepos);
 end;
 
-procedure do_truncate(handle,pos:longint);
+procedure do_truncate(handle:thandle;pos:longint);
 begin
   InOutRes:=DosSetFileSize(Handle, Pos);
   do_seekend(handle);
@@ -1501,7 +1501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2004-04-22 21:10:56  peter
+  Revision 1.71  2004-05-16 18:51:20  peter
+    * use thandle in do_*
+
+  Revision 1.70  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.69  2004/03/24 19:23:09  hajny

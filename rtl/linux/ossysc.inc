@@ -511,7 +511,7 @@ begin
     seterrno(0);
 end;
 
-Function Do_IsDevice(Handle:cint):boolean;
+Function Do_IsDevice(Handle:THandle):boolean;
 {
   Interface to Unix ioctl call.
   Performs various operations on the filedescriptor Handle.
@@ -529,7 +529,10 @@ end;
 
 {
  $Log$
- Revision 1.24  2004-05-01 15:59:17  florian
+ Revision 1.25  2004-05-16 18:51:20  peter
+   * use thandle in do_*
+
+ Revision 1.24  2004/05/01 15:59:17  florian
    * x86_64 exception handling fixed
 
  Revision 1.23  2004/04/27 20:47:00  florian

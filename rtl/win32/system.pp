@@ -299,29 +299,29 @@ end;
                           Low Level File Routines
 *****************************************************************************}
 
-   function WriteFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
+   function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
      stdcall;external 'kernel32' name 'WriteFile';
-   function ReadFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
+   function ReadFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
      stdcall;external 'kernel32' name 'ReadFile';
-   function CloseHandle(h : longint) : longint;
+   function CloseHandle(h : thandle) : longint;
      stdcall;external 'kernel32' name 'CloseHandle';
    function DeleteFile(p : pchar) : longint;
      stdcall;external 'kernel32' name 'DeleteFileA';
    function MoveFile(old,_new : pchar) : longint;
      stdcall;external 'kernel32' name 'MoveFileA';
-   function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
+   function SetFilePointer(l1,l2 : thandle;l3 : pointer;l4 : longint) : longint;
      stdcall;external 'kernel32' name 'SetFilePointer';
-   function GetFileSize(h:longint;p:pointer) : longint;
+   function GetFileSize(h:thandle;p:pointer) : longint;
      stdcall;external 'kernel32' name 'GetFileSize';
    function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
      stdcall;external 'kernel32' name 'CreateFileA';
-   function SetEndOfFile(h : longint) : longbool;
+   function SetEndOfFile(h : thandle) : longbool;
      stdcall;external 'kernel32' name 'SetEndOfFile';
-   function GetFileType(Handle:DWORD):DWord;
+   function GetFileType(Handle:thandle):DWord;
      stdcall;external 'kernel32' name 'GetFileType';
    function GetFileAttributes(p : pchar) : dword;
      stdcall;external 'kernel32' name 'GetFileAttributesA';
@@ -335,13 +335,13 @@ begin
      if p[i]='/' then p[i]:='\';
 end;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:thandle):boolean;
 begin
   do_isdevice:=(getfiletype(handle)=2);
 end;
 
 
-procedure do_close(h : longint);
+procedure do_close(h : thandle);
 begin
   if do_isdevice(h) then
    exit;
@@ -377,7 +377,7 @@ begin
 end;
 
 
-function do_write(h:longint;addr:pointer;len : longint) : longint;
+function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var
    size:longint;
 begin
@@ -390,7 +390,7 @@ begin
 end;
 
 
-function do_read(h:longint;addr:pointer;len : longint) : longint;
+function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
   _result:longint;
 begin
@@ -406,7 +406,7 @@ begin
 end;
 
 
-function do_filepos(handle : longint) : longint;
+function do_filepos(handle : thandle) : longint;
 var
   l:longint;
 begin
@@ -421,7 +421,7 @@ begin
 end;
 
 
-procedure do_seek(handle,pos : longint);
+procedure do_seek(handle:thandle;pos : longint);
 begin
   if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
    Begin
@@ -431,7 +431,7 @@ begin
 end;
 
 
-function do_seekend(handle:longint):longint;
+function do_seekend(handle:thandle):longint;
 begin
   do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
   if do_seekend=-1 then
@@ -442,7 +442,7 @@ begin
 end;
 
 
-function do_filesize(handle : longint) : longint;
+function do_filesize(handle : thandle) : longint;
 var
   aktfilepos : longint;
 begin
@@ -452,7 +452,7 @@ begin
 end;
 
 
-procedure do_truncate (handle,pos:longint);
+procedure do_truncate (handle:thandle;pos:longint);
 begin
    do_seek(handle,pos);
    if not(SetEndOfFile(handle)) then
@@ -1406,7 +1406,7 @@ begin
                     end
                   else
                     res := SysHandleErrorFrame(216, frame, true);
-                        
+
                 STATUS_CONTROL_C_EXIT:
                         res := SysHandleErrorFrame(217, frame, true);
                 STATUS_PRIVILEGED_INSTRUCTION:
@@ -1608,7 +1608,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2004-04-22 21:10:56  peter
+  Revision 1.56  2004-05-16 18:51:20  peter
+    * use thandle in do_*
+
+  Revision 1.55  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.54  2004/02/15 21:37:18  hajny

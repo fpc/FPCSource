@@ -761,7 +761,7 @@ Begin
 End;
 
 
-function do_isdevice(handle:longint):boolean;forward;
+function do_isdevice(handle:thandle):boolean;forward;
 
 Procedure dump_stack(var f : text;bp : Pointer);
 var
@@ -882,7 +882,10 @@ end;
 
 {
   $Log$
-  Revision 1.57  2004-05-01 15:26:33  jonas
+  Revision 1.58  2004-05-16 18:51:20  peter
+    * use thandle in do_*
+
+  Revision 1.57  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.56  2004/04/22 19:43:43  peter
