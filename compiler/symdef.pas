@@ -1529,7 +1529,7 @@ implementation
         getmem(st,memsize);
         { we can specify the size with @s<size>; prefix PM }
         if savesize <> target_os.size_of_longint then
-          strpcopy(st,'@s'+tostr(savesize)+';e')
+          strpcopy(st,'@s'+tostr(savesize*8)+';e')
         else
           strpcopy(st,'e');
         p := penumsym(firstenum);
@@ -5570,7 +5570,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.25  2001-04-04 21:30:45  florian
+  Revision 1.26  2001-04-05 21:32:22  peter
+    * enum stabs fix (merged)
+
+  Revision 1.25  2001/04/04 21:30:45  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 
