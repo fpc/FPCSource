@@ -1,0 +1,257 @@
+{******************************************************************************
+                                  TRegistry
+ ******************************************************************************}
+
+Procedure TRegistry.SysRegCreate;
+begin
+  FStringSizeIncludesNull:=True;
+end;
+
+Procedure TRegistry.SysRegfree;
+
+begin
+end;
+
+Function PrepKey(Const S : String) : pChar;
+
+begin
+  If (S[1]<>'\') then
+    Result:=@S[1]
+  else
+    Result:=@S[2];
+end;
+
+Function RelativeKey(Const S : String) : Boolean;
+
+begin
+  Result:=(S[1]<>'\')
+end;
+
+
+function TRegistry.sysCreateKey(const Key: String): Boolean;
+Var
+  P: PChar;
+  Disposition: LPDWord;
+  Handle: HKEY;
+  SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
+
+begin
+  SecurityAttributes := Nil;
+  P:=PrepKey(Key);
+  Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),
+                         P,
+                         0,
+                         '',
+                         REG_OPTION_NON_VOLATILE,
+                         KEY_ALL_ACCESS,
+                         SecurityAttributes,
+                         Handle,
+                         Disposition) = ERROR_SUCCESS;
+  RegCloseKey(Handle);
+end;
+
+function TRegistry.DeleteKey(const Key: String): Boolean;
+
+Var
+  P: PChar;
+
+begin
+  P:=PRepKey(Key);
+  Result:=RegDeleteKey(GetBaseKey(RelativeKey(Key)),P)=ERROR_SUCCESS;
+end;
+
+function TRegistry.DeleteValue(const Name: String): Boolean;
+begin
+  Result := RegDeleteValue(fCurrentKey, @Name[1]) = ERROR_SUCCESS;
+end;
+
+function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
+          BufSize: Integer; var RegData: TRegDataType): Integer;
+Var
+  P: PChar;
+  RD : DWord;
+  
+begin
+  P := @Name[1];
+  If RegQueryValueEx(fCurrentKey,P,Nil,
+                     @RD,Buffer,@BufSize)<>ERROR_SUCCESS Then
+    Result:=-1
+  else                  
+    begin
+    If (RD=REG_SZ) then
+      RegData:=rdString
+    else if (RD=REG_EXPAND_SZ) then
+      Regdata:=rdExpandString
+    else if (RD=REG_DWORD) then
+      RegData:=rdInteger
+    else if (RD=REG_BINARY) then
+      RegData:=rdBinary
+    else
+      RegData:=rdUnknown;  
+    Result:=BufSize;
+    end;
+end;
+
+function TRegistry.GetDataInfo(const ValueName: String; var Value: TRegDataInfo): Boolean;
+
+Var
+  P: PChar;
+
+begin
+  P:=@ValueName[1];
+  With Value do
+    Result:=RegQueryValueEx(fCurrentKey,P,Nil,@RegData,Nil,@DataSize)=ERROR_SUCCESS;
+  If Not Result Then
+    begin
+    Value.RegData := rdUnknown;
+    Value.DataSize := 0
+    end
+end;
+
+function TRegistry.GetKey(const Key: String): HKEY;
+begin
+  Result := 0;
+end;
+
+function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.KeyExists(const Key: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.LoadKey(const Key, FileName: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.OpenKey(const Key: string; CanCreate: Boolean): Boolean;
+
+Var
+  P: PChar;
+  Handle: HKEY;
+  Disposition: LPDWord;
+  SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
+
+begin
+  SecurityAttributes := Nil;
+  P:=PrepKey(Key);
+  If CanCreate then
+    Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),P,0,'',
+                           REG_OPTION_NON_VOLATILE,
+                           fAccess,SecurityAttributes,Handle,
+                           Disposition)=ERROR_SUCCESS 
+  else
+    Result:=RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),
+                         P,0,fAccess,Handle)=ERROR_SUCCESS;
+  If Result then 
+    fCurrentKey:=Handle;
+end;
+
+function TRegistry.OpenKeyReadOnly(const Key: string): Boolean;
+
+Var
+  P: PChar;
+  Handle: HKEY;
+
+begin
+  P:=PrepKey(Key);
+  Result := RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),P,0,KEY_READ,Handle) = 0;
+  If Result Then 
+    fCurrentKey := Handle;
+end;
+
+function TRegistry.RegistryConnect(const UNCName: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.RestoreKey(const Key, FileName: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.SaveKey(const Key, FileName: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.UnLoadKey(const Key: string): Boolean;
+begin
+  Result := True;
+end;
+
+function TRegistry.ValueExists(const Name: string): Boolean;
+begin
+  Result := True;
+end;
+
+procedure TRegistry.CloseKey;
+begin
+  If (CurrentKey<>0) then
+    begin
+    if LazyWrite then
+      RegCloseKey(CurrentKey) 
+    else
+      RegFlushKey(CurrentKey);
+    fCurrentKey:=0;
+    end
+end;
+
+procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
+begin
+
+end;
+
+procedure TRegistry.GetKeyNames(Strings: TStrings);
+begin
+
+end;
+
+procedure TRegistry.GetValueNames(Strings: TStrings);
+begin
+
+end;
+
+Function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
+  BufSize: Integer; RegData: TRegDataType) : Boolean;
+
+Var
+  P: PChar;
+  RegDataType: DWORD;
+
+begin
+  Case RegData of
+    rdUnknown      : RegDataType:=REG_NONE;
+    rdString       : RegDataType:=REG_SZ;
+    rdExpandString : RegDataType:=REG_EXPAND_SZ;
+    rdInteger      : RegDataType:=REG_DWORD;
+    rdBinary       : RegDataType:=REG_BINARY;
+  end;
+  P:=@Name[1];
+  Result:=RegSetValueEx(fCurrentKey,P,0,RegDataType,Buffer,BufSize)=ERROR_SUCCESS;
+end;
+
+procedure TRegistry.RenameValue(const OldName, NewName: string);
+begin
+
+end;
+
+procedure TRegistry.SetCurrentKey(Value: HKEY);
+begin
+  fCurrentKey := Value;
+end;
+
+procedure TRegistry.SetRootKey(Value: HKEY);
+begin
+  fRootKey := Value;
+end;
+
