@@ -199,8 +199,8 @@ Function  PClose(Var F:file) : cint;
 Function  POpen(var F:text;const Prog:String;rw:char):cint;
 Function  POpen(var F:file;const Prog:String;rw:char):cint;
 
-function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
-function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
+function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
+function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): cint;
 
 {$ifndef BSD}
 Function  GetDomainName:String;
@@ -855,7 +855,6 @@ Function AssignPipe(var pipe_in,pipe_out:text):cint;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
 }
 var
   f_in,f_out : longint;
@@ -1020,7 +1019,6 @@ begin
      exit(-1);
    end;
   ret:=AssignPipe(pipi,pipo);
-
   if ret=-1 then
    exit(-1);
   pid:=fpfork;
@@ -1082,7 +1080,7 @@ begin
  POpen:=0;
 end;
 
-Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
+Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
 {
   Starts the program in 'Prog' and makes its input and output the
   other end of two pipes, which are the stdin and stdout of a program
@@ -1100,16 +1098,13 @@ var
   pid  : longint;
   pl   : ^Longint;
 begin
-  LinuxError:=0;
   AssignStream:=-1;
-  AssignPipe(streamin,pipo);
-  if Linuxerror<>0 then
-   exit;
-  AssignPipe(pipi,streamout);
-  if Linuxerror<>0 then
-   exit;
+  if AssignPipe(streamin,pipo)=-1 Then
+   exit(-1);
+  if AssignPipe(pipi,streamout)=-1 Then // shouldn't this close streamin and pipo?
+   exit(-1);
   pid:=fpfork;
-  if linuxerror<>0 then
+  if pid=-1 then
    begin
      close(pipi);
      close(pipo);
@@ -1123,12 +1118,10 @@ begin
      { Close what we don't need }
      close(streamout);
      close(streamin);
-     fpdup2(pipi,input);
-     if linuxerror<>0 then
+     if fpdup2(pipi,input)=-1 Then
       halt(127);
      close(pipi);
-     fpdup2(pipo,output);
-     if linuxerror<>0 then
+     If fpdup2(pipo,output)=-1 Then
        halt (127);
      close(pipo);
      Execl(Prog);
@@ -1169,40 +1162,39 @@ var
   pid: LongInt;
   pl: ^LongInt;
 begin
-  LinuxError := 0;
   AssignStream := -1;
 
   // Assign pipes
-  AssignPipe(StreamIn, PipeOut);
-  if LinuxError <> 0 then exit;
+  if AssignPipe(StreamIn, PipeOut)=-1 Then
+   Exit(-1);
 
-  AssignPipe(StreamErr, PipeErr);
-  if LinuxError <> 0 then begin
+  If AssignPipe(StreamErr, PipeErr)=-1 Then
+  begin
     Close(StreamIn);
     Close(PipeOut);
-    exit;
+    exit(-1);
   end;
 
-  AssignPipe(PipeIn, StreamOut);
-  if LinuxError <> 0 then begin
+  if AssignPipe(PipeIn, StreamOut)=-1 Then
+  begin
     Close(StreamIn);
     Close(PipeOut);
     Close(StreamErr);
     Close(PipeErr);
-    exit;
+    exit(-1);
   end;
 
   // Fork
 
   pid := fpFork;
-  if LinuxError <> 0 then begin
+  if pid=-1 then begin
     Close(StreamIn);
     Close(PipeOut);
     Close(StreamErr);
     Close(PipeErr);
     Close(PipeIn);
     Close(StreamOut);
-    exit;
+    exit(-1);
   end;
 
   if pid = 0 then begin
@@ -1212,14 +1204,14 @@ begin
     Close(StreamIn);
     Close(StreamErr);
     // Connect pipes
-    fpdup2(PipeIn, Input);
-    if LinuxError <> 0 then Halt(127);
+    if fpdup2(PipeIn, Input)=-1 Then
+     Halt(127);
     Close(PipeIn);
-    fpdup2(PipeOut, Output);
-    if LinuxError <> 0 then Halt(127);
+    if fpdup2(PipeOut, Output)=-1 Then
+     Halt(127);
     Close(PipeOut);
-    fpdup2(PipeErr, StdErr);
-    if LinuxError <> 0 then Halt(127);
+    if fpdup2(PipeErr, StdErr)=-1 Then
+     Halt(127);
     Close(PipeErr);
     // Execute program
     Execl(Prog);
@@ -1259,8 +1251,6 @@ Function GetDomainName:String;  { linux only!}
 Var
   Sysn : utsname;
 begin
-//  fpUname(Sysn);
-//  linuxerror:=fpgeterrno;;
   If fpUname(sysn)<>0 then
    getdomainname:=''
   else
@@ -1275,9 +1265,7 @@ Function GetHostName:String;
 Var
   Sysn : utsname;
 begin
-  fpuname(Sysn);
-  linuxerror:=fpgeterrno;;
-  If linuxerror<>0 then
+  If fpuname(sysn)=-1 then
    gethostname:=''
   else
    gethostname:=strpas(@Sysn.nodename[0]);
@@ -1735,7 +1723,10 @@ End.
 
 {
   $Log$
-  Revision 1.45  2003-11-13 18:44:06  marco
+  Revision 1.46  2003-11-14 16:44:48  marco
+   * stream functions converted to work without linuxerror
+
+  Revision 1.45  2003/11/13 18:44:06  marco
    * small fi
 
   Revision 1.44  2003/11/12 22:19:45  marco
