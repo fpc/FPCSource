@@ -53,8 +53,10 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
-          function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
-          function create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+          procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+                                                var parasize:longint);
+          procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+                                                 var parareg,parasize:longint);
        end;
 
   implementation
@@ -261,53 +263,15 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+                                                           var parasize:longint);
       var
         hp : tparaitem;
         paraloc : tparalocation;
         l,
         varalign,
-        paraalign,
-        parasize : longint;
+        paraalign : longint;
       begin
-        parasize:=0;
-        paraalign:=get_para_align(p.proccalloption);
-        { Retrieve last know info from normal parameters }
-        hp:=tparaitem(p.para.last);
-        if assigned(hp) then
-          parasize:=hp.paraloc[callerside].reference.offset;
-        { Assign varargs }
-        hp:=tparaitem(varargspara.first);
-        while assigned(hp) do
-          begin
-            paraloc.size:=def_cgsize(hp.paratype.def);
-            paraloc.loc:=LOC_REFERENCE;
-            paraloc.lochigh:=LOC_INVALID;
-            paraloc.alignment:=paraalign;
-            paraloc.reference.index:=NR_STACK_POINTER_REG;
-            l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-            varalign:=size_2_align(l);
-            paraloc.reference.offset:=parasize;
-            varalign:=used_align(varalign,paraalign,paraalign);
-            parasize:=align(parasize+l,varalign);
-            hp.paraloc[callerside]:=paraloc;
-            hp:=tparaitem(hp.next);
-          end;
-        { We need to return the size allocated }
-        result:=parasize;
-      end;
-
-
-    function ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
-      var
-        hp : tparaitem;
-        paraloc : tparalocation;
-        l,
-        varalign,
-        paraalign,
-        parasize : longint;
-      begin
-        parasize:=0;
         paraalign:=get_para_align(p.proccalloption);
         { we push Flags and CS as long
           to cope with the IRETD
@@ -323,7 +287,7 @@ unit cpupara;
           That means the for pushes the para with the
           highest offset (see para3) needs to be pushed first
         }
-        hp:=tparaitem(p.para.first);
+        hp:=firstpara;
         while assigned(hp) do
           begin
             if hp.paratyp in [vs_var,vs_out] then
@@ -373,28 +337,24 @@ unit cpupara;
                   end;
                end;
           end;
-        { We need to return the size allocated }
-        result:=parasize;
       end;
 
 
-    function ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+                                                            var parareg,parasize:longint);
       var
         hp : tparaitem;
         paraloc : tparalocation;
         subreg : tsubregister;
         pushaddr,
         is_64bit : boolean;
-        l,parareg,
+        l,
         varalign,
-        paraalign,
-        parasize : longint;
+        paraalign : longint;
       begin
-        parareg:=0;
-        parasize:=0;
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
-        hp:=tparaitem(p.para.first);
+        hp:=firstpara;
         while assigned(hp) do
           begin
             pushaddr:=push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption);
@@ -464,32 +424,49 @@ unit cpupara;
               end;
             hp:=tparaitem(hp.next);
           end;
-        { We need to return the size allocated }
-        result:=parasize;
       end;
 
 
     function ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+      var
+        parasize,
+        parareg : longint;
       begin
-        result:=0;
+        parasize:=0;
+        parareg:=0;
         case p.proccalloption of
           pocall_register :
-            result:=create_register_paraloc_info(p,side);
+            create_register_paraloc_info(p,side,tparaitem(p.para.first),parareg,parasize);
           pocall_inline,
           pocall_compilerproc,
           pocall_internproc :
             begin
               { Use default calling }
               if (pocall_default=pocall_register) then
-                result:=create_register_paraloc_info(p,side)
+                create_register_paraloc_info(p,side,tparaitem(p.para.first),parareg,parasize)
               else
-                result:=create_stdcall_paraloc_info(p,side);
+                create_stdcall_paraloc_info(p,side,tparaitem(p.para.first),parasize);
             end;
           else
-            result:=create_stdcall_paraloc_info(p,side);
+            create_stdcall_paraloc_info(p,side,tparaitem(p.para.first),parasize);
         end;
         create_funcret_paraloc_info(p,side);
+        result:=parasize;
       end;
+
+
+    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+      var
+        parasize : longint;
+      begin
+        parasize:=0;
+        { calculate the registers for the normal parameters }
+        create_stdcall_paraloc_info(p,callerside,tparaitem(p.para.first),parasize);
+        { append the varargs }
+        create_stdcall_paraloc_info(p,callerside,tparaitem(varargspara.first),parasize);
+        result:=parasize;
+      end;
+
 
 
 begin
@@ -497,7 +474,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-06-20 08:55:31  florian
+  Revision 1.53  2004-07-09 23:09:02  peter
+    * varargs calculation fixed, it's now the same as the other
+      targets
+
+  Revision 1.52  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.51  2004/06/16 20:07:10  florian
