@@ -1756,12 +1756,16 @@ begin
       end;
      if (args_start>=0) then
       begin
-        if (gdboutputbuf.buf[args_end-1]=#10) then
-         dec(args_end);
-        c:=gdboutputbuf.buf[args_end];
-        gdboutputbuf.buf[args_end]:=#0;
-        fe^.args:=strnew(gdboutputbuf.buf+args_start);
-        gdboutputbuf.buf[args_end]:=c;
+        {$warning FIXME}  {sometimes the ide crashes here because ars_end is 0, AD}
+        if args_end > 0 then
+        begin
+          if (gdboutputbuf.buf[args_end-1]=#10) then
+           dec(args_end);
+          c:=gdboutputbuf.buf[args_end];
+          gdboutputbuf.buf[args_end]:=#0;
+          fe^.args:=strnew(gdboutputbuf.buf+args_start);
+          gdboutputbuf.buf[args_end]:=c;
+        end;
       end;
      if (line_start>=0) then
       begin
@@ -2660,7 +2664,7 @@ end;
 var gdb_sysroot  : pchar; export name 'gdb_sysroot';
     gdb_sysrootc : char;
 {$endif}
-    
+
 begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
@@ -2670,7 +2674,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-03-25 22:50:29  armin
+  Revision 1.15  2003-03-30 11:15:51  armin
+  * the ide somtimes crashed in annotate_frame_end
+
+  Revision 1.14  2003/03/25 22:50:29  armin
   * added GDB_HAS_SYSROOT, needed for gdb-Versions >= 20030324
 
   Revision 1.13  2003/02/09 23:08:38  marco
