@@ -699,7 +699,72 @@ end;
             use_function_relative_addresses : true
           );
 {$endif alpha}
-
+{$IFDEF SPARC}
+  CONST
+       target_SPARC_linux_info : ttargetinfo =
+          (
+            target       : target_SPARC_Linux;
+            name         : 'Linux for SPARC';
+            shortname    : 'Linux';
+            flags        : [];
+            cpu          : cpu_SPARC;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_SPARC_elf32;
+            assemextern  : as_SPARC_as;
+            link         : ld_SPARC_linux;
+            linkextern   : ld_SPARC_linux;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize     : 256*1024;
+            stacksize    : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+{$ENDIF SPARC}
 
 initialization
 {$ifdef i386}
@@ -726,10 +791,19 @@ initialization
   RegisterExport(target_alpha_linux,texportliblinux);
   RegisterTarget(target_alpha_linux_info);
 {$endif alpha}
+{$IFDEF SPARC}
+  RegisterLinker(ld_SPARC_linux,TLinkerLinux);
+  RegisterImport(target_SPARC_linux,timportliblinux);
+  RegisterExport(target_SPARC_linux,texportliblinux);
+  RegisterTarget(target_SPARC_linux_info);
+{$ENDIF SPARC}
 end.
 {
   $Log$
-  Revision 1.21  2002-04-22 18:19:22  carl
+  Revision 1.22  2002-05-06 19:46:36  carl
+  + added more patches from Mazen for SPARC port
+
+  Revision 1.21  2002/04/22 18:19:22  carl
   - remove use_bound_instruction field
 
   Revision 1.20  2002/04/20 21:43:18  carl

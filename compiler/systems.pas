@@ -112,7 +112,8 @@ interface
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,
               as_m68k_mpw,as_m68k_palm
             ,as_alpha_as
-            ,as_powerpc_as,as_powerpc_mpw
+            ,as_powerpc_as,as_powerpc_mpw,
+            as_SPARC_as,as_SPARC_elf32
        );
 
        tld = (ld_none,
@@ -122,7 +123,8 @@ interface
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
               ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
             ld_alpha_linux,
-            ld_powerpc_linux,ld_powerpc_macos,ld_i386_Wdosx
+            ld_powerpc_linux,ld_powerpc_macos,ld_i386_Wdosx,
+            ld_SPARC_SunOs,ld_SPARC_linux
        );
 
        tar = (ar_none
@@ -641,7 +643,6 @@ begin
     {$endif atari}
   {$endif amiga}
 {$endif cpu68}
-
 { Now default target, this is dependent on the i386 or m68k define,
   when the define is the same as the current cpu then we use the source
   os, else we pick a default }
@@ -673,6 +674,9 @@ begin
     default_target(target_powerpc_linux);
   {$endif cpuppc}
 {$endif powerpc}
+{$IFDEF SPARC}
+  default_target(target_SPARC_linux);
+{$ENDIF SPARC}
 end;
 
 
@@ -682,7 +686,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2002-04-24 16:08:30  carl
+  Revision 1.42  2002-05-06 19:52:04  carl
+  + added more patches from Mazen for SPARC port
+
+  Revision 1.41  2002/04/24 16:08:30  carl
 
   * fix compilation problem
 

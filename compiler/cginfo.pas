@@ -90,13 +90,6 @@ interface
        OS_FLOAT = OS_F??;
        OS_VECTOR = OS_NO; { the normal registers can also be used as vectors }
 {$endif ia64}
-{$ifdef SPARC}
-       OS_ADDR=OS_32;
-       OS_INT=OS_32;
-       OS_FLOAT=OS_F64;
-       {$WARNING "OS_VECTOR" was set to "OS_M64" but not verified!}  
-       OS_VECTOR=OS_M64;
-{$endif SPARC}
 
     const
        tcgsize2size : Array[tcgsize] of integer =
@@ -121,7 +114,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-04-21 19:46:52  carl
+  Revision 1.6  2002-05-06 19:48:26  carl
+  + added more patches from Mazen for SPARC port
+
+  Revision 1.5  2002/04/21 19:46:52  carl
   + added patch for SPARC from Mazen (to move to cpuinfo)
 
   Revision 1.4  2002/04/21 15:26:15  carl

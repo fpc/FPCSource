@@ -145,7 +145,14 @@ Const
           -1,-1,-1,-1,-1,-1,-1,-1
         );
 {$endif}
-
+{$IFDEF SPARC}
+        GDB_SPARC_index:ARRAY[tregister]OF ShortInt=(0,0,0,0,0,0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+{$ENDIF SPARC}
   implementation
 
 { to use N_EXCL we have to count the character in the stabs for
@@ -297,7 +304,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2001-12-02 17:20:58  peter
+  Revision 1.10  2002-05-06 19:49:26  carl
+  + added more patches from Mazen for SPARC port
+
+  Revision 1.9  2001/12/02 17:20:58  peter
     * merged register fixes
 
   Revision 1.8  2001/10/12 16:05:36  peter
