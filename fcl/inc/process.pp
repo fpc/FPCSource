@@ -20,7 +20,7 @@ interface
 
 Uses Classes,
      pipes,
-{$ifdef linux}
+{$ifdef Unix}
 {$ifdef ver1_0}
      Linux,
 {$else}
@@ -915,7 +915,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-11-24 20:43:56  carl
+  Revision 1.8  2001-12-11 11:15:15  marco
+   * ifdef linux -> Unix fix
+
+  Revision 1.7  2001/11/24 20:43:56  carl
   * fix compilation problems under non-linux systems
 
   Revision 1.6  2001/11/08 13:01:06  michael
