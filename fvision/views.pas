@@ -877,6 +877,8 @@ CONST
    CurCommandSet: TCommandSet = ([0..255] -
      [cmZoom, cmClose, cmResize, cmNext, cmPrev]);    { All active but these }
 
+   vdInSetCursor = $80;                               { AVOID RECURSION IN SetCursor }
+
 {***************************************************************************}
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
@@ -1749,15 +1751,17 @@ PROCEDURE TView.SetCursor (X, Y: Sw_Integer);
 BEGIN
    Cursor.X := X;                                     { New x position }
    Cursor.Y := Y;                                     { New y position }
-   If (State AND sfCursorVis <> 0) Then Begin         { Cursor visible }
-     if TextModeGFV then
-      ResetCursor
-     else
-      begin
-        SetDrawMask(vdCursor);                           { Set draw mask }
-        DrawView;                                        { Draw the cursor }
-      end;
-   End;
+   If ((DrawMask and vdInSetCursor)=0) and (State AND sfCursorVis <> 0) Then
+     Begin         { Cursor visible }
+       if TextModeGFV then
+        ResetCursor
+       else
+        begin
+          SetDrawMask(vdCursor or vdInSetCursor);          { Set draw mask }
+          DrawView;                                        { Draw the cursor }
+          DrawMask:=DrawMask and not vdInSetCursor;
+        end;
+     End;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1918,18 +1922,21 @@ BEGIN
        ShouldDraw:=true;
      End;
    End;
-   If (AState AND (sfCursorVis + sfCursorIns) <> 0)   { Change cursor state }
+   If (AState AND (sfCursorVis + sfCursorIns) <> 0) and  { Change cursor state }
+      (OldState<>State)
    Then Begin
      if TextModeGFV then
       ResetCursor
      else
       begin
-        SetDrawMask(vdCursor);                           { Set cursor draw mask }
+        SetDrawMask(vdCursor);       { Set cursor draw mask }
         ShouldDraw:=true;
       end;
    End;
    If ShouldDraw then
-       DrawView;                                      { Redraw the border }
+       begin
+         DrawView;                                      { Redraw the border }
+       end;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5526,7 +5533,10 @@ END.
 
 {
  $Log$
- Revision 1.19  2002-05-16 21:23:34  pierre
+ Revision 1.20  2002-05-21 11:47:36  pierre
+  * avoid infinite recursions in graphic mode
+
+ Revision 1.19  2002/05/16 21:23:34  pierre
   * fix some display problems
 
  Revision 1.18  2001/10/02 16:35:51  pierre
