@@ -74,7 +74,7 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox,colortxt,tabs;
+     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr;
 
 
   const
@@ -132,6 +132,7 @@ program install;
      cfgrec=record
        title    : string[80];
        version  : string[20];
+       language : string[30];
        basepath : DirStr;
        packs    : word;
        pack     : array[1..maxpacks] of tpack;
@@ -162,10 +163,16 @@ program install;
         constructor init;
      end;
 
+     planguagedialog = ^tlanguagedialog;
+     tlanguagedialog = object(tdialog)
+        constructor init;
+     end;
+
      tapp = object(tapplication)
          procedure initmenubar;virtual;
          procedure handleevent(var event : tevent);virtual;
          procedure do_installdialog;
+         procedure do_languagedialog;
          procedure readcfg(const fn:string);
          procedure checkavailpack;
      end;
@@ -207,6 +214,7 @@ program install;
      UnzDlg      : punzipdialog;
      log         : text;
      createlog   : boolean;
+     msgfile     : string;
 {$IFNDEF DLL}
 
   const
@@ -244,16 +252,18 @@ program install;
     end;
 
 
-  procedure Replace(var s:string;const s1,s2:string);
+  function Replace(var s:string;const s1,s2:string) : boolean;
     var
        i  : longint;
     begin
+      Replace:=false;
       repeat
         i:=pos(s1,s);
         if i>0 then
          begin
            Delete(s,i,length(s1));
            Insert(s2,s,i);
+           Replace:=true;
          end;
       until i=0;
     end;
@@ -325,7 +335,7 @@ program install;
       s : string;
     begin
       uncompressed:=DiskSpaceN (zipfile);
-      if Uncompressed = -1 then DiskSpace := ' [INVALID]' else
+      if Uncompressed = -1 then DiskSpace := str_invalid else
       begin
        str(uncompressed,s);
        diskspace:=' ('+s+' KB)';
@@ -346,13 +356,11 @@ program install;
          begin
             if Dir.Attr and Directory = 0 then
               begin
-                messagebox('A file with the name chosen as the installation '+
-                'directory exists already. Cannot create this directory!',nil,
+                messagebox(msg_problems_create_dir,nil,
                 mferror+mfokbutton);
                 createinstalldir:=false;
               end else
-                createinstalldir:=messagebox('The installation directory exists already. '+
-                'Do you want to continue ?',nil,
+                createinstalldir:=messagebox(msg_install_dir_exists,nil,
                 mferror+mfyesbutton+mfnobutton)=cmYes;
             exit;
          end;
@@ -360,7 +368,7 @@ program install;
        if err then
          begin
             params[0]:=@s;
-            messagebox('The installation directory %s couldn''t be created',
+            messagebox(msg_install_cant_be_created,
               @params,mferror+mfokbutton);
             createinstalldir:=false;
             exit;
@@ -406,7 +414,7 @@ program install;
       if doserror=0 then
        begin
          params[0]:=@fn;
-         if MessageBox('Config %s already exists, continue writing default config?',@params,
+         if MessageBox(msg_overwrite_cfg,@params,
                        mfinformation+mfyesbutton+mfnobutton)=cmNo then
            exit;
        end;
@@ -421,7 +429,7 @@ program install;
       if ioresult<>0 then
        begin
          params[0]:=@fn;
-         MessageBox(#3'Default config not written.'#13#3'%s'#13#3'couldn''t be created',@params,mfinformation+mfokbutton);
+         MessageBox(msg_problems_writing_cfg,@params,mfinformation+mfokbutton);
          exit;
        end;
       for i:=1 to cfg.defcfgs do
@@ -429,10 +437,21 @@ program install;
          begin
            s:=cfg.defcfg[i]^;
            Replace(s,'$1',data.basepath);
-           writeln(t,s);
+
+           { error msg file entry? }
+           if Replace(s,'$L',msgfile) then
+             begin
+                { if we've to set an error msg file, we }
+                { write it else we discard the line     }
+                if msgfile<>'' then
+                  writeln(t,s);
+             end
+           else
+             writeln(t,s);
          end
        else
          writeln(t,'');
+
       close(t);
     end;
 
@@ -570,7 +589,7 @@ program install;
 {$ENDIF}
 
       R.Assign(6, 6, 74, YB);
-      inherited init(r,'Installation Successfull');
+      inherited init(r,dialog_enddialog_title);
 
 {$IFNDEF LINUX}
       if WPath then
@@ -643,6 +662,45 @@ program install;
        haslfn:=islfn;
     end;
 
+  constructor tlanguagedialog.init;
+    const
+       languages = 8;
+       width = 40;
+       height = languages+5;
+       x1 = (79-width) div 2;
+       y1 = (23-height) div 2;
+       x2 = x1+width;
+       y2 = y1+height;
+    var
+       r : trect;
+       okbut : pbutton;
+       line : longint;
+       rb : PRadioButtons;
+
+    begin
+       r.assign(x1,y1,x2,y2);
+       inherited init(r,dialog_language_title);
+       GetExtent(R);
+       R.Grow(-2,-1);
+       line:=r.a.y+1;
+       r.assign((width div 2)-15,line,(width div 2)+15,line+7);
+       New(rb, Init(r,
+          NewSItem(dialog_language_english,
+          NewSItem(dialog_language_dutch,
+          NewSItem(dialog_language_french,
+          NewSItem(dialog_language_russian,
+          NewSItem(dialog_language_hungarian,
+          NewSItem(dialog_language_spanish,
+          NewSItem(dialog_language_german,nil)))))))));
+       insert(rb);
+       inc(line,7);
+       inc(line,1);
+       r.assign((width div 2)-5,line,(width div 2)+5,line+2);
+       new(okbut,init(r,'~O~k',cmok,bfdefault));
+
+      Insert(OkBut);
+    end;
+
   constructor tinstalldialog.init;
     const
        width = 76;
@@ -690,13 +748,13 @@ program install;
                            packmask[j]:=packmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
-                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... no lfn');
+                             writeln(log,str_checking_lfn,startpath+DirSep+package[i].zip,' ... no lfn');
                         end
                       else
                         begin
-                           items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
+                           items[j]:=newsitem(package[i].name+str_requires_lfn,items[j]);
                            if createlog then
-                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... uses lfn');
+                             writeln(log,str_checking_lfn,startpath+DirSep+package[i].zip,' ... uses lfn');
                         end;
                    end
                  else
@@ -719,7 +777,7 @@ program install;
          found:=true;
        if not found then
         begin
-          messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
+          messagebox(msg_no_components_found,nil,mferror+mfokbutton);
           errorhalt;
         end;
 
@@ -800,6 +858,59 @@ program install;
 
 
 {*****************************************************************************
+                               TUnZipDialog
+*****************************************************************************}
+
+  procedure tapp.do_languagedialog;
+
+    var
+       p : planguagedialog;
+       langdata : longint;
+       c : word;
+
+    begin
+       { select components }
+       new(p,init);
+       langdata:=0;
+       c:=executedialog(p,@langdata);
+       writeln(langdata);
+       if c=cmok then
+         begin
+            case langdata of
+               0:
+                 cfg.language:='English';
+               1:
+                 begin
+                    cfg.language:='Dutch';
+                    msgfile:='errorn.msg';
+                 end;
+               2:
+                 begin
+                    cfg.language:='French';
+                    msgfile:='errorf.msg';
+                 end;
+               3:
+                 begin
+                    cfg.language:='Russian';
+                    msgfile:='errorr.msg';
+                 end;
+               4:
+                 cfg.language:='Hungarian';
+               5:
+                 begin
+                    cfg.language:='Spanish';
+                    msgfile:='errors.msg';
+                 end;
+               6:
+                 begin
+                    cfg.language:='German';
+                    msgfile:='errord.msg';
+                 end;
+            end;
+         end;
+    end;
+
+{*****************************************************************************
                                 TApp
 *****************************************************************************}
 
@@ -832,7 +943,7 @@ program install;
         if (c=cmok) then
           begin
             if Data.BasePath = '' then
-              messagebox('Please, choose the directory for installation first.',nil,mferror+mfokbutton)
+              messagebox(msg_select_dir,nil,mferror+mfokbutton)
             else
              begin
                found:=false;
@@ -888,7 +999,7 @@ program install;
                   { maybe only config }
                   if (data.cfgval and 1)<>0 then
                    begin
-                     result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,
+                     result:=messagebox(msg_no_components_selected,nil,
                                                 mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
                       begin
@@ -900,7 +1011,7 @@ program install;
                    end
                   else
                    begin
-                     result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
+                     result:=messagebox(msg_nocomponents,nil,
                                                mferror+mfyesbutton+mfnobutton);
                      if result=cmYes then
                       exit;
@@ -917,7 +1028,7 @@ program install;
        with cfg.pack[j] do
         begin
           r.assign(20,7,60,16);
-          UnzDlg:=new(punzipdialog,init(r,'Extracting Packages'));
+          UnzDlg:=new(punzipdialog,init(r,dialog_unzipdialog_title));
           desktop^.insert(UnzDlg);
           for i:=1 to packages do
            begin
@@ -989,7 +1100,7 @@ program install;
          if ioresult<>0 then
           begin
             params[0]:=@fn;
-            messagebox('File %s not found!',@params,mferror+mfokbutton);
+            messagebox(msg_file_not_found,@params,mferror+mfokbutton);
             errorhalt;
           end;
        end;
@@ -1010,6 +1121,9 @@ program install;
                else
                 if item='TITLE' then
                  cfg.title:=s
+               else
+                if item='LANGUAGE' then
+                 cfg.language:=s
                else
                 if item='BASEPATH' then
                  cfg.basepath:=s
@@ -1139,7 +1253,7 @@ program install;
        getextent(r);
        r.b.y:=r.a.y+1;
        menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu('Free Pascal Installer',hcnocontext,newmenu(nil
+          newsubmenu(menu_install,hcnocontext,newmenu(nil
           ),
        nil))));
     end;
@@ -1294,16 +1408,22 @@ begin
    fillchar(cfg, SizeOf(cfg), 0);
    fillchar(data, SizeOf(data), 0);
 
+   { set a default language }
+   cfg.language:='English';
+
+   { don't use a message file by default }
+   msgfile:='';
+
    installapp.init;
 
    FSplit (FExpand (ParamStr (0)), DStr, CfgName, EStr);
 
    installapp.readcfg(CfgName + CfgExt);
    installapp.checkavailpack;
+   installapp.do_languagedialog;
 {   installapp.readcfg(startpath+dirsep+cfgfile);}
    if not(lfnsupport) then
-     MessageBox('The operating system doesn''t support LFN (long file names),'+
-       ' so some packages won''t be installed',nil,mfinformation or mfokbutton);
+     MessageBox(msg_no_lfn,nil,mfinformation or mfokbutton);
    installapp.do_installdialog;
    installapp.done;
    if createlog then
@@ -1311,7 +1431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-17 14:44:12  hajny
+  Revision 1.4  2000-09-21 22:09:23  florian
+    + start of multilanguage support
+
+  Revision 1.3  2000/09/17 14:44:12  hajny
     * compilable with TP again
 
   Revision 1.2  2000/07/21 10:43:01  florian

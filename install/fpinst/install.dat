@@ -215,6 +215,7 @@ defaultcfg=
 #-Fr$1/msg/errores.msg
 #-Fr$1/msg/errord.msg
 #-Fr$1/msg/errorr.msg
+-Fr$1/msg/$L
 
 # path to the gcclib
 #-Fl$1/lib
