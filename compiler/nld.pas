@@ -118,6 +118,8 @@ implementation
 
       begin
          inherited create(loadn,nil);
+         if not assigned(v) then
+          internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
       end;
@@ -783,7 +785,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-06 21:40:47  peter
+  Revision 1.22  2001-08-12 22:11:52  peter
+    * errordef.typesym is not updated anymore
+
+  Revision 1.21  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.20  2001/07/30 20:52:25  peter

@@ -2105,6 +2105,7 @@ implementation
 {$endif GDB}
         { register the typesym for the definition }
         if assigned(restype.def) and
+           (restype.def.deftype<>errordef) and
            not(assigned(restype.def.typesym)) then
          restype.def.typesym:=self;
       end;
@@ -2238,7 +2239,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-08-12 20:00:26  peter
+  Revision 1.17  2001-08-12 22:11:52  peter
+    * errordef.typesym is not updated anymore
+
+  Revision 1.16  2001/08/12 20:00:26  peter
     * don't write fpuregable for varoptions
 
   Revision 1.15  2001/08/06 21:40:48  peter
