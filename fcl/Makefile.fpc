@@ -3,7 +3,7 @@
 #
 
 [targets]
-dirs=go32v2 linux win32 os2
+dirs=go32v2 linux win32 os2 freebsd
 exampledirs=tests shedit/gtk
 
 [install]
