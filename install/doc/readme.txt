@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.4
+                               Version 1.0.6
 
 
 ****************************************************************************
@@ -84,8 +84,8 @@ OS/2 and DOS (extender EMX):
 * Quick start
 ****************************************************************************
 
-Download dos104.zip (version for DOS) or w32104.zip (version for
-Win9x/NT) or os2104.zip (EMX version - for OS/2 and DOS) and unzip it
+Download dos106.zip (version for DOS) or w32106.zip (version for
+Win9x/NT) or os2106.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -106,7 +106,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos104.zip specific:
+dos106.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -115,9 +115,9 @@ dos104.zip specific:
       LD 2.9.1 for Go32V2
       AR 2.8.1 for Go32V2
       Strip 2.8.1 for Go32V2
-  utilgo32.zip    contains additional GNU utilities which might be useful to
+  makego32.zip    contains additional GNU utilities which might be useful to
                   compile the run time library:
-      Make 3.76.1
+      Make 3.79.1
       RM 3.16
       CP 3.16
       MV 3.16
@@ -125,10 +125,10 @@ dos104.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 1.01
+      UPX 1.20
   gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w32104.zip specific:
+w32106.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -140,9 +140,9 @@ w32104.zip specific:
       Strip 2.9.5 for Win32
       WindRes 2.9.5 for Win32
       DLLTool 2.9.5 for Win32
-  utilw32.zip     contains additional GNU utilities which might be useful to
+  makew32.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
-      Make 3.76.1
+      Make 3.79.1
       RM 3.16
       CP 3.16
       MV 3.16
@@ -150,10 +150,10 @@ w32104.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 1.01
+      UPX 1.20
   gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os2104.zip specific:
+os2106.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -182,16 +182,17 @@ os2104.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos104.zip, w32104.zip and os2104.zip:
+common files in dos106.zip, w32106.zip and os2106.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
   doc-pdf.zip     contains the documentation in PDF format
+  doc-html.zip    contains the documentation in HTML format
   install.exe     installation program
   install.dat     installation data
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src104.zip:
+Optional source package src106.zip:
 -------------------------------------
   basesrc.zip     contains the basic Makefiles needed for the source tree
   compsrc.zip     contains the compiler sources
@@ -233,7 +234,7 @@ Information about available lists and subscription can be found
 on http://lists.freepascal.org/mailman/listinfo
 
 www: http://www.freepascal.org
-ftp: ftp.freepascal.org/fpc
+ftp: ftp://ftp.freepascal.org/fpc
 (several mirrors exist, see website for links)
 
 Additional information about mailing lists, news, future plans etc.

@@ -1,7 +1,49 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.4
+                               Version 1.0.6
+
+******************************************************************************
+                             Whats New in 1.0.6
+******************************************************************************
+
+Compiler:
+  + NetBSD, BeOS, QNX and Solaris for i386 support
+  + m68k code generator
+  * ppc386.cfg renamed to fpc.cfg
+  * fpu overflow fixed
+  * better typecast checking
+  * better checking if passing a constant to a variable argument
+  * procedure variable handling fixes
+  * procedure inlining fixes
+  * shared library has now initialization of the rtl
+  * failed executation of tools (assembler, linker) give now errors
+  * Fixed a lot of reported bugs
+
+IDE:
+  + regular expressions for find
+  + disassembler window
+  * WinXP/Win2000 fixes
+  * Lot of bug fixes
+
+RTL:
+  + NetBSD, BeOS, QNX and Solaris for i386 support
+  + Added PathDelim,DriveDelim,PathSep variables
+  + keyboard, mouse and video units updates
+  * Append() returns error if file doesn't exists
+  * WinXP fixes for go32v2 mouse
+  * Lot of updates to make the RTL easier to port
+
+FCL:
+  * Small bug fixes
+
+Docs:
+  + Compiler internals documentation
+
+Utils:
+  * h2pas updates
+  * fpcmake updates
+
 
 ******************************************************************************
                              Whats New in 1.0.4
