@@ -71,7 +71,7 @@ implementation
          aktprocsym:=nil;
          aktprocdef:=nil;
 
-         current_library:=nil;
+         objectlibrary:=nil;
          current_module:=nil;
          compiled_module:=nil;
          procinfo:=nil;
@@ -262,7 +262,7 @@ implementation
          olddebuglist,
          oldwithdebuglist,
          oldconsts     : taasmoutput;
-         oldcurrent_library : tasmlibrarydata;
+         oldobjectlibrary : tasmlibrarydata;
        { resourcestrings }
          OldResourceStrings : tResourceStrings;
        { akt.. things }
@@ -331,7 +331,7 @@ implementation
          oldexports:=exportssection;
          oldresource:=resourcesection;
          oldresourcestringlist:=resourcestringlist;
-         oldcurrent_library:=current_library;
+         oldobjectlibrary:=objectlibrary;
          OldResourceStrings:=ResourceStrings;
        { save akt... state }
        { handle the postponed case first }
@@ -478,7 +478,7 @@ implementation
        { restore previous scanner !! }
          current_module.scanner:=prev_scanner;
          if assigned(prev_scanner) then
-           prev_scanner.invalid:=true;
+           prev_scanner.SetInvalid;
 
          if (compile_level>1) then
            begin
@@ -513,7 +513,7 @@ implementation
               resourcestringlist:=oldresourcestringlist;
               { object data }
               ResourceStrings:=OldResourceStrings;
-              current_library:=oldcurrent_library;
+              objectlibrary:=oldobjectlibrary;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
@@ -611,7 +611,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-08-11 13:24:12  peter
+  Revision 1.38  2002-08-11 14:28:19  peter
+    * TScannerFile.SetInvalid added that will also reset inputfile
+
+  Revision 1.37  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

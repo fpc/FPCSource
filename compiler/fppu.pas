@@ -1092,7 +1092,7 @@ uses
                 current_scanner.tempcloseinputfile;
                 name:=mainsource^;
                 if assigned(scanner) then
-                  tscannerfile(scanner).invalid:=true;
+                  tscannerfile(scanner).SetInvalid;
                 { compile this module }
                 current_module:=self;
                 compile(name);
@@ -1259,7 +1259,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2002-08-11 13:24:11  peter
+  Revision 1.19  2002-08-11 14:28:19  peter
+    * TScannerFile.SetInvalid added that will also reset inputfile
+
+  Revision 1.18  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

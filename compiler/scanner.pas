@@ -79,6 +79,9 @@ interface
        end;
 
        tscannerfile = class
+       private
+          FInvalid        : boolean; { flag if sourcefiles have been destroyed ! }
+       public   
           inputfile    : tinputfile;  { current inputfile list }
 
           inputbuffer,                { input buffer }
@@ -97,7 +100,6 @@ interface
           lastasmgetchar : char;
           ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
-          invalid        : boolean; { flag if sourcefiles have been destroyed ! }
           macros         : Tdictionary;
           in_asm_string  : boolean;
 
@@ -107,6 +109,7 @@ interface
           constructor Create(const fn:string);
           destructor Destroy;override;
         { File buffer things }
+          procedure setinvalid;
           function  openinputfile:boolean;
           procedure closeinputfile;
           function  tempopeninputfile:boolean;
@@ -148,6 +151,7 @@ interface
           procedure readtoken;
           function  readpreproc:ttoken;
           function  asmgetchar:char;
+          property Invalid:boolean read FInvalid;
        end;
 
 {$ifdef PREPROCWRITE}
@@ -911,7 +915,7 @@ implementation
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
         ignoredirectives:=TStringList.Create;
-        invalid:=false;
+        Finvalid:=false;
         in_asm_string:=false;
         macros:=tdictionary.create;
       end;
@@ -996,6 +1000,15 @@ implementation
       end;
 
 
+    procedure tscannerfile.setinvalid;
+      begin
+        { mark the tscannerfile as invalid and reset inputfile
+          so it can not be reused }
+        Finvalid:=true;  
+        inputfile:=nil;  
+      end;
+      
+      
     function tscannerfile.openinputfile:boolean;
       begin
         openinputfile:=inputfile.open;
@@ -2783,7 +2796,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.42  2002-08-10 14:46:31  carl
+  Revision 1.43  2002-08-11 14:28:19  peter
+    * TScannerFile.SetInvalid added that will also reset inputfile
+
+  Revision 1.42  2002/08/10 14:46:31  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

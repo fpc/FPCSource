@@ -434,7 +434,7 @@ uses
          externals.free;
         externals:=nil;
         if assigned(scanner) then
-          tscannerfile(scanner).invalid:=true;
+          tscannerfile(scanner).SetInvalid;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -488,7 +488,7 @@ uses
          pm : tdependent_unit;
       begin
         if assigned(scanner) then
-          tscannerfile(scanner).invalid:=true;
+          tscannerfile(scanner).SetInvalid;
         if assigned(globalsymtable) then
           begin
             globalsymtable.free;
@@ -595,7 +595,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  2002-08-11 13:24:11  peter
+  Revision 1.25  2002-08-11 14:28:19  peter
+    * TScannerFile.SetInvalid added that will also reset inputfile
+
+  Revision 1.24  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which
