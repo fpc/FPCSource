@@ -1286,7 +1286,7 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.DrawFocus;
-VAR B: Byte; I: Integer;
+VAR B: Byte; I, Pos: Integer;
     Bc: Word; Db: TDrawBuffer;
     C : char;
 BEGIN
@@ -1318,10 +1318,14 @@ BEGIN
        I := TextWidth(Title^);                        { Fetch title width }
        I := (RawSize.X - I) DIV 2;                    { Centre in button }
      End Else I := FontWidth;                         { Left edge of button }
-     MoveCStr(Db, Title^, Bc);                        { Move title to buffer }
+     If TextModeGFV and DownFlag then Begin
+       MoveChar(Db,' ',Bc,1);
+       Pos:=1;
+     end else Pos:=0;
+     MoveCStr(Db[Pos], Title^, Bc);                        { Move title to buffer }
      If not TextModeGFV then Begin
        GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
-       WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
+       WriteLine(I, FontHeight DIV 2, CStrLen(Title^)+Pos,
          1, Db);                                        { Write the title }
        GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
      End Else Begin
@@ -2726,7 +2730,10 @@ END;
 END.
 {
  $Log$
- Revision 1.9  2001-05-31 12:14:50  pierre
+ Revision 1.10  2001-06-01 16:00:00  pierre
+  * small changes for tbutton.draw
+
+ Revision 1.9  2001/05/31 12:14:50  pierre
   Better button draw
 
  Revision 1.8  2001/05/10 16:46:27  pierre
