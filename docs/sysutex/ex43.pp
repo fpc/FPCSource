@@ -9,7 +9,7 @@ Var Info : TSearchRec;
 
 Begin
   Count:=0;
-  If FindFirst ('/*',faAnyFile and faDirectory,Info)=0 then
+  If FindFirst ('*',faAnyFile and faDirectory,Info)=0 then
     begin
     Repeat
       Inc(Count);
