@@ -2469,7 +2469,7 @@ implementation
          if settype=smallset then
            stabstring := strpnew('r'+s32bittype^.numberstring+';0;0xffffffff;')
          else }
-           stabstring := strpnew('S'+tstoreddef(elementtype.def).numberstring);
+           stabstring := strpnew('@s'+tostr(savesize*8)+';S'+tstoreddef(elementtype.def).numberstring);
       end;
 
 
@@ -5648,7 +5648,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2003-01-16 22:11:33  peter
+  Revision 1.127  2003-01-21 14:36:44  pierre
+   * set sizes needs to be passes in bits not bytes to stabs info
+
+  Revision 1.126  2003/01/16 22:11:33  peter
     * fixed tprocdef.is_addressonly
 
   Revision 1.125  2003/01/15 01:44:33  peter
