@@ -11,7 +11,7 @@ libc=y
 
 [target]
 dirs=gtkgl
-units=glib gmodule gdk gtk
+units=glib gmodule gdk gtk gdkpixbuf
 exampledirs=examples
 
 [compiler]
@@ -35,5 +35,7 @@ glib$(PPUEXT): $(wildcard glib/glib*.pp)
 gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)
 
 gdk$(PPUEXT): $(wildcard gdk/gdk*.pp) glib$(PPUEXT)
+
+gdkpixbuf$(PPUEXT): gdk/gdkpixbuf.pp gdk$(PPUEXT)
 
 gtk$(PPUEXT): $(wildcard gtk/gtk*.pp) gdk$(PPUEXT)
