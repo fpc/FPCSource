@@ -614,7 +614,11 @@ unit files;
          if AllowOutput and (OutputFile<>'') then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
-         sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
+
+         if target_info.target=target_i386_WIN32 then
+           sharedlibfilename:=stringdup(p+n+target_os.sharedlibext)
+         else
+           sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
@@ -1032,7 +1036,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.71  1998-11-06 09:45:40  pierre
+  Revision 1.72  1998-11-15 16:32:35  florian
+    * some stuff of Pavel implement (win32 dll creation)
+    * bug with ansistring function results fixed
+
+  Revision 1.71  1998/11/06 09:45:40  pierre
     * bug on errors (file used after dispose !) fixed
 
   Revision 1.70  1998/11/03 11:33:14  peter

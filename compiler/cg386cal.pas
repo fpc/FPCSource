@@ -674,7 +674,7 @@ implementation
       var
          unusedregisters : tregisterset;
          pushed : tpushed;
-         funcretref : treference;
+         hr,funcretref : treference;
          hregister : tregister;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
@@ -1270,7 +1270,7 @@ implementation
            end;
          if (p^.resulttype<>pdef(voiddef)) and p^.return_value_used then
            begin
-                 { a contructor could be a function with boolean result }
+              { a contructor could be a function with boolean result }
               if (p^.right=nil) and
                  ((p^.procdefinition^.options and poconstructor)<>0) and
                  { quick'n'dirty check if it is a class or an object }
@@ -1319,69 +1319,78 @@ implementation
                                     p^.location.register:=hregister;
                                  end;
                             end;
-                          uchar,u8bit,bool8bit,s8bit :
-                                  begin
+                          uchar,u8bit,bool8bit,s8bit:
+                            begin
 {$ifdef test_dest_loc}
-                                     if dest_loc_known and (dest_loc_tree=p) then
-                                       mov_reg_to_dest(p,S_B,R_AL)
-                                     else
-{$endif test_dest_loc}
-                                       begin
-                                          hregister:=getexplicitregister32(R_EAX);
-                                          emit_reg_reg(A_MOV,S_B,R_AL,reg32toreg8(hregister));
-                                          p^.location.register:=reg32toreg8(hregister);
-                                       end;
-                                  end;
-                                s16bit,u16bit,bool16bit :
-                                  begin
-{$ifdef test_dest_loc}
-                                     if dest_loc_known and (dest_loc_tree=p) then
-                                       mov_reg_to_dest(p,S_W,R_AX)
-                                     else
-{$endif test_dest_loc}
-                                       begin
-                                          hregister:=getexplicitregister32(R_EAX);
-                                          emit_reg_reg(A_MOV,S_W,R_AX,reg32toreg16(hregister));
-                                          p^.location.register:=reg32toreg16(hregister);
-                                       end;
-                                  end;
-                             else internalerror(7);
-                              end
-
-                          end
-                       else if (p^.resulttype^.deftype=floatdef) then
-                           case pfloatdef(p^.resulttype)^.typ of
-                                 f32bit : begin
-                                             p^.location.loc:=LOC_REGISTER;
-{$ifdef test_dest_loc}
-                                             if dest_loc_known and (dest_loc_tree=p) then
-                                               mov_reg_to_dest(p,S_L,R_EAX)
-                                             else
-{$endif test_dest_loc}
-                                               begin
-                                                  hregister:=getexplicitregister32(R_EAX);
-                                                  emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                                                  p^.location.register:=hregister;
-                                               end;
-                                          end;
+                                 if dest_loc_known and (dest_loc_tree=p) then
+                                   mov_reg_to_dest(p,S_B,R_AL)
                                  else
-                                     p^.location.loc:=LOC_FPU;
-                           end
-                       else
-                          begin
-                              p^.location.loc:=LOC_REGISTER;
-{$ifdef test_dest_loc}
-                              if dest_loc_known and (dest_loc_tree=p) then
-                                mov_reg_to_dest(p,S_L,R_EAX)
-                              else
 {$endif test_dest_loc}
-                                begin
+                                   begin
+                                      hregister:=getexplicitregister32(R_EAX);
+                                      emit_reg_reg(A_MOV,S_B,R_AL,reg32toreg8(hregister));
+                                      p^.location.register:=reg32toreg8(hregister);
+                                   end;
+                              end;
+                          s16bit,u16bit,bool16bit :
+                            begin
+{$ifdef test_dest_loc}
+                               if dest_loc_known and (dest_loc_tree=p) then
+                                 mov_reg_to_dest(p,S_W,R_AX)
+                               else
+{$endif test_dest_loc}
+                                 begin
                                     hregister:=getexplicitregister32(R_EAX);
-                                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                                    p^.location.register:=hregister;
-                                end;
-                          end;
+                                    emit_reg_reg(A_MOV,S_W,R_AX,reg32toreg16(hregister));
+                                    p^.location.register:=reg32toreg16(hregister);
+                                 end;
+                            end;
+                        else internalerror(7);
+                     end
+
+                end
+              else if (p^.resulttype^.deftype=floatdef) then
+                case pfloatdef(p^.resulttype)^.typ of
+                  f32bit:
+                    begin
+                       p^.location.loc:=LOC_REGISTER;
+{$ifdef test_dest_loc}
+                       if dest_loc_known and (dest_loc_tree=p) then
+                         mov_reg_to_dest(p,S_L,R_EAX)
+                       else
+{$endif test_dest_loc}
+                         begin
+                            hregister:=getexplicitregister32(R_EAX);
+                            emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                            p^.location.register:=hregister;
+                         end;
+                    end;
+                  else
+                    p^.location.loc:=LOC_FPU;
+                end
+              else
+                begin
+                   p^.location.loc:=LOC_REGISTER;
+{$ifdef test_dest_loc}
+                   if dest_loc_known and (dest_loc_tree=p) then
+                     mov_reg_to_dest(p,S_L,R_EAX)
+                   else
+{$endif test_dest_loc}
+                    begin
+                       hregister:=getexplicitregister32(R_EAX);
+                       emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                       p^.location.register:=hregister;
+                       if is_ansistring(p^.resulttype) or
+                         is_widestring(p^.resulttype) then
+                         begin
+                            gettempofsizereference(4,hr);
+                            temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
+                            exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
+                              newreference(hr))));
+                         end;
+                    end;
                 end;
+             end;
            end;
 
          { perhaps i/o check ? }
@@ -1543,7 +1552,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1998-11-13 15:40:13  pierre
+  Revision 1.43  1998-11-15 16:32:33  florian
+    * some stuff of Pavel implement (win32 dll creation)
+    * bug with ansistring function results fixed
+
+  Revision 1.42  1998/11/13 15:40:13  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined
