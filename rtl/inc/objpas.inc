@@ -616,7 +616,6 @@
           IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then begin
             PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
-            intf_incr_ref(pointer(obj)); { it must be an com interface }
             getinterface:=True;
           end
           else begin
@@ -632,8 +631,6 @@
           IEntry:=getinterfaceentrybystr(iidstr);
           if Assigned(IEntry) then begin
             PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
-            if Assigned(IEntry^.iid) then { for Com interfaces }
-              intf_incr_ref(pointer(obj));
             getinterfacebystr:=True;
           end
           else begin
@@ -761,7 +758,11 @@
 
 {
   $Log$
-  Revision 1.47  2005-03-13 08:34:58  florian
+  Revision 1.48  2005-04-05 21:05:31  peter
+    * call initspecialchars if one of the specialchars is configured
+      for the first time
+
+  Revision 1.47  2005/03/13 08:34:58  florian
     * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
 
   Revision 1.46  2005/02/14 17:13:26  peter
