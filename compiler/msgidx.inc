@@ -90,6 +90,7 @@ type tmsgconst=(
   parser_e_range_check_error,
   parser_w_range_check_error,
   parser_e_double_caselabel,
+  parser_e_case_lower_less_than_upper_bound,
   parser_e_type_const_not_possible,
   parser_e_no_overloaded_procvars,
   parser_e_invalid_string_size,

@@ -221,6 +221,8 @@ unit pstatmnt;
                   hl2:=get_ordinal_value(p^.right);
                   testrange(casedef,hl1);
                   testrange(casedef,hl2);
+                  if hl1>hl2 then
+                    Message(parser_e_case_lower_less_than_upper_bound);
                   newcaselabel(hl1,hl2,firstlabel);
                end
              else
@@ -1257,7 +1259,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.57  1998-12-29 18:48:15  jonas
+  Revision 1.58  1999-01-05 08:20:07  florian
+    * mainly problem with invalid case ranges fixed (reported by Jonas)
+
+  Revision 1.57  1998/12/29 18:48:15  jonas
     + optimize pascal code surrounding assembler blocks
 
   Revision 1.56  1998/12/23 22:52:56  peter

@@ -221,7 +221,7 @@ unit ptconst;
                        (is_equal(ppointerdef(def)^.definition,voiddef))) and
                        (hp^.treetype=loadn) then
                       begin
-                        firstpass(p^.left);
+                        do_firstpass(p^.left);
                         hp:=p^.left;
                         offset:=0;
                         while assigned(hp) and (hp^.treetype<>loadn) do
@@ -661,7 +661,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.33  1998-12-15 17:16:01  peter
+  Revision 1.34  1999-01-05 08:20:08  florian
+    * mainly problem with invalid case ranges fixed (reported by Jonas)
+
+  Revision 1.33  1998/12/15 17:16:01  peter
     * fixed const s : ^string
     * first things for const pchar : @string[1]
 
