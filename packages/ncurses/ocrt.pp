@@ -149,7 +149,7 @@ Unit oCrt;
 Interface
 
 Uses
-{$ifdef linux}
+{$ifdef unix}
   {$ifdef ver1_0}
     linux,
   {$else}
@@ -3266,7 +3266,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.7  2001-04-10 23:30:04  peter
+  Revision 1.8  2001-06-19 15:24:54  marco
+   * UNIX peter, UNIX, not LINUX!!!
+
+  Revision 1.7  2001/04/10 23:30:04  peter
     * regenerated
 
   Revision 1.6  2001/04/08 12:27:55  peter
