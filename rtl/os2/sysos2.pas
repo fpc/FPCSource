@@ -98,6 +98,8 @@ const   UnusedHandle=$ffff;
         StdOutputHandle=1;
         StdErrorHandle=2;
 
+        FileNameCaseSensitive : boolean = false;
+
 var
 { C-compatible arguments and environment }
   argc  : longint;external name '_argc';
@@ -645,7 +647,7 @@ begin
             inc(i);
         end;
     { upcase the string (FPC function) }
-    dir:=upcase(dir);
+    if not (FileNameCaseSensitive) then dir:=upcase(dir);
     if drivenr<>0 then   { Drive was supplied. We know it }
         dir[1]:=char(65+drivenr-1)
     else
@@ -750,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2000-04-07 17:47:34  hajny
+  Revision 1.28  2000-05-21 15:58:50  hajny
+    + FileNameCaseSensitive added
+
+  Revision 1.27  2000/04/07 17:47:34  hajny
     * got rid of os.inc
 
   Revision 1.26  2000/02/09 16:59:34  peter
