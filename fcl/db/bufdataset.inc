@@ -23,6 +23,7 @@ constructor TBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
+  BookmarkSize := sizeof(TBufBookmark);
 // temporary set it here
   FPacketRecords := 10;
 end;
@@ -43,6 +44,7 @@ function TBufDataset.AllocRecordBuffer: PChar;
 
 begin
   result := AllocMem(FRecordsize + sizeof(TBufBookmark));
+  result^ := #1; // this 'deletes' the record
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -56,6 +58,7 @@ begin
   CalcRecordSize;
 
   FBRecordcount := 0;
+  FBDeletedRecords := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;
   FOpen:=True;
@@ -93,6 +96,39 @@ begin
   FBCurrentRecord := FBRecordcount;
 end;
 
+procedure unSetDeleted(NullMask : pbyte); //inline;
+begin
+  NullMask[0] := NullMask[0] and not 1;
+end;
+
+procedure SetDeleted(NullMask : pbyte); //inline;
+begin
+  NullMask[0] := NullMask[0] or 1;
+end;
+
+function GetDeleted(NullMask : pbyte) : boolean; //inline;
+begin
+  result := (NullMask[0] and 1) = 1;
+end;
+
+procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
+begin
+  inc(x);
+  NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+end;
+
+procedure SetFieldIsNull(NullMask : pbyte;x : longint); //inline;
+begin
+  inc(x);
+  NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+end;
+
+function GetFieldIsNull(NullMask : pbyte;x : longint) : boolean; //inline;
+begin
+  inc(x);
+  result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
+end;
+  
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var x         : longint;
@@ -117,7 +153,7 @@ begin
         FIsEof := false;
         end;
     gmCurrent :
-      if (FBCurrentRecord < 0) or (FBCurrentRecord >= RecordCount) then
+      if (FBCurrentRecord < 0) or (FBCurrentRecord >= FBRecordCount) then
         Result := grError;
     gmNext :
       if FIsEOF then
@@ -144,6 +180,21 @@ begin
 
   if Result = grOK then
     begin
+    if GetDeleted(pbyte(FBBuffers[FBCurrentRecord])) then
+      begin
+      if getmode = gmCurrent then
+        if DoCheck then
+          begin
+          Result := grError;
+          DatabaseError(SDeletedRecord);
+          exit;
+          end
+        else
+          getmode := gmnext;
+      Result := GetRecord(Buffer,getmode,DoCheck);
+      exit
+      end;
+    
     with PBufBookmark(Buffer + RecordSize)^ do
       begin
       BookmarkData := FBCurrentRecord;
@@ -161,11 +212,11 @@ begin
         if GetFieldUpdateBuffer(x,RecUpdBuf,FieldUpdBuf) then
           If not FieldUpdBuf^.IsNull then
             begin
-            NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+            unSetFieldIsNull(NullMask,x);
             move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
             end
           else
-            NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+            SetFieldIsNull(NullMask,x);
         Inc(Buffer, GetFieldSize(FieldDefs[x]));
         end;
       end;
@@ -247,8 +298,11 @@ begin
   i := 0;
   if FPacketRecords > 0 then
     begin
-    FBBufferCount := FBBuffercount + FPacketRecords;
-    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
+    if FBBufferCount < FBRecordCount+FPacketRecords then
+      begin
+      FBBufferCount := FBBuffercount + FPacketRecords;
+      ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
+      end;
 
     repeat
     FBBuffers[FBRecordCount+i] := AllocRecordBuffer;
@@ -304,7 +358,7 @@ begin
   for x := 0 to FieldDefs.count-1 do
     begin
     if not LoadField(FieldDefs[x],buffer) then
-      NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+      SetFieldIsNull(NullMask,x);
 
     inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
@@ -319,15 +373,26 @@ var
 
 begin
   Result := False;
-  
   If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
     begin
     if state = dsOldValue then
-      CurrBuff := FBBuffers[GetRecNo]
+      begin
+      if FApplyingUpdates then
+        CurrBuff := FBBuffers[fbcurrentrecord] // This makes it possible for ApplyUpdates to get values from deleted records
+      else
+        CurrBuff := FBBuffers[GetRecNo];
+      end
     else
+      begin
       CurrBuff := ActiveBuffer;
+      if not assigned(CurrBuff) or GetDeleted(pbyte(CurrBuff)) then
+        begin
+        result := false;
+        exit;
+        end;
+      end;
 
-    if ord(currbuff[(Field.Fieldno-1) div 8]) and (1 shl ((Field.Fieldno-1) mod 8)) > 0 then
+    if GetFieldIsnull(pbyte(CurrBuff),Field.Fieldno-1) then
       begin
       result := false;
       exit;
@@ -338,7 +403,8 @@ begin
       begin
       if (Field.FieldName = FieldDefs[x].Name) then
         begin
-        Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
+        // a nil-buffer is allowed for the fields.isNull function
+        if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
         Result := True;
         Break;
         end
@@ -369,11 +435,10 @@ begin
         if assigned(buffer) then
           begin
           Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[x]));
-          NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+          unSetFieldIsNull(NullMask,x);
           end
         else
-          NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
-
+          SetFieldIsNull(NullMask,x);
         // cached updates
         with FEditBuf^ do
           begin
@@ -410,11 +475,77 @@ begin
       SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
       FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
       end;
+    FEditBuf^.UpdateKind := ukModify;
     FEditBuf^.RecordNo := getrecno;
     end;
 end;
 
-function TBufDataset.ApplyRecUpdate : boolean;
+procedure TBufDataset.InternalInsert;
+
+begin
+  if FBRecordCount > FBBufferCount-1 then
+    begin
+    inc(FBBufferCount);
+    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
+    end;
+
+  inc(FBRecordCount);
+  FBCurrentRecord := FBRecordCount -1;
+  FBBuffers[FBCurrentRecord] := AllocRecordBuffer;
+  fillchar(FBBuffers[FBCurrentRecord]^,FNullmaskSize,255);
+  unSetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
+  fillchar(ActiveBuffer^,FNullmaskSize,255);
+  unSetDeleted(pbyte(ActiveBuffer));
+
+  // cached updates:
+  If not assigned(FEditBuf) then
+    begin
+    SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
+    FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
+    end;
+  FEditBuf^.RecordNo := FBCurrentRecord;
+  FEditBuf^.UpdateKind := ukInsert;
+
+  with PBufBookmark(ActiveBuffer + RecordSize)^ do
+    begin
+    BookmarkData := FBCurrentRecord;
+    BookmarkFlag := bfInserted;
+    end;
+end;
+
+procedure TBufDataset.InternalDelete;
+
+var tel : integer;
+
+begin
+  SetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
+  SetDeleted(pbyte(ActiveBuffer));
+  inc(FBDeletedRecords);
+
+  if GetRecordUpdateBuffer(recno,FEditBuf) and (FEditBuf^.UpdateKind = ukInsert) then
+    begin
+    if assigned(FEditBuf^.FieldsUpdateBuffer) then
+      for tel := 0 to high(FEditBuf^.FieldsUpdateBuffer) do
+        if not FEditBuf^.FieldsUpdateBuffer[tel].IsNull then
+          freemem(FEditBuf^.FieldsUpdateBuffer[tel].NewValue);
+    setlength(FEditBuf^.FieldsUpdateBuffer,0);
+    FEditBuf^.RecordNo := -1;
+    end
+  else
+    begin
+    If not assigned(FEditBuf) then
+      begin
+      SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
+      FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
+      end;
+    FEditBuf^.RecordNo := FBCurrentRecord;
+    FEditBuf^.UpdateKind := ukDelete;
+    end;
+  FEditBuf := nil;
+end;
+
+
+function TBufDataset.ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean;
 
 begin
   Result := False;
@@ -426,9 +557,24 @@ var r,f : integer;
 
 begin
   for r := 0 to high(FUpdateBuffer) do
+    begin
+    if FUpdateBuffer[r].RecordNo > -1 then
+     if FUpdateBuffer[r].UpdateKind = ukDelete then
+      begin
+      dec(FBDeletedRecords);
+      unSetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
+      end
+    else if FUpdateBuffer[r].UpdateKind = ukInsert then
+      begin
+      inc(FBDeletedRecords);
+      SetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
+      end;
     for f := 0 to high(FUpdateBuffer[r].FieldsUpdateBuffer) do
       FreeMem(FUpdateBuffer[r].FieldsUpdateBuffer[f].newvalue);
+      
+    end;
   SetLength(FUpdateBuffer,0);
+  if FOpen then Resync([]);
 end;
 
 procedure TBufDataset.ApplyUpdates;
@@ -441,15 +587,21 @@ var SaveBookmark : Integer;
     NullMask    : pbyte;
 
 begin
+  CheckBrowseMode;
   SaveBookMark := GetRecNo;
-  
+
   r := 0;
   while r < Length(FUpdateBuffer) do
     begin
-    if @FUpdateBuffer[r] <> FEditBuf then // Neglect edit-buffer
+    if (@FUpdateBuffer[r] <> FEditBuf) and // Neglect edit-buffer
+       (FUpdateBuffer[r].RecordNo <> -1) then // And the 'deleted' buffers
       begin
-      SetRecNo(FUpdateBuffer[r].RecordNo);
-      if ApplyRecUpdate then
+      FApplyingUpdates := true;
+      if FUpdateBuffer[r].UpdateKind = ukDelete then
+        InternalGotoBookmark(@(FUpdateBuffer[r].RecordNo))
+      else
+        SetRecNo(FUpdateBuffer[r].RecordNo);
+      if ApplyRecUpdate(FUpdateBuffer[r].UpdateKind) then
         begin
         buffer := FBBuffers[FUpdateBuffer[r].RecordNo];
         NullMask := pbyte(buffer);
@@ -461,12 +613,12 @@ begin
           if GetFieldUpdateBuffer(x,@FUpdateBuffer[r],FieldUpdBuf) then
             If not FieldUpdBuf^.IsNull then
               begin
-              NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
+              unSetFieldIsNull(NullMask,x);
               move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
               FreeMem(FieldUpdBuf^.NewValue);
               end
             else
-              NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+              SetFieldIsNull(NullMask,x);
           Inc(Buffer, GetFieldSize(FieldDefs[x]));
           end;
 
@@ -475,29 +627,56 @@ begin
         dec(r);
         SetLength(FUpdateBuffer,high(FUpdateBuffer));
         end;
+      FApplyingUpdates := False;
       end;
     inc(r);
     end;
   Refresh;
-  SetRecNo(SaveBookMark);
+  if not GetDeleted(pbyte(FBBuffers[savebookmark])) then
+    SetRecNo(SaveBookMark);
 end;
 
 procedure TBufDataset.InternalPost;
 
 begin
-  if state=dsEdit then
+  if state in [dsEdit, dsInsert] then
     begin
     if Length(FUpdateBuffer[High(FUpdateBuffer)].FieldsUpdateBuffer) > 0 then
       FEditBuf := nil;
     end;
 end;
 
+procedure TBufDataset.InternalCancel;
+
+var tel : integer;
+
+begin
+  if state in [dsEdit, dsInsert] then
+    begin
+    if state = dsInsert then
+      begin
+      SetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
+      SetDeleted(pbyte(ActiveBuffer));
+      inc(FBDeletedRecords);
+      end;
+    FEditBuf^.RecordNo := -1;
+
+    // clear the fieldbuffers
+    if assigned(FEditBuf^.FieldsUpdateBuffer) then
+      for tel := 0 to high(FEditBuf^.FieldsUpdateBuffer) do
+        if not FEditBuf^.FieldsUpdateBuffer[tel].IsNull then
+          freemem(FEditBuf^.FieldsUpdateBuffer[tel].NewValue);
+    setlength(FEditBuf^.FieldsUpdateBuffer,0);
+    end;
+end;
+
+
 procedure TBufDataset.CalcRecordSize;
 
 var x : longint;
 
 begin
-  FNullmaskSize := 1+((FieldDefs.count-1) div 8);
+  FNullmaskSize := 1+((FieldDefs.count) div 8);
   FRecordSize := FNullmaskSize;
   for x := 0 to FieldDefs.count-1 do
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
@@ -535,7 +714,7 @@ end;
 Function TBufDataset.GetRecordCount: Longint;
 
 begin
-  Result := FBRecordCount;
+  Result := FBRecordCount-FBDeletedRecords;
 end;
 
 
