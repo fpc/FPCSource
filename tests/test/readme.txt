@@ -24,3 +24,5 @@ Units ................. testu1.pp      tests init. & finalization and halt
                         testu3.pp      a type redefining problem
                         testu4.pp
                         testu5.pp
+case .................. testcase.pp    tests case statements with byte and word
+                                       sized decision variables
