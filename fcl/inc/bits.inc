@@ -18,11 +18,7 @@
   procedure TBits.Error;
 
     begin
-{$ifdef NoExceptions}
-         ;
-{$else}
          Raise EBitsError.Create('');
-{$endif}
     end;
 
   procedure TBits.SetSize(Value: Integer);
@@ -131,7 +127,10 @@
 
 {
   $Log$
-  Revision 1.2  1998-11-04 10:46:42  peter
+  Revision 1.3  1998-11-04 14:36:29  michael
+  Error handling always with exceptions
+
+  Revision 1.2  1998/11/04 10:46:42  peter
     * exceptions work
 
   Revision 1.1  1998/05/04 14:30:11  michael
