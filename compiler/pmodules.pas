@@ -148,8 +148,7 @@ implementation
            then
          begin
            { align the first data }
-           dataSegment.insert(Tai_align.Create(used_align(32,
-               aktalignment.constalignmin,aktalignment.constalignmax)));
+           dataSegment.insert(Tai_align.Create(const_align(32)));
            dataSegment.insert(Tai_string.Create('FPC '+full_version_string+
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
@@ -203,6 +202,7 @@ implementation
         { TableCount }
         ltvTables.insert(Tai_const.Create_32bit(count));
         ltvTables.insert(Tai_symbol.Createdataname_global('FPC_THREADVARTABLES',0));
+        ltvTables.insert(Tai_align.Create(const_align(pointer_size)));
         ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
@@ -280,6 +280,7 @@ implementation
         { TableCount }
         ResourceStringTables.insert(Tai_const.Create_32bit(count));
         ResourceStringTables.insert(Tai_symbol.Createdataname_global('FPC_RESOURCESTRINGTABLES',0));
+        ResourceStringTables.insert(Tai_align.Create(const_align(4)));
         ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
@@ -332,6 +333,7 @@ implementation
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
         unitinits.insert(Tai_symbol.Createdataname_global('INITFINAL',0));
+        unitinits.insert(Tai_align.Create(const_align(4)));
         unitinits.concat(Tai_symbol_end.Createname('INITFINAL'));
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
@@ -382,15 +384,20 @@ implementation
               ;
 {$ENDIF SPARC}
          else
-           bssSegment.concat(Tai_datablock.Create_global('HEAP',heapsize));
+            begin
+              bssSegment.concat(Tai_align.Create(var_align(heapsize)));
+              bssSegment.concat(Tai_datablock.Create_global('HEAP',heapsize));
+            end;
          end;
 {$ifdef m68k}
          if target_info.system<>system_m68k_PalmOS then
            begin
+              dataSegment.concat(Tai_align.Create(const_align(4)));
               dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
               dataSegment.concat(Tai_const.Create_32bit(heapsize));
            end;
 {$else m68k}
+         dataSegment.concat(Tai_align.Create(const_align(4)));
          dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
          dataSegment.concat(Tai_const.Create_32bit(heapsize));
 {$endif m68k}
@@ -400,6 +407,7 @@ implementation
     procedure insertstacklength;
       begin
         { stacksize can be specified and is now simulated }
+        dataSegment.concat(Tai_align.Create(const_align(4)));
         dataSegment.concat(Tai_symbol.Createdataname_global('__stklen',4));
         dataSegment.concat(Tai_const.Create_32bit(stacksize));
       end;
@@ -1433,7 +1441,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-10-16 06:32:52  michael
+  Revision 1.83  2002-11-09 15:33:26  carl
+    * major alignment updates
+
+  Revision 1.82  2002/10/16 06:32:52  michael
   + Renamed thread unit to systhrds
 
   Revision 1.81  2002/10/14 19:42:34  peter
