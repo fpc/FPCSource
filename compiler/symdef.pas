@@ -2827,7 +2827,7 @@ implementation
 {$ifdef GDB}
     Const StabRecString : pchar = Nil;
           StabRecSize : longint = 0;
-          RecOffset : Longint = 0;
+          {RecOffset : Longint = 0;}
 
     procedure addname(p : pnamedindexobject);
     var
@@ -2869,8 +2869,8 @@ implementation
            end;
          strcat(StabRecstring,newrec);
          strdispose(newrec);
-         {This should be used for case !!}
-         RecOffset := RecOffset + pvarsym(p)^.vartype.def^.size;
+         {This should be used for case !!
+         RecOffset := RecOffset + pvarsym(p)^.vartype.def^.size;}
        end;
     end;
 
@@ -2884,7 +2884,7 @@ implementation
         GetMem(stabrecstring,memsizeinc);
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(size));
-        RecOffset := 0;
+        {RecOffset := 0;}
         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
         { FPC doesn't want to convert a char to a pchar}
         { is this a bug ? }
@@ -4422,8 +4422,8 @@ Const local_symtable_index : longint = $8001;
                strcat(StabRecstring,newrec);
                {freemem(newrec,memsizeinc);    }
                strdispose(newrec);
-               {This should be used for case !!}
-               RecOffset := RecOffset + pd^.size;
+               {This should be used for case !!
+               RecOffset := RecOffset + pd^.size;}
        end;
     end;
 
@@ -4450,7 +4450,7 @@ Const local_symtable_index : longint = $8001;
                 strpcopy(strend(stabrecstring),'!1,020,'+childof^.classnumberstring+';');
               end;
             {virtual table to implement yet}
-            RecOffset := 0;
+            {RecOffset := 0;}
             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
@@ -5081,7 +5081,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.2  2000-11-01 23:04:38  peter
+  Revision 1.3  2000-11-02 12:04:10  pierre
+  * remove RecOffset code, that created problems
+
+  Revision 1.2  2000/11/01 23:04:38  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 
