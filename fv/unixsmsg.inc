@@ -28,7 +28,7 @@ uses
 {$ifdef VER1_0}
   linux;
 {$else}
-  BaseUnix,unix;
+  BaseUnix.termio;
 {$endif}
 
 Const
@@ -119,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-10-01 16:20:27  marco
+  Revision 1.5  2003-11-19 19:22:14  marco
+   * termio change
+
+  Revision 1.4  2003/10/01 16:20:27  marco
    * baseunix fixes for 1.1
 
   Revision 1.3  2003/06/18 09:54:13  pierre
