@@ -64,7 +64,7 @@ Implementation
 
 {$ifdef has_signal}
 {$ifdef unix}
-Procedure CatchSignal(Sig : SmallInt);cdecl;
+Procedure CatchSignal(Sig : Longint);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
@@ -109,7 +109,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-01-10 21:37:48  marco
+  Revision 1.13  2003-04-23 10:10:31  peter
+    * unix signalhandler has longint argument
+
+  Revision 1.12  2003/01/10 21:37:48  marco
    * beos shouldnt define hassignal (unix<-> hasunix problem)
 
   Revision 1.11  2002/05/18 13:34:05  peter
