@@ -1,8 +1,7 @@
 #!/usr/bin/make -f
 # debian/rules for Free Pascal
 
-# Don't use the system FPCDIR
-export FPCDIR=
+# Note: You must unset FPCDIR before using this Makefile
 
 # Documentation type to use pdf/html
 DOCTYPE=pdf

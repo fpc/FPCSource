@@ -27,7 +27,6 @@ mysql,postgres,ibase bindings.
 %setup -c
 
 %build
-export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle
 	make fcl_all PP=${NEWPP}
@@ -36,7 +35,6 @@ NEWPP=`pwd`/compiler/ppc386
 	make utils_all PP=${NEWPP}
 
 %install
-export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
 	make compiler_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
