@@ -23,8 +23,8 @@
 
 Type
   timezone = packed record
-    minuteswest,
-    dsttime  : cint;
+    tz_minuteswest,
+    tz_dsttime  : cint;
   end;
   ptimezone =^timezone;
   TTimeZone = timezone;
@@ -67,7 +67,10 @@ Const
 
 {
  $Log$
- Revision 1.5  2003-09-27 13:45:58  peter
+ Revision 1.6  2004-12-02 11:22:11  marco
+  * tz_ prefixed for timezone
+
+ Revision 1.5  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 
