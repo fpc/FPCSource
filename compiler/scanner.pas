@@ -335,7 +335,7 @@ implementation
         maxlinebuf:=0;
       { load block }
         if not open then
-         Message(scan_f_cannot_open_input);
+         Message1(scan_f_cannot_open_input,fn);
         reload;
       end;
 
@@ -385,7 +385,7 @@ implementation
       begin
         open:=false;
         if not closed then
-         exit;
+         Close;
         ofm:=filemode;
         filemode:=0;
         Assign(f,inputfile^.path^+inputfile^.name^);
@@ -1548,7 +1548,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.39  1998-08-10 14:50:26  peter
+  Revision 1.40  1998-08-11 14:04:33  peter
+    * auto close an open file and better error msg
+
+  Revision 1.39  1998/08/10 14:50:26  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.38  1998/08/10 10:18:34  peter
