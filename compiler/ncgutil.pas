@@ -1931,7 +1931,11 @@ implementation
                                   if not(cs_create_pic in aktmoduleswitches) and
                                      not(vo_is_dll_var in varoptions) and
                                      not(vo_is_thread_var in varoptions) then
+{$ifndef macos}
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_NONE),0);
+{$else}
+                                    reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
+{$endif macos}
                                 end;
                               else
                                 internalerror(200410103);
@@ -2203,7 +2207,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.232  2004-10-26 15:03:31  peter
+  Revision 1.233  2004-10-28 18:29:44  olle
+    * reverted, for macos only, last change.
+
+  Revision 1.232  2004/10/26 15:03:31  peter
     * localloc of staticsymtable needs a AT_NONE since it is a reference
 
   Revision 1.231  2004/10/24 20:01:08  peter
