@@ -259,9 +259,28 @@ implementation
          if codegenerror then
            exit;
 
+         if not assigned(left.resulttype.def) then
+           internalerror(20021126);
+         { insert a hint that a range check error might occur on non-byte
+           elements.with the in operator.
+         }
+         if  (
+               (left.resulttype.def.deftype = orddef) and not 
+               (torddef(left.resulttype.def).typ in [s8bit,u8bit,uchar,bool8bit])
+             ) 
+            or
+             (
+               (left.resulttype.def.deftype = enumdef) 
+              and (tenumdef(left.resulttype.def).size <> 1)
+             )
+          then
+             Message(type_h_in_range_check);
+ 
          { type conversion/check }
          if assigned(tsetdef(right.resulttype.def).elementtype.def) then
-          inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
+           begin
+             inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
+           end;
 
          { empty set then return false }
          if not assigned(tsetdef(right.resulttype.def).elementtype.def) or
@@ -690,7 +709,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-11-25 17:43:21  peter
+  Revision 1.36  2002-11-26 21:52:38  carl
+    + hint for in operator with non byte sized operand
+
+  Revision 1.35  2002/11/25 17:43:21  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -1140,7 +1140,12 @@ type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract me
 % An instance of a class is created which contains non-implemented abstract 
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
-%
+type_h_in_range_check=04047_H_The left operand of the IN operator should be byte sized
+% The left operand of the \var{in} operator is not an ordinal or enumeration which fits 
+% within 8-bits, this may lead to range check errors. The  \var{in} operator 
+% currently only supports a left operand which fits within a byte. In the case of 
+% enumerations, the size of an element of an enumeration can be controlled with
+% the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
 % \end{description}
 #
 # Symtable
