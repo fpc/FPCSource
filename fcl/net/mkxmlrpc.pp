@@ -207,7 +207,7 @@ procedure WriteClassServerSource(ServerClass: TPasClassType;
 
 type
   TConversionInfo = record
-    ConverterName: String;
+    ConverterName, TypecastFunction: String;
     ArgIsParent: Boolean;
   end;
 
@@ -270,11 +270,30 @@ type
         (s = 'EXTENDED') then
 	Result.ConverterName := 'AWriter.CreateDoubleValue';
     end else if Element.ClassType = TPasClassType then
-      Result.ConverterName := MakeStructConverter(TPasClassType(Element), Referrer).Name;
+      Result.ConverterName := MakeStructConverter(TPasClassType(Element), Referrer).Name
+    else if Element.ClassType = TPasEnumType then
+    begin
+      Result.ConverterName := 'AWriter.CreateIntValue';
+      Result.TypecastFunction := 'Ord';
+    end;
 
     if Length(Result.ConverterName) = 0 then
       raise Exception.Create('Result type not supported: ' + Element.ClassName +
         ' ' + Element.Name);
+  end;
+
+  function MakeAccessor(ConversionInfo: TConversionInfo;
+    const DataSource, ArrayIndex: String): String;
+  begin
+    Result := ConversionInfo.ConverterName + '(';
+    if ConversionInfo.TypecastFunction <> '' then
+      Result := Result + ConversionInfo.TypecastFunction + '(';
+    Result := Result + DataSource;
+    if ConversionInfo.TypecastFunction <> '' then
+      Result := Result + ')';
+    if ArrayIndex <> '' then
+      Result := Result + '[' + ArrayIndex + ']';
+    Result := Result + ')';
   end;
 
   function GetParseValueFnName(PasType: TPasType): String;
@@ -370,12 +389,12 @@ type
       if LocalMember.ClassType = TPasProperty then
       begin
         ConversionInfo := GetConversionInfo(LocalMember, Result);
-	s := 'AWriter.AddStructMember(Result, ''' + LocalMember.Name + ''', ' +
-	  ConversionInfo.ConverterName;
 	if ConversionInfo.ArgIsParent then
-	  s := s + '(Inst))'
+	  s := 'Inst'
 	else
-	  s := s + '(Inst.' + LocalMember.Name + '))';
+	  s := 'Inst.' + LocalMember.Name;
+	s := 'AWriter.AddStructMember(Result, ''' + LocalMember.Name + ''', ' +
+	  MakeAccessor(ConversionInfo, s, '') + ')';
 	Commands.Commands.Add(s);
       end;
     end;
@@ -420,11 +439,12 @@ type
       '0', MethodPrefix + ArraySizeProp.Name + ' - 1');
     ForLoop.Body := TPasImplCommand.Create('', ForLoop);
     ConversionInfo := GetConversionInfo(Member.VarType, Result);
-    s := 'AWriter.AddArrayElement(Result, ' + ConversionInfo.ConverterName;
     if ConversionInfo.ArgIsParent then
-      s := s + '(Inst))'
+      s := 'Inst'
     else
-      s := s + '(Inst.' + Member.Name + '[i]))';
+      s := 'Inst.' + Member.Name + '[i]';
+    s := 'AWriter.AddArrayElement(Result, ' +
+      MakeAccessor(ConversionInfo, s, '') + ')';
     TPasImplCommand(ForLoop.Body).Command := s;
   end;
 
@@ -493,6 +513,7 @@ var
 
   var
     Commands: TPasImplCommands;
+    s: String;
   begin
     CreateBranch(Member.Name);
     Commands := TPasImplCommands.Create('', IfElse);
@@ -508,10 +529,11 @@ var
     end else
     begin
       // function
+      s := MethodPrefix + Member.Name +
+        MakeProcArgs(TPasProcedure(Member).ProcType.Args);
       Commands.Commands.Add('AWriter.WriteResponse(' +
-        GetConversionInfo(TPasFunctionType(TPasFunction(Member).ProcType).
-	ResultEl.ResultType, ProcImpl).ConverterName + '(' + MethodPrefix +
-	Member.Name + MakeProcArgs(TPasProcedure(Member).ProcType.Args) + '))');
+        MakeAccessor(GetConversionInfo(TPasFunctionType(TPasFunction(Member).
+	  ProcType).ResultEl.ResultType, ProcImpl), s, '') + ')');
     end;
   end;
 
@@ -554,8 +576,8 @@ var
 	  LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
 	  TPasImplCommand(LocalIfElse.IfBranch).Command :=
 	    'AWriter.WriteResponse(' +
-	    GetConversionInfo(Member, ProcImpl).ConverterName + '(' +
-	    Copy(MethodPrefix, 1, Length(MethodPrefix) - 1) + '))';
+	    MakeAccessor(GetConversionInfo(Member, ProcImpl),
+	      Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
 
 	  LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
 	  TPasImplCommand(LocalIfElse.ElseBranch).Command :=
@@ -569,8 +591,8 @@ var
 	    LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
 	    TPasImplCommand(LocalIfElse.IfBranch).Command :=
 	       'AWriter.WriteResponse(' +
-	       GetConversionInfo(Member, ProcImpl).ConverterName + '(' +
-	       MethodPrefix + Member.Name + '))';
+	       MakeAccessor(GetConversionInfo(Member, ProcImpl),
+	         MethodPrefix + Member.Name, '') + ')';
 	    LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
 	    TPasImplCommand(LocalIfElse.ElseBranch).Command := s + ', ' + s2 + ')';
 	  end else
@@ -586,21 +608,21 @@ var
 	LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
 	TPasImplCommand(LocalIfElse.IfBranch).Command :=
 	   'AWriter.WriteResponse(' +
-	   GetConversionInfo(Member, ProcImpl).ConverterName + '(' +
-	   Copy(MethodPrefix, 1, Length(MethodPrefix) - 1) + '))';
+	   MakeAccessor(GetConversionInfo(Member, ProcImpl),
+	     Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
 
 	LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
 	TPasImplCommand(LocalIfElse.ElseBranch).Command :=
 	  'AWriter.WriteResponse(' +
-          GetConversionInfo(Member.VarType, ProcImpl).ConverterName + '(' +
-	  MethodPrefix + Member.Name + '[AParser.GetNext' +
-	  GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType) + ']))';
+          MakeAccessor(GetConversionInfo(Member.VarType, ProcImpl),
+	    MethodPrefix + Member.Name, 'AParser.GetNext' +
+	    GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType)) + ')';
       end else
       begin
         IfElse.IfBranch := TPasImplCommand.Create('', IfElse);
         TPasImplCommand(IfElse.IfBranch).Command := 'AWriter.WriteResponse(' +
-          GetConversionInfo(Member.VarType, ProcImpl).ConverterName + '(' +
-	  MethodPrefix + Member.Name + '))';
+          MakeAccessor(GetConversionInfo(Member.VarType, ProcImpl),
+	    MethodPrefix + Member.Name, '') + ')';
       end;
     end;
 
@@ -834,7 +856,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-06-12 19:00:53  michael
+  Revision 1.3  2003-06-25 08:56:26  sg
+  * Added support for reading set properties
+
+  Revision 1.2  2003/06/12 19:00:53  michael
   * Supports usage of declarations from other units (as long as mkxmlrpc
      parsed these units due to a --input=unitname command)
 
