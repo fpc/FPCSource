@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for shedit
+#
+
+[targets]
+programs=eratos qsort hello blackbox magic lines fpctris
+programs_win32=winhello menu mandel dlltest testdll
+programs_linux=mandel samegame
+programs_go32v2=mandel samegame
+
+[dirs]
+fpcdir=../..
+unitdir=$(FPCDIR)/api
+targetdir=.
+
+
+[rules]
+ifeq ($(OS_TARGET),win32)
+vpath %$(PASEXT) win32
+endif
+
+#################################
+# Demo installation for linux
+#
+
+DEMOINSTALLDIR=$(DOCINSTALLDIR)/demo
+
+installdemo:
+        $(MKDIR) $(DEMOINSTALLDIR)
+        $(COPY) -rf * $(DEMOINSTALLDIR)

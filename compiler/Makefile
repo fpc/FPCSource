@@ -1,12 +1,12 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-08 15:24
+# Makefile generated from Makefile.fpc on 1999-11-09 20:52
 #
 
 defaultrule: Makefile all
 
 Makefile: Makefile.fpc
 	fpcmake
-	$(MAKE)
+	
 
 #####################################################################
 # Autodetect OS (Linux or Dos or Windows NT)
@@ -122,6 +122,20 @@ endif
 
 # Pre Settings
 
+# Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
+ifdef ALPHA
+CPU_TARGET=alpha
+endif
+ifdef POWERPC
+CPU_TARGET=powerpc
+endif
+ifdef M68K
+CPU_TARGET=m68k
+endif
+ifdef I386
+CPU_TARGET=i386
+endif
+
 # RTL
 RTL=../rtl
 UTILS=../utils
@@ -189,14 +203,14 @@ MSGFILE=error$(FPCLANG).msg
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
 override LOCALDEF+=-dGDB -dBROWSERLOG
 
-# for i386 also insert MMX support
+# i386 specific
 ifeq ($(CPU_TARGET),i386)
+# also insert MMX support
 override LOCALDEF+=-dSUPPORT_MMX
-endif
-
 # We don't need the intel and binary writer on linux...
 ifdef inlinux
 override LOCALDEF+=-dNOAG386INT -dNOAG386BIN
+endif
 endif
 
 override LOCALOPT+=$(LOCALDEF)

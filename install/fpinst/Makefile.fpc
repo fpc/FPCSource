@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for FPC installer
+#
+
+[targets]
+units=ziptypes unzip
+programs_go32v2=install
+programs_win32=install
+programs_os2=install
+programs_linux=installer
+
+[clean]
+files_linux=install.o
+
+[dirs]
+fpcdir=../..
+unitdir=$(FPCDIR)/fv $(FPCDIR)/api
+targetdir=.
+
+
+[rules]
+ifdef inlinux
+installer: install.pas
+        $(COMPILER) -oinstaller install.pas
+endif
