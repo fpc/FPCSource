@@ -192,6 +192,10 @@ const
      cmDeleteBreakpoint  = 2402;
      cmToggleBreakpoint  = 2403;
 
+     cmDumpUndo          = 2500;
+     cmUndoAll           = 2501;
+     cmRedoAll           = 2502;
+
      { Help constants }
      hcSourceWindow      = 8000;
      hcHelpWindow        = 8001;
@@ -361,7 +365,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.28  1999-10-14 10:23:44  pierre
+  Revision 1.29  1999-10-27 12:10:42  pierre
+    + With DebugUndo added 3 menu items
+      "Dump Undo" "Undo All" and "Redo All"
+      for Undo checks
+
+  Revision 1.28  1999/10/14 10:23:44  pierre
    ClockView Black on Gray by default
 
   Revision 1.27  1999/09/13 16:24:43  peter

@@ -115,6 +115,11 @@ type
       function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
 {$endif}
       procedure   HandleEvent(var Event: TEvent); virtual;
+{$ifdef DebugUndo}
+      procedure   DumpUndo;
+      procedure   UndoAll;
+      procedure   RedoAll;
+{$endif DebugUndo}
       function    GetLocalMenu: PMenu; virtual;
       function    GetCommandTarget: PView; virtual;
       function    CreateLocalMenuView(var Bounds: TRect; M: PMenu): PMenuPopup; virtual;
@@ -807,6 +812,46 @@ begin
   CreateLocalMenuView:=MV;
 end;
 
+{$ifdef DebugUndo}
+procedure TSourceEditor.DumpUndo;
+var
+  i : sw_integer;
+begin
+  ClearToolMessages;
+  AddToolCommand('UndoList Dump');
+  for i:=0 to UndoList^.count-1 do
+    with UndoList^.At(i)^ do
+      begin
+       AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
+         ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
+      end;
+  if RedoList^.count>0 then
+    AddToolCommand('RedoList Dump');
+  for i:=0 to RedoList^.count-1 do
+    with RedoList^.At(i)^ do
+      begin
+       AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
+         ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
+      end;
+  UpdateToolMessages;
+  if Assigned(MessagesWindow) then
+    MessagesWindow^.Focus;
+end;
+
+procedure TSourceEditor.UndoAll;
+begin
+  While UndoList^.count>0 do
+    Undo;
+end;
+
+procedure TSourceEditor.RedoAll;
+begin
+  While RedoList^.count>0 do
+    Redo;
+end;
+
+{$endif DebugUndo}
+
 procedure TSourceEditor.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     S: string;
@@ -817,6 +862,11 @@ begin
       begin
         DontClear:=false;
         case Event.Command of
+{$ifdef DebugUndo}
+          cmDumpUndo    : DumpUndo;
+          cmUndoAll     : UndoAll;
+          cmRedoAll     : RedoAll;
+{$endif DebugUndo}
           cmBrowseAtCursor:
             begin
               S:=LowerCaseStr(GetEditorCurWord(@Self));
@@ -2779,7 +2829,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.43  1999-10-25 16:55:13  pierre
+  Revision 1.44  1999-10-27 12:10:42  pierre
+    + With DebugUndo added 3 menu items
+      "Dump Undo" "Undo All" and "Redo All"
+      for Undo checks
+
+  Revision 1.43  1999/10/25 16:55:13  pierre
    * adapted to a small weditor change
 
   Revision 1.42  1999/09/16 14:34:59  pierre

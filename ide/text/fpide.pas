@@ -237,6 +237,11 @@ begin
     NewSubMenu('~E~dit',hcEditMenu, NewMenu(
       NewItem('~U~ndo','Alt+BkSp', kbAltBack, cmUndo, hcUndo,
       NewItem('~R~edo','', kbNoKey, cmRedo, hcRedo,
+{$ifdef DebugUndo}
+      NewItem('~D~ump Undo','', kbNoKey, cmDumpUndo, hcUndo,
+      NewItem('U~n~do All','', kbNoKey, cmUndoAll, hcUndo,
+      NewItem('R~e~do All','', kbNoKey, cmRedoAll, hcRedo,
+{$endif DebugUndo}
       NewLine(
       NewItem('Cu~t~','Shift+Del', kbShiftDel, cmCut, hcCut,
       NewItem('~C~opy','Ctrl+Ins', kbCtrlIns, cmCopy, hcCut,
@@ -244,7 +249,9 @@ begin
       NewItem('C~l~ear','Ctrl+Del', kbCtrlDel, cmClear, hcClear,
       NewLine(
       NewItem('~S~how clipboard','', kbNoKey, cmShowClipboard, hcShowClipboard,
-      WinPMI)))))))))),
+      WinPMI))))))
+{$ifdef DebugUndo}))){$endif DebugUndo}
+      )))),
     NewSubMenu('~S~earch',hcSearchMenu, NewMenu(
       NewItem('~F~ind...','', kbNoKey, cmFind, hcFind,
       NewItem('~R~eplace...','', kbNoKey, cmReplace, hcReplace,
@@ -847,7 +854,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.41  1999-09-22 16:21:41  pierre
+  Revision 1.42  1999-10-27 12:10:42  pierre
+    + With DebugUndo added 3 menu items
+      "Dump Undo" "Undo All" and "Redo All"
+      for Undo checks
+
+  Revision 1.41  1999/09/22 16:21:41  pierre
    * Use ShrinkPas for RecentFiles
 
   Revision 1.40  1999/09/22 13:04:31  pierre
