@@ -30,11 +30,13 @@ procedure gdk_set_use_xshm(use_xshm:gint);cdecl;external gdkdll name 'gdk_set_us
 function  gdk_get_show_events:gint;cdecl;external gdkdll name 'gdk_get_show_events';
 function  gdk_get_use_xshm:gint;cdecl;external gdkdll name 'gdk_get_use_xshm';
 function  gdk_get_display:Pgchar;cdecl;external gdkdll name 'gdk_get_display';
+{$ifndef win32}
 function  gdk_time_get:guint32;cdecl;external gdkdll name 'gdk_time_get';
 function  gdk_timer_get:guint32;cdecl;external gdkdll name 'gdk_timer_get';
 procedure gdk_timer_set(milliseconds:guint32);cdecl;external gdkdll name 'gdk_timer_set';
 procedure gdk_timer_enable;cdecl;external gdkdll name 'gdk_timer_enable';
 procedure gdk_timer_disable;cdecl;external gdkdll name 'gdk_timer_disable';
+{$endif}
 function  gdk_input_add_full(source:gint; condition:TGdkInputCondition; thefunction:TGdkInputfunction; data:gpointer; thedestroy:TGdkDestroyNotify):gint;cdecl;external gdkdll name 'gdk_input_add_full';
 function  gdk_input_add(source:gint; condition:TGdkInputCondition; thefunction:TGdkInputfunction; data:gpointer):gint;cdecl;external gdkdll name 'gdk_input_add';
 procedure gdk_input_remove(tag:gint);cdecl;external gdkdll name 'gdk_input_remove';
@@ -65,8 +67,10 @@ procedure gdk_query_visual_types(visual_types:PPGdkVisualType; count:Pgint);cdec
 function  gdk_list_visuals:PGList;cdecl;external gdkdll name 'gdk_list_visuals';
 function  gdk_window_new(parent:PGdkWindow; attributes:PGdkWindowAttr; attributes_mask:gint):PGdkWindow;cdecl;external gdkdll name 'gdk_window_new';
 procedure gdk_window_destroy(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_destroy';
+{$ifndef win32}
 function  gdk_window_ref(window:PGdkWindow):PGdkWindow;cdecl;external gdkdll name 'gdk_window_ref';
 procedure gdk_window_unref(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_unref';
+{$endif}
 function  gdk_window_at_pointer(win_x:Pgint; win_y:Pgint):PGdkWindow;cdecl;external gdkdll name 'gdk_window_at_pointer';
 procedure gdk_window_show(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_show';
 procedure gdk_window_hide(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_hide';
@@ -78,7 +82,9 @@ procedure gdk_window_reparent(window:PGdkWindow; new_parent:PGdkWindow; x:gint; 
 procedure gdk_window_clear(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_clear';
 procedure gdk_window_clear_area(window:PGdkWindow; x:gint; y:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_window_clear_area';
 procedure gdk_window_clear_area_e(window:PGdkWindow; x:gint; y:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_window_clear_area_e';
+{$ifndef win32}
 procedure gdk_window_copy_area(window:PGdkWindow; gc:PGdkGC; x:gint; y:gint; source_window:PGdkWindow; source_x:gint; source_y:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_window_copy_area';
+{$endif}
 procedure gdk_window_raise(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_raise';
 procedure gdk_window_lower(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_lower';
 procedure gdk_window_set_user_data(window:PGdkWindow; user_data:gpointer);cdecl;external gdkdll name 'gdk_window_set_user_data';
@@ -118,14 +124,18 @@ procedure gdk_window_set_transient_for(window:PGdkWindow; leader:PGdkWindow);cde
 procedure gdk_window_set_background(window:PGdkWindow; color:PGdkColor);cdecl;external gdkdll name 'gdk_window_set_background';
 procedure gdk_window_set_back_pixmap(window:PGdkWindow; pixmap:PGdkPixmap; parent_relative:gint);cdecl;external gdkdll name 'gdk_window_set_back_pixmap';
 procedure gdk_window_set_cursor(window:PGdkWindow; cursor:PGdkCursor);cdecl;external gdkdll name 'gdk_window_set_cursor';
+{$ifndef win32}
 procedure gdk_window_set_colormap(window:PGdkWindow; colormap:PGdkColormap);cdecl;external gdkdll name 'gdk_window_set_colormap';
+{$endif}
 procedure gdk_window_get_user_data(window:PGdkWindow; data:Pgpointer);cdecl;external gdkdll name 'gdk_window_get_user_data';
 procedure gdk_window_get_geometry(window:PGdkWindow; x:Pgint; y:Pgint; width:Pgint; height:Pgint; depth:Pgint);cdecl;external gdkdll name 'gdk_window_get_geometry';
 procedure gdk_window_get_position(window:PGdkWindow; x:Pgint; y:Pgint);cdecl;external gdkdll name 'gdk_window_get_position';
+{$ifndef win32}
 procedure gdk_window_get_size(window:PGdkWindow; width:Pgint; height:Pgint);cdecl;external gdkdll name 'gdk_window_get_size';
 function  gdk_window_get_visual(window:PGdkWindow):PGdkVisual;cdecl;external gdkdll name 'gdk_window_get_visual';
 function  gdk_window_get_colormap(window:PGdkWindow):PGdkColormap;cdecl;external gdkdll name 'gdk_window_get_colormap';
 function  gdk_window_get_type(window:PGdkWindow):TGdkWindowType;cdecl;external gdkdll name 'gdk_window_get_type';
+{$endif}
 function  gdk_window_get_origin(window:PGdkWindow; x:Pgint; y:Pgint):gint;cdecl;external gdkdll name 'gdk_window_get_origin';
 function  gdk_window_get_deskrelative_origin(window:PGdkWindow; x:Pgint; y:Pgint):gboolean;cdecl;external gdkdll name 'gdk_window_get_deskrelative_origin';
 procedure gdk_window_get_root_origin(window:PGdkWindow; x:Pgint; y:Pgint);cdecl;external gdkdll name 'gdk_window_get_root_origin';
@@ -150,7 +160,9 @@ function  gdk_gc_new(window:PGdkWindow):PGdkGC;cdecl;external gdkdll name 'gdk_g
 function  gdk_gc_new_with_values(window:PGdkWindow; values:PGdkGCValues; values_mask:TGdkGCValuesMask):PGdkGC;cdecl;external gdkdll name 'gdk_gc_new_with_values';
 function  gdk_gc_ref(gc:PGdkGC):PGdkGC;cdecl;external gdkdll name 'gdk_gc_ref';
 procedure gdk_gc_unref(gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_unref';
+{$ifndef win32}
 procedure gdk_gc_destroy(gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_destroy';
+{$endif}
 procedure gdk_gc_get_values(gc:PGdkGC; values:PGdkGCValues);cdecl;external gdkdll name 'gdk_gc_get_values';
 procedure gdk_gc_set_foreground(gc:PGdkGC; color:PGdkColor);cdecl;external gdkdll name 'gdk_gc_set_foreground';
 procedure gdk_gc_set_background(gc:PGdkGC; color:PGdkColor);cdecl;external gdkdll name 'gdk_gc_set_background';
@@ -176,16 +188,20 @@ function  gdk_pixmap_create_from_xpm(window:PGdkWindow; mask:PPGdkBitmap; transp
 function  gdk_pixmap_colormap_create_from_xpm(window:PGdkWindow; colormap:PGdkColormap; mask:PPGdkBitmap; transparent_color:PGdkColor; filename:Pgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_colormap_create_from_xpm';
 function  gdk_pixmap_create_from_xpm_d(window:PGdkWindow; mask:PPGdkBitmap; transparent_color:PGdkColor; data:PPgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_create_from_xpm_d';
 function  gdk_pixmap_colormap_create_from_xpm_d(window:PGdkWindow; colormap:PGdkColormap; mask:PPGdkBitmap; transparent_color:PGdkColor; data:PPgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_colormap_create_from_xpm_d';
+{$ifndef win32}
 function  gdk_pixmap_ref(pixmap:PGdkPixmap):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_ref';
 procedure gdk_pixmap_unref(pixmap:PGdkPixmap);cdecl;external gdkdll name 'gdk_pixmap_unref';
 function  gdk_bitmap_ref(pixmap:PGdkBitmap):PGdkBitmap;cdecl;external gdkdll name 'gdk_bitmap_ref';
 procedure gdk_bitmap_unref(pixmap:PGdkBitmap);cdecl;external gdkdll name 'gdk_bitmap_unref';
+{$endif}
 function  gdk_image_new_bitmap(visual:PGdkVisual; data:gpointer; width:gint; height:gint):PGdkImage;cdecl;external gdkdll name 'gdk_image_new_bitmap';
 function  gdk_image_new(thetype:TGdkImageType; visual:PGdkVisual; width:gint; height:gint):PGdkImage;cdecl;external gdkdll name 'gdk_image_new';
 function  gdk_image_get(window:PGdkWindow; x:gint; y:gint; width:gint; height:gint):PGdkImage;cdecl;external gdkdll name 'gdk_image_get';
 procedure gdk_image_put_pixel(image:PGdkImage; x:gint; y:gint; pixel:guint32);cdecl;external gdkdll name 'gdk_image_put_pixel';
 function  gdk_image_get_pixel(image:PGdkImage; x:gint; y:gint):guint32;cdecl;external gdkdll name 'gdk_image_get_pixel';
+{$ifndef win32}
 procedure gdk_image_destroy(image:PGdkImage);cdecl;external gdkdll name 'gdk_image_destroy';
+{$endif}
 function  gdk_colormap_new(visual:PGdkVisual; allocate:gint):PGdkColormap;cdecl;external gdkdll name 'gdk_colormap_new';
 function  gdk_colormap_ref(cmap:PGdkColormap):PGdkColormap;cdecl;external gdkdll name 'gdk_colormap_ref';
 procedure gdk_colormap_unref(cmap:PGdkColormap);cdecl;external gdkdll name 'gdk_colormap_unref';
@@ -236,8 +252,8 @@ procedure gdk_draw_polygon(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; points
 procedure gdk_draw_string(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; thestring:Pgchar);cdecl;external gdkdll name 'gdk_draw_string';
 procedure gdk_draw_text(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; text:Pgchar; text_length:gint);cdecl;external gdkdll name 'gdk_draw_text';
 procedure gdk_draw_text_wc(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; text:PGdkWChar; text_length:gint);cdecl;external gdkdll name 'gdk_draw_text_wc';
-procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_pixmap';
 {$ifndef gtkwin}
+procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_pixmap';
 procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_bitmap';
 {$endif}
 procedure gdk_draw_image(drawable:PGdkDrawable; gc:PGdkGC; image:PGdkImage; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_image';
@@ -339,7 +355,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:33  peter
+  Revision 1.2  2000-01-24 23:56:58  peter
+    * win32 fixes for the latest dll (2000-01-04)
+
+  Revision 1.1  1999/11/24 23:36:33  peter
     * moved to packages dir
 
   Revision 1.10  1999/10/21 14:35:23  peter
