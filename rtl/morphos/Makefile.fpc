@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) objpas macpas strings \
+units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       dos \
       sysutils classes math typinfo varutils \
       charset ucomplex getopts matrix \
@@ -105,7 +105,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 #crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-#objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -122,6 +122,8 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
