@@ -80,6 +80,8 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
 
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
+    if (P=Nil) then 
+      exit;
     fpc_dynarray_clear_internal(p-sizeof(tdynarray),ti);
     p:=nil;
   end;
@@ -310,7 +312,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.25  2004-05-20 15:56:32  florian
+  Revision 1.26  2004-05-24 07:18:17  michael
+  + Patch from peter to fix crash
+
+  Revision 1.25  2004/05/20 15:56:32  florian
     * fixed <dyn. array>:=nil;
 
   Revision 1.24  2004/05/02 15:15:58  peter
