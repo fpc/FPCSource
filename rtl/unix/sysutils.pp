@@ -498,17 +498,23 @@ Begin
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes!
   }
+  {$ifndef FPC_HAS_FPEXEC}
   if Pos ('"', Path) = 0 then
     CommandLine := '"' + Path + '"'
   else
     CommandLine := Path;
   if ComLine <> '' then
     CommandLine := Commandline + ' ' + ComLine;
+  {$endif}
   pid:=fpFork;
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-     Execl(CommandLine);
+    {$ifdef FPC_HAS_FPEXEC}
+      fpexecl(Path,[Comline]);
+    {$else}
+      Execl(CommandLine);
+    {$endif}
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -571,7 +577,10 @@ end.
 {
 
   $Log$
-  Revision 1.34  2004-02-09 17:11:17  marco
+  Revision 1.35  2004-02-12 15:31:06  marco
+   * First version of fpexec change. Still under ifdef or silently overloaded
+
+  Revision 1.34  2004/02/09 17:11:17  marco
    * fixed for 1.0 errno->fpgeterrno
 
   Revision 1.33  2004/02/08 14:50:51  michael

@@ -89,16 +89,31 @@ function  SetDateTime (Year,Month,Day,hour,minute,second:Word) : Boolean;
 function CreateShellArgV (const prog:string):ppchar;
 function CreateShellArgV (const prog:Ansistring):ppchar;
 
-Function Execv   (const path:pathstr;args:ppchar):cint;
-Function Execv   (const path: AnsiString;args:ppchar):cint;
-Function Execvp  (Path: Pathstr;Args:ppchar;Ep:ppchar):cint;
-Function Execvp  (Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
-Function Execl   (const Todo: String):cint;
-Function Execl   (const Todo: Ansistring):cint;
-Function Execle  (Todo: String;Ep:ppchar):cint;
-Function Execle  (Todo: AnsiString;Ep:ppchar):cint;
-Function Execlp  (Todo: string;Ep:ppchar):cint;
-Function Execlp  (Todo: Ansistring;Ep:ppchar):cint;
+// These are superceded by the fpExec functions that are more pascallike
+// and have less limitations. However I'll leave them in for a while, to
+// not frustrate things too much
+// but they might not make it to 2.0
+Function Execv   (const path:pathstr;args:ppchar):cint;          {$ifndef ver1_0}deprecated; {$endif}
+Function Execv   (const path: AnsiString;args:ppchar):cint;  	 {$ifndef ver1_0}deprecated; {$endif}
+Function Execvp  (Path: Pathstr;Args:ppchar;Ep:ppchar):cint;     {$ifndef ver1_0}deprecated; {$endif}
+Function Execvp  (Path: AnsiString; Args:ppchar;Ep:ppchar):cint; {$ifndef ver1_0}deprecated; {$endif}
+Function Execl   (const Todo: String):cint;			 {$ifndef ver1_0}deprecated; {$endif}
+Function Execl   (const Todo: Ansistring):cint;			 {$ifndef ver1_0}deprecated; {$endif}
+Function Execle  (Todo: String;Ep:ppchar):cint;			 {$ifndef ver1_0}deprecated; {$endif}           
+Function Execle  (Todo: AnsiString;Ep:ppchar):cint;		 {$ifndef ver1_0}deprecated; {$endif}
+Function Execlp  (Todo: string;Ep:ppchar):cint;			 {$ifndef ver1_0}deprecated; {$endif}
+Function Execlp  (Todo: Ansistring;Ep:ppchar):cint;		 {$ifndef ver1_0}deprecated; {$endif}
+
+//
+// These are much better, in nearly all ways.
+//
+
+function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
+function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;
 Function Shell   (const Command:AnsiString):cint;
@@ -182,6 +197,8 @@ const
 
 Function  FExpand  (Const Path: PathStr):PathStr;
 Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
+Function  FSearch  (const path:AnsiString;dirlist:Ansistring;AddCurrentPath:Boolean):AnsiString;
+Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 Function  Glob     (Const path:pathstr):pglob;
 Procedure Globfree (var p:pglob);
 
@@ -473,6 +490,158 @@ begin
   execlp:=ExecVP(StrPas(p^),p,EP);
 end;
 
+function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+// Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
+// Note: for internal use by skilled programmers only
+// if "s" goes out of scope in the parent procedure, the pointer is dangling.
+
+var p   : ppchar;
+    Res,
+    i   : LongInt;
+begin
+  if High(s)<Low(s) Then Exit(NIL);
+  Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
+					      // for cmd
+  if p=nil then
+    begin
+      {$ifdef xunix}
+      fpseterrno(ESysEnomem);
+      {$endif}
+      exit(NIL);
+    end;
+  for i:=low(s) to high(s) do
+     p[i+Reserveentries]:=pchar(s[i]);
+  p[high(s)+1+Reserveentries]:=nil; 
+  ArrayStringToPPchar:=p;
+end;
+
+function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
+// does an ExecVE, but still has to handle P
+// execv variants call this directly, execl variants indirectly via
+//     intfpexecl
+
+Var 
+  NewCmd  : ansistring;
+  ThePath : AnsiString;
+  Error   : cint;
+  NrParam : longint;
+
+Begin
+  If SearchPath and (pos('/',pathname)=0) Then
+    Begin
+      // The above could be better. (check if not escaped/quoted '/' 's) ?
+      // (Jilles says this is ok)
+      // Stevens says only search if newcmd contains no '/'
+      // fsearch is not ansistring clean yet.
+      ThePath:=fpgetenv('PATH');
+      if thepath='' then
+        thepath:='.';     // FreeBSD uses _PATH_DEFPATH = /usr/bin:/bin
+			  // but a quick check showed that _PATH_DEFPATH 
+			  // varied from OS to OS
+			
+      newcmd:=FSearch(pathname,thepath,false);
+      // FreeBSD libc keeps on trying till a file is successfully run.
+      // Stevens says "try each path prefix"
+	
+      // execp puts newcmd here.
+        args^:=pchar(newcmd);
+   End;
+ // repeat
+//	if searchpath then args^:=pchar(commandtorun)
+
+  IntFpExecVEMaybeP:=fpExecVE(Args^,Args,MyEnv);
+{ 
+// Code that if exec fails due to permissions, tries to run it with sh 
+// Should we deallocate p on fail? -> no fpexit is run no matter what
+// 
+}
+// if intfpexecvemaybep=-1 then zoekvolgende file.
+// until (Goexit) or SearchExit;
+
+
+{
+ If IntFpExec=-1 Then
+    Begin
+      Error:=fpGetErrno
+      Case Error of
+        ESysE2Big  : Exit(-1);
+	ESysELoop,
+	  : Exit(-1);	
+
+}
+end;
+
+function intFpExecl (Const PathName:AnsiString;const s:array of ansistring;MyEnv:ppchar;SearchPath:Boolean):cint;
+{ Handles the array of ansistring -> ppchar conversion. 
+  Base for the the "l" variants.
+}
+var p:ppchar;
+
+begin
+  If PathName='' Then 
+    Begin
+      fpsetErrno(ESysEnoEnt);
+      Exit(-1);			// Errno?
+    End;
+  p:=ArrayStringToPPchar(s,1);
+  if p=NIL Then
+    Begin
+      GetMem(p,2*sizeof(pchar));
+      if p=nil then
+       begin
+        {$ifdef xunix}
+          fpseterrno(ESysEnoMem);
+        {$endif}
+         fpseterrno(ESysEnoEnt);
+         exit(-1);
+       end;
+      p[1]:=nil;
+    End;
+  p^:=pchar(PathName);
+  IntFPExecL:=intFpExecVEMaybeP(PathName,p,MyEnv,SearchPath);
+end;
+
+function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
+
+Begin
+  FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
+End;
+
+function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+
+Begin
+  FpExecL:=intFPExecl(PathName,S,EnvP,false);
+End;
+
+function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+
+Begin
+  FpExecLP:=intFPExecl(PathName,S,EnvP,True);
+End;
+
+function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
+
+Begin
+ fpexecV:=intFpExecVEMaybeP (PathName,args,envp,false);
+End;
+
+function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
+
+Begin
+ fpexecVP:=intFpExecVEMaybeP (PathName,args,envp,true);
+End;
+
+function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
+
+Begin
+ fpexecVPE:=intFpExecVEMaybeP (PathName,args,env,true);
+End;
+
+// exect and execvP (ExecCapitalP) are not implement
+// Non POSIX anyway.  
+// Exect turns on tracing for the process
+// execvP has the searchpath as array of ansistring ( const char *search_path)
+
 Function Shell(const Command:String):cint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -511,21 +680,31 @@ Function Shell(const Command:AnsiString):cint;
   AnsiString version of Shell
 }
 var
+{$ifndef FPC_USE_FPEXEC}
   p     : ppchar;
+{$endif}
   pid   : cint;
 begin { Changes as above }
+{$ifndef FPC_USE_FPEXEC}
   p:=CreateShellArgv(command);
+{$endif}
   pid:=fpfork;
   if pid=0 then // We are in the Child
    begin
+    {$ifdef FPC_USE_FPEXEC}
+      fpexecl('/bin/sh',['-c',Command]);	
+    {$else}
      fpExecve(p^,p,envp);
+    {$endif}   
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
    Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1;
+ {$ifndef FPC_USE_FPXEC}
   FreeShellArgV(p);
+ {$ENDIF}
 end;
 
 
@@ -1312,6 +1491,66 @@ Begin
    End;
 End;
 
+Function FSearch(const path:AnsiString;dirlist:Ansistring;AddCurrentPath:Boolean):AnsiString;
+{
+  Searches for a file 'path' in the list of direcories in 'dirlist'.
+  returns an empty string if not found. Wildcards are NOT allowed.
+  If dirlist is empty, it is set to '.'
+
+This function tries to make FSearch use ansistrings, and decrease
+stringhandling overhead at the same time.
+
+}
+Var
+  NewDir : PathStr;
+  p1     : cint;
+  Info   : Stat;
+  i,j      : cint; 
+  p      : pchar;
+Begin
+
+//    If this is done then here.
+ if AddCurrentPath Then
+     Dirlist:=dirlist+':.';{Make sure current dir is first to be searched.}
+
+{Replace ':' and ';' with #0}
+
+ for p1:=1 to length(dirlist) do
+   if (dirlist[p1]=':') or (dirlist[p1]=';') then
+    dirlist[p1]:=#0;
+
+{Check for WildCards}
+  If (Pos('?',Path) <> 0) or (Pos('*',Path) <> 0) Then
+   FSearch:='' {No wildcards allowed in these things.}
+  Else
+   Begin
+     p:=pchar(dirlist);
+     i:=length(dirlist);
+     j:=1;
+     Repeat
+       NewDir:=p+'/'+Path;
+       if (FpStat(NewDir,Info)>=0) and
+          (not fpS_ISDIR(Info.st_Mode)) then
+        Begin
+          If Pos('./',NewDir)=1 Then
+           Delete(NewDir,1,2);
+        {DOS strips off an initial .\}
+        End
+       Else
+        NewDir:='';
+       while (j<=i) and (p^<>#0) do begin inc(j); inc(p); end;
+       if p^=#0 then inc(p);
+     Until (j>=i) or (Length(NewDir) > 0);
+     FSearch:=NewDir;
+   End;
+End;
+
+Function FSearch(const path:AnsiString;dirlist:Ansistring):AnsiString;
+
+Begin
+ FSearch:=FSearch(path,dirlist,True);
+End;
+
 Procedure Globfree(var p : pglob);
 {
   Release memory occupied by pglob structure, and names in it.
@@ -1411,7 +1650,10 @@ End.
 
 {
   $Log$
-  Revision 1.60  2004-01-23 08:11:18  jonas
+  Revision 1.61  2004-02-12 15:31:06  marco
+   * First version of fpexec change. Still under ifdef or silently overloaded
+
+  Revision 1.60  2004/01/23 08:11:18  jonas
     * only include systypes.inc if FPC_USE_LIBC is not defined
 
   Revision 1.59  2004/01/22 13:46:14  marco
