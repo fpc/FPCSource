@@ -749,15 +749,13 @@ Begin
     Move(startp^,s[sPos],Len);
     inc(sPos,Len);
   { was it a LF? then leave }
-    if (p<maxp) and (p^=#10) then
+    if (spos=MaxLen) or
+       ((p<maxp) and (p^=#10)) then
      begin
-       if (spos>0) and (s[spos-1]=#13) then
+       if (p^=#10) and (spos>0) and (s[spos-1]=#13) then
         dec(sPos);
        break;
      end;
-  { Maxlen reached ? }
-    if spos=MaxLen then
-     break;
   until false;
   ReadPCharLen:=spos;
 End;
@@ -952,7 +950,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  1999-09-10 15:40:33  peter
+  Revision 1.57  1999-09-10 17:14:43  peter
+    * remove CR when reading one char less then size
+
+  Revision 1.56  1999/09/10 15:40:33  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
   Revision 1.55  1999/09/08 16:12:24  peter
