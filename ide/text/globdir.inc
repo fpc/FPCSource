@@ -71,4 +71,5 @@
 {$ifdef DEBUG}
   { include Undo/Redo code from Visa Harvey }
   {$define Undo}
+  {$define DebugUndo}
 {$endif DEBUG}
