@@ -400,7 +400,7 @@ unit raatt;
                     c:=current_scanner.asmgetchar;
                   end;
                  actasmpattern[0]:=chr(len);
-                 actasmpattern:=tostr(ValDecimal(actasmpattern));
+                 actasmpattern:=tostr(ParseVal(actasmpattern,10));
                  actasmtoken:=AS_INTNUM;
                  exit;
                end;
@@ -417,7 +417,7 @@ unit raatt;
                           actasmpattern:=actasmpattern + c;
                           c:=current_scanner.asmgetchar;
                         end;
-                       actasmpattern:=tostr(ValBinary(actasmpattern));
+                       actasmpattern:=tostr(ParseVal(actasmpattern,2));
                        actasmtoken:=AS_INTNUM;
                        exit;
                      end;
@@ -478,7 +478,7 @@ unit raatt;
                           actasmpattern:=actasmpattern + c;
                           c:=current_scanner.asmgetchar;
                         end;
-                       actasmpattern:=tostr(ValHexaDecimal(actasmpattern));
+                       actasmpattern:=tostr(ParseVal(actasmpattern,16));
                        actasmtoken:=AS_INTNUM;
                        exit;
                      end;
@@ -490,13 +490,13 @@ unit raatt;
                           actasmpattern:=actasmpattern + c;
                           c:=current_scanner.asmgetchar;
                         end;
-                       actasmpattern:=tostr(ValOctal(actasmpattern));
+                       actasmpattern:=tostr(ParseVal(actasmpattern,8));
                        actasmtoken:=AS_INTNUM;
                        exit;
                      end;
                    else { octal number zero value...}
                      Begin
-                       actasmpattern:=tostr(ValOctal(actasmpattern));
+                       actasmpattern:=tostr(ParseVal(actasmpattern,8));
                        actasmtoken:=AS_INTNUM;
                        exit;
                      end;
@@ -1523,7 +1523,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2005-01-19 22:19:41  peter
+  Revision 1.18  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.17  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

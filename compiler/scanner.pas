@@ -607,7 +607,7 @@ implementation
                   begin
                     preproc_consume(_ID);
                     hs:=read_factor();
-                    valint(hs,l,w);
+                    val(hs,l,w);
                     if l<>0 then
                       read_factor:='0'
                     else
@@ -656,8 +656,8 @@ implementation
               break;
             preproc_consume(_ID);
             hs2:=read_factor;
-            valint(hs1,l1,w);
-            valint(hs2,l2,w);
+            val(hs1,l1,w);
+            val(hs2,l2,w);
             if (l1<>0) and (l2<>0) then
               hs1:='1'
             else
@@ -681,8 +681,8 @@ implementation
               break;
             preproc_consume(_ID);
             hs2:=read_term;
-            valint(hs1,l1,w);
-            valint(hs2,l2,w);
+            val(hs1,l1,w);
+            val(hs2,l2,w);
             if (l1<>0) or (l2<>0) then
               hs1:='1'
             else
@@ -710,8 +710,8 @@ implementation
            hs2:=read_simple_expr;
            if is_number(hs1) and is_number(hs2) then
              begin
-                valint(hs1,l1,w);
-                valint(hs2,l2,w);
+                val(hs1,l1,w);
+                val(hs2,l2,w);
                 case t of
                    _EQUAL : b:=l1=l2;
                  _UNEQUAL : b:=l1<>l2;
@@ -1876,7 +1876,7 @@ implementation
         w : integer;
       begin
         readnumber;
-        valint(pattern,l,w);
+        val(pattern,l,w);
         readval:=l;
       end;
 
@@ -2803,7 +2803,7 @@ implementation
                                  readchar;
                                end;
                            end;
-                         valint(asciinr,m,code);
+                         val(asciinr,m,code);
                          if (asciinr='') or (code<>0) then
                            Message(scan_e_illegal_char_const)
                          else if (m<0) or (m>255) or (length(asciinr)>3) then
@@ -3259,7 +3259,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.98  2005-01-09 20:24:43  olle
+  Revision 1.99  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.98  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

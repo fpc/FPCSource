@@ -2017,7 +2017,7 @@ implementation
                else
                  begin
                    { then longint }
-                   valint(pattern,l,code);
+                   val(pattern,l,code);
                    if code = 0 then
                      begin
                        consume(_INTCONST);
@@ -2527,7 +2527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2005-01-04 16:38:07  peter
+  Revision 1.179  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.178  2005/01/04 16:38:07  peter
     * don't allow properties in C style operators
 
   Revision 1.177  2004/12/26 16:22:01  peter

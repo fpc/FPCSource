@@ -77,7 +77,6 @@ interface
     function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}overload;
     function tostr_with_plus(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
     function DStr(l:longint):string;
-    procedure valint(S : string;var V : longint;var code : integer);
     {# Returns true if the string s is a number }
     function is_number(const s : string) : boolean;{$ifdef USEINLINE}inline;{$endif}
     {# Returns true if value is a power of 2, the actual
@@ -604,45 +603,6 @@ uses
      end;
 
 
-    procedure valint(S : string;var V : longint;var code : integer);
-    {
-      val() with support for octal, which is not supported under tp7
-    }
-{$ifndef FPC}
-      var
-        vs : longint;
-        c  : byte;
-      begin
-        if s[1]='%' then
-          begin
-             vs:=0;
-             longint(v):=0;
-             for c:=2 to length(s) do
-               begin
-                  if s[c]='0' then
-                    vs:=vs shl 1
-                  else
-                  if s[c]='1' then
-                    vs:=vs shl 1+1
-                  else
-                    begin
-                      code:=c;
-                      exit;
-                    end;
-               end;
-             code:=0;
-             longint(v):=vs;
-          end
-        else
-         system.val(S,V,code);
-      end;
-{$else not FPC}
-      begin
-         system.val(S,V,code);
-      end;
-{$endif not FPC}
-
-
     function is_number(const s : string) : boolean;{$ifdef USEINLINE}inline;{$endif}
     {
       is string a correct number ?
@@ -651,7 +611,7 @@ uses
          w : integer;
          l : longint;
       begin
-         valint(s,l,w);
+         val(s,l,w);
          is_number:=(w=0);
       end;
 
@@ -1264,7 +1224,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.47  2004-11-15 23:35:31  peter
+  Revision 1.48  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.47  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

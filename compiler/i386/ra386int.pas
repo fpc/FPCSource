@@ -515,7 +515,7 @@ Unit Ra386int;
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
                   end;
-                 actasmpattern:=tostr(ValHexaDecimal(actasmpattern));
+                 actasmpattern:=tostr(ParseVal(actasmpattern,16));
                  actasmtoken:=AS_INTNUM;
                  exit;
                end;
@@ -615,7 +615,7 @@ Unit Ra386int;
                   Begin
                     { Delete the last binary specifier }
                     delete(actasmpattern,length(actasmpattern),1);
-                    actasmpattern:=tostr(ValBinary(actasmpattern));
+                    actasmpattern:=tostr(ParseVal(actasmpattern,2));
                     actasmtoken:=AS_INTNUM;
                     exit;
                   end
@@ -624,21 +624,21 @@ Unit Ra386int;
                     case c of
                       'O' :
                         Begin
-                          actasmpattern:=tostr(ValOctal(actasmpattern));
+                          actasmpattern:=tostr(ParseVal(actasmpattern,8));
                           actasmtoken:=AS_INTNUM;
                           c:=current_scanner.asmgetchar;
                           exit;
                         end;
                       'H' :
                         Begin
-                          actasmpattern:=tostr(ValHexaDecimal(actasmpattern));
+                          actasmpattern:=tostr(ParseVal(actasmpattern,16));
                           actasmtoken:=AS_INTNUM;
                           c:=current_scanner.asmgetchar;
                           exit;
                         end;
                       else { must be an integer number }
                         begin
-                          actasmpattern:=tostr(ValDecimal(actasmpattern));
+                          actasmpattern:=tostr(ParseVal(actasmpattern,10));
                           actasmtoken:=AS_INTNUM;
                           exit;
                         end;
@@ -2036,7 +2036,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2005-01-19 22:19:41  peter
+  Revision 1.86  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.85  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

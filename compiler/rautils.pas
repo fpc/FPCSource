@@ -175,10 +175,7 @@ type
   {                     String routines                                 }
   {---------------------------------------------------------------------}
 
-Function ValDecimal(const S:String):aint;
-Function ValOctal(const S:String):aint;
-Function ValBinary(const S:String):aint;
-Function ValHexaDecimal(const S:String):aint;
+Function ParseVal(const S:String;base:byte):aint;
 Function PadZero(Var s: String; n: byte): Boolean;
 Function EscapeToPascal(const s:string): string;
 
@@ -543,14 +540,14 @@ Begin
              temp:=temp+s[i+1];
              temp:=temp+s[i+2];
              inc(i,2);
-             c:=chr(ValOctal(temp));
+             c:=chr(ParseVal(temp,8));
            end;
          'x':
            Begin
              temp:=s[i+1];
              temp:=temp+s[i+2];
              inc(i,2);
-             c:=chr(ValHexaDecimal(temp));
+             c:=chr(ParseVal(temp,16));
            end;
          else
            Begin
@@ -569,101 +566,47 @@ Begin
 end;
 
 
-Function ValDecimal(const S:String):aint;
+Function ParseVal(const S:String;base:byte):aint;
 { Converts a decimal string to aint }
 var
-  vs : aint;
-  c : longint;
+  code : integer;
+  errmsg : word;
+  prefix : string[2];
 Begin
-  vs:=0;
-  for c:=1 to length(s) do
-   begin
-     vs:=vs*10;
-     if s[c] in ['0'..'9'] then
-      inc(vs,ord(s[c])-ord('0'))
-     else
+  case base of
+    2 :
       begin
-        Message1(asmr_e_error_converting_decimal,s);
-        ValDecimal:=0;
-        exit;
+        errmsg:=asmr_e_error_converting_binary;
+        prefix:='%';
       end;
-   end;
-  ValDecimal:=vs;
-end;
-
-
-Function ValOctal(const S:String):aint;
-{ Converts an octal string to aint }
-var
-  vs : aint;
-  c : longint;
-Begin
-  vs:=0;
-  for c:=1 to length(s) do
-   begin
-     vs:=vs shl 3;
-     if s[c] in ['0'..'7'] then
-      inc(vs,ord(s[c])-ord('0'))
-     else
+    8 :
       begin
-        Message1(asmr_e_error_converting_octal,s);
-        ValOctal:=0;
-        exit;
+        errmsg:=asmr_e_error_converting_octal;
+        prefix:='&';
       end;
-   end;
-  ValOctal:=vs;
-end;
-
-
-Function ValBinary(const S:String):aint;
-{ Converts a binary string to aint }
-var
-  vs : aint;
-  c : longint;
-Begin
-  vs:=0;
-  for c:=1 to length(s) do
-   begin
-     vs:=vs shl 1;
-     if s[c] in ['0'..'1'] then
-      inc(vs,ord(s[c])-ord('0'))
-     else
+    10 :
       begin
-        Message1(asmr_e_error_converting_binary,s);
-        ValBinary:=0;
-        exit;
+        errmsg:=asmr_e_error_converting_decimal;
+        prefix:='';
       end;
-   end;
-  ValBinary:=vs;
-end;
-
-
-Function ValHexadecimal(const S:String):aint;
-{ Converts a binary string to aint }
-var
-  vs : aint;
-  c : longint;
-Begin
-  vs:=0;
-  for c:=1 to length(s) do
-   begin
-     vs:=vs shl 4;
-     case s[c] of
-       '0'..'9' :
-         inc(vs,ord(s[c])-ord('0'));
-       'A'..'F' :
-         inc(vs,ord(s[c])-ord('A')+10);
-       'a'..'f' :
-         inc(vs,ord(s[c])-ord('a')+10);
-       else
-         begin
-           Message1(asmr_e_error_converting_hexadecimal,s);
-           ValHexadecimal:=0;
-           exit;
-         end;
-     end;
-   end;
-  ValHexadecimal:=vs;
+    16 :
+      begin
+        errmsg:=asmr_e_error_converting_hexadecimal;
+        prefix:='$';
+      end;
+    else
+      internalerror(200501202);
+  end;
+  val(prefix+s,result,code);
+  if code<>0 then
+    begin
+      val(prefix+s,aword(result),code);
+      if code<>0 then
+        begin
+          Message1(errmsg,s);
+          result:=0;
+        end;
+    end;
 end;
 
 
@@ -1626,7 +1569,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.101  2005-01-19 22:19:41  peter
+  Revision 1.102  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.101  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

@@ -958,7 +958,7 @@ implementation
             major:=0;
             minor:=0;
             revision:=0;
-            valint(pattern,major,error);
+            val(pattern,major,error);
             if (error<>0) or (major > high(word)) or (major < 0) then
               begin
                 Message1(scan_w_wrong_version_ignored,pattern);
@@ -968,7 +968,7 @@ implementation
               begin
                 current_scanner.readchar;
                 current_scanner.readnumber;
-                valint(pattern,minor,error);
+                val(pattern,minor,error);
                 if (error<>0) or (minor > high(word)) or (minor < 0) then
                   begin
                     Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+pattern);
@@ -979,7 +979,7 @@ implementation
                   begin
                      current_scanner.readchar;
                      current_scanner.readnumber;
-                     valint(pattern,revision,error);
+                     val(pattern,revision,error);
                      if (error<>0) or (revision > high(word)) or (revision < 0) then
                        begin
                           Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+pattern);
@@ -1183,7 +1183,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2005-01-18 15:44:43  peter
+  Revision 1.53  2005-01-20 17:05:53  peter
+    * use val() for decoding integers
+
+  Revision 1.52  2005/01/18 15:44:43  peter
     * ignore more delphi directives
 
   Revision 1.51  2005/01/09 20:24:43  olle
