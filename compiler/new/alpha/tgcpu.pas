@@ -30,12 +30,10 @@ unit tgcpu;
     type
     
        ttgalpha = Object(ttgobj)
-           end;
+       end;
 
     var
        tg : ttgalpha;
-       reg_pushes : array[firstreg..lastreg] of longint;
-       is_reg_var : array[firstreg..lastreg] of boolean;
 
 implementation
 
@@ -44,7 +42,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-08-03 00:25:28  florian
+  Revision 1.3  1999-08-03 00:28:24  florian
+    - removed the stuff of the last commit :)
+
+  Revision 1.2  1999/08/03 00:25:28  florian
     * added reg var stuff
 
   Revision 1.1  1999/08/03 00:24:01  michael
