@@ -396,7 +396,8 @@ var
   {--------------------------------------------------------}
   { This routine fills a region of the screen bounded by   }
   { the <Border> color. It uses the current fillsettings   }
-  { for the flood filling.                                 }
+  { for the flood filling. Clipping is supported, and      }
+  { coordinates are local/viewport relative.               }
   {********************************************************}
   Var
    Beginx : Integer;
