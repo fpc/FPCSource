@@ -129,9 +129,14 @@ classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
 inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
 
+ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
+
 #
 # $Log$
-# Revision 1.9  1999-04-22 10:50:45  peter
+# Revision 1.10  1999-04-27 19:13:44  michael
+# + Added ezcgi from Michael Hess
+#
+# Revision 1.9  1999/04/22 10:50:45  peter
 #   * set target always
 #
 # Revision 1.8	1999/04/08 15:58:44  michael
