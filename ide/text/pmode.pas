@@ -650,7 +650,7 @@ var s: tseginfo;
 begin
   if get_rm_callback(PMAddr,RealRegs^,s) then
     P:=MakePtr(s.segment,longint(s.offset))
-  else  
+  else
     P:=nil;
   allocrmcallback:=P;
 end;
@@ -658,7 +658,8 @@ end;
 procedure freermcallback(RealCallAddr: pointer);
 var s: tseginfo;
 begin
-  s.segment:=PtrRec(RealCallAddr).seg; s.offset:=ptr(0,PtrRec(RealCallAddr).ofs);
+  s.segment:=PtrRec(RealCallAddr).seg;
+  s.offset:=Pointer(Longint(PtrRec(RealCallAddr).ofs));
   free_rm_callback(s);
 end;
 
@@ -717,7 +718,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-11-13 19:32:31  peter
+    * fixed ptr() to pointer() typecase
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.2  2000/06/22 09:07:13  pierre
