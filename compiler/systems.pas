@@ -153,7 +153,9 @@ unit systems;
           Cprefix   : string[2];
           newline   : string[2];
           endian    : tendian;
-          stackalignment : {longint this is a little overkill no ?? }byte;
+          {longint this is a little overkill no ?? but 256 is possible one day }
+          stackalignment : word;
+          maxCrecordalignment : word;
           size_of_pointer : byte;
           size_of_longint : byte;
           use_bound_instruction : boolean;
@@ -267,6 +269,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -288,6 +291,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -309,6 +313,7 @@ implementation
             newline      : #10;
             endian       : endian_little;
             stackalignment : 4;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -330,6 +335,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -351,6 +357,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 4;
+            maxCrecordalignment : 16;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -372,6 +379,7 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -393,6 +401,7 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -414,6 +423,7 @@ implementation
             newline      : #13;
             endian       : endian_big;
             stackalignment : 2;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -435,6 +445,7 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            maxCrecordalignment : 32;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -456,6 +467,7 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            maxCrecordalignment : 32;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -477,6 +489,7 @@ implementation
             newline      : #10;
             endian       : endian_little;
             stackalignment : 8;
+            maxCrecordalignment : 32;
             size_of_pointer : 8;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -498,6 +511,7 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 8;
+            maxCrecordalignment : 32;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -519,6 +533,7 @@ implementation
             newline      : #13;
             endian       : endian_big;
             stackalignment : 8;
+            maxCrecordalignment : 32;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -1623,7 +1638,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2000-05-23 21:26:52  pierre
+  Revision 1.105  2000-06-23 21:31:18  pierre
+   + new target_os field: maxCstructalignment
+
+  Revision 1.104  2000/05/23 21:26:52  pierre
     + added supported_target fiedl to tasminfo record
       to disregard wrong assembler settings
 
