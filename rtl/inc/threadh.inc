@@ -110,10 +110,6 @@ function BeginThread(sa : Pointer;stacksize : dword;
   var ThreadId : THandle) : DWord;
 {$ifndef CPU64}
 {$ifndef unix}
-{ Delphi uses a longint for threadid }
-function BeginThread(sa : Pointer;stacksize : dword;
-  ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : Longint) : DWord;
 {$endif unix}
 {$endif CPU64}
 
@@ -124,7 +120,6 @@ function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : THandle) : DWord;
 {$ifndef CPU64}
 {$ifndef unix}
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : Longint) : DWord;
 {$endif unix}
 {$endif CPU64}
 
@@ -166,7 +161,10 @@ procedure RTLchecksynchronize;
 
 {
   $Log$
-  Revision 1.24  2004-12-28 14:20:03  marco
+  Revision 1.25  2005-01-21 21:43:12  armin
+  * applied patch to compile go32v2 from Tomas (tested by John)
+
+  Revision 1.24  2004/12/28 14:20:03  marco
    * tthread patch from neli
 
   Revision 1.23  2004/12/27 15:28:40  marco

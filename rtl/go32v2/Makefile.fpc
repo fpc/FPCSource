@@ -7,14 +7,14 @@ main=rtl
 
 [target]
 loaders=prt0 exceptn fpu
-units=system objpas macpas strings \
+units=system systhrds objpas macpas strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos crt objects printer graph \
       sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
-      sysconst rtlconst dateutil convutil strutils ctypes
+      sysconst rtlconst dateutil convutil strutils
 rsts=math varutils typinfo classes variants dateutil sysconst
 
 [require]
@@ -219,4 +219,4 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)

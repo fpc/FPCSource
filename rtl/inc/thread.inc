@@ -43,12 +43,6 @@ Var
 *****************************************************************************}
 {$ifndef CPU64}
 {$ifndef unix}
-    function BeginThread(sa : Pointer;stacksize : dword;
-                         ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-                         var ThreadId : Longint) : DWord;
-      begin
-        BeginThread:=BeginThread(nil,StackSize,ThreadFunction,p,creationFlags,THandle(THreadId));
-      end;
 {$endif unix}
 {$endif CPU64}
 
@@ -76,10 +70,6 @@ Var
 
 {$ifndef CPU64}
 {$ifndef unix}
-    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : Longint) : DWord;
-      begin
-        BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,THandle(ThreadId));
-      end;
 {$endif unix}
 {$endif CPU64}
 
@@ -491,7 +481,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2005-01-16 14:46:57  florian
+  Revision 1.19  2005-01-21 21:45:57  armin
+  * applied patch to compile go32v2 from Tomas (tested by John)
+
+  Revision 1.18  2005/01/16 14:46:57  florian
     * critical sections can be used in programs without threading driver, they have no effect then
 
   Revision 1.17  2004/12/28 14:20:03  marco
