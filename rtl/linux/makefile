@@ -194,8 +194,8 @@ install :
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-        -$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
-        -$(DELTREE) *$(SMARTEXT)
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DELTREE) *$(SMARTEXT)
 
 #####################################################################
 # Files
@@ -311,20 +311,20 @@ sharedlib:
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-        $(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-        $(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
-        $(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
-        $(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
 	ldconfig
 
 libinstall: staticlibinstall sharedlibinstall
 
 libsclean : clean
-        -$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
@@ -334,7 +334,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.21  1998-08-21 15:17:00  peter
+# Revision 1.22  1998-08-21 20:20:12  michael
+# + Fixed spaces to tabs.
+#
+# Revision 1.21  1998/08/21 15:17:00  peter
 #   * win32 compiles a bit better, no growheap crash
 #
 # Revision 1.20  1998/08/18 08:35:06  peter
