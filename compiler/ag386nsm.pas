@@ -21,6 +21,10 @@
 
  ****************************************************************************
 }
+{ R- Necessary for the in [] }
+{$ifdef TP}
+  {$N+,E+,R-}
+{$endif}
 unit ag386nsm;
 
     interface
@@ -537,7 +541,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.2  1998-05-25 17:11:37  pierre
+  Revision 1.3  1998-05-28 17:24:27  peter
+    - $R- for tp to solve range errors with in[]
+
+  Revision 1.2  1998/05/25 17:11:37  pierre
     * firstpasscount bug fixed
       now all is already set correctly the first time
       under EXTDEBUG try -gp to skip all other firstpasses
