@@ -1863,10 +1863,10 @@ implementation
                     b:=2;
                 end;
              end;
-	   formaldef:
-	     {Just about everything can be converted to a formaldef...}
-	     if not (def_from.deftype in [abstractdef,errordef]) then
-	        b:=1;
+     formaldef:
+       {Just about everything can be converted to a formaldef...}
+       if not (def_from.deftype in [abstractdef,errordef]) then
+          b:=1;
            else
              begin
                { assignment overwritten ?? }
@@ -1877,13 +1877,13 @@ implementation
         isconvertable:=b;
       end;
 
-
     function CheckTypes(def1,def2 : tdef) : boolean;
 
       var
          s1,s2 : string;
 
       begin
+        CheckTypes:=False;
         if not is_equal(def1,def2) then
          begin
            { Crash prevention }
@@ -1891,23 +1891,28 @@ implementation
              Message(type_e_mismatch)
            else
              begin
-                s1:=def1.typename;
-                s2:=def2.typename;
-                if (s1<>'<unknown type>') and (s2<>'<unknown type>') then
-                  Message2(type_e_not_equal_types,def1.typename,def2.typename)
+                if not is_subequal(def1,def2) then
+                  begin
+                    s1:=def1.typename;
+                    s2:=def2.typename;
+                    Message2(type_e_not_equal_types,def1^.typename,def2^.typename);
+                  end
                 else
-                  Message(type_e_mismatch);
+                  CheckTypes := true;
              end;
-           CheckTypes:=false;
          end
-        else
-         CheckTypes:=true;
-      end;
+      else
+       CheckTypes := True;
+     end;
 
 end.
 {
   $Log$
-  Revision 1.6  2002-08-20 10:31:26  daniel
+  Revision 1.7  2002-09-06 19:58:31  carl
+   * start bugfix 1996
+   * 64-bit typed constant now work correctly and fully (bugfix 2001)
+
+  Revision 1.6  2002/08/20 10:31:26  daniel
    * Tcallnode.det_resulttype rewritten
 
   Revision 1.5  2002/08/12 20:39:17  florian

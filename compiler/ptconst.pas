@@ -184,19 +184,13 @@ implementation
                            begin
                               if target_info.endian = endian_little then
                                 begin
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
-                                  if (tordconstnode(p).value<0) and (torddef(t.def).typ = s64bit) then
-                                    curconstSegment.concat(Tai_const.Create_32bit(-1))
-                                  else
-                                    curconstSegment.concat(Tai_const.Create_32bit(0));
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value and $ffffffff));
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value shr 32));
                                 end
                               else
                                 begin
-                                  if (tordconstnode(p).value<0) and (torddef(t.def).typ = s64bit) then
-                                    curconstSegment.concat(Tai_const.Create_32bit(-1))
-                                  else
-                                    curconstSegment.concat(Tai_const.Create_32bit(0));
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value shr 32));
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value  and $ffffffff));
                                 end;
                            end
                          else
@@ -986,7 +980,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-09-03 16:26:27  daniel
+  Revision 1.57  2002-09-06 19:58:31  carl
+   * start bugfix 1996
+   * 64-bit typed constant now work correctly and fully (bugfix 2001)
+
+  Revision 1.56  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.55  2002/08/11 14:32:27  peter
