@@ -936,12 +936,21 @@ begin
     end;
 end;
 
+Procedure InitSysConfigDir;
+
+begin
+  SetLength(SysConfigDir, MAX_PATH);
+  SetLength(SysConfigDir, GetWindowsDirectory(PChar(SysConfigDir), MAX_PATH));
+end;
+
+
 
 
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
+  InitSysConfigDir;
 
 Finalization
   DoneExceptions;
@@ -952,7 +961,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.35  2004-08-05 07:28:37  michael
+  Revision 1.36  2004-08-05 12:55:29  michael
+  + initialized SysConfigDir
+
+  Revision 1.35  2004/08/05 07:28:37  michael
   Added getappconfig calls
 
   Revision 1.34  2004/06/13 10:49:50  florian
