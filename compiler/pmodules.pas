@@ -753,7 +753,7 @@ implementation
           current_scanner.def_macro('FPC_GPC')
         else
          if (m_mac in aktmodeswitches) then
-          current_scanner.def_macro('FPC_MAC');
+          current_scanner.def_macro('FPC_MACPAS');
       end;
 
 
@@ -1473,7 +1473,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2004-05-03 09:55:27  olle
+  Revision 1.151  2004-05-11 18:22:16  olle
+    * changed $mode mac to $mode macpas (macro defined should be FPC_MACPAS)
+
+  Revision 1.150  2004/05/03 09:55:27  olle
     + enable omitting of IMPLEMENTATION for mode mac
     + added macro FPC_MAC for mode mac
 
