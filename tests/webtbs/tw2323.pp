@@ -8,9 +8,11 @@
 
 var
   buf : array[0..255] of char;
-asm
+begin
+  asm
     lea ebx,buf
     add ebx,'('
     mov al, [ebx - '(']
+  end;
 end.
 
