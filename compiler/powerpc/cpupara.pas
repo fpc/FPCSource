@@ -317,7 +317,7 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-          if nextintreg<=ord(NR_R10) then
+          if nextintreg<=RS_R10 then
             begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
@@ -637,7 +637,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2005-01-06 02:13:03  karoly
+  Revision 1.80  2005-01-07 10:58:03  jonas
+    * fixed stupid tregister/tsuperregister bug (type checking circumvented
+      using explicit typecase), caused bug3523
+
+  Revision 1.79  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.78  2005/01/05 19:01:53  karoly
