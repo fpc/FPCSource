@@ -1,9 +1,0 @@
-#
-#   Makefile.fpc for Free Pascal async I/O libraries
-#
-
-[target]
-dirs_linux=libasync fpasync
-dirs_freebsd=libasync fpasync
-#exampledirs_linux=tests
-#exampledirs_freebsd=tests
