@@ -1356,7 +1356,10 @@ implementation
                if t.is_conditional then
                 handleconditional(t)
                else
-                t.proc{$ifdef FPCPROCVAR}(){$endif};
+                begin
+                  Message1(scan_d_handling_switch,'$'+hs);
+                  t.proc{$ifdef FPCPROCVAR}(){$endif};
+                end;
              end
             else
              begin
@@ -2599,7 +2602,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.20  2001-07-15 11:56:21  peter
+  Revision 1.21  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.20  2001/07/15 11:56:21  peter
     * merged fixed relative path fix
 
   Revision 1.19  2001/07/08 21:00:16  peter

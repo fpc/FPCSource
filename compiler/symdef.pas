@@ -684,7 +684,7 @@ interface
        pbestrealtype : ^ttype = @s80floattype;
 {$endif}
 {$ifdef m68k}
-       pbestrealtype : ^ttype = @s32floattype;
+       pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 {$ifdef alpha}
        pbestrealtype : ^ttype = @s64floattype;
@@ -1930,11 +1930,9 @@ implementation
             { found this solution in stabsread.c from GDB v4.16 }
             s64comp : stabstring := strpnew('r'+
                tstoreddef(s32bittype.def).numberstring+';-'+tostr(savesize)+';0;');
-{$ifdef i386}
             { under dos at least you must give a size of twelve instead of 10 !! }
             { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
             s80real : stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';12;0;');
-{$endif i386}
             else
               internalerror(10005);
          end;
@@ -5525,7 +5523,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.37  2001-07-30 11:52:57  jonas
+  Revision 1.38  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.37  2001/07/30 11:52:57  jonas
     * fixed web bugs 1563/1564: procvars of object can't be regvars (merged)
 
   Revision 1.36  2001/07/01 20:16:16  peter

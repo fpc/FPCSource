@@ -297,7 +297,7 @@ implementation
 {$ifdef m68k}
          if target_info.target<>target_m68k_PalmOS then
            begin
-              dataSegment.concat(Tai_symbol.Createdataname_global('HEAP_SIZE',0));
+              dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
               dataSegment.concat(Tai_const.Create_32bit(heapsize));
            end;
 {$else m68k}
@@ -1335,7 +1335,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-06-18 20:36:25  peter
+  Revision 1.38  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.37  2001/06/18 20:36:25  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

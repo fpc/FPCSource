@@ -70,6 +70,7 @@ implementation
          curconstsegment : TAAsmoutput;
          ll        : tasmlabel;
          s         : string;
+         c         : char;
          ca        : pchar;
          tmpguid   : tguid;
          aktpos    : longint;
@@ -370,15 +371,14 @@ implementation
                         { untrue - because they are considered }
                         { arrays of 32-bit values CEC          }
 
-                        { store as longint values in little-endian format }
-                        if target_info.endian = endian_little then
+                        if source_info.endian = target_info.endian then
                           begin
                             for l:= 0 to p.resulttype.def.size-1 do
                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
                           end
                         else
                           begin
-                            { store as longint values in big-endian format }
+                            { store as longint values in swaped format }
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
@@ -430,7 +430,10 @@ implementation
                 end
               else if is_constcharnode(p) then
                 begin
-                  strval:=pchar(@tordconstnode(p).value);
+                  { strval:=pchar(@tordconstnode(p).value);
+                    THIS FAIL on BIG_ENDIAN MACHINES PM }
+                  c:=chr(tordconstnode(p).value and $ff);
+                  strval:=@c;
                   strlength:=1
                 end
               else if is_constresourcestringnode(p) then
@@ -560,7 +563,8 @@ implementation
                    else
                      if is_constcharnode(p) then
                       begin
-                        ca:=pchar(@tordconstnode(p).value);
+                        c:=chr(tordconstnode(p).value and $ff);
+                        ca:=@c;
                         len:=1;
                       end
                    else
@@ -885,7 +889,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-07-08 21:00:15  peter
+  Revision 1.28  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.27  2001/07/08 21:00:15  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

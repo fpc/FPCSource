@@ -247,11 +247,16 @@ begin
 {$endif}
 {$ifdef m68k}
   s32floattype.setdef(tfloatdef.create(s32real));
-  s64floattype.setdef(tfloatdef.create(s32real));
   if (cs_fp_emulation in aktmoduleswitches) then
-   s80floattype.setdef(tfloatdef.create(s32real)))
+   begin
+     s64floattype.setdef(tfloatdef.create(s32real));
+     s80floattype.setdef(tfloatdef.create(s32real)))
+   end
   else
-   s80floattype.setdef(tfloatdef.create(s80real));
+   begin
+     s64floattype.setdef(tfloatdef.create(s64real));
+     s80floattype.setdef(tfloatdef.create(s80real));
+   end;
 {$endif}
   { some other definitions }
   voidpointertype.setdef(tpointerdef.create(voidtype));
@@ -266,7 +271,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2001-07-09 21:15:41  peter
+  Revision 1.18  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.17  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 

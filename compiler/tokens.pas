@@ -460,18 +460,23 @@ procedure create_tokenidx;
   length, so a search only will be done in that small part }
 var
   t : ttoken;
+  i : longint;
+  c : char;
 begin
   fillchar(tokenidx^,sizeof(tokenidx^),0);
   for t:=low(ttoken) to high(ttoken) do
    begin
      if not arraytokeninfo[t].special then
       begin
-        if ord(tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first)=0 then
-         tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first:=t;
-        tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].last:=t;
+        i:=length(arraytokeninfo[t].str);
+        c:=arraytokeninfo[t].str[1];
+        if ord(tokenidx^[i,c].first)=0 then
+         tokenidx^[i,c].first:=t;
+        tokenidx^[i,c].last:=t;
       end;
    end;
 end;
+
 
 procedure inittokens;
 begin
@@ -490,7 +495,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-06-03 21:57:38  peter
+  Revision 1.12  2001-07-30 20:59:28  peter
+    * m68k updates from v10 merged
+
+  Revision 1.11  2001/06/03 21:57:38  peter
     + hint directive parsing support
 
   Revision 1.10  2001/05/06 17:12:43  jonas

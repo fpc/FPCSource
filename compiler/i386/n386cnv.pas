@@ -372,6 +372,7 @@ implementation
                   new(hr);
                   reset_reference(hr^);
                   hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  location.register:=getregister32;
                   emit_ref_reg(A_LEA,S_L,hr,location.register);
                 end
                else
@@ -1423,7 +1424,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-07-16 13:19:08  jonas
+  Revision 1.18  2001-07-30 20:59:29  peter
+    * m68k updates from v10 merged
+
+  Revision 1.17  2001/07/16 13:19:08  jonas
     * fixed allocation of register before release in second_cstring_to_pchar
 
   Revision 1.16  2001/07/08 21:00:17  peter

@@ -1431,17 +1431,19 @@ implementation
             LOC_REGISTER,LOC_CREGISTER:
                 begin
                     case orddef.typ of
-                        u8bit:
+                        u8bit,uchar,bool8bit:
                             tai:=Taicpu.Op_reg_reg(A_MOVZX,S_BL,location.register,destreg);
                         s8bit:
                             tai:=Taicpu.Op_reg_reg(A_MOVSX,S_BL,location.register,destreg);
-                        u16bit:
+                        u16bit,uwidechar,bool16bit:
                             tai:=Taicpu.Op_reg_reg(A_MOVZX,S_WL,location.register,destreg);
                         s16bit:
                             tai:=Taicpu.Op_reg_reg(A_MOVSX,S_WL,location.register,destreg);
-                        u32bit,s32bit:
+                        u32bit,bool32bit,s32bit:
                             if location.register <> destreg then
                               tai:=Taicpu.Op_reg_reg(A_MOV,S_L,location.register,destreg);
+                        else
+                          internalerror(330);
                     end;
                     if delloc then
                         ungetregister(location.register);
@@ -1455,18 +1457,20 @@ implementation
                      begin
                        r:=newreference(location.reference);
                        case orddef.typ of
-                         u8bit:
+                         u8bit,uchar,bool8bit:
                             tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,r,destreg);
                          s8bit:
                             tai:=Taicpu.Op_ref_reg(A_MOVSX,S_BL,r,destreg);
-                         u16bit:
+                         u16bit,uwidechar,bool16bit:
                             tai:=Taicpu.Op_ref_reg(A_MOVZX,S_WL,r,destreg);
                          s16bit:
                             tai:=Taicpu.Op_ref_reg(A_MOVSX,S_WL,r,destreg);
-                         u32bit:
+                         u32bit,bool32bit:
                             tai:=Taicpu.Op_ref_reg(A_MOV,S_L,r,destreg);
                          s32bit:
                             tai:=Taicpu.Op_ref_reg(A_MOV,S_L,r,destreg);
+                         else
+                           internalerror(330);
                        end;
                      end;
                     if delloc then
@@ -2996,7 +3000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-07-01 20:16:18  peter
+  Revision 1.26  2001-07-30 20:59:28  peter
+    * m68k updates from v10 merged
+
+  Revision 1.25  2001/07/01 20:16:18  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

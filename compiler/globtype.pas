@@ -42,7 +42,7 @@ interface
        ts32real = single;
        ts64real = double;
        ts80real = extended;
-       ts64comp = comp;
+       ts64comp = extended;
 {$endif}
 {$ifdef alpha}
        bestreal = extended;
@@ -208,7 +208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-07-01 20:16:15  peter
+  Revision 1.14  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.13  2001/07/01 20:16:15  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

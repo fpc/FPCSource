@@ -37,6 +37,8 @@ interface
 
     function min(a,b : longint) : longint;
     function max(a,b : longint) : longint;
+    function SwapLong(x : longint): longint;
+    function SwapWord(x : word): word;
     function align(i,a:longint):longint;
     function used_align(varalign,minalign,maxalign:longint):longint;
     function size_2_align(len : longint) : longint;
@@ -134,6 +136,30 @@ uses
          else
            max:=a;
       end;
+
+
+    Function SwapLong(x : longint): longint;
+      var
+        y : word;
+        z : word;
+      Begin
+        y := (x shr 16) and $FFFF;
+        y := ((y shl 8) and $FFFF) or ((y shr 8) and $ff);
+        z := x and $FFFF;
+        z := ((z shl 8) and $FFFF) or ((z shr 8) and $ff);
+        SwapLong := (longint(z) shl 16) or longint(y);
+      End;
+
+
+    Function SwapWord(x : word): word;
+      var
+        z : byte;
+      Begin
+        z := (x shr 8) and $ff;
+        x := x and $ff;
+        x := (x shl 8);
+        SwapWord := x or z;
+      End;
 
 
     function align(i,a:longint):longint;
@@ -708,7 +734,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-07-01 20:16:15  peter
+  Revision 1.9  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.8  2001/07/01 20:16:15  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

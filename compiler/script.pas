@@ -44,10 +44,37 @@ type
   end;
 
   TAsmScript = class (TScript)
-    Constructor Create(Const ScriptName : String);
-    Procedure AddAsmCommand (Const Command, Options,FileName : String);
-    Procedure AddLinkCommand (Const Command, Options, FileName : String);
-    Procedure AddDeleteCommand (Const FileName : String);
+    Constructor Create(Const ScriptName : String); virtual;
+    Procedure AddAsmCommand (Const Command, Options,FileName : String);virtual;abstract;
+    Procedure AddLinkCommand (Const Command, Options, FileName : String);virtual;abstract;
+    Procedure AddDeleteCommand (Const FileName : String);virtual;abstract;
+    Procedure AddDeleteDirCommand (Const FileName : String);virtual;abstract;
+  end;
+
+  TAsmScriptDos = class (TAsmScript)
+    Constructor Create (Const ScriptName : String); override;
+    Procedure AddAsmCommand (Const Command, Options,FileName : String);override;
+    Procedure AddLinkCommand (Const Command, Options, FileName : String);override;
+    Procedure AddDeleteCommand (Const FileName : String);override;
+    Procedure AddDeleteDirCommand (Const FileName : String);override;
+    Procedure WriteToDisk;override;
+  end;
+
+  TAsmScriptAmiga = class (TAsmScript)
+    Constructor Create (Const ScriptName : String); override;
+    Procedure AddAsmCommand (Const Command, Options,FileName : String);override;
+    Procedure AddLinkCommand (Const Command, Options, FileName : String);override;
+    Procedure AddDeleteCommand (Const FileName : String);override;
+    Procedure AddDeleteDirCommand (Const FileName : String);override;
+    Procedure WriteToDisk;override;
+  end;
+
+  TAsmScriptUnix = class (TAsmScript)
+    Constructor Create (Const ScriptName : String);override;
+    Procedure AddAsmCommand (Const Command, Options,FileName : String);override;
+    Procedure AddLinkCommand (Const Command, Options, FileName : String);override;
+    Procedure AddDeleteCommand (Const FileName : String);override;
+    Procedure AddDeleteDirCommand (Const FileName : String);override;
     Procedure WriteToDisk;override;
   end;
 
@@ -58,6 +85,8 @@ type
 
 var
   AsmRes : TAsmScript;
+
+Procedure GenerateAsmRes(const st : string);
 
 
 implementation
@@ -87,7 +116,7 @@ end;
 
 constructor TScript.CreateExec(const s:string);
 begin
-  fn:=FixFileName(s)+source_info.scriptext;
+  fn:=FixFileName(s)+target_info.scriptext;
   executable:=true;
   data:=TStringList.Create;
 end;
@@ -143,14 +172,18 @@ begin
 end;
 
 
-Procedure TAsmScript.AddAsmCommand (Const Command, Options,FileName : String);
+{****************************************************************************
+                                  Asm Response
+****************************************************************************}
+
+Constructor TAsmScriptDos.Create (Const ScriptName : String);
 begin
-{$ifdef Unix}
-  if FileName<>'' then
-   Add('echo Assembling '+FileName);
-  Add (Command+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitAsm '+FileName+'; fi');
-{$else}
+  Inherited Create(ScriptName);
+end;
+
+
+Procedure TAsmScriptDos.AddAsmCommand (Const Command, Options,FileName : String);
+begin
   if FileName<>'' then
    begin
      Add('SET THEFILE='+FileName);
@@ -158,18 +191,11 @@ begin
    end;
   Add(command+' '+Options);
   Add('if errorlevel 1 goto asmend');
-{$endif}
 end;
 
 
-Procedure TasmScript.AddLinkCommand (Const Command, Options, FileName : String);
+Procedure TAsmScriptDos.AddLinkCommand (Const Command, Options, FileName : String);
 begin
-{$ifdef Unix}
-  if FileName<>'' then
-   Add('echo Linking '+FileName);
-  Add (Command+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitLink '+FileName+'; fi');
-{$else}
   if FileName<>'' then
    begin
      Add('SET THEFILE='+FileName);
@@ -177,29 +203,23 @@ begin
    end;
   Add (Command+' '+Options);
   Add('if errorlevel 1 goto linkend');
-{$endif}
 end;
 
 
-Procedure TAsmScript.AddDeleteCommand (Const FileName : String);
+Procedure TAsmScriptDos.AddDeleteCommand (Const FileName : String);
 begin
-{$ifdef Unix}
-  Add('rm '+FileName);
-{$else}
-  Add('Del '+FileName);
-{$endif}
+ Add('Del '+FileName);
 end;
 
 
-Procedure TAsmScript.WriteToDisk;
+Procedure TAsmScriptDos.AddDeleteDirCommand (Const FileName : String);
+begin
+ Add('Rmdir '+FileName);
+end;
+
+
+Procedure TAsmScriptDos.WriteToDisk;
 Begin
-{$ifdef Unix}
-  AddStart('{ echo "An error occurred while linking $1"; exit 1; }');
-  AddStart('DoExitLink ()');
-  AddStart('{ echo "An error occurred while assembling $1"; exit 1; }');
-  AddStart('DoExitAsm ()');
-  AddStart('#!/bin/sh');
-{$else}
   AddStart('@echo off');
   Add('goto end');
   Add(':asmend');
@@ -208,8 +228,149 @@ Begin
   Add(':linkend');
   Add('echo An error occured while linking %THEFILE%');
   Add(':end');
-{$endif}
   inherited WriteToDisk;
+end;
+
+{****************************************************************************
+                                  Amiga Asm Response
+****************************************************************************}
+
+Constructor TAsmScriptAmiga.Create (Const ScriptName : String);
+begin
+  Inherited Create(ScriptName);
+end;
+
+
+Procedure TAsmScriptAmiga.AddAsmCommand (Const Command, Options,FileName : String);
+begin
+  if FileName<>'' then
+   begin
+     Add('SET THEFILE '+FileName);
+     Add('echo Assembling $THEFILE');
+   end;
+  Add(command+' '+Options);
+  Add('if error');
+  Add('skip asmend');
+  Add('endif');
+end;
+
+
+Procedure TAsmScriptAmiga.AddLinkCommand (Const Command, Options, FileName : String);
+begin
+  if FileName<>'' then
+   begin
+     Add('SET THEFILE '+FileName);
+     Add('echo Linking $THEFILE');
+   end;
+  Add (Command+' '+Options);
+  Add('if error');
+  Add('skip linkend');
+  Add('endif');
+end;
+
+
+Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : String);
+begin
+ Add('Delete '+FileName);
+end;
+
+
+Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : String);
+begin
+ Add('Delete '+FileName);
+end;
+
+
+Procedure TAsmScriptAmiga.WriteToDisk;
+Begin
+  Add('skip end');
+  Add('lab asmend');
+  Add('echo An error occured while assembling $THEFILE');
+  Add('skip end');
+  Add('lab linkend');
+  Add('echo An error occured while linking $THEFILE');
+  Add('lab end');
+  inherited WriteToDisk;
+end;
+
+
+{****************************************************************************
+                              Unix Asm Response
+****************************************************************************}
+
+Constructor TAsmScriptUnix.Create (Const ScriptName : String);
+begin
+  Inherited Create(ScriptName);
+end;
+
+
+Procedure TAsmScriptUnix.AddAsmCommand (Const Command, Options,FileName : String);
+begin
+  if FileName<>'' then
+   Add('echo Assembling '+FileName);
+  Add (Command+' '+Options);
+  Add('if [ $? != 0 ]; then DoExitAsm '+FileName+'; fi');
+end;
+
+
+Procedure TAsmScriptUnix.AddLinkCommand (Const Command, Options, FileName : String);
+begin
+  if FileName<>'' then
+   Add('echo Linking '+FileName);
+  Add (Command+' '+Options);
+  Add('if [ $? != 0 ]; then DoExitLink '+FileName+'; fi');
+end;
+
+
+Procedure TAsmScriptUnix.AddDeleteCommand (Const FileName : String);
+begin
+ Add('rm '+FileName);
+end;
+
+
+Procedure TAsmScriptUnix.AddDeleteDirCommand (Const FileName : String);
+begin
+ Add('rmdir '+FileName);
+end;
+
+
+Procedure TAsmScriptUnix.WriteToDisk;
+Begin
+  AddStart('{ echo "An error occurred while linking $1"; exit 1; }');
+  AddStart('DoExitLink ()');
+  AddStart('{ echo "An error occurred while assembling $1"; exit 1; }');
+  AddStart('DoExitAsm ()');
+  AddStart('#!/bin/sh');
+  inherited WriteToDisk;
+end;
+
+
+Procedure GenerateAsmRes(const st : string);
+begin
+{$ifdef i386}
+  case target_info.target of
+    target_i386_linux,
+    target_i386_freebsd,
+    target_i386_sunos,
+    target_i386_beos :
+      AsmRes:=TAsmScriptUnix.Create(st);
+    else
+      AsmRes:=TAsmScriptDos.Create(st);
+  end;
+{$else not i386}
+{$ifdef m68k}
+  case target_info.target of
+    target_m68k_amiga :
+      AsmRes:=TAsmScriptAmiga.Create(st);
+    target_m68k_linux :
+      AsmRes:=TAsmScriptUnix.Create(st);
+    else
+      AsmRes:=TAsmScriptDos.Create(st);
+  end;
+{$else not m68k}
+  AsmRes:=TAsmScriptUnix.Create(st);
+{$endif not m68k}
+{$endif not i386}
 end;
 
 
@@ -237,7 +398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-07-10 21:01:35  peter
+  Revision 1.11  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.10  2001/07/10 21:01:35  peter
     * fixed crash with writing of the linker script
 
   Revision 1.9  2001/04/18 22:01:58  peter

@@ -190,12 +190,13 @@ implementation
            constsethi:=pos;
           if pos<constsetlo then
            constsetlo:=pos;
-          l:=pos shr 3;
-          mask:=1 shl (pos mod 8);
+          { to do this correctly we use the 32bit array }
+          l:=pos shr 5;
+          mask:=1 shl (pos mod 32);
           { do we allow the same twice }
-          if (constset^[l] and mask)<>0 then
+          if (pconst32bitset(constset)^[l] and mask)<>0 then
            Message(parser_e_illegal_set_expr);
-          constset^[l]:=constset^[l] or mask;
+          pconst32bitset(constset)^[l]:=pconst32bitset(constset)^[l] or mask;
         end;
 
       var
@@ -1044,8 +1045,20 @@ implementation
     function ttypeconvnode.first_int_to_real : tnode;
       begin
         first_int_to_real:=nil;
-        if registersfpu<1 then
-         registersfpu:=1;
+{$ifdef m68k}
+         if (cs_fp_emulation in aktmoduleswitches) or
+            (tfloatdef(resulttype.def).typ=s32real) then
+           begin
+             if registers32<1 then
+               registers32:=1;
+           end
+         else
+           if registersfpu<1 then
+             registersfpu:=1;
+{$else not m68k}
+         if registersfpu<1 then
+          registersfpu:=1;
+{$endif not m68k}
         location.loc:=LOC_FPU;
       end;
 
@@ -1415,7 +1428,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-07-08 21:00:15  peter
+  Revision 1.30  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.29  2001/07/08 21:00:15  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

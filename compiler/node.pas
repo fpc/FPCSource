@@ -36,6 +36,8 @@ interface
     type
        pconstset = ^tconstset;
        tconstset = array[0..31] of byte;
+       pconst32bitset = ^tconst32bitset;
+       tconst32bitset = array[0..7] of longint;
 
        tnodetype = (
           addn,     {Represents the + operator.}
@@ -795,7 +797,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-06-04 18:14:16  peter
+  Revision 1.18  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.17  2001/06/04 18:14:16  peter
     * store blocktype info in tnode
 
   Revision 1.16  2001/06/04 11:53:13  peter

@@ -98,7 +98,7 @@ implementation
           stacksize:=target_info.stacksize;
 
          { open assembler response }
-         AsmRes:=TAsmScript.Create(outputexedir+'ppas');
+         GenerateAsmRes(outputexedir+'ppas');
 
          { open deffile }
          DefFile:=TDefFile.Create(outputexedir+inputfile+target_info.defext);
@@ -617,7 +617,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-07-01 20:16:16  peter
+  Revision 1.21  2001-07-30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.20  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
