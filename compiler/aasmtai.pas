@@ -545,6 +545,7 @@ interface
 
        taasmoutput = class(tlinkedlist)
           constructor create;
+          function empty:boolean;
           function getlasttaifilepos : pfileposinfo;
           procedure InsertAfter(Item,Loc : TLinkedListItem);override;
        end;
@@ -1983,6 +1984,18 @@ implementation
         insert(tai_marker.create(marker_blockstart));
       end;
 
+
+    function taasmoutput.empty:boolean;
+      begin
+        result:=(count=0) or
+                (
+                 (count=1) and
+                 (tai(first).typ=ait_marker) and
+                 (tai_marker(first).kind=marker_blockstart)
+                );
+      end;
+
+
     function taasmoutput.getlasttaifilepos : pfileposinfo;
       var
        hp : tlinkedlistitem;
@@ -2021,7 +2034,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-05-22 23:34:27  peter
+  Revision 1.84  2004-05-23 14:31:05  peter
+    * ignore marker block when checking for empty list
+
+  Revision 1.83  2004/05/22 23:34:27  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.82  2004/04/12 18:59:32  florian
