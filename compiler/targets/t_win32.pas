@@ -1618,7 +1618,6 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:true;
-            use_bound_instruction : false;
             use_function_relative_addresses : true
           );
 
@@ -1634,7 +1633,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2002-04-21 15:43:58  carl
+  Revision 1.31  2002-04-22 18:19:22  carl
+  - remove use_bound_instruction field
+
+  Revision 1.30  2002/04/21 15:43:58  carl
   * change stack size to 256K
 
   Revision 1.29  2002/04/20 21:43:18  carl

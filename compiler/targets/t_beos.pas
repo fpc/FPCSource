@@ -518,7 +518,6 @@ end;
             heapsize     : 256*1024;
             stacksize    : 8192;
             DllScanSupported:false;
-            use_bound_instruction : false;
             use_function_relative_addresses : true
           );
 {$endif i386}
@@ -533,7 +532,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-20 21:43:18  carl
+  Revision 1.15  2002-04-22 18:19:22  carl
+  - remove use_bound_instruction field
+
+  Revision 1.14  2002/04/20 21:43:18  carl
   * fix stack size for some targets
   + add offset to parameters from frame pointer info.
   - remove some unused stuff
