@@ -1,7 +1,10 @@
-{$ifdef fpc}{$mode delphi}{$endif}
-uses Variants;
+{ Source provided for Free Pascal Bug Report 3470 }
+{ Submitted by "Danny Milosavljevic" on  2004-12-25 }
+{ e-mail: danny_milo@yahoo.com }
+program a;
+uses variants;
 
-type
+type 
   IBla = interface
   end;
 
@@ -13,7 +16,7 @@ type
 constructor TBla.Create;
 begin
 end;
-
+   
 var
   v: Variant;
   bla: IBla;
@@ -21,4 +24,3 @@ begin
   bla := TBla.Create;
   v := bla;
 end.
-
