@@ -144,6 +144,8 @@ type
   published
     Property FileName : String Read FFileName Write FFileName;
     property Filtered;
+    Property Active;
+    Property FieldDefs;
     property BeforeOpen;
     property AfterOpen;
     property BeforeClose;
@@ -892,7 +894,8 @@ begin
           L2.Add(F2);
           end;
         Dataset.DisableControls;
-        Try
+        Try 
+          Dataset.Open;
           While not Dataset.EOF do
             begin
             Append;
