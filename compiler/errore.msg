@@ -1041,6 +1041,8 @@ sym_e_ill_type_decl_set=E_illegal type declaration of set elements
 % The declaration of a set contains an invalid type definition.
 sym_e_class_forward_not_resolved=E_Forward class definition not resolved $1
 % You declared a class, but you didn't implement it.
+sym_n_unit_not_used=H_Unit $1 not used in $2
+% The unit referenced in the \var{uses} clause is not used.
 sym_h_para_identifier_not_used=H_Parameter $1 not used
 % This is a warning. The identifier was declared (locally or globally) but
 % wasn't used (locally or globally).

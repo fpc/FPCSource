@@ -280,6 +280,7 @@ type tmsgconst=(
   sym_e_label_already_defined,
   sym_e_ill_type_decl_set,
   sym_e_class_forward_not_resolved,
+  sym_n_unit_not_used,
   sym_h_para_identifier_not_used,
   sym_n_local_identifier_not_used,
   sym_h_para_identifier_only_set,
