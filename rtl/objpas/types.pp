@@ -53,7 +53,11 @@ type
 {$ifdef Win32}
   TPoint = Windows.TPoint;
 {$else}
-  TPoint = packed record
+  TPoint =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     X : Longint;
     Y : Longint;
   end;
@@ -64,7 +68,11 @@ type
 {$ifdef Win32}
   TRect = Windows.TRect;
 {$else}
-  TRect = packed record
+  TRect =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     case Integer of
       0: (Left,Top,Right,Bottom : Longint);
       1: (TopLeft,BottomRight : TPoint);
@@ -72,7 +80,11 @@ type
 {$endif}
   PRect = ^TRect;
 
-  TSize = packed record
+  TSize =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
      cx : Longint;
      cy : Longint;
   end;
@@ -80,7 +92,11 @@ type
   tagSIZE = TSize;
   SIZE = TSize;
 
-  TSmallPoint = packed record
+  TSmallPoint =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
      x : SmallInt;
      y : SmallInt;
   end;
@@ -108,7 +124,7 @@ const
   LOCK_ONLYONCE  = 4;
 
   E_FAIL = HRESULT($80004005);
-  
+
   STG_E_INVALIDFUNCTION       = HRESULT($80030001);
   STG_E_FILENOTFOUND          = HRESULT($80030002);
   STG_E_PATHNOTFOUND          = HRESULT($80030003);
@@ -175,7 +191,11 @@ type
   ArgList = Pointer;
   Region = Pointer;
 
-  _FILETIME = packed record
+  _FILETIME =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
      dwLowDateTime : DWORD;
      dwHighDateTime : DWORD;
   end;
@@ -183,7 +203,11 @@ type
   FILETIME = _FILETIME;
   PFileTime = ^TFileTime;
 
-  tagSTATSTG = packed record
+  tagSTATSTG =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
      pwcsName : POleStr;
      dwType : Longint;
      cbSize : Largeint;
@@ -375,7 +399,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2004-01-10 19:00:20  michael
+  Revision 1.7  2004-10-21 22:24:01  florian
+    * targets requiring proper alignment doesn't pack tpoint and friends anymore
+
+  Revision 1.6  2004/01/10 19:00:20  michael
   + Compatibility checks and code reformatting
 
   Revision 1.5  2003/10/05 19:10:03  florian
