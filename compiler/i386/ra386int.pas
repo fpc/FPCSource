@@ -361,11 +361,17 @@ Unit Ra386int;
                   Begin
                     actasmpattern:=actasmpattern+c;
                     c:=current_scanner.asmgetchar;
+                    { allow spaces }
+                    while (c in [' ',#9]) do
+                      c:=current_scanner.asmgetchar;
                     if c in ['0'..'7'] then
                      actasmpattern:=actasmpattern + c
                     else
                      Message(asmr_e_invalid_fpu_register);
                     c:=current_scanner.asmgetchar;
+                    { allow spaces }
+                    while (c in [' ',#9]) do
+                      c:=current_scanner.asmgetchar;
                     if c <> ')' then
                      Message(asmr_e_invalid_fpu_register)
                     else
@@ -380,6 +386,9 @@ Unit Ra386int;
                   exit;
                  if is_asmoperator(actasmpattern) then
                   exit;
+                 { allow spaces }
+                 while (c in [' ',#9]) do
+                   c:=current_scanner.asmgetchar;
                  { if next is a '.' and this is a unitsym then we also need to
                    parse the identifier }
                  if (c='.') then
@@ -2036,7 +2045,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2005-01-20 17:05:53  peter
+  Revision 1.87  2005-01-25 18:48:34  peter
+    * spaces in register names
+
+  Revision 1.86  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.85  2005/01/19 22:19:41  peter
