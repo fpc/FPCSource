@@ -104,25 +104,25 @@ const
              code:=code1;
             if (code and LEFT) <> 0 then
               begin
-                newy:=y1+(y2-y1)*(xmin-x1) div (x2-x1);
+                newy:=y1+((y2-y1)*(xmin-x1)) div (x2-x1);
                 newx:=xmin;
               end
             else
             if (code and RIGHT) <> 0 then
               begin
-                newy:=y1+(y2-y1)*(xmax-x1) div (x2-x1);
+                newy:=y1+((y2-y1)*(xmax-x1)) div (x2-x1);
                 newx:=xmax;
               end
             else
             if (code and BOTTOM) <> 0 then
               begin
-                newx:=x1+(x2-x1)* ((ymax-y1) div (y2-y1));
+                newx:=x1+((x2-x1)*(ymax-y1)) div (y2-y1);
                 newy:=ymax;
               end
             else
             if (code and TOP) <> 0 then
               begin
-                newx:=x1+(x2-x1)*(ymin-y1) div (y2-y1);
+                newx:=x1+((x2-x1)*(ymin-y1)) div (y2-y1);
                 newy:=ymin;
               end;
            if (code1 = code) then
@@ -142,7 +142,10 @@ end;
 
 {
 $Log$
-Revision 1.5  1999-09-18 22:21:09  jonas
+Revision 1.6  1999-09-27 12:35:27  jonas
+  * execute multiplications before divisions in lineclipped to avoid rounding errors
+
+Revision 1.5  1999/09/18 22:21:09  jonas
   + hlinevesa256 and vlinevesa256
   + support for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC
