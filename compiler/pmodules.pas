@@ -550,7 +550,7 @@ implementation
            if not(m_tp7 in aktmodeswitches) then
             begin
               if try_to_consume(_OP_IN) then
-               fn:=get_stringconst
+               fn:=FixFileName(get_stringconst)
               else
                fn:='';
             end;
@@ -1455,7 +1455,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2002-12-06 16:56:58  peter
+  Revision 1.87  2002-12-24 23:32:56  peter
+    * Use FixFilename for specified unit sourcefile in uses
+
+  Revision 1.86  2002/12/06 16:56:58  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 
