@@ -3,11 +3,15 @@
 #
 
 [package]
-name=fvision
+name=fv
 version=1.0.5
 
 [target]
 units=buildfv
+implicitunits=app callspec colortxt dialogs drivers editors fileio \
+              fvcommon fvconsts gadgets histlist inplong memory \
+              menus msgbox resource statuses stddlg tabs time validate \
+              views gfvgraph
 exampledirs=test
 
 [libs]
@@ -18,11 +22,8 @@ libversion=1.0
 targetdir=.
 
 [install]
-units=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
+buildunit=buildfv
 fpcpackage=y
-
-[clean]
-units=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
 
 [default]
 fpcdir=..

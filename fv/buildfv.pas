@@ -25,6 +25,7 @@ uses
   stddlg,
 
   tabs,
+  colortxt,
   statuses,
   histlist,
   inplong,
@@ -37,7 +38,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:03:13  peter
+  Revision 1.3  2002-01-29 22:00:33  peter
+    * colortxt added
+
+  Revision 1.2  2001/08/05 02:03:13  peter
     * view redrawing and small cursor updates
     * merged some more FV extensions
 

@@ -179,12 +179,12 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override PACKAGE_NAME=fvision
+override PACKAGE_NAME=fv
 override PACKAGE_VERSION=1.0.5
 override TARGET_UNITS+=buildfv
+override TARGET_IMPLICITUNITS+=app callspec colortxt dialogs drivers editors fileio fvcommon fvconsts gadgets histlist inplong memory menus msgbox resource statuses stddlg tabs time validate views gfvgraph
 override TARGET_EXAMPLEDIRS+=test
-override CLEAN_UNITS+=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
-override INSTALL_UNITS+=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
+override INSTALL_BUILDUNIT=buildfv
 override INSTALL_FPCPACKAGE=y
 override COMPILER_TARGETDIR+=.
 ifdef REQUIRE_UNITSDIR
@@ -925,7 +925,7 @@ ifdef INSTALL_UNITS
 override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
 endif
 ifdef INSTALL_BUILDUNIT
-override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT),$(INSTALLPPUFILES))
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
 endif
 ifdef INSTALLPPUFILES
 override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
