@@ -486,11 +486,7 @@ implementation
               make_not_regable(p^.left);
             loadn :
               if p^.symtableentry^.typ=varsym then
-{$ifdef INCLUDEOK}
-                exclude(pvarsym(p^.symtableentry)^.varoptions,vo_regable);
-{$else}
-                pvarsym(p^.symtableentry)^.varoptions:=pvarsym(p^.symtableentry)^.varoptions-[vo_regable];
-{$endif}
+                pvarsym(p^.symtableentry)^.varoptions:=pvarsym(p^.symtableentry)^.varoptions-[vo_regable,vo_fpuregable];
          end;
       end;
 
@@ -679,7 +675,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-08-05 21:50:35  peter
+  Revision 1.36  1999-08-06 12:49:36  jonas
+    * vo_fpuregable is now also removed in make_not_regable
+
+  Revision 1.35  1999/08/05 21:50:35  peter
     * removed warning
 
   Revision 1.34  1999/08/05 16:52:55  peter
