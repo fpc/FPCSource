@@ -4701,6 +4701,7 @@ begin
 end;
 var {SelBack: sw_integer;}
     SCP: TPoint;
+    CI : sw_integer;
     HoldUndo : Boolean;
     L,NewL: PCustomLine;
     EI,NewEI: PEditorLineInfo;
@@ -4724,15 +4725,16 @@ begin
     else
       EI:=nil;
 {    SelBack:=0;}
+    CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
     if GetLineCount>0 then
     begin
-      S:=GetDisplayText(CurPos.Y);
+      S:=GetLineText(CurPos.Y);
 {      SelBack:=length(S)-SelEnd.X;}
-      SetDisplayText(CurPos.Y,RTrim(S,not IsFlagSet(efUseTabCharacters)));
+      SetLineText(CurPos.Y,RTrim(S,not IsFlagSet(efUseTabCharacters)));
     end;
-    SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
+    SetLineText(CurPos.Y,copy(S,1,CI-1));
     CalcIndent(CurPos.Y);
-    S:=copy(S,CurPos.X+1,High(S));
+    S:=copy(S,CI,High(S));
     i:=1;
     while (i<=length(s)) and (i<=length(IndentStr)) and (s[i]=' ') do
       inc(i);
@@ -4872,7 +4874,8 @@ begin
   HoldUndo:=GetStoreUndo;
   SetStoreUndo(false);
   S:=GetLineText(CurPos.Y);
-  if CurPos.X>=length(S) then
+  CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+  if CI>length(S) then
    begin
      if CurPos.Y<GetLineCount-1 then
       begin
@@ -4892,7 +4895,6 @@ begin
   else
    begin
      { Problem if S[CurPos.X+1]=TAB !! PM }
-     CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
      if S[CI]=TAB then
        begin
          { we want to remove the tab if we are at the first place
@@ -7101,7 +7103,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2002-06-06 07:04:00  pierre
+  Revision 1.22  2002-06-13 14:50:35  pierre
+   * try to improove tabs handling in DelChar and InsertLine methods
+
+  Revision 1.21  2002/06/06 07:04:00  pierre
    * use inherited ResetCursor for fvision lib
 
   Revision 1.20  2002/05/31 12:33:49  pierre
