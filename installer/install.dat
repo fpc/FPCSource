@@ -234,11 +234,6 @@ defaultcfg=
 # -u is the same as #UNDEF
 #
 
-# When not m68k is defined at the commandline, define i386
-#IFNDEF m68k
-  #DEFINE i386
-#ENDIF
-
 #
 # Some examples (for switches see below, and the -? helppages)
 #
