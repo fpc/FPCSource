@@ -1043,12 +1043,10 @@ implementation
          vr        : bestreal;
          hp        : tnode;
          srsym     : tsym;
+         def       : tdef;
          p1,hpp    : tnode;
-         frac_para,
-         length_para : tnode;
-         isreal,oneisreal,
-         iswrite,
-         file_is_typed : boolean;
+         isreal,
+         oneisreal : boolean;
       label
          myexit;
       begin
@@ -1536,9 +1534,24 @@ implementation
                           CGMessage(type_e_mismatch);
 
                         { only dynamic arrays accept more dimensions }
-                        if (counter>1) and
-                          (not(is_dynamic_array(ppn.left.resulttype.def))) then
-                          CGMessage(type_e_mismatch);
+                        if (counter>1) then
+                          if (not(is_dynamic_array(ppn.left.resulttype.def))) then
+                            CGMessage(type_e_mismatch)
+                          else
+                            { check if the amount of dimensions is valid }
+                            begin
+                              def := tarraydef(ppn.left.resulttype.def).elementtype.def;
+                              while counter > 1 do
+                                begin
+                                  if not(is_dynamic_array(def)) then
+                                    begin
+                                      CGMessage(parser_e_wrong_parameter_size);
+                                      break;
+                                    end;
+                                  dec(counter);
+                                  def := tarraydef(def).elementtype.def;
+                                end;
+                            end;
 
                        { convert shortstrings to openstring parameters }
                        { (generate the hightree) (JM)                  }
@@ -2251,7 +2264,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2001-09-24 11:35:55  jonas
+  Revision 1.61  2001-09-24 16:09:55  jonas
+    * check if amount of dimensions passed to setlength for dynamic arrays
+      is correct
+
+  Revision 1.60  2001/09/24 11:35:55  jonas
     * fix from Pavel V. Ozersk to accept multiple dimensions for setlength
       and dynamical arrays
 
