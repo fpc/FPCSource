@@ -39,6 +39,11 @@ ifeq ($(GDB),1)
 override NEEDUNITDIR+=../../$(GDBINT)
 NEEDLIBDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
 NEEDOBJDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+NEEDLIBDIR+=$(DJDIR)/lib
+endif
+endif
 else
 override NEEDUNITDIR+=../fake/gdb
 endif
@@ -154,7 +159,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.18  1999-10-29 14:46:36  pierre
+# Revision 1.19  1999-11-05 13:41:37  pierre
+#  + use DJDIR if set to find DJGPP libs
+#
+# Revision 1.18  1999/10/29 14:46:36  pierre
 #  * Use $(MAKE)
 #
 # Revision 1.17  1999/10/29 14:33:03  pierre
