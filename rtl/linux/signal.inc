@@ -15,6 +15,15 @@
 
 {$packrecords C}
 
+
+Const 			// OS specific parameters for general sigset behaviour
+   SIG_MAXSIG      = 1024;	// highest signal version
+   wordsinsigset   = 32;	// words in sigset_t
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+
+   ln2bitmask	   = 2 shl ln2bitsinword - 1;
+
+
 {********************
       Signal
 ********************}
@@ -182,8 +191,13 @@ type
   PSignalRestorer = ^SignalRestorer;
   TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
 
-  SigSet  = Longint;
+
+
+  SigSet  =  array[0..wordsinsigset-1] of Longint;
+  sigset_t= SigSet;
   PSigSet = ^SigSet;
+  psigset_t=psigset;
+  TSigSet = SigSet;
 
   SigActionRec = packed record  // this is temporary for the migration
    {$ifdef posixworkaround}
@@ -199,11 +213,15 @@ type
     Sa_Flags    : Longint;
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
   end;
+  TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
 {
   $Log$
-  Revision 1.7  2002-11-12 14:51:44  marco
+  Revision 1.8  2002-12-18 16:43:26  marco
+   * new unix rtl, linux part.....
+
+  Revision 1.7  2002/11/12 14:51:44  marco
    * signal.
 
   Revision 1.6  2002/09/07 16:01:19  peter

@@ -34,15 +34,34 @@ introduction)
 
 Type
 
-{$ifndef VER_1_0}
+{$ifndef VER_1_0}		// maybe wrong (kernel vs libc)
     dev_t    = cuint64;         { used for device numbers      }
 {$else}
     dev_t    = int64;
 {$endif}
+    TDev     = dev_t;
+    pDev     = ^dev_t;
+
+    kDev_t   = cushort;		// Linux has two different device conventions
+    TkDev    = KDev_t;		// kernel and glibc. This is kernel.
+    pkDev    = ^kdev_t;
+
     gid_t    = cuint32;         { used for group IDs           }
+    TGid     = gid_t;
+    pGid     = ^gid_t;
+
     ino_t    = clong;           { used for file serial numbers }
+    TIno     = ino_t;
+    pIno     = ^ino_t;
+
     mode_t   = cuint32;         { used for file attributes     }
+    TMode    = mode_t;
+    pMode    = ^mode_t;
+
     nlink_t  = cuint32;         { used for link counts         }
+    TnLink   = nlink_t;
+    pnLink   = ^nlink_t;
+
   {$ifdef 64BitArch}
     off_t    = cint64;          { used for file sizes          }
   {$else}
@@ -50,26 +69,42 @@ Type
     off_t    = cint64;
    {$else}
     off_t    = cint;
-    pid_t    = cint32;          { used as process identifier   }
    {$endif}
   {$endif}
+    TOff     = off_t;
+    pOff     = ^off_t;
+
+    pid_t    = cint32;          { used as process identifier   }
+    TPid     = pid_t;
+    pPid     = ^pid_t;
+
    {$ifdef 64bitarch} 
     size_t   = cuint64;         { as definied in the C standard}
     ssize_t  = cint64;          { used by function for returning number of bytes }
+    clock_t  = cuint64;
+    time_t   = cint64;           { used for returning the time  }
    {$else}
     size_t   = cuint32;         { as definied in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes }
-   {$endif}
-    uid_t    = cuint32;         { used for user ID type        }
-  {$ifdef 64bitarch}
-    clock_t  = cuint64;
-    time_t   = cint64;           { used for returning the time  }
-  {$else}
     clock_t  = culong;
     time_t   = clong;           { used for returning the time  }
-  {$endif}
-    ptime_t  = ^time_t;
+   {$endif}
+    TSize     = size_t;
+    pSize     = ^size_t;
+    TSSize    = ssize_t;
+    pSSize    = ^ssize_t;
+    TClock    = clock_t;
+    pClock    = ^clock_t;
+    TTime     = time_t;
+    pTime     = ^time_t;
+  
+    uid_t    = cuint32;         { used for user ID type        }
+    TUid     = uid_t;
+    pUid     = ^uid_t;
+
     socklen_t= cuint32;
+    TSockLen = socklen_t;
+    pSockLen = ^socklen_t;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
@@ -81,7 +116,10 @@ CONST
 
 {
    $Log$
-   Revision 1.2  2002-11-12 14:28:40  marco
+   Revision 1.3  2002-12-18 16:43:26  marco
+    * new unix rtl, linux part.....
+
+   Revision 1.2  2002/11/12 14:28:40  marco
     * some updates
 
    Revision 1.1  2002/10/29 16:47:17  marco

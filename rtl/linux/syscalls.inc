@@ -209,7 +209,7 @@ begin
 { Is it a dir ? }
   if not((st.mode and $f000)=$4000)then
    begin
-     errno:=sys_enotdir;
+     errno:=ESysENOTDIR;
      exit
    end;
 { Open it}
@@ -435,7 +435,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2002-11-11 21:40:26  marco
+  Revision 1.17  2002-12-18 16:43:26  marco
+   * new unix rtl, linux part.....
+
+  Revision 1.16  2002/11/11 21:40:26  marco
    * rename syscall.inc -> syscallo.inc
 
   Revision 1.15  2002/10/14 19:39:17  peter

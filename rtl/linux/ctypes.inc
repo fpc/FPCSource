@@ -26,41 +26,44 @@ Type
     { the following type definitions are compiler dependant }
     { and system dependant                                  }
 
-    cint8  = shortint;
-    cuint8 = byte;
-    cuint16= word;
-    cint16 = smallint;
-    cint32 = longint;
-    cuint32= cardinal;
-    cint64 = int64;
+    cInt8  = shortint;
+    cUInt8 = byte;
+    cUInt16= word;
+    cInt16 = smallint;
+    cInt32 = longint;
+    cUInt32= cardinal;
+    cInt64 = int64;
 {$ifndef VER_1_0}
-    cuint64= qword;
+    cUInt64= qword;
 {$else}
-    cuint64= int64;
+    cUInt64= int64;
 {$endif}
 
     cuchar = byte;
-    cint   = longint;           { minimum range is : 32-bit    }
-    cuint  = Cardinal;          { minimum range is : 32-bit    }
+    cInt   = longint;           { minimum range is : 32-bit    }
+    cUInt  = Cardinal;          { minimum range is : 32-bit    }
   {$ifdef 64bitarch}
-    clong  = int64;
+    cLong  = int64;
   {$ifdef VER_1_0}
-    culong = int64;
+    cuLong = int64;
   {$else}
-    culong = qword;
+    cuLong = qword;
    {$endif}
   {$else}
-    clong  = longint;
-    culong = Cardinal;
+    cLong  = longint;
+    cuLong = Cardinal;
   {$endif}
     cshort = integer;
     cushort= word;
 
-    pcint  = ^cint;
+    pcInt  = ^cInt;
 
 { 
    $Log$
-   Revision 1.1  2002-11-09 22:39:28  marco
+   Revision 1.2  2002-12-18 16:43:26  marco
+    * new unix rtl, linux part.....
+
+   Revision 1.1  2002/11/09 22:39:28  marco
     * first version
 
 

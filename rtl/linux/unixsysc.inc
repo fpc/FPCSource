@@ -128,7 +128,7 @@ begin
    begin
      { We can save an interrupt here }
      getpriority:=0;
-     linuxerror:=Sys_einval;
+     linuxerror:=ESyseinval;
    end
   else
    begin
@@ -161,7 +161,7 @@ var
 begin
   errno:=0;
   if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
-   linuxerror:=Sys_einval  { We can save an interrupt here }
+   linuxerror:=ESyseinval  { We can save an interrupt here }
   else
    begin
      sr.reg2:=which;
@@ -311,7 +311,7 @@ Function Fcntl(Fd:longint;Cmd:longint):longint;
   Possible values for Cmd are :
     F_GetFd,F_GetFl,F_GetOwn
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  If Cmd is different from the allowed values, linuxerror=ESyseninval.
 }
 var
   sr : Syscallregs;
@@ -334,7 +334,7 @@ begin
    end
   else
    begin
-     linuxerror:=Sys_einval;
+     linuxerror:=ESyseinval;
      Fcntl:=0;
    end;
 end;
@@ -347,7 +347,7 @@ Procedure Fcntl(Fd:longint;Cmd : longint;Arg:Longint);
   Possible values for Cmd are :
     F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  If Cmd is different from the allowed values, linuxerror=ESyseninval.
   F_DupFD is not allowed, due to the structure of Files in Pascal.
 }
 var
@@ -362,7 +362,7 @@ begin
      linuxerror:=errno;
    end
   else
-   linuxerror:=Sys_einval;
+   linuxerror:=ESyseinval;
 end;
 
 
@@ -755,7 +755,7 @@ Procedure SigSuspend(Mask:Sigset);
 Var
   sr : SyscallRegs;
 begin
-  sr.reg2:=mask;
+  sr.reg2:=mask[0];
   SysCall(Syscall_nr_sigsuspend,sr);
   linuxerror:=errno;
 end;
@@ -885,7 +885,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:20  peter
+  Revision 1.8  2002-12-18 16:43:26  marco
+   * new unix rtl, linux part.....
+
+  Revision 1.7  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/03/05 20:04:25  michael
