@@ -30,21 +30,19 @@ _start:
 	stwu	1,-16(1)
 	mtlr	0
 	stw	0,0(1)
-	// lwz     3,0(26)       /* get argc */
+
         lis 	11,U_SYSTEM_ARGC@ha
 	stw 	3,U_SYSTEM_ARGC@l(11);
 
-	// addi    4,26,4        /* get argv */
         lis 	11,U_SYSTEM_ARGV@ha
 	stw 	4,U_SYSTEM_ARGV@l(11);
 
-	// addi    27,3,1        /* calculate argc + 1 into r27 */
-        // slwi    27,27,2       /* calculate (argc + 1) * sizeof(char *) into r27 */
-        // add     5,4,27        /* get address of env[0] */
 	lis 	11,U_SYSTEM_ENVP@ha
 	stw 	5,U_SYSTEM_ENVP@l(11);
+
 	/* init libc, parameters are already setup at this point */
 	bl	__libc_init_first
+
 	/* install finalization code handler */
 	lis	3,_fini@ha
 	addi	3,3,_fini@l
@@ -72,7 +70,10 @@ ___fpc_brk_addr:
 
 /*
   $Log$
-  Revision 1.5  2004-01-04 17:12:28  florian
+  Revision 1.6  2004-01-04 17:28:03  florian
+    * clean up
+
+  Revision 1.5  2004/01/04 17:12:28  florian
     * arg* and envp handling fixed
 
   Revision 1.4  2003/12/28 20:08:53  florian
