@@ -92,7 +92,10 @@ begin
          else
            DriveNumber:=Ord(FileDir[1])-ord('A')+1;
          GetDir(DriveNumber,StoreDir2);
+{$ifndef FPC}
          ChDir(Copy(FileDir,1,2));
+           { sets InOutRes in win32 PM }
+{$endif not FPC}
        end;
      if FileDir<>'' then
        ChDir(FileDir);
@@ -107,8 +110,10 @@ begin
      Dispose(D, Done);
      if DriveNumber<>0 then
        ChDir(StoreDir2);
+{$ifndef FPC}
      if (Length(StoreDir)>1) and (StoreDir[2]=':') then
        ChDir(Copy(StoreDir,1,2));
+{$endif not FPC}
      ChDir(StoreDir);
    end;
   if OpenIt then
@@ -180,7 +185,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-10-29 13:47:00  pierre
+  Revision 1.16  1999-11-30 17:15:32  pierre
+   * avoid chdir('d:') in FPC
+
+  Revision 1.15  1999/10/29 13:47:00  pierre
    * typo error corrected
 
   Revision 1.14  1999/10/27 10:44:08  pierre
