@@ -19,40 +19,46 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \documentclass{report}
-\usepackage{a4}
+
+\usepackage{a4dutch}
+\usepackage{makeidx}
 \usepackage{html}
-\latex{\usepackage{multicol}}
-\latex{\usepackage{fpcman}}
 \usepackage{fancyheadings}
+\usepackage{fpc}
+\latex{\usepackage{multicol}}
+\latex{%
+  \ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Programmers' Guide)
+           /Subject(Free Pascal Programmers' guide)
+           /Keywords(Free Pascal)
+  }
+  \fi
+}
+\html{\input{fpc-html.tex}}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
-\html{\input{fpc-html.tex}}
-% define the version number here, and not in the fpc.sty !!!
+\makeindex
 \newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
 \newcommand{\olabel}[1]{\label{option:#1}}
-% We should change this to something better. See \seef etc.
+%
+% start of document.
+%
 \title{Free Pascal \\ Programmers' manual}
 \docdescription{Programmers' manual for \fpc, version \fpcversion}
 \docversion{1.5}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
-\latex{%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\pdfinfo{/Author(Michael Van Canneyt)
-/Title(Programmers' Guide)
-/Subject(Free Pascal Programmers' guide)
-/Keywords(Free Pascal)
-}
-\fi
-}
 \makeindex
 \begin{document}
 \maketitle
 \tableofcontents
+\newpage
+\listoftables
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1832,7 +1838,7 @@ Procedure ProcName (Args : TPRocArgs); external 'Name' Index SomeIndex;
 This tells the compiler that the procedure \var{ProcName} resides in a
 dynamic link library, with index {SomeIndex}.
 
-\em{Remark:} Note that this is ONLY available under \windows and \ostwo.
+{\em Remark :} Note that this is ONLY available under \windows and \ostwo.
 \end{enumerate}
 
 In earlier versions of the \fpc compiler, the following construct was

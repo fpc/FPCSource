@@ -22,53 +22,59 @@
 %
 % Preamble
 %
-\usepackage{a4}
+\usepackage{a4dutch}
 \usepackage{makeidx}
-\usepackage{multicol}
 \usepackage{html}
 \usepackage{syntax}
+\usepackage{fancyheadings}
+\usepackage{fpc}
+\latex{\usepackage{multicol}}
+\latex{%
+  \ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Standard units Reference Guide)
+           /Subject(Free Pascal Reference guide)
+           /Keywords(Free Pascal, Language, System Unit)
+	   }
+  \fi
+} 
 %
 % syntax style
 %
-\latex{\input{syntax/diagram.tex}}
-\latex{\usepackage{fpc}}
-\latex{\usepackage{listings}\blankstringtrue%
-\selectlisting{tp}\stringstyle{\ttfamily}\keywordstyle{\bfseries}
-\prelisting{\sffamily\sloppy}}
+\input{syntax/diagram.tex}
+\latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
+  \blankstringtrue
+  \selectlisting{delphi}
+  \stringstyle{\ttfamily}
+  \keywordstyle{\bfseries}
+  \prelisting{\sffamily\sloppy}
+}
 \html{\input{fpc-html.tex}}
-\usepackage{fancyheadings}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
-\latex{%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\pdfinfo{/Author(Michael Van Canneyt)
-/Title(Standard units Reference Guide)
-/Subject(Free Pascal Reference guide)
-/Keywords(Free Pascal, Language, System Unit)
-}
-\fi
-}
-\makeindex
 %
 % start of document.
 %
-\begin{document}
 \title{Free Pascal :\\ Reference guide.}
 \docdescription{Reference guide for Free Pascal.}
 \docversion{1.4}
 \input{date.inc}
-\author{Micha\"el Van Canneyt
-% \\ Florian Kl\"ampfl
-}
+\author{Micha\"el Van Canneyt}
+\makeindex
+\begin{document}
 \maketitle
 \tableofcontents
 \newpage
 \listoftables
 \newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{About this guide}
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
@@ -384,7 +390,6 @@ declaration at compile time.  This means that most of the functions
 in the Run-Time library cannot be used in a constant declaration.
 Operators such as \var{+, -, *, /, not, and, or, div(), mod(), ord(), chr(), 
 sizeof} can be used, however. For more information on expressions,
-\seec{Expressions}
 You can only declare constants of the following types: \var{Ordinal types},
 \var{Real types}, \var{Char}, and \var{String}. 
 The following are all valid constant declarations:

@@ -29,28 +29,20 @@
 %
 %  The environments
 %
-\newenvironment{functionl}[2]{\subsection{#1}%
-\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
-\newenvironment{procedurel}[2]{\subsection{#1}%
-\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{procedurel}[2]{\subsection{#1}\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
 \newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
-\newcommand{\seefl}[2]{
-\htmlref{#1}{fu:#2}
-}
-\newcommand{\seepl}[2]{
-\htmlref{#1}{pro:#2}
-}
+\newcommand{\seefl}[2]{\htmlref{#1}{fu:#2}}
+\newcommand{\seepl}[2]{\htmlref{#1}{pro:#2}}
 %
 % Now the ones without label.
 %
 \newcommand{\seef}[1]{\seefl{#1}{#1}}
 \newcommand{\seep}[1]{\seepl{#1}{#1}}
 %
-\newcommand{\seet}[1]{
-\htmlref{#1}{sec:types}
-}
-\newcommand{\seem}[2] {\texttt{#1} (#2) }
+\newcommand{\seet}[1]{\htmlref{#1}{sec:types}}
+\newcommand{\seem}[2]{ \texttt{#1} (#2) }
 \newcommand{\var}[1]{\texttt {#1}}
 \newcommand{\file}[1]{\textsf {#1}}
 %
@@ -97,12 +89,14 @@
 \newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
 \newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+% Listings
+\newenvironment{listing}{\begin{verbatim}}{\end{verbatim}}
 %
 % Commands to reference these things.
 %
-\newcommand{\seet}[1]{table (\ref{tab:#1}) }
-\newcommand{\seec}[1]{chapter (\ref{ch:#1}) }
-\newcommand{\sees}[1]{section (\ref{se:#1}) }
+%\newcommand{\seet}[1]{table (\ref{tab:#1}) }
+%\newcommand{\seec}[1]{chapter (\ref{ch:#1}) }
+%\newcommand{\sees}[1]{section (\ref{se:#1}) }
 \htmladdtonavigation{%
 \htmladdnormallink{\htmladdimg{../buttons/search.gif}}{javascript:opensearch()}%
 }

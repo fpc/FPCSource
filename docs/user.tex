@@ -19,32 +19,32 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \documentclass{report}
-\usepackage{a4}
+\usepackage{a4dutch}
 \usepackage{html}
-\latex{\usepackage{multicol}}
-\latex{\usepackage{fpcman}}
-\latex{\usepackage{epsfig}}
-\html{\input{fpc-html.tex}}
 \usepackage{fancyheadings}
+\usepackage{fpcman}
+\html{\input{fpc-html.tex}}
+\latex{\usepackage{multicol}}
+\latex{\usepackage{epsfig}}
+\latex{%
+  \ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Users' Guide)
+	   /Subject(Free Pascal Users' guide)
+	   /Keywords(Free Pascal)
+	   }
+  \fi
+} 
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
 \newcommand{\olabel}[1]{\label{option:#1}}
 % We should change this to something better. See \seef etc.
 \newcommand{\seeo}[1]{See \ref{option:#1}}
-\latex{%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\pdfinfo{/Author(Michael Van Canneyt)
-/Title(Users' Guide)
-/Subject(Free Pascal Users' guide)
-/Keywords(Free Pascal)
-}
-\fi
-}
 \makeindex
 \begin{document}
 \title{Free Pascal :\\ Users' manual}

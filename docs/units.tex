@@ -24,29 +24,37 @@
 %
 % Preamble
 %
-\usepackage{a4}
+\usepackage{a4dutch}
 \usepackage{makeidx}
 \usepackage{html}
-\latex{\usepackage{fpc}}
-\latex{\usepackage{listings}\blankstringtrue%
-\selectlisting{tp}\stringstyle{\ttfamily}}
-\html{\input{fpc-html.tex}}
 \usepackage{fancyheadings}
+\usepackage{fpc}
+\latex{%
+  \ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Standard units Reference Guide)
+           /Subject(Free Pascal Standard units reference guide)
+           /Keywords(Free Pascal, Units,RTL)
+  }
+  \fi
+}
+%
+% syntax style
+%
+\latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
+  \blankstringtrue
+  \selectlisting{delphi}
+  \stringstyle{\ttfamily}
+  \keywordstyle{\bfseries}
+  \prelisting{\sffamily\sloppy}
+}
+\html{\input{fpc-html.tex}}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
-\latex{%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\pdfinfo{/Author(Michael Van Canneyt)
-/Title(Standard units Reference Guide)
-/Subject(Free Pascal Standard units reference guide)
-/Keywords(Free Pascal, Units,RTL)
-}
-\fi
-}
 \makeindex
 %
 % start of document.

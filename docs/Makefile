@@ -40,7 +40,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 3.0
+                 -html_version 3.2
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -88,6 +88,7 @@ TOC = $(addsuffix .toc, $(HTML))
 AUX = $(addsuffix .aux, $(HTML))
 LOG = $(addsuffix .log, $(HTML))
 LOT = $(addsuffix .lot, $(HTML))
+OUT = $(addsuffix .out, $(HTML))
 CHK = $(addsuffix .chk, $(HTML) unitex refex)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
@@ -151,23 +152,23 @@ help:
 
 clean:
 	-rm -rf $(HTML)
-	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(PS) *.i* $(LOT) $(TXT) $(CHK)
+	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
+# Units
 	-$(MAKE) -C crtex clean
 	-$(MAKE) -C dosex clean
 	-$(MAKE) -C go32ex clean
+	-$(MAKE) -C heapex clean
+	-$(MAKE) -C ipcex clean
 	-$(MAKE) -C linuxex clean
 	-$(MAKE) -C mouseex clean
-	-$(MAKE) -C optex clean
+	-$(MAKE) -C objectex clean
+	-$(MAKE) -C opclean clean
 	-$(MAKE) -C printex clean
 	-$(MAKE) -C sockex clean
-	-$(MAKE) -C mouseex clean
-	-$(MAKE) -C go32ex clean
 	-$(MAKE) -C stringex clean
-	-$(MAKE) -C refex clean
-	-$(MAKE) -C heapex clean
-	-$(MAKE) -C objectex clean
-	-$(MAKE) -C ipcex clean
 	-$(MAKE) -C sysutex clean
+# Reference
+	-$(MAKE) -C refex clean
 
 $(TXT) : %.txt: %.dvi
 
@@ -179,17 +180,16 @@ unitex.chk:
 	$(MAKE) -C crtex tex
 	$(MAKE) -C dosex tex
 	$(MAKE) -C go32ex tex
-	$(MAKE) -C linuxex tex
-	$(MAKE) -C optex tex
-	$(MAKE) -C mouseex tex
-	$(MAKE) -C printex tex
-	$(MAKE) -C stringex tex
-	$(MAKE) -C sockex tex
-	$(MAKE) -C mouseex tex
-	$(MAKE) -C go32ex tex
 	$(MAKE) -C heapex tex
-	$(MAKE) -C objectex tex
 	$(MAKE) -C ipcex tex
+	$(MAKE) -C linuxex tex
+	$(MAKE) -C mouseex tex
+	$(MAKE) -C objectex tex
+	$(MAKE) -C optex tex
+	$(MAKE) -C printex tex
+	$(MAKE) -C sockex tex
+	$(MAKE) -C stringex tex
+	$(MAKE) -C sysutex tex
 	touch unitex.chk
 
 refex.chk:
@@ -329,6 +329,7 @@ examples:
 	$(MAKE) -C stringex
 	$(MAKE) -C ipcex
 	$(MAKE) -C objectex
+	$(MAKE) -C sysutex
 
 dosexamples: examples
 	$(MAKE) -C go32ex
@@ -341,7 +342,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.22  1999-05-31 16:37:08  peter
+# Revision 1.23  1999-06-02 17:41:33  peter
+#   * fixes for html creation
+#
+# Revision 1.22  1999/05/31 16:37:08  peter
 #   * fixes for html creation
 #
 # Revision 1.21  1999/05/28 19:59:37  michael

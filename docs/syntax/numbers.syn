@@ -25,7 +25,9 @@
  \begin{stack}
   \synt{digit\ sequence} \\
   \lit*{\$} \synt{hex\ digit\ sequence} \\
-  \lit*{\%} \synt{bin\ digit\ sequence}
+  \lit*{
+  \%
+  } \synt{bin\ digit\ sequence}
  \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
