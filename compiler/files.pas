@@ -1147,7 +1147,8 @@ end;
         compiled:=false;
         in_implementation:=false;
         in_global:=true;
-        loaded_from:=nil;
+        {loaded_from:=nil;
+        should not be changed PFV }
         flags:=0;
         crc:=0;
         interface_crc:=0;
@@ -1347,7 +1348,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.110  1999-11-16 23:39:04  peter
+  Revision 1.111  1999-12-08 01:01:11  peter
+    * fixed circular unit reference checking. loaded_from was reset after
+      reseting a unit, so no loaded_from info was available anymore.
+
+  Revision 1.110  1999/11/16 23:39:04  peter
     * use outputexedir for link.res location
 
   Revision 1.109  1999/11/12 11:03:50  peter
