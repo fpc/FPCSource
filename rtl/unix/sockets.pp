@@ -41,7 +41,7 @@ const
   PF_MAX          = AF_MAX;
  {$ELSE}
  {BSD}
-  AF_LOCAL        =1;              { local to host (pipes, portals) }
+//  AF_LOCAL        =1;              { local to host (pipes, portals) }
   AF_IMPLINK      =3;               { arpanet imp addresses }
   AF_PUP          =4;              { pup protocols: e.g. BSP }
   AF_CHAOS        =5;               { mit CHAOS protocols }
@@ -82,7 +82,7 @@ const
 {
 * Protocol families, same as address families for now.
 }
-  PF_LOCAL        =AF_LOCAL;
+//  PF_LOCAL        =AF_LOCAL;
   PF_IMPLINK      =AF_IMPLINK;
   PF_PUP          =AF_PUP;
   PF_CHAOS        =AF_CHAOS;
@@ -151,7 +151,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-14 20:15:01  marco
+  Revision 1.8  2003-11-25 15:13:28  marco
+   * somebody added fields to socketsh.inc that were already under ifdef bsd
+
+  Revision 1.7  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.6  2002/09/07 16:01:27  peter
