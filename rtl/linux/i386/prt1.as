@@ -59,3 +59,10 @@ ___fpc_brk_addr:
 	.size	__curbrk,4
 __curbrk:
 	.long	0
+
+#
+# $Log$
+# Revision 1.3  1998-08-08 14:42:12  peter
+#   * added missing ___fpc_sbrk and logs
+#
+#

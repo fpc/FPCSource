@@ -63,9 +63,9 @@ _haltproc:
 .data
 	.align	4
 	
-	.globl	___brk_addr		/* heap management */
-	.type	___brk_addr,@object
-	.size	___brk_addr,4
+	.globl	___fpc_brk_addr		/* heap management */
+	.type	___fpc_brk_addr,@object
+	.size	___fpc_brk_addr,4
 ___fpc_brk_addr:
 	.long	0
 	
@@ -74,4 +74,10 @@ ___fpc_brk_addr:
 	.size	__curbrk,4
 __curbrk:
 	.long	0
-	
+
+#
+# $Log$
+# Revision 1.3  1998-08-08 14:42:10  peter
+#   * added missing ___fpc_sbrk and logs
+#
+#
