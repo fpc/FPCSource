@@ -288,15 +288,15 @@ begin
     Pointer(a):=nil
   else
     begin
-      Pointer(a):=NewAnsistring(L);
-      hp:=p;
-      i:=0;
+      { p[0] <> #0, checked above (JM) }
+      hp:=p+1;
+      i:=1;
       while (i<l) and (hp^<>#0) do
        begin
          inc(hp);
          inc(i);
        end;
-      SetLength(A,i);
+      Pointer(a):=NewAnsistring(i);
       Move (P[0],Pointer(A)^,i)
     end;
 end;
@@ -395,6 +395,7 @@ Procedure SetLength (Var S : AnsiString; l : Longint);
 }
 Var
   Temp : Pointer;
+  movelen: longint;
 begin
    if (l>0) then
     begin
@@ -410,7 +411,13 @@ begin
           { Reallocation is needed... }
           Temp:=Pointer(NewAnsiString(L));
           if Length(S)>0 then
-            Move(Pointer(S)^,Temp^,L);
+            begin
+              if l < succ(length(s)) then
+                movelen := l
+              { also move terminating null }
+              else movelen := succ(length(s));
+              Move(Pointer(S)^,Temp^,movelen);
+            end;
           ansistr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
        end;
@@ -658,7 +665,12 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-08-09 19:31:18  marco
+  Revision 1.4  2000-08-24 07:37:21  jonas
+    * fixed bug in setlength (it sometimes read after the end of the heap)
+      and small improvement to ansistring_to_chararray conversion (merged
+      from fixes branch)
+
+  Revision 1.3  2000/08/09 19:31:18  marco
    * fixes for val(int64 or qword) to ansistring
 
   Revision 1.2  2000/07/13 11:33:42  michael
