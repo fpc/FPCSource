@@ -747,20 +747,20 @@ const
            if l>1024 then
             heapsize:=l;
          end;
-		if c=',' then
-		 begin
-		   current_scanner^.readchar;
-		   current_scanner^.skipspace;
-		   l:=current_scanner^.readval;
-		   if l>1024 then
-			maxheapsize:=l;
-		 end;
-		if heapsize>maxheapsize then
-			message(scan_w_illegal_switch);
-	  end;
+	if c=',' then
+	 begin
+	   current_scanner^.readchar;
+	   current_scanner^.skipspace;
+	   l:=current_scanner^.readval;
+	   if l>1024 then
+		maxheapsize:=l;
+	 end;
+	if heapsize>maxheapsize then
+	    message(scan_w_illegal_switch);
+      end;
 
 
-	procedure dir_setverbose(t:tdirectivetoken);
+    procedure dir_setverbose(t:tdirectivetoken);
       var
         flag,
         state : char;
@@ -921,7 +921,10 @@ const
 
 {
   $Log$
-  Revision 1.28  1998-09-10 15:25:36  daniel
+  Revision 1.29  1998-09-11 09:19:53  daniel
+  * Removed tabs.
+
+  Revision 1.28  1998/09/10 15:25:36  daniel
   + Added maxheapsize.
   * Corrected semi-bug in calling the assembler and the linker
 
