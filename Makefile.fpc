@@ -259,12 +259,6 @@ clean: $(addsuffix _distclean,$(TARGET_DIRS))
 
 distclean: clean
 
-
-b: build-stamp2.$(OS_TARGET)
-build-stamp2.$(OS_TARGET):
-        $(ECHOREDIR) Build > build-stamp2.$(OS_TARGET)
-
-
 build: build-stamp.$(OS_TARGET)
 build-stamp.$(OS_TARGET):
 # create new compiler
