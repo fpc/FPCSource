@@ -890,7 +890,7 @@ full:
 	$(MAKE) -C text full
 fullgdb:
 	$(MAKE) -C text fullgdb
-clean: fpc_clean fake_clean
-distclean: fpc_distclean fake_distclean
+clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
+distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
 clean_compiler:
 	$(MAKE) -C ../compiler clean

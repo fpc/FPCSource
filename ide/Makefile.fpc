@@ -28,9 +28,9 @@ fullgdb:
         $(MAKE) -C text fullgdb
 
 # Also clean the fake dir
-clean: fpc_clean fake_clean
+clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
 
-distclean: fpc_distclean fake_distclean
+distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
 
 
 #
