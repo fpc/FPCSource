@@ -15,10 +15,11 @@ asm
   mr      r8,r12
   li      r6,0    
   li      r4,199  
-  crclr   4*cr1+eq
+//  crclr   cr1*4+eq
+  crxor   6,6,6
   li      r0,198
   sc
-  bso     cerrorlseek
+  bso     .Lcerrorlseek
 //  mr	  r0,r3
 //  mr      r3,r4
 //  mr	  r4,r0
@@ -26,7 +27,7 @@ asm
   mtlr    r0
   addi    r1,r1,16
   blr
-cerrorlseek:
+.Lcerrorlseek:
   lis   r4,Errno@ha
   stw   r3,Errno@l(r4)
   li    r3,-1
@@ -48,16 +49,18 @@ mr      r5,r3
 li      r3,0  
 li      r4,201
 li      r6,0  
-crclr   4*cr1+eq
+
+//crclr   cr1*4+eq
+crxor  6,6,6
 li      r0,198  
 sc
-bso     cerrortrunc
+bso     .Lcerrortrunc
 mr      r4,r3 
 lwz     r0,20(r1)
 mtlr    r0
 addi    r1,r1,16
 blr
-cerrortrunc:
+.Lcerrortrunc:
   lis     r4,Errno@ha
   stw     r3,Errno@l(r4)
   li      r3,-1
@@ -66,8 +69,9 @@ cerrortrunc:
   addi    r1,r1,16
 end;
 
+Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; assembler;  [public, alias: 'FPC_SYSC_MMAP'];
 
-Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  assembler; [public, alias : 'FPC_SYSC_MMAP'];
+//Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  assembler; [public, alias : 'FPC_SYSC_MMAP'];
 
 asm
   stwu    r1,-16(r1)
@@ -84,16 +88,17 @@ asm
   mr      r7,r0
   li      r4,197
   li      r10,0 
-  crclr   4*cr1+eq
+//  crclr   cr1*4+eq
+  crxor  6,6,6
   li      r0,198
   sc
-  bso     cerrormmap
+  bso     .Lcerrormmap
   mr      r4,r3
   lwz     r0,20(r1)
   mtlr    r0
   addi    r1,r1,16
   blr
-cerrormmap:
+.Lcerrormmap:
   lis     r4,Errno@ha
   stw     r3,Errno@l(r4)
   li      r3,-1

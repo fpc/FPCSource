@@ -106,6 +106,7 @@ Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifnde
 }
 
 begin
+{$ifdef i386}
  asm
    mov $42,%eax
    int $0x80
@@ -124,6 +125,7 @@ begin
    mov Errn,%edx
    mov %ebx,(%edx)
  end;
+{$endif}
 end;
 
 
@@ -275,7 +277,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-01-04 01:11:28  marco
+  Revision 1.6  2004-01-04 15:55:47  marco
+   * additions
+
+  Revision 1.5  2004/01/04 01:11:28  marco
    * a new qod port of the freebsd rtl. To be refined in the coming days.
 
   Revision 1.18  2004/01/01 17:07:21  marco

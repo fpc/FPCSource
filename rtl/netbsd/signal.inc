@@ -126,12 +126,15 @@ type sigset_t = array[0..3] of cardinal;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
+{$ifdef powerpc}
+  TSigaction=  procedure(Sig: Longint); cdecl;
+{$else}
 {$define BSDHandler}
-
 {$ifdef BSDHandler}
   TSigAction = procedure(Sig: Longint; code:longint;var SigContext: SigContextRec);cdecl;
 {$else}
   TSigAction = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
+{$endif}
 {$endif}
 
   Sigset=sigset_t;
@@ -161,7 +164,10 @@ type sigset_t = array[0..3] of cardinal;
 
 {
   $Log$
-  Revision 1.3  2004-01-04 01:11:28  marco
+  Revision 1.4  2004-01-04 15:55:47  marco
+   * additions
+
+  Revision 1.3  2004/01/04 01:11:28  marco
    * a new qod port of the freebsd rtl. To be refined in the coming days.
 
   Revision 1.2  2003/01/21 15:39:45  marco
