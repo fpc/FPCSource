@@ -93,7 +93,7 @@ uses
 {$endif}
   Dos,Video,
   App,Commands,tokens,
-  CompHook, systems, browcol,
+  CompHook, Compiler, systems, browcol,
   WUtils,WEditor,
   FPRedir,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
@@ -585,10 +585,10 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
-  Compile(FileName);
+  Compiler.Compile(FileName);
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
-  if LinkAfter and
+  if LinkAfter and IsExe and
      (CompilationPhase<>cpAborted) and
      (status.errorCount=0) then
     begin
@@ -745,7 +745,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  1999-11-10 17:20:41  pierre
+  Revision 1.43  1999-11-18 13:49:56  pierre
+   + use IsExe var to know if we need to call ppas
+
+  Revision 1.42  1999/11/10 17:20:41  pierre
    * Use fpredir.dosexecute
 
   Revision 1.41  1999/10/25 16:34:19  pierre
