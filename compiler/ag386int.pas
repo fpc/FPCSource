@@ -122,7 +122,7 @@ unit ag386int;
          comp2str:=double2str(dd^);
       end;
 
-    function getreferencestring(const ref : treference) : string;
+    function getreferencestring(var ref : treference) : string;
     var
       s     : string;
       first : boolean;
@@ -136,6 +136,8 @@ unit ag386int;
       with ref do
         begin
           first:=true;
+          inc(offset,offsetfixup);
+          offsetfixup:=0;
           if ref.segment<>R_NO then
            s:=int_reg2str[segment]+':['
           else
@@ -631,7 +633,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.59  2000-02-09 13:22:43  peter
+  Revision 1.60  2000-04-06 07:05:57  pierre
+   * handle offsetfixup
+
+  Revision 1.59  2000/02/09 13:22:43  peter
     * log truncated
 
   Revision 1.58  2000/01/07 01:14:18  peter
