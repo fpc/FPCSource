@@ -395,8 +395,8 @@ begin
   Regs.DI := transfer_buffer and 15;
   Regs.CX := SizeOf(TCountryInfo);
   RealIntr($21, Regs);
-  DosMemGet(transfer_buffer shr 16, 
-            transfer_buffer and 65535, 
+  DosMemGet(transfer_buffer div 16,
+            transfer_buffer and 15,
             CountryInfo, Regs.CX );
 end;
 
@@ -454,7 +454,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-02-28 13:18:12  michael
+  Revision 1.6  1999-08-19 14:00:08  pierre
+   * bug in country info code fixed
+
+  Revision 1.5  1999/02/28 13:18:12  michael
   + Added internationalization support
 
   Revision 1.4  1999/02/24 15:57:28  michael
