@@ -911,12 +911,12 @@ implementation
                begin
                  { addr }
                  resulttypepass(right);
-                 inserttypeconv(right,s32bittype);
+                 inserttypeconv(right,voidpointertype);
                  { frame }
                  if assigned(frametree) then
                   begin
                     resulttypepass(frametree);
-                    inserttypeconv(frametree,s32bittype);
+                    inserttypeconv(frametree,voidpointertype);
                   end;
                end;
            end;
@@ -1166,7 +1166,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-07-15 18:03:15  florian
+  Revision 1.37  2002-07-16 13:57:02  florian
+    * raise takes now a void pointer as at and frame address
+      instead of a longint
+
+  Revision 1.36  2002/07/15 18:03:15  florian
     * readded removed changes
 
   Revision 1.35  2002/07/14 18:00:44  daniel
