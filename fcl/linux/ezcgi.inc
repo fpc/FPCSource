@@ -9,7 +9,7 @@ Var P : Pchar;
 begin
    // Linux version returns pchar.
    p:=linux.getenv(EnvVar);
-   if P<>'' then
+   if P<>nil then
      getenv:=ansistring(p)
    else
      getenv:='';
