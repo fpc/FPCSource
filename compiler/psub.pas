@@ -1366,6 +1366,7 @@ var
    _class,hp:Pobjectdef;
    { switches can change inside the procedure }
    entryswitches, exitswitches : tlocalswitches;
+   oldaktmaxfpuregisters,localmaxfpuregisters : longint;
    { code for the subroutine as tree }
 {$ifdef newcg}
    code:pnode;
@@ -1456,6 +1457,7 @@ begin
    { save entry info }
    entrypos:=aktfilepos;
    entryswitches:=aktlocalswitches;
+   localmaxfpuregisters:=aktmaxfpuregisters;
 {$ifdef newcg}
    { parse the code ... }
    if (po_assembler in aktprocsym^.definition^.procoptions) then
@@ -1498,6 +1500,8 @@ begin
    { ... and generate assembler }
    { but set the right switches for entry !! }
    aktlocalswitches:=entryswitches;
+   oldaktmaxfpuregisters:=aktmaxfpuregisters;
+   aktmaxfpuregisters:=localmaxfpuregisters;
 {$ifndef NOPASS2}
 {$ifdef newcg}
    tg.setfirsttemp(procinfo^.firsttemp_offset);
@@ -1635,6 +1639,8 @@ begin
    { remove class member symbol tables }
    while symtablestack^.symtabletype=objectsymtable do
      symtablestack:=symtablestack^.next;
+
+   aktmaxfpuregisters:=oldaktmaxfpuregisters;
 
    { restore filepos, the switches are already set }
    aktfilepos:=savepos;
@@ -1939,7 +1945,12 @@ end.
 
 {
   $Log$
-  Revision 1.42  2000-01-16 22:17:12  peter
+  Revision 1.43  2000-01-21 22:06:16  florian
+    * fixed for the fix of bug 793
+    * fpu variables modified by nested subroutines aren't regable anymore
+    * $maxfpuregisters doesn't modify anymore the behavior of a procedure before
+
+  Revision 1.42  2000/01/16 22:17:12  peter
     * renamed call_offset to para_offset
 
   Revision 1.41  2000/01/11 17:16:06  jonas

@@ -118,11 +118,8 @@ implementation
                         begin
                           p^.registers32:=1;
                           { further, the variable can't be put into a register }
-{$ifdef INCLUDEOK}
-                          exclude(pvarsym(p^.symtableentry)^.varoptions,vo_regable);
-{$else}
-                          pvarsym(p^.symtableentry)^.varoptions:=pvarsym(p^.symtableentry)^.varoptions-[vo_regable];
-{$endif}
+                          pvarsym(p^.symtableentry)^.varoptions:=
+                            pvarsym(p^.symtableentry)^.varoptions-[vo_fpuregable,vo_regable];
                         end;
                      end;
                    if (pvarsym(p^.symtableentry)^.varspez=vs_const) then
@@ -481,7 +478,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2000-01-07 01:14:46  peter
+  Revision 1.58  2000-01-21 22:06:16  florian
+    * fixed for the fix of bug 793
+    * fpu variables modified by nested subroutines aren't regable anymore
+    * $maxfpuregisters doesn't modify anymore the behavior of a procedure before
+
+  Revision 1.57  2000/01/07 01:14:46  peter
     * updated copyright to 2000
 
   Revision 1.56  2000/01/06 01:08:59  pierre

@@ -720,7 +720,7 @@ implementation
                                     begin
                                        { it's no bad idea, to insert the VMT }
                                        emit_sym(A_PUSH,S_L,newasmsymbol(
-                                         pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
+                                         procinfo^._class^.vmt_mangledname));
                                     end
                                   { destructors haven't to dispose the instance, if this is }
                                   { a direct call                                           }
@@ -1333,7 +1333,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2000-01-21 12:17:41  jonas
+  Revision 1.120  2000-01-21 22:06:16  florian
+    * fixed for the fix of bug 793
+    * fpu variables modified by nested subroutines aren't regable anymore
+    * $maxfpuregisters doesn't modify anymore the behavior of a procedure before
+
+  Revision 1.119  2000/01/21 12:17:41  jonas
     * regallocation fixes
 
   Revision 1.118  2000/01/20 12:14:47  florian
