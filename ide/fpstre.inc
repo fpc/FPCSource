@@ -934,7 +934,7 @@ const
       hint_filesaveas        = 'Save the current file under a different name, directory or drive';
       hint_filesaveall       = 'Save all modified files';
       hint_changedir         = 'Choose a new default directory';
-      hint_dosshell          = 'Temporarily exit to DOS';
+      hint_dosshell          = 'Temporarily exit to shell';
       hint_exit              = 'Exit the IDE';
       hint_openrecentfile    = 'Open indicated file in a new editor window';
       hint_editmenu          = 'Clipboard editing commands';
@@ -1063,7 +1063,10 @@ const
 
 {
   $Log$
-  Revision 1.28  2005-02-14 17:13:18  peter
+  Revision 1.29  2005-03-12 13:48:58  florian
+    * fixed string Temporarily exit to DOS
+
+  Revision 1.28  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.27  2005/01/08 11:43:18  florian
