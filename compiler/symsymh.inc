@@ -143,6 +143,7 @@
 
        ttypesym = object(tsym)
           definition : pdef;
+          synonym    : ptypesym;
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
@@ -330,7 +331,11 @@
 
 {
   $Log$
-  Revision 1.23  1999-05-13 21:59:47  peter
+  Revision 1.24  1999-05-20 22:22:45  pierre
+    + added synonym filed for ttypesym
+      allows a clean disposal of tdefs and related ttypesyms
+
+  Revision 1.23  1999/05/13 21:59:47  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

@@ -24,12 +24,16 @@
        def_alignment = 4;
 
        { symbol options }
+       { this is only for object/class }
        sp_public     = $1;
        sp_private    = $2;
        sp_published  = $4;
        sp_protected  = $8;
        sp_forwarddef = $10;
        sp_static     = $20;
+       { this is for typesym }
+       { to know who is the primary symbol of a def }
+       sp_primary_typesym = $40;
 
        { flags for a definition }
        df_needsrtti = $1;           { the definitions needs rtti }
@@ -104,7 +108,11 @@
 
 {
   $Log$
-  Revision 1.7  1999-05-12 22:36:13  florian
+  Revision 1.8  1999-05-20 22:22:42  pierre
+    + added synonym filed for ttypesym
+      allows a clean disposal of tdefs and related ttypesyms
+
+  Revision 1.7  1999/05/12 22:36:13  florian
     * override isn't allowed in objects!
 
   Revision 1.6  1999/04/28 06:02:10  florian

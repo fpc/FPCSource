@@ -149,6 +149,12 @@
            nextglobal^.previousglobal:=previousglobal;
          previousglobal:=nil;
          nextglobal:=nil;
+         while assigned(sym) do
+           begin
+              sym^.definition:=nil;
+              sym:=sym^.synonym;
+           end;
+           
       end;
 
     { used for enumdef because the symbols are
@@ -3483,7 +3489,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.119  1999-05-19 16:48:26  florian
+  Revision 1.120  1999-05-20 22:22:43  pierre
+    + added synonym filed for ttypesym
+      allows a clean disposal of tdefs and related ttypesyms
+
+  Revision 1.119  1999/05/19 16:48:26  florian
     * tdef.typename: returns a now a proper type name for the most types
 
   Revision 1.118  1999/05/19 12:08:11  florian

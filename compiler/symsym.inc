@@ -1073,6 +1073,7 @@
     procedure tvarsym.insert_in_data;
       var
          l,ali,modulo : longint;
+         storefilepos : tfileposinfo;
       begin
         if (var_options and vo_is_external)<>0 then
           exit;
@@ -1095,6 +1096,8 @@
                ((pobjectdef(pvarsym(sym)^.definition)^.options and oo_is_abstract)<>0) then
                Message(sym_e_no_instance_of_abstract_object);
              }
+             storefilepos:=aktfilepos;
+             aktfilepos:=tokenpos;
              if ((var_options and vo_is_thread_var)<>0) then
                l:=4
              else
@@ -1243,6 +1246,7 @@
                    inc(owner^.datasize,l);
                  end;
                end;
+             aktfilepos:=storefilepos;
         end;
       end;
 
@@ -1430,7 +1434,10 @@
       procedure ttypedconstsym.really_insert_in_data;
         var curconstsegment : paasmoutput;
             l,ali,modulo : longint;
+            storefilepos : tfileposinfo;
         begin
+           storefilepos:=aktfilepos;
+           aktfilepos:=tokenpos;
            if is_really_const then
              curconstsegment:=consts
            else
@@ -1464,6 +1471,7 @@
                  else
                    curconstsegment^.concat(new(pai_symbol,init(mangledname)));
                end;
+             aktfilepos:=storefilepos;
            end;
 
 {$ifdef GDB}
@@ -1750,8 +1758,20 @@
          isusedinstab := false;
 {$endif GDB}
          forwardpointer:=nil;
-         if assigned(definition) and not(assigned(definition^.sym)) then
-           definition^.sym:=@self;
+         if assigned(definition) then
+          begin
+             if not(assigned(definition^.sym)) then
+               begin
+                  definition^.sym:=@self;
+                  synonym:=nil;
+                  properties:=sp_primary_typesym;
+               end
+             else
+               begin
+                  synonym:=definition^.sym^.synonym;
+                  definition^.sym^.synonym:=@self;
+               end;
+          end;
       end;
 
     constructor ttypesym.load;
@@ -1760,6 +1780,7 @@
          tsym.load;
          typ:=typesym;
          forwardpointer:=nil;
+         synonym:=nil;
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
@@ -1767,11 +1788,26 @@
       end;
 
     destructor ttypesym.done;
+      var prevsym : ptypesym;
 
       begin
          if assigned(definition) then
-           if definition^.sym=@self then
-             definition^.sym:=nil;
+           begin
+              prevsym:=definition^.sym;
+              if prevsym=@self then
+                definition^.sym:=synonym;
+              while assigned(prevsym) do
+                begin
+                   if (prevsym^.synonym=@self) then
+                     begin
+                        prevsym^.synonym:=synonym;
+                        break;
+                     end;
+                   prevsym:=prevsym^.synonym;
+                end;
+           end;
+         synonym:=nil;
+         definition:=nil;
          inherited done;
       end;
 
@@ -1782,8 +1818,23 @@
          resolvedef(definition);
          if assigned(definition) then
           begin
-            if definition^.sym=nil then
-             definition^.sym:=@self;
+            if properties=sp_primary_typesym then
+              begin
+                 if definition^.sym<>@self then
+                   synonym:=definition^.sym;
+                 definition^.sym:=@self;
+              end
+            else
+              begin
+                 if assigned(definition^.sym) then
+                   begin
+                      synonym:=definition^.sym^.synonym;
+                      if definition^.sym<>@self then
+                        definition^.sym^.synonym:=@self;
+                   end
+                 else
+                   definition^.sym:=@self;
+              end;
             if (definition^.deftype=recorddef) and assigned(precdef(definition)^.symtable) and
                (definition^.sym=@self) then
               precdef(definition)^.symtable^.name:=stringdup('record '+name);
@@ -1960,7 +2011,11 @@
 
 {
   $Log$
-  Revision 1.90  1999-05-17 13:11:40  pierre
+  Revision 1.91  1999-05-20 22:22:44  pierre
+    + added synonym filed for ttypesym
+      allows a clean disposal of tdefs and related ttypesyms
+
+  Revision 1.90  1999/05/17 13:11:40  pierre
    * unitsym security stuff
 
   Revision 1.89  1999/05/13 21:59:45  peter
