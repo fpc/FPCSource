@@ -3,7 +3,7 @@
 #
 
 [targets]
-dirs_linux=zlib ncurses x11 gtk syslog\
+dirs_linux=zlib ncurses x11 gtk syslog \
            inet uncgi \
            mysql ibase postgres \
            opengl forms svgalib ggi \
