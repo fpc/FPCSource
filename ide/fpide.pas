@@ -131,7 +131,7 @@ type
       InsideDone : boolean;
       LastEvent: longint;
       function  DoExecute(ProgramPath, Params, InFile, OutFile, ErrFile: string; ExecType: TExecType): boolean;
-      procedure AddRecentFile(AFileName: string; CurX, CurY: integer);
+      procedure AddRecentFile(AFileName: string; CurX, CurY: sw_integer);
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
       procedure CurDirChanged;
@@ -1160,7 +1160,7 @@ end;
 
 {$I fpmansi.inc}
 
-procedure TIDEApp.AddRecentFile(AFileName: string; CurX, CurY: integer);
+procedure TIDEApp.AddRecentFile(AFileName: string; CurX, CurY: sw_integer);
 begin
   if SearchRecentFile(AFileName)<>-1 then Exit;
   if RecentFileCount>0 then
@@ -1217,7 +1217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2002-09-09 06:58:51  pierre
+  Revision 1.21  2002-09-13 07:16:56  pierre
+   * avoid RTE 201 if closing file with position outside integer bounds
+
+  Revision 1.20  2002/09/09 06:58:51  pierre
    + adapted to FastBufStream.readline method
 
   Revision 1.19  2002/09/07 15:40:43  peter
