@@ -243,7 +243,7 @@
 {$endif}
 
      UCHAR = byte;
-     WCHAR = word;
+     WCHAR = System.wchar;	{Now in Systemh}
 
      UINT   = cardinal;
      ULONG  = cardinal;
@@ -944,7 +944,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2001-07-30 14:08:57  marco
+  Revision 1.8  2001-07-30 14:35:13  marco
+   * wchar now system.wchar
+
+  Revision 1.7  2001/07/30 14:08:57  marco
    * plpstr and plpwstr added
 
   Revision 1.6  2001/06/27 21:37:39  peter
