@@ -1372,8 +1372,12 @@ implementation
           end
          else
           begin
-            pd:=create_main_proc('main',potype_proginit,st);
-            pd.aliasnames.insert('PASCALMAIN');
+	    if target_info.system <> system_i386_netware then
+	    begin
+              pd:=create_main_proc('main',potype_proginit,st);
+              pd.aliasnames.insert('PASCALMAIN');
+	    end else
+	      pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
           end;
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
@@ -1523,7 +1527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2004-08-16 22:52:35  olle
+  Revision 1.162  2004-09-03 16:12:32  armin
+  * dont create main for netware (only PASCALMAIN)
+
+  Revision 1.161  2004/08/16 22:52:35  olle
     + Added automatic use of unit macpas under mode macpas
 
   Revision 1.160  2004/07/06 20:23:25  peter
