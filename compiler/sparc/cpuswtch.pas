@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
-    interprets the commandline options which are i386 specific
+    interprets the commandline options which are iSPARC specific
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,16 +30,16 @@ uses
   options;
 
 type
-  toption386=class(toption)
+  toptionSPARC=class(toption)
     procedure interpret_proc_specific_options(const opt:string);override;
   end;
 
 implementation
 
 uses
-  cutils,globtype,systems,globals;
+  cutils,globtype,systems,globals,cpuinfo;
 
-procedure toption386.interpret_proc_specific_options(const opt:string);
+procedure toptionSPARC.interpret_proc_specific_options(const opt:string);
 var
   j     : longint;
   More  : string;
@@ -78,9 +78,9 @@ begin
                      If j < Length(Opt) Then
                        Begin
                          Case opt[j+1] Of
-                           '1': initoptprocessor := Class386;
-                           '2': initoptprocessor := ClassP5;
-                           '3': initoptprocessor := ClassP6
+                           '1': initoptprocessor := SPARC_V8;
+                           '2': initoptprocessor := SPARC_V9;
+                           '3': initoptprocessor := SPARC_V9;
                            Else IllegalPara(Opt)
                          End;
                          Inc(j);
@@ -114,7 +114,7 @@ begin
              initasmmode:=asmmode_i386_intel
            else
             if More='DIRECT' then
-             initasmmode:=asmmode_i386_direct
+             initasmmode:=asmmode_direct
            else
             IllegalPara(opt);
          end;
@@ -125,11 +125,14 @@ end;
 
 
 initialization
-  coption:=toption386;
+  coption:=toptionSPARC;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-22 08:30:50  mazen
+  Revision 1.2  2002-08-23 10:08:28  mazen
+  *** empty log message ***
+
+  Revision 1.1  2002/08/22 08:30:50  mazen
   first insertion 2002\08\22
 
   Revision 1.4  2001/07/01 20:16:20  peter
@@ -156,7 +159,7 @@ end.
   * renamed
 
   Revision 1.1  2000/11/30 22:21:56  florian
-    * moved to i386
+    * moved to iSPARC
 
   Revision 1.6  2000/10/24 10:40:53  jonas
     + register renaming ("fixes" bug1088)
@@ -164,10 +167,10 @@ end.
         O2 now means peepholopts, CSE and register renaming in 1 pass
         O3 is the same, but repeated until no further optimizations are
           possible or until 5 passes have been done (to avoid endless loops)
-    * changed aopt386 so it does this looping
-    * added some procedures from csopt386 to the interface because they're
-      used by rropt386 as well
-    * some changes to csopt386 and daopt386 so that newly added instructions
+    * changed aoptSPARC so it does this looping
+    * added some procedures from csoptSPARC to the interface because they're
+      used by rroptSPARC as well
+    * some changes to csoptSPARC and daoptSPARC so that newly added instructions
       by the CSE get optimizer info (they were simply skipped previously),
       this fixes some bugs
 

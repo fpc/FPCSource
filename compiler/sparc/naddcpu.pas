@@ -233,7 +233,7 @@ PROCEDURE TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
         IF cs_check_overflow IN aktlocalswitches
         THEN
           BEGIN
-            getlabel(hl4);
+      //      getlabel(hl4);
             IF unsigned
             THEN
               emitjmp(C_NB,hl4)
