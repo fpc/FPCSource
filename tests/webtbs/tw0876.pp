@@ -1,3 +1,5 @@
+{ %target=go32v2,linux,freebsd }
+{ %note=This test needs C libraries }
 { %OPT=-pg }
 
 program test1;
