@@ -35,31 +35,35 @@ interface
     uses
        sysutils;
 
-    const { Ranges of the IEEE floating point types, including denormals }
+    { Ranges of the IEEE floating point types, including denormals }
 {$ifdef FPC_HAS_TYPE_SINGLE}
+    const
       MinSingle    =  1.5e-45;
       MaxSingle    =  3.4e+38;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
+    const
       MinDouble    =  5.0e-324;
       MaxDouble    =  1.7e+308;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
+    const
       MinExtended  =  3.4e-4932;
       MaxExtended  =  1.1e+4932;
 {$endif FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_HAS_TYPE_COMP}
+    const
       MinComp      = -9.223372036854775807e+18;
       MaxComp      =  9.223372036854775807e+18;
 {$endif FPC_HAS_TYPE_COMP}
 
-    type
        { the original delphi functions use extended as argument, }
        { but I would prefer double, because 8 bytes is a very    }
        { natural size for the processor                          }
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
 {$ifdef FPC_HAS_TYPE_FLOAT128}
+      type
          float = float128;
 
       const
@@ -67,6 +71,7 @@ interface
          MaxFloat = MaxFloat128;
 {$else FPC_HAS_TYPE_FLOAT128}
   {$ifdef FPC_HAS_TYPE_EXTENDED}
+      type
          float = extended;
 
       const
@@ -74,6 +79,7 @@ interface
          MaxFloat = MaxExtended;
   {$else FPC_HAS_TYPE_EXTENDED}
     {$ifdef FPC_HAS_TYPE_DOUBLE}
+      type
          float = double;
 
       const
@@ -81,13 +87,14 @@ interface
          MaxFloat = MaxDouble;
     {$else FPC_HAS_TYPE_DOUBLE}
       {$ifdef FPC_HAS_TYPE_SINGLE}
+      type
          float = single;
 
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
       {$else FPC_HAS_TYPE_SINGLE}
-        {$error At least one floating point type must be supported}
+        {$fatal At least one floating point type must be supported}
       {$endif FPC_HAS_TYPE_SINGLE}
     {$endif FPC_HAS_TYPE_DOUBLE}
   {$endif FPC_HAS_TYPE_EXTENDED}
@@ -999,7 +1006,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2003-04-24 09:38:12  florian
+  Revision 1.12  2003-09-01 20:46:59  peter
+    * small fixes for sparc
+
+  Revision 1.11  2003/04/24 09:38:12  florian
     * min/max must check the compiler capabilities
 
   Revision 1.10  2003/04/24 09:21:59  florian

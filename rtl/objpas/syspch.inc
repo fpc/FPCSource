@@ -30,6 +30,9 @@ type
 { Processor dependent part, shared withs strings unit }
 {$i strings.inc }
 
+{ Read generic string functions that are not implemented for the processor }
+{$i genstr.inc}
+
 { Processor independent part, shared with strings unit }
 {$i stringsi.inc }
 
@@ -117,7 +120,10 @@ end ;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:22  peter
+  Revision 1.7  2003-09-01 20:46:59  peter
+    * small fixes for sparc
+
+  Revision 1.6  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/01 16:53:14  jonas
