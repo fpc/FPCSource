@@ -249,7 +249,7 @@ package=ummtksrc.zip,MMOS/2 interface units
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.0.8
+# Example fpc.cfg for Free Pascal Compiler Version 1.0.10
 #
 
 # ----------------------
