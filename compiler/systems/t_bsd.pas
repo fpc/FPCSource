@@ -143,12 +143,13 @@ begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
+{  if name<>'' then
    begin
      aprocdef.setmangledname(name);
    end
   else
     message(parser_e_empty_import_name);
+}
 end;
 
 
@@ -627,7 +628,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2004-11-08 22:09:59  peter
+  Revision 1.25  2004-11-19 14:21:44  marco
+   * cycle fix.
+
+  Revision 1.24  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.23  2004/10/25 15:38:41  peter
