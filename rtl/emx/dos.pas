@@ -87,10 +87,27 @@ Type
         efwindowed:    Run the non-pm program in a window.
 
 }
-        type    execrunflags=(efwait,efno_wait,efoverlay,efdebug,efsession,
-                              efdetach,efpm);
-                execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
-                              efwindowed);
+const
+    efWait    = 0;  (* Spawn child, wait until terminated *)
+    efNo_Wait = 1;  (* Not implemented according to EMX documentation! *)
+    efOverlay = 2;  (* Exec child, kill current process *)
+    efDebug   = 3;  (* Debug child - use with ptrace syscall *)
+    efSession = 4;  (* Run in a separate session *)
+    efDetach  = 5;  (* Run detached *)
+    efPM      = 6;  (* Run as a PM program *)
+
+    efDefault    = 0;
+    efMinimize   = $100;
+    efMaximize   = $200;
+    efFullScreen = $300;
+    efWindowed   = $400;
+    efBackground = $1000;
+    efNoClose    = $2000;
+    efNoSession  = $4000;
+    efMoreFlags  = $8000; (* Needed if any flags > $FFFF are supplied *)
+    efQuote      = $10000;
+    efTilde      = $20000;
+    efDebugDesc  = $40000;
 
 
 {OS/2 specific functions}
@@ -98,14 +115,28 @@ Type
 function GetEnvPChar (EnvVar: string): PChar;
 
 
-const
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
-    ExecFlags: cardinal = ord (efwait);
+    ExecFlags: cardinal;
+
+
 
 implementation
 
+
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
+{$endif HASTHREADVAR}
+  LastDosExitCode: longint;
   LastSR: SearchRec;
+
+var
   EnvC: longint; external name '_envc';
   EnvP: ppchar; external name '_environ';
 
@@ -326,12 +357,6 @@ begin
   end ['eax','ebx','ecx','edx','esi','edi'];
 end;
 
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  LastDosExitCode: longint;
 
 procedure exec(const path:pathstr;const comline:comstr);
 
@@ -459,7 +484,6 @@ begin
         jnc .Lexprg1
         xchgl %eax,%edi
         xorl %eax,%eax
-        decl %eax
     .Lexprg1:
         movw %di,doserror
         movl %eax, LastDosExitCode
@@ -1200,10 +1224,15 @@ begin
  exitproc:=@doneenvironment;
  InitEnvironment;
  LastDosExitCode := 0;
+ ExecFlags := 0;
 end.
+
 {
   $Log$
-  Revision 1.14  2004-03-08 22:31:00  hajny
+  Revision 1.15  2004-03-21 20:35:24  hajny
+    * Exec cleanup
+
+  Revision 1.14  2004/03/08 22:31:00  hajny
     * exec fix
 
   Revision 1.13  2004/02/22 15:01:49  hajny
