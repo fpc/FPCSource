@@ -511,17 +511,20 @@ uses
          loadref(1,_op2);
       end;
 
-
     destructor tai386.done;
       var
         i : longint;
       begin
-        for i:=1 to ops do
-         if (oper[i-1].typ=top_ref) then
-          dispose(oper[i-1].ref);
+{$ifdef jmpfix}
+        if is_jmp then
+          dec(PasmLabel(oper[0].sym)^.refs)
+        else
+{$endif jmpfix}
+          for i:=1 to ops do
+            if (oper[i-1].typ=top_ref) then
+              dispose(oper[i-1].ref);
         inherited done;
       end;
-
 
     function tai386.getcopy:plinkedlist_item;
       var
@@ -1521,7 +1524,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-06-28 19:30:06  peter
+  Revision 1.14  1999-07-04 21:59:31  jonas
+    * merged
+
+
+  Revision 1.12.2.2  1999/07/04 21:50:16  jonas
+    * everything between {$ifdef jmpfix}:
+      * when a jxx instruction is disposed, decrease the refcount of the label
+        it referenced
+      * for jmp instructions to a label, set is_jmp also to true (was only done
+        for Jcc instructions)
+
+  Revision 1.13  1999/06/28 19:30:06  peter
     * merged
 
   Revision 1.12.2.1  1999/06/28 19:18:53  peter

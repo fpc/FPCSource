@@ -256,6 +256,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           internalerror(7453984);
       end;
 
+{$ifdef jmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
         ai : Pai386;
@@ -270,6 +271,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             exprasmlist^.concat(ai);
           end;
       end;
+{$else jmpfix}
+    procedure emitjmp(c : tasmcond;var l : pasmlabel);
+      var
+        ai : Pai386;
+      begin
+        if c=C_None then
+          ai := new(pai386,op_sym(A_JMP,S_NO,l))
+        else
+          begin
+            ai:=new(pai386,op_sym(A_Jcc,S_NO,l));
+            ai^.SetCondition(c);
+          end;
+        ai^.is_jmp:=true;
+        exprasmlist^.concat(ai);
+      end; 
+{$endif jmpfix}
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
       var
@@ -3095,7 +3112,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.9  1999-07-01 15:49:11  florian
+  Revision 1.10  1999-07-04 21:59:30  jonas
+    * merged
+
+  Revision 1.5.2.3  1999/07/04 21:50:17  jonas
+    * everything between {$ifdef jmpfix}:
+      * when a jxx instruction is disposed, decrease the refcount of the label
+        it referenced
+      * for jmp instructions to a label, set is_jmp also to true (was only done
+        for Jcc instructions)
+
+  Revision 1.9  1999/07/01 15:49:11  florian
     * int64/qword type release
     + lo/hi for int64/qword
 
