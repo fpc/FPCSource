@@ -38,7 +38,7 @@ clean:
 	rm -f debian-files-stamp
 	rm -f debian/*.files debian/*.docs debian/*.examples debian/*.postinst
 
-	$(MAKE) compiler_clean
+	$(MAKE) -C compiler distclean
 	$(MAKE) rtl_clean
 	$(MAKE) fcl_clean
 	$(MAKE) api_clean
