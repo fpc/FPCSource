@@ -4,11 +4,27 @@ Program GetModeRange_Example;
 
 uses graph;
 
+
 const
   { Currently, only 4, 8, 15 and 16 bit modes are supported
     but this may  change in the future }
   gdnames: array[D4bit..D16bit] of string[6] =
     ('4 bit','6 bit','8 bit','12 bit','15 bit','16 bit');
+
+procedure WriteRes(const depth : integer);
+var
+	tw, th : integer;
+	v, text : String;
+begin
+  text := 'Current resolution is '; str(getmaxx+1, v);
+  text := text + v + 'x'; str(getmaxy+1, v);
+  text := text + v + 'x' + gdnames[depth];
+  setTextStyle(defaultFont,horizDir,1);
+  TW:=TextWidth(text);
+  TH:=TextHeight(text);
+  outTextXY((getMaxX - TW) div 2,
+            (getMaxY - TH) div 2,text);
+end;
 
 var
   t: text;
@@ -56,6 +72,7 @@ begin
           closegraph;
           end;
         writeln(t);
+          WriteRes(gd);
         close(t);
         end;
     append(t);

@@ -39,6 +39,7 @@ begin
       end;
     end;
   if not found then
+      CloseGraph();
     begin
     writeln('640x480x256 is not supported!');
     halt(1)
