@@ -260,15 +260,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %ebx,saveebx
-{$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %cx,%bx
-        movl    %edx,%ecx
-{$else}
-        movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         movw    b,%bx
-{$endif}
+        movl    Len,%ecx       // Load len
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lready
@@ -1426,7 +1420,10 @@ end;
 
 {
   $Log$
-  Revision 1.54  2003-11-19 16:58:44  peter
+  Revision 1.55  2003-12-04 21:44:39  peter
+    * fix warning in gas
+
+  Revision 1.54  2003/11/19 16:58:44  peter
     * make strpas assembler function
 
   Revision 1.53  2003/11/11 21:08:17  peter
