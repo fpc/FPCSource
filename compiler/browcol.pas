@@ -783,7 +783,6 @@ begin
     labelsym     : S:='label';
     absolutesym  : S:='abs';
     propertysym  : S:='prop';
-    funcretsym   : S:='res';
     macrosym     : S:='macro';
   else S:='';
   end;
@@ -1472,12 +1471,6 @@ end;
               begin
                 Symbol^.Params:=TypeNames^.Add('...');
               end;
-          funcretsym :
-            if Assigned(OwnerSym) then
-            with tfuncretsym(sym) do
-              if assigned(returntype.def) then
-                if assigned(returntype.def.typesym) then
-                   SetVType(OwnerSym,returntype.def.typesym.name);
           procsym :
             begin
               with tprocsym(sym) do
@@ -2118,7 +2111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-12-29 14:57:50  peter
+  Revision 1.33  2003-04-26 00:29:17  peter
+    * adapted for removed funcretsym
+
+  Revision 1.32  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
