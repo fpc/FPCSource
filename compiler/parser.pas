@@ -43,6 +43,9 @@ implementation
       aasmbase,aasmtai,
       cgbase,
       script,gendef,
+{$ifdef BrowserCol}
+      browcol,
+{$endif BrowserCol}
 {$ifdef BrowserLog}
       browlog,
 {$endif BrowserLog}
@@ -643,9 +646,10 @@ implementation
                         else
                          browserlog.list_elements;
                       end;
-                     { Write Browser Collections }
-                     do_extractsymbolinfo{$ifdef FPC}(){$endif};
 {$endif BrowserLog}
+                     { Write Browser Collections, also used by the TextMode IDE to
+		       retrieve a list of sourcefiles }
+                     do_extractsymbolinfo{$ifdef FPC}(){$endif};
                    end;
                 end;
              end;
@@ -661,7 +665,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2005-02-01 08:46:13  michael
+  Revision 1.74  2005-02-10 20:06:34  peter
+    * fixed call to build sourcefiles needed for ide
+
+  Revision 1.73  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.72  2005/01/29 11:36:52  peter
