@@ -144,7 +144,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux \
 	dos crt objects printer ports \
-	objpas sysutils typinfo \
+	objpas sysutils typinfo math \
 	cpu mmx getopts heaptrc ports \
 	errors sockets graph
 
@@ -336,7 +336,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.12  1998-12-21 13:07:05  peter
+# Revision 1.13  1999-01-15 11:45:14  peter
+#   * added math unit to objects
+#
+# Revision 1.12  1998/12/21 13:07:05  peter
 #   * use -FE
 #
 # Revision 1.11  1998/12/11 00:10:50  peter
