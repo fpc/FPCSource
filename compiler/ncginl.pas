@@ -543,13 +543,14 @@ implementation
                else
                  internalerror(20020727);
                end;
-               { hregister contains the bitnumber to add }
-               cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
-               cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
-
 
               if use_small then
                 begin
+                  { hregister contains the bitnumber to add }
+                   cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
+                   cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
+
+
                   { possiblities :
                        bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
                        set value : LOC_REFERENCE, LOC_REGISTER
@@ -581,7 +582,10 @@ implementation
                        set value : LOC_REFERENCE
                   }
                   { hregister contains the bitnumber (div 32 to get the correct offset) }
-                  cg.a_op_const_reg(exprasmlist, OP_SHR, 5, hregister);
+                  { hregister contains the bitnumber to add }
+
+                  cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_SHL, 2, hregister2);
               {$ifdef newra}
                   addrreg:=rg.getaddressregister(exprasmlist);
               {$else}
@@ -589,7 +593,14 @@ implementation
               {$endif}
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
-                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister, addrreg);
+                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister2, addrreg);
+
+                  { hregister contains the bitnumber to add }
+                  cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_AND, 31, hregister);
+                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
+
+
                   reference_reset_base(href,addrreg,0);
 
                   if inlinenumber=in_include_x_y then
@@ -598,7 +609,7 @@ implementation
                        end
                      else
                        begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
                 {$ifdef newra}
@@ -671,7 +682,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2003-04-27 11:21:33  peter
+  Revision 1.29  2003-05-01 12:27:08  jonas
+    * fixed include/exclude for normalsets
+
+  Revision 1.28  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
