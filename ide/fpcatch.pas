@@ -101,7 +101,7 @@ end;
 
 {$ifdef HasSignal}
 {$ifdef Unix}
-Procedure CatchSignal(Sig : Integer);cdecl;
+Procedure CatchSignal(Sig : Longint);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
@@ -229,7 +229,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 21:04:41  carl
+  Revision 1.7  2003-04-23 09:49:26  peter
+    * unix signal handler needs longint
+
+  Revision 1.6  2002/09/07 21:04:41  carl
     * fix range check errors for version 1.1 compilation
 
   Revision 1.5  2002/09/07 15:40:42  peter
