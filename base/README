@@ -9,8 +9,8 @@ OS_TARGET       The target operating system you are going to compile for
 OS_SOURCE       The source operating system you compiling under
                 (Note: This has autodetection for go32v2,linux,winnt)
 
-CPU             The target CPU that is used (currently m68k,i386)
-                Default: CPU=i386
+CPU_TARGET      The target CPU that is used (currently m68k,i386)
+                Default: CPU_TARGET=i386
 
 OPT             General commandline options you want to give
                 Example to compile with debug info: OPT=-g
@@ -23,8 +23,8 @@ NEEDOPT         Realy needed commandline options, also used when
 
 NEEDUNITDIR     Realy needed unitdir
 
-PP              compiler to use, default is ppc386
-                Example to compile with version 0.99.8: PP=ppc998
+FPC             compiler to use, default is ppc386
+                Example to compile with version 0.99.8: FPC=ppc998
 
 AS              assembler to use to compile the loaders
                 Default: AS=as
@@ -63,13 +63,7 @@ NODEFAULTRULES  Don't include the default compiler rules. This is needed for
 Location:
 ---------
 INC             Where to find the .inc files.
-                Example: INC=inc
-
-PROCINC         Where to find processor dependent .inc files
-                Example: PROCINC=$(CPU)
-
-OSINC           Where to find operating system dependent .inc files
-                Example: OSINC=$(OS_TARGET)
+                Example: INC=inc $(OS_TARGET)
 
 TARGETDIR       Where to place all the .o,.ppu,.exe files
                 Example: TARGETDIR=. (this is needed when you compile
@@ -101,6 +95,8 @@ DIFF            GNU Diff
 DATE            GNU Date (automaticly searched)
 SED             GNU Sed (automaticly searched)
 PWD             GNU PWD (automaticly searched)
+UPXPROG         UPX ExeFile compressor (automaticly searched)
+ZIPPROG         ZIP compressor (automaticly searched)
 
 
 Directories:

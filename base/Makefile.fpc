@@ -1,0 +1,400 @@
+#
+#   Makefile.fpc for Free Pascal Source Tree
+#
+
+[defaults]
+defaultrule=info
+
+[rules]
+#####################################################################
+# Config
+#####################################################################
+
+# Try to determine which modules are installed
+MODULES+=$(wildcard compiler)
+MODULES+=$(wildcard rtl)
+MODULES+=$(wildcard utils)
+MODULES+=$(wildcard fcl)
+MODULES+=$(wildcard gtk)
+MODULES+=$(wildcard api)
+MODULES+=$(wildcard fv)
+MODULES+=$(wildcard gdbint)
+MODULES+=$(wildcard ide)
+
+###############################
+# Default paths
+###############################
+
+ifndef RTLDIR
+RTLDIR=rtl
+endif
+
+ifndef COMPILERDIR
+COMPILERDIR=compiler
+endif
+
+ifndef UTILSDIR
+UTILSDIR=utils
+endif
+
+ifndef FCLDIR
+FCLDIR=fcl
+endif
+
+ifndef GTKDIR
+GTKDIR=gtk
+endif
+
+ifndef APIDIR
+APIDIR=api
+endif
+
+ifndef FVDIR
+FVDIR=fv
+endif
+
+ifndef GDBDIR
+GDBDIR=gdbint
+endif
+
+ifndef FPINSTDIR
+FPINSTDIR=fpinst
+endif
+
+ifndef IDEDIR
+IDEDIR=ide
+endif
+
+#####################################################################
+# Defaults
+#####################################################################
+
+export RELEASE=1
+
+
+#####################################################################
+# Main targets
+#####################################################################
+
+.PHONY: all clean install staticinstall sharedinstall \
+        $(addsuffix _all,$(MODULES)) \
+        $(addsuffix _clean,$(MODULES)) \
+        $(addsuffix _install,$(MODULES)) \
+        $(addsuffix _staticinstall,$(MODULES)) \
+        $(addsuffix _sharedinstall,$(MODULES))\
+        compiler_cycle \
+        idezips ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip \
+        fclzip gtkzip fvzip compilerzip utilszip
+
+info:
+        @echo
+        @echo Please use one of the following targets:
+        @echo
+        @echo $(MODULES)
+        @echo
+        @echo All targets can follow after a _ with:
+        @echo all,clean,install,staticinstall,sharedinstall
+        @echo
+        @echo example: make api_staticinstall
+        @exit
+
+all: $(addsuffix _all,$(MODULES))
+
+clean: $(addsuffix _clean,$(MODULES))
+
+install: $(addsuffix _install,$(MODULES))
+
+staticinstall: $(addsuffix _staticinstall,$(MODULES))
+
+sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
+
+#####################################################################
+# Dependencies
+#####################################################################
+
+#######################################
+# RTL
+#######################################
+
+override RTLDIR:=$(RTLDIR)/$(OS_TARGET)
+
+rtl_all:
+        $(MAKE) -C $(RTLDIR) all
+
+rtl_clean:
+        $(MAKE) -C $(RTLDIR) clean
+
+rtl_install:
+        $(MAKE) -C $(RTLDIR) install
+
+rtl_staticinstall:
+        $(MAKE) -C $(RTLDIR) staticlibinstall
+
+rtl_sharedinstall:
+        $(MAKE) -C $(RTLDIR) sharedlibinstall
+
+
+#######################################
+# Compiler
+#######################################
+
+compiler_cycle:
+        $(MAKE) -C $(COMPILERDIR) cycle
+
+compiler_all: rtl_all
+        $(MAKE) -C $(COMPILERDIR) all
+
+compiler_clean:
+        $(MAKE) -C $(COMPILERDIR) distclean
+
+compiler_install:
+        $(MAKE) -C $(COMPILERDIR) install
+
+compiler_installlib:
+        $(MAKE) -C $(COMPILERDIR) installlib
+
+compiler_staticinstall:
+
+compiler_sharedinstall:
+
+
+#######################################
+# Utils
+#######################################
+
+utils_all: rtl_all fcl_all
+        $(MAKE) -C $(UTILSDIR) all
+
+utils_clean:
+        $(MAKE) -C $(UTILSDIR) clean
+
+utils_install:
+        $(MAKE) -C $(UTILSDIR) install
+
+utils_installlib:
+        $(MAKE) -C $(UTILSDIR) installlib
+
+utils_staticinstall:
+
+utils_sharedinstall:
+
+
+#######################################
+# FCL
+#######################################
+
+override FCLDIR:=$(FCLDIR)/$(OS_TARGET)
+
+fcl_all: rtl_all
+        $(MAKE) -C $(FCLDIR) all
+
+fcl_clean:
+        $(MAKE) -C $(FCLDIR) clean
+
+fcl_install:
+        $(MAKE) -C $(FCLDIR) install
+
+fcl_staticinstall:
+        $(MAKE) -C $(FCLDIR) staticlibinstall
+
+fcl_sharedinstall:
+        $(MAKE) -C $(FCLDIR) sharedlibinstall
+
+
+#######################################
+# GTK
+#######################################
+
+gtk_all: rtl_all
+        $(MAKE) -C $(GTKDIR) all
+
+gtk_clean:
+        $(MAKE) -C $(GTKDIR) clean
+
+gtk_install:
+        $(MAKE) -C $(GTKDIR) install
+
+gtk_staticinstall:
+        $(MAKE) -C $(GTKDIR) staticlibinstall
+
+gtk_sharedinstall:
+        $(MAKE) -C $(GTKDIR) sharedlibinstall
+
+
+
+#######################################
+# API
+#######################################
+
+api_all: rtl_all
+        $(MAKE) -C $(APIDIR) all
+
+api_clean:
+        $(MAKE) -C $(APIDIR) clean
+
+api_install:
+        $(MAKE) -C $(APIDIR) install
+
+api_staticinstall:
+        $(MAKE) -C $(APIDIR) staticlibinstall
+
+api_sharedinstall:
+        $(MAKE) -C $(APIDIR) sharedlibinstall
+
+
+#######################################
+# FV
+#######################################
+
+fv_all: rtl_all api_all
+        $(MAKE) -C $(FVDIR) all
+
+fv_clean:
+        $(MAKE) -C $(FVDIR) clean
+
+fv_install:
+        $(MAKE) -C $(FVDIR) install
+
+fv_staticinstall:
+        $(MAKE) -C $(FVDIR) staticlibinstall
+
+fv_sharedinstall:
+        $(MAKE) -C $(FVDIR) sharedlibinstall
+
+
+#######################################
+# GDB
+#######################################
+
+gdbint_all: rtl_all
+        $(MAKE) -C $(GDBDIR) all
+
+gdbint_clean:
+        $(MAKE) -C $(GDBDIR) clean
+
+gdbint_install:
+        $(MAKE) -C $(GDBDIR) install
+
+gdbint_staticinstall:
+        $(MAKE) -C $(GDBDIR) staticlibinstall
+
+gdbint_sharedinstall:
+        $(MAKE) -C $(GDBDIR) sharedlibinstall
+
+
+#######################################
+# FPC fpinst
+#######################################
+
+fpinst_all: rtl_all api_all fv_all
+        $(MAKE) -C $(FPINSTDIR) all
+
+fpinst_clean:
+        $(MAKE) -C $(FPINSTDIR) clean
+
+fpinst_install:
+        $(MAKE) -C $(FPINSTDIR) install
+
+fpinst_staticinstall:
+        $(MAKE) -C $(FPINSTDIR) staticlibinstall
+
+fpinst_sharedinstall:
+        $(MAKE) -C $(FPINSTDIR) sharedlibinstall
+
+
+#######################################
+# IDE
+#######################################
+
+ide_all: rtl_all api_all fv_all
+        $(MAKE) -C $(IDEDIR) all
+
+ide_gdb: rtl_all api_all fv_all gdbnt_all
+        $(MAKE) -C $(IDEDIR) gdb
+
+ide_full: rtl_all api_all fv_all
+        $(MAKE) -C $(IDEDIR) full
+
+ide_fullgdb: rtl_all api_all fv_all gdbint_all
+        $(MAKE) -C $(IDEDIR) fullgdb
+
+ide_clean:
+        $(MAKE) -C $(IDEDIR) clean
+
+ide_install:
+        $(MAKE) -C $(IDEDIR) install
+
+ide_staticinstall:
+        $(MAKE) -C $(IDEDIR) staticlibinstall
+
+ide_sharedinstall:
+        $(MAKE) -C $(IDEDIR) sharedlibinstall
+
+
+#######################################
+# Install targets
+#######################################
+
+base_install:
+        $(INSTALL) base/Makefile $(LIBINSTALLDIR)
+        $(INSTALL) base/makefile.fpc $(LIBINSTALLDIR)
+
+demo_install:
+        $(MAKE) -C demo installdemo
+
+man_install:
+        $(MAKE) -C man installman
+
+
+#######################################
+# Packaging targets
+#######################################
+
+ifndef ZIPTARGET
+ZIPTARGET=install
+endif
+
+export ZIPTARGET
+export PACKAGEDIR=$(BASEDIR)
+
+idezips: clean ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
+
+ide_allzip:
+        $(MAKE) ide_clean
+        $(MAKE) ide_all
+        $(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-fake-$(PACKAGESUFFIX)
+ide_gdbzip:
+        $(MAKE) ide_clean
+        $(MAKE) ide_gdb
+        $(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
+ide_fullzip:
+        $(MAKE) ide_clean
+        $(MAKE) ide_full
+        $(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-comp-$(PACKAGESUFFIX)
+ide_fullgdbzip:
+        $(MAKE) ide_clean
+        $(MAKE) ide_fullgdb
+        $(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
+
+fvzip: rtl_clean api_clean fv_clean
+        $(MAKE) api_all
+        $(MAKE) -C $(APIDIR) fpc_zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
+        $(MAKE) fv_all
+        $(MAKE) -C $(FVDIR) fpc_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
+
+fclzip: rtl_clean fcl_clean
+        $(MAKE) fcl_all
+        $(MAKE) -C $(FCLDIR) fpc_zipinstall ZIPNAME=fcl-$(PACKAGESUFFIX)
+
+gtkzip: rtl_clean gtk_clean
+        $(MAKE) gtk_all
+        $(MAKE) -C $(GTKDIR) fpc_zipinstall ZIPNAME=gtk-$(PACKAGESUFFIX)
+
+compilerzip: compiler_clean rtl_clean
+        $(MAKE) compiler_all
+        $(MAKE) -C $(COMPILERDIR) fpc_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
+        $(MAKE) -C $(RTLDIR) fpc_zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
+
+utilszip: utils_clean rtl_clean
+        $(MAKE) utils_all
+        $(MAKE) -C $(UTILSDIR) fpc_zipinstall ZIPNAME=utils-$(PACKAGESUFFIX)
