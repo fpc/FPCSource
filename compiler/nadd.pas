@@ -1782,7 +1782,7 @@ implementation
               else if is_longstring(ld) then
                 begin
                    { this is only for add, the comparisaion is handled later }
-                   expectloc:=LOC_CREFERENCE;
+                   expectloc:=LOC_REFERENCE;
                 end
               else
                 begin
@@ -1957,7 +1957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-04-24 22:29:57  florian
+  Revision 1.86  2003-04-26 09:12:55  peter
+    * add string returns in LOC_REFERENCE
+
+  Revision 1.85  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.84  2003/04/23 20:16:04  peter

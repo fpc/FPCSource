@@ -77,7 +77,7 @@ begin
   firstpass(right);
   if codegenerror then
     exit;
-  expectloc:=LOC_CREFERENCE;
+  expectloc:=LOC_REFERENCE;
   if not is_constcharnode(right) then
     { it's not sure we need the register, but we can't know it here yet }
     calcregisters(self,2,0,0)
@@ -106,7 +106,7 @@ begin
        { location is released by copyshortstring }
        location_freetemp(exprasmlist,left.location);
        { return temp reference }
-       location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+       location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -218,7 +218,7 @@ begin
        { release the registers }
        location_freetemp(exprasmlist,left.location);
        { return temp reference }
-       location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+       location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -252,6 +252,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-04-24 11:20:06  florian
+  Revision 1.2  2003-04-26 09:12:55  peter
+    * add string returns in LOC_REFERENCE
+
+  Revision 1.1  2003/04/24 11:20:06  florian
     + created from n386opt
 }

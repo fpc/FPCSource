@@ -137,7 +137,7 @@ end;
 function taddsstringoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
-  expectloc:= LOC_CREFERENCE;
+  expectloc:= LOC_REFERENCE;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
   procinfo.flags:=procinfo.flags or pi_do_call;
@@ -278,7 +278,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-04-22 23:50:23  peter
+  Revision 1.14  2003-04-26 09:12:55  peter
+    * add string returns in LOC_REFERENCE
+
+  Revision 1.13  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

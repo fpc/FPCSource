@@ -335,7 +335,7 @@ interface
         if (nodetype = addn) and
            is_shortstring(resulttype.def) then
          begin
-           expectloc:=LOC_CREFERENCE;
+           expectloc:=LOC_REFERENCE;
            calcregisters(self,0,0,0);
            result := nil;
            exit;
@@ -389,7 +389,7 @@ interface
                              { location is released by copyshortstring }
                              location_freetemp(exprasmlist,left.location);
 
-                             location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+                             location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
                              left.location.reference:=href;
                           end;
 
@@ -1664,7 +1664,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-04-23 20:16:04  peter
+  Revision 1.66  2003-04-26 09:12:55  peter
+    * add string returns in LOC_REFERENCE
+
+  Revision 1.65  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors
