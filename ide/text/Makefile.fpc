@@ -53,7 +53,9 @@ endif
 
 
 [rules]
-.PHONY: gdb full fullgdb clean_compiler
+.PHONY: gdb full fullgdb clean_compiler clean
+
+clean: fpc_cleanall
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
