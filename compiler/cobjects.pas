@@ -174,12 +174,13 @@ unit cobjects;
         end;
 
         Tnamed_object=object
-            name:Pstring;
+            _name:Pstring;
             left,right:Pnamed_object;
             speedvalue:longint;
             owner:Pdictionary;
             constructor init(const n:string);
             destructor done;virtual;
+            function name:string;
         end;
 
 {$ifdef BUFFEREDFILE}
@@ -831,23 +832,27 @@ end;
  ****************************************************************************}
 
 constructor Tnamed_object.init(const n:string);
-
 begin
-    left:=nil;
-    right:=nil;
-    name:=stringdup(n);
-    speedvalue:=getspeedvalue(n);
+  left:=nil;
+  right:=nil;
+  _name:=stringdup(n);
+  speedvalue:=getspeedvalue(n);
 end;
 
 destructor Tnamed_object.done;
-
 begin
-    stringdispose(name);
+  stringdispose(_name);
 end;
+
+function Tnamed_object.name:string;
+begin
+  name:=_name^;
+end;
+
 
 {****************************************************************************
                                TDICTIONARY
- ****************************************************************************}
+****************************************************************************}
 
 constructor Tdictionary.init(usehash:boolean);
 
@@ -938,8 +943,8 @@ function Tdictionary.insert(obj:Pnamed_object):Pnamed_object;
                     begin
                         new(s1);
                         new(s2);
-                        s1^:=osym^.name^;
-                        s2^:=obj^.name^;
+                        s1^:=osym^._name^;
+                        s2^:=obj^._name^;
                         if s1^>s2^ then
                             begin
                                 dispose(s2);
@@ -964,7 +969,7 @@ function Tdictionary.insert(obj:Pnamed_object):Pnamed_object;
 
 begin
     obj^.owner:=@self;
-    obj^.speedvalue:=getspeedvalue(obj^.name^);
+    obj^.speedvalue:=getspeedvalue(obj^._name^);
     if assigned(hasharray) then
         insert:=_insert(hasharray^[obj^.speedvalue mod hasharraysize])
     else
@@ -997,13 +1002,13 @@ begin
                         hp:=hp^.right
                     else
                         begin
-                            if (hp^.name^=s) then
+                            if (hp^._name^=s) then
                                 begin
                                     speedsearch:=hp;
                                     exit;
                                 end
                             else
-                                if s>hp^.name^ then
+                                if s>hp^._name^ then
                                     hp:=hp^.left
                                 else
                                     hp:=hp^.right;
@@ -1408,7 +1413,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-01-19 11:00:33  daniel
+  Revision 1.18  1999-02-24 00:59:13  peter
+    * small updates for ag386bin
+
+  Revision 1.17  1999/01/19 11:00:33  daniel
   + Tdictionary object:  Tsymtable will become object(TTdictionary) in the
     future
   + Tnamed_item object:  Tsym will become object(Tnamed_item) in the future

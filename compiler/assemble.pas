@@ -27,6 +27,12 @@ interface
 uses
   dos,cobjects,globtype,globals,aasm;
 
+{$ifdef Ag386Bin}
+  {$define NoAg386Att}
+  {$define NoAg386Int}
+  {$define NoAg386Nsm}
+{$endif}
+
 const
 {$ifdef tp}
   AsmOutSize=1024;
@@ -562,7 +568,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-02-22 02:15:01  peter
+  Revision 1.37  1999-02-24 00:59:11  peter
+    * small updates for ag386bin
+
+  Revision 1.36  1999/02/22 02:15:01  peter
     * updates for ag386bin
 
   Revision 1.35  1999/02/17 10:16:26  peter

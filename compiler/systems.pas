@@ -525,15 +525,30 @@ implementation
           )
           ,(
             id     : as_i386_dbg;
-            idtxt  : 'DBG'
+            idtxt  : 'DBG';
+            asmbin : '';
+            asmcmd : '';
+            externals : true;
+            labelprefix : '';
+            comment : ''
           )
           ,(
             id     : as_i386_coff;
-            idtxt  : 'COFF'
+            idtxt  : 'COFF';
+            asmbin : '';
+            asmcmd : '';
+            externals : true;
+            labelprefix : '';
+            comment : ''
           )
           ,(
             id     : as_i386_pecoff;
-            idtxt  : 'PECOFF'
+            idtxt  : 'PECOFF';
+            asmbin : '';
+            asmcmd : '';
+            externals : true;
+            labelprefix : '';
+            comment : ''
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1327,7 +1342,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  1999-02-22 02:15:42  peter
+  Revision 1.58  1999-02-24 00:59:16  peter
+    * small updates for ag386bin
+
+  Revision 1.57  1999/02/22 02:15:42  peter
     * updates for ag386bin
 
   Revision 1.56  1999/01/10 15:38:01  peter

@@ -315,7 +315,7 @@ unit pdecl;
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
                   tokenpos:=storetokenpos;
                   aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
-                  externals^.concat(new(pai_external,init(aktvarsym^.mangledname,EXT_NEAR)));
+                  concat_external(aktvarsym^.mangledname,EXT_NEAR);
                   symtablestack^.insert(aktvarsym);
                   symdone:=true;
                end;
@@ -494,7 +494,7 @@ unit pdecl;
                          importlib^.importvariable(aktvarsym^.mangledname,dll_name,C_name)
                        end
                       else
-                      externals^.concat(new(pai_external,init(aktvarsym^.mangledname,EXT_NEAR)));
+                       concat_external(aktvarsym^.mangledname,EXT_NEAR);
                     end;
                    symdone:=true;
                  end
@@ -2193,7 +2193,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.99  1999-02-22 23:33:29  florian
+  Revision 1.100  1999-02-24 00:59:14  peter
+    * small updates for ag386bin
+
+  Revision 1.99  1999/02/22 23:33:29  florian
     + message directive for integers added
 
   Revision 1.98  1999/02/22 20:13:36  florian
