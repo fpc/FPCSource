@@ -1922,6 +1922,8 @@ In the subsequent, we will assume that the server for which the programs are
 created, are based upon the NCSA \var{httpd} WWW server, as the examples
 will be based upon the NCSA method of CGI programming\footnote{... and it's 
 the only WWW-server I have to my disposition at the moment.}.
+They have been tested with the \file{apache} server on \linux, and 
+the \file{xitami} server on \windowsnt.
 
 The two example programs in this chapter have been tested on the command line 
 and worked, under the condition that no spaces were present in the name and 
@@ -2177,12 +2179,13 @@ And that's all there is to it !
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % I'm under Windows, what now ?
 \section{I'm under Windows, what now ?}
-Under Windows the system of writing CGI scripts is totally different. If you
-use \fpc under Windows then you also should be able to do CGI programming,
-but the above instructions will not work. 
+Under Windows the system of writing CGI scripts can be totally different. 
+If you use \fpc under Windows then you also should be able to do CGI 
+programming, but the above instructions may not work. They are known to work
+for the \file{xitami} server, however.
 
 If some kind soul is willing to write a section on CGI programming under
-Windows, I'd be willing to include it here.
+Windows for other servers, I'd be willing to include it here.
 \appendix
 
 
