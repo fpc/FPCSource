@@ -49,7 +49,7 @@ var I: Sw_integer;
 begin
   for I:=1 to ParamCount do
   begin
-    Param:=ParamStr(I);
+    Param:=System.ParamStr(I);
     if IsSwitch(Param) then
       begin
         Param:=copy(Param,2,255);
@@ -113,6 +113,7 @@ begin
   RegisterFPCompile;
   RegisterFPTools;
   RegisterFPViews;
+  RegisterFPDebugViews; 
   RegisterMenus;
   RegisterStdDlg;
   RegisterSymbols;
@@ -127,7 +128,7 @@ BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
   StartupDir:=CompleteDir(FExpand('.'));
-  IDEDir:=CompleteDir(DirOf(Paramstr(0)));
+  IDEDir:=CompleteDir(DirOf(system.Paramstr(0)));
 
   RegisterIDEObjects;
   StreamError:=@MyStreamError;
@@ -195,7 +196,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.29  1999-08-03 20:22:25  peter
+  Revision 1.30  1999-08-22 22:24:15  pierre
+   * avoid objpas paramstr functions
+
+  Revision 1.29  1999/08/03 20:22:25  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
