@@ -341,7 +341,7 @@ L32ByteAlignLoopDone:
         { get the amount of 32 byte blocks }
         srwi      r10,r4,5
         { and keep the rest in r4 (recording whether there is any rest) }
-        rlwinm.   r4,r4,0,31-5+2,31
+        rlwinm.   r4,r4,0,31-5+1,31
         { move to ctr }
         mtctr     r10
         { check how many rest there is (to decide whether we'll use }
@@ -357,7 +357,7 @@ LFillCharDCBZLoop:
         bdnz      LFillCharDCBZLoop
         { if there was no rest, we're finished }
         beq       LFillCharDone
-        b         LFillCharSmall
+        b         LFillCharVerySmall
 LFillCharNoZero:
 {$ifdef ABI_AIX}
         stw       r5,0(sp)
@@ -381,6 +381,7 @@ LFillChar32ByteLoop:
         bdnz      LFillChar32ByteLoop
         { if there was no rest, we're finished }
         beq       LFillCharDone
+        b         LFillCharVerySmall
 LFillCharSmall:
         { when we arrive here, we're already 4 byte aligned }
         { get count div 4 to store dwords }
@@ -874,7 +875,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.34  2003-04-26 12:05:10  florian
+  Revision 1.35  2003-04-26 17:35:15  jonas
+    * fixed FillChar
+
+  Revision 1.34  2003/04/26 12:05:10  florian
     * removed object/class helpers, the compiler uses the generic ones
 
   Revision 1.33  2003/04/26 11:55:52  florian
