@@ -67,4 +67,6 @@ ex63.pp contains an example of the FRename function.
 ex64.pp contains an example of the SysInfo function.
 ex64.pp contains an example of the SigRaise function.
 ex66.pp contains an example of the MMap function.
+ex67.pp contains an example of the FSplit function.
 serial.pp contains an example of serial port programming in FPC.
+ex68.pp contains an example of the Octal function.
