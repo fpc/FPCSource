@@ -165,9 +165,20 @@ type
 
    sem_t		= cint;
 
+// for get/setpriority
+Const
+ { For getting/setting priority }
+  Prio_Process = 0;
+  Prio_PGrp    = 1;
+  Prio_User    = 2;
+
+
 {
   $Log$
-  Revision 1.8  2004-09-09 20:29:06  jonas
+  Revision 1.9  2004-11-14 12:24:33  marco
+   * priority constants
+
+  Revision 1.8  2004/09/09 20:29:06  jonas
     * fixed definition of pthread_mutex_t for non-linux targets (and for
       linux as well, actually).
     * base libpthread definitions are now in ptypes.inc, included in unixtype
