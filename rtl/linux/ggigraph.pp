@@ -458,10 +458,10 @@ var
       ModeName := ModeNames[i];
       // Pretend we're VGA always.
       DriverNumber := VGA;
-      MaxX := ModeInfo.Visible.X;
-      MaxY := ModeInfo.Visible.Y;
-      // MaxColor := ModeInfo.colors;
-      MaxColor := 255;
+      MaxX := ModeInfo.Visible.X-1;
+      MaxY := ModeInfo.Visible.Y-1;
+      MaxColor := 1 shl (ModeInfo.graphtype and $ff);
+      //MaxColor := 255;
       PaletteSize := MaxColor;
       HardwarePages := 0;
       // necessary hooks ...
@@ -520,7 +520,7 @@ begin
     // WriteLn('Testing mode: ', ModeNames[i]);
     ggiParseMode(ModeNames[i], ModeInfo);
     If ggiCheckMode(visual, ModeInfo) = 0 then begin
-      Writeln('OK for mode: ', ModeNames[i]);
+      Writeln('OK for mode ',i,' : ', ModeNames[i]);
       AddGGIMode(i);
     end;
   end;
@@ -534,7 +534,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-07-08 21:22:16  peter
+  Revision 1.4  2000-07-09 07:22:51  peter
+    * fixed maxx,maxy setting
+
+  Revision 1.3  2000/07/08 21:22:16  peter
     * finalization added with setrawmode(false)
 
   Revision 1.2  2000/05/26 18:21:04  peter
