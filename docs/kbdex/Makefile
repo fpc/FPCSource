@@ -32,8 +32,7 @@ endif
 
 .PHONY: all tex clean
 
-OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7
-# ex8 ex9 \
+OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9
 #        ex10 ex11 ex12 ex13  ex14 ex15 ex16 ex17 ex18
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
@@ -46,10 +45,16 @@ onetex : tex
 	$(MAKETEX) $(TEXOBJECTS)
 
 clean : 
-	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
+	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) logkeys.ppu logkeys.o
+	rm -f keyboard.log
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*
 
 $(TEXOBJECTS): %.tex: %.pp head.tex foot.tex
 	$(PP2TEX) $*
+
+ex9: ex9.pp logkeys.ppu
+
+logkeys.ppu: logkeys.pp
+	$(PP) $(PPOPTS) logkeys.pp
