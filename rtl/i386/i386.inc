@@ -716,7 +716,7 @@ asm
         movl    %eax,%edi
         jmp     .Lcoext_obj
 .Lcoext_re:
-        pushl   $220
+        pushl   $219
         call    HandleError
 .Lcoext_ok:
         popl    %eax
@@ -1195,7 +1195,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2002-10-14 19:39:16  peter
+  Revision 1.34  2002-10-15 19:24:47  carl
+    * Replace 220 -> 219
+
+  Revision 1.33  2002/10/14 19:39:16  peter
     * threads unit added for thread support
 
   Revision 1.32  2002/10/05 14:20:16  peter

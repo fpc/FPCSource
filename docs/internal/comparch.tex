@@ -4635,7 +4635,7 @@ if vmt = nil or size of method table =0 then
 \Declaration
 procedure Int{\_}Check{\_}Object{\_}Ext(vmt, expvmt : pointer);
 \Description
-This routine is called at runtime when extended object checking is enabled (on the command line) and a virtual method is called. It verifies that the object constructor has been called first to build the VMT of the object, otherwise it throws an Runtime error 210, and furthermore it check that the object is actually a descendant of the parent object, otherwise it returns a Runtime error 220.
+This routine is called at runtime when extended object checking is enabled (on the command line) and a virtual method is called. It verifies that the object constructor has been called first to build the VMT of the object, otherwise it throws an Runtime error 210, and furthermore it check that the object is actually a descendant of the parent object, otherwise it returns a Runtime error 219.
 \Parameters
 vmt = Current value of the SELF register \par
 expvmt = Pointer to TRUE object definition
