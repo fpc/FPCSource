@@ -135,9 +135,13 @@ var
   hp, prevFound: pai;
   tmpResult: tregister;
 begin
- getPrevSequence := R_NO;
- { no memory writes (could be refined further) }
+  getPrevSequence := R_NO;
+  { no memory writes (could be refined further) }
+    passedJump := passedJump or
+      ((current^.typ = ait_instruction) and
+       (paicpu(current)^.is_jmp));
   if modifiesMemLocation(current) or
+     (passedJump and not(reg in (usableregs+[R_EDI]))) or
      not getLastInstruction(current,hp) then
     exit;
   tmpResult := R_NO;
@@ -1493,7 +1497,12 @@ End.
 
 {
   $Log$
-  Revision 1.8  2000-09-20 15:00:58  jonas
+  Revision 1.9  2000-09-22 15:01:59  jonas
+    * fixed some bugs in the previous improvements: in some cases, esi was
+      still being replaced before a conditional jump (the code that
+      detected conditional jumps sometimes skipped over them)
+
+  Revision 1.8  2000/09/20 15:00:58  jonas
     + much improved CSE: the CSE now searches further back for sequences it
       can reuse. After I've also implemented register renaming, the effect
       should be even better (afaik web bug 1088 will then even be optimized
