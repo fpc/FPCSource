@@ -1898,7 +1898,7 @@ Begin
                     If GetLastInstruction(p, hp1) And
                       (pai(hp1)^.typ = ait_instruction) Then
                      Case Paicpu(hp1)^.opcode Of
-                       A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
+                       A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
                          Begin
                            If OpsEqual(Paicpu(hp1)^.oper[1],Paicpu(p)^.oper[0]) Then
                              Begin
@@ -1946,7 +1946,12 @@ End.
 
 {
   $Log$
-  Revision 1.12  2000-09-24 15:06:23  peter
+  Revision 1.13  2000-10-02 13:01:29  jonas
+    * fixed bug regarding removal of "test/or reg,reg": apparently, shr/shl
+      doesn't set the zero flag according to the contents of the register
+      after the shift :( (mergfed from fixes branch)
+
+  Revision 1.12  2000/09/24 15:06:23  peter
     * use defines.inc
 
   Revision 1.11  2000/09/18 11:28:36  jonas
