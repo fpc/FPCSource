@@ -73,7 +73,7 @@ unit agas;
     'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
     'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
     'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
-    'mcrfs','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
+    'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
     'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
     'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
     'mulhw.','mulhwu','mulhwu.','mulli','mullh','mullw.','mullwo',
@@ -273,7 +273,10 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:31:04  florian
+  Revision 1.2  2002-04-06 18:13:01  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.1  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 

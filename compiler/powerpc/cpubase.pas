@@ -27,7 +27,7 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasm,cpuinfo;
+  strings,cutils,cclasses,aasm,cpuinfo,cginfo;
 
 {$ifndef NOOPT}
 Type
@@ -79,7 +79,7 @@ type
     a_dcbf, a_dcbi, a_dcbst, a_dcbt, a_divw, a_divw_, a_divwo, a_divwo_,
     a_divwu, a_divwu_, a_divwuo, a_divwuo_, a_eciwx, a_ecowx, a_eieio, a_eqv,
     a_eqv_, a_extsb, a_extsb_, a_extsh, a_extsh_, a_fabs, a_fabs_, a_fadd,
-    a_fadd_, a_fadds, a_fadds_, a_fcompo, a_fcmpu, a_fctiw, a_fctw_, a_fctwz,
+    a_fadd_, a_fadds, a_fadds_, a_fcmpo, a_fcmpu, a_fctiw, a_fctw_, a_fctwz,
     a_fctwz_, a_fdiv, a_fdiv_, a_fdivs, a_fdivs_, a_fmadd, a_fmadd_, a_fmadds,
     a_fmadds_, a_fmr, a_fmsub, a_fmsub_, a_fmsubs, a_fmsubs_, a_fmul, a_fmul_,
     a_fmuls, a_fmuls_, a_fnabs, a_fnabs_, a_fneg, a_fneg_, a_fnmadd,
@@ -90,7 +90,7 @@ type
     a_lfd, a_lfdu, a_lfdux, a_lfdx, a_lfs, a_lfsu, a_lfsux, a_lfsx, a_lha,
     a_lhau, a_lhaux, a_lhax, a_hbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
     a_lswi, a_lswx, a_lwarx, a_lwbrx, a_lwz, a_lwzu, a_lwzux, a_lwzx, a_mcrf,
-    a_mcrfs, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
+    a_mcrfs, a_mcrxr, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
     a_mfsrin, a_mftb, a_mtfcrf, a_a_mtfd0, a_mtfsb1, a_mtfsf, a_mtfsf_,
     a_mtfsfi, a_mtfsfi_, a_mtmsr, a_mtspr, a_mtsr, a_mtsrin, a_mulhw,
     a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
@@ -211,11 +211,17 @@ type
 {$endif tp}
   TAsmCondFlag = (C_None { unconditional jumps },
     { conditions when not using ctr decrement etc }
-    { TO DO: OV and CA. They're somewhere in bits 0:3 of XER, but can be }
-    { brought to CRx with the mcrxr instruction                          }
     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU,
     { conditions when using ctr decrement etc }
     C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF);
+
+const
+    { these are in the XER, but when moved to CR_x they correspond with the }
+    { bits below (still needs to be verified!!!)                            }
+    C_OV = C_EQ;
+    C_CA = C_GT;
+
+type
 
 {$ifndef tp}
 {$minenumsize default}
@@ -329,23 +335,30 @@ type
 type
   TLoc=(
     LOC_INVALID,     { added for tracking problems}
+    LOC_CONSTANT,    { ordinal constant }
     LOC_REGISTER,    { in a processor register }
     LOC_CREGISTER,   { Constant register which shouldn't be modified }
-    LOC_FPU,         { FPU register, called LOC_FPU for historic reasons }
+    LOC_FPUREGISTER, { FPU register}
     LOC_CFPUREGISTER,{ Constant FPU register which shouldn't be modified }
     LOC_MMREGISTER,  { multimedia register }
     LOC_CMMREGISTER, { Constant multimedia reg which shouldn't be modified }
-    LOC_MEM,         { in memory }
-    LOC_REFERENCE,   { like LOC_MEM, but lvalue }
+    LOC_REFERENCE,   { in memory }
+    LOC_CREFERENCE,  { in memory (constant) }
     LOC_JUMP,        { boolean results only, jump to false or true label }
     LOC_FLAGS        { boolean results only, flags are set }
   );
 
   plocation = ^tlocation;
   tlocation = packed record
+     size : TCGSize;
      case loc : tloc of
-        LOC_MEM,LOC_REFERENCE : (reference : treference);
-        LOC_FPU, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+        LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
+        LOC_CONSTANT : (
+          case longint of
+            1 : (value : AWord);
+            2 : (valuelow, valuehigh:AWord);
+          );
+        LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
           LOC_REGISTER,LOC_CREGISTER : (
             case longint of
               1 : (registerlow,registerhigh : tregister);
@@ -366,9 +379,20 @@ type
 *****************************************************************************}
 
 const
-  availabletempregsint = [R_11..R_30];
-  availabletempregsfpu = [R_F14..R_F31];
-  availabletempregsmm  = [R_M0..R_M31];
+  usableregsint = [R_13..R_30];
+  usableregsfpu = [R_F14..R_F31];
+  usableregsmm  = [R_M14..R_M31];
+
+  firstsaveintreg = R_13;
+  lastsaveintreg = R_30;
+  firstsavefpureg = R_F14;
+  lastsavefpureg = R_F31;
+{ no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
+  firstsavemmreg = R_NO;
+  lastsavemmreg = R_NO;
+
+  lowsavereg = firstsaveintreg;
+  highsavereg = lastsavefpureg;
 
   lvaluelocations = [LOC_REFERENCE, LOC_CREGISTER, LOC_CFPUREGISTER,
                      LOC_CMMREGISTER];
@@ -385,6 +409,13 @@ const
             (R_13,R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
              R_26,R_27,R_28,R_29,R_30);
 
+  maxfpuvarregs = 31-14+1;
+
+  fpuvarregs : Array [1..maxfpuvarregs] of Tregister =
+            (R_F14,R_F15,R_F16,R_F17,R_F18,R_F19,R_F20,R_F21,R_F22,R_F23,
+             R_F24,R_F25,R_F26,R_F27,R_F28,R_F29,R_F30,R_F31);
+
+
   max_param_regs_int = 8;
   param_regs_int: Array[1..max_param_regs_int] of tregister =
     (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
@@ -392,6 +423,11 @@ const
   max_param_regs_fpu = 13;
   param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
     (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
+
+
+  max_param_regs_mm = 13;
+  param_regs_mm: Array[1..max_param_regs_mm] of tregister =
+    (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
 
   general_registers = [R_0..R_31];
 
@@ -412,10 +448,7 @@ const
   accumulatorhigh  = R_4;
   vmt_offset_reg   = R_0;
   max_scratch_regs = 3;
-  scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_30);
-
-  { FIX ME !!!!!!!!! }
-  maxfpuvarregs = 4;
+  scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_31);
 
   maxintregs = maxvarregs;
   maxfpuregs = maxfpuvarregs;
@@ -629,8 +662,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-12-30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.7  2002-04-06 18:13:02  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.6  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in
+    cg64f32) and should work correctly again (it needed some changes after
+    the changes of the low and high of tordef's to int64)
+  * maketojumpbool() is now processor independent (in ncgutil)
+  * getregister32 is now called getregisterint
 
   Revision 1.5  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)

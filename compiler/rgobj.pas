@@ -773,7 +773,7 @@ unit rgobj;
 
 
     procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
-      begin
+          begin
         FillChar(ref,sizeof(treference),0);
         ref.symbol:=sym;
         ref.offset:=offset;
@@ -842,7 +842,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-04-04 19:06:04  peter
+  Revision 1.5  2002-04-06 18:13:01  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.4  2002/04/04 19:06:04  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

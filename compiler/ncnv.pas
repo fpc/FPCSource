@@ -135,7 +135,7 @@ implementation
       globtype,systems,tokens,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,ninl,nmem,
+      ncon,ncal,nset,nadd,ninl,nmem,nmat,
       cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
@@ -590,6 +590,23 @@ implementation
 
                { and finally the call }
                result := ccallnode.createinternres(procname,para,resulttype);
+             end
+           else
+             begin
+               { create word(byte(char) shl 8 or 1) for litte endian machines }
+               { and word(byte(char) or 256) for big endian machines          }
+               left := ctypeconvnode.create(left,u8bittype);
+               left.toggleflag(nf_explizit);
+               if (target_info.endian = endian_little) then
+                 left := caddnode.create(orn,
+                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32bittype)),
+                   cordconstnode.create(1,s32bittype))
+               else
+                 left := caddnode.create(orn,left,
+                   cordconstnode.create(1 shl 8,s32bittype));
+               left := ctypeconvnode.create(left,u16bittype);
+               left.toggleflag(nf_explizit);
+               resulttypepass(left);
              end;
       end;
 
@@ -1684,7 +1701,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-04-04 19:05:58  peter
+  Revision 1.51  2002-04-06 18:10:42  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.50  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

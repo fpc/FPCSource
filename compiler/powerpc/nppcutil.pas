@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit n386util;
+unit nppcutil;
 
 {$i defines.inc}
 
@@ -44,7 +44,7 @@ implementation
        types,
        ncon,nld,
        pass_1,pass_2,
-       cgbase,tgcpu,temp_gen,
+       cgbase,temp_gen,
        cga,regvars,cgobj,cgcpu;
 
 
@@ -66,7 +66,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-09-29 21:33:12  jonas
+  Revision 1.2  2002-04-06 18:13:02  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.1  2001/09/29 21:33:12  jonas
     + implemented bool_to_int and int_to_int (+ helper in nppcutil)
 
 

@@ -150,7 +150,7 @@ unit cgobj;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
-          { the op_reg_reg, op_reg_reg or op_reg_loc methods and keep in mind   }
+          { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
           procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); virtual; abstract;
@@ -221,9 +221,13 @@ unit cgobj;
           { source points to                                    }
           procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);virtual; abstract;
 
-          { generates rangechecking code for a node }
+          { generates range checking code for a node }
           procedure g_rangecheck(list: taasmoutput; const p: tnode;
             const todef: tdef); virtual;
+
+          { generates overflow checking code for a node }
+          procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
+
 
           { returns the tcgsize corresponding with the size of reg }
           class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
@@ -1553,7 +1557,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2002-04-04 19:05:54  peter
+  Revision 1.11  2002-04-06 18:10:42  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.10  2002/04/04 19:05:54  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

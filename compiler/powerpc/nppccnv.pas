@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit n386cnv;
+unit nppccnv;
 
 {$i defines.inc}
 
@@ -38,6 +38,7 @@ interface
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
          { procedure second_array_to_pointer;override; }
+          function first_int_to_real: tnode; override;
          { procedure second_pointer_to_array;override; }
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
@@ -61,10 +62,10 @@ implementation
    uses
       verbose,globals,systems,
       symconst,symdef,aasm,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_1,pass_2,
       ncon,ncal,
       cpubase,cpuasm,
-      cga,tgcpu;
+      rgobj,tgobj,cgobj,cginfo;
 
 
 {*****************************************************************************
@@ -83,7 +84,7 @@ implementation
             else
               fname := 'fpc_qword_to_double';
             result := ccallnode.createintern(fname,ccallparanode.create(
-              left));
+              left,nil));
             firstpass(result);
             exit;
           end
@@ -115,10 +116,10 @@ implementation
       begin
         { insert range check if not explicit conversion }
         if not(nf_explizit in flags) then
-          emitrangecheck(left,resulttype.def);
+          cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
         fromsize := left.resulttype.def.size;
-        tosize := resulttype.def.size
+        tosize := resulttype.def.size;
         { is the result size smaller ? }
         if tosize < fromsize then
           begin
@@ -126,10 +127,10 @@ implementation
             case left.location.loc of
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-                  if location = LOC_REGISTER then
+                  if location.loc = LOC_REGISTER then
                     location.register:= left.location.register
                   else
-                    location.register := getregisterint;
+                    location.register := rg.getregisterint(exprasmlist);
                   case opsize of
                     OS_8:
                       exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
@@ -152,27 +153,27 @@ implementation
                             location.register,left.location.register));
                         { we can release the upper register }
                         if opsize in [OS_64,OS_S64] then
-                          ungetregister(left.location.registerhigh);
+                          rg.ungetregister(exprasmlist,left.location.registerhigh);
                       end;
                   end;
                 end;
-              LOC_REFERENCE,LOC_MEM:
+              LOC_REFERENCE,LOC_CREFERENCE:
                 begin
                   set_location(location,left.location);
-                  increfofs(location.reference,fromsize-tosize);
+                  inc(location.reference.offset,fromsize-tosize);
                 end;
             end;
           end
         { is the result size bigger ? }
         else if resulttype.def.size>left.resulttype.def.size then
           begin
-            opsize := def_cgsize(fromsize);
+            opsize := int_cgsize(fromsize);
             location.loc := LOC_REGISTER;
             case left.location.loc of
-              LOC_REFERENCE,LOC_MEM:
+              LOC_REFERENCE,LOC_CREFERENCE:
                 begin
-                  del_reference(left.location.reference);
-                  location.register := getregisterint;
+                  reference_release(exprasmlist,left.location.reference);
+                  location.register := rg.getregisterint(exprasmlist);
                   if not (opsize in [OS_64,OS_S64]) then
                     tempsize := pred(opsize)
                   else
@@ -180,7 +181,7 @@ implementation
                   { this one takes care of the necessary sign extensions }
                   cg.a_load_ref_reg(exprasmlist,tempsize,
                     left.location.reference,location.register);
-                  ungetiftemp(left.location.reference);
+                  tg.ungetiftemp(exprasmlist,left.location.reference);
                 end;
               LOC_CREGISTER:
                 { since we only have 32bit registers and everything is }
@@ -188,7 +189,7 @@ implementation
                 { instructions as appropriate, the source will contain }
                 { the correct value already, so simply copy it         }
                 begin
-                  location.register := getregisterint;
+                  location.register := rg.getregisterint(exprasmlist);
                   exprasmlist.concat(taicpu.op_reg_reg(A_MR,location.register,
                     left.location.register));
                 end;
@@ -198,7 +199,7 @@ implementation
             { sign extend even further if necessary }
             if opsize in [OS_64,OS_S64] then
               begin
-                location.registerhigh := getregisterint;
+                location.registerhigh := rg.getregisterint(exprasmlist);
                 if (opsize = OS_64) or
                    not (is_signed(left.resulttype.def)) then
                   cg.a_load_const_reg(exprasmlist,OS_32,0,
@@ -210,7 +211,7 @@ implementation
               end;
           end
         else
-          setlocation(location,left.location);
+          set_location(location,left.location);
       end;
 
 
@@ -236,13 +237,13 @@ implementation
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
 
-        { * cardinal to double
+        { * cardinal to double                              }
         { addis R0,R0,0x4330  # R0 = 0x43300000             }
         { stw R0,disp(R1)     # store upper half            }
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        gettempofsizereference(8,ref);
+        tg.gettempofsizereference(exprasmlist,8,ref);
 
         signed := is_signed(left.resulttype.def);
 
@@ -257,12 +258,12 @@ implementation
         else
           tempconst :=
             crealconstnode.create(double(dummyrec($4330000000000000)),
-            pbestrealtype^)
+            pbestrealtype^);
 
         resulttypepass(tempconst);
         firstpass(tempconst);
         secondpass(tempconst);
-        if (tempconst.location.loc <> LOC_MEM) or
+        if (tempconst.location.loc <> LOC_CREFERENCE) or
            { has to be handled by a helper }
            is_64bitint(left.resulttype.def) then
           internalerror(200110011);
@@ -281,7 +282,7 @@ implementation
               else
                 valuereg := leftreg;
             end;
-          LOC_REFERENCE,LOC_MEM:
+          LOC_REFERENCE,LOC_CREFERENCE:
             begin
               leftreg := cg.get_scratch_reg(exprasmlist);
               valuereg := leftreg;
@@ -303,24 +304,26 @@ implementation
          if (left.location.loc = LOC_REGISTER) or
             ((left.location.loc = LOC_CREGISTER) and
              not signed) then
-           ungetregister(leftreg)
+           rg.ungetregister(exprasmlist,leftreg)
          else
            cg.free_scratch_reg(exprasmlist,valuereg);
 
-         tmpfpureg := get_scratch_reg_fpu(exprasmlist);
-         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,tmpfpureg,tempconst.location.reference));
+         tmpfpureg := rg.getregisterfpu(exprasmlist);
+         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,tmpfpureg,
+           newreference(tempconst.location.reference)));
          tempconst.free;
 
-         location.register := getregisterfpu;
-         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,ref));
+         location.register := rg.getregisterfpu(exprasmlist);
+         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,
+           newreference(ref)));
 
          { restore original offset before ungeting the tempref }
          dec(ref.offset,4);
-         ungetiftemp(ref);
+         tg.ungetiftemp(exprasmlist,ref);
 
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
-         ungetregister(tmpfpureg);
+         rg.ungetregisterfpu(exprasmlist,tmpfpureg);
        end;
 
 
@@ -332,11 +335,11 @@ implementation
         opsize   : tcgsize;
       begin
          clear_location(location);
-         { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+         { byte(boolean) or word(wordbool) or longint(longbool) must }
+         { be accepted for var parameters                            }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               set_location(location,left.location);
               exit;
@@ -344,29 +347,29 @@ implementation
          location.loc:=LOC_REGISTER;
          opsize := def_cgsize(left.resulttype.def);
          case left.location.loc of
-            LOC_MEM,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
+            LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
               begin
-                if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   begin
-                    del_reference(left.location);
-                    hreg2:=getregisterint;
+                    reference_release(exprasmlist,left.location.reference);
+                    hreg2:=rg.getregisterint(exprasmlist);
                     cg.a_load_ref_reg(exprasmlist,opsize,
                       left.location.reference,hreg2);
                   end
                 else
                   hreg2 := left.location.register;
-                hreg1 := getregisterint;
+                hreg1 := rg.getregisterint(exprasmlist);
                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg1,
-                  hreg2,1);
+                  hreg2,1));
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg1,
-                  hreg2);
-                ungetregister(hreg2);
+                  hreg2));
+                rg.ungetregister(exprasmlist,hreg2);
               end;
             LOC_FLAGS :
               begin
-                hreg1:=getregisterint;
+                hreg1:=rg.getregisterint(exprasmlist);
                 resflags:=left.location.resflags;
-                emit_flag2reg(resflags,hreg1);
+                cg.g_flags2reg(exprasmlist,resflags,hreg1);
               end;
             else
               internalerror(10062);
@@ -374,12 +377,89 @@ implementation
          location.register := hreg1;
       end;
 
+
+    procedure tppctypeconvnode.second_call_helper(c : tconverttype);
+
+      const
+         secondconvert : array[tconverttype] of pointer = (
+           @second_nothing, {equal}
+           @second_nothing, {not_possible}
+           @second_nothing, {second_string_to_string, handled in resulttype pass }
+           @second_char_to_string,
+           @second_nothing, {char_to_charray}
+           @second_nothing, { pchar_to_string, handled in resulttype pass }
+           @second_nothing, {cchar_to_pchar}
+           @second_cstring_to_pchar,
+           @second_ansistring_to_pchar,
+           @second_string_to_chararray,
+           @second_nothing, { chararray_to_string, handled in resulttype pass }
+           @second_array_to_pointer,
+           @second_pointer_to_array,
+           @second_int_to_int,
+           @second_int_to_bool,
+           @second_bool_to_int, { bool_to_bool }
+           @second_bool_to_int,
+           @second_real_to_real,
+           @second_int_to_real,
+           @second_proc_to_procvar,
+           @second_nothing, { arrayconstructor_to_set }
+           @second_nothing, { second_load_smallset, handled in first pass }
+           @second_cord_to_pointer,
+           @second_nothing, { interface 2 string }
+           @second_nothing, { interface 2 guid   }
+           @second_class_to_intf,
+           @second_char_to_char,
+           @second_nothing,  { normal_2_smallset }
+           @second_nothing   { dynarray_2_openarray }
+         );
+      type
+         tprocedureofobject = procedure of object;
+
+      var
+         r : packed record
+                proc : pointer;
+                obj : pointer;
+             end;
+
+      begin
+         { this is a little bit dirty but it works }
+         { and should be quite portable too        }
+         r.proc:=secondconvert[c];
+         r.obj:=self;
+         tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+      end;
+
+
+    procedure tppctypeconvnode.pass_2;
+{$ifdef TESTOBJEXT2}
+      var
+         r : preference;
+         nillabel : plabel;
+{$endif TESTOBJEXT2}
+      begin
+         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
+         { type conversion (FK)                                 }
+
+         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
+           begin
+              secondpass(left);
+              set_location(location,left.location);
+              if codegenerror then
+               exit;
+           end;
+         second_call_helper(convtype);
+      end;
+
+
 begin
    ctypeconvnode:=tppctypeconvnode;
 end.
 {
   $Log$
-  Revision 1.4  2001-12-29 15:28:58  jonas
+  Revision 1.5  2002-04-06 18:13:02  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.4  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

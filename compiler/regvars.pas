@@ -254,7 +254,7 @@ implementation
                        { reserve place on the FPU stack }
                        regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(R_ST0,i);
 {$else i386}
-                       rg.makeregvar(fpuregvars[i]);
+                       rg.makeregvar(regvarinfo^.fpuregvars[i].reg);
 {$endif i386}
                      end;
                   end;
@@ -459,7 +459,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2002-04-02 17:11:29  peter
+  Revision 1.25  2002-04-06 18:13:01  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.24  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

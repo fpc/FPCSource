@@ -315,6 +315,9 @@ interface
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
+{$ifdef TEMPS_NOT_PUSH}
+          temp_offset: longint;
+{$endif TEMPS_NOT_PUSH}
 {          list : taasmoutput; }
           constructor create(tt : tnodetype);
           { this constructor is only for creating copies of class }
@@ -811,7 +814,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-03-31 20:26:35  jonas
+  Revision 1.23  2002-04-06 18:13:01  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.22  2002/03/31 20:26:35  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -189,8 +189,11 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
+               secondpass(left);
                tg.gettempofsizereference(exprasmlist,256,location.reference);
-               loadshortstring(left,self);
+               cg.a_load_loc_ref(exprasmlist,left.location,
+                 location.reference);
+               location_release(exprasmlist,left.location);
              end;
            { the rest is removed in the resulttype pass and converted to compilerprocs }
            else
@@ -437,7 +440,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-04-04 19:05:57  peter
+  Revision 1.8  2002-04-06 18:10:42  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.7  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

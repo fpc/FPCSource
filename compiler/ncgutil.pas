@@ -46,7 +46,7 @@ implementation
     types,
     aasm,cgbase,regvars,
     ncon,
-    cpubase,tgobj,cginfo,cgobj,cgcpu,rgobj;
+    cpubase,tgobj,cpuinfo,cginfo,cgobj,cgcpu,rgobj,cg64f32;
 
 
 {$ifdef TEMPS_NOT_PUSH}
@@ -56,13 +56,13 @@ implementation
         scratchreg : tregister;
         saved : boolean;
       begin
-         if needed>usablereg32 then
+         if needed>rg.countunusedregsint then
            begin
               if (p.location.loc=LOC_REGISTER) then
                 begin
                    if isint64 then
                      begin
-                       tg.gettempofsizereference(8,href);
+                       tg.gettempofsizereference(exprasmlist,8,href);
                        p.temp_offset:=href.offset;
                        { do we have a 64bit processor? }
                        if sizeof(aword) < 8 then
@@ -82,7 +82,7 @@ implementation
                      end
                    else
                      begin
-                        tg.gettempofsizereference(4,href);
+                        tg.gettempofsizereference(exprasmlist,4,href);
                         p.temp_offset:=href.offset;
                         cg.a_load_reg_ref(exprasmlist,OS_32,
                           p.location.register,href);
@@ -90,16 +90,16 @@ implementation
                      end;
                    saved:=true;
                 end
-              else if (p.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+              else if (p.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
                       ((p.location.reference.base<>R_NO) or
                        (p.location.reference.index<>R_NO)
                       ) then
                   begin
                      scratchreg := cg.get_scratch_reg(exprasmlist);
-                     cg.a_loadaddress_ref_reg(exprasmlist,
-                       p.location.reference,scratchreg);
-                     del_reference(p.location.reference);
-                     tg.gettempofsizereference(target_info.size_of_pointer,href);
+                     cg.a_loadaddr_ref_reg(exprasmlist,p.location.reference,
+                       scratchreg);
+                     reference_release(exprasmlist,p.location.reference);
+                     tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,href);
                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,scratchreg,href);
                      cg.free_scratch_reg(exprasmlist,scratchreg);
                      p.temp_offset:=href.offset;
@@ -148,7 +148,7 @@ implementation
                 because otherwise secondload fails PM
               set_location(p^.left^.location,p^.location);}
            end;
-         tg.ungetiftemp(href);
+         tg.ungetiftemp(exprasmlist,href);
       end;
 {$endif TEMPS_NOT_PUSH}
 
@@ -213,7 +213,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-04-04 19:05:57  peter
+  Revision 1.6  2002-04-06 18:10:42  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.5  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

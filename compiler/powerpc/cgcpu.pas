@@ -27,7 +27,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo,cg64f32;
+       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo,node,cg64f32,cginfo;
 
     type
       tcgppc = class(tcg64f32)
@@ -60,6 +60,11 @@ unit cgcpu;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
 
+        { fpu move instructions }
+        procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
+
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
           l : tasmlabel);override;
@@ -77,10 +82,11 @@ unit cgcpu;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
 
-        procedure a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);override;
+        procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
+        procedure g_overflowcheck(list: taasmoutput; const p: tnode); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
@@ -108,44 +114,25 @@ unit cgcpu;
 
 const
 {
-  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_ADD,A_AND,A_DIVWU,
+  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIVWU,
                  A_DIVW,A_MULLW, A_MULLW, A_NEG,A_NOT,A_OR,
                  A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
 }
 
-  TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_ADDI,A_ANDI_,A_DIVWU,
+  TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_ADDI,A_ANDI_,A_DIVWU,
                         A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
                         A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
-  TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_ADDIS,A_ANDIS_,
+  TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_NONE,A_ADDIS,A_ANDIS_,
                         A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
                         A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
   TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
                        C_LT,C_GE,C_LE,C_NE,C_LE,C_NG,C_GE,C_NL);
 
-  LoadInstr: Array[OS_8..OS_S32,boolean, boolean] of TAsmOp =
-                         { indexed? updating?}
-             (((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
-              ((A_LHZ,A_LHZU),(A_LHZX,A_LHZUX)),
-              ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)),
-              { 64bit stuff should be handled separately }
-              ((A_NONE,A_NONE),(A_NONE,A_NONE)),
-              { there's no load-byte-with-sign-extend :( }
-              ((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
-              ((A_LHA,A_LHAU),(A_LHAX,A_LHAUX)),
-              ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)));
-
-  StoreInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
-                          { indexed? updating?}
-             (((A_STB,A_STBU),(A_STBX,A_STBUX)),
-              ((A_STH,A_STHU),(A_STHX,A_STHUX)),
-              ((A_STW,A_STWU),(A_STWX,A_STWUX)));
-
-
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils, tgcpu;
+       globtype,globals,verbose,systems,cutils,symconst,symdef,rgobj;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
@@ -223,14 +210,14 @@ const
       begin
   {$ifdef para_sizes_known}
         if (nr <= max_param_regs_int) then
-          a_loadaddress_ref_reg(list,size,r,param_regs_int[nr])
+          a_loadaddr_ref_reg(list,size,r,param_regs_int[nr])
         else
           begin
             reset_reference(ref);
             ref.base := stack_pointer;
             ref.offset := LinkageAreaSize+para_size_till_now;
             tmpreg := get_scratch_reg(list);
-            a_loadaddress_ref_reg(list,size,r,tmpreg);
+            a_loadaddr_ref_reg(list,size,r,tmpreg);
             a_load_reg_ref(list,size,tmpreg,ref);
             free_scratch_reg(list,tmpreg);
           end;
@@ -272,6 +259,12 @@ const
 
      procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
 
+       const
+         StoreInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
+                                 { indexed? updating?}
+                    (((A_STB,A_STBU),(A_STBX,A_STBUX)),
+                     ((A_STH,A_STHU),(A_STHX,A_STHUX)),
+                     ((A_STW,A_STWU),(A_STWX,A_STWUX)));
        var
          op: TAsmOp;
          ref2: TReference;
@@ -292,6 +285,18 @@ const
 
      procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
 
+       const
+         LoadInstr: Array[OS_8..OS_S32,boolean, boolean] of TAsmOp =
+                                { indexed? updating?}
+                    (((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
+                     ((A_LHZ,A_LHZU),(A_LHZX,A_LHZUX)),
+                     ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)),
+                     { 64bit stuff should be handled separately }
+                     ((A_NONE,A_NONE),(A_NONE,A_NONE)),
+                     { there's no load-byte-with-sign-extend :( }
+                     ((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
+                     ((A_LHA,A_LHAU),(A_LHAX,A_LHAUX)),
+                     ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)));
        var
          op: tasmop;
          tmpreg: tregister;
@@ -320,12 +325,59 @@ const
          list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
        end;
 
+
      procedure tcgppc.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
 
        begin
          { can't use op_sym_ofs_reg because sym+ofs can be > 32767!! }
          internalerror(200112293);
        end;
+
+
+     procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister);
+
+       begin
+         list.concat(taicpu.op_reg_reg(A_FMR,reg1,reg2));
+       end;
+
+     procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister);
+
+       const
+         FpuLoadInstr: Array[OS_F32..OS_F64,boolean, boolean] of TAsmOp =
+                          { indexed? updating?}
+                    (((A_LFS,A_LFSU),(A_LFSX,A_LFSUX)),
+                     ((A_LFD,A_LFDU),(A_LFDX,A_LFDUX)));
+       var
+         op: tasmop;
+         ref2: treference;
+       begin
+         if not(size in [OS_F32,OS_F64]) then
+           internalerror(200201121);
+         ref2 := ref;
+         fixref(list,ref2);
+         op := fpuloadinstr[size,ref2.index <> R_NO,false];
+         a_load_store(list,op,reg,ref2);
+       end;
+
+     procedure tcgppc.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference);
+
+       const
+         FpuStoreInstr: Array[OS_F32..OS_F64,boolean, boolean] of TAsmOp =
+                            { indexed? updating?}
+                    (((A_STFS,A_STFSU),(A_STFSX,A_STFSUX)),
+                     ((A_STFD,A_STFDU),(A_STFDX,A_STFDUX)));
+       var
+         op: tasmop;
+         ref2: treference;
+       begin
+         if not(size in [OS_F32,OS_F64]) then
+           internalerror(200201122);
+         ref2 := ref;
+         fixref(list,ref2);
+         op := fpustoreinstr[size,ref2.index <> R_NO,false];
+         a_load_store(list,op,reg,ref2);
+       end;
+
 
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -457,7 +509,7 @@ const
 
       const
         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
-          (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
+          (A_NONE,A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
            A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
 
        begin
@@ -776,49 +828,49 @@ const
       end;
 
 
-     procedure tcgppc.a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);
+     procedure tcgppc.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
 
        var tmpreg: tregister;
-           ref, tmpref: treference;
+           ref2, tmpref: treference;
 
        begin
-         ref := ref2;
-         FixRef(list,ref);
-         if assigned(ref.symbol) then
+         ref2 := ref;
+         FixRef(list,ref2);
+         if assigned(ref2.symbol) then
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
            begin
              tmpreg := get_scratch_reg(list);
              reset_reference(tmpref);
-             tmpref.symbol := ref.symbol;
+             tmpref.symbol := ref2.symbol;
              tmpref.symaddr := refs_ha;
              tmpref.is_immediate := true;
-             if ref.base <> R_NO then
+             if ref2.base <> R_NO then
                list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                 ref.base,newreference(tmpref)))
+                 ref2.base,newreference(tmpref)))
              else
                list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,
                   newreference(tmpref)));
-             ref.base := tmpreg;
-             ref.symaddr := refs_l;
+             ref2.base := tmpreg;
+             ref2.symaddr := refs_l;
              { can be folded with one of the next instructions by the }
              { optimizer probably                                     }
              list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,
                 newreference(tmpref)));
            end;
-         if ref.offset <> 0 Then
-           if ref.base <> R_NO then
-             a_op_const_reg_reg(list,OP_ADD,OS_32,ref.offset,ref.base,r)
+         if ref2.offset <> 0 Then
+           if ref2.base <> R_NO then
+             a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
-           else a_load_const_reg(list, OS_32, ref.offset, r)
+           else a_load_const_reg(list,OS_32,ref2.offset,r)
          else
            if ref.index <> R_NO Then
-             list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.base,ref.index))
+             list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
            else
-             if r <> ref.base then
-               list.concat(taicpu.op_reg_reg(A_MR,r,ref.base));
-         if assigned(ref.symbol) then
+             if r <> ref2.base then
+               list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
+         if assigned(ref2.symbol) then
            free_scratch_reg(list,tmpreg);
        end;
 
@@ -845,12 +897,12 @@ const
         src.base := get_scratch_reg(list);
         if loadref then
           a_load_ref_reg(list,OS_32,source,src.base)
-        else a_loadaddress_ref_reg(list,source,src.base);
+        else a_loadaddr_ref_reg(list,source,src.base);
         if delsource then
-          del_reference(source);
+          reference_release(exprasmlist,source);
         { load the address of dest into dst.base }
         dst.base := get_scratch_reg(list);
-        a_loadaddress_ref_reg(list,dest,dst.base);
+        a_loadaddr_ref_reg(list,dest,dst.base);
         count := len div 4;
         if count > 3 then
           { generate a loop }
@@ -908,6 +960,30 @@ const
        free_scratch_reg(list,src.base);
        free_scratch_reg(list,dst.base);
       end;
+
+
+    procedure tcgppc.g_overflowcheck(list: taasmoutput; const p: tnode);
+
+      var
+         hl : tasmlabel;
+      begin
+         if not(cs_check_overflow in aktlocalswitches) then
+          exit;
+         getlabel(hl);
+         if not ((p.resulttype.def.deftype=pointerdef) or
+                ((p.resulttype.def.deftype=orddef) and
+                 (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                                  bool8bit,bool16bit,bool32bit]))) then
+           begin
+             list.concat(taicpu.op_reg(A_MCRXR,R_CR7));
+             a_jmp(list,A_BC,C_OV,7,hl)
+           end
+         else
+           a_jmp_cond(list,OC_AE,hl);
+         a_call_name(list,'FPC_OVERFLOW',0);
+         a_label(list,hl);
+      end;
+
 
 {***************** This is private property, keep out! :) *****************}
 
@@ -1098,11 +1174,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-01-02 14:53:04  jonas
+  Revision 1.12  2002-04-06 18:13:01  jonas
+    * several powerpc-related additions and fixes
+
+  Revision 1.11  2002/01/02 14:53:04  jonas
     * fixed small bug in a_jmp_flags
 
   Revision 1.10  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+    * range checking is now processor independent (part in cgobj, part in
+    cg64f32) and should work correctly again (it needed some changes after
+    the changes of the low and high of tordef's to int64)
+  * maketojumpbool() is now processor independent (in ncgutil)
+  * getregister32 is now called getregisterint
 
   Revision 1.9  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
