@@ -958,8 +958,10 @@ implementation
          static_name : string;
          isclassref : boolean;
          srsymtable : tsymtable;
+{$ifdef CHECKINHERITEDRESULT}
          newstatement : tstatementnode;
          newblock     : tblocknode;
+{$endif CHECKINHERITEDRESULT}
       begin
          if sym=nil then
            begin
@@ -1004,7 +1006,7 @@ implementation
                              not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
                              not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
                             Message(parser_e_only_class_methods_via_class_ref);
-
+{$ifdef CHECKINHERITEDRESULT}
                            { when calling inherited constructor we need to check the return value }
                            if (nf_inherited in callnflags) and
                               (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
@@ -1056,8 +1058,9 @@ implementation
                                    end
                                  else
                                    internalerror(200305133);
-                               do_resulttypepass(p1);
                              end;
+{$endif CHECKINHERITEDRESULT}
+                           do_resulttypepass(p1);
                         end;
                    end;
                  varsym:
@@ -2397,7 +2400,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-05-13 19:14:41  peter
+  Revision 1.119  2003-05-13 20:54:39  peter
+    * ifdef'd code that checked for failed inherited constructors
+
+  Revision 1.118  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 
