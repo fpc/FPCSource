@@ -1,6 +1,9 @@
 { This is just a small file used to verify the alignment of different
   structures. Only the assembler output should be checked.
 }
+
+{$mode objfpc}
+
 type
   tmyclass = class 
     s: ansistring;
