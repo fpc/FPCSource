@@ -1104,7 +1104,9 @@ implementation
           if not is_void(aktprocdef.rettype.def) then
             begin
               { insert in local symtable }
+              { but with another name, so that recursive calls are possible }
               symtablestack.insert(aktprocdef.funcretsym);
+              symtablestack.rename(aktprocdef.funcretsym.name,'$result');
             end;
           { force the asm statement }
             if token<>_ASM then
@@ -1119,7 +1121,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-11-02 22:58:05  peter
+  Revision 1.44  2001-11-09 10:06:56  jonas
+    * allow recursive calls again in assembler procedure
+
+  Revision 1.43  2001/11/02 22:58:05  peter
     * procsym definition rewrite
 
   Revision 1.42  2001/10/26 22:36:42  florian
