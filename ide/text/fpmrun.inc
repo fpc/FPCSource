@@ -126,15 +126,22 @@ var
           L : longint;
          end;
 begin
-  W:=FirstEditorWindow;
+  if not assigned(DeskTop^.First) or
+     (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
+    Begin
+       ErrorBox('Impossible to set breakpoints here',nil);
+       Exit;
+    End;
+    
+  W:=PSourceWindow(DeskTop^.First);
   If assigned(W) then
     begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
       Info.F:=@FileName;
       Info.L:=LineNr;
-      InformationBox(#3'Trying to set a breakpoint at'#13#3+
-         '%s : %d',@Info);
+      {InformationBox(#3'Trying to set a breakpoint at'#13#3+
+         '%s : %d',@Info);}
       b:=BreakpointCollection^.ToggleFileLine(FileName,LineNr);
       W^.Editor^.SetLineBreakState(LineNr-1,b);
     end;
@@ -142,7 +149,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-02-04 13:32:07  pierre
+  Revision 1.8  1999-02-04 17:56:17  pierre
+   * Set breakpoint only possible if source window
+
+  Revision 1.7  1999/02/04 13:32:07  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
