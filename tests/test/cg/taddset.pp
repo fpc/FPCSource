@@ -20,7 +20,7 @@ Program tneg;
 
 type
        { DO NOT CHANGE THE VALUES OF THESE ENUMERATIONS! }
-       myenum = (dA,dB,dC,dd,dedf,dg,dh,di,dj,dk,dl,dm,dn);
+       tsmallenum = (dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr);
        tasmop = (A_ABCD,
          A_ADD,A_ADDA,A_ADDI,A_ADDQ,A_ADDX,A_AND,A_ANDI,
          A_ASL,A_ASR,A_BCC,A_BCS,A_BEQ,A_BGE,A_BGT,A_BHI,
@@ -71,34 +71,14 @@ type
          A_LABEL,A_NONE);
 
 
-Function X(y:myenum): myenum;
-Begin
- x:=y;
-end;
 
-(*
-Procedure SecondInSets;
-{ SET_IN_BYTE TESTS }
-var
- op : tasmop;
- oplist: set of tasmop;
-Begin
- Write('TESTING SET_IN_BYTE:');
- oplist:=[];
- op:=A_JSR;
- if op in oplist then
-  WriteLn(' FAILED.');
- op:=A_MOVE;
- oplist:=oplist+[A_MOVE];
- if op in oplist then
-  WriteLn(' PASSED.');
-end;
-*)
 type
   topset = set of tasmop;
+  tsmallset = set of tsmallenum;
 
 const
 
+   { NORMAL SETS }
    constset1 : array[1..3] of topset =
    (
        { 66 }    { 210 }  { 225 }
@@ -118,6 +98,24 @@ const
      ([A_ADD..A_ASL]),
      ([A_CHK2])
    );
+
+   { SMALL SETS }
+   constset3 : array[1..3] of tsmallset =
+   (
+     ([DA,             { 0 :  BYTE 0 : bit 0 }
+       DD,             { 3 :  BYTE 0 : bit 3 }
+       DM]),           { 12 :  BYTE 1 : bit 4  }
+     ([DB..DI]),       { 1..8 : BYTE 0-1 :  }
+     ([DR])            { 17 :  BYTE 2 : bit 1 }
+   );
+
+   constset4 : array[1..3] of tsmallset =
+   (
+     ([DA,DD,DM]),
+     ([DB..DI]),
+     ([DR])
+   );
+
 
 
  procedure SetTestEqual;
@@ -357,7 +355,6 @@ begin
   WriteLn('Success.');
 end;
 
-(*
 procedure SetTestByte;
 var
  op2list :set of tasmop;
@@ -369,36 +366,275 @@ var
 begin
  Write('Simple Set + element testing...');
  passed := true;
- oplist := [A_MOVE];
  op := A_LABEL;
- oplist := [op];
- if oplist <> [A_MOVE,A_LABEL] then
+ oplist := [A_MOVE,op,A_JSR];
+ if oplist <> [A_MOVE,A_LABEL,A_JSR] then
    passed := false;
   if not passed then
     WriteLn('Failure,')
   else
     WriteLn('Success.');
 end;
-*)
+
+
+{------------------------------ TESTS FOR SMALL VALUES ---------------------}
+ procedure SmallSetTestEqual;
+  var
+    op2list :set of tsmallenum;
+    oplist: set of tsmallenum;
+    passed : boolean;
+  Begin
+   Write('Small Set == Small Set test...');
+   passed := true;
+   op2list:=[];
+   oplist:=[];
+   if not (oplist=op2list) then
+     passed := false;
+   if not (constset3[2] = constset4[2]) then
+     passed := false;
+   if (constset3[1] = constset4[2]) then
+     passed := false;
+   if not (constset3[1] = [DA,DD,DM]) then
+     passed := false;
+   if passed then
+     WriteLn('Success.')
+   else
+     WriteLn('Failure.');
+  end;
+
+ procedure SmallSetTestNotEqual;
+  var
+    op2list :set of tsmallenum;
+    oplist: set of tsmallenum;
+    passed : boolean;
+  Begin
+   Write('Small Set <> Small Set test...');
+   passed := true;
+   op2list:=[];
+   oplist:=[];
+   if not (oplist=op2list) then
+     passed := false;
+   if (constset3[2] <> constset4[2]) then
+     passed := false;
+   if not (constset3[1] <> constset4[2]) then
+     passed := false;
+{   if ( [A_ADD] <> [A_ADD] ) then optimized out.
+     passed := false;
+   if ( [A_BLE..A_BPL] <> [A_BLE..A_BPL] ) then
+     passed := false; }
+   if (constset3[1] <> [DA,DD,DM]) then
+     passed := false;
+   if passed then
+     WriteLn('Success.')
+   else
+     WriteLn('Failure.');
+  end;
 
 (*
-{------------------------------ TESTS FOR SMALL VALUES ---------------------}
-Procedure SmallInSets;
-{ SET_IN_BYTE TESTS }
+  procedure SetTestLt;
+  var
+    op2list :set of tasmop;
+    oplist: set of tasmop;
+    passed : boolean;
+   begin
+    Write('Normal Set <= Normal Set test...');
+    passed := true;
+    if constset1[1] <= constset2[2] then
+      passed := false;
+    oplist := [];
+    op2list := [A_MOVE];
+    if op2list <= oplist then
+     passed := false;
+    oplist := [A_MOVE,A_CPRESTORE..A_CPSAVE];
+    if oplist <= op2list then
+     passed := false;
+    if passed then
+       WriteLn('Success.')
+    else
+       WriteLn('Failure.');
+   end;
+
+  Procedure SetTestAddOne;
+ { FPC_SET_SET_BYTE }
+ { FPC_SET_ADD_SETS }
+    var
+     op : tasmop;
+     oplist: set of tasmop;
+  Begin
+    Write('Set + Set element testing...');
+    op:=A_LABEL;
+    oplist:=[];
+    oplist:=oplist+[op];
+    if oplist = [A_LABEL] then
+      Begin
+        WriteLn('Success.');
+      end
+    else
+      Begin
+        WriteLn('Failure.');
+      end;
+  end;
+
+Procedure SetTestAddTwo;
+{ SET_ADD_SETS }
 var
- op : myenum;
- oplist: set of myenum;
+ op2list :set of tasmop;
+ oplist: set of tasmop;
 Begin
- Write('TESTING IN_BYTE:');
+ Write('Complex Set + Set element testing...');
+ op2list:=[];
  oplist:=[];
- op:=Dn;
- if op in oplist then
-  WriteLn(' FAILED.');
- op:=dm;
- oplist:=oplist+[Dm];
- if op in oplist then
-  WriteLn(' PASSED.');
+ oplist:=[A_MOVE]+[A_JSR];
+ op2list:=[A_LABEL];
+ oplist:=op2list+oplist;
+ if oplist = [A_MOVE,A_JSR,A_LABEL] then
+   Begin
+      WriteLn('Success.');
+   end
+ else
+    Begin
+      WriteLn('Failure.');
+    end;
 end;
+
+
+
+
+
+Procedure SetTestSubOne;
+{ SET_SUB_SETS }
+var
+ op2list :set of tasmop;
+ oplist: set of tasmop;
+ op :tasmop;
+ passed : boolean;
+Begin
+ Write('Set - Set element testing...');
+ passed := true;
+ op2list:=[];
+ oplist:=[];
+ op := A_TRACS;
+ oplist:=[A_MOVE]+[A_JSR]+[op];
+ op2list:=[A_MOVE]+[A_JSR];
+ oplist:=oplist-op2list;
+ if oplist <> [A_TRACS] then
+   passed := false;
+
+ oplist:=[A_MOVE]+[A_JSR]+[op];
+ op2list:=[A_MOVE]+[A_JSR];
+ oplist:=op2list-oplist;
+ if oplist <> [] then
+   passed := false;
+ if passed then
+   WriteLn('Success.')
+ else
+   WriteLn('Failure.');
+end;
+
+Procedure SetTestSubTwo;
+{ FPC_SET_SUB_SETS }
+const
+ b: tasmop = (A_BSR);
+var
+ op2list :set of tasmop;
+ oplist: set of tasmop;
+ op : tasmop;
+ passed : boolean;
+Begin
+ Write('Complex Set - Set element testing...');
+ op := A_BKPT;
+ passed := true;
+ oplist:=[A_MOVE]+[A_JSR]-[op];
+ op2list:=[A_MOVE]+[A_JSR];
+ if oplist <> op2list then
+   passed := false;
+ oplist := [A_MOVE];
+ oplist := oplist - [A_MOVE];
+ if oplist <> [] then
+   passed := false;
+ oplist := oplist + [b];
+ if oplist <> [b] then
+   passed := false;
+ oplist := oplist - [b];
+ if oplist <> [] then
+   passed := false;
+ if not passed then
+   WriteLn('Failure.')
+ else
+   WriteLn('Success.');
+end;
+
+
+Procedure SetTestMulSets;
+{ FPC_SET_MUL_SETS }
+var
+ op2list :set of tasmop;
+ oplist: set of tasmop;
+ passed : boolean;
+Begin
+ passed := true;
+ Write('Set * Set element testing...');
+ op2list:=[];
+ oplist:=[];
+ oplist:=[A_MOVE]+[A_JSR];
+ op2list:=[A_MOVE];
+ oplist:=oplist*op2list;
+ if oplist <> [A_JSR] then
+   passed := false;
+ oplist := [A_MOVE,A_FTST];
+ op2list := [A_MOVE,A_FTST];
+ oplist := oplist * op2list;
+ if oplist <> [A_MOVE,A_FTST] then
+   passed := false;
+ if passed then
+   WriteLn('Success.')
+ else
+   WriteLn('Failure.');
+end;
+
+procedure SetTestRange;
+var
+ op2list :set of tasmop;
+ oplist: set of tasmop;
+ passed : boolean;
+ op1 : tasmop;
+ op2 : tasmop;
+begin
+ passed := true;
+ Write('Range Set + element testing...');
+ op1 := A_ADD;
+ op2 := A_ASL;
+ oplist := [];
+ oplist := [op1..op2];
+ if oplist <> constset1[2] then
+   passed := false;
+ if not passed then
+  WriteLn('Failure,')
+ else
+  WriteLn('Success.');
+end;
+
+procedure SetTestByte;
+var
+ op2list :set of tasmop;
+ oplist: set of tasmop;
+ passed : boolean;
+ op1 : tasmop;
+ op2 : tasmop;
+ op : tasmop;
+begin
+ Write('Simple Set + element testing...');
+ passed := true;
+ op := A_LABEL;
+ oplist := [A_MOVE,op,A_JSR];
+ if oplist <> [A_MOVE,A_LABEL,A_JSR] then
+   passed := false;
+  if not passed then
+    WriteLn('Failure,')
+  else
+    WriteLn('Success.');
+end;
+
 
 Procedure SmallSetByte;
 { SET_SET_BYTE }
@@ -550,6 +786,7 @@ Begin
 
 *)
 Begin
+  WriteLn('----------------------- Normal sets -----------------------');
   { Normal sets }
   SetTestEqual;
   SetTestNotEqual;
@@ -559,12 +796,19 @@ Begin
   SetTestSubTwo;
   SetTestRange;
   SetTestLt;
+  SetTestByte;
   { Small sets }
+  WriteLn('----------------------- Small sets -----------------------');
+  SmallSetTestEqual;
+  SmallSetTestNotEqual;
 end.
 
 {
   $Log$
-  Revision 1.1  2001-06-21 02:50:44  carl
+  Revision 1.2  2001-06-22 02:24:40  carl
+  + complete normal set tests
+
+  Revision 1.1  2001/06/21 02:50:44  carl
   cgadd node testing for sets (incomplete)
 
 
