@@ -36,19 +36,19 @@ interface
 
     type
       TTarget=(
-        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,
+        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
         t_amiga,t_atari
       );
       TTargetSet=set of TTarget;
 
     const
       TargetStr : array[TTarget] of string=(
-        'linux','go32v2','win32','os2','freebsd','beos',
+        'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari'
       );
 
       TargetSuffix : array[TTarget] of string=(
-        '_linux','_go32v2','_win32','_os2','_freebsd','_beos',
+        '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari'
       );
 
@@ -1314,7 +1314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-08-02 20:50:29  peter
+  Revision 1.12  2001-08-10 10:28:55  pierre
+   + netbsd target added
+
+  Revision 1.11  2001/08/02 20:50:29  peter
     * -T<target> support
     * better error reporting for not found dirs
     * some cleanups and nicer strings
