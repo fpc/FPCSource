@@ -606,6 +606,7 @@ begin
    begin
      if err then
       DoFormatError(feInvalidArgindex);
+     dec(ArgPos);
      exit;
    end;
   result:=true;
@@ -658,11 +659,11 @@ begin
                 if CheckArg(vtString,false) then
                   hs:=Args[doarg].VString^
                 else
-                  begin
-                    dec(argpos);
-                    if CheckArg(vtAnsiString,true) then
-                      hs:=ansistring(Args[doarg].VAnsiString);
-                  end;
+                  if CheckArg(vtPChar,false) then
+                    hs:=Args[doarg].VPChar
+                else
+                  if CheckArg(vtAnsiString,true) then
+                    hs:=ansistring(Args[doarg].VAnsiString);
                 Index:=Length(hs);
                 If (Prec<>-1) and (Index>Prec) then
                   Index:=Prec;
@@ -969,7 +970,10 @@ const
 
 {
   $Log$
-  Revision 1.15  1999-04-04 10:19:07  peter
+  Revision 1.16  1999-04-08 10:19:41  peter
+    * pchar support for %s
+
+  Revision 1.15  1999/04/04 10:19:07  peter
     * format support for ansistring (from mailinglist)
     * fixed length checking in Trim()
 
