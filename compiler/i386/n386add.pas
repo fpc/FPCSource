@@ -60,7 +60,7 @@ interface
       cgbase,pass_2,regvars,
       cpuasm,
       ncon,nset,
-      tainst,cga,ncgutil,n386util,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      tainst,cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
 {*****************************************************************************
                                   Helpers
@@ -71,7 +71,7 @@ interface
 
     procedure ti386addnode.pass_left_and_right(var pushedfpu:boolean);
       var
-        pushed : boolean;
+        pushedregs : tmaybesave;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -82,14 +82,13 @@ interface
         secondpass(left);
 
         { are too few registers free? }
-        pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
+        maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
         if location.loc=LOC_FPUREGISTER then
-          pushedfpu:=maybe_pushfpu(right.registersfpu,left)
+          pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
         secondpass(right);
-        if pushed then
-          restore(left,is_64bitint(left.resulttype.def));
+        maybe_restore(exprasmlist,left.location,pushedregs);
       end;
 
 
@@ -337,7 +336,7 @@ interface
       var
         href       : treference;
         cmpop      : boolean;
-        pushedregs : tpushedsaved;
+        pushed     : tpushedsaved;
         regstopush : tregisterset;
       begin
         { string operations are not commutative }
@@ -378,7 +377,7 @@ interface
                         { registers) (JM)                                  }
                         regstopush := all_registers;
                         remove_non_regvars_from_loc(right.location,regstopush);
-                        rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
+                        rg.saveusedregisters(exprasmlist,pushed,regstopush);
                         { push the maximum possible length of the result }
                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
                         { the optimizer can more easily put the          }
@@ -391,13 +390,13 @@ interface
                         cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
                         cg.g_maybe_loadself(exprasmlist);
-                        rg.restoreusedregisters(exprasmlist,pushedregs);
+                        rg.restoreusedregisters(exprasmlist,pushed);
                         location_copy(location,left.location);
                      end;
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
                        cmpop := true;
-                       rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
+                       rg.saveusedregisters(exprasmlist,pushed,all_registers);
                        secondpass(left);
                        location_release(exprasmlist,left.location);
                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
@@ -407,7 +406,7 @@ interface
                        rg.saveregvars(exprasmlist,all_registers);
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
                        cg.g_maybe_loadself(exprasmlist);
-                       rg.restoreusedregisters(exprasmlist,pushedregs);
+                       rg.restoreusedregisters(exprasmlist,pushed);
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                      end;
@@ -429,9 +428,9 @@ interface
         op      : TAsmOp;
         opsize  : TOpsize;
         cmpop,
-        pushed,
         isjump  : boolean;
         otl,ofl : tasmlabel;
+        pushedregs : tmaybesave;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -470,7 +469,7 @@ interface
                falselabel:=ofl;
              end;
 
-            pushed:=maybe_push(right.registers32,left,false);
+            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -480,8 +479,7 @@ interface
                  getlabel(falselabel);
               end;
             secondpass(right);
-            if pushed then
-             restore(left,false);
+            maybe_restore(exprasmlist,left.location,pushedregs);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
             if isjump then
@@ -1574,7 +1572,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-05-12 16:53:17  peter
+  Revision 1.36  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.35  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

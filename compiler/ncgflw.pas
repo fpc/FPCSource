@@ -67,7 +67,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symdef,symsym,aasm,types,
+      symconst,symsym,aasm,types,
       cginfo,cgbase,pass_2,
       cpubase,cpuasm,cpuinfo,
       nld,ncon,
@@ -611,7 +611,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-05-12 16:53:07  peter
+  Revision 1.15  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.14  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

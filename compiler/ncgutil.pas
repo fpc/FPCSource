@@ -28,16 +28,30 @@ interface
 
     uses
       node,
-      cginfo,cpubase,aasm;
+      cginfo,cpubase,aasm,
+      rgobj;
 
     type
       tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
 
+      tmaybesave = record
+        saved : boolean;
+        ref   : treference;
+      end;
+
+    procedure firstcomplex(p : tbinarynode);
+    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
+
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
     procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
 
-    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
+    procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
+    procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
+    function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
+    procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
+                              para_offset:longint;alignment : longint);
 
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
@@ -65,7 +79,130 @@ implementation
     gdb,
 {$endif GDB}
     ncon,
-    tgobj,cpuinfo,cgobj,cgcpu,rgobj,cg64f32;
+    tgobj,cpuinfo,cgobj,cgcpu,cg64f32;
+
+
+{*****************************************************************************
+                                  Misc Helpers
+*****************************************************************************}
+
+   { DO NOT RELY on the fact that the tnode is not yet swaped
+     because of inlining code PM }
+    procedure firstcomplex(p : tbinarynode);
+      var
+         hp : tnode;
+      begin
+         { always calculate boolean AND and OR from left to right }
+         if (p.nodetype in [orn,andn]) and
+            (p.left.resulttype.def.deftype=orddef) and
+            (torddef(p.left.resulttype.def).typ in [bool8bit,bool16bit,bool32bit]) then
+           begin
+             { p.swaped:=false}
+             if nf_swaped in p.flags then
+               internalerror(234234);
+           end
+         else
+           if (((p.location.loc=LOC_FPUREGISTER) and
+                (p.right.registersfpu > p.left.registersfpu)) or
+               ((((p.left.registersfpu = 0) and
+                  (p.right.registersfpu = 0)) or
+                 (p.location.loc<>LOC_FPUREGISTER)) and
+                (p.left.registers32<p.right.registers32))) and
+           { the following check is appropriate, because all }
+           { 4 registers are rarely used and it is thereby   }
+           { achieved that the extra code is being dropped   }
+           { by exchanging not commutative operators     }
+               (p.right.registers32<=c_countusableregsint) then
+            begin
+              hp:=p.left;
+              p.left:=p.right;
+              p.right:=hp;
+              if nf_swaped in p.flags then
+                exclude(p.flags,nf_swaped)
+              else
+                include(p.flags,nf_swaped);
+            end;
+      end;
+
+
+    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
+    {
+      produces jumps to true respectively false labels using boolean expressions
+
+      depending on whether the loading of regvars is currently being
+      synchronized manually (such as in an if-node) or automatically (most of
+      the other cases where this procedure is called), loadregvars can be
+      "lr_load_regvars" or "lr_dont_load_regvars"
+    }
+      var
+        opsize : tcgsize;
+        storepos : tfileposinfo;
+      begin
+         if nf_error in p.flags then
+           exit;
+         storepos:=aktfilepos;
+         aktfilepos:=p.fileinfo;
+         if is_boolean(p.resulttype.def) then
+           begin
+              if loadregvars = lr_load_regvars then
+                load_all_regvars(list);
+              if is_constboolnode(p) then
+                begin
+                   if tordconstnode(p).value<>0 then
+                     cg.a_jmp_always(list,truelabel)
+                   else
+                     cg.a_jmp_always(list,falselabel)
+                end
+              else
+                begin
+                   opsize:=def_cgsize(p.resulttype.def);
+                   case p.location.loc of
+                     LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
+                       begin
+                         if (p.location.loc = LOC_CREGISTER) then
+                           load_regvar_reg(list,p.location.register);
+                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,
+                           0,p.location,truelabel);
+                         { !!! should happen right after cmp (JM) }
+                         location_release(list,p.location);
+                         cg.a_jmp_always(list,falselabel);
+                       end;
+                     LOC_FLAGS :
+                       begin
+                         cg.a_jmp_flags(list,p.location.resflags,
+                           truelabel);
+                         cg.a_jmp_always(list,falselabel);
+                       end;
+                   end;
+                end;
+           end
+         else
+           internalerror(200112305);
+         aktfilepos:=storepos;
+      end;
+
+
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
+      begin
+        case t.loc of
+          LOC_REGISTER:
+            begin
+              { can't be a regvar, since it would be LOC_CREGISTER then }
+              exclude(regs,t.register);
+              if t.registerhigh <> R_NO then
+                exclude(regs,t.registerhigh);
+            end;
+          LOC_CREFERENCE,LOC_REFERENCE:
+            begin
+              if not(cs_regalloc in aktglobalswitches) or
+                 (t.reference.base in rg.usableregsint) then
+                exclude(regs,t.reference.base);
+              if not(cs_regalloc in aktglobalswitches) or
+                 (t.reference.index in rg.usableregsint) then
+              exclude(regs,t.reference.index);
+            end;
+        end;
+      end;
 
 
 {*****************************************************************************
@@ -341,60 +478,280 @@ implementation
       end;
 
 
-    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
-    {
-      produces jumps to true respectively false labels using boolean expressions
+{*****************************************************************************
+                                  Maybe_Save
+*****************************************************************************}
 
-      depending on whether the loading of regvars is currently being
-      synchronized manually (such as in an if-node) or automatically (most of
-      the other cases where this procedure is called), loadregvars can be
-      "lr_load_regvars" or "lr_dont_load_regvars"
-    }
-      var
-        opsize : tcgsize;
-        storepos : tfileposinfo;
+    procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
       begin
-         if nf_error in p.flags then
+        s.saved:=false;
+        if l.loc=LOC_CREGISTER then
+         begin
+           s.saved:=true;
            exit;
-         storepos:=aktfilepos;
-         aktfilepos:=p.fileinfo;
-         if is_boolean(p.resulttype.def) then
-           begin
-              if loadregvars = lr_load_regvars then
-                load_all_regvars(list);
-              if is_constboolnode(p) then
-                begin
-                   if tordconstnode(p).value<>0 then
-                     cg.a_jmp_always(list,truelabel)
-                   else
-                     cg.a_jmp_always(list,falselabel)
-                end
+         end;
+        if needed>rg.countunusedregsint then
+         begin
+           case l.loc of
+             LOC_REGISTER :
+               begin
+                 if l.size in [OS_64,OS_S64] then
+                  begin
+                    tg.gettempofsizereference(exprasmlist,8,s.ref);
+                    tcg64f32(cg).a_load64_reg_ref(exprasmlist,l.registerlow,l.registerhigh,s.ref);
+                  end
+                 else
+                  begin
+                    tg.gettempofsizereference(exprasmlist,TCGSize2Size[l.size],s.ref);
+                    cg.a_load_reg_ref(exprasmlist,l.size,l.register,s.ref);
+                  end;
+                 location_release(exprasmlist,l);
+                 s.saved:=true;
+               end;
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
+                 if ((l.reference.base<>R_NO) or
+                     (l.reference.index<>R_NO)) then
+                  begin
+                    { load address into a single base register }
+                    cg.a_loadaddr_ref_reg(list,l.reference,l.reference.base);
+                    { save base register }
+                    tg.gettempofsizereference(exprasmlist,TCGSize2Size[OS_ADDR],s.ref);
+                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,l.reference.base,s.ref);
+                    { release }
+                    location_release(exprasmlist,l);
+                    s.saved:=true;
+                  end;
+               end;
+           end;
+         end;
+      end;
+
+
+    procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
+      begin
+        if not s.saved then
+         exit;
+        if l.loc=LOC_CREGISTER then
+         begin
+           load_regvar_reg(list,l.register);
+           exit;
+         end;
+        case l.loc of
+          LOC_REGISTER :
+            begin
+              if l.size in [OS_64,OS_S64] then
+               begin
+                 l.registerlow:=rg.getregisterint(exprasmlist);
+                 l.registerhigh:=rg.getregisterint(exprasmlist);
+                 tcg64f32(cg).a_load64_ref_reg(exprasmlist,s.ref,l.registerlow,l.registerhigh);
+               end
               else
-                begin
-                   opsize:=def_cgsize(p.resulttype.def);
-                   case p.location.loc of
-                     LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
-                       begin
-                         if (p.location.loc = LOC_CREGISTER) then
-                           load_regvar_reg(list,p.location.register);
-                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,
-                           0,p.location,truelabel);
-                         { !!! should happen right after cmp (JM) }
-                         location_release(list,p.location);
-                         cg.a_jmp_always(list,falselabel);
+               begin
+                 l.register:=rg.getregisterint(exprasmlist);
+                 cg.a_load_ref_reg(exprasmlist,OS_INT,s.ref,l.register);
+               end;
+            end;
+          LOC_CREFERENCE,
+          LOC_REFERENCE :
+            begin
+              reference_reset(l.reference);
+              l.reference.base:=rg.getaddressregister(exprasmlist);
+              cg.a_load_ref_reg(exprasmlist,OS_ADDR,s.ref,l.reference.base);
+            end;
+        end;
+        tg.ungetiftemp(exprasmlist,s.ref);
+      end;
+
+
+    function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
+      begin
+        if needed>=maxfpuregs then
+          begin
+            if l.loc = LOC_FPUREGISTER then
+              begin
+                location_force_mem(list,l);
+                maybe_pushfpu:=true;
+              end
+            else
+              maybe_pushfpu:=false;
+          end
+        else
+          maybe_pushfpu:=false;
+      end;
+
+
+{*****************************************************************************
+                                Push Value Para
+*****************************************************************************}
+
+    procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
+                              para_offset:longint;alignment : longint);
+      var
+        tempreference : treference;
+        href : treference;
+        hreg : tregister;
+        sizetopush,
+        size : longint;
+        cgsize : tcgsize;
+      begin
+        { Move flags and jump in register to make it less complex }
+        if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
+         location_force_reg(exprasmlist,p.location,def_cgsize(p.resulttype.def),false);
+
+        { Handle Floating point types differently }
+        if p.resulttype.def.deftype=floatdef then
+         begin
+           case p.location.loc of
+             LOC_FPUREGISTER,
+             LOC_CFPUREGISTER:
+               begin
+                  size:=align(tfloatdef(p.resulttype.def).size,alignment);
+                  inc(pushedparasize,size);
+                  if not inlined then
+                   cg.a_op_const_reg(exprasmlist,OP_SUB,size,STACK_POINTER_REG);
+{$ifdef GDB}
+                  if (cs_debuginfo in aktmoduleswitches) and
+                     (exprasmList.first=exprasmList.last) then
+                    exprasmList.concat(Tai_force_line.Create);
+{$endif GDB}
+
+                  { this is the easiest case for inlined !! }
+                  if inlined then
+                   reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize)
+                  else
+                   reference_reset_base(href,stack_pointer_reg,0);
+
+                  cg.a_loadfpu_reg_ref(exprasmlist,
+                    def_cgsize(p.resulttype.def),p.location.register,href);
+               end;
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
+                 sizetopush:=align(p.resulttype.def.size,alignment);
+                 tempreference:=p.location.reference;
+                 inc(tempreference.offset,sizetopush);
+                 while (sizetopush>0) do
+                  begin
+                    if sizetopush>=4 then
+                     begin
+                       cgsize:=OS_32;
+                       inc(pushedparasize,4);
+                       dec(tempreference.offset,4);
+                       dec(sizetopush,4);
+                     end
+                    else
+                     begin
+                       cgsize:=OS_16;
+                       inc(pushedparasize,2);
+                       dec(tempreference.offset,2);
+                       dec(sizetopush,2);
+                     end;
+                    if inlined then
+                     begin
+                       reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                       cg.a_load_ref_ref(exprasmlist,cgsize,tempreference,href);
+                     end
+                    else
+                     cg.a_param_ref(exprasmlist,cgsize,tempreference,-1);
+                  end;
+               end;
+             else
+               internalerror(200204243);
+           end;
+         end
+        else
+         begin
+           { call by value open array ? }
+           if is_cdecl and
+              push_addr_param(p.resulttype.def) then
+            begin
+              if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                internalerror(200204241);
+              { push on stack }
+              size:=align(p.resulttype.def.size,alignment);
+              inc(pushedparasize,size);
+              cg.a_op_const_reg(exprasmlist,OP_SUB,size,STACK_POINTER_REG);
+              reference_reset_base(href,STACK_POINTER_REG,0);
+              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
+            end
+           else
+            begin
+              case p.location.loc of
+                LOC_CONSTANT,
+                LOC_REGISTER,
+                LOC_CREGISTER,
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  begin
+                    cgsize:=def_cgsize(p.resulttype.def);
+                    if cgsize in [OS_64,OS_S64] then
+                     begin
+                       inc(pushedparasize,8);
+                       if inlined then
+                        begin
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          tcg64f32(cg).a_load64_loc_ref(exprasmlist,p.location,href);
+                        end
+                       else
+                        tcg64f32(cg).a_param64_loc(exprasmlist,p.location,-1);
+                     end
+                    else
+                     begin
+                       case cgsize of
+                         OS_8,OS_S8 :
+                           begin
+                             if alignment=4 then
+                              cgsize:=OS_32
+                             else
+                              cgsize:=OS_16;
+                           end;
+                         OS_16,OS_S16 :
+                           begin
+                             if alignment=4 then
+                              cgsize:=OS_32;
+                           end;
                        end;
-                     LOC_FLAGS :
+                       { update register to use to match alignment }
+                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        begin
+                          hreg:=p.location.register;
+                          p.location.register:=rg.makeregsize(p.location.register,cgsize);
+                        end;
+                       inc(pushedparasize,alignment);
+                       if inlined then
+                        begin
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          cg.a_load_loc_ref(exprasmlist,p.location,href);
+                        end
+                       else
+                        cg.a_param_loc(exprasmlist,p.location,-1);
+                       { restore old register }
+                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                         p.location.register:=hreg;
+                     end;
+                    location_release(exprasmlist,p.location);
+                  end;
+{$ifdef SUPPORT_MMX}
+                LOC_MMXREGISTER,
+                LOC_CMMXREGISTER:
+                  begin
+                     inc(pushedparasize,8);
+                     if inlined then
                        begin
-                         cg.a_jmp_flags(list,p.location.resflags,
-                           truelabel);
-                         cg.a_jmp_always(list,falselabel);
-                       end;
-                   end;
-                end;
-           end
-         else
-           internalerror(200112305);
-         aktfilepos:=storepos;
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          cg.a_loadmm_reg_ref(exprasmlist,p.location.register,href);
+                       end
+                     else
+                      cg.a_parammm_reg(exprasmlist,p.location.register);
+                  end;
+{$endif SUPPORT_MMX}
+                else
+                  internalerror(200204241);
+              end;
+           end;
+         end;
       end;
 
 
@@ -703,6 +1060,7 @@ implementation
         href : treference;
         p : tsymtable;
         tempbuf : treference;
+        tmpreg : tregister;
       begin
         { Insert alignment and assembler names }
         if not inlined then
@@ -878,11 +1236,12 @@ implementation
               include(rg.usedinproc,accumulator);
 
               { allocate exception frame buffer }
-              list.concat(Taicpu.op_const_reg(A_SUB,S_L,36,R_ESP));
-              list.concat(Taicpu.op_reg_reg(A_MOV,S_L,R_ESP,R_EDI));
-              reference_reset_base(tempbuf,R_EDI,0);
-
+              cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
+              tmpreg:=rg.getaddressregister(list);
+              cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
+              reference_reset_base(tempbuf,tmpreg,0);
               cg.g_push_exception(list,tempbuf,1,aktexitlabel);
+              reference_release(list,tempbuf);
 
               { probably we've to reload self here }
               cg.g_maybe_loadself(list);
@@ -1097,7 +1456,7 @@ implementation
             cg.g_restore_frame_pointer(list)
            else
             if (tg.gettempsize<>0) then
-             cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,R_ESP);
+             cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,STACK_POINTER_REG);
          end;
 
         { at last, the return is generated }
@@ -1147,7 +1506,7 @@ implementation
                     st:='';
                   list.concat(Tai_stabs.Create(strpnew(
                    '"$t:r'+st+procinfo^._class.numberstring+'",'+
-                   tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI]))));
+                   tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[SELF_POINTER_REG]))));
                 end;
 
             { define calling EBP as pseudo local var PM }
@@ -1248,7 +1607,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-05-12 19:58:36  carl
+  Revision 1.13  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.12  2002/05/12 19:58:36  carl
   * some small portability fixes
 
   Revision 1.11  2002/05/12 16:53:07  peter

@@ -51,7 +51,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,aasm,types,
+      symconst,symbase,symsym,symtable,types,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -61,9 +61,9 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpubase,
+      cpubase,aasm,tainst,
       nmem,nld,ncnv,
-      tainst,cga,cgobj,tgobj,n386ld,n386util,ncgutil,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -1484,7 +1484,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-05-12 16:53:17  peter
+  Revision 1.50  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.49  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

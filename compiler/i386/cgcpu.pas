@@ -28,7 +28,9 @@ unit cgcpu;
   interface
 
     uses
-       cginfo,cgbase,cgobj,cg64f32,aasm,cpuasm,cpubase,cpuinfo,symconst;
+       cginfo,cgbase,cgobj,cg64f32,
+       aasm,cpuasm,cpubase,cpuinfo,
+       node,symconst;
 
     type
       tcg386 = class(tcg64f32)
@@ -91,6 +93,7 @@ unit cgcpu;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
+        procedure g_flags2ref(list: taasmoutput; const f: tresflags; const ref: TReference); override;
 
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reghi : tregister);override;
         procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;reglosrc,reghisrc,reglodst,reghidst : tregister);override;
@@ -120,7 +123,9 @@ unit cgcpu;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
-       private
+        procedure g_overflowcheck(list: taasmoutput; const p: tnode);override;
+
+      private
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
@@ -152,7 +157,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symtable,symdef,symsym,types,
+       symdef,symsym,types,
        rgobj,tgobj,rgcpu,tainst;
 
 {$ifndef NOTARGETWIN32}
@@ -1047,6 +1052,17 @@ unit cgcpu;
        end;
 
 
+     procedure tcg386.g_flags2ref(list: taasmoutput; const f: tresflags; const ref: TReference);
+
+       var
+         ai : taicpu;
+       begin
+          ai:=Taicpu.Op_ref(A_Setcc,S_B,ref);
+          ai.SetCondition(flags_to_cond(f));
+          list.concat(ai);
+       end;
+
+
 { ************* 64bit operations ************ }
 
     procedure tcg386.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
@@ -1732,13 +1748,43 @@ unit cgcpu;
       end;
 
 
+    { produces if necessary overflowcode }
+    procedure tcg386.g_overflowcheck(list: taasmoutput; const p: tnode);
+      var
+         hl : tasmlabel;
+         ai : taicpu;
+         cond : TAsmCond;
+      begin
+         if not(cs_check_overflow in aktlocalswitches) then
+          exit;
+         getlabel(hl);
+         if not ((p.resulttype.def.deftype=pointerdef) or
+                ((p.resulttype.def.deftype=orddef) and
+                 (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                                    bool8bit,bool16bit,bool32bit]))) then
+           cond:=C_NO
+         else
+           cond:=C_NB;
+         ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl);
+         ai.SetCondition(cond);
+         ai.is_jmp:=true;
+         list.concat(ai);
+
+         a_call_name(list,'FPC_OVERFLOW');
+         a_label(list,hl);
+      end;
+
 
 begin
   cg := tcg386.create;
 end.
 {
   $Log$
-  Revision 1.16  2002-05-12 19:59:05  carl
+  Revision 1.17  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.16  2002/05/12 19:59:05  carl
   * some small portability fixes
 
   Revision 1.15  2002/05/12 16:53:16  peter

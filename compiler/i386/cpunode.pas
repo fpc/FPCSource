@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,
-       n386ld,n386add,n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,
+       n386add,n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
        n386obj, rgcpu;
@@ -38,7 +38,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.9  2002-04-19 15:39:35  peter
+  Revision 1.10  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.9  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

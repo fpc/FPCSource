@@ -31,7 +31,7 @@ interface
 
     type
        {# Generic opcodes, which must be supporrted by all processors }
-       TOpCg = 
+       TOpCg =
        (
           OP_NONE,
           OP_ADD,       { simple addition          }
@@ -51,9 +51,9 @@ interface
         );
 
        {# Generic flag values - used for jump locations }
-       TOpCmp = 
+       TOpCmp =
        (
-          OC_NONE,          
+          OC_NONE,
           OC_EQ,           { equality comparison }
           OC_GT,
           OC_LT,
@@ -78,35 +78,22 @@ interface
                   OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
                   OS_MS64,OS_MS128);
 
-{$ifdef powerpc}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F64;
-       OS_VECTOR = OS_M128;
-{$endif powercc}
-{$ifdef ia64}
-       OS_ADDR = OS_64;
-       OS_INT = OS_64;
-       OS_FLOAT = OS_F??;
-       OS_VECTOR = OS_NO; { the normal registers can also be used as vectors }
-{$endif ia64}
-
     const
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
         (0,1,2,4,8,1,2,4,8,
-         { floating point values } 
+         { floating point values }
          4,8,EXTENDED_SIZE,8,
          { multimedia values }
          1,2,4,8,16,1,2,4,8,16);
-         
+
        tfloat2tcgsize: array[tfloattype] of tcgsize =
          (OS_F32,OS_F64,OS_F80,OS_C64);
 
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
 
-         
+
 
 
 implementation
@@ -114,7 +101,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-05-06 19:48:26  carl
+  Revision 1.7  2002-05-13 19:54:36  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.6  2002/05/06 19:48:26  carl
   + added more patches from Mazen for SPARC port
 
   Revision 1.5  2002/04/21 19:46:52  carl

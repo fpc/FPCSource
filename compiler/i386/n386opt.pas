@@ -47,7 +47,7 @@ uses
   aasm,
   ncnv, ncon, pass_2,
   cginfo, cgbase, cpubase,
-  tgobj, rgobj, cgobj, n386util;
+  tgobj, rgobj, cgobj, ncgutil;
 
 
 {*****************************************************************************
@@ -248,7 +248,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-05-12 16:53:17  peter
+  Revision 1.14  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.13  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

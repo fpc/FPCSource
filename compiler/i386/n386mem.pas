@@ -54,7 +54,7 @@ implementation
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,
-      cgobj,cga,tgobj,rgobj,ncgutil,n386util;
+      cgobj,cga,tgobj,rgobj,ncgutil;
 
 {*****************************************************************************
                              TI386ADDRNODE
@@ -99,8 +99,6 @@ implementation
 *****************************************************************************}
 
     procedure ti386vecnode.pass_2;
-      var
-        is_pushed : boolean;
 
           function get_mul_size:longint;
           begin
@@ -146,6 +144,7 @@ implementation
          isjump  : boolean;
          otl,ofl : tasmlabel;
          newsize : tcgsize;
+         pushedregs : tmaybesave;
       begin
          newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
@@ -397,10 +396,9 @@ implementation
                  ofl:=falselabel;
                  getlabel(falselabel);
                end;
-              is_pushed:=maybe_push(right.registers32,self,false);
+              maybe_save(exprasmlist,right.registers32,location,pushedregs);
               secondpass(right);
-              if is_pushed then
-                restore(self,false);
+              maybe_restore(exprasmlist,location,pushedregs);
               { here we change the location of right
                 and the update was forgotten so it
                 led to wrong code in emitrangecheck later PM
@@ -521,7 +519,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-05-12 16:53:17  peter
+  Revision 1.30  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.29  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

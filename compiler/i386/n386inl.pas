@@ -43,7 +43,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,n386util,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -65,7 +65,7 @@ implementation
          href : treference;
          hp2 : tstringconstnode;
          l : longint;
-         ispushed : boolean;
+         pushedregs : tmaybesave;
          hregisterhi,
          hregister : tregister;
          lengthlab,
@@ -190,7 +190,7 @@ implementation
                  else
                   cg.a_op_const_reg(exprasmlist,cgop,1,location.register);
 
-                 emitoverflowcheck(self);
+                 cg.g_overflowcheck(exprasmlist,self);
                  cg.g_rangecheck(exprasmlist,self,resulttype.def);
               end;
             in_dec_x,
@@ -219,11 +219,10 @@ implementation
                 { second argument specified?, must be a s32bit in register }
                 if assigned(tcallparanode(left).right) then
                  begin
-                   ispushed:=maybe_push(tcallparanode(tcallparanode(left).right).left.registers32,
-                     tcallparanode(left).left,false);
+                   maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
+                     tcallparanode(left).left.location,pushedregs);
                    secondpass(tcallparanode(tcallparanode(left).right).left);
-                   if ispushed then
-                     restore(tcallparanode(left).left,false);
+                   maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
                    { when constant, just multiply the addvalue }
                    if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                     addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
@@ -258,7 +257,7 @@ implementation
                        hregister,tcallparanode(left).left.location);
                    location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
                  end;
-                emitoverflowcheck(tcallparanode(left).left);
+                cg.g_overflowcheck(exprasmlist,tcallparanode(left).left);
                 cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
               end;
 
@@ -323,11 +322,10 @@ implementation
                  else
                    begin
                       { generate code for the element to set }
-                      ispushed:=maybe_push(tcallparanode(tcallparanode(left).right).left.registers32,
-                        tcallparanode(left).left,false);
+                      maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
+                        tcallparanode(left).left.location,pushedregs);
                       secondpass(tcallparanode(tcallparanode(left).right).left);
-                      if ispushed then
-                        restore(tcallparanode(left).left,false);
+                      maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
                       { determine asm operator }
                       if inlinenumber=in_include_x_y then
                         asmop:=A_BTS
@@ -468,7 +466,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-05-12 16:53:17  peter
+  Revision 1.41  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.40  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

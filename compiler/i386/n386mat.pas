@@ -56,7 +56,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,
-      cga,tgobj,n386util,ncgutil,cgobj,rgobj,rgcpu;
+      cga,tgobj,ncgutil,cgobj,rgobj,rgcpu;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -66,18 +66,18 @@ implementation
       var
          hreg1 : tregister;
          hreg2 : tregister;
-         shrdiv, pushed,popeax,popedx : boolean;
+         shrdiv,popeax,popedx : boolean;
          power : longint;
          hl : tasmlabel;
+         pushedregs : tmaybesave;
       begin
          shrdiv := false;
          secondpass(left);
          if codegenerror then
           exit;
-         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
+         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
          secondpass(right);
-         if pushed then
-           restore(left,is_64bitint(left.resulttype.def));
+         maybe_restore(exprasmlist,left.location,pushedregs);
          if codegenerror then
           exit;
          location_copy(location,left.location);
@@ -270,18 +270,17 @@ implementation
       var
          hregister2,hregister3,
          hregisterhigh,hregisterlow : tregister;
-         pushed,popecx : boolean;
+         popecx : boolean;
          op : tasmop;
          l1,l2,l3 : tasmlabel;
-
+         pushedregs : tmaybesave;
       begin
          popecx:=false;
 
          secondpass(left);
-         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
+         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
          secondpass(right);
-         if pushed then
-           restore(left,is_64bitint(left.resulttype.def));
+         maybe_restore(exprasmlist,left.location,pushedregs);
 
          { determine operator }
          case nodetype of
@@ -831,7 +830,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-05-12 16:53:17  peter
+  Revision 1.28  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.27  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

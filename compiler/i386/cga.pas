@@ -61,29 +61,9 @@ interface
 implementation
 
     uses
-       cutils,cclasses,
-       globtype,systems,globals,verbose,
-       fmodule,
-       symbase,symsym,symtable,types,
-       tainst,cgbase,regvars,cgobj,tgobj,rgobj,rgcpu
-{$ifdef GDB}
-  {$ifdef delphi}
-       ,sysutils
-  {$else}
-       ,strings
-  {$endif}
-       ,gdb
-{$endif}
-       ;
-
-{$ifdef NOTARGETWIN32}
- {$define __NOWINPECOFF__}
-{$endif}
-
-{$ifdef NOTARGETWDOSX}
- {$define __NOWINPECOFF__}
-{$endif}
-
+       cutils,
+       systems,globals,verbose,
+       cgbase,cgobj,tgobj,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -194,7 +174,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-05-12 16:53:16  peter
+  Revision 1.29  2002-05-13 19:54:37  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.28  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

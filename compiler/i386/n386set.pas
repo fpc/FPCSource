@@ -50,7 +50,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,
-      cga,cgobj,tgobj,ncgutil,n386util,regvars,rgobj;
+      cga,cgobj,tgobj,ncgutil,regvars,rgobj;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -61,7 +61,7 @@ implementation
 
     procedure ti386setelementnode.pass_2;
        var
-         pushed: boolean;
+         pushedregs : tmaybesave;
        begin
        { load first value in 32bit register }
          secondpass(left);
@@ -71,12 +71,11 @@ implementation
        { also a second value ? }
          if assigned(right) then
            begin
-             pushed:=maybe_push(right.registers32,left,false);
+             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
              secondpass(right);
              if codegenerror then
                exit;
-             if pushed then
-               restore(left,false);
+             maybe_restore(exprasmlist,left.location,pushedregs);
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
               location_force_reg(exprasmlist,right.location,OS_32,false);
            end;
@@ -99,7 +98,6 @@ implementation
        var
          genjumps,
          use_small,
-         pushed,
          ranges     : boolean;
          hr,hr2,
          pleftreg   : tregister;
@@ -108,7 +106,7 @@ implementation
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
          adjustment : longint;
-         {href,href2 : Treference;}
+         pushedregs : tmaybesave;
          l,l2       : tasmlabel;
 {$ifdef CORRECT_SET_IN_FPC}
          AM         : tasmop;
@@ -194,10 +192,9 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
-            pushed:=maybe_push(right.registers32,left,false);
+            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
             secondpass(right);
-            if pushed then
-             restore(left,false);
+            maybe_restore(exprasmlist,left.location,pushedregs);
           end;
          if codegenerror then
           exit;
@@ -1019,7 +1016,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-05-12 16:53:17  peter
+  Revision 1.28  2002-05-13 19:54:38  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.27  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

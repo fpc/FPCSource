@@ -60,7 +60,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,types,
       cgbase,
       htypechk,pass_1,
-      nmat,ncnv,nld,ncon,nset,nopt,ncal,ninl,
+      nmat,ncnv,ncon,nset,nopt,ncal,ninl,
       cpubase;
 
 
@@ -1617,7 +1617,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-05-12 16:53:06  peter
+  Revision 1.48  2002-05-13 19:54:36  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.47  2002/05/12 16:53:06  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

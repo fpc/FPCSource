@@ -230,6 +230,7 @@ unit cgobj;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
           procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
+          procedure g_flags2ref(list: taasmoutput; const f: tresflags; const ref:TReference); virtual; abstract;
 
           { some processors like the PPC doesn't allow to change the stack in }
           { a procedure, so we need to maintain an extra stack for the        }
@@ -1053,8 +1054,8 @@ unit cgobj;
          a_param_const(list,OS_32,stackframesize,1);
          a_call_name(list,'FPC_STACKCHECK');
       end;
-      
-      
+
+
     procedure tcg.g_maybe_loadself(list : taasmoutput);
       var
          hp : treference;
@@ -1085,7 +1086,7 @@ unit cgobj;
                 end;
            end;
       end;
-      
+
 
 
 {*****************************************************************************
@@ -1112,7 +1113,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2002-05-12 19:57:16  carl
+  Revision 1.22  2002-05-13 19:54:36  peter
+    * removed n386ld and n386util units
+    * maybe_save/maybe_restore added instead of the old maybe_push
+
+  Revision 1.21  2002/05/12 19:57:16  carl
   * maybe_loadself portable
 
   Revision 1.20  2002/05/12 16:53:04  peter
