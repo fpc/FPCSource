@@ -3,6 +3,8 @@
 { e-mail: netsurfer@au.ru }
 Unit tw2557;
 
+{$mode objfpc}
+
 Interface
 
 Type tVMThread=Class;
