@@ -126,21 +126,29 @@ begin
   testvalueconv(car6_1);
   getmem(pc,256);
   pc:='Long Test';
+{$ifdef FPC this is not allowed in BP !}
   testvalueconv(pc);
+{$endif def FPC this is not allowed in BP !}
   testconstconv('AB');
   testconstconv('ABCDEFG');
   testconstconv(st4_1);
   testconstconv(cst6_2);
+{$ifdef FPC this is not allowed in BP !}
   testconstconv(pc);
+{$endif def FPC this is not allowed in BP !}
   testvarconv(st4_2);
   testvarconv(cst4_1);
+{$ifdef FPC this is not allowed in BP !}
   testvarconv(st6_1);
   testvarconv(cst8_1);
+{$endif def FPC this is not allowed in BP !}
   { testvarconv(pc); this one fails at compilation }
   testvarconv2(st4_2);
   testvarconv2(cst4_1);
+{$ifdef FPC this is not allowed in BP !}
   testvarconv2(st6_1);
   testvarconv2(cst8_1);
+{$endif def FPC this is not allowed in BP !}
   if has_errors then
     begin
       Writeln('There are still problems with arrays of char');
