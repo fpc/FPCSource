@@ -2,8 +2,10 @@
     $Id$
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001-2003 by
+    Copyright (C) 2001-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+
+    Unix implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -174,7 +176,6 @@ type
     FDataStream: TStream;
     FBlockingStream: THandleStream;
     NotifyHandle: Pointer;
-    DoStopAndFree: Boolean;
 
     function  DoRealWrite(const ABuffer; Count: Integer): Integer; override;
     procedure WritingFailed; override;
@@ -186,18 +187,11 @@ type
     constructor Create(AEventLoop: TEventLoop;
       ADataStream: TStream; ABlockingStream: THandleStream);
     destructor Destroy; override;
-    procedure StopAndFree;	// Destroy instance after run
 
     property EventLoop: TEventLoop read FEventLoop;
     property DataStream: TStream read FDataStream;
     property BlockingStream: THandleStream read FBlockingStream;
   end;
-
-
-var
-  { All data written to a TWriteBuffer or descendant class will be written to
-    this stream as well: }
-  fpAsyncWriteBufferDebugStream: TStream;
 
 
 implementation
@@ -595,16 +589,13 @@ end;
 
 destructor TAsyncStreamLineReader.Destroy;
 begin
+  if Assigned(NotifyHandle) then
+    EventLoop.ClearDataAvailableNotify(NotifyHandle);
   inherited Destroy;
 end;
 
 procedure TAsyncStreamLineReader.StopAndFree;
 begin
-  if Assigned(NotifyHandle) then
-  begin
-    EventLoop.ClearDataAvailableNotify(NotifyHandle);
-    NotifyHandle := nil;
-  end;
   DoStopAndFree := True;
 end;
 
@@ -683,8 +674,6 @@ begin
   ReallocMem(FBuffer, FBytesInBuffer + Count);
   Move(ABuffer, FBuffer[FBytesInBuffer], Count);
   Inc(FBytesInBuffer, Count);
-  if Assigned(fpAsyncWriteBufferDebugStream) then
-    fpAsyncWriteBufferDebugStream.Write(ABuffer, Count);
   WantWrite;
   Result := Count;
 end;
@@ -768,8 +757,6 @@ end;
 procedure TAsyncWriteStream.CanWrite(UserData: TObject);
 begin
   Run;
-  if DoStopAndFree then
-    Free;
 end;
 
 constructor TAsyncWriteStream.Create(AEventLoop: TEventLoop;
@@ -796,27 +783,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TAsyncWriteStream.StopAndFree;
-begin
-  if Assigned(NotifyHandle) then
-  begin
-    EventLoop.ClearCanWriteNotify(NotifyHandle);
-    NotifyHandle := nil;
-  end;
-  DoStopAndFree := True;
-end;
-
 
 end.
 
 
 {
   $Log$
-  Revision 1.2  2002-04-25 19:12:27  sg
-  * Added ability to write all write buffer data to an debug stream
-  * Added TAsyncWriteStream.StopAndFree
-
-  Revision 1.1  2003/03/17 22:25:32  michael
+  Revision 1.1  2003-03-17 22:25:32  michael
   + Async moved from package to FCL
 
   Revision 1.3  2002/09/15 15:45:38  sg

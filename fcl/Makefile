@@ -217,7 +217,7 @@ override PACKAGE_VERSION=1.0.6
 override TARGET_DIRS+=xml db shedit passrc
 override TARGET_UNITS+=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog
 ifeq ($(OS_TARGET),linux)
-override TARGET_UNITS+=process asyncio resolve ssockets http
+override TARGET_UNITS+=process asyncio resolve ssockets http fpasync
 endif
 ifeq ($(OS_TARGET),win32)
 override TARGET_UNITS+=process fileinfo resolve ssockets
@@ -826,6 +826,7 @@ ifeq ($(OS_TARGET),linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
+REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_IBASE=1
 endif
@@ -969,6 +970,32 @@ endif
 endif
 ifdef UNITDIR_NETDB
 override COMPILER_UNITDIR+=$(UNITDIR_NETDB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_LIBASYNC
+PACKAGEDIR_LIBASYNC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libasync/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_LIBASYNC),)
+ifneq ($(wildcard $(PACKAGEDIR_LIBASYNC)/$(OS_TARGET)),)
+UNITDIR_LIBASYNC=$(PACKAGEDIR_LIBASYNC)/$(OS_TARGET)
+else
+UNITDIR_LIBASYNC=$(PACKAGEDIR_LIBASYNC)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_LIBASYNC)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_LIBASYNC) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_LIBASYNC)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_LIBASYNC=
+UNITDIR_LIBASYNC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /libasync/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_LIBASYNC),)
+UNITDIR_LIBASYNC:=$(firstword $(UNITDIR_LIBASYNC))
+else
+UNITDIR_LIBASYNC=
+endif
+endif
+ifdef UNITDIR_LIBASYNC
+override COMPILER_UNITDIR+=$(UNITDIR_LIBASYNC)
 endif
 endif
 ifdef REQUIRE_PACKAGES_MYSQL

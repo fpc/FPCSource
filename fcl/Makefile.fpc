@@ -8,7 +8,7 @@ version=1.0.6
 
 [require]
 packages=paszlib
-packages_linux=netdb
+packages_linux=netdb libasync
 packages_freebsd=netdb
 packages_netbsd=netdb
 packages_openbsd=netdb
@@ -24,7 +24,7 @@ units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream 
 units_freebsd=process asyncio ssockets http resolve http
 units_netbsd=process asyncio ssockets http resolve http
 units_openbsd=process asyncio ssockets http resolve http
-units_linux=process asyncio resolve ssockets http
+units_linux=process asyncio resolve ssockets http fpasync
 units_win32=process fileinfo resolve ssockets
 rsts=classes ssockets cachecls resolve
 exampledirs=tests
