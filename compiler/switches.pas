@@ -106,7 +106,13 @@ begin
                       if state='+' then
                         include(aktmoduleswitches,tmoduleswitch(setsw))
                       else
-                        exclude(aktmoduleswitches,tmoduleswitch(setsw));
+                        begin
+                          { Turning off debuginfo when lineinfo is requested
+                            is not possible }
+                          if not((cs_gdb_lineinfo in aktglobalswitches) and
+                                 (tmoduleswitch(setsw)=cs_debuginfo)) then
+                            exclude(aktmoduleswitches,tmoduleswitch(setsw));
+                        end;
                     end
                    else
                     Message(scan_w_switch_is_global);
@@ -159,7 +165,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-05-18 13:34:18  peter
+  Revision 1.13  2003-12-03 17:45:36  peter
+    * don't turn off debuginfo when line info is requested
+
+  Revision 1.12  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.11  2002/05/16 19:46:44  carl
