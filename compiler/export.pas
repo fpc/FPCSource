@@ -31,7 +31,7 @@ const
        eo_resident = $1;
        eo_index    = $2;
        eo_name     = $4;
-   
+
 type
    pexported_item = ^texported_item;
    texported_item = object(tlinkedlist_item)
@@ -152,9 +152,13 @@ begin
       exportlib:=new(pexportlib,Init);
 {$endif m68k}
 {$ifdef alpha}
-    target_m68k_Linux :
+    target_alpha_Linux :
       exportlib:=new(pexportlib,Init);
-{$endif m68k}
+{$endif alpha}
+{$ifdef powerpc}
+    target_alpha_Linux :
+      exportlib:=new(pexportlib,Init);
+{$endif powerpc}
     else
       exportlib:=new(pexportlib,Init);
   end;
@@ -164,7 +168,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-03 17:09:34  florian
+  Revision 1.6  1999-08-04 13:02:41  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.5  1999/08/03 17:09:34  florian
     * the alpha compiler can be compiled now
 
   Revision 1.4  1998/11/30 09:43:09  pierre

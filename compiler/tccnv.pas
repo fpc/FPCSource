@@ -631,7 +631,7 @@ implementation
        if assigned(aprocdef) then
          begin
             procinfo.flags:=procinfo.flags or pi_do_call;
-            hp:=gencallnode(overloaded_operators[assignment],nil);
+            hp:=gencallnode(overloaded_operators[_assignment],nil);
             { tell explicitly which def we must use !! (PM) }
             hp^.procdefinition:=aprocdef;
             hp^.left:=gencallparanode(p^.left,nil);
@@ -919,7 +919,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-08-04 00:23:36  florian
+  Revision 1.44  1999-08-04 13:03:14  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.43  1999/08/04 00:23:36  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.42  1999/08/03 22:03:28  peter

@@ -98,7 +98,7 @@ var
   varspez : Tvarspez;
   inserthigh : boolean;
 begin
-  consume(LKLAMMER);
+  consume(_LKLAMMER);
   inc(testcurobject);
   repeat
     if try_to_consume(_VAR) then
@@ -131,7 +131,7 @@ begin
 {$endif}
             inc(procinfo.ESI_offset,vs^.address);
             consume(idtoken);
-            consume(COLON);
+            consume(_COLON);
             p:=single_type(hs1);
             if assigned(readtypesym) then
              aktprocsym^.definition^.concattypesym(readtypesym,vs_value)
@@ -140,16 +140,16 @@ begin
             CheckTypes(p,procinfo._class);
            end
          else
-           consume(ID);
+           consume(_ID);
       end
     else
       begin
        { read identifiers }
          sc:=idlist;
        { read type declaration, force reading for value and const paras }
-         if (token=COLON) or (varspez=vs_value) then
+         if (token=_COLON) or (varspez=vs_value) then
           begin
-            consume(COLON);
+            consume(_COLON);
           { check for an open array }
             if token=_ARRAY then
              begin
@@ -270,9 +270,9 @@ begin
          tokenpos:=storetokenpos;
       end;
     aktprocsym^.definition^.setmangledname(hs2);
-  until not try_to_consume(SEMICOLON);
+  until not try_to_consume(_SEMICOLON);
   dec(testcurobject);
-  consume(RKLAMMER);
+  consume(_RKLAMMER);
 end;
 
 
@@ -301,11 +301,11 @@ begin
     begin
       sp:=pattern;
       realname:=orgpattern;
-      consume(ID);
+      consume(_ID);
     end;
 
 { method ? }
-  if not(parse_only) and try_to_consume(POINT) then
+  if not(parse_only) and try_to_consume(_POINT) then
    begin
      getsym(sp,true);
      sym:=srsym;
@@ -315,7 +315,7 @@ begin
        begin
           Message(parser_e_class_id_expected);
           aktprocsym:=nil;
-          consume(ID);
+          consume(_ID);
        end
      else
        begin
@@ -323,7 +323,7 @@ begin
           aktobjectdef:=pobjectdef(ptypesym(sym)^.definition);
           sp:=pattern;
           realname:=orgpattern;
-          consume(ID);
+          consume(_ID);
           procinfo._class:=pobjectdef(ptypesym(sym)^.definition);
           aktprocsym:=pprocsym(procinfo._class^.symtable^.search(sp));
           aktobjectdef:=nil;
@@ -525,7 +525,7 @@ begin
   { otherwise we get subbtle problems with
     definitions of args defs in staticsymtable for
     implementation of a global method }
-  if token=LKLAMMER then
+  if token=_LKLAMMER then
     formal_parameter_list;
   { so we only restore the symtable now }
   symtablestack:=st;
@@ -552,18 +552,18 @@ begin
      _FUNCTION : begin
                    consume(_FUNCTION);
                    parse_proc_head(potype_none);
-                   if token<>COLON then
+                   if token<>_COLON then
                     begin
                        if not(aktprocsym^.definition^.forwarddef) or
                          (m_repeat_forward in aktmodeswitches) then
                        begin
-                         consume(COLON);
-                         consume_all_until(SEMICOLON);
+                         consume(_COLON);
+                         consume_all_until(_SEMICOLON);
                        end;
                     end
                    else
                     begin
-                      consume(COLON);
+                      consume(_COLON);
                       inc(testcurobject);
                       aktprocsym^.definition^.retdef:=single_type(hs);
                       aktprocsym^.definition^.test_if_fpu_result;
@@ -603,35 +603,35 @@ begin
                    if lexlevel>normal_function_level then
                      Message(parser_e_no_local_operator);
                    consume(_OPERATOR);
-                   if not(token in [PLUS..last_overloaded]) then
+                   if not(token in [_PLUS..last_overloaded]) then
                      Message(parser_e_overload_operator_failed);
                    optoken:=token;
                    consume(Token);
                    procinfo.flags:=procinfo.flags or pi_operator;
                    parse_proc_head(potype_operator);
-                   if token<>ID then
+                   if token<>_ID then
                      begin
                         opsym:=nil;
                         if not(m_result in aktmodeswitches) then
-                          consume(ID);
+                          consume(_ID);
                      end
                    else
                      begin
                        opsym:=new(pvarsym,init(pattern,voiddef));
-                       consume(ID);
+                       consume(_ID);
                      end;
-                   if not try_to_consume(COLON) then
+                   if not try_to_consume(_COLON) then
                      begin
-                       consume(COLON);
+                       consume(_COLON);
                        aktprocsym^.definition^.retdef:=generrordef;
-                       consume_all_until(SEMICOLON);
+                       consume_all_until(_SEMICOLON);
                      end
                    else
                     begin
                       aktprocsym^.definition^.retdef:=
                        single_type(hs);
                       aktprocsym^.definition^.test_if_fpu_result;
-                      if (optoken in [EQUAL,GT,LT,GTE,LTE]) and
+                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                          ((aktprocsym^.definition^.retdef^.deftype<>
                          orddef) or (porddef(aktprocsym^.definition^.
                          retdef)^.typ<>bool8bit)) then
@@ -652,7 +652,7 @@ begin
 {$else}
     aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_classmethod];
 {$endif}
-  consume(SEMICOLON);
+  consume(_SEMICOLON);
   dec(lexlevel);
 end;
 
@@ -717,24 +717,24 @@ end;
 
 procedure pd_alias(const procnames:Tstringcontainer);
 begin
-  consume(COLON);
+  consume(_COLON);
   procnames.insert(get_stringconst);
 end;
 
 procedure pd_asmname(const procnames:Tstringcontainer);
 begin
   aktprocsym^.definition^.setmangledname(target_os.Cprefix+pattern);
-  if token=CCHAR then
-    consume(CCHAR)
+  if token=_CCHAR then
+    consume(_CCHAR)
   else
-    consume(CSTRING);
+    consume(_CSTRING);
   { we don't need anything else }
   aktprocsym^.definition^.forwarddef:=false;
 end;
 
 procedure pd_intern(const procnames:Tstringcontainer);
 begin
-  consume(COLON);
+  consume(_COLON);
   aktprocsym^.definition^.extnumber:=get_intconst;
 end;
 
@@ -861,7 +861,7 @@ begin
   follow (FK) }
   import_nr:=0;
   import_name:='';
-  if not(token=SEMICOLON) and not(idtoken=_NAME) then
+  if not(token=_SEMICOLON) and not(idtoken=_NAME) then
     begin
       import_dll:=get_stringconst;
       if (idtoken=_NAME) then
@@ -1332,7 +1332,7 @@ begin
            if not(m_repeat_forward in aktmodeswitches) or
               (equal_paras(aktprocsym^.definition^.para1,pd^.nextoverloaded^.para1,false) and
               { for operators equal_paras is not enough !! }
-              ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>ASSIGNMENT) or
+              ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.retdef,aktprocsym^.definition^.retdef))) then
              begin
                if pd^.nextoverloaded^.forwarddef then
@@ -1791,14 +1791,14 @@ procedure parse_proc_directives(Anames:Pstringcontainer;var pdflags:word);
 var
   res : boolean;
 begin
-  while token in [ID,LECKKLAMMER] do
+  while token in [_ID,_LECKKLAMMER] do
    begin
-     if try_to_consume(LECKKLAMMER) then
+     if try_to_consume(_LECKKLAMMER) then
       begin
         repeat
           parse_proc_direc(Anames^,pdflags);
-        until not try_to_consume(COMMA);
-        consume(RECKKLAMMER);
+        until not try_to_consume(_COMMA);
+        consume(_RECKKLAMMER);
         { we always expect at least '[];' }
         res:=true;
       end
@@ -1806,7 +1806,7 @@ begin
       res:=parse_proc_direc(Anames^,pdflags);
    { A procedure directive is always followed by a semicolon }
      if res then
-      consume(SEMICOLON)
+      consume(_SEMICOLON)
      else
       break;
    end;
@@ -2013,7 +2013,7 @@ begin
         tokeninfo[_FAIL].keyword:=m_none;
       if assigned(aktprocsym^.definition^._class) and (lexlevel=main_program_level) then
         tokeninfo[_SELF].keyword:=m_none;
-       consume(SEMICOLON);
+       consume(_SEMICOLON);
      end;
 { close }
    dispose(names,done);
@@ -2033,7 +2033,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-08-04 00:23:20  florian
+  Revision 1.11  1999-08-04 13:03:01  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.10  1999/08/04 00:23:20  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.9  1999/08/03 22:03:05  peter

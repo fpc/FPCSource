@@ -971,6 +971,9 @@ begin
 {$ifdef alpha}
   option:=new(poption,Init);
 {$endif}
+{$ifdef powerpc}
+  option:=new(poption,Init);
+{$endif}
 { Load messages }
   if (cmd='') and (paramcount=0) then
    Option^.WriteHelpPages;
@@ -988,7 +991,7 @@ begin
 { Temporary defines, until things settle down }
   def_symbol('INT64');
   def_symbol('HASRESOURCESTRINGS');
-  
+
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1001,6 +1004,9 @@ begin
 {$endif}
 {$ifdef ALPHA}
   def_symbol('ALPHA');
+{$endif}
+{$ifdef powerpc}
+  def_symbol('POWERPC');
 {$endif}
 
 { get default messagefile }
@@ -1025,6 +1031,9 @@ begin
 {$endif}
 {$ifdef alpha}
      ppccfg:='ppcalpha.cfg';
+{$endif}
+{$ifdef powerpc}
+     ppccfg:='ppcppc.cfg';
 {$endif}
    end;
 
@@ -1151,7 +1160,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-03 17:09:36  florian
+  Revision 1.9  1999-08-04 13:02:46  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.8  1999/08/03 17:09:36  florian
     * the alpha compiler can be compiled now
 
   Revision 1.7  1999/08/02 23:13:19  florian

@@ -295,8 +295,8 @@ implementation
            end
          else
            begin
-              if assigned(overloaded_operators[minus]) then
-                minusdef:=overloaded_operators[minus]^.definition
+              if assigned(overloaded_operators[_minus]) then
+                minusdef:=overloaded_operators[_minus]^.definition
               else
                 minusdef:=nil;
               while assigned(minusdef) do
@@ -304,7 +304,7 @@ implementation
                    if (minusdef^.para1^.data=p^.left^.resulttype) and
                      (minusdef^.para1^.next=nil) then
                      begin
-                        t:=gencallnode(overloaded_operators[minus],nil);
+                        t:=gencallnode(overloaded_operators[_minus],nil);
                         t^.left:=gencallparanode(p^.left,nil);
                         putnode(p);
                         p:=t;
@@ -406,7 +406,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-08-04 00:23:43  florian
+  Revision 1.19  1999-08-04 13:03:15  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.18  1999/08/04 00:23:43  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.17  1999/08/03 22:03:34  peter

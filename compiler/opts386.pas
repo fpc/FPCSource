@@ -53,7 +53,7 @@ begin
                            cs_regalloc,cs_uncertainopts];
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
-                 'r' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_regalloc];
+                 'r' : initglobalswitches:=initglobalswitches+[cs_regalloc];
                  'u' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
                  '1' : initglobalswitches:=initglobalswitches-[cs_slowoptimize,cs_uncertainopts]+[cs_optimize,cs_fastoptimize];
                  '2' : initglobalswitches:=initglobalswitches-[cs_uncertainopts]+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
@@ -97,7 +97,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-12-11 00:03:22  peter
+  Revision 1.16  1999-08-04 13:02:47  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.15  1998/12/11 00:03:22  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.14  1998/11/12 09:00:26  michael

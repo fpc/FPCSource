@@ -176,6 +176,10 @@ unit pmodules;
             target_alpha_linux:
               ;
 {$endif alpha}
+{$ifdef powerpc}
+            target_powerpc_linux:
+              ;
+{$endif powerpc}
 {$ifdef m68k}
             target_m68k_Mac:
               bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
@@ -205,6 +209,10 @@ unit pmodules;
           target_alpha_linux:
             ;
 {$endif alpha}
+{$ifdef powerpc}
+          target_powerpc_linux:
+            ;
+{$endif powerpc}
 {$ifdef i386}
           target_i386_GO32V2 :
             begin
@@ -557,8 +565,8 @@ unit pmodules;
         make_ref:=true;
         { if POWER is defined in the RTL then use it for starstar overloading }
         getsym('POWER',false);
-        if assigned(srsym) and (srsym^.typ=procsym) and (overloaded_operators[STARSTAR]=nil) then
-          overloaded_operators[STARSTAR]:=pprocsym(srsym);
+        if assigned(srsym) and (srsym^.typ=procsym) and (overloaded_operators[_STARSTAR]=nil) then
+          overloaded_operators[_STARSTAR]:=pprocsym(srsym);
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
@@ -615,7 +623,7 @@ unit pmodules;
 {$endif DEBUG}
          repeat
            s:=pattern;
-           consume(ID);
+           consume(_ID);
          { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
@@ -641,15 +649,15 @@ unit pmodules;
             end
            else
             Message1(sym_e_duplicate_id,s);
-           if token=COMMA then
+           if token=_COMMA then
             begin
               pattern:='';
-              consume(COMMA);
+              consume(_COMMA);
             end
            else
             break;
          until false;
-         consume(SEMICOLON);
+         consume(_SEMICOLON);
 
          { set the symtable to systemunit so it gets reorderd correctly }
          symtablestack:=defaultsymtablestack;
@@ -820,7 +828,7 @@ unit pmodules;
          s1,s2  : ^string; {Saves stack space}
       begin
          consume(_UNIT);
-         if token=ID then
+         if token=_ID then
           begin
           { create filenames and unit name }
              current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
@@ -852,8 +860,8 @@ unit pmodules;
              dispose(s1);
           end;
 
-         consume(ID);
-         consume(SEMICOLON);
+         consume(_ID);
+         consume(_SEMICOLON);
          consume(_INTERFACE);
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
@@ -1057,7 +1065,7 @@ unit pmodules;
            end;
 
          { the last char should always be a point }
-         consume(POINT);
+         consume(_POINT);
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
@@ -1190,8 +1198,8 @@ unit pmodules;
               current_module^.modulename:=stringdup(pattern);
               current_module^.islibrary:=true;
               exportlib^.preparelib(pattern);
-              consume(ID);
-              consume(SEMICOLON);
+              consume(_ID);
+              consume(_SEMICOLON);
            end
          else
            { is there an program head ? }
@@ -1200,14 +1208,14 @@ unit pmodules;
               consume(_PROGRAM);
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
-              consume(ID);
-              if token=LKLAMMER then
+              consume(_ID);
+              if token=_LKLAMMER then
                 begin
-                   consume(LKLAMMER);
+                   consume(_LKLAMMER);
                    idlist;
-                   consume(RKLAMMER);
+                   consume(_RKLAMMER);
                 end;
-              consume(SEMICOLON);
+              consume(_SEMICOLON);
             end;
 
          { global switches are read, so further changes aren't allowed }
@@ -1286,7 +1294,7 @@ unit pmodules;
          codegen_doneprocedure;
 
          { consume the last point }
-         consume(POINT);
+         consume(_POINT);
 
 {$ifdef New_GDB}
          write_gdb_info;
@@ -1353,7 +1361,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.139  1999-08-04 00:23:15  florian
+  Revision 1.140  1999-08-04 13:02:57  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.139  1999/08/04 00:23:15  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.138  1999/08/03 22:03:02  peter

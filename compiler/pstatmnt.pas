@@ -64,6 +64,9 @@ unit pstatmnt;
 {$ifdef alpha}
        ,tgeni386  { this is a dummy!! }
 {$endif alpha}
+{$ifdef powerpc}
+       ,tgeni386  { this is a dummy!! }
+{$endif powerpc}
        ;
 
 
@@ -112,7 +115,7 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if not try_to_consume(SEMICOLON) then
+              if not try_to_consume(_SEMICOLON) then
                 break;
               emptystats;
            end;
@@ -233,13 +236,13 @@ unit pstatmnt;
                   newcaselabel(hl1,hl1,firstlabel);
                end;
              disposetree(p);
-             if token=COMMA then
-               consume(COMMA)
+             if token=_COMMA then
+               consume(_COMMA)
              else
                break;
              firstlabel:=false;
            until false;
-           consume(COLON);
+           consume(_COLON);
 
            { handles instruction block }
            p:=gensinglenode(labeln,statement);
@@ -249,7 +252,7 @@ unit pstatmnt;
            instruc:=gennode(statementn,instruc,p);
 
            if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
-             consume(SEMICOLON);
+             consume(_SEMICOLON);
          until (token=_ELSE) or (token=_OTHERWISE) or (token=_END);
 
          if (token=_ELSE) or (token=_OTHERWISE) then
@@ -295,7 +298,7 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if not try_to_consume(SEMICOLON) then
+              if not try_to_consume(_SEMICOLON) then
                 break;
               emptystats;
            end;
@@ -413,9 +416,9 @@ unit pstatmnt;
                            symtablestack:=withsymtable;
                         end;
             end;
-            if token=COMMA then
+            if token=_COMMA then
              begin
-               consume(COMMA);
+               consume(_COMMA);
              {$ifdef tp}
                right:=_with_statement;
              {$else}
@@ -425,7 +428,7 @@ unit pstatmnt;
             else
              begin
                consume(_DO);
-               if token<>SEMICOLON then
+               if token<>_SEMICOLON then
                 right:=statement
                else
                 right:=nil;
@@ -438,9 +441,9 @@ unit pstatmnt;
           begin
             Message(parser_e_false_with_expr);
             { try to recover from error }
-            if token=COMMA then
+            if token=_COMMA then
              begin
-               consume(COMMA);
+               consume(_COMMA);
              {$ifdef tp}
                hp:=_with_statement;
              {$else}
@@ -451,7 +454,7 @@ unit pstatmnt;
              begin
                consume(_DO);
                { ignore all }
-               if token<>SEMICOLON then
+               if token<>_SEMICOLON then
                 statement;
              end;
             _with_statement:=nil;
@@ -475,12 +478,12 @@ unit pstatmnt;
          p1:=nil;
          p2:=nil;
          consume(_RAISE);
-         if token<>SEMICOLON then
+         if token<>_SEMICOLON then
            begin
               p1:=comp_expr(true);
               if (idtoken=_AT) then
                 begin
-                   consume(ID);
+                   consume(_ID);
                    p2:=comp_expr(true);
                 end;
            end
@@ -528,7 +531,7 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if not try_to_consume(SEMICOLON) then
+              if not try_to_consume(_SEMICOLON) then
                 break;
               emptystats;
            end;
@@ -552,21 +555,21 @@ unit pstatmnt;
                 begin
                    repeat
                      consume(_ON);
-                     if token=ID then
+                     if token=_ID then
                        begin
                           getsym(pattern,false);
                           objname:=pattern;
-                          consume(ID);
+                          consume(_ID);
                           { is a explicit name for the exception given ? }
-                          if try_to_consume(COLON) then
+                          if try_to_consume(_COLON) then
                             begin
                                getsym(pattern,true);
-                               consume(ID);
+                               consume(_ID);
                                if srsym^.typ=unitsym then
                                  begin
-                                    consume(POINT);
+                                    consume(_POINT);
                                     getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                                    consume(ID);
+                                    consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
@@ -589,9 +592,9 @@ unit pstatmnt;
                                { only exception type }
                                if srsym^.typ=unitsym then
                                  begin
-                                    consume(POINT);
+                                    consume(_POINT);
                                     getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                                    consume(ID);
+                                    consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
@@ -606,7 +609,7 @@ unit pstatmnt;
                             end;
                        end
                      else
-                       consume(ID);
+                       consume(_ID);
                      consume(_DO);
                      hp:=gennode(onn,nil,statement);
                      if ot^.deftype=errordef then
@@ -631,7 +634,7 @@ unit pstatmnt;
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        dellexlevel;
-                     if not try_to_consume(SEMICOLON) then
+                     if not try_to_consume(_SEMICOLON) then
                         break;
                      emptystats;
                    until (token=_END) or(token=_ELSE);
@@ -664,10 +667,10 @@ unit pstatmnt;
 
       begin
          consume(_EXIT);
-         if try_to_consume(LKLAMMER) then
+         if try_to_consume(_LKLAMMER) then
            begin
               p:=comp_expr(true);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               if in_except_block then
                 Message(parser_e_exit_with_argument_not__possible);
               if procinfo.retdef=pdef(voiddef) then
@@ -735,11 +738,11 @@ unit pstatmnt;
 
 {$ifndef newcg}
          { END is read }
-         if try_to_consume(LECKKLAMMER) then
+         if try_to_consume(_LECKKLAMMER) then
            begin
               { it's possible to specify the modified registers }
               asmstat^.object_preserved:=true;
-              if token<>RECKKLAMMER then
+              if token<>_RECKKLAMMER then
                 repeat
                 { uppercase, because it's a CSTRING }
                   uppervar(pattern);
@@ -772,12 +775,12 @@ unit pstatmnt;
                   else if pattern='A1' then
                     usedinproc:=usedinproc or ($800 shr word(R_A1))
 {$endif m68k}
-                  else consume(RECKKLAMMER);
-                  consume(CSTRING);
-                  if not try_to_consume(COMMA) then
+                  else consume(_RECKKLAMMER);
+                  consume(_CSTRING);
+                  if not try_to_consume(_COMMA) then
                     break;
                 until false;
-              consume(RECKKLAMMER);
+              consume(_RECKKLAMMER);
            end
          else usedinproc:=$ff;
 {$endif newcg}
@@ -817,7 +820,7 @@ unit pstatmnt;
                 consume(_DISPOSE);
                 tt:=hdisposen;
             end;
-          consume(LKLAMMER);
+          consume(_LKLAMMER);
 
           { displaced here to avoid warnings in BP mode (PM) }
           Store_valid := Must_be_valid;
@@ -838,13 +841,13 @@ unit pstatmnt;
                new(o,init);     (*Also a valid new statement*)
            end;}
 
-          if try_to_consume(COMMA) then
+          if try_to_consume(_COMMA) then
             begin
                    { extended syntax of new and dispose }
                    { function styled new is handled in factor }
                    { destructors have no parameters }
                    destrukname:=pattern;
-                   consume(ID);
+                   consume(_ID);
 
                    pd:=p^.resulttype;
                    pd2:=pd;
@@ -852,7 +855,7 @@ unit pstatmnt;
                      begin
                         Message(type_e_pointer_type_expected);
                         p:=factor(false);
-                        consume(RKLAMMER);
+                        consume(_RKLAMMER);
                         new_dispose_statement:=genzeronode(errorn);
                         exit;
                      end;
@@ -861,8 +864,8 @@ unit pstatmnt;
                      begin
                         Message(parser_e_pointer_to_class_expected);
                         new_dispose_statement:=factor(false);
-                        consume_all_until(RKLAMMER);
-                        consume(RKLAMMER);
+                        consume_all_until(_RKLAMMER);
+                        consume(_RKLAMMER);
                         exit;
                      end;
                    { check, if the first parameter is a pointer to a _class_ }
@@ -871,8 +874,8 @@ unit pstatmnt;
                      begin
                         Message(parser_e_no_new_or_dispose_for_classes);
                         new_dispose_statement:=factor(false);
-                        consume_all_until(RKLAMMER);
-                        consume(RKLAMMER);
+                        consume_all_until(_RKLAMMER);
+                        consume(_RKLAMMER);
                         exit;
                      end;
                    { search cons-/destructor, also in parent classes }
@@ -943,7 +946,7 @@ unit pstatmnt;
                      end;
                  end;
             end;
-          consume(RKLAMMER);
+          consume(_RKLAMMER);
       end;
 
 
@@ -976,12 +979,12 @@ unit pstatmnt;
               else
                 begin
                    { if no semicolon, then error and go on }
-                   if token<>SEMICOLON then
+                   if token<>_SEMICOLON then
                      begin
-                        consume(SEMICOLON);
-                        consume_all_until(SEMICOLON);
+                        consume(_SEMICOLON);
+                        consume_all_until(_SEMICOLON);
                      end;
-                   consume(SEMICOLON);
+                   consume(_SEMICOLON);
                 end;
               emptystats;
            end;
@@ -1018,7 +1021,7 @@ unit pstatmnt;
                        if not(cs_support_goto in aktmoduleswitches)then
                         Message(sym_e_goto_and_label_not_supported);
                        consume(_GOTO);
-                       if (token<>INTCONST) and (token<>ID) then
+                       if (token<>_INTCONST) and (token<>_ID) then
                          begin
                             Message(sym_e_label_not_found);
                             code:=genzeronode(errorn);
@@ -1049,7 +1052,7 @@ unit pstatmnt;
             _TRY : code:=try_statement;
             _RAISE : code:=raise_statement;
             { semicolons,else until and end are ignored }
-            SEMICOLON,
+            _SEMICOLON,
             _ELSE,
             _UNTIL,
             _END:
@@ -1070,8 +1073,8 @@ unit pstatmnt;
                    end;
          else
            begin
-              if (token=INTCONST) or
-                 ((token=ID) and not((m_result in aktmodeswitches) and (idtoken=_RESULT))) then
+              if (token=_INTCONST) or
+                 ((token=_ID) and not((m_result in aktmodeswitches) and (idtoken=_RESULT))) then
                 begin
                    getsym(pattern,true);
                    lastsymknown:=true;
@@ -1082,7 +1085,7 @@ unit pstatmnt;
                    if assigned(srsym) and (srsym^.typ=labelsym) then
                      begin
                         consume(token);
-                        consume(COLON);
+                        consume(_COLON);
                         if plabelsym(srsym)^.defined then
                           Message(sym_e_label_already_defined);
                         plabelsym(srsym)^.defined:=true;
@@ -1288,7 +1291,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.96  1999-08-04 00:23:19  florian
+  Revision 1.97  1999-08-04 13:02:59  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.96  1999/08/04 00:23:19  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.95  1999/08/03 22:03:03  peter

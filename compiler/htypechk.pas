@@ -651,8 +651,8 @@ implementation
           convtyp : tconverttype;
        begin
           assignment_overloaded:=nil;
-          if assigned(overloaded_operators[assignment]) then
-            passproc:=overloaded_operators[assignment]^.definition
+          if assigned(overloaded_operators[_assignment]) then
+            passproc:=overloaded_operators[_assignment]^.definition
           else
             exit;
           while passproc<>nil do
@@ -671,7 +671,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-08-03 22:02:53  peter
+  Revision 1.33  1999-08-04 13:02:43  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.32  1999/08/03 22:02:53  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -299,6 +299,9 @@ unit parser;
 {$ifdef alpha}
          cg:=new(pcgalpha,init);
 {$endif alpha}
+{$ifdef powerpc}
+         cg:=new(pcgppc,init);
+{$endif powerpc}
 {$endif newcg}
 
          { If the compile level > 1 we get a nice "unit expected" error
@@ -441,9 +444,9 @@ unit parser;
 {$ifdef BrowserCol}
               { Write Browser Collections }
               CreateBrowserCol;
-{$endif}     
+{$endif}
               { Write resource stringtable file }
-            
+
               If not (Main_Module^.is_unit) then
                 WriteResourceFile(Current_module^.ModuleName^);
               end;
@@ -472,7 +475,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.80  1999-08-03 17:09:37  florian
+  Revision 1.81  1999-08-04 13:02:48  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.80  1999/08/03 17:09:37  florian
     * the alpha compiler can be compiled now
 
   Revision 1.79  1999/08/01 23:36:40  florian

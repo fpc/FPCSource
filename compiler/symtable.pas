@@ -354,8 +354,8 @@ unit symtable;
 
     const
        { last operator which can be overloaded }
-       first_overloaded = PLUS;
-       last_overloaded  = ASSIGNMENT;
+       first_overloaded = _PLUS;
+       last_overloaded  = _ASSIGNMENT;
     var
        overloaded_operators : array[first_overloaded..last_overloaded] of pprocsym;
        { unequal is not equal}
@@ -2335,7 +2335,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-08-04 00:23:31  florian
+  Revision 1.37  1999-08-04 13:03:09  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.36  1999/08/04 00:23:31  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.35  1999/08/03 22:03:22  peter

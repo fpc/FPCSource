@@ -31,42 +31,42 @@ const
 type
   ttoken=(NOTOKEN,
     { operators, which can also be overloaded }
-    PLUS,
-    MINUS,
-    STAR,
-    SLASH,
-    EQUAL,
-    GT,
-    LT,
-    GTE,
-    LTE,
-    SYMDIF,
-    STARSTAR,
-    OP_IS,
-    OP_AS,
-    OP_IN,
-    ASSIGNMENT,
+    _PLUS,
+    _MINUS,
+    _STAR,
+    _SLASH,
+    _EQUAL,
+    _GT,
+    _LT,
+    _GTE,
+    _LTE,
+    _SYMDIF,
+    _STARSTAR,
+    _OP_IS,
+    _OP_AS,
+    _OP_IN,
+    _ASSIGNMENT,
     { special chars }
-    CARET,
-    UNEQUAL,
-    LECKKLAMMER,
-    RECKKLAMMER,
-    POINT,
-    COMMA,
-    LKLAMMER,
-    RKLAMMER,
-    COLON,
-    SEMICOLON,
-    KLAMMERAFFE,
-    POINTPOINT,
-    DOUBLEADDR,
+    _CARET,
+    _UNEQUAL,
+    _LECKKLAMMER,
+    _RECKKLAMMER,
+    _POINT,
+    _COMMA,
+    _LKLAMMER,
+    _RKLAMMER,
+    _COLON,
+    _SEMICOLON,
+    _KLAMMERAFFE,
+    _POINTPOINT,
+    _DOUBLEADDR,
     _EOF,
-    ID,
-    NOID,
-    REALNUMBER,
-    INTCONST,
-    CSTRING,
-    CCHAR,
+    _ID,
+    _NOID,
+    _REALNUMBER,
+    _INTCONST,
+    _CSTRING,
+    _CCHAR,
     { C like operators }
     _PLUSASN,
     _MINUSASN,
@@ -387,7 +387,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-08-03 22:03:39  peter
+  Revision 1.11  1999-08-04 13:03:17  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.10  1999/08/03 22:03:39  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

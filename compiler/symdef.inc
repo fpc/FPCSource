@@ -2399,10 +2399,6 @@
 {$ifdef m68k}
          usedregisters:=$FFFF;
 {$endif}
-{$ifdef alpha}
-         usedregisters_int:=$ffffffff;
-         usedregisters_fpu:=$ffffffff;
-{$endif alpha}
 {$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
@@ -2429,10 +2425,6 @@
 {$ifdef m68k}
          usedregisters:=readword;
 {$endif}
-{$ifdef alpha}
-         usedregisters_int:=readlong;
-         usedregisters_fpu:=readlong;
-{$endif alpha}
 {$endif newcg}
          s:=readstring;
          setstring(_mangledname,s);
@@ -2633,10 +2625,6 @@ Const local_symtable_index : longint = $8001;
 {$ifdef m68k}
          writeword(usedregisters);
 {$endif}
-{$ifdef alpha}
-         writelong(usedregisters_int);
-         writelong(usedregisters_fpu);
-{$endif alpha}
 {$endif newcg}
          writestring(mangledname);
          current_ppu^.do_interface_crc:=true;
@@ -3569,7 +3557,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.139  1999-08-03 22:03:14  peter
+  Revision 1.140  1999-08-04 13:03:07  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.139  1999/08/03 22:03:14  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -190,6 +190,10 @@ begin
     target_alpha_Linux :
       importlib:=new(pimportliblinux,Init);
 {$endif alpha}
+{$ifdef powerpc}
+    target_alpha_Linux :
+      importlib:=new(pimportliblinux,Init);
+{$endif powerpc}
     else
       importlib:=new(pimportlib,Init);
   end;
@@ -199,7 +203,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-03 13:50:16  michael
+  Revision 1.12  1999-08-04 13:02:44  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.11  1999/08/03 13:50:16  michael
   + Changes for alpha
 
   Revision 1.10  1999/05/17 14:33:01  pierre

@@ -119,11 +119,11 @@ const
          mac : pmacrosym;
          len : byte;
       begin
-         if preproc_token=ID then
+         if preproc_token=_ID then
            begin
               if preprocpat='NOT' then
                 begin
-                   preproc_consume(ID);
+                   preproc_consume(_ID);
                    hs:=read_expr;
                    if hs='0' then
                      read_factor:='1'
@@ -134,7 +134,7 @@ const
                 begin
                    mac:=pmacrosym(macros^.search(hs));
                    hs:=preprocpat;
-                   preproc_consume(ID);
+                   preproc_consume(_ID);
                    if assigned(mac) then
                      begin
                         if mac^.defined and assigned(mac^.buftext) then
@@ -164,11 +164,11 @@ const
                      read_factor:=hs;
                 end
            end
-         else if preproc_token=LKLAMMER then
+         else if preproc_token=_LKLAMMER then
            begin
-              preproc_consume(LKLAMMER);
+              preproc_consume(_LKLAMMER);
               read_factor:=read_expr;
-              preproc_consume(RKLAMMER);
+              preproc_consume(_RKLAMMER);
            end
          else
            Message(scan_e_error_in_preproc_expr);
@@ -182,11 +182,11 @@ const
          hs1:=read_factor;
          while true do
            begin
-              if (preproc_token=ID) then
+              if (preproc_token=_ID) then
                 begin
                    if preprocpat='AND' then
                      begin
-                        preproc_consume(ID);
+                        preproc_consume(_ID);
                         hs2:=read_factor;
                         if (hs1<>'0') and (hs2<>'0') then
                           hs1:='1';
@@ -208,11 +208,11 @@ const
          hs1:=read_term;
          while true do
            begin
-              if (preproc_token=ID) then
+              if (preproc_token=_ID) then
                 begin
                    if preprocpat='OR' then
                      begin
-                        preproc_consume(ID);
+                        preproc_consume(_ID);
                         hs2:=read_term;
                         if (hs1<>'0') or (hs2<>'0') then
                           hs1:='1';
@@ -237,7 +237,7 @@ const
       begin
          hs1:=read_simple_expr;
          t:=preproc_token;
-         if not(t in [EQUAL,UNEQUAL,LT,GT,LTE,GTE]) then
+         if not(t in [_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
            begin
               read_expr:=hs1;
               exit;
@@ -249,23 +249,23 @@ const
               valint(hs1,l1,w);
               valint(hs2,l2,w);
               case t of
-                 EQUAL : b:=l1=l2;
-               UNEQUAL : b:=l1<>l2;
-                    LT : b:=l1<l2;
-                    GT : b:=l1>l2;
-                   GTE : b:=l1>=l2;
-                   LTE : b:=l1<=l2;
+                 _EQUAL : b:=l1=l2;
+               _UNEQUAL : b:=l1<>l2;
+                    _LT : b:=l1<l2;
+                    _GT : b:=l1>l2;
+                   _GTE : b:=l1>=l2;
+                   _LTE : b:=l1<=l2;
               end;
            end
          else
            begin
               case t of
-                 EQUAL : b:=hs1=hs2;
-               UNEQUAL : b:=hs1<>hs2;
-                    LT : b:=hs1<hs2;
-                    GT : b:=hs1>hs2;
-                   GTE : b:=hs1>=hs2;
-                   LTE : b:=hs1<=hs2;
+                 _EQUAL : b:=hs1=hs2;
+               _UNEQUAL : b:=hs1<>hs2;
+                    _LT : b:=hs1<hs2;
+                    _GT : b:=hs1>hs2;
+                   _GTE : b:=hs1>=hs2;
+                   _LTE : b:=hs1<=hs2;
               end;
            end;
          if b then
@@ -1090,7 +1090,11 @@ const
 
 {
   $Log$
-  Revision 1.57  1999-07-26 14:55:36  florian
+  Revision 1.58  1999-08-04 13:03:03  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.57  1999/07/26 14:55:36  florian
     * $mode gives now a warning if an unknown mode keyword follows
 
   Revision 1.56  1999/07/23 16:05:27  peter

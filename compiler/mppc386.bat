@@ -1,6 +1,1 @@
-ppc386 -O-p3 -Ch8000000 -dI386 -dGDB -dBROWSERLOG -Sg pp.pas %1 %2 %3 %4 %5 %6 %7 %8 %9
-if errorlevel 0 goto success
-goto failed
-:success
-copy pp.exe ppc386.exe
-:failed
+ppt5 -Xs -Ch8000000 -dI386 -dGDB -Sg -dnoag386int -dnoag386nsm pp.pas %1 %2 %3 %4 %5 %6 %7 %8 %9

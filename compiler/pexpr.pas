@@ -63,7 +63,7 @@ unit pexpr;
       allow_type : boolean = true;
       got_addrn  : boolean = false;
 
-    function parse_paras(_colon,in_prop_paras : boolean) : ptree;
+    function parse_paras(__colon,in_prop_paras : boolean) : ptree;
 
       var
          p1,p2 : ptree;
@@ -71,9 +71,9 @@ unit pexpr;
 
       begin
          if in_prop_paras  then
-           end_of_paras:=RECKKLAMMER
+           end_of_paras:=_RECKKLAMMER
          else
-           end_of_paras:=RKLAMMER;
+           end_of_paras:=_RKLAMMER;
          if token=end_of_paras then
            begin
               parse_paras:=nil;
@@ -86,22 +86,22 @@ unit pexpr;
               p1:=comp_expr(true);
               p2:=gencallparanode(p1,p2);
               { it's for the str(l:5,s); }
-              if _colon and (token=COLON) then
+              if __colon and (token=_COLON) then
                 begin
-                   consume(COLON);
+                   consume(_COLON);
                    p1:=comp_expr(true);
                    p2:=gencallparanode(p1,p2);
                    p2^.is_colon_para:=true;
-                   if token=COLON then
+                   if token=_COLON then
                      begin
-                        consume(COLON);
+                        consume(_COLON);
                         p1:=comp_expr(true);
                         p2:=gencallparanode(p1,p2);
                         p2^.is_colon_para:=true;
                      end
                 end;
-              if token=COMMA then
-                consume(COMMA)
+              if token=_COMMA then
+                consume(_COMMA)
               else
                 break;
            end;
@@ -149,11 +149,11 @@ unit pexpr;
         case l of
           in_ord_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               Must_be_valid:=true;
               p1:=comp_expr(true);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               do_firstpass(p1);
               p1:=geninlinenode(in_ord_x,false,p1);
               do_firstpass(p1);
@@ -175,12 +175,12 @@ unit pexpr;
 
           in_typeof_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               {allow_type:=true;}
               p1:=comp_expr(true);
               {allow_type:=false;}
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=voidpointerdef;
               if p1^.treetype=typen then
                begin
@@ -227,12 +227,12 @@ unit pexpr;
 
           in_sizeof_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               {allow_type:=true;}
               p1:=comp_expr(true);
               {allow_type:=false; }
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=s32bitdef;
               if p1^.treetype=typen then
                begin
@@ -260,7 +260,7 @@ unit pexpr;
 
           in_assigned_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               Must_be_valid:=true;
@@ -276,14 +276,14 @@ unit pexpr;
               end;
               p2:=gencallparanode(p1,nil);
               p2:=geninlinenode(in_assigned_x,false,p2);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=booldef;
               statement_syssym:=p2;
             end;
 
           in_ofs_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               p1:=gensinglenode(addrn,p1);
@@ -292,26 +292,26 @@ unit pexpr;
               { Ofs() returns a longint, not a pointer }
               p1^.resulttype:=u32bitdef;
               pd:=p1^.resulttype;
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
           in_addr_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               p1:=gensinglenode(addrn,p1);
               Must_be_valid:=false;
               do_firstpass(p1);
               pd:=p1^.resulttype;
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
           in_seg_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               do_firstpass(p1);
@@ -320,14 +320,14 @@ unit pexpr;
               p1:=genordinalconstnode(0,s32bitdef);
               Must_be_valid:=false;
               pd:=s32bitdef;
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
           in_high_x,
           in_low_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               {allow_type:=true;}
               p1:=comp_expr(true);
@@ -337,7 +337,7 @@ unit pexpr;
                 p1^.resulttype:=p1^.typenodetype;
               Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=s32bitdef;
               statement_syssym:=p2;
             end;
@@ -345,13 +345,13 @@ unit pexpr;
           in_succ_x,
           in_pred_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               do_firstpass(p1);
               Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=p1^.resulttype;
               statement_syssym:=p2;
             end;
@@ -359,26 +359,26 @@ unit pexpr;
           in_inc_x,
           in_dec_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               Must_be_valid:=false;
-              if token=COMMA then
+              if token=_COMMA then
                begin
-                 consume(COMMA);
+                 consume(_COMMA);
                  p2:=gencallparanode(comp_expr(true),nil);
                end
               else
                p2:=nil;
               p2:=gencallparanode(p1,p2);
               statement_syssym:=geninlinenode(l,false,p2);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=voiddef;
             end;
 
           in_concat_x :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p2:=nil;
               while true do
@@ -394,12 +394,12 @@ unit pexpr;
                   p2:=gennode(addn,p2,p1)
                  else
                   p2:=p1;
-                 if token=COMMA then
-                  consume(COMMA)
+                 if token=_COMMA then
+                  consume(_COMMA)
                  else
                   break;
                end;
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=cshortstringdef;
               statement_syssym:=p2;
             end;
@@ -407,13 +407,13 @@ unit pexpr;
           in_read_x,
           in_readln_x :
             begin
-              if token=LKLAMMER then
+              if token=_LKLAMMER then
                begin
-                 consume(LKLAMMER);
+                 consume(_LKLAMMER);
                  in_args:=true;
                  Must_be_valid:=false;
                  paras:=parse_paras(false,false);
-                 consume(RKLAMMER);
+                 consume(_RKLAMMER);
                end
               else
                paras:=nil;
@@ -426,13 +426,13 @@ unit pexpr;
           in_write_x,
           in_writeln_x :
             begin
-              if token=LKLAMMER then
+              if token=_LKLAMMER then
                begin
-                 consume(LKLAMMER);
+                 consume(_LKLAMMER);
                  in_args:=true;
                  Must_be_valid:=true;
                  paras:=parse_paras(true,false);
-                 consume(RKLAMMER);
+                 consume(_RKLAMMER);
                end
               else
                paras:=nil;
@@ -444,10 +444,10 @@ unit pexpr;
 
           in_str_x_string :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               paras:=parse_paras(true,false);
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               p1 := geninlinenode(l,false,paras);
               do_firstpass(p1);
               statement_syssym := p1;
@@ -456,18 +456,18 @@ unit pexpr;
 
           in_val_x:
             Begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args := true;
               p1:= gencallparanode(comp_expr(true), nil);
               Must_be_valid := False;
-              consume(COMMA);
+              consume(_COMMA);
               p2 := gencallparanode(comp_expr(true),p1);
-              if (token = COMMA) then
+              if (token = _COMMA) then
                 Begin
-                  consume(COMMA);
+                  consume(_COMMA);
                   p2 := gencallparanode(comp_expr(true),p2)
                 End;
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2);
               do_firstpass(p2);
               statement_syssym := p2;
@@ -477,25 +477,25 @@ unit pexpr;
           in_include_x_y,
           in_exclude_x_y :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               Must_be_valid:=false;
-              consume(COMMA);
+              consume(_COMMA);
               p2:=comp_expr(true);
               statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=voiddef;
             end;
 
           in_assert_x_y :
             begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              if token=COMMA then
+              if token=_COMMA then
                begin
-                 consume(COMMA);
+                 consume(_COMMA);
                  p2:=comp_expr(true);
                end
               else
@@ -504,7 +504,7 @@ unit pexpr;
                  p2:=genstringconstnode('');
                end;
               statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
               pd:=voiddef;
             end;
 
@@ -530,12 +530,12 @@ unit pexpr;
          { a subroutine ?                       }
          if not(getaddr) then
            begin
-              if token=LKLAMMER then
+              if token=_LKLAMMER then
                 begin
-                   consume(LKLAMMER);
+                   consume(_LKLAMMER);
                    in_args:=true;
                    p1^.left:=parse_paras(false,false);
-                   consume(RKLAMMER);
+                   consume(_RKLAMMER);
                 end
               else p1^.left:=nil;
 
@@ -599,11 +599,11 @@ unit pexpr;
       begin
          paras:=nil;
          { property parameters? }
-         if token=LECKKLAMMER then
+         if token=_LECKKLAMMER then
            begin
-              consume(LECKKLAMMER);
+              consume(_LECKKLAMMER);
               paras:=parse_paras(false,true);
-              consume(RECKKLAMMER);
+              consume(_RECKKLAMMER);
            end;
          { indexed property }
          if (ppo_indexed in ppropertysym(sym)^.propoptions) then
@@ -613,7 +613,7 @@ unit pexpr;
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
-         if token=ASSIGNMENT then
+         if token=_ASSIGNMENT then
            begin
               { write property: }
               { no result }
@@ -629,7 +629,7 @@ unit pexpr;
                           force the usage of that procedure }
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
                         p1^.left:=paras;
-                        consume(ASSIGNMENT);
+                        consume(_ASSIGNMENT);
                         { read the expression }
                         getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
                         p2:=comp_expr(true);
@@ -654,7 +654,7 @@ unit pexpr;
                           p1:=genloadnode(pvarsym(ppropertysym(sym)^.writeaccesssym),st)
                         else
                           p1:=gensubscriptnode(pvarsym(ppropertysym(sym)^.writeaccesssym),p1);
-                        consume(ASSIGNMENT);
+                        consume(_ASSIGNMENT);
                         { read the expression }
                         p2:=comp_expr(true);
                         p1:=gennode(assignn,p1,p2);
@@ -846,7 +846,7 @@ unit pexpr;
                    ((pvarsym(sym)=opsym) and
                     ((p^.flags and pi_operator)<>0))) and
                   (p^.retdef<>pdef(voiddef)) and
-                  (token<>LKLAMMER) and
+                  (token<>_LKLAMMER) and
                   (not ((m_tp in aktmodeswitches) and
                   (afterassignment or in_args))) then
                  begin
@@ -893,7 +893,7 @@ unit pexpr;
               assigned(aktprocsym) and
               (procinfo.retdef<>pdef(voiddef)) then
             begin
-              consume(ID);
+              consume(_ID);
               p1:=genzeronode(funcretn);
               pd:=procinfo.retdef;
               p1^.funcretprocinfo:=pointer(@procinfo);
@@ -909,17 +909,17 @@ unit pexpr;
                end
               else
                getsym(pattern,true);
-              consume(ID);
+              consume(_ID);
                if not is_func_ret(srsym) then
               { else it's a normal symbol }
                 begin
                 { is it defined like UNIT.SYMBOL ? }
                   if srsym^.typ=unitsym then
                    begin
-                     consume(POINT);
+                     consume(_POINT);
                      getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                      unit_specific:=true;
-                     consume(ID);
+                     consume(_ID);
                    end
                   else
                    unit_specific:=false;
@@ -997,20 +997,20 @@ unit pexpr;
                                    end
                                  else { not type block }
                                   begin
-                                    if token=LKLAMMER then
+                                    if token=_LKLAMMER then
                                      begin
-                                       consume(LKLAMMER);
+                                       consume(_LKLAMMER);
                                        p1:=comp_expr(true);
-                                       consume(RKLAMMER);
+                                       consume(_RKLAMMER);
                                        p1:=gentypeconvnode(p1,pd);
                                        p1^.explizit:=true;
                                      end
                                     else { not LKLAMMER}
-                                     if (token=POINT) and
+                                     if (token=_POINT) and
                                         (pd^.deftype=objectdef) and
                                         not(pobjectdef(pd)^.is_class) then
                                        begin
-                                         consume(POINT);
+                                         consume(_POINT);
                                          if assigned(procinfo._class) then
                                           begin
                                             if procinfo._class^.is_related(pobjectdef(pd)) then
@@ -1026,7 +1026,7 @@ unit pexpr;
                                                   srsymtable:=pobjectdef(pd)^.symtable;
                                                   sym:=pvarsym(srsymtable^.search(pattern));
                                                 end;
-                                               consume(ID);
+                                               consume(_ID);
                                                do_member_read(false,sym,p1,pd,again);
                                              end
                                             else
@@ -1054,7 +1054,7 @@ unit pexpr;
                                               Message(sym_e_only_static_in_static)
                                             else
                                              begin
-                                               consume(ID);
+                                               consume(_ID);
                                                do_member_read(getaddr,sym,p1,pd,again);
                                              end;
                                           end;
@@ -1160,11 +1160,11 @@ unit pexpr;
                               p1:=genzeronode(errorn);
                               p1^.resulttype:=generrordef;
                               pd:=generrordef;
-                              if token=LKLAMMER then
+                              if token=_LKLAMMER then
                                begin
-                                 consume(LKLAMMER);
+                                 consume(_LKLAMMER);
                                  parse_paras(false,false);
-                                 consume(RKLAMMER);
+                                 consume(_RKLAMMER);
                                end;
                             end;
                      else
@@ -1193,16 +1193,16 @@ unit pexpr;
            buildp:=nil;
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
-           if token=RECKKLAMMER then
+           if token=_RECKKLAMMER then
             buildp:=gennode(arrayconstructn,nil,buildp)
            else
             begin
               while true do
                begin
                  p1:=comp_expr(true);
-                 if token=POINTPOINT then
+                 if token=_POINTPOINT then
                   begin
-                    consume(POINTPOINT);
+                    consume(_POINTPOINT);
                     p2:=comp_expr(true);
                     p1:=gennode(arrayconstructrangen,p1,p2);
                   end;
@@ -1218,8 +1218,8 @@ unit pexpr;
                     lastp:=lastp^.right;
                   end;
                { there could be more elements }
-                 if token=COMMA then
-                   consume(COMMA)
+                 if token=_COMMA then
+                   consume(_COMMA)
                  else
                    break;
                end;
@@ -1263,20 +1263,20 @@ unit pexpr;
                 { try to recover }
                 repeat
                   case token of
-                   CARET:
-                     consume(CARET);
+                  _CARET:
+                     consume(_CARET);
 
-                   POINT:
+                  _POINT:
                      begin
-                        consume(POINT);
-                        consume(ID);
+                        consume(_POINT);
+                        consume(_ID);
                      end;
 
-                   LECKKLAMMER:
+                  _LECKKLAMMER:
                      begin
                         repeat
                           consume(token);
-                          until token in [RECKKLAMMER,SEMICOLON];
+                          until token in [_RECKKLAMMER,_SEMICOLON];
                      end;
                   else
                     break;
@@ -1286,9 +1286,9 @@ unit pexpr;
               end;
            { handle token }
              case token of
-                CARET:
+               _CARET:
                   begin
-                    consume(CARET);
+                    consume(_CARET);
                     if (pd^.deftype<>pointerdef) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
@@ -1304,7 +1304,7 @@ unit pexpr;
                       end;
                   end;
 
-                LECKKLAMMER:
+               _LECKKLAMMER:
                   begin
                     if (pd^.deftype=objectdef) and pobjectdef(pd)^.is_class then
                       begin
@@ -1322,7 +1322,7 @@ unit pexpr;
                       end
                     else
                       begin
-                        consume(LECKKLAMMER);
+                        consume(_LECKKLAMMER);
                         repeat
                           case pd^.deftype of
                             pointerdef:
@@ -1349,9 +1349,9 @@ unit pexpr;
                                        (p1^.symtableentry^.name='MEMW') or
                                        (p1^.symtableentry^.name='MEML')) then
                                      begin
-                                       if (token=COLON) then
+                                       if (token=_COLON) then
                                         begin
-                                          consume(COLON);
+                                          consume(_COLON);
                                           p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
                                           p2:=comp_expr(true);
                                           p2:=gennode(addn,p2,p3);
@@ -1377,16 +1377,16 @@ unit pexpr;
                               again:=false;
                             end;
                           end;
-                          if token=COMMA then
-                            consume(COMMA)
+                          if token=_COMMA then
+                            consume(_COMMA)
                           else
                             break;
                         until false;
-                        consume(RECKKLAMMER);
+                        consume(_RECKKLAMMER);
                       end;
                   end;
-          POINT : begin
-                    consume(POINT);
+         _POINT : begin
+                    consume(_POINT);
                     if (pd^.deftype=pointerdef) and
                       (m_autoderef in aktmodeswitches) then
                       begin
@@ -1408,7 +1408,7 @@ unit pexpr;
                                 p1:=gensubscriptnode(sym,p1);
                                 pd:=sym^.definition;
                               end;
-                            consume(ID);
+                            consume(_ID);
                           end;
 
                         classrefdef:
@@ -1423,7 +1423,7 @@ unit pexpr;
                                  break;
                                 classh:=classh^.childof;
                               end;
-                             consume(ID);
+                             consume(_ID);
                              do_member_read(getaddr,sym,p1,pd,again);
                            end;
 
@@ -1442,7 +1442,7 @@ unit pexpr;
                                 classh:=classh^.childof;
                               end;
                              allow_only_static:=store_static;
-                             consume(ID);
+                             consume(_ID);
                              do_member_read(getaddr,sym,p1,pd,again);
                            end;
 
@@ -1470,9 +1470,9 @@ unit pexpr;
                        if getprocvar and is_equal(pd,getprocvardef) then
                          again:=false
                        else
-                         if (token=LKLAMMER) or
+                         if (token=_LKLAMMER) or
                             ((pprocvardef(pd)^.para1=nil) and
-                             (not((token in [ASSIGNMENT,UNEQUAL,EQUAL]))) and
+                             (not((token in [_ASSIGNMENT,_UNEQUAL,_EQUAL]))) and
                              (not afterassignment) and
                              (not in_args)) then
                            begin
@@ -1483,15 +1483,15 @@ unit pexpr;
                               p1^.right:=p2;
                               p1^.unit_specific:=unit_specific;
                               p1^.symtableprocentry:=pprocsym(sym);
-                              if token=LKLAMMER then
+                              if token=_LKLAMMER then
                                 begin
-                                   consume(LKLAMMER);
+                                   consume(_LKLAMMER);
                                    p1^.left:=parse_paras(false,false);
-                                   consume(RKLAMMER);
+                                   consume(_RKLAMMER);
                                 end;
                               pd:=pprocvardef(pd)^.retdef;
                            { proc():= is never possible }
-                              if token=ASSIGNMENT then
+                              if token=_ASSIGNMENT then
                                begin
                                  Message(cg_e_illegal_expression);
                                  p1:=genzeronode(errorn);
@@ -1523,7 +1523,7 @@ unit pexpr;
         oldp1:=nil;
         p1:=nil;
         filepos:=tokenpos;
-        if token=ID then
+        if token=_ID then
          begin
            factor_read_id;
            { handle post fix operators }
@@ -1533,7 +1533,7 @@ unit pexpr;
          case token of
         _NEW : begin
                  consume(_NEW);
-                 consume(LKLAMMER);
+                 consume(_LKLAMMER);
                  {allow_type:=true;}
                  p1:=factor(false);
                  {allow_type:=false;}
@@ -1550,14 +1550,14 @@ unit pexpr;
                  if (pd^.deftype<>pointerdef) then
                    Message(type_e_pointer_type_expected)
                  else if {(ppointerdef(pd)^.definition^.deftype<>objectdef)}
-                       token=RKLAMMER then
+                       token=_RKLAMMER then
                   begin
                     if (ppointerdef(pd)^.definition^.deftype=objectdef) and
                        (oo_has_vmt in pobjectdef(ppointerdef(pd)^.definition)^.objectoptions)  then
                      Message(parser_w_use_extended_syntax_for_objects);
                     p1:=gensinglenode(newn,nil);
                     p1^.resulttype:=pd2;
-                    consume(RKLAMMER);
+                    consume(_RKLAMMER);
                     (*Message(parser_e_pointer_to_class_expected);
                     { if an error occurs, read til the end of
                       the new statement }
@@ -1566,8 +1566,8 @@ unit pexpr;
                     while true do
                      begin
                        case token of
-                        LKLAMMER : inc(l);
-                        RKLAMMER : dec(l);
+                        _LKLAMMER : inc(l);
+                        _RKLAMMER : dec(l);
                        end;
                        consume(token);
                        if l=0 then
@@ -1579,7 +1579,7 @@ unit pexpr;
                     disposetree(p1);
                     p1:=genzeronode(hnewn);
                     p1^.resulttype:=ppointerdef(pd)^.definition;
-                    consume(COMMA);
+                    consume(_COMMA);
                     afterassignment:=false;
                     { determines the current object defintion }
                     classh:=pobjectdef(ppointerdef(pd)^.definition);
@@ -1601,7 +1601,7 @@ unit pexpr;
                        classh:=classh^.childof;
                      end;
 
-                    consume(ID);
+                    consume(_ID);
                     do_member_read(false,sym,p1,pd,again);
                     if (p1^.treetype<>calln) or
                        (assigned(p1^.procdefinition) and
@@ -1610,7 +1610,7 @@ unit pexpr;
                     p1:=gensinglenode(newn,p1);
                     { set the resulttype }
                     p1^.resulttype:=pd2;
-                    consume(RKLAMMER);
+                    consume(_RKLAMMER);
                   end;
                end;
        _SELF : begin
@@ -1656,7 +1656,7 @@ unit pexpr;
                           p1:=genzeronode(typen);
                           p1^.resulttype:=classh;
                           pd:=p1^.resulttype;
-                          consume(ID);
+                          consume(_ID);
                           do_member_read(false,sym,p1,pd,again);
                           break;
                         end;
@@ -1679,7 +1679,7 @@ unit pexpr;
                    end;
                  postfixoperators;
                end;
-    INTCONST : begin
+   _INTCONST : begin
                  valint(pattern,l,code);
                  if code<>0 then
                   begin
@@ -1687,40 +1687,40 @@ unit pexpr;
                     if code<>0 then
                      begin
                        Message(cg_e_invalid_integer);
-                       consume(INTCONST);
+                       consume(_INTCONST);
                        l:=1;
                        p1:=genordinalconstnode(l,s32bitdef);
                      end
                     else
                      begin
-                       consume(INTCONST);
+                       consume(_INTCONST);
                        p1:=genrealconstnode(d,bestrealdef^);
                      end;
                   end
                  else
                   begin
-                    consume(INTCONST);
+                    consume(_INTCONST);
                     p1:=genordinalconstnode(l,s32bitdef);
                   end;
                end;
-  REALNUMBER : begin
+ _REALNUMBER : begin
                  val(pattern,d,code);
                  if code<>0 then
                   begin
                     Message(parser_e_error_in_real);
                     d:=1.0;
                   end;
-                 consume(REALNUMBER);
+                 consume(_REALNUMBER);
                  p1:=genrealconstnode(d,bestrealdef^);
                end;
      _STRING : begin
                  pd:=stringtype;
                  { STRING can be also a type cast }
-                 if token=LKLAMMER then
+                 if token=_LKLAMMER then
                   begin
-                    consume(LKLAMMER);
+                    consume(_LKLAMMER);
                     p1:=comp_expr(true);
-                    consume(RKLAMMER);
+                    consume(_RKLAMMER);
                     p1:=gentypeconvnode(p1,pd);
                     p1^.explizit:=true;
                     { handle postfix operators here e.g. string(a)[10] }
@@ -1734,11 +1734,11 @@ unit pexpr;
                  pd:=cfiledef;
                  consume(_FILE);
                  { FILE can be also a type cast }
-                 if token=LKLAMMER then
+                 if token=_LKLAMMER then
                   begin
-                    consume(LKLAMMER);
+                    consume(_LKLAMMER);
                     p1:=comp_expr(true);
-                    consume(RKLAMMER);
+                    consume(_RKLAMMER);
                     p1:=gentypeconvnode(p1,pd);
                     p1^.explizit:=true;
                     { handle postfix operators here e.g. string(a)[10] }
@@ -1748,28 +1748,28 @@ unit pexpr;
                  else
                   p1:=gentypenode(pd,nil);
                end;
-     CSTRING : begin
+    _CSTRING : begin
                  p1:=genstringconstnode(pattern);
-                 consume(CSTRING);
+                 consume(_CSTRING);
                end;
-       CCHAR : begin
+      _CCHAR : begin
                  p1:=genordinalconstnode(ord(pattern[1]),cchardef);
-                 consume(CCHAR);
+                 consume(_CCHAR);
                end;
- KLAMMERAFFE : begin
-                 consume(KLAMMERAFFE);
+_KLAMMERAFFE : begin
+                 consume(_KLAMMERAFFE);
                  got_addrn:=true;
                  p1:=factor(true);
                  got_addrn:=false;
                  p1:=gensinglenode(addrn,p1);
                end;
-    LKLAMMER : begin
-                 consume(LKLAMMER);
+   _LKLAMMER : begin
+                 consume(_LKLAMMER);
                  p1:=comp_expr(true);
-                 consume(RKLAMMER);
+                 consume(_RKLAMMER);
                  { it's not a good solution     }
                  { but (a+b)^ makes some problems  }
-                 if token in [CARET,POINT,LECKKLAMMER] then
+                 if token in [_CARET,_POINT,_LECKKLAMMER] then
                   begin
                     { we need the resulttype  }
                     { of the expression in pd }
@@ -1779,17 +1779,17 @@ unit pexpr;
                     postfixoperators;
                   end;
                end;
- LECKKLAMMER : begin
-                 consume(LECKKLAMMER);
+_LECKKLAMMER : begin
+                 consume(_LECKKLAMMER);
                  p1:=factor_read_set;
-                 consume(RECKKLAMMER);
+                 consume(_RECKKLAMMER);
                end;
-        PLUS : begin
-                 consume(PLUS);
+       _PLUS : begin
+                 consume(_PLUS);
                  p1:=factor(false);
                end;
-       MINUS : begin
-                 consume(MINUS);
+      _MINUS : begin
+                 consume(_MINUS);
                  p1:=factor(false);
                  p1:=gensinglenode(umminusn,p1);
                end;
@@ -1823,7 +1823,7 @@ unit pexpr;
         { tp7 procvar handling, but not if the next token
           will be a := }
         if (m_tp_procvar in aktmodeswitches) and
-           (token<>ASSIGNMENT) then
+           (token<>_ASSIGNMENT) then
           check_tp_procvar(p1);
         factor:=p1;
         check_tokenpos;
@@ -1844,19 +1844,19 @@ unit pexpr;
     const
       tok2nodes=23;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
-        (tok:PLUS    ;nod:addn),
-        (tok:MINUS   ;nod:subn),
-        (tok:STAR    ;nod:muln),
-        (tok:SLASH   ;nod:slashn),
-        (tok:EQUAL   ;nod:equaln),
-        (tok:GT      ;nod:gtn),
-        (tok:LT      ;nod:ltn),
-        (tok:GTE     ;nod:gten),
-        (tok:LTE     ;nod:lten),
-        (tok:SYMDIF  ;nod:symdifn),
-        (tok:STARSTAR;nod:starstarn),
-        (tok:CARET   ;nod:caretn),
-        (tok:UNEQUAL ;nod:unequaln),
+        (tok:_PLUS    ;nod:addn),
+        (tok:_MINUS   ;nod:subn),
+        (tok:_STAR    ;nod:muln),
+        (tok:_SLASH   ;nod:slashn),
+        (tok:_EQUAL   ;nod:equaln),
+        (tok:_GT      ;nod:gtn),
+        (tok:_LT      ;nod:ltn),
+        (tok:_GTE     ;nod:gten),
+        (tok:_LTE     ;nod:lten),
+        (tok:_SYMDIF  ;nod:symdifn),
+        (tok:_STARSTAR;nod:starstarn),
+        (tok:_CARET   ;nod:caretn),
+        (tok:_UNEQUAL ;nod:unequaln),
         (tok:_AS     ;nod:asn),
         (tok:_IN     ;nod:inn),
         (tok:_IS     ;nod:isn),
@@ -1869,9 +1869,9 @@ unit pexpr;
         (tok:_XOR    ;nod:xorn)
       );
       operator_levels:array[Toperator_precedence] of set of Ttoken=
-         ([LT,LTE,GT,GTE,EQUAL,UNEQUAL,_IN,_IS],
-          [PLUS,MINUS,_OR,_XOR],
-          [CARET,SYMDIF,STARSTAR,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
+         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_IN,_IS],
+          [_PLUS,_MINUS,_OR,_XOR],
+          [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
     {Reads a subexpression while the operators are of the current precedence
@@ -1889,7 +1889,7 @@ unit pexpr;
           p1:=sub_expr(succ(pred_level),true);
         repeat
           if (token in operator_levels[pred_level]) and
-             ((token<>EQUAL) or accept_equal) then
+             ((token<>_EQUAL) or accept_equal) then
            begin
              oldt:=token;
              filepos:=tokenpos;
@@ -1946,19 +1946,19 @@ unit pexpr;
          p1:=sub_expr(opcompare,true);
          filepos:=tokenpos;
          if (m_tp_procvar in aktmodeswitches) and
-            (token<>ASSIGNMENT) then
+            (token<>_ASSIGNMENT) then
            check_tp_procvar(p1);
-         if token in [ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
+         if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          oldp1:=p1;
          case token of
-            POINTPOINT : begin
-                            consume(POINTPOINT);
+           _POINTPOINT : begin
+                            consume(_POINTPOINT);
                             p2:=sub_expr(opcompare,true);
                             p1:=gennode(rangen,p1,p2);
                          end;
-            ASSIGNMENT : begin
-                            consume(ASSIGNMENT);
+           _ASSIGNMENT : begin
+                            consume(_ASSIGNMENT);
                             { avoid a firstpass of a procedure if
                             it must be assigned to a procvar }
                             { should be recursive for a:=b:=c !!! }
@@ -2061,7 +2061,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.130  1999-08-04 00:23:12  florian
+  Revision 1.131  1999-08-04 13:02:55  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.130  1999/08/04 00:23:12  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.129  1999/08/03 22:02:59  peter

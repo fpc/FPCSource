@@ -57,6 +57,9 @@ interface
 {$ifdef alpha}
        target_cpu_string = 'alpha';
 {$endif}
+{$ifdef powerpc}
+       target_cpu_string = 'powerpc';
+{$endif}
 
        { source cpu string }
 {$ifdef cpu86}
@@ -73,7 +76,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1999-08-02 17:17:12  florian
+  Revision 1.12  1999-08-04 13:03:18  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.11  1999/08/02 17:17:12  florian
     * small changes for the new code generator
 
   Revision 1.10  1999/08/01 23:36:42  florian

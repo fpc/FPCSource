@@ -1126,8 +1126,8 @@ implementation
         if c in ['A'..'Z','a'..'z','_'] then
          begin
            readstring;
-           token:=ID;
-           idtoken:=ID;
+           token:=_ID;
+           idtoken:=_ID;
          { keyword or any other known token,
            pattern is always uppercased }
            if (pattern[1]<>'_') and (length(pattern) in [2..tokenidlen]) then
@@ -1150,7 +1150,7 @@ implementation
                end;
             end;
          { Only process identifiers and not keywords }
-           if token=ID then
+           if token=_ID then
             begin
             { this takes some time ... }
               if (cs_support_macro in aktmoduleswitches) then
@@ -1178,20 +1178,20 @@ implementation
          end
         else
          begin
-           idtoken:=NOID;
+           idtoken:=_NOID;
            case c of
 
              '$' :
                begin
                  readnumber;
-                 token:=INTCONST;
+                 token:=_INTCONST;
                  goto exit_label;
                end;
 
              '%' :
                begin
                  readnumber;
-                 token:=INTCONST;
+                 token:=_INTCONST;
                  goto exit_label;
                end;
 
@@ -1209,15 +1209,15 @@ implementation
                          '.' :
                            begin
                              readchar;
-                             token:=INTCONST;
-                             nexttoken:=POINTPOINT;
+                             token:=_INTCONST;
+                             nexttoken:=_POINTPOINT;
                              goto exit_label;
                            end;
                          ')' :
                            begin
                              readchar;
-                             token:=INTCONST;
-                             nexttoken:=RECKKLAMMER;
+                             token:=_INTCONST;
+                             nexttoken:=_RECKKLAMMER;
                              goto exit_label;
                            end;
                        end;
@@ -1247,31 +1247,31 @@ implementation
                           readchar;
                         end;
                      end;
-                    token:=REALNUMBER;
+                    token:=_REALNUMBER;
                     goto exit_label;
                   end;
-                 token:=INTCONST;
+                 token:=_INTCONST;
                  goto exit_label;
                end;
 
              ';' :
                begin
                  readchar;
-                 token:=SEMICOLON;
+                 token:=_SEMICOLON;
                  goto exit_label;
                end;
 
              '[' :
                begin
                  readchar;
-                 token:=LECKKLAMMER;
+                 token:=_LECKKLAMMER;
                  goto exit_label;
                end;
 
              ']' :
                begin
                  readchar;
-                 token:=RECKKLAMMER;
+                 token:=_RECKKLAMMER;
                  goto exit_label;
                end;
 
@@ -1288,18 +1288,18 @@ implementation
                    '.' :
                      begin
                        readchar;
-                       token:=LECKKLAMMER;
+                       token:=_LECKKLAMMER;
                        goto exit_label;
                      end;
                  end;
-                 token:=LKLAMMER;
+                 token:=_LKLAMMER;
                  goto exit_label;
                end;
 
              ')' :
                begin
                  readchar;
-                 token:=RKLAMMER;
+                 token:=_RKLAMMER;
                  goto exit_label;
                end;
 
@@ -1312,7 +1312,7 @@ implementation
                     token:=_PLUSASN;
                     goto exit_label;
                   end;
-                 token:=PLUS;
+                 token:=_PLUS;
                  goto exit_label;
                end;
 
@@ -1325,7 +1325,7 @@ implementation
                     token:=_MINUSASN;
                     goto exit_label;
                   end;
-                 token:=MINUS;
+                 token:=_MINUS;
                  goto exit_label;
                end;
 
@@ -1335,10 +1335,10 @@ implementation
                  if c='=' then
                   begin
                     readchar;
-                    token:=ASSIGNMENT;
+                    token:=_ASSIGNMENT;
                     goto exit_label;
                   end;
-                 token:=COLON;
+                 token:=_COLON;
                  goto exit_label;
                end;
 
@@ -1354,10 +1354,10 @@ implementation
                   if c='*' then
                    begin
                      readchar;
-                     token:=STARSTAR;
+                     token:=_STARSTAR;
                    end
                  else
-                  token:=STAR;
+                  token:=_STAR;
                  goto exit_label;
                end;
 
@@ -1387,14 +1387,14 @@ implementation
                       exit;
                     end;
                  end;
-                 token:=SLASH;
+                 token:=_SLASH;
                  goto exit_label;
                end;
 
              '=' :
                begin
                  readchar;
-                 token:=EQUAL;
+                 token:=_EQUAL;
                  goto exit_label;
                end;
 
@@ -1405,17 +1405,17 @@ implementation
                    '.' :
                      begin
                        readchar;
-                       token:=POINTPOINT;
+                       token:=_POINTPOINT;
                        goto exit_label;
                      end;
                    ')' :
                      begin
                        readchar;
-                       token:=RECKKLAMMER;
+                       token:=_RECKKLAMMER;
                        goto exit_label;
                      end;
                  end;
-                 token:=POINT;
+                 token:=_POINT;
                  goto exit_label;
                end;
 
@@ -1425,17 +1425,17 @@ implementation
                  if c='@' then
                   begin
                     readchar;
-                    token:=DOUBLEADDR;
+                    token:=_DOUBLEADDR;
                   end
                  else
-                  token:=KLAMMERAFFE;
+                  token:=_KLAMMERAFFE;
                  goto exit_label;
                end;
 
              ',' :
                begin
                  readchar;
-                 token:=COMMA;
+                 token:=_COMMA;
                  goto exit_label;
                end;
 
@@ -1446,10 +1446,10 @@ implementation
                     readchar;
                     c:=upcase(c);
                     if (block_type=bt_type) or
-                       (lasttoken=ID) or
-                       (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) or (lasttoken=CARET) then
+                       (lasttoken=_ID) or
+                       (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
-                       token:=CARET;
+                       token:=_CARET;
                        goto exit_label;
                      end
                     else
@@ -1528,9 +1528,9 @@ implementation
                  until false;
                { strings with length 1 become const chars }
                  if length(pattern)=1 then
-                  token:=CCHAR
+                  token:=_CCHAR
                  else
-                  token:=CSTRING;
+                  token:=_CSTRING;
                  goto exit_label;
                end;
 
@@ -1541,7 +1541,7 @@ implementation
                    '=' :
                      begin
                        readchar;
-                       token:=GTE;
+                       token:=_GTE;
                        goto exit_label;
                      end;
                    '>' :
@@ -1553,11 +1553,11 @@ implementation
                    '<' :
                      begin { >< is for a symetric diff for sets }
                        readchar;
-                       token:=SYMDIF;
+                       token:=_SYMDIF;
                        goto exit_label;
                      end;
                  end;
-                 token:=GT;
+                 token:=_GT;
                  goto exit_label;
                end;
 
@@ -1568,13 +1568,13 @@ implementation
                    '>' :
                      begin
                        readchar;
-                       token:=UNEQUAL;
+                       token:=_UNEQUAL;
                        goto exit_label;
                      end;
                    '=' :
                      begin
                        readchar;
-                       token:=LTE;
+                       token:=_LTE;
                        goto exit_label;
                      end;
                    '<' :
@@ -1584,7 +1584,7 @@ implementation
                        goto exit_label;
                      end;
                  end;
-                 token:=LT;
+                 token:=_LT;
                  goto exit_label;
                end;
 
@@ -1613,58 +1613,58 @@ exit_label:
         'a'..'z',
     '_','0'..'9' : begin
                      preprocpat:=readid;
-                     readpreproc:=ID;
+                     readpreproc:=_ID;
                    end;
              '(' : begin
                      readchar;
-                     readpreproc:=LKLAMMER;
+                     readpreproc:=_LKLAMMER;
                    end;
              ')' : begin
                      readchar;
-                     readpreproc:=RKLAMMER;
+                     readpreproc:=_RKLAMMER;
                    end;
              '+' : begin
                      readchar;
-                     readpreproc:=PLUS;
+                     readpreproc:=_PLUS;
                    end;
              '-' : begin
                      readchar;
-                     readpreproc:=MINUS;
+                     readpreproc:=_MINUS;
                    end;
              '*' : begin
                      readchar;
-                     readpreproc:=STAR;
+                     readpreproc:=_STAR;
                    end;
              '/' : begin
                      readchar;
-                     readpreproc:=SLASH;
+                     readpreproc:=_SLASH;
                    end;
              '=' : begin
                      readchar;
-                     readpreproc:=EQUAL;
+                     readpreproc:=_EQUAL;
                    end;
              '>' : begin
                      readchar;
                      if c='=' then
                       begin
                         readchar;
-                        readpreproc:=GTE;
+                        readpreproc:=_GTE;
                       end
                      else
-                      readpreproc:=GT;
+                      readpreproc:=_GT;
                    end;
              '<' : begin
                      readchar;
                      case c of
                       '>' : begin
                               readchar;
-                              readpreproc:=UNEQUAL;
+                              readpreproc:=_UNEQUAL;
                             end;
                       '=' : begin
                               readchar;
-                              readpreproc:=LTE;
+                              readpreproc:=_LTE;
                             end;
-                     else   readpreproc:=LT;
+                     else   readpreproc:=_LT;
                      end;
                    end;
              #26 :
@@ -1733,7 +1733,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  1999-07-29 11:43:22  peter
+  Revision 1.90  1999-08-04 13:03:05  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.89  1999/07/29 11:43:22  peter
     * always output preprocstack when unexpected eof is found
     * fixed tp7/delphi skipuntildirective parsing
 

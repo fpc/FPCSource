@@ -62,11 +62,19 @@
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
-   
+
+   {$ifdef powerpc}
    {$ifndef CPUOK}
-   {$fatal One of the switches I386,Alpha or M68K must be defined}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
    {$endif}
-   
+   {$endif}
+
+   {$ifndef CPUOK}
+   {$fatal One of the switches I386, Alpha, PowerPC or M68K must be defined}
+   {$endif}
+
    {$ifdef support_mmx}
      {$ifndef i386}
        {$fatal I386 switch must be on for MMX support}
@@ -240,7 +248,7 @@ begin
 {$ifdef TP}
 {$ifndef Delphi}
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
-{$endif Delphi}  
+{$endif Delphi}
 {$endif}
 
 {$ifdef USEEXCEPT}
@@ -290,7 +298,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-08-02 21:28:56  florian
+  Revision 1.28  1999-08-04 13:02:40  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.27  1999/08/02 21:28:56  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

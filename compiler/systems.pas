@@ -29,7 +29,7 @@ unit systems;
        tendian = (endian_little,endian_big);
 
        ttargetcpu=(no_cpu
-            ,i386,m68k,alpha
+            ,i386,m68k,alpha,powerpc
        );
 
        tprocessors = (no_processor
@@ -46,20 +46,22 @@ unit systems;
      type
        tasmmode= (asmmode_none
             ,asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel
-            ,asmmode_m68k_mot,asmmode_alpha_direct
+            ,asmmode_m68k_mot,asmmode_alpha_direct,asmmode_powerpc_direct
        );
      const
        {$ifdef i386}  i386asmmodecnt=3;  {$else} i386asmmodecnt=0; {$endif}
        {$ifdef m68k}  m68kasmmodecnt=1;  {$else} m68kasmmodecnt=0; {$endif}
        {$ifdef alpha} alphaasmmodecnt=1; {$else} alphaasmmodecnt=0; {$endif}
-       asmmodecnt=i386asmmodecnt+m68kasmmodecnt+Alphaasmmodecnt+1;
+       {$ifdef powerpc} powerpcasmmodecnt=1; {$else} powerpcasmmodecnt=0; {$endif}
+       asmmodecnt=i386asmmodecnt+m68kasmmodecnt+Alphaasmmodecnt+powerpcasmmodecnt+1;
 
      type
        ttarget = (target_none
             ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
             target_i386_OS2,target_i386_Win32
             ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-            target_m68k_linux,target_m68k_PalmOS,target_alpha_linux
+            target_m68k_linux,target_m68k_PalmOS,target_alpha_linux,
+            target_powerpc_linux
        );
 
        ttargetflags = (tf_none,
@@ -70,7 +72,8 @@ unit systems;
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
-       targetcnt=i386targetcnt+m68ktargetcnt+alphatargetcnt+1;
+       {$ifdef powerpc} powerpctargetcnt=1; {$else} powerpctargetcnt=0; {$endif}
+       targetcnt=i386targetcnt+m68ktargetcnt+alphatargetcnt+powerpctargetcnt+1;
 
      type
        tasm = (as_none
@@ -79,14 +82,15 @@ unit systems;
             as_i386_tasm,as_i386_masm,
             as_i386_dbg,as_i386_coff,as_i386_pecoff
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw,
-            as_alpha_as
+            as_alpha_as,as_powerpc_as
        );
        { binary assembler writers, needed to test for -a }
      const
        {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        {$ifdef alpha} alphaasmcnt=1; {$else} alphaasmcnt=0; {$endif}
-       asmcnt=i386asmcnt+m68kasmcnt+alphaasmcnt+1;
+       {$ifdef powerpc} powerpcasmcnt=1; {$else} powerpcasmcnt=0; {$endif}
+       asmcnt=i386asmcnt+m68kasmcnt+alphaasmcnt+powerpcasmcnt+1;
 
        binassem : set of tasm = [
          as_i386_dbg,as_i386_coff,as_i386_pecoff
@@ -97,24 +101,26 @@ unit systems;
             ,link_i386_ld,link_i386_ldgo32v1,
             link_i386_ldgo32v2,link_i386_ldw,
             link_i386_ldos2
-            ,link_m68k_ld,link_alpha_ld
+            ,link_m68k_ld,link_alpha_ld,link_powerpc_ld
        );
      const
        {$ifdef i386} i386linkcnt=5; {$else} i386linkcnt=0; {$endif}
        {$ifdef m68k} m68klinkcnt=1; {$else} m68klinkcnt=0; {$endif}
        {$ifdef alpha} alphalinkcnt=1; {$else} alphalinkcnt=0; {$endif}
-       linkcnt=i386linkcnt+m68klinkcnt+alphalinkcnt+1;
+       {$ifdef powerpc} powerpclinkcnt=1; {$else} powerpclinkcnt=0; {$endif}
+       linkcnt=i386linkcnt+m68klinkcnt+alphalinkcnt+powerpclinkcnt+1;
 
      type
        tar = (ar_none
             ,ar_i386_ar,ar_i386_arw
-            ,ar_m68k_ar,ar_alpha_ar
+            ,ar_m68k_ar,ar_alpha_ar,ar_powerpc_ar
        );
      const
        {$ifdef i386} i386arcnt=2; {$else} i386arcnt=0; {$endif}
        {$ifdef m68k} m68karcnt=1; {$else} m68karcnt=0; {$endif}
        {$ifdef alpha} alphaarcnt=1; {$else} alphaarcnt=0; {$endif}
-       arcnt=i386arcnt+m68karcnt+alphaarcnt+1;
+       {$ifdef powerpc} powerpcarcnt=1; {$else} powerpcarcnt=0; {$endif}
+       arcnt=i386arcnt+m68karcnt+alphaarcnt+powerpcarcnt+1;
 
      type
        tres = (res_none
@@ -124,20 +130,22 @@ unit systems;
        {$ifdef i386} i386rescnt=1; {$else} i386rescnt=0; {$endif}
        {$ifdef m68k} m68krescnt=0; {$else} m68krescnt=0; {$endif}
        {$ifdef alpha} alpharescnt=0; {$else} alpharescnt=0; {$endif}
-       rescnt=i386rescnt+m68krescnt+alpharescnt+1;
+       {$ifdef powerpc} powerpcrescnt=0; {$else} powerpcrescnt=0; {$endif}
+       rescnt=i386rescnt+m68krescnt+alpharescnt+powerpcrescnt+1;
 
      type
        tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
             os_i386_Win32,
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
-            os_m68k_PalmOS,os_alpha_linux
+            os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux
        );
      const
        i386oscnt=5;
        m68koscnt=5;
        alphaoscnt=1;
-       oscnt=i386oscnt+m68koscnt+alphaoscnt+1;
+       powerpcoscnt=1;
+       oscnt=i386oscnt+m68koscnt+alphaoscnt+powerpcoscnt+1;
 
    type
        tosinfo = packed record
@@ -504,6 +512,27 @@ implementation
             size_of_longint : 4;
             use_bound_instruction : false;
             use_function_relative_addresses : true
+          ),
+          (
+            id     : os_powerpc_linux;
+            name         : 'Linux for PowerPC';
+            shortname    : 'linuxppc';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            libprefix    : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : endian_big;
+            stackalignment : 8;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
           )
           );
 
@@ -779,6 +808,23 @@ implementation
               '.stab','.stabstr')
           )
 {$endif}
+{$ifdef powerpc}
+          ,(
+            id     : as_powerpc_as;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix : '.L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr')
+          )
+{$endif}
           );
 
 
@@ -917,6 +963,25 @@ implementation
             libprefix  : '-l'
           )
 {$endif}
+{$ifdef powerpc}
+          ,(
+            id      : link_powerpc_ld;
+            linkbin : 'ld';
+            linkcmd : '$OPT -o $EXE $RES';
+            binders : 0;
+            bindbin : ('','');
+            bindcmd : ('','');
+            stripopt   : '-s';
+            stripbind  : false;
+            libpathprefix : 'SEARCH_DIR(';
+            libpathsuffix : ')';
+            groupstart : 'GROUP(';
+            groupend   : ')';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+{$endif}
           );
 
 {****************************************************************************
@@ -948,6 +1013,13 @@ implementation
 {$ifdef alpha}
           ,(
             id    : ar_alpha_ar;
+            arbin : 'ar';
+            arcmd : 'rs $LIB $FILES'
+          )
+{$endif}
+{$ifdef powerpc}
+          ,(
+            id    : ar_powerpc_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
           )
@@ -1263,6 +1335,33 @@ implementation
             stacksize   : 8192
           )
 {$endif}
+{$ifdef powerpc}
+          ,(
+            target      : target_powerpc_LINUX;
+            flags       : [];
+            cpu         : alpha;
+            short_name  : 'LINUX';
+            unit_env    : 'LINUXUNITS';
+            system_unit : 'syslinux';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
+            exeext      : '';
+            os          : os_powerpc_Linux;
+            link        : link_powerpc_ld;
+            assem       : as_powerpc_as;
+            assemsrc    : as_powerpc_as;
+            ar          : ar_powerpc_ar;
+            res         : res_none;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192
+          )
+{$endif}
           );
 
 {****************************************************************************
@@ -1296,6 +1395,12 @@ implementation
 {$ifdef alpha}
           ,(
             id    : asmmode_alpha_direct;
+            idtxt : 'DIRECT'
+          )
+{$endif}
+{$ifdef powerpc}
+          ,(
+            id    : asmmode_powerpc_direct;
             idtxt : 'DIRECT'
           )
 {$endif}
@@ -1617,7 +1722,10 @@ begin
 {$endif m68k}
 {$ifdef alpha}
   default_os(target_alpha_linux);
-{$endif i386}
+{$endif alpha}
+{$ifdef powerpc}
+  default_os(target_alpha_linux);
+{$endif powerpc}
 end;
 
 
@@ -1626,7 +1734,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  1999-08-04 00:23:32  florian
+  Revision 1.90  1999-08-04 13:03:11  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.89  1999/08/04 00:23:32  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.88  1999/08/03 22:03:23  peter

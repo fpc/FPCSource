@@ -50,16 +50,16 @@ unit pexports;
          while true do
            begin
               hp:=new(pexported_item,init);
-              if token=ID then
+              if token=_ID then
                 begin
                    getsym(pattern,true);
                    if srsym^.typ=unitsym then
                      begin
-                        consume(ID);
-                        consume(POINT);
+                        consume(_ID);
+                        consume(_POINT);
                         getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                      end;
-                   consume(ID);
+                   consume(_ID);
                    if assigned(srsym) then
                      begin
                         hp^.sym:=srsym;
@@ -79,7 +79,7 @@ unit pexports;
                              consume(_INDEX);
                              hp^.options:=hp^.options or eo_index;
                              val(pattern,hp^.index,code);
-                             consume(INTCONST);
+                             consume(_INTCONST);
                              DefString:=ProcName+'='+InternalProcName;{Index ignored!}
                           end;
                         if (idtoken=_NAME) then
@@ -87,7 +87,7 @@ unit pexports;
                              consume(_NAME);
                              hp^.name:=stringdup(pattern);
                              hp^.options:=hp^.options or eo_name;
-                             consume(CSTRING); {Bug fixed?}
+                             consume(_CSTRING); {Bug fixed?}
                              DefString:=hp^.name^+'='+InternalProcName;
                           end;
                         if (idtoken=_RESIDENT) then
@@ -105,13 +105,13 @@ unit pexports;
                      end;
                 end
               else
-                consume(ID);
-              if token=COMMA then
-                consume(COMMA)
+                consume(_ID);
+              if token=_COMMA then
+                consume(_COMMA)
               else
                 break;
            end;
-         consume(SEMICOLON);
+         consume(_SEMICOLON);
         if not DefFile.empty then
          DefFile.writefile;
       end;
@@ -120,7 +120,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-08-03 22:02:58  peter
+  Revision 1.11  1999-08-04 13:02:54  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.10  1999/08/03 22:02:58  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

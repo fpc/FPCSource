@@ -286,9 +286,9 @@ unit ptconst;
                         (*if token=POINT then
                           begin
                              offset:=0;
-                             while token=POINT do
+                             while token=_POINT do
                                begin
-                                  consume(POINT);
+                                  consume(_POINT);
                                   lsym:=pvarsym(precdef(
                                         ppointerdef(p^.resulttype)^.definition)^.symtable^.search(pattern));
                                   if assigned(sym) then
@@ -297,7 +297,7 @@ unit ptconst;
                                     begin
                                        Message1(sym_e_illegal_field,pattern);
                                     end;
-                                  consume(ID);
+                                  consume(_ID);
                                end;
                              curconstsegment^.concat(new(pai_const_symbol_offset,init(
                                strpnew(p^.left^.symtableentry^.mangledname),offset)));
@@ -483,16 +483,16 @@ unit ptconst;
            end;
          arraydef:
            begin
-              if token=LKLAMMER then
+              if token=_LKLAMMER then
                 begin
-                    consume(LKLAMMER);
+                    consume(_LKLAMMER);
                     for l:=parraydef(def)^.lowrange to parraydef(def)^.highrange-1 do
                       begin
                          readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
-                         consume(COMMA);
+                         consume(_COMMA);
                       end;
                     readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
-                    consume(RKLAMMER);
+                    consume(_RKLAMMER);
                  end
               else
               { if array of char then we allow also a string }
@@ -544,7 +544,7 @@ unit ptconst;
               else
                 begin
                   { we want the ( }
-                  consume(LKLAMMER);
+                  consume(_LKLAMMER);
                 end;
            end;
          procvardef:
@@ -559,15 +559,15 @@ unit ptconst;
                 end
               else
                 if not(m_tp_procvar in aktmodeswitches) then
-                  if token=KLAMMERAFFE then
-                    consume(KLAMMERAFFE);
+                  if token=_KLAMMERAFFE then
+                    consume(_KLAMMERAFFE);
               getsym(pattern,true);
-              consume(ID);
+              consume(_ID);
               if srsym^.typ=unitsym then
                 begin
-                   consume(POINT);
+                   consume(_POINT);
                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                   consume(ID);
+                   consume(_ID);
                 end;
               if srsym^.typ<>procsym then
                 Message(cg_e_illegal_expression)
@@ -584,18 +584,18 @@ unit ptconst;
          { reads a typed constant record }
          recorddef:
            begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               aktpos:=0;
-              while token<>RKLAMMER do
+              while token<>_RKLAMMER do
                 begin
                    s:=pattern;
-                   consume(ID);
-                   consume(COLON);
+                   consume(_ID);
+                   consume(_COLON);
                    srsym:=precorddef(def)^.symtable^.search(s);
                    if srsym=nil then
                      begin
                         Message1(sym_e_id_not_found,s);
-                        consume_all_until(SEMICOLON);
+                        consume_all_until(_SEMICOLON);
                      end
                    else
                      begin
@@ -614,14 +614,14 @@ unit ptconst;
                         { read the data }
                         readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
 
-                        if token=SEMICOLON then
-                          consume(SEMICOLON)
+                        if token=_SEMICOLON then
+                          consume(_SEMICOLON)
                         else break;
                      end;
                 end;
               for i:=1 to def^.size-aktpos do
                 curconstsegment^.concat(new(pai_const,init_8bit(0)));
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
            end;
          { reads a typed object }
          objectdef:
@@ -629,17 +629,17 @@ unit ptconst;
               if ([oo_has_vmt,oo_is_class]*pobjectdef(def)^.objectoptions)<>[] then
                 begin
                    Message(parser_e_type_const_not_possible);
-                   consume_all_until(RKLAMMER);
+                   consume_all_until(_RKLAMMER);
                 end
               else
                 begin
-                   consume(LKLAMMER);
+                   consume(_LKLAMMER);
                    aktpos:=0;
-                   while token<>RKLAMMER do
+                   while token<>_RKLAMMER do
                      begin
                         s:=pattern;
-                        consume(ID);
-                        consume(COLON);
+                        consume(_ID);
+                        consume(_COLON);
                         srsym:=nil;
                         obj:=pobjectdef(def);
                         symt:=obj^.symtable;
@@ -657,7 +657,7 @@ unit ptconst;
                         if srsym=nil then
                           begin
                              Message1(sym_e_id_not_found,s);
-                             consume_all_until(SEMICOLON);
+                             consume_all_until(_SEMICOLON);
                           end
                         else
                           begin
@@ -676,23 +676,23 @@ unit ptconst;
                              { read the data }
                              readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
 
-                             if token=SEMICOLON then
-                               consume(SEMICOLON)
+                             if token=_SEMICOLON then
+                               consume(_SEMICOLON)
                              else break;
                           end;
                      end;
                    for i:=1 to def^.size-aktpos do
                      curconstsegment^.concat(new(pai_const,init_8bit(0)));
-                   consume(RKLAMMER);
+                   consume(_RKLAMMER);
                 end;
            end;
          errordef:
            begin
               { try to consume something useful }
-              if token=LKLAMMER then
-                consume_all_until(RKLAMMER)
+              if token=_LKLAMMER then
+                consume_all_until(_RKLAMMER)
               else
-                consume_all_until(SEMICOLON);
+                consume_all_until(_SEMICOLON);
            end;
          else Message(parser_e_type_const_not_possible);
          end;
@@ -701,7 +701,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.50  1999-08-04 00:23:21  florian
+  Revision 1.51  1999-08-04 13:03:02  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.50  1999/08/04 00:23:21  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.49  1999/08/03 22:03:08  peter

@@ -130,25 +130,25 @@ implementation
                  { the nil as symtable signs firstcalln that this is
                    an overloaded operator }
                  addn:
-                   t:=gencallnode(overloaded_operators[plus],nil);
+                   t:=gencallnode(overloaded_operators[_plus],nil);
                  subn:
-                   t:=gencallnode(overloaded_operators[minus],nil);
+                   t:=gencallnode(overloaded_operators[_minus],nil);
                  muln:
-                   t:=gencallnode(overloaded_operators[star],nil);
+                   t:=gencallnode(overloaded_operators[_star],nil);
                  starstarn:
-                   t:=gencallnode(overloaded_operators[starstar],nil);
+                   t:=gencallnode(overloaded_operators[_starstar],nil);
                  slashn:
-                   t:=gencallnode(overloaded_operators[slash],nil);
+                   t:=gencallnode(overloaded_operators[_slash],nil);
                  ltn:
-                   t:=gencallnode(overloaded_operators[tokens.lt],nil);
+                   t:=gencallnode(overloaded_operators[tokens._lt],nil);
                  gtn:
-                   t:=gencallnode(overloaded_operators[gt],nil);
+                   t:=gencallnode(overloaded_operators[_gt],nil);
                  lten:
-                   t:=gencallnode(overloaded_operators[lte],nil);
+                   t:=gencallnode(overloaded_operators[_lte],nil);
                  gten:
-                   t:=gencallnode(overloaded_operators[gte],nil);
+                   t:=gencallnode(overloaded_operators[_gte],nil);
                  equaln,unequaln :
-                   t:=gencallnode(overloaded_operators[equal],nil);
+                   t:=gencallnode(overloaded_operators[_equal],nil);
                  else goto no_overload;
               end;
               { we have to convert p^.left and p^.right into
@@ -1111,7 +1111,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-08-04 00:23:33  florian
+  Revision 1.40  1999-08-04 13:03:13  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.39  1999/08/04 00:23:33  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.38  1999/08/03 22:03:24  peter

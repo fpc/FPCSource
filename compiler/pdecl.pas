@@ -127,11 +127,11 @@ unit pdecl;
          repeat
            name:=pattern;
            filepos:=tokenpos;
-           consume(ID);
+           consume(_ID);
            case token of
-              EQUAL:
+             _EQUAL:
                 begin
-                   consume(EQUAL);
+                   consume(_EQUAL);
                    p:=comp_expr(true);
                    do_firstpass(p);
                    storetokenpos:=tokenpos;
@@ -177,15 +177,15 @@ unit pdecl;
                         Message(cg_e_illegal_expression);
                    end;
                    tokenpos:=storetokenpos;
-                   consume(SEMICOLON);
+                   consume(_SEMICOLON);
                    disposetree(p);
                 end;
-              COLON:
+             _COLON:
                 begin
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
                    block_type:=bt_type;
-                   consume(COLON);
+                   consume(_COLON);
                    ignore_equal:=true;
                    def:=read_type('');
                    ignore_equal:=false;
@@ -210,18 +210,18 @@ unit pdecl;
                      end;
                    tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
-                   consume(EQUAL);
+                   consume(_EQUAL);
 {$ifdef DELPHI_CONST_IN_RODATA}
                    if m_delphi in aktmodeswitches then
                      readtypedconst(def,ptypedconstsym(sym),true)
                    else
 {$endif DELPHI_CONST_IN_RODATA}
                      readtypedconst(def,ptypedconstsym(sym),false);
-                   consume(SEMICOLON);
+                   consume(_SEMICOLON);
                 end;
-              else consume(EQUAL);
+              else consume(_EQUAL);
            end;
-         until token<>ID;
+         until token<>_ID;
          block_type:=old_block_type;
       end;
 
@@ -235,17 +235,17 @@ unit pdecl;
          if not(cs_support_goto in aktmoduleswitches) then
            Message(sym_e_goto_and_label_not_supported);
          repeat
-           if not(token in [ID,INTCONST]) then
-             consume(ID)
+           if not(token in [_ID,_INTCONST]) then
+             consume(_ID)
            else
              begin
                 getlabel(hl);
                 symtablestack^.insert(new(plabelsym,init(pattern,hl)));
                 consume(token);
              end;
-           if token<>SEMICOLON then consume(COMMA);
-         until not(token in [ID,INTCONST]);
-         consume(SEMICOLON);
+           if token<>_SEMICOLON then consume(_COMMA);
+         until not(token in [_ID,_INTCONST]);
+         consume(_SEMICOLON);
       end;
 
     const
@@ -328,25 +328,25 @@ unit pdecl;
          block_type:=bt_type;
          is_gpc_name:=false;
          { Force an expected ID error message }
-         if not (token in [ID,_CASE,_END]) then
-          consume(ID);
+         if not (token in [_ID,_CASE,_END]) then
+          consume(_ID);
          { read vars }
-         while (token=ID) and
+         while (token=_ID) and
                not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
              C_name:=orgpattern;
              sc:=idlist;
-             consume(COLON);
+             consume(_COLON);
              if (m_gpc in aktmodeswitches) and
                 not(is_record or is_object or is_threadvar) and
-                (token=ID) and (orgpattern='__asmname__') then
+                (token=_ID) and (orgpattern='__asmname__') then
                begin
-                 consume(ID);
+                 consume(_ID);
                  C_name:=pattern;
-                 if token=CCHAR then
-                  consume(CCHAR)
+                 if token=_CCHAR then
+                  consume(_CCHAR)
                  else
-                  consume(CSTRING);
+                  consume(_CSTRING);
                  Is_gpc_name:=true;
                end;
              { this is needed for Delphi mode at least
@@ -385,10 +385,10 @@ unit pdecl;
                  Message(parser_e_absolute_only_one_var);
                 dispose(sc,done);
                 { parse the rest }
-                if token=ID then
+                if token=_ID then
                  begin
                    getsym(pattern,true);
-                   consume(ID);
+                   consume(_ID);
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -401,7 +401,7 @@ unit pdecl;
                    tokenpos:=storetokenpos;
                  end
                 else
-                 if (token=CSTRING) or (token=CCHAR) then
+                 if (token=_CSTRING) or (token=_CCHAR) then
                   begin
                     storetokenpos:=tokenpos;
                     tokenpos:=declarepos;
@@ -415,7 +415,7 @@ unit pdecl;
                   end
                 else
                 { absolute address ?!? }
-                 if token=INTCONST then
+                 if token=_INTCONST then
                   begin
                     if (target_info.target=target_i386_go32v2) then
                      begin
@@ -425,13 +425,13 @@ unit pdecl;
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
                        s:=pattern;
-                       consume(INTCONST);
+                       consume(_INTCONST);
                        val(s,abssym^.address,code);
-                       if token=COLON then
+                       if token=_COLON then
                         begin
                           consume(token);
                           s:=pattern;
-                          consume(INTCONST);
+                          consume(_INTCONST);
                           val(s,l,code);
                           abssym^.address:=abssym^.address shl 4+l;
                           abssym^.absseg:=true;
@@ -451,7 +451,7 @@ unit pdecl;
                - in parasymtable
                - in record or object
                - ... (PM) }
-             if (m_delphi in aktmodeswitches) and (token=EQUAL) and
+             if (m_delphi in aktmodeswitches) and (token=_EQUAL) and
                 not (symtablestack^.symtabletype in [parasymtable]) and
                 not is_record and not is_object then
                begin
@@ -465,13 +465,13 @@ unit pdecl;
                    pconstsym:=new(ptypedconstsym,init(s,p,false));
                   symtablestack^.insert(pconstsym);
                   tokenpos:=storetokenpos;
-                  consume(EQUAL);
+                  consume(_EQUAL);
                   readtypedconst(p,pconstsym,false);
                   symdone:=true;
                end;
              { for a record there doesn't need to be a ; before the END or ) }
-             if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
-               consume(SEMICOLON);
+             if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
+               consume(_SEMICOLON);
              { procvar handling }
              if (p^.deftype=procvardef) and (p^.sym=nil) then
                begin
@@ -482,7 +482,7 @@ unit pdecl;
                   dispose(newtype,done);
                end;
              { Check for variable directives }
-             if not symdone and (token=ID) then
+             if not symdone and (token=_ID) then
               begin
                 { Check for C Variable declarations }
                 if (m_cvar_support in aktmodeswitches) and
@@ -503,7 +503,7 @@ unit pdecl;
                    if idtoken=_CVAR then
                     begin
                       consume(_CVAR);
-                      consume(SEMICOLON);
+                      consume(_SEMICOLON);
                       is_cdecl:=true;
                       C_name:=target_os.Cprefix+C_name;
                     end;
@@ -516,7 +516,7 @@ unit pdecl;
                    { export }
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
-                      consume(ID);
+                      consume(_ID);
                       if extern_aktvarsym then
                        Message(parser_e_not_external_and_export)
                       else
@@ -536,7 +536,7 @@ unit pdecl;
                     end;
                    { consume the ; when export or external is used }
                    if extern_aktvarsym or export_aktvarsym then
-                    consume(SEMICOLON);
+                    consume(_SEMICOLON);
                    { insert in the symtable }
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
@@ -600,7 +600,7 @@ unit pdecl;
                     current_object_option:=current_object_option-[sp_static];
 {$endif}
                     consume(_STATIC);
-                    consume(SEMICOLON);
+                    consume(_SEMICOLON);
                     symdone:=true;
                   end;
               end;
@@ -628,8 +628,8 @@ unit pdecl;
                 casedef:=read_type('')
               else
                 begin
-                  consume(ID);
-                  consume(COLON);
+                  consume(_ID);
+                  consume(_COLON);
                   casedef:=read_type('');
                   symtablestack^.insert(new(pvarsym,init(s,casedef)));
                 end;
@@ -644,28 +644,28 @@ unit pdecl;
                   if not(pt^.treetype=ordconstn) then
                     Message(cg_e_illegal_expression);
                   disposetree(pt);
-                  if token=COMMA then
-                   consume(COMMA)
+                  if token=_COMMA then
+                   consume(_COMMA)
                   else
                    break;
                 until false;
-                consume(COLON);
+                consume(_COLON);
                 { read the vars }
-                consume(LKLAMMER);
+                consume(_LKLAMMER);
                 inc(variantrecordlevel);
-                if token<>RKLAMMER then
+                if token<>_RKLAMMER then
                   read_var_decs(true,false,false);
                 dec(variantrecordlevel);
-                consume(RKLAMMER);
+                consume(_RKLAMMER);
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,symtablestack^.datasize);
                 { the items of the next variant are overlayed }
                 symtablestack^.datasize:=startvarrec;
-                if (token<>_END) and (token<>RKLAMMER) then
-                  consume(SEMICOLON)
+                if (token<>_END) and (token<>_RKLAMMER) then
+                  consume(_SEMICOLON)
                 else
                   break;
-              until (token=_END) or (token=RKLAMMER);
+              until (token=_END) or (token=_RKLAMMER);
               { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
            end;
@@ -682,9 +682,9 @@ unit pdecl;
          d : pdef;
       begin
          consume(_STRING);
-         if token=LECKKLAMMER then
+         if token=_LECKKLAMMER then
            begin
-              consume(LECKKLAMMER);
+              consume(_LECKKLAMMER);
               p:=comp_expr(true);
               do_firstpass(p);
               if not is_constintnode(p) then
@@ -694,7 +694,7 @@ unit pdecl;
                    Message(parser_e_invalid_string_size);
                    p^.value:=255;
                 end;
-              consume(RECKKLAMMER);
+              consume(_RECKKLAMMER);
               if p^.value>255 then
                 d:=new(pstringdef,longinit(p^.value))
               else
@@ -721,7 +721,7 @@ unit pdecl;
     { the type to allow name mangling          }
       begin
          s:=pattern;
-         consume(ID);
+         consume(_ID);
          { classes can be used also in classes }
          if (curobjectname=pattern) and aktobjectdef^.is_class then
            begin
@@ -739,10 +739,10 @@ unit pdecl;
            begin
               if srsym^.typ=unitsym then
                 begin
-                   consume(POINT);
+                   consume(_POINT);
                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                    s:=pattern;
-                   consume(ID);
+                   consume(_ID);
                 end;
               if not assigned(srsym) or
                  (srsym^.typ<>typesym) then
@@ -832,7 +832,7 @@ unit pdecl;
 {$else}
            aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_constructor];
 {$endif}
-           consume(SEMICOLON);
+           consume(_SEMICOLON);
              begin
                 if (aktclass^.is_class) then
                   begin
@@ -901,19 +901,19 @@ unit pdecl;
            consume(_PROPERTY);
            propertyparas:=nil;
            datacoll:=nil;
-           if token=ID then
+           if token=_ID then
              begin
                 p:=new(ppropertysym,init(pattern));
                 propname:=pattern;
-                consume(ID);
+                consume(_ID);
                 { property parameters ? }
-                if token=LECKKLAMMER then
+                if token=_LECKKLAMMER then
                   begin
                      if (sp_published in current_object_option) then
                        Message(parser_e_cant_publish_that_property);
 
                      { create a list of the parameters in propertyparas }
-                     consume(LECKKLAMMER);
+                     consume(_LECKKLAMMER);
                      inc(testcurobject);
                      repeat
                        if token=_VAR then
@@ -928,9 +928,9 @@ unit pdecl;
                          end
                        else varspez:=vs_value;
                        sc:=idlist;
-                       if token=COLON then
+                       if token=_COLON then
                          begin
-                            consume(COLON);
+                            consume(_COLON);
                             if token=_ARRAY then
                               begin
                                  {
@@ -964,17 +964,17 @@ unit pdecl;
                             s:=sc^.get_with_tokeninfo(declarepos);
                          end;
                        dispose(sc,done);
-                       if token=SEMICOLON then consume(SEMICOLON)
+                       if token=_SEMICOLON then consume(_SEMICOLON)
                      else break;
                      until false;
                      dec(testcurobject);
-                     consume(RECKKLAMMER);
+                     consume(_RECKKLAMMER);
                   end;
                 { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
-                if (token=COLON) or assigned(propertyparas) then
+                if (token=_COLON) or assigned(propertyparas) then
                   begin
-                     consume(COLON);
+                     consume(_COLON);
                      p^.proptype:=single_type(hs);
                      if (idtoken=_INDEX) then
                        begin
@@ -984,9 +984,9 @@ unit pdecl;
 {$else}
                           p^.propoptions:=p^.propoptions+[ppo_indexed];
 {$endif}
-                          if token=INTCONST then
+                          if token=_INTCONST then
                             val(pattern,p^.index,code);
-                          consume(INTCONST);
+                          consume(_INTCONST);
                           { concat a longint to the para template }
                           new(hp2);
                           hp2^.paratyp:=vs_value;
@@ -1037,20 +1037,20 @@ unit pdecl;
                      if not(assigned(sym)) then
                        begin
                          Message1(sym_e_unknown_id,pattern);
-                         consume(ID);
+                         consume(_ID);
                        end
                      else
                        begin
-                          consume(ID);
-                          if (token=POINT) and
+                          consume(_ID);
+                          if (token=_POINT) and
                              ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
                            begin
-                             consume(POINT);
+                             consume(_POINT);
                              getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
                                Message1(sym_e_illegal_field,pattern);
                              sym:=srsym;
-                             consume(ID);
+                             consume(_ID);
                            end;
                        end;
 
@@ -1091,20 +1091,20 @@ unit pdecl;
                      if not(assigned(sym)) then
                        begin
                          Message1(sym_e_unknown_id,pattern);
-                         consume(ID);
+                         consume(_ID);
                        end
                      else
                        begin
-                          consume(ID);
-                          if (token=POINT) and
+                          consume(_ID);
+                          if (token=_POINT) and
                              ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
                            begin
-                             consume(POINT);
+                             consume(_POINT);
                              getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
                                Message1(sym_e_illegal_field,pattern);
                              sym:=srsym;
-                             consume(ID);
+                             consume(_ID);
                            end;
                        end;
 
@@ -1184,7 +1184,7 @@ unit pdecl;
                   end;
                 symtablestack^.insert(p);
                 { default property ? }
-                consume(SEMICOLON);
+                consume(_SEMICOLON);
                 if (idtoken=_DEFAULT) then
                   begin
                      consume(_DEFAULT);
@@ -1202,7 +1202,7 @@ unit pdecl;
                           if not(assigned(propertyparas)) then
                             message(parser_e_property_need_paras);
                        end;
-                     consume(SEMICOLON);
+                     consume(_SEMICOLON);
                   end;
                 { clean up }
                 if assigned(datacoll) then
@@ -1210,8 +1210,8 @@ unit pdecl;
              end
            else
              begin
-                consume(ID);
-                consume(SEMICOLON);
+                consume(_ID);
+                consume(_SEMICOLON);
              end;
            if assigned(propertyparas) then
              disposepdefcoll(propertyparas);
@@ -1230,7 +1230,7 @@ unit pdecl;
 {$else}
            aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_destructor];
 {$endif}
-           consume(SEMICOLON);
+           consume(_SEMICOLON);
            if assigned(aktprocsym^.definition^.para1) then
             Message(parser_e_no_paras_for_destructor);
            { no return value }
@@ -1312,7 +1312,7 @@ unit pdecl;
                    exit;
                 end
               { forward class }
-              else if not(assigned(fd)) and (token=SEMICOLON) then
+              else if not(assigned(fd)) and (token=_SEMICOLON) then
                 begin
                    { also anonym objects aren't allow (o : object a : longint; end;) }
                    if n='' then
@@ -1342,12 +1342,12 @@ unit pdecl;
            Message(parser_f_no_anonym_objects);
 
          { read the parent class }
-         if token=LKLAMMER then
+         if token=_LKLAMMER then
            begin
-              consume(LKLAMMER);
+              consume(_LKLAMMER);
               { does not allow objects.tobject !! }
               {if token<>ID then
-                consume(ID);
+                consume(_ID);
               getsym(pattern,true);}
               childof:=pobjectdef(id_type(pattern));
               if (childof^.deftype<>objectdef) then
@@ -1378,7 +1378,7 @@ unit pdecl;
                 end
               else
                 aktclass:=new(pobjectdef,init(n,childof));
-              consume(RKLAMMER);
+              consume(_RKLAMMER);
            end
          { if no parent class, then a class get tobject as parent }
          else if is_a_class then
@@ -1445,7 +1445,7 @@ unit pdecl;
          curobjectname:=n;
 
        { short class declaration ? }
-         if (not is_a_class) or (token<>SEMICOLON) then
+         if (not is_a_class) or (token<>_SEMICOLON) then
           begin
           { Parse componenten }
             repeat
@@ -1462,7 +1462,7 @@ unit pdecl;
                 aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_protected];
 {$endif}
               case token of
-               ID : begin
+              _ID : begin
                       case idtoken of
                        _PRIVATE : begin
                                     consume(_PRIVATE);
@@ -1562,7 +1562,7 @@ unit pdecl;
                       break;
                     end;
               else
-               consume(ID); { Give a ident expected message, like tp7 }
+               consume(_ID); { Give a ident expected message, like tp7 }
               end;
             until false;
             current_object_option:=[sp_public];
@@ -1724,9 +1724,9 @@ unit pdecl;
            procvardef : pprocvardef;
         begin
            procvardef:=new(pprocvardef,init);
-           if token=LKLAMMER then
+           if token=_LKLAMMER then
              begin
-                consume(LKLAMMER);
+                consume(_LKLAMMER);
                 inc(testcurobject);
                 repeat
                   if try_to_consume(_VAR) then
@@ -1745,16 +1745,16 @@ unit pdecl;
                      procvardef^.procoptions:=procvardef^.procoptions+[po_containsself];
 {$endif}
                      consume(idtoken);
-                     consume(COLON);
+                     consume(_COLON);
                      p:=single_type(hs1);
                      procvardef^.concatdef(p,vs_value);
                    end
                   else
                    begin
                      sc:=idlist;
-                     if (token=COLON) or (varspez=vs_value) then
+                     if (token=_COLON) or (varspez=vs_value) then
                        begin
-                          consume(COLON);
+                          consume(_COLON);
                           if token=_ARRAY then
                             begin
                               consume(_ARRAY);
@@ -1791,9 +1791,9 @@ unit pdecl;
                        end;
                      dispose(sc,done);
                    end;
-                until not try_to_consume(SEMICOLON);
+                until not try_to_consume(_SEMICOLON);
                 dec(testcurobject);
-                consume(RKLAMMER);
+                consume(_RKLAMMER);
              end;
            handle_procvar:=procvardef;
         end;
@@ -1814,18 +1814,18 @@ unit pdecl;
            pt1,pt2 : ptree;
         begin
            { use of current parsed object ? }
-           if (token=ID) and (testcurobject=2) and (curobjectname=pattern) then
+           if (token=_ID) and (testcurobject=2) and (curobjectname=pattern) then
              begin
-                consume(ID);
+                consume(_ID);
                 p:=aktobjectdef;
                 exit;
              end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
            do_firstpass(pt1);
-           if (token=POINTPOINT) then
+           if (token=_POINTPOINT) then
              begin
-               consume(POINTPOINT);
+               consume(_POINTPOINT);
                { get high value of range }
                pt2:=comp_expr(not(ignore_equal));
                do_firstpass(pt2);
@@ -1881,7 +1881,7 @@ unit pdecl;
           arraytype : pdef;
         begin
            consume(_ARRAY);
-           consume(LECKKLAMMER);
+           consume(_LECKKLAMMER);
            { defaults }
            arraytype:=generrordef;
            lowval:=$80000000;
@@ -1946,12 +1946,12 @@ unit pdecl;
                 ap:=parraydef(ap^.definition);
               end;
 
-             if token=COMMA then
-               consume(COMMA)
+             if token=_COMMA then
+               consume(_COMMA)
              else
                break;
            until false;
-           consume(RECKKLAMMER);
+           consume(_RECKKLAMMER);
            consume(_OF);
            hp1:=read_type('');
            { if no error, set element type }
@@ -1968,19 +1968,19 @@ unit pdecl;
                 p:=single_type(hs);
                 readtypesym:=nil;
               end;
-            LKLAMMER:
+           _LKLAMMER:
               begin
-                 consume(LKLAMMER);
+                 consume(_LKLAMMER);
                  { allow negativ value_str }
                  l:=-1;
                  aufsym := Nil;
                  aufdef:=new(penumdef,init);
                  repeat
                    s:=pattern;
-                   consume(ID);
-                   if token=ASSIGNMENT then
+                   consume(_ID);
+                   if token=_ASSIGNMENT then
                      begin
-                        consume(ASSIGNMENT);
+                        consume(_ASSIGNMENT);
                         v:=get_intconst;
                         { please leave that a note, allows type save }
                         { declarations in the win32 units !       }
@@ -1991,8 +1991,8 @@ unit pdecl;
                    else
                      inc(l);
                    constsymtable^.insert(new(penumsym,init(s,aufdef,l)));
-                   if token=COMMA then
-                     consume(COMMA)
+                   if token=_COMMA then
+                     consume(_COMMA)
                    else
                      break;
                  until false;
@@ -2001,7 +2001,7 @@ unit pdecl;
                  this can be wrong
                  min and max are now set in tenumsym.init PM }
                  p:=aufdef;
-                 consume(RKLAMMER);
+                 consume(_RKLAMMER);
                 readtypesym:=nil;
               end;
             _ARRAY:
@@ -2048,9 +2048,9 @@ unit pdecl;
                  p:=generrordef;
                 readtypesym:=nil;
               end;
-            CARET:
+           _CARET:
               begin
-                consume(CARET);
+                consume(_CARET);
                 { forwards allowed only inside TYPE statements }
                 if typecanbeforward then
                   forwardsallowed:=true;
@@ -2109,7 +2109,7 @@ unit pdecl;
               begin
                 consume(_FUNCTION);
                 p:=handle_procvar;
-                consume(COLON);
+                consume(_COLON);
                 pprocvardef(p)^.retdef:=single_type(hs);
                 if token=_OF then
                   begin
@@ -2145,8 +2145,8 @@ unit pdecl;
          typecanbeforward:=true;
          repeat
            typename:=pattern;
-           consume(ID);
-           consume(EQUAL);
+           consume(_ID);
+           consume(_EQUAL);
              { here you loose the strictness of pascal
              for which a redefinition like
                childtype = parenttype;
@@ -2155,7 +2155,7 @@ unit pdecl;
              here all vars from childtype and child2type
              get the definition of parenttype !!            }
 {$ifdef testequaltype}
-           if (token = ID) or (token=_FILE) or (token=_STRING) then
+           if (token = _ID) or (token=_FILE) or (token=_STRING) then
              begin
                 olddef := single_type(s);
                 { make a clone of olddef }
@@ -2202,10 +2202,10 @@ unit pdecl;
                    newtype:=ptypesym(symtablestack^.insert(newtype));
                  end;
              end;
-           consume(SEMICOLON);
+           consume(_SEMICOLON);
            if assigned(newtype^.definition) and (newtype^.definition^.deftype=procvardef) then
              parse_var_proc_directives(newtype);
-         until token<>ID;
+         until token<>_ID;
          typecanbeforward:=false;
          symtablestack^.foreach({$ifndef TP}@{$endif}testforward_type);
          resolve_forwards;
@@ -2249,11 +2249,11 @@ unit pdecl;
          repeat
            name:=pattern;
            filepos:=tokenpos;
-           consume(ID);
+           consume(_ID);
            case token of
-              EQUAL:
+             _EQUAL:
                 begin
-                   consume(EQUAL);
+                   consume(_EQUAL);
                    p:=comp_expr(true);
                    do_firstpass(p);
                    storetokenpos:=tokenpos;
@@ -2281,12 +2281,12 @@ unit pdecl;
                         Message(cg_e_illegal_expression);
                    end;
                    tokenpos:=storetokenpos;
-                   consume(SEMICOLON);
+                   consume(_SEMICOLON);
                    disposetree(p);
                 end;
-              else consume(EQUAL);
+              else consume(_EQUAL);
            end;
-         until token<>ID;
+         until token<>_ID;
          block_type:=old_block_type;
 
       end;
@@ -2348,7 +2348,7 @@ unit pdecl;
                       (not islibrary and not DLLsource) then
                      begin
                         Message(parser_e_syntax_error);
-                        consume_all_until(SEMICOLON);
+                        consume_all_until(_SEMICOLON);
                      end
                    else if islibrary then
                      read_exports;
@@ -2385,7 +2385,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.140  1999-08-04 00:23:11  florian
+  Revision 1.141  1999-08-04 13:02:51  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.140  1999/08/04 00:23:11  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.139  1999/08/03 22:02:56  peter

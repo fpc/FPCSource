@@ -97,7 +97,7 @@ unit pbase;
     procedure consume(i : ttoken);
       begin
         if (token<>i) and (idtoken<>i) then
-          if token=ID then
+          if token=_id then
             Message2(scan_f_syn_expected,tokeninfo[i].str,'identifier '+pattern)
           else
             Message2(scan_f_syn_expected,tokeninfo[i].str,tokeninfo[token].str)
@@ -141,7 +141,7 @@ unit pbase;
     procedure emptystats;
       begin
          repeat
-         until not try_to_consume(semicolon);
+         until not try_to_consume(_SEMICOLON);
       end;
 
 
@@ -154,8 +154,8 @@ unit pbase;
          repeat
            sc^.insert_with_tokeninfo(pattern,
              tokenpos);
-           consume(ID);
-           if token=COMMA then consume(COMMA)
+           consume(_id);
+           if token=_COMMA then consume(_COMMA)
              else break
          until false;
          idlist:=sc;
@@ -165,7 +165,11 @@ end.
 
 {
   $Log$
-  Revision 1.23  1999-07-27 23:42:10  peter
+  Revision 1.24  1999-08-04 13:02:50  jonas
+    * all tokens now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.23  1999/07/27 23:42:10  peter
     * indirect type referencing is now allowed
 
   Revision 1.22  1999/07/26 09:42:10  florian
