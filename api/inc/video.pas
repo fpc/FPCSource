@@ -24,7 +24,6 @@
 
   Todo:
    - getting escape sequences from termcap
-   - implement library on other platforms (OS/2)
 
  ****************************************************************************}
 unit Video;
@@ -47,7 +46,7 @@ type
   TVideoCell = Word;
   PVideoCell = ^TVideoCell;
 
-  TVideoBuf = array[0..32767] of TVideoCell;
+  TVideoBuf = array[0..32759] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
 
 const
@@ -230,7 +229,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-15 09:22:40  peter
+  Revision 1.5  2000-10-15 20:50:17  hajny
+    * TVideoBuf again TP-compatible
+
+  Revision 1.4  2000/10/15 09:22:40  peter
     * FVMaxWidth
 
   Revision 1.3  2000/10/04 11:53:31  pierre
