@@ -25,9 +25,21 @@ INTERFACE
  MouseAPI undef   : RTL unit MsMouse. API not required, but doesn't work under
                     Linux }
 
+
 {$ifdef linux}
   {$define MouseAPI}
 {$endif}
+{$IFDEF Ver70}
+  {$define MouseAPI}
+{$endif}
+{$IFDEF Ver60}
+  {$define MouseAPI}
+{$endif}
+{$IFDEF Ver55}
+  {$define MouseAPI}
+{$endif}
+CONST  LineDistY=13;
+
 
 TYPE CHARSET=SET OF CHAR;
 
@@ -40,6 +52,7 @@ PROCEDURE ShowMouse;
 PROCEDURE GetMouseState(VAR MX,MY,MState : LONGINT);
 PROCEDURE DoneMouse;
 PROCEDURE InitMouse;
+PROCEDURE SetMousePosition(X,Y:LONGINT);
 
 
 Const LButton = 1; {left button}
@@ -50,7 +63,7 @@ Const LButton = 1; {left button}
 {---- Standard Highscore procedures ----}
 
 TYPE  HighScoreType   = Packed RECORD
-                        Name : String[12];
+                        Name : String[15];
                         Score: LONGINT;
                        END;
      HighScoreArr    = ARRAY[0..9] OF HighScoreType;
@@ -58,10 +71,12 @@ TYPE  HighScoreType   = Packed RECORD
 VAR HighScore   : HighScoreArr;
     ScorePath   : String;
     HighX,HighY : LONGINT;
+    Negative    : BOOLEAN;      { Negative=true-> better scores are lower}
 
 PROCEDURE LoadHighScore(FileName:STRING);
 PROCEDURE SaveHighScore;
 PROCEDURE ShowHighScore;
+
 FUNCTION  SlipInScore(Score:LONGINT):LONGINT;
 
 {---- Keyboard routines ----}
@@ -78,22 +93,41 @@ CONST FieldSpace : CHAR = #177;
 FUNCTION GetKey:LONGINT;
 
 {Generic string input routine}
+{$IFDEF UseGraphics}
+FUNCTION  GrInputStr(VAR S:String;X,Y,Len,dX,dY:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
+{$ELSE}
 FUNCTION  InputStr(VAR S:String;X,Y,Len:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
+{$ENDIF}
 
 {---- Misc ----}
 
 PROCEDURE SetDefaultColor; {Restore the attribs saved on startup}
 
+{BP compability}
+
+{$IFNDEF FPC}
+PROCEDURE SetCursorSize(CurDat:WORD);
+PROCEDURE CursorOn;
+PROCEDURE CursorOff;
+{$ENDIF}
+
 IMPLEMENTATION
 
 {$IFDEF MouseAPI}
- Uses Mouse,Dos,Crt;
+ {$IFDEF UseGraphics}
+  Uses Mouse,Dos,Crt,Graph;
+ {$ELSE}
+  Uses Mouse,Dos,Crt;
+ {$ENDIF}
 {$ELSE}
- Uses MsMouse,Dos,Crt;
+  {$IFDEF UseGraphics}
+  Uses MsMouse,Dos,Crt,Graph;
+ {$ELSE}
+  Uses MsMouse,Dos,Crt;
+ {$ENDIF}
 {$ENDIF}
 
 VAR  DefColor    : BYTE;                         {Backup of startup colors}
-
 
 CONST
 
@@ -172,16 +206,27 @@ BEGIN
  {$ENDIF}
 END;
 
+PROCEDURE SetMousePosition(X,Y:LONGINT);
+
+BEGIN
+ {$IFDEF MouseAPI}
+  SetMouseXY(x,y);
+ {$ELSE}
+  SetMousePos(X,Y);
+ {$ENDIF}
+END;
 
 Procedure LoadHighScore(FileName:STRING);
 
 var
  F: File;
  I : LONGINT;
+ OFileMode : LONGINT;
 
 BEGIN
  {$I-}
  Assign(F, FileName);
+ OFileMode:=FileMode;
  FileMode := 0;  {Set file access to read only }
  Reset(F);
  Close(F);
@@ -206,6 +251,7 @@ BEGIN
    BlockRead(F,HighScore,SIZEOF(HighScoreArr));
    Close(F);
   END;
+ FileMode:=OFileMode;
 END;
 
 Procedure SaveHighScore;
@@ -225,6 +271,8 @@ FUNCTION  SlipInScore(Score:LONGINT):LONGINT;
 VAR I,J : LONGINT;
 
 BEGIN
+ IF Negative THEN
+  Score:=-Score;
  I:=0;
  WHILE (Score>HighScore[I].Score) AND (I<10) DO
   INC(I);
@@ -239,6 +287,28 @@ BEGIN
  SlipInScore:=I;
 END;
 
+{$IFDEF UseGraphics}
+
+PROCEDURE ShowHighScore;
+
+VAR I : LONGINT;
+    S : String;
+
+BEGIN
+ SetFillStyle(SolidFill,0);            {Clear part of playfield}
+ Bar(HighX,HighY, 638, HighY+20+18*LineDistY);
+ FOR I:=0 TO 9 DO
+  BEGIN
+   OutTextXY(HighX,HighY+(9-I)*LineDistY,HighScore[I].Name);
+   IF Negative THEN
+    Str(-HighScore[I].Score:5,S)
+   ELSE
+    Str(HighScore[I].Score:5,S);
+   OutTextXY(HighX+150,HighY+(9-I)*LineDistY,S);
+  END;
+END;
+
+{$ELSE}
 PROCEDURE ShowHighScore;
 
 VAR I : LONGINT;
@@ -250,9 +320,14 @@ BEGIN
  FOR I:=0 TO 9 DO
   BEGIN
    GotoXY(HighX,HighY+11-I);
-   Write(HighScore[I].Name,' ':(13-Length(HighScore[I].Name)),' ',HighScore[I].Score:5);
+   Write(HighScore[I].Name,' ':(13-Length(HighScore[I].Name)),' ');
+   IF NOT Negative THEN     { Negative=true-> better scores are lower}
+    Write(HighScore[I].Score:5)
+   ELSE
+    Write(-HighScore[I].Score:5)
   END;
 END;
+{$ENDIF}
 
 FUNCTION GetKey:LONGINT;
 
@@ -264,8 +339,8 @@ BEGIN
  GetKey:=InKey;
 END;
 
+{$IFNDEF UseGraphics}
 FUNCTION  InputStr(VAR S:String;X,Y,Len:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
-
 {
   Input a string from keyboard, in a nice way,
    allowed characters are in CHARSET CharAllow, but several editting
@@ -430,7 +505,6 @@ BEGIN
        ELSE
         BEGIN
          Insert(CHR(Key),Uitg,Posi);
-{         InsertC(uitg,CHR(Key),Posi);}
         END;
        ReWr;
        INC(Posi);
@@ -440,6 +514,172 @@ BEGIN
    END;
   InputStr:=Endval=1;
 END;
+{$ENDIF}
+
+{$IFDEF UseGraphics}
+FUNCTION  GrInputStr(VAR S:String;X,Y,Len,dX,dY:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
+{As the (older) textversion except:
+    -  oX,oY are in pixels.
+    -  dX,dY are the dimensions of the font.
+    -  Len is still characters ( length in pixels/dX)
+}
+
+
+VAR
+    InGev                     : LONGINT; { No. of chars inputted }
+    Posi                      : LONGINT; { Cursorposition}
+    Ins                       : BOOLEAN;  { Insert yes/no}
+    Key                       : LONGINT; { Last key as ELib.GetKey
+                                            code <255 if normal key,
+                                            >256 if special/function
+                                            key. See keys.inc}
+    Uitg                      : String;    {The inputted string}
+    Full                      : BOOLEAN;   { Is the string full? }
+    EndVal                    : WORD;
+
+PROCEDURE ReWr; { Rewrite the field, using Uitg}
+
+VAR    I                         : LONGINT;  { Temporary variabele }
+       S                         : String;
+
+BEGIN
+ FillChar(S[1],Len,FieldSpace);
+ S:=Uitg;
+ IF Length(Uitg)>Len THEN
+  SetLength(Uitg,Len);
+ SetLength(S,Len);
+ IF Length(S)>0 THEN
+  BEGIN
+   FOR I:= 1 TO Length(S) DO
+    IF S[I]=CHR(32) THEN
+     S[I]:=FieldSpace;
+   SetFillStyle(SolidFill,0);
+   Bar(X,Y,X+Len*Dx+5,Y+Dy+1);
+   OutTextXY(X,Y,S);
+  END;
+END;
+
+PROCEDURE DoCursor; { Put Cursor in/out insert-mode }
+
+BEGIN
+ {$IFNDEF Linux}
+{ IF Ins THEN
+  SetCursorSize($11E)
+ ELSE
+  SetCursorSize($71E); }
+ {$ENDIF}
+END;
+
+BEGIN
+    { Init }
+
+  InGev :=0;              { 0 chars untill now }
+  Posi  :=1;               { Cursorposition 0 }
+  Ins   :=TRUE;            { Insert according to parameters }
+  DoCursor;        { Set cursor accordingly }
+  Key   :=0;
+
+       { put ±±± padded field on screen }
+
+  FillChar(Uitg,Len+1,FieldSpace);
+  Uitg[0]:=CHR(Len);
+  ReWr;
+//  GotoXY(X,Y);
+  FillChar(Uitg,Len,32);
+  SetLength(UitG,0);
+
+  IF TextIn THEN
+   BEGIN
+    Uitg:=S;
+    Posi:=Length(Uitg)+1;                        { Put a predefined }
+    ReWr;                                   {  String on screen if specified }
+   END;
+
+  EndVal:=0;
+  WHILE EndVal=0 DO
+   BEGIN
+    Full:=FALSE;
+    IF ((Posi)>=Len) THEN
+     BEGIN
+      Full:=TRUE;
+      Posi:=Len;
+     END;
+    {$IFNDEF Linux}
+     {$IFDEF FPC}
+      CursorOn;
+     {$ENDIF}
+    DoCursor;
+    {$ENDIF}
+    Key:=GetKey;
+   {$IFNDEF Linux}
+    {$IFDEF FPC}
+    CursorOff;
+    {$ENDIF}
+   {$ENDIF}
+    CASE Key OF
+          CR              : BEGIN
+                             EndVal:=1;
+                             S:=UitG;
+                            END;
+          ESC             : EndVal:=2;
+          BS              : IF Posi>1 THEN       { BackSpace }
+                              BEGIN
+                               DEC(Posi);
+                               Delete(Uitg,Posi,1);
+                               DEC(InGev);
+                               ReWr;
+                              END;
+          KDelete          : BEGIN
+                              Delete(Uitg,Posi,1);
+                              DEC(InGev);
+                              ReWr;
+                             END;
+          ArrR            : IF (NOT Full) AND ((Posi-1)<InGev) THEN
+                              BEGIN
+                               INC (Posi);
+  //                             GotoXY(X+Posi-1,Y);
+                               END;
+          KInsert          : BEGIN
+                               Ins:= NOT Ins;
+                               DoCursor;
+                              END;
+          ArrL            : IF (NOT (Posi=1)) THEN
+                              BEGIN
+                               DEC (Posi);
+                              END;
+          Home            : Posi:=1;
+          KEnd            : Posi:=InGev-1;
+          CtrlY           : BEGIN
+                             Delete(Uitg,Posi,Length(Uitg)-Posi);
+                             ReWr;
+                            END;
+          CtrlT           : BEGIN
+                             Uitg[0]:=#0; Posi:=1; ReWr;
+                            END;
+    END; {Case}
+   IF EndVal=0 THEN
+    BEGIN
+     IF (CHR(Key) IN CharAllow) THEN
+      BEGIN
+       IF Posi>Len THEN
+        Posi:=Len;
+       IF (Ins=FALSE) OR Full THEN
+        BEGIN
+         IF (Length(Uitg)<Posi) THEN
+          SetLength(UitG,Posi);
+         Uitg[Posi]:=CHR(Key);
+        END
+       ELSE
+         Insert(CHR(Key),Uitg,Posi);
+       ReWr;
+       INC(Posi);
+      END;
+     END;
+    InGev:=Length(Uitg);
+   END;
+  GrInputStr:=Endval=1;
+END;
+{$ENDIF}
 
 PROCEDURE SetDefaultColor;
 
@@ -448,15 +688,43 @@ BEGIN
  TextBackground(DefColor SHR 4);
 END;
 
+
+{$IFNDEF FPC}
+PROCEDURE SetCursorSize(CurDat:WORD);ASSEMBLER;
+ASM
+  mov ah,1
+  mov cx,CurDat
+  int $10
+END;
+
+{The two procedures below are standard (and os-independant) in FPC's Crt}
+PROCEDURE CursorOn;
+BEGIN
+  SetCursorSize($090A);
+END;
+
+PROCEDURE CursorOff;
+BEGIN
+  SetCursorSize($FFFF);
+END;
+{$ENDIF}
+
+
 BEGIN
  {$IFDEF MouseAPI}
   MouseBuffer:=0;
  {$ENDIF}
   DefColor:=TextAttr;                { Save the current attributes, to restore}
+  Negative:=FALSE;                    { Negative=true-> better scores are lower}
 END.
 {
   $Log$
-  Revision 1.2  1999-06-11 12:51:29  peter
+  Revision 1.3  1999-12-31 17:05:25  marco
+
+
+  Graphical version and fixes. BP cursorroutines moved from FPCTRIS
+
+  Revision 1.2  1999/06/11 12:51:29  peter
     * updated for linux
 
   Revision 1.1  1999/06/01 19:24:33  peter
