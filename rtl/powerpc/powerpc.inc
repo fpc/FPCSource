@@ -517,20 +517,20 @@ asm
         { use r0 instead of r3 for buf1 since r3 contains result }
         cmplwi  r5,0
         mtctr   r5
-        subi    r0,r3,1
+        subi    r11,r3,1
         subi    r4,r4,1
         li      r3,0
         beq     LCompByteDone
 LCompByteLoop:
         { load next chars }
-        lbzu    r9,1(r0)
+        lbzu    r9,1(r11)
         lbzu    r10,1(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompByteLoop
 LCompByteDone:
-end ['R0','R3','R4','R9','R10','CR0','CTR'];
+end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(var buf1,buf2;len:longint):longint; assembler;
@@ -543,20 +543,20 @@ asm
         { use r0 instead of r3 for buf1 since r3 contains result }
         cmplwi  r5,0
         mtctr   r5
-        subi    r0,r3,2
+        subi    r11,r3,2
         subi    r4,r4,2
         li      r3,0
         beq     LCompWordDone
 LCompWordLoop:
         { load next chars }
-        lhzu    r9,2(r0)
+        lhzu    r9,2(r11)
         lhzu    r10,2(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompWordLoop
 LCompWordDone:
-end ['R0','R3','R4','R9','R10','CR0','CTR'];
+end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
@@ -570,20 +570,20 @@ asm
         { use r0 instead of r3 for buf1 since r3 contains result }
         cmplwi  r5,0
         mtctr   r5
-        subi    r0,r3,4
+        subi    r11,r3,4
         subi    r4,r4,4
         li      r3,0
         beq     LCompDWordDone
 LCompDWordLoop:
         { load next chars }
-        lwzu    r9,4(r0)
+        lwzu    r9,4(r11)
         lwzu    r10,4(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompDWordLoop
 LCompDWordDone:
-end ['R0','R3','R4','R9','R10','CR0','CTR'];
+end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(var buf;len:longint;b:Char):longint; assembler;
@@ -706,7 +706,7 @@ asm
 
         { put min(length(sstr),len) in r3 }
         subc    r0,r4,r10     { r0 := r3 - r10                               }
-        subme   r4,r4,r4      { if r3 >= r4 then r3' := 0 else r3' := -1     }
+        subfme  r4,r4         { if r3 >= r4 then r3' := 0 else r3' := -1     }
         and     r4,r0,r4      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
         add     r4,r4,r10     { if r3 >= r4 then r3' := r10 else r3' := r3   }
 
@@ -734,7 +734,7 @@ asm
 
         { put min(length(sstr),len) in r3 }
         subc    r0,r3,r10    { r0 := r3 - r10                               }
-        subme   r3,r3,r3     { if r3 >= r4 then r3' := 0 else r3' := -1     }
+        subfme  r3,r3        { if r3 >= r4 then r3' := 0 else r3' := -1     }
         and     r3,r0,r3     { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
         add     r3,r3,r10    { if r3 >= r4 then r3' := r10 else r3' := r3   }
 
@@ -765,7 +765,7 @@ asm
       { calculate min(length(s1),255-length(result)) }
       subfic  r9,r9,255
       subc    r8,r9,r10    { r8 := r9 - r10                               }
-      subme   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
+      subfme  r9,r9        { if r9 >= r10 then r9' := 0 else r9' := -1    }
       and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
@@ -789,7 +789,7 @@ asm
       { save their difference for later and      }
       { calculate min(length(sstr),length(dstr)) }
       subc    r0,r9,r10    { r0 := r9 - r10                               }
-      subme   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
+      subfme  r9,r9        { if r9 >= r10 then r9' := 0 else r9' := -1    }
       and     r9,r0,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
@@ -897,7 +897,7 @@ end ['R3'];
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Longint;assembler;
 asm
-        mr    r3,sp
+        mr    r3,r1
 end ['R3'];
 
 
@@ -950,7 +950,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.13  2002-08-18 21:37:48  florian
+  Revision 1.14  2002-08-18 22:11:10  florian
+    * fixed remaining assembler errors
+
+  Revision 1.13  2002/08/18 21:37:48  florian
     * several errors in inline assembler fixed
 
   Revision 1.12  2002/08/10 17:14:36  jonas

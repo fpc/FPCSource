@@ -91,7 +91,7 @@ Lset_set_byte_copy:
        // r0 := (r5 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
        // load dword in which the bit has to be set (and update r3 to this address)
-       lwzxu    r4,r3,r0
+       lwzux    r4,r3,r0
        li       r0,1
        // generate bit which has to be inserted
        // (can't use rlwimi, since that one only works for constants)
@@ -126,7 +126,7 @@ Lset_unset_byte_copy:
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
        // load dword in which the bit has to be set (and update r3 to this address)
-       lwzxu    r4,r3,r0
+       lwzux    r4,r3,r0
        li       r0,1
        // generate bit which has to be removed
        rlwnm    r5,r0,r5,0,31
@@ -157,7 +157,7 @@ Lset_set_range_copy:
   subi     r3,r3,32
 
   cmplw  cr0,r5,r6
-  bg     cr0,Lset_range_exit
+  bgt    cr0,Lset_range_exit
   rlwinm r4,r5,31-3+1,3,31-2  // divide by 8 to get starting and ending byte-
   { load the set the data cache }
   dcbst  r3,r4
@@ -170,7 +170,7 @@ Lset_set_range_copy:
   subfic r6,r6,31             // hi := 31 - (hi mod 32) = shift count for later
   srw    r10,r10,r4           // shift bitmask to clear bits below lo
                               // note: shift right = opposite little endian!!
-  lwzxu  r5,r3,r4             // go to starting pos in set and load value
+  lwzux  r5,r3,r4             // go to starting pos in set and load value
                               //  (lo is not necessary anymore)
   beq    Lset_range_hi        // if bit lo and hi in same longint, keep
                               //  current mask and adjust for hi bit
@@ -215,7 +215,7 @@ asm
 
        li       r0,1
        // generate bit which has to be tested
-       rwlwnm   r4,r0,r4,0,31
+       rlwnm    r4,r0,r4,0,31
        // test it
        and.     r3,r3,r4
 end ['R0','R3','R4','CR0'];
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2002-08-18 21:37:48  florian
+  Revision 1.14  2002-08-18 22:11:10  florian
+    * fixed remaining assembler errors
+
+  Revision 1.13  2002/08/18 21:37:48  florian
     * several errors in inline assembler fixed
 
   Revision 1.12  2002/08/10 17:14:36  jonas

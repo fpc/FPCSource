@@ -90,8 +90,8 @@
               1: (d: double);
           end;
       asm
-        fctiwz   fr1,fr1
-        stfd     fr1,temp
+        fctiwz   f1,f1
+        stfd     f1,temp
         lwz      r3,temp
         lwz      r4,4+temp
       end ['R3','F1'];
@@ -109,8 +109,8 @@
               1: (d: double);
           end;
       asm
-        fctiw    fr1,fr1
-        stfd     fr1,temp
+        fctiw    f1,f1
+        stfd     f1,temp
         lwz      r3,temp
         lwz      r4,4+temp
       end ['R3','F1'];
@@ -221,22 +221,22 @@ var
         1: (d: double);
     end;
 asm
-           lis    r0,$4330
+           lis    r0,0x4330
            stw    r0,temp
-           xoris  r3,r3,$8000
+           xoris  r3,r3,0x8000
            stw    r3,4+temp
            lis    r3,longint_to_real_helper@ha
-           lfd    fr1,longint_to_real_helper@l(r3)
-           lfd    fr0,temp
+           lfd    f1,longint_to_real_helper@l(r3)
+           lfd    f0,temp
            stw    r4,4+temp
-           fsub   fr0,fr0,fr1
+           fsub   f0,f0,f1
            lis    r4,cardinal_to_real_helper@ha
-           lfd    fr1,cardinal_to_real_helper@l(r4)
+           lfd    f1,cardinal_to_real_helper@l(r4)
            lis    r3,int_to_real_factor@ha
-           lfd    fr3,temp
-           lfd    fr2,int_to_real_factor@l(r3)
-           fsub   fr3,fr3,fr1
-           fmadd  fr1,fr0,fr2,fr3
+           lfd    f3,temp
+           lfd    f2,int_to_real_factor@l(r3)
+           fsub   f3,f3,f1
+           fmadd  f1,f0,f2,f3
 end ['R0','R3','R4','F0','F1','F2','F3'];
 
 
@@ -251,26 +251,29 @@ var
         1: (d: double);
     end;
 asm
-           lis    r0,$4330
+           lis    r0,0x4330
            stw    r0,temp
            stw    r3,4+temp
-           lfd    fr0,temp
+           lfd    f0,temp
            lis    r3,cardinal_to_real_helper@ha
-           lfd    fr1,cardinal_to_real_helper@l(r3)
+           lfd    f1,cardinal_to_real_helper@l(r3)
            stw    r4,4+temp
-           fsub   fr0,fr0,fr1
-           lfd    fr3,temp
+           fsub   f0,f0,f1
+           lfd    f3,temp
            lis    r3,int_to_real_factor@ha
-           lfd    fr2,int_to_real_factor@l(r3)
-           fsub   fr3,fr3,fr1
-           fmadd  fr1,fr0,fr2,fr3
+           lfd    f2,int_to_real_factor@l(r3)
+           fsub   f3,f3,f1
+           fmadd  f1,f0,f2,f3
 end ['R0','R3','F0','F1','F2','F3'];
 
 
 
 {
   $Log$
-  Revision 1.9  2002-08-18 21:37:48  florian
+  Revision 1.10  2002-08-18 22:11:10  florian
+    * fixed remaining assembler errors
+
+  Revision 1.9  2002/08/18 21:37:48  florian
     * several errors in inline assembler fixed
 
   Revision 1.8  2002/08/10 17:14:36  jonas
