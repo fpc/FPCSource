@@ -492,7 +492,11 @@ begin
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler := @SignalToRunError;
-  act.sa_flags:=SA_SIGINFO;
+  act.sa_flags:=SA_SIGINFO
+{$ifdef cpux86_64}
+    or $4000000
+{$endif cpux86_64}
+    ;
   FpSigAction(SIGFPE,@act,nil);
   FpSigAction(SIGSEGV,@act,nil);
   FpSigAction(SIGBUS,@act,nil);
@@ -559,7 +563,10 @@ end;
 
 {
  $Log$
- Revision 1.24  2005-01-31 20:13:24  peter
+ Revision 1.25  2005-02-03 21:42:17  peter
+   * readded magic value $4000000 for sa_flags for x86_64
+
+ Revision 1.24  2005/01/31 20:13:24  peter
    * rt_sigaction for all cpus
 
  Revision 1.23  2005/01/30 18:01:15  peter
