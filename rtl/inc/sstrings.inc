@@ -19,7 +19,7 @@
 {$ifndef INTERNSETLENGTH}
 procedure SetLength(var s:shortstring;len:StrLenInt);
 {$else INTERNSETLENGTH}
-procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif} 
+procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif INTERNSETLENGTH}
 begin
   if Len>255 then
@@ -210,7 +210,7 @@ begin
 end;
 
 
-function lowercase(c : char) : char;
+function lowercase(c : char) : char;overload;
 {$IFDEF IBM_CHAR_SET}
 var
   i : longint;
@@ -233,7 +233,7 @@ begin
 end;
 
 
-function lowercase(const s : shortstring) : shortstring;
+function lowercase(const s : shortstring) : shortstring; overload;
 var
   i : longint;
 begin
@@ -580,7 +580,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2001-11-16 15:09:47  jonas
+  Revision 1.18  2002-01-24 18:27:06  peter
+    * lowercase() overloaded
+
+  Revision 1.17  2001/11/16 15:09:47  jonas
     * optimized fpc_val_sint_shortstr
 
   Revision 1.16  2001/08/13 12:40:16  jonas

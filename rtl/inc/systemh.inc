@@ -333,7 +333,7 @@ Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
 {$endif INTERNLENGTH}
 Function  upCase(const s:shortstring):shortstring;
-Function  lowerCase(const s:shortstring):shortstring;
+Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
 Function  hexStr(Val:Longint;cnt:byte):shortstring;
 Function  binStr(Val:Longint;cnt:byte):shortstring;
@@ -343,7 +343,7 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 { Char functions }
 Function  Chr(b:byte):Char;
 Function  upCase(c:Char):Char;
-Function  lowerCase(c:Char):Char;
+Function  lowerCase(c:Char):Char; overload;
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
 {$ifndef INTERNLENGTH}
@@ -558,7 +558,10 @@ const
 
 {
   $Log$
-  Revision 1.40  2002-01-24 12:33:53  jonas
+  Revision 1.41  2002-01-24 18:27:06  peter
+    * lowercase() overloaded
+
+  Revision 1.40  2002/01/24 12:33:53  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit
