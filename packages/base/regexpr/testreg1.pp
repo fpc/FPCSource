@@ -137,11 +137,10 @@ begin
    DestroyregExprEngine(r);
    }
    writeln('*** Testing unit regexpr was successful ***');
-end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:54  peter
-end.    * old logs removed and tabs fixed
 end.
-end.  Revision 1.1  2002/01/29 17:54:57  peter
-end.    * splitted to base and extra
-end.
+{
+  $Log$
+  Revision 1.3  2002-09-11 20:07:17  michael
+    + Fixed log
+
 }
