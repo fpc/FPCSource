@@ -1315,28 +1315,42 @@ declaration :
             block_type:=bt_type;
          end;
        shift(3);
-       (* write new type name *)
-       TN:=TypeName($1^.p2^.p);
-       PN:=PointerName($1^.p2^.p);
-       (* define a Pointer type also for structs *)
-       if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
-          assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
-         writeln(outfile,aktspace,PN,' = ^',TN,';');
-       write(outfile,aktspace,TN,' = ');
-       shift(2);
-       hp:=$1;
-       write_type_specifier(outfile,hp);
-       popshift;
-       (* enum_to_const can make a switch to const *)
-       if block_type=bt_type then
-        writeln(outfile,';');
-       writeln(outfile);
-       flush(outfile);
-       popshift;
-       if must_write_packed_field then
-         write_packed_fields_info(outfile,hp,TN);
-       if assigned(hp) then
-         dispose(hp,done);
+       if ( yyv[yysp-1]^.p2  <> nil ) then 
+         begin
+         (* write new type name *)
+         TN:=TypeName($1^.p2^.p);
+         PN:=PointerName($1^.p2^.p);
+         (* define a Pointer type also for structs *)
+         if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+            assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
+          writeln(outfile,aktspace,PN,' = ^',TN,';');
+         write(outfile,aktspace,TN,' = ');
+         shift(2);
+         hp:=$1;
+         write_type_specifier(outfile,hp);
+         popshift;
+         (* enum_to_const can make a switch to const *)
+         if block_type=bt_type then
+          writeln(outfile,';');
+         writeln(outfile);
+         flush(outfile);
+         popshift;
+         if must_write_packed_field then
+           write_packed_fields_info(outfile,hp,TN);
+         if assigned(hp) then
+           dispose(hp,done)
+         end
+       else
+         begin
+         TN:=TypeName(yyv[yysp-1]^.str);
+         PN:=PointerName(yyv[yysp-1]^.str);
+         if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
+         writeln(outfile, aktspace, TN, ' = record');
+         writeln(outfile, aktspace, '    {undefined structure}');
+         writeln(outfile, aktspace, '  end;');
+         writeln(outfile);
+         popshift;
+         end;
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
      {
@@ -2443,7 +2457,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:33  peter
+  Revision 1.6  2003-02-13 22:20:24  michael
+  + Patch from Jeff Pohlmeyer to process empty structs
+
+  Revision 1.5  2002/09/07 15:40:33  peter
     * old logs removed and tabs fixed
 
 }
