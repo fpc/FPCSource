@@ -175,6 +175,10 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
   USES Dos;
 {$endif OS_UNIX}
 
+{$ifdef OS_GO32}
+  USES Dos;
+{$endif OS_GO32}
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -336,9 +340,9 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
      STOSW;                                           { Return hours }
    END;
    {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
+   {$IFDEF OS_GO32}                                   { FPC COMPATABLE ASM }
    BEGIN
-   ASM
+   (* ASM
      MOVW $0x2C00, %AX;                               { Set function id }
      PUSHL %EBP;                                      { Save register }
      INT $0x21;                                       { System get time }
@@ -356,7 +360,12 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
      MOVB %CH, %AL;                                   { Transfer register }
      MOVL Hour, %EDI;                                 { EDI -> Hour }
      MOVW %AX, (%EDI);                                { Return hour }
-   END;
+   END; *)
+   { direct call of real interrupt seems to render the system
+     unstable on Win2000 because some registers are not properly
+     restored if a mouse interrupt is generated while the Dos
+     interrupt is called... PM }
+     Dos.GetTime(Hour,Minute,Second,Sec100);
    END;
    {$ENDIF}
 {$ENDIF}
@@ -438,7 +447,10 @@ END.
 
 {
  $Log$
- Revision 1.7  2002-09-07 15:06:38  peter
+ Revision 1.8  2002-09-09 08:02:49  pierre
+  * avoid instabilities on win2000
+
+ Revision 1.7  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
  Revision 1.6  2002/06/04 11:12:41  marco
