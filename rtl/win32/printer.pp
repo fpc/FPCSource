@@ -17,30 +17,22 @@
 unit printer;
 interface
 
-var
-  lst : text;
+{$I printerh.inc}
 
 implementation
 
-var
-  old_exit : pointer;
-
-procedure printer_exit;
-begin
-  close(lst);
-  exitproc:=old_exit;
-end;
-
+{$I printer.inc}
 
 begin
-  assign(lst,'PRN');
-  rewrite(lst);
-  old_exit:=exitproc;
-  exitproc:=@printer_exit;
+  InitPrinter ('PRN');
+  SetPrinterExit;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:29  peter
+  Revision 1.4  2004-12-05 11:21:46  hajny
+    * common implementation of unit printer - fix for bug 3421
+
+  Revision 1.3  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }

@@ -36,11 +36,7 @@ Interface
 
 {.$DEFINE PRINTERDEBUG}
 
-Const
-  DefFile = '/tmp/PID.lst';
-
-Var
-  Lst : Text;
+{$I printerh.inc}
 
 Procedure AssignLst ( Var F : text; ToFile : string);
 {
@@ -63,6 +59,8 @@ Procedure AssignLst ( Var F : text; ToFile : string);
 Implementation
 Uses Unix,BaseUnix,Strings;
 
+{$I printer.inc}
+
 {
   include definition of textrec
 }
@@ -76,8 +74,6 @@ Const
 
 Var
   Lpr      : String[255]; { Contains path to lpr binary, including null char }
-  SaveExit : pointer;
-
 
 Procedure PrintAndDelete (f:string);
 var
@@ -180,20 +176,23 @@ end;
 
 
 
-Procedure SubstPidInName ( Var s : string);
+function SubstPidInName (const S: string): string;
 var
   i    : longint;
   temp : string[8];
 begin
   i:=pos('PID',s);
   if i=0 then
-   exit;
-  delete (s,i,3);
-  str(fpGetPid,temp);
-  insert(temp,s,i);
+   SubstPidInName := S
+  else
+   begin
+    Str (fpGetPid, Temp);
+    SubstPidInName := Copy (S, 1, Pred (I)) + Temp +
+                                           Copy (S, I + 3, Length (S) - I - 2);
 {$IFDEF PRINTERDEBUG}
-  writeln ('Print : Filename became : ',s);
+    writeln ('Print : Filename became : ', Result);
 {$ENDIF}
+   end;
 end;
 
 
@@ -207,7 +206,7 @@ begin
    exit;
   textrec(f).bufptr:=@textrec(f).buffer;
   textrec(f).bufsize:=128;
-  SubstPidInName (Tofile);
+  ToFile := SubstPidInName (ToFile);
   if ToFile[1]='|' then
    begin
      Assign(f,Copy(ToFile,2,255));
@@ -234,27 +233,19 @@ begin
 end;
 
 
-
-Procedure PrinterExitProc;
 begin
-  close(lst);
-  ExitProc:=SaveExit
-end;
-
-
-
-begin
-  SaveExit:=ExitProc;
-  ExitProc:=@PrinterExitProc;
-  AssignLst(Lst,DefFile);
-  rewrite(Lst);
-  lpr:='/usr/bin/lpr';
+  InitPrinter (SubstPidInName ('/tmp/PID.lst'));
+  SetPrinterExit;
+  Lpr := '/usr/bin/lpr';
 end.
 
 
 {
   $Log$
-  Revision 1.6  2003-09-20 12:38:29  marco
+  Revision 1.7  2004-12-05 11:21:46  hajny
+    * common implementation of unit printer - fix for bug 3421
+
+  Revision 1.6  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.5  2003/09/14 20:15:01  marco
