@@ -39,13 +39,17 @@ unit temp_gen;
 
       type
 { this saves some memory }
+{$ifdef TEST_MINENUMSIZE}
 {$ifdef FPC}
 {$minenumsize 1}
 {$endif FPC}
+{$endif TEST_MINENUMSIZE}
        ttemptype = (tt_normal,tt_ansistring,tt_widestring);
+{$ifdef TEST_MINENUMSIZE}
 {$ifdef FPC}
 {$minenumsize default}
 {$endif FPC}
+{$endif TEST_MINENUMSIZE}
     { generates temporary variables }
     procedure resettempgen;
     procedure setfirsttemp(l : longint);
@@ -631,7 +635,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1999-04-09 09:55:20  peter
+  Revision 1.15  1999-04-09 13:05:45  pierre
+   * Minenumsize=1 under TEST_ENUMSIZE cond because buggy
+
+  Revision 1.14  1999/04/09 09:55:20  peter
     * typo fixed
 
   Revision 1.13  1999/04/09 08:39:20  peter
