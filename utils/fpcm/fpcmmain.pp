@@ -40,7 +40,7 @@ interface
 {$ifdef BEOS}
 {$define NO_UNIX_UNIT}
 {$endif}
-{$ifdef SUNOS}
+{$ifdef SOLARIS}
 {$define NO_UNIX_UNIT}
 {$endif}
 {$ifdef QNX}
@@ -69,7 +69,7 @@ interface
 
       TOS=(
         o_linux,o_go32v2,o_win32,o_os2,o_freebsd,o_beos,o_netbsd,
-        o_amiga,o_atari, o_sunos, o_qnx, o_netware, o_openbsd,o_wdosx,
+        o_amiga,o_atari, o_solaris, o_qnx, o_netware, o_openbsd,o_wdosx,
         o_palmos,o_macos,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc
       );
 
@@ -86,13 +86,13 @@ interface
 
       OSStr : array[TOS] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
-        'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
+        'amiga','atari','solaris', 'qnx', 'netware','openbsd','wdosx',
         'palmos','macos','darwin','emx','watcom','morphos','netwlibc'
       );
 
       OSSuffix : array[TOS] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
-        '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
+        '_amiga','_atari','_solaris', '_qnx', '_netware','_openbsd','_wdosx',
         '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc'
       );
 
@@ -108,7 +108,7 @@ interface
         { netbsd }  ( true,  true,  true,  true,  false, false),
         { amiga }   ( false, true,  false, false, false, false),
         { atari }   ( false, true,  false, false, false, false),
-        { sunos }   ( true,  false, false, true,  false, false),
+        { solaris } ( true,  false, false, true,  false, false),
         { qnx }     ( true,  false, false, false, false, false),
         { netware } ( true,  false, false, false, false, false),
         { openbsd } ( true,  true,  false, false, false, false),
@@ -1609,7 +1609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2005-01-10 20:33:09  peter
+  Revision 1.45  2005-02-10 17:27:50  peter
+    * sunos to solaris
+
+  Revision 1.44  2005/01/10 20:33:09  peter
     * use cpu-os style
 
   Revision 1.43  2004/09/04 21:24:43  armin
