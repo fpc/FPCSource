@@ -122,6 +122,7 @@ unit globals;
        Must_be_valid : boolean;          { should the variable already have a value }
        compile_level : word;
        make_ref : boolean;
+       resolving_forward : boolean;      { used to add forward reference as second ref }
        use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
 
 {$ifdef TP}
@@ -1320,7 +1321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1999-11-09 13:00:38  peter
+  Revision 1.32  1999-11-09 23:34:46  pierre
+   + resolving_forward boolean used for references
+
+  Revision 1.31  1999/11/09 13:00:38  peter
     * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
     * initial support for ansistring default with modes
 
