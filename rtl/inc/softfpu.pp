@@ -44,6 +44,10 @@ unit softfpu;
 {$endif}
 {$endif}
 
+{$ifdef fpc}
+{$goto on}
+{$endif}
+
 interface
 
 
@@ -4657,7 +4661,10 @@ End;
 end.
 {
    $Log$
-   Revision 1.5  2002-11-30 21:34:20  carl
+   Revision 1.6  2002-11-30 23:25:19  carl
+     * forgot goto on switch in last commit
+
+   Revision 1.5  2002/11/30 21:34:20  carl
      + compilerproc for softfpu (first step for integration)
      * several bugfixes for big-endian support
 
