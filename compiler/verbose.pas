@@ -801,6 +801,7 @@ var
         status.currentsource:='';
         status.currentsourcepath:='';
         status.compiling_current:=false;
+	compiling_module:=nil;
       end;
 
 
@@ -822,7 +823,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2003-10-08 19:17:43  peter
+  Revision 1.29  2004-02-15 12:17:59  peter
+    * reset compiling_module, fixes crash in ide with second compile
+
+  Revision 1.28  2003/10/08 19:17:43  peter
     * -P to -ap
     * -V to -vv
 
