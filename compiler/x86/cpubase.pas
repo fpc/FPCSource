@@ -177,7 +177,7 @@ uses
 {$endif}
 
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
+      VOLATILE_INTREGISTERS = [first_supreg..last_supreg]-[RS_EBP,RS_ESP];
 
       {Number of first and last imaginary register.}
       first_imreg     = $12;
@@ -732,7 +732,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-06-17 16:34:45  jonas
+  Revision 1.11  2003-07-06 21:50:33  jonas
+    * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
+      so that it doesn't include ebp and esp anymore
+
+  Revision 1.10  2003/06/17 16:34:45  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

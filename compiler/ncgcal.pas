@@ -776,7 +776,7 @@ implementation
            begin
               {No procedure is allowed to destroy ebp.}
 {$ifdef newra}
-              regs_to_alloc:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG];
+              regs_to_alloc:=VOLATILE_INTREGISTERS;
               if (not is_void(resulttype.def)) and
                  not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                 begin
@@ -797,7 +797,7 @@ implementation
                   end;
                 end;
 {$else}
-              regs_to_push_int := VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
+              regs_to_push_int := VOLATILE_INTREGISTERS;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
 {$ifdef i386}
@@ -1017,10 +1017,8 @@ implementation
                else
                  cg.a_call_reg(exprasmlist,right.location.register);
 {               cg.a_call_loc(exprasmlist,right.location);}
-            {$ifndef newra}
                location_release(exprasmlist,right.location);
                location_freetemp(exprasmlist,right.location);
-            {$endif newra}
            end;
 
          { Need to remove the parameters from the stack? }
@@ -1520,7 +1518,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-07-06 17:58:22  peter
+  Revision 1.100  2003-07-06 21:50:33  jonas
+    * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
+      so that it doesn't include ebp and esp anymore
+
+  Revision 1.99  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

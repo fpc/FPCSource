@@ -3415,7 +3415,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedintregisters:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG];
+         usedintregisters:=VOLATILE_INTREGISTERS;
          usedotherregisters:=ALL_REGISTERS;
          forwarddef:=true;
          interfacedef:=false;
@@ -3557,7 +3557,7 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedintregisters:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG];
+             usedintregisters:=VOLATILE_INTREGISTERS;
              usedotherregisters:=ALL_REGISTERS;
            end;
 
@@ -5838,7 +5838,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2003-07-06 15:31:21  daniel
+  Revision 1.156  2003-07-06 21:50:33  jonas
+    * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
+      so that it doesn't include ebp and esp anymore
+
+  Revision 1.155  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.154  2003/07/02 22:18:04  peter

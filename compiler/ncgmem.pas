@@ -521,7 +521,7 @@ implementation
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
             {$ifdef newra}
-               rg.allocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
 
             {$else}
                rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
@@ -530,7 +530,7 @@ implementation
                paramanager.freeintparaloc(exprasmlist,2);
                paramanager.freeintparaloc(exprasmlist,1);
             {$ifdef newra}
-               rg.deallocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
             {$else}
                rg.restoreusedintregisters(exprasmlist,pushed);
             {$endif}
@@ -598,14 +598,14 @@ implementation
                 {$endif}
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 {$ifdef newra}
-                   rg.allocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                   rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                 {$else}
                    rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                 {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    paramanager.freeintparaloc(exprasmlist,1);
                 {$ifdef newra}
-                   rg.deallocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                   rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                 {$else}
                    rg.restoreusedintregisters(exprasmlist,pushed);
                 {$endif}
@@ -689,7 +689,7 @@ implementation
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
                             {$ifdef newra}
-                              rg.allocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                             {$else}
                               rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                             {$endif}
@@ -697,7 +697,7 @@ implementation
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
                             {$ifdef newra}
-                              rg.deallocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                             {$else}
                               rg.restoreusedintregisters(exprasmlist,pushed);
                             {$endif}
@@ -836,7 +836,7 @@ implementation
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
                             {$ifdef newra}
-                              rg.allocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                             {$else}
                               rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                             {$endif}
@@ -844,7 +844,7 @@ implementation
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
                             {$ifdef newra}
-                              rg.deallocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
                             {$else}
                               rg.restoreusedintregisters(exprasmlist,pushed);
                             {$endif}
@@ -881,7 +881,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-07-06 15:31:20  daniel
+  Revision 1.66  2003-07-06 21:50:33  jonas
+    * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
+      so that it doesn't include ebp and esp anymore
+
+  Revision 1.65  2003/07/06 15:31:20  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.64  2003/06/17 19:24:08  jonas
