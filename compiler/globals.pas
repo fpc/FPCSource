@@ -40,9 +40,6 @@ interface
       unix,
   {$endif}
 {$endif}
-{$ifdef os2}
-      doscalls,
-{$endif}
 {$ifdef Delphi}
       SysUtils,
       dmisc,
@@ -1073,10 +1070,6 @@ implementation
         i,len : longint;
         hp,p,p2 : pchar;
       {$endif}
-      {$ifdef os2}
-      var
-        P1, P2: PChar;
-      {$endif}
       begin
       {$ifdef unix}
         GetEnvPchar:={$ifdef ver1_0}Linux{$else}Unix{$endif}.Getenv(envname);
@@ -1105,15 +1098,7 @@ implementation
         {$define GETENVOK}
       {$endif}
       {$ifdef os2}
-        P1 := StrPNew (EnvName);
-        if Assigned (P1) then
-        begin
-         if DosCalls.DosScanEnv (P1, P2) = 0 then
-          GetEnvPChar := P2
-         else
-          GetEnvPChar := nil;
-         StrDispose (P1);
-        end else GetEnvPChar := nil;
+        GetEnvPChar := Dos.GetEnvPChar (EnvName);
         {$define GETENVOK}
       {$endif}
       {$ifdef GETENVOK}
@@ -1540,7 +1525,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-12-25 01:26:17  peter
+  Revision 1.80  2003-01-04 16:20:44  hajny
+    * modified to make use of the common GetEnv code under OS/2
+
+  Revision 1.79  2002/12/25 01:26:17  peter
     * delphi also has pointer archimetic
 
   Revision 1.78  2002/12/07 14:27:07  carl
