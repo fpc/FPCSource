@@ -56,19 +56,6 @@ implementation
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right,inlined : boolean;para_offset : longint);
 
-      function push_addr(p:ptree):boolean;
-        begin
-          push_addr:=(
-{$ifndef VALUEPARA}
-                      dont_copy_const_param(p^.resulttype) { or }
-{$else}
-                      push_addr_param(p^.resulttype)
-{$endif}
-{  hmmm, why this ?? (FK)  or ((p^.treetype=stringconstn) and is_ansistring(p^.resulttype)) }
-                     );
-        end;
-
-
       procedure maybe_push_high;
         var
            r    : preference;
@@ -166,9 +153,6 @@ implementation
 
       var
          size : longint;
-{$ifndef VALUEPARA}
-         stackref : treference;
-{$endif}
          otlabel,hlabel,oflabel : plabel;
          { temporary variables: }
          tempdeftype : tdeftype;
@@ -253,11 +237,7 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
-              if
-{$ifndef VALUEPARA}
-                 (defcoll^.paratyp=vs_const) and
-{$endif}
-                 push_addr(p^.left) then
+              if push_addr_param(p^.resulttype) then
                 begin
                    maybe_push_high;
                    inc(pushedparasize,4);
@@ -565,67 +545,7 @@ implementation
                                end
                              { call by value open array ? }
                              else
-{$ifndef VALUEPARA}
-                              if (p^.resulttype^.deftype=arraydef) and
-                                 assigned(defcoll^.data) and
-                                 is_open_array(defcoll^.data) then
-                               begin
-                                  { first, push high }
-                                  maybe_push_high;
-                                  inc(pushedparasize,4);
-                                  if inlined then
-                                    begin
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                         newreference(p^.left^.location.reference),R_EDI)));
-                                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                       exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                         R_EDI,r)));
-                                    end
-                                  else
-                                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                                end
-                              else
-                               begin
-                                  size:=align(p^.resulttype^.size,target_os.stackalignment);
-                                  { create stack space }
-                                  if not inlined then
-                                    exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
-{$ifdef GDB}
-                                  if (cs_debuginfo in aktmoduleswitches) and
-                                     (exprasmlist^.first=exprasmlist^.last) then
-                                    exprasmlist^.concat(new(pai_force_line,init));
-{$endif GDB}
-                                  inc(pushedparasize,size);
-                                  { create stack reference }
-                                  stackref.symbol := nil;
-                                  if not inlined then
-                                    begin
-                                      clear_reference(stackref);
-                                      stackref.base:=R_ESP;
-                                    end
-                                  else
-                                    begin
-                                      clear_reference(stackref);
-                                      stackref.base:=procinfo.framepointer;
-                                      stackref.offset:=para_offset-pushedparasize;
-                                    end;
-                                  { generate copy }
-                                  if is_shortstring(p^.resulttype) then
-                                    begin
-                                       copyshortstring(stackref,p^.left^.location.reference,
-                                         pstringdef(p^.resulttype)^.len,false);
-                                    end
-                                  else
-                                    begin
-                                       concatcopy(p^.left^.location.reference,
-                                         stackref,p^.resulttype^.size,true,false);
-                                    end;
-                               end;
-{$else VALUEPARA}
-                              begin
-                                internalerror(8954);
-                              end;
-{$endif VALUEPARA}
+                               internalerror(8954);
                           end;
                         else
                           CGMessage(cg_e_illegal_expression);
@@ -1665,7 +1585,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1998-12-22 13:10:58  florian
+  Revision 1.56  1998-12-30 13:41:05  peter
+    * released valuepara
+
+  Revision 1.55  1998/12/22 13:10:58  florian
     * memory leaks for ansistring type casts fixed
 
   Revision 1.54  1998/12/19 00:23:41  florian

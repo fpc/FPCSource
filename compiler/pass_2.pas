@@ -405,11 +405,7 @@ implementation
                                   { call by reference/const ? }
                                   if (regvars[i]^.varspez=vs_var) or
                                      ((regvars[i]^.varspez=vs_const) and
-{$ifndef VALUEPARA}
-                                       dont_copy_const_param(regvars[i]^.definition)) then
-{$else}
                                        push_addr_param(regvars[i]^.definition)) then
-{$endif}
                                     begin
                                        regvars[i]^.reg:=varregs[i];
                                        regsize:=S_L;
@@ -499,7 +495,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-19 00:23:51  florian
+  Revision 1.13  1998-12-30 13:41:09  peter
+    * released valuepara
+
+  Revision 1.12  1998/12/19 00:23:51  florian
     * ansistring memory leaks fixed
 
   Revision 1.11  1998/12/11 00:03:28  peter

@@ -91,12 +91,8 @@ unit types;
     { true, if def is a 64 bit int type }
     function is_64bitint(def : pdef) : boolean;
 
-{$ifndef VALUEPARA}
-    { true if a const parameter is too large to copy }
-    function dont_copy_const_param(def : pdef) : boolean;
-{$else}
+    { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
-{$endif}
 
     { true if we must never copy this parameter }
     const
@@ -380,16 +376,6 @@ unit types;
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
-{$ifndef VALUEPARA}
-    { true if a const parameter is too large to copy }
-    function dont_copy_const_param(def : pdef) : boolean;
-      begin
-         dont_copy_const_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
-           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
-           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
-      end;
-{$else}
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
       begin
@@ -398,7 +384,6 @@ unit types;
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
-{$endif}
 
     { test if l is in the range of def, outputs error if out of range }
     procedure testrange(def : pdef;l : longint);
@@ -1048,7 +1033,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.42  1998-12-11 00:04:03  peter
+  Revision 1.43  1998-12-30 13:41:20  peter
+    * released valuepara
+
+  Revision 1.42  1998/12/11 00:04:03  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.41  1998/12/10 09:47:33  florian

@@ -188,13 +188,7 @@ implementation
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-{$ifndef VALUEPARA}
-                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
-                             { call by value open arrays are also indirect addressed }
-                             is_open_array(pvarsym(p^.symtableentry)^.definition) then
-{$else}
                              push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
-{$endif}
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -734,7 +728,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1998-12-19 00:23:45  florian
+  Revision 1.40  1998-12-30 13:41:07  peter
+    * released valuepara
+
+  Revision 1.39  1998/12/19 00:23:45  florian
     * ansistring memory leaks fixed
 
   Revision 1.38  1998/12/11 00:02:51  peter

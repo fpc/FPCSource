@@ -173,10 +173,8 @@
        pvarsym = ^tvarsym;
        tvarsym = object(tsym)
           address      : longint;
-{$ifdef VALUEPARA}
           localaddress : longint;  { address of the local copy of a value para, -1 means not used }
           islocalcopy  : boolean;
-{$endif}
           definition   : pdef;
           refs         : longint;
           var_options  : byte;
@@ -195,9 +193,7 @@
           function  mangledname : string;virtual;
           procedure insert_in_data;virtual;
           function  getsize : longint;
-{$ifdef VALUEPARA}
           function  getpushsize : longint;
-{$endif}
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -327,7 +323,10 @@
 
 {
   $Log$
-  Revision 1.9  1998-11-28 16:20:57  peter
+  Revision 1.10  1998-12-30 13:41:15  peter
+    * released valuepara
+
+  Revision 1.9  1998/11/28 16:20:57  peter
     + support for dll variables
 
   Revision 1.8  1998/11/18 15:44:19  peter

@@ -103,11 +103,7 @@ implementation
                    { we need a register for call by reference parameters }
                    if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-{$ifndef VALUEPARA}
-                      dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
-{$else}
                       push_addr_param(pvarsym(p^.symtableentry)^.definition)) or
-{$endif}
                       { call by value open arrays are also indirect addressed }
                       is_open_array(pvarsym(p^.symtableentry)^.definition) then
                      p^.registers32:=1;
@@ -425,7 +421,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-11-18 17:45:28  peter
+  Revision 1.12  1998-12-30 13:41:19  peter
+    * released valuepara
+
+  Revision 1.11  1998/11/18 17:45:28  peter
     * fixes for VALUEPARA
 
   Revision 1.10  1998/11/18 15:44:23  peter

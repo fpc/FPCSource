@@ -2009,19 +2009,11 @@
           begin
             case pdc^.paratyp of
               vs_var   : inc(l,target_os.size_of_pointer);
-{$ifndef VALUEPARA}
-              vs_value : inc(l,align(pdc^.data^.size,target_os.stackalignment));
-              vs_const : if dont_copy_const_param(pdc^.data) then
-                          inc(l,target_os.size_of_pointer)
-                         else
-                          inc(l,align(pdc^.data^.size,target_os.stackalignment));
-{$else}
               vs_value,
               vs_const : if push_addr_param(pdc^.data) then
                           inc(l,target_os.size_of_pointer)
                          else
                           inc(l,align(pdc^.data^.size,target_os.stackalignment));
-{$endif}
             end;
             pdc:=pdc^.next;
           end;
@@ -2899,7 +2891,7 @@
                    argnames:='__dt__'
                  else
                    argnames := '';
-                 
+
                  while assigned(para) do
                    begin
                    if para^.data^.deftype = formaldef then
@@ -3262,7 +3254,10 @@
 
 {
   $Log$
-  Revision 1.83  1998-12-21 14:03:08  pierre
+  Revision 1.84  1998-12-30 13:41:12  peter
+    * released valuepara
+
+  Revision 1.83  1998/12/21 14:03:08  pierre
    * procvar stabs correction
 
   Revision 1.82  1998/12/19 00:23:52  florian

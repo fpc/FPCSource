@@ -832,10 +832,8 @@
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
-{$ifdef VALUEPARA}
          localaddress:=-1;
          islocalcopy:=false;
-{$endif}
          refs:=0;
          is_valid := 1;
          var_options:=0;
@@ -889,10 +887,8 @@
            address:=readlong
          else
            address:=0;
-{$ifdef VALUEPARA}
          localaddress:=-1;
          islocalcopy:=false;
-{$endif}
          definition:=readdefref;
          var_options:=readbyte;
          if (var_options and vo_is_C_var)<>0 then
@@ -951,53 +947,6 @@
       end;
 
 
-{$ifndef VALUEPARA}
-    function tvarsym.getsize : longint;
-      begin
-         { only if the definition is set, we could determine the   }
-         { size, this is if an error occurs while reading the type }
-         { also used for operator, this allows not to allocate the }
-         { return size twice                                       }
-         if assigned(definition) then
-           begin
-              case varspez of
-                 vs_value : begin
-                              if is_open_array(definition) then
-                                getsize:=target_os.size_of_pointer+target_os.size_of_longint
-                              else
-                                getsize:=definition^.size;
-                            end;
-                   vs_var : begin
-                            { open arrays push also the high valye }
-                              if is_open_array(definition) or
-                                 is_open_string(definition) then
-                                getsize:=target_os.size_of_pointer+target_os.size_of_longint
-                              else
-                                getsize:=target_os.size_of_pointer;
-                            end;
-                 vs_const : begin
-                              case definition^.deftype of
-                             stringdef,
-                             recorddef,
-                             objectdef,
-                                setdef : getsize:=target_os.size_of_pointer;
-                              arraydef : begin
-                                         { open arrays push also the high valye }
-                                           if is_open_array(definition) then
-                                             getsize:=target_os.size_of_pointer+target_os.size_of_longint
-                                           else
-                                             getsize:=target_os.size_of_pointer;
-                                         end;
-                              else
-                               getsize:=definition^.size;
-                              end;
-                            end;
-              end;
-           end
-         else
-           getsize:=0;
-      end;
-{$else}
     function tvarsym.getsize : longint;
       begin
         if assigned(definition) and (varspez=vs_value) then
@@ -1044,7 +993,6 @@
          else
            getpushsize:=0;
       end;
-{$endif}
 
 
     procedure tvarsym.insert_in_data;
@@ -1176,11 +1124,9 @@
                  end;
                parasymtable :
                  begin
-{$ifdef VALUEPARA}
                    { here we need the size of a push instead of the
                      size of the data }
                    l:=getpushsize;
-{$endif}
                    address:=owner^.datasize;
                    owner^.datasize:=align(owner^.datasize+l,target_os.stackalignment);
                  end
@@ -1233,14 +1179,10 @@
        else if (owner^.symtabletype=parasymtable) then
          begin
             case varspez of
-               vs_value : st := 'p';
                vs_var   : st := 'v';
-{$ifdef VALUEPARA}
+               vs_value,
                vs_const : if push_addr_param(definition) then
-{$else}
-               vs_const : if dont_copy_const_param(definition) then
-{$endif}
-                            st := 'v'{ should be 'i' but 'i' doesn't work }
+                            st := 'v' { should be 'i' but 'i' doesn't work }
                           else
                             st := 'p';
               end;
@@ -1805,7 +1747,10 @@
 
 {
   $Log$
-  Revision 1.65  1998-12-26 15:35:44  peter
+  Revision 1.66  1998-12-30 13:41:14  peter
+    * released valuepara
+
+  Revision 1.65  1998/12/26 15:35:44  peter
     + read/write of constnil
 
   Revision 1.64  1998/12/08 10:18:15  peter
