@@ -2996,6 +2996,8 @@ type
  end;
 
 function SelToFlat (AFarPtr: TFarPtr): pointer;
+function SelToFlat (AFarPtr: cardinal): pointer;
+{The second variant can make use of the register calling convention.}
 
 {Convert a 32 bit near pointer to a 16 bit far pointer.
  This procedure needs to be called from assembler.
@@ -5222,7 +5224,7 @@ procedure DosFlatToSel; cdecl;
 external 'DOSCALLS' index 425;
 
 {$ASMMODE INTEL}
-function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
+function SelToFlat (AFarPtr: cardinal): pointer; assembler;
  asm
   push ebx
   push esi
@@ -5230,6 +5232,18 @@ function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
 {$IFNDEF REGCALL}
   mov eax, AFarPtr
 {$ENDIF REGCALL}
+  call DosSelToFlat
+  pop edi
+  pop esi
+  pop ebx
+ end;
+
+function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
+ asm
+  push ebx
+  push esi
+  push edi
+  mov eax, AFarPtr
   call DosSelToFlat
   pop edi
   pop esi
@@ -5342,7 +5356,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.26  2004-05-23 21:47:34  hajny
+  Revision 1.27  2004-05-24 19:33:22  hajny
+    * regcall update
+
+  Revision 1.26  2004/05/23 21:47:34  hajny
     * final part of longint2cardinal fixes for doscalls
 
   Revision 1.24  2003/12/04 21:22:38  peter

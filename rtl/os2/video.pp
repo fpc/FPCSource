@@ -100,7 +100,7 @@ begin
 { Get the address of the videobuffer.}
   if VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
     begin
-    SysVideoBuf := SelToFlat (TFarPtr (SysVideoBuf));
+    SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
     SetHighBitBlink (true);
     end
   else
@@ -209,7 +209,7 @@ begin
     if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0) and
        (ScrSize = OrigScreenSize) then
       begin
-      PScr := SelToFlat (TFarPtr (PScr));
+      PScr := SelToFlat (cardinal (PScr));
       Move (OrigScreen^, PScr^, OrigScreenSize);
       VioShowBuf (0, ScrSize, 0);
       end;
@@ -248,7 +248,7 @@ begin
     if VioSetMode (MI, 0) = 0 then
       if VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
         begin
-        SysVideoBuf := SelToFlat (TFarPtr (SysVideoBuf));
+        SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
         SysVideoModeSelector := true;
         SetHighBitBlink (true);
         CheckCellHeight;
@@ -260,7 +260,7 @@ begin
         SysVideoModeSelector := false;
         VioSetMode (OldMI, 0);
         VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0);
-        SysVideoBuf := SelToFlat (TFarPtr (SysVideoBuf));
+        SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
         SetHighBitBlink (true);
         CheckCellHeight;
         SetCursorType (LastCursorType);
@@ -270,7 +270,7 @@ begin
       begin
       SysVideoModeSelector := false;
       VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0);
-      SysVideoBuf := SelToFlat (TFarPtr (SysVideoBuf));
+      SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
       SetHighBitBlink (true);
       SetCursorType (LastCursorType);
       end;
@@ -456,7 +456,7 @@ begin
   {Get the address of the original videobuffer and size.}
   if VioGetBuf (PScr, PWord (@OrigScreenSize)^, 0) = 0 then
     begin
-    PScr := SelToFlat (TFarPtr (PScr));
+    PScr := SelToFlat (cardinal (PScr));
     GetMem (OrigScreen, OrigScreenSize);
     Move (PScr^, OrigScreen^, OrigScreenSize);
     end;
@@ -470,7 +470,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-10-07 21:26:35  hajny
+  Revision 1.10  2004-05-24 19:33:22  hajny
+    * regcall update
+
+  Revision 1.9  2003/10/07 21:26:35  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.8  2003/10/03 21:46:41  peter
