@@ -476,7 +476,7 @@ implementation
 
       var
          hregister : tregister;
-         noswap,
+         noswap,popeax,popedx,
          pushed,mboverflow,cmpop : boolean;
          op : tasmop;
          flags : tresflags;
@@ -764,6 +764,35 @@ implementation
                      CGMessage(type_e_mismatch);
                    end;
 
+                   { filter MUL, which requires special handling }
+                   if op=A_MUL then
+                     begin
+                       popeax:=false;
+                       popedx:=false;
+                       p^.location.register:=getregister32;
+                       p^.location.loc:=LOC_REGISTER;
+                       if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
+                        begin
+                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                          popeax:=true;
+                        end;
+                       if not(R_EDX in unused) and (p^.location.register<>R_EDX)  then
+                        begin
+                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
+                          popedx:=true;
+                        end;
+                       emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
+                       emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
+                       exprasmlist^.concat(new(pai386,op_reg(A_MUL,S_L,R_EDI)));
+                       emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
+                       if popeax then
+                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+                       if popedx then
+                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+                       SetResultLocation(false,true,p);
+                       exit;
+                     end;
+
                    { left and right no register?  }
                    { then one must be demanded    }
                    if (p^.left^.location.loc<>LOC_REGISTER) and
@@ -832,7 +861,8 @@ implementation
                    { at this point, p^.location.loc should be LOC_REGISTER }
                    { and p^.location.register should be a valid register   }
                    { containing the left result                            }
-                   if p^.right^.location.loc<>LOC_REGISTER then
+
+                    if p^.right^.location.loc<>LOC_REGISTER then
                      begin
                         if (p^.treetype=subn) and p^.swaped then
                           begin
@@ -1366,7 +1396,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-10-21 08:39:56  florian
+  Revision 1.21  1998-10-25 23:32:48  peter
+    * fixed unsigned mul
+
+  Revision 1.20  1998/10/21 08:39:56  florian
     + ansistring operator +
     + $h and string[n] for n>255 added
     * small problem with TP fixed
