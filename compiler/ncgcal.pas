@@ -1405,17 +1405,11 @@ implementation
           inlineexitcode:=TAAsmoutput.Create;
           ps:=para_size;
           make_global:=false; { to avoid warning }
-          aktfilepos.line:=0;
-          aktfilepos.column:=0;
-          aktfilepos.fileindex:=0;
           genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
           if po_assembler in aktprocdef.procoptions then
             inlineentrycode.insert(Tai_marker.Create(asmblockstart));
           exprasmList.concatlist(inlineentrycode);
           secondpass(inlinetree);
-          aktfilepos.line:=0;
-          aktfilepos.column:=0;
-          aktfilepos.fileindex:=0;
           genexitcode(inlineexitcode,0,false,true);
           if po_assembler in aktprocdef.procoptions then
             inlineexitcode.concat(Tai_marker.Create(asmblockend));
@@ -1475,7 +1469,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-08-19 19:36:42  peter
+  Revision 1.14  2002-08-20 16:55:38  peter
+    * don't write (stabs)line info when inlining a procedure
+
+  Revision 1.13  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

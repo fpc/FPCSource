@@ -179,14 +179,7 @@ implementation
             curptree:=@p;
             p^.usableregs:=usablereg32;
 {$endif TEMPREGDEBUG}
-            if inlining_procedure then
-             begin
-               aktfilepos.line:=0;
-               aktfilepos.column:=0;
-               aktfilepos.fileindex:=0;
-             end
-            else
-             aktfilepos:=p.fileinfo;
+            aktfilepos:=p.fileinfo;
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef EXTDEBUG}
@@ -337,7 +330,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-08-19 19:36:44  peter
+  Revision 1.38  2002-08-20 16:55:38  peter
+    * don't write (stabs)line info when inlining a procedure
+
+  Revision 1.37  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

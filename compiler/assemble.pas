@@ -979,14 +979,17 @@ Implementation
 
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
+        InlineLevel,
         i,l : longint;
       begin
+        inlinelevel:=0;
         while assigned(hp) do
          begin
 {$ifdef GDB}
-           { write stabs }
-          if ((cs_debuginfo in aktmoduleswitches) or
-             (cs_gdb_lineinfo in aktglobalswitches)) then
+           { write stabs, no line info for inlined code }
+           if (inlinelevel=0) and
+              ((cs_debuginfo in aktmoduleswitches) or
+               (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectalloc.currsec<>sec_none) and
                  not(hp.typ in  [
@@ -1145,6 +1148,11 @@ Implementation
              ait_cut :
                if SmartAsm then
                 break;
+             ait_marker :
+               if tai_marker(hp).kind=InlineStart then
+                 inc(InlineLevel)
+               else if tai_marker(hp).kind=InlineEnd then
+                 dec(InlineLevel);
            end;
            hp:=Tai(hp.next);
          end;
@@ -1154,18 +1162,21 @@ Implementation
 
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
+        InlineLevel,
         l  : longint;
 {$ifdef i386}
         co : comp;
 {$endif i386}
       begin
+        inlinelevel:=0;
         { main loop }
         while assigned(hp) do
          begin
 {$ifdef GDB}
-           { write stabs }
-          if ((cs_debuginfo in aktmoduleswitches) or
-             (cs_gdb_lineinfo in aktglobalswitches)) then
+           { write stabs, no line info for inlined code }
+           if (inlinelevel=0) and
+              ((cs_debuginfo in aktmoduleswitches) or
+               (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectdata.currsec<>sec_none) and
                  not(hp.typ in [
@@ -1277,6 +1288,11 @@ Implementation
              ait_cut :
                if SmartAsm then
                 break;
+             ait_marker :
+               if tai_marker(hp).kind=InlineStart then
+                 inc(InlineLevel)
+               else if tai_marker(hp).kind=InlineEnd then
+                 dec(InlineLevel);
            end;
            hp:=Tai(hp.next);
          end;
@@ -1592,7 +1608,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-08-12 15:08:39  carl
+  Revision 1.43  2002-08-20 16:55:38  peter
+    * don't write (stabs)line info when inlining a procedure
+
+  Revision 1.42  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -338,10 +338,10 @@ var
                 (cs_gdb_lineinfo in aktglobalswitches) then
                WriteFileLineInfo(hp.fileinfo);
 {$endif GDB}
-
-             if do_line then
+             { no line info for inlined code }
+             if do_line and (inlinelevel=0) then
               begin
-              { load infile }
+                { load infile }
                 if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
                  begin
                    infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
@@ -800,7 +800,10 @@ var
 end.
 {
   $Log$
-  Revision 1.10  2002-08-18 22:16:14  florian
+  Revision 1.11  2002-08-20 16:55:38  peter
+    * don't write (stabs)line info when inlining a procedure
+
+  Revision 1.10  2002/08/18 22:16:14  florian
     + the ppc gas assembler writer adds now registers aliases
       to the assembler file
 
