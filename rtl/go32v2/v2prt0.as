@@ -396,15 +396,9 @@ brk_common:
         movl    %eax, %ebx                                    /* size not limit */
         shrl    $16, %ebx                                      /* BX:CX size */
 
-        movw    $0x0902, %ax                                /* disable interrupts */
+        movw    $0x0900, %ax                                /* disable interrupts */
         int     $0x31
         movl    %eax,___sbrk_interrupt_state
-        testb   %al,%al
-        jz      interrupts_already_disabled
-        movw    $0x0900,%eax
-        int     $0x31
-interrupts_already_disabled:
-
         lcall   sbrk16_api_ofs
         setc    %dl                                          /* Save carry */
 
@@ -456,11 +450,7 @@ interrupts_already_disabled:
         int     $0x31
 
         movl    ___sbrk_interrupt_state,%eax                /* restore interrupts */
-        testb   %al,%al
-        je      do_not_enable
-        movw    $0x0901,%eax
         int     $0x31
-do_not_enable:
         movl    ___djgpp_selector_limit, %edx
 12:     incl    %edx                                        /* Size not limit */
         testb   $0x60, __crt0_startup_flags     /* include/crt0.h */
@@ -916,7 +906,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.11  2000-02-27 11:21:17  pierre
+  Revision 1.12  2000-02-28 11:17:48  pierre
+   * remove Jonas unnecessary (but correct) code
+
+  Revision 1.11  2000/02/27 11:21:17  pierre
    * Enormous bug in mouse fix fixed
 
   Revision 1.10  2000/02/23 12:46:11  jonas
