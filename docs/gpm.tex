@@ -151,7 +151,7 @@ None.
 \seefl{Gpm\_StrictSingle}{GpmStrictSingle},
 \seefl{Gpm\_AnySingle}{GpmAnySingle},
 \seefl{Gpm\_StrictDouble}{GpmStrictDouble},
-\seefl{Gpm\_StrictTriple{GpmStrictTriple},
+\seefl{Gpm\_StrictTriple}{GpmStrictTriple},
 \seefl{Gpm\_AnyTriple}{GpmAnyTriple}
 \end{functionl}
 
@@ -166,11 +166,11 @@ the \var{GPM\_SINGLE} flag, \var{False} otherwise.
 \seefl{Gpm\_StrictSingle}{GpmStrictSingle},
 \seefl{Gpm\_AnyDoubmle}{GpmAnyDouble},
 \seefl{Gpm\_StrictDouble}{GpmStrictDouble},
-\seefl{Gpm\_StrictTriple{GpmStrictTriple},
+\seefl{Gpm\_StrictTriple}{GpmStrictTriple},
 \seefl{Gpm\_AnyTriple}{GpmAnyTriple}
 \end{functionl}
 
-\begin{functionl}{Gpm_AnyTriple}{GpmAnyTriple}
+\begin{functionl}{Gpm\_AnyTriple}{GpmAnyTriple}
 \Declaration
 function Gpm\_AnyTriple(EventType : longint) : boolean;
 \Description
@@ -179,11 +179,11 @@ function Gpm\_AnyTriple(EventType : longint) : boolean;
 \seefl{Gpm\_StrictSingle}{GpmStrictSingle},
 \seefl{Gpm\_AnyDoubmle}{GpmAnyDouble},
 \seefl{Gpm\_StrictDouble}{GpmStrictDouble},
-\seefl{Gpm\_StrictTriple{GpmStrictTriple},
+\seefl{Gpm\_StrictTriple}{GpmStrictTriple},
 \seefl{Gpm\_AnySingle}{GpmAnySingle}
 \end{functionl}
 
-\begin{functionl}{Gpm_Close}{GpmClose}
+\begin{functionl}{Gpm\_Close}{GpmClose}
 \Declaration
 function Gpm\_Close:longint;cdecl;external;
 \Description
@@ -202,12 +202,12 @@ None.
 \Declaration
 function Gpm\_FitValues(var x,y:longint):longint;cdecl;external;
 \Description
-\var{Gpm_fitValues} changes \var{x} and \var{y} so they fit in the visible
+\var{Gpm\_fitValues} changes \var{x} and \var{y} so they fit in the visible
 screen. The actual mouse pointer is not affected by this function.
 \Errors
 None.
 \SeeAlso
-\seefl{Gpm\_FitValuesM}{Gpm\_FitValuesM},
+\seefl{Gpm\_FitValuesM}{GpmFitValuesM},
 \end{functionl}
 
 \begin{functionl}{Gpm\_FitValuesM}{GpmFitValuesM}
@@ -223,11 +223,11 @@ None.
 \seefl{Gpm\_FitValues}{GpmFitValues},
 \end{functionl}
 
-\begin{functionl}{Gpm_GetEvent}{GpmGetEvent}
+\begin{functionl}{Gpm\_GetEvent}{GpmGetEvent}
 \Declaration
 function Gpm\_GetEvent(var Event:TGpmEvent):longint;cdecl;external;
 \Description
-\var{Gpm\_GetEvent} Reads an event from the file descriptor \var{gpm_fd}.
+\var{Gpm\_GetEvent} Reads an event from the file descriptor \var{gpm\_fd}.
 This file is only for internal use and should never be called by a client
 application. 
 
@@ -376,39 +376,73 @@ None.
 \Declaration
 function Gpm\_RaiseRoi(which:PGpmRoi; before:PGpmRoi):PGpmRoi;cdecl;external;
 \Description
-\var{Gpm\_RaiseRoi} raises the {\em region of interest} \var{which}
+\var{Gpm\_RaiseRoi} raises the {\em region of interest} \var{which} till it
+is on top of region \var{before}. If \var{before} is nil then the region is
+put on top of the stack. The returned value is the top of the stack.
 \Errors
+None.
 \SeeAlso
+\seefl{Gpm\_PushRoi}{GpmPushRoi},
+\seefl{Gpm\_PopRoi}{GpmPopRoi}, 
+\seefl{Gpm\_LowerRoi}{GpmLowerRoi} 
 \end{functionl}
 
-\begin{functionl}
+\begin{functionl}{Gpm_Repeat}{GpmRepeat}
 \Declaration
-function Gpm_Repeat(millisec:longint):longint;cdecl;external;
+function Gpm\_Repeat(millisec:longint):longint;cdecl;external;
 \Description
+\var{Gpm\_Repeat} returns 1 of no mouse event arrives in the next
+\var{millisec} miiliseconds, it returns 0 otherwise.
 \Errors
+None.
 \SeeAlso
+\seefl{Gpm\_GetEvent}{GpmGetEvent}
 \end{functionl}
 
-\begin{functionl}
+\begin{functionl}{Gpm\_StrictDouble}{GpmStrictDouble}
 \Declaration
-function Gpm_StrictDouble(EventType : longint) : boolean;
+function Gpm\_StrictDouble(EventType : longint) : boolean;
 \Description
+\var{Gpm\_StrictDouble} returns true if \var{EventType} contains only a 
+doubleclick event, \var{False} otherwise.
 \Errors
+None.
 \SeeAlso
+\seefl{Gpm\_StrictSingle}{GpmStrictSingle},
+\seefl{Gpm\_AnyTriple}{GpmAnyTriple},
+\seefl{Gpm\_AnyDouble}{GpmAnyDouble},
+\seefl{Gpm\_StrictTriple}{GpmStrictTriple},
+\seefl{Gpm\_AnySingle}{GpmAnySingle}
 \end{functionl}
 
-\begin{functionl}
+\begin{functionl}{Gpm\_StrictSingle}{GpmStrictSingle}
 \Declaration
-function Gpm_StrictSingle(EventType : longint) : boolean;
+function Gpm\_StrictSingle(EventType : longint) : boolean;
 \Description
+\var{Gpm\_StrictDouble} returns \var{True} if \var{EventType} contains only a 
+singleclick event, \var{False} otherwise. 
 \Errors
+None.
 \SeeAlso
+\seefl{Gpm\_AnyTriple}{GpmAnyTriple},
+\seefl{Gpm\_StrictDouble}{GpmStrictDouble},
+\seefl{Gpm\_AnyDouble}{GpmAnyDouble}, 
+\seefl{Gpm\_StrictTriple}{GpmStrictTriple},
+\seefl{Gpm\_AnySingle}{GpmAnySingle}
 \end{functionl}
 
-\begin{functionl}
+\begin{functionl}{Gpm\_StrictTriple}{GpmStrictTriple}
 \Declaration
-function Gpm_StrictTriple(EventType : longint) : boolean;
+function Gpm\_StrictTriple(EventType : longint) : boolean;
 \Description
+\var{Gpm\_StrictTriple} returns true if \var{EventType} contains only a
+triple click event, \var{False} otherwise.
 \Errors
+None.
 \SeeAlso
+\seefl{Gpm\_AnyTriple}{GpmAnyTriple},
+\seefl{Gpm\_StrictDouble}{GpmStrictDouble},
+\seefl{Gpm\_AnyDouble}{GpmAnyDouble}, 
+\seefl{Gpm\_StrictSingle}{GpmStrictSingle},
+\seefl{Gpm\_AnySingle}{GpmAnySingle}
 \end{functionl}
