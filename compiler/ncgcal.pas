@@ -323,11 +323,6 @@ implementation
                  else
                    push_value_para;
                end
-             { filter array of const c styled args }
-             else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
-               begin
-                 { nothing, everything is already pushed }
-               end
              { formal def }
              else if (paraitem.paratype.def.deftype=formaldef) then
                begin
@@ -1122,7 +1117,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2003-11-23 17:05:15  peter
+  Revision 1.141  2003-11-23 17:39:33  peter
+    * removed obsolete nf_cargs flag
+
+  Revision 1.140  2003/11/23 17:05:15  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last

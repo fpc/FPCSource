@@ -1024,18 +1024,7 @@ implementation
                          hp.left:=ctypeconvnode.create(hp.left,s32bittype);
                      end;
                    floatdef :
-                     begin
-                       { C uses 64bit floats }
-                       if nf_cargs in flags then
-                         hp.left:=ctypeconvnode.create(hp.left,s64floattype)
-                       else
-                         hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
-                     end;
-                   stringdef :
-                     begin
-                       if nf_cargs in flags then
-                         hp.left:=ctypeconvnode.create(hp.left,charpointertype);
-                     end;
+                     hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
                    procvardef :
                      hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                    variantdef,
@@ -1251,7 +1240,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-10-28 15:36:01  peter
+  Revision 1.117  2003-11-23 17:39:33  peter
+    * removed obsolete nf_cargs flag
+
+  Revision 1.116  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.115  2003/10/23 14:44:07  peter

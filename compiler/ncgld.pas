@@ -704,8 +704,6 @@ implementation
         tmpreg  : tregister;
         paraloc : tparalocation;
       begin
-        if nf_cargs in flags then
-          internalerror(200310054);
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
          elesize:=8
@@ -892,7 +890,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-10-29 19:48:50  peter
+  Revision 1.99  2003-11-23 17:39:33  peter
+    * removed obsolete nf_cargs flag
+
+  Revision 1.98  2003/10/29 19:48:50  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring
