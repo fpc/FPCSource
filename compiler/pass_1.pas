@@ -1825,7 +1825,8 @@ unit pass_1;
 
          if (p^.left^.resulttype^.deftype=stringdef) and (assigned(p^.right^.resulttype)) then
           begin
-            if not (p^.right^.resulttype^.deftype in [stringdef,orddef]) then
+            if not ((p^.right^.resulttype^.deftype=stringdef) or
+                    ((p^.right^.resulttype^.deftype=orddef) {and (porddef(p^.right^.resulttype)^.typ=uchar)})) then
              begin
                p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
                firstpass(p^.right);
@@ -3724,7 +3725,7 @@ unit pass_1;
                       { check type }
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
                          ((p^.left^.resulttype^.deftype=orddef) and
-                          (porddef(p^.left^.resulttype)^.typ in [bool8bit,u8bit,s8bit,
+                          (porddef(p^.left^.resulttype)^.typ in [uchar,bool8bit,u8bit,s8bit,
                              bool16bit,u16bit,s16bit,bool32bit,u32bit,s32bit])) then
                         begin
                            { two paras ? }
@@ -4296,13 +4297,20 @@ unit pass_1;
                      (hp^.left^.treetype<>labeln) then
                      begin
                         { use correct line number }
+{$ifdef NEWINPUT}
+                        aktfilepos:=hp^.left^.fileinfo;
+{$else}
                         set_current_file_line(hp^.left);
+{$endif}
                         disposetree(hp^.left);
                         hp^.left:=nil;
                         Message(cg_w_unreachable_code);
-
                         { old lines }
-                        set_current_file_line(hp^.right);
+{$ifdef NEWINPUT}
+                        aktfilepos:=hp^.right^.fileinfo;
+{$else}
+                        set_current_file_line(hp^.left);
+{$endif}
                      end;
                 end;
               if assigned(hp^.right) then
@@ -4974,7 +4982,11 @@ unit pass_1;
 {$endif extdebug}
          { if we save there the whole stuff, }
          { line numbers become more correct  }
+{$ifdef NEWINPUT}
+         oldpos:=aktfilepos;
+{$else}
          get_cur_file_pos(oldpos);
+{$endif NEWINPUT}
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
 {$ifdef extdebug}
@@ -4991,7 +5003,11 @@ unit pass_1;
 {$endif extdebug}
 
          codegenerror:=false;
+{$ifdef NEWINPUT}
+         aktfilepos:=p^.fileinfo;
+{$else}
          set_cur_file_pos(p^.fileinfo);
+{$endif NEWINPUT}
          aktswitches:=p^.pragmas;
 
          if not(p^.error) then
@@ -5019,7 +5035,11 @@ unit pass_1;
            inc(p^.firstpasscount);
 {$endif extdebug}
          aktswitches:=oldswitches;
+{$ifdef NEWINPUT}
+         aktfilepos:=oldpos;
+{$else}
          set_cur_file_pos(oldpos);
+{$endif NEWINPUT}
       end;
 
     function do_firstpass(var p : ptree) : boolean;
@@ -5044,7 +5064,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.35  1998-06-25 14:04:19  peter
+  Revision 1.36  1998-07-07 11:20:00  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.35  1998/06/25 14:04:19  peter
     + internal inc/dec
 
   Revision 1.34  1998/06/25 08:48:14  florian

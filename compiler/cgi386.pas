@@ -235,10 +235,15 @@ implementation
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
+{$ifdef NEWINPUT}
+         oldpos:=aktfilepos;
+         aktfilepos:=p^.fileinfo;
+{$else}
          get_cur_file_pos(oldpos);
+         set_cur_file_pos(p^.fileinfo);
+{$endif NEWINPUT}
 
          codegenerror:=false;
-         set_cur_file_pos(p^.fileinfo);
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
@@ -249,7 +254,11 @@ implementation
          else
            codegenerror:=true;
          aktswitches:=oldswitches;
+{$ifdef NEWINPUT}
+         aktfilepos:=oldpos;
+{$else}
          set_cur_file_pos(oldpos);
+{$endif NEWINPUT}
       end;
 
 
@@ -331,8 +340,10 @@ implementation
 
       begin
          cleartempgen;
+{$ifndef NEWINPUT}
          oldis:=current_module^.current_inputfile;
          oldnr:=current_module^.current_inputfile^.line_no;
+{$endif}
          { when size optimization only count occurrence }
          if cs_littlesize in aktswitches then
            t_times:=1
@@ -398,19 +409,18 @@ implementation
                         for i:=1 to maxvarregs do
                           regvars[i]:=nil;
                         parasym:=false;
-{$ifdef tp}
+                      {$ifdef tp}
                         symtablestack^.foreach(searchregvars);
-{$else}
+                      {$else}
                         symtablestack^.foreach(@searchregvars);
-{$endif}
+                      {$endif}
                         { copy parameter into a register ? }
                         parasym:=true;
-{$ifdef tp}
+                      {$ifdef tp}
                         symtablestack^.next^.foreach(searchregvars);
-{$else}
+                      {$else}
                         symtablestack^.next^.foreach(@searchregvars);
-{$endif}
-
+                      {$endif}
                         { hold needed registers free }
                         for i:=maxvarregs downto maxvarregs-p^.registers32+1 do
                           regvars[i]:=nil;
@@ -504,14 +514,19 @@ implementation
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
          make_const_global:=false;
+{$ifndef NEWINPUT}
          current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
+{$endif}
       end;
 
 end.
 {
   $Log$
-  Revision 1.39  1998-06-12 10:32:23  pierre
+  Revision 1.40  1998-07-07 11:19:52  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.39  1998/06/12 10:32:23  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

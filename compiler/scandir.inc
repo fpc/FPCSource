@@ -86,7 +86,8 @@ const
       preprocpat    : string;
       preproc_token : ttoken;
 
-    function read_preproc : ttoken;
+{$ifndef NEWINPUT}
+    function readpreproc:ttoken;
       begin
          skipspace;
          case c of
@@ -94,74 +95,74 @@ const
         'a'..'z',
     '_','0'..'9' : begin
                      preprocpat:=readid;
-                     read_preproc:=ID;
+                     readpreproc:=ID;
                    end;
              '(' : begin
                      readchar;
-                     read_preproc:=LKLAMMER;
+                     readpreproc:=LKLAMMER;
                    end;
              ')' : begin
                      readchar;
-                     read_preproc:=RKLAMMER;
+                     readpreproc:=RKLAMMER;
                    end;
              '+' : begin
                      readchar;
-                     read_preproc:=PLUS;
+                     readpreproc:=PLUS;
                    end;
              '-' : begin
                      readchar;
-                     read_preproc:=MINUS;
+                     readpreproc:=MINUS;
                    end;
              '*' : begin
                      readchar;
-                     read_preproc:=STAR;
+                     readpreproc:=STAR;
                    end;
              '/' : begin
                      readchar;
-                     read_preproc:=SLASH;
+                     readpreproc:=SLASH;
                    end;
              '=' : begin
                      readchar;
-                     read_preproc:=EQUAL;
+                     readpreproc:=EQUAL;
                    end;
              '>' : begin
                      readchar;
                      if c='=' then
                       begin
                         readchar;
-                        read_preproc:=GTE;
+                        readpreproc:=GTE;
                       end
                      else
-                      read_preproc:=GT;
+                      readpreproc:=GT;
                    end;
              '<' : begin
                      readchar;
                      case c of
                       '>' : begin
                               readchar;
-                              read_preproc:=UNEQUAL;
+                              readpreproc:=UNEQUAL;
                             end;
                       '=' : begin
                               readchar;
-                              read_preproc:=LTE;
+                              readpreproc:=LTE;
                             end;
-                     else   read_preproc:=LT;
+                     else   readpreproc:=LT;
                      end;
                    end;
              #26 : Message(scan_f_end_of_file);
          else
           begin
-            read_preproc:=_EOF;
+            readpreproc:=_EOF;
           end;
          end;
       end;
-
+{$endif}
 
     procedure preproc_consume(t : ttoken);
       begin
-         if t<>preproc_token then
-          Message(scan_e_preproc_syntax_error);
-         preproc_token:=read_preproc;
+        if t<>preproc_token then
+         Message(scan_e_preproc_syntax_error);
+        preproc_token:={$ifdef NEWINPUT}current_scanner^.{$endif}readpreproc;
       end;
 
     function read_expr : string;forward;
@@ -342,19 +343,6 @@ const
 
 
     procedure dir_conditional(t:tdirectivetoken);
-
-       procedure newpreproc(isifdef,a:boolean;const s:string;w:tmsgconst);
-       begin
-         preprocstack:=new(ppreprocstack,init(isifdef,
-           ((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
-         preprocstack^.name:=s;
-         preprocstack^.line_nb:=current_module^.current_inputfile^.line_no;
-         if preprocstack^.accept then
-          Message2(w,preprocstack^.name,'accepted')
-         else
-          Message2(w,preprocstack^.name,'rejected');
-       end;
-
       var
         hs    : string;
         mac   : pmacrosym;
@@ -364,50 +352,37 @@ const
          begin
            case t of
    _DIR_ENDIF : begin
-                { we can always accept an ELSE }
-                  if assigned(preprocstack) then
-                   begin
-                     Message1(scan_c_endif_found,preprocstack^.name);
-                     if not preprocstack^.isifdef then
-                      popstack;
-                   end
-                  else
-                   Message(scan_e_endif_without_if);
-                { now pop the condition }
-                  if assigned(preprocstack) then
-                   begin
-                   { we only use $ifdef in the stack }
-                     if preprocstack^.isifdef then
-                      popstack
-                     else
-                      Message(scan_e_too_much_endifs);
-                   end
-                  else
-                   Message(scan_e_endif_without_if);
+                  {$ifdef NEWINPUT}current_scanner^.{$endif}poppreprocstack;
                 end;
     _DIR_ELSE : begin
-                  if assigned(preprocstack) then
-                   begin
-                     preprocstack:=new(ppreprocstack,init(false,
-                       not(preprocstack^.accept) and
-                       ((preprocstack^.next=nil) or (preprocstack^.next^.accept)),preprocstack));
-                     preprocstack^.line_nb:=current_module^.current_inputfile^.line_no;
-                     preprocstack^.name:=preprocstack^.next^.name;
-                     if preprocstack^.accept then
-                      Message2(scan_c_else_found,preprocstack^.name,'accepted')
-                     else
-                      Message2(scan_c_else_found,preprocstack^.name,'rejected');
-                   end
-                  else
-                   Message(scan_e_endif_without_if);
+                  {$ifdef NEWINPUT}current_scanner^.{$endif}elsepreprocstack;
                 end;
    _DIR_IFDEF : begin
+{$ifdef NEWINPUT}
+                  current_scanner^.skipspace;
+                  hs:=current_scanner^.readid;
+                  mac:=pmacrosym(macros^.search(hs));
+                  current_scanner^.addpreprocstack(assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
+{$else}
                   skipspace;
                   hs:=readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  newpreproc(true,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
+                  addpreprocstack(assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
+{$endif}
                 end;
    _DIR_IFOPT : begin
+{$ifdef NEWINPUT}
+                  current_scanner^.skipspace;
+                  hs:=current_scanner^.readid;
+                  if (length(hs)=1) and (c in ['-','+']) then
+                   begin
+                     found:=CheckSwitch(hs[1],c);
+                     current_scanner^.readchar; {read + or -}
+                   end
+                  else
+                   Message(scan_w_illegal_switch);
+                  current_scanner^.addpreprocstack(found,hs,scan_c_ifopt_found);
+{$else}
                   skipspace;
                   hs:=readid;
                   if (length(hs)=1) and (c in ['-','+']) then
@@ -417,23 +392,53 @@ const
                    end
                   else
                    Message(scan_w_illegal_switch);
-                  newpreproc(true,found,hs,scan_c_ifopt_found);
+                  addpreprocstack(found,hs,scan_c_ifopt_found);
+{$endif}
                 end;
       _DIR_IF : begin
+{$ifdef NEWINPUT}
+                  current_scanner^.skipspace;
+                  { start preproc expression scanner }
+                  preproc_token:=current_scanner^.readpreproc;
+                  hs:=read_expr;
+                  current_scanner^.addpreprocstack(hs<>'0',hs,scan_c_if_found);
+{$else}
                   skipspace;
                   { start preproc expression scanner }
-                  preproc_token:=read_preproc;
+                  preproc_token:=readpreproc;
                   hs:=read_expr;
-                  newpreproc(true,hs<>'0',hs,scan_c_if_found);
+                  addpreprocstack(hs<>'0',hs,scan_c_if_found);
+{$endif}
                 end;
   _DIR_IFNDEF : begin
+{$ifdef NEWINPUT}
+                  current_scanner^.skipspace;
+                  hs:=current_scanner^.readid;
+                  mac:=pmacrosym(macros^.search(hs));
+                  current_scanner^.addpreprocstack(not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
+{$else}
                   skipspace;
                   hs:=readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  newpreproc(true,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
+                  addpreprocstack(not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
+{$endif}
                 end;
            end;
          { accept the text ? }
+{$ifdef NEWINPUT}
+           if (current_scanner^.preprocstack=nil) or current_scanner^.preprocstack^.accept then
+            break
+           else
+            begin
+              Message(scan_c_skipping_until);
+              repeat
+                current_scanner^.skipuntildirective;
+                t:=Get_Directive(current_scanner^.readid);
+              until is_conditional(t);
+              Message1(scan_d_handling_switch,'$'+directive[t]);
+            end;
+         end;
+{$else}
            if (preprocstack=nil) or preprocstack^.accept then
             break
            else
@@ -445,6 +450,7 @@ const
               until is_conditional(t);
             end;
          end;
+{$endif}
       end;
 
 
@@ -454,9 +460,11 @@ const
         hs2,
         hs  : string;
         mac : pmacrosym;
+        macropos : longint;
+        macrobuffer : pmacrobuffer;
       begin
-        skipspace;
-        hs:=readid;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
         mac:=pmacrosym(macros^.search(hs));
         if not assigned(mac) then
           begin
@@ -485,20 +493,21 @@ const
               Message(scan_e_keyword_cant_be_a_macro);
              pattern:=hs2;
            { !!!!!! handle macro params, need we this? }
-             skipspace;
+             {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
            { may be a macro? }
              if c=':' then
                begin
-                  readchar;
+                  {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
                   if c='=' then
                     begin
-                       { first char }
-                       readchar;
+                       new(macrobuffer);
                        macropos:=0;
+                       { first char }
+                       {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
                        while (c<>'}') do
                          begin
                             macrobuffer^[macropos]:=c;
-                            readchar;
+                            {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
                             if c=#26 then Message(scan_f_end_of_file);
                             inc(macropos);
                             if macropos>maxmacrolen then
@@ -512,6 +521,7 @@ const
                        mac^.buflen:=macropos;
                        { copy the text }
                        move(macrobuffer^,mac^.buftext^,macropos);
+                       dispose(macrobuffer);
                     end;
                end;
           end;
@@ -523,8 +533,8 @@ const
         hs  : string;
         mac : pmacrosym;
       begin
-        skipspace;
-        hs:=readid;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
         mac:=pmacrosym(macros^.search(hs));
         if not assigned(mac) then
           begin
@@ -560,8 +570,8 @@ const
     _DIR_MESSAGE,
        _DIR_INFO : w:=scan_i_user_defined;
         end;
-        skipspace;
-        Message1(w,readcomment);
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        Message1(w,{$ifdef NEWINPUT}current_scanner^.{$endif}readcomment);
       end;
 
 
@@ -576,7 +586,7 @@ const
 {$endif}
    _DIR_SMARTLINK : sw:=cs_smartlink;
         end;
-        skipspace;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
         if c='-' then
          aktswitches:=aktswitches-[sw]
         else
@@ -593,12 +603,29 @@ const
         hp    : pinputfile;
         found : boolean;
       begin
-        skipspace;
-        hs:=readcomment;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readcomment;
         while (hs<>'') and (hs[length(hs)]=' ') do
          dec(byte(hs[0]));
         hs:=FixFileName(hs);
         fsplit(hs,path,name,ext);
+{$ifdef NEWINPUT}
+      { first look in the path of _d then currentmodule }
+        path:=search(hs,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
+      { shutdown current file }
+        current_scanner^.close;
+      { load new file }
+        hp:=new(pinputfile,init(path+name+ext));
+        current_scanner^.addfile(hp);
+        if not current_scanner^.open then
+         Message1(scan_f_cannot_open_includefile,hs);
+        status.currentsource:=current_scanner^.inputfile^.name^;
+        Message1(scan_u_start_include_file,current_scanner^.inputfile^.name^);
+        current_scanner^.reload;
+      { register for refs }
+        current_module^.sourcefiles.register_file(hp);
+        current_module^.current_index:=hp^.ref_index;
+{$else}
       { first look in the path of _d then currentmodule }
         path:=search(hs,path+';'+current_module^.current_inputfile^.path^+';'+includesearchpath,found);
         hp:=new(pinputfile,init(path,name,ext));
@@ -617,6 +644,7 @@ const
          end
         else
          Message1(scan_f_cannot_open_includefile,hs);
+{$endif NEWINPUT}
       end;
 
 
@@ -627,29 +655,28 @@ const
 
     procedure dir_linkobject(t:tdirectivetoken);
       begin
-        skipspace;
-        current_module^.linkofiles.insert(FixFileName(readstring));
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}readstring;
+        current_module^.linkofiles.insert(FixFileName(orgpattern));
       end;
 
 
     procedure dir_linklib(t:tdirectivetoken);
       begin
-        skipspace;
-        current_module^.linkSharedLibs.insert(readstring);
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}readstring;
+        current_module^.linkSharedLibs.insert(orgpattern);
       end;
 
 
     procedure dir_outputformat(t:tdirectivetoken);
-      var
-        hs : string;
       begin
         if not current_module^.in_main then
          Message(scan_w_switch_is_global)
         else
           begin
-            skipspace;
-            hs:=readid;
-            if set_string_asm(hs) then
+            {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+            if set_string_asm({$ifdef NEWINPUT}current_scanner^.{$endif}readid) then
              aktoutputformat:=target_asm.id
             else
              Message(scan_w_illegal_switch);
@@ -661,10 +688,10 @@ const
       var
         hs : string;
       begin
-        skipspace;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
         if upcase(c)='N' then
          begin
-           hs:=readid;
+           hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
            if hs='NORMAL' then
             aktpackrecords:=2
            else
@@ -672,7 +699,7 @@ const
          end
         else
          begin
-           case readval of
+           case {$ifdef NEWINPUT}current_scanner^.{$endif}readval of
             1 : aktpackrecords:=1;
             2 : aktpackrecords:=2;
             4 : aktpackrecords:=4;
@@ -692,14 +719,13 @@ const
       var
         s : string;
       begin
-        skipspace;
-        s:=readid;
+        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        s:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
         if s='DEFAULT' then
          aktasmmode:=initasmmode
         else
          if not set_string_asmmode(s,aktasmmode) then
           Comment(V_Warning,'Unsupported asm mode specified '+s);
-
       end;
 
     procedure dir_oldasmmode(t:tdirectivetoken);
@@ -726,7 +752,6 @@ const
         end;
       { c contains the next char, a + or - would be fine }
         HandleSwitch(sw,c);
-        ReadComment;
       end;
 
 
@@ -775,12 +800,13 @@ const
 
     procedure handledirectives;
       var
-        t     : tdirectivetoken;
-        p     : tdirectiveproc;
-        hs    : string;
+        t  : tdirectivetoken;
+        p  : tdirectiveproc;
+        hs : string;
       begin
-         readchar; {Remove the $}
-         hs:=readid;
+         {$ifdef NEWINPUT}current_scanner^.{$endif}gettokenpos;
+         {$ifdef NEWINPUT}current_scanner^.{$endif}readchar; {Remove the $}
+         hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
          Message1(scan_d_handling_switch,'$'+hs);
          if hs='' then
           Message1(scan_w_illegal_switch,'$'+hs);
@@ -788,11 +814,11 @@ const
          while (length(hs)=1) and (c in ['-','+']) do
           begin
             HandleSwitch(hs[1],c);
-            readchar; {Remove + or -}
+            {$ifdef NEWINPUT}current_scanner^.{$endif}readchar; {Remove + or -}
             if c=',' then
              begin
-               readchar;   {Remove , }
-               hs:=readid; {Check for multiple switches on one line}
+               {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;   {Remove , }
+               hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid; {Check for multiple switches on one line}
                Message1(scan_d_handling_switch,'$'+hs);
              end
             else
@@ -815,14 +841,17 @@ const
             else
              Message1(scan_w_illegal_directive,'$'+hs);
           { conditionals already read the comment }
-            if (comment_level>0) then
-             readcomment;
+            if ({$ifdef NEWINPUT}current_scanner^.{$endif}comment_level>0) then
+             {$ifdef NEWINPUT}current_scanner^.{$endif}readcomment;
           end;
       end;
 
 {
   $Log$
-  Revision 1.11  1998-06-04 23:51:59  peter
+  Revision 1.12  1998-07-07 11:20:10  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.11  1998/06/04 23:51:59  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

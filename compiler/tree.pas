@@ -283,7 +283,9 @@ unit tree;
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
+{$ifndef NEWINPUT}
     procedure set_current_file_line(_to : ptree);
+{$endif}
     procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
 {$ifdef extdebug}
     procedure compare_trees(oldp,p : ptree);
@@ -574,6 +576,7 @@ unit tree;
            _to^.fileinfo:=from^.fileinfo;
       end;
 
+{$ifndef NEWINPUT}
     procedure set_current_file_line(_to : ptree);
 
       begin
@@ -582,6 +585,7 @@ unit tree;
          current_module^.current_inputfile^.line_no:=_to^.fileinfo.line;
          current_module^.current_index:=_to^.fileinfo.fileindex;
       end;
+{$endif}
 
    procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
      begin
@@ -1605,7 +1609,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.17  1998-06-22 08:59:03  daniel
+  Revision 1.18  1998-07-07 11:20:18  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.17  1998/06/22 08:59:03  daniel
   - Removed pool of nodes.
 
   Revision 1.16  1998/06/12 14:50:49  peter

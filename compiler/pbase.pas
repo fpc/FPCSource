@@ -69,7 +69,7 @@ unit pbase;
     procedure consume(i : ttoken);
 
     function tokenstring(i : ttoken) : string;
-    
+
     { consumes all tokens til atoken (for error recovering }
     procedure consume_all_until(atoken : ttoken);
 
@@ -97,7 +97,11 @@ unit pbase;
       procedure syntaxerror(s : string);
 
         begin
+{$ifdef NEWINPUT}
+           Message2(scan_f_syn_expected,tostr(aktfilepos.column),s);
+{$else}
            Message2(scan_f_syn_expected,tostr(get_current_col),s);
+{$endif}
         end;
 
       { This is changed since I changed the order of token
@@ -151,7 +155,7 @@ unit pbase;
            begin
              if token=_END then
                 last_endtoken_filepos:=tokenpos;
-             token:=yylex;
+             token:={$ifdef NEWINPUT}current_scanner^.{$endif}yylex;
            end;
       end;
 
@@ -225,7 +229,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-06-05 14:37:31  pierre
+  Revision 1.11  1998-07-07 11:20:02  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.10  1998/06/05 14:37:31  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 

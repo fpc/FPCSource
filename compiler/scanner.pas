@@ -28,13 +28,15 @@ unit scanner;
   interface
 
     uses
-       cobjects,globals,files;
+       cobjects,globals,verbose,files;
 
     const
 {$ifdef TP}
-       maxmacrolen = 1024;
+       maxmacrolen=1024;
+       InputFileBufSize=75;
 {$else}
-       maxmacrolen = 16*1024;
+       maxmacrolen=16*1024;
+       InputFileBufSize=32*1024;
 {$endif}
 
        id_len = 14;
@@ -126,27 +128,96 @@ unit scanner;
 {        _VIRTUAL,}
          _WHILE,_WITH,_XOR);
 
-
     type
-      pmacrobuffer = ^tmacrobuffer;
-      tmacrobuffer = array[0..maxmacrolen-1] of char;
+       pmacrobuffer = ^tmacrobuffer;
+       tmacrobuffer = array[0..maxmacrolen-1] of char;
 
-      ppreprocstack = ^tpreprocstack;
-      tpreprocstack = object
-         isifdef,
-         accept  : boolean;
-         next    : ppreprocstack;
-         name    : stringid;
-         line_nb : longint;
-         constructor init(ifdef,a:boolean;n:ppreprocstack);
-         destructor done;
-      end;
+       ppreprocstack = ^tpreprocstack;
+       tpreprocstack = object
+          accept  : boolean;
+          next    : ppreprocstack;
+          name    : stringid;
+          line_nb : longint;
+          constructor init(a:boolean;n:ppreprocstack);
+          destructor done;
+       end;
+
+{$ifdef NEWINPUT}
+       pscannerfile = ^tscannerfile;
+       tscannerfile = object
+          inputfile    : pinputfile; { current inputfile list }
+
+          f            : file;       { current file handle }
+          filenotatend,              { still bytes left to read }
+          closed       : boolean;    { is the file closed }
+
+          inputbufsize : longint;    { max size of the input buffer }
+
+          inputbuffer,
+          inputpointer : pchar;
+
+          bufstart,
+          bufidx,
+          bufsize      : longint;
+
+          line_no,
+          lasttokenpos,
+          lastlinepos  : longint;
+
+          s_point        : boolean;
+          comment_level,
+          yylexcount     : longint;
+          lastasmgetchar : char;
+          preprocstack   : ppreprocstack;
+
+          constructor init(const fn:string);
+          destructor done;
+        { File buffer things }
+          function  open:boolean;
+          procedure close;
+          function  reopen:boolean;
+          procedure readbuf;
+          procedure saveinputfile;
+          procedure restoreinputfile;
+          procedure nextfile;
+          procedure addfile(hp:pinputfile);
+          procedure reload;
+{          function  fixbuf:boolean; }
+          procedure setbuf(p:pchar;l:longint);
+{          function  setbufidx(idx:longint):longint;
+          function  setlinebreak(idx:longint):longint; }
+        { Scanner things }
+          procedure gettokenpos;
+          procedure inc_comment_level;
+          procedure dec_comment_level;
+          procedure poppreprocstack;
+          procedure addpreprocstack(a:boolean;const s:string;w:tmsgconst);
+          procedure elsepreprocstack;
+          procedure linebreak;
+          procedure readchar;
+          procedure readstring;
+          procedure readnumber;
+          function  readid:string;
+          function  readval:longint;
+          function  readcomment:string;
+          procedure skipspace;
+          procedure skipuntildirective;
+          procedure skipcomment;
+          procedure skipdelphicomment;
+          procedure skipoldtpcomment;
+          function  yylex:ttoken;
+          function  readpreproc:ttoken;
+          function  asmgetchar:char;
+       end;
+{$endif NEWINPUT}
 
     var
         c              : char;
         orgpattern,
         pattern        : string;
-        macrobuffer    : pmacrobuffer;
+{$ifdef NEWINPUT}
+        current_scanner : pscannerfile;
+{$else}
         currlinepos,
         lastlinepos,
         lasttokenpos,
@@ -158,54 +229,32 @@ unit scanner;
         macropos       : longint;
         lastasmgetchar : char;
         preprocstack   : ppreprocstack;
+{$endif NEWINPUT}
 
-      {public}
-        procedure syntaxerror(const s : string);
-        function yylex : ttoken;
-        function asmgetchar : char;
-        { column position of last token }
-        function get_current_col : longint;
-        { column position of file }
-        function get_file_col : longint;
-        procedure get_cur_file_pos(var fileinfo : tfileposinfo);
-        procedure set_cur_file_pos(const fileinfo : tfileposinfo);
+{$ifndef NEWINPUT}
+    procedure poppreprocstack;
+    procedure addpreprocstack(a:boolean;const s:string;w:tmsgconst);
+    procedure elsepreprocstack;
+    procedure gettokenpos;
+    function yylex : ttoken;
+    function asmgetchar : char;
+    { column position of last token }
+    function get_current_col : longint;
+    { column position of file }
+    function get_file_col : longint;
+    procedure get_cur_file_pos(var fileinfo : tfileposinfo);
+    procedure set_cur_file_pos(const fileinfo : tfileposinfo);
+    procedure InitScanner(const fn: string);
+    procedure DoneScanner(testendif:boolean);
+{$endif}
 
-        procedure InitScanner(const fn: string);
-        procedure DoneScanner(testendif:boolean);
+    { changes to keywords to be tp compatible }
+    procedure change_to_tp_keywords;
 
-        { changes to keywords to be tp compatible }
-        procedure change_to_tp_keywords;
+implementation
 
-  implementation
-
-     uses
-       dos,verbose,systems,symtable,switches;
-
-{*****************************************************************************
-                              TPreProcStack
-*****************************************************************************}
-
-    constructor tpreprocstack.init(ifdef,a:boolean;n:ppreprocstack);
-      begin
-         isifdef:=ifdef;
-         accept:=a;
-         next:=n;
-      end;
-
-
-    destructor tpreprocstack.done;
-      begin
-      end;
-
-
-    procedure popstack;
-      var
-         hp : ppreprocstack;
-      begin
-         hp:=preprocstack^.next;
-         dispose(preprocstack,done);
-         preprocstack:=hp;
-      end;
+    uses
+      dos,systems,symtable,switches;
 
 {*****************************************************************************
                               Helper routines
@@ -232,7 +281,7 @@ unit scanner;
           end
          else
           is_keyword:=false;
-     end;
+      end;
 
 
     procedure remove_keyword(const s : string);
@@ -254,6 +303,22 @@ unit scanner;
            end;
       end;
 
+
+    procedure change_to_tp_keywords;
+      const
+        non_tp : array[0..14] of string[id_len] = (
+           'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
+           'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
+           'EXPORTS','LIBRARY','FINALIZATION');
+      var
+        i : longint;
+      begin
+        for i:=0 to 13 do
+         remove_keyword(non_tp[i]);
+      end;
+
+
+{$ifndef NEWINPUT}
 
     const
        current_column : longint = 1;
@@ -286,16 +351,377 @@ unit scanner;
            dec(comment_level);
       end;
 
-
-    procedure syntaxerror(const s : string);
-      begin
-         Message2(scan_f_syn_expected,tostr(get_current_col),s);
-      end;
+{$endif NEWINPUT}
 
 
 {*****************************************************************************
-                                 Scanner
+                              TPreProcStack
 *****************************************************************************}
+
+    constructor tpreprocstack.init(a:boolean;n:ppreprocstack);
+      begin
+        accept:=a;
+        next:=n;
+      end;
+
+
+    destructor tpreprocstack.done;
+      begin
+      end;
+
+
+
+{$ifdef NEWINPUT}
+
+{****************************************************************************
+                                TSCANNERFILE
+ ****************************************************************************}
+
+    constructor tscannerfile.init(const fn:string);
+      begin
+        inputfile:=new(pinputfile,init(fn));
+        current_module^.sourcefiles.register_file(inputfile);
+        current_module^.current_index:=inputfile^.ref_index;
+      { reset scanner }
+        preprocstack:=nil;
+        comment_level:=0;
+        s_point:=false;
+        block_type:=bt_general;
+      { reset buf }
+        closed:=true;
+        filenotatend:=true;
+        inputbufsize:=InputFileBufSize;
+        inputbuffer:=nil;
+        inputpointer:=nil;
+        bufstart:=0;
+        bufsize:=0;
+      { line }
+        line_no:=0;
+        lastlinepos:=0;
+        lasttokenpos:=0;
+      { load block }
+        if not open then
+         Message(scan_f_cannot_open_input);
+        status.currentsource:=inputfile^.name^;
+        reload;
+      end;
+
+
+    destructor tscannerfile.done;
+      begin
+      { check for missing ifdefs }
+        while assigned(preprocstack) do
+         begin
+           Message3(scan_e_endif_expected,'$IF(N)(DEF)',preprocstack^.name,tostr(preprocstack^.line_nb));
+           poppreprocstack;
+         end;
+      { close file }
+        if not closed then
+         close;
+      end;
+
+
+    procedure tscannerfile.readbuf;
+    {$ifdef TP}
+      var
+        w : word;
+    {$endif}
+      begin
+        if closed then
+         exit;
+        inc(bufstart,bufsize);
+      {$ifdef TP}
+        blockread(f,inputbuffer^,inputbufsize-1,w);
+        bufsize:=w;
+      {$else}
+        blockread(f,inputbuffer^,inputbufsize-1,bufsize);
+      {$endif}
+        inputbuffer[bufsize]:=#0;
+        Filenotatend:=(bufsize=inputbufsize-1);
+      end;
+
+
+    function tscannerfile.open:boolean;
+      var
+        ofm : byte;
+      begin
+        open:=false;
+        if not closed then
+         exit;
+        ofm:=filemode;
+        filemode:=0;
+        Assign(f,inputfile^.path^+inputfile^.name^);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+      { file }  
+
+        closed:=false;
+        filenotatend:=true;
+        Getmem(inputbuffer,inputbufsize);
+        inputpointer:=inputbuffer;
+        bufstart:=0;
+        bufsize:=0;
+      { line }
+        line_no:=0;
+        lastlinepos:=0;
+        lasttokenpos:=0;
+        open:=true;
+      end;
+
+
+    procedure tscannerfile.close;
+      var
+        i : word;
+      begin
+        inc(bufstart,inputpointer-inputbuffer);
+        if not closed then
+         begin
+           {$I-}
+            system.close(f);
+           {$I+}
+           i:=ioresult;
+           Freemem(inputbuffer,InputFileBufSize);
+           inputbuffer:=nil;
+           inputpointer:=nil;
+           closed:=true;
+         end;
+      end;
+
+
+    function tscannerfile.reopen:boolean;
+      var
+        ofm : byte;
+      begin
+        reopen:=false;
+        if not closed then
+         exit;
+        ofm:=filemode;
+        filemode:=0;
+        Assign(f,inputfile^.path^+inputfile^.name^);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+        closed:=false;
+      { get new mem }
+        Getmem(inputbuffer,inputbufsize);
+        inputpointer:=inputbuffer;
+      { restore state }
+        seek(f,BufStart);
+        bufsize:=0;
+        readbuf;
+        reopen:=true;
+      end;
+
+
+    procedure tscannerfile.saveinputfile;
+      begin
+        inputfile^.savebufstart:=bufstart;
+        inputfile^.savebufsize:=bufsize;
+        inputfile^.savelastlinepos:=lastlinepos;
+        inputfile^.saveline_no:=line_no;
+        inputfile^.saveinputbuffer:=inputbuffer;
+        inputfile^.saveinputpointer:=inputpointer;
+      end;
+
+
+    procedure tscannerfile.restoreinputfile;
+      begin
+        bufstart:=inputfile^.savebufstart;
+        bufsize:=inputfile^.savebufsize;
+        lastlinepos:=inputfile^.savelastlinepos;
+        line_no:=inputfile^.saveline_no;
+        inputbuffer:=inputfile^.saveinputbuffer;
+        inputpointer:=inputfile^.saveinputpointer;
+      end;
+
+
+    procedure tscannerfile.nextfile;
+      begin
+        if assigned(inputfile^.next) then
+         begin
+           inputfile:=inputfile^.next;
+           restoreinputfile;
+         end;
+      end;
+
+
+    procedure tscannerfile.addfile(hp:pinputfile);
+      begin
+        saveinputfile;
+      { add to list }
+        hp^.next:=inputfile;
+        inputfile:=hp;
+      { load new inputfile }
+        restoreinputfile;
+      end;
+
+
+    procedure tscannerfile.reload;
+      begin
+      { still more to read, then we have an illegal char }
+        if (inputpointer-inputbuffer)<bufsize then
+         Message(scan_f_illegal_char);
+      { safety check }
+        if closed then
+         exit;
+      { can we read more from this file ? }
+        if filenotatend then
+         begin
+           readbuf;
+{           fixbuf; }
+           if line_no=0 then
+            line_no:=1;
+           inputpointer:=inputbuffer;
+         end
+        else
+         begin
+           close;
+         { no next module, than EOF }
+           if not assigned(inputfile^.next) then
+            begin
+              c:=#26;
+              exit;
+            end;
+         { load next file and reopen it }
+           nextfile;
+           reopen;
+         { status }
+           status.currentsource:=inputfile^.name^;
+           Comment(V_Debug,'back in '+inputfile^.name^);
+         { load some current_module fields }
+           current_module^.current_index:=inputfile^.ref_index;
+         end;
+      { load next char }
+        c:=inputpointer^;
+        inc(longint(inputpointer));
+      end;
+
+
+{    function tscannerfile.fixbuf:boolean;
+      var
+        i : longint;
+        p : pchar;
+        c : char;
+      begin
+        fixbuf:=false;
+        p:=inputbuffer;
+        i:=0;
+        while i<bufsize do
+         begin
+           c:=p^;
+           case c of
+              #0 : p^:=' ';
+         #10,#13 : begin
+                     if (byte(c)+byte(p[1])=23) then
+                      begin
+                        inc(longint(p));
+                        inc(i);
+                      end;
+                   end;
+           end;
+           inc(i);
+           inc(longint(p));
+         end;
+        if line_no=0 then
+         line_no:=1;
+        fixbuf:=true;
+
+      end; }
+
+
+    procedure tscannerfile.setbuf(p:pchar;l:longint);
+      begin
+        inputbuffer:=p;
+        inputbufsize:=l;
+        inputpointer:=inputbuffer;
+      end;
+
+
+{    function tscannerfile.setbufidx(idx:longint):longint;
+      begin
+        bufidx:=idx;
+        setbufidx:=bufstart+idx;
+      end; }
+
+
+{    function tscannerfile.setlinebreak(idx:longint):longint;
+      begin
+        inc(line_no);
+        bufidx:=idx;
+        setlinebreak:=bufstart+idx;
+      end; }
+
+
+    procedure tscannerfile.gettokenpos;
+    { load the values of tokenpos and lasttokenpos }
+      begin
+        lasttokenpos:=bufstart+(inputpointer-inputbuffer);
+        tokenpos.line:=line_no;
+        tokenpos.column:=lasttokenpos-lastlinepos;
+        tokenpos.fileindex:=current_module^.current_index;
+      end;
+
+
+    procedure tscannerfile.inc_comment_level;
+      begin
+         inc(comment_level);
+         if (comment_level>1) then
+          Message1(scan_w_comment_level,tostr(comment_level));
+      end;
+
+
+    procedure tscannerfile.dec_comment_level;
+      begin
+         if cs_tp_compatible in aktswitches then
+           comment_level:=0
+         else
+           dec(comment_level);
+      end;
+
+
+    procedure tscannerfile.linebreak;
+      var
+         cur : char;
+      begin
+        if (byte(inputpointer^)=0) and
+           filenotatend then
+          begin
+             cur:=c;
+             reload;
+             if byte(cur)+byte(c)<>23 then
+               dec(longint(inputpointer));
+          end
+        else
+         begin
+         { Fix linebreak to be only newline (=#10) for all types of linebreaks }
+           if (byte(inputpointer^)+byte(c)=23) then
+             inc(longint(inputpointer));
+         end;
+        c:=newline;
+      { increase line counters }
+        lastlinepos:=bufstart+(inputpointer-inputbuffer);
+        inc(line_no);
+      { update for status }
+        inc(status.compiledlines);
+        Comment(V_Status,'');
+      end;
+
+{$else NEWINPUT}
+
+    procedure gettokenpos;
+    { load the values of tokenpos and lasttokenpos }
+      begin
+        tokenpos.line:=current_module^.current_inputfile^.true_line;
+        tokenpos.column:=get_file_col;
+        tokenpos.fileindex:=current_module^.current_index;
+      end;
 
     procedure reload;
       var
@@ -363,7 +789,6 @@ unit scanner;
         inc(longint(inputpointer));
       end;
 
-
     procedure linebreak;
       var
          cur : char;
@@ -383,17 +808,61 @@ unit scanner;
               inc(longint(inputpointer));
           end;
         c:=newline;
-      { show status }
+      { status }
         Comment(V_Status,'');
       { increase line counters }
         inc(current_module^.current_inputfile^.true_line);
-        status.currentline:=current_module^.current_inputfile^.true_line;
-        inc(status.compiledlines);
         currlinepos:=inputpointer;
+        inc(status.compiledlines);
+      end;
+
+{$endif NEWINPUT}
+
+
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}poppreprocstack;
+      var
+         hp : ppreprocstack;
+      begin
+        if assigned(preprocstack) then
+         begin
+           hp:=preprocstack^.next;
+           dispose(preprocstack,done);
+           preprocstack:=hp;
+         end
+        else
+         Message(scan_e_endif_without_if);
       end;
 
 
-    procedure readchar;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}addpreprocstack(a:boolean;const s:string;w:tmsgconst);
+      begin
+        preprocstack:=new(ppreprocstack,init(((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
+        preprocstack^.name:=s;
+        preprocstack^.line_nb:={$ifndef NEWINPUT}current_module^.current_inputfile^.{$endif}line_no;
+        if preprocstack^.accept then
+         Message2(w,preprocstack^.name,'accepted')
+        else
+         Message2(w,preprocstack^.name,'rejected');
+      end;
+
+
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}elsepreprocstack;
+      begin
+        if assigned(preprocstack) then
+         begin
+           if not(assigned(preprocstack^.next)) or (preprocstack^.next^.accept) then
+            preprocstack^.accept:=not preprocstack^.accept;
+           if preprocstack^.accept then
+            Message2(scan_c_else_found,preprocstack^.name,'accepted')
+           else
+            Message2(scan_c_else_found,preprocstack^.name,'rejected');
+         end
+        else
+         Message(scan_e_endif_without_if);
+      end;
+
+
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}readchar;
       begin
         c:=inputpointer^;
         if c=#0 then
@@ -405,40 +874,53 @@ unit scanner;
       end;
 
 
-    function readstring:string;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}readstring;
       var
         i : longint;
       begin
         i:=0;
-      { 'in []' splitted, so it will be CMP's and no SET_IN_BYTE (PFV) }
-        while (c in ['A'..'Z','a'..'z']) or (c in ['0'..'9','_']) do
-         begin
-           if i<255 then
-            begin
-              inc(i);
-              readstring[i]:=c;
-            end;
-        { get next char }
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
-         end;
-      { was the next char a linebreak ? }
-        if c in [#10,#13] then
-         linebreak;
-        readstring[0]:=chr(i);
+        repeat
+          case c of
+                 '_',
+            '0'..'9',
+            'A'..'Z' : begin
+                         if i<255 then
+                          begin
+                            inc(i);
+                            orgpattern[i]:=c;
+                            pattern[i]:=c;
+                          end;
+                         c:=inputpointer^;
+                         inc(longint(inputpointer));
+                       end;
+            'a'..'z' : begin
+                         if i<255 then
+                          begin
+                            inc(i);
+                            orgpattern[i]:=c;
+                            pattern[i]:=chr(ord(c)-32)
+                          end;
+                         c:=inputpointer^;
+                         inc(longint(inputpointer));
+                       end;
+
+                  #0 : reload;
+             #13,#10 : begin
+
+                         linebreak;
+                         break;
+                       end;
+          else
+           break;
+          end;
+        until false;
+
+        orgpattern[0]:=chr(i);
+        pattern[0]:=chr(i);
       end;
 
 
-    function readid:string;
-      begin
-        readid:=upper(readstring);
-      end;
-
-
-    function readnumber:string;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}readnumber;
       var
         base,
         i  : longint;
@@ -447,13 +929,13 @@ unit scanner;
          '%' : begin
                  readchar;
                  base:=2;
-                 readnumber[1]:='%';
+                 pattern[1]:='%';
                  i:=1;
                end;
          '$' : begin
                  readchar;
                  base:=16;
-                 readnumber[1]:='$';
+                 pattern[1]:='$';
                  i:=1;
                end;
         else
@@ -469,7 +951,7 @@ unit scanner;
            if i<255 then
             begin
               inc(i);
-              readnumber[i]:=c;
+              pattern[i]:=c;
             end;
         { get next char }
            c:=inputpointer^;
@@ -481,20 +963,29 @@ unit scanner;
       { was the next char a linebreak ? }
         if c in [#10,#13] then
          linebreak;
-        readnumber[0]:=chr(i);
+        pattern[0]:=chr(i);
       end;
 
 
-    function readval:longint;
+    function {$ifdef NEWINPUT}tscannerfile.{$endif}readid:string;
+      begin
+        readstring;
+        readid:=pattern;
+      end;
+
+
+    function {$ifdef NEWINPUT}tscannerfile.{$endif}readval:longint;
       var
         l : longint;
         w : word;
       begin
-        val(readnumber,l,w);
+        readnumber;
+        valint(pattern,l,w);
         readval:=l;
       end;
 
-    function readcomment:string;
+
+    function {$ifdef NEWINPUT}tscannerfile.{$endif}readcomment:string;
       var
         i : longint;
       begin
@@ -528,7 +1019,7 @@ unit scanner;
       end;
 
 
-    procedure skipspace;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}skipspace;
       begin
         while c in [' ',#9..#13] do
          begin
@@ -539,12 +1030,11 @@ unit scanner;
             inc(longint(inputpointer));
            if c in [#10,#13] then
             linebreak;
-
          end;
       end;
 
 
-    procedure skipuntildirective;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}skipuntildirective;
       var
         found : longint;
       begin
@@ -580,7 +1070,7 @@ unit scanner;
 
 {$i scandir.inc}
 
-    procedure skipcomment;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}skipcomment;
       begin
         readchar;
         inc_comment_level;
@@ -606,7 +1096,7 @@ unit scanner;
       end;
 
 
-    procedure skipdelphicomment;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}skipdelphicomment;
       begin
         inc_comment_level;
         readchar;
@@ -624,7 +1114,7 @@ unit scanner;
       end;
 
 
-    procedure skipoldtpcomment;
+    procedure {$ifdef NEWINPUT}tscannerfile.{$endif}skipoldtpcomment;
       var
         found : longint;
       begin
@@ -670,25 +1160,24 @@ unit scanner;
       end;
 
 
-     function yylex : ttoken;
-     var
+    function {$ifdef NEWINPUT}tscannerfile.{$endif}yylex : ttoken;
+      var
         y    : ttoken;
         code : word;
         l    : longint;
         mac  : pmacrosym;
         hp   : pinputfile;
         hp2  : pchar;
+        asciinr : string[3];
       label
          exit_label;
-     begin
+      begin
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
         { this is a floating point number or range like 1..3                 }
         if s_point then
           begin
-             tokenpos.line:=current_module^.current_inputfile^.true_line;
-             tokenpos.column:=get_file_col;
-             tokenpos.fileindex:=current_module^.current_index;
+             gettokenpos;
              s_point:=false;
              if c='.' then
                begin
@@ -711,17 +1200,19 @@ unit scanner;
         until false;
 
       { Save current token position }
+{$ifdef NEWINPUT}
+        gettokenpos;
+        aktfilepos:=tokenpos;
+{$else}
+        gettokenpos;
         lastlinepos:=currlinepos;
         lasttokenpos:=inputpointer;
-        tokenpos.line:=current_module^.current_inputfile^.true_line;
-        tokenpos.column:=get_file_col;
-        tokenpos.fileindex:=current_module^.current_index;
+{$endif}
 
       { Check first for a identifier/keyword, this is 20+% faster (PFV) }
         if c in ['_','A'..'Z','a'..'z'] then
          begin
-           orgpattern:=readstring;
-           pattern:=upper(orgpattern);
+           readstring;
            if (length(pattern) in [2..id_len]) and is_keyword(y) then
             yylex:=y
            else
@@ -734,9 +1225,15 @@ unit scanner;
                   begin
                   { don't forget the last char }
                     dec(longint(inputpointer));
+{$ifdef NEWINPUT}
+                    hp:=new(pinputfile,init('Macro '+pattern));
+                    addfile(hp);
+                    getmem(hp2,mac^.buflen+1);
+                    setbuf(hp2,mac^.buflen+1);
+{$else}
                     current_module^.current_inputfile^.bufpos:=inputpointer-inputbuffer;
-                  { this isn't a proper way, but ... }
                     hp:=new(pinputfile,init('','Macro '+pattern,''));
+                  { this isn't a proper way, but ... }
                     hp^.next:=current_module^.current_inputfile;
                     current_module^.current_inputfile:=hp;
                     status.currentsource:=current_module^.current_inputfile^.name^;
@@ -749,6 +1246,7 @@ unit scanner;
                     getmem(hp2,mac^.buflen+1);
                     current_module^.current_inputfile^.setbuf(hp2,mac^.buflen+1);
                     inputbuffer:=current_module^.current_inputfile^.buf;
+{$endif NEWINPUT}
                   { copy text }
                     move(mac^.buftext^,inputbuffer^,mac^.buflen);
                   { put end sign }
@@ -763,11 +1261,11 @@ unit scanner;
                     inc(yylexcount);
                     if yylexcount>16 then
                      Message(scan_w_macro_deep_ten);
-{$ifdef TP}
+                  {$ifdef TP}
                     yylex:=yylex;
-{$else}
+                  {$else}
                     yylex:=yylex();
-{$endif}
+                  {$endif}
                   { that's all folks }
                     dec(yylexcount);
                     exit;
@@ -781,17 +1279,17 @@ unit scanner;
          begin
            case c of
                 '$' : begin
-                         pattern:=readnumber;
+                         readnumber;
                          yylex:=INTCONST;
                          goto exit_label;
                       end;
                 '%' : begin
-                         pattern:=readnumber;
+                         readnumber;
                          yylex:=INTCONST;
                          goto exit_label;
                       end;
            '0'..'9' : begin
-                        pattern:=readnumber;
+                        readnumber;
                         case c of
                          '.' : begin
                                  readchar;
@@ -906,13 +1404,15 @@ unit scanner;
                          begin
                            readchar;
                            yylex:=_STARASN;
-                         end else if c='*' then
-                         begin
-                           readchar;
-                           yylex:=STARSTAR;
                          end
                         else
-                          yylex:=STAR;
+                         if c='*' then
+                          begin
+                            readchar;
+                            yylex:=STARSTAR;
+                          end
+                        else
+                         yylex:=STAR;
                         goto exit_label;
                       end;
                 '/' : begin
@@ -994,8 +1494,15 @@ unit scanner;
                           case c of
                            '#' : begin
                                    readchar; { read # }
-                                   valint(readnumber,l,code);
-                                   if (code<>0) or (l<0) or (l>255) then
+                                   asciinr:='';
+                                   while (c in ['0'..'9']) and (length(asciinr)<3) do
+                                    begin
+                                      asciinr:=asciinr+c;
+                                      readchar;
+                                    end;
+                                   valint(asciinr,l,code);
+                                   if (asciinr='') or (code<>0) or
+                                      (l<0) or (l>255) then
                                     Message(scan_e_illegal_char_const);
                                    pattern:=pattern+chr(l);
                                  end;
@@ -1088,19 +1595,93 @@ unit scanner;
             end;
            end;
         end;
-
-      exit_label:
-        { don't change the file : too risky !! }
+exit_label:
+      { don't change the file : too risky !! }
+{$ifndef NEWINPUT}
         if current_module^.current_index=tokenpos.fileindex then
           begin
              current_module^.current_inputfile^.line_no:=tokenpos.line;
              current_module^.current_inputfile^.column:=tokenpos.column;
              current_column:=tokenpos.column;
           end;
-     end;
+{$endif NEWINPUT}
+      end;
 
 
-    function asmgetchar : char;
+{$ifdef NEWINPUT}
+    function tscannerfile.readpreproc:ttoken;
+      begin
+         skipspace;
+         case c of
+        'A'..'Z',
+        'a'..'z',
+    '_','0'..'9' : begin
+                     preprocpat:=readid;
+                     readpreproc:=ID;
+                   end;
+             '(' : begin
+                     readchar;
+                     readpreproc:=LKLAMMER;
+                   end;
+             ')' : begin
+                     readchar;
+                     readpreproc:=RKLAMMER;
+                   end;
+             '+' : begin
+                     readchar;
+                     readpreproc:=PLUS;
+                   end;
+             '-' : begin
+                     readchar;
+                     readpreproc:=MINUS;
+                   end;
+             '*' : begin
+                     readchar;
+                     readpreproc:=STAR;
+                   end;
+             '/' : begin
+                     readchar;
+                     readpreproc:=SLASH;
+                   end;
+             '=' : begin
+                     readchar;
+                     readpreproc:=EQUAL;
+                   end;
+             '>' : begin
+                     readchar;
+                     if c='=' then
+                      begin
+                        readchar;
+                        readpreproc:=GTE;
+                      end
+                     else
+                      readpreproc:=GT;
+                   end;
+             '<' : begin
+                     readchar;
+                     case c of
+                      '>' : begin
+                              readchar;
+                              readpreproc:=UNEQUAL;
+                            end;
+                      '=' : begin
+                              readchar;
+                              readpreproc:=LTE;
+                            end;
+                     else   readpreproc:=LT;
+                     end;
+                   end;
+             #26 : Message(scan_f_end_of_file);
+         else
+          begin
+            readpreproc:=_EOF;
+          end;
+         end;
+      end;
+{$endif}
+
+
+    function {$ifdef NEWINPUT}tscannerfile.{$endif}asmgetchar : char;
       begin
          if lastasmgetchar<>#0 then
           begin
@@ -1109,14 +1690,6 @@ unit scanner;
           end
          else
           readchar;
-         { must be put in the assembler readers }
-         (* with tokenpos do
-          begin
-            line:=current_module^.current_inputfile^.true_line;
-            column:=get_file_col;
-            fileindex:=current_module^.current_index;
-          end; *)
-
          case c of
           '{' : begin
                   skipcomment;
@@ -1155,6 +1728,9 @@ unit scanner;
          end;
       end;
 
+{$ifdef NEWINPUT}
+
+{$else NEWPPU}
 
    procedure InitScanner(const fn: string);
      var
@@ -1181,7 +1757,6 @@ unit scanner;
      end;
 
    procedure get_cur_file_pos(var fileinfo : tfileposinfo);
-
      begin
         with fileinfo do
          begin
@@ -1189,11 +1764,10 @@ unit scanner;
            fileindex:=current_module^.current_index;
            column:=get_current_col;
          end;
-
      end;
 
-   procedure set_cur_file_pos(const fileinfo : tfileposinfo);
 
+   procedure set_cur_file_pos(const fileinfo : tfileposinfo);
      begin
         if current_module^.current_index<>fileinfo.fileindex then
           begin
@@ -1210,63 +1784,29 @@ unit scanner;
      end;
 
    procedure DoneScanner(testendif:boolean);
-     var
-       st : string[16];
      begin
        if (not testendif) then
         begin
           while assigned(preprocstack) do
            begin
-             if preprocstack^.isifdef then
-              st:='$IF(N)(DEF)'
-             else
-              st:='$ELSE';
-             Message3(scan_e_endif_expected,st,preprocstack^.name,tostr(preprocstack^.line_nb));
-             popstack;
+             Message3(scan_e_endif_expected,'$IF(N)(DEF)',preprocstack^.name,tostr(preprocstack^.line_nb));
+             poppreprocstack;
            end;
         end;
      end;
 
-   procedure change_to_tp_keywords;
 
-     const
-        non_tp : array[0..14] of string[id_len] = (
-          'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
-          'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
-          'EXPORTS','LIBRARY','FINALIZATION');
+{$endif NEWINPUT}
 
-     var
-        i : longint;
 
-     begin
-        for i:=0 to 13 do
-          remove_keyword(non_tp[i]);
-     end;
-
-   procedure change_to_delphi_keywords;
-
-     {
-     const
-        non_tp : array[0..13] of string[id_len] = (
-          'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
-          'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
-          'EXPORTS','LIBRARY');
-
-     var
-        i : longint;
-     }
-
-     begin
-     {
-        for i:=0 to 13 do
-          remove_keyword(non_tp[i]);
-     }
-     end;
 
 end.
 {
   $Log$
-  Revision 1.28  1998-07-01 15:26:57  peter
+  Revision 1.29  1998-07-07 11:20:11  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.28  1998/07/01 15:26:57  peter
     * better bufferfile.reset error handling
 
   Revision 1.27  1998/06/25 08:48:19  florian

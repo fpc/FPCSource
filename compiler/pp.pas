@@ -246,8 +246,12 @@ begin
             end;
      end;
    {when the module is assigned, then the messagefile is also loaded}
+{$ifdef NEWINPUT}
+     Writeln('Compilation aborted at line ',aktfilepos.line);
+{$else}
      if assigned(current_module) and assigned(current_module^.current_inputfile) then
       Writeln('Compilation aborted at line ',current_module^.current_inputfile^.line_no);
+{$endif}
    end;
 end;
 
@@ -394,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1998-06-24 14:06:33  peter
+  Revision 1.19  1998-07-07 11:20:04  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.18  1998/06/24 14:06:33  peter
     * fixed the name changes
 
   Revision 1.17  1998/06/23 08:59:22  daniel

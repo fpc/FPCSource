@@ -43,15 +43,15 @@ unit cobjects;
     type
        pstring = ^string;
 
-       tfileposinfo = record
-         line : longint; { could be changed to abspos }
-         fileindex,column : word;
-       end;
        pfileposinfo = ^tfileposinfo;
+       tfileposinfo = record
+         line      : longint;
+         column    : word;
+         fileindex : word;
+       end;
 
        { some help data types }
        pstringitem = ^tstringitem;
-
        tstringitem = record
           data : pstring;
           next : pstringitem;
@@ -59,7 +59,6 @@ unit cobjects;
        end;
 
        plinkedlist_item = ^tlinkedlist_item;
-
        tlinkedlist_item = object
           next,previous : plinkedlist_item;
           { does nothing }
@@ -68,16 +67,14 @@ unit cobjects;
        end;
 
        pstring_item = ^tstring_item;
-
        tstring_item = object(tlinkedlist_item)
           str : pstring;
           constructor init(const s : string);
           destructor done;virtual;
        end;
 
-       plinkedlist = ^tlinkedlist;
-
        { this implements a double linked list }
+       plinkedlist = ^tlinkedlist;
        tlinkedlist = object
           first,last : plinkedlist_item;
           constructor init;
@@ -145,6 +142,8 @@ unit cobjects;
           { deletes all strings }
           procedure clear;
        end;
+
+{$ifndef NEWINPUT}
 
        pbufferedfile = ^tbufferedfile;
 
@@ -237,6 +236,8 @@ unit cobjects;
            { returns the crc }
            function getcrc : longint;
        end;
+
+{$endif NEWINPUT}
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -737,6 +738,7 @@ end;
       end;
 
 
+{$ifndef NEWINPUT}
 
 {****************************************************************************
                                TBUFFEREDFILE
@@ -1119,10 +1121,15 @@ end;
            end;
       end;
 
+{$endif NEWINPUT}
+
 end.
 {
   $Log$
-  Revision 1.10  1998-07-01 15:26:59  peter
+  Revision 1.11  1998-07-07 11:19:54  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.10  1998/07/01 15:26:59  peter
     * better bufferfile.reset error handling
 
   Revision 1.9  1998/06/03 23:40:37  peter

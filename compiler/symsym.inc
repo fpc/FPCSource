@@ -34,10 +34,14 @@
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
+{$ifdef NEWINPUT}
+         line_no:=aktfilepos.line;
+{$else}
          if assigned(current_module) and assigned(current_module^.current_inputfile) then
            line_no:=current_module^.current_inputfile^.line_no
          else
            line_no:=0;
+{$endif NEWINPUT}
 {$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
@@ -539,7 +543,12 @@
       end;
      stabstring :=strpnew('"'+obj+':'+RetType
            +definition^.retdef^.numberstring+info+'",'+tostr(n_function)
-           +',0,'+tostr(current_module^.current_inputfile^.line_no)
+           +',0,'+
+{$ifdef NEWINPUT}
+           tostr(aktfilepos.line)
+{$else}
+           tostr(current_module^.current_inputfile^.line_no)
+{$endif}
            +','+definition^.mangledname);
     end;
 
@@ -1647,7 +1656,10 @@
 
 {
   $Log$
-  Revision 1.17  1998-06-24 14:48:40  peter
+  Revision 1.18  1998-07-07 11:20:15  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.17  1998/06/24 14:48:40  peter
     * ifdef newppu -> ifndef oldppu
 
   Revision 1.16  1998/06/19 15:40:42  peter

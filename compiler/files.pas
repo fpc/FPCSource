@@ -38,14 +38,46 @@ unit files;
        extbufsize = 65535;
 {$else}
        maxunits = 128;
-       {$ifndef msdos}
-       extbufsize = 2000;
-       {$else}
-       extbufsize=512;
-       {$endif dpmi}
+       extbufsize=1024;
 {$endif}
 
     type
+{$ifdef NEWINPUT}
+       pinputfile = ^tinputfile;
+       tinputfile = object
+          path,name    : pstring;    { path and filename }
+          next         : pinputfile; { next file for reading }
+
+          savebufstart,              { save fields for scanner }
+          savebufsize,
+          savelastlinepos,
+          saveline_no      : longint;
+          saveinputbuffer,
+          saveinputpointer : pchar;
+
+          ref_count    : longint;    { to handle the browser refs }
+          ref_index    : longint;
+          ref_next     : pinputfile;
+
+          constructor init(const fn:string);
+          destructor done;
+       end;
+
+       pfilemanager = ^tfilemanager;
+       tfilemanager = object
+          files : pinputfile;
+          last_ref_index : longint;
+          constructor init;
+          destructor done;
+          procedure register_file(f : pinputfile);
+          function  get_file(l:longint) : pinputfile;
+          function  get_file_name(l :longint):string;
+          function  get_file_path(l :longint):string;
+       end;
+
+
+{$else NEWINPUT}
+
        { this isn't a text file, this is t-ext-file }
        { which means a extended file this files can }
        { be handled by a file manager               }
@@ -83,6 +115,8 @@ unit files;
           function  get_file(w : word) : pextfile;
        end;
 
+{$endif NEWINPUT}
+
     type
        tunitmap = array[0..maxunits-1] of pointer;
        punitmap = ^tunitmap;
@@ -118,7 +152,9 @@ unit files;
           linkstaticlibs,
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
+{$ifndef NEWINPUT}
           current_inputfile : pinputfile;
+{$endif}
           { used in firstpass for faster settings }
           current_index : word;
 
@@ -136,7 +172,7 @@ unit files;
 {$else}
           destructor special_done;virtual; { this is to be called only when compiling again }
 {$endif OLDPPU}
-          procedure setfilename(const _path,name:string);
+          procedure setfilename(const fn:string);
 {$ifndef OLDPPU}
           function  openppu:boolean;
 {$else}
@@ -253,6 +289,103 @@ unit files;
   uses
     dos,verbose,systems;
 
+{$ifdef NEWINPUT}
+
+{****************************************************************************
+                                  TINPUTFILE
+ ****************************************************************************}
+
+    constructor tinputfile.init(const fn:string);
+      var
+        p,n,e : string;
+      begin
+        FSplit(fn,p,n,e);
+        name:=stringdup(n+e);
+        path:=stringdup(p);
+        next:=nil;
+        ref_next:=nil;
+        ref_count:=0;
+        ref_index:=0;
+      end;
+
+
+    destructor tinputfile.done;
+      begin
+        stringdispose(path);
+        stringdispose(name);
+      end;
+
+
+{****************************************************************************
+                                TFILEMANAGER
+ ****************************************************************************}
+
+    constructor tfilemanager.init;
+      begin
+         files:=nil;
+         last_ref_index:=0;
+      end;
+
+
+    destructor tfilemanager.done;
+      var
+         hp : pinputfile;
+      begin
+         hp:=files;
+         while assigned(hp) do
+          begin
+            files:=files^.ref_next;
+            dispose(hp,done);
+            hp:=files;
+          end;
+         last_ref_index:=0;
+      end;
+
+
+    procedure tfilemanager.register_file(f : pinputfile);
+      begin
+         inc(last_ref_index);
+         f^.ref_next:=files;
+         f^.ref_index:=last_ref_index;
+         files:=f;
+      end;
+
+
+   function tfilemanager.get_file(l :longint) : pinputfile;
+     var
+        ff : pinputfile;
+     begin
+        ff:=files;
+        while assigned(ff) and (ff^.ref_index<>l) do
+         ff:=ff^.ref_next;
+        get_file:=ff;
+     end;
+
+
+   function tfilemanager.get_file_name(l :longint):string;
+     var
+       hp : pinputfile;
+     begin
+       hp:=get_file(l);
+       if assigned(hp) then
+        get_file_name:=hp^.name^
+       else
+        get_file_name:='';
+     end;
+
+
+   function tfilemanager.get_file_path(l :longint):string;
+     var
+       hp : pinputfile;
+     begin
+       hp:=get_file(l);
+       if assigned(hp) then
+        get_file_path:=hp^.path^
+       else
+        get_file_path:='';
+     end;
+
+{$else NEWINPUT}
 
 {****************************************************************************
                                   TFILE
@@ -359,22 +492,24 @@ unit files;
         get_file:=ff;
      end;
 
+{$endif NEWINPUT}
 
 {****************************************************************************
                                   TMODULE
  ****************************************************************************}
 
-    procedure tmodule.setfilename(const _path,name:string);
+    procedure tmodule.setfilename(const fn:string);
       var
-        s : string;
+        p,n,e,s : string;
       begin
+         fsplit(fn,p,n,e);
          stringdispose(objfilename);
          stringdispose(asmfilename);
          stringdispose(ppufilename);
          stringdispose(libfilename);
          stringdispose(path);
-         path:=stringdup(FixPath(_path));
-         s:=FixFileName(FixPath(_path)+name);
+         path:=stringdup(FixPath(p));
+         s:=FixFileName(FixPath(p)+n);
          objfilename:=stringdup(s+target_info.objext);
          asmfilename:=stringdup(s+target_info.asmext);
          ppufilename:=stringdup(s+target_info.unitext);
@@ -508,7 +643,7 @@ unit files;
               Found:=UnitExists(target_info.unitlibext);
               if Found then
                Begin
-                 SetFileName(SinglePathString,FileName);
+                 SetFileName(SinglePathString+FileName);
                  Found:=OpenPPU;
                End;
              end;
@@ -518,7 +653,7 @@ unit files;
               Found:=UnitExists(target_info.unitext);
               if Found then
                Begin
-                 SetFileName(SinglePathString,FileName);
+                 SetFileName(SinglePathString+FileName);
                  Found:=OpenPPU;
                End;
             end;
@@ -544,7 +679,7 @@ unit files;
                  sources_avail:=true;
                {Load Filenames when found}
                  mainsource:=StringDup(SinglePathString+FileName+Ext);
-                 SetFileName(SinglePathString,FileName);
+                 SetFileName(SinglePathString+FileName);
                end
               else
                sources_avail:=false;
@@ -826,14 +961,16 @@ unit files;
          libfilename:=nil;
          ppufilename:=nil;
          path:=nil;
-         setfilename(p,n);
+         setfilename(p+n);
          used_units.init;
          sourcefiles.init;
          linkofiles.init;
          linkstaticlibs.init;
          linksharedlibs.init;
          ppufile:=nil;
+{$ifndef NEWINPUT}
          current_inputfile:=nil;
+{$endif}
          map:=nil;
          symtable:=nil;
          flags:=0;
@@ -968,7 +1105,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.29  1998-06-25 10:51:00  pierre
+  Revision 1.30  1998-07-07 11:19:55  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.29  1998/06/25 10:51:00  pierre
     * removed a remaining ifndef NEWPPU
       replaced by ifdef OLDPPU
     * added uf_finalize to ppu unit

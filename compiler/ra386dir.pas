@@ -73,13 +73,11 @@ unit Ra386dir;
          retstr:=upper(tostr(procinfo.retoffset)+'('+att_reg2str[procinfo.framepointer]+')')
        else
          retstr:='';
-         c:=asmgetchar;
+         c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
          code:=new(paasmoutput,init);
          while not(ende) do
            begin
-              tokenpos.line:=current_module^.current_inputfile^.line_no;
-              tokenpos.column:=get_file_col;
-              tokenpos.fileindex:=current_module^.current_index;
+              {$ifdef NEWINPUT}current_scanner^.{$endif}gettokenpos;
               case c of
                  'A'..'Z','a'..'z','_' : begin
                       hs:='';
@@ -90,7 +88,7 @@ unit Ra386dir;
                         begin
                            inc(byte(hs[0]));
                            hs[length(hs)]:=c;
-                           c:=asmgetchar;
+                           c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                         end;
                       if upper(hs)='END' then
                          ende:=true
@@ -221,14 +219,14 @@ unit Ra386dir;
                       if pos(retstr,s) > 0 then
                         procinfo.funcret_is_valid:=true;
                      writeasmline;
-                     c:=asmgetchar;
+                     c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    end;
              #26 : Message(scan_f_end_of_file);
              else
                begin
                  inc(byte(s[0]));
                  s[length(s)]:=c;
-                 c:=asmgetchar;
+                 c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                end;
            end;
          end;
@@ -239,7 +237,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.2  1998-06-24 14:06:37  peter
+  Revision 1.3  1998-07-07 11:20:08  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.2  1998/06/24 14:06:37  peter
     * fixed the name changes
 
   Revision 1.1  1998/06/23 14:00:18  peter

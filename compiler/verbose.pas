@@ -56,10 +56,11 @@ Const
 
 type
   TCompileStatus = record
+    currentmodule,
     currentsource : string;   { filename }
-    currentline   : longint;  { current line number }
+    currentline,
+    currentcolumn : longint;  { current line and column }
     compiledlines : longint;  { the number of lines which are compiled }
-    totallines    : longint;  { total lines to compile, can be 0 }
     errorcount    : longint;  { number of generated errors }
   end;
 
@@ -94,8 +95,8 @@ var
 
 
 implementation
-uses globals;
-
+uses
+  globals;
 
 procedure LoadMsgFile(const fn:string);
 begin
@@ -226,6 +227,12 @@ begin
   dostop:=((l and V_Fatal)<>0);
   if (l and V_Error)<>0 then
    inc(status.errorcount);
+{ fix status }
+{$ifdef NEWINPUT}
+  status.currentline:=aktfilepos.line;
+  status.currentcolumn:=aktfilepos.column;
+{$endif}
+{ show comment }
   if do_comment(l,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop
 end;
@@ -277,6 +284,12 @@ begin
   Delete(s,1,idx);
   Replace(s,'$VER',version_string);
   Replace(s,'$TARGET',target_string);
+{ fix status }
+{$ifdef NEWINPUT}
+  status.currentline:=aktfilepos.line;
+  status.currentcolumn:=aktfilepos.column;
+{$endif}
+{ show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop;
 end;
@@ -314,7 +327,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-05-23 01:21:35  peter
+  Revision 1.9  1998-07-07 11:20:20  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.8  1998/05/23 01:21:35  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

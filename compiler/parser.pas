@@ -54,11 +54,6 @@ unit parser;
          { and no function header                        }
          testcurobject:=0;
 
-         { create error defintion }
-         generrordef:=new(perrordef,init);
-
-         symtablestack:=nil;
-
          { a long time, this was forgotten }
          aktprocsym:=nil;
 
@@ -104,8 +99,14 @@ unit parser;
          oldpreprocstack : ppreprocstack;
          oldorgpattern,oldprocprefix : string;
          old_block_type : tblock_type;
+{$ifdef NEWINPUT}
+         oldcurrent_scanner : pscannerfile;
+         oldaktfilepos : tfileposinfo;
+         oldlastlinepos : longint;
+{$else}
          oldcurrlinepos,
          oldlastlinepos,
+{$endif NEWINPUT}
          oldinputbuffer,
          oldinputpointer : pchar;
          olds_point,oldparse_only : boolean;
@@ -158,21 +159,26 @@ unit parser;
           end;
 
          { save scanner state }
-         oldmacros:=macros;
+{$ifdef NEWINPUT}
+         oldaktfilepos:=aktfilepos;
+         oldcurrent_scanner:=current_scanner;
+{$else}
+         oldcurrlinepos:=currlinepos;
+         oldpreprocstack:=preprocstack;
+         oldinputbuffer:=inputbuffer;
+         oldinputpointer:=inputpointer;
+         oldlastlinepos:=lastlinepos;
+         olds_point:=s_point;
+         oldcomment_level:=comment_level;
+{$endif}
+         oldc:=c;
          oldpattern:=pattern;
          oldtoken:=token;
          oldtokenpos:=tokenpos;
          oldorgpattern:=orgpattern;
          old_block_type:=block_type;
-         oldpreprocstack:=preprocstack;
 
-         oldinputbuffer:=inputbuffer;
-         oldinputpointer:=inputpointer;
-         oldcurrlinepos:=currlinepos;
-         oldlastlinepos:=lastlinepos;
-         olds_point:=s_point;
-         oldc:=c;
-         oldcomment_level:=comment_level;
+         oldmacros:=macros;
 
          oldnextlabelnr:=nextlabelnr;
          oldparse_only:=parse_only;
@@ -198,10 +204,6 @@ unit parser;
          oldoptprocessor:=aktoptprocessor;
          oldasmmode:=aktasmmode;
 
-         Message1(parser_i_compiling,filename);
-
-         InitScanner(filename);
-
        { Load current state from the init values }
          aktswitches:=initswitches;
          aktpackrecords:=initpackrecords;
@@ -219,15 +221,24 @@ unit parser;
          default_macros;
 
        { startup scanner }
+{$ifdef NEWINPUT}
+         current_scanner:=new(pscannerfile,Init(filename));
+         token:=current_scanner^.yylex;
+{$else}
+         InitScanner(filename);
          token:=yylex;
+{$endif}
+
+         Message1(parser_i_compiling,filename);
+
+       { global switches are read, so further changes aren't allowed }
+         current_module^.in_main:=true;
 
        { init code generator for a new module }
          codegen_newmodule;
 {$ifdef GDB}
          reset_gdb_info;
 {$endif GDB}
-       { global switches are read, so further changes aren't allowed }
-         current_module^.in_main:=true;
 
        { Handle things which need to be once }
          if (compile_level=1) then
@@ -313,14 +324,12 @@ done:
 {$ifdef GDB}
          reset_gdb_info;
 {$endif GDB}
+
          { restore symtable state }
-{$ifdef UseBrowser}
          if (compile_level>1) then
-{ we want to keep the current symtablestack }
-{$endif UseBrowser}
            begin
-              refsymtable:=oldrefsymtable;
-              symtablestack:=oldsymtablestack;
+             refsymtable:=oldrefsymtable;
+             symtablestack:=oldsymtablestack;
            end;
 
          procprefix:=oldprocprefix;
@@ -340,32 +349,41 @@ done:
               dispose(current_module^.ppufile,done);
               current_module^.ppufile:=nil;
            end;
-         { restore scanner state }
-         pattern:=oldpattern;
-         token:=oldtoken;
-         tokenpos:=oldtokenpos;
-         orgpattern:=oldorgpattern;
-         block_type:=old_block_type;
 
          { call donescanner before restoring preprocstack, because }
          { donescanner tests for a empty preprocstack              }
          { and can also check for unused macros                    }
+{$ifdef NEWINPUT}
+         dispose(current_scanner,done);
+{$else}
          donescanner(current_module^.compiled);
+{$endif}
          dispose(macros,done);
-         macros:=oldmacros;
 
          { restore scanner }
+{$ifdef NEWINPUT}
+         aktfilepos:=oldaktfilepos;
+         current_scanner:=oldcurrent_scanner;
+{$else}
          preprocstack:=oldpreprocstack;
          inputbuffer:=oldinputbuffer;
          inputpointer:=oldinputpointer;
          lastlinepos:=oldlastlinepos;
          currlinepos:=oldcurrlinepos;
          s_point:=olds_point;
-         c:=oldc;
          comment_level:=oldcomment_level;
+{$endif}
+         c:=oldc;
+         pattern:=oldpattern;
+         token:=oldtoken;
+         tokenpos:=oldtokenpos;
+         orgpattern:=oldorgpattern;
+         block_type:=old_block_type;
 
          nextlabelnr:=oldnextlabelnr;
          parse_only:=oldparse_only;
+
+         macros:=oldmacros;
 
          { restore asmlists }
          exprasmlist:=oldexprasmlist;
@@ -414,7 +432,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.28  1998-06-25 11:15:33  pierre
+  Revision 1.29  1998-07-07 11:19:59  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.28  1998/06/25 11:15:33  pierre
     * ppu files where not closed in newppu !!
       second compilation was impossible due to too many opened files
       (not visible in 'make cycle' as we remove all the ppu files)

@@ -310,9 +310,15 @@ uses
     constructor tai.init;
       begin
 {$ifdef GDB}
+  {$ifdef NEWINPUT}
+         infile:=pointer(current_module^.sourcefiles.get_file(aktfilepos.fileindex));
+         if assigned(infile) then
+           line:=aktfilepos.line;
+  {$else}
          infile:=pointer(current_module^.current_inputfile);
          if assigned(infile) then
            line:=current_module^.current_inputfile^.line_no;
+  {$endif}
 {$endif GDB}
       end;
 
@@ -837,7 +843,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  1998-06-08 22:59:41  peter
+  Revision 1.11  1998-07-07 11:19:50  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.10  1998/06/08 22:59:41  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

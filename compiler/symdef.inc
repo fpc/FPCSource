@@ -85,7 +85,8 @@
          if not(assigned(previousglobal)) then
            begin
               firstglobaldef := nextglobal;
-              firstglobaldef^.previousglobal:=nil;
+              if assigned(firstglobaldef) then
+                firstglobaldef^.previousglobal:=nil;
            end
          else
            begin
@@ -284,7 +285,8 @@
 
       var
          str : string;
-         
+
+
       begin
          { name }
          if assigned(sym) then
@@ -2644,7 +2646,10 @@
 
 {
   $Log$
-  Revision 1.15  1998-06-24 14:48:37  peter
+  Revision 1.16  1998-07-07 11:20:13  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.15  1998/06/24 14:48:37  peter
     * ifdef newppu -> ifndef oldppu
 
   Revision 1.14  1998/06/16 08:56:31  peter

@@ -22,7 +22,6 @@
 }
 unit verb_def;
 interface
-uses verbose;
 
 procedure SetRedirectFile(const fn:string);
 
@@ -32,7 +31,11 @@ function  _internalerror(i : longint) : boolean;
 
 implementation
 uses
-  strings,dos,globals,files;
+  verbose,globals,
+{$ifndef NEWINPUT}
+   files,
+{$endif}
+  strings,dos;
 
 const
   { RHIDE expect gcc like error output }
@@ -100,7 +103,7 @@ begin
       begin
         if (status.compiledlines=1) then
           WriteLn(memavail shr 10,' Kb Free');
-        if (status.currentline mod 100=0) then
+        if (status.currentline>0) and (status.currentline mod 100=0) then
 {$ifdef FPC}
           WriteLn(status.currentline,' ',memavail shr 10,'/',system.heapsize shr 10,' Kb Free');
 {$else}
@@ -137,8 +140,18 @@ begin
             if (verbosity and Level)=V_Fatal then
               hs:=rh_errorstr;
           end;
+{$ifdef NEWINPUT}
+        if (Level<$100) and (status.currentline>0) then
+         begin
+           if Use_Rhide then
+             hs:=lower(bstoslash(status.currentsource))+':'+tostr(status.currentline)+': '+hs
+           else
+             hs:=status.currentsource+'('+tostr(status.currentline)+','+tostr(status.currentcolumn)+') '+hs;
+         end;
+{$else}
         if (Level<$100) and Assigned(current_module) and Assigned(current_module^.current_inputfile) then
           hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
+{$endif NEWINPUT}
       { add the message to the text }
         hs:=hs+s;
 {$ifdef FPC}
@@ -180,7 +193,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1998-06-19 15:40:00  peter
+  Revision 1.12  1998-07-07 11:20:19  peter
+    + NEWINPUT for a better inputfile and scanner object
+
+  Revision 1.11  1998/06/19 15:40:00  peter
     * bp7 fix
 
   Revision 1.10  1998/06/16 11:32:19  peter
