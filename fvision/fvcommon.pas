@@ -62,6 +62,11 @@ UNIT FVCommon;
 {$I Platform.inc}
 {====================================================================}
 
+{$ifdef win32}
+  uses
+    Windows;
+{$endif}
+
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
 {***************************************************************************}
@@ -153,7 +158,7 @@ TYPE
   THandle = LongInt;                                  { Handles are 32 bits }
 {$ENDIF}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT DEFINITIONS }
-  THandle = sw_Integer;                               { Can be either }
+  THandle = Windows.THandle;                          { Can be either }
 {$ENDIF}
 {$IFDEF OS_OS2}                                       { OS2 DEFINITIONS }
   THandle = sw_Integer;                               { Can be either }
@@ -416,7 +421,10 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2002-09-07 15:06:36  peter
+ Revision 1.5  2003-06-05 14:45:06  peter
+   * use Windows THandle
+
+ Revision 1.4  2002/09/07 15:06:36  peter
    * old logs removed and tabs fixed
 
  Revision 1.3  2002/06/04 11:12:41  marco

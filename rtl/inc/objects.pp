@@ -59,6 +59,11 @@ UNIT Objects;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$ifdef win32}
+  uses
+    Windows;
+{$endif}
+
 {***************************************************************************}
 {                             PUBLIC CONSTANTS                              }
 {***************************************************************************}
@@ -148,7 +153,11 @@ TYPE
 {---------------------------------------------------------------------------}
 type
    FNameStr = String;
+{$ifdef win32}
+   THandle = Windows.THandle;
+{$else}
    THandle = longint;
+{$endif}
 const
    MaxReadBytes = $7fffffff;
    invalidhandle = -1;
@@ -2901,7 +2910,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.18  2003-01-05 16:27:05  hajny
+  Revision 1.19  2003-06-05 14:45:56  peter
+    * use Windows THandle
+
+  Revision 1.18  2003/01/05 16:27:05  hajny
     * PString inherited from System
 
   Revision 1.17  2002/12/07 14:37:15  carl
