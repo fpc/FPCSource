@@ -1,2 +1,9 @@
 #!/bin/bash
-fpc pp -gl -oppcsparc -dExtDebug -Fusparc -Fusystems -dSPARC -dNoOpt -dGDB
+if [[ "$1" != "" ]]
+then
+  FPCSRC="$HOME/FPC/Demo/src/fpc"
+  cd $FPCSRC/tests/sparc
+  $FPCSRC/compiler/ppcsparc -s -al -Fi$FPCSRC/rtl/{unix,linux,sparc,inc} -dSPARC "$@"
+else
+  fpc pp -gl -oppcsparc -dExtDebug -Fusparc -Fusystems -dSPARC -dNoOpt -dGDB
+fi
