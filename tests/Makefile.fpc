@@ -82,9 +82,11 @@ endif
 # Digest program
 #
 ifeq ($(USESQL),YES)
-DIGEST=./dbdigest$(EXEEXT) -v $(FPCVERSION)
+DIGESTEXE=./dbdigest$(EXEEXT)
+DIGEST=$(DIGESTEXE) -v $(FPCVERSION)
 else
-DIGEST=./digest$(EXEEXT)
+DIGESTEXE=./digest$(EXEXEXT)
+DIGEST=$(DIGESTEXE)
 endif
 
 ./digest$(EXEEXT) : units utils/digest.pp utils/teststr.pp utils/testu.pp
@@ -211,7 +213,7 @@ endif
         $(MAKE) -C units clean
 
 distclean: clean
-        -rm -f dotest$(EXEEXT) digest$(EXEEXT)
+        -rm -f dotest$(EXEEXT) digest$(EXEEXT) dbdigest$(EXEEXT)
 
 #
 # Main rules
@@ -219,7 +221,7 @@ distclean: clean
 
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 
-rundigest : $(DIGEST)
+rundigest : $(DIGESTEXE)
         -$(DIGEST)
 
 all : allexectests
