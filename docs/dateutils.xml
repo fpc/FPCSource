@@ -7,18 +7,21 @@
   ====================================================================
 -->
 <module name="dateutils">
-<short/>
+<short>Date/Time manipulation routines.</short>
 <descr/>
 <!-- unresolved type reference Visibility: default -->
 <element name="SysUtils">
+<short>Exception support</short>
 </element>
 
 <!-- unresolved type reference Visibility: default -->
 <element name="Math">
+<short>Math support</short>
 </element>
 
 <!-- unresolved type reference Visibility: default -->
 <element name="Types">
+<short>Basic types</var>
 </element>
 
 <!-- constant Visibility: default -->
