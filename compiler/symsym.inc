@@ -941,13 +941,32 @@
            begin
               case varspez of
                  vs_value : getsize:=definition^.size;
-                   vs_var : getsize:=sizeof(pointer);
+                   vs_var : begin
+                            { open arrays push also the high valye }
+                              if (definition^.deftype=arraydef) and
+                                 (parraydef(definition)^.lowrange=0) and
+                                 (parraydef(definition)^.highrange=-1) then
+                                getsize:=sizeof(pointer)+4
+                              else
+                                getsize:=sizeof(pointer);
+                            end;
                  vs_const : begin
-                               if (definition^.deftype in [stringdef,arraydef,
-                                     recorddef,objectdef,setdef]) then
-                                 getsize:=sizeof(pointer)
-                               else
-                                 getsize:=definition^.size;
+                              case definition^.deftype of
+                             stringdef,
+                             recorddef,
+                             objectdef,
+                                setdef : getsize:=sizeof(pointer);
+                              arraydef : begin
+                                         { open arrays push also the high valye }
+                                           if (parraydef(definition)^.lowrange=0) and
+                                              (parraydef(definition)^.highrange=-1) then
+                                             getsize:=sizeof(pointer)+4
+                                           else
+                                             getsize:=sizeof(pointer);
+                                         end;
+                              else
+                               getsize:=definition^.size;
+                              end;
                             end;
               end;
            end
@@ -1652,7 +1671,10 @@
 
 {
   $Log$
-  Revision 1.27  1998-08-10 14:50:31  peter
+  Revision 1.28  1998-08-11 14:07:27  peter
+    * fixed pushing of high value for openarray
+
+  Revision 1.27  1998/08/10 14:50:31  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.26  1998/08/10 10:18:35  peter
