@@ -77,9 +77,9 @@ function deflateParams(var strm:TZstream; level:longint; strategy:longint):longi
 function inflateSetDictionary(var strm:TZStream;dictionary : pchar; dictLength:uInt):longint;
 function inflateSync(var strm:TZStream):longint;
 function inflateReset(var strm:TZStream):longint;
-function compress(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong):longint;
-function compress2(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong; level:longint):longint;
-function uncompress(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+function compress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+function compress2(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong; level:longint):longint;
+function uncompress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
 function gzopen(path:pchar; mode:pchar):gzFile;
 function gzsetparams(Thefile:gzFile; level:longint; strategy:longint):longint;
 function gzread(thefile:gzFile; buf : pointer; len:cardinal):longint;
@@ -174,17 +174,17 @@ begin
   inflateReset:=zinflate.inflateReset(strm);
 end;
 
-function compress(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+function compress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
 begin
   compress:=zcompres.compress(pbytef(dest),destlen,pbytef(source),sourcelen);
 end;
 
-function compress2(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong; level:longint):longint;
+function compress2(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong; level:longint):longint;
 begin
   compress2:=zcompres.compress2(pbytef(dest),destlen,pbytef(source),sourcelen,level);
 end;
 
-function uncompress(dest:pchar;destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+function uncompress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
 begin
   uncompress:=zuncompr.uncompress(pbytef(dest),destlen,pbytef(source),sourcelen);
 end;
