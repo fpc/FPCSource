@@ -605,17 +605,17 @@ end;
                            Directory Handling
 *****************************************************************************}
 
-   function CreateDirectory(name : pointer;sec : pointer) : longint;
+   function CreateDirectory(name : pointer;sec : pointer) : longbool;
      external 'kernel32' name 'CreateDirectoryA';
-   function RemoveDirectory(name:pointer):longint;
+   function RemoveDirectory(name:pointer):longbool;
      external 'kernel32' name 'RemoveDirectoryA';
-   function SetCurrentDirectory(name : pointer) : longint;
+   function SetCurrentDirectory(name : pointer) : longbool;
      external 'kernel32' name 'SetCurrentDirectoryA';
-   function GetCurrentDirectory(bufsize : longint;name : pchar) : longint;
+   function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      external 'kernel32' name 'GetCurrentDirectoryA';
 
 type
- TDirFnType=function(name:pointer):word;
+ TDirFnType=function(name:pointer):longbool;
 
 procedure dirfn(afunc : TDirFnType;const s:string);
 var
@@ -624,14 +624,14 @@ begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
-  if aFunc(@buffer)=0 then
+  if not aFunc(@buffer) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
     end;
 end;
 
-function CreateDirectoryTrunc(name:pointer):word;
+function CreateDirectoryTrunc(name:pointer):longbool;
 begin
   CreateDirectoryTrunc:=CreateDirectory(name,nil);
 end;
@@ -669,11 +669,12 @@ begin
    begin
     byte(Drive[0]):=Drivenr+64;
     GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
-    if SetCurrentDirectory(@Drive) <> 0 then
+    if not SetCurrentDirectory(@Drive) then
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
       Dir := char (DriveNr + 64) + ':\';
+      SetCurrentDirectory(@SaveBuf);
       Exit;
      end;
    end;
@@ -1565,7 +1566,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2001-06-30 18:55:48  hajny
+  Revision 1.16  2001-07-30 20:53:50  peter
+    * fixed getdir() that was broken when a directory on a different drive
+      was asked
+
+  Revision 1.15  2001/06/30 18:55:48  hajny
     * GetDir fix for inaccessible drives
 
   Revision 1.14  2001/06/18 14:26:16  jonas
