@@ -1449,10 +1449,7 @@ implementation
            begin
               inlinecode:=right;
               if assigned(inlinecode) then
-                begin
-                   inlined:=true;
-                   exclude(procdefinition.proccalloptions,pocall_inline);
-                end;
+               inlined:=true;
               right:=nil;
            end;
 
@@ -1746,7 +1743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2001-09-02 21:12:06  peter
+  Revision 1.50  2001-10-12 16:04:32  peter
+    * nested inline fix (merged)
+
+  Revision 1.49  2001/09/02 21:12:06  peter
     * move class of definitions into type section for delphi
 
   Revision 1.48  2001/08/30 15:39:59  jonas
