@@ -266,6 +266,7 @@ type tmsgconst=(
   sym_n_uninitialized_variable,
   sym_e_id_no_member,
   sym_b_param_list,
+  sym_e_segment_too_large,
   cg_e_break_not_allowed,
   cg_e_continue_not_allowed,
   cg_e_too_complex_expr,

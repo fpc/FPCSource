@@ -1796,7 +1796,7 @@
         If (highrange-lowrange = $7fffffff) or
            (($7fffffff div elesize + elesize -1) < (highrange - lowrange)) Then
           Begin
-            message(sym_segment_too_large);
+            Message(sym_e_segment_too_large);
             size := 4
           End
         Else size:=(highrange-lowrange+1)*elesize;
@@ -3590,7 +3590,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.142  1999-08-05 22:41:34  daniel
+  Revision 1.143  1999-08-06 11:13:30  peter
+    * fixed message which was wrong styled
+
+  Revision 1.142  1999/08/05 22:41:34  daniel
   *** empty log message ***
 
   Revision 1.141  1999/08/05 16:53:13  peter
