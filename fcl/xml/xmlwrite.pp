@@ -26,11 +26,11 @@ uses Classes, DOM;
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
-procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
+procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
 
 procedure WriteXML(Node: TDOMNode; const AFileName: String);
 procedure WriteXML(Node: TDOMNode; var AFile: Text);
-procedure WriteXML(Node: TDOMNode; var AStream: TStream);
+procedure WriteXML(Node: TDOMNode; AStream: TStream);
 
 
 // ===================================================================
@@ -377,7 +377,7 @@ begin
   RootWriter(doc);
 end;
 
-procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
+procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
 begin
   Stream := AStream;
   wrt := @Stream_Write;
@@ -405,7 +405,7 @@ begin
   WriteNode(Node);
 end;
 
-procedure WriteXML(Node: TDOMNode; var AStream: TStream);
+procedure WriteXML(Node: TDOMNode; AStream: TStream);
 begin
   stream := AStream;
   wrt := @Stream_Write;
@@ -420,7 +420,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-09-20 11:36:51  sg
+  Revision 1.10  2002-11-30 16:04:34  sg
+  * Stream parameters are not "var" anymore (stupid copy&paste bug)
+
+  Revision 1.9  2002/09/20 11:36:51  sg
   * Argument escaping improvements
   * Indent fixed for consecutive WriteXML calls
 
