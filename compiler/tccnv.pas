@@ -96,6 +96,8 @@ implementation
 
       var
         l : longint;
+        lr,hr : longint;
+
       begin
         new(constset);
         FillChar(constset^,sizeof(constset^),0);
@@ -129,64 +131,68 @@ implementation
               if codegenerror then
                break;
               case p2^.resulttype^.deftype of
-            enumdef,
-             orddef : begin
-                        if is_integer(p2^.resulttype) then
-                         begin
-                           p2:=gentypeconvnode(p2,u8bitdef);
-                           firstpass(p2);
-                         end;
-                        { set settype result }
-                        if pd=nil then
-                          pd:=p2^.resulttype;
-                        if not(is_equal(pd,p2^.resulttype)) then
-                         begin
-                           CGMessage(type_e_typeconflict_in_set);
-                           disposetree(p2);
-                         end
-                        else
-                         begin
-                           if assigned(p3) then
-                            begin
-                              if is_integer(p3^.resulttype) then
-                               begin
-                                 p3:=gentypeconvnode(p3,u8bitdef);
-                                 firstpass(p3);
-                               end;
-                              if not(is_equal(pd,p3^.resulttype)) then
-                                CGMessage(type_e_typeconflict_in_set)
-                              else
-                                begin
-                                  if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
-                                   begin
-                                     for l:=p2^.value to p3^.value do
-                                      do_set(l);
-                                     disposetree(p3);
-                                     disposetree(p2);
-                                   end
-                                  else
-                                   begin
-                                     update_constsethi(p3^.resulttype);
-                                     p4:=gennode(setelementn,p2,p3);
-                                   end;
-                                end;
-                            end
-                           else
-                            begin
-                           { Single value }
-                              if p2^.treetype=ordconstn then
-                               begin
-                                 do_set(p2^.value);
-                                 disposetree(p2);
-                               end
-                              else
-                               begin
-                                 update_constsethi(p2^.resulttype);
-                                 p4:=gennode(setelementn,p2,nil);
-                               end;
-                            end;
-                         end;
-                      end;
+                 enumdef,
+                 orddef:
+                   begin
+                      getrange(p2^.resulttype,lr,hr);
+
+                      if is_integer(p2^.resulttype) and
+                        ((lr<0) or (hr>255)) then
+                       begin
+                          p2:=gentypeconvnode(p2,u8bitdef);
+                          firstpass(p2);
+                       end;
+                      { set settype result }
+                      if pd=nil then
+                        pd:=p2^.resulttype;
+                      if not(is_equal(pd,p2^.resulttype)) then
+                       begin
+                         CGMessage(type_e_typeconflict_in_set);
+                         disposetree(p2);
+                       end
+                      else
+                       begin
+                         if assigned(p3) then
+                          begin
+                            if is_integer(p3^.resulttype) then
+                             begin
+                               p3:=gentypeconvnode(p3,u8bitdef);
+                               firstpass(p3);
+                             end;
+                            if not(is_equal(pd,p3^.resulttype)) then
+                              CGMessage(type_e_typeconflict_in_set)
+                            else
+                              begin
+                                if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
+                                 begin
+                                   for l:=p2^.value to p3^.value do
+                                    do_set(l);
+                                   disposetree(p3);
+                                   disposetree(p2);
+                                 end
+                                else
+                                 begin
+                                   update_constsethi(p3^.resulttype);
+                                   p4:=gennode(setelementn,p2,p3);
+                                 end;
+                              end;
+                          end
+                         else
+                          begin
+                         { Single value }
+                            if p2^.treetype=ordconstn then
+                             begin
+                               do_set(p2^.value);
+                               disposetree(p2);
+                             end
+                            else
+                             begin
+                               update_constsethi(p2^.resulttype);
+                               p4:=gennode(setelementn,p2,nil);
+                             end;
+                          end;
+                       end;
+                    end;
           stringdef : begin
                         if pd=nil then
                          pd:=cchardef;
@@ -907,7 +913,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-21 15:12:58  pierre
+  Revision 1.7  1998-10-23 11:58:27  florian
+    * better code generation for s:=s+[b] if b is in the range of
+      a small set and s is also a small set
+
+  Revision 1.6  1998/10/21 15:12:58  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)
