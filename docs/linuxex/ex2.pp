@@ -8,7 +8,7 @@ Var TV : TimeVal;
     TZ : TimeZone;
 
 begin
-  GetTimeOfDay (TV,TZ);
+  GetTimeOfDay (TV);
   Writeln ('Seconds              : ',tv.sec);
   Writeln ('Milliseconds         : ',tv.usec);
   Writeln ('Minutes west of GMT  : ',tz.minuteswest);
