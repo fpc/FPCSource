@@ -4,6 +4,10 @@
 #
 #  Generate Sample Free Pascal configuration file
 #
+
+HOSTOS=`uname -s | tr A-Z a-z`
+echo Running on $HOSTOS
+
 if [ $# = 0 ]; then
   echo 'Usage :'
   echo 'samplecfg fpcdir confdir'
@@ -42,7 +46,18 @@ GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
 GCCDIR=`dirname $GCCSPEC`
 echo $GCCDIR
 if [ -f $GCCDIR ]; then
-   echo BSD'ers don't need gccdir.
+# include ports tree dir for FreeBSDers.
+case $HOSTOS in
+ freebsd)
+    GCCDIR=-Fl/usr/local/lib
+     ;;
+ openbsd)
+    GCCDIR=-Fl/usr/local/lib
+     ;;
+ netbsd)
+   GCCDIR=-Fl/usr/pkg/lib
+     ;;
+esac
 else
   echo Found libgcc.a in $GCCDIR
   GCCDIR=-Fl$GCCDIR
