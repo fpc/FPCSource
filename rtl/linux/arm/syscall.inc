@@ -32,15 +32,26 @@ asm
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-end;
+end ['r4'];
 
 
 function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
@@ -52,15 +63,26 @@ asm
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-end;
+end ['r4'];
 
 
 function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
@@ -72,15 +94,26 @@ asm
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-end;
+end ['r4'];
 
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
@@ -92,15 +125,26 @@ asm
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-end;
+end ['r4'];
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
@@ -109,21 +153,30 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   copies back the registers as they are after the SysCall.
 }
 asm
-  stmfd r13!,{r4}
   ldr  r4,param4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-  ldmfd r13!,{r4}
-end;
+end ['r4'];
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
@@ -132,22 +185,31 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   copies back the registers as they are after the SysCall.
 }
 asm
-  stmfd r13!,{r4-r5}
   ldr  r5,param5
   ldr  r4,param4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-  ldmfd r13!,{r4-r5}
-end;
+end ['r4','r5'];
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
@@ -156,28 +218,40 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   copies back the registers as they are after the SysCall.
 }
 asm
-  stmfd r13!,{r4-r6}
   ldr  r6,param6
   ldr  r5,param5
   ldr  r4,param4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
+  rsb  r4,r0,#0
+  ldr  r2,.Lthread_var
+  ldr  r2,[r2]
+  ldr  r0,.LErrno
+  cmp  r2,#0
+  bne  .LThread
+  str  r4,[r0,#4]
+  mvn  r0,#0
+  b    .LDone
+.LThread:
+  mov  pc,r2
+  str  r4,[r0]
   mvn  r0,#0
   b    .LDone
 .LErrno:
   .word Errno
+.Lthread_var:
+  .word fpc_threadvar_relocate_proc
 .LDone:
-  ldmfd r13!,{r4-r6}
-end;
+end ['r4','r5','r6'];
 
 
 {
   $Log$
-  Revision 1.5  2004-02-06 23:06:16  florian
+  Revision 1.6  2005-01-04 14:13:58  florian
+    * fixed error handling of system calls
+
+  Revision 1.5  2004/02/06 23:06:16  florian
     - killed tsyscallregs
 
   Revision 1.4  2004/01/20 21:01:57  florian
