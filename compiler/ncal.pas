@@ -1892,30 +1892,27 @@ type
           begin
             resulttypepass(methodpointer);
 
+            { if an inherited con- or destructor should be  }
+            { called in a con- or destructor then a warning }
+            { will be made                                  }
+            { con- and destructors need a pointer to the vmt }
+            if (methodpointer.nodetype=typen) and
+               (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
+               is_object(methodpointer.resulttype.def) and
+               not(aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
+             CGMessage(cg_w_member_cd_call_from_method);
+
             if not(methodpointer.nodetype in [typen,hnewn]) then
              begin
                hpt:=methodpointer;
                while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                 hpt:=tunarynode(hpt).left;
 
-               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
-                begin
-                  { if an inherited con- or destructor should be  }
-                  { called in a con- or destructor then a warning }
-                  { will be made                                  }
-                  { con- and destructors need a pointer to the vmt }
-                  if is_object(methodpointer.resulttype.def) and
-                     not(aktprocdef.proctypeoption in
-                         [potype_constructor,potype_destructor]) then
-                    CGMessage(cg_w_member_cd_call_from_method);
-
-                  if assigned(symtableproc) and
-                     (symtableproc.symtabletype=withsymtable) and
-                     (not twithsymtable(symtableproc).direct_with) then
-                    begin
-                       CGmessage(cg_e_cannot_call_cons_dest_inside_with);
-                    end; { Is accepted by Delphi !! }
-                end;
+               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
+                  assigned(symtableproc) and
+                  (symtableproc.symtabletype=withsymtable) and
+                  (not twithsymtable(symtableproc).direct_with) then
+                 CGmessage(cg_e_cannot_call_cons_dest_inside_with);
 
                { R.Init then R will be initialized by the constructor,
                  Also allow it for simple loads }
@@ -2486,7 +2483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2003-04-23 12:35:34  florian
+  Revision 1.141  2003-04-23 13:21:06  peter
+    * fix warning for calling constructor inside constructor
+
+  Revision 1.140  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
