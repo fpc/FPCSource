@@ -57,7 +57,8 @@ begin
     Red   :=(R shl 8) or R;
     Green :=(G shl 8) or G;
     Blue  :=(B shl 8) or B;
-    alpha :=A; //!! MVC: Used to be AlphaOpaque ???
+    Alpha :=255-A;
+    Alpha :=(Alpha shl 8) or Alpha
     end;
 end;
 
@@ -241,7 +242,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.11  2004-02-25 02:36:51  pierre
+Revision 1.12  2004-03-01 23:46:38  michael
++ Corrected alpha in colormap
+
+Revision 1.11  2004/02/25 02:36:51  pierre
 * fix compilation with 1.0 compiler
 
 Revision 1.10  2004/02/20 23:12:57  michael
