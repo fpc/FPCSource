@@ -613,7 +613,6 @@ Unit rappcgas;
       var
         str2opentry: tstr2opentry;
         cond  : tasmcondflag;
-        len,
         j,
         sufidx : longint;
         hs : string;
@@ -634,7 +633,7 @@ Unit rappcgas;
             dec(ord(hs[0]));
             actcondition.dirhint:=DH_Minus;
           end;
-        str2opentry:=tstr2opentry(iasmops.search(copy(hs,1,len)));
+        str2opentry:=tstr2opentry(iasmops.search(hs));
         if assigned(str2opentry) then
           begin
             if actcondition.dirhint<>DH_None then
@@ -736,7 +735,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-11-15 19:00:10  florian
+  Revision 1.4  2003-11-23 17:33:24  jonas
+    * fixed uninitialised var
+
+  Revision 1.3  2003/11/15 19:00:10  florian
     * fixed ppc assembler reader
 
   Revision 1.2  2003/11/12 16:05:40  florian
