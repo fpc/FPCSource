@@ -214,8 +214,12 @@ implementation
                      end;
                    end;
              end;
-           2:
+           2,
+           3 :
              begin
+               { Opcodes with 3 registers are shrd/shld, where the 3rd operand is const or CL,
+                 that doesn't need spilling }
+
                { First spill the registers from the references. This is
                  required because the reference can be moved from this instruction
                  to a MOV instruction when spilling of the register operand is done }
@@ -404,6 +408,7 @@ implementation
                   ) then
                  begin
                    case opcode of
+                     A_SHLD,A_SHRD,
                      A_IMUL :
                        begin
                          {Yikes! We just changed the destination register into
@@ -475,8 +480,6 @@ implementation
                    end;
                  end;
              end;
-           3:
-             internalerror(200409201);
            else
              internalerror(200409202);
          end;
@@ -616,7 +619,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-09-26 07:15:07  florian
+  Revision 1.6  2004-09-27 14:49:45  peter
+    * handle 3 operand opcodes the same as 2 operand opcodes, the
+      third operand can only be a const or register CL, so it doesn't
+      affect spilling
+    * support shrd/shld that don't allow memory operands
+
+  Revision 1.5  2004/09/26 07:15:07  florian
     * ie checking in spilling code improved
 
   Revision 1.4  2004/06/20 08:55:32  florian
