@@ -90,13 +90,6 @@ endif
 endif
 endif
 
-# Stop with an error?
-ifdef SNAPSHOT
-NOSTOP=-
-else
-NOSTOP=
-endif
-
 # Prefix for units
 PKGUNITSPRELONGTARGETS=linux freebsd netbsd openbsd
 ifneq ($(findstring $(OS_TARGET),$(PKGUNITSPRELONGTARGETS)),)
@@ -324,7 +317,7 @@ install: $(BUILDSTAMP)
         $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
+        $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
 
 zipinstall: $(BUILDSTAMP)
@@ -333,7 +326,7 @@ zipinstall: $(BUILDSTAMP)
         $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)util$(ZIPSUFFIX)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)ide$(ZIPSUFFIX)
+        $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)ide$(ZIPSUFFIX)
 endif
 
 singlezipinstall: $(BUILDSTAMP)
