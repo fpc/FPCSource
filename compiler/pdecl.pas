@@ -1554,108 +1554,97 @@ unit pdecl;
          pt : ptree;
 
       procedure array_dec;
-
+        var
+          lowval,
+          highval   : longint;
+          arraytype : pdef;
         begin
            consume(_ARRAY);
            consume(LECKKLAMMER);
+           { defaults }
+           arraytype:=generrordef;
+           lowval:=$80000000;
+           highval:=$7fffffff;
            p:=nil;
            repeat
              { read the expression and check it }
              pt:=expr;
              if pt^.treetype=typen then
                begin
-                  if pt^.resulttype^.deftype=enumdef then
-                    begin
-                       if p=nil then
-                         begin
-                            ap:=new(parraydef,
-                              init(penumdef(pt^.resulttype)^.min,penumdef(pt^.resulttype)^.max,pt^.resulttype));
-                            p:=ap;
-                         end
-                       else
-                         begin
-                            ap^.definition:=new(parraydef,
-                              init(penumdef(pt^.resulttype)^.min,penumdef(pt^.resulttype)^.max,pt^.resulttype));
-                            ap:=parraydef(ap^.definition);
+                 case pt^.resulttype^.deftype of
+               enumdef : begin
+                           lowval:=penumdef(pt^.resulttype)^.min;
+                           highval:=penumdef(pt^.resulttype)^.max;
+                           arraytype:=pt^.resulttype;
                          end;
-                    end
-                  else if pt^.resulttype^.deftype=orddef then
-                    begin
-                       case porddef(pt^.resulttype)^.typ of
-                          s8bit,u8bit,s16bit,u16bit,s32bit :
-                            begin
-                               if p=nil then
-                                 begin
-                                    ap:=new(parraydef,init(porddef(pt^.resulttype)^.low,
-                                      porddef(pt^.resulttype)^.high,pt^.resulttype));
-                                    p:=ap;
-                                 end
-                               else
-                                 begin
-                                    ap^.definition:=new(parraydef,init(porddef(pt^.resulttype)^.low,
-                                      porddef(pt^.resulttype)^.high,pt^.resulttype));
-                                    ap:=parraydef(ap^.definition);
-                                 end;
-                            end;
-                          bool8bit:
-                            begin
-                               if p=nil then
-                                 begin
-                                    ap:=new(parraydef,init(0,1,pt^.resulttype));
-                                    p:=ap;
-                                 end
-                               else
-                                 begin
-                                    ap^.definition:=new(parraydef,init(0,1,pt^.resulttype));
-                                    ap:=parraydef(ap^.definition);
-                                 end;
-                            end;
-                          uchar:
-                            begin
-                               if p=nil then
-                                 begin
-                                    ap:=new(parraydef,init(0,255,pt^.resulttype));
-                                    p:=ap;
-                                 end
-                               else
-                                 begin
-                                    ap^.definition:=new(parraydef,init(0,255,pt^.resulttype));
-                                    ap:=parraydef(ap^.definition);
-                                 end;
-                            end;
-                          else Message(sym_e_error_in_type_def);
-                       end;
-                    end
-                  else Message(sym_e_error_in_type_def);
-               end
+                orddef : begin
+                           case porddef(pt^.resulttype)^.typ of
+                            s8bit,u8bit,
+                          s16bit,u16bit,
+                                 s32bit : begin
+                                            lowval:=porddef(pt^.resulttype)^.low;
+                                            highval:=porddef(pt^.resulttype)^.high;
+                                            arraytype:=pt^.resulttype;
+                                          end;
+
+                               bool8bit,
+                              bool16bit,
+                              bool32bit : begin
+                                            lowval:=0;
+                                            highval:=1;
+                                            arraytype:=pt^.resulttype;
+                                          end;
+                                  uchar : begin
+                                            lowval:=0;
+                                            highval:=255;
+                                            arraytype:=pt^.resulttype;
+                                          end;
+                           else
+                             Message(sym_e_error_in_type_def);
+                           end;
+                         end;
+                 else
+                   Message(sym_e_error_in_type_def);
+                 end
+               end      
+
              else
                begin
                   do_firstpass(pt);
 
                   if (pt^.treetype<>rangen) or
                      (pt^.left^.treetype<>ordconstn) then
-                    Message(sym_e_error_in_type_def);
-                  { force the registration of the ranges }
-{$ifndef GDB}
-                  if pt^.right^.resulttype=pdef(s32bitdef) then
-                    pt^.right^.resulttype:=new(porddef,init(
-                      s32bit,$80000000,$7fffffff));
-{$endif GDB}
-                  if p=nil then
-                    begin
-                       ap:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
-                       p:=ap;
-                    end
+                    Message(sym_e_error_in_type_def)
                   else
                     begin
-                       ap^.definition:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
-                       ap:=parraydef(ap^.definition);
+{$ifndef GDB}
+                      if pt^.right^.resulttype=pdef(s32bitdef) then
+                        pt^.right^.resulttype:=new(porddef,init(s32bit,$80000000,$7fffffff));
+{$endif GDB}
+                      lowval:=pt^.left^.value;
+                      highval:=pt^.right^.value;
+                      arraytype:=pt^.right^.resulttype;
                     end;
+
                end;
              disposetree(pt);
+           { create arraydef }
 
-             if token=COMMA then consume(COMMA)
-               else break;
+             if p=nil then
+              begin
+                ap:=new(parraydef,init(lowval,highval,arraytype));
+                p:=ap;
+              end
+             else
+              begin
+                ap^.definition:=new(parraydef,init(lowval,highval,arraytype));
+                ap:=parraydef(ap^.definition);
+              end;
+
+             if token=COMMA then
+               consume(COMMA)
+             else
+               break;
            until false;
            consume(RECKKLAMMER);
            consume(_OF);
@@ -1972,7 +1961,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.44  1998-08-28 10:57:01  peter
+  Revision 1.45  1998-08-31 12:20:28  peter
+    * fixed array_dec when unknown type was used
+
+  Revision 1.44  1998/08/28 10:57:01  peter
     * removed warnings
 
   Revision 1.43  1998/08/25 13:09:25  pierre
