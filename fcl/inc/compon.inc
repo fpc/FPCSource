@@ -420,6 +420,18 @@ begin
 end;
 
 
+function TComponent.ExecuteAction(Action: TBasicAction): Boolean;
+begin
+  if Action.HandlesTarget(Self) then
+   begin
+     Action.ExecuteTarget(Self);
+     Result := True;
+   end
+  else
+   Result := False;
+end;
+
+
 Function  TComponent.FindComponent(const AName: string): TComponent;
 
 Var I : longint;
@@ -509,9 +521,24 @@ begin
   SafeCallException:=0;
 end;
 
+
+function TComponent.UpdateAction(Action: TBasicAction): Boolean;
+begin
+  if Action.HandlesTarget(Self) then
+    begin
+      Action.UpdateTarget(Self);
+      Result := True;
+    end
+  else
+    Result := False;
+end;
+
 {
   $Log$
-  Revision 1.4  2001-12-03 21:39:58  peter
+  Revision 1.5  2002-01-06 21:54:50  peter
+    * action classes added
+
+  Revision 1.4  2001/12/03 21:39:58  peter
     * seek(int64) overload only for 1.1 compiler
 
   Revision 1.3  2001/01/08 18:36:01  sg

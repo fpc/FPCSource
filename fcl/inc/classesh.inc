@@ -1139,6 +1139,8 @@ type
   end;
   }
 
+  TBasicAction = class;
+
   TComponent = class(TPersistent)
   private
     FOwner: TComponent;
@@ -1205,6 +1207,7 @@ type
     destructor Destroy; override;
     procedure DestroyComponents;
     procedure Destroying;
+    function ExecuteAction(Action: TBasicAction): Boolean; dynamic;
     function FindComponent(const AName: string): TComponent;
     procedure FreeNotification(AComponent: TComponent);
     procedure RemoveFreeNotification(AComponent: TComponent);
@@ -1215,6 +1218,7 @@ type
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
       ExceptAddr: Pointer): Integer; override;
+    function UpdateAction(Action: TBasicAction): Boolean; dynamic;
     // property ComObject: IUnknown read GetComObject;
     property Components[Index: Integer]: TComponent read GetComponent;
     property ComponentCount: Integer read GetComponentCount;
@@ -1229,6 +1233,60 @@ type
     property Tag: Longint read FTag write FTag default 0;
   end;
 
+{ TBasicActionLink }
+
+  TBasicActionLink = class(TObject)
+  private
+    FOnChange: TNotifyEvent;
+  protected
+    FAction: TBasicAction;
+    procedure AssignClient(AClient: TObject); virtual;
+    procedure Change; virtual;
+    function IsOnExecuteLinked: Boolean; virtual;
+    procedure SetAction(Value: TBasicAction); virtual;
+    procedure SetOnExecute(Value: TNotifyEvent); virtual;
+  public
+    constructor Create(AClient: TObject); virtual;
+    destructor Destroy; override;
+    function Execute(AComponent: TComponent{$ifndef VER1_0} = nil{$endif}): Boolean; virtual;
+    function Update: Boolean; virtual;
+    property Action: TBasicAction read FAction write SetAction;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+  TBasicActionLinkClass = class of TBasicActionLink;
+
+{ TBasicAction }
+
+  TBasicAction = class(TComponent)
+  private
+    FActionComponent: TComponent;
+    FOnChange: TNotifyEvent;
+    FOnExecute: TNotifyEvent;
+    FOnUpdate: TNotifyEvent;
+  protected
+    FClients: TList;
+    procedure Change; virtual;
+    procedure SetOnExecute(Value: TNotifyEvent); virtual;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function HandlesTarget(Target: TObject): Boolean; virtual;
+    procedure UpdateTarget(Target: TObject); virtual;
+    procedure ExecuteTarget(Target: TObject); virtual;
+    function Execute: Boolean; dynamic;
+    procedure RegisterChanges(Value: TBasicActionLink);
+    procedure UnRegisterChanges(Value: TBasicActionLink);
+    function Update: Boolean; virtual;
+    property ActionComponent: TComponent read FActionComponent write FActionComponent;
+    property OnExecute: TNotifyEvent read FOnExecute write SetOnExecute;
+    property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
+  end;
+
+{ TBasicAction class reference type }
+
+  TBasicActionClass = class of TBasicAction;
 
 { Component registration handlers }
 
@@ -1331,7 +1389,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.17  2001-12-03 21:39:58  peter
+  Revision 1.18  2002-01-06 21:54:49  peter
+    * action classes added
+
+  Revision 1.17  2001/12/03 21:39:58  peter
     * seek(int64) overload only for 1.1 compiler
 
   Revision 1.16  2001/11/24 20:41:04  carl

@@ -69,6 +69,9 @@ var
 { TComponent implementation }
 {$i compon.inc}
 
+{ TBasicAction implementation }
+{$i action.inc}
+
 { Class and component registration routines }
 {$I cregist.inc}
 
@@ -1182,7 +1185,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-04-10 23:24:51  peter
+  Revision 1.8  2002-01-06 21:54:49  peter
+    * action classes added
+
+  Revision 1.7  2001/04/10 23:24:51  peter
     * merged fixes
 
   Revision 1.6  2001/03/08 19:39:25  michael
