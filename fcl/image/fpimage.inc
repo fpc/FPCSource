@@ -201,15 +201,20 @@ begin
   result := assigned(FPalette);
 end;
 
-procedure TFPCustomImage.SetUsePalette (Value : boolean);
+procedure TFPCustomImage.SetUsePalette(Value:boolean);
 begin
-  if Value <> assigned(FPalette) then
-    if Value then
-      FPalette := TFPPalette.Create (0)
+  if Value <> assigned(FPalette)
+  then
+    if Value
+    then
+      begin
+        FPalette := TFPPalette.Create (0);
+        FPalette.Add (colTransparent);    
+      end
     else
       begin
-      FPalette.Free;
-      FPalette := nil;
+        FPalette.Free;
+        FPalette := nil;
       end;
 end;
 
@@ -240,75 +245,6 @@ begin
     FonProgress(Sender,Stage,PercentDone,RedrawNow,R,Msg,Continue);
 end;                         
                          
-
-{ TFPMemoryImage }
-
-constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
-begin
-  inherited create (AWidth,AHeight);
-  UsePalette := True;
-  Palette.Add (colTransparent);
-end;
-
-destructor TFPMemoryImage.Destroy;
-begin
-  // MG: missing if
-  if FData<>nil then
-    FreeMem (FData);
-  inherited Destroy;
-end;
-
-function TFPMemoryImage.GetInternalPixel (x,y:integer) : integer;
-begin
-  result := FData^[y*FWidth+x];
-end;
-
-procedure TFPMemoryImage.SetInternalPixel (x,y:integer; Value:integer);
-begin
-  FData^[y*FWidth+x] := Value;
-end;
-
-function Lowest (a,b : integer) : integer;
-begin
-  if a <= b then
-    result := a
-  else
-    result := b;
-end;
-
-procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
-var w, h, r, old : integer;
-    NewData : PFPIntegerArray;
-begin
-  if (AWidth <> Width) or (AHeight <> Height) then
-    begin
-    old := Height * Width;
-    r := SizeOf(integer)*AWidth*AHeight;
-    if r = 0 then
-      NewData := nil
-    else
-      begin
-      GetMem (NewData, r);
-      Fillchar (Newdata^[0], r, 0);
-      end;
-    // MG: missing "and (NewData<>nil)"
-    if (old <> 0) and assigned(FData) and (NewData<>nil) then
-      begin
-      if r <> 0 then
-        begin
-        w := Lowest(Width, AWidth);
-        h := Lowest(Height, AHeight);
-        for r := 0 to h-1 do
-          move (FData^[r*Width], NewData^[r*AWidth], w);
-        end;
-      FreeMem (FData);
-      end;
-    FData := NewData;
-    inherited;
-    end;
-end;
-
-
 Procedure TFPCustomImage.Assign(Source: TPersistent);
 
 Var
@@ -343,4 +279,125 @@ begin
     Inherited Assign(Source);
 end;
 
-    
+{ TFPMemoryImage }
+
+constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
+begin
+  inherited create (AWidth,AHeight);
+{Default behavior is to use palette as suggested by Michael}
+  SetUsePalette(True);
+end;
+
+destructor TFPMemoryImage.Destroy;
+begin
+  // MG: missing if
+  if FData<>nil then
+    FreeMem (FData);
+  inherited Destroy;
+end;
+
+function TFPMemoryImage.GetInternalColor(x,y:integer):TFPColor;
+  begin
+    if Assigned(FPalette)
+    then
+      Result:=inherited GetInternalColor(x,y)
+    else
+      Result:=PFPColorArray(FData)^[y*FWidth+x];
+  end;
+
+function TFPMemoryImage.GetInternalPixel (x,y:integer) : integer;
+begin
+  result := FData^[y*FWidth+x];
+end;
+
+procedure TFPMemoryImage.SetInternalColor (x,y:integer; const Value:TFPColor);
+  begin
+    if Assigned(FPalette)
+    then
+      inherited SetInternalColor(x,y,Value)
+    else
+      PFPColorArray(FData)^[y*FWidth+x]:=Value;
+  end;
+
+procedure TFPMemoryImage.SetInternalPixel (x,y:integer; Value:integer);
+begin
+  FData^[y*FWidth+x] := Value;
+end;
+
+function Lowest (a,b : integer) : integer;
+begin
+  if a <= b then
+    result := a
+  else
+    result := b;
+end;
+
+procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
+var w, h, r, old : integer;
+    NewData : PFPIntegerArray;
+begin
+  if (AWidth <> Width) or (AHeight <> Height) then
+    begin
+    old := Height * Width;
+    r:=AWidth*AHeight;
+    if Assigned(FPalette)
+    then
+      r:=SizeOf(integer)*r
+    else
+      r:=SizeOf(TFPColor)*r;
+    if r = 0 then
+      NewData := nil
+    else
+      begin
+      GetMem (NewData, r);
+      Fillchar (Newdata^[0], r, 0);
+      end;
+    // MG: missing "and (NewData<>nil)"
+    if (old <> 0) and assigned(FData) and (NewData<>nil) then
+      begin
+      if r <> 0 then
+        begin
+        w := Lowest(Width, AWidth);
+        h := Lowest(Height, AHeight);
+        for r := 0 to h-1 do
+          move (FData^[r*Width], NewData^[r*AWidth], w);
+        end;
+      FreeMem (FData);
+      end;
+    FData := NewData;
+    inherited;
+    end;
+end;
+
+procedure TFPMemoryImage.SetUsePalette(Value:boolean);
+var
+  OldColors:PFPColorArray;
+  OldPixels:PIntegerArray;
+  r,c:Integer;
+begin
+  if Value<>assigned(FPalette)
+  then
+    if Value
+    then
+      begin
+        FPalette:=TFPPalette.Create(0);
+        FPalette.Add(colTransparent);    
+        OldColors:=PFPColorArray(FData);
+        GetMem(FData,FWidth*FHeight*SizeOf(Integer));
+        for r:=0 to FHeight-1 do
+          for c:=0 to FWidth-1 do
+            Colors[c,r]:=OldColors^[r*FWidth+c];
+        FreeMem(OldColors);
+      end
+    else
+      begin
+        OldPixels:=PIntegerArray(FData);
+        GetMem(FData,FWidth*FHeight*SizeOf(TFPColor));
+        for r:=0 to FHeight-1 do
+          for c:=0 to FWidth-1 do
+            Colors[c,r]:=FPalette.Color[OldPixels^[r*FWidth+c]];
+        FreeMem(OldPixels);
+        FPalette.Free;
+        FPalette:=nil;
+      end;
+end;
