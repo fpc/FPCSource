@@ -1702,7 +1702,7 @@ type
     var
       i : longint;
     begin
-      for i:=1to max_operands do
+      for i:=1 to max_operands do
        Operands[i]:=TM68kOperand.Create;
     end;
 
@@ -1752,7 +1752,7 @@ type
        case actasmtoken of
          { //  Operand delimiter // }
          AS_COMMA: Begin
-                  if operandnum > MaxOperands then
+                  if operandnum > Max_Operands then
                     Message(asmr_e_too_many_operands)
                   else
                     Inc(operandnum);
@@ -2197,7 +2197,13 @@ Begin
 end.
 {
   $Log$
-  Revision 1.9  2002-11-30 23:33:03  carl
+  Revision 1.10  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.9  2002/11/30 23:33:03  carl
     * merges from Pierre's fixes in m68k fixes branch
 
   Revision 1.8  2002/09/07 15:25:13  peter

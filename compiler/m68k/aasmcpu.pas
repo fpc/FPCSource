@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globals,verbose,
-  cpubase;
+  cpubase,cpuinfo;
 
 
 type
@@ -142,7 +142,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=1;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
       end;
 
 
@@ -171,7 +171,7 @@ implementation
          init(_size);
          ops:=2;
          loadreg(0,_op1);
-         loadconst(1,_op2);
+         loadconst(1,aword(_op2));
       end;
 
 
@@ -190,7 +190,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=2;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
          loadreg(1,_op2);
       end;
 
@@ -200,8 +200,8 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=2;
-         loadconst(0,_op1);
-         loadconst(1,_op2);
+         loadconst(0,aword(_op1));
+         loadconst(1,aword(_op2));
       end;
 
 
@@ -210,7 +210,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=2;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
          loadref(1,_op2);
       end;
 
@@ -250,7 +250,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=3;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
          loadreg(1,_op2);
          loadreg(2,_op3);
       end;
@@ -271,7 +271,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=3;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
          loadref(1,_op2);
          loadreg(2,_op3);
       end;
@@ -282,7 +282,7 @@ implementation
          inherited create(op);;
          init(_size);
          ops:=3;
-         loadconst(0,_op1);
+         loadconst(0,aword(_op1));
          loadreg(1,_op2);
          loadref(2,_op3);
       end;
@@ -409,7 +409,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-11-30 23:33:02  carl
+  Revision 1.7  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.6  2002/11/30 23:33:02  carl
     * merges from Pierre's fixes in m68k fixes branch
 
   Revision 1.5  2002/09/07 15:25:11  peter

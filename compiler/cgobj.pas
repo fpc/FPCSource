@@ -582,7 +582,7 @@ unit cgobj;
          case locpara.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_reg_reg(list,size,locpara.size,r,locpara.register);
-            LOC_REFERENCE:
+            LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  if locpara.sp_fixup<>0 then
                    a_op_const_reg(list,OP_ADD,locpara.sp_fixup,stack_pointer_reg);
@@ -1625,7 +1625,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.66  2002-11-25 17:43:16  peter
+  Revision 1.67  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.66  2002/11/25 17:43:16  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -35,7 +35,6 @@ Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
 
-  maxoperands = 3;         { Maximum operands for assembler instructions }
 
 
 {---------------------------------------------------------------------
@@ -109,7 +108,7 @@ type
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
-    operands  : array[1..maxoperands] of toperand;
+    operands  : array[1..max_operands] of toperand;
     constructor create;
     destructor  destroy;override;
     Procedure InitOperands;virtual;
@@ -1592,7 +1591,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2002-11-25 17:43:23  peter
+  Revision 1.51  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.50  2002/11/25 17:43:23  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

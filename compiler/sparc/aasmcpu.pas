@@ -137,7 +137,7 @@ constructor taicpu.op_const(op:tasmop;_op1:aword);
      inherited create(op);
      init(_size);
      ops:=1;
-     loadconst(0,_op1);
+     loadconst(0,aword(_op1));
   end;
 constructor taicpu.op_ref(op:tasmop;const _op1:treference);
   begin
@@ -160,7 +160,7 @@ constructor taicpu.op_reg_const(op:tasmop;_op1:tregister; _op2:aword);
      init(_size);
      ops:=2;
      loadreg(0,_op1);
-     loadconst(1,_op2);
+     loadconst(1,aword(_op2));
   end;
 constructor taicpu.op_reg_ref(Op:TAsmOp;Reg:TRegister;const Ref:TReference);
   begin
@@ -178,7 +178,7 @@ constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
      inherited create(op);
      init(_size);
      ops:=2;
-     loadconst(0,_op1);
+     loadconst(0,aword(_op1));
      loadreg(1,_op2);
   end;
 constructor TAiCpu.op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
@@ -223,7 +223,7 @@ constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op
      inherited create(op);
      init(_size);
      ops:=3;
-     loadconst(0,_op1);
+     loadconst(0,aword(_op1));
      loadref(1,_op2);
      loadreg(2,_op3);
   end;
@@ -232,7 +232,7 @@ constructor taicpu.op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:treg
      inherited create(op);
      init(_size);
      ops:=3;
-     loadconst(0,_op1);
+     loadconst(0,aword(_op1));
      loadreg(1,_op2);
      loadref(2,_op3);
   end;
@@ -1083,7 +1083,13 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.13  2002-11-17 16:32:04  carl
+    Revision 1.14  2002-12-14 15:02:03  carl
+      * maxoperands -> max_operands (for portability in rautils.pas)
+      * fix some range-check errors with loadconst
+      + add ncgadd unit to m68k
+      * some bugfix of a_param_reg with LOC_CREFERENCE
+
+    Revision 1.13  2002/11/17 16:32:04  carl
       * memory optimization (3-4%) : cleanup of tai fields,
          cleanup of tdef and tsym fields.
       * make it work for m68k

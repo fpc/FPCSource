@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgmat
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgmat,ncgadd
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -52,7 +52,13 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.2  2002-08-14 19:16:34  carl
+  Revision 1.3  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.2  2002/08/14 19:16:34  carl
     + m68k type conversion nodes
     + started some mathematical nodes
     * out of bound references should now be handled correctly

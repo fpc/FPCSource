@@ -1682,7 +1682,7 @@ Begin
     case actasmtoken of
       AS_COMMA: { Operand delimiter }
         Begin
-          if operandnum > MaxOperands then
+          if operandnum > Max_Operands then
            Message(asmr_e_too_many_operands)
           else
            Inc(operandnum);
@@ -2122,7 +2122,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2002-12-01 22:08:34  carl
+  Revision 1.35  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.34  2002/12/01 22:08:34  carl
     * some small cleanup (remove some specific operators which are not supported)
 
   Revision 1.33  2002/11/30 23:16:39  carl

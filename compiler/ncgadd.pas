@@ -68,8 +68,7 @@ interface
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,
-      ncon,nset,
-      cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncon,nset,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
 
 
@@ -1053,7 +1052,13 @@ interface
 end.
 {
   $Log$
-  Revision 1.2  2002-12-08 15:02:17  carl
+  Revision 1.3  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.2  2002/12/08 15:02:17  carl
     + more fixes
 
   Revision 1.1  2002/12/07 19:51:35  carl

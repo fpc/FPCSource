@@ -19,7 +19,7 @@ Interface
 
 Type
    { Architecture word - Native unsigned type }
-   AWord  = longword;
+   aword  = longword;
    PAWord = ^AWord;
 
    { this must be an ordinal type with the same size as a pointer }
@@ -67,7 +67,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 20:53:28  carl
+  Revision 1.6  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.5  2002/09/07 20:53:28  carl
     * cardinal -> longword
 
   Revision 1.4  2002/09/07 15:25:13  peter

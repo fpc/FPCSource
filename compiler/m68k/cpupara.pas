@@ -51,6 +51,7 @@ unit cpupara;
 
     function tm68kparamanager.getintparaloc(nr : longint) : tparalocation;
       begin
+         fillchar(result,sizeof(tparalocation),0);
       end;
 
     procedure tm68kparamanager.create_param_loc_info(p : tabstractprocdef);
@@ -74,7 +75,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-12 15:08:44  carl
+  Revision 1.2  2002-12-14 15:02:03  carl
+    * maxoperands -> max_operands (for portability in rautils.pas)
+    * fix some range-check errors with loadconst
+    + add ncgadd unit to m68k
+    * some bugfix of a_param_reg with LOC_CREFERENCE
+
+  Revision 1.1  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
