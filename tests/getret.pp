@@ -64,4 +64,11 @@ begin
   else
     write(retfile,dosexitcode);
   close(retfile);
+{$ifdef CPU86}
+  { reset the FPU to avoid crashing make }
+{$asmmode att}
+  asm
+    fninit
+  end;
+{$endif CPU86}
 end.
