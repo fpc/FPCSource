@@ -66,7 +66,7 @@ const
 implementation
 
 uses Objects,Views,App,MsgBox,Commands,
-     WUtils,WHTMLHlp,
+     WUtils,WHTMLHlp,WNGHelp,
      FPString,FPConst,FPVars,FPUtils;
 
 const
@@ -290,6 +290,14 @@ procedure InitHelpSystem;
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
+  procedure AddWinHelpFile(HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    if HelpFacility^.AddWinHelpFile(HelpFile)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
+  end;
+
   procedure AddHTMLIndexFile(HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
@@ -317,6 +325,8 @@ begin
           AddHTMLIndexFile(S) else
       if UpcaseStr(ExtOf(S))=UpcaseStr(NGExt) then
           AddNGFile(S) else
+      if UpcaseStr(ExtOf(S))=UpcaseStr(WinHelpExt) then
+          AddWinHelpFile(S) else
         AddOAFile(S);
     end;
   PopStatus;
@@ -461,9 +471,27 @@ begin
   FPHTMLGetSectionColor:=OK;
 end;
 
+function FPNGGetAttrColor(Attr: char; var Color: byte): boolean;
+var OK: boolean;
+begin
+  OK:=false;
+  case Attr of
+    'A' : OK:=FPHTMLGetSectionColor(hsHeading1,Color);
+    'B' : OK:=FPHTMLGetSectionColor(hsHeading2,Color);
+    'b' : OK:=FPHTMLGetSectionColor(hsHeading5,Color);
+    'U' : OK:=FPHTMLGetSectionColor(hsHeading3,Color);
+    'N' : OK:=FPHTMLGetSectionColor(hsHeading4,Color);
+  {$ifdef DEBUGMSG}
+  else ErrorBox('Unknown attr encountered : "'+Attr+'"',nil);
+  {$endif}
+  end;
+  FPNGGetAttrColor:=OK;
+end;
+
 procedure InitHelpFiles;
 begin
   HTMLGetSectionColor:={$ifdef FPC}@{$endif}FPHTMLGetSectionColor;
+  NGGetAttrColor:={$ifdef FPC}@{$endif}FPNGGetAttrColor;
   New(HelpFiles, Init(10,10));
 end;
 
@@ -490,7 +518,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.34  2000-06-22 09:07:12  pierre
+  Revision 1.35  2000-06-26 07:29:23  pierre
+   * new bunch of Gabor's changes
+
+  Revision 1.34  2000/06/22 09:07:12  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.33  2000/06/16 08:50:40  pierre

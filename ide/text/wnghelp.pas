@@ -75,6 +75,7 @@ type
         { array of TNGSeeAlsoRec }
       end;
 
+      PNGSeeAlsoRec = ^TNGSeeAlsoRec;
       TNGSeeAlsoRec = packed record
         EntryCount    : word;
         Entries       : record end;
@@ -89,6 +90,12 @@ type
         Container: PNGContainerRecord;
       end;
 
+      PLinkRec = ^TLinkRec;
+      TLinkRec = record
+        Name     : string;
+        FilePos  : longint;
+      end;
+
       PNGHelpFile = ^TNGHelpFile;
       TNGHelpFile = object(THelpFile)
         constructor Init(AFileName: string; AID: word);
@@ -99,16 +106,29 @@ type
       private
         F: PStream;
         Header: TNGFileHeader;
+        FirstRecordPos: longint;
+        IndexLoaded: boolean;
 {        NextHelpCtx: longint;}
         function ReadHeader: boolean;
         function ReadContainer(EnumProc: pointer): boolean;
-        function ReadTopicRec(Lines: PUnsortedStringCollection): boolean;
+        function ReadTopicRec(LineEnumProc: pointer; LinkEnumProc: pointer): boolean;
         function ReadRecord(var R: TRecord; ReadData: boolean): boolean;
       end;
+
+    TNGGetAttrColorProc = function(Attr: char; var Color: byte): boolean;
+
+function DefNGGetAttrColor(Attr: char; var Color: byte): boolean;
+
+const NGGetAttrColor : TNGGetAttrColorProc = DefNGGetAttrColor;
 
 implementation
 
 uses CallSpec;
+
+function DefNGGetAttrColor(Attr: char; var Color: byte): boolean;
+begin
+  DefNGGetAttrColor:=false;
+end;
 
 function NGDecompressStr(const S: string): string;
 var NS: string;
@@ -134,6 +154,7 @@ function TranslateStr(const S: string): string;
 var NS: string;
     I: sw_integer;
     InHiLite: boolean;
+    Color: byte;
 begin
   NS:=''; InHiLite:=false;
   I:=1;
@@ -144,25 +165,14 @@ begin
                Inc(I);
                case S[I] of
                  '^' : NS:=NS+'^';
-                 'B' : begin
+                 'A'..'Z',
+                 'a'..'z' :
+                       begin
                          if InHiLite then
                            NS:=NS+hscNormText
                          else
-                           NS:=NS+hscTextColor+chr(15);
-                         InHiLite:=not InHiLite;
-                       end;
-                 'b' : begin
-                         if InHiLite then
-                           NS:=NS+hscNormText
-                         else
-                           NS:=NS+hscTextColor+chr(11);
-                         InHiLite:=not InHiLite;
-                       end;
-                 'U' : begin
-                         if InHiLite then
-                           NS:=NS+hscNormText
-                         else
-                           NS:=NS+hscTextColor+chr(3);
+                           if NGGetAttrColor(S[I],Color) then
+                             NS:=NS+hscTextColor+chr(Color);
                          InHiLite:=not InHiLite;
                        end;
                else
@@ -190,40 +200,7 @@ begin
 end;
 
 constructor TNGHelpFile.Init(AFileName: string; AID: word);
-function FormatAlias(Alias: string): string;
-var StartP,EndP: sw_integer;
-begin
-  repeat
-    StartP:=Pos('  ',Alias);
-    if StartP>0 then
-    begin
-      EndP:=StartP;
-      while (EndP+1<=length(Alias)) and (Alias[EndP+1]=' ') do Inc(EndP);
-      Alias:=copy(Alias,1,StartP-1)+' | '+copy(Alias,EndP+1,High(Alias));
-    end;
-  until StartP=0;
-  if Assigned(HelpFacility) then
-    if length(Alias)>HelpFacility^.IndexTabSize-4 then
-      Alias:=Trim(copy(Alias,1,HelpFacility^.IndexTabSize-4-2))+'..';
-  FormatAlias:=Alias;
-end;
-procedure AddToIndex(P: PContainerItemRec); {$ifndef FPC}far;{$endif}
-var S: string;
-begin
-  S:=Trim(P^.Name);
-  S:=TranslateStr(S);
-  S:=Trim(FormatAlias(S));
-  if (S<>'') and (P^.FilePos<>-1) then
-    begin
-{      Inc(NextHelpCtx);}
-      AddIndexEntry(S,P^.FilePos);
-      AddTopic(P^.FilePos,P^.FilePos,'');
-    end;
-end;
 var OK: boolean;
-    FS: longint;
-    R: TRecord;
-    L: longint;
 begin
   if inherited Init(AID)=false then Fail;
   F:=New(PBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
@@ -231,38 +208,10 @@ begin
   if OK then OK:=(F^.Status=stOK);
   if OK then
     begin
-      FS:=F^.GetSize;
       OK:=ReadHeader;
+      if OK then
+        FirstRecordPos:=F^.GetPos;
     end;
-  while OK do
-  begin
-    L:=F^.GetPos;
-    if (L>=FS) then Break;
-    OK:=ReadRecord(R,false);
-    if (OK=false) then Break;
-    case R.SClass of
-      ng_rtContainer : begin F^.Seek(L); OK:=ReadContainer(@AddToIndex); end;
-{      ng_rtTopic     : begin F^.Seek(L); OK:=ReadTopicRec; end;}
-    else
-     begin
-     {$ifdef DEBUGMSG}
-       ClearFormatParams;
-       AddFormatParamInt(R.SClass);
-       AddFormatParamInt(L);
-       AddFormatParamInt(R.Size);
-       ErrorBox('Uknown help record tag %x encountered, '+
-                'offset %x, size %d',@FormatParams);
-     {$else}
-       {Skip};
-     {$endif}
-     end;
-    end;
-    if OK then
-       begin
-         Inc(L, sizeof(TNGRecordHeader)+R.Size); F^.Seek(L);
-         OK:=(F^.Status=stOK);
-       end;
-  end;
   if OK=false then
   begin
     Done;
@@ -279,22 +228,10 @@ begin
   ReadHeader:=OK;
 end;
 
-function KillSpecChars(const S: string): string;
-var I: sw_integer;
-    RS: string;
-begin
-  RS:='';
-  for I:=1 to length(S) do
-    if S[I]>=#32 then
-      RS:=RS+S[I];
-  KillSpecChars:=RS;
-end;
-
 function TNGHelpFile.ReadContainer(EnumProc: pointer): boolean;
 var OK: boolean;
     R: TRecord;
-    I,L: longint;
-    CI: TNGContainerItem;
+    I: longint;
     P: pointer;
     CIR: TContainerItemRec;
 begin
@@ -322,23 +259,45 @@ begin
   ReadContainer:=OK;
 end;
 
-function TNGHelpFile.ReadTopicRec(Lines: PUnsortedStringCollection): boolean;
+function TNGHelpFile.ReadTopicRec(LineEnumProc, LinkEnumProc: pointer): boolean;
 var OK: boolean;
     R: TRecord;
     I: sw_integer;
     LineP: pointer;
     S: string;
+    ParamS: string;
+    NextLinkOfsPtr,NextLinkNamePtr: pointer;
+    SeeAlso: PNGSeeAlsoRec;
+    LR: TLinkRec;
 begin
   OK:=ReadRecord(R, true);
   if OK then
   with TNGTopicRecord(R.Data^) do
   begin
     LineP:=@TopicLines;
+    if Assigned(LineEnumProc) then
     for I:=1 to NumberOfLines do
     begin
       S:=StrPas(LineP);
-      Lines^.InsertStr(NGDecompressStr(S));
-      LineP:=pointer(longint(LineP)+length(S)+1);
+      ParamS:=NGDecompressStr(S);
+      CallPointerLocal(LineEnumProc,PreviousFramePointer,@ParamS);
+      Inc(longint(LineP),length(S)+1);
+    end;
+    if Assigned(LinkEnumProc) and (SeeAlsoOfs>0) then
+    begin
+      SeeAlso:=@PByteArray(R.Data)^[NGMinRecordSize-sizeof(TNGRecordHeader)+SeeAlsoOfs];
+      NextLinkOfsPtr:=@SeeAlso^.Entries;
+      NextLinkNamePtr:=@PByteArray(NextLinkOfsPtr)^[SeeAlso^.EntryCount*4];
+      for I:=1 to SeeAlso^.EntryCount do
+      begin
+        FillChar(LR,sizeof(LR),0);
+        S:=StrPas(NextLinkNamePtr);
+        LR.Name:=S;
+        Move(NextLinkOfsPtr^,LR.FilePos,4);
+        CallPointerLocal(LinkEnumProc,PreviousFramePointer,@LR);
+        Inc(longint(NextLinkNamePtr),length(S)+1);
+        Inc(longint(NextLinkOfsPtr),4);
+      end;
     end;
   end;
   DisposeRecord(R);
@@ -374,20 +333,142 @@ begin
 end;
 
 function TNGHelpFile.LoadIndex: boolean;
+{function FormatAlias(Alias: string): string;
+var StartP,EndP: sw_integer;
 begin
-  LoadIndex:=false;
+  repeat
+    StartP:=Pos('  ',Alias);
+    if StartP>0 then
+    begin
+      EndP:=StartP;
+      while (EndP+1<=length(Alias)) and (Alias[EndP+1]=' ') do Inc(EndP);
+      Alias:=copy(Alias,1,StartP-1)+' | '+copy(Alias,EndP+1,High(Alias));
+    end;
+  until StartP=0;
+  if Assigned(HelpFacility) then
+    if length(Alias)>HelpFacility^.IndexTabSize-4 then
+      Alias:=Trim(copy(Alias,1,HelpFacility^.IndexTabSize-4-2))+'..';
+  FormatAlias:=Alias;
+end;}
+procedure AddToIndex(P: PContainerItemRec); {$ifndef FPC}far;{$endif}
+var S: string;
+begin
+  S:=Trim(P^.Name);
+  S:=TranslateStr(S);
+  S:=Trim({FormatAlias}(S));
+  if (S<>'') and (P^.FilePos<>-1) then
+    begin
+{      Inc(NextHelpCtx);}
+      AddIndexEntry(S,P^.FilePos);
+      AddTopic(P^.FilePos,P^.FilePos,'');
+    end;
+end;
+var OK: boolean;
+    FS: longint;
+    R: TRecord;
+    L: longint;
+begin
+  if IndexLoaded then OK:=true else
+  begin
+    FS:=F^.GetSize;
+    OK:=FirstRecordPos<>0;
+
+    while OK do
+    begin
+      L:=F^.GetPos;
+      if (L>=FS) then Break;
+      OK:=ReadRecord(R,false);
+      if (OK=false) then Break;
+      case R.SClass of
+        ng_rtContainer : begin F^.Seek(L); OK:=ReadContainer(@AddToIndex); end;
+        ng_rtTopic     : ;
+      else
+       begin
+       {$ifdef DEBUGMSG}
+         ClearFormatParams;
+         AddFormatParamInt(R.SClass);
+         AddFormatParamInt(L);
+         AddFormatParamInt(R.Size);
+         ErrorBox('Uknown help record tag %x encountered, '+
+                  'offset %x, size %d',@FormatParams);
+       {$else}
+         {Skip};
+       {$endif}
+       end;
+      end;
+      if OK then
+         begin
+           Inc(L, sizeof(TNGRecordHeader)+R.Size); F^.Seek(L);
+           OK:=(F^.Status=stOK);
+         end;
+    end;
+    IndexLoaded:=OK;
+  end;
+  LoadIndex:=OK;
 end;
 
 function TNGHelpFile.ReadTopic(T: PTopic): boolean;
+function ExtractStr(var Buf; BufSize: word): string;
+var S: string;
+    I,Size: integer;
+    StartP,EndP: sw_integer;
+begin
+  S:='';
+  Size:=BufSize;
+  while (PByteArray(@Buf)^[Size-1]=0) and (Size>0) do
+    Dec(Size);
+  S:=MemToStr(Buf,Size);
+
+  S:=NGDecompressStr(S);
+
+  for I:=1 to length(S) do
+    if S[I]=#0 then S[I]:=#32;
+
+  { kill long spaces }
+  repeat
+    StartP:=Pos('  ',S);
+    if StartP>0 then
+    begin
+      EndP:=StartP;
+      while (EndP+1<=length(S)) and (S[EndP+1]=' ') do Inc(EndP);
+      S:=copy(S,1,StartP-1)+hscLineBreak+copy(S,EndP+1,High(S));
+    end;
+  until StartP=0;
+
+  S:=Trim(S);
+
+  ExtractStr:=S;
+end;
 var Lines: PUnsortedStringCollection;
+procedure AddLine(const S: string);
+begin
+  Lines^.InsertStr(S);
+end;
 procedure AddToTopic(P: PContainerItemRec); {$ifndef FPC}far;{$endif}
 begin
-  Lines^.InsertStr(hscLink+P^.Name+hscLink);
+  AddLine(hscLink+Trim(P^.Name)+hscLink);
+  AddLinkToTopic(T,ID,P^.FilePos);
+end;
+procedure AddTopicLine(P: PString); {$ifndef FPC}far;{$endif}
+begin
+  AddLine(' '+GetStr(P));
+end;
+var LinkCount: sw_integer;
+procedure AddLink(P: PLinkRec); {$ifndef FPC}far;{$endif}
+begin
+  Inc(LinkCount);
+  if LinkCount=1 then
+  begin
+    AddLine('');
+    AddLine(' See also :');
+  end;
+  AddLine('  '+hscLink+Trim(P^.Name)+hscLink);
   AddLinkToTopic(T,ID,P^.FilePos);
 end;
 var OK: boolean;
     R: TRecord;
 begin
+  LinkCount:=0;
   New(Lines, Init(100,100));
   F^.Seek(T^.FileOfs); OK:=F^.Status=stOK;
   if OK then OK:=ReadRecord(R,false);
@@ -395,17 +476,21 @@ begin
       ng_rtContainer :
         begin
           F^.Seek(T^.FileOfs);
-          Lines^.InsertStr(' ');
+          AddLine('');
           OK:=ReadContainer(@AddToTopic);
           RenderTopic(Lines,T);
         end;
       ng_rtTopic     :
         begin
           F^.Seek(T^.FileOfs);
-          Lines^.InsertStr(' ');
-          OK:=ReadTopicRec(Lines);
+          AddLine('');
+          OK:=ReadTopicRec(@AddTopicLine,@AddLink);
           TranslateLines(Lines);
-          Lines^.InsertStr(' ');
+          AddLine('');
+          { include copyright info }
+{          AddLine(CharStr('Ä',80));
+          AddLine(ExtractStr(Header.GuideName,sizeof(Header.GuideName)));
+          AddLine(ExtractStr(Header.Credits,sizeof(Header.Credits)));}
           RenderTopic(Lines,T);
         end;
   else OK:=false;
@@ -423,7 +508,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-06-22 09:07:15  pierre
+  Revision 1.2  2000-06-26 07:29:23  pierre
+   * new bunch of Gabor's changes
+
+  Revision 1.1  2000/06/22 09:07:15  pierre
    * Gabor changes: see fixes.txt
 
 }

@@ -156,7 +156,7 @@ type
       end;
 
       PKeywordDescriptors = ^TKeywordDescriptors;
-      TKeywordDescriptors = array[0..10900] of TKeywordDescriptor;
+      TKeywordDescriptors = array[0..MaxBytes div sizeof(TKeywordDescriptor)-1] of TKeywordDescriptor;
 
       PTopic = ^TTopic;
       TTopic = object
@@ -190,11 +190,17 @@ type
         function   Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       end;
 
+      PUnsortedIndexEntryCollection = ^TUnsortedIndexEntryCollection;
+      TUnsortedIndexEntryCollection = object(TCollection)
+        function   At(Index: Sw_Integer): PIndexEntry;
+        procedure  FreeItem(Item: Pointer); virtual;
+      end;
+
       PHelpFile = ^THelpFile;
       THelpFile = object(TObject)
         ID           : word;
         Topics       : PTopicCollection;
-        IndexEntries : PIndexEntryCollection;
+        IndexEntries : PUnsortedIndexEntryCollection;
         constructor Init(AID: word);
         function    LoadTopic(HelpCtx: THelpCtx): PTopic; virtual;
         procedure   AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
@@ -244,6 +250,7 @@ type
         function    AddOAHelpFile(const FileName: string): boolean;
         function    AddHTMLHelpFile(const FileName, TOCEntry: string): boolean;
         function    AddNGHelpFile(const FileName: string): boolean;
+        function    AddWinHelpFile(const FileName: string): boolean;
         function    AddHTMLIndexHelpFile(const FileName: string): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
         function    TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean; virtual;
@@ -279,7 +286,7 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
-  WConsts,WHTMLHlp,WNGHelp;
+  WConsts,WHTMLHlp,WNGHelp,WWinHelp;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -364,7 +371,7 @@ begin
 end;
 
 procedure RenderTopic(Lines: PUnsortedStringCollection; T: PTopic);
-var Size,CurPtr,I: sw_word;
+var Size,CurPtr,I,MSize: sw_word;
     S: string;
 begin
   CurPtr:=0;
@@ -379,8 +386,12 @@ begin
   CurPtr:=0;
   for I:=0 to Lines^.Count-1 do
   begin
-    S:=GetStr(Lines^.At(I)); Size:=length(S);
-    Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
+    S:=GetStr(Lines^.At(I)); Size:=length(S); MSize:=Size;
+    if CurPtr+Size>=T^.TextSize then
+      MSize:=T^.TextSize-CurPtr;
+    Move(S[1],PByteArray(T^.Text)^[CurPtr],MSize);
+    if MSize<>Size then
+      Break;
     Inc(CurPtr,Size);
     PByteArray(T^.Text)^[CurPtr]:=ord(hscLineBreak);
     Inc(CurPtr);
@@ -392,7 +403,7 @@ procedure AddLinkToTopic(T: PTopic; AFileID: word; ACtx: THelpCtx);
 var NewSize: word;
     NewPtr: pointer;
 begin
-  NewSize:=(T^.LinkCount+1)*sizeof(T^.Links^[0]);
+  NewSize:=longint(T^.LinkCount+1)*sizeof(T^.Links^[0]);
   GetMem(NewPtr,NewSize);
   if Assigned(T^.Links) then
   begin
@@ -488,6 +499,16 @@ begin
   if Item<>nil then DisposeIndexEntry(Item);
 end;
 
+function TUnsortedIndexEntryCollection.At(Index: Sw_Integer): PIndexEntry;
+begin
+  At:=inherited At(Index);
+end;
+
+procedure TUnsortedIndexEntryCollection.FreeItem(Item: Pointer);
+begin
+  if Item<>nil then DisposeIndexEntry(Item);
+end;
+
 function TIndexEntryCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var K1: PIndexEntry absolute Key1;
     K2: PIndexEntry absolute Key2;
@@ -497,6 +518,8 @@ begin
   S1:=UpcaseStr(K1^.Tag^); S2:=UpcaseStr(K2^.Tag^);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
+  if K1^.FileID<K2^.FileID then R:=-1 else
+  if K1^.FileID>K2^.FileID then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -1006,6 +1029,13 @@ begin
   AddNGHelpFile:=AddFile(H);;
 end;
 
+function THelpFacility.AddWinHelpFile(const FileName: string): boolean;
+var H: PHelpFile;
+begin
+  H:=New(PWinHelpFile, Init(FileName, LastID+1));
+  AddWinHelpFile:=AddFile(H);;
+end;
+
 function THelpFacility.AddHTMLIndexHelpFile(const FileName: string): boolean;
 var H: PHelpFile;
 begin
@@ -1112,12 +1142,32 @@ begin
   LastFirstChar:=FirstChar;
   NLFlag:=0;
 end;
+function FormatAlias(Alias: string): string;
+var StartP,EndP: sw_integer;
+begin
+  repeat
+    StartP:=Pos('  ',Alias);
+    if StartP>0 then
+    begin
+      EndP:=StartP;
+      while (EndP+1<=length(Alias)) and (Alias[EndP+1]=' ') do Inc(EndP);
+      Alias:=copy(Alias,1,StartP-1)+' | '+copy(Alias,EndP+1,High(Alias));
+    end;
+  until StartP=0;
+  if Assigned(HelpFacility) then
+    if length(Alias)>IndexTabSize-4 then
+      Alias:=Trim(copy(Alias,1,IndexTabSize-4-2))+'..';
+  FormatAlias:=Alias;
+end;
 procedure AddKeyword(KWS: string);
 begin
   Inc(KWCount); if KWCount=1 then NLFlag:=0;
   if (KWCount=1) or
      ( (Upcase(KWS[1])<>LastFirstChar) and ( (LastFirstChar>#64) or (KWS[1]>#64) ) ) then
      NewSection(Upcase(KWS[1]));
+
+  KWS:=FormatAlias(KWS);
+
   if (NLFlag mod 2)=0
      then Line:=' '+#2+KWS+#2
      else begin
@@ -1141,14 +1191,15 @@ begin
   begin
     AddLine(' '+msg_helpindex);
     KWCount:=0; Line:='';
-    T^.LinkCount:=Keywords^.Count;
+    T^.LinkCount:=Min(Keywords^.Count,MaxBytes div sizeof(T^.Links^[0])-1);
     GetMem(T^.Links,T^.LinkSize);
 
-    for I:=0 to Keywords^.Count-1 do
+    for I:=0 to T^.LinkCount-1 do
     begin
       KW:=Keywords^.At(I);
       AddKeyword(KW^.Tag^);
-      T^.Links^[I].Context:=longint(KW^.HelpCtx); T^.Links^[I].FileID:=KW^.FileID;
+      T^.Links^[I].Context:=longint(KW^.HelpCtx);
+      T^.Links^[I].FileID:=KW^.FileID;
     end;
     FlushLine;
     AddLine('');
@@ -1185,7 +1236,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2000-06-22 09:07:14  pierre
+  Revision 1.25  2000-06-26 07:29:23  pierre
+   * new bunch of Gabor's changes
+
+  Revision 1.24  2000/06/22 09:07:14  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.23  2000/06/16 08:50:44  pierre

@@ -66,10 +66,25 @@ type
     S       : PStream;
   end;
 
+  PFastBufStream = ^TFastBufStream;
+  TFastBufStream = object(TBufStream)
+    procedure   Seek(Pos: Longint); virtual;
+  private
+    BasePos: longint;
+  end;
+
   PTextCollection = ^TTextCollection;
   TTextCollection = object(TStringCollection)
     function LookUp(const S: string; var Idx: sw_integer): string;
     function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+  end;
+
+  PIntCollection = ^TIntCollection;
+  TIntCollection = object(TSortedCollection)
+    function  Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+    procedure FreeItem(Item: Pointer); virtual;
+    procedure Add(Item: longint);
+    function  Contains(Item: longint): boolean;
   end;
 
 {$ifdef TPUNIXLF}
@@ -609,6 +624,33 @@ begin
   S.WriteStr(Item);
 end;
 
+function TIntCollection.Contains(Item: longint): boolean;
+var Index: sw_integer;
+begin
+  Contains:=Search(pointer(Item),Index);
+end;
+
+procedure TIntCollection.Add(Item: longint);
+begin
+  Insert(pointer(Item));
+end;
+
+function TIntCollection.Compare(Key1, Key2: Pointer): sw_Integer;
+var K1: longint absolute Key1;
+    K2: longint absolute Key2;
+    R: integer;
+begin
+  if K1<K2 then R:=-1 else
+  if K1>K2 then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+procedure TIntCollection.FreeItem(Item: Pointer);
+begin
+  { do nothing here }
+end;
+
 constructor TNulStream.Init;
 begin
   inherited Init;
@@ -682,6 +724,26 @@ end;
 procedure TSubStream.Write(var Buf; Count: Word);
 begin
   S^.Write(Buf,Count);
+end;
+
+procedure TFastBufStream.Seek(Pos: Longint);
+function BufStartPos: longint;
+begin
+  BufStartPos:=Position-BufPtr;
+end;
+var RelOfs: longint;
+begin
+  RelOfs:=Pos-{BufStartPos}BasePos;
+  if (RelOfs<0) or (RelOfs>=BufEnd) or (BufEnd=0) then
+    begin
+      inherited Seek(Pos);
+      BasePos:=Pos;
+    end
+  else
+    begin
+      BufPtr:=RelOfs;
+      Position:=Pos;
+    end;
 end;
 
 function TTextCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
@@ -972,7 +1034,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2000-06-22 09:07:15  pierre
+  Revision 1.26  2000-06-26 07:29:23  pierre
+   * new bunch of Gabor's changes
+
+  Revision 1.25  2000/06/22 09:07:15  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.24  2000/06/16 21:16:41  pierre

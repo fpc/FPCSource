@@ -1,3 +1,15 @@
+Gabors's log to 26/6/2000 commits
+========================= Already fixed ================================
+
+ [*] topics with the same name are now all shown on the Index page
+
+========================== Other improvements ============================
+
+ [+] added support for "see also" entries of Norton Guide help topics
+ [+] coloring of NG help is now integrated with the common color managment
+     system of FV
+ [+] started implementing help support for Windows Help files
+
 Gabors's log to 22/6/2000 commits
 ========================== Other improvements ============================
 
