@@ -54,7 +54,11 @@ unit ppheap;
        if not pp_heap_inited then
          begin
             setheaptraceoutput('heap.log');
+{$ifndef TP}
+            SetExtraInfo(12,@ppextra_info);
+{$else TP}
             SetExtraInfo(12,ppextra_info);
+{$endif TP}
          end;
        pp_heap_inited:=true;
     end;
@@ -65,7 +69,10 @@ unit ppheap;
 
 {
   $Log$
-  Revision 1.6  1999-05-17 15:09:28  pierre
+  Revision 1.7  1999-06-08 15:26:49  pierre
+   * fix to get it self compiled
+
+  Revision 1.6  1999/05/17 15:09:28  pierre
    * heaptrc output to heap.log file
 
   Revision 1.5  1999/01/26 11:32:13  pierre
