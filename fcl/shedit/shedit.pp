@@ -165,6 +165,8 @@ type
     LastUndoInfo, LastRedoInfo: TUndoInfo;      // tails of double linked lists
 
     FSel: TSelection;
+    OldSelValid: Boolean;
+    OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY: Integer;
 
     // OnKeyPressed saves the cursor position before calling key handlers
     LastCursorX, LastCursorY: Integer;
@@ -238,6 +240,8 @@ type
     procedure FocusOut;
     procedure DrawContent(x1, y1, x2, y2: Integer);
     procedure KeyPressed(KeyCode: LongWord; ShiftState: TShiftState); virtual;
+    procedure StartSelectionChange;
+    procedure EndSelectionChange;
 
     KeyboardActions: TCollection;
     Shortcuts: TCollection;
@@ -396,13 +400,69 @@ begin
   LineInserted(Sender, Line);
 end;
 
+procedure TSHTextEdit.StartSelectionChange;
+begin
+  HideCursor;
+
+  LastCursorX := FCursorX;
+  LastCursorY := FCursorY;
+  OldSelValid := FSel.IsValid;
+  if OldSelValid then begin
+    OldSelStartX := FSel.OStartX;
+    OldSelStartY := FSel.OStartY;
+    OldSelEndX := FSel.OEndX;
+    OldSelEndY := FSel.OEndY;
+  end;
+end;
+
+procedure TSHTextEdit.EndSelectionChange;
+begin
+  if not OldSelValid then begin
+    if FSel.IsValid then
+      FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+  end else begin
+    if not FSel.IsValid then
+      FWidget.InvalidateRect(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
+    else begin
+      // Do OldSel and FSel intersect?
+      if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
+         ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
+         ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then begin
+         FWidget.InvalidateRect(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
+         FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+      end else begin
+        // Intersection => determine smallest possible area(s) to redraw
+        // 1. Check if the start position has changed
+        if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
+          if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
+             (OldSelStartX < FSel.OStartX)) then
+            FWidget.InvalidateRect(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
+          else
+            FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
+        // 2. Check if end position has changed
+        if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
+          if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
+             (OldSelEndX < FSel.OEndX)) then
+            FWidget.InvalidateRect(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
+          else
+            FWidget.InvalidateRect(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
+      end;
+    end;
+  end;
+  ShowCursor;
+end;
+
 
 end.
 
 
 {
   $Log$
-  Revision 1.10  2000-01-06 01:20:34  peter
+  Revision 1.11  2000-01-06 16:43:35  sg
+  * Re-introduced StartSelectionChange and EndSelectionChange, which get lost
+    during some file movements...
+
+  Revision 1.10  2000/01/06 01:20:34  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:09  peter
