@@ -82,7 +82,7 @@ type
   GLclampf   = Single;        PGLclampf   = ^GLclampf;
   GLdouble   = Double;        PGLdouble   = ^GLdouble;
   GLclampd   = Double;        PGLclampd   = ^GLclampd;
-//GLvoid     = void;
+{ GLvoid     = void; }        PGLvoid     = Pointer;
 
 {******************************************************************************}
 
