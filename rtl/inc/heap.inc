@@ -536,6 +536,7 @@ end;
 
 function SysTryResizeMem(var p:pointer;size : longint):boolean;
 var
+  oldsize,
   currsize,
   foundsize,
   sizeleft,
@@ -550,6 +551,7 @@ begin
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
   currsize:=pcurr^.size and sizemask;
+  oldsize:=currsize;
   wasbeforeheapend:=(pcurr^.size and beforeheapendmask)<>0;
 { is the allocated block still correct? }
   if currsize=size then
@@ -655,6 +657,7 @@ begin
         pcurr^.size:=size or usedmask or (pcurr^.size and beforeheapendmask);
       end;
    end;
+  dec(internal_memavail,size-oldsize);
   SysTryResizeMem:=true;
 end;
 
@@ -667,31 +670,29 @@ function SysReAllocMem(var p:pointer;size : longint):pointer;
 var
   p2 : pointer;
 begin
-{ Free block? }
+  { Free block? }
   if size=0 then
    begin
      if p<>nil then
       MemoryManager.FreeMem(p);
-     SysReallocmem:=P;
-     exit;
-   end;
-{ Allocate a new block? }
-  if p=nil then
-   begin
-     p:=MemoryManager.GetMem(size);
-     SysReallocmem:=P;
-     exit;
-   end;
-{ Resize block }
-  if not SysTryResizeMem(p,size) then
-   begin
-     p2:= MemoryManager.GetMem(size);
-     if p2<>nil then
-      Move(p^,p2^,size);
-     MemoryManager.FreeMem(p);
-     p:=p2;
-   end;
-  SysReAllocMem := p;
+   end
+  else
+   { Allocate a new block? }
+   if p=nil then
+    begin
+      p:=MemoryManager.GetMem(size);
+    end
+  else
+   { Resize block }
+   if not SysTryResizeMem(p,size) then
+    begin
+      p2:=MemoryManager.GetMem(size);
+      if p2<>nil then
+       Move(p^,p2^,size);
+      MemoryManager.FreeMem(p);
+      p:=p2;
+    end;
+  SysReAllocMem:=p;
 end;
 
 
@@ -804,7 +805,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2000-01-31 23:41:30  peter
+  Revision 1.33  2000-02-02 11:12:29  peter
+    * fixed internal_memavail counting for tryresizemem
+
+  Revision 1.32  2000/01/31 23:41:30  peter
     * reallocmem fixed for freemem() call when size=0
 
   Revision 1.31  2000/01/24 23:56:10  peter
