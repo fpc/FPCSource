@@ -708,6 +708,7 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
 
+{$ifndef newra}
          { process procvar. Done here already, because otherwise it may }
          { destroy registers containing a parameter for the actual      }
          { function call (e.g. if it's a function, its result will      }
@@ -715,7 +716,6 @@ implementation
          if assigned(right) then
            secondpass(right);
 
-{$ifndef newra}
          if (po_virtualmethod in procdefinition.procoptions) and
             assigned(methodpointer) then
            begin
@@ -837,9 +837,9 @@ implementation
          else
            { now procedure variable case }
            begin
+{$ifdef newra}
               secondpass(right);
 
-{$ifdef newra}
               if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   helpref:=right.location.reference;
@@ -1380,7 +1380,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-06-03 21:11:09  peter
+  Revision 1.85  2003-06-04 06:43:36  jonas
+    * fixed double secondpassing of procvar loads
+
+  Revision 1.84  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
