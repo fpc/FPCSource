@@ -63,7 +63,7 @@ Function WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;
   be a longint.
 }
 begin
-  WaitPid:=fpWaitPid(pid,longint(status),options);
+  WaitPid:=fpWaitPid(pid,pcint(status),options);
   LinuxError:=fpgeterrno;
 end;
 
@@ -439,7 +439,7 @@ begin
 //SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -453,7 +453,7 @@ begin
   fpclose(FileRec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -589,7 +589,7 @@ begin
   LinuxError:=fpgetErrno;
 end;
 
-{
+
 function MMap(const m:tmmapargs):pointer;
 begin
   mmap:=fpmmap(pointer(m.address),m.size,m.prot, m.flags,m.fd, m.offset);
@@ -602,7 +602,7 @@ begin
   MUnMap:=fpmunmap(p,size)=0;
   LinuxError:=fpgetErrno;
 end;
-}
+
 
 {--------------------------------
       Port IO functions
@@ -638,7 +638,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-09-16 20:52:24  marco
+  Revision 1.5  2003-09-20 17:27:05  marco
+   * mmap fix.
+
+  Revision 1.4  2003/09/16 20:52:24  marco
    * small cleanups. Mostly killing of already commented code in unix etc
 
   Revision 1.3  2003/09/16 16:06:02  peter
