@@ -28,6 +28,12 @@ const
   Title     = 'DelPascal';
   Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
+{$ifdef linux}
+  DirSep = '/';
+{$else}
+  DirSep = '\';
+{$endif}
+
 function DStr(l:longint):string;
 var
   TmpStr : string[32];
@@ -197,14 +203,14 @@ var
   hp     : pmaskitem;
   found  : boolean;
   basedir : string;
-  
+
 begin
   ProcessOptions;
-  if Optind<>ParamCount then 
+  if Optind<>ParamCount then
     Usage;
   BaseDir:=Paramstr(OptInd);
-  If BaseDir[Length(BaseDir)]<>'\' then 
-    BaseDir:=BaseDir+'\';
+  If BaseDir[Length(BaseDir)]<>DirSep then
+    BaseDir:=BaseDir+DirSep;
   AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
@@ -218,7 +224,7 @@ begin
       writeln(Copyright);
       Writeln;
     end;
-  FindFirst(basedir+'*.*',$20,Dir);
+  FindFirst(basedir+'*.*',anyfile,Dir);
   Total:=0;
   while (doserror=0) do
    begin
@@ -258,7 +264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-01-24 16:31:12  michael
+  Revision 1.10  2000-01-26 21:15:00  peter
+    * Fixed dir separator for linux
+
+  Revision 1.9  2000/01/24 16:31:12  michael
   + Adapted delp so it accepts a directory as an option
 
   Revision 1.8  2000/01/23 16:40:28  peter
