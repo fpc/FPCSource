@@ -34,6 +34,7 @@ Type
        ObjectFiles,
        SharedLibFiles,
        StaticLibFiles    : TStringContainer;
+       LibrarySearchPath,                 { Search path for libraries }
        ExeName,                           { FileName of the exe to be created }
        SharedLibName,
        StaticLibName,                     { FileName of the lib to be created }
@@ -100,8 +101,8 @@ begin
   ExeName:='';
   SharedLibName:='';
   StaticLibName:='';
-  LibrarySearchPath:='';
   ObjectSearchPath:='';
+  LibrarySearchPath:='';
 {$ifdef linux}
   DynamicLinker:='/lib/ld-linux.so.1';
 {$else}
@@ -186,7 +187,7 @@ var
 begin
   if pos('.',s)=0 then
    s:=s+ext;
-  s:=FixFileName(s);
+//  s:=FixFileName(s);
   if FileExists(s) then
    begin
      FindLibraryFile:=s;
@@ -342,6 +343,21 @@ begin
   if Strip then
    LinkOptions:=LinkOptions+target_link.stripopt;
 
+  S2:=LibrarySearchPath;
+  Writeln ('Librarysearchpath : ',S2);
+  Repeat
+    I:=Pos(';',S2);
+    If I<>0 then
+      begin
+      S:=Copy(S2,1,I-1);
+      Delete (S2,1,I);
+      end
+    else
+      S:=S2;
+    If S<>'' then
+      LinkOptions:=LinkOptions+' -L'+s;
+  until S='';
+   
 { Write used files and libraries }
   WriteResponseFile;
 
@@ -352,6 +368,7 @@ begin
   Replace(s,'$EXE',exename);
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
+  Writeln ('Linker options : ',s);
   success:=DoExec(FindLinker,s,true,false);
 
 {Bind}
@@ -431,7 +448,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-06 09:26:49  peter
+  Revision 1.7  1998-05-08 09:21:20  michael
+  * Added missing -Fl message to messages file.
+  * Corrected mangling of file names when doing Linklib
+  * -Fl now actually WORKS.
+  * Librarysearchpath is now a field in linker object.
+
+  Revision 1.6  1998/05/06 09:26:49  peter
     * fixed ld call with shell
 
   Revision 1.4  1998/05/04 17:54:25  peter

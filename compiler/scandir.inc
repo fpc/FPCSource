@@ -637,7 +637,7 @@ const
         hs : string;
       begin
         skipspace;
-        hs:=FixFileName(readstring);
+        hs:=readstring;
         current_module^.linkSharedLibs.insert(hs);
       end;
 
@@ -821,7 +821,13 @@ const
 
 {
   $Log$
-  Revision 1.6  1998-05-04 17:54:28  peter
+  Revision 1.7  1998-05-08 09:21:20  michael
+  * Added missing -Fl message to messages file.
+  * Corrected mangling of file names when doing Linklib
+  * -Fl now actually WORKS.
+  * Librarysearchpath is now a field in linker object.
+
+  Revision 1.6  1998/05/04 17:54:28  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

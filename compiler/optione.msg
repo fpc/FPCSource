@@ -67,6 +67,7 @@ Report bugs,suggestions etc to:
 *L2Fr<x>_<x> search path for the error message file
 **2Fi<x>_adds <x> to include path
 **2Fl<x>_adds <x> to library path
+*L2FL<x>_uses <x> as dynamic linker
 **2Fu<x>_adds <x> to unit path
 **1k<x>_Pass <x> to the linker
 **1L_set language
