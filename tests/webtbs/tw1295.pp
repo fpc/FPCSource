@@ -1,3 +1,6 @@
+{ %INTERACTIVE }
+{ checking of invalid drive size }
+
 USES DOS;
 var
   d : longint;
