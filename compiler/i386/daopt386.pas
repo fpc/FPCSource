@@ -1135,7 +1135,7 @@ Begin
     ' till here...')));
   insertllitem(asml,p2,p1^.next,hp);
 {$endif allocregdebug}
-  if Assigned(p1^.optInfo) and
+  if not Assigned(p1^.optInfo) or
      not (reg in PPaiProp(p1^.OptInfo)^.UsedRegs) then
     begin
       hp := new(paiRegalloc,alloc(reg));
@@ -2436,7 +2436,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-11-08 16:04:34  sg
+  Revision 1.6  2000-11-14 13:26:10  jonas
+    * fixed bug in allocregbetween
+
+  Revision 1.5  2000/11/08 16:04:34  sg
   * Fix for containsPointerRef: Loop now runs in the correct range
 
   Revision 1.4  2000/11/03 18:06:26  jonas
