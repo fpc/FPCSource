@@ -913,11 +913,11 @@ implementation
                 end
               else
                 begin
-                   if (p^.resulttype^.deftype=orddef) then
+                   if (p^.resulttype^.deftype in [orddef,enumdef]) then
                      begin
                         p^.location.loc:=LOC_REGISTER;
-                        case porddef(p^.resulttype)^.typ of
-                          s32bit,u32bit,bool32bit :
+                        case p^.resulttype^.size of
+                          4 :
                             begin
 {$ifdef test_dest_loc}
                                if dest_loc_known and (dest_loc_tree=p) then
@@ -930,7 +930,7 @@ implementation
                                     p^.location.register:=hregister;
                                  end;
                             end;
-                          uchar,u8bit,bool8bit,s8bit:
+                          1 :
                             begin
 {$ifdef test_dest_loc}
                                  if dest_loc_known and (dest_loc_tree=p) then
@@ -943,7 +943,7 @@ implementation
                                       p^.location.register:=reg32toreg8(hregister);
                                    end;
                               end;
-                          s16bit,u16bit,bool16bit :
+                          2 :
                             begin
 {$ifdef test_dest_loc}
                                if dest_loc_known and (dest_loc_tree=p) then
@@ -956,7 +956,7 @@ implementation
                                     p^.location.register:=reg32toreg16(hregister);
                                  end;
                             end;
-                           s64bitint,u64bit:
+                           8 :
                              begin
 {$ifdef test_dest_loc}
 {$error Don't know what to do here}
@@ -1166,7 +1166,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90.2.2  1999-06-16 09:30:44  peter
+  Revision 1.90.2.3  1999-06-22 13:30:08  peter
+    * fixed return with packenum
+
+  Revision 1.90.2.2  1999/06/16 09:30:44  peter
     * fixed loading of ansistring when eax was already used
 
   Revision 1.90.2.1  1999/06/14 17:24:42  peter
