@@ -821,10 +821,9 @@ Begin
                               Begin
                                 { change "mov %reg, %treg; mov %treg, y"
                                   to "mov %reg, y" }
-                                Paicpu(hp1)^.LoadOper(0,Paicpu(p)^.oper[0]);
-                                AsmL^.Remove(p);
-                                Dispose(p, Done);
-                                p := hp1;
+                                Paicpu(p)^.LoadOper(1,Paicpu(hp1)^.oper[1]);
+                                AsmL^.Remove(hp1);
+                                Dispose(hp1, Done);
                                 continue;
                               End;
                             top_ref:
@@ -1912,7 +1911,12 @@ End.
 
 {
  $Log$
- Revision 1.91  2000-04-16 16:46:43  jonas
+ Revision 1.92  2000-04-23 14:56:36  jonas
+   * changed "mov reg1, reg2; mov reg2, y" optimization that caused
+     regalloc info to become invalid (it's still performed, but the
+     regalloc info stays valid now)
+
+ Revision 1.91  2000/04/16 16:46:43  jonas
    * small regalloc fix
 
  Revision 1.90  2000/03/26 10:58:47  jonas
