@@ -178,6 +178,7 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:longint): boolean;
 
 
@@ -654,7 +655,7 @@ end;
 
 Procedure TOperand.SetSize(_size:longint);
 begin
-  if (size = S_NO) then
+  if (size = S_NO) and (_size<extended_size) then
    Begin
      case _size of
       1 : size:=S_B;
@@ -720,6 +721,7 @@ Function TOperand.SetupVar(const hs:string): Boolean;
 { if not found returns FALSE.                               }
 var
   sym : psym;
+  harrdef : parraydef;
 Begin
   SetupVar:=false;
 { are we in a routine ? }
@@ -766,7 +768,15 @@ Begin
           floatdef :
             SetSize(pvarsym(sym)^.getsize);
           arraydef :
-            SetSize(parraydef(pvarsym(sym)^.definition)^.elesize)
+            begin
+              { for arrays try to get the element size, take care of
+                multiple indexes }
+              harrdef:=Parraydef(PVarsym(sym)^.definition);
+              while assigned(harrdef^.definition) and
+                    (harrdef^.definition^.deftype=arraydef) do
+               harrdef:=parraydef(harrdef^.definition);
+              SetSize(harrdef^.elesize);
+            end;
         end;
         hasvar:=true;
         SetupVar:=true;
@@ -782,7 +792,15 @@ Begin
           floatdef :
             SetSize(ptypedconstsym(sym)^.getsize);
           arraydef :
-            SetSize(parraydef(ptypedconstsym(sym)^.definition)^.elesize)
+            begin
+              { for arrays try to get the element size, take care of
+                multiple indexes }
+              harrdef:=Parraydef(PVarsym(sym)^.definition);
+              while assigned(harrdef^.definition) and
+                    (harrdef^.definition^.deftype=arraydef) do
+               harrdef:=parraydef(harrdef^.definition);
+              SetSize(harrdef^.elesize);
+            end;
         end;
         hasvar:=true;
         SetupVar:=true;
@@ -1038,6 +1056,27 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
+Function SearchRecordType(const s:string): boolean;
+Begin
+  SearchRecordType:=false;
+{ Check the constants in symtable }
+  getsym(s,false);
+  if srsym <> nil then
+   Begin
+     case srsym^.typ of
+       typesym :
+         begin
+           if ptypesym(srsym)^.definition^.deftype in [recorddef,objectdef] then
+            begin
+              SearchRecordType:=true;
+              exit;
+            end;
+         end;
+     end;
+   end;
+end;
+
+
 Function SearchIConstant(const s:string; var l:longint): boolean;
 {**********************************************************************}
 {  Description: Searches for a CONSTANT of name s in either the local  }
@@ -1047,46 +1086,22 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
 { Remarks: Also handle TRUE and FALSE returning in those cases 1 and 0 }
 {  respectively.                                                       }
 {**********************************************************************}
-var
-  sym: psym;
 Begin
   SearchIConstant:=false;
-  { check for TRUE or FALSE reserved words first }
+{ check for TRUE or FALSE reserved words first }
   if s = 'TRUE' then
    Begin
      SearchIConstant:=TRUE;
      l:=1;
-   end
-  else
-   if s = 'FALSE' then
-    Begin
-      SearchIConstant:=TRUE;
-      l:=0;
-    end
-  else
-   if assigned(aktprocsym) then
-    Begin
-      if assigned(aktprocsym^.definition) then
-       Begin
-       { Check the local constants }
-         if assigned(aktprocsym^.definition^.localst) and
-            (lexlevel >= normal_function_level) then
-          sym:=aktprocsym^.definition^.localst^.search(s)
-         else
-          sym:=nil;
-         if assigned(sym) then
-          Begin
-            if (sym^.typ = constsym) and
-               (pconstsym(sym)^.consttype in [constord,constint,constchar,constbool]) then
-             Begin
-               l:=pconstsym(sym)^.value;
-               SearchIConstant:=TRUE;
-               exit;
-             end;
-          end;
-       end;
-    end;
-  { Check the global constants }
+     exit;
+   end;
+  if s = 'FALSE' then
+   Begin
+     SearchIConstant:=TRUE;
+     l:=0;
+     exit;
+   end;
+{ Check the constants in symtable }
   getsym(s,false);
   if srsym <> nil then
    Begin
@@ -1112,6 +1127,7 @@ Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):bool
 { used when base is a variable or a typed constant name.       }
 var
   st   : psymtable;
+  harrdef : parraydef;
   sym  : psym;
   i    : longint;
   base : string;
@@ -1174,6 +1190,16 @@ Begin
            inc(Offset,pvarsym(sym)^.address);
            Size:=PVarsym(sym)^.getsize;
            case pvarsym(sym)^.definition^.deftype of
+             arraydef :
+               begin
+                 { for arrays try to get the element size, take care of
+                   multiple indexes }
+                 harrdef:=Parraydef(PVarsym(sym)^.definition);
+                 while assigned(harrdef^.definition) and
+                       (harrdef^.definition^.deftype=arraydef) do
+                  harrdef:=parraydef(harrdef^.definition);
+                 size:=harrdef^.elesize;
+               end;
              recorddef :
                st:=precorddef(pvarsym(sym)^.definition)^.symtable;
              objectdef :
@@ -1378,7 +1404,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-08-04 00:23:28  florian
+  Revision 1.23  1999-08-13 21:28:38  peter
+    * more reference types support
+    * arraydef size returns elementsize, also for multiple indexing array
+
+  Revision 1.22  1999/08/04 00:23:28  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.21  1999/08/03 22:03:12  peter

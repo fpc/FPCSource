@@ -960,7 +960,8 @@ Begin
            Message(asmr_e_local_symbol_not_allowed_as_ref);
           GotStar:=false;
           GotPlus:=false;
-          if SearchIConstant(actasmpattern,l) then
+          if SearchIConstant(actasmpattern,l) or
+             SearchRecordType(actasmpattern) then
            begin
              l:=BuildRefConstExpression;
              GotPlus:=(prevasmtoken=AS_PLUS);
@@ -1138,6 +1139,12 @@ end;
 
 
 Procedure T386IntelOperand.BuildOperand;
+var
+  expr,
+  tempstr : string;
+  tempreg : tregister;
+  l       : longint;
+  hl      : PAsmLabel;
 
   procedure AddLabelOperand(hl:pasmlabel);
   begin
@@ -1153,14 +1160,49 @@ Procedure T386IntelOperand.BuildOperand;
      end;
   end;
 
-var
-  expr,
-  tempstr : string;
-  tempreg : tregister;
-  l,
-  toffset,
-  tsize   : longint;
-  hl      : PAsmLabel;
+  procedure MaybeRecordOffset;
+  var
+    l,
+    toffset,
+    tsize   : longint;
+  begin
+    l:=0;
+    if actasmtoken=AS_DOT then
+     begin
+       { if no type was specified before the [] then we expect the
+         first ID to be the type }
+       if expr='' then
+         begin
+           consume(AS_DOT);
+           if actasmtoken=AS_ID then
+            begin
+              expr:=actasmpattern;
+              consume(AS_ID);
+              { now the next one must the be the dot }
+              if actasmtoken<>AS_DOT then
+               begin
+                 Message(asmr_e_building_record_offset);
+                 expr:='';
+               end;
+            end
+           else
+            Message(asmr_e_no_var_type_specified)
+         end;
+       if expr<>'' then
+         begin
+           BuildRecordOffsetSize(expr,toffset,tsize);
+           inc(l,toffset);
+           SetSize(tsize);
+         end;
+     end;
+    if actasmtoken in [AS_PLUS,AS_MINUS] then
+     inc(l,BuildConstExpression);
+    if opr.typ=OPR_REFERENCE then
+     inc(opr.ref.offset,l)
+    else
+     inc(opr.val,l);
+  end;
+
 Begin
   tempstr:='';
   expr:='';
@@ -1246,32 +1288,19 @@ Begin
                   else
                    Message1(sym_e_unknown_id,actasmpattern);
                 end;
-               l:=0;
                expr:=actasmpattern;
                Consume(AS_ID);
+               MaybeRecordOffset;
                if actasmtoken=AS_LBRACKET then
                 begin
-                  opr.typ:=OPR_REFERENCE;
-                  reset_reference(opr.Ref);
+                  if opr.typ<>OPR_REFERENCE then
+                   begin
+                     opr.typ:=OPR_REFERENCE;
+                     reset_reference(opr.Ref);
+                   end;
                   BuildReference;
                 end;
-               if actasmtoken=AS_DOT then
-                begin
-                  if expr='' then
-                   Message(asmr_e_no_var_type_specified)
-                  else
-                   begin
-                     BuildRecordOffsetSize(expr,toffset,tsize);
-                     inc(l,toffset);
-                     SetSize(tsize);
-                   end;
-                end;
-               if actasmtoken in [AS_PLUS,AS_MINUS] then
-                inc(l,BuildConstExpression);
-               if opr.typ=OPR_REFERENCE then
-                inc(opr.ref.offset,l)
-               else
-                inc(opr.val,l);
+               MaybeRecordOffset;
              end;
          end;
       end;
@@ -1301,7 +1330,9 @@ Begin
 
     AS_LBRACKET: { a variable reference, register ref. or a constant reference }
       Begin
+        InitRef;
         BuildReference;
+        MaybeRecordOffset;
       end;
 
     AS_SEG :
@@ -1669,7 +1700,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  1999-08-04 00:23:27  florian
+  Revision 1.43  1999-08-13 21:28:36  peter
+    * more reference types support
+    * arraydef size returns elementsize, also for multiple indexing array
+
+  Revision 1.42  1999/08/04 00:23:27  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.41  1999/07/24 11:17:16  peter
