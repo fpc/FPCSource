@@ -163,6 +163,7 @@ type
 
     PEditorActionCollection = ^TEditorActionCollection;
     TEditorActionCollection = object(TCollection)
+      procedure FreeItem(Item: Pointer); virtual;
     end;
 
     TSpecSymbolClass =
@@ -2178,9 +2179,9 @@ begin
   if Clipboard<>nil then
      if Clipboard^.InsertFrom(@Self) then
      begin
-   DelSelect;
-   Modified:=true;
-   UpdateIndicator;
+       DelSelect;
+       Modified:=true;
+       UpdateIndicator;
      end;
 end;
 
@@ -2714,7 +2715,7 @@ var
         ccNumber :
           if (LastCC<>ccAlpha) then;
         ccSymbol :
-            if IsDirectivePrefix {and (InComment=false)} and (InDirective=false) then
+            if IsDirectivePrefix and {(InComment=false) and }(InDirective=false) then
                begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
             if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
                InDirective:=false else
@@ -2977,7 +2978,14 @@ destructor TCodeEditor.Done;
 begin
   inherited Done;
   Dispose(Lines, Done);
-  Dispose(Actions, Done);
+  If assigned(Actions) then
+    Dispose(Actions, Done);
+end;
+
+procedure TEditorActionCollection.FreeItem(Item: Pointer);
+begin
+  if assigned(Item) then
+    freemem(Item,Sizeof(TEditorAction));
 end;
 
 constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
@@ -3425,7 +3433,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  1999-03-03 16:45:07  pierre
+  Revision 1.25  1999-03-05 17:39:39  pierre
+   * Actions item freeing
+
+  Revision 1.24  1999/03/03 16:45:07  pierre
    * Actions were not dispose in TCodeEditor.Done
 
   Revision 1.23  1999/03/01 15:42:10  peter
