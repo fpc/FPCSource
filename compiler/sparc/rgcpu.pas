@@ -49,13 +49,11 @@ implementation
 
     uses
       verbose, cutils,
-      cgutils,cgobj,
-      procinfo;
+      cgutils,cgobj;
 
     procedure trgcpu.add_constraints(reg:tregister);
       var
-        supreg,i: Tsuperregister;
-        r: Tregister;
+        supreg,i : Tsuperregister;
       begin
         case getsubreg(reg) of
           { Let 64bit floats conflict with all odd float regs }
@@ -94,12 +92,11 @@ implementation
 
 
     procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-     const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
         tmpref,ref : treference;
         helplist : taasmoutput;
-        l : tasmlabel;
         tmpreg : tregister;
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
@@ -146,12 +143,11 @@ implementation
 
 
     procedure trgcpu.do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+                                      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
         ref,tmpref : treference;
         helplist : taasmoutput;
-        l : tasmlabel;
         tmpreg : tregister;
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
@@ -177,14 +173,15 @@ implementation
             ref.index:=tmpreg;
             ref.offset:=0;
 
-            helplist.concat(spilling_create_store(regs[regidx].tempreg,ref));
+            helpins:=spilling_create_store(regs[regidx].tempreg,ref);
+            helplist.concat(helpins);
             list.insertlistafter(instr,helplist);
             helplist.free;
 
-            ungetregisterinline(list,tai(helplist.last),regs[regidx].tempreg);
+            ungetregisterinline(list,helpins,regs[regidx].tempreg);
 
             if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              ungetregisterinline(list,tai(helplist.last),tmpreg);
+              ungetregisterinline(list,helpins,tmpreg);
           end
         else
           inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
@@ -197,7 +194,7 @@ implementation
         helpins1, helpins2: tai;
         tmpref,ref : treference;
         helplist : taasmoutput;
-        tmpreg : tregister;
+         tmpreg : tregister;
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
         if abs(ref.offset)>4095 then
@@ -246,7 +243,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2004-09-27 21:23:26  peter
+  Revision 1.26  2004-09-28 20:19:36  peter
+    * fixed crash
+
+  Revision 1.25  2004/09/27 21:23:26  peter
     * fixed spilling code
 
   Revision 1.24  2004/08/24 21:02:33  florian
