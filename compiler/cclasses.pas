@@ -1245,6 +1245,7 @@ end;
                  end;
              end;
           end;
+        result := nil;
       end;
 
 
@@ -1728,7 +1729,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-05-18 13:34:05  peter
+  Revision 1.14  2002-06-17 13:56:14  jonas
+    * tdictionary.rename() returns nil if the original object wasn't found
+      (reported by Sergey Korshunoff <seyko@comail.ru>)
+
+  Revision 1.13  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/16 19:46:35  carl
