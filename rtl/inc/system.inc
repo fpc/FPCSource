@@ -339,7 +339,9 @@ Procedure dump_stack(bp : Longint);
   Begin
   {To be used by symify}
     Writeln(stderr,'  0x',HexStr(addr,8));
+{$IFNDEF NEW_READWRITE}
     Flush(stderr);
+{$ENDIF NEW_READWRITE}
   End;
 
 var
@@ -373,7 +375,7 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  If DoError Then
+  If ErrorAddr<>nil Then
    Begin
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
@@ -422,7 +424,10 @@ End;
 
 {
   $Log$
-  Revision 1.14  1998-07-01 15:29:59  peter
+  Revision 1.15  1998-07-02 09:25:05  peter
+    * fixed do_error in runtimeerror
+
+  Revision 1.14  1998/07/01 15:29:59  peter
     * better readln/writeln
 
   Revision 1.13  1998/06/26 08:21:09  daniel
