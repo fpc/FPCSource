@@ -120,21 +120,20 @@ implementation
            hs:=current_scanner.readid;
            if (hs='ON') then
             aktpackrecords:=4
-           else
-            if (hs='OFF') then
+           else if (hs='OFF') then
              aktpackrecords:=1
-           { Support switches used in Apples Universal Interfaces}
+           else if m_mac in aktmodeswitches then
+             begin
+               { Support switches used in Apples Universal Interfaces}
+               if (hs='MAC68K') then
+                 aktpackrecords:=2
+               else if (hs='POWER') then
+                 aktpackrecords:=4
+               else if (hs='RESET') then
+                 aktpackrecords:=0
+             end
            else
-            if (hs='MAC68K') and (m_mac in aktmodeswitches) then
-             aktpackrecords:=2
-           else
-            if (hs='POWER') and (m_mac in aktmodeswitches) then
-             aktpackrecords:=4
-           else
-            if (hs='RESET') and (m_mac in aktmodeswitches) then
-             aktpackrecords:=0
-           else
-            Message(scan_w_only_pack_records);
+             Message(scan_w_only_pack_records);
          end
         else
          begin
@@ -1004,7 +1003,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-05-11 18:30:50  olle
+  Revision 1.34  2004-05-11 22:51:34  olle
+    * Performanceimprovement
+
+  Revision 1.33  2004/05/11 18:30:50  olle
     + mode macpas: support for Apples align directives
 
   Revision 1.32  2004/04/04 18:46:09  olle
