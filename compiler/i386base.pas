@@ -639,23 +639,6 @@ type
   end;
 
 
-{*****************************************************************************
-                                Operand
-*****************************************************************************}
-
-type
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-
-  toper=record
-    ot  : longint;
-    case typ : toptype of
-     top_none   : ();
-     top_reg    : (reg:tregister);
-     top_ref    : (ref:preference);
-     top_const  : (val:longint);
-     top_symbol : (sym:pasmsymbol;symofs:longint);
-  end;
-
 
 {*****************************************************************************
                                Generic Location
@@ -1006,7 +989,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-08-02 17:17:09  florian
+  Revision 1.8  1999-08-02 20:45:49  michael
+  * Moved toperand type to aasm
+
+  Revision 1.7  1999/08/02 17:17:09  florian
     * small changes for the new code generator
 
   Revision 1.6  1999/06/06 15:53:15  peter
