@@ -531,10 +531,10 @@ TYPE
       ModeNumber: smallint;
       MaxColor: Longint;            { Maximum colors on screen        }
       PaletteSize : Longint;        { Maximum palette entry we can change }
-      XAspect : smallint;            { XAspect ratio correction factor }
-      YAspect : smallint;            { YAspect ratio correction factor }
-      MaxX: smallint;                { Max-X row                       }
-      MaxY: smallint;                { Max. column.                    }
+      XAspect : word;            { XAspect ratio correction factor }
+      YAspect : word;            { YAspect ratio correction factor }
+      MaxX: word;                { Max-X row                       }
+      MaxY: word;                { Max. column.                    }
       DirectColor: boolean;         { Is this a direct color mode??   }
       Hardwarepages: byte;          { total number of image pages - 1 }
       ModeName: String[18];
@@ -804,8 +804,8 @@ var
   { Should be set in InitGraph once only.                           }
   IntCurrentMode : smallint;
   IntCurrentDriver : smallint;       { Currently loaded driver          }
-  XAspect : smallint;
-  YAspect : smallint;
+  XAspect : word;
+  YAspect : word;
   MaxX : smallint;       { Maximum resolution - ABSOLUTE }
   MaxY : smallint;       { Maximum resolution - ABSOLUTE }
   MaxColor : Longint;
@@ -1353,7 +1353,7 @@ var
                               {$ifdef fpc}@{$endif fpc}DummyPatternLine);
        InternalEllipseDefault(x,y,XRadius+1,YRadius+1,StAngle,EndAngle,
                               {$ifdef fpc}@{$endif fpc}DummyPatternLine);
-       If (XRadius <> 0) and (YRadius <> 0) Then
+       If (XRadius > 0) and (YRadius > 0) Then
          { draw the smallest ellipse last, since that one will use the }
          { original pl, so it could possibly draw patternlines (JM)    }
          Begin
@@ -1364,6 +1364,11 @@ var
        { restore line thickness }
        LineInfo.Thickness := OldLineWidth;
      End;
+   { Adjust for screen aspect ratio }
+   XRadius:=(longint(XRadius)*10000) div XAspect;
+   YRadius:=(longint(YRadius)*10000) div YAspect;
+   If xradius = 0 then inc(xradius);
+   if yradius = 0 then inc(yradius);
    { check for an ellipse with negligable x and y radius }
    If (xradius <= 1) and (yradius <= 1) then
      begin
@@ -1376,10 +1381,6 @@ var
        ArcCall.YEnd := Y;
        exit;
      end;
-   { for restoring after PatternLine }
-   BackupColor := CurrentColor;
-   If xradius = 0 then inc(xradius);
-   if yradius = 0 then inc(yradius);
    { check if valid angles }
    stangle := stAngle mod 361;
    EndAngle := EndAngle mod 361;
@@ -1398,10 +1399,9 @@ var
    { less pixels have to be calculated now                                   }
    NumOfPixels:=Round(Sqrt(3)*sqrt(sqr(XRadius)+sqr(YRadius)));
    { Calculate the angle precision required }
-   Delta := 90.0 / (NumOfPixels);
-   { Adjust for screen aspect ratio }
-   XRadius:=(longint(XRadius)*10000) div XAspect;
-   YRadius:=(longint(YRadius)*10000) div YAspect;
+   Delta := 90.0 / NumOfPixels;
+   { for restoring after PatternLine }
+   BackupColor := CurrentColor;
    { removed from inner loop to make faster }
    { store some arccall info }
    ArcCall.X := X;
@@ -1460,7 +1460,7 @@ var
          PutPixel(xp,ym,CurrentColor);
        end;
      If (ynext <> ytemp) and
-        (xp <> xm) then
+        (xp - xm >= 1) then
        begin
          CurrentColor := FillSettings.Color;
          pl(plxmyp+1,plxpyp-1,yp);
@@ -1709,8 +1709,7 @@ End;
        else
          begin
            { number of times to go throuh the 8x8 pattern }
-           NrIterations := abs(x2 - x1+1) div 8;
-           Inc(NrIterations);
+           NrIterations := abs(x2 - x1+8) div 8;
            For i:= 0 to NrIterations do
              Begin
                for j:=0 to 7 do
@@ -3043,7 +3042,14 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.50  1999-12-21 17:42:17  jonas
+  Revision 1.51  1999-12-26 10:33:06  jonas
+    * XAspect and YAspect are now words instead of smallints, they
+      overflowed for resolutions > 640x480 otherwise
+    * the number of pixels required for an ellipse in internalellipsedef
+      is now calculated after the aspectratios have been taken into
+      account
+
+  Revision 1.50  1999/12/21 17:42:17  jonas
     * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
       yet!!)
     * fixed mode detection so the low modenumber of a driver doesn't have to be zero
