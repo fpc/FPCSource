@@ -691,13 +691,28 @@ function ReplaceReg(orgReg, newReg: TRegister; p: pai;
 { if the functino returns true, returnEndP holds the lat instruction     }
 { where newReg was replaced by orgReg                                    }
 var endP, hp: Pai;
-    sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
+    removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
+
+  function storeBack(p1: pai): boolean;
+  { returns true if p1 contains an instruction that stores the contents }
+  { of newReg back to orgReg                                            }
+  begin
+    storeBack :=
+      (p1^.typ = ait_instruction) and
+      (paicpu(p1)^.opcode = A_MOV) and
+      (paicpu(p1)^.oper[0].typ = top_reg) and
+      (paicpu(p1)^.oper[0].reg = newReg) and
+      (paicpu(p1)^.oper[1].typ = top_reg) and
+      (paicpu(p1)^.oper[1].reg = orgReg);
+  end;
+
 begin
   ReplaceReg := false;
   tmpResult := true;
   sequenceEnd := false;
   newRegModified := false;
   orgRegRead := false;
+  removeLast := false;
   endP := p;
   while tmpResult and not sequenceEnd do
     begin
@@ -706,40 +721,44 @@ begin
         (endP^.typ = ait_instruction);
       if tmpresult and not assigned(endP^.optInfo) then
         begin
-          hp := new(pai_asm_comment,init(strpnew('next no optinfo')));
+{          hp := new(pai_asm_comment,init(strpnew('next no optinfo')));
           hp^.next := endp;
           hp^.previous := endp^.previous;
           endp^.previous := hp;
           if assigned(hp^.previous) then
-            hp^.previous^.next := hp;
+            hp^.previous^.next := hp;}
           exit;
         end;
       If tmpResult and
 { don't take into account instructions that will be removed }
          Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
+          removeLast := storeBack(endP);
           sequenceEnd :=
-            noHardCodedRegs(paicpu(endP),orgReg,newReg) and
-            RegLoadedWithNewValue(newReg,true,paicpu(endP)) or
-            (GetNextInstruction(endp,hp) and
-             FindRegDealloc(newReg,hp));
+            removeLast or
+            (noHardCodedRegs(paicpu(endP),orgReg,newReg) and
+             RegLoadedWithNewValue(newReg,true,paicpu(endP)) or
+             (GetNextInstruction(endp,hp) and
+              FindRegDealloc(newReg,hp)));
           newRegModified :=
             newRegModified or
             (not(sequenceEnd) and
              RegModifiedByInstruction(newReg,endP));
           orgRegRead := newRegModified and RegReadByInstruction(orgReg,endP);
           sequenceEnd := SequenceEnd and
+                         (removeLast or
     { since newReg will be replaced by orgReg, we can't allow that newReg }
     { gets modified if orgReg is still read afterwards (since after       }
     { replacing, this would mean that orgReg first gets modified and then }
     { gets read in the assumption it still contains the unmodified value) }
-                         not(newRegModified and orgRegRead) and
+                         not(newRegModified and orgRegRead)) (* and
     { since newReg will be replaced by orgReg, we can't allow that newReg }
     { gets modified if orgRegCanBeModified = false                        }
-                         (orgRegCanBeModified or not(newRegModified));
+                         (orgRegCanBeModified or not(newRegModified)) *);
           tmpResult :=
+            not(removeLast) and
             not(newRegModified and orgRegRead) and
-            (orgRegCanBeModified or not(newRegModified)) and
+(*            (orgRegCanBeModified or not(newRegModified)) and *)
             (endP^.typ = ait_instruction) and
             not(paicpu(endP)^.is_jmp) and
             NoHardCodedRegs(paicpu(endP),orgReg,newReg) and
@@ -748,6 +767,8 @@ begin
         end;
     end;
   sequenceEnd := sequenceEnd and
+     (removeLast or
+      (orgRegCanBeModified or not(newRegModified))) and
      (not(assigned(endp)) or
       not(endp^.typ = ait_instruction) or
       (noHardCodedRegs(paicpu(endP),orgReg,newReg) and
@@ -755,7 +776,6 @@ begin
        not(newRegModified and
            (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
            not(RegLoadedWithNewValue(orgReg,true,paicpu(endP))))));
-
   if SequenceEnd then
     begin
 {$ifdef replaceregdebug}
@@ -796,8 +816,9 @@ begin
 {     isn't used anymore                                                    }
 { In case b, the newreg was completely replaced by oldreg, so it's contents }
 { are unchanged compared the start of this sequence, so restore them        }
-      If RegLoadedWithNewValue(newReg,true,endP) then
-         GetLastInstruction(endP,hp)
+      If removeLast or
+         RegLoadedWithNewValue(newReg,true,endP) then
+        GetLastInstruction(endP,hp)
       else hp := endP;
       if (p <> endp) or
          not RegLoadedWithNewValue(newReg,true,endP) then
@@ -808,6 +829,8 @@ begin
 { set the contents of orgreg to "unknown" after this sequence               }
       if newRegModified then
         ClearRegContentsFrom(orgReg,p,hp);
+      if removeLast then
+        ppaiprop(endP^.optinfo)^.canBeRemoved := true;
     end
 {$ifdef replaceregdebug}
      else
@@ -1198,7 +1221,13 @@ End.
 
 {
  $Log$
- Revision 1.50  2000-02-12 14:10:14  jonas
+ Revision 1.51  2000-02-12 19:28:56  jonas
+   * fix for imul optimization in popt386 (exclude top_ref as first
+     argument)
+   * in csopt386: change "mov reg1,reg2; <several operations on reg2>;
+     mov reg2,reg1" to "<several operations on reg1>" (-dnewopt...)
+
+ Revision 1.50  2000/02/12 14:10:14  jonas
    + change "mov reg1,reg2;imul x,reg2" to "imul x,reg1,reg2" in popt386
      (-dnewoptimizations)
    * shl(d) and shr(d) are considered to have a hardcoded register if

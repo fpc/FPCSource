@@ -1741,7 +1741,9 @@ Begin
 {$ifdef foldArithOps}
               A_IMUL:
                 begin
-                  if (paicpu(p)^.oper[1].typ = top_reg) and
+                  if ((paicpu(p)^.oper[0].typ = top_const) or
+                      (paicpu(p)^.oper[0].typ = top_symbol)) and
+                     (paicpu(p)^.oper[1].typ = top_reg) and
                      ((paicpu(p)^.oper[2].typ = top_none) or
                       ((paicpu(p)^.oper[2].typ = top_reg) and
                        (paicpu(p)^.oper[2].reg = paicpu(p)^.oper[1].reg))) and
@@ -1888,7 +1890,13 @@ End.
 
 {
  $Log$
- Revision 1.85  2000-02-12 14:10:15  jonas
+ Revision 1.86  2000-02-12 19:28:56  jonas
+   * fix for imul optimization in popt386 (exclude top_ref as first
+     argument)
+   * in csopt386: change "mov reg1,reg2; <several operations on reg2>;
+     mov reg2,reg1" to "<several operations on reg1>" (-dnewopt...)
+
+ Revision 1.85  2000/02/12 14:10:15  jonas
    + change "mov reg1,reg2;imul x,reg2" to "imul x,reg1,reg2" in popt386
      (-dnewoptimizations)
    * shl(d) and shr(d) are considered to have a hardcoded register if
