@@ -13,7 +13,7 @@ loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) objpas strings syscall sysctl unixtype baseunix unixutil \
       unix rtlconst initc cmem \
       dos dl termio objects printer \
-      sysutils typinfo systhrds types classes math varutils \
+      sysutils typinfo systhrds types classes math varutils dynlibs \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard console serial variants  sysctl dateutils \
@@ -44,7 +44,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
+      errors sockets ipc dynlibs
 
 [prerules]
 RTL=..
@@ -254,3 +254,5 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/convutils.pp
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
