@@ -990,6 +990,7 @@ parser_e_proc_no_external_allowed=03211_E_Can't declare procedure as EXTERNAL
 % The procedure is already declared in an interface or forward declaration. The compiler
 % expects the code for this procedure to be available in this unit. The EXTERNAL directive
 % needs to be moved to the interface or forward declaration.
+parser_w_implicit_uses_of_variants_unit=03212_W_Implicit uses of Variants unit
 % \end{description}
 #
 # Type Checking

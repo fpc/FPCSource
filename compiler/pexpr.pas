@@ -69,6 +69,8 @@ implementation
        systems,widestr,
        { symtable }
        symconst,symtable,symsym,defutil,defcmp,
+       { module }
+       fmodule,ppu,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
@@ -1261,6 +1263,10 @@ implementation
                      end
                     else
                      begin
+                       { We need to know if this unit uses Variants }
+                       if (htype.def=cvarianttype.def) and
+                          not(cs_compilesystem in aktmoduleswitches) then
+                         current_module.flags:=current_module.flags or uf_uses_variants;
                        if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true);
@@ -2505,7 +2511,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2004-12-05 12:28:11  peter
+  Revision 1.176  2004-12-06 19:23:05  peter
+  implicit load of variants unit
+
+  Revision 1.175  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

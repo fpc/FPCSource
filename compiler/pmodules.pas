@@ -368,28 +368,52 @@ implementation
       end;
 
 
+
+    procedure AddUnit(const s:string);
+      var
+        hp : tppumodule;
+        unitsym : tunitsym;
+      begin
+        { load unit }
+        hp:=registerunit(current_module,s,'');
+        hp.loadppu;
+        hp.adddependency(current_module);
+        { add to symtable stack }
+        tsymtable(hp.globalsymtable).next:=symtablestack;
+        symtablestack:=hp.globalsymtable;
+        { insert unitsym }
+        unitsym:=tunitsym.create(s,hp.globalsymtable);
+        inc(unitsym.refs);
+        refsymtable.insert(unitsym);
+        { add to used units }
+        current_module.addusedunit(hp,false,unitsym);
+      end;
+
+
+    procedure maybeloadvariantsunit;
+      var
+        hp : tmodule;
+      begin
+        { Do we need the variants unit? Skip this
+          for VarUtils unit for bootstrapping }
+        if (current_module.flags and uf_uses_variants=0) or
+           (current_module.modulename^='VARUTILS') then
+          exit;
+        { Variants unit already loaded? }
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+          begin
+            if hp.modulename^='VARIANTS' then
+              exit;
+            hp:=tmodule(hp.next);
+          end;
+        { Variants unit is not loaded yet, load it now }
+        Message(parser_w_implicit_uses_of_variants_unit);
+        AddUnit('Variants');
+      end;
+
+
     procedure loaddefaultunits;
-
-        procedure AddUnit(const s:string);
-        var
-          hp : tppumodule;
-          unitsym : tunitsym;
-        begin
-          { load unit }
-          hp:=registerunit(current_module,s,'');
-          hp.loadppu;
-          hp.adddependency(current_module);
-          { add to symtable stack }
-          tsymtable(hp.globalsymtable).next:=symtablestack;
-          symtablestack:=hp.globalsymtable;
-          { insert unitsym }
-          unitsym:=tunitsym.create(s,hp.globalsymtable);
-          inc(unitsym.refs);
-          refsymtable.insert(unitsym);
-          { add to used units }
-          current_module.addusedunit(hp,false,unitsym);
-        end;
-
       begin
       { are we compiling the system unit? }
         if (cs_compilesystem in aktmoduleswitches) then
@@ -1160,6 +1184,9 @@ implementation
             exit;
           end;
 
+         { do we need to add the variants unit? }
+         maybeloadvariantsunit;
+
          { generate debuginfo }
 {$ifdef GDB}
          write_gdb_info;
@@ -1439,6 +1466,21 @@ implementation
              exit;
            end;
 
+         { remove all unused units, this happends when units are removed
+           from the uses clause in the source and the ppu was already being loaded }
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+          begin
+            hp2:=hp;
+            hp:=tmodule(hp.next);
+            if hp2.is_unit and
+               not assigned(hp2.globalsymtable) then
+              loaded_units.remove(hp2);
+          end;
+
+         { do we need to add the variants unit? }
+         maybeloadvariantsunit;
+
          { generate debuginfo }
 {$ifdef GDB}
          write_gdb_info;
@@ -1488,17 +1530,6 @@ implementation
          { create the executable when we are at level 1 }
          if (compile_level=1) then
           begin
-            { remove all unused units, this happends when units are removed
-              from the uses clause in the source and the ppu was already being loaded }
-            hp:=tmodule(loaded_units.first);
-            while assigned(hp) do
-             begin
-               hp2:=hp;
-               hp:=tmodule(hp.next);
-               if hp2.is_unit and
-                  not assigned(hp2.globalsymtable) then
-                 loaded_units.remove(hp2);
-             end;
             { insert all .o files from all loaded units }
             hp:=tmodule(loaded_units.first);
             while assigned(hp) do
@@ -1523,7 +1554,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2004-11-29 18:50:15  peter
+  Revision 1.178  2004-12-06 19:23:05  peter
+  implicit load of variants unit
+
+  Revision 1.177  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

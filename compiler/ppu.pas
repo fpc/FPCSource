@@ -146,6 +146,7 @@ const
   uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
   uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
   uf_local_symtable = $20000; { this unit has a local symtable stored }
+  uf_uses_variants  = $40000; { this unit uses variants }
 
 type
   ppureal=extended;
@@ -1054,7 +1055,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2004-11-15 23:35:31  peter
+  Revision 1.60  2004-12-06 19:23:05  peter
+  implicit load of variants unit
+
+  Revision 1.59  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
