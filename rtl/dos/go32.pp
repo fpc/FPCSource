@@ -41,7 +41,7 @@ const
    overflowflag  = $800;
 
 type
-   tmeminfo = record
+   tmeminfo = packed record
       available_memory,
       available_pages,
       available_lockable_pages,
@@ -56,12 +56,12 @@ type
       reserved2 : longint;
    end;
 
-   tseginfo = record
+   tseginfo = packed record
       offset  : pointer;
       segment : word;
    end;
 
-   trealregs = record
+   trealregs = packed record
      case integer of
       1: { 32-bit } (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: longint;
                      Flags, ES, DS, FS, GS, IP, CS, SP, SS: word);
@@ -1220,7 +1220,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-07-07 12:25:20  carl
+  Revision 1.8  1998-07-08 12:33:26  peter
+    * packed records
+
+  Revision 1.7  1998/07/07 12:25:20  carl
     * compiles under fpc v0995, don't modify now now! :)
 
   Revision 1.6  1998/07/04 10:04:41  peter
