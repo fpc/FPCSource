@@ -542,7 +542,7 @@ begin
 end;
 
 
-procedure getdir(drivenr : byte;var dir : string);
+procedure getdir(drivenr : byte;var dir : shortstring);
 var
   temp : array[0..255] of char;
   sof  : pchar;
@@ -609,7 +609,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  1998-09-14 10:48:03  peter
+  Revision 1.10  1998-11-16 14:15:01  pierre
+    * changed getdir(byte,string) to getdir(byte,shortstring)
+
+  Revision 1.9  1998/09/14 10:48:03  peter
     * FPC_ names
     * Heap manager is now system independent
 

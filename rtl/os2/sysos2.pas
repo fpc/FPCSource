@@ -595,7 +595,7 @@ begin
     DosDir($3b,s);
 end;
 
-procedure getdir(drivenr : byte;var dir : string);
+procedure getdir(drivenr : byte;var dir : shortstring);
 
 {Written by Michael Van Canneyt.}
 

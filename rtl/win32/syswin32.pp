@@ -581,7 +581,7 @@ procedure chdir(const s:string);[IOCHECK];
   dirfn(TDirFnType(@SetCurrentDirectory),s);
  end;
 
-procedure getdir(drivenr:byte;var dir:string);
+procedure getdir(drivenr:byte;var dir:shortstring);
  const
   Drive:array[0..3]of char=(#0,':',#0,#0);
  var
@@ -757,7 +757,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  1998-10-27 15:07:16  florian
+  Revision 1.23  1998-11-16 14:14:58  pierre
+    * changed getdir(byte,string) to getdir(byte,shortstring)
+
+  Revision 1.22  1998/10/27 15:07:16  florian
     + Is* flags added
     + IsLibrary works also
 

@@ -1117,7 +1117,7 @@ begin
 end;
 
 
-procedure getdir(drivenr : byte;var dir : string);
+procedure getdir(drivenr : byte;var dir : shortstring);
 var
   temp : array[0..255] of char;
   i    : longint;
@@ -1225,7 +1225,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.22  1998-10-26 14:49:46  pierre
+  Revision 1.23  1998-11-16 14:15:02  pierre
+    * changed getdir(byte,string) to getdir(byte,shortstring)
+
+  Revision 1.22  1998/10/26 14:49:46  pierre
    * system debug info output to stderr
 
   Revision 1.21  1998/10/20 07:34:07  pierre
