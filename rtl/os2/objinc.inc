@@ -19,9 +19,6 @@
 {This is the correct way to call external assembler procedures.}
 procedure syscall;external name '___SYSCALL';
 
-{---------------------------------------------------------------------------}
-{  FileClose -> Platforms OS2              - Not checked                    }
-{---------------------------------------------------------------------------}
 FUNCTION FileClose(Handle: THandle): word;
 begin
    asm
@@ -32,11 +29,6 @@ begin
    end;
    FileClose := 0;
 end;
-
-{---------------------------------------------------------------------------}
-{  FileOpen -> Platforms OS2              - Checked 05May1998 CEC           }
-{  Returns 0 on failure                                                     }
-{---------------------------------------------------------------------------}
 
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 var
@@ -70,9 +62,6 @@ begin
 end;
 
 
-{***************************************************************************}
-{  DosSetFilePtr -> Platforms OS2          - Checked 05May1998 CEC          }
-{***************************************************************************}
 FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
 Var
@@ -96,9 +85,6 @@ BEGIN
 END;
 
 
-{---------------------------------------------------------------------------}
-{  FileRead -> Platforms OS2              - Checked 05May1998 CEC           }
-{---------------------------------------------------------------------------}
 FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
 Var Actual: Sw_Word): Word;
 BEGIN
@@ -119,9 +105,6 @@ BEGIN
 end;
 
 
-{---------------------------------------------------------------------------}
-{  FileWrite -> Platforms OS2              - Checked 05May1998 CEC          }
-{---------------------------------------------------------------------------}
 FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 BEGIN
   Actual:=0;
@@ -141,28 +124,52 @@ BEGIN
 end;
 
 
-{---------------------------------------------------------------------------}
-{  SetFileSize -> Platforms OS2          - Not Checked                      }
-{---------------------------------------------------------------------------}
-FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-VAR Actual, Buf: LongInt;
-BEGIN
-   SetFilePos(Handle,FileSize,0,Actual);
-   If (Actual = FileSize) Then
-	Begin
-	  Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
-	  If (Actual <> -1) Then
-	   SetFileSize := 0
-	  Else
-	   SetFileSize := 103;                            { File truncate error }
-	End
-   Else
-	SetFileSize := 103;                       { File truncate error }
+function SetFileSize (Handle: THandle; FileSize: LongInt): Word;
+var Actual, Buf: LongInt;
+begin
+    SetFileSize := 0;
+    if FileSize > Position then
+        begin
+            SetFilePos (Handle, FileSize, 0, Actual);
+            if (Actual = FileSize) then
+                begin
+{ Extend the file }
+	            Actual := FileWrite (Handle, Buf, 0, Actual);
+                    if Actual = -1 then
+                        SetFileSize := 103;
+                end
+            else
+                SetFileSize := 103;
+        end
+    else
+        begin
+            asm
+                movl $0x7F25,%eax
+                movl Handle,%ebx
+                movl FileSize,%edx
+                call syscall
+                inc %eax
+                movl %ecx, %eax
+                jnz .LSetFSize1
+                movl $0x4202,%eax
+                movl Handle,%ebx
+                movl $0,%edx
+                call syscall
+                jnc .LSetFSize2
+.LSetFSize1:
+                movw %ax,DosStreamError
+.LSetFSize2:
+            end;
+            if DosStreamError <> 0 then SetFileSize := 103;
+        end;
 END;
 
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:33  peter
+  Revision 1.5  2000-06-04 14:17:28  hajny
+    * SetFileSize fixed
+
+  Revision 1.4  2000/02/09 16:59:33  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:48  daniel
