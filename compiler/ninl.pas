@@ -1063,6 +1063,21 @@ implementation
 {$maxfpuregisters 0}
 {$endif fpc}
 
+    function getpi : bestreal;
+      begin
+      {$ifdef x86}
+        { x86 has pi in hardware }
+        result:=pi;
+      {$else x86}
+        {$ifdef cpuextended}
+          result:=extended(MathPiExtended);
+        {$else cpuextended}
+          result:=double(MathPi);
+        {$endif cpuextended}
+      {$endif x86}
+      end;
+
+
     function tinlinenode.det_resulttype:tnode;
 
         function do_lowhigh(const t:ttype) : tnode;
@@ -1844,7 +1859,7 @@ implementation
              in_pi_real :
                 begin
                   if block_type=bt_const then
-                     setconstrealvalue(pi)
+                     setconstrealvalue(getpi)
                   else
                      resulttype:=pbestrealtype^;
                 end;
@@ -2342,18 +2357,9 @@ implementation
       end;
 
 
-     function tinlinenode.first_pi : tnode;
+    function tinlinenode.first_pi : tnode;
       begin
-      {$ifdef x86}
-        { x86 has pi in hardware }
-        result:=crealconstnode.create(pi,pbestrealtype^);
-      {$else x86}
-        {$ifdef cpuextended}
-          result:=crealconstnode.create(extended(MathPiExtended),pbestrealtype^);
-        {$else cpuextended}
-          result:=crealconstnode.create(double(MathPi),pbestrealtype^);
-        {$endif cpuextended}
-      {$endif x86}
+        result:=crealconstnode.create(getpi,pbestrealtype^);
       end;
 
 
@@ -2465,7 +2471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2005-01-23 21:09:12  florian
+  Revision 1.158  2005-01-23 21:47:14  florian
+    * another improvement of pi handling
+
+  Revision 1.157  2005/01/23 21:09:12  florian
     + added pi bit pattern to the compiler, so pi should always be correct
 
   Revision 1.156  2004/12/05 12:28:11  peter
