@@ -1546,15 +1546,13 @@ implementation
           end;
           if (po_classmethod in current_procinfo.procdef.procoptions) or
              (po_staticmethod in current_procinfo.procdef.procoptions) then
-            if (loc=LOC_REFERENCE) then
-              begin
-              stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
-                [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)]);
-(*
-            else
-              stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
-                [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])])
-*)
+            begin
+              if (loc=LOC_REFERENCE) then
+                stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)]);
+(*            else
+                stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])]) *)
               end
           else
             begin
@@ -1565,11 +1563,9 @@ implementation
               if (loc=LOC_REFERENCE) then
                 stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
                       [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
-(*
-              else
+(*            else
                 stabstring:=stabstr_evaluate('"$$t:r$1",${N_RSYM},0,0,$2',
-                      [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]);
-*)
+                      [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]); *)
             end;
         end
       else
@@ -1668,7 +1664,12 @@ implementation
             if tstoreddef(vartype.def).is_intregable then
               varregable:=vr_intreg
             else
-              if tstoreddef(vartype.def).is_fpuregable then
+{$warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0}
+              if (
+                  not assigned(owner) or
+                  (owner.symtabletype<>staticsymtable)
+                 ) and
+                 tstoreddef(vartype.def).is_fpuregable then
                 varregable:=vr_fpureg;
           end;
       end;
@@ -2254,7 +2255,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.186  2004-10-12 14:34:49  peter
+  Revision 1.187  2004-10-13 18:47:45  peter
+    * fix misplaced begin..end for self stabs
+    * no fpu regable for staticsymtable
+
+  Revision 1.186  2004/10/12 14:34:49  peter
     * fixed visibility for procsyms
     * fixed override check when there was no entry yet
 
