@@ -875,6 +875,7 @@ Begin
   EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
 End;
 
+{$ifndef BSD}
 {$ifdef linux}
 Function stime (t : longint) : Boolean;
 var
@@ -885,6 +886,7 @@ begin
   linuxerror:=errno;
    stime:=linuxerror=0;
 end;
+{$endif}
 {$endif}
 
 {$ifdef BSD}
@@ -2931,7 +2933,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2001-07-12 07:20:05  michael
+  Revision 1.14  2001-07-12 12:42:39  marco
+   * Fixes to the FreeBSD compability of the datetime patches
+
+  Revision 1.13  2001/07/12 07:20:05  michael
   + Added setdate/time/datetime functions
 
   Revision 1.12  2001/06/20 15:24:47  marco
