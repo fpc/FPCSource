@@ -59,7 +59,10 @@ uses Objects,Views,App,MsgBox,
      WHelp,
      FPConst,FPVars,FPUtils;
 
-var StatusStack : array[0..10] of string[MaxViewWidth];
+const
+    MaxStatusLevel = 10;
+    
+var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
 const
       StatusStackPtr  : integer = 0;
@@ -125,6 +128,7 @@ begin
     hcRunMenu       : S:='Execution and parameters';
     hcRun           : S:='Run the current program';
     hcParameters    : S:='Set command-line parameters passed to program at execution';
+    hcResetDebugger : S:='Reset Program';
     hcUserScreen    : S:='Switch to the full-screen user output';
 
     hcCompileMenu   : S:='Compile, build & make';
@@ -137,9 +141,12 @@ begin
     hcInformation   : S:='Show compiler messages and program information';
 
     hcDebugMenu     : S:='';
-
+    hcToggleBreakpoint : S:='Toggles Breakpoint';
+    
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
+    hcGrep          : S:='Run grep';
+
     hcToolsBase..
     hcToolsBase+MaxToolCount
                     : S:='User installed tool';
@@ -292,7 +299,10 @@ end;
 procedure PushStatus(S: string);
 begin
   if StatusLine=nil then Exit;
-  StatusStack[StatusStackPtr]:=PAdvancedStatusLine(StatusLine)^.GetStatusText;
+  If StatusStackPtr<=MaxStatusLevel then
+    StatusStack[StatusStackPtr]:=PAdvancedStatusLine(StatusLine)^.GetStatusText
+  else
+    StatusStack[MaxStatusLevel]:=PAdvancedStatusLine(StatusLine)^.GetStatusText;
   SetStatus(S);
   Inc(StatusStackPtr);
 end;
@@ -301,7 +311,10 @@ procedure PopStatus;
 begin
   if StatusLine=nil then Exit;
   Dec(StatusStackPtr);
-  SetStatus(StatusStack[StatusStackPtr]);
+  If StatusStackPtr<=MaxStatusLevel then
+    SetStatus(StatusStack[StatusStackPtr])
+  else
+    SetStatus(StatusStack[MaxStatusLevel]);
 end;
 
 procedure SetStatus(S: string);
@@ -328,7 +341,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-01-21 11:54:13  peter
+  Revision 1.5  1999-02-04 12:23:44  pierre
+    + cmResetDebugger and cmGrep
+    * Avoid StatusStack overflow
+
+  Revision 1.4  1999/01/21 11:54:13  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

@@ -75,7 +75,8 @@ const
      cmAddWatch          = 225;
      cmTraceInto         = 226;
      cmStepOver          = 227;
-
+     cmResetDebugger     = 228;
+     
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
 
@@ -86,6 +87,7 @@ const
      cmCalculatorPaste   = 1603;
      cmMsgClear          = 1604;
      cmUpdateTools       = 1605;
+     cmGrep              = 1606;
 
      cmAddItem           = 1620;
      cmEditItem          = 1621;
@@ -168,6 +170,7 @@ const
      hcSaveINI           = hcShift+cmSaveINI;
      hcSaveAsINI         = hcShift+cmSaveAsINI;
      hcCalculator        = hcShift+cmCalculator;
+     hcGrep              = hcShift+cmGrep;
      hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcAbout             = hcShift+cmAbout;
 
@@ -194,6 +197,7 @@ const
      hcGlobals           = hcShift+cmGlobals;
      hcRun               = hcShift+cmRun;
      hcParameters        = hcShift+cmParameters;
+     hcResetDebugger     = hcShift+cmResetDebugger;
      hcCompile           = hcShift+cmCompile;
      hcMake              = hcShift+cmMake;
      hcBuild             = hcShift+cmBuild;
@@ -263,7 +267,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.7  1999-01-22 10:24:02  peter
+  Revision 1.8  1999-02-04 12:23:43  pierre
+    + cmResetDebugger and cmGrep
+    * Avoid StatusStack overflow
+
+  Revision 1.7  1999/01/22 10:24:02  peter
     * first debugger things
 
   Revision 1.6  1999/01/21 11:54:12  peter
