@@ -211,6 +211,9 @@ alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp))
 
 clean :
 	-rm -f *.re* *.o *.ppu *.log *.elg *.exc t*.exe log faillist ts_fail tf_fail
+ifndef DJGPP
+	-rm -f $(patsubst %.pp,%,$(wildcard *.pp))
+endif
 
 info :
 	@echo This Makefile allows to test the compiler
@@ -226,7 +229,10 @@ info :
 
 #
 # $Log$
-# Revision 1.3  1999-06-01 13:27:27  peter
+# Revision 1.4  1999-09-19 11:23:06  peter
+#   * clean also the executables under linux
+#
+# Revision 1.3  1999/06/01 13:27:27  peter
 #   * updates for linux
 #
 # Revision 1.2  1999/06/01 00:06:14  peter
