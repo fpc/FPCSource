@@ -248,7 +248,7 @@ var
 
   begin
     {$ifdef ver1_0}FStat{$else}fpstat{$endif}(Utmp_file, S);
-    Number_of_utmp_entries := S.Size div System.SizeOf(tLL_Utmp);
+    Number_of_utmp_entries := {$ifdef ver1_0}S.Size{$else}s.st_size{$endif} div System.SizeOf(tLL_Utmp);
   end;
 
 
@@ -326,7 +326,10 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.3  2003-09-27 12:13:50  peter
+  Revision 1.4  2003-09-29 19:28:09  marco
+   * stat record fixes.
+
+  Revision 1.3  2003/09/27 12:13:50  peter
     * fixed for unix
 
   Revision 1.2  2002/09/07 15:43:06  peter
