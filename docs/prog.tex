@@ -22,22 +22,13 @@
 %
 % Preamble
 %
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{a4}
-\usepackage{makeidx}
 \usepackage{html}
 \usepackage{htmllist}
-\usepackage{fancyhdr}
 \usepackage{epsfig}
 \usepackage{multicol}
 \usepackage{fpc}
 \latex{%
   \ifpdf
-  \usepackage[pdftex,bookmarks=true]{hyperref}
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Programmers' Guide)
            /Subject(Free Pascal Programmers' guide)
@@ -50,7 +41,6 @@
 %
 % Settings
 %
-\pagestyle{fancy}
 \makeindex
 %
 % Start of document.
@@ -82,8 +72,8 @@ workings of the Run-Time Library (RTL). The best way to learn about the way
 the RTL is implemented is from the sources themselves.
 
 The things described here are useful if you want to do things which need
-greater flexibility than the standard Pascal language constructs.
-(described in the \refref)
+greater flexibility than the standard Pascal language constructs
+(described in the \refref).
 
 Since the compiler is continuously under development, this document may get
 out of date. Wherever possible, the information in this manual will be
@@ -388,9 +378,11 @@ As an example:
 \end{verbatim}
 Will compile the writeln statement if generation of type information is on.
 
-{\em Remark:} The \var{\{\$IFOPT\}} directive accepts only short options,
+\begin{remark}
+The \var{\{\$IFOPT\}} directive accepts only short options,
 i.e. \var{\{\$IFOPT TYPEINFO\}} will not be accepted.
 \subsection{\var{\$INFO} : Generate info message}
+\end{remark}
 
 If the generation of info is turned on, through the \var{-vi} command-line
 option, then
@@ -530,10 +522,11 @@ option.
 On \linux systems, the name is case sensitive, and must be typed
 exactly as it appears on your system.
 
-{\em Remark :} Take care that the object file you're linking is in a
+\begin{remark} Take care that the object file you're linking is in a
 format the linker understands. Which format this is, depends on the platform
 you're on. Typing \var{ld} on the command line gives a list of formats
 \var{ld} knows about.
+\end{remark}
 
 You can pass other files and options to the linker using the \var{-k}
 command-line option. You can specify more than one of these options, and
@@ -619,10 +612,10 @@ moving large amounts of data. Things that change are
 \item Data with a size that is a multiple of 8 bytes is moved using the
 \var{movq} assembler instruction, which moves 8 bytes at a time
 \end{itemize}
-Remark that MMX support is NOT emulated on non-MMX systems, i.e. if
+\begin{remark} MMX support is NOT emulated on non-MMX systems, i.e. if
 the processor doesn't have the MMX extensions, you cannot use the MMX
 optimizations.
-
+\end{remark}
 When \textbf{MMX} support is on, you aren't allowed to do floating point
 arithmetic. You are allowed to move floating point data, but no arithmetic
 can be done. If you wish to do floating point math anyway, you must first
@@ -723,9 +716,9 @@ Type
           saturday, sunday);
 \end{verbatim}
 
-{\em Remark:}
-Sets are always put in 32 bit or 32 bytes, this cannot be changed
-
+\begin{remark}
+Sets are always put in 32 bits or 32 bytes, this cannot be changed.
+\end{remark}
 \subsection{\var{\$PACKRECORDS} : Alignment of record elements}
 
 This directive controls the byte alignment of the elements in a record,
@@ -736,11 +729,13 @@ It is of the following form:
 {$PACKRECORDS n}
 \end{verbatim}
 
-Where \var{n} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}.
+Where \var{n} is one of 1,2,4,16,\var{C}, \var{NORMAL} or \var{DEFAULT}.
 This means that the elements of a record that have size greater than \var{n}
 will be aligned on \var{n} byte boundaries. Elements with size less than or
 equal to \var{n} will be aligned to a natural boundary, i.e. to a power of
-two that is equal to or larger than the element's size.
+two that is equal to or larger than the element's size. The type \var{C}
+is used to specify alignment as by the GNU CC compiler. It should be used 
+only when making import units for C routines.
 
 The default alignment (which can be selected with \var{DEFAULT}) is 2,
 contrary to Turbo Pascal, where it is 1.
@@ -748,8 +743,9 @@ contrary to Turbo Pascal, where it is 1.
 More information on this and an example program can be found in the reference
 guide, in the section about record types.
 
-{\em Remark:}
+\begin{remark}
 Sets are always put in 32 bit or 32 bytes, this cannot be changed
+\end{remark}
 
 \subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
 The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on
@@ -758,12 +754,12 @@ to check for overflow when doing computations with integers.
 When an overflow occurs, the run-time library will print a message
 \var{Overflow at xxx}, and exit the program with exit code 215.
 
-\emph{ Remark: } Overflow checking behaviour is not the same as in
+\begin{remark} Overflow checking behaviour is not the same as in
 Turbo Pascal since all arithmetic operations are done via 32-bit
-values. Furthermore, the Inc() and Dec() standard system procedures
-\emph{ are } checked for overflow in \fpc, while in Turbo Pascal they
-are not.
-
+values. Furthermore, the \var{Inc()} and \var{Dec} standard system 
+procedures {\em are} checked for overflow in \fpc, while in Turbo 
+Pascal they are not.
+\end{remark}
 Using the \var{\{\$Q-\}} switch switches off the overflow checking code
 generation.
 
@@ -782,8 +778,9 @@ The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range 
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
-{\em Remark: } Range checking for sets and enumerations are not yet fully
+\begin{remark} Range checking for sets and enumerations are not yet fully
 implemented.
+\end{remark}
 
 \subsection{\var{\$SATURATION} : Saturation operations}
 This works only on the intel compiler, and MMX support must be on
@@ -995,9 +992,10 @@ by the code generator. Instead, internal run-time library routines
 are called to do the necessary calculations. In this case all
 real types are mapped to the single IEEE floating point type.
 
-\emph{ Remark : } By default, emulation is on. It is possible to
+\begin{remark} By default, emulation is on. It is possible to
 intermix emulation code with real floating point opcodes, as
 long as the only type used is single or real.
+\end{remark}
 
 \subsection{\var{\$G} : Generate 80286 code}
 
@@ -1301,12 +1299,9 @@ defines the following symbols before reading the command line arguments:
 Specifying \var{-TOS2} on the command-line will undefine the \var{LINUX}
 symbol, and will define the \var{OS2} symbol.
 
-{\em Remark: } Symbols, even when they're defined in the interface part of
+\begin{remark} Symbols, even when they're defined in the interface part of
 a unit, are not available outside that unit.
-
-%\fpc supports the \var{\{\$IFOPT \}} directive for Turbo Pascal
-%compatibility, but doesn't act on it. It always rejects the condition, so
-%code between \var{\{\$IFOPT \}} and \var{\{\$Endif\}} is never compiled.
+\end{remark}
 
 Except for the Turbo Pascal constructs, from version 0.9.8 and higher,
 the \fpc compiler also supports a stronger conditional compile mechanism:
@@ -1509,9 +1504,9 @@ The difference between \var{\$Error} and \var{\$FatalError} or \var{\$Stop}
 messages is that when the compiler encounters an error, it still continues
 to compile. With a fatal error, the compiler stops.
 
-{\em Remark :} You cannot use the '\var{\}}' character in your message, since
+\begin{remark} You cannot use the '\var{\}}' character in your message, since
 this will be treated as the closing brace of the message.
-
+\end{remark}
 As an example, the following piece of code will generate an error when
 the symbol \var{RequiredVar} isn't defined:
 \begin{verbatim}
@@ -1570,10 +1565,11 @@ sum          { Will be infinitely recursively expanded... }
 On my system, the last example results in a heap error, causing the compiler
 to exit with a run-time error 203.
 
-{\em Remark: } Macros defined in the interface part of a unit are not
+\begin{remark} 
+Macros defined in the interface part of a unit are not
 available outside that unit ! They can just be used as a notational
 convenience, or in conditional compiles.
-
+\end{remark}
 By default, from version 0.9.8 of the compiler on, the compiler predefines three
 macros, containing the version number, the release number and the patch
 number. They are listed in \seet{DefMacros}.
@@ -1585,8 +1581,10 @@ Symbol & Contains \\ \hline
 \hline
 \end{FPCltable}
 
-{\em Remark: } Don't forget that macros support isn't on by default. You
+\begin{remark}
+Don't forget that macros support isn't on by default. You
 need to compile with the \var{-Sm} command-line switch.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using assembly language
@@ -2091,7 +2089,9 @@ Procedure ProcName (Args : TPRocArgs); external 'Name' Index SomeIndex;
 This tells the compiler that the procedure \var{ProcName} resides in a
 dynamic link library, with index {SomeIndex}.
 
-{\em Remark :} Note that this is ONLY available under \windows and \ostwo.
+\begin{remark} 
+Note that this is ONLY available under \windows and \ostwo.
+\end{remark}
 \end{enumerate}
 
 In earlier versions of the \fpc compiler, the following construct was
@@ -2370,11 +2370,12 @@ follows:
 Procedure ExportedProcedure; export;
 \end{verbatim}
 
-{\em Remark :} You can only declare a function as exported in the
+\begin{remark}
+You can only declare a function as exported in the
 \var{Implementation} section of a unit. This function may {\em not} appear
 in the interface part of a unit. This is logical, since a Pascal routine
 cannot call an exported function, anyway.
-
+\end{remark}
 However, the generated object file will not contain the name of the function
 as you declared it. The \fpc compiler ''mangles'' the name you give your
 function. It makes the name all-uppercase, and adds the types of all
@@ -2392,14 +2393,13 @@ Procedure AliasedProc; [ Alias : 'AliasName'];
 The procedure \var{AliasedProc} will also be known as \var{AliasName}. Take
 care, the name you specify is case sensitive (as C is).
 
-{\em Remark: }
+\begin{remark}
 If you use in your unit functions that are in other units, or
 system functions, then the C program will need to link in the object files
 from the units too.
-
+\end{remark}
 % Exporting variable.
 \subsection{Exporting variables}
-
 Similarly as when you export functions, you can export variables.
 When exportig variables, one should only consider the names of the
 variables. To declare a variable that should be used by a C program,
@@ -2577,9 +2577,13 @@ a pointer to the Virtual Method Table (VMT). This field is stored first, and
 all fields in the object are stored in the order they are declared.
 This field is initialized by the call to the object's \var{Constructor} method.
 
-If the object you defined has no virtual methods, then a \var{nil} is stored
-in the VMT pointer. This ensures that the size of objects is equal, whether
-they have virtual methods or not.
+\begin{remark}
+In earlier versions of \fpc, if the object you defined has no virtual methods, then a \var{nil} is stored
+in the VMT pointer. This ensured that the size of objects was equal, whether
+they have virtual methods or not. However, in the \var{0.99} versions of
+free pascal, this was changed for compatibility reasons. If an object
+doesn't have virtual methods, no pointer to a VMT is inserted.
+\end{remark}
 
 The memory allocated looks as in \seet{ObjMem}.
 \begin{FPCltable}{ll}{Object memory layout}{ObjMem} \hline
@@ -3050,8 +3054,9 @@ the performance of the heap manager.
 
 % The splitheap
 \subsection{Using the split heap}
-{\em Remark : The split heap is still somewhat buggy. Use at your own risk
-for the moment.}
+\begin{remark}
+The split heap is still somewhat buggy. Use at your own risk for the moment.
+\end{remark}
 
 The split heap can be used to quickly release a lot of blocks you allocated
 previously.
@@ -3185,6 +3190,265 @@ After using the selector, you must free it again using the
 More information on all this can be found in the \unitsref, the chapter on
 the \file{GO32} unit.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Resource strings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Resource strings}
+\label{resourcestrings}
+\section{Introduction}
+Resource strings primarily exist to make internationalization of
+applications easier, by introducing a language construct that provides 
+a uniform way of handling constant strings.
+
+Most applications communicate with the user through some messages on the
+graphical screen or console. Storing these messages in special constants
+allows to store them in a uniform way in separate files, which can be used
+for translation. A programmers interface exists to manipulate the actual
+values of the constant strings at runtime, and a utility tool comes with the
+Free Pascal compiler to convert the resource string files to whatever format
+is wanted by the programmer. Both these things are discussed in the
+following sections.
+
+\section{The resource string file}
+When a unit is compiled that contains a \var{resourcestring} section,
+the compiler does 2 things:
+\begin{enumerate}
+\item It generates a table that contains the value of the strings as it
+is declared in the sources.
+\item It generates a {\em resource string file} that contains the names
+of all strings, together with their declared values. 
+\end{enumerate}
+This approach has 2 advantages: first of all, the value of the string is
+always present in the program. If the programmer doesn't care to translate 
+the strings, the default values are always present in the binary. This also
+avoids having to provide a file containing the strings. Secondly, having all
+strings together in a compiler generated file ensures that all strings are 
+together (you can have multiple resourcestring sections in 1 unit or program)
+and having this file in a fixed format, allows the programmer to choose his
+way of internationalization.
+
+For each unit that is compiled and that contains a resourcestring section,
+the compiler generates a file that has the name of the unit, and an
+extension \file{.rst}. The format of this file is as follows: 
+\begin{enumerate}
+\item An empty line.
+\item A line starting with a hash sign (\var{\#}) and the hash value of the 
+  string, preceded by the text \var{hash value =}.
+\item A third line, containing the name of the resource string in the format
+\var{unitname.constantname}, all lowercase, followed by an equal sign, and
+the string value, in a format equal to the pascal representation of this
+string. The line may be continued on the next line, in that case it reads as
+a pascal string expression with a plus sign in it.
+\item Another empty line.
+\end{enumerate}
+If the unit contains no \var{resourcestring} section, no file is generated.
+
+For example, the following unit:
+\begin{verbatim}
+unit rsdemo;
+
+{$mode delphi}
+{$H+}
+
+interface
+
+resourcestring
+
+  First = 'First';
+  Second = 'A Second very long string that should cover more than 1 line';
+
+
+implementation
+
+end.
+\end{verbatim}
+Will result in the following resource string file:
+\begin{verbatim}
+
+# hash value = 5048740
+rsdemo.first='First'
+
+
+# hash value = 171989989
+rsdemo.second='A Second very long string that should cover more than 1 li'+
+'ne'
+
+\end{verbatim}
+The hash value is calculated with the function \var{Hash}. It is present in
+the \file{objpas} unit. The value is the same value that the GNU gettext
+mechanism uses. It is in no way unique, and can only be used to speed up
+searches.
+
+The \file{rstconv} utility that comes with the \fpc compiler allows to
+manipulate these resource string files. At the moment, it can only be used
+to make a \file{.po} file that can be fed to the GNU \file{msgfmt} program.
+If someone wishes to have another format (Win32 resource files spring to
+mind) he/she can enhance the \file{rstconv} program so it can generate 
+other types of files as well. GNU gettext was chosen because it is available
+on all platforms, and is already widely used in the \var{Unix} and free
+software community. Since the \fpc team doesn't want to restrict the use
+of resource strings, the \file{.rst} format was chosen to provide a neutral
+method, not restricted to any tool.
+
+If you use resource strings in your units, and you want people to be able to
+translate the strings, you must provide the resource string file. Currently,
+there is no way to extract them from the unit file, though this is in
+principle possible. It is not required to do this, the program can be
+compiled without it, but then the translation of the strings isn't possible.
+
+\section{Updating the string tables}
+Having compiled a program with resourcestrings is not enough to
+internationalize your program. At run-time, the program must initialize
+the string tables with the correct values for the anguage that the user
+selected. By default no such initialization is performed. All strings
+are initialized with their declared values. 
+
+The \file{objpas} unit provides the mechanism to correctly initialize
+the string tables. There is no need to include this unit in a \var{uses}
+clause, since it is automatically loaded when a program or unit is 
+compiled in \var{Delphi} or \var{objfpc} mode. Since this is required
+to use resource strings, the unit is always loaded when needed.
+
+The resource strings are stored in tables, one per unit, and one for the
+program, if it contains a \var{resourcestring} section as well. Each
+resourcestring is stored with it's name, hash value, default value, and
+the current value, all as \var{AnsiStrings}.
+
+The objpas unit offers methods to retrieve the number of resourcestring
+tables, the number of strings per table, and the above information for each
+string. It also offers a method to set the current value of the strings.
+
+Here are the declarations of all the functions:
+\begin{verbatim}
+Function ResourceStringTableCount : Longint;
+Function ResourceStringCount(TableIndex : longint) : longint;
+Function GetResourceStringName(TableIndex,
+                               StringIndex : Longint) : Ansistring;
+Function GetResourceStringHash(TableIndex,
+                               StringIndex : Longint) : Longint;
+Function GetResourceStringDefaultValue(TableIndex,
+                                       StringIndex : Longint) : AnsiString;
+Function GetResourceStringCurrentValue(TableIndex,
+                                       StringIndex : Longint) : AnsiString;
+Function SetResourceStringValue(TableIndex,
+                                StringIndex : longint; 
+                                Value : Ansistring) : Boolean;   
+Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+\end{verbatim}
+Two other function exist, for convenience only:
+\begin{verbatim}
+Function Hash(S : AnsiString) : longint;
+Procedure ResetResourceTables;
+\end{verbatim}
+Here is a short explanation of what each function does. A more detailed
+explanation of the functions can be found in the \refref.
+\begin{description}
+\item[ResourceStringTableCount] returns the number of resource string tables
+in the program.
+\item[ResourceStringCount] returns the number of resource string entries in
+a given table (tables are denoted by a zero-based index).
+\item[GetResourceStringName] returns the name of a resource string in a
+resource table. This is the name of the unit, a dot (.) and the name of 
+the string constant, all in lowercase. The strings are denoted by index,
+also zero-based.
+\item[GetResourceStringHash] returns the hash value of a resource string, as
+calculated by the compiler with the \var{Hash} function.
+\item[GetResourceStringDefaultValue] returns the default value of a resource
+string, i.e. the value that appears in the resource string declaration, and
+that is stored in the binary.
+\item[GetResourceStringCurrentValue] returns the current value of a resource
+string, i.e. the value set by the initialization (the default value), or the
+value set by some previous internationalization routine.
+\item[SetResourceStringValue] sets the current value of a resource string.
+This function must be called to initialize all strings.
+\item[SetResourceStrings] giving this function a callback will cause the
+calback to be called for all resource strings, one by one, and set the value
+of the string to the return value of the callback.
+\end{description}
+Two other functions exist, for convenience only:
+\begin{description}
+\item [Hash] can be used to calculate the hash value of a string. The hash
+value stored in the tables is the result of this function, applied on the
+default value. That value is calculated at compile time by the compiler.
+\item[ResetResourceTables] will reset all the resource strings to their
+default values. It is called by the initialization code of the objpas unit.
+\end{description}
+
+Given some \var{Translate} function, the following code would initialize
+all resource strings:
+\begin{verbatim}
+Var I,J : Longint;
+    S : AnsiString;
+    
+begin
+  For I:=0 to ResourceStringTableCount-1 do
+    For J:=0 to ResourceStringCount(i)-1 do
+      begin
+      S:=Translate(GetResourceStringDefaultValue(I,J));
+      SetResourceStringValue(I,J,S); 
+      end;
+end;
+\end{verbatim}
+Other methods are of course possible, and the \var{Translate} function
+can be implemented in a variety of ways.
+\section{GNU gettext}
+The unit \file{gettext} provides a way to internationalize an application
+with the GNU \file{gettext} utilities. This unit is supplied with  the 
+Free Component Library (FCL). it can be used as follows:
+
+for a given application, the following steps must be followed:
+\begin{enumerate}
+\item Collect all resource string files and concatenate them together.
+\item Invoke the \file{rstconv} program with the file resulting out of step
+1, resulting in a single \file{.po} file containing all resource strings of
+the program.
+\item Translate the \file{.po} file of step 2 in all required languages.
+\item Run the \file{msgfmt} formatting program on all the \file{.po} files,
+resulting in a set of \file{.mo} files, which can be distributed with your
+application.
+\item Call the \file{gettext} unit's \var{TranslateReosurceStrings} method,
+giving it a template for the location of the \file{.mo} files, e.g. as in
+\begin{verbatim}
+TranslateResourcestrings('intl/restest.%s.mo');
+\end{verbatim}
+the \var{\%s} specifier will be replaced by the contents of the \var{LANG}
+environment variable. This call should happen at program startup.
+\end{enumerate}
+An example program exists in the FCL sources, in the \file{fcl/tests} 
+directory.
+\section{Caveat}
+In principle it is possible to translate all resource strings at any time in
+a running program. However, this change is not communicated to other
+strings; its change is noticed only when a constant string is being used.
+
+Consider the following example:
+\begin{verbatim}
+Const 
+  help = 'With a little help of a programmer.';  
+
+Var 
+  A : AnsiString;
+  
+
+begin
+
+  { lots of code }
+
+  A:=Help;
+
+  { Again some code}
+
+  TranslateStrings;
+
+  { More code }
+\end{verbatim}
+After the call to \var{TranslateStrings}, the value of \var{A} will remain
+unchanged. This means that the assignment \var{A:=Help} must be executed
+again in order for the change to become visible. This is important,
+especially for GUI programs which have e.g. a menu. In order for the
+change in resource strings to become visible, the new values must be 
+reloaded by program code into the menus...
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Optimizations done in the compiler
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3250,8 +3514,9 @@ Assignments of constants to variables are range checked at compile
 time, which removes the need of the generation of runtime range checking
 code.
 
-\emph{Remark:} This feature was not implemented before version
-0.99.5 of \fpc.
+\begin{remark}
+This feature was not implemented before version 0.99.5 of \fpc.
+\end{remark}
 
 \subsection{ Shifts instead of multiply or divide }
 
@@ -3277,18 +3542,22 @@ to return pointers aligned on a quadword boundary (64-bit alignment).
 
 Alignment of variables on the stack depends on the target processor.
 
-\emph{ Remark: } Quadword alignment of pointers is not guaranteed
+\begin{remark}
+Two facts about alignment:
+\begin{enumerate}
+\item Quadword alignment of pointers is not guaranteed
 on systems which don't use an internal heap, such as for the Win32
 target.
-
-\emph{ Remark: } Alignment is also done \emph{between} fields in
+\item Alignment is also done \emph{between} fields in
 records, objects and classes, this is \emph{not} the same as
 in Turbo Pascal and may cause problems when using disk I/O with these
 types. To get no alignment between fields use the \var{packed} directive
 or the \var{\{\$PackRecords n\}} switch. For further information, take a
 look at the reference manual under the \var{record} heading.
+\end{enumerate}
+\end{remark}
 
-\subsection{ Smart linking }
+\subsection{Smart linking}
 
 This feature removes all unreferenced code in the final executable
 file, making the executable file much smaller.
@@ -3296,8 +3565,9 @@ file, making the executable file much smaller.
 Smart linking is switched on with the \var{-Cx} command-line switch, or
 using the \var{\{\$SMARTLINK ON\}} global directive.
 
-\emph{ Remark: } Smart linking was implemented starting with
-version 0.99.6 of \fpc.
+\begin{remark}
+Smart linking was implemented starting with version 0.99.6 of \fpc.
+\end{remark}
 
 \subsection{ Inline routines }
 
@@ -3306,8 +3576,9 @@ final executable : \var{Lo}, \var{Hi}, \var{High}, \var{Sizeof},
 \var{TypeOf}, \var{Length}, \var{Pred}, \var{Succ}, \var{Inc},
 \var{Dec} and \var{Assigned}.
 
-\emph{ Remark: } Inline \var{Inc} and \var{Dec} were not completely
+\begin{remark} Inline \var{Inc} and \var{Dec} were not completely
 implemented until version 0.99.6 of \fpc.
+\end{remark}
 
 \subsection{ Case optimization }
 
@@ -3338,8 +3609,10 @@ When using the \var{-Or} switch, local variables or parameters
 which are used very often will be moved to registers for faster
 access.
 
-\emph{ Remark: } Register variable allocation is currently
-an experimental feature, and should be used with caution.
+\begin{remark}
+Register variable allocation is currently an experimental feature, 
+and should be used with caution.
+\end{remark}
 
 \subsection{ Intel x86 specific }
 
@@ -3577,10 +3850,12 @@ floating point opcodes are emitted. The Real type still maps to
 types. Only basic FPU opcodes are used, which means that it can
 work on 68040 processors correctly.
 
-\emph{ Remark: } \var{Double} and \var{Extended} types in true floating
+\begin{remark} \var{Double} and \var{Extended} types in true floating
 point mode have not been extensively tested as of version 0.99.5.
-
-\emph{ Remark: } The \var{comp} data type is currently not supported.
+\end{remark}
+\begin{remark}
+The \var{comp} data type is currently not supported.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendices
