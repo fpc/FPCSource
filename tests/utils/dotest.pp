@@ -379,6 +379,7 @@ begin
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   ExecuteRedir(CompilerBin,args,'',OutName,'');
+  Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   { Shoud the compile fail ? }
   if Config.ShouldFail then
    begin
@@ -426,6 +427,7 @@ begin
   OutName:=ForceExtension(PPFile,'elg');
   Verbose(V_Debug,'Executing '+TestExe);
   ExecuteRedir(TestExe,'','',OutName,'');
+  Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   if ExecuteResult<>Config.ResultCode then
    begin
      AddLog(FailLogFile,TestName);
@@ -599,7 +601,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-09 16:01:10  peter
+  Revision 1.8  2001-06-02 00:41:36  peter
+    * write exitcode for all executed programs in debug mode
+
+  Revision 1.7  2000/12/09 16:01:10  peter
     + known bug flag
     + norun flag
     + recompile flag
