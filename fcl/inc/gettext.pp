@@ -43,14 +43,14 @@ type
     offset: LongWord;
   end;
 
-  TMOStringTable = array[LongWord] of TMOStringInfo;
+  TMOStringTable = array[0..(1 shl 30) div SizeOf(TMOStringInfo)] of TMOStringInfo;
   PMOStringTable = ^TMOStringTable;
 
 
-  TLongWordArray = array[LongWord] of LongWord;
+  TLongWordArray = array[0..(1 shl 30) div SizeOf(LongWord)] of LongWord;
   PLongWordArray = ^TLongWordArray;
 
-  TPCharArray = array[LongWord] of PChar;
+  TPCharArray = array[0..(1 shl 30) div SizeOf(PChar)] of PChar;
   PPCharArray = ^TPCharArray;
 
   TMOFile = class
@@ -271,7 +271,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-02-17 22:14:51  sg
+  Revision 1.11  2000-02-20 10:59:11  sg
+  * Fixed dynamic array sizes
+
+  Revision 1.10  2000/02/17 22:14:51  sg
   * Now calls "ResetResourceTables" on unit finalization if gettext has been
     used. This enabled programs using gettext to use heaptrc, which reported
     memory leaks for the translated strings until now.
