@@ -241,14 +241,18 @@ implementation
                           begin
                              emit_reg(A_PUSH,S_L,R_EDX);
                              popedx:=true;
-                          end;
+                          end
+                        else
+                          getexplicitregister32(R_EDX);
                         if hreg1<>R_EAX then
                           begin
                              if not(R_EAX in unused) then
                                begin
                                   emit_reg(A_PUSH,S_L,R_EAX);
                                   popeax:=true;
-                               end;
+                               end
+                             else
+                               getexplicitregister32(R_EAX);
                              emit_reg_reg(A_MOV,S_L,hreg1,R_EAX);
                           end;
                      end;
@@ -277,32 +281,31 @@ implementation
                           if hreg1<>R_EAX then
                             Begin
                               ungetregister32(hreg1);
-                              hreg1 := getexplicitregister32(R_EAX);
-                              { I don't think it's possible that now hreg1 <> R_EAX
-                                since popeax is false, but for all certainty I do
-                                support that situation (JM)}
-                              if hreg1 <> R_EAX then
-                                emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
+                              { no need to allocate eax, that's already done before }
+                              { the div (JM)                                        }
+                              hreg1 := R_EAX;
                             end;
+                        if not popedx then
+                          ungetregister(R_EDX);
                      end
                    else
                      {if we did the mod by an "and", the result is in hreg1 and
                       EDX certainly hasn't been pushed (JM)}
                      if not(andmod) Then
-                       if popedx then
-                        {the mod was done by an (i)div (so the result is now in
-                         edx), but edx was occupied prior to the division, so
-                         move the result into a safe place (JM)}
-                         emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
-                       else
-                         Begin
-                       {Get rid of the unnecessary hreg1 if possible (same as with
-                        EAX in divn) (JM)}
-                           ungetregister32(hreg1);
-                           hreg1 := getexplicitregister32(R_EDX);
-                           if hreg1 <> R_EDX then
-                             emit_reg_reg(A_MOV,S_L,R_EDX,hreg1);;
-                         End;
+                       begin
+                         if popedx then
+                          {the mod was done by an (i)div (so the result is now in
+                           edx), but edx was occupied prior to the division, so
+                           move the result into a safe place (JM)}
+                           emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
+                         else
+                           Begin
+                             ungetregister32(hreg1);
+                             hreg1 := R_EDX
+                           End;
+                         if not popeax then
+                           ungetregister(R_EAX);
+                       end;
                    if popeax then
                      emit_reg(A_POP,S_L,R_EAX);
                    if popedx then
@@ -991,7 +994,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-17 15:41:48  jonas
+  Revision 1.4  2000-10-19 16:26:52  jonas
+    * fixed wrong regalloc info for secondmoddiv ("merged", also small
+      correction made afterwards in fixes branch)
+
+  Revision 1.3  2000/10/17 15:41:48  jonas
     * fixed stupid error in previous commit :/
 
   Revision 1.1  2000/10/15 09:33:32  peter
