@@ -710,7 +710,7 @@ implementation
          hr_valid : boolean;
          i : integer;
       begin
-         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(funcretsym.returntype.def));
          hr_valid:=false;
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
@@ -738,7 +738,7 @@ implementation
              location.reference.base:=procinfo.framepointer;
              location.reference.offset:=procinfo.return_offset;
            end;
-         if paramanager.ret_in_param(aktprocdef.rettype.def) then
+         if paramanager.ret_in_param(funcretsym.returntype.def) then
            begin
               { the parameter is actual a pointer to the value }
               if not hr_valid then
@@ -989,7 +989,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-11-15 01:58:51  peter
+  Revision 1.37  2002-11-15 21:16:39  jonas
+    * proper fix for tw2110, also fixes tb0416 (funcretnode of parent
+      function was handled wrong inside nested functions/procedures)
+
+  Revision 1.36  2002/11/15 01:58:51  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
