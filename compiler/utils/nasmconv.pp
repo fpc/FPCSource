@@ -295,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:08:27  peter
+  Revision 1.1  1999-05-12 16:17:10  peter
+    * init
+
+  Revision 1.1  1999/05/12 16:08:27  peter
     + moved compiler utils
 
 }
