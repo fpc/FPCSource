@@ -44,6 +44,9 @@ asm
   mtfsb0 21
   mtfsb0 22
   mtfsb0 23
+  
+  { round .5-cases towards +infinity }
+  mtfsb1 30
 {$endif fpc_mtfsb0_corrected}
 
   { enable invalid operations and division by zero exceptions. }
@@ -1137,7 +1140,10 @@ end;
 
 {
   $Log$
-  Revision 1.69  2004-10-19 18:51:15  jonas
+  Revision 1.70  2004-10-24 14:20:21  jonas
+    * fixed default rounding mode
+
+  Revision 1.69  2004/10/19 18:51:15  jonas
     + "nostackframe" modifier, because the automatic detection in the
       compiler to determine that a stack frame is not needed no longer works
 
