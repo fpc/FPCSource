@@ -1036,6 +1036,8 @@ implementation
       var
         def1,def2 : TParaItem;
         eq,lowesteq : tequaltype;
+        hpd : tprocdef;
+        convtype : tconverttype;
       begin
          compare_paras:=te_incompatible;
          { we need to parse the list from left-right so the
@@ -1055,15 +1057,31 @@ implementation
                          (def2.paratyp in [vs_var,vs_out]))
                        ) then
                       exit;
+                    eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
                  end;
-               cp_all,cp_procvar :
+               cp_all :
                  begin
                     if (def1.paratyp<>def2.paratyp) then
                       exit;
+                    eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
                  end;
+               cp_procvar :
+                 begin
+                    if (def1.paratyp<>def2.paratyp) then
+                      exit;
+                    eq:=compare_defs_ext(def1.paratype.def,def2.paratype.def,nothingn,
+                                         false,true,convtype,hpd);
+                    if (eq>te_incompatible) and
+                       (eq<te_equal) and
+                       not(convtype in [tc_equal,tc_int_2_int]) then
+                     begin
+                       eq:=te_incompatible;
+                     end;
+                 end;
+               else
+                 eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
               end;
               { check type }
-              eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
               if eq=te_incompatible then
                 exit;
               if eq<lowesteq then
@@ -1142,7 +1160,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-11-25 17:43:16  peter
+  Revision 1.2  2002-11-27 02:32:14  peter
+    * fix cp_procvar compare
+
+  Revision 1.1  2002/11/25 17:43:16  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
