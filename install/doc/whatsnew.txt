@@ -39,6 +39,7 @@ FCL:
 
 Docs:
   + Compiler internals documentation (available through ftp site)
+  * Programmer's reference update
 
 Utils:
   * h2pas updates
