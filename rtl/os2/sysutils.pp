@@ -863,8 +863,8 @@ asm
     mov ax, cx
     stosw
     xor eax, eax
-    mov al, dl
-    imul 10
+    mov al, 10
+    mul dl
     shl eax, 16
     mov al, dh
     stosd
@@ -987,7 +987,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2003-06-06 23:31:17  hajny
+  Revision 1.29  2003-06-06 23:34:40  hajny
+    * better fix for bug 2518
+
+  Revision 1.28  2003/06/06 23:31:17  hajny
     * fix for bug 2518 applied to OS/2 as well
 
   Revision 1.27  2003/04/01 15:57:41  peter
