@@ -60,10 +60,17 @@ unit aasm;
           ait_regalloc, { for register,temp allocation debugging }
           ait_tempalloc,
           ait_marker,
-          ait_frame, 
+
+          { the follow is for the DEC Alpha }
+          ait_frame,
           ait_ent,
+
           { never used, makes insertation of new ait_ easier to type }
+          { lazy guy !!!! ;-) (FK) }
           ait_dummy);
+
+       tcpuflags = (cf_64bitaddr);
+       tcpuflagset = set of tcpuflags;
 
 
   { asm symbol functions }
@@ -968,7 +975,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.59  1999-08-05 15:51:01  michael
+  Revision 1.60  1999-08-06 15:30:17  florian
+    + cpu flags added, mainly for the new cg
+
+  Revision 1.59  1999/08/05 15:51:01  michael
   * Added ait_frame, ait_ent
 
   Revision 1.58  1999/08/04 00:39:56  michael
