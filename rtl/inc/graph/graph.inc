@@ -176,8 +176,8 @@
 
      Port[$3ce] := 8;
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
-     dummy := Mem[$a000: offset];  { Latch the data into host space.  }
-     Mem[$a000: offset] := dummy;  { Write the data into video memory }
+     dummy := Mem[SegA000: offset];  { Latch the data into host space.  }
+     Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
 {$else asmgraph}
@@ -272,13 +272,13 @@
     Port[$3ce] := 4;
     shift := 7 - (X and 7);
     Port[$3cf] := 0;
-    dummy := (Mem[$a000:offset] shr shift) and 1;
+    dummy := (Mem[Sega000:offset] shr shift) and 1;
     Port[$3cf] := 1;
-    dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 1);
+    dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 1);
     Port[$3cf] := 2;
-    dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 2);
+    dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 2);
     Port[$3cf] := 3;
-    dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 3);
+    dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
 {$else asmgraph}
     asm
@@ -461,7 +461,7 @@ Begin
   Count := 0;
   For Count := 1 to (amount shr 5) Do
     Begin
-      dummylong := MemL[$a000:offset+(Count-1)*4];
+      dummylong := MemL[SegA000:offset+(Count-1)*4];
       dummylong :=
         ((dummylong and $ff) shl 24) or
         ((dummylong and $ff00) shl 8) or
@@ -483,7 +483,7 @@ Begin
     Count := 0;
     For Count := 1 to (amount shr 5) Do
       Begin
-        dummylong := MemL[$a000:offset+(Count-1)*4];
+        dummylong := MemL[SegA000:offset+(Count-1)*4];
         dummylong :=
           ((dummylong and $ff) shl 24) or
           ((dummylong and $ff00) shl 8) or
@@ -581,8 +581,8 @@ End;
     PortW[$3ce] := Color shl 8;
     Port[$3ce] := 8;
     Port[$3cf] := $80 shr (X and 7);
-    dummy := Mem[$a000: offset];
-    Mem[$a000: offset] := dummy;
+    dummy := Mem[SegA000: offset];
+    Mem[Sega000: offset] := dummy;
     PortW[$3ce] := $ff08;
     PortW[$3ce] := $0001;
 {$else asmgraph}
@@ -758,7 +758,7 @@ End;
 {$define overflowOn}
 {$q-}
 {$endif}
-    Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+    Mem[SegA000:ScrOfs]:=Mem[SegA000:ScrOfs]+1;
 {$ifdef rangeOn}
 {$undef rangeOn}
 {$r+}
@@ -791,7 +791,7 @@ End;
 {$define overflowOn}
 {$q-}
 {$endif}
-         Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+         Mem[Sega000:ScrOfs]:=Mem[SegA000:ScrOfs]+1;
 {$ifdef rangeOn}
 {$undef rangeOn}
 {$r+}
@@ -869,7 +869,7 @@ End;
 {$define overflowOn}
 {$q-}
 {$endif}
-         Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+         Mem[SegA000:ScrOfs]:=Mem[Sega000:ScrOfs]+1;
 {$ifdef rangeOn}
 {$undef rangeOn}
 {$r+}
@@ -1007,7 +1007,7 @@ End;
          exit;
      end;
 {$ifndef asmgraph}
-    Mem[$a000: y * 320 + x + VideoOfs] := Lo(Pixel);
+    Mem[SegA000: y * 320 + x + VideoOfs] := Lo(Pixel);
 {$else asmgraph}
     asm
   {$ifndef fpc}
@@ -1040,7 +1040,7 @@ End;
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
 {$ifndef asmgraph}
-   GetPixel320 := Mem[$a000:y * 320 + x + VideoOfs];
+   GetPixel320 := Mem[SegA000:y * 320 + x + VideoOfs];
 {$else asmgraph}
     asm
   {$ifndef fpc}
@@ -1078,12 +1078,12 @@ End;
    dummy := CurrentColor;
    offset := y * 320 + x + VideoOfs;
    case CurrentWriteMode of
-     XorPut: dummy := dummy xor Mem[$a000:offset];
-     OrPut: dummy := dummy or Mem[$a000:offset];
-     AndPut: dummy := dummy and Mem[$a000:offset];
+     XorPut: dummy := dummy xor Mem[Sega000:offset];
+     OrPut: dummy := dummy or Mem[Sega000:offset];
+     AndPut: dummy := dummy and Mem[SegA000:offset];
      NotPut: dummy := Not dummy;
    end;
-   Mem[$a000:offset] := dummy;
+   Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
   assembler;
@@ -1219,7 +1219,7 @@ const CrtAddress: word = 0;
 {$ifndef asmgraph}
      offset := y * 80 + x shr 2 + VideoOfs;
      PortW[$3c4] := FirstPlane shl (x and 3);
-     GetPixelX := Mem[$a000:offset];
+     GetPixelX := Mem[SegA000:offset];
 {$else asmgraph}
     asm
   {$ifndef fpc}
@@ -1366,8 +1366,8 @@ const CrtAddress: word = 0;
      offset := y * 80 + x shr 2 + VideoOfs;
      PortW[$3c4] := FirstPlane shl (x and 3);
      If CurrentWriteMode = XorPut Then
-       Dummy := Dummy Xor Mem[$a000:offset];
-     Mem[$a000:offset] := Dummy;
+       Dummy := Dummy Xor Mem[SegA000:offset];
+     Mem[SegA000:offset] := Dummy;
 {$else asmgraph}
      asm
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
@@ -1413,12 +1413,12 @@ const CrtAddress: word = 0;
    offset := y * 80 + x shr 2 + VideoOfs;
    PortW[$3c4] := FirstPlane shl (x and 3);
    case CurrentWriteMode of
-     XorPut: dummy := dummy xor Mem[$a000:offset];
-     OrPut: dummy := dummy or Mem[$a000:offset];
-     AndPut: dummy := dummy and Mem[$a000:offset];
+     XorPut: dummy := dummy xor Mem[Sega000:offset];
+     OrPut: dummy := dummy or Mem[SegA000:offset];
+     AndPut: dummy := dummy and Mem[SegA000:offset];
      NotPut: dummy := Not dummy;
    end;
-   Mem[$a000: offset] := Dummy;
+   Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
  Assembler;
@@ -2220,7 +2220,7 @@ const CrtAddress: word = 0;
          if SearchVESAModes(m800x600x64k) then
            begin
              InitMode(mode);
-             mode.ModeNumber:=m800x600x16;
+             mode.ModeNumber:=m800x600x64k;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 65536;
@@ -2460,7 +2460,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.23  1999-10-24 03:34:37  carl
+Revision 1.24  1999-10-24 15:51:22  carl
+  * Bugfix of mode m800x600x64k - wrong vide mode would be used.
+  + TP compilable.
+
+Revision 1.23  1999/10/24 03:34:37  carl
   - Removed some old french comments.
   * Bugfix of problems with register access in noasmmoded
   + GetPixVESA16
