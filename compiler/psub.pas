@@ -1103,14 +1103,6 @@ implementation
                  begin
                    Message1(parser_e_header_dont_match_forward,pd.fullprocname(false));
                    tprocsym(pd.procsym).write_parameter_lists(pd);
-                 end
-                else
-                 begin
-                   { check the global flag, for delphi this is not
-                     required }
-                   {if not(m_delphi in aktmodeswitches) and
-                      not(pd.procsym.owner.symtabletype=globalsymtable) then
-                     Message(parser_e_overloaded_must_be_all_global);}
                  end;
               end;
            end;
@@ -1317,7 +1309,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2003-09-12 19:07:42  daniel
+  Revision 1.147  2003-09-14 12:58:00  peter
+    * support mulitple overloads in implementation, this is delphi
+      compatible
+    * procsym only stores the overloads available in the interface
+
+  Revision 1.146  2003/09/12 19:07:42  daniel
     * Fixed fast spilling functionality by re-adding the code that initializes
       precoloured nodes to degree 255. I would like to play hangman on the one
       who removed that code.

@@ -854,9 +854,10 @@ implementation
          while assigned(p) do
            begin
              { only write the proc definitions that belong
-               to this procsym }
-             if (p^.def.procsym=self) then
-              inc(n);
+               to this procsym and are in the global symtable }
+             if (p^.def.procsym=self) and
+                (p^.def.owner.symtabletype=globalsymtable) then
+               inc(n);
              p:=p^.next;
            end;
          ppufile.putword(n);
@@ -865,8 +866,9 @@ implementation
          while assigned(p) do
            begin
              { only write the proc definitions that belong
-               to this procsym }
-             if (p^.def.procsym=self) then
+               to this procsym and are in the global symtable }
+             if (p^.def.procsym=self) and
+                (p^.def.owner.symtabletype=globalsymtable) then
                ppufile.putderef(p^.def,p^.defderef);
              p:=p^.next;
            end;
@@ -2660,7 +2662,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-09-03 15:55:01  peter
+  Revision 1.116  2003-09-14 12:58:00  peter
+    * support mulitple overloads in implementation, this is delphi
+      compatible
+    * procsym only stores the overloads available in the interface
+
+  Revision 1.115  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.114  2003/09/03 11:18:37  florian
