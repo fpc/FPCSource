@@ -552,12 +552,15 @@ implementation
         hp : tai;
       begin
         inherited buildderefimpl;
-        hp:=tai(p_asm.first);
-        while assigned(hp) do
-         begin
-           hp.buildderefimpl;
-           hp:=tai(hp.next);
-         end;
+        if not getposition then
+          begin
+            hp:=tai(p_asm.first);
+            while assigned(hp) do
+             begin
+               hp.buildderefimpl;
+               hp:=tai(hp.next);
+             end;
+          end;
       end;
 
 
@@ -566,12 +569,15 @@ implementation
         hp : tai;
       begin
         inherited derefimpl;
-        hp:=tai(p_asm.first);
-        while assigned(hp) do
-         begin
-           hp.derefimpl;
-           hp:=tai(hp.next);
-         end;
+        if not getposition then
+          begin
+            hp:=tai(p_asm.first);
+            while assigned(hp) do
+             begin
+               hp.derefimpl;
+               hp:=tai(hp.next);
+             end;
+          end;
       end;
 
 
@@ -848,7 +854,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-10-29 20:34:20  peter
+  Revision 1.71  2003-10-31 15:51:47  peter
+    * fix crashes in asmnode.deref when p_asm=nil
+
+  Revision 1.70  2003/10/29 20:34:20  peter
     * move check for unused object constructor result to blocknode
 
   Revision 1.69  2003/10/23 14:44:07  peter
