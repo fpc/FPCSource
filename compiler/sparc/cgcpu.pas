@@ -890,18 +890,24 @@ procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
   begin
     ai:=TAiCpu.Op_sym(A_BA,S_NO,l);
     ai.SetCondition(TOpCmp2AsmCond[cond]);
-    list.concat(ai);
+    with List do
+      begin
+        Concat(ai);
+        Concat(TAiCpu.Op_none(A_NOP));
+      end;
   end;
 procedure TCgSparc.a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);
-       var
-         ai:taicpu;
-       begin
-         ai := Taicpu.op_sym(A_JMPL,S_NO,l);
-         ai.SetCondition(flags_to_cond(f));
-         ai.is_jmp := true;
-         list.concat(ai);
-       end;
-
+  var
+    ai:taicpu;
+  begin
+    ai := Taicpu.op_sym(A_JMPL,S_NO,l);
+    ai.SetCondition(flags_to_cond(f));
+    with List do
+      begin
+        Concat(ai);
+        Concat(TAiCpu.Op_none(A_NOP));
+      end;
+  end;
 procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);
   VAR
     ai:taicpu;
@@ -912,7 +918,11 @@ procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
     hreg := rg.makeregsize(reg,OS_8);
     ai:=Taicpu.Op_reg_reg(A_RDPSR,r,hreg);
     ai.SetCondition(flags_to_cond(f));
-    list.concat(ai);
+    with List do
+      begin
+        Concat(ai);
+        Concat(TAiCpu.Op_none(A_NOP));
+      end;
     IF hreg.enum<>reg.enum
     THEN
       a_load_reg_reg(list,OS_32,OS_32,hreg,reg);
@@ -1428,7 +1438,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.43  2003-04-27 11:21:36  peter
+  Revision 1.44  2003-04-28 09:44:42  mazen
+  + NOP after conditional jump instruction to prevent delay slot execution
+
+  Revision 1.43  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
