@@ -16,6 +16,8 @@
  ****************************************************************************
 }
 
+{$i ostypes.inc}
+
 {$ifdef uselibc}
   {$Linklib c}
   // Out of date atm.
@@ -68,7 +70,6 @@
 {$I syscall.inc}
 {$I sysnr.inc}
 {$I bunxmacr.inc}
-{$I ostypes.inc}
 
 // Should be moved to a FreeBSD specific unit in the future.
 
@@ -597,7 +598,10 @@ end;
 
 {
  $Log$
- Revision 1.8  2003-09-16 12:45:49  marco
+ Revision 1.9  2003-09-17 16:02:31  marco
+  * ostype include moved to top
+
+ Revision 1.8  2003/09/16 12:45:49  marco
   * mmap typing fixes
 
  Revision 1.7  2003/09/15 20:08:49  marco
