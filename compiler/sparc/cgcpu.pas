@@ -261,8 +261,8 @@ implementation
           LOC_REFERENCE:
             begin
               { Code conventions need the parameters being allocated in %o6+92 }
-              if locpara.reference.offset<92 then
-                InternalError(2002081104);
+//              if locpara.reference.offset<92 then
+//                InternalError(2002081104);
               reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
               a_load_const_ref(list,size,a,ref);
             end;
@@ -284,8 +284,8 @@ implementation
             LOC_REFERENCE:
               begin
                 { Code conventions need the parameters being allocated in %o6+92 }
-                if locpara.reference.offset<92 then
-                  InternalError(2002081104);
+//                if locpara.reference.offset<92 then
+//                  InternalError(2002081104);
                 reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
                 tmpreg:=GetIntRegister(list,OS_INT);
                 a_load_ref_reg(list,sz,sz,r,tmpreg);
@@ -1107,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2004-03-02 00:36:33  olle
+  Revision 1.81  2004-03-12 08:18:11  mazen
+  - revert '../' from include path
+
+  Revision 1.80  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.79  2004/02/27 13:28:28  mazen

@@ -22,7 +22,7 @@
 }
 unit cpupi;
 
-{$i ../fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -87,7 +87,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-03-11 16:22:09  mazen
+  Revision 1.26  2004-03-12 08:18:11  mazen
+  - revert '../' from include path
+
+  Revision 1.25  2004/03/11 16:22:09  mazen
   + help lazarus analyze the file
 
   Revision 1.24  2004/02/25 14:25:47  mazen

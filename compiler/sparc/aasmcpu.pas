@@ -22,7 +22,7 @@
 }
 unit aasmcpu;
 
-{$i ../fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -311,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2004-03-11 16:21:27  mazen
+  Revision 1.47  2004-03-12 08:18:11  mazen
+  - revert '../' from include path
+
+  Revision 1.46  2004/03/11 16:21:27  mazen
   + help lazarus analyze the file
 
   Revision 1.45  2004/03/08 16:28:39  mazen

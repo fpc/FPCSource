@@ -20,7 +20,7 @@
 
  ****************************************************************************}
 unit cpuinfo;
-{$INCLUDE ../fpcdefs.inc}
+{$INCLUDE fpcdefs.inc}
 
 interface
 uses
@@ -90,7 +90,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-03-11 16:22:28  mazen
+  Revision 1.15  2004-03-12 08:18:11  mazen
+  - revert '../' from include path
+
+  Revision 1.14  2004/03/11 16:22:28  mazen
   + help lazarus analyze the file
 
   Revision 1.13  2004/02/27 11:44:48  mazen
