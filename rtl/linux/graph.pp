@@ -396,12 +396,13 @@ begin
 end;
 
 { Bitmap utilities }
-type
+{type
   PBitmap = ^TBitmap;
   TBitmap = record
             Width, Height: Integer;
             Data: record end;
             end;
+}
 
 procedure libvga_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
 begin
@@ -422,11 +423,13 @@ begin
 }
 end;
 
+{
 function  libvga_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
 begin
  libvga_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * PhysicalScreen^.BytesPerPixel;
-end;
 
+end;
+}
 procedure libvga_hlineproc (x, x2,y : integer);
 begin
 end;
@@ -569,7 +572,9 @@ end;
            { These are not really implemented yet:
            PutImage       := @libvga_PutImageProc;
            GetImage       := @libvga_GetImageProc;}
-           ImageSize      := @libvga_ImageSizeProc;
+{          If you use the default getimage/putimage, you also need the default 
+           imagesize! (JM)
+            ImageSize      := @libvga_ImageSizeProc; }
            { Add later maybe ?
            SetVisualPage  := SetVisualPageProc;
            SetActivePage  := SetActivePageProc;
@@ -590,7 +595,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-04-16 21:19:19  sg
+  Revision 1.16  2000-06-25 13:38:30  jonas
+    * disabled libvga_imagesizeproc() because currently the default
+      getimage and putimage are used (so the default imagesize should
+      be used too)
+
+  Revision 1.15  2000/04/16 21:19:19  sg
   * The terminal will now be set to raw mode directly on initialization,
     as the svgalib switches the terminal immediately after startup, and
     not after a switch to graphics mode!
