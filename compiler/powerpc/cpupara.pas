@@ -462,10 +462,38 @@ unit cpupara;
               p.paraloc[callerside].alignment:=4;
               p.paraloc[callerside].reference.index:=NR_R2;
               { pattern is always uppercase'd }
-              if s='A1' then
-                p.paraloc[callerside].reference.offset:=24
+              if s='D0' then
+                p.paraloc[callerside].reference.offset:=0
               else if s='D1' then
                 p.paraloc[callerside].reference.offset:=4
+              else if s='D2' then
+                p.paraloc[callerside].reference.offset:=8
+              else if s='D3' then
+                p.paraloc[callerside].reference.offset:=12
+              else if s='D4' then
+                p.paraloc[callerside].reference.offset:=16
+              else if s='D5' then
+                p.paraloc[callerside].reference.offset:=20
+              else if s='D6' then
+                p.paraloc[callerside].reference.offset:=24
+              else if s='D7' then
+                p.paraloc[callerside].reference.offset:=28
+              else if s='A0' then
+                p.paraloc[callerside].reference.offset:=32
+              else if s='A1' then
+                p.paraloc[callerside].reference.offset:=36
+              else if s='A2' then
+                p.paraloc[callerside].reference.offset:=40
+              else if s='A3' then
+                p.paraloc[callerside].reference.offset:=44
+              else if s='A4' then
+                p.paraloc[callerside].reference.offset:=48
+              else if s='A5' then
+                p.paraloc[callerside].reference.offset:=52
+              { 'A6' (offset 56) is used by mossyscall as libbase, so API 
+                never passes parameters in it }
+              { 'A7' is the stack pointer on 68k, can't be overwritten
+                by API calls, so it has no offset }
               else
                 exit;
               p.paraloc[calleeside]:=p.paraloc[callerside];
@@ -482,7 +510,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-04-18 15:22:24  florian
+  Revision 1.61  2004-04-18 23:19:48  karoly
+   * added correct offsets for PowerPC/MorphOS location support
+
+  Revision 1.60  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
 
   Revision 1.59  2004/02/19 17:07:42  florian
