@@ -49,19 +49,19 @@ interface
     type
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
-        t_amiga,t_atari, t_sunos, t_qnx
+        t_amiga,t_atari, t_sunos, t_qnx, t_netware
       );
       TTargetSet=set of TTarget;
 
     const
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
-        'amiga','atari','sunos', 'qnx'
+        'amiga','atari','sunos', 'qnx', 'netware'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
-        '_amiga','_atari','_sunos', '_qnx'
+        '_amiga','_atari','_sunos', '_qnx', '_netware'
       );
 
 
@@ -1478,7 +1478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-01-29 22:00:22  peter
+  Revision 1.23  2002-03-15 11:37:46  armin
+  + Added netware target
+
+  Revision 1.22  2002/01/29 22:00:22  peter
     * load package section first before setting globals
     * fixed buildunit
 
