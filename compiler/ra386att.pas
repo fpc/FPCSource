@@ -64,7 +64,7 @@ const
  { Hack to support all opcodes in the i386 table    }
  { only tokens up to and including lastop_in_table  }
  { are checked for validity, otherwise...           }
- lastop_in_table = A_POPFD;
+ lastop_in_table = A_EMMS;
 
 type
  tiasmops = array[firstop..lastop] of string[7];
@@ -1593,10 +1593,9 @@ const
     { I think this is too dangerous for me therefore i decided that for }
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
-    if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktmoduleswitches) or (aktoptprocessor=Class386)) then
+    if (instruc >= lastop_in_table) then
       begin
-         Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
+         Message1(assem_w_opcode_not_in_table,upper(att_op2str[instruc]));
          fits:=true;
       end
     else while not(fits) do
@@ -2564,7 +2563,7 @@ const
                    end
                   else
                    begin
-                     if SearchIConstant(actasmpattern,l) then
+                     if SearchIConstant(tempstr,l) then
                       begin
                         str(l, tempstr);
                         expr := expr + tempstr;
@@ -2882,13 +2881,13 @@ const
                    end
                   else
                    begin
-                     if SearchIConstant(actasmpattern,l) then
+                     if SearchIConstant(tempstr,l) then
                       begin
                         str(l, tempstr);
                         expr := expr + tempstr;
                       end
                      else
-                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                      Message1(assem_e_invalid_const_symbol,tempstr);
                    end;
                 end;
       AS_INTNUM:  Begin
@@ -3889,7 +3888,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  1998-11-05 23:48:26  peter
+  Revision 1.19  1998-11-13 10:12:16  peter
+    * constant fixes
+
+  Revision 1.18  1998/11/05 23:48:26  peter
     * recordtype.field support in constant expressions
     * fixed imul for oa_imm8 which was not allowed
     * fixed reading of local typed constants

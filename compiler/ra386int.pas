@@ -49,6 +49,9 @@ Unit Ra386int;
 
 Interface
 
+{$ifdef TP}
+  {$R-} { needed for the in [] }
+{$endif}
 uses
   tree,i386;
 
@@ -105,9 +108,9 @@ const
    lastsreg       = R_SS;
    { this is a hack to accept all opcodes }
    { in the opcode table.                 }
-   { check is done until A_POPFD          }
+   { check is done until A_EMMS           }
    { otherwise no check.                  }
-   lastop_in_table = A_POPFD;
+   lastop_in_table = A_EMMS;
 
        _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
@@ -1343,9 +1346,8 @@ var
     { this makes cpu.pp uncompilable, but i think this code should be }
     { inserted in the system unit anyways.                            }
     if (instruc >= lastop_in_table) then
-{       ((cs_compilesystem in aktswitches) or (aktoptprocessor > systems.i386)) then }
       begin
-         Message(assem_w_opcode_not_in_table);
+         Message1(assem_w_opcode_not_in_table,upper(int_op2str[instruc]));
          fits:=true;
       end
     else while not(fits) do
@@ -2170,13 +2172,13 @@ var
                    end
                   else
                    begin
-                     if SearchIConstant(actasmpattern,l) then
+                     if SearchIConstant(tempstr,l) then
                       begin
                         str(l, tempstr);
                         expr := expr + tempstr;
                       end
                      else
-                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                      Message1(assem_e_invalid_const_symbol,tempstr);
                    end;
                 end;
       AS_INTNUM:  Begin
@@ -2427,7 +2429,7 @@ var
                    end
                   else
                    begin
-                     if SearchIConstant(actasmpattern,l) then
+                     if SearchIConstant(tempstr,l) then
                       begin
                         str(l, tempstr);
                         expr := expr + tempstr;
@@ -2665,7 +2667,7 @@ var
                                                 Message(assem_e_syntax_error);
                                               end
                                              end;
-                                AS_PLUS,AS_MINUS: { // REG:[REG+REG+/-expr].Field.Field... // }
+                                AS_PLUS,AS_MINUS: { // REG:[REG+REG+/-expr... // }
                                                 Begin
                                                   if instr.operands[operandnum].ref.offset <> 0 then
                                                    Message(assem_f_internal_error_in_buildreference);
@@ -3472,7 +3474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-11-05 23:48:27  peter
+  Revision 1.11  1998-11-13 10:12:11  peter
+    * constant fixes
+
+  Revision 1.10  1998/11/05 23:48:27  peter
     * recordtype.field support in constant expressions
     * fixed imul for oa_imm8 which was not allowed
     * fixed reading of local typed constants
