@@ -1982,7 +1982,7 @@ const
                 inc(src.offset,4);
                 inc(dst.offset,4);
               end;
-            a_reg_dealloc(list,r);
+            a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
 {$endif not ppc603}
@@ -2471,7 +2471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2003-12-09 20:39:43  jonas
+  Revision 1.145  2003-12-10 00:09:57  karoly
+   * fixed compilation with -dppc603
+
+  Revision 1.144  2003/12/09 20:39:43  jonas
     * forgot call to cg.g_overflowcheck() in nppcadd
     * fixed overflow flag definition
     * fixed cg.g_overflowcheck() for signed numbers (jump over call to
