@@ -368,7 +368,9 @@ interface
         AsmLn;
         AsmWrite('SECTION ');
         AsmWrite(secnames[atype]);
-        if (atype<>sec_bss) and (aname<>'') then
+        if use_smartlink_section and
+           (atype<>sec_bss) and
+           (aname<>'') then
           begin
             AsmWrite('.');
             AsmWrite(aname);
@@ -906,7 +908,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.50  2004-10-31 21:45:03  peter
+  Revision 1.51  2005-01-18 17:49:45  peter
+    * fix section names
+
+  Revision 1.50  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
