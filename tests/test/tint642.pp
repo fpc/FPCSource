@@ -723,6 +723,7 @@ procedure teststringqword;
      s : string;
      l : longint;
      a : ansistring;
+     code : integer;
 
   begin
      { testing str: shortstring }
@@ -776,8 +777,24 @@ procedure teststringqword;
      if a<>'1234000054321' then
        do_error(2207);
 
-     { testing val }
-     { !!!!!!!     }
+     { testing val for qword }
+     assignqword($ffffffff,$ffffffff,q1);
+     s:='18446744073709551615';
+     a:=s;
+     val(s,q2,code);
+     if code<>0 then
+       do_error(2208);
+     if q1<>q2 then
+       do_error(2209);
+     val(a,q2,code);
+     if code<>0 then
+       do_error(2210);
+     if q1<>q2 then
+       do_error(2211);
+     s:='18446744073709551616';
+     val(s,q2,code);
+     if code=0 then
+       do_error(2212);
   end;
 
 procedure testmodqword;
