@@ -274,9 +274,9 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
-     { -1, -1 is used to copy the whole array like a:=copy(b);, so
+     { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
        update the lowidx and highidx with the values from psrc }
-     if (lowidx=-1) and (highidx=-1) then
+     if (lowidx=-1) and (highidx=-3) then
       begin
         lowidx:=0;
         highidx:=realpsrc^.high;
@@ -302,7 +302,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.22  2003-10-25 22:52:07  florian
+  Revision 1.23  2003-10-29 21:00:34  peter
+    * fixed a:=copy(b)
+
+  Revision 1.22  2003/10/25 22:52:07  florian
     * fixed copy(<dynarray>, ...)
 
   Revision 1.21  2002/11/26 23:02:07  peter
