@@ -146,55 +146,70 @@ begin
   NotYetImplemented(' AnsiResemblesText');
 end;
 
-
-
 Function AnsiContainsText(const AText, ASubText: string): Boolean;
 
 begin
   AnsiContainsText:=Pos(ASubText,AText)<>0;
 end;
 
-
-
 Function AnsiStartsText(const ASubText, AText: string): Boolean;
-
 begin
   Result:=Copy(AText,1,Length(AsubText))=ASubText;
 end;
 
-
-
 Function AnsiEndsText(const ASubText, AText: string): Boolean;
-
 begin
  result:=Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText))=asubtext;
 end;
 
-
-
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;
 
+var iFrom, iTo: longint;
+
 begin
-  NotYetImplemented(' AnsiReplaceText');
+  iTo:=Pos(AFromText,AText);
+  if iTo=0 then
+    result:=AText
+  else
+    begin
+     result:='';
+     iFrom:=1;
+     while (ito<>0) do
+       begin
+         result:=Result+Copy(AText,IFrom,Ito-IFrom+1)+AToText;
+         ifrom:=ITo+Length(afromtext);
+         ito:=Posex(Afromtext,atext,ifrom);
+       end;
+     if ifrom<=length(atext) then
+      result:=result+copy(AText,ifrom, length(atext));
+    end;
 end;
-
-
 
 Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 
+var i : longint;
+
 begin
-  NotYetImplemented(' AnsiMatchText');
+  result:=false;
+  if high(AValues)=-1 Then exit;
+  for i:=low(AValues) to High(Avalues) do
+     if avalues[i]=atext Then
+       result:=true;
 end;
 
 
 
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 
+var i : longint;
+
 begin
-  NotYetImplemented(' AnsiIndexText');
+  result:=-1;
+  if high(AValues)=-1 Then exit;
+  for i:=low(AValues) to High(Avalues) do
+     if avalues[i]=atext Then
+       exit(i);					// make sure it is the first val.
 end;
-
-
 
 
 { ---------------------------------------------------------------------
@@ -295,8 +310,15 @@ end;
 
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 
+var i,j : longint;
+
 begin
-  NotYetImplemented(' StuffString');
+  j:=length(ASubText);
+  i:=length(AText);
+  SetLength(Result,i-ALength+j);
+  move (AText[1],result[1],AStart-1);
+  move (ASubText[1],result[AStart],j);
+  move (AText[AStart+ALength], Result[AStart+j],i-AStart-ALength+1);
 end;
 
 
@@ -304,7 +326,8 @@ end;
 Function RandomFrom(const AValues: array of string): string; overload;
 
 begin
-  NotYetImplemented(' RandomFrom');
+  if high(AValues)=-1 then exit('');
+  result:=Avalues[random(High(AValues)+1)];
 end;
 
 
@@ -474,11 +497,17 @@ var l : longint;
 begin
   if (offset<1) or (offset>length(s)) then exit(0);
   l:=length(s);
+{$ifndef useindexbyte}
   while (offset<=l) and (s[offset]<>c) do inc(offset);
   if offset>l then
    posex:=0
   else 
    posex:=offset;
+{$else}
+  posex:=offset+indexbyte(s[offset],l-offset+1);
+  if posex=(offset-1) then
+    posex:=0;
+{$endif}
 end;
 
 
@@ -629,7 +658,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-03-18 16:55:47  marco
+  Revision 1.4  2004-03-19 12:54:22  marco
+   * more strutils small things
+
+  Revision 1.3  2004/03/18 16:55:47  marco
    * more simple implementations done, based on copy() Largely untested
 
 }
