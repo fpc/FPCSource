@@ -24,25 +24,25 @@ program checkcvs;
 
 Uses Dos;
 
-TYPE
-   Array12Type = ARRAY [1..12] OF LONGINT;
-CONST
-   MonthCumm : Array12Type=(0,31,59,90,120,151,181,212,243,273,304,334);
+type
+   Array12type = ARRAY [1..12] OF longint;
+const
+   MonthCumm : Array12type=(0,31,59,90,120,151,181,212,243,273,304,334);
 
-FUNCTION LeapYr( Year : LONGINT) : BOOLEAN;
-BEGIN
+function LeapYr( Year : longint) : boolean;
+begin
    LeapYr:=(Year MOD 4 = 0) AND ((Year MOD 100 <> 0) OR (Year MOD 400 = 0));
-END;
+end;
 
-FUNCTION DayNr( Day,Month,Year: LONGINT) : LONGINT;
+function DayNr( Day,Month,Year: longint) : longint;
 {Modified version. A daynr function that returns daynr since 1-1-1980.
 Leapyears ok till 2100.}
 
 VAR
-   i : LONGINT;
-BEGIN
+   i : longint;
+begin
    i := MonthCumm[Month]+Day;
-   IF (Month > 2) AND LeapYr( Year ) THEN
+   if (Month > 2) AND LeapYr( Year ) then
       INC( i );
    INC(I,(Year-1980)*365 + (Year-1976) SHR 2);
    {  - (Year -2000) DIV 100; makes it ok till 2400}
@@ -50,128 +50,132 @@ BEGIN
 END ;
 
 {TrimLeft isn't overloaded for pascal string yet.}
-PROCEDURE LTrim(VAR P : String;Ch:Char);
+procedure LTrim(VAR P : String;Ch:Char);
 
-VAR I,J : LONGINT;
+VAR I,J : longint;
 
-BEGIN
+begin
  I:=Length(P);      { Keeping length in local data eases optimalisations}
- IF (I>0) THEN
-  BEGIN
+ if (I>0) then
+  begin
    J:=1;
-   WHILE (P[J]=Ch) AND (J<=I) DO INC(J);
-   IF J>1 THEN
+   while (P[J]=Ch) AND (J<=I) DO INC(J);
+   if J>1 then
     Delete(P,1,J-1);
-   END;
-END;
+   end;
+end;
 
-PROCEDURE CheckAfile(Name:String;Firstday:LONGINT);
+procedure CheckAfile(Name:String;Firstday:longint);
 {Outputs filename and relevant CVSLOG entries for all files that have log
 entries newer than FirstDay.}
 
 VAR  F               : Text;
-     Lines           : LONGINT;
-     Found           : BOOLEAN;
-     S,S2            : String;
-     ValidLogEntry   : BOOLEAN;
-     Day,Month,Year  : LONGINT;
-     PosDate         : LONGINT;
-     FirstLogEntry   : BOOLEAN;
+     Lines           : longint;
+     Found           : boolean;
+     S,S2,S3         : String;
+     ValidLogEntry   : boolean;
+     Day,Month,Year  : longint;
+     PosDate         : longint;
+     FirstLogEntry   : boolean;
 
-FUNCTION ReadTwo(Position:LONGINT):LONGINT; INLINE;
+function ReadTwo(Position:longint):longint; INLINE;
 
-BEGIN
- ReadTwo:=(ORD(S[Position])-48)*10+(ORD(S[Position+1])-48);
-END;
+begin
+ ReadTwo:=(ord(S[Position])-48)*10+(ord(S[Position+1])-48);
+end;
 
-BEGIN
+begin
  Assign(F,Name);
  Reset(F);
  Lines:=5; Found:=FALSE;
- REPEAT                         {Valid files have $Id: somewhere
+ repeat                         {Valid files have $Id: somewhere
                                        in the first lines}
   ReadLn(F,S);
   LTrim(S,' ');
-  IF Copy(S,1,4)='$Id:' THEN
+  if Copy(S,1,4)='$Id:' then
    Found:=TRUE;
-  DEC(Lines);
- UNTIL ((Lines=0) OR Found) OR EOF(F);
- IF NOT Found THEN
+  dec(Lines);
+ until ((Lines=0) OR Found) OR EOF(F);
+ if NOT Found then
   EXIT;
- REPEAT                         {Valid files have $Id: somewhere
+ Found:=FALSE;
+ repeat                         {Valid files have $Id: somewhere
                                        in the first lines}
   ReadLn(F,S);
   LTrim(S,' ');
-  IF Copy(S,1,4)='$Log:' THEN
+  if Copy(S,1,5)='$Log:' then
    Found:=TRUE;
- UNTIL (Found) OR EOF(F);
- IF NOT Found THEN
+ until (Found) OR EOF(F);
+ if NOT Found then
   EXIT;
  ValidLogEntry:=FALSE;
  FirstLogEntry:=TRUE;
- REPEAT
+ repeat
   ReadLn(F,S);
-  IF Copy(S,3,8)='Revision' THEN
-   BEGIN
+  S3:=S;
+  LTrim(S3,' ');
+  if Copy(S3,1,8)='Revision' then
+   begin
     ValidLogEntry:=FALSE;
     S2:=S;
-    Delete(S,1,11);
+    Delete(S3,1,9);
+    S:=S3;
     Lines:=Pos(' ',S);
-    IF Lines<>0 THEN
-     BEGIN
+    if Lines<>0 then
+     begin
       Delete(S,1,Lines);
       LTrim(S,' ');
       Year:=ReadTwo(1)*100+ReadTwo(3);
       Month:=ReadTwo(6);
       Day:=ReadTwo(9);
       PosDate:=DayNr(Day,Month,Year);
-      IF (PosDate>=FirstDay) THEN
-       BEGIN
+      if (PosDate>=FirstDay) then
+       begin
         ValidLogEntry:=TRUE;
-        IF FirstLogEntry THEN
-         BEGIN
+        if FirstLogEntry then
+         begin
           FirstLogEntry:=FALSE;
           Writeln('File: ',Name);
-         END;
+         end;
         Writeln(S2);
-       END;
-     END;
+       end;
+     end;
    END
   ELSE
-  IF ValidLogEntry THEN
+  if ValidLogEntry and (S[1]<>'}') then
    Writeln(S);
-  UNTIL EOF(F) OR (S[1]='}');
+  until EOF(F) OR (S[1]='}');
  Close(F);
-END;
+end;
 
 VAR year, month, mday, wday: word;
-    TheDay,Days            : LONGINT;
+    TheDay,Days            : longint;
     S                      : String;
     D                      : SearchRec;
 
-PROCEDURE SearchExtension(Pattern:String);
+procedure SearchExtension(Pattern:String);
 
-BEGIN
+begin
  FindFirst(Pattern,Anyfile-Directory,D);
- WHILE DosError=0 DO
-  BEGIN
+ while DosError=0 DO
+  begin
    CheckAFile(D.Name,TheDay);
    FindNext(D);
-  END;
+  end;
  FindClose(D);
-END;
+end;
 
 
-BEGIN
+begin
  GetDate(year, month, mday, wday);      {GetDate}
  TheDay:=DayNr(MDay,Month,Year);        {Convert to something linear}
 
- IF ParamCount<>0 THEN                  {If parameter is nummeric, subtract}
-  BEGIN
+ if ParamCount<>0 then                  {If parameter is nummeric, subtract}
+  begin
    Val(ParamStr(1),Days,Year);
-   IF (Year=0) AND (Days<365) THEN      {  n days from current date}
-    Dec(TheDay,Days);
-  END;
+   if (Year=0) AND (Days<365) then      {  n days from current date}
+    dec(TheDay,Days);
+  end;
  SearchExtension('*.pp');               {Scan files in simple FindFirst loop}
  SearchExtension('*.pas');
  SearchExtension('*.inc');
@@ -179,8 +183,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  2000-01-14 12:02:04  marco
-   * Initial version
+  Revision 1.2  2000-01-14 22:06:07  marco
+   * removed I hope
 
+  Revision 1.1  2000/01/14 12:02:04  marco
+   * Initial version
 
 }
