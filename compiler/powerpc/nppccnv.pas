@@ -280,12 +280,7 @@ implementation
          secondpass(left);
          if codegenerror then
           exit;
-(*
-         !!!!!!!!!!!!!!!!!!
-         Causes problems with "boolvar := boolean(bytevar)" on the ppc
-         (the conversion isn't done in that case), don't know why it works
-         on the 80x86 (JM)
-*)
+
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
@@ -296,8 +291,6 @@ implementation
               exit;
            end;
 
-{        Already done in tppctypeconvnode.pass_2! (JM) }
-         secondpass(left);
          if codegenerror then
            exit;
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
@@ -308,40 +301,40 @@ implementation
                 if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   begin
                     reference_release(exprasmlist,left.location.reference);
-                    hreg2:=cg.getintregister(exprasmlist,OS_INT);
+                    hreg1:=cg.getintregister(exprasmlist,OS_INT);
                     if left.location.size in [OS_64,OS_S64] then
                       begin
                         cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
-                         left.location.reference,hreg2);
-                        hreg1:=cg.getintregister(exprasmlist,OS_INT);
+                         left.location.reference,hreg1);
+                        hreg2:=cg.getintregister(exprasmlist,OS_INT);
                         href:=left.location.reference;
                         inc(href.offset,4);
                         cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
-                          href,hreg1);
-                        cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,hreg1,hreg2);
-                        cg.ungetregister(exprasmlist,hreg1);
+                          href,hreg2);
+                        cg.ungetregister(exprasmlist,hreg2);
+                        cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg1,hreg2,hreg1);
                       end
                     else
                       cg.a_load_ref_reg(exprasmlist,opsize,opsize,
-                        left.location.reference,hreg2);
+                        left.location.reference,hreg1);
                   end
                 else
                   begin
                      if left.location.size in [OS_64,OS_S64] then
                        begin
-                          hreg2:=cg.getintregister(exprasmlist,OS_32);
-                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,left.location.registerlow,hreg2);
                           location_release(exprasmlist,left.location);
+                          hreg1:=cg.getintregister(exprasmlist,OS_32);
+                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,left.location.registerlow,hreg1);
                        end
                      else
-                       hreg2 := left.location.register;
+                       hreg1 := left.location.register;
                   end;
-                hreg1 := cg.getintregister(exprasmlist,OS_INT);
-                exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg1,
-                  hreg2,1));
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg1,
-                  hreg2));
+                hreg2 := cg.getintregister(exprasmlist,OS_INT);
+                exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg2,
+                  hreg1,1));
                 cg.ungetregister(exprasmlist,hreg2);
+                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg2,
+                  hreg1));
               end;
             LOC_FLAGS :
               begin
@@ -396,7 +389,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-11-29 16:27:19  jonas
+  Revision 1.47  2003-12-04 20:37:02  jonas
+    * fixed some int<->boolean type conversion issues
+
+  Revision 1.46  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
