@@ -794,6 +794,10 @@ type
         procdefinitionderef.build(procdefinition);
         if assigned(methodpointer) then
           methodpointer.buildderefimpl;
+        if assigned(methodpointerinit) then
+          methodpointerinit.buildderefimpl;
+        if assigned(methodpointerdone) then
+          methodpointerdone.buildderefimpl;
         if assigned(_funcretnode) then
           _funcretnode.buildderefimpl;
         if assigned(inlinecode) then
@@ -812,6 +816,10 @@ type
         procdefinition:=tprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
+        if assigned(methodpointerinit) then
+          methodpointerinit.derefimpl;
+        if assigned(methodpointerdone) then
+          methodpointerdone.derefimpl;
         if assigned(_funcretnode) then
           _funcretnode.derefimpl;
         if assigned(inlinecode) then
@@ -839,21 +847,34 @@ type
       var
         n : tcallnode;
         hp : tparaitem;
+        oldleft : tnode;
       begin
+        { Need to use a hack here to prevent the parameters from being copied.
+          The parameters must be copied between methodpointerinit/methodpointerdone because
+          the can reference methodpointer }
+        oldleft:=left;
+        left:=nil;
         n:=tcallnode(inherited getcopy);
+        left:=oldleft;
         n.symtableprocentry:=symtableprocentry;
         n.symtableproc:=symtableproc;
         n.procdefinition:=procdefinition;
         n.restype := restype;
         n.callnodeflags := callnodeflags;
-        if assigned(methodpointer) then
-         n.methodpointer:=methodpointer.getcopy
-        else
-         n.methodpointer:=nil;
         if assigned(methodpointerinit) then
          n.methodpointerinit:=methodpointerinit.getcopy
         else
          n.methodpointerinit:=nil;
+        { methodpointerinit is copied, now references to the temp will also be copied
+          correctly. We can now copy the parameters and methodpointer }
+        if assigned(left) then
+         n.left:=left.getcopy
+        else
+         n.left:=nil;
+        if assigned(methodpointer) then
+         n.methodpointer:=methodpointer.getcopy
+        else
+         n.methodpointer:=nil;
         if assigned(methodpointerdone) then
          n.methodpointerdone:=methodpointerdone.getcopy
         else
@@ -2119,7 +2140,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.236  2004-05-24 17:31:51  peter
+  Revision 1.237  2004-05-25 18:51:49  peter
+    * fix tcallnode.getcopy. the parameters need to be copied after
+      methodpointerinit is copied
+
+  Revision 1.236  2004/05/24 17:31:51  peter
     * fix passing of array to open array of array (bug 3113)
 
   Revision 1.235  2004/05/23 18:28:41  peter
