@@ -2,9 +2,9 @@ Program Example27;
 
 { Program to demonstrate the Umask function. }
 
-Uses linux;
+Uses BaseUnix;
 
 begin
-  Writeln ('Old Umask was : ',Umask(Octal(111)));
-  WRiteln ('New Umask is  : ',Octal(111));
+  Writeln ('Old Umask was : ',fpUmask(&111));
+  WRiteln ('New Umask is  : ',&111);
 end.

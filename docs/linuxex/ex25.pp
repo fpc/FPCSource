@@ -2,7 +2,7 @@ Program Example25;
 
 { Program to demonstrate the UTime function. }
 
-Uses linux;
+Uses BaseUnix,Unix,UnixUtil;
 
 Var utim : utimbuf;
     year,month,day,hour,minute,second : Word;
@@ -13,7 +13,7 @@ begin
   GetDate (year,month,day);  
   utim.actime:=LocalToEpoch(year,month,day,hour,minute,second);
   utim.modtime:=utim.actime;
-  if not Utime('ex25.pp',utim) then
+  if Fputime('ex25.pp',@utim)<>0 then
     writeln ('Call to UTime failed !')
   else
     begin

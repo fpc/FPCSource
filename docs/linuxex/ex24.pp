@@ -2,9 +2,10 @@ Program Example24;
 
 { Program to demonstrate the Chown function. }
 
-Uses linux;
+Uses BaseUnix;
 
-Var UID,GID : Longint;
+Var UID : TUid;
+    GID : TGid;
     F : Text;
     
 begin
@@ -18,11 +19,11 @@ begin
   Writeln (f,'UID : ',UID);
   Writeln (f,'GID : ',GID);
   Close (F);
-  if not Chown ('test.txt',UID,GID) then
-    if LinuxError=Sys_EPERM then
+  if fpChown ('test.txt',UID,GID)<>0 then
+    if fpgeterrno=ESysEPERM then
       Writeln ('You are not root !')
     else
-      Writeln ('Chmod failed with exit code : ',LinuxError)
+      Writeln ('Chmod failed with exit code : ',fpgeterrno)
   else
     Writeln ('Changed owner successfully !');
 end.
