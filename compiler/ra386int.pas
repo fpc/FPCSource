@@ -1222,7 +1222,10 @@ Begin
              else
                Inc(opr.ref.offset,l);
            end;
-          GotPlus:=(prevasmtoken=AS_PLUS);
+          GotPlus:=(prevasmtoken=AS_PLUS) or
+                   (prevasmtoken=AS_MINUS);
+          if GotPlus then
+            negative := prevasmtoken = AS_MINUS;
           GotStar:=(prevasmtoken=AS_STAR);
         end;
 
@@ -1903,7 +1906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-30 17:04:43  peter
+  Revision 1.4  2000-08-12 15:32:02  peter
+    * reference reading fix from Jonas (merged)
+
+  Revision 1.3  2000/07/30 17:04:43  peter
     * merged fixes
 
   Revision 1.2  2000/07/13 11:32:48  michael
