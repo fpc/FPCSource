@@ -247,11 +247,19 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    WordRec = packed RECORD
+{$ifdef ENDIAN_LITTLE}
      Lo, Hi: Byte;                                    { Word to bytes }
+{$else}
+     Hi,Lo: Byte;
+{$endif}
    END;
 
    LongRec = packed RECORD
+{$ifdef ENDIAN_LITTLE}
      Lo, Hi: Word;                                    { LongInt to words }
+{$else}
+     Hi,Lo: Word;                                    { LongInt to words }
+{$endif}
    END;
 
    PtrRec = packed RECORD
@@ -2833,7 +2841,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.7  2001-07-30 21:38:55  peter
+  Revision 1.8  2001-07-31 19:36:09  peter
+    * wordrec for big endian
+
+  Revision 1.7  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.6  2001/07/15 11:57:16  peter
