@@ -44,7 +44,9 @@ interface
              i386,                     { 1 }
              m68k,                     { 2 }
              alpha,                    { 3 }
-             powerpc                   { 4 }
+             powerpc,                  { 4 }
+             sparc,                    { 5 }
+             vm                        { 6 }
        );
 
        tprocessors = (no_processor
@@ -102,8 +104,10 @@ interface
              target_i386_netbsd,        { 17 }
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
-             target_i386_qnx            { 20 }
-            ,target_i386_wdosx          { 21 } 
+             target_i386_qnx,           { 20 }
+             target_i386_wdosx,         { 21 } 
+             target_sparc_sunos,        { 22 }
+             target_sparc_linux         { 23 }
        );
 
        tasm = (as_none
@@ -683,7 +687,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2002-04-04 19:18:06  carl
+  Revision 1.37  2002-04-07 10:20:15  carl
+  + added SPARC targets
+  + added VM target
+
+  Revision 1.36  2002/04/04 19:18:06  carl
   - removed cmnts
 
 }
