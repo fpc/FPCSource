@@ -224,8 +224,11 @@ implementation
     procedure generatecode(var p : pnode);
       var
          i       : longint;
-         regsize : topsize;
          hr      : preference;
+{$ifdef i386}
+         regsize : topsize;
+{$endif i386}
+
       label
          nextreg;
       begin
@@ -334,7 +337,6 @@ implementation
                                        regsize:=sizepostfix_pointer;
                                     end
                                   else
-                                  }
                                    if (regvars[i]^.definition^.deftype=orddef) and
                                       (porddef(regvars[i]^.definition)^.size=1) then
                                     begin
@@ -363,6 +365,7 @@ implementation
                                        regvars[i]^.reg:=regtoreg64(varregs[i]);
                                        regsize:=S_Q;
                                     end;
+                                  }
                                   { parameter must be load }
                                   if regvars_para[i] then
                                     begin
@@ -420,7 +423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 00:07:16  florian
+  Revision 1.2  1999-08-03 00:28:03  florian
+    * some updates to compile for the alpha
+
+  Revision 1.1  1999/08/03 00:07:16  florian
     * initial revision
 
 }
