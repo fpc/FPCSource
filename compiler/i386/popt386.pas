@@ -494,10 +494,6 @@ var
                 exit;
               tasmlabel(hp.oper[0]^.sym).decrefs;
               hp.oper[0]^.sym:=taicpu(p1).oper[0]^.sym;
-{$ifndef NOAG386BIN}
-              { Reset JMP information }
-              hp.resetpass1;
-{$endif NOAG386BIN}
               tasmlabel(hp.oper[0]^.sym).increfs;
             end
           else
@@ -1866,10 +1862,6 @@ begin
                     hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.sym);
                     InsertLLItem(asml, p.previous, p, hp2);
                     taicpu(p).opcode := A_JMP;
-{$ifndef NOAG386BIN}
-                    { Reset JMP information }
-                    taicpu(p).resetpass1;
-{$endif NOAG386BIN}
                     taicpu(p).is_jmp := true;
                     asml.remove(hp1);
                     hp1.free;
@@ -2007,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2004-02-03 16:53:37  peter
+  Revision 1.56  2004-02-03 21:19:40  peter
+    * remove previous commit
+
+  Revision 1.55  2004/02/03 16:53:37  peter
   *** empty log message ***
 
   Revision 1.54  2004/01/22 16:14:17  peter
