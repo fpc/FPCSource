@@ -641,7 +641,8 @@ begin
         Case ThisTTY[9] of
          '0'..'9' : begin { running Linux on native console or native-emulation }
                      FName:='/dev/vcsa' + ThisTTY[9];
-                     TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
+		     { open console, $1b6=rw-rw-rw- }
+                     TTYFd:=fpOpen(FName, $1b6, O_RdWr);
                      IF TTYFd <>-1 Then
                        Console:=ttyLinux;
                     end;
@@ -898,7 +899,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2003-11-19 17:11:40  marco
+  Revision 1.21  2004-07-03 13:29:23  daniel
+    * Compilation fix.
+
+  Revision 1.20  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.19  2003/11/17 10:05:51  marco
