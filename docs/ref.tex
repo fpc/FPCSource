@@ -4752,11 +4752,17 @@ Functions concerning memory issues.
 \begin{funclist}
 \funcref{Addr}{Return address of variable}
 \funcref{Assigned}{Check if a pointer is valid}
+\funcref{CompareByte}{Compare 2 memory buffers byte per byte}
+\funcref{CompareChar}{Compare 2 memory buffers byte per byte}
+\funcref{CompareDWord}{Compare 2 memory buffers byte per byte}
+\funcref{CompareWord}{Compare 2 memory buffers byte per byte}
 \funcref{CSeg}{Return code segment}
 \procref{Dispose}{Free dynamically allocated memory}
 \funcref{DSeg}{Return data segment}
+\procref{FillByte}{Fill memory region with 8-bit pattern}
 \procref{Fillchar}{Fill memory region with certain character}
-\procref{Fillword}{Fill memory region with 16 bit pattern}
+\procref{FillDWord}{Fill memory region with 32-bit pattern}
+\procref{Fillword}{Fill memory region with 16-bit pattern}
 \procref{Freemem}{Release allocated memory}
 \procref{Getmem}{Allocate new memory}
 \procref{GetMemoryManager}{Return current memory manager}
@@ -4767,6 +4773,7 @@ Functions concerning memory issues.
 \funcref{Maxavail}{Return size of largest free memory block}
 \funcref{Memavail}{Return total available memory}
 \procref{Move}{Move data from one location in memory to another}
+\procrefl{MoveChar0}{MoveCharNull}{Move data till first zero character}
 \procref{New}{Dynamically allocate memory for variable}
 \funcref{Ofs}{Return offset of variable}
 \funcref{Ptr}{Combine segmant and offset to pointer}
@@ -5085,6 +5092,115 @@ None.
 
 \FPCexample{ex9}
 
+\begin{function}{CompareByte}
+\Declaration
+function CompareByte(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareByte} compares two memory regions \var{buf1},\var{buf2} on a 
+byte-per-byte basis for a total of \var{len} bytes. 
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different bytes
+in the first \var{len} bytes, and the first such byte is smaller in \var{buf1}
+than the byte at the same position in \var{buf2}.
+\item[0]  if the first \var{len} bytes in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different bytes
+in the first \var{len} bytes, and the first such byte is larger in \var{buf1}
+than the byte at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareWord},\seef{CompareDWord}
+\end{function}
+
+\FPCexample{ex99}
+
+\begin{function}{CompareChar}
+\Declaration
+function  CompareChar(var buf1,buf2;len:longint):longint;
+function  CompareChar0(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareChar} compares two memory regions \var{buf1},\var{buf2} on a 
+character-per-character basis for a total of \var{len} characters. 
+
+The \var{CompareChar0} variant compares \var{len} bytes, or until
+a zero character is found.
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different characters
+in the first \var{len} positions, and the first such character is smaller in \var{buf1}
+than the character at the same position in \var{buf2}.
+\item[0]  if the first \var{len} characters in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different characters
+in the first \var{len} positions, and the first such character is larger in 
+\var{buf1} than the character at the same position in \var{buf2}.
+\end{description}
+
+\Errors
+None.
+\SeeAlso
+\seef{CompareByte},\seef{CompareWord},\seef{CompareDWord}
+\end{function}
+
+\FPCexample{ex100}
+
+\begin{function}{CompareDWord}
+\Declaration
+function  CompareDWord(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareDWord} compares two memory regions \var{buf1},\var{buf2} on a 
+DWord-per-DWord basis for a total of \var{len} DWords. (A DWord is 4 bytes).
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different DWords
+in the first \var{len} DWords, and the first such DWord is smaller in \var{buf1}
+than the DWord at the same position in \var{buf2}.
+\item[0]  if the first \var{len} DWords in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different DWords
+in the first \var{len} DWords, and the first such DWord is larger in \var{buf1}
+than the DWord at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareByte},\seef{CompareWord},
+\end{function}
+
+\FPCexample{ex101}
+
+\begin{function}{CompareWord}
+\Declaration
+function  CompareWord(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareWord} compares two memory regions \var{buf1},\var{buf2} on a 
+Word-per-Word basis for a total of \var{len} Words. (A Word is 2 bytes).
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different Words
+in the first \var{len} Words, and the first such Word is smaller in \var{buf1}
+than the Word at the same position in \var{buf2}.
+\item[0]  if the first \var{len} Words in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different Words
+in the first \var{len} Words, and the first such Word is larger in \var{buf1}
+than the Word at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareByte},\seef{CompareWord},
+\end{function}
+
+\FPCexample{ex102}
+
 \begin{function}{Concat}
 \Declaration
 Function Concat (S1,S2 [,S3, ... ,Sn]) : String;
@@ -5360,6 +5476,27 @@ None.
 
 \FPCexample{ex24}
 
+\begin{procedure}{FillByte}
+\Declaration
+Procedure FillByte(var X;Count:longint;Value:byte);
+\Description
+\var{FillByte} fills the memory starting at \var{X} with \var{Count} bytes
+with value equal to \var{Value}.
+
+This is useful for quickly zeroing out a memory location. If you know
+that the size of the memory location to be filled out is a multiple of
+2 bytes, it is better to use \seep{Fillword}, and if it is a multiple 
+of 4 bytes it's better to use \seep{FillDWord}, these routines are 
+optimized for their respective sizes.
+
+\Errors
+No checking on the size of \var{X} is done.
+\SeeAlso
+\seep{Fillchar}, \seep{FillDWord}, \seep{Fillword}, \seep{Move}
+\end{procedure}
+
+\FPCexample{ex102}
+
 \begin{procedure}{Fillchar}
 \Declaration
 Procedure Fillchar (Var X;Count : Longint;Value : char or byte);;
@@ -5371,19 +5508,32 @@ or characters with value equal to \var{Value}.
 \Errors
 No checking on the size of \var{X} is done.
 \SeeAlso
-\seep{Fillword}, \seep{Move}
+\seep{Fillword}, \seep{Move}, \seep{FillByte}, \seep{FillDWord}
 \end{procedure}
 
 \FPCexample{ex25}
 
+\begin{procedure}{FillDWord}
+\Declaration
+Procedure FillDWord (Var X;Count : Longint;Value : DWord);;
+\Description
+\var{Fillword} fills the memory starting at \var{X} with \var{Count} DWords
+with value equal to \var{Value}. A DWord is 4 bytes in size.
+
+\Errors
+No checking on the size of \var{X} is done.
+\SeeAlso
+\seep{FillByte}, \seep{Fillchar}, \seep{Fillword}, \seep{Move}
+\end{procedure}
+
+\FPCexample{ex103}
+
 \begin{procedure}{Fillword}
 \Declaration
 Procedure Fillword (Var X;Count : Longint;Value : Word);;
-
 \Description
 \var{Fillword} fills the memory starting at \var{X} with \var{Count} words
-with value equal to \var{Value}.
-
+with value equal to \var{Value}. A word is 2 bytes in size.
 \Errors
 No checking on the size of \var{X} is done.
 \SeeAlso
@@ -5574,6 +5724,72 @@ error, if you try to increase \var{X} over its maximum value.
 
 \FPCexample{ex32}
 
+\begin{function}{IndexByte}
+\Declaration
+function  IndexByte(var buf;len:longint;b:byte):longint;  
+\Description
+\var{IndexByte} searches the memory at \var{buf} for maximally \var{len}
+positions for the byte \var{b} and returns it's position if it found one.
+If \var{b} is not found then -1 is returned.
+
+The position is zero-based.
+\Errors
+\var{Buf} and \var{Len} are not checked to see if they are valid values.
+\SeeAlso
+\seef{IndexChar}, \seef{IndexDWord}, \seef{IndexWord}, \seef{CompareByte}
+\end{function}
+
+\FPCexample{ex105}
+
+\begin{function}{IndexChar}
+\Declaration
+function  IndexChar(var buf;len:longint;b:char):longint;  
+function  IndexChar0(var buf;len:longint;b:char):longint;  
+\Description
+\var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
+positions for the character \var{b} and returns it's position if it found one.
+If \var{b} is not found then -1 is returned.
+
+The position is zero-based. The \var{IndexChar0} variant stops looking if
+a null character is found, and returns -1 in that case.
+\Errors
+\var{Buf} and \var{Len} are not checked to see if they are valid values.
+\SeeAlso
+\seef{IndexByte}, \seef{IndexDWord}, \seef{IndexWord}, \seef{CompareChar}
+\end{function}
+
+\FPCexample{ex108}
+
+\begin{function}{IndexDWord}
+\Declaration
+function  IndexDWord(var buf;len:longint;DW:DWord):longint;
+\var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
+positions for the DWord \var{DW} and returns it's position if it found one.
+If \var{DW} is not found then -1 is returned.
+
+The position is zero-based.
+\Errors
+\var{Buf} and \var{Len} are not checked to see if they are valid values.
+\SeeAlso
+\seef{IndexByte}, \seef{IndexChar}, \seef{IndexWord}, \seef{CompareDWord}
+\end{function}
+
+\FPCexample{ex106}
+
+\begin{function}{IndexWord}
+\Declaration
+function  IndexWord(var buf;len:longint;W:word):longint;  
+\var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
+positions for the Word \var{W} and returns it's position if it found one.
+If \var{W} is not found then -1 is returned.
+\Errors
+\var{Buf} and \var{Len} are not checked to see if they are valid values.
+\SeeAlso
+\seef{IndexByte}, \seef{IndexDWord}, \seef{IndexChar}, \seef{CompareWord}
+\end{function}
+
+\FPCexample{ex107}
+
 \begin{procedure}{Insert}
 \Declaration
 Procedure Insert (Const Source : String;var S : String;Index : Longint);
@@ -5590,6 +5806,7 @@ None.
 \end{procedure}
 
 \FPCexample{ex33}
+
 \begin{function}{IsMemoryManagerSet}
 \Declaration
 function  IsMemoryManagerSet: Boolean;
@@ -5850,7 +6067,6 @@ For an example, see \seep{Rmdir}.
 \begin{procedure}{Move}
 \Declaration
 Procedure Move (var Source,Dest;Count : Longint);
-
 \Description
 \var{Move} moves \var{Count} bytes from \var{Source} to \var{Dest}.
 \Errors
@@ -5862,6 +6078,21 @@ the compiler, a segmentation-fault will occur.
 \end{procedure}
 
 \FPCexample{ex42}
+
+\begin{procedurel}{MoveChar0}{MoveCharNull}
+\Declaration
+procedure MoveChar0(var Src,Dest;Count:longint);
+\Description
+\var{MoveChar0} moves \var{Count} bytes from \var{Src} to \var{Dest}, and
+stops moving if a zero character is found.
+\Errors
+No checking is done to see if \var{Count} stays within the memory allocated
+to the process.
+\SeeAlso
+\seep{Move}
+\end{procedurel}
+
+\FPCexample{ex109}
 
 \begin{procedure}{New}
 \Declaration
