@@ -108,7 +108,7 @@ Type
   {---------------------------------------------------------------------}
 
   toperandtype = (OPR_NONE,OPR_REFERENCE,OPR_CONSTANT,OPR_REGISTER,OPR_LABINSTR,
-                  OPR_REGLIST);
+                  OPR_REGLIST,OPR_SYMBOL);
 
     { When the TReference field isintvalue = TRUE }
     { then offset points to an ABSOLUTE address   }
@@ -136,6 +136,7 @@ Type
        OPR_LABINSTR: (hl: plabel);
        { Register list such as in the movem instruction }
        OPR_REGLIST:  (list: set of tregister);
+       OPR_SYMBOL : (symbol:pstring);
     end;
 
 
@@ -1207,194 +1208,188 @@ end;
   { search and sets up the correct fields in the Instr record }
   { for the NON-constant identifier passed to the routine.    }
   { if not found returns FALSE.                               }
-   var
-    sym:psym;
-    l: longint;
+  var
+    sym : psym;
+    l   : longint;
   Begin
-     CreateVarInstr := FALSE;
-     { are we in a routine ? }
-     if assigned(aktprocsym) then
+    CreateVarInstr := FALSE;
+  { are we in a routine ? }
+    if assigned(aktprocsym) then
      begin
-      if assigned(aktprocsym^.definition^.localst) then
-      { search the local list for the name of this variable. }
+     { search the local list for the name of this variable. }
+       if assigned(aktprocsym^.definition^.localst) then
         sym:=aktprocsym^.definition^.localst^.search(hs)
-      else
+       else
         sym:=nil;
-      if assigned(sym) then
-      begin
-        if sym^.typ=varsym then
-          begin
-           { we always assume in asm statements that     }
-           { that the variable is valid.                 }
-           pvarsym(sym)^.is_valid:=1;
-           instr.operands[operandnum].ref.base := procinfo.framepointer;
-           instr.operands[operandnum].ref.offset := - (pvarsym(sym)^.address);
-           { the current size is NOT overriden if it already }
-           { exists, such as in the case of a byte ptr, in   }
-           { front of the identifier.                        }
-           if instr.operands[operandnum].size = S_NO then
-           Begin
-             case pvarsym(sym)^.getsize of
-              1: instr.operands[operandnum].size := S_B;
-              2: instr.operands[operandnum].size := S_W{ could be S_IS};
-              4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
-              8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
-              extended_size: instr.operands[operandnum].size := S_FX;
-             else
-               { this is in the case where the instruction is LEA }
-               { or something like that, in that case size is not }
-               { important.                                       }
-               instr.operands[operandnum].size := S_NO;
-             end; { end case }
-           end;
-           { ok, finished for thir variable. }
-           CreateVarInstr := TRUE;
-           Exit;
-          end
-        else
-        { call to local function }
-        if (sym^.typ=procsym) then
-          begin
-            { free the memory before changing the symbol name. }
-            if assigned(instr.operands[operandnum].ref.symbol) then
-              FreeMem(instr.operands[operandnum].ref.symbol,
-            length(instr.operands[operandnum].ref.symbol^)+1);
-            instr.operands[operandnum].ref.symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
-            CreateVarInstr := TRUE;
-            Exit;
-          end
-{        else
-        if (sym^.typ = typedconstsym) then
-        Begin}
-           { UGH????? pprocsym??? }
-{           instr.operands[operandnum].ref.symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);}
-           {* the current size is NOT overriden if it already *}
-           {* exists, such as in the case of a byte ptr, in   *}
-           {* front of the identifier.                        *}
-{           if instr.operands[operandnum].size = S_NO then
-           Begin
-             case ptypedconstsym(sym)^.definition^.size of
-              1: instr.operands[operandnum].size := S_B;
-              2: instr.operands[operandnum].size := S_W;
-              4: instr.operands[operandnum].size := S_L;
-              8: instr.operands[operandnum].size := S_IQ;
-              extended_size: instr.operands[operandnum].size := S_FX;
-             else}
-               {* this is in the case where the instruction is LEA *}
-               {* or something like that, in that case size is not *}
-               {* important.                                       *}
-{               instr.operands[operandnum].size := S_NO;}
-{             end;} {* end case *}
-{           end;}
-           {* ok, finished for this variable. *}
-{           CreateVarInstr := TRUE;
-           Exit;
-        end }
-      end;
-      { now check for parameters passed to routine }
-{      else}
-       begin
-         if assigned(aktprocsym^.definition^.parast) then
-            sym:=aktprocsym^.definition^.parast^.search(hs)
-         else
-           sym:=nil;
-         if assigned(sym) then
-         begin
-           if sym^.typ=varsym then
+       if assigned(sym) then
+        begin
+          case sym^.typ of
+  typedconstsym,
+         varsym : begin
+                    { we always assume in asm statements that     }
+                    { that the variable is valid.                 }
+                    pvarsym(sym)^.is_valid:=1;
+                    if pvarsym(sym)^.owner^.symtabletype=staticsymtable then
+                     begin
+                       if assigned(instr.operands[operandnum].ref.symbol) then
+                         FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
+                       instr.operands[operandnum].ref.symbol:=newpasstr(pvarsym(sym)^.mangledname);
+                     end
+                    else
+                     begin
+                       instr.operands[operandnum].ref.base := procinfo.framepointer;
+                       instr.operands[operandnum].ref.offset := -(pvarsym(sym)^.address);
+                     end;
+                    { the current size is NOT overriden if it already }
+                    { exists, such as in the case of a byte ptr, in   }
+                    { front of the identifier.                        }
+                    if instr.operands[operandnum].size = S_NO then
+                    Begin
+                      case pvarsym(sym)^.getsize of
+                       1: instr.operands[operandnum].size := S_B;
+                       2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                       4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                       8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                       extended_size: instr.operands[operandnum].size := S_FX;
+                      else
+                        { this is in the case where the instruction is LEA }
+                        { or something like that, in that case size is not }
+                        { important.                                       }
+                        instr.operands[operandnum].size := S_NO;
+                      end; { end case }
+                    end;
+                    { ok, finished for thir variable. }
+                    CreateVarInstr := TRUE;
+                    Exit;
+                  end;
+        procsym : begin
+                    { free the memory before changing the symbol name. }
+                    if assigned(instr.operands[operandnum].ref.symbol) then
+                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
+                    instr.operands[operandnum].operandtype:=OPR_SYMBOL;
+                    instr.operands[operandnum].symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
+                    CreateVarInstr := TRUE;
+                    Exit;
+                  end
+          else
            begin
-             l:=pvarsym(sym)^.address;
-             { set offset }
-             inc(l,aktprocsym^.definition^.parast^.call_offset);
-             pvarsym(sym)^.is_valid:=1;
-             instr.operands[operandnum].ref.base := procinfo.framepointer;
-             instr.operands[operandnum].ref.offset := l;
-             { the current size is NOT overriden if it already }
-             { exists, such as in the case of a byte ptr, in   }
-             { front of the identifier.                        }
-             if instr.operands[operandnum].size = S_NO then
-             Begin
-               case pvarsym(sym)^.getsize of
-                 1: instr.operands[operandnum].size := S_B;
-                 2: instr.operands[operandnum].size := S_W;
-                 4: instr.operands[operandnum].size := S_L;
-                 8: instr.operands[operandnum].size := S_IQ;
-                 extended_size: instr.operands[operandnum].size := S_FX;
-               else
-               { this is in the case where the instruction is LEA }
-               { or something like that, in that case size is not }
-               { important.                                       }
-                 instr.operands[operandnum].size := S_NO;
-               end; { end case }
-             end; { endif }
-             CreateVarInstr := TRUE;
-             Exit;
-           end; { endif }
-         end; {endif }
-       end; { endif }
-     end;
-
-     { not found.. .now look for global variables. }
-     getsym(hs,false);
-     sym:=srsym;
-     if assigned(sym) then
-     Begin
-       if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
-       Begin
-       { free the memory before changing the symbol name. }
-         if assigned(instr.operands[operandnum].ref.symbol) then
-           FreeMem(instr.operands[operandnum].ref.symbol,
-         length(instr.operands[operandnum].ref.symbol^)+1);
-         instr.operands[operandnum].ref.symbol:=newpasstr(sym^.mangledname);
-         { the current size is NOT overriden if it already }
-         { exists, such as in the case of a byte ptr, in   }
-         { front of the identifier.                        }
-         if (instr.operands[operandnum].size = S_NO) and (sym^.typ = varsym) then
-         Begin
-           case pvarsym(sym)^.getsize of
-             1: instr.operands[operandnum].size := S_B;
-             2: instr.operands[operandnum].size := S_W;
-             4: instr.operands[operandnum].size := S_L;
-             8: instr.operands[operandnum].size := S_IQ;
-           else
-           { this is in the case where the instruction is LEA }
-           { or something like that, in that case size is not }
-           { important.                                       }
-             instr.operands[operandnum].size := S_NO;
+             Comment(V_Error,'Unsupported symbol type for operand');
+             exit;
            end;
-         end
-         else
-         if (instr.operands[operandnum].size = S_NO) and (sym^.typ = typedconstsym) then
-         Begin
-         { only these are valid sizes, otherwise prefixes are }
-         { required.                                          }
-            case ptypedconstsym(sym)^.definition^.size of
-              1: instr.operands[operandnum].size := S_B;
-              2: instr.operands[operandnum].size := S_W;
-              4: instr.operands[operandnum].size := S_L;
-              8: instr.operands[operandnum].size := S_IQ;
-            else
-            { this is in the case where the instruction is LEA }
-            { or something like that, in that case size is not }
-            { important.                                       }
-                 instr.operands[operandnum].size := S_NO;
-            end;
-         end; { endif }
-         CreateVarInstr := TRUE;
-         Exit;
-       end;
-       if (sym^.typ=procsym) then
-       begin
-         if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-          Message(assem_w_calling_overload_func);
-         { free the memory before changing the symbol name. }
-         if assigned(instr.operands[operandnum].ref.symbol) then
-           FreeMem(instr.operands[operandnum].ref.symbol,
-         length(instr.operands[operandnum].ref.symbol^)+1);
-         instr.operands[operandnum].ref.symbol:=
-           newpasstr(pprocsym(sym)^.definition^.mangledname);
-         CreateVarInstr := TRUE;
-         Exit;
-       end;
+          end;
+        end;
+
+     { now check for parameters passed to routine }
+       if assigned(aktprocsym^.definition^.parast) then
+        sym:=aktprocsym^.definition^.parast^.search(hs)
+       else
+        sym:=nil;
+       if assigned(sym) then
+        begin
+          case sym^.typ of
+         varsym : begin
+                    l:=pvarsym(sym)^.address;
+                    { set offset }
+                    inc(l,aktprocsym^.definition^.parast^.call_offset);
+                    pvarsym(sym)^.is_valid:=1;
+                    instr.operands[operandnum].ref.base := procinfo.framepointer;
+                    instr.operands[operandnum].ref.offset := l;
+                    { the current size is NOT overriden if it already }
+                    { exists, such as in the case of a byte ptr, in   }
+                    { front of the identifier.                        }
+                    if instr.operands[operandnum].size = S_NO then
+                    Begin
+                      case pvarsym(sym)^.getsize of
+                        1: instr.operands[operandnum].size := S_B;
+                        2: instr.operands[operandnum].size := S_W;
+                        4: instr.operands[operandnum].size := S_L;
+                        8: instr.operands[operandnum].size := S_IQ;
+                        extended_size: instr.operands[operandnum].size := S_FX;
+                      else
+                      { this is in the case where the instruction is LEA }
+                      { or something like that, in that case size is not }
+                      { important.                                       }
+                        instr.operands[operandnum].size := S_NO;
+                      end; { end case }
+                    end; { endif }
+                    CreateVarInstr := TRUE;
+                    Exit;
+                  end;
+          else
+           begin
+             Comment(V_Error,'Unsupported symbol type for operand');
+             exit;
+           end;
+          end; { case }
+        end; { endif }
+     end;
+  { not found.. .now look for global variables. }
+    getsym(hs,false);
+    sym:=srsym;
+    if assigned(sym) then
+     Begin
+       case sym^.typ of
+          varsym,
+   typedconstsym : Begin
+                   { free the memory before changing the symbol name. }
+                     if assigned(instr.operands[operandnum].ref.symbol) then
+                      FreeMem(instr.operands[operandnum].ref.symbol,
+                     length(instr.operands[operandnum].ref.symbol^)+1);
+                     instr.operands[operandnum].ref.symbol:=newpasstr(sym^.mangledname);
+                   { the current size is NOT overriden if it already }
+                   { exists, such as in the case of a byte ptr, in   }
+                   { front of the identifier.                        }
+                     if (instr.operands[operandnum].size = S_NO) and (sym^.typ = varsym) then
+                      Begin
+                        case pvarsym(sym)^.getsize of
+                         1: instr.operands[operandnum].size := S_B;
+                         2: instr.operands[operandnum].size := S_W;
+                         4: instr.operands[operandnum].size := S_L;
+                         8: instr.operands[operandnum].size := S_IQ;
+                        else
+                      { this is in the case where the instruction is LEA }
+                      { or something like that, in that case size is not }
+                      { important.                                       }
+                         instr.operands[operandnum].size := S_NO;
+                        end;
+                      end
+                     else
+                      if (instr.operands[operandnum].size = S_NO) and (sym^.typ = typedconstsym) then
+                       Begin
+                       { only these are valid sizes, otherwise prefixes are }
+                       { required.                                          }
+                         case ptypedconstsym(sym)^.definition^.size of
+                          1: instr.operands[operandnum].size := S_B;
+                          2: instr.operands[operandnum].size := S_W;
+                          4: instr.operands[operandnum].size := S_L;
+                          8: instr.operands[operandnum].size := S_IQ;
+                         else
+                         { this is in the case where the instruction is LEA }
+                         { or something like that, in that case size is not }
+                         { important.                                       }
+                           instr.operands[operandnum].size := S_NO;
+                         end;
+                    end; { endif }
+                    CreateVarInstr := TRUE;
+                    Exit;
+                  end;
+        procsym : begin
+                    if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+                     Message(assem_w_calling_overload_func);
+                    { free the memory before changing the symbol name. }
+                    if assigned(instr.operands[operandnum].ref.symbol) then
+                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
+                    instr.operands[operandnum].operandtype:=OPR_SYMBOL;
+                    instr.operands[operandnum].symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
+                    CreateVarInstr := TRUE;
+                    Exit;
+                  end;
+       else
+        begin
+          Comment(V_Error,'Unsupported symbol type for operand');
+          exit;
+        end;
+       end; {case}
      end; { end looking for global variables .. }
   end;
 
@@ -1626,80 +1621,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-29 10:33:43  pierre
+  Revision 1.3  1998-05-31 14:13:30  peter
+    * fixed call bugs with assembler readers
+    + OPR_SYMBOL to hold a symbol in the asm parser
+    * fixed staticsymtable vars which were acessed through %ebp instead of
+      name
+
+  Revision 1.2  1998/04/29 10:33:43  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.15  1998/03/10 01:17:14  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.14  1998/03/09 12:58:10  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.13  1998/03/03 16:45:16  peter
-    + message support for assembler parsers
-
-  Revision 1.12  1998/03/02 01:48:02  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.11  1998/02/13 10:34:34  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.10  1998/01/09 19:21:19  carl
-  + added support for m68k
-
-  Revision 1.7  1997/12/14 22:43:17  florian
-    + command line switch -Xs for DOS (passes -s to the linker to strip symbols from
-      executable)
-    * some changes of Carl-Eric implemented
-
-  Revision 1.5  1997/12/09 13:23:54  carl
-  + less processor specific
-  - moved searching for externals/internal symbols from CreateVarInstr to
-    ratti386.pas (this would cause invalid stuff in rai386.pas!)
-
-  Revision 1.4  1997/12/04 12:20:39  pierre
-    +* MMX instructions added to att output with a warning that
-       GNU as version >= 2.81 is needed
-       bug in reading of reals under att syntax corrected
-
-  Revision 1.3  1997/12/01 17:42:49  pierre
-     + added some more functionnality to the assembler parser
-
-  Revision 1.2  1997/11/27 17:55:11  carl
-  * made it compile under bp (one comment was nested)
-
-  Revision 1.1.1.1  1997/11/27 08:32:50  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
- 11th november 1997:
-   * fixed problems when using reserved words TRUE and FALSE (CEC).
- 22th november 1997:
-   * changed operator (reserved word) into _operator (PM).
-
 }

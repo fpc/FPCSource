@@ -954,6 +954,9 @@ const
                       findtype := _regtypes[reg];
                       exit;
                      end;
+       OPR_SYMBOL:     Begin
+                       findtype := ao_jumpabsolute;
+                     end;
        OPR_NONE:     Begin
                        findtype := 0;
                      end;
@@ -1647,6 +1650,11 @@ const
              Begin
                 p^.concat(new(pai386,op_reg(instruc,
                   instr.stropsize, instr.operands[1].reg)));
+             End;
+           OPR_SYMBOL:
+             Begin
+                p^.concat(new(pai386,op_csymbol(instruc,
+                  instr.stropsize, newcsymbol(instr.operands[1].symbol^,0))));
              End;
            OPR_REFERENCE:
              { now first check suffix ... }
@@ -3683,7 +3691,13 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-05-30 14:31:08  peter
+  Revision 1.11  1998-05-31 14:13:35  peter
+    * fixed call bugs with assembler readers
+    + OPR_SYMBOL to hold a symbol in the asm parser
+    * fixed staticsymtable vars which were acessed through %ebp instead of
+      name
+
+  Revision 1.10  1998/05/30 14:31:08  peter
     + $ASMMODE
 
   Revision 1.9  1998/05/29 09:58:16  pierre
@@ -3729,130 +3743,5 @@ end.
       nasm output OK (program still crashes at end
       and creates wrong assembler files !!)
       procsym types sym in tdef removed !!
-
-  Revision 1.2  1998/03/30 15:53:01  florian
-    * last changes before release:
-       - gdb fixed
-       - ratti386 warning removed (about unset function result)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.21  1998/03/10 16:27:44  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.20  1998/03/10 01:17:27  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.19  1998/03/09 12:58:13  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.18  1998/03/04 17:34:01  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.17  1998/03/03 22:38:30  peter
-    * the last 3 files
-
-  Revision 1.16  1998/03/02 01:49:21  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.15  1998/02/13 10:35:42  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.14  1998/02/12 11:50:41  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.13  1998/02/07 18:03:55  carl
-    + fwait warning for emulation
-
-  Revision 1.12  1998/01/19 03:10:52  carl
-    * bugfix number 78
-
-  Revision 1.11  1998/01/09 19:24:00  carl
-  + externals are now added if identifier is not found
-
-  Revision 1.10  1997/12/14 22:43:25  florian
-    + command line switch -Xs for DOS (passes -s to the linker to strip symbols from
-      executable)
-    * some changes of Carl-Eric implemented
-
-  Revision 1.9  1997/12/09 14:07:14  carl
-  + added better error size checkimg -- otherwise would cause problems
-    with intasmi3
-  * bugfixes as in rai386
-  * BuildRealConstant gave out Overflow errors (hex/bin/octal should be
-    directly decoded into real)
-  * bugfix of MOVSX/MOVZX instruction
-  * ConcatOpCode op_csymbol gave out a Runerrore 216 under each test
-    I performed, or output a nil symbol -- so removed.
-  * All identifiers must be in uppercase!!!
-    (except local labels and directives)
-  + supervisor stuff only possible when compiling the system unit
-
-  Revision 1.7  1997/12/04 12:21:09  pierre
-    +* MMX instructions added to att output with a warning that
-       GNU as version >= 2.81 is needed
-       bug in reading of reals under att syntax corrected
-
-  Revision 1.6  1997/12/01 17:42:56  pierre
-     + added some more functionnality to the assembler parser
-
-  Revision 1.5  1997/11/28 15:43:23  florian
-  Fixed stack ajustment bug, 0.9.8 compiles now 0.9.8 without problems.
-
-  Revision 1.4  1997/11/28 15:39:46  carl
-  - removed reference to WriteLn and replaced in inasmxxx
-  * uncommented firstop and lastop (otherwise can cause bugs)
-
-  Revision 1.3  1997/11/28 14:26:24  florian
-  Fixed some bugs
-
-  Revision 1.2  1997/11/28 12:05:44  michael
-  Changed comment delimiter to braces
-  CHanged use of ord to typecast with longint
-  Changed line constant to variable. Added initialization. v0.9.1 chokes
-  on 255 length constant strings.
-  Boolean expressions are now non-redundant.
-
-  Revision 1.1.1.1  1997/11/27 08:33:01  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  14th november 1997:
-   * fixed bug regarding ENTER and push imm8 instruction (CEC)
-   + fixed conflicts with fpu instructions. (CEC).
-   + adding real const support. (PM).
-
 }
 

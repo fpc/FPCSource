@@ -385,10 +385,10 @@
            writelong(len);
 {$ifdef NEWPPU}
          case string_typ of
-           shortstring : ppufile.writeentry(ibstringdef);
-            longstring : ppufile.writeentry(iblongstringdef);
-            ansistring : ppufile.writeentry(ibansistringdef);
-            widestring : ppufile.writeentry(ibwidestringdef);
+           shortstring : ppufile^.writeentry(ibstringdef);
+            longstring : ppufile^.writeentry(iblongstringdef);
+            ansistring : ppufile^.writeentry(ibansistringdef);
+            widestring : ppufile^.writeentry(ibwidestringdef);
          end;
 {$endif}
       end;
@@ -488,7 +488,7 @@
          tdef.write;
          writelong(max);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibenumdef);
+         ppufile^.writeentry(ibenumdef);
 {$endif}
       end;
 
@@ -640,7 +640,7 @@
          writelong(von);
          writelong(bis);
 {$ifdef NEWPPU}
-         ppufile.writeentry(iborddef);
+         ppufile^.writeentry(iborddef);
 {$endif}
       end;
 
@@ -705,7 +705,7 @@
          tdef.write;
          writebyte(byte(typ));
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibfloatdef);
+         ppufile^.writeentry(ibfloatdef);
 {$endif}
       end;
 
@@ -805,7 +805,7 @@
          if filetype=ft_typed then
            writedefref(typed_as);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibfiledef);
+         ppufile^.writeentry(ibfiledef);
 {$endif}
       end;
 
@@ -911,7 +911,7 @@
          tdef.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibpointerdef);
+         ppufile^.writeentry(ibpointerdef);
 {$endif}
       end;
 
@@ -990,7 +990,7 @@
          tdef.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibclassrefdef);
+         ppufile^.writeentry(ibclassrefdef);
 {$endif}
       end;
 
@@ -1061,7 +1061,7 @@
          if settype=varset then
            writelong(savesize);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibsetdef);
+         ppufile^.writeentry(ibsetdef);
 {$endif}
       end;
 
@@ -1117,7 +1117,7 @@
 {$endif}
          tdef.write;
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibformaldef);
+         ppufile^.writeentry(ibformaldef);
 {$endif}
       end;
 
@@ -1197,7 +1197,7 @@
          writelong(lowrange);
          writelong(highrange);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibarraydef);
+         ppufile^.writeentry(ibarraydef);
 {$endif}
       end;
 
@@ -1337,7 +1337,7 @@
          tdef.write;
          writelong(savesize);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibrecorddef);
+         ppufile^.writeentry(ibrecorddef);
 {$endif}
          self.symtable^.writeasstruct;
          read_member:=oldread_member;
@@ -1691,7 +1691,7 @@
       { references do not change the ppu caracteristics      }
       { this only save the references to variables/functions }
       { defined in the unit what about the others            }
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if assigned(lastwritten) then
            ref:=lastwritten
          else
@@ -1706,7 +1706,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile.do_crc:=true;
+         ppufile^.do_crc:=true;
       end;
 
     procedure tprocdef.write_external_references;
@@ -1714,7 +1714,7 @@
       var ref : pref;
 
       begin
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if lastwritten=lastref then exit;
          writebyte(ibextdefref);
          writedefref(@self);
@@ -1732,7 +1732,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile.do_crc:=true;
+         ppufile^.do_crc:=true;
       end;
 
     procedure tprocdef.write_ref_to_file(var f : text);
@@ -1798,7 +1798,7 @@
          writedefref(nextoverloaded);
          writedefref(_class);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibprocdef);
+         ppufile^.writeentry(ibprocdef);
 {$endif}
 {$ifdef UseBrowser}
          if (current_module^.flags and uf_uses_browser)<>0 then
@@ -1970,7 +1970,7 @@
 {$endif StoreFPULevel}
          inherited write;
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibprocvardef);
+         ppufile^.writeentry(ibprocvardef);
 {$endif}
       end;
 
@@ -2215,7 +2215,7 @@
          writedefref(childof);
          writelong(options);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibobjectdef);
+         ppufile^.writeentry(ibobjectdef);
 {$endif}
          if (options and (oo_hasprivate or oo_hasprotected))<>0 then
            object_options:=true;
@@ -2368,7 +2368,13 @@
 
 {
   $Log$
-  Revision 1.1  1998-05-27 19:45:09  peter
+  Revision 1.2  1998-05-31 14:13:37  peter
+    * fixed call bugs with assembler readers
+    + OPR_SYMBOL to hold a symbol in the asm parser
+    * fixed staticsymtable vars which were acessed through %ebp instead of
+      name
+
+  Revision 1.1  1998/05/27 19:45:09  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

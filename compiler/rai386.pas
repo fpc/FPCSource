@@ -780,6 +780,9 @@ var
                       findtype := _regtypes[reg];
                       exit;
                      end;
+         OPR_SYMBOL: Begin
+                       findtype := ao_jumpabsolute;
+                     end;
        OPR_NONE:     Begin
                        findtype := 0;
                      end;
@@ -1472,6 +1475,10 @@ var
                               else
                                 Message(assem_e_invalid_opcode_and_operand);
                           end;
+             OPR_SYMBOL:  Begin
+                            p^.concat(new(pai386,op_csymbol(instruc,
+                             instr.stropsize, newcsymbol(instr.operands[1].symbol^,0))));
+                          End;
            OPR_NONE: Begin
                        Message(assem_f_internal_error_in_concatopcode);
                      end;
@@ -3369,7 +3376,13 @@ Begin
 end.
 {
   $Log$
-  Revision 1.8  1998-05-30 14:31:07  peter
+  Revision 1.9  1998-05-31 14:13:32  peter
+    * fixed call bugs with assembler readers
+    + OPR_SYMBOL to hold a symbol in the asm parser
+    * fixed staticsymtable vars which were acessed through %ebp instead of
+      name
+
+  Revision 1.8  1998/05/30 14:31:07  peter
     + $ASMMODE
 
   Revision 1.7  1998/05/28 16:32:05  carl
@@ -3406,120 +3419,4 @@ end.
       nasm output OK (program still crashes at end
       and creates wrong assembler files !!)
       procsym types sym in tdef removed !!
-
-  Revision 1.2  1998/03/31 15:21:01  florian
-    * fix of out (intel syntax) applied
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.19  1998/03/24 21:48:34  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.18  1998/03/10 01:17:26  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.17  1998/03/09 12:58:12  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.16  1998/03/04 17:33:56  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.15  1998/03/03 22:38:26  peter
-    * the last 3 files
-
-  Revision 1.14  1998/03/02 01:49:15  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.13  1998/02/13 10:35:38  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.12  1998/02/12 11:50:36  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.11  1998/02/07 18:02:36  carl
-    + fwait warning for emulation
-
-  Revision 1.10  1998/01/19 03:11:40  carl
-    * bugfix number 78
-
-  Revision 1.9  1998/01/09 19:22:51  carl
-  * bugfix of __ID variable names
-
-  Revision 1.8  1997/12/09 14:00:25  carl
-  * bugfix of intr reg,reg instructions, size must always be specified
-    under gas (ref: DJGPP FAQ)
-  * bugfix of concatopcode with fits init twice!
-  + unknown instr. only poermitted when compiling system unit and/or
-    target processor > i386
-
-  Revision 1.7  1997/12/04 12:20:50  pierre
-    +* MMX instructions added to att output with a warning that
-       GNU as version >= 2.81 is needed
-       bug in reading of reals under att syntax corrected
-
-  Revision 1.6  1997/11/28 18:14:45  pierre
-   working version with several bug fixes
-
-  Revision 1.5  1997/11/28 15:43:20  florian
-  Fixed stack ajustment bug, 0.9.8 compiles now 0.9.8 without problems.
-
-  Revision 1.4  1997/11/28 15:31:59  carl
-  * uncommented firstop and lastop. (otherwise can cause bugs)
-
-  Revision 1.3  1997/11/28 14:26:22  florian
-  Fixed some bugs
-
-  Revision 1.2  1997/11/28 12:03:53  michael
-  Changed comment delimiters to braces, causes problems with 0.9.1
-  Changed use of ord to typecast with longint.
-  Made boolean expressions non-redundant.
-
-  Revision 1.1.1.1  1997/11/27 08:33:00  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  9th november 1997:
-   + first working version with main distribution line of FPC (CEC)
- 12th november 1997:
-   * bugfix of CALL and JMP with symbolic references. (CEC)
- 13th november 1997:
-   * too many bugfixes/improvements to name... (CEC)
-   * Fixed range check, line numbering, missing operand checking
-     bugs - range checking must be off to compile under tp. (CEC)
-   + speed improvement of 30% over old version with global look up tables.
- 14th november 1997:
-   + added support for record/object offsets. (CEC)
-   * fixed bug regarding ENTER and push imm8 instruction(CEC)
-   + fixed conflicts with fpu instructions. (CEC).
-
 }
