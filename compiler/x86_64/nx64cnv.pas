@@ -31,7 +31,7 @@ interface
       nx86cnv;
 
     type
-       tx86_64typeconvnode = class(tx86typeconvnode)
+       tx8664typeconvnode = class(tx86typeconvnode)
          protected
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
@@ -42,7 +42,7 @@ interface
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
          { function first_int_to_real: tnode; override; }
-           procedure second_int_to_real;override;
+         { procedure second_int_to_real;override; }
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
@@ -58,27 +58,19 @@ interface
 
 implementation
 
-   uses
-      verbose,systems,globtype,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,
-      cgbase,pass_2,
-      ncon,ncal,ncnv,
-      cpubase,
-      cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
-
-
-    procedure tx86_64typeconvnode.second_int_to_real;
-      begin
-         internalerror(200304305);
-      end;
+  uses
+    ncnv;
 
 
 begin
-   ctypeconvnode:=tx86_64typeconvnode;
+   ctypeconvnode:=tx8664typeconvnode;
 end.
 {
   $Log$
-  Revision 1.2  2003-12-24 00:33:10  florian
+  Revision 1.3  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.2  2003/12/24 00:33:10  florian
     * x86-64 compilation fixed
 
   Revision 1.1  2003/04/30 20:53:32  florian

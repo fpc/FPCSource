@@ -40,8 +40,8 @@ interface
          { procedure second_pointer_to_array;override; }
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
-          function first_int_to_real: tnode; override;
-          procedure second_int_to_real;override;
+         { function first_int_to_real: tnode; override; }
+         { procedure second_int_to_real;override; }
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
@@ -66,97 +66,15 @@ implementation
       cgobj,cga,cgx86,ncgutil;
 
 
-    function ti386typeconvnode.first_int_to_real : tnode;
-
-      begin
-        first_int_to_real:=nil;
-         if registersfpu<1 then
-          registersfpu:=1;
-        expectloc:=LOC_FPUREGISTER;
-      end;
-
-
-    procedure ti386typeconvnode.second_int_to_real;
-
-      var
-         href : treference;
-         hregister : tregister;
-         l1,l2 : tasmlabel;
-      begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-
-         { We need to load from a reference }
-         location_force_mem(exprasmlist,left.location);
-
-         { For u32bit we need to load it as comp and need to
-           make it 64bits }
-         if (torddef(left.resulttype.def).typ=u32bit) then
-           begin
-             tg.GetTemp(exprasmlist,8,tt_normal,href);
-             location_release(exprasmlist,left.location);
-             location_freetemp(exprasmlist,left.location);
-             cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
-             inc(href.offset,4);
-             cg.a_load_const_ref(exprasmlist,OS_32,0,href);
-             dec(href.offset,4);
-             left.location.reference:=href;
-           end;
-
-         { Load from reference to fpu reg }
-         location_release(exprasmlist,left.location);
-         case torddef(left.resulttype.def).typ of
-           u32bit,
-           scurrency,
-           s64bit:
-             exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
-           u64bit:
-             begin
-                { unsigned 64 bit ints are harder to handle: }
-                { we load bits 0..62 and then check bit 63:  }
-                { if it is 1 then we add $80000000 000000000 }
-                { as double                                  }
-                inc(left.location.reference.offset,4);
-                hregister:=cg.getintregister(exprasmlist,OS_32);
-                cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hregister);
-                emit_const_ref(A_AND,S_L,$7fffffff,left.location.reference);
-                emit_const_reg(A_TEST,S_L,longint($80000000),hregister);
-                cg.ungetregister(exprasmlist,hregister);
-                dec(left.location.reference.offset,4);
-                exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
-                objectlibrary.getdatalabel(l1);
-                objectlibrary.getlabel(l2);
-                cg.a_jmp_flags(exprasmlist,F_E,l2);
-                Consts.concat(Tai_label.Create(l1));
-                { I got this constant from a test progtram (FK) }
-                Consts.concat(Tai_const.Create_32bit(0));
-                Consts.concat(Tai_const.Create_32bit(1138753536));
-                reference_reset_symbol(href,l1,0);
-                emit_ref(A_FADD,S_FL,href);
-                cg.a_label(exprasmlist,l2);
-             end
-           else
-             begin
-               if left.resulttype.def.size<4 then
-                 begin
-                   tg.GetTemp(exprasmlist,4,tt_normal,href);
-                   location_freetemp(exprasmlist,left.location);
-                   cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
-                   left.location.reference:=href;
-                 end;
-              exprasmlist.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
-             end;
-         end;
-         location_freetemp(exprasmlist,left.location);
-         tcgx86(cg).inc_fpu_stack;
-         location.register:=NR_ST;
-      end;
-
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.71  2003-12-22 23:08:59  peter
+  Revision 1.72  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.71  2003/12/22 23:08:59  peter
     * removed unused checkobject method
 
   Revision 1.70  2003/12/08 15:35:00  peter

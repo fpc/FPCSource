@@ -466,7 +466,7 @@ interface
 {$ifdef fpc}
         {$warning todo: add RTL routine for widechar-char conversion }
 {$endif}
-        { Quick hack to atleast generate 'working' code (PFV) }
+        { Quick hack to at least generate 'working' code (PFV) }
         second_int_to_int;
       end;
 
@@ -535,7 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2004-01-31 17:45:17  peter
+  Revision 1.54  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.53  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

@@ -2,8 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit implements the x86-64 specific class for the register
-    allocator
+    Generate x86-64 inline nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,29 +20,29 @@
 
  ****************************************************************************
 }
-
-unit rgcpu;
+unit nx64inl;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
-     uses
-       rgx86;
+    uses
+       nx86inl;
 
-     type
-       trgcpu = class(trgx86)
+    type
+       tx8664inlinenode = class(tx86inlinenode)
        end;
 
-  implementation
+implementation
 
+  uses
+    ninl;
+
+begin
+   cinlinenode:=tx8664inlinenode;
 end.
-
 {
   $Log$
-  Revision 1.8  2004-02-05 01:24:08  florian
+  Revision 1.1  2004-02-05 01:24:08  florian
     * several fixes to compile x86-64 system
-
-  Revision 1.7  2003/12/24 00:10:03  florian
-    - delete parameter in cg64 methods removed
 }

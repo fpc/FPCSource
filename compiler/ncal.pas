@@ -54,6 +54,11 @@ interface
           wrongparanr : byte;
        end;
 
+       tcallnodeflags = (
+         cnf_restypeset
+       );
+       tcallnodeflagset = set of tcallnodeflags;
+
        tcallnode = class(tbinarynode)
        private
           { number of parameters passed from the source, this does not include the hidden parameters }
@@ -104,7 +109,7 @@ interface
           { you can't have a function with an "array of char" resulttype }
           { the RTL) (JM)                                                }
           restype: ttype;
-          restypeset: boolean;
+          callnodeflags : tcallnodeflagset;
 
           { only the processor specific nodes need to override this }
           { constructor                                             }
@@ -822,7 +827,7 @@ type
          include(flags,nf_return_value_used);
          methodpointer:=mp;
          procdefinition:=nil;
-         restypeset:=false;
+         callnodeflags:=[];
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
@@ -838,7 +843,7 @@ type
          include(flags,nf_return_value_used);
          methodpointer:=mp;
          procdefinition:=def;
-         restypeset:=false;
+         callnodeflags:=[];
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
@@ -854,7 +859,7 @@ type
          include(flags,nf_return_value_used);
          methodpointer:=nil;
          procdefinition:=nil;
-         restypeset:=false;
+         callnodeflags:=[];
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
@@ -894,7 +899,7 @@ type
       begin
         self.createintern(name,params);
         restype := res;
-        restypeset := true;
+        include(callnodeflags,cnf_restypeset);
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
         if paramanager.ret_in_param(restype.def,pocall_compilerproc) xor
@@ -966,7 +971,7 @@ type
 {$endif}
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
-        restypeset:=boolean(ppufile.getbyte);
+        ppufile.getsmallset(callnodeflags);
         methodpointer:=ppuloadnode(ppufile);
         _funcretnode:=ppuloadnode(ppufile);
         inlinecode:=ppuloadnode(ppufile);
@@ -978,7 +983,7 @@ type
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableprocentryderef);
         ppufile.putderef(procdefinitionderef);
-        ppufile.putbyte(byte(restypeset));
+        ppufile.putsmallset(callnodeflags);
         ppuwritenode(ppufile,methodpointer);
         ppuwritenode(ppufile,_funcretnode);
         ppuwritenode(ppufile,inlinecode);
@@ -1043,7 +1048,7 @@ type
         n.symtableproc:=symtableproc;
         n.procdefinition:=procdefinition;
         n.restype := restype;
-        n.restypeset := restypeset;
+        n.callnodeflags := callnodeflags;
         if assigned(methodpointer) then
          n.methodpointer:=methodpointer.getcopy
         else
@@ -2220,7 +2225,7 @@ type
            end;
 
          { ensure that the result type is set }
-         if not restypeset then
+         if not(cnf_restypeset in callnodeflags) then
           begin
             { constructors return their current class type, not the type where the
               constructor is declared, this can be different because of inheritance }
@@ -2681,9 +2686,9 @@ type
           (symtableprocentry = tcallnode(p).symtableprocentry) and
           (procdefinition = tcallnode(p).procdefinition) and
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
-          ((restypeset and tcallnode(p).restypeset and
+          (((cnf_restypeset in callnodeflags) and (cnf_restypeset in tcallnode(p).callnodeflags) and
             (equal_defs(restype.def,tcallnode(p).restype.def))) or
-           (not restypeset and not tcallnode(p).restypeset));
+           (not(cnf_restypeset in callnodeflags) and not(cnf_restypeset in tcallnode(p).callnodeflags)));
       end;
 
 
@@ -2711,7 +2716,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.222  2004-02-03 22:32:54  peter
+  Revision 1.223  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.222  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -51,23 +51,23 @@ interface
         hl4 : tasmlabel;
 
     begin
-      {The location.register will be filled in later (JM)}
+      { The location.register will be filled in later (JM) }
       location_reset(location,LOC_REGISTER,OS_INT);
-      {Get a temp register and load the left value into it
-       and free the location.}
+      { Get a temp register and load the left value into it
+        and free the location. }
       r:=cg.getintregister(exprasmlist,OS_INT);
       cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
       location_release(exprasmlist,left.location);
-      {Allocate EAX.}
-      cg.getexplicitregister(exprasmlist,NR_EAX);
-      {Load the right value.}
-      cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_EAX);
+      { Allocate RAX. }
+      cg.getexplicitregister(exprasmlist,NR_RAX);
+      { Load the right value. }
+      cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_RAX);
       location_release(exprasmlist,right.location);
-      {The mul instruction frees register r.}
+      { The mul instruction frees register r.}
       cg.ungetregister(exprasmlist,r);
-      {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getexplicitregister(exprasmlist,NR_EDX);
-      emit_reg(A_MUL,S_L,r);
+      { Also allocate RDX, since it is also modified by a mul (JM). }
+      cg.getexplicitregister(exprasmlist,NR_RDX);
+      emit_reg(A_MUL,S_Q,r);
       if cs_check_overflow in aktlocalswitches  then
        begin
          objectlibrary.getlabel(hl4);
@@ -75,13 +75,13 @@ interface
          cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
          cg.a_label(exprasmlist,hl4);
        end;
-      {Free EDX}
-      cg.ungetregister(exprasmlist,NR_EDX);
-      {Free EAX}
-      cg.ungetregister(exprasmlist,NR_EAX);
-      {Allocate a new register and store the result in EAX in it.}
+      { Free RDX }
+      cg.ungetregister(exprasmlist,NR_RDX);
+      { Free RAX }
+      cg.ungetregister(exprasmlist,NR_RAX);
+      { Allocate a new register and store the result in RAX in it. }
       location.register:=cg.getintregister(exprasmlist,OS_INT);
-      emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
+      emit_reg_reg(A_MOV,S_L,NR_RAX,location.register);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
     end;
@@ -92,6 +92,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-01-20 12:59:37  florian
+  Revision 1.2  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.1  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 }

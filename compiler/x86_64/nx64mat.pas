@@ -41,6 +41,8 @@ interface
       tx8664unaryminusnode = class(tx86unaryminusnode)
       end;
 
+      tx8664notnode = class(tx86notnode)
+      end;
 
 implementation
 
@@ -199,10 +201,14 @@ begin
    cunaryminusnode:=tx8664unaryminusnode;
    cmoddivnode:=tx8664moddivnode;
    cshlshrnode:=tx8664shlshrnode;
+   cnotnode:=tx8664notnode;
 end.
 {
   $Log$
-  Revision 1.2  2004-02-04 19:22:27  peter
+  Revision 1.3  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.2  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.1  2004/01/20 12:59:37  florian

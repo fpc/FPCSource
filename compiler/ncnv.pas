@@ -1482,9 +1482,11 @@ implementation
            expectloc:=LOC_REGISTER
         else
            expectloc:=left.expectloc;
+{$ifndef cpu64bit}
         if is_64bit(resulttype.def) then
           registersint:=max(registersint,2)
         else
+{$endif cpu64bit}
           registersint:=max(registersint,1);
       end;
 
@@ -2405,7 +2407,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2004-02-04 22:15:15  daniel
+  Revision 1.138  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.137  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

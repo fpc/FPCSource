@@ -550,13 +550,13 @@ implementation
               case nodetype of
                 addn :
                   begin
-                       resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
-                             t:=csetconstnode.create(@resultset,left.resulttype);
+                    resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+                    t:=csetconstnode.create(@resultset,left.resulttype);
                   end;
                  muln :
                    begin
-                 resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
-                             t:=csetconstnode.create(@resultset,left.resulttype);
+                     resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
+                     t:=csetconstnode.create(@resultset,left.resulttype);
                    end;
                 subn :
                    begin
@@ -756,6 +756,8 @@ implementation
                   if (torddef(rd).typ<>u64bit) then
                    inserttypeconv(right,u64inttype);
                end
+             { 64 bit cpus do calculations always in 64 bit }
+{$ifndef cpu64bit}
              { is there a cardinal? }
              else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
                begin
@@ -809,7 +811,8 @@ implementation
                        end;
                    end;
                end
-             { generic ord conversion is s32bit }
+{$endif cpu64bit}
+             { generic ord conversion is sinttype }
              else
                begin
                  { if the left or right value is smaller than the normal
@@ -1625,6 +1628,7 @@ implementation
                  expectloc:=LOC_FLAGS;
                  calcregisters(self,1,0,0);
                end
+{$ifndef cpu64bit}
               { is there a 64 bit type ? }
              else if (torddef(ld).typ in [s64bit,u64bit,scurrency]) then
                begin
@@ -1637,6 +1641,7 @@ implementation
                     expectloc:=LOC_JUMP;
                   calcregisters(self,2,0,0)
                end
+{$endif cpu64bit}
              { is there a cardinal? }
              else if (torddef(ld).typ=u32bit) then
                begin
@@ -1905,7 +1910,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2004-02-03 22:32:54  peter
+  Revision 1.110  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.109  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

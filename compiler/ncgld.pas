@@ -611,10 +611,10 @@ implementation
                 begin
                   cgsize:=def_cgsize(left.resulttype.def);
                   if cgsize in [OS_64,OS_S64] then
-                   cg64.a_load64_reg_loc(exprasmlist,
-                     right.location.register64,left.location)
+                    cg64.a_load64_reg_loc(exprasmlist,
+                      right.location.register64,left.location)
                   else
-                   cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
+                    cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
                 begin
@@ -906,7 +906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2004-02-03 22:32:54  peter
+  Revision 1.107  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.106  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

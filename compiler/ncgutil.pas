@@ -493,116 +493,64 @@ implementation
         hregister : tregister;
         hl : tasmlabel;
         oldloc : tlocation;
-     begin
-        oldloc:=l;
-        if dst_size=OS_NO then
-          internalerror(200309144);
-        { handle transformations to 64bit separate }
-        if dst_size in [OS_64,OS_S64] then
-          begin
-              { load a smaller size to OS_64 }
-              if l.loc=LOC_REGISTER then
-               hregister:=cg.makeregsize(l.register,OS_INT)
-              else
-               begin
-                 location_release(list,l);
-                 hregister:=cg.getintregister(list,OS_INT);
-               end;
-              { load value in low register }
-              case l.loc of
-{$ifdef cpuflags}
-                LOC_FLAGS :
-                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
-{$endif cpuflags}
-
-                LOC_JUMP :
-                  begin
-                    cg.a_label(list,truelabel);
-                    cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    objectlibrary.getlabel(hl);
-                    cg.a_jmp_always(list,hl);
-                    cg.a_label(list,falselabel);
-                    cg.a_load_const_reg(list,OS_INT,0,hregister);
-                    cg.a_label(list,hl);
-                  end;
-                else
-                  cg.a_load_loc_reg(list,OS_INT,l,hregister);
-              end;
-              location_reset(l,LOC_REGISTER,dst_size);
-              l.register:=hregister;
-            end
-        else
-         begin
-           { transformations to 32bit or smaller }
-           if l.loc=LOC_REGISTER then
+      begin
+        {Do not bother to recycle the existing register. The register
+         allocator eliminates unnecessary moves, so it's not needed
+         and trying to recycle registers can cause problems because
+         the registers changes size and may need aditional constraints.}
+        location_release(list,l);
+        hregister:=cg.getintregister(list,dst_size);
+        { load value in new register }
+        case l.loc of
+          LOC_FLAGS :
+            cg.g_flags2reg(list,dst_size,l.resflags,hregister);
+          LOC_JUMP :
             begin
-              hregister:=l.register;
-            end
-           else
-            begin
-              { get new register }
-              if (l.loc=LOC_CREGISTER) and
-                 maybeconst and
-                 (TCGSize2Size[dst_size]=TCGSize2Size[l.size]) then
-               hregister:=l.register
-              else
-               begin
-                 location_release(list,l);
-                 hregister:=cg.getintregister(list,OS_INT);
-               end;
+              cg.a_label(list,truelabel);
+              cg.a_load_const_reg(list,dst_size,1,hregister);
+              objectlibrary.getlabel(hl);
+              cg.a_jmp_always(list,hl);
+              cg.a_label(list,falselabel);
+              cg.a_load_const_reg(list,dst_size,0,hregister);
+              cg.a_label(list,hl);
             end;
-           hregister:=cg.makeregsize(hregister,dst_size);
-           { load value in new register }
-           case l.loc of
-{$ifdef cpuflags}
-             LOC_FLAGS :
-               cg.g_flags2reg(list,dst_size,l.resflags,hregister);
-{$endif cpuflags}
-             LOC_JUMP :
+          else
+            begin
+              { load_loc_reg can only handle size >= l.size, when the
+                new size is smaller then we need to adjust the size
+                of the orignal and maybe recalculate l.register for i386 }
+              if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                begin
-                 cg.a_label(list,truelabel);
-                 cg.a_load_const_reg(list,dst_size,1,hregister);
-                 objectlibrary.getlabel(hl);
-                 cg.a_jmp_always(list,hl);
-                 cg.a_label(list,falselabel);
-                 cg.a_load_const_reg(list,dst_size,0,hregister);
-                 cg.a_label(list,hl);
-               end;
-             else
-               begin
-                 { load_loc_reg can only handle size >= l.size, when the
-                   new size is smaller then we need to adjust the size
-                   of the orignal and maybe recalculate l.register for i386 }
-                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-                  begin
-                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     l.register:=cg.makeregsize(l.register,dst_size);
-                    { for big endian systems, the reference's offset must }
-                    { be increased in this case, since they have the      }
-                    { MSB first in memory and e.g. byte(word_var) should  }
-                    { return  the second byte in this case (JM)           }
-                    if (target_info.endian = ENDIAN_BIG) and
-                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                      inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                 if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                   l.register:=cg.makeregsize(l.register,dst_size);
+                 { for big endian systems, the reference's offset must }
+                 { be increased in this case, since they have the      }
+                 { MSB first in memory and e.g. byte(word_var) should  }
+                 { return  the second byte in this case (JM)           }
+                 if (target_info.endian = ENDIAN_BIG) and
+                    (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                   inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
 {$ifdef x86}
-                   l.size:=dst_size;
+                l.size:=dst_size;
 {$endif x86}
-                  end;
-
-                 cg.a_load_loc_reg(list,dst_size,l,hregister);
-{$ifndef x86}
-                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-                   l.size:=dst_size;
-{$endif not x86}
                end;
-           end;
-           location_reset(l,LOC_REGISTER,dst_size);
-           l.register:=hregister;
-         end;
-       { Release temp when it was a reference }
-       if oldloc.loc=LOC_REFERENCE then
-         location_freetemp(list,oldloc);
-     end;
+              cg.a_load_loc_reg(list,dst_size,l,hregister);
+{$ifndef x86}
+              if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
+                l.size:=dst_size;
+{$endif not x86}
+            end;
+        end;
+        if (l.loc <> LOC_CREGISTER) or
+           not maybeconst then
+          location_reset(l,LOC_REGISTER,dst_size)
+        else
+          location_reset(l,LOC_CREGISTER,dst_size);
+        l.register:=hregister;
+        { Release temp when it was a reference }
+        if oldloc.loc=LOC_REFERENCE then
+          location_freetemp(list,oldloc);
+      end;
 {$endif cpu64bit}
 
 
@@ -1976,6 +1924,7 @@ implementation
                     if not(po_assembler in current_procinfo.procdef.procoptions) then
                       begin
                         case paraitem.paraloc[calleeside].loc of
+                          LOC_MMREGISTER,
                           LOC_FPUREGISTER,
                           LOC_REGISTER:
                             begin
@@ -2188,7 +2137,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.189  2004-02-04 22:15:15  daniel
+  Revision 1.190  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.189  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

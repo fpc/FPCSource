@@ -361,14 +361,14 @@ implementation
 *****************************************************************************}
 
     constructor Twhilerepeatnode.create(l,r,_t1:Tnode;tab,cn:boolean);
+      begin
+          inherited create(whilerepeatn,l,r,_t1,nil);
+          if tab then
+              include(loopflags, lnf_testatbegin);
+          if cn then
+              include(loopflags,lnf_checknegate);
+      end;
 
-    begin
-        inherited create(whilerepeatn,l,r,_t1,nil);
-        if tab then
-            include(loopflags, lnf_testatbegin);
-        if cn then
-            include(loopflags,lnf_checknegate);
-    end;
 
     function twhilerepeatnode.det_resulttype:tnode;
       var
@@ -1475,7 +1475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2004-02-03 22:32:54  peter
+  Revision 1.94  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.93  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

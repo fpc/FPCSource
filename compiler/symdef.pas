@@ -2171,10 +2171,10 @@ implementation
 {$ifdef cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=592;
+            savesize:=616;
           ft_typed,
           ft_untyped :
-            savesize:=316;
+            savesize:=324;
         end;
 {$else cpu64bit}
         case filetyp of
@@ -6152,7 +6152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.214  2004-02-03 22:32:54  peter
+  Revision 1.215  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.214  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

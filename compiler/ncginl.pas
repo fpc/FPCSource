@@ -327,10 +327,11 @@ implementation
          begin
            { length in ansi strings is at offset -8 }
            location_force_reg(exprasmlist,left.location,OS_ADDR,false);
-           hregister:=left.location.register;
            objectlibrary.getlabel(lengthlab);
-           cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
-           reference_reset_base(href,hregister,-8);
+           cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
+           reference_reset_base(href,left.location.register,-8);
+           reference_release(exprasmlist,href);
+           hregister:=cg.getintregister(exprasmlist,OS_32);
            cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
            location_reset(location,LOC_REGISTER,OS_32);
@@ -676,7 +677,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2004-02-02 20:41:59  florian
+  Revision 1.53  2004-02-05 01:24:08  florian
+    * several fixes to compile x86-64 system
+
+  Revision 1.52  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
 
   Revision 1.51  2004/01/31 17:45:17  peter
