@@ -755,6 +755,9 @@ implementation
                  procedureprefix := 'FPC_VAL_UINT_';
            End;
            emitcall(procedureprefix+pstringdef(node^.resulttype)^.stringtypname,true);
+           { before disposing node we need to ungettemp !! PM }
+           if node^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+             ungetiftemp(node^.left^.location.reference);
            disposetree(node);
            p^.left := nil;
 
@@ -1278,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-04-08 15:57:46  peter
+  Revision 1.41  1999-04-08 23:59:49  pierre
+   * temp string for val code freed
+
+  Revision 1.40  1999/04/08 15:57:46  peter
     + subrange checking for readln()
 
   Revision 1.39  1999/04/07 15:31:16  pierre
