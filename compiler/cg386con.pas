@@ -179,6 +179,14 @@ implementation
                                begin
                                   { found! }
                                   p^.lab_str:=lastlabel;
+                                  if (p^.stringtype in [st_ansistring,st_widestring]) then
+                                    begin
+                                       getdatalabel(l2);
+                                       consts^.concat(new(pai_label,init(l2)));
+                                       consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(p^.lab_str)))));
+                                       { return the offset of the real string }
+                                       p^.lab_str:=l2;
+                                    end;
                                   break;
                                end;
                           end;
@@ -364,7 +372,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1998-11-28 15:36:02  michael
+  Revision 1.25  1998-12-10 14:39:30  florian
+    * bug with p(const a : ansistring) fixed
+    * duplicate constant ansistrings were handled wrong, fixed
+
+  Revision 1.24  1998/11/28 15:36:02  michael
   Fixed generation of constant ansistrings
 
   Revision 1.23  1998/11/26 14:39:12  peter

@@ -59,11 +59,11 @@ implementation
         begin
           push_addr:=(
 {$ifndef VALUEPARA}
-                      dont_copy_const_param(p^.resulttype) or
+                      dont_copy_const_param(p^.resulttype) { or }
 {$else}
-                      push_addr_param(p^.resulttype) or
+                      push_addr_param(p^.resulttype)
 {$endif}
-                      ((p^.treetype=stringconstn) and is_ansistring(p^.resulttype))
+{  hmmm, why this ?? (FK)  or ((p^.treetype=stringconstn) and is_ansistring(p^.resulttype)) }
                      );
         end;
 
@@ -1626,7 +1626,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1998-12-10 09:47:15  florian
+  Revision 1.52  1998-12-10 14:39:29  florian
+    * bug with p(const a : ansistring) fixed
+    * duplicate constant ansistrings were handled wrong, fixed
+
+  Revision 1.51  1998/12/10 09:47:15  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 
