@@ -38,7 +38,7 @@
 Type shortstring=string;
 
 Function  NewAnsiString (Len : Longint) : AnsiString; forward;
-Procedure DisposeAnsiString (Var S : AnsiString); forward;
+Procedure DisposeAnsiString (Var P : Pointer); forward;
 Procedure Decr_Ansi_Ref (Var S : AnsiString); forward;
 Procedure Incr_Ansi_Ref (Var S : AnsiString); forward;
 Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); forward;
@@ -49,8 +49,6 @@ Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); for
 Function  AnsiCompare (Var S1,S2 : AnsiString): Longint; forward;
 Function  AnsiCompare (var S1 : AnsiString; Var S2 : ShortString): Longint; forward;
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
-
-{ Public functions, Will end up in systemh.inc }
 
 {$PACKRECORDS 1}
 Type TAnsiRec = Record
@@ -66,15 +64,14 @@ Const AnsiRecLen = SizeOf(TAnsiRec);
   Internal functions, not in interface.
   ---------------------------------------------------------------------}
 
-
-Procedure DumpAnsiRec (Var S : Ansistring);
+Procedure DumpAnsiRec(S : Pointer);
 
 begin
-  If Pointer(S)=Nil then
+  If S=Nil then
     Writeln ('String is nil')
   Else
     Begin
-    With PAnsiRec(Pointer(S)-Firstoff)^ do
+    With PAnsiRec(S-Firstoff)^ do
       begin
       Writeln ('Maxlen : ',maxlen);
       Writeln ('Len    : ',len);
@@ -83,9 +80,7 @@ begin
     end;
 end;
 
-
-
-Function  NewAnsiString (Len : Longint) : AnsiString;
+Function NewAnsiString(Len : Longint) : Pointer;
 {
   Allocate a new AnsiString on the heap.
   initialize it to zero length and reference count 1.
@@ -102,59 +97,60 @@ begin
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
      P:=P+FirstOff;               { Points to string now }
      end;
-  Pointer(NewAnsiString):=P;
+  NewAnsiString:=P;
 end;
 
-Procedure DisposeAnsiString (Var S : AnsiString);
+Procedure DisposeAnsiString(Var S : Pointer);
 {
   Deallocates a AnsiString From the heap.
 }
 begin
 //  Writeln ('In disposeAnsiSTring');
-  If Pointer(S)=Nil then exit;
+  If S=Nil
+    then exit;
   Dec (Longint(S),FirstOff);
-  FreeMem (Pointer(S),PAnsiRec(Pointer(S))^.Maxlen+AnsiRecLen);
-  Pointer(S):=Nil;
+  FreeMem (S,PAnsiRec(S)^.Maxlen+AnsiRecLen);
+  S:=Nil;
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : AnsiString);[Alias : 'FPC_DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (P : Pointer);[Alias : 'FPC_DECR_ANSI_REF'];
 {
  Decreases the ReferenceCount of a non constant ansistring;
  If the reference count is zero, deallocate the string;
 }
 Type plongint = ^longint;
-
 Var l : plongint;
-
-
 Begin
 //  dumpansirec(s);
-  If Pointer(S)=Nil then exit; { Zero string }
+  { Zero string }
+  If S=Nil then
+    exit;
 
   { check for constant strings ...}
-  l:=Pointer(S)-FirstOff+8;
+  l:=S-FirstOff+8;
   If l^<0 then exit;
-  l^:=l^-1;
+  Dec(l^);
 //  dumpansirec(s);
   If l^=0 then
     { Ref count dropped to zero }
     begin
-//    Writeln ('CAlling disposestring');
+//    Writeln ('Calling disposestring');
     DisposeAnsiString (S);        { Remove...}
     end
 end;
 
-Procedure Incr_Ansi_Ref (Var S : AnsiString);[Alias : 'FPC_INCR_ANSI_REF'];
+Procedure Incr_Ansi_Ref (S : Pointer);[Alias : 'FPC_INCR_ANSI_REF'];
 
 Begin
-  If Pointer(S)=Nil then exit;
+  If S=Nil then
+    exit;
   { Let's be paranoid : Constant string ??}
-  If PansiRec(Pointer(S)-FirstOff)^.Ref<0 then exit;
-  inc(PAnsiRec(Pointer(S)-FirstOff)^.Ref);
+  If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
+  Inc(PAnsiRec(S-FirstOff)^.Ref);
 end;
 
-Procedure UniqueAnsiString (Var S : AnsiString);
+Procedure UniqueAnsiString (Var S : Pointer);
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -163,20 +159,20 @@ Procedure UniqueAnsiString (Var S : AnsiString);
 Var SNew : Pointer;
 
 begin
-  If Pointer(S)=Nil then exit;
-  if PAnsiRec(Pointer(S)-Firstoff)^.Ref>1 then
+  If S=Nil
+    then exit;
+  if PAnsiRec(S-Firstoff)^.Ref>1 then
     begin
-    SNew:=Pointer(NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len));
-    Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
-    PAnsiRec(SNew-8)^.len:=PAnsiRec(Pchar(S)-FirstOff)^.len;
+       SNew:=Pointer(NewAnsiString (PAnsiRec(S-FirstOff)^.len));
+       Move (Pointer(S)^,SNew^,PAnsiRec(S-FirstOff)^.len+1);
+    PAnsiRec(SNew-8)^.len:=PAnsiRec(S-FirstOff)^.len;
     Decr_Ansi_Ref (S);  { Thread safe }
-    Pchar(S):=Pchar(SNew);
+    S:=SNew;
     end;
 end;
 
+Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer); [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
 
-
-Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
  If S2 is a constant string, a new S1 is allocated on the heap.
@@ -202,7 +198,7 @@ begin
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
-  Pointer(S1):=Temp;
+  S1:=Temp;
 end;
 
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Var S2 : AnsiString);
@@ -281,6 +277,17 @@ begin
 end;
 
 
+Function PChar2Ansi(p : pchar) : pointer;[Public,Alias : 'FPC_ANSI2PCHAR'];
+
+  begin
+     if p^=#0
+       PChar2Ansi:=nil
+     else
+
+  end;
+
+{ the compiler generates inline code for that
+
 Const EmptyChar : char = #0;
 
 Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'FPC_ANSI2PCHAR'];
@@ -291,6 +298,16 @@ begin
   else
     Ansi2Pchar:=@emptychar;
 end;
+}
+
+{ stupid solution, could be done with public,name in later versions }
+procedure dummy;assembler;
+
+  asm
+     .globl FPC_EMPTYCHAR
+     FPC_EMPTYCHAR:
+     .byte 0
+  end;
 
 Function AnsiCompare (Var S1,S2 : AnsiString): Longint;
 {
@@ -683,7 +700,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-09-14 10:48:14  peter
+  Revision 1.15  1998-09-19 08:33:17  florian
+    * some internal procedures take now an pointer instead of a
+      ansistring
+
+  Revision 1.14  1998/09/14 10:48:14  peter
     * FPC_ names
     * Heap manager is now system independent
 
