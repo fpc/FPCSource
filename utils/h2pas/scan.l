@@ -149,6 +149,8 @@ unit scan;
 
     const
        in_define : boolean = false;
+       { True if define spans to the next line }
+       cont_line : boolean = false;
        { 1 after define; 2 after the ID to print the first separating space }
        in_space_define : byte = 0;
        arglevel : longint = 0;
@@ -668,12 +670,31 @@ D [0-9]
 \n                      begin
                            if in_define then
                             begin
-                              in_define:=false;
-                              in_space_define:=0;
-                              return(NEW_LINE);
+                              in_space_define:=0;  
+                              if cont_line then
+                              begin
+                                cont_line:=false;
+                              end
+                              else
+                              begin
+                                in_define:=false;
+                                return(NEW_LINE);
+                              end;
                             end;
-                        end;
-.                       begin
+                       end;
+\\$                    begin
+                           if in_define then 
+                           begin
+                             cont_line:=true;
+                           end
+                           else
+                           begin
+                             writeln('Unexpected wrap of line ',yylineno);
+                             writeln('"',yyline,'"');
+                             return(256);
+                           end;
+                       end;
+.                      begin
                            writeln('Illegal character in line ',yylineno);
                            writeln('"',yyline,'"');
                            return(256);
