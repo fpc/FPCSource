@@ -1,0 +1,1694 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble.
+\input{preamble.inc}
+\latex{%
+  \ifpdf
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Users' Guide)
+           /Subject(FPDoc Users' guide)
+           /Keywords(Free Pascal)
+           }
+\fi}
+%
+% Settings
+%
+\makeindex
+%
+% Start of document.
+%
+\newcommand{\fpdoc}{\textsc{FPDoc}\xspace}
+\newcommand{\seesu}[1]{section \ref{suse:#1}, page \pageref{suse:#1}\xspace}
+\newcommand{\seetag}[1]{\tag{#1} (\pageref{tag:#1})\xspace}
+\newcommand{\tag}[1]{\textbf{#1}}
+\newcommand{\attr}[1]{\textit{#1}}
+\usepackage{tabularx}
+\usepackage{syntax}
+\begin{document}
+\title{FPDoc :\\Free Pascal code documenter: Reference manual}
+\docdescription{Reference manual for FPDoc}
+\docversion{0.9}
+\date{\today}
+\author{Micha\"el Van Canneyt}
+\maketitle
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% About this document
+\section{About this document}
+This is the reference manual for \fpdoc, a free documentation tool for 
+Pascal units. It describes the usage of \fpdoc and how to write 
+documentation with it. 
+
+It attempts to be complete, but the tool is under continuous development,
+and so there may be some slight differences between the documentation and
+the actual program. In case of discrepancy, the sources of the tool are the
+final reference. A \file{README} or \file{CHANGES} file may be provided, and
+can also give some hints as to things which have changed. In case of doubt,
+these files or the sources are authoritative.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% About FPDoc
+\section{About \fpdoc}
+\fpdoc is a tool that combines a Pascal unit file and a description file
+in XML format and produces reference documentation for the unit. The
+reference documentation contains documentation for all of the identifiers
+found in the unit's interface section. The documentation is fully
+cross-referenced, making it easy to navigate. It is also possible to refer
+to other documentation sets written with \fpdoc, making it possible to
+maintain larger documentation sets for large projects.
+
+Contrary to some other documentation techniques, \fpdoc does not require the
+presence of formatted comments in the source code. It takes a source file
+and a documentation file (in XML format) and merges these two together to a
+full documentation of the source. This means that the code doesn't get
+obfuscated with large pieces of comment, making it hard to read and
+understand. 
+
+\fpdoc is package-oriented, which means that it considers units as part of a
+package. Documentation for all units in a package can be generated in one
+run.
+
+At the moment of writing, the documentation can be generated in the
+following formats:
+\begin{description}
+\item[HTML] Plain HTML. Javascript is used to be able to show a small window
+with class properties or class methods, but the generated HTML will work
+without JavaScript as well. Style sheets are used to do the markup, so the
+output can be customised.
+\item[XHTML] As HTML, but using a more strict syntax.
+\item[LaTeX] LaTeX files, which can be used with the \file{fpc.sty} file
+which comes with the \fpc documentation. From this output, PDF documents can
+be generated, and with the use of latex2rtf, RTF or Winhelp files. Text
+files can also be generated.
+\end{description}
+Plans exist to create direct text output and RTF output as well.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Getting more information.
+\section{Getting more information.}
+If the documentation doesn't give an answer to your questions,
+you can obtain more information on the Internet, on the following address: 
+
+\htmladdnormallink{http://fpdoc.freepascal.org/}
+{http://fpdoc.freepascal.org} 
+
+It contains links to download all \fpdoc related material.
+
+Finally, if you think something should be added to this manual
+(entirely possible), please do not hesitate and contact me at
+\htmladdnormallink{michael@freepascal.org}{mailto:michael@freepascal.org}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Installation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiling and Installing \fpdoc}
+\label{ch:Installation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiling
+\section{Compiling}
+In order to compile \fpdoc, the following things are needed:
+\begin{enumerate}
+\item The fpdoc sources. These can be downloaded from the \fpdoc website.
+\item The \fpc compiler sources. \fpdoc uses the scanner from the \fpc
+comiler to scan the source file.
+\item The FCL units (or their sources) should be installed. 
+\item fpcmake is needed to create the makefile for fpdoc. It comes with
+\fpc, so if \fpc is installed, there should be no problem.
+\item To make new internationalisation support files, \file{rstconv} must be
+installed, and the GNU gettext package.
+\end{enumerate}
+Links to download all these programs can be found on the \fpdoc website.
+
+When the fpdoc sources have been unzipped, the Makefile must be generated.
+Before generating the makefile, the location of the compiler source
+directory should be indicated. In the \file{Makefile.fpc} file, which has a 
+windows ini file format, locate the \var{fpcdir} entry in the \var{defaults} 
+section:
+\begin{verbatim}
+fpcdir=../..
+\end{verbatim}
+and change it so it points to the top-level \fpc source directory.
+
+After that, running \file{fpcmake} will produce the \file{Makefile}, and
+running \file{make} should produce 2 executables: \file{fpdoc} and
+\file{makeskel}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Installation
+\section{Installation}
+
+When installing from sources, a simple 
+\begin{verbatim}
+make install
+cd intl
+make install
+\end{verbatim}
+should completely install the documentation tool.
+
+When installing from a archive with the binaries, it should be sufficient
+to copy the binaries to a directory in the \var{PATH}.
+
+To have fpdoc available in several languages, the language files should be
+installed in the following directory on Unix systems:
+\begin{verbatim}
+/usr/local/share/locale/XX/LC_MESSAGES/
+\end{verbatim}
+or
+\begin{verbatim}
+/usr/share/locale/XX/LC_MESSAGES/
+\end{verbatim}
+Depending on the setup. Here \var{XX} should be replaced by the locale 
+identifier.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Usage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{\fpdoc usage}
+\label{ch:usage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Usage
+\section{fpdoc}
+Using \fpdoc is quite simple. It takes some command-line options, and based
+on these options, creates documentation. The command-line options can be
+given as long or short options, as is common for most GNU programs.
+
+In principle, only 2 command-line options are needed:
+\begin{description}
+\item[package] This specifies the name of the package for which
+documentation must be created. Exactly one package option can be 
+specified.
+\item[input] The name of a unit file for which documentation should be
+generated. This can be a simple filename, but can also contain some syntax
+options as they could be given to the \fpc scanner. More than one
+\var{input} option can be given, and documentation will be generated for all
+specified input files.
+\end{description}
+
+Some examples:
+\begin{verbatim}
+fpdoc --package=fcl --input=crt.pp
+\end{verbatim}
+This will scan the \file{crt.pp} file and generate documentation for it
+in a directory called \file{fcl}.
+\begin{verbatim}
+fpdoc --package=fcl --input='-I../inc -S2 -DDebug classes.pp'
+\end{verbatim}
+This will scan the file \file{classes.pp}, with the \var{DEBUG} symbol
+defined, the scanner will look for include files in the \file{../inc}
+directory, and \var{OBJFPC}-mode syntax will be accepted.
+
+(for more information about these options, see the \fpc compiler user's
+guide)
+
+With the above commands, a set of documentation files will be generated in
+HTML format (this is the standard). There will be no description of any of
+the identifiers found in the unit's interface section, but all identifiers
+declarations will be present in the documentation. 
+
+The actual documentation (i.e. the description of each of the identifiers) 
+resides in a description file, which can be specified with the \var{descr} 
+option:
+
+\begin{verbatim}
+fpdoc --package=fcl --descr=crt.xml --input=crt.pp
+\end{verbatim}
+This will scan the \file{crt.pp} file and generate documentation for it,
+using the descriptions found in the file{crt.xml} file. The documentation
+will be written in a directory called \file{fcl}.
+\begin{verbatim}
+fpdoc --package=fcl --descr=classes.xml \
+      --input='-I../inc -S2 -DDebug classes.pp'
+\end{verbatim}
+All options should be given on one line.
+This will scan the file \file{classes.pp}, with the \var{DEBUG} symbol
+defined, the scanner will look for include files in the \file{../inc}
+directory, and \var{OBJFPC}-mode syntax will be accepted.
+
+More than one input file or description file can be given:
+\begin{verbatim}
+fpdoc --package=fcl --descr=classes.xml --descr=process.xml \
+      --input='-I../inc -S2 -DDebug classes.pp' \
+      --input='-I../inc -S2 -DDebug process.pp'
+\end{verbatim}
+Here, documentation will be generated for 2 units: \file{classes}
+and \var{process}
+
+The format of the description file is discussed in the next chapter.
+
+Other formats can be generated, such as latex:
+\begin{verbatim}
+fpdoc --format=latex --package=fcl \
+      --descr=classes.xml --descr=process.xml\
+      --input='-I../inc -S2 -DDebug classes.pp' \
+      --input='-I../inc -S2 -DDebug process.pp'
+\end{verbatim}
+This will generate a LaTeX file called \file{fcl.tex}, which contains the
+documentation of the units \file{classes} and \var{process}. The latex file
+contains no document preamble, it starts with a chapter command. 
+It is meant to be included (using the LaTeX include command) in a latex 
+document with a preamble.
+
+The output of \fpdoc can be further customised by several command-line
+options, which will be explained in the next section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Usage
+\section{\fpdoc command-line options reference}
+In this section all \fpdoc command-line options are explained.
+
+% content
+\subsection{content}
+\label{suse:content}
+This option tells  \fpdoc to generate a content file. 
+A content file contains a list of all the
+possible anchors (labels) in the generated documentation file, and can be
+used to create cross-links in documentation for units in other packages, 
+using the counterpart of the content option, the \var{import} option
+(\seesu{import}).
+
+%descr
+\subsection{descr}
+\label{suse:descr}
+This option specifies the name of a description file that contains the 
+actual documentation for the unit. This option can be given several 
+times, for several description files. The file will be searched relative to
+the current directory. No extension is added to the file, it should be a
+complete filename.
+
+If the filename starts with an 'at' sign \var{@}, then it is interpreted
+as a text file which contains a list of filenames, one per line. 
+Each of these files will be added to the list of description files.
+
+The nodes in the description files will be merged into one big tree. This
+means that the documentation can be divided over multiple files. When
+merging the description files, nodes that occur twice will end up only once
+in the big node tree: the last node will always be the node that ends up in
+the parse tree. This means that the order of the various input commands or
+the ordering of the files in the file list is important.
+
+Examples:
+\begin{verbatim}
+--descr=crt.xml 
+\end{verbatim}
+will tell \fpdoc to read documentation from \file{crt.xml}, while
+\begin{verbatim}
+--descr=@fcl.lst 
+\end{verbatim}
+will tell \fpdoc to read filenames from \file{fcl.lst}; each of the
+filenames found in it will be added to the list of files to be scanned for
+descriptions.
+
+%format
+\subsection{format}
+\label{suse:format}
+Specifies the output format in which the documentation will be generated. 
+Currently, the following formats are known:
+\begin{description}
+\item[htm] Plain HTML with 8.3 conforming filenames. 
+\item[html] HTML with long filenames.
+\item[xhtml] XHTML with long filenames.
+\item[latex] LaTex, which uses the \file{fpc.sty} style used by the \fpc
+documentation. 
+\item[xml-struct] Structured XML.
+\end{description}
+
+% help
+\subsection{help}
+Gives a short copyright notice.
+
+% hide-protected
+\subsection{hide-protected}
+\label{suse:hideprotected}
+By default, the documentation will include descriptions and listings of
+protected fields and methods in classes or objects. This option changes this
+behaviour; if it is specified, no documentation will be generated for these
+methods. Note that public methods or properties that refer to these
+protected methods will then have a dangling (i.e. unavailable) link.
+
+% html-search
+\subsection{html-search}
+\label{suse:htmlsearch}
+This option can be used when generating HTML documentation, to specify an
+url that can be used to search in the generated documentation. The URL will be
+included in the header of each generated page with a \var{Search} caption.
+The option is ignored for non-html output formats.
+
+\fpdoc does not generate a search page, this should be made by some external
+tool. Only the url to such a page can be specified.
+
+Example:
+\begin{verbatim}
+--html-search=../search.html
+\end{verbatim}
+
+% import
+\subsection{import}
+\label{suse:import}
+Import a table of contents file, generated by \fpdoc for another package
+with the \var{content} option (\seesu{content}). This option can be used 
+to refer to documentation nodes in documentation sets for other packages. 
+The argument consists of two parts: a filename, and a link prefix. 
+
+The filename is the name of the file that will be imported. The link
+prefix is a prefix that will be made to each HTML link; this needs to be
+done to be able to place the files in different directories.
+
+Example:
+\begin{verbatim}
+--import=../fcl.cnt,../fcl
+\end{verbatim}
+This will read the file fcl.cnt in the parent directory. For HTML
+documentation, all links to items in the fcl.cnt file, the link will be
+prepended with \file{../fcl}.
+
+This allows a setup where all packages have their own subdirectory of a
+common documentation directory, and all content files reside in the main
+documentation directory, as e.g. in the following directory tree:
+\begin{verbatim}
+/docs/fcl
+     /fpdoc
+     /fpgui
+     /fpgfx
+     /fpimg
+\end{verbatim}
+The file fcl.cnt would reside in the \file{docs} directory. Similarly, for
+each package a contents file \file{xxx.cnt} could be places in that
+directory. Inside the subdirectory, commands as the above could be used to
+provide links to other documentation packages.
+
+Note that for Latex documentation, this option is ignored.
+
+% input
+\subsection{input}
+\label{suse:input}
+This option tells \fpdoc what input file should be used. The argument can 
+be just a filename, but can also be a complete compiler command-line with 
+options that concern the scanning of the Pascal source: defines, include 
+files, syntax options,  as they would be specified to the \fpc compiler 
+when compiling the file. If a complete command is used, then it should be 
+enclosed in single or double quotes, so the shell will not break them in 
+parts.
+
+It is possible to specify multiple input commands; they will be treated one
+by one, and documentation will be generated for each of the processed files.
+
+% lang
+\subsection{lang}
+\label{suse:lang}
+Select the language for the generated documentation. This will change all
+header names to the equivalent in the specified language. The documentation
+itself will not be translated, only the captions and headers used in the
+text.
+
+Currently, valid choices are
+\begin{description}
+\item[de] German.
+\item[fr] French.
+\item[nl] Dutch.
+\end{description}
+
+Example:
+\begin{verbatim}
+--lang=de
+\end{verbatim}
+Will select German language for headers.
+
+The language files should be installed correctly for this option to work.
+See the section on installing to check whether the languages are installed
+correctly.
+
+% latex-highlight
+\subsection{latex-highlight}
+\label{suse:latexhighlight}
+Switches on an internal latex syntax highlighter. This is not yet
+implemented. By default, syntax highlighting is provided by the syntax
+package that comes with \fpc.
+
+% output
+\subsection{output}
+\label{suse:output}
+This option tells  \fpdoc where the output file should be generated. 
+How this option is interpreted depends on the format that is used. 
+For latex, this is interpreted as the filename for the tex file. 
+For all other formats, this is interpreted as the directory where all 
+documentation files will be written. The directory will be created if 
+it does not yet exist.
+
+The filename or directory name is interpreted as relative to the current
+directory.
+
+Example:
+\begin{verbatim}
+--format=html --output=docs/classes
+\end{verbatim}
+will generate HTML documentation in the directory \file{docs/classes}.
+\begin{verbatim}
+--format=latex --output=docs/classes.tex
+\end{verbatim}
+will generate latex documentation in the file \file{docs/classes}.
+
+% package
+\subsection{package}
+\label{suse:package}
+This option specifies the name of the package to be used. The package name
+will also be used as a default for the \var{output} option (\seesu{output}).
+
+% show-private
+\subsection{show-private}
+\label{suse:showprivate}
+By default, no documentation is generated for private methods or fields of
+classes or objects. This option causes \fpdoc to generate documentation 
+for these methods and fields as well.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Makeskel
+\section{makeskel}
+\label{se:makeskel}
+
+% Introduction
+\subsection{introduction}
+\label{suse:makeskelintro}
+The makeskel tool can be used to generate an empty description file 
+for a unit. The description file will contain an element node for each
+identifier in the interface section of the Pascal unit. 
+
+It's usage is quite straightforward: the name of an input file 
+(one or more) must be specified (as for \fpdoc), an output file,
+and the name of a package:
+\begin{verbatim}
+makeskel --package=rtl --input=crt.pp --output=crt.xml
+\end{verbatim}
+This will read the file \file{crt.pp} and will create a file \file{crt.xml}
+which contains empty nodes for all identifiers found in \file{crt.pp}, all
+in a package named \var{rtl}.
+
+The \var{input} option can be given more than once, as for the \file{fpdoc}
+command:
+\begin{verbatim}
+makeskel --input='-Sn system.pp' --input=crt.pp --output=rtl.xml
+\end{verbatim}
+As can be seen, the \var{input} option can contain some compiler options,
+as is the case for \fpdoc. The above command will process the files
+\file{system.pp} and \var{crt.pp}, and will create \tag{element} tags 
+for the identifiers in both units in the file \var{rtl.xml}.
+
+The output of \file{makeskel} is a valid, empty description file. It will
+contain a \tag{module} tag for each unit specified, and each \tag{module}
+will have \tag{element} tags for each identifier in the unit. 
+
+Each \tag{element} tag will by default contain \tag{short}, \tag{descr},
+\tag{errors} and \tag{seealso} tags, but this can be customised.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Makeskel
+\section{Makeskel option reference}
+\label{se:makeskeloption}
+The output of \file{makeskel} can be customised using several options, which
+are discussed below.
+
+% disable-arguments
+\subsection{disable-arguments}
+\label{suse:msdisablearguments}
+By default, for each function or procedure argument, a \tag{element} tag will
+be generated. This option disables this behaviour: no \tag{element} tags
+will be generated for procedure and function arguments.
+
+% disable-errors
+\subsection{disable-errors}
+\label{suse:msdisableerrors}
+If this option is specified, no \tag{errors} tag will be generated in the
+element nodes. By default all element tags contain a \tag{errors} node.
+
+The \tag{errors} tag is ignored when it is not needed; Normally, an 
+\tag{errors} tag is only needed for procedure and function elements.
+
+% disable-function-results
+\subsection{disable-function-results}
+\label{suse:disablefunctionresults}
+If this option is specified, then no \tag{element} tag will be generated for
+function results. By default, \file{makeskel} will generate a result node
+for each function in the interface section. The result node is used in the
+documentation to document the return value of the function under a separate
+heading in the documentation page. Specifying this option suppresses the
+generation of the \tag{element} tag for the function result.
+
+% disable-private
+\subsection{disable-private}
+\label{suse:disableprivate}
+If this option is specified, then no \tag{element} tags will be generated
+for private methods or fields of classes or objects. 
+The default behaviour is to generate nodes for private methods or fields.
+It can be used to generate a skeleton for end-user and developer
+documentation.
+
+% disable-protected
+\subsection{disable-protected}
+\label{suse:disableprotected}
+If this option is specified, then no \tag{element} tags will be generated
+for protected and private methods or fields of classes or objects. 
+The default is to generate nodes for protected methods or fields. If this
+option is given, the option \var{--disable-private} is implied. It can be
+used to generate end-user-only documentation for classes. 
+
+
+% disable-seealso
+\subsection{disable-seealso}
+\label{suse:msdisableseealso}
+If this option is specified, no \tag{seealso} tag will be generated in the
+element nodes. By default all \tag{element} tags contain a \tag{seealso} tag.
+
+
+% emitclassseparator
+\subsection{emitclassseparator}
+\label{suse:msemitclassseparator}
+When this option is specified, at the beginning of the elements for the
+documentation of a class, a comment tag is emitted which contains a
+separator text. This can be useful to separate documentation of different
+classes and make the description file more understandable.
+
+% help
+\subsection{help}
+\label{suse:mshelp}
+\file{Makeskel} emits a short copyright notice and exits when this option is
+specified.
+
+% input
+\subsection{input}
+\label{suse:msinput}
+This option is identical in meaning and functionality as the \var{input}
+option for \fpdoc. (\seesu{input}) It specifies the Pascal unit source 
+file that will be scanned and for which a skeleton description file will be
+generated. Multiple \var{input} options can be given, and \tag{element}
+tags will be written for all the files, in one big output file.
+
+% lang
+\subsection{lang}
+\label{suse:mslang}
+This option is used to specify the language for messages emitted by
+\file{makeskel}. The supported languages are identical to the ones 
+for \fpdoc:
+\begin{description}
+\item[de] German.
+\item[fr] French.
+\item[nl] Dutch.
+\end{description}
+
+% output
+\subsection{output}
+\label{suse:msoutput}
+This option specifies the name of the output file. A full filename must be
+given, no extension will be added. If this option is omitted, the output
+will be sent to standard output.
+
+% package
+\subsection{package}
+\label{suse:mspackage}
+This option specifies the package name that will be used when generating the
+skeleton. It is a mandatory option. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The description file.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{The description file}
+\label{ch:descriptionfile}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+\section{Introduction}
+The description file is a XML document, which means that it is a kind of
+HTML or SGML like format, however it is more structured than HTML, making it
+easier to parse - and makes it easier to connect or merge it with a Pascal
+source file. Since the allowed syntax uses a lot of HTML tags, this makes 
+it easy to write code for those that are familiar with writing HTML.
+
+More information about the XML format, SGML and HTML can be found on the 
+website of the W3 (World Wide Web) consortium:  
+\htmladdnormallink{http://www.w3.org/}{http://www.w3.org} 
+
+The remaining of this chapter assumes a basic knowledge of tags, their
+attributes and markup language, so these terms will not be explained here. 
+
+The minimal documentation file would look something like this:
+\begin{verbatim}
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<package name="fpc">
+<module name="Classes">
+</module>
+</fpdoc-description>
+</package>
+\end{verbatim}
+The header \tag{xml} tag is mandatory, and indicates that the file contains a
+documentation XML document.
+
+Inside the document, one or more top-level \tag{fpdoc-descriptions} 
+tags may appear. Each of these tags can contain one or more \tag{package}
+tags, which must have a \attr{name} attribute. The name attribute will be
+used by fpdoc to select the documentation nodes.
+
+Inside a \tag{package} tag, one or more \tag{module} tags may appear. there
+should be one \tag{module} tag per unit that should be documented. The value
+of the \attr{name} attribute of the \var{module} should be the name of the
+unit for which the \tag{module} tag contains the documentation. The value
+of the \var{name} attribute is case insensitive, i.e. 
+\begin{verbatim}
+<module name="CRT">
+\end{verbatim}
+can be used for the documentation of the \file{crt} unit.
+
+As it is above, the documentation description does not do much. To write
+real documentation, the \tag{module} tag must be filled with the
+documentation for each identifier that appears in the unit interface header.
+
+For each identifier in the unit interface header, the \tag{module} should
+contain a tag that documents the identifier: this is the \tag{element} tag.
+The name attribute of the element tag links the documentation to the
+identifier: the \attr{name} attribute should have as value the fully
+qualified name of the identifier in the unit.
+
+For example, to document the type
+\begin{verbatim}
+Type
+  MyEnum = (meOne,meTwo,meThree);
+\end{verbatim}
+an \tag{element} tag called \var{myenum} should exist:
+\begin{verbatim}
+<element name="myenum">
+</element>
+\end{verbatim}
+But also for each of the three enumerated values an \tag{element} tag should 
+exist:
+\begin{verbatim}
+<element name="myenum.meOne">
+</element>
+<element name="myenum.meTwo">
+</element>
+<element name="myenum.meThree">
+</element>
+\end{verbatim}
+As it can be seen, the names of the identifiers follow a hierarchical
+structure. More about this in the next section.
+
+Now the tags for the types are present, all that should be done is to fill
+it with the actual description.  For this, several tags can be placed inside
+a \tag{element} tag. The most important tag is the \tag{descr} tag. The
+contents of the \tag{descr} tag will be used to describe a type, function, 
+constant or variable:
+
+\begin{verbatim}
+<element name="myenum">
+<descr>
+The MyEnum type is a simple enumeration type which is not
+really useful, except for demonstration purposes.
+</descr>
+</element>
+\end{verbatim}
+
+A second important tag is the \tag{short} tag. It should contain a 
+short description of the identifier, preferably a description that fits on
+one line. The \tag{short} tag will be used in
+various overviews, at the top of a page in the HTML documentation (a
+synopsis) or will be used instead of the \tag{descr} tag if that one 
+is not available. It can also be used in different other cases: For 
+instance the different values of an enumeration type will be laid 
+out in a table, using the \tag{short} description:
+\begin{verbatim}
+<element name="myenum.meOne">
+<short>The first enumeration value</short>
+</element>
+<element name="myenum.meTwo">
+<short>The second enumeration value</short>
+</element>
+<element name="myenum.meThree">
+<short>The third enumeration value</short>
+</element>
+\end{verbatim}
+This will be converted to a table looking more or less like this:
+
+\begin{tabularx}{\textwidth}{lX}
+meOne & The first enumeration value \\
+meTwo & The second enumeration value \\
+meThree & The third enumeration value \\
+\end{tabularx}
+
+For functions and procedures, a list of possible error conditions can be
+documented inside a \tag{errors} tag. This tag is equivalent to the
+\tag{descr} tag, but is placed under a different heading in the generated
+documentation.
+
+Finally, to cross-reference between related functions, types or classes, a
+\tag{seealso} tag is also introduced. This will be used to lay out a series
+of links to related information. This tag can only have sub-tags which are
+\var{link} tags. For more about the \tag{link} tag, see \seetag{link}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% cross-referencing
+\section{Element names and cross-referencing}
+
+\subsection{Element name conventions}
+As mentioned in the previous section, the \var{element} tag's \attr{name}
+attribute is hierarchical. All levels in the hierarchy are denoted by a dot
+(.) in the name attribute. 
+
+As shown in the previous example, for an enumerated type, the various
+enumeration constants can be documented by specifying their name as
+\var{enumname.constname}. For example, given the type
+\begin{verbatim}
+Type
+  MyEnum = (meOne,meTwo,meThree);
+\end{verbatim}
+The various enumeration values can be documented using the element names
+\var{MyEnum.meOne}, \var{MyEnum.meTwo} and \var{MyEnum.meThree}:
+\begin{verbatim}
+<element name="myenum.meOne">
+</element>
+<element name="myenum.meTwo">
+</element>
+<element name="myenum.meThree">
+</element>
+\end{verbatim}
+Note that the casing of the name attribute need not be the same as the
+casing of the declaration.
+
+This hierarchical structure can be used for all non-simple types: 
+\begin{itemize}
+\item Enumeration type values.
+\item Fields in records, objects, classes. For nested record definitions,
+multiple levels are possible in the name.
+\item Methods of classes and objects.
+\item Properties of classes.
+\item Function and procedure arguments. 
+\item Function results. The name is always the function name followed by
+\var{Result}.
+\end{itemize}
+
+\subsection{Cross referencing: the \var{link} tag}
+To refer to another point in the documentation (a related function, class or
+whatever), a \tag{link} tag exists. The \var{link} tag takes as a sole
+attribute a target \attr{id} attribute. The link tag usually encloses a
+piece of text. In the HTML version of the documentation, this piece of text
+will function as a hyperlink. In the latex version, a page number reference
+will be printed. 
+
+The \attr{id} attribute contains the name of an element to which the link
+refers. The name is not case sensitive, but it must be a fully qualified
+name.
+
+An example of the link type would be:
+\begin{verbatim}
+The <link id="MyEnum">MyEnum</link> type is a simple type.
+\end{verbatim}
+
+The link attribute also has a short form: 
+\begin{verbatim}
+The <link id="MyEnum"/> type is a simple type.
+\end{verbatim}
+In the short form, the value of the \attr{id} attribute will be used as the 
+text which will be hyperlinked. This is especially useful in the \tag{seealso}
+tag.
+
+To refer to a type in another unit, the unit name must be prepended to the
+\attr{id} attribute:
+\begin{verbatim}
+<link id="myunit.myenum"/>
+\end{verbatim}
+will link to the \var{myenum} type in a unit named \file{myunit}.
+
+To refer to a node in the documentation of another package, the package name
+should be prepended to the \attr{id} attribute, and it should be prepended
+with the hash symbol (\#):
+\begin{verbatim}
+<link id="#fcl.classes.sofrombeginning"/>
+\end{verbatim}
+will link to the constant \var{sofrombeginning} in the \file{classes} unit
+of the FCL reference documentation. Note that for this to work correctly,
+the contents file which was created when generating the documentation of 
+the type must be imported correctly (see the \var{import} option).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tag reference
+\section{Tag reference}
+\subsection{Overview}
+The tags can roughly be divided in 2 groups:
+\begin{enumerate}
+\item Documentation structure tags. These are needed for fpdoc to do it's
+work. They determine what elements are documented. See \seet{structtags}
+\item Text structure and formartting tags. These tags indicate blocks of text, such as
+paragraphs, tables, lists and remarks, but also specify formatting: apply formatting (make-up) 
+to the text, or to provide links to other parts of the text. These mostly occur in
+text structure tags. See \seet{formattags}
+\end{enumerate}
+
+\begin{table}[ht]
+\caption{Documentation structure tags}\label{tab:structtags}
+\begin{tabularx}{\textwidth}{lXr}
+Tag & Description & Page \\ \hline
+descr & Element description & \pageref{tag:descr} \\
+element & Identifier documentation & \pageref{tag:element} \\
+errors  & Error section & \pageref{tag:errors} \\
+fpdoc-description & Global tag & \pageref{tag:fpdocdescription} \\
+module & Unit tag & \pageref{tag:module} \\
+package & Package global tab & \pageref{tag:package} \\
+seealso & Cross-reference section & \pageref{tag:seealso} \\
+short & Short description & \pageref{tag:short} \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+\caption{Text formatting tags}\label{tab:formattags}
+\begin{tabularx}{\textwidth}{lXr}
+Tag & Description & Page \\ \hline
+b & Format bold & \pageref{tag:b} \\
+caption & Specify table caption & \pageref{tag:caption} \\
+code & Syntax highlight code & \pageref{tag:code} \\
+dd & definition data & \pageref{tag:dd} \\
+dl & definition list & \pageref{tag:dl} \\
+dt & Definition term & \pageref{tag:dt} \\
+i & format italics & \pageref{tag:i} \\
+li & list element & \pageref{tag:li} \\
+link & Cross-reference & \pageref{tag:link} \\
+ol & numbered list & \pageref{tag:ol} \\
+p & paragraph & \pageref{tag:p} \\
+pre & Preformatted text & \pageref{tag:pre} \\
+remark & remark paragraph & \pageref{tag:remark} \\
+table & Table & \pageref{tag:table} \\
+td & Table cell & \pageref{tag:td} \\
+th & Table header & \pageref{tag:th} \\
+tr & Table row & \pageref{tag:tr} \\
+u & format underlined & \pageref{tag:u} \\
+ul & bulleted list & \pageref{tag:ul} \\
+var & format as variable & \pageref{tag:var} \\ \hline
+\end{tabularx}
+\end{table}
+
+The nodes for formatting a text resemble closely the basic HTML formatting tags with the 
+following exceptions:
+\begin{itemize}
+\item Each opening tag must have a corresponding closing tag.
+\item Tags are case sensitive. 
+\item Tables and paragraphs are at the same level, i.e. a table cannot occur
+inside a paragraph. The same is true for all 'structural' tags such as
+lists, 
+\end{itemize}
+
+Also, if special formatting tags such as a table or lists are inserted, then
+the remaining text must be inside a paragraph tag. This means that the
+following is wrong:
+\begin{verbatim}
+<descr>
+Some beginning text
+<ol>
+<li>A list item</li>
+</ol>
+some ending text
+</descr>
+\end{verbatim}
+Instead, the correct XML should be
+\begin{verbatim}
+<descr>
+<p>Some beginning text</p>
+<ol>
+<li>A list item</li>
+</ol>
+<p>some ending text</p>
+</descr>
+\end{verbatim}
+
+% Tag B
+\subsection{\tag{b} : format bold}
+\label{tag:b}
+This tag will cause the text inside it to be formatted using a bold font.
+
+Example:
+\begin{verbatim}
+Normal text <b>Bold text</b> normal text.
+\end{verbatim}
+will be formatted as:\\
+Normal text \textbf{Bold text} normal text.
+
+See also: \seetag{i}, \seetag{u}.
+
+% Tag caption
+\subsection{\tag{caption} : Specify table caption}
+\label{tag:caption}
+This tag can occur inside a \tag{table} tag and serves to set the table 
+caption.
+
+Example
+\begin{verbatim}
+<table>
+<caption>This caption will end up above the table</caption>
+<th><td>Column 1</td><td>Column 2</td></th>
+</table>
+\end{verbatim}
+
+See also: \seetag{table}
+
+% Tag code
+\subsection{\tag{code} : format as pascal code}
+\label{tag:code}
+The \tag{code} tag serves to insert Pascal code into the text. When possible
+this code will be highlighted in the output. It can be used to put
+highlighted Pascal code in the documentation of some identifier. It can
+occur inside \tag{descr} or \tag{errors} tags.
+
+Note that any text surrounding the \tag{code} tag should be placed in
+paragraph tags \tag{p}.
+
+Example:
+\begin{verbatim}
+<code>
+With Strings do
+  For i:=Count-1 downto 0 do
+    Delete(i);
+</code>
+\end{verbatim}
+
+Seealso: \seetag{pre}, \seetag{p}
+
+% Tag descr
+\subsection{\tag{descr} : Descriptions}
+\label{tag:descr}
+This is the actual documentation tag. The contents of this tag will be 
+written as the documentation of the element. It can contain any mixture of
+text and markup tags. The \tag{descr} tag can only occur inside a
+\tag{element} or \tag{module}.
+
+Example:
+\begin{verbatim}
+<element name="MyEnym">
+<descr>Myenum is a simple enumeration type</descr>
+</element>
+\end{verbatim}
+
+See also: \seetag{element}, \seetag{short}, \seetag{errors}, \seetag{seealso}
+
+% Tag dd
+\subsection{\tag{dd} : definition data.}
+\label{tag:dd}
+The \tag{dd} tag is used to denote the definition of a term in a definition
+list. It can occur only inside a definition list tag (\tag{dl}), after a
+definition term (\tag{dt}) tag. It's usage is identical to the one in HTML.
+
+Example:
+\begin{verbatim}
+<dl>
+<dt>FPC</dt><dd>stands for Free Pascal Compiler.</dd>
+</dl>
+\end{verbatim}
+Will be typeset as
+\begin{description}
+\item[FPC] stands for Free Pascal Compiler.
+\end{description}
+
+See also: \seetag{dl}, \seetag{dt}, \seetag{ol}, \seetag{ul}
+
+% Tag dl
+\subsection{\tag{dl} : definition list.}
+\label{tag:dl}
+Definition lists are meant to type a set of terms together with their
+explanation. It's usage is identical to the one in HTML, with the exception
+that it cannot occur inside ordinary text: surrounding text should always be
+enclosed in paragraph tags.
+
+Example:
+\begin{verbatim}
+<dl>
+<dt>meOne</dt><dd>First element of the enumeration type.</dd>
+<dt>meTwo</dt><dd>Second element of the enumeration type.</dd>
+<dt>meThree</dt><dd>Thir element of the enumeration type.</dd>
+</dl>
+\end{verbatim}
+Will be typeset as
+\begin{description}
+\item[meOne] First element of the enumeration type.
+\item[meTwo] Second element of the enumeration type.
+\item[meThree] Third element of the enumeration type.
+\end{description}
+
+See also: \seetag{dt}, \seetag{dd}, \seetag{ol}, \seetag{ul}
+
+% Tag  dt
+\subsection{\tag{dt} : definition term.}
+\label{tag:dt}
+The \tag{dt} tag is used in definition lists to enclose the term for which a
+definition is presented. It's usage is identical to the usage in HTML.
+
+Example:
+\begin{verbatim}
+<dl>
+<dt>FPC</dt><dd>stands for Free Pascal Compiler.</dd>
+</dl>
+\end{verbatim}
+Will be typeset as
+\begin{description}
+\item[FPC] stands for Free Pascal Compiler.
+\end{description}
+
+See also: \seetag{dl}, \seetag{dd}, \seetag{ol}, \seetag{ul}
+
+
+% Tag element
+\subsection{\tag{element} : Identifier documentation}
+\label{tag:element}
+The \tag{element} contains the documentation for an identifier in a unit. It
+should occur inside a \var{module} tag. It can contain 4 tags:
+\begin{description}
+\item[short] For a one-line description of the identifier. Is used as a
+header or is used in overviews of constants, types, variables or classes.
+\item[descr] Contains the actual description of the identifier.
+\item[errors] For functions an procedures this can be used to describe error
+conditions. It will be put in a separate section below the description
+section.
+\item[seealso] Used to refer to other nodes. will be typeset in a separate
+section.
+\end{description}
+
+The \tag{element} tag should have at least the \attr{name} attribute, it 
+is used to link the element node to the actual identifier in the Pascal unit.
+Other attributes may be added in future.
+
+Example:
+\begin{verbatim}
+<element name="MyEnym">
+<descr>Myenum is a simple enumeration type</descr>
+</element>
+\end{verbatim}
+
+See also: \seetag{descr}, \seetag{short}, \seetag{errors}, \seetag{seealso}
+
+% Tag errors
+\subsection{\tag{errors} : Error section.}
+\label{tag:errors}
+The \tag{errors} tag is used to document any errors that can occur when
+calling a function or procedure. it is placed in a different section in the
+generated documentation. It occurs inside a \tag{element} tag, at the same
+level as a \tag{descr} or \tag{short} tag. It's contents can be any
+text or formatting tag.
+
+Example:
+\begin{verbatim}
+<element name="MyDangerousFunction">
+<descr>MyDangerousFunction is a dangerous function</descr>
+<errors>When MyDangerousFunction fails, all is lost</errors>
+</element>
+\end{verbatim}
+
+See also: \seetag{descr}, \seetag{short}, \seetag{element}, \seetag{seealso}
+
+% Tag fpdoc-description
+\subsection{\tag{fpdoc-description} : Global tag}
+\label{tag:fpdocdescription}
+The \tag{fpdoc-description} tag is the topmost tag in a description file. It
+contains a series of \tag{package} tags, one for each package that is
+described in the file.
+
+See also: \seetag{package}
+
+% Tag i
+\subsection{\tag{i} : Format italics}
+\label{tag:i}
+The \tag{i} tag will cause its contents to be typeset in italics. It can
+occur mixed with any text.
+
+Example:
+\begin{verbatim}
+Normal text <i>italic text</i> normal text.
+\end{verbatim}
+will be formatted as:\\
+Normal text \textit{italic text} normal text.
+
+See also: \seetag{b}, \seetag{u}
+
+% Tag li
+\subsection{\tag{li} : list element}
+\label{tag:li}
+The tag \tag{li} denotes an element in a \tag{ol} or \tag{ul} list.
+The usage is the same as for it's HTML counterpart: It can occur 
+only inside one of the  \tag{ol} or \tag{ul} list tags.
+It's contents may be arbitrary text and formatting tags, contrary to HTML
+tags, the \tag{li} tag always must have a closing tag. Note that it cannot be used in a
+definition list (\seetag{dl}).
+
+Example:
+\begin{verbatim}
+<ul>
+<li>First item in the list</li>
+<li>Second item in the list</li>
+</ul>
+\end{verbatim}
+Will be typeset as
+\begin{itemize}
+\item First item in the list.
+\item Second item in the list.
+\end{itemize}
+
+See also: \seetag{ol}, \seetag{ul}.
+
+% Tag link
+\subsection{\tag{link} : Cross-reference}
+\label{tag:link}
+The \tag{link} tag is used to insert a reference to an element inside some
+piece of text or inside the \tag{seealso} section. It is similar in
+functionality to the 
+\begin{verbatim}
+<A HREF="SomeAnchor">some linked text</A>
+\end{verbatim}
+construct in HTML.
+
+The mandatory \attr{id} attribute of the \tag{link} tag should have the 
+name of an element tag in it. This name is not case sensitive. \fpdoc
+will issue a warning if it cannot find a matching name. It will look for
+matching names in the current file, and in all content files that have been
+specified with the \var{import} command-line option.
+
+The link tag can exist in 2 forms: one with separate closing tag,
+surrounding a piece of text, one without separate closing tag. If a piece of
+text is surrounded by the link tag, then the text will be converted to a
+hyperlink in the HTML documentation. If there is no surrounded text, then
+the value of the \attr{id} attribute will be used as the text. This means
+that
+\begin{verbatim}
+<link id="TStream">TStream</link>
+\end{verbatim}
+and
+\begin{verbatim}
+<link id="TStream"/>
+\end{verbatim}
+are completely equivalent.
+
+Example:
+\begin{verbatim}
+The <link id="TStringlist">stringlist</link> class is a descendent of the
+<link id="TStrings"/> class.
+\end{verbatim}
+
+See also: \seetag{element}, the \var{import} option (\seesu{import}).
+
+% Tag module 
+\subsection{\tag{module} : Unit reference}
+\label{tag:module}
+The \tag{module} tag encloses all \tag{element} tags for a unit. It can
+contain only \tag{element} tags for all identifiers in the unit and 
+a \tag{descr} tag describing the unit itself. The \tag{module} tag should
+occur inside a \tag{package} tag.
+
+The \attr{name} attribute should have as a value the name of the unit which
+is described by the module. This name is not case sensitive.
+
+Example:
+\begin{verbatim}
+<module name="classes">
+<descr>
+The classes unit contains basic class definitions for the FCL.
+</descr>
+</module>
+\end{verbatim}
+
+See also: \seetag{package}, \seetag{descr}, \seetag{element}
+
+% Tag ol
+\subsection{\tag{ol} : Numbered list.}
+\label{tag:ol}
+The \tag{ol} tag starts a numbered list. It can contain only \seetag{li}
+tags, which denote the various elements in the list. Each item will be
+preceded by a number. The \tag{ol} tag can
+occur inside a text, but surrounding text should always be enclosed in a
+\seetag{p} paragraph tag, i.e. an \tag{ol} tag should occur always at the
+same level as a \tag{p} tag.
+
+Example:
+\begin{verbatim}
+<p> some text before</p>
+<ol>
+<li>First item in the list</li>
+<li>Second item in the list</li>
+</ol>
+\end{verbatim}
+Will be typeset as:
+
+some text before
+\begin{enumerate}
+\item First item in the list.
+\item Second item in the list.
+\end{enumerate}
+
+See also: \seetag{li}, \seetag{ul}.
+
+
+% Tag paragraph
+\subsection{\tag{p} : Paragraph}
+\label{tag:p}
+The \tag{p} tag is the paragraph tag. Every description text should be 
+enclosed in a \tag{p} tag. Only when there is only one paragraph (and no
+lists or tables or remarks) in a description node, then the \tag{p} tag  may
+be skipped.
+
+Note that if a description node contains a \tag{table}, \tag{pre}, \tag{code}
+or any list tag, then the text surrounding these tags {\em must} be  put 
+inside a \tag{p} paragraph tag. This is different from the behaviour in HTML.
+
+The paragraph tag must always have an opening tag and a closing tag, unlike
+html where only the opening tag may be present.
+
+Example:
+\begin{verbatim}
+<descr>
+This is a paragraph which need not be surrounded by paragraph tags.
+</descr>
+\end{verbatim}
+\begin{verbatim}
+<descr>
+<p>
+This is the first paragraph.
+</p>
+<p>
+This is the second paragraph.
+</p>
+</descr>
+\end{verbatim}
+
+See also: \seetag{table}, \seetag{dl}, \seetag{remark},\seetag{code},
+\seetag{ol},\seetag{ul},\seetag{ol}
+
+% Tag package
+\subsection{\tag{package} : Package reference}
+\label{tag:package}
+The \tag{package} tag indicates the package for which the description file
+contains documentation. A package is a collection of units which are
+logically grouped together (for a library, program, component suites). The
+\attr{name} attribute of the \tag{package} tag will be used to select the
+package node in the description file: Only the \tag{package} node with name as
+specified by the \var{package} command-line option will be used when
+generating documentation. All other package nodes will be ignored.
+
+The \tag{package} node must always reside in a \tag{fpdoc-description} node.
+It can contain a \tag{descr} node, and various \tag{module} nodes, one node
+per unit in the package.
+
+See also: \seetag{fpdocdescription}, \seetag{module}, \seetag{descr}
+
+% Tag pre
+\subsection{\tag{pre} : Insert text as-is}
+\label{tag:pre}
+The \tag{pre} tag can be used to insert arbitrary text in the documentation.
+The text will not be formatted in any way, and will be displayed as it is
+encountered in the description node. It is functionally equivalent to the
+\tag{pre} tag in HTML.
+
+Note that if there is text surrounding the \tag{pre} tag, it should be placed
+inside a \tag{p} paragraph tag.
+
+Example:
+\begin{verbatim}
+<pre>
+This is some text.
+  This is some more text
+
+    And yet more text...
+</pre>
+\end{verbatim}
+This will be typeset as:
+\begin{verbatim}
+This is some text.
+  This is some more text
+
+    And yet more text...
+\end{verbatim}
+
+See also: \seetag{code}, \seetag{p}
+
+% Tag remark
+\subsection{\tag{remark} : format as remark}
+\label{tag:remark}
+A \tag{remark} tag can be used to make a paragraph stand out. The
+\tag{remark} is equivalent to the \tag{p} tag, but it's contents is
+formatted in a way that makes it stand out from the rest of the text.
+
+Note that any text before or after the \tag{remark} tag must be enclosed in
+paragraph (\tag{p}) tags.
+
+Example:
+\begin{verbatim}
+<p>Normal text.</p>
+<remark>
+This text will stand out.
+<example>
+<p>Again normal text.</p>
+\end{verbatim}
+Will be formatted as
+
+Normal text.
+\begin{remark}
+This text will stand out.
+\end{remark}
+Again normal text.
+
+See also: \seetag{p}, \seetag{code}, \seetag{pre}
+
+% Tag seealso
+\subsection{\tag{seealso} : Cross-reference section}
+\label{tag:seealso}
+The \tag{seealso} section can occur inside any \tag{element} tag, and will
+be used to create a list of cross-references. The contents of the
+\tag{seealso} tag is a list of \tag{link} tags. No other text is allowed
+inside this tag. Note that both the long and short form if the link tag may
+be used.
+
+Example:
+\begin{verbatim}
+<seealso>
+<link id="TStrings"/>
+<link id="TStringList.Create">Create</link>
+</seealso>
+\end{verbatim}
+
+See also: \seetag{link}, \seetag{element}
+
+% Tag short
+\subsection{\tag{short} : Short description}
+\label{tag:short}
+The \var{short} description is used to give a short description of an
+identifier. If possible, the description should fit on a single line of
+text. The contents of this tag will be used for the following purposes:
+\begin{itemize}
+\item Used as the synopsis on a page that describes an identifier.
+\item Used in overviews of constants, types, variables, record fields, 
+functions and procedures, classes, and for method and property listings of classes.
+\item Replaces the \tag{descr} tag in an \tag{element} if no \tag{descr} tag is present.
+\item In the description of an enumerated type, the enumeration values are
+typeset in a table, each row containing the name of the value and the short
+description.
+\item In the description of a function or procedure that accepts arguments,
+the arguments are followed by their short description.
+\item In the declaration of a class or record, each method, field or property
+is followed by the short description.
+\end{itemize}
+
+Example:
+\begin{verbatim}
+<element name="MyEnum.meOne">
+<short>First element of MyEnum</short>
+</element>
+\end{verbatim}
+
+See also: \seetag{element}, \seetag{descr}
+
+% Tag table
+\subsection{\tag{table} : Table start}
+\label{tag:table}
+The \var{table} tag starts a table, as in HTML. A table can contain
+\tag{tr} (table row),  \tag{th} (table header row) or \tag{caption} tags.
+Any text surrounding the table must be enclosed in paragraph tags (\tag{p}).
+
+Example:
+\begin{verbatim}
+<table>
+<caption>
+<var>TALignment</var> values and their meanings.
+</caption>
+<th><td>Value</td><td>Meaning</td></th>
+<tr>
+  <td><var>taLeftJustify</var></td>
+  <td>Text is displayed aligned to the left.</td>
+</tr>
+<tr>
+  <td><var>taRightJustify</var></td>
+  <td>Text is displayed aligned to the right</td>
+</tr>
+<tr>
+  <td><var>taCenter</var></td>
+  <td>Text is displayed centred.</td>
+</tr>
+</table>
+\end{verbatim}
+Will be formatted approximately as follows:
+
+\begin{tabularx}{\textwidth}{lX}
+Value & Meaning \\ \hline
+\var{taLeftJustify} & Text is displayed aligned to the left. \\
+\var{taRightJustify} & Text is displayed aligned to the right \\
+\var{taCenter} & Text is displayed centred.
+\end{tabularx}
+
+See also: \seetag{th}, \seetag{caption}, \seetag{tr}, \seetag{p}
+
+% Tag td
+\subsection{\tag{td} : Table cell}
+\label{tag:td}
+The \tag{td} tag is used to denote one cell in a table. It occurs
+inside a \tag{tr} or \tag{th} tag, and can contain any text and formatting
+tags.
+
+Example:
+\begin{verbatim}
+<table>
+<tr><td>Cell (1,1)</td><td>Cell (2,1)</td></tr>
+<tr><td>Cell (1,2)</td><td>Cell (2,2)</td></tr>
+</table>
+\end{verbatim}
+Will be formatted approximately as
+
+\begin{tabular}{ll}
+Cell (1,1) & Cell (2,1) \\
+Cell (1,2) & Cell (2,2)
+\end{tabular}
+
+See also: \seetag{table}, \seetag{th}, \seetag{tr}
+
+% Tag th
+\subsection{\tag{th} : Table header}
+\label{tag:th}
+The \var{th} table header tag is used to denote the first row(s) of a table: 
+It (they) will be made up differently from the other rows in the table.
+Exactly how it is made up depends on the format. In printed documentation
+(latex) a line will be drawn under the row. In HTML, the font and background
+may be formatted differently.
+
+The \tag{th} tag can only occur inside a \tag{table} tag, and can contain
+only \tag{td} tags.
+
+Example:
+\begin{verbatim}
+<table>
+<th><td>Cell (1,1)</td><td>Cell (2,1)</td></th>
+<tr><td>Cell (1,2)</td><td>Cell (2,2)</td></tr>
+</table>
+\end{verbatim}
+Will be formatted approximately as
+
+\begin{tabular}{ll}
+Cell (1,1) & Cell (2,1) \\ \hline
+Cell (1,2) & Cell (2,2)
+\end{tabular}
+ 
+See also: \seetag{tr}, \seetag{table}
+
+% Tag tr
+\subsection{\tag{tr} : table row}
+\label{tag:tr}
+The \tag{tr} tag denotes a row in a table. It works the same as in HTML.
+It can occur only in a \tag{table} tag, and should contain only \tag{td}
+table data tags. 
+
+Example:
+\begin{verbatim}
+<table>
+<tr><td>Cell (1,1)</td><td>Cell (2,1)</td></tr>
+<tr><td>Cell (1,2)</td><td>Cell (2,2)</td></tr>
+</table>
+\end{verbatim}
+Will be formatted approximately as
+
+\begin{tabular}{ll}
+Cell (1,1) & Cell (2,1) \\
+Cell (1,2) & Cell (2,2)
+\end{tabular}
+
+See also: \seetag{table}, \seetag{th}, \seetag{td}
+
+% Tag u
+\subsection{\tag{u} : Format underlined}
+\label{tag:u}
+
+Example:
+\begin{verbatim}
+Normal text <u>underlined text</u> normal text.
+\end{verbatim}
+will be formatted as:\\
+Normal text \underline{underlined text} normal text.
+
+See also: \seetag{i}, \seetag{b}.
+
+% Tag ul
+\subsection{\tag{ul} : bulleted list}
+\label{tag:ul}
+The \var{ul} tag starts a bulleted list. This works as under HTML, with the
+exception that any text surrounding the list must be enclosed in paragraph
+tags (\tag{p}). The list elements should be enclosed in \tag{li} tags.
+
+Example:
+\begin{verbatim}
+<p> some text before</p>
+<ol>
+<li>First item in the list</li>
+<li>Second item in the list</li>
+</ol>
+\end{verbatim}
+Will be typeset as:
+
+some text before
+\begin{itemize}
+\item First item in the list.
+\item Second item in the list.
+\end{itemize}
+
+See also: \seetag{li}, \seetag{ol}.
+
+% Tag var
+\subsection{\tag{var} : variable}
+\label{tag:var}
+The \tag{var} tag is used to mark a piece of text as a variable (or, more
+general, as an identifier). It will be typeset differently from the 
+surrounding text. Exactly how this is done depends on the output format.
+
+Example:
+\begin{verbatim}
+The <var>Items</var> property gives indexed access to...
+\end{verbatim}
+Will be typeset as
+
+The \var{Items} property gives indexed access to...
+
+See also: \seetag{b}, \seetag{u}, \seetag{i}, \seetag{code}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Generated output files.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Generated output files.}
+\label{ch:outputfiles}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HTML output
+\section{HTML output}
+The HTML output consists of the following files, per unit:
+
+\begin{enumerate}
+\item A general unit description with the contents of the module's
+ \tag{descr} tag. The \var{uses} clause is documented here as well. 
+All units in the \var{uses} clause together with their \tag{short}
+ description tags are typeset in a table.
+\item A listing of all constants in the unit.
+\item A listing of all types in the unit (except classes).
+\item A listing of all variables in the unit.
+\item A listing of all functions/procedures in the unit.
+\item A listing of all classes in the unit.
+\end{enumerate}
+All these overviews are hyperlinked to pages which contain the documentation
+of each identifier. Each page starts with the name of the identifier,
+plus a synopsis (made from the \tag{short} tag's contents).  After that
+follows the declaration, and the description. The description is filled with
+the \tag{descr} node of the identifiers \tag{element} tag.
+
+If an \var{errors} tag was present, an 'Errors' section follows the
+description. Similarly, if there is a \tag{seealso} tag, a 'See also'
+section with cross-reference links is made.
+
+For classes, the declaration contains hyperlinks to separate pages which 
+document all the members of the class. Each member in the declaration is 
+followed by the \tag{short} tag of the member's \tag{element} tag, if one
+exists. As an extra, the class hierarchy is given, plus links to pop-up pages
+(if JavaScript is available, otherwise they are normal links) which contain
+alphabetical or hierarchical listings of the methods, fields or properties
+of the class.
+
+For functions and procedures, the declaration will be typeset in such a way
+that all function arguments (if they are present) are in tabular format, 
+followed by the short description of the argument. If it concerns a
+function, and a result element exists, the result description will be
+provided in a separate section, before the actual description.
+
+The declaration of an enumerated type will be laid out in a table, with the
+enumeration value at the left, and the short description node of the value's 
+element.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Latex output
+\section{Latex output}
+
+The latex output is in one big file with the name of the package as
+specified on the command line. in this file, one chapter is made per 
+unit.
+
+Per unit the following sections are made:
+
+\begin{enumerate}
+\item A section with all constants.
+\item A section with all types.
+\item A section with all variables.
+\item A section with all functions and procedures.
+\item A section per declared class.
+\end{enumerate}
+
+For the constants, types and variables, the declaration is given, followed
+by the \tag{descr} node of the element corresponding to the identifier.
+All other nodes are ignored. 
+
+For functions and procedures, a subsection is made per procedure or
+function. This subsection consists of a list with the following entries:
+\begin{description}
+\item[Synopsis] filled with the contents of the \tag{short} tag.
+\item[Declaration] Filled with the declaration of the function.
+\item[Arguments] A tabular description of all arguments, if \tag{short} tags
+are found for them.
+\item[Description] Description of the function. Filled with the contents of
+the \tag{descr} tag.
+\item[Errors] Description of any error conditions. Filled with the contents
+of the \tag{errors} tag.
+\item[See Also] Cross-references to other functions. Filled with the
+contents of the \tag{seealso} tag.
+\end{description}
+
+For classes, a subsection is made with an overview of implemented methods.
+Then a subsection is presented with available properties. 
+
+Then follows a subsection per method. These are formatted as a function, with an
+additional \textbf{Visibility} list element, giving the visibility of the
+function.
+
+After the methods, a list of properties is given , formatted as a method,
+with an additional \var{Access} list element, specifying whether the
+property is read/write or not.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% End of file
+\end{document}

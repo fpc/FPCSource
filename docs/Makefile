@@ -22,7 +22,7 @@
 #INSTALLDEBUG=1
 
 # Which docs are made when 'html' is specified
-HTML = user units ref prog
+HTML = user units ref prog fpdoc
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -332,6 +332,8 @@ prog.dvi: prog.tex includes
 
 user.dvi: user.tex includes
 
+fpdoc.dvi: fpdoc.tex includes
+
 units.pdf: units.tex includes $(CHAPTERS)
 
 ref.pdf: ref.tex includes
@@ -344,6 +346,7 @@ onechap.pdf: onechap.tex includes
 
 onechap.dvi: onechap.tex includes
 
+fpdoc.pdf: fpdoc.tex includes
 
 dvi : $(DVI)
 
@@ -537,7 +540,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.19  2003-03-17 08:27:27  michael
+# Revision 1.20  2003-03-18 00:14:51  michael
+# + Added fpdoc
+#
+# Revision 1.19  2003/03/17 08:27:27  michael
 # + Split out html generation
 #
 # Revision 1.18  2003/03/16 15:24:58  peter

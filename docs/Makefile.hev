@@ -12,6 +12,6 @@ units: htmlincludes units.html
 prog: htmlincludes prog.html
 onechap: htmlincludes onechap.html
 ref: htmlincludes ref.html
+fpdoc: htmlincludes fpdoc.html
 
 html: htmlincludes $(addsuffix .html,$(HTML))
-

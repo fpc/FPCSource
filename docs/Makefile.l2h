@@ -86,5 +86,19 @@ ifndef DEBUG
 endif
 	touch onechap.chk	
 
+fpdoc: fpdoc.chk
+fpdoc.chk: htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
+	-t "Free Pascal documentation tool manual" fpdoc.htex
+	-sed -f foot.sed <fpdoc/footnode.html >fpdoc/footnote.html
+	-mv fpdoc/footnote.html fpdoc/footnode.html
+ifndef DEBUG
+	-rm -f fpdoc/labels.pl fpdoc/internals.pl fpdoc/.*.pag fpdoc/.*.dir
+	-rm -f fpdoc/images.* fpdoc/*.log fpdoc/WARNINGS
+endif
+	touch fpdoc.chk
+
+
 html: $(HTML)
 

@@ -26,5 +26,6 @@ units: htmlincludes preamble3 units.html
 prog: htmlincludes preamble3 prog.html
 onechap: htmlincludes preamble3 onechap.html
 ref: htmlincludes preamble4 ref.html
+fpdoc: htmlincludes preamble3 fpdoc.html
 
 html: htmlincludes $(HTML)
