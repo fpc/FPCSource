@@ -210,9 +210,21 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
+#######################################################################
+# clean
+#######################################################################
+
+clean: fpc_clean
+
+libsclean: fpc_libsclean
+
+
 #
 # $Log$
-# Revision 1.15  1999-03-09 01:35:55  peter
+# Revision 1.16  1999-03-12 21:07:51  michael
+# +  clean and libsclean added
+#
+# Revision 1.15  1999/03/09 01:35:55  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

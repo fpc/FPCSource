@@ -202,9 +202,19 @@ graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
 		 $(wildcard $(PPI)/*.ppi)
 	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
 
-#
+#######################################################################
+# Clean targets
+#######################################################################
+
+clean: fpc_clean
+
+libsclean: fpc_libsclean
+
 # $Log$
-# Revision 1.9  1999-03-09 01:35:54  peter
+# Revision 1.10  1999-03-12 21:04:45  michael
+# +  clean and libsclean added
+#
+# Revision 1.9  1999/03/09 01:35:54  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

@@ -326,9 +326,21 @@ unidef.pp : unifun.pp unidef.sed
 	sed -f unidef.sed unifun.pp > unidef.pp
 endif
 
+#######################################################################
+# CLEAN targets
+#######################################################################
+
+clean: fpc_clean
+
+libsclean: fpc_libsclean
+
+
 #
 # $Log$
-# Revision 1.21  1999-03-10 23:45:21  peter
+# Revision 1.22  1999-03-12 21:02:19  michael
+# +  clean and libsclean added
+#
+# Revision 1.21  1999/03/10 23:45:21  peter
 #   * AS is now always asw
 #
 # Revision 1.20  1999/03/09 01:35:56  peter
