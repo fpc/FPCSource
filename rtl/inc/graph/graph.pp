@@ -2613,7 +2613,12 @@ end;
      GetViewSettings(Viewport);
      SetViewPort(0,0,MaxX,MaxY,FALSE);
      CurrentBkColor := ColorNum;
-     ClearViewPort;
+     {ClearViewPort;}
+     if not DirectColor and (ColorNum<256) then
+      SetRGBPalette(0,
+          DefaultColors[ColorNum].Red,
+          DefaultColors[ColorNum].Green,
+          DefaultColors[ColorNum].Blue);
      SetViewport(ViewPort.X1,Viewport.Y1,Viewport.X2,Viewport.Y2,Viewport.Clip);
    end;
 
@@ -3003,7 +3008,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.44  1999-11-30 08:57:46  michael
+  Revision 1.45  1999-12-10 12:47:41  pierre
+   * SetBkColor like BP by changing Palette entry zero
+
+  Revision 1.44  1999/11/30 08:57:46  michael
   + Removed charmessagehandler declaration, it is in graphh.inc
 
   Revision 1.43  1999/11/28 16:13:55  jonas
