@@ -19,16 +19,22 @@ unit cmem;
 interface
 
 Const
-{$if defined(win32)}
-  LibName = 'msvcrt';
-{$elseif defined(netware)}
+{$ifndef win32}
+  {$ifdef netware}
   LibName = 'clib';
-{$elseif defined(netwlibc)}
-  LibName = 'libc';
-{$elseif defined(macos)}
-  LibName = 'StdCLib';
+  {$else}
+    {$ifdef netwlibc}
+    LibName = 'libc';
+    {$else}
+      {$ifdef macos}
+      LibName = 'StdCLib';
+      {$else}
+      LibName = 'c';
+      {$endif macos}
+    {$endif netwlibc}
+  {$endif}
 {$else}
-  LibName = 'c';
+  LibName = 'msvcrt';
 {$endif}
 
 Function Malloc (Size : ptrint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
@@ -167,7 +173,10 @@ end.
 
 {
  $Log$
- Revision 1.7  2004-09-18 08:40:26  olle
+ Revision 1.8  2004-09-19 08:16:03  olle
+   * reverted to $ifdef style, so 1.0.x can eat it.
+
+ Revision 1.7  2004/09/18 08:40:26  olle
    + added support for macos
 
  Revision 1.6  2004/09/15 20:37:42  armin
