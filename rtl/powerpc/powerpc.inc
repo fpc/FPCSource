@@ -145,7 +145,7 @@ asm
           {  load the begin of the source in the data cache }
           dcbt    0,r3
           { and the dest as well }
-          dcbst   0,r4
+          dcbtst  0,r4
 
           {  if overlap, then r0 := count else r0 := 0  }
           and     r0,r5,r10
@@ -234,7 +234,6 @@ LMove32BytesAligned:
 
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
-          { get dcbz offset }
 
           {  adjust source and dest pointers: because of the above loop, dest is now   }
           {  aligned to 8 bytes. So if we add r6 we will still have an 8 bytes         }
@@ -347,7 +346,7 @@ asm
         ble       cr6,LFillCharDone
         { get the start of the data in the cache (and mark it as "will be }
         { modified")                                                      }
-        dcbst     0,r3
+        dcbtst    0,r3
         subfic    r10,r10,4
         blt       cr7,LFillCharVerySmall
         { just store 4 bytes instead of using a loop to align (there are }
@@ -933,7 +932,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.47  2003-05-29 12:14:02  jonas
+  Revision 1.48  2003-05-29 14:32:54  jonas
+    * changed dcbst to dcbtst (former means "flush cache block to memory,
+      the latter means "I will soon store something to that cache block")
+
+  Revision 1.47  2003/05/29 12:14:02  jonas
     * move() now uses dcbz if possible
 
   Revision 1.46  2003/05/17 00:19:51  jonas

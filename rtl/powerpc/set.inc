@@ -158,7 +158,7 @@ asm
   bgt    cr0,Lset_range_exit
   rlwinm r4,r5,31-3+1,3,31-2  // divide by 8 to get starting and ending byte-
   { load the set the data cache }
-  dcbst  r3,r4
+  dcbtst r3,r4
   rlwinm r9,r6,31-3+1,3,31-2  // address and clear two lowest bits to get
                               //  start/end longint address
   sub.   r9,r9,r4             // are bit lo and hi in the same longint?
@@ -230,7 +230,7 @@ function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assem
 }
 asm
        {  load the begin of the result set in the data cache }
-       dcbst    0,r3
+       dcbtst   0,r3
        li       r0,8
        mtctr    r0
        subi     r5,r5,4
@@ -253,7 +253,7 @@ function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assem
 }
 asm
        {  load the begin of the result set in the data cache }
-       dcbst    0,r3
+       dcbtst   0,r3
        li       r0,8
        mtctr    r0
        subi     r5,r5,4
@@ -276,7 +276,7 @@ function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assem
 }
 asm
        {  load the begin of the result set in the data cache }
-       dcbst    0,r3
+       dcbtst   0,r3
        li       r0,8
        mtctr    r0
        subi     r5,r5,4
@@ -299,7 +299,7 @@ function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;as
 }
 asm
        {  load the begin of the result set in the data cache }
-       dcbst    0,r3
+       dcbtst   0,r3
        li       r0,8
        mtctr    r0
        subi     r5,r5,4
@@ -523,7 +523,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  2003-05-11 11:06:34  jonas
+  Revision 1.21  2003-05-29 14:32:54  jonas
+    * changed dcbst to dcbtst (former means "flush cache block to memory,
+      the latter means "I will soon store something to that cache block")
+
+  Revision 1.20  2003/05/11 11:06:34  jonas
     * fixed fpc_set_set_byte and fpc_set_unset_byte
 
   Revision 1.19  2003/05/02 15:10:53  jonas
