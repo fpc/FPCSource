@@ -17,6 +17,9 @@ rtl=0
 defaulttarget=os2
 defaultcpu=i386
 
+[install]
+unitsubdir=rtl
+
 [dirs]
 fpcdir=.
 incdir=$(INC) $(PROCINC)

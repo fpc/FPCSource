@@ -54,8 +54,12 @@ both:
 # Demo installation for linux
 #
 
-DEMOINSTALLDIR=$(DOCINSTALLDIR)/demo
+.PHONY: installexamples
 
-installdemo:
-        $(MKDIR) $(DEMOINSTALLDIR)
-        $(COPY) -rf * $(DEMOINSTALLDIR)
+ifndef EXAMPLESINSTALLDIR
+EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
+endif
+
+installexamples:
+        $(MKDIR) $(EXAMPLESINSTALLDIR)
+        $(COPYTREE) * $(EXAMPLESINSTALLDIR)

@@ -39,9 +39,13 @@ type
 
   tbic=(bic_none,bic_build,bic_install,bic_clean);
 
+  tspecialdir=record
+    dir,unitdir,packdir : string;
+  end;
+
+
 const
-  EnvVar='FPCMAKEINI'; { should be FPCMAKE in the future }
-  TimeFormat='yyyy/mm/dd hh:nn';
+  EnvVar='FPCMAKEINI';
 
   sectionstr : array[tsections] of string=('none',
     'units','exes','loaders','examples','package',
@@ -97,6 +101,14 @@ const
     true,false
   );
 
+  specialdirs = 4;
+  specialdir : array[1..specialdirs] of tspecialdir=(
+    (dir: 'rtl';  unitdir: '$(UNITSDIR)/rtl';  packdir: '$(FPCDIR)/rtl'),
+    (dir: 'fcl';  unitdir: '$(UNITSDIR)/fcl';  packdir: '$(FPCDIR)/fcl'),
+    (dir: 'api';  unitdir: '$(UNITSDIR)/api';  packdir: '$(FPCDIR)/api'),
+    (dir: 'fv';   unitdir: '$(UNITSDIR)/fv';   packdir: '$(FPCDIR)/fv')
+  );
+
 { Sections in Makefile.fpc }
   ini_sections='sections';
   ini_install='install';
@@ -119,9 +131,10 @@ type
     TargetPrograms,
     TargetExamples,
     TargetRST      : TTargetsString;
-    InstallUnitSub,
-    InstallPrefix,
-    InstallBase    : string;
+    InstallUnitSubDir,
+    InstallPrefixDir,
+    InstallDataDir,
+    InstallBaseDir : string;
     InstallUnits,
     InstallFiles   : TTargetsString;
     CleanUnits,
@@ -169,6 +182,7 @@ type
     ToolsUpx,
     ToolsDate,
     ToolsZip       : boolean;
+    MultiPacks,
     PreSettings,
     PostSettings,
     Rules          : TStringList;
@@ -296,9 +310,10 @@ begin
      ReadTargetsString(CleanUnits,ini_clean,'units','');
      ReadTargetsString(CleanFiles,ini_clean,'files','');
    { install }
-     InstallPrefix:=ReadString(ini_install,'dirprefix','');
-     InstallBase:=ReadString(ini_install,'dirbase','');
-     InstallUnitSub:=ReadString(ini_install,'unitsubdir','');
+     InstallPrefixDir:=ReadString(ini_install,'dirprefix','');
+     InstallBaseDir:=ReadString(ini_install,'basedir','');
+     InstallDataDir:=ReadString(ini_install,'datadir','');
+     InstallUnitSubDir:=ReadString(ini_install,'unitsubdir','');
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
    { zip }
@@ -319,7 +334,7 @@ begin
      ReadTargetsString(requirePackages,ini_require,'packages','');
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
-     DirPackage:=ReadString(ini_dirs,'packagedir','');
+     DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
      DirComponent:=ReadString(ini_dirs,'componentdir','$(FPCDIR)/components');
      DirUnit:=ReadString(ini_dirs,'unitdir','');
      DirLib:=ReadString(ini_dirs,'libdir','');
@@ -367,6 +382,9 @@ begin
      InfoTools:=ReadBool(ini_info,'infotools',false);
      InfoInstall:=ReadBool(ini_info,'infoinstall',true);
      InfoObjects:=ReadBool(ini_info,'infoobjects',true);
+   { multipacks }
+     MultiPacks:=TStringList.Create;
+     ReadSectionRaw('multipack',MultiPacks);
    { rules }
      PreSettings:=TStringList.Create;
      ReadSectionRaw('presettings',PreSettings);
@@ -557,10 +575,10 @@ var
       end;
   end;
 
-  procedure AddTargetsUnitDir(const pre:string;var t:TTargetsString);
+  procedure AddTargetsUnitDir(const packpre:string;var t:TTargetsString);
   var
-    i,j : integer;
-    hs,packdirvar,packdir : string;
+    i,j,k : integer;
+    hs,pack,packdirvar,unitdirvar,unitdir,packdir : string;
   begin
     for i:=0 to targets do
      if (t[i]<>'') then
@@ -570,14 +588,42 @@ var
           j:=pos(' ',hs);
           if j=0 then
            j:=length(hs)+1;
-          packdirvar:='PACKAGEDIR_'+Uppercase(Copy(hs,1,j-1));
-          packdir:=pre+'/'+Copy(hs,1,j-1);
+          pack:=Copy(hs,1,j-1);
+          packdirvar:='PACKAGEDIR_'+Uppercase(pack);
+          unitdirvar:='UNITDIR_'+Uppercase(pack);
+          packdir:=packpre+'/'+pack;
+          unitdir:='$(UNITSDIR)/'+pack;
+          for k:=1to specialdirs do
+           begin
+             if specialdir[k].dir=pack then
+              begin
+                packdir:=specialdir[k].packdir;
+                unitdir:=specialdir[k].unitdir;
+                break;
+              end;
+           end;
+          mf.Add('ifneq ($(wildcard '+packdir+'),)');
           mf.Add('ifneq ($(wildcard '+packdir+'/$(OS_TARGET)),)');
           mf.Add(packdirvar+'='+packdir+'/$(OS_TARGET)');
           mf.Add('else');
           mf.Add(packdirvar+'='+packdir);
           mf.Add('endif');
-          mf.Add('override NEEDUNITDIR+=$('+packdirvar+')');
+          mf.Add(unitdirvar+'=$('+packdirvar+')');
+          mf.Add('else');
+          mf.Add(packdirvar+'=');
+          mf.Add('ifneq ($(wildcard '+unitdir+'),)');
+          mf.Add('ifneq ($(wildcard '+unitdir+'/$(OS_TARGET)),)');
+          mf.Add(unitdirvar+'='+unitdir+'/$(OS_TARGET)');
+          mf.Add('else');
+          mf.Add(unitdirvar+'='+unitdir);
+          mf.Add('endif');
+          mf.Add('else');
+          mf.Add(unitdirvar+'=');
+          mf.Add('endif');
+          mf.Add('endif');
+          mf.Add('ifdef '+unitdirvar);
+          mf.Add('override NEEDUNITDIR+=$('+unitdirvar+')');
+          mf.Add('endif');
           system.delete(hs,1,j);
         until hs='';
       end;
@@ -601,18 +647,6 @@ var
        mf.Add(#9+'$(MAKE) -C '+s+' '+rulestr[j]);
        if j<rules then
         mf.Add('');
-     end;
-    mf.Add('endif');
-  end;
-
-  procedure AddDirDetect(const varname,checkdir,elsedir:string);
-  begin
-    mf.Add('ifneq ($(wildcard '+checkdir+'),)');
-    mf.Add(varname+'='+checkdir);
-    if elsedir<>'' then
-     begin
-       mf.Add('else');
-       mf.Add(varname+'='+elsedir);
      end;
     mf.Add('endif');
   end;
@@ -696,15 +730,28 @@ begin
      AddSection(true,'fpcdetect');
 
    { fpc dir }
+     AddSection(true,'fpcdircheckenv');
      if userini.dirfpc<>'' then
       begin
         Add('# Default FPCDIR');
-        Add('ifndef FPCDIR');
-        Add('FPCDIR='+userini.dirfpc);
+        Add('ifeq ($(FPCDIR),wrong)');
+        Add('override FPCDIR='+userini.dirfpc);
+        Add('ifeq ($(wildcard $(FPCDIR)/rtl),)');
+        Add('override FPCDIR=wrong');
+        Add('endif');
         Add('endif');
         Add('');
       end;
      AddSection(true,'fpcdirdetect');
+
+   { fpcdir subdirs }
+     Add('ifndef PACKAGEDIR');
+     Add('PACKAGEDIR='+userini.dirpackage);
+     Add('endif');
+     Add('ifndef COMPONENTDIR');
+     Add('COMPONENTDIR='+userini.dircomponent);
+     Add('endif');
+     AddSection(true,'fpcdirsubs');
 
    { write the default & user settings }
      AddSection(true,'defaultsettings');
@@ -735,12 +782,14 @@ begin
      AddHead('Install');
      AddTargets('EXTRAINSTALLUNITS',userini.installunits,false);
      AddTargets('EXTRAINSTALLFILES',userini.installfiles,false);
-     if userini.installprefix<>'' then
-      Add('PREFIXINSTALLDIR='+userini.installprefix);
-     if userini.installbase<>'' then
-      Add('BASEINSTALLDIR='+userini.installbase);
-     if userini.InstallUnitSub>'' then
-      Add('UNITSUBDIR='+userini.InstallUnitSub);
+     if userini.installprefixdir<>'' then
+      Add('PREFIXINSTALLDIR='+userini.installprefixdir);
+     if userini.installbasedir<>'' then
+      Add('BASEINSTALLDIR='+userini.installbasedir);
+     if userini.installdatadir<>'' then
+      Add('DATAINSTALLDIR='+userini.installdatadir);
+     if userini.InstallUnitSubDir<>'' then
+      Add('UNITSUBDIR='+userini.InstallUnitSubDir);
 
    { Zip }
      if userini.zipname<>'' then
@@ -757,20 +806,6 @@ begin
      AddHead('Directories');
      if userini.dirsources<>'' then
       Add('vpath %$(PASEXT) '+userini.dirsources);
-     { packages dir }
-     Add('ifndef PACKAGEDIR');
-     if userini.dirpackage<>'' then
-      Add('PACKAGEDIR='+userini.dirpackage)
-     else
-      AddDirDetect('PACKAGEDIR','$(FPCDIR)/packages','$(FPCDIR)/units/$(OS_TARGET)');
-     Add('endif');
-     { component dir }
-     Add('ifndef COMPONENTDIR');
-     if userini.dircomponent<>'' then
-      Add('COMPONENTDIR='+userini.dircomponent)
-     else
-      AddDirDetect('COMPONENTDIR','$(FPCDIR)/components','$(FPCDIR)/units/$(OS_TARGET)');
-     Add('endif');
      if userini.dirunit<>'' then
       Add('override NEEDUNITDIR='+userini.dirunit);
      if userini.dirlib<>'' then
@@ -856,8 +891,8 @@ begin
         Add('');
         AddSection(true,'command_begin');
         AddSection((userini.Requireoptions<>''),'command_needopt');
-        AddSection((userini.dirfpc<>''),'command_rtldir');
         AddSection((userini.dirfpc<>''),'command_unitsdir');
+        AddSection((userini.dirfpc<>''),'command_rtldir');
         AddSection((userini.dirunit<>'') or
                    (not TargetStringEmpty(userini.Requirepackages)) or
                    (not TargetStringEmpty(userini.Requirecomponents))
@@ -1057,7 +1092,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-01-04 00:00:23  peter
+  Revision 1.18  2000-01-06 01:29:59  peter
+    * FPCDIR setting/detect
+    * lot of other updates to create .deb files correctly
+
+  Revision 1.17  2000/01/04 00:00:23  peter
     * Makefile updates again
 
   Revision 1.16  2000/01/03 19:42:41  peter

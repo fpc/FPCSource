@@ -7,6 +7,3 @@ units=zlib
 
 [dirs]
 fpcdir=../..
-
-[require]
-options=-Sm

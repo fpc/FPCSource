@@ -7,7 +7,7 @@ units=gdbint gdbcon
 examples=testgdb symify
 
 [dirs]
-fpcdir=..
+fpcdir=../..
 targetdir=.
 objdir=libgdb/$(OS_TARGET)
 libdir=libgdb/$(OS_TARGET)

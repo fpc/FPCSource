@@ -27,9 +27,26 @@ gdk$(PPUEXT): $(wildcard gdk/gdk*$(PASEXT)) glib$(PPUEXT)
 
 gtk$(PPUEXT): $(wildcard gtk/gtk*$(PASEXT)) gdk$(PPUEXT)
 
+
 # Examples, tutorial
+
+.PHONY: examples tutorial installexamples
+
 examples: all
         $(MAKE) -C examples
 
 tutorial: all
         $(MAKE) -C tutorial
+
+ifndef EXAMPLESINSTALLDIR
+EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
+endif
+ifndef TUTORIALINSTALLDIR
+TUTORIALINSTALLDIR=$(DOCINSTALLDIR)/tutorial
+endif
+
+installexamples:
+        $(MKDIR) $(EXAMPLESINSTALLDIR)
+        $(COPYTREE) examples/* $(EXAMPLESINSTALLDIR)
+        $(MKDIR) $(TUTORIALINSTALLDIR)
+        $(COPYTREE) tutorial/* $(TUTORIALINSTALLDIR)

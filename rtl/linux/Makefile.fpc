@@ -18,6 +18,9 @@ rtl=0
 defaulttarget=linux
 defaultcpu=i386
 
+[install]
+unitsubdir=rtl
+
 [dirs]
 fpcdir=.
 incdir=$(INC) $(PROCINC)

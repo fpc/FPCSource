@@ -3,7 +3,7 @@
 #
 
 [targets]
-dirs=compiler rtl utils packages ide
+dirs=compiler rtl utils fcl api fv packages ide
 
 [defaults]
 defaultrule=info
@@ -72,7 +72,7 @@ ide_fullgdb:
 #######################################
 
 demo_install:
-        $(MAKE) -C demo installdemo
+        $(MAKE) -C demo installexamples
 
 man_install:
         $(MAKE) -C man installman
@@ -105,11 +105,11 @@ ide_fullgdbzip:
         $(MAKE) -C ide/text zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
 
 fvzip: rtl_clean
-        $(MAKE) -C packages api_clean
-        $(MAKE) -C packages fv_clean
-        $(MAKE) -C packages fv_all
-        $(MAKE) -C packages api_zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
-        $(MAKE) -C packages fv_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
+        $(MAKE) api_clean
+        $(MAKE) fv_clean
+        $(MAKE) fv_all
+        $(MAKE) api_zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
+        $(MAKE) fv_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
 
 gtkzip: rtl_clean
         $(MAKE) -C packages gtk_clean

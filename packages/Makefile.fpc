@@ -3,13 +3,10 @@
 #
 
 [targets]
-# For linux zlib is used for others paszlib is used, can't include both
-# because of conflicting units
-dirs=fcl ibase mysql uncgi gdbint api fv
-dirs_linux=gtk opengl utmp inet postgres ncurses x11 forms svgalib ggi zlib
-dirs_win32=gtk opengl paszlib
-dirs_go32v2=paszlib
-dirs_os2=paszlib
+dirs=ibase mysql uncgi paszlib
+dirs_linux=gtk opengl gdbint utmp inet postgres ncurses x11 forms svgalib ggi zlib
+dirs_win32=gtk opengl gdbint
+dirs_go32v2=gdbint
 
 [sections]
 none=1

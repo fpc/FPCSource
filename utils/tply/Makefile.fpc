@@ -12,10 +12,10 @@ units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
 
 [install]
 files=yylex.cod yyparse.cod
+datadir=$(CODPATH)
 
 [dirs]
 fpcdir=../..
-extrainstalldir=$(CODPATH)
 
 [require]
 options=-Sg
@@ -23,7 +23,7 @@ options=-Sg
 
 [presettings]
 ifdef inlinux
-CODPATH=/usr/lib/fpc/lexyacc
+CODPATH=$(PREFIXINSTALLDIR)/lib/fpc/lexyacc
 else
 CODPATH=$(BININSTALLDIR)
 endif
