@@ -1,7 +1,6 @@
 pp: pp.pas \
 	globals.ppu \
 	compiler.ppu
-	$(COMPILER) pp.pas
 
 globals.ppu: globals.pas \
 	cobjects.ppu \
@@ -42,16 +41,15 @@ ppu.ppu: ppu.pas
 comphook.ppu: comphook.pas
 
 options.ppu: options.pas \
-	cobjects.ppu \
 	verbose.ppu \
+	cobjects.ppu \
 	comphook.ppu \
 	systems.ppu \
 	globals.ppu \
 	scanner.ppu \
 	link.ppu \
 	messages.ppu \
-	gendef.ppu \
-	opts386.ppu
+	gendef.ppu
 
 scanner.ppu: scanner.pas \
 	cobjects.ppu \
@@ -72,10 +70,9 @@ symtable.ppu: symtable.pas \
 	aasm.ppu \
 	files.ppu \
 	gendef.ppu \
-	i386.ppu \
-	gdb.ppu \
 	types.ppu \
-	ppu.ppu
+	ppu.ppu \
+	hcodegen.ppu
 
 aasm.ppu: aasm.pas \
 	cobjects.ppu \
@@ -89,24 +86,32 @@ gendef.ppu: gendef.pas \
 	systems.ppu \
 	globals.ppu
 
-i386.ppu: i386.pas \
-	cobjects.ppu \
-	aasm.ppu \
-	globals.ppu \
-	verbose.ppu
-
-gdb.ppu: gdb.pas \
-	i386.ppu \
-	cobjects.ppu \
-	globals.ppu \
-	aasm.ppu
-
 types.ppu: types.pas \
 	cobjects.ppu \
 	globals.ppu \
 	symtable.ppu \
 	verbose.ppu \
 	aasm.ppu
+
+hcodegen.ppu: hcodegen.pas \
+	verbose.ppu \
+	aasm.ppu \
+	tree.ppu \
+	symtable.ppu \
+	systems.ppu \
+	comphook.ppu \
+	cobjects.ppu \
+	globals.ppu \
+	files.ppu
+
+tree.ppu: tree.pas \
+	cobjects.ppu \
+	globals.ppu \
+	symtable.ppu \
+	aasm.ppu \
+	types.ppu \
+	verbose.ppu \
+	files.ppu
 
 switches.ppu: switches.pas \
 	globals.ppu \
@@ -116,6 +121,7 @@ switches.ppu: switches.pas \
 
 link.ppu: link.pas \
 	cobjects.ppu \
+	files.ppu \
 	script.ppu \
 	globals.ppu \
 	systems.ppu \
@@ -126,21 +132,16 @@ script.ppu: script.pas \
 	globals.ppu \
 	systems.ppu
 
-opts386.ppu: opts386.pas \
-	options.ppu \
-	systems.ppu \
-	globals.ppu
-
 parser.ppu: parser.pas \
 	cobjects.ppu \
-	verbose.ppu \
 	comphook.ppu \
 	systems.ppu \
 	globals.ppu \
+	hcodegen.ppu \
+	verbose.ppu \
 	symtable.ppu \
 	files.ppu \
 	aasm.ppu \
-	hcodegen.ppu \
 	assemble.ppu \
 	link.ppu \
 	script.ppu \
@@ -151,27 +152,6 @@ parser.ppu: parser.pas \
 	psystem.ppu \
 	pmodules.ppu
 
-hcodegen.ppu: hcodegen.pas \
-	aasm.ppu \
-	tree.ppu \
-	symtable.ppu \
-	i386.ppu \
-	systems.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	files.ppu
-
-tree.ppu: tree.pas \
-	cobjects.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	verbose.ppu \
-	files.ppu
-
 assemble.ppu: assemble.pas \
 	cobjects.ppu \
 	globals.ppu \
@@ -179,43 +159,7 @@ assemble.ppu: assemble.pas \
 	script.ppu \
 	files.ppu \
 	systems.ppu \
-	verbose.ppu \
-	ag386att.ppu \
-	ag386nsm.ppu \
-	ag386int.ppu
-
-ag386att.ppu: ag386att.pas \
-	cobjects.ppu \
-	aasm.ppu \
-	assemble.ppu \
-	globals.ppu \
-	systems.ppu \
-	i386.ppu \
-	files.ppu \
-	verbose.ppu \
-	gdb.ppu
-
-ag386nsm.ppu: ag386nsm.pas \
-	aasm.ppu \
-	assemble.ppu \
-	globals.ppu \
-	systems.ppu \
-	cobjects.ppu \
-	i386.ppu \
-	files.ppu \
-	verbose.ppu \
-	gdb.ppu
-
-ag386int.ppu: ag386int.pas \
-	aasm.ppu \
-	assemble.ppu \
-	globals.ppu \
-	systems.ppu \
-	cobjects.ppu \
-	i386.ppu \
-	files.ppu \
-	verbose.ppu \
-	gdb.ppu
+	verbose.ppu
 
 pbase.ppu: pbase.pas \
 	cobjects.ppu \
@@ -239,13 +183,11 @@ pdecl.ppu: pdecl.pas \
 	hcodegen.ppu \
 	verbose.ppu \
 	systems.ppu \
-	gdb.ppu \
 	pbase.ppu \
 	ptconst.ppu \
 	pexpr.ppu \
 	psub.ppu \
-	pexports.ppu \
-	i386.ppu
+	pexports.ppu
 
 pass_1.ppu: pass_1.pas \
 	tree.ppu \
@@ -258,19 +200,7 @@ pass_1.ppu: pass_1.pas \
 	symtable.ppu \
 	types.ppu \
 	hcodegen.ppu \
-	files.ppu \
-	i386.ppu \
-	tgeni386.ppu
-
-tgeni386.ppu: tgeni386.pas \
-	cobjects.ppu \
-	globals.ppu \
-	tree.ppu \
-	hcodegen.ppu \
-	verbose.ppu \
-	files.ppu \
-	aasm.ppu \
-	i386.ppu
+	files.ppu
 
 ptconst.ppu: ptconst.pas \
 	symtable.ppu \
@@ -284,8 +214,7 @@ ptconst.ppu: ptconst.pas \
 	types.ppu \
 	verbose.ppu \
 	pbase.ppu \
-	pexpr.ppu \
-	i386.ppu
+	pexpr.ppu
 
 pexpr.ppu: pexpr.pas \
 	symtable.ppu \
@@ -300,8 +229,7 @@ pexpr.ppu: pexpr.pas \
 	types.ppu \
 	verbose.ppu \
 	pbase.ppu \
-	pdecl.ppu \
-	i386.ppu
+	pdecl.ppu
 
 psub.ppu: psub.pas \
 	cobjects.ppu \
@@ -310,21 +238,16 @@ psub.ppu: psub.pas \
 	scanner.ppu \
 	aasm.ppu \
 	tree.ppu \
-	pass_1.ppu \
 	types.ppu \
-	hcodegen.ppu \
 	files.ppu \
 	verbose.ppu \
 	systems.ppu \
 	import.ppu \
 	gendef.ppu \
+	hcodegen.ppu \
 	temp_gen.ppu \
-	gdb.ppu \
-	i386.ppu \
-	cgi386.ppu \
-	tgeni386.ppu \
-	cgai386.ppu \
-	aopt386.ppu \
+	pass_1.ppu \
+	pass_2.ppu \
 	pbase.ppu \
 	pdecl.ppu \
 	pexpr.ppu \
@@ -333,28 +256,9 @@ psub.ppu: psub.pas \
 import.ppu: import.pas \
 	cobjects.ppu \
 	systems.ppu \
-	verbose.ppu \
-	os2_targ.ppu \
-	win_targ.ppu
-
-os2_targ.ppu: os2_targ.pas \
-	import.ppu \
-	globals.ppu \
-	link.ppu \
-	files.ppu
-
-win_targ.ppu: win_targ.pas \
-	import.ppu \
-	aasm.ppu \
-	files.ppu \
-	globals.ppu \
-	cobjects.ppu \
-	systems.ppu \
-	gdb.ppu \
-	i386.ppu
+	verbose.ppu
 
 temp_gen.ppu: temp_gen.pas \
-	i386.ppu \
 	cobjects.ppu \
 	globals.ppu \
 	tree.ppu \
@@ -363,7 +267,7 @@ temp_gen.ppu: temp_gen.pas \
 	files.ppu \
 	aasm.ppu
 
-cgi386.ppu: cgi386.pas \
+pass_2.ppu: pass_2.pas \
 	tree.ppu \
 	cobjects.ppu \
 	verbose.ppu \
@@ -377,209 +281,7 @@ cgi386.ppu: cgi386.pas \
 	scanner.ppu \
 	pass_1.ppu \
 	hcodegen.ppu \
-	temp_gen.ppu \
-	gdb.ppu \
-	i386.ppu \
-	tgeni386.ppu \
-	cgai386.ppu \
-	cg386con.ppu \
-	cg386mat.ppu \
-	cg386cnv.ppu \
-	cg386set.ppu \
-	cg386add.ppu \
-	cg386mem.ppu \
-	cg386cal.ppu \
-	cg386ld.ppu \
-	cg386flw.ppu
-
-cgai386.ppu: cgai386.pas \
-	cobjects.ppu \
-	tree.ppu \
-	i386.ppu \
-	aasm.ppu \
-	symtable.ppu \
-	systems.ppu \
-	globals.ppu \
-	verbose.ppu \
-	files.ppu \
-	types.ppu \
-	pbase.ppu \
-	tgeni386.ppu \
-	temp_gen.ppu \
-	hcodegen.ppu \
-	ppu.ppu \
-	gdb.ppu
-
-cg386con.ppu: cg386con.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	hcodegen.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	cgi386.ppu
-
-cg386mat.ppu: cg386mat.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386cnv.ppu: cg386cnv.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386set.ppu: cg386set.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	systems.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386add.ppu: cg386add.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386mem.ppu: cg386mem.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	systems.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386cal.ppu: cg386cal.pas \
-	symtable.ppu \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	systems.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu \
-	cg386ld.ppu
-
-cg386ld.ppu: cg386ld.pas \
-	tree.ppu \
-	i386.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-cg386flw.ppu: cg386flw.pas \
-	tree.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	globals.ppu \
-	systems.ppu \
-	symtable.ppu \
-	aasm.ppu \
-	i386.ppu \
-	types.ppu \
-	cgi386.ppu \
-	cgai386.ppu \
-	temp_gen.ppu \
-	tgeni386.ppu \
-	hcodegen.ppu
-
-aopt386.ppu: aopt386.pas \
-	aasm.ppu \
-	i386.ppu \
-	daopt386.ppu \
-	popt386.ppu \
-	csopt386.ppu
-
-daopt386.ppu: daopt386.pas \
-	aasm.ppu \
-	cobjects.ppu \
-	i386.ppu \
-	globals.ppu \
-	systems.ppu \
-	verbose.ppu \
-	hcodegen.ppu \
-	cgi386.ppu
-
-popt386.ppu: popt386.pas \
-	aasm.ppu \
-	globals.ppu \
-	systems.ppu \
-	verbose.ppu \
-	hcodegen.ppu \
-	i386.ppu \
-	daopt386.ppu
-
-csopt386.ppu: csopt386.pas \
-	aasm.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	i386.ppu \
-	daopt386.ppu
+	temp_gen.ppu
 
 pstatmnt.ppu: pstatmnt.pas \
 	tree.ppu \
@@ -597,66 +299,7 @@ pstatmnt.ppu: pstatmnt.pas \
 	ppu.ppu \
 	pbase.ppu \
 	pexpr.ppu \
-	pdecl.ppu \
-	i386.ppu \
-	tgeni386.ppu \
-	ra386int.ppu \
-	ra386att.ppu \
-	ra386dir.ppu
-
-ra386int.ppu: ra386int.pas \
-	tree.ppu \
-	i386.ppu \
-	systems.ppu \
-	files.ppu \
-	aasm.ppu \
-	globals.ppu \
-	asmutils.ppu \
-	hcodegen.ppu \
-	scanner.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	types.ppu
-
-asmutils.ppu: asmutils.pas \
-	symtable.ppu \
-	aasm.ppu \
-	hcodegen.ppu \
-	verbose.ppu \
-	systems.ppu \
-	globals.ppu \
-	files.ppu \
-	cobjects.ppu \
-	i386.ppu
-
-ra386att.ppu: ra386att.pas \
-	i386.ppu \
-	tree.ppu \
-	files.ppu \
-	aasm.ppu \
-	globals.ppu \
-	asmutils.ppu \
-	hcodegen.ppu \
-	scanner.ppu \
-	systems.ppu \
-	cobjects.ppu \
-	verbose.ppu \
-	symtable.ppu \
-	types.ppu
-
-ra386dir.ppu: ra386dir.pas \
-	tree.ppu \
-	files.ppu \
-	i386.ppu \
-	hcodegen.ppu \
-	globals.ppu \
-	scanner.ppu \
-	aasm.ppu \
-	cobjects.ppu \
-	symtable.ppu \
-	types.ppu \
-	verbose.ppu \
-	asmutils.ppu
+	pdecl.ppu
 
 pexports.ppu: pexports.pas \
 	cobjects.ppu \
@@ -672,20 +315,20 @@ psystem.ppu: psystem.pas \
 	tree.ppu
 
 pmodules.ppu: pmodules.pas \
-	files.ppu \
 	cobjects.ppu \
-	verbose.ppu \
 	comphook.ppu \
 	systems.ppu \
 	globals.ppu \
 	symtable.ppu \
 	aasm.ppu \
+	files.ppu \
 	hcodegen.ppu \
+	verbose.ppu \
 	link.ppu \
 	assemble.ppu \
 	import.ppu \
+	gendef.ppu \
 	ppu.ppu \
-	i386.ppu \
 	scanner.ppu \
 	pbase.ppu \
 	psystem.ppu \
