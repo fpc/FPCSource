@@ -554,7 +554,6 @@ implementation
          firstpass(p^.left);
          aktexceptblock:=oldexceptblock;
          set_varstate(p^.left,true);
-
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -582,6 +581,9 @@ implementation
 
       begin
          { that's really an example procedure for a firstpass :) }
+         if (p^.excepttype^.deftype<>objectdef) or
+           not(pobjectdef(p^.excepttype)^.is_class) then
+           CGMessage(type_e_mismatch);
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -626,7 +628,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2000-02-17 14:53:43  florian
+  Revision 1.36  2000-03-19 14:17:05  florian
+    * crash when using exception classes without sysutils unit fixed
+
+  Revision 1.35  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.34  2000/02/09 13:23:07  peter

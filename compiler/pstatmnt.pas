@@ -588,16 +588,18 @@ unit pstatmnt;
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.restype.def^.deftype=objectdef) and
                                  pobjectdef(ptypesym(srsym)^.restype.def)^.is_class then
-                                 ot:=pobjectdef(ptypesym(srsym)^.restype.def)
+                                 begin
+                                    ot:=pobjectdef(ptypesym(srsym)^.restype.def);
+                                    sym:=new(pvarsym,initdef(objname,ot));
+                                 end
                                else
                                  begin
-                                    ot:=pobjectdef(generrordef);
+                                    sym:=new(pvarsym,initdef(objname,new(perrordef,init)));
                                     if (srsym^.typ=typesym) then
                                       Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename)
                                     else
                                       Message1(type_e_class_type_expected,ot^.typename);
                                  end;
-                               sym:=new(pvarsym,initdef(objname,ot));
                                exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
                                { insert the exception symtable stack }
@@ -1366,7 +1368,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.126  2000-03-19 11:16:44  peter
+  Revision 1.127  2000-03-19 14:17:05  florian
+    * crash when using exception classes without sysutils unit fixed
+
+  Revision 1.126  2000/03/19 11:16:44  peter
     * check for unknown id in on exception
 
   Revision 1.125  2000/03/16 15:12:06  pierre
