@@ -191,7 +191,7 @@ install-indep-stamp: debian-files build-indep
 	dh_testroot
 	dh_clean -k
 
-	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fpc/$(FPCVERSION)/
+	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-docs
 
 	touch install-indep-stamp
 
