@@ -1149,39 +1149,38 @@
                  { this symbol can't be loaded to a register }
                    var_options:=var_options and not vo_regable;
                  { get the alignment size }
-                   if (aktpackrecords=packrecord_C) and
-                      (owner^.dataalignment<4) then
+                   if (aktpackrecords=packrecord_C) then
                     begin
                       varalign:=definition^.alignment;
-                      if varalign>0 then
+                      if varalign=0 then
                        begin
-                         if varalign>owner^.dataalignment then
-                          owner^.dataalignment:=varalign;
-                       end
-                      else
-                       begin
-                         if l>=4 then
-                          owner^.dataalignment:=4
-                         else
-                          if l>=2 then
-                           owner^.dataalignment:=2;
+                         if (owner^.dataalignment<4) then
+                          begin
+                            if (l>=4) then
+                             owner^.dataalignment:=4
+                            else
+                             if (owner^.dataalignment<2) and (l>=2) then
+                              owner^.dataalignment:=2;
+                          end;
                        end;
-                    end;
+                    end
+                   else
+                    varalign:=0;
                  { align record and object fields }
-                   if (l=1) or (owner^.dataalignment=1) then
+                   if (l=1) or (varalign=1) or (owner^.dataalignment=1) then
                     begin
                       address:=owner^.datasize;
                       inc(owner^.datasize,l)
                     end
                    else
-                    if (l=2) or (owner^.dataalignment=2) then
+                    if (l=2) or (varalign=2) or (owner^.dataalignment=2) then
                      begin
                        owner^.datasize:=(owner^.datasize+1) and (not 1);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l)
                      end
                    else
-                    if (l<=4) or (owner^.dataalignment=4) then
+                    if (l<=4) or (varalign=4) or (owner^.dataalignment=4) then
                      begin
                        owner^.datasize:=(owner^.datasize+3) and (not 3);
                        address:=owner^.datasize;
@@ -2002,7 +2001,10 @@
 
 {
   $Log$
-  Revision 1.100  1999-07-23 16:05:32  peter
+  Revision 1.101  1999-07-23 20:59:23  peter
+    * more C packing fixes
+
+  Revision 1.100  1999/07/23 16:05:32  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
