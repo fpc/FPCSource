@@ -201,10 +201,10 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=imlib
 override PACKAGE_VERSION=1.0.6
-override TARGET_UNITS+=gdk_imlib Imlib
+override TARGET_UNITS+=gdk_imlib imlib
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
-override COMPILER_SOURCEDIR+=Imlib gdk_imlib
+override COMPILER_SOURCEDIR+=imlib gdk_imlib
 override COMPILER_TARGETDIR+=.
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

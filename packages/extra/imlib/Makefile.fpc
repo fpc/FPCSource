@@ -7,14 +7,14 @@ name=imlib
 version=1.0.6
 
 [target]
-units=gdk_imlib Imlib
+units=gdk_imlib imlib
 
 [require]
 libc=y
 packages=gtk
 
 [compiler]
-sourcedir=Imlib gdk_imlib
+sourcedir=imlib gdk_imlib
 targetdir=.
 
 [install]
