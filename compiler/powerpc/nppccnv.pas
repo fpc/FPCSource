@@ -109,9 +109,14 @@ implementation
       type
         tdummyarray = packed array[0..7] of byte;
 
+{$ifdef VER1_0}
+      var
+        dummy1, dummy2: int64;
+{$else VER1_0}
       const
-         dummyarray1 : tdummyarray = ($43,$30,$00,$00,$80,$00,$00,$00);
-         dummyarray2 : tdummyarray = ($43,$30,$00,$00,$00,$00,$00,$00);
+         dummy1: int64 = $4330000080000000;
+         dummy2: int64 = $4330000000000000;
+{$endif VER1_0}
 
       var
         tempconst: trealconstnode;
@@ -119,6 +124,12 @@ implementation
         valuereg, tempreg, leftreg, tmpfpureg: tregister;
         signed, valuereg_is_scratch: boolean;
       begin
+{$ifdef VER1_0}
+        { the "and" is because 1.0.x will sign-extend the $80000000 to }
+        { $ffffffff80000000 when converting it to int64 (JM)           }
+        dummy1 := int64($80000000) and (int64($43300000) shl 32);
+        dymmy2 := int64($43300000) shl 32;
+{$endif VER1_0}
 
         valuereg_is_scratch := false;
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
@@ -146,15 +157,11 @@ implementation
         { we need a certain constant for the conversion, so create it here }
         if signed then
           tempconst :=
-            { the array of byte is necessary because 1. the 1.0.x compiler
-              doesn't know 64 constants, 2. it won't work with big endian
-              and little endian machines at the same time (FK)
-            }
-            crealconstnode.create(double(dummyarray1),
+            crealconstnode.create(double(dummy1),
             pbestrealtype^)
         else
           tempconst :=
-            crealconstnode.create(double(dummyarray2),
+            crealconstnode.create(double(dummy2),
             pbestrealtype^);
 
         resulttypepass(tempconst);
@@ -377,7 +384,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-07-20 11:58:05  florian
+  Revision 1.15  2002-07-21 16:57:22  jonas
+    * hopefully final fix for second_int_to_real()
+
+  Revision 1.14  2002/07/20 11:58:05  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
