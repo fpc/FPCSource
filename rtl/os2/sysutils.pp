@@ -58,13 +58,16 @@ function FileOpen (const FileName: string; Mode: integer): longint;
 var FN: string;
 begin
     FN := FileName + #0;
-(* DenyAll if sharing not specified. *)
-    if Mode and 112 = 0 then
-        Mode := Mode or 16;
 {$ENDIF}
     asm
+        mov eax, Mode
+(* DenyAll if sharing not specified. *)
+        test eax, 112
+        jnz @FOpen1
+        or eax, 16
+@FOpen1:
+        mov ecx, eax
         mov eax, 7F2Bh
-        mov ecx, Mode
 {$IFOPT H+}
         mov edx, FileName
 {$ELSE}
@@ -86,9 +89,6 @@ function FileCreate (const FileName: string): longint;
 var FN: string;
 begin
     FN := FileName + #0;
-(* DenyAll if sharing not specified. *)
-    if Mode and 112 = 0 then
-        Mode := Mode or 16;
 {$ENDIF}
     asm
         mov eax, 7F2Bh
@@ -749,7 +749,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-08-20 15:46:46  peter
+  Revision 1.3  2000-08-25 17:23:56  hajny
+    * Sharing mode error fixed
+
+  Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 
 }
