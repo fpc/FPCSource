@@ -244,7 +244,8 @@
 
               { if one of the operands is greater than the result an }
               { overflow occurs                                      }
-              if checkoverflow and ((_f1>mulqword) or (f2>mulqword)) then
+              if checkoverflow and (_f1 <> 0) and (f2 <>0) and
+                 ((_f1>mulqword) or (f2>mulqword)) then
                 HandleErrorFrame(215,get_frame);
            end;
       end;
@@ -291,7 +292,8 @@
               { the q1*q2 is coded as call to mulqword }
               q3:=q1*q2;
 
-              if checkoverflow and ((q1>q3) or (q2>q3) or
+              if checkoverflow and (q1 <> 0) and (q2 <>0) and
+              ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
                 ((tqwordrec(q3).high and $80000000)<>0) and
@@ -374,9 +376,13 @@
     end;
 
   Function ValInt64(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR'];
+   type
+     QWordRec = packed record
+       l1,l2: longint;
+     end;
 
     var
-       u, temp, prev : Int64;
+       u, temp, prev, maxint64, maxqword : qword;
        base : byte;
        negative : boolean;
 
@@ -393,6 +399,18 @@
        exit;
      end;
 
+    { high(int64) produces 0 in version 1.0 (JM) }
+    with qwordrec(maxint64) do
+      begin
+        l1 := $ffffffff;
+        l2 := $7fffffff;
+      end;
+    with qwordrec(maxqword) do
+      begin
+        l1 := $ffffffff;
+        l2 := $ffffffff;
+      end;
+
     while Code<=Length(s) do
      begin
        case s[Code] of
@@ -404,30 +422,32 @@
        end;
        Prev:=Temp;
        Temp:=Temp*Int64(base);
-       if (Temp<prev) or (u >= base) Then
-         Begin
-           ValInt64:=0;
-           Exit
-         End;
-       prev:=temp;
+     If (u >= base) or
+        ((base = 10) and
+         (maxint64-temp < u)) or
+        ((base <> 10) and
+         (qword(maxqword-temp) < u)) or
+        (prev > maxqword div qword(base)) Then
+       Begin
+         ValInt64 := 0;
+         Exit
+       End;
        Temp:=Temp+u;
-       if prev>temp then
-         begin
-           ValInt64:=0;
-           exit;
-         end;
        inc(code);
      end;
     code:=0;
-    ValInt64:=Temp;
+    ValInt64:=int64(Temp);
     If Negative Then
       ValInt64:=-ValInt64;
   end;
 
 
   Function ValQWord(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR'];
+    type qwordrec = packed record
+      l1,l2: longint;
+    end;
     var
-       u, prev: QWord;
+       u, prev, maxqword: QWord;
        base : byte;
        negative : boolean;
   begin
@@ -435,6 +455,11 @@
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
       Exit;
+    with qwordrec(maxqword) do
+      begin
+        l1 := $ffffffff;
+        l2 := $ffffffff;
+      end;
     while Code<=Length(s) do
      begin
        case s[Code] of
@@ -445,19 +470,14 @@
         u:=16;
        end;
        prev := ValQWord;
-       ValQWord:=ValQWord*QWord(base);
-       If (prev>ValQWord) or (u>=base) Then
+       If (u>=base) or
+          (qword(maxqword - prev) < u) or 
+          (prev > maxqword div qword(u)) Then
          Begin
            ValQWord := 0;
            Exit
          End;
-       prev:=ValQWord;
-       ValQWord:=ValQWord+u;
-       if prev>ValQWord then
-         begin
-            ValQWord:=0;
-            exit;
-         end;
+       ValQWord:=ValQWord*QWord(base) + u;
        inc(code);
      end;
     code := 0;
@@ -466,7 +486,12 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-07-28 12:29:49  jonas
+    * fixed web bug1069
+    * fixed similar (and other) problems in val() for int64 and qword
+      (both merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
  
 }

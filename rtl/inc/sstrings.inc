@@ -375,22 +375,16 @@ begin
      end;
      Prev := Temp;
      Temp := Temp*ValUInt(base);
-     If ((base = 10) and
-         (prev > MaxSIntValue div ValUInt(Base))) or
-        (Temp < prev) Then
+     If (u >= base) or
+        ((base = 10) and
+         (MaxSIntValue-temp < u)) or
+        ((base <> 10) and
+         (ValUInt(MaxUIntValue-Temp) < u)) or
+        (prev > ValUInt(MaxUIntValue) div ValUInt(Base)) Then
        Begin
          ValSignedInt := 0;
          Exit
        End;
-     if (u>=base) or
-        ((base = 10) and
-         (MaxSIntValue < u+temp)) or
-        ((base <> 10) and
-         (ValUInt(MaxUIntValue-Temp) < u)) then
-       begin
-         ValSignedInt:=0;
-         exit;
-       end;
      Temp:=Temp+u;
      inc(code);
    end;
@@ -432,21 +426,14 @@ begin
       u:=16;
      end;
      prev := ValUnsignedInt;
-     ValUnsignedInt:=ValUnsignedInt*ValUInt(base);
-     If prev > ValUnsignedInt Then
-      {we've had an overflow. Can't check this with
-       "If ValUnsignedInt <= (MaxUIntValue div ValUInt(Base)) Then"
-       because this division always overflows! (JM)}
-       Begin
-         ValUnsignedInt := 0;
-         Exit
-       End;
-     if (u>=base) or (ValUInt(MaxUIntValue-ValUnsignedInt) < u) then
+     If (u>=base) or
+        (ValUInt(MaxUIntValue-ValUnsignedInt) < u) or
+        (prev > (ValUInt(MaxUIntValue) div ValUInt(Base))) then
       begin
         ValUnsignedInt:=0;
         exit;
       end;
-     ValUnsignedInt:=ValUnsignedInt+u;
+     ValUnsignedInt:=ValUnsignedInt*ValUInt(base) + u;
      inc(code);
    end;
   code := 0;
@@ -571,7 +558,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-07-28 12:29:49  jonas
+    * fixed web bug1069
+    * fixed similar (and other) problems in val() for int64 and qword
+      (both merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }
