@@ -49,7 +49,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external clib name 'sigaction';
     Function  FpChmod      (path : pChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
     Function  FPUtime(path:pchar;times:putimbuf):cint; cdecl; external clib name 'utime';
-
+    Function FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
     {ifdef BSD}
     function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
@@ -99,7 +99,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
    $Log$
-   Revision 1.9  2004-11-14 12:21:08  marco
+   Revision 1.10  2004-11-23 13:33:55  jonas
+     + getcwd declaration
+
+   Revision 1.9  2004/11/14 12:21:08  marco
     * moved some calls from unix to baseunix. Darwin untested.
 
    Revision 1.8  2004/02/06 20:47:00  jonas
