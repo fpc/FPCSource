@@ -1825,7 +1825,7 @@ const localsymtablestack : psymtable = nil;
          begin
          if ((current_module^.flags and uf_local_browser)<>0) then
            begin
-              current_module^.localsymtable:=new(psymtable,loadas(staticppusymtable));
+              current_module^.localsymtable:=new(punitsymtable,loadas(staticppusymtable));
               psymtable(current_module^.localsymtable)^.name:=
                 stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
            end;
@@ -2301,7 +2301,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.20  1999-06-02 22:44:23  pierre
+  Revision 1.21  1999-06-08 22:23:50  pierre
+   * staticppusymtable was loaded a tsymtable instead of tunitsymtable
+
+  Revision 1.20  1999/06/02 22:44:23  pierre
    * previous wrong log corrected
 
   Revision 1.19  1999/06/02 22:25:53  pierre
