@@ -434,7 +434,7 @@ Begin
    InOutRes:=3;
 End;
 
-{$define usegetcwd}
+{ // $define usegetcwd}
 
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
@@ -657,7 +657,10 @@ End.
 *)
 {
  $Log$
- Revision 1.5  2002-10-26 18:27:52  marco
+ Revision 1.6  2002-10-27 17:21:29  marco
+  * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+ Revision 1.5  2002/10/26 18:27:52  marco
   * First series POSIX calls commits. Including getcwd.
 
  Revision 1.4  2002/09/07 16:01:26  peter

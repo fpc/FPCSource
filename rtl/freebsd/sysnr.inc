@@ -89,7 +89,6 @@ const
  syscall_nr_getpriority                 =100;
  syscall_nr_setsockopt                  =105;
  syscall_nr_gettimeofday                =116;
- syscall_nr_getrusage                   =117;
  syscall_nr_readv                       =120;
  syscall_nr_writev                      =121;
  syscall_nr_settimeofday                =122;
@@ -99,7 +98,6 @@ const
  syscall_nr_setregid                    =127;
  syscall_nr_rename                      =128;
  syscall_nr_flock                       =131;
- syscall_nr_mkfifo                      =132;
  syscall_nr_mkdir                       =136;
  syscall_nr_rmdir                       =137;
  syscall_nr_utimes                      =138;
@@ -235,6 +233,7 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked BSD syscalls}
+ syscall_nr_mkfifo                      =132;
  syscall_nr___getcwd                    =326;
  syscall_nr_getitimer                   = 86;
  syscall_nr_setitimer                   = 83;
@@ -314,11 +313,15 @@ syscall_nr_getdirentries                =196;
  syscall_nr_getsockopt                  = 118;
  syscall_nr_rfork                       = 251;
  syscall_nr_nanosleep                   = 240;
+ syscall_nr_getrusage                   =117;
 
 
 {
   $Log$
-  Revision 1.8  2002-10-26 18:27:52  marco
+  Revision 1.9  2002-10-27 17:21:29  marco
+   * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+  Revision 1.8  2002/10/26 18:27:52  marco
    * First series POSIX calls commits. Including getcwd.
 
   Revision 1.7  2002/09/07 16:01:18  peter

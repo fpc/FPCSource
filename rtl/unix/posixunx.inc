@@ -15,6 +15,53 @@
 
  **********************************************************************}
 
+function InternalCreateShellArgV(cmd:pChar; len:longint):ppchar;
+{
+  Create an argv which executes a command in a shell using /bin/sh -c
+}
+const   Shell   = '/bin/sh'#0'-c'#0;
+var
+  pp,p : ppchar;
+//  temp : string; !! Never pass a local var back!!
+begin
+  getmem(pp,4*4);
+  p:=pp;
+  p^:=@Shell[1];
+  inc(p);
+  p^:=@Shell[9];
+  inc(p);
+  getmem(p^,len+1);
+  move(cmd^,p^^,len);
+  pchar(p^)[len]:=#0;
+  inc(p);
+  p^:=Nil;
+  InternalCreateShellArgV:=pp;
+end;
+
+function CreateShellArgV(const prog:string):ppchar;
+begin
+  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
+end;
+
+function CreateShellArgV(const prog:Ansistring):ppchar;
+{
+  Create an argv which executes a command in a shell using /bin/sh -c
+  using a AnsiString;
+}
+begin
+  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog)); // if ppc works like delphi this also work when @prog[1] is invalid (len=0)
+end;
+
+
+procedure FreeShellArgV(p:ppchar);
+begin
+  if (p<>nil) then begin
+    freemem(p[2]);
+    freemem(p);
+   end;
+end;
+
+
 Function sys_getenv(const name:pchar):pchar;
 
 var
@@ -66,7 +113,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-10-27 13:16:54  marco
+  Revision 1.2  2002-10-27 17:21:30  marco
+   * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+  Revision 1.1  2002/10/27 13:16:54  marco
    * Routines that certainly will be shared between Linux and *BSD
 
 

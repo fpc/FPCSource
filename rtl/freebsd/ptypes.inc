@@ -39,6 +39,8 @@ type
     cuint  = Cardinal;          { minimum range is : 32-bit    }
     clong  = longint;
     culong = Cardinal;
+    cshort = integer;
+    cushort= word;
 
     dev_t    = cuint32;         { used for device numbers      }
     gid_t    = cuint32;         { used for group IDs           }
@@ -50,6 +52,7 @@ type
     size_t   = cuint32;         { as definied in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes }
     uid_t    = cuint32;         { used for user ID type        }
+    clock_t  = culong;
 
     time_t   = clong;           { used for returning the time  }
     socklen_t= cuint32;

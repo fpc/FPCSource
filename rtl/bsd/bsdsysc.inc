@@ -369,18 +369,19 @@ Begin
   do_syscall(syscall_nr_Execve,longint(@path[1]),longint(Argv),longint(envp));
 End;
 }
-
+{
 function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
+}
 {
   Replaces the current program by the program specified in path,
   arguments in args are passed to Execve.
   environment specified in ep is passed on.
 }
-
+{
 Begin
   do_syscall(syscall_nr_Execve,longint(path),longint(Argv),longint(envp));
 End;
-
+}
 function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
@@ -573,7 +574,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2002-10-27 11:58:29  marco
+ Revision 1.8  2002-10-27 17:21:29  marco
+  * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+ Revision 1.7  2002/10/27 11:58:29  marco
   * Modifications from Saturday.
 
  Revision 1.6  2002/10/26 18:27:51  marco

@@ -51,7 +51,7 @@ Uses Sysctl;
     function sys_rename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
     function sys_fstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
     function sys_fork : pid_t; cdecl; external name 'fork';
-    function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
+    function sys_execve(path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external name 'execve';
     function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
     function sys_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
     function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
@@ -82,7 +82,7 @@ function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionre
 function sys_ftruncate(fd : cint; flength : off_t): cint; external name 'FPC_SYSC_FTRUNCATE';
 function sys_fstat(fd : cint; var sb : stat): cint; external name 'FPC_SYSC_FSTAT';
 function sys_fork : pid_t; external name 'FPC_SYSC_FORK';
-function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; external name 'FPC_SYSC_EXECVE';
+// function sys_execve(path : pchar; argv : ppchar;envp: ppchar): cint; external name 'FPC_SYSC_EXECVE';
 function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; external name 'FPC_SYSC_WAITPID';
 function sys_access(const pathname : pchar; amode : cint): cint;external name 'FPC_SYSC_ACCESS';
 function sys_Dup(fildes:cint):cint;  external name 'FPC_SYSC_DUP';
@@ -96,7 +96,10 @@ procedure seterrno (i:cint); external name  'FPC_SYS_SETERRNO';
 
 {
  $Log$
- Revision 1.7  2002-10-27 11:58:30  marco
+ Revision 1.8  2002-10-27 17:21:29  marco
+  * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+ Revision 1.7  2002/10/27 11:58:30  marco
   * Modifications from Saturday.
 
  Revision 1.6  2002/10/26 18:27:51  marco

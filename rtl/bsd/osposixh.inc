@@ -101,6 +101,15 @@ TYPE
 		l_whence: cshort;	{ type of l_start }
                 end;
 
+
+ tms = packed record
+	 tms_utime  : clock_t;	{ User CPU time }
+	 tms_stime  : clock_t;	{ System CPU time }
+	 tms_cutime : clock_t;	{ User CPU time of terminated child procs }
+	 tms_cstime : clock_t;	{ System CPU time of terminated child procs }
+	 end;
+
+
 {***********************************************************************}
 {                  POSIX CONSTANT ROUTINE DEFINITIONS                   }
 {***********************************************************************}
@@ -155,7 +164,10 @@ CONST
 
 {
   $Log$
-  Revision 1.5  2002-10-27 11:58:30  marco
+  Revision 1.6  2002-10-27 17:21:29  marco
+   * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+  Revision 1.5  2002/10/27 11:58:30  marco
    * Modifications from Saturday.
 
   Revision 1.4  2002/09/07 16:01:17  peter

@@ -16,9 +16,10 @@
 
  **********************************************************************}
 
-{$i syscallh.inc}
-{$i sysnr.inc}
-{$i bsdsysch.inc}
+{$i syscallh.inc}	// do_syscall declarations themselves
+{$i sysnr.inc}		// syscall numbers.
+{$i bsdsysch.inc}	// external interface to syscalls in system unit.
+{$i posixunx.inc}	// generic calls. (like getenv)
 
 Function sys_Kill(Pid:pid_t;Sig:cint):cint;
 {
@@ -455,16 +456,65 @@ begin
  sys_fcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd);
 end;
 
-function sys_execve(path:pchar;argv:ppchar;envp:ppchar):cint
+function sys_execve(path:pchar;argv:ppchar;envp:ppchar):cint;
 
 Begin
- sys_execve:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+  sys_execve:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
 End;
+
+function sys_execv(path:pchar;argv:ppchar):cint;
+
+Begin
+  sys_execv:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+End;
+
+CONST RUSAGE_SELF	= 0;
+      RUSAGE_CHILDREN   = -1;
+
+function sys_getrusage(who:cint;var ru : rusage):cint;
+
+begin
+ sys_getrusage:=do_syscall(syscall_nr_getrusage,longint(who),longint(@ru));
+end;
+
+function sys_times(var buffer : tms):clock_t;
+
+var ru : rusage;
+    t  : timeval;
+
+CONST CLK_TCK=128;
+
+function CONVTCK(r:timeval):clock_t;	
+{
+ * Convert usec to clock ticks; could do (usec * CLK_TCK) / 1000000,
+ * but this would overflow if we switch to nanosec.
+ }
+begin
+ CONVTCK:=(r.tv_sec * CLK_TCK + r.tv_usec DIV (1000000 DIV CLK_TCK));
+end;
+
+begin
+
+	if (sys_getrusage(RUSAGE_SELF, ru) < 0) Then
+	    exit(clock_t(-1));
+	buffer.tms_utime := CONVTCK(ru.ru_utime);
+	buffer.tms_stime := CONVTCK(ru.ru_stime);
+	if (sys_getrusage(RUSAGE_CHILDREN, ru) < 0) Then
+ 	    exit(clock_t(-1));
+	buffer.tms_cutime := CONVTCK(ru.ru_utime);
+	buffer.tms_cstime := CONVTCK(ru.ru_stime);
+	if do_syscall(syscall_nr_gettimeofday,longint(@t),0)<>0 Then
+		    exit(clock_t(-1));
+	sys_times:=clock_t(CONVTCK(t));
+end;
 
 
 {
  $Log$
- Revision 1.7  2002-10-27 11:58:29  marco
+ Revision 1.8  2002-10-27 17:21:29  marco
+  * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+ Revision 1.7  2002/10/27 11:58:29  marco
   * Modifications from Saturday.
 
  Revision 1.6  2002/10/26 18:27:51  marco

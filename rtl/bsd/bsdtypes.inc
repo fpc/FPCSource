@@ -40,9 +40,33 @@ Type
   ptimezone =^timezone;
   TTimeZone = timezone;
 
+  rusage = packed record
+	ru_utime    : timeval;		{ user time used }
+	ru_stime    : timeval;		{ system time used }
+	ru_maxrss   : clong;		{ max resident set size }
+	ru_ixrss    : clong;		{ integral shared memory size }
+	ru_idrss    : clong;		{ integral unshared data " }
+	ru_isrss    : clong;		{ integral unshared stack " }
+	ru_minflt   : clong;		{ page reclaims }
+	ru_majflt   : clong;		{ page faults }
+	ru_nswap    : clong;		{ swaps }
+	ru_inblock  : clong;		{ block input operations }
+	ru_oublock  : clong;		{ block output operations }
+	ru_msgsnd   : clong;		{ messages sent }
+	ru_msgrcv   : clong;		{ messages received }
+	ru_nsignals : clong;		{ signals received }
+	ru_nvcsw    : clong;		{ voluntary context switches }
+	ru_nivcsw   : clong;		{ involuntary " }
+	end;
+// #define	ru_last		ru_nivcsw
+// #define	ru_first	ru_ixrss
+
 {
  $Log$
- Revision 1.3  2002-10-27 11:58:30  marco
+ Revision 1.4  2002-10-27 17:21:29  marco
+  * Only "difficult" functions + execvp + termios + rewinddir left to do
+
+ Revision 1.3  2002/10/27 11:58:30  marco
   * Modifications from Saturday.
 
  Revision 1.2  2002/09/07 16:01:17  peter
