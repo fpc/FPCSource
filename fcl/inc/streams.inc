@@ -49,22 +49,14 @@
 
     begin
        if Read(Buffer,Count)<Count then
-{$ifdef NoExceptions}
-         ;
-{$else}
-         Raise(EReadError);
-{$endif}
+         Raise EReadError.Create(SReadError);
     end;
 
   procedure TStream.WriteBuffer(const Buffer; Count: Longint);
 
     begin
        if Write(Buffer,Count)<Count then
-{$ifdef NoExceptions}
-         ;
-{$else}
-         Raise(EWriteError);
-{$endif}
+         Raise EWriteError.Create(SWriteError);
     end;
 
   function TStream.CopyFrom(Source: TStream; Count: Longint): Longint;
@@ -118,9 +110,12 @@
        Writer : TWriter;
 
     begin
-       Writer.Create(Self,1024);
-       Writer.WriteRootComponent(Instance);
-       Writer.Destroy;
+       Try
+         Writer.Create(Self,1024);
+         Writer.WriteRootComponent(Instance);
+       Finally
+         Writer.Destroy;
+       end;
     end;
 
   procedure TStream.WriteComponentRes(const ResName: string; Instance: TComponent);
@@ -170,15 +165,15 @@
        try
          { application specific resource ? }
          if ReadByte<>$ff then
-           raise EInvalidImage.Create;
+           raise EInvalidImage.Create('');
          if ReadWord<>$000a then
-           raise EInvalidImage.Create;
+           raise EInvalidImage.Create('');
          { read name }
          while ReadByte<>0 do
            ;
          { check the access specifier }
          if ReadWord<>$1030 then
-           raise EInvalidImage.Create;
+           raise EInvalidImage.Create('');
          { ignore the size }
          ReadDWord;
        except
@@ -186,7 +181,7 @@
          on EInvalidImage do
            raise;
          else
-           raise(EInvalidImage);
+           raise EInvalidImage.create(SInvalidImage);
 }
        end;
 {$endif Win16Res}
@@ -306,11 +301,10 @@ constructor TFileStream.Create(const FileName: string; Mode: Word);
 begin
   FHandle:=OSCreateFile (Filename,Mode);
   If FHandle<0 then
-{$ifdef NoExceptions}
-   RunError(255);
-{$else}
-   raise EFCreateError;
-{$endif}
+    If Mode=fmcreate then    
+      raise EFCreateError.createfmt(SFCreateError,[FileName])
+    else
+      raise EFOpenError.Createfmt(SFOpenError,[Filename]);
 end;
 
 
@@ -384,9 +378,12 @@ procedure TCustomMemoryStream.SaveToFile(const FileName: string);
 Var S : TFileStream;
 
 begin
-  S:=TFileStream.Create (FileName,fmCreate);
-  SaveToStream(S);
-  S.free;
+  Try
+    S:=TFileStream.Create (FileName,fmCreate);
+    SaveToStream(S);
+  finally
+    S.free;
+  end;
 end;
 
 
@@ -419,6 +416,8 @@ begin
     else
       begin
       GetMem (Result,NewCapacity);
+      If Result=Nil then
+        Raise EStreamError.Create(SMemoryStreamError);
       If FCapacity>0 then
         begin
         MoveSize:=FSize;
@@ -461,9 +460,12 @@ procedure TMemoryStream.LoadFromFile(const FileName: string);
 Var S : TFileStream;
 
 begin
-  S:=TFileStream.Create (FileName,fmOpenRead);
-  LoadFromStream(S);
-  S.free;
+  Try
+    S:=TFileStream.Create (FileName,fmOpenRead);
+    LoadFromStream(S);
+  finally 
+    S.free;
+  end;
 end;
 
 
@@ -608,7 +610,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-08-24 12:38:24  michael
+  Revision 1.8  1998-10-02 22:41:30  michael
+  + Added exceptions for error handling
+
+  Revision 1.7  1998/08/24 12:38:24  michael
   small fixes
 
   Revision 1.6  1998/06/11 21:15:28  michael

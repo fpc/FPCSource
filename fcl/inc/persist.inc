@@ -26,8 +26,7 @@ begin
   else
     SourceName:='Nil';
   Writeln ('Error assigning to ',ClassName,' from : ',SourceName);
-  RunError(255);
-  //!! raise EConvertError.CreateFmt (SAssignError,[SourceName,ClassName]);
+  raise EConvertError.CreateFmt (SAssignError,[SourceName,ClassName]);
 end;
 
 
@@ -82,7 +81,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  1998-05-27 12:22:14  michael
+  Revision 1.3  1998-10-02 22:41:29  michael
+  + Added exceptions for error handling
+
+  Revision 1.2  1998/05/27 12:22:14  michael
   + Implemented TPersistent
 
   Revision 1.1  1998/05/04 14:30:12  michael

@@ -101,7 +101,7 @@ end;
 
 destructor TParser.Destroy;
 begin
-  if FBuffer <> nil then
+  if Assigned(FBuffer) then
   begin
     FStream.Seek(Longint(FTokenPtr) - Longint(FBufPtr), 1);
     FreeMem(FBuffer, ParseBufSize);
@@ -322,7 +322,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  1998-09-23 07:48:11  michael
+  Revision 1.3  1998-10-02 22:41:28  michael
+  + Added exceptions for error handling
+
+  Revision 1.2  1998/09/23 07:48:11  michael
   + Implemented by TSE
 
   Revision 1.1  1998/05/04 14:30:12  michael

@@ -34,10 +34,9 @@ const
   SDuplicateString = 'Duplicate entries not allowed in StringList';
   SInvalidTabIndex = 'Registerindex out of bounds';
   SDuplicateName = 'A Component with name %s exists already';
-  SInvalidName = '''''%s'''' is not a valid identifier name';
+  SInvalidName = '"%s" is not a valid identifier name';
   SDuplicateClass = 'A Class with name %s exists already';
   SNoComSupport = '%s is not registered as COM-Class';
-  SInvalidInteger = '''''%s'''' is not a valid integer value';
   SLineTooLong = 'Line too long';
  
   SInvalidPropertyValue = 'Invalid property value';

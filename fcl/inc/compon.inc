@@ -147,11 +147,12 @@ begin
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
+{
   Filer.Defineproperty('left',readleft,writeleft,
                        (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
   Filer.Defineproperty('top',readtop,writetop,
                        (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
-                      
+}                      
 end;
 
 
@@ -260,8 +261,7 @@ Procedure TComponent.SetName(const NewName: TComponentName);
 begin
   If FName=NewName then exit;
   If not IsValidIdent(NewName) then
-    //!!
-    runerror(255);
+    Raise EComponentError.CreateFmt(SInvalidName,[NewName]);
   If Assigned(FOwner) Then
     FOwner.ValidateRename(Self,FName,NewName)
   else
@@ -314,8 +314,7 @@ begin
 //!! This contradicts the Delphi manual.
   If (AComponent<>Nil) and (CurName=NewName) and 
      (FindComponent(NewName)<>Nil) then
-//!!      raise EComponentError.Createfmt(SDuplicatename[newname])
-      runerror(255);
+      raise EComponentError.Createfmt(SDuplicateName,[newname]);
   If (csDesigning in FComponentState) and (FOwner<>Nil) then
     FOwner.ValidateRename(AComponent,Curname,Newname);
 end;
@@ -478,7 +477,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-08-24 12:37:44  michael
+  Revision 1.5  1998-10-02 22:41:25  michael
+  + Added exceptions for error handling
+
+  Revision 1.4  1998/08/24 12:37:44  michael
   small fixes
 
   Revision 1.3  1998/08/23 21:11:03  michael

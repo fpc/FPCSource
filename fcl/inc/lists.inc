@@ -30,7 +30,7 @@ function TList.Get(Index: Integer): Pointer;
 
 begin
   If (Index<0) or (Index>FCount) then 
-    Runerror (255);
+    Error(SListIndexError,Index);
   Result:=FList^[Index];
 end;
 
@@ -48,7 +48,7 @@ procedure TList.Put(Index: Integer; Item: Pointer);
 
 begin
   if (Index<0) or (Index>=FCount) then 
-    Runerror(255);
+    Error(SListIndexError,Index);
   Flist^[Index]:=Item;
 end;
 
@@ -60,12 +60,13 @@ Var NewList,ToFree : PPointerList;
     
 begin
   If (NewCapacity<0) or (NewCapacity>MaxListSize) then 
-     RunError (255); 
+     Error (SListCapacityError,NewCapacity); 
   If NewCapacity>FCapacity then
     begin
     GetMem (NewList,NewCapacity*SizeOf(Pointer));
     If NewList=Nil then
-      Runerror(255);
+      //!! Find another one here !!
+      Error (SListCapacityError,NewCapacity);
     If Assigned(FList) then
       begin
       System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
@@ -78,7 +79,7 @@ begin
   else if NewCapacity<FCapacity then
     begin
     If NewCapacity<0 then
-      RunError(255);
+      Error (SListCapacityError,NEwCapacity);
     ToFree:=Flist+NewCapacity*SizeOf(Pointer);
     FreeMem (ToFree, (FCapacity-NewCapacity)*SizeOf(Pointer));
     FCapacity:=NewCapacity;
@@ -91,7 +92,7 @@ procedure TList.SetCount(NewCount: Integer);
 
 begin
   If (NewCount<0) or (NewCount>MaxListSize)then
-    RunError(255);
+    Error(SListCountError,NewCount);
   If NewCount<FCount then
     FCount:=NewCount
   else If NewCount>FCount then 
@@ -141,7 +142,7 @@ Procedure TList.Delete(Index: Integer);
 
 begin
   If (Index<0) or (Index>=FCount) then
-    Runerror(255);
+    Error (SListIndexError,Index);
   FCount:=FCount-1;
   System.Move (FList^[Index+1],FList^[Index],(FCount-Index)*SizeOf(Pointer));
 end;
@@ -150,8 +151,8 @@ end;
 class procedure TList.Error(const Msg: string; Data: Integer);
 
 begin
-  Writeln (Msg);
-  RunError(255);
+  //!! Find a way to get call  address
+  Raise EListError.CreateFmt(Msg,[Data]);
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);
@@ -159,9 +160,10 @@ procedure TList.Exchange(Index1, Index2: Integer);
 var Temp : Pointer;
 
 begin
-  If ((Index1>=FCount) or (Index2>=FCount)) or
-     ((Index1<0) or (Index2<0)) then
-    RunError(255);
+  If ((Index1>=FCount) or (Index1<0)) then
+    Error(SListIndexError,Index1);
+  If ((Index2>=FCount) or (Index2<0)) then
+    Error(SListIndexError,Index2);
   Temp:=FList^[Index1];
   FList^[Index1]:=FList^[Index2];
   FList^[Index2]:=Temp;
@@ -206,7 +208,7 @@ procedure TList.Insert(Index: Integer; Item: Pointer);
 
 begin
   If (Index<0) or (Index>FCount )then
-    RunError(255);
+    Error(SlistIndexError,Index);
   IF FCount=FCapacity Then Self.Expand;
   If Index<FCount then 
     System.Move (Flist^[Index],Flist^[Index+1],(FCount-Index)*SizeOf(Pointer));
@@ -231,8 +233,10 @@ procedure TList.Move(CurIndex, NewIndex: Integer);
 Var Temp : Pointer;
 
 begin
-  If ((CurIndex<0) or (CurIndex>Count-1)) or (NewINdex<0) then 
-    RunError(255);
+  If ((CurIndex<0) or (CurIndex>Count-1)) then
+    Error(SListIndexError,CurIndex);
+  If (NewINdex<0) then 
+    Error(SlistIndexError,NewIndex);
   Temp:=FList^[CurIndex];
   Self.Delete(CurIndex);
   // ?? If NewIndex>CurIndex then NewIndex:=NewIndex-1;
@@ -386,7 +390,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-05-06 07:27:22  michael
+  Revision 1.5  1998-10-02 22:41:27  michael
+  + Added exceptions for error handling
+
+  Revision 1.4  1998/05/06 07:27:22  michael
   + Fixec index check in exchange method.
 
   Revision 1.3  1998/05/05 15:54:31  michael

@@ -198,8 +198,7 @@ function TCollection.GetItemAttr(Index, ItemIndex: Integer): string;
 
 
 begin
-  //!! Not Accepted !!
-  //!! Result:=TCollectionItem(FItems[ItemIndex]).DisplayName;
+   Result:=TCollectionItem(FItems[ItemIndex]).DisplayName;
 end;
 
 
@@ -231,7 +230,7 @@ end;
 function TCollection.GetItem(Index: Integer): TCollectionItem;
 
 begin
-  //!! Result:=FItems[Index];
+   Result:=TCollectionItem(FItems[Index]);
 end;
 
 
@@ -239,7 +238,7 @@ end;
 procedure TCollection.SetItem(Index: Integer; Value: TCollectionItem);
 
 begin
- //!! TCollectionItem(FItems[Index]).Assign(Value);
+  TCollectionItem(FItems[Index]).Assign(Value);
 end;
 
 
@@ -313,8 +312,8 @@ end;
 procedure TCollection.Clear;
 
 begin
-  //!! If Assigned(FItems) then
-  //!!   While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
+  If Assigned(FItems) then
+    While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
 end;
 
 
@@ -334,14 +333,17 @@ begin
   Result:=Nil;
   For I:=0 to Fitems.Count-1 do
    begin
-   //!! Result:=TCollectionItem(FItems[I]);
+   Result:=TCollectionItem(FItems[I]);
    If Result.Id=Id then exit;
    end;
 end;
 
 {
   $Log$
-  Revision 1.2  1998-05-27 11:41:41  michael
+  Revision 1.3  1998-10-02 22:41:23  michael
+  + Added exceptions for error handling
+
+  Revision 1.2  1998/05/27 11:41:41  michael
   Implemented TCollection and TCollectionItem
 
   Revision 1.1  1998/05/04 14:30:11  michael
