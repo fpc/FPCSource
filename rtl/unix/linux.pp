@@ -2271,7 +2271,7 @@ begin
      while not (buf^ in [' ',#0,#8,#10]) do
       inc(buf);
    end;
-  getmem(p,nr*4);
+  getmem(p,nr*4+1);
   StringToPPChar:=p;
   if p=nil then
    begin
@@ -3032,7 +3032,12 @@ End.
 
 {
   $Log$
-  Revision 1.23  2002-09-07 16:01:27  peter
+  Revision 1.24  2002-09-13 13:03:27  jonas
+    * fixed buffer overflow error in StringToPPChar(), detected using
+      DIOTA (http://www.elis/rug.ac.be/~ronsse/diota) (which I also work on :)
+      (merged)
+
+  Revision 1.23  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.22  2002/08/06 13:30:46  sg
