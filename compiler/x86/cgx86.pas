@@ -817,18 +817,9 @@ unit cgx86;
             ( { OS_F32 }
               A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
             ),
-          { Intel did again a "nice" job: they added packed double operations (*PD) to SSE2 but
-            no scalar ones (*SD)
-          }
-          {$ifdef x86_64}
             ( { OS_F64 }
-              A_NOP,{!!! A_ADDSD}A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+              A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP
             )
-          {$else x86_64}
-            ( { OS_F64 }
-              A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
-            )
-          {$endif x86_64}
           ),
           ( { vectorized/packed }
             ( { OS_F32 }
@@ -1457,7 +1448,7 @@ unit cgx86;
                     list.concat(Taicpu.op_none(A_REP,S_NO));
                   end;
                 if helpsize>0 then
-                  list.concat(Taicpu.op_none(A_MOVSD,S_NO));
+                  list.concat(Taicpu.op_none(A_MOVSL,S_NO));
                 if len>1 then
                   begin
                     dec(len,2);
@@ -1593,7 +1584,7 @@ unit cgx86;
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+          S_L : list.concat(Taicpu.Op_none(A_MOVSL,S_NO));
         end;
         ungetregister(list,NR_EDI);
         ungetregister(list,NR_ECX);
@@ -1919,7 +1910,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.96  2003-12-25 01:07:09  florian
+  Revision 1.97  2003-12-25 12:01:35  florian
+    + possible sse2 unit usage for double calculations
+    * some sse2 assembler issues fixed
+
+  Revision 1.96  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

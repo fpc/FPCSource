@@ -1248,13 +1248,17 @@ xmmreg,mem            \301\333\2\x0F\x7E\110          WILLAMETTE,SSE2
 (Ch_All, Ch_None, Ch_None)
 void                  \1\xA4                          8086
 
-[MOVSD,movsl]
+[MOVSD]
 (Ch_All, Ch_None, Ch_None)
 void                  \321\1\xA5                      386
 xmmreg,xmmreg         \3\xF2\x0F\x10\110              WILLAMETTE,SSE2
 xmmreg,xmmreg         \3\xF2\x0F\x11\110              WILLAMETTE,SSE2
 mem,xmmreg            \300\3\xF2\x0F\x11\101          WILLAMETTE,SSE2
 xmmreg,mem            \301\3\xF2\x0F\x10\110          WILLAMETTE,SSE2
+
+[MOVSL]
+(Ch_All, Ch_None, Ch_None)
+void                  \321\1\xA5                      386
 
 [MOVSW]
 (Ch_All, Ch_None, Ch_None)
@@ -3040,6 +3044,9 @@ xmmreg,mem              \301\3\x66\x0F\x6C\110          WILLAMETTE,SSE2,SM
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \331\3\x66\x0F\x58\110          WILLAMETTE,SSE2
 xmmreg,mem              \301\331\3\x66\x0F\x58\110      WILLAMETTE,SSE2,SM
+
+[ADDSD]
+(Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \331\3\xF2\x0F\x58\110          WILLAMETTE,SSE2
 xmmreg,mem              \301\331\3\xF2\x0F\x58\110      WILLAMETTE,SSE2
 
@@ -3394,7 +3401,11 @@ xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
 
 ;
 ; $Log$
-; Revision 1.5  2003-11-22 00:35:42  jonas
+; Revision 1.6  2003-12-25 12:01:35  florian
+;   + possible sse2 unit usage for double calculations
+;   * some sse2 assembler issues fixed
+;
+; Revision 1.5  2003/11/22 00:35:42  jonas
 ;   * fixed properties for MOVSB
 ;
 ; Revision 1.4  2003/11/13 18:54:22  jonas

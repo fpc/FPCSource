@@ -4530,6 +4530,13 @@
     flags   : if_willamette or if_sse2
   ),
   (
+    opcode  : A_MOVSL;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #209#1#165;
+    flags   : if_386
+  ),
+  (
     opcode  : A_MOVSW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
@@ -10564,14 +10571,14 @@
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (
-    opcode  : A_ADDPD;
+    opcode  : A_ADDSD;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmreg,ot_none);
     code    : #217#3#242#15#88#72;
     flags   : if_willamette or if_sse2
   ),
   (
-    opcode  : A_ADDPD;
+    opcode  : A_ADDSD;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
     code    : #193#217#3#242#15#88#72;

@@ -65,8 +65,7 @@ Type
       fpu_soft,
       fpu_x87,
       fpu_sse,
-      fpu_sse2,
-      fpu_sse3
+      fpu_sse2
      );
 
 
@@ -113,19 +112,22 @@ Const
      'SOFT',
      'X87',
      'SSE',
-     'SSE2',
-     'SSE3'
+     'SSE2'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
-   sse_doublescalar : set of tfputype = [];
+   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2];
+   sse_doublescalar : set of tfputype = [fpu_sse2];
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.21  2003-12-25 01:07:09  florian
+  Revision 1.22  2003-12-25 12:01:35  florian
+    + possible sse2 unit usage for double calculations
+    * some sse2 assembler issues fixed
+
+  Revision 1.21  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

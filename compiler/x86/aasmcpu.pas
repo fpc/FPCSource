@@ -271,6 +271,8 @@ implementation
        IF_SSE2   = $00020000;
        { SSE3 instructions  }
        IF_SSE3   = $00040000;
+       { SSE64 instructions  }
+       IF_SSE64   = $00040000;
        { the mask for processor types  }
        {IF_PMASK  = longint($FF000000);}
        { the mask for disassembly "prefer"  }
@@ -287,6 +289,7 @@ implementation
        IF_WILLAMETTE = $08000000;
        { Prescott instructions }
        IF_PRESCOTT = $09000000;
+       IF_ATHLON64 = $0a000000;
        IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
        { added flags }
@@ -1532,7 +1535,7 @@ implementation
             209,
             210,
             217,218: ;
-            219 :
+            219,220 :
               inc(len);
             216 :
               begin
@@ -1835,6 +1838,11 @@ implementation
             219 :
               begin
                 bytes[0]:=$f3;
+                sec.writebytes(bytes,1);
+              end;
+            220 :
+              begin
+                bytes[0]:=$f2;
                 sec.writebytes(bytes,1);
               end;
             31,
@@ -2351,7 +2359,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-12-25 01:07:09  florian
+  Revision 1.42  2003-12-25 12:01:35  florian
+    + possible sse2 unit usage for double calculations
+    * some sse2 assembler issues fixed
+
+  Revision 1.41  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff
