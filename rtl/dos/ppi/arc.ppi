@@ -12,6 +12,11 @@
 
  **********************************************************************}
 
+  procedure GetArcCoords(var ArcCoords:ArcCoordsType);
+    begin
+      ArcCoords:=ActArcCoords;
+    end;
+
   procedure Arc(x,y,alpha,beta:Integer;Radius:word);
 
    const i:Array[0..20]of Byte=
@@ -76,6 +81,12 @@
      ya[1]:=y+round(cos((alpha+90)*Pi/180) * YRadius);
      xe[1]:=x+round(sin((beta+90)*Pi/180) * XRadius);
      ye[1]:=y+round(cos((beta+90)*Pi/180) * YRadius);
+     ActArcCoords.x:=x;
+     ActArcCoords.y:=y;
+     ActArcCoords.xstart:=xa[1];
+     ActArcCoords.ystart:=ya[1];
+     ActArcCoords.xend:=xe[1];
+     ActArcCoords.yend:=ye[1];
      xa[0]:=xa[1]-1; xa[2]:=xa[1]+1; ya[0]:=ya[1]-1; ya[2]:=ya[1]+1;
      xe[0]:=xe[1]-1; xe[2]:=xe[1]+1; ye[0]:=ye[1]-1; ye[2]:=ye[1]+1;
      index:=Calcellipse(x,y,Radius,Radius);
@@ -85,9 +96,31 @@
      until ready;
   end;
 
+  procedure PieSlice(X,Y,alpha,beta:integer;Radius: Word);
+  var angle : real;
+  begin
+     Arc(x,y,alpha,beta,Radius);
+     MoveTo(ActArcCoords.xstart,ActArcCoords.ystart);
+     LineTo(x,y);
+     LineTo(ActArcCoords.xend,ActArcCoords.yend);
+     alpha:=alpha mod 360; beta:=beta mod 360;
+     angle:=(alpha+beta)/2;
+     { fill from the point in the middle of the slice }
+     FloodFill(x+round(sin((angle+90)*Pi/180)*Radius/2),
+       y+round(cos((angle+90)*Pi/180)*Radius/2),truecolor);
+  end;
+
 {
   $Log$
-  Revision 1.2  1998-11-18 09:31:30  pierre
+  Revision 1.3  1998-11-19 09:48:46  pierre
+    + added some functions missing like sector ellipse getarccoords
+      (the filling of sector and ellipse is still buggy
+       I use floodfill but sometimes the starting point
+       is outside !!)
+    * fixed a bug in floodfill for patterns
+      (still has problems !!)
+
+  Revision 1.2  1998/11/18 09:31:30  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

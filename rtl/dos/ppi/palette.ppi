@@ -100,9 +100,25 @@ gp_loop:
 gp_end:
   end;
 end;
+
+procedure SetPalette(ColorNum:word;Color:byte);
+
+  begin
+     SetRGBPalette(ColorNum,(StdColors[Color] shr 16) and $FF,
+       (StdColors[Color]  shr 8) and $FF,StdColors[Color] and $FF);
+  end;
+
 {
   $Log$
-  Revision 1.3  1998-11-18 09:31:39  pierre
+  Revision 1.4  1998-11-19 09:48:51  pierre
+    + added some functions missing like sector ellipse getarccoords
+      (the filling of sector and ellipse is still buggy
+       I use floodfill but sometimes the starting point
+       is outside !!)
+    * fixed a bug in floodfill for patterns
+      (still has problems !!)
+
+  Revision 1.3  1998/11/18 09:31:39  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

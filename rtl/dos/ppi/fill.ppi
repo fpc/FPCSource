@@ -12,34 +12,65 @@
 
  **********************************************************************}
 
+{$ifopt S+}
+{$define StackCkeckOn}
+{$endif opt S+}
+
 procedure floodfill(x,y:integer; border:longint);
 
 var bordercol     : longint;
-    fillcol       : longint;
+    fillcol,fillbkcol : longint;
     viewport      : viewporttype;
     offset        : longint;
-    
+    test_bkfill   : boolean;
+
+{$S+}
+{ Fill is very recursive !! }
+{ And it fails sometimes !! }
+
 procedure fill(x,y:integer);
 var start,ende,xx : integer;
     col           : longint;
  
 begin  
+{$ifdef ExtDebug}
+     Writeln(stderr,'Fill ',x,' ',y);
+{$endif def ExtDebug}
   xx:=x; col:=getpixel(xx,y);
-  if col=bordercol then exit;
-  while (col<>bordercol) and (xx >= viewport.x1) and (col<>fillcol)
+{$ifdef ExtDebug}
+     Writeln(stderr,'Fill ',x,' ',y,' ',col);
+{$endif def ExtDebug}
+  if (col=bordercol) or (col=fillcol) or (test_bkfill and (col=fillbkcol)) then exit;
+  while (col<>bordercol) and (xx > viewport.x1) and
+     (col<>fillcol) and (not test_bkfill or (col<>fillbkcol))
     do begin
       xx:=xx-1; col:=getpixel(xx,y);
     end;
-  start:=xx+1; 
+  if (col<>bordercol) and (col<>fillcol) and
+     (not test_bkfill or (col<>fillbkcol)) then
+    start:=xx
+  else
+    start:=xx+1;
 
   xx:=x+1; col:=getpixel(xx,y);
-  while (col<>bordercol) and (xx <= viewport.x2) and (col<>fillcol)
+  while (col<>bordercol) and (xx < viewport.x2) and (col<>fillcol)
+      and (not test_bkfill or (col<>fillbkcol)) 
     do begin
       xx:=xx+1; col:=getpixel(xx,y);
     end;
-  ende:=xx-1;
+  if (col<>bordercol) and (col<>fillcol) and
+     (not test_bkfill or (col<>fillbkcol)) then
+    ende:=xx
+  else
+    ende:=xx-1;
 
+{$ifdef ExtDebug}
+     Writeln(stderr,'Pattern ',start,' ',ende,' ',y);
+{$endif def ExtDebug}
   patternline(start,ende,y);
+{$ifdef ExtDebug}
+     Writeln(stderr,'Fill  after Patterline ',x,' ',y,' ',getpixel(x,y));
+{$endif def ExtDebug}
   offset:=(y * _maxy + start) shr 8;
   
   if (y > viewport.y1)
@@ -47,7 +78,8 @@ begin
     xx:=start;
     repeat
       col:=getpixel(xx,y-1);
-      if (col<>bordercol) and (col<>fillcol)
+      if (col<>bordercol) and (col<>fillcol) and
+         (not test_bkfill or (col<>fillbkcol)) 
       then begin
         fill(xx,y-1);
         break;
@@ -61,7 +93,9 @@ begin
     xx:=start;
     repeat
       col:=getpixel(xx,y+1);
-      if (col<>bordercol) and (col<>fillcol) then fill(xx,y+1);
+      if (col<>bordercol) and (col<>fillcol) and
+         (not test_bkfill or (col<>fillbkcol)) then
+        fill(xx,y+1);
       xx:=xx+1;
     until xx > ende;
   end;
@@ -75,26 +109,48 @@ begin
   viewport.y2:=viewport.y2-viewport.y1;
   viewport.x1:=0;
   viewport.y1:=0;
-  bordercol:=convert(border);            
+  bordercol:=convert(border);
   if BytesPerPixel=1
   then begin
     bordercol:=bordercol and $FF;
     fillcol:=aktfillsettings.color and $FF;
+    fillbkCol:=aktfillbkcolor and $FF;
   end
 {$ifdef TEST_24BPP}
   else if BytesPerPixel=3
   then begin
     bordercol:=bordercol and $FFFFFF;
     fillcol:=aktfillsettings.color and $FFFFFF;
+    fillbkCol:=aktfillbkcolor and $FFFFFF;
   end
 {$endif TEST_24BPP}
   else if BytesPerPixel=2
   then begin
     bordercol:=bordercol and $FFFF;
     fillcol:=aktfillsettings.color and $FFFF;
+    fillbkCol:=aktfillbkcolor and $FFFF;
   end;
+  
+  if aktfillsettings.pattern=emptyfill then
+    begin
+       fillcol:=fillbkcol;
+       test_bkfill:=false;
+    end
+  else if aktfillsettings.pattern=solidfill then
+     test_bkfill:=false
+  else
+    test_bkfill:=true;
+{$ifdef ExtDebug}
+     Writeln(stderr,'Fillcol ',fillcol,' bordercol',bordercol);
+{$endif def ExtDebug}
   fill(x,y);
 end;
+
+{$ifndef StackCkeckOn}
+{$S-} { return to normal state }
+{$else }
+{$undef StackCheckOn}
+{$endif }
 
 procedure GetFillSettings(var Fillinfo:Fillsettingstype);
 begin
@@ -151,6 +207,7 @@ begin
   aktfillpattern:=fillpattern[pattern];
   aktfillsettings.pattern:=pattern;
   aktfillsettings.color:=convert(color);
+  aktfillbkcolor:=aktbackcolor;
   i:=1; j:=0;
   repeat
     mask:=$80;
@@ -201,7 +258,15 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-11-18 13:23:34  pierre
+  Revision 1.4  1998-11-19 09:48:48  pierre
+    + added some functions missing like sector ellipse getarccoords
+      (the filling of sector and ellipse is still buggy
+       I use floodfill but sometimes the starting point
+       is outside !!)
+    * fixed a bug in floodfill for patterns
+      (still has problems !!)
+
+  Revision 1.3  1998/11/18 13:23:34  pierre
     * floodfill got into an infinite loop !!
     + added partial support for fillpoly
       (still wrong if the polygon is not convex)

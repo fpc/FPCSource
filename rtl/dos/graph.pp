@@ -91,13 +91,18 @@ procedure GetRGBPalette(ColorNum:byte; var RedValue,GreenValue,BlueValue:byte);
 procedure SetRGBPalette(ColorNum,RedValue,GreenValue,BlueValue:byte);
 procedure SetAllPalette(var Palette : PaletteType);
 procedure GetPalette(var Palette : PaletteType);
+procedure SetPalette(ColorNum:word;Color:byte);
 
 { ELLIPSE.PPI }
 procedure FillEllipse(x,y:Integer;XRadius,YRadius:Word);
 procedure Circle(x,y:Integer;Radius:Word);
+procedure Ellipse(x,y,alpha,beta:Integer;XRad,YRad:word);
+procedure Sector(X,Y,alpha,beta:integer;XRadius,YRadius: Word);
 
 { ARC.PPI }
 procedure Arc(x,y,alpha,beta:Integer;Radius:Word);
+procedure GetArcCoords(var ArcCoords:ArcCoordsType);
+procedure PieSlice(X,Y,alpha,beta:integer;Radius: Word);
 
 { COLORS.PPI }
 function  GetBkColor : longint;
@@ -259,6 +264,7 @@ var    { X/Y Verhaeltnis des Bildschirm }
        _graphresult : integer;
        { aktuell eingestellte FÅllart }
        aktfillsettings : FillSettingsType;
+       aktfillbkcolor : longint;
        { aktuelles FÅllmuster }
        aktfillpattern : FillPatternType;
        { Schreibmodus }
@@ -872,8 +878,8 @@ begin
       _graphresult:=grError;
       exit;
    end;
-  aktwritemode:=(writemode and $7F);
-  if (writemode and $80)<>0 then
+  aktwritemode:=(writemode and $F);
+  if (writemode and BackPut)<>0 then
     ClearText:=true
   else
     ClearText:=false;
@@ -926,7 +932,15 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-11-18 09:31:29  pierre
+  Revision 1.8  1998-11-19 09:48:45  pierre
+    + added some functions missing like sector ellipse getarccoords
+      (the filling of sector and ellipse is still buggy
+       I use floodfill but sometimes the starting point
+       is outside !!)
+    * fixed a bug in floodfill for patterns
+      (still has problems !!)
+
+  Revision 1.7  1998/11/18 09:31:29  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

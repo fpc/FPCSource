@@ -11,6 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+    var
+       ActArcCoords : ArcCoordsType;
 
     function CalcEllipse(x,y:Integer;XRadius,YRadius:word):Integer;
      var aq,bq,xq,yq,abq : Longint;
@@ -93,11 +95,113 @@
       while (PWord(buffermem)[index+1]=PWord(buffermem)[index-3]) and
             (index > 4 ) do Index:=Index-4; 
     end;
-    
+
     if (aktColor <> aktFillSettings.Color) or (aktFillSettings.Pattern<>1)
        then _Ellipse(Count);
   end;
-    
+
+
+  { allmost same code than Arc, should be squeezed together !! }
+
+  procedure Ellipse(x,y,alpha,beta:Integer;XRad,YRad:word);
+
+   const i:Array[0..20]of Byte=
+       (0,3,0, 2,3,1, 2,1,0, 0,1,1, 0,3,0, 2,3,1, 2,1,0);
+
+   var counter,index,ofs : integer;
+       xa,ya,xe,ye       : Array[0..2]of Integer;
+       xp,yp             : integer;
+       xradius,yradius   : word;
+       first,ready       : Boolean;
+
+   procedure DrawArc(index1,index2,index3:byte);
+   var ende,incr:integer;
+   begin
+     if index3=0 then begin
+       counter:=index;
+       ende:=0;
+       incr:=-4;
+     end else begin
+       counter:=-4;
+       ende:=index-4;
+       incr:=4;
+     end;
+     if first then begin
+       repeat
+         first:=false;
+         counter:=counter+incr;
+         xp:=PInteger(BufferMem)[counter+index1];
+         yp:=PInteger(BufferMem)[counter+index2];
+       until (counter=ende) or
+         (((xp=xa[0]) or (xp=xa[1]) or (xp=xa[2])) and
+         ((yp=ya[0]) or (yp=ya[1]) or (yp=ya[2])));
+         if Counter=Ende then exit else putpixeli(xp,yp,aktcolor);
+       end;
+     repeat
+     if (((xp=xe[0]) or (xp=xe[1]) or (xp=xe[2])) and
+         ((yp=ye[0]) or (yp=ye[1]) or (yp=ye[2]))) then
+         begin
+           ready:=true;
+           exit;
+         end;
+       counter:=counter+incr;
+       xp:=PInteger(BufferMem)[counter+index1];
+       yp:=PInteger(BufferMem)[counter+index2];
+       putpixeli(xp,yp,aktcolor);
+     until counter=Ende;
+   end;
+
+   begin
+     first:=true; ready:=false;
+     XRadius:=XRad; YRadius:=YRad;
+
+     alpha:=alpha mod 360; beta:=beta mod 360;
+     case alpha of
+         0.. 89  : ofs:=0;
+        90..179  : ofs:=1;
+       180..269  : ofs:=2;
+       270..359  : ofs:=3;
+     end;
+     x:=x+aktviewport.x1; y:=y+aktviewport.y1;
+     xa[1]:=x+round(sin((alpha+90)*Pi/180) * XRadius);
+     ya[1]:=y+round(cos((alpha+90)*Pi/180) * YRadius);
+     xe[1]:=x+round(sin((beta+90)*Pi/180) * XRadius);
+     ye[1]:=y+round(cos((beta+90)*Pi/180) * YRadius);
+     ActArcCoords.x:=x;
+     ActArcCoords.y:=y;
+     ActArcCoords.xstart:=xa[1];
+     ActArcCoords.ystart:=ya[1];
+     ActArcCoords.xend:=xe[1];
+     ActArcCoords.yend:=ye[1];
+     xa[0]:=xa[1]-1; xa[2]:=xa[1]+1; ya[0]:=ya[1]-1; ya[2]:=ya[1]+1;
+     xe[0]:=xe[1]-1; xe[2]:=xe[1]+1; ye[0]:=ye[1]-1; ye[2]:=ye[1]+1;
+     index:=Calcellipse(x,y,XRadius,YRadius);
+     repeat
+       DrawArc(i[ofs*3],i[ofs*3+1],i[ofs*3+2]);
+       ofs:=(ofs+1) mod 7;
+     until ready;
+  end;
+
+  procedure Sector(X,Y,alpha,beta:integer;XRadius,YRadius: Word);
+  var angle : real;
+  begin
+     Ellipse(x,y,alpha,beta,XRadius,YRadius);
+     MoveTo(ActArcCoords.xstart,ActArcCoords.ystart);
+     LineTo(x,y);
+     LineTo(ActArcCoords.xend,ActArcCoords.yend);
+     alpha:=alpha mod 360; beta:=beta mod 360;
+     angle:=(alpha+beta)/2;
+{$ifdef ExtDebug}
+     Writeln(stderr,'Center ',x,' ',y);
+     Writeln(stderr,'Start  ',ActArcCoords.xstart,' ',ActArcCoords.ystart);
+     Writeln(stderr,'End  ',ActArcCoords.xend,' ',ActArcCoords.yend);
+     Writeln(stderr,'Fill start ',x+round(sin((angle+90)*Pi/180)*XRadius/2),' ',
+       y+round(cos((angle+90)*Pi/180)*YRadius/2));
+{$endif ExtDebug}
+     { fill from the point in the middle of the slice }
+     FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
+       y+round(cos((angle+90)*Pi/180)*YRadius/2),truecolor);
+  end;
 
   procedure Circle(x,y:integer;radius:word);
   begin
@@ -112,7 +216,15 @@
  
 {
   $Log$
-  Revision 1.2  1998-11-18 09:31:32  pierre
+  Revision 1.3  1998-11-19 09:48:47  pierre
+    + added some functions missing like sector ellipse getarccoords
+      (the filling of sector and ellipse is still buggy
+       I use floodfill but sometimes the starting point
+       is outside !!)
+    * fixed a bug in floodfill for patterns
+      (still has problems !!)
+
+  Revision 1.2  1998/11/18 09:31:32  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode
