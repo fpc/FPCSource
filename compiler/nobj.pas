@@ -599,7 +599,7 @@ implementation
                                      if not(po_virtualmethod in pd.procoptions) then
                                       begin
                                         if not pdoverload or
-                                           equal_paras(procdefcoll^.data.para,pd.para,cp_all) then
+                                           equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
                                          begin
                                            procdefcoll^.hidden:=true;
                                            if _class=pd._class then
@@ -616,7 +616,7 @@ implementation
                                          begin
                                            { we start a new virtual tree, hide the old }
                                            if not pdoverload or
-                                              equal_paras(procdefcoll^.data.para,pd.para,cp_all) then
+                                              equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
                                             begin
                                               procdefcoll^.hidden:=true;
                                               if _class=pd._class then
@@ -624,7 +624,7 @@ implementation
                                             end;
                                          end
                                         { same parameters }
-                                        else if (equal_paras(procdefcoll^.data.para,pd.para,cp_all)) then
+                                        else if (equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
                                          begin
                                            { overload is inherited }
                                            if (po_overload in procdefcoll^.data.procoptions) then
@@ -676,7 +676,7 @@ implementation
                                         { the new definition is virtual and the old static, we hide the old one
                                           if the new defintion has not the overload directive }
                                         if not pdoverload or
-                                           equal_paras(procdefcoll^.data.para,pd.para,cp_all) then
+                                           equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
                                          procdefcoll^.hidden:=true;
                                       end;
                                    end
@@ -684,7 +684,7 @@ implementation
                                    begin
                                      { both are static, we hide the old one if the new defintion
                                        has not the overload directive }
-                                     if equal_paras(procdefcoll^.data.para,pd.para,cp_all) or
+                                     if equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) or
                                         not pdoverload then
                                       procdefcoll^.hidden:=true;
                                    end;
@@ -1276,7 +1276,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-11-18 18:43:14  peter
+  Revision 1.10  2001-11-18 20:18:54  peter
+    * use cp_value_equal_const instead of cp_all
+
+  Revision 1.9  2001/11/18 18:43:14  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

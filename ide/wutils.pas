@@ -56,7 +56,7 @@ type
   TUnsortedStringCollection = object(TCollection)
     constructor CreateFrom(ALines: PUnsortedStringCollection);
     procedure   Assign(ALines: PUnsortedStringCollection);
-    function    At(Index: Integer): PString;
+    function    At(Index: Sw_Integer): PString;
     procedure   FreeItem(Item: Pointer); virtual;
     function    GetItem(var S: TStream): Pointer; virtual;
     procedure   PutItem(var S: TStream; Item: Pointer); virtual;
@@ -696,7 +696,7 @@ begin
   Insert(NewStr(S));
 end;
 
-function TUnsortedStringCollection.At(Index: Integer): PString;
+function TUnsortedStringCollection.At(Index: Sw_Integer): PString;
 begin
   At:=inherited At(Index);
 end;
@@ -1234,7 +1234,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2001-09-18 15:36:58  pierre
+  Revision 1.5  2001-11-18 20:18:54  peter
+    * use cp_value_equal_const instead of cp_all
+
+  Revision 1.4  2001/09/18 15:36:58  pierre
    * avoid bug 1610
 
   Revision 1.3  2001/08/12 00:04:50  pierre

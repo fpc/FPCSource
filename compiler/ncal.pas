@@ -185,7 +185,7 @@ implementation
                     pdl:=aprocsym.defs;
                     while assigned(pdl) do
                      begin
-                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_all) then
+                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_value_equal_const) then
                         begin
                           found:=true;
                           break;
@@ -1767,7 +1767,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2001-11-18 18:43:13  peter
+  Revision 1.57  2001-11-18 20:18:54  peter
+    * use cp_value_equal_const instead of cp_all
+
+  Revision 1.56  2001/11/18 18:43:13  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi
