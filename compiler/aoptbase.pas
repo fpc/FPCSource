@@ -91,21 +91,19 @@ uses globals, aoptcpub, cpuinfo;
 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
-  If R1.is_immediate Then
-    RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
-  Else
-    RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
-                 And (R1.Base = R2.Base)
+  RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
+               And (R1.Base = R2.Base)
 {$ifdef RefsHaveindex}
-                 And (R1.Index = R2.Index)
+               And (R1.Index = R2.Index)
 {$endif RefsHaveindex}
 {$ifdef RefsHaveScale}
-                 And (R1.ScaleFactor = R2.ScaleFactor)
+               And (R1.ScaleFactor = R2.ScaleFactor)
 {$endif RefsHaveScale}
-                 And (R1.Symbol = R2.Symbol)
+               And (R1.Symbol = R2.Symbol)
 {$ifdef RefsHaveSegment}
-                 And (R1.Segment = R2.Segment)
+               And (R1.Segment = R2.Segment)
 {$endif RefsHaveSegment}
+               ;
 End;
 
 
@@ -263,7 +261,13 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-08-26 13:36:35  florian
+  Revision 1.2  2002-05-14 17:28:09  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.1  2001/08/26 13:36:35  florian
     * some cg reorganisation
     * some PPC updates
 

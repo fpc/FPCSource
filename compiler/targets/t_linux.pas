@@ -3,7 +3,7 @@
     Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements support import,export,link routines
-    for the (i386) Linux target
+    for the Linux targets
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,7 +64,11 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym;
+    fmodule,symsym
+{$ifdef i386}
+    ,aasm,cpuasm,cpubase
+{$endif i386}
+    ;
 
 {*****************************************************************************
                                TIMPORTLIBLINUX
@@ -588,8 +592,23 @@ end;
             res          : res_none;
             script       : script_unix;
             endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 32;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
             heapsize     : 128*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
@@ -605,7 +624,6 @@ end;
             shortname    : 'linuxppc';
             flags        : [];
             cpu          : cpu_powerpc;
-            short_name   : 'LINUX';
             unit_env     : '';
             extradefines : 'UNIX';
             sourceext    : '.pp';
@@ -633,13 +651,30 @@ end;
             dirsep       : '/';
             files_case_relevent : true;
             assem        : as_powerpc_as;
-            assemsrc     : as_powerpc_as;
-            ar           : ar_powerpc_ar;
+            assemextern  : as_powerpc_as;
+            link         : ld_powerpc_linux;
+            linkextern   : ld_powerpc_linux;
+            ar           : ar_gnu_ar;
             res          : res_none;
             script       : script_unix;
             endian       : endian_big;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
             heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
@@ -690,9 +725,23 @@ end;
             res          : res_none;
             script       : script_unix;
             endian       : endian_little;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
-            size_of_longint : 4;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
             heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
@@ -800,7 +849,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-05-06 19:46:36  carl
+  Revision 1.23  2002-05-14 17:28:10  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.22  2002/05/06 19:46:36  carl
   + added more patches from Mazen for SPARC port
 
   Revision 1.21  2002/04/22 18:19:22  carl

@@ -716,7 +716,13 @@ begin
       2 : size:=S_W{ could be S_IS};
       4 : size:=S_L{ could be S_IL or S_FS};
       8 : size:=S_IQ{ could be S_D or S_FL};
-      extended_size : size:=S_FX;
+     else
+      begin
+        { extended_size can also be 8, resulting in a
+          duplicate label }
+        if _size=extended_size then
+          size:=S_FX;
+      end;
      end;
    end;
 end;
@@ -1585,7 +1591,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2002-05-12 16:53:10  peter
+  Revision 1.32  2002-05-14 17:28:09  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.31  2002/05/12 16:53:10  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

@@ -1616,7 +1616,7 @@ Begin
 End;
 
 
-Procedure ReadRef(p: PTaiProp; Const Ref: POperReference);
+Procedure ReadRef(p: PTaiProp; Const Ref: PReference);
 Begin
   If Ref^.Base <> R_NO Then
     ReadReg(p, Ref^.Base);
@@ -2591,7 +2591,13 @@ End.
 
 {
   $Log$
-  Revision 1.34  2002-05-12 16:53:16  peter
+  Revision 1.35  2002-05-14 17:28:09  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.34  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

@@ -24,8 +24,8 @@
   This unit implements an abstract assembler output class for all processors, these
   are then overriden for each assembler writer to actually write the data in these
   classes to an assembler file.
-}  
-   
+}
+
 unit aasm;
 
 {$i defines.inc}
@@ -68,10 +68,11 @@ interface
           ait_regalloc, { for register,temp allocation debugging }
           ait_tempalloc,
           ait_marker,
-
+{$ifdef alpha}
           { the follow is for the DEC Alpha }
           ait_frame,
           ait_ent,
+{$endif alpha}
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
@@ -204,22 +205,6 @@ interface
           destructor Destroy; override;
        end;
 
-
-       { alignment for operator }
-{$ifdef i386}
-       tai_align_abstract = class(tai)
-{$else i386}
-       tai_align = class(tai)
-{$endif i386}
-          buf       : array[0..63] of char; { buf used for fill }
-          aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
-          fillsize  : byte;   { real size to fill }
-          fillop    : byte;   { value to fill with - optional }
-          use_op    : boolean;
-          constructor Create(b:byte);
-          constructor Create_op(b: byte; _op: byte);
-          function getfillbuf:pchar;
-       end;
 
        { Insert a section/segment directive }
        tai_section = class(tai)
@@ -743,56 +728,6 @@ uses
       end;
 
 {****************************************************************************
-                              TAI_ALIGN
- ****************************************************************************}
-
-{$ifdef i386}
-     constructor tai_align_abstract.Create(b: byte);
-{$else i386}
-     constructor tai_align.Create(b: byte);
-{$endif i386}
-       begin
-          inherited Create;
-          typ:=ait_align;
-          if b in [1,2,4,8,16,32] then
-            aligntype := b
-          else
-            aligntype := 1;
-          fillsize:=0;
-          fillop:=0;
-          use_op:=false;
-       end;
-
-
-{$ifdef i386}
-     constructor tai_align_abstract.Create_op(b: byte; _op: byte);
-{$else i386}
-     constructor tai_align.Create_op(b: byte; _op: byte);
-{$endif i386}
-       begin
-          inherited Create;
-          typ:=ait_align;
-          if b in [1,2,4,8,16,32] then
-            aligntype := b
-          else
-            aligntype := 1;
-          fillsize:=0;
-          fillop:=_op;
-          use_op:=true;
-          fillchar(buf,sizeof(buf),_op)
-       end;
-
-
-{$ifdef i386}
-     function tai_align_abstract.getfillbuf:pchar;
-{$else i386}
-     function tai_align.getfillbuf:pchar;
-{$endif i386}
-       begin
-         getfillbuf:=@buf;
-       end;
-
-{****************************************************************************
                               TAI_CUT
  ****************************************************************************}
 
@@ -1135,7 +1070,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2002-04-15 18:54:34  carl
+  Revision 1.24  2002-05-14 17:28:08  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.23  2002/04/15 18:54:34  carl
   - removed tcpuflags
 
   Revision 1.22  2002/04/07 13:18:19  carl

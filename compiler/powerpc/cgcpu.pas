@@ -228,14 +228,16 @@ const
 
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
 
+      var
+        href : treference;
       begin
  { save our RTOC register value. Only necessary when doing pointer based    }
  { calls or cross TOC calls, but currently done always                      }
-         list.concat(taicpu.op_reg_ref(A_STW,R_RTOC,
-           new_reference(STACK_POINTER_REG,LA_RTOC)));
+         reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+         list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
          list.concat(taicpu.op_sym(A_BL,newasmsymbol(s)));
-         list.concat(taicpu.op_reg_ref(A_LWZ,R_RTOC,
-           new_reference(STACK_POINTER_REG,LA_RTOC)));
+         reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+         list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
       end;
 
 {********************** load instructions ********************}
@@ -302,19 +304,14 @@ const
          ref2, tmpref: treference;
 
        begin
-         if ref.is_immediate then
-           a_load_const_reg(list,size,ref.offset,reg)
-         else
-           begin
-             ref2 := ref;
-             fixref(list,ref2);
-             op := loadinstr[size,ref2.index<>R_NO,false];
-             a_load_store(list,op,reg,ref2);
-             { sign extend shortint if necessary, since there is no }
-             { load instruction that does that automatically (JM)   }
-             if size = OS_S8 then
-               list.concat(taicpu.op_reg_reg(A_EXTSB,reg,reg));
-          end;
+          ref2 := ref;
+          fixref(list,ref2);
+          op := loadinstr[size,ref2.index<>R_NO,false];
+          a_load_store(list,op,reg,ref2);
+          { sign extend shortint if necessary, since there is no }
+          { load instruction that does that automatically (JM)   }
+          if size = OS_S8 then
+            list.concat(taicpu.op_reg_reg(A_EXTSB,reg,reg));
        end;
 
 
@@ -701,6 +698,7 @@ const
  { combined size of ALL the parameters of a procedure called by the current }
  { one                                                                      }
      var regcounter: TRegister;
+         href : treference;
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
@@ -716,7 +714,8 @@ const
         { save return address... }
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER_REG,4)));
+        reference_reset_base(href,STACK_POINTER_REG,4);
+        list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
         a_reg_alloc(list,R_11);
         { save end of fpr save area }
@@ -761,6 +760,7 @@ const
  { combined size of ALL the parameters of a procedure called by the current }
  { one                                                                      }
      var regcounter: TRegister;
+         href : treference;
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
@@ -776,19 +776,21 @@ const
         { save return address... }
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER_REG,8)));
+        reference_reset_base(href,STACK_POINTER_REG,8);
+        list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
         list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savef14'),0));
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_reg_ref(A_STMW,R_13,new_reference(STACK_POINTER_REG,-220)));
+        reference_reset_base(href,STACK_POINTER_REG,-220);
+        list.concat(taicpu.op_reg_ref(A_STMW,R_13,href));
         { save the CR if necessary ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR));
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,
-          new_reference(stack_pointer_reg,LA_CR)));
+        reference_reset_base(href,stack_pointer_reg,LA_CR);
+        list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER_REG,0));
@@ -840,22 +842,20 @@ const
            { reference doesn't have a base, create one                       }
            begin
              tmpreg := get_scratch_reg(list);
-             reset_reference(tmpref);
+             reference_reset(tmpref);
              tmpref.symbol := ref2.symbol;
              tmpref.symaddr := refs_ha;
-             tmpref.is_immediate := true;
+//             tmpref.is_immediate := true;
              if ref2.base <> R_NO then
                list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                 ref2.base,newreference(tmpref)))
+                 ref2.base,tmpref))
              else
-               list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,
-                  newreference(tmpref)));
+               list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
              ref2.base := tmpreg;
              ref2.symaddr := refs_l;
              { can be folded with one of the next instructions by the }
              { optimizer probably                                     }
-             list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,
-                newreference(tmpref)));
+             list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,tmpref));
            end;
          if ref2.offset <> 0 Then
            if ref2.base <> R_NO then
@@ -890,8 +890,8 @@ const
         fixref(list,src);
         dst := dest;
         fixref(list,dst);
-        reset_reference(src);
-        reset_reference(dst);
+        reference_reset(src);
+        reference_reset(dst);
         { load the address of source into src.base }
         src.base := get_scratch_reg(list);
         if loadref then
@@ -922,10 +922,9 @@ const
             a_reg_alloc(list,R_0);
             getlabel(lab);
             a_label(list, lab);
-            list.concat(taicpu.op_reg_ref(A_LWZU,tempreg,
-              newreference(src)));
+            list.concat(taicpu.op_reg_ref(A_LWZU,tempreg,src));
             list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,countreg,0));
-            list.concat(taicpu.op_reg_ref(A_STWU,tempreg,newreference(dst)));
+            list.concat(taicpu.op_reg_ref(A_STWU,tempreg,dst));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
             a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
@@ -1012,7 +1011,7 @@ const
 
       var
         regcounter: TRegister;
-
+        href : treference;
       begin
         { release parameter registers }
         for regcounter := R_3 to R_10 do
@@ -1022,9 +1021,11 @@ const
         { restore SP }
         list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
         { restore gprs }
-        list.concat(taicpu.op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER_REG,-220)));
+        reference_reset_base(href,STACK_POINTER_REG,-220);
+        list.concat(taicpu.op_reg_ref(A_LMW,R_13,href));
         { restore return address ... }
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER_REG,8)));
+        reference_reset_base(href,STACK_POINTER_REG,8);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
         { ... and return from _restf14 }
         list.concat(taicpu.op_sym_ofs(A_B,newasmsymbol('_restf14'),0));
       end;
@@ -1137,20 +1138,19 @@ const
         if assigned(ref.symbol) then
           begin
             tmpreg := get_scratch_reg(list);
-            reset_reference(tmpref);
+            reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.symaddr := refs_ha;
-            tmpref.is_immediate := true;
+//            tmpref.is_immediate := true;
             if ref.base <> R_NO then
               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                ref.base,newreference(tmpref)))
+                ref.base,tmpref))
             else
-              list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,
-                 newreference(tmpref)));
+              list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
             ref.base := tmpreg;
             ref.symaddr := refs_l;
           end;
-        list.concat(taicpu.op_reg_ref(op,reg,newreference(ref)));
+        list.concat(taicpu.op_reg_ref(op,reg,ref));
         if assigned(ref.symbol) then
           free_scratch_reg(list,tmpreg);
       end;
@@ -1173,7 +1173,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-05-13 19:52:46  peter
+  Revision 1.15  2002-05-14 17:28:10  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.14  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
 
   Revision 1.13  2002/04/20 21:41:51  carl

@@ -31,54 +31,52 @@ uses
   aasm,globals,verbose,
   cpubase;
 
-type
+    type
+      taicpu = class(taicpu_abstract)
+         constructor op_none(op : tasmop);
 
-  taicpu = class(tainstruction)
-     constructor op_none(op : tasmop);
+         constructor op_reg(op : tasmop;_op1 : tregister);
+         constructor op_const(op : tasmop;_op1 : longint);
 
-     constructor op_reg(op : tasmop;_op1 : tregister);
-     constructor op_const(op : tasmop;_op1 : longint);
+         constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
+         constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+         constructor op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
 
-     constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
-     constructor op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
-     constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
-     constructor op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+         constructor op_const_const(op : tasmop;_op1,_op2 : longint);
 
-     constructor op_const_const(op : tasmop;_op1,_op2 : longint);
+         constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
+         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+         constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
+         constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
+         constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
+         constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
 
-     constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-     constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
-     constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
-     constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3: preference);
-     constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
-     constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+         constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+         constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
+         constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
 
-     constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
-     constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
-     constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
-
-     constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
-
-
-     { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
-     constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint;_op3: tasmsymbol);
+         constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
 
 
-     constructor op_sym(op : tasmop;_op1 : tasmsymbol);
-     constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
-     constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
-     constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
+         { this is for Jmp instructions }
+         constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
+         constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint;_op3: tasmsymbol);
 
-     procedure loadbool(opidx:longint;_b:boolean);
-     procedure loadconst(opidx:longint;l:longint);
-     procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-     procedure loadref(opidx:longint;p:preference);
-     procedure loadreg(opidx:longint;r:tregister);
-     procedure loadoper(opidx:longint;o:toper);
 
-     destructor destroy;override;
-  end;
+         constructor op_sym(op : tasmop;_op1 : tasmsymbol);
+         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
+         constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
+         constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+
+         procedure loadbool(opidx:longint;_b:boolean);
+
+         destructor destroy;override;
+      end;
+
+      tai_align = class(tai_align_abstract)
+        { nothing to add }
+      end;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -90,93 +88,6 @@ implementation
                                  taicpu Constructors
 *****************************************************************************}
 
-    procedure taicpu.loadconst(opidx:longint;l:longint);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           val:=l;
-           typ:=top_const;
-         end;
-      end;
-
-
-    procedure taicpu.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           sym:=s;
-           symofs:=sofs;
-           typ:=top_symbol;
-         end;
-        { Mark the symbol as used }
-        if assigned(s) then
-         inc(s.refs);
-      end;
-
-
-    procedure taicpu.loadref(opidx:longint;p:preference);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           if p^.is_immediate then
-             begin
-{$ifdef REF_IMMEDIATE_WARN}
-               Comment(V_Warning,'Reference immediate');
-{$endif}
-               val:=p^.offset;
-               disposereference(p);
-               typ:=top_const;
-             end
-           else
-             begin
-               ref:=p;
-               typ:=top_ref;
-               { mark symbol as used }
-               if assigned(ref^.symbol) then
-                 inc(ref^.symbol.refs);
-             end;
-         end;
-      end;
-
-
-    procedure taicpu.loadreg(opidx:longint;r:tregister);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           reg:=r;
-           typ:=top_reg;
-         end;
-      end;
-
-    procedure taicpu.loadoper(opidx:longint;o:toper);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        if oper[opidx].typ=top_ref then
-          disposereference(oper[opidx].ref);
-        oper[opidx]:=o;
-        { copy also the reference }
-        if oper[opidx].typ=top_ref then
-         oper[opidx].ref:=newreference(o.ref^);
-      end;
-
-
     procedure taicpu.loadbool(opidx:longint;_b:boolean);
       begin
         if opidx>=ops then
@@ -184,7 +95,7 @@ implementation
         with oper[opidx] do
          begin
            if typ=top_ref then
-            disposereference(ref);
+            dispose(ref);
            b:=_b;
            typ:=top_bool;
          end;
@@ -238,7 +149,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
+    constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
       begin
          inherited create(op);
          ops:=2;
@@ -283,7 +194,7 @@ implementation
          loadsymbol(0,_op3,_op3ofs);
       end;
 
-     constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;  _op3: preference);
+     constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
        begin
          inherited create(op);
          ops:=3;
@@ -395,7 +306,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
       begin
          inherited create(op);
          ops:=2;
@@ -426,7 +337,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-05-13 19:52:46  peter
+  Revision 1.5  2002-05-14 17:28:10  peter
+    * synchronized cpubase between powerpc and i386
+    * moved more tables from cpubase to cpuasm
+    * tai_align_abstract moved to tainst, cpuasm must define
+      the tai_align class now, which may be empty
+
+  Revision 1.4  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
 
   Revision 1.3  2001/12/29 15:28:58  jonas
