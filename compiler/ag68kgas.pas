@@ -96,7 +96,8 @@ unit ag68kgas;
 
     function getreferencestring(const ref : treference) : string;
       var
-         s : string;
+         s,basestr,indexstr : string;
+
       begin
          s:='';
          if ref.isintvalue then
@@ -104,6 +105,16 @@ unit ag68kgas;
          else
            with ref do
              begin
+                if target_info.target=target_m68k_PalmOS then
+                  begin
+                     basestr:=gasPalmOS_reg2str[base];
+                     indexstr:=gasPalmOS_reg2str[index];
+                  end
+                else
+                  begin
+                     basestr:=gas_reg2str[base];
+                     indexstr:=gas_reg2str[index];
+                  end;
                 if assigned(symbol) then
                   s:=s+symbol^;
 
@@ -116,34 +127,34 @@ unit ag68kgas;
                if (index<>R_NO) and (base=R_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
-                    s:=s+'(,'+gas_reg2str[index]+'.l)'
+                    s:=s+'(,'+indexstr+'.l)'
                   else
-                    s:=s+'(,'+gas_reg2str[index]+'.l*'+tostr(scalefactor)+')'
+                    s:=s+'(,'+indexstr+'.l*'+tostr(scalefactor)+')'
                 end
                 else if (index=R_NO) and (base<>R_NO) and (direction=dir_inc) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
-                      s:=s+'('+gas_reg2str[base]+')+'
+                      s:=s+'('+basestr+')+'
                   else
                    InternalError(10002);
                 end
                 else if (index=R_NO) and (base<>R_NO) and (direction=dir_dec) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
-                      s:=s+'-('+gas_reg2str[base]+')'
+                      s:=s+'-('+basestr+')'
                   else
                    InternalError(10003);
                 end
                   else if (index=R_NO) and (base<>R_NO) and (direction=dir_none) then
                 begin
-                  s:=s+'('+gas_reg2str[base]+')'
+                  s:=s+'('+basestr+')'
                 end
                   else if (index<>R_NO) and (base<>R_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
-                    s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index]+'.l)'
+                    s:=s+'('+basestr+','+indexstr+'.l)'
                   else
-                    s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index]+'.l*'+tostr(scalefactor)+')';
+                    s:=s+'('+basestr+','+indexstr+'.l*'+tostr(scalefactor)+')';
                 end;
             end; { end with }
          getreferencestring:=s;
@@ -255,7 +266,7 @@ unit ag68kgas;
               curr_n:=n_includefile;
              if (infile^.path^<>'') then
               begin
-                AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^)))+'",'+
+                AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+
                   tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
               end;
              AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
@@ -482,8 +493,14 @@ ait_labeled_instruction : begin
                         AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab))
                        else
                      { labeled operand with register }
-                        AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                                 reg2str(pai_labeled(hp)^._op1)+','+lab2str(pai_labeled(hp)^.lab))
+                        begin
+                           if target_info.target=target_m68k_PalmOS then
+                             AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
+                               gasPalmOS_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
+                           else
+                             AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
+                               gas_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
+                        end;
                      end;
         ait_symbol : begin
                        { ------------------------------------------------------- }
@@ -679,7 +696,11 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.18  1998-10-14 15:56:39  pierre
+  Revision 1.19  1998-10-29 11:35:36  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.18  1998/10/14 15:56:39  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.17  1998/10/13 13:10:08  peter

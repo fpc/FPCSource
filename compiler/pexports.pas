@@ -30,46 +30,23 @@ unit pexports;
   implementation
 
     uses
-       cobjects,globals,scanner,symtable,pbase,verbose;
+       cobjects,globals,scanner,symtable,pbase,verbose,export;
 
     const
        { export options }
        eo_resident = $1;
 
-    type
-       pexportsitem = ^texportsitem;
-
-       texportsitem = object(tlinkedlist_item)
-          sym : psym;
-          index : longint;
-          name : pstring;
-          options : word;
-          constructor init;
-       end;
-
-    var
-       exportslist : tlinkedlist;
-
-    constructor texportsitem.init;
-
-      begin
-         sym:=nil;
-         index:=-1;
-         name:=nil;
-         options:=0;
-      end;
-
     procedure read_exports;
 
       var
-         hp : pexportsitem;
+         hp : pexported_procedure;
          code : word;
 
       begin
-         hp:=new(pexportsitem,init);
          consume(_EXPORTS);
          while true do
            begin
+              hp:=new(pexported_procedure,init);
               if token=ID then
                 begin
                    getsym(pattern,true);
@@ -104,6 +81,7 @@ unit pexports;
                              hp^.options:=hp^.options or eo_resident;
                           end;
                      end;
+                   exportlib^.exportprocedure(hp);
                 end
               else
                 consume(ID);
@@ -115,15 +93,15 @@ unit pexports;
          consume(SEMICOLON);
       end;
 
-begin
-   { a library is a root of sources, e.g. it can't be used
-     twice in one compiler run }
-   exportslist.init;
 end.
 
 {
   $Log$
-  Revision 1.2  1998-09-26 17:45:35  peter
+  Revision 1.3  1998-10-29 11:35:51  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.2  1998/09/26 17:45:35  peter
     + idtoken and only one token table
 
 }

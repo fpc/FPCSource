@@ -298,7 +298,7 @@ unit ag68kmit;
                    curr_n:=n_includefile;
                   if (infile^.path^<>'') then
                    begin
-                     AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^)))+'",'+
+                     AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+
                        tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                    end;
                   AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
@@ -496,7 +496,7 @@ ait_labeled_instruction : begin
                        else
                      { labeled operand with register }
                         AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                                 reg2str(pai_labeled(hp)^._op1)+','+lab2str(pai_labeled(hp)^.lab))
+                                 mit_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
                      end;
         ait_symbol : begin
                        { ------------------------------------------------------- }
@@ -658,7 +658,11 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-14 15:56:40  pierre
+  Revision 1.15  1998-10-29 11:35:37  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.14  1998/10/14 15:56:40  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.13  1998/10/12 12:20:44  pierre

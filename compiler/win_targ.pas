@@ -39,8 +39,6 @@ unit win_targ;
     pexportlibwin32=^texportlibwin32;
     texportlibwin32=object(texportlib)
       procedure preparelib(const s:string);virtual;
-      procedure exportprocedure(const func : string;
-        index : longint;const name : string);virtual;
       procedure generatelib;virtual;
     end;
 
@@ -364,12 +362,6 @@ unit win_targ;
            exportssection:=new(paasmoutput,init);
       end;
 
-    procedure texportlibwin32.exportprocedure(const func : string;
-      index : longint;const name : string);
-
-      begin
-      end;
-
     procedure texportlibwin32.generatelib;
 
       var
@@ -404,10 +396,10 @@ unit win_targ;
          importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l3)))));
          { address of ordinal number pointers }
          importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l4)))));
-
          { the name }
          importssection^.concat(new(pai_label,init(l1)));
          importssection^.concat(new(pai_string,init(current_module^.modulename^+target_os.sharedlibext+#0)));
+
       end;
 
     procedure postprocessexecutable(n : string);
@@ -420,7 +412,10 @@ unit win_targ;
 
       begin
          assign(f,n);
+         {$i-}
          reset(f,1);
+         if ioresult<>0 then
+           Message1(execinfo_f_cant_open_executable,n);
          blockread(f,dosheader,sizeof(tdosheader));
          peheaderpos:=dosheader.e_lfanew;
          seek(f,peheaderpos);
@@ -445,12 +440,18 @@ unit win_targ;
          seek(f,peheaderpos);
          blockwrite(f,peheader,sizeof(tpeheader));
          close(f);
+         if ioresult<>0 then
+           Message1(execinfo_f_cant_process_executable,n);
       end;
 
 end.
 {
   $Log$
-  Revision 1.12  1998-10-27 10:22:35  florian
+  Revision 1.13  1998-10-29 11:35:54  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.12  1998/10/27 10:22:35  florian
     + First things for win32 export sections
 
   Revision 1.11  1998/10/22 17:54:09  florian

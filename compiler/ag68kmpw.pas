@@ -428,7 +428,7 @@ ait_labeled_instruction :
                         else
                       { labeled operand with register }
                          AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                                    reg2str(pai_labeled(hp)^._op1)+','+lab2str(pai_labeled(hp)^.lab))
+                                    mot_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
                      end;
         ait_symbol : begin
                        { ------------------------------------------------------- }
@@ -579,7 +579,11 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.5  1998-10-20 08:06:37  pierre
+  Revision 1.6  1998-10-29 11:35:39  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.5  1998/10/20 08:06:37  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

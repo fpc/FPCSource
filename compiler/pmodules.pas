@@ -125,21 +125,29 @@ unit pmodules;
           not output a pointer }
          case target_info.target of
 {$ifdef i386}
-       target_i386_OS2 : ;
+            target_i386_OS2:
+              ;
 {$endif i386}
 {$ifdef m68k}
-       target_m68k_Mac : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
+            target_m68k_Mac:
+              bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
+            target_m68k_PalmOS:
+              ;
 {$endif m68k}
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
 {$ifdef i386}
          datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
+         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
 {$endif i386}
 {$ifdef m68k}
-         datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
+         if target_info.target<>target_m68k_PalmOS then
+           begin
+              datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
+              datasegment^.concat(new(pai_const,init_32bit(heapsize)));
+           end;
 {$endif m68k}
-         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
       end;
 
 
@@ -975,6 +983,7 @@ unit pmodules;
               consume(_LIBRARY);
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
+              current_module^.islibrary:=true;
               consume(ID);
               consume(SEMICOLON);
            end
@@ -1101,7 +1110,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.76  1998-10-28 18:26:15  pierre
+  Revision 1.77  1998-10-29 11:35:52  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.76  1998/10/28 18:26:15  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

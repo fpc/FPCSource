@@ -90,7 +90,7 @@ uses
   browser,
 {$endif UseBrowser}
   dos,verbose,comphook,systems,
-  globals,options,parser,symtable,link,import;
+  globals,options,parser,symtable,link,import,export;
 
 function Compile(const cmd:string):longint;
 
@@ -127,6 +127,7 @@ begin
   linker.done;
   doneparser;
   DoneImport;
+  DoneExport;
 {$ifdef UseBrowser}
   DoneBrowser;
 {$endif UseBrowser}
@@ -149,7 +150,8 @@ begin
   read_arguments(cmd);
 { inits which depend on arguments }
   initparser;
-  initimport;
+  InitImport;
+  InitExport;
   CompilerInited:=true;
 end;
 
@@ -242,7 +244,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-26 22:58:17  florian
+  Revision 1.15  1998-10-29 11:35:40  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.14  1998/10/26 22:58:17  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

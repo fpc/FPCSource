@@ -430,7 +430,7 @@ ait_labeled_instruction :
                         else
                       { labeled operand with register }
                          AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                                    reg2str(pai_labeled(hp)^._op1)+','+lab2str(pai_labeled(hp)^.lab))
+                                    mot_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
                      end;
         ait_symbol : begin
                        { ------------------------------------------------------- }
@@ -540,7 +540,11 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.12  1998-10-14 15:56:41  pierre
+  Revision 1.13  1998-10-29 11:35:38  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.12  1998/10/14 15:56:41  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.11  1998/10/12 12:20:45  pierre

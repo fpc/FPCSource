@@ -417,6 +417,8 @@ type tmsgconst=(
   exec_w_ar_not_found,
   exec_e_dll_not_supported,
   exec_i_closing_script,
+  execinfo_f_cant_process_executable,
+  execinfo_f_cant_open_executable,
   execinfo_x_codesize,
   execinfo_x_initdatasize,
   execinfo_x_uninitdatasize,

@@ -24,15 +24,16 @@ unit export;
 interface
 
 uses
-  cobjects;
+  cobjects,symtable;
 
 type
    pexported_procedure = ^texported_procedure;
    texported_procedure = object(tlinkedlist_item)
-      ordnr : word;
-      name,func : pstring;
-      lab : pointer; { should be plabel, but this gaves problems with circular units }
-      constructor init(const n,s : string;o : word);
+      sym : psym;
+      index : longint;
+      name : pstring;
+      options : word;
+      constructor init;
       destructor done;virtual;
    end;
 
@@ -40,8 +41,8 @@ type
    texportlib=object
       constructor Init;
       destructor Done;
-      procedure preparelib(const s:string);virtual;
-      procedure exportprocedure(const func:string;index:longint;const name:string);virtual;
+      procedure preparelib(const s : string);virtual;
+      procedure exportprocedure(hp : pexported_procedure);virtual;
       procedure generatelib;virtual;
    end;
 
@@ -54,7 +55,7 @@ procedure DoneExport;
 implementation
 
 uses
-  systems,verbose,globals
+  systems,verbose,globals,files
 {$ifdef i386}
   ,os2_targ
   ,win_targ
@@ -66,13 +67,13 @@ uses
                            TImported_procedure
 ****************************************************************************}
 
-constructor texported_procedure.init(const n,s : string;o : word);
+constructor texported_procedure.init;
 begin
   inherited init;
-  func:=stringdup(n);
-  name:=stringdup(s);
-  ordnr:=o;
-  lab:=nil;
+  sym:=nil;
+  index:=-1;
+  name:=nil;
+  options:=0;
 end;
 
 
@@ -103,9 +104,9 @@ begin
 end;
 
 
-procedure texportlib.exportprocedure(const func : string;index:longint;const name:string);
+procedure texportlib.exportprocedure(hp : pexported_procedure);
 begin
-  Message(exec_e_dll_not_supported);
+  current_module^._exports^.concat(hp);
 end;
 
 
@@ -137,10 +138,8 @@ begin
 }
 {$endif i386}
 {$ifdef m68k}
-{
     target_m68k_Linux :
-      importlib:=new(pimportliblinux,Init);
-}
+      exportlib:=new(pexportlib,Init);
 {$endif m68k}
     else
       exportlib:=new(pexportlib,Init);
@@ -151,7 +150,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-10-27 10:22:34  florian
+  Revision 1.2  1998-10-29 11:35:43  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.1  1998/10/27 10:22:34  florian
     + First things for win32 export sections
 
 }

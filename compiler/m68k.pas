@@ -878,7 +878,7 @@ type
        'SSP','DFC','SFC','VBR','FPSR');
 
       begin
-     reg2str:=a[r];
+         reg2str:=a[r];
       end;
 
     procedure disposereference(var r : preference);
@@ -1608,7 +1608,11 @@ type
 end.
 {
   $Log$
-  Revision 1.9  1998-10-14 08:47:18  pierre
+  Revision 1.10  1998-10-29 11:35:45  florian
+    * some dll support for win32
+    * fixed assembler writing for PalmOS
+
+  Revision 1.9  1998/10/14 08:47:18  pierre
     * bugs in secondfuncret for result in subprocedures removed
 
   Revision 1.8  1998/10/13 16:50:15  pierre
