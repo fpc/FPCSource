@@ -671,6 +671,9 @@ begin
   oSection := FSectionList.SectionByName(Section);
   if oSection <> nil then begin
     oSection.Free;
+    { It is needed so UpdateFile doesn't find a defunct section }
+    { and cause the program to crash }
+    FSectionList.Delete(FSectionList.IndexOf(oSection));
     UpdateFile;
   end;
 end;
@@ -787,7 +790,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:24  peter
+  Revision 1.7  2002-10-04 19:00:33  peter
+    * remove section from sectionlist in erasesection, patch from
+      webbug 2161
+
+  Revision 1.6  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/13 06:51:06  michael
