@@ -1685,7 +1685,8 @@ end;
 
 function TDirListBox.IsSelected(Item: Sw_Integer): Boolean;
 begin
-  IsSelected := Item = Cur;
+{  IsSelected := Item = Cur; }
+  IsSelected := Inherited IsSelected(Item);
 end;
 
 procedure TDirListBox.NewDirectory(var ADir: DirStr);
@@ -1701,6 +1702,7 @@ var
   C, OldC: Char;
   S, Indent: String[80];
   P: PString;
+  NewCur: Word;
   isFirst: Boolean;
   SR: SearchRec;
   I: Sw_Integer;
@@ -1738,7 +1740,7 @@ begin
      else S := MiddleDir + OldC;
      AList^.Insert(NewDirEntry(S, OldC + ':' + DirSeparator));
    end;
-   if C = GetCurDrive then Cur := AList^.Count;
+   if C = GetCurDrive then NewCur := AList^.Count;
    OldC := C;
       end;
     end;
@@ -1776,7 +1778,7 @@ begin
       Indent := Indent + IndentSize;
       Dirct := Dirct + DirSeparator;
     end;
-    Cur := AList^.Count-1;
+    NewCur := AList^.Count-1;
     isFirst := True;
     NewDir := Dirct + '*.*';
     FindFirst(NewDir, Directory, SR);
@@ -1814,7 +1816,8 @@ begin
     end;
   end;
   NewList(AList);
-  FocusItem(Cur);
+  FocusItem(NewCur);
+  Cur:=NewCur;
 end;
 
 procedure TDirListBox.SetState(AState: Word; Enable: Boolean);
