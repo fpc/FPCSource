@@ -13,7 +13,10 @@
  **********************************************************************}
 
 {$IFNDEF ver1_0}
-  {$INLINE ON}
+  {$IFNDEF ver1_9_4}
+    {$INLINE ON}
+    {$define HASINLINE}
+  {$endif}  
 {$ENDIF}
 
 {$ifdef FreeBSD}
@@ -187,14 +190,17 @@ Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boo
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
-function htonl( host : longint):longint;  {$ifndef ver1_0} inline; {$endif}
-Function NToHl (Net : Longint) : Longint; {$ifndef ver1_0} inline; {$endif}
-function htons( host : word):word;	  {$ifndef ver1_0} inline; {$endif}
-Function NToHs (Net : word):word;         {$ifndef ver1_0} inline; {$endif}
+function htonl( host : longint):longint;  {$ifdef HASINLINE} inline; {$endif}
+Function NToHl (Net : Longint) : Longint; {$ifdef HASINLINE} inline; {$endif}
+function htons( host : word):word;	  {$ifdef HASINLINE} inline; {$endif}
+Function NToHs (Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
 
 {
   $Log$
-  Revision 1.17  2004-11-01 17:35:22  marco
+  Revision 1.18  2004-11-01 19:39:19  peter
+    * disable inline for 1.9.4
+
+  Revision 1.17  2004/11/01 17:35:22  marco
    * typo fixed, aarght
 
   Revision 1.16  2004/11/01 17:29:47  marco

@@ -173,7 +173,7 @@ end;
 
 type thostaddr= packed array[1..4] of byte;
 
-function htonl( host : longint):longint; {$ifndef VER1_0} inline; {$ENDIF}
+function htonl( host : longint):longint; {$ifdef HASINLINE} inline; {$ENDIF}
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -186,7 +186,7 @@ begin
 {$endif}
 end;
 
-Function NToHl (Net : Longint) : Longint;  {$ifndef VER1_0} inline; {$ENDIF}
+Function NToHl (Net : Longint) : Longint;  {$ifdef HASINLINE} inline; {$ENDIF}
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -199,7 +199,7 @@ begin
 {$endif}
 end;
 
-function htons( host : word):word; {$ifndef VER1_0} inline; {$ENDIF}
+function htons( host : word):word; {$ifdef HASINLINE} inline; {$ENDIF}
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -209,7 +209,7 @@ begin
 {$endif}
 end;
 
-Function NToHs (Net : word):word;{$ifndef VER1_0} inline; {$ENDIF}
+Function NToHs (Net : word):word;{$ifdef HASINLINE} inline; {$ENDIF}
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -221,7 +221,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-11-01 17:29:47  marco
+  Revision 1.14  2004-11-01 19:39:19  peter
+    * disable inline for 1.9.4
+
+  Revision 1.13  2004/11/01 17:29:47  marco
    * inline problems fixed
 
   Revision 1.12  2004/11/01 16:23:15  marco
