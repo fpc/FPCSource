@@ -38,7 +38,7 @@ type
   PtrInt = Longint;
   PPtrInt = ^PtrInt;
 {$endif}
-  
+
 {LargeInt}
   LargeInt = Int64;
 
@@ -130,7 +130,7 @@ type
     property FieldNo: Longint read FFieldNo;
     property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
     property Required: Boolean read FRequired;
-  Published  
+  Published
     property Attributes: TFieldAttributes read FAttributes write FAttributes default [];
     property Name: string read FName write FName; // Must move to TNamedItem
     property DataType: TFieldType read FDataType write FDataType;
@@ -753,7 +753,7 @@ type
   protected
     function GetOwner: TPersistent; override;
   public
-    constructor Create(Owner: TPersistent);
+    constructor Create(AOwner: TPersistent);
     function Add: TCheckConstraint;
     property Items[Index: Longint]: TCheckConstraint read GetItem write SetItem; default;
   end;
@@ -1354,7 +1354,7 @@ type
   end;
 
   { TBufDataset }
-  
+
   PBufBookmark = ^TBufBookmark;
   TBufBookmark = record
     BookmarkData : integer;
@@ -1526,7 +1526,7 @@ type
     Property Precision : Integer read FPrecision write FPrecision default 0;
     Property Size : Integer read FSize write FSize default 0;
   end;
-  
+
 
   { TParams }
 
@@ -1811,7 +1811,7 @@ begin
 end;
 
 
-constructor TCheckConstraints.Create(Owner: TPersistent);
+constructor TCheckConstraints.Create(AOwner: TPersistent);
 
 begin
   //!! To be implemented
@@ -1837,7 +1837,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2005-01-12 10:28:44  michael
+  Revision 1.35  2005-02-03 19:10:39  florian
+    + adapted for use fo tcollection.owner
+
+  Revision 1.34  2005/01/12 10:28:44  michael
     * Patch from Joost Van der Sluis:
      - implemented TUpdateMode, TProviderFlags
      - implemented TIndexDef, TIndexDefs
