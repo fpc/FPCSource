@@ -328,14 +328,14 @@ implementation
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
-        function readpreproc: string;
+        function preproc_substitutedtoken: string;
         var
           hs: string;
           mac : tmacro;
           len : integer;
         begin
-          readpreproc := current_scanner.preproc_pattern;
-          mac:=tmacro(current_scanner.macros.search(readpreproc));
+          preproc_substitutedtoken := current_scanner.preproc_pattern;
+          mac:=tmacro(current_scanner.macros.search(preproc_substitutedtoken));
           if assigned(mac) then
           begin
             if mac.defined and assigned(mac.buftext) then
@@ -349,7 +349,7 @@ implementation
                 len:=mac.buflen;
               hs[0]:=char(len);
               move(mac.buftext^,hs[1],len);
-              readpreproc:=upcase(hs);
+              preproc_substitutedtoken:=upcase(hs);
             end;
           end;
         end;
@@ -363,7 +363,7 @@ implementation
         begin
            if current_scanner.preproc_token=_ID then
              begin
-                if readpreproc='DEFINED' then
+                if preproc_substitutedtoken='DEFINED' then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -394,7 +394,27 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if readpreproc='DECLARED' then
+                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='UNDEFINED') then
+                  begin
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    if current_scanner.preproc_token =_ID then
+                      begin
+                        hs := current_scanner.preproc_pattern;
+                        mac := tmacro(current_scanner.macros.search(hs));
+                        if assigned(mac) then
+                          hs := '0'
+                        else
+                          hs := '1';
+                        read_factor := hs;
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                  end
+                else
+                if preproc_substitutedtoken='DECLARED' then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -424,7 +444,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if readpreproc='NOT' then
+                if preproc_substitutedtoken='NOT' then
                   begin
                     preproc_consume(_ID);
                     hs:=read_expr;
@@ -435,7 +455,7 @@ implementation
                   end
                 else
                   begin
-                    hs:=readpreproc;
+                    hs:=preproc_substitutedtoken;
                     preproc_consume(_ID);
                     read_factor:=hs;
                   end
@@ -460,7 +480,7 @@ implementation
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
-            if readpreproc<>'AND' then
+            if preproc_substitutedtoken<>'AND' then
               break;
             preproc_consume(_ID);
             hs2:=read_expr;
@@ -485,7 +505,7 @@ implementation
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
-            if readpreproc<>'OR' then
+            if preproc_substitutedtoken<>'OR' then
               break;
             preproc_consume(_ID);
             hs2:=read_expr;
@@ -673,7 +693,6 @@ implementation
           end
         else
           begin
-            Message1(parser_c_macro_defined,mac.name);
             mac.defined:=true;
           { delete old definition }
             if assigned(mac.buftext) then
@@ -692,7 +711,7 @@ implementation
            current_scanner.skipspace;
          { may be a macro? }
 
-        //both versions with := and = are allowed
+        { assignment can be both := and = }
         if c=':' then
           current_scanner.readchar;
 
@@ -702,6 +721,7 @@ implementation
              hs:= parse_compiler_expr;
              if length(hs) <> 0 then
                begin
+  		         Message2(parser_c_macro_set_to,mac.name,hs);
                  { free buffer of macro ?}
                  if assigned(mac.buftext) then
                    freemem(mac.buftext,mac.buflen);
@@ -2702,6 +2722,7 @@ exit_label:
          case c of
         'A'..'Z',
         'a'..'z',
+		//'$',       {for hexadecimal numbers, allowed in mode mac OR}
     '_','0'..'9' : begin
                      current_scanner.preproc_pattern:=readid;
                      readpreproc:=_ID;
@@ -2883,10 +2904,12 @@ exit_label:
         turbo_scannerdirectives:=TDictionary.Create;
         mac_scannerdirectives:=TDictionary.Create;
 
+        { Default directives and conditionals for all modes }
+        AddDirective('I',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_include);
+
         { Default Turbo directives and conditionals }
         AddDirective('DEFINE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_define);
         AddDirective('UNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_undef);
-        AddDirective('I',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
         AddDirective('INCLUDE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
 
         AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
@@ -2916,7 +2939,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.69  2004-02-11 14:46:59  daniel
+  Revision 1.70  2004-02-23 23:38:25  olle
+    + mode mac: added UNDEFINED construct
+    + mode mac: added support for include $I
+    * renamed one of the readpreproc to preproc_substitutedtoken to avoid confusement
+
+  Revision 1.69  2004/02/11 14:46:59  daniel
     * Better fix for case sensitive macro handling
 
   Revision 1.68  2004/02/11 14:13:10  daniel
