@@ -193,7 +193,10 @@ implementation
                         internalerror(2004010306);
                       mangledstring := hp2.func^;
 {$ifdef powerpc}
-                      if (po_public in hp2.procdef.procoptions) then
+{		      if (po_public in hp2.procdef.procoptions) or
+  			(hp2.procdef.hasforward and
+ 			 (po_public in hp2.procdef.forwarddef.procoptions)) then
+}
                         begin
                           importsSection.concat(Tai_section.Create(sec_code));
                           importsSection.concat(Tai_symbol.createname_global(mangledstring,AT_FUNCTION,0));
@@ -731,7 +734,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-03-05 22:17:11  jonas
+  Revision 1.13  2004-03-29 21:19:33  florian
+    * imported procedures are always made global (in the sense of the
+  assembler)
+
+  Revision 1.12  2004/03/05 22:17:11  jonas
     * fixed importing of variables from shared libraries, but disabled
       PIC support for now. You have to save/restore r31 when you us it! :)
       Also, it's not necessary to support the imported variables
