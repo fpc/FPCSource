@@ -4150,8 +4150,6 @@ implementation
      begin
         if assigned(symtable) then
           symtable.free;
-        if (oo_is_forward in objectoptions) then
-          Message1(sym_e_class_forward_not_resolved,objname^);
         stringdispose(objname);
         stringdispose(iidstr);
         if assigned(implementedinterfaces) then
@@ -5474,7 +5472,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-01-06 21:52:30  peter
+  Revision 1.64  2002-01-19 15:12:34  peter
+    * check for unresolved forward classes in the interface
+
+  Revision 1.63  2002/01/06 21:52:30  peter
 
     * fixed previous commit
 

@@ -49,7 +49,7 @@ implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symbase,symdef,symsym,symtable,types,
+       symconst,symbase,symdef,symsym,symtype,symtable,types,
        ppu,fmodule,
        { pass 1 }
        node,
@@ -558,7 +558,6 @@ implementation
         oldconstsymtable : tsymtable;
         oldfilepos       : tfileposinfo;
         pdflags          : word;
-        prevdef,stdef    : tprocdef;
       begin
       { save old state }
          oldprocdef:=aktprocdef;
@@ -820,6 +819,16 @@ implementation
       end;
 
 
+    { search in symtablestack for not complete classes }
+    procedure check_forward_class(p : tnamedindexitem);
+      begin
+        if (tsym(p).typ=typesym) and
+           (ttypesym(p).restype.def.deftype=objectdef) and
+           (oo_is_forward in tobjectdef(ttypesym(p).restype.def).objectoptions) then
+          MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
+      end;
+
+
     procedure read_interface_declarations;
       begin
          {Since the body is now parsed at lexlevel 1, and the declarations
@@ -846,12 +855,19 @@ implementation
            end;
          until false;
          dec(lexlevel);
+         { check for incomplete class definitions, this is only required
+           for fpc modes }
+         if (m_fpc in aktmodeswitches) then
+          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class);
       end;
 
 end.
 {
   $Log$
-  Revision 1.41  2001-11-02 22:58:06  peter
+  Revision 1.42  2002-01-19 15:12:34  peter
+    * check for unresolved forward classes in the interface
+
+  Revision 1.41  2001/11/02 22:58:06  peter
     * procsym definition rewrite
 
   Revision 1.40  2001/10/25 21:22:37  peter
