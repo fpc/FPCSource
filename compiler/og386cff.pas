@@ -93,11 +93,13 @@ unit og386cff;
 
        pcoffsection = ^tcoffsection;
        tcoffsection = object
-          index : tsection;
+          index  : tsection;
           secidx : longint;
-          data  : PDynamicArray;
+          data   : PDynamicArray;
+          size,
+          fillsize,
+          mempos,
           len,
-          pos,
           datapos,
           relocpos,
           nrelocs,
@@ -123,6 +125,7 @@ unit og386cff;
          destructor  done;virtual;
          procedure initwriting;virtual;
          procedure donewriting;virtual;
+         procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
@@ -226,6 +229,11 @@ unit og386cff;
         index:=sec;
         secidx:=0;
         flags:=AFlags;
+        { filled after pass 1 }
+        size:=0;
+        fillsize:=0;
+        mempos:=0;
+        { pass 2 data }
         relocHead:=nil;
         relocTail:=@relocHead;
         Len:=0;
@@ -269,7 +277,7 @@ unit og386cff;
         reloctail^:=r;
         reloctail:=@r^.next;
         r^.next:=nil;
-        r^.address:=ofs;
+        r^.address:=ofs+mempos;
         r^.symbol:=p;
         r^.section:=sec_none;
         r^.relative:=relative;
@@ -285,7 +293,7 @@ unit og386cff;
         reloctail^:=r;
         reloctail:=@r^.next;
         r^.next:=nil;
-        r^.address:=ofs;
+        r^.address:=ofs+mempos;
         r^.symbol:=nil;
         r^.section:=sec;
         r^.relative:=relative_false;
@@ -391,8 +399,6 @@ unit og386cff;
             Aflags:=data_flags;
           sec_bss :
             Aflags:=bss_flags;
-        { sec_info :
-            Aflags:=info_flags; }
           else
             Aflags:=0;
         end;
@@ -435,7 +441,7 @@ unit og386cff;
         if p^.typ in [AS_LOCAL,AS_GLOBAL] then
          begin
            sym.section:=p^.section;
-           sym.value:=p^.address;
+           sym.value:=p^.address+sects[p^.section]^.mempos;
          end;
         { update the asmsymbol index }
         p^.idx:=syms^.count;
@@ -468,57 +474,55 @@ unit og386cff;
 
 
     procedure tgenericcoffoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
+      var
+        symaddr : longint;
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
         if assigned(p) then
          begin
+           { real address of the symbol }
+           symaddr:=p^.address;
+           if p^.section<>sec_none then
+            inc(symaddr,sects[p^.section]^.mempos);
            { no symbol relocation need inside a section }
            if p^.section=currsec then
              begin
-               if relative=relative_false then
-                 begin
-                   sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
-                   inc(data,p^.address);
-                 end
-               else if relative=relative_true then
-                 begin
-                   inc(data,p^.address-len-sects[currsec]^.len);
-                 end
-               else if relative=relative_rva then
-                 begin
-                   { don't know if this can happens !! }
-                   { does this work ?? }
-                   sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
-                   inc(data,p^.address);
-                 end;
+               case relative of
+                 relative_false :
+                   begin
+                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
+                     inc(data,symaddr);
+                   end;
+                 relative_true :
+                   begin
+                     inc(data,symaddr-len-sects[currsec]^.len);
+                   end;
+                 relative_rva :
+                   begin
+                     { don't know if this can happens !! }
+                     { does this work ?? }
+                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
+                     inc(data,symaddr);
+                   end;
+               end;
              end
            else
              begin
                writesymbol(p);
                if (p^.section<>sec_none) and (relative=relative_false) then
-                 begin
-                   sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section);
-                 end
+                 sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section)
                else
                  sects[currsec]^.addsymreloc(sects[currsec]^.len,p,relative);
                if not win32 then {seems wrong to me (PM) }
-                begin
-                  {if p^.section<>sec_none then
-                    this is the cause of the strange
-                    feature see Note (5) before
-                    address contains the size for
-                    global vars switched to common }
-                    inc(data,p^.address);
-                end
+                inc(data,symaddr)
                else
                 if (relative<>relative_true) and (p^.section<>sec_none) then
-                 inc(data,p^.address);
+                 inc(data,symaddr);
                if relative=relative_true then
                 begin
                   if win32 then
-                    {inc(data,4-len)}
-                    dec(data,len-4{+p^.address})
+                    dec(data,len-4)
                   else
                     dec(data,len+sects[currsec]^.len);
                 end;
@@ -538,12 +542,17 @@ unit og386cff;
         else
          s:=section;
         { local var can be at offset -1 !! PM }
-        if (offset=-1) and reloc then
+        if reloc then
          begin
-           if s=sec_none then
-            offset:=0
-           else
-            offset:=sects[s]^.len;
+           if (offset=-1) then
+            begin
+              if s=sec_none then
+               offset:=0
+              else
+               offset:=sects[s]^.len;
+            end;
+           if (s<>sec_none) then
+            inc(offset,sects[s]^.mempos);
          end;
         fillchar(stab,sizeof(coffstab),0);
         if assigned(p) and (p[0]<>#0) then
@@ -632,7 +641,7 @@ unit og386cff;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
-            write_symbol(target_asm.secnames[sec],-1,{sects[sec]^.pos}0,sects[sec]^.secidx,3,1);
+            write_symbol(target_asm.secnames[sec],-1,sects[sec]^.mempos,sects[sec]^.secidx,3,1);
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=sects[sec]^.len;
             secrec.nrelocs:=sects[sec]^.nrelocs;
@@ -656,10 +665,49 @@ unit og386cff;
       end;
 
 
+    procedure tgenericcoffoutput.setsectionsizes(var s:tsecsize);
+      var
+        align,
+        mempos : longint;
+        sec : tsection;
+      begin
+        { multiply stab with real size }
+        s[sec_stab]:=s[sec_stab]*sizeof(coffstab);
+        { if debug then also count header stab }
+        if (cs_debuginfo in aktmoduleswitches) then
+         begin
+           inc(s[sec_stab],sizeof(coffstab));
+           inc(s[sec_stabstr],length(SplitFileName(current_module^.mainsource^))+2);
+         end;
+        { fix all section }
+        mempos:=0;
+        for sec:=low(tsection) to high(tsection) do
+         if s[sec]>0 then
+          begin
+            if not assigned(sects[sec]) then
+             createsection(sec);
+            sects[sec]^.size:=s[sec];
+            sects[sec]^.mempos:=mempos;
+            { calculate the alignment }
+            if sects[sec]^.flags=0 then
+             align:=1
+            else
+             align:=4;
+            sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
+            if sects[sec]^.fillsize=align then
+             sects[sec]^.fillsize:=0;
+            { next section position, not for win32 which uses
+              relative addresses }
+            if not win32 then
+              inc(mempos,sects[sec]^.size+sects[sec]^.fillsize);
+          end;
+      end;
+
+
     procedure tgenericcoffoutput.writetodisk;
       var
         datapos,secidx,
-        nsects,pos,sympos,i,fillsize : longint;
+        nsects,sympos,i : longint;
         sec    : tsection;
         header : coffheader;
         sechdr : coffsechdr;
@@ -669,26 +717,24 @@ unit og386cff;
         fillchar(empty,sizeof(empty),0);
         nsects:=0;
         for sec:=low(tsection) to high(tsection) do
-        { .stabstr section length must be without alignment !! }
          if assigned(sects[sec]) then
           begin
+          { check if the section is still the same size }
+            if (sects[sec]^.len<>sects[sec]^.size) then
+              Comment(V_Warning,'Size of section changed '+tostr(sects[sec]^.size)+'->'+tostr(sects[sec]^.len)+
+                ' ['+target_asm.secnames[sec]+']');
           { fill with zero }
-            fillsize:=4-(sects[sec]^.len and 3);
-            if fillsize<>4 then
+            if sects[sec]^.fillsize>0 then
              begin
                if assigned(sects[sec]^.data) then
-                 sects[sec]^.write(empty,fillsize)
+                 sects[sec]^.write(empty,sects[sec]^.fillsize)
                else
-                 sects[sec]^.alloc(fillsize);
-               { .stabstr section length must be without alignment !! }
-               if (sec=sec_stabstr) then
-                 dec(sects[sec]^.len,fillsize);
+                 sects[sec]^.alloc(sects[sec]^.fillsize);
              end;
             inc(nsects);
           end;
       { Calculate the filepositions }
         datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
-        pos:=0;
         initsym:=2; { 2 for the file }
         { sections first }
         secidx:=0;
@@ -697,14 +743,9 @@ unit og386cff;
           begin
             inc(secidx);
             sects[sec]^.secidx:=secidx;
-            sects[sec]^.pos:=pos;
             sects[sec]^.datapos:=datapos;
-            inc(pos,sects[sec]^.len);
             if assigned(sects[sec]^.data) then
               inc(datapos,sects[sec]^.len);
-            { align after stabstr section !! }
-            if (sec=sec_stabstr) and ((sects[sec]^.len and 3)<>0) then
-              inc(datapos,4-(sects[sec]^.len and 3));
             inc(initsym,2); { 2 for each section }
           end;
         { relocs }
@@ -731,12 +772,16 @@ unit og386cff;
             fillchar(sechdr,sizeof(sechdr),0);
             move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
             if not win32 then
-              sechdr.vsize:=sects[sec]^.pos
-            else if sec=sec_bss then
-              sechdr.vsize:=sects[sec]^.len;
+              begin
+                sechdr.rvaofs:=sects[sec]^.mempos;
+                sechdr.vsize:=sects[sec]^.mempos;
+              end
+            else
+              begin
+                if sec=sec_bss then
+                  sechdr.vsize:=sects[sec]^.len;
+              end;
             sechdr.datalen:=sects[sec]^.len;
-            { apparently win32 asw leaves section at datapos zero }
-            { this was an error by me (PM) }
             if (sects[sec]^.len>0) and assigned(sects[sec]^.data) then
               sechdr.datapos:=sects[sec]^.datapos;
             sechdr.relocpos:=sects[sec]^.relocpos;
@@ -839,7 +884,11 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-02 22:36:35  peter
+  Revision 1.3  1999-05-05 17:34:31  peter
+    * output is more like as 2.9.1
+    * stabs really working for go32v2
+
+  Revision 1.2  1999/05/02 22:36:35  peter
     * fixed section index when not all sections are used
 
   Revision 1.1  1999/05/01 13:24:24  peter

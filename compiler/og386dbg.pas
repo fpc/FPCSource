@@ -54,13 +54,6 @@ unit og386dbg;
                                 Tdbgoutput
 ****************************************************************************}
 
-      const
-        sec_2_str : array[tsection] of string[8]=('<none>',
-          '.text','.data','.bss',
-          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-          '.stab','.stabstr',''
-        );
-
     constructor tdbgoutput.init;
       begin
         inherited init;
@@ -100,7 +93,7 @@ unit og386dbg;
            rawidx:=-1;
          end;
         p^.idx:=nsyms;
-        write('symbol [',nsyms,'] '+p^.name+' (',sec_2_str[p^.section],',',p^.address,',',p^.size,',');
+        write('symbol [',nsyms,'] '+p^.name+' (',target_asm.secnames[p^.section],',',p^.address,',',p^.size,',');
         case p^.typ of
           AS_LOCAL :
             writeln('local)');
@@ -123,7 +116,7 @@ unit og386dbg;
            rawidx:=-1;
          end;
         if assigned(p) then
-          write('reloc: ',data,' [',sec_2_str[p^.section],',',p^.address,']')
+          write('reloc: ',data,' [',target_asm.secnames[p^.section],',',p^.address,']')
         else
           write('reloc: ',data);
         case relative of
@@ -189,7 +182,11 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-02 22:41:55  peter
+  Revision 1.3  1999-05-05 17:34:32  peter
+    * output is more like as 2.9.1
+    * stabs really working for go32v2
+
+  Revision 1.2  1999/05/02 22:41:55  peter
     * moved section names to systems
     * fixed nasm,intel writer
 

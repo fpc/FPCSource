@@ -43,6 +43,7 @@ unit ag386bin;
         destructor  done;
         procedure WriteBin;
       private
+        currpass : byte;
 {$ifdef GDB}
         n_line       : byte;     { different types of source lines }
         linecount,
@@ -50,13 +51,16 @@ unit ag386bin;
         funcname     : pasmsymbol;
         stabslastfileinfo : tfileposinfo;
         procedure convertstabs(p:pchar);
+{$ifdef unused}
         procedure emitsymbolstabs(s : string;nidx,nother,line : longint;firstasm,secondasm : pasmsymbol);
+{$endif}
         procedure emitlineinfostabs(nidx,line : longint);
         procedure emitstabs(s:string);
-        procedure WriteFileLineInfo(var fileinfo : tfileposinfo;pass : longint);
-        procedure StartFileLineInfo(pass:longint);
+        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure StartFileLineInfo;
 {$endif}
-        function  TreePass1(hp:pai;optimize:boolean):pai;
+        function  TreePass0(hp:pai):pai;
+        function  TreePass1(hp:pai):pai;
         function  TreePass2(hp:pai):pai;
         procedure writetree(p:paasmoutput);
       end;
@@ -103,6 +107,15 @@ unit ag386bin;
            hp:=nil;
            s:=StrPas(P);
          end;
+      { When in pass 1 then only alloc and leave }
+        if currpass=1 then
+         begin
+           objectalloc^.staballoc(hp);
+           if assigned(hp) then
+            p[i]:='"';
+           exit;
+         end;
+      { Parse the rest of the stabs }
         if s='' then
          internalerror(33000);
         j:=pos(',',s);
@@ -179,6 +192,7 @@ unit ag386bin;
       end;
 
 
+{$ifdef unused}
     procedure ti386binasmlist.emitsymbolstabs(s : string;nidx,nother,line : longint;
                 firstasm,secondasm : pasmsymbol);
       var
@@ -205,12 +219,19 @@ unit ag386bin;
               hp,nidx,nother,line,false);
           end;
       end;
+{$endif}
 
 
     procedure ti386binasmlist.emitlineinfostabs(nidx,line : longint);
       var
          sec : tsection;
       begin
+        if currpass=1 then
+          begin
+            objectalloc^.staballoc(nil);
+            exit;
+          end;
+
         if (nidx=n_textline) and assigned(funcname) and
            (target_os.use_function_relative_addresses) then
           objectoutput^.WriteStabs(sec_code,pgenericcoffoutput(objectoutput)^.sects[sec_code]^.len-funcname^.address,
@@ -235,7 +256,7 @@ unit ag386bin;
       end;
 
 
-    procedure ti386binasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo;pass : longint);
+    procedure ti386binasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
       var
         curr_n : byte;
         hp : pasmsymbol;
@@ -252,32 +273,31 @@ unit ag386bin;
             curr_n:=n_sourcefile
            else
             curr_n:=n_includefile;
+           { get symbol for this includefile }
            hp:=newasmsymbol('Ltext'+ToStr(IncludeCount));
-           { allocation pass or output pass ? }
-           if pass=1 then
+           if currpass=1 then
              begin
                 hp^.typ:=AS_LOCAL;
                 hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
              end
            else
-             begin
-               objectoutput^.writesymbol(hp);
-               if (infile^.path^<>'') then
-                EmitStabs('"'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+tostr(curr_n)+
-                  ',0,0,Ltext'+ToStr(IncludeCount));
-               EmitStabs('"'+lower(FixFileName(infile^.name^))+'",'+tostr(curr_n)+
-                 ',0,0,Ltext'+ToStr(IncludeCount));
-             end;
+             objectoutput^.writesymbol(hp);
+           { emit stabs }
+           if (infile^.path^<>'') then
+             EmitStabs('"'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+tostr(curr_n)+
+               ',0,0,Ltext'+ToStr(IncludeCount));
+           EmitStabs('"'+lower(FixFileName(infile^.name^))+'",'+tostr(curr_n)+
+             ',0,0,Ltext'+ToStr(IncludeCount));
            inc(includecount);
          end;
       { line changed ? }
-        if (pass=2) and (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
+        if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
           emitlineinfostabs(n_line,fileinfo.line);
         stabslastfileinfo:=fileinfo;
       end;
 
 
-    procedure ti386binasmlist.StartFileLineInfo(pass:longint);
+    procedure ti386binasmlist.StartFileLineInfo;
       var
         fileinfo : tfileposinfo;
       begin
@@ -288,24 +308,103 @@ unit ag386bin;
         includecount:=0;
         fileinfo.fileindex:=1;
         fileinfo.line:=1;
-        WriteFileLineInfo(fileinfo,pass);
+        WriteFileLineInfo(fileinfo);
       end;
 {$endif GDB}
 
-    function ti386binasmlist.TreePass1(hp:pai;optimize:boolean):pai;
+
+    function ti386binasmlist.TreePass0(hp:pai):pai;
+      var
+        lastsec : tsection;
+      begin
+        while assigned(hp) do
+         begin
+           case hp^.typ of
+             ait_align :
+               begin
+                 if objectalloc^.sectionsize mod pai_align(hp)^.aligntype<>0 then
+                   begin
+                     pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype-
+                       (objectalloc^.sectionsize mod pai_align(hp)^.aligntype);
+                     objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
+                   end
+                 else
+                   pai_align(hp)^.fillsize:=0;
+               end;
+             ait_datablock :
+               begin
+{$ifdef EXTERNALBSS}
+                 if not pai_datablock(hp)^.is_global then
+                  objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+{$else}
+                 objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+{$endif}
+               end;
+             ait_const_32bit :
+               objectalloc^.sectionalloc(4);
+             ait_const_16bit :
+               objectalloc^.sectionalloc(2);
+             ait_const_8bit :
+               objectalloc^.sectionalloc(1);
+             ait_real_64bit :
+               objectalloc^.sectionalloc(8);
+             ait_real_32bit :
+               objectalloc^.sectionalloc(4);
+             ait_real_extended :
+               objectalloc^.sectionalloc(10);
+             ait_const_rva,
+             ait_const_symbol :
+               objectalloc^.sectionalloc(4);
+             ait_section:
+               begin
+                 objectalloc^.setsection(pai_section(hp)^.sec);
+                 lastsec:=pai_section(hp)^.sec;
+               end;
+             ait_symbol :
+               pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+             ait_label :
+               begin
+                 pai_label(hp)^.setaddress(objectalloc^.sectionsize);
+                 if pai_label(hp)^.l^.is_symbol then
+                   begin
+                     pai_label(hp)^.sym:=newasmsymbol(lab2str(pai_label(hp)^.l));
+                     if (pai_label(hp)^.l^.is_data) and (cs_smartlink in aktmoduleswitches) then
+                       pai_label(hp)^.sym^.typ:=AS_GLOBAL
+                     else
+                       pai_label(hp)^.sym^.typ:=AS_LOCAL;
+                     pai_label(hp)^.sym^.setaddress(objectalloc^.currsec,pai_label(hp)^.l^.address,0);
+                   end;
+               end;
+             ait_string :
+               objectalloc^.sectionalloc(pai_string(hp)^.len);
+             ait_labeled_instruction,
+             ait_instruction :
+               objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
+             ait_cut :
+               begin
+                 objectalloc^.resetsections;
+                 objectalloc^.setsection(lastsec);
+               end;
+           end;
+           hp:=pai(hp^.next);
+         end;
+        TreePass0:=hp;
+      end;
+
+
+    function ti386binasmlist.TreePass1(hp:pai):pai;
       begin
         while assigned(hp) do
          begin
 {$ifdef GDB}
            { write stabs }
-           if (not optimize) and
-              (cs_debuginfo in aktmoduleswitches) then
+           if (cs_debuginfo in aktmoduleswitches) then
             begin
               if (objectalloc^.currsec<>sec_none) and
                  not(hp^.typ in  [ait_external,ait_regalloc, ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp^.fileinfo,1);
+               WriteFileLineInfo(hp^.fileinfo);
             end;
 {$endif GDB}
            case hp^.typ of
@@ -367,9 +466,29 @@ unit ag386bin;
                begin
                  objectalloc^.setsection(pai_section(hp)^.sec);
 {$ifdef GDB}
+                 case pai_section(hp)^.sec of
+                  sec_code : n_line:=n_textline;
+                  sec_data : n_line:=n_dataline;
+                   sec_bss : n_line:=n_bssline;
+                 else
+                  n_line:=n_dataline;
+                 end;
                  stabslastfileinfo.line:=-1;
-{$endif}
+{$endif GDB}
                end;
+{$ifdef GDB}
+             ait_stabn :
+               convertstabs(pai_stabn(hp)^.str);
+             ait_stabs :
+               convertstabs(pai_stabs(hp)^.str);
+             ait_stab_function_name :
+               if assigned(pai_stab_function_name(hp)^.str) then
+                 funcname:=getasmsymbol(pai_stab_function_name(hp)^.str)
+               else
+                 funcname:=nil;
+             ait_force_line :
+               stabslastfileinfo.line:=0;
+{$endif}
              ait_symbol :
                begin
                  if pai_symbol(hp)^.is_global then
@@ -396,24 +515,12 @@ unit ag386bin;
              ait_labeled_instruction,
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
-{$ifdef GDB}
-             ait_force_line :
-               stabslastfileinfo.line:=0;
-{$endif}
-             ait_cut :
-               begin
-                 if optimize then
-                  begin
-                    objectalloc^.resetsections;
-                    objectalloc^.setsection(sec_code);
-                  end
-                 else
-                  break;
-               end;
              ait_direct :
                Comment(V_Fatal,'direct asm not supported with binary writers');
              ait_comp :
                Comment(V_Fatal,'comp not supported');
+             ait_cut :
+               break;
            end;
            hp:=pai(hp^.next);
          end;
@@ -445,7 +552,7 @@ unit ag386bin;
                  not(hp^.typ in  [ait_external,ait_regalloc, ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp^.fileinfo,2);
+               WriteFileLineInfo(hp^.fileinfo);
             end;
 {$endif GDB}
            case hp^.typ of
@@ -543,15 +650,23 @@ unit ag386bin;
       begin
         if not assigned(p) then
          exit;
+        objectalloc^.setsection(sec_code);
+        objectoutput^.defaultsection(sec_code);
         hp:=pai(p^.first);
         while assigned(hp) do
          begin
+         { Pass 1 }
+           currpass:=1;
 {$ifdef GDB}
-           StartFileLineInfo(1);
+           StartFileLineInfo;
 {$endif GDB}
-           TreePass1(hp,false);
+           TreePass1(hp);
+         { set section sizes }
+           objectoutput^.setsectionsizes(objectalloc^.secsize);
+         { Pass 2 }
+           currpass:=2;
 {$ifdef GDB}
-           StartFileLineInfo(2);
+           StartFileLineInfo;
 {$endif GDB}
            hp:=TreePass2(hp);
          { if assigned then we have a ait_cut }
@@ -595,11 +710,10 @@ unit ag386bin;
 
       begin
 {$ifdef MULTIPASS}
-        { Process the codesegment twice so the jmp instructions can
+        { Process the codesegment twice so the short jmp instructions can
           be optimized }
-        TreePass1(pai(codesegment^.first),true);
-        if assigned(importssection) then
-          TreePass1(pai(importssection^.first),true);
+        currpass:=0;
+        TreePass0(pai(codesegment^.first));
 {$endif}
 
         objectalloc^.resetsections;
@@ -650,6 +764,7 @@ unit ag386bin;
             objectoutput:=new(pwin32coffoutput,init);
         end;
         objectalloc:=new(pobjectalloc,init);
+        currpass:=0;
       end;
 
 
@@ -662,7 +777,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-04 21:44:30  florian
+  Revision 1.3  1999-05-05 17:34:29  peter
+    * output is more like as 2.9.1
+    * stabs really working for go32v2
+
+  Revision 1.2  1999/05/04 21:44:30  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.1  1999/05/01 13:23:57  peter

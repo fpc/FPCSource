@@ -49,6 +49,7 @@ unit og386;
          procedure setsection(sec:tsection);
          function  sectionsize:longint;
          procedure sectionalloc(l:longint);
+         procedure staballoc(p:pchar);
          procedure resetsections;
        end;
 
@@ -65,6 +66,7 @@ unit og386;
          procedure NextSmartName;
          procedure initwriting;virtual;
          procedure donewriting;virtual;
+         procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
@@ -80,6 +82,7 @@ unit og386;
   implementation
 
     uses
+      strings,
       globtype,globals,verbose,files,
       assemble;
 
@@ -113,6 +116,14 @@ unit og386;
     procedure tobjectalloc.sectionalloc(l:longint);
       begin
         inc(secsize[currsec],l);
+      end;
+
+
+    procedure tobjectalloc.staballoc(p:pchar);
+      begin
+        inc(secsize[sec_stab]);
+        if assigned(p) and (p[0]<>#0) then
+          inc(secsize[sec_stabstr],strlen(p)+1);
       end;
 
 
@@ -205,6 +216,9 @@ unit og386;
         writer^.close;
       end;
 
+    procedure tobjectoutput.setsectionsizes(var s:tsecsize);
+      begin
+      end;
 
     procedure tobjectoutput.defaultsection(sec:tsection);
       begin
@@ -239,7 +253,11 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-04 21:44:50  florian
+  Revision 1.4  1999-05-05 17:34:30  peter
+    * output is more like as 2.9.1
+    * stabs really working for go32v2
+
+  Revision 1.3  1999/05/04 21:44:50  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.2  1999/05/02 22:41:54  peter

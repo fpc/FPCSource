@@ -39,9 +39,8 @@ unit systems;
 
        tsection=(sec_none,
          sec_code,sec_data,sec_bss,
-         sec_stab,sec_stabstr,
          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
-         sec_fake
+         sec_stab,sec_stabstr
        );
 
      type
@@ -483,9 +482,8 @@ implementation
             comment : '# ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '','','','','','',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_as_aout;
@@ -498,9 +496,8 @@ implementation
             comment : '# ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '','','','','','',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_asw;
@@ -513,10 +510,9 @@ implementation
             comment : '# ';
             secnames : ('',
               '.text','.data','.section .bss',
-              '.stab','.stabstr',
               '.section .idata$2','.section .idata$4','.section .idata$5',
                 '.section .idata$6','.section .idata$7','.section .edata',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_nasmcoff;
@@ -529,9 +525,8 @@ implementation
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_nasmelf;
@@ -544,9 +539,8 @@ implementation
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_nasmobj;
@@ -559,9 +553,8 @@ implementation
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_tasm;
@@ -574,8 +567,8 @@ implementation
             comment : '; ';
             secnames : ('',
               'CODE','DATA','BSS',
-              '','','','','','','','',
-              '')
+              '','','','','','',
+              '','')
           )
           ,(
             id     : as_i386_masm;
@@ -588,8 +581,8 @@ implementation
             comment : '; ';
             secnames : ('',
               'CODE','DATA','BSS',
-              '','','','','','','','',
-              '')
+              '','','','','','',
+              '','')
           )
           ,(
             id     : as_i386_dbg;
@@ -602,9 +595,8 @@ implementation
             comment : '';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_coff;
@@ -617,9 +609,8 @@ implementation
             comment : '';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_i386_pecoff;
@@ -632,9 +623,8 @@ implementation
             comment : '';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
 {$endif i386}
 {$ifdef m68k}
@@ -648,9 +638,8 @@ implementation
             comment : '# ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_m68k_gas;
@@ -662,9 +651,8 @@ implementation
             comment : '| ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_m68k_mit;
@@ -676,9 +664,8 @@ implementation
             comment : '| ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_m68k_mot;
@@ -690,9 +677,8 @@ implementation
             comment : '| ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
           ,(
             id     : as_m68k_mpw;
@@ -704,9 +690,8 @@ implementation
             comment : '| ';
             secnames : ('',
               '.text','.data','.bss',
-              '.stab','.stabstr',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.fake')
+              '.stab','.stabstr')
           )
 {$endif m68k}
           );
@@ -1467,7 +1452,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  1999-05-05 09:19:18  florian
+  Revision 1.71  1999-05-05 17:34:33  peter
+    * output is more like as 2.9.1
+    * stabs really working for go32v2
+
+  Revision 1.70  1999/05/05 09:19:18  florian
     * more fixes to get it with delphi running
 
   Revision 1.69  1999/05/03 18:03:29  peter
