@@ -225,8 +225,14 @@ unit i386;
         differ from processor to processor.}
        accumulator = R_EAX;
 
-    type
+       firstregister = R_EAX;
+       lastregister = R_MM7;
 
+       general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
+
+       registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
+
+    type
        pai_labeled = ^tai_labeled;
 
        tai_labeled = object(tai)
@@ -1763,7 +1769,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.22  1998-12-18 17:24:51  peter
+  Revision 1.23  1998-12-19 00:23:49  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.22  1998/12/18 17:24:51  peter
     * don't include intel list if not necessary
 
   Revision 1.20  1998/12/11 16:10:09  florian

@@ -27,6 +27,7 @@
     const
        { if you change one of the following contants, }
        { you have also to change the typinfo unit     }
+       { and the rtl/[i386,template/rttip.inc files   }
        tkUnknown       = 0;
        tkInteger       = 1;
        tkChar          = 2;
@@ -2291,7 +2292,7 @@
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
            dispose(localst,done);
-         if assigned(code) and ((options and poinline) <> 0) then
+         if ((options and poinline) <> 0) and assigned(code) then
            disposetree(ptree(code));
          if
 {$ifdef tp}
@@ -3259,7 +3260,10 @@
 
 {
   $Log$
-  Revision 1.81  1998-12-11 08:57:22  pierre
+  Revision 1.82  1998-12-19 00:23:52  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.81  1998/12/11 08:57:22  pierre
    * internal gdb types for booleans and 64bit integers
 
   Revision 1.80  1998/12/10 09:47:26  florian

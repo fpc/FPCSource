@@ -177,6 +177,7 @@ implementation
          opsize : topsize;
          op     : tasmop;
          hreg   : tregister;
+
       begin
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
@@ -736,7 +737,7 @@ implementation
     procedure secondcalln(var p : ptree);
       var
          unusedregisters : tregisterset;
-         pushed : tpushed;
+         pushed,pushedregs : tpushed;
          hr,funcretref : treference;
          hregister,hregister2 : tregister;
          oldpushedparasize : longint;
@@ -764,6 +765,7 @@ implementation
          { we must pop this size also after !! }
 {         must_pop : boolean; }
          pop_size : longint;
+         oldrl : plinkedlist;
 
       label
          dont_call;
@@ -776,6 +778,10 @@ implementation
          loadesi:=true;
          no_virtual_call:=false;
          unusedregisters:=unused;
+
+         { save old ansi string release list }
+         oldrl:=temptoremove;
+         temptoremove:=new(plinkedlist,init);
 
          if not assigned(p^.procdefinition) then
           exit;
@@ -1331,7 +1337,10 @@ implementation
               stringdispose(p^.location.reference.symbol);
               p^.location.reference:=funcretref;
            end;
-         if (p^.resulttype<>pdef(voiddef)) and p^.return_value_used then
+         { we have only to handle the result if it is used, but        }
+         { ansi/widestrings must be registered, so we can dispose them }
+         if (p^.resulttype<>pdef(voiddef)) and (p^.return_value_used or
+           is_ansistring(p^.resulttype) or is_widestring(p^.resulttype)) then
            begin
               { a contructor could be a function with boolean result }
               if (p^.right=nil) and
@@ -1459,9 +1468,32 @@ implementation
                          is_widestring(p^.resulttype) then
                          begin
                             gettempansistringreference(hr);
-                            {temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));}
                             exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                               newreference(hr))));
+                            { unnessary ansi/wide strings are imm. disposed }
+                            if not(p^.return_value_used) then
+                              begin
+                                 pushusedregisters(pushedregs,$ff);
+                                 emitpushreferenceaddr(exprasmlist,hr);
+                                 if is_ansistring(p^.resulttype) then
+                                   begin
+                                      exprasmlist^.concat(new(pai386,
+                                        op_csymbol(A_CALL,S_NO,newcsymbol('FPC_ANSISTR_DECR_REF',0))));
+                                      if not (cs_compilesystem in aktmoduleswitches) then
+                                      concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
+                                   end
+                                 else
+                                   begin
+                                      exprasmlist^.concat(new(pai386,
+                                        op_csymbol(A_CALL,S_NO,newcsymbol('FPC_WIDESTR_DECR_REF',0))));
+                                      if not (cs_compilesystem in aktmoduleswitches) then
+                                      concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
+                                   end;
+
+                                 popusedregisters(pushedregs);
+                              end
+                            else
+                              oldrl^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
                          end;
                     end;
                 end;
@@ -1476,6 +1508,12 @@ implementation
            end;
          if pop_size>0 then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
+
+         { release temp. ansi strings }
+         removetemps(exprasmlist,temptoremove);
+         dispose(temptoremove,done);
+         temptoremove:=oldrl;
+
          { restore registers }
          popusedregisters(pushed);
 
@@ -1627,7 +1665,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1998-12-11 00:02:47  peter
+  Revision 1.54  1998-12-19 00:23:41  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.53  1998/12/11 00:02:47  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.52  1998/12/10 14:39:29  florian

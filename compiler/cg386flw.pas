@@ -116,11 +116,8 @@ implementation
 
       var
          hl,otlabel,oflabel : plabel;
-         oldrl : plinkedlist;
 
       begin
-         oldrl:=temptoremove;
-         temptoremove:=new(plinkedlist,init);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -131,7 +128,6 @@ implementation
          if assigned(p^.right) then
            begin
               emitl(A_LABEL,truelabel);
-              removetemps(exprasmlist,temptoremove);
               cleartempgen;
               secondpass(p^.right);
            end;
@@ -145,7 +141,6 @@ implementation
                    emitl(A_JMP,hl);
                 end;
               emitl(A_LABEL,falselabel);
-              removetemps(exprasmlist,temptoremove);
               cleartempgen;
               secondpass(p^.t1);
               if assigned(p^.right) then
@@ -154,20 +149,15 @@ implementation
          else
            begin
               emitl(A_LABEL,falselabel);
-              removetemps(exprasmlist,temptoremove);
            end;
          if not(assigned(p^.right)) then
            begin
               emitl(A_LABEL,truelabel);
-              removetemps(exprasmlist,temptoremove);
            end;
          freelabel(truelabel);
          freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
-         releasedata(temptoremove);
-         dispose(temptoremove,done);
-         temptoremove:=oldrl;
       end;
 
 
@@ -787,7 +777,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.25  1998-11-30 09:43:03  pierre
+  Revision 1.26  1998-12-19 00:23:44  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.25  1998/11/30 09:43:03  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

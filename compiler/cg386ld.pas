@@ -278,7 +278,11 @@ implementation
          hregister : tregister;
          loc : tloc;
          r : preference;
+         oldrl : plinkedlist;
+
       begin
+         oldrl:=temptoremove;
+         temptoremove:=new(plinkedlist,init);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -551,6 +555,9 @@ implementation
                                   newreference(p^.left^.location.reference))));
                            end;
          end;
+         removetemps(exprasmlist,temptoremove);
+         dispose(temptoremove,done);
+         temptoremove:=oldrl;
          freelabel(truelabel);
          freelabel(falselabel);
          truelabel:=otlabel;
@@ -727,7 +734,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1998-12-11 00:02:51  peter
+  Revision 1.39  1998-12-19 00:23:45  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.38  1998/12/11 00:02:51  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.37  1998/12/10 09:47:17  florian

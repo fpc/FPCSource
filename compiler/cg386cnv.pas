@@ -475,9 +475,15 @@ implementation
 
 {$endif}
 
+    var
+       ltemptoremove : plinkedlist;
+       destroys : boolean;
+
     procedure second_string_to_string(pto,pfrom : ptree;convtyp : tconverttype);
+
       var
          pushed : tpushed;
+
       begin
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                                  }
@@ -488,11 +494,7 @@ implementation
                  st_shortstring:
                    begin
                       stringdispose(pto^.location.reference.symbol);
-{$ifdef TempAnsi}
-                      gettempansistringreference(pto^.location.reference);
-{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-{$endif : not TempAnsi}
                       del_reference(pfrom^.location.reference);
                       copyshortstring(pto^.location.reference,pfrom^.location.reference,
                         pstringdef(pto^.resulttype)^.len,false);
@@ -505,14 +507,10 @@ implementation
                    end;
                  st_ansistring:
                    begin
-{$ifdef TempAnsi}
-                      clear_reference(pto^.location.reference);
-                      gettempansistringreference(pto^.location.reference);
-                      loadansi2short(pfrom,pto);
-{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       loadansi2short(pfrom,pto);
-{$endif : not TempAnsi}
+                      removetemps(exprasmlist,temptoremove);
+                      destroys:=true;
                    end;
                  st_widestring:
                    begin
@@ -547,11 +545,8 @@ implementation
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
                       clear_reference(pto^.location.reference);
-{$ifdef TempAnsi}
-                      gettempansistringreference(pto^.location.reference);
-{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-{$endif : not TempAnsi}
+                      temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
@@ -559,6 +554,7 @@ implementation
                       emitcall('FPC_SHORTSTR_TO_ANSISTR',true);
                       maybe_loadesi;
                       popusedregisters(pushed);
+
                       ungetiftemp(pfrom^.location.reference);
                    end;
                  st_longstring:
@@ -749,12 +745,8 @@ implementation
              end;
            st_ansistring :
              begin
-{$ifdef TempAnsi}
-               gettempansistringreference(p^.location.reference);
-{$else not TempAnsi}
                gettempofsizereference(4,pto^.location.reference);
-{$endif not TempAnsi}
-               {temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));}
+               temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
@@ -1339,7 +1331,15 @@ implementation
            second_pchar_to_string,
            second_nothing);
 {$endif}
+      var
+         oldrl : plinkedlist;
+
       begin
+         { the ansi string disposing is a little bit hairy: }
+         destroys:=false;
+         oldrl:=temptoremove;
+         temptoremove:=new(plinkedlist,init);
+
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
 
@@ -1352,8 +1352,16 @@ implementation
               if codegenerror then
                exit;
            end;
+         { the helper routines need access to the release list }
+         ltemptoremove:=temptoremove;
          {the second argument only is for maybe_range_checking !}
-         secondconvert[p^.convtyp](p,p^.left,p^.convtyp)
+         secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
+
+         { are the temp. ansistrings been destroyed ? }
+         if not destroys then
+           oldrl^.concatlist(temptoremove);
+         dispose(temptoremove,done);
+         temptoremove:=oldrl;
       end;
 
 
@@ -1466,7 +1474,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1998-11-30 19:48:54  peter
+  Revision 1.42  1998-12-19 00:23:42  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.41  1998/11/30 19:48:54  peter
     * some more rangecheck fixes
 
   Revision 1.40  1998/11/30 09:43:02  pierre

@@ -81,6 +81,7 @@ implementation
 
 
     procedure secondstatement(var p : ptree);
+
       var
          hp : ptree;
          oldrl : plinkedlist;
@@ -95,8 +96,8 @@ implementation
                oldrl:=temptoremove;
                temptoremove:=new(plinkedlist,init);
                secondpass(hp^.right);
+               { release temp. ansi strings }
                removetemps(exprasmlist,temptoremove);
-               releasedata(temptoremove);
                dispose(temptoremove,done);
                temptoremove:=oldrl;
              end;
@@ -498,7 +499,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-12-11 00:03:28  peter
+  Revision 1.12  1998-12-19 00:23:51  florian
+    * ansistring memory leaks fixed
+
+  Revision 1.11  1998/12/11 00:03:28  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.10  1998/11/18 15:44:14  peter
