@@ -536,15 +536,12 @@ begin
          oflags:=GENERIC_WRITE or GENERIC_READ;
        end;
   end;
-{ standard is opening and existing file }
-  cd:=OPEN_EXISTING;
 { create it ? }
   if (flags and $1000)<>0 then
    cd:=CREATE_ALWAYS
-{ or append ? }
+{ or Append/Open ? }
   else
-   if (flags and $100)<>0 then
-    cd:=OPEN_ALWAYS;
+    cd:=OPEN_EXISTING;
 { empty name is special }
   if p[0]=#0 then
    begin
@@ -1567,7 +1564,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2001-10-23 21:51:03  peter
+  Revision 1.20  2001-11-07 13:05:16  michael
+  + Fixed Append() bug. Appending non-existing file now gives an error
+
+  Revision 1.19  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.18  2001/10/09 02:37:29  carl
