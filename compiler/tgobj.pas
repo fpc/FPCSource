@@ -285,7 +285,7 @@ unit tgobj;
             if bestsize=size then
              begin
                tl:=bestslot;
-               tl^.temptype:=tt_normal;
+               tl^.temptype:=temptype;
                { Remove from the tempfreelist }
                if assigned(bestprev) then
                  bestprev^.nextfree:=tl^.nextfree
@@ -299,7 +299,7 @@ unit tgobj;
                dec(bestslot^.size,size);
                { Create new block and link after bestslot }
                new(tl);
-               tl^.temptype:=tt_normal;
+               tl^.temptype:=temptype;
                tl^.pos:=bestslot^.pos+bestslot^.size;
                tl^.size:=size;
                tl^.nextfree:=nil;
@@ -485,7 +485,7 @@ unit tgobj;
 
     procedure ttgobj.UnGetTemp(list: taasmoutput; const ref : treference);
       begin
-        FreeTemp(list,ref.offset,[tt_normal,tt_persistant,tt_ansistring,tt_widestring,tt_interfacecom]);
+        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistant,tt_ansistring,tt_widestring,tt_interfacecom]);
       end;
 
 
@@ -503,7 +503,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2002-08-23 16:14:49  peter
+  Revision 1.13  2002-08-24 18:35:04  peter
+    * when reusing a block also update the temptype instead of forcing it
+      to tt_normal
+
+  Revision 1.12  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
