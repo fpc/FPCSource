@@ -115,6 +115,10 @@ var
   I : longint;
 begin
   I:=0;
+  { simulate assembler implementations behaviour, which is expected }
+  { fpc_pchar_to_ansistr in astrings.inc                            }
+  if (len < 0) then
+    len := high(longint);
   while (I<Len) and (bytearray(buf)[I]<>b) do
    inc(I);
   if (i=Len) then
@@ -132,6 +136,8 @@ var
   I : longint;
 begin
   I:=0;
+  if (len < 0) then
+    len := high(longint);
   while (I<Len) and (wordarray(buf)[I]<>b) do
    inc(I);
   if (i=Len) then
@@ -149,6 +155,8 @@ var
   I : longint;
 begin
   I:=0;
+  if (len < 0) then
+    len := high(longint);
   while (I<Len) and (longintarray(buf)[I]<>b) do inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
@@ -1014,7 +1022,11 @@ end;
 
 {
   $Log$
-  Revision 1.63  2003-12-16 09:43:04  daniel
+  Revision 1.64  2004-01-10 17:01:29  jonas
+    * changed index* to conform to the assembler implementations (interpret
+      negative upper bound as maximum)
+
+  Revision 1.63  2003/12/16 09:43:04  daniel
     * Use of 0 instead of nil fixed
 
   Revision 1.62  2003/12/06 13:25:30  jonas
