@@ -16,6 +16,7 @@ none=1
 dirs=1
 tools=1
 exts=1
+zipinstall=1
 
 [postsettings]
 export RELEASE=1
@@ -110,19 +111,18 @@ fvzip: rtl_clean
         $(MAKE) api_clean
         $(MAKE) fv_clean
         $(MAKE) fv_all
-        $(MAKE) api_zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
-        $(MAKE) fv_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
+        $(MAKE) zipinstall ZIPTARGET='api_install fv_install' ZIPNAME=fv-$(PACKAGESUFFIX)
 
 gtkzip: rtl_clean
         $(MAKE) -C packages gtk_clean
         $(MAKE) -C packages gtk_all
         $(MAKE) -C packages gtk_zipinstall ZIPNAME=gtk-$(PACKAGESUFFIX)
 
-compilerzip: compiler_clean rtl_clean
+compilerzip:
+# compiler_clean rtl_clean
         $(MAKE) rtl_all
         $(MAKE) compiler_all
-        $(MAKE) compiler_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
-        $(MAKE) rtl_zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
+        $(MAKE) zipinstall ZIPTARGET='compiler_install rtl_install' ZIPNAME=compiler-$(PACKAGESUFFIX)
 
 fclzip: rtl_clean fcl_clean
         $(MAKE) fcl_all
