@@ -35,7 +35,7 @@ Const
     N_GSYM = $20;
     N_STSYM = 38; {initialized const }
     N_LCSYM = 40; {non initialized variable}
-    N_Function = $22; {function or const }
+    N_Function = $24; {function or const }
     N_TextLine = $44;
     N_DataLine = $46;
     N_BssLine = $48;
@@ -242,8 +242,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-07-10 08:31:38  pierre
+    *  Just the N_FNAME to N_FUN substitution for stabs of functions
+      thanks again Daniel !!
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.5  1998/03/10 01:17:18  peter
     * all files have the same header
