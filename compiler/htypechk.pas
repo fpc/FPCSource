@@ -117,6 +117,7 @@ interface
        allow_array_constructor : boolean = false;
 
     { check operator args and result type }
+    function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
     function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
     function isunaryoverloaded(var t : tnode) : boolean;
     function isbinaryoverloaded(var t : tnode) : boolean;
@@ -149,7 +150,7 @@ implementation
        cutils,verbose,globals,
        symtable,
        defutil,defcmp,
-       pass_1,ncnv,nld,nmem,ncal,nmat,nutils,
+       pass_1,nbas,ncnv,nld,nmem,ncal,nmat,nutils,
        cgbase,procinfo
        ;
 
@@ -389,10 +390,14 @@ implementation
       begin
         result:=false;
         operpd:=nil;
+
         { load easier access variables }
         ld:=tunarynode(t).left.resulttype.def;
         if not isunaryoperatoroverloadable(t.nodetype,ld) then
           exit;
+
+        { operator overload is possible }
+        result:=true;
 
         case t.nodetype of
            notn:
@@ -400,7 +405,11 @@ implementation
            unaryminusn:
              optoken:=_MINUS;
            else
-             exit;
+             begin
+               CGMessage(parser_e_operator_not_overloaded);
+               t:=cnothingnode.create;
+               exit;
+             end;
         end;
 
         { generate parameter nodes }
@@ -414,6 +423,7 @@ implementation
             CGMessage(parser_e_operator_not_overloaded);
             candidates.free;
             ppn.free;
+            t:=cnothingnode.create;
             exit;
           end;
 
@@ -428,9 +438,10 @@ implementation
         { exit when no overloads are found }
         if cand_cnt=0 then
           begin
+            CGMessage(parser_e_operator_not_overloaded);
             candidates.free;
             ppn.free;
-            result:=false;
+            t:=cnothingnode.create;
             exit;
           end;
 
@@ -457,8 +468,6 @@ implementation
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.det_resulttype }
         tcallnode(t).procdefinition:=operpd;
-
-        result:=true;
       end;
 
 
@@ -480,7 +489,9 @@ implementation
         if not isbinaryoperatoroverloadable(t.nodetype,ld,tbinarynode(t).left.nodetype,rd,tbinarynode(t).right.nodetype) then
           exit;
 
-        isbinaryoverloaded:=true;
+        { operator overload is possible }
+        result:=true;
+
         case t.nodetype of
            equaln,
            unequaln :
@@ -520,7 +531,11 @@ implementation
            shrn :
              optoken:=_OP_SHR;
            else
-             exit;
+             begin
+               CGMessage(parser_e_operator_not_overloaded);
+               t:=cnothingnode.create;
+               exit;
+             end;
         end;
 
         { generate parameter nodes }
@@ -554,7 +569,7 @@ implementation
             CGMessage(parser_e_operator_not_overloaded);
             candidates.free;
             ppn.free;
-            result:=false;
+            t:=cnothingnode.create;
             exit;
           end;
 
@@ -569,9 +584,10 @@ implementation
         { exit when no overloads are found }
         if cand_cnt=0 then
           begin
+            CGMessage(parser_e_operator_not_overloaded);
             candidates.free;
             ppn.free;
-            result:=false;
+            t:=cnothingnode.create;
             exit;
           end;
 
@@ -1896,7 +1912,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-02-24 16:12:39  peter
+  Revision 1.82  2004-02-26 16:11:09  peter
+    * return cnothingn and give error when the operator is not overloaded
+
+  Revision 1.81  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 
