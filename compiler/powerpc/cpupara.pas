@@ -265,6 +265,10 @@ unit cpupara;
                 getfuncretparaloc.register:=R_F1;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
               end;
+            { smallsets are OS_INT in R3, others are OS_ADDR in R3 -> the same }
+            { ugly, I know :) (JM)                                             }
+            setdef,
+            variantdef,
             pointerdef,
             formaldef,
             classrefdef,
@@ -291,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-09-28 21:27:16  florian
+  Revision 1.15  2002-10-02 13:33:36  jonas
+    + set, variant support in getfuncretparaloc
+
+  Revision 1.14  2002/09/28 21:27:16  florian
     + getparaloc supports now sets and variants
 
   Revision 1.13  2002/09/10 21:28:05  jonas
