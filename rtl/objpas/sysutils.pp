@@ -316,24 +316,27 @@ I get a chance I might attempt to incorporate that feature.
 procedure ReAllocMem(var P: Pointer; currentSize: longint; newSize: longint);
 var
    newP : Pointer;
-   moveSize : longint;
+
 begin
-   if ((P = nil) and (newSize > 0)) then
-      P := AllocMem(newSize)
-   else if ((P <> nil) and (newSize > 0)) then
-   begin
-      newP := AllocMem(newSize);
-      if newP <> nil then
-      begin
-         if newSize > currentSize then
-            moveSize := currentSize
-         else
-            moveSize := newSize;
-         Move(P^, newP^, moveSize);
-         FreeMem(P, currentSize);
-         P := newP;
-      end;
-   end;
+   if (P = nil) then
+     begin
+     If NewSize>0 then 
+       P := AllocMem(newSize)
+     end
+   else 
+     begin
+     If NewSize>0 then 
+       NewP := AllocMem(newSize)
+     else 
+       NewP:=Nil;
+     if NewSize > currentSize then
+       NewSize := currentSize;
+     If NewSize>0 then 
+        Move(P^, newP^, NewSize);
+     If CurrentSize>0 then   
+       FreeMem(P, currentSize);
+     P := newP;
+     end;
 end;
 
 
@@ -348,7 +351,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.29  1999-07-27 13:01:12  peter
+    Revision 1.30  1999-08-18 11:28:24  michael
+    * Fixed reallocmem bug 535
+
+    Revision 1.29  1999/07/27 13:01:12  peter
       + filerec,textrec declarations
 
     Revision 1.28  1999/07/08 19:32:36  michael
