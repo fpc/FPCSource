@@ -215,7 +215,6 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=hwvideo
 override PACKAGE_VERSION=1.0.6
 override TARGET_UNITS+=hwvideo
-override TARGET_EXAMPLEDIRS+=tests
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -961,21 +960,6 @@ ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
-.PHONY: fpc_examples
-ifdef TARGET_EXAMPLES
-HASEXAMPLES=1
-override EXAMPLESOURCEFILES:=$(wildcard $(addsuffix .pp,$(TARGET_EXAMPLES)) $(addsuffix .pas,$(TARGET_EXAMPLES)))
-override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(TARGET_EXAMPLES))
-override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(TARGET_EXAMPLES)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES)))
-override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
-endif
-endif
-ifdef TARGET_EXAMPLEDIRS
-HASEXAMPLES=1
-endif
-fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
 .PHONY: fpc_all fpc_smart fpc_debug fpc_release
 $(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
 	@$(ECHOREDIR) Compiled > $(FPCMADE)
@@ -1297,55 +1281,11 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-TARGET_EXAMPLEDIRS_TESTS=1
-ifdef TARGET_EXAMPLEDIRS_TESTS
-tests_all:
-	$(MAKE) -C tests all
-tests_debug:
-	$(MAKE) -C tests debug
-tests_smart:
-	$(MAKE) -C tests smart
-tests_release:
-	$(MAKE) -C tests release
-tests_examples:
-	$(MAKE) -C tests examples
-tests_shared:
-	$(MAKE) -C tests shared
-tests_install:
-	$(MAKE) -C tests install
-tests_sourceinstall:
-	$(MAKE) -C tests sourceinstall
-tests_exampleinstall:
-	$(MAKE) -C tests exampleinstall
-tests_distinstall:
-	$(MAKE) -C tests distinstall
-tests_zipinstall:
-	$(MAKE) -C tests zipinstall
-tests_zipsourceinstall:
-	$(MAKE) -C tests zipsourceinstall
-tests_zipexampleinstall:
-	$(MAKE) -C tests zipexampleinstall
-tests_zipdistinstall:
-	$(MAKE) -C tests zipdistinstall
-tests_clean:
-	$(MAKE) -C tests clean
-tests_distclean:
-	$(MAKE) -C tests distclean
-tests_cleanall:
-	$(MAKE) -C tests cleanall
-tests_info:
-	$(MAKE) -C tests info
-tests_makefiles:
-	$(MAKE) -C tests makefiles
-tests:
-	$(MAKE) -C tests all
-.PHONY: tests_all tests_debug tests_smart tests_release tests_examples tests_shared tests_install tests_sourceinstall tests_exampleinstall tests_distinstall tests_zipinstall tests_zipsourceinstall tests_zipexampleinstall tests_zipdistinstall tests_clean tests_distclean tests_cleanall tests_info tests_makefiles tests
-endif
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
 release: fpc_release
-examples: fpc_examples
+examples:
 shared:
 install: fpc_install
 sourceinstall: fpc_sourceinstall
@@ -1355,7 +1295,7 @@ zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
 zipexampleinstall: fpc_zipexampleinstall
 zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
+clean: fpc_clean
 distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info

@@ -9,6 +9,8 @@ version=1.0.6
 [target]
 units=hwvideo
 
+exampledirs=
+
 [install]
 fpcpackage=y
 
