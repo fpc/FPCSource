@@ -5,6 +5,8 @@ unit initc;
 
 interface
 
+type libcint   = longint;
+     plibcint = ^libcint;
 
  {$LINKLIB cygwin}
  {$linklib kernel32}
@@ -12,6 +14,12 @@ interface
 { this unit is just ment to run
   startup code to get C code to work correctly PM }
 
+function fpgetCerrno:libcint; 
+procedure fpsetCerrno(err:libcint); 
+
+{$ifndef ver1_0}
+property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+{$endif}
 
 implementation
 
@@ -20,6 +28,19 @@ uses
 
 {$i textrec.inc}
 
+const clib = 'crtdll'; 
+
+function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+
+function fpgetCerrno:libcint; 
+begin
+  fpgetCerrno:=geterrnolocation^;
+end;
+
+procedure fpsetCerrno(err:libcint); 
+begin
+  geterrnolocation^:=err;
+end;
 
 procedure cygwin_crt0(p : pointer);cdecl;external;
 
@@ -105,7 +126,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.9  2003-11-03 09:42:28  marco
+  Revision 1.10  2003-12-11 09:21:52  marco
+   * patch from peter
+
+  Revision 1.9  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.8  2003/09/08 18:25:45  peter

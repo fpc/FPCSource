@@ -215,7 +215,6 @@ Implementation
 {$ifdef usenetdb}
 uses netdb;
 {$else}  
-uses initc;
 {$i resolve.inc}
 {$endif}
 
@@ -951,7 +950,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.5  2003-12-10 15:50:50  marco
+   Revision 1.6  2003-12-11 09:23:50  marco
+    * patch from peter
+
+   Revision 1.5  2003/12/10 15:50:50  marco
     * fpgetcerrno introduction
 
    Revision 1.4  2003/05/17 21:52:37  michael
