@@ -21,6 +21,7 @@
 {***********************************************************************}
 
 {$I ctypes.inc}
+{$packrecords c}
 
 type
 
@@ -91,9 +92,50 @@ type
   ptimespec= ^timespec;
   Ttimespec= timespec;
 
-  pthread_key_t = cint;
+   pthread_t            = pointer;
+   pthread_attr_t       = pointer;
+   pthread_mutex_t      = pointer;
+   pthread_mutexattr_t 	= pointer;
+   pthread_cond_t       = pointer;
+   pthread_condattr_t 	= pointer;
+   pthread_key_t        = cint;
+   pthread_rwlock_t 	= pointer;
+   pthread_rwlockattr_t = pointer;
 
-CONST
+   sem_t		= pointer;
+
+  {
+     Mutex types (Single UNIX Specification, Version 2, 1997).
+    
+     Note that a mutex attribute with one of the following types:
+    
+     PTHREAD_MUTEX_NORMAL
+     PTHREAD_MUTEX_RECURSIVE
+     MUTEX_TYPE_FAST (deprecated)
+     MUTEX_TYPE_COUNTING_FAST (deprecated)
+      
+       will deviate from POSIX specified semantics.
+      }
+
+  pthread_mutextype = (
+    { Default POSIX mutex  }
+    _PTHREAD_MUTEX_ERRORCHECK := 1,
+    { Recursive mutex  }
+    _PTHREAD_MUTEX_RECURSIVE := 2,
+    { No error checking  }
+    _PTHREAD_MUTEX_NORMAL    := 3,
+    _MUTEX_TYPE_MAX
+  );
+
+
+const
+  _PTHREAD_MUTEX_DEFAULT     = _PTHREAD_MUTEX_ERRORCHECK;
+  _MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
+  _MUTEX_TYPE_COUNTING_FAST = _PTHREAD_MUTEX_RECURSIVE;
+
+  _PTHREAD_KEYS_MAX              = 256;
+  _PTHREAD_STACK_MIN             = 1024;
+
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
     ARG_MAX  = 256*1024;   {4096}  { Maximum number of argument size     }
     NAME_MAX = 255;        {14}    { Maximum number of bytes in filename }
@@ -104,19 +146,22 @@ CONST
     SIG_MAXSIG      = 128;	// highest signal version
     wordsinsigset   = 4;		// words in sigset_t
 
-    DWORDS_IN_PTHREAD_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_ATTR_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_MUTEXATTR_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_MUTEX_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_COND_ATTR_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_COND_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_ONCE_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_RWLOCK_T = sizeof(pointer) div sizeof(dword);
-    DWORDS_IN_PTHREAD_RWLOCK_ATTR_T = sizeof(pointer) div sizeof(dword);
-
 {
   $Log$
-  Revision 1.5  2004-08-25 21:42:11  jonas
+  Revision 1.6  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.5  2004/08/25 21:42:11  jonas
     * fixed pthread type definitions for darwin and made them generic
 
   Revision 1.4  2004/01/22 13:46:14  marco

@@ -254,7 +254,7 @@ cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
 
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT) unix$(PPUEXT)
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT) unix$(PPUEXT) sysutils$(PPUEXT)
 
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 

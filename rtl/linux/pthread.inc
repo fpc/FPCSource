@@ -29,21 +29,8 @@
      THREAD_PRIORITY_HIGHEST            = 80;
      THREAD_PRIORITY_TIME_CRITICAL      = 99;
      PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP : array [0..5]of Integer = (0, 0, 0, 1, 0, 0);
-     PTHREAD_MUTEX_RECURSIVE  	        = 1;
 
 Type
-  __sem_lock_t = record
-    status: Longint;
-    spinlock: Integer;
-  end;
-  TSemLock = __sem_lock_t;
-  PSemLock = ^TSemLock;
-
-   sem_t = record
-     __sem_lock: __sem_lock_t;
-     __sem_value: Integer;
-     __sem_waiting: pointer;
-    end;
    psem_t = ^sem_t;
    TSemaphore = sem_t;
    PSemaphore = ^TSemaphore;
@@ -58,20 +45,11 @@ Type
        THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL
      );
 
-  type
-     psched_param = ^sched_param;
-     sched_param = record
-        sched_priority : LongInt;
-     end;
 {
-     ptimespec = ^timespec;
-     timespec = record
-        tv_sec : LongInt;
-        tv_nsec : LongInt;
-     end;
-}
+  type
      psigset_t = ^sigset_t;
      sigset_t = DWORD; // unsigned long 32 bits
+}
 
   const
      _POSIX_THREAD_THREADS_MAX = 64;
@@ -80,23 +58,13 @@ Type
      PTHREAD_KEYS_MAX = 128;
 
   type
-    pthread_t = pointer;
     ppthread_t = ^pthread_t;
-
+{
      p_pthread_queue = ^_pthread_queue;
-     _pthread_queue = record
-          head : pthread_t;
-          tail : pthread_t;
-       end;
-
-     ppthread_mutex_t = PRtlCriticalSection;
-     pthread_mutex_t = TRtlCriticalSection;
+}
+     ppthread_mutex_t = ^pthread_mutex_t;
 
      ppthread_cond_t = ^pthread_cond_t;
-     pthread_cond_t = record
-          c_spinlock : longint;
-          c_waiting : _pthread_queue;
-       end;
 
      { Attributes  }
 
@@ -109,42 +77,24 @@ Type
       PTHREAD_SCOPE_PROCESS   = 1;
 
     type
-//       size_t = longint;
+       psched_param = ^sched_param;
 
        ppthread_attr_t = ^pthread_attr_t;
-       pthread_attr_t = record
-            detachstate : longint;
-            schedpolicy : longint;
-            schedparam : sched_param;
-            inheritsched : longint;
-            scope : longint;
-            __guardsize : size_t;
-            __stackaddr_set : longint;
-            __stackaddr : pointer;
-            __stacksize : size_t;
-         end;
 
        ppthread_mutexattr_t = ^pthread_mutexattr_t;
-       pthread_mutexattr_t = record
-            mutexkind : longint;
-         end;
-       pthread_mutex_attr_t = pthread_mutexattr_t;
 
        ppthread_condattr_t = ^pthread_condattr_t;
-       pthread_condattr_t = record
-            dummy : longint;
-         end;
 
        ppthread_key_t = ^pthread_key_t;
-       pthread_key_t = cardinal;
 
-       ppthread_once_t = ^pthread_once_t;
-       pthread_once_t = longint;
+{      pthread_once_t = cint;
+       ppthread_once_t = ^pthread_once_t;}
 
     const
        PTHREAD_ONCE_INIT = 0;
 
     type
+(*
        tpcb_routine = Procedure(P:Pointer); cdecl;
 
        p_pthread_cleanup_buffer = ^_pthread_cleanup_buffer;
@@ -154,11 +104,12 @@ Type
           canceltype:LongInt;                 { Saved cancellation type. }
           prev : p_pthread_cleanup_buffer; { Chaining of cleanup functions.  }
        end;
+*)
 
      __start_routine_t = function (_para1:pointer):pointer;cdecl;
      __destr_function_t = procedure (_para1:pointer);
-     t_pthread_cleanup_push_routine = procedure (_para1:pointer);
-     t_pthread_cleanup_push_defer_routine = procedure (_para1:pointer);
+{     t_pthread_cleanup_push_routine = procedure (_para1:pointer);
+     t_pthread_cleanup_push_defer_routine = procedure (_para1:pointer);}
 
 {$ifndef dynpthreads}
     function pthread_create(__thread:ppthread_t; __attr:ppthread_attr_t;__start_routine: __start_routine_t;__arg:pointer):longint;cdecl;external;
@@ -202,18 +153,30 @@ Type
     function pthread_key_delete(__key:pthread_key_t):longint;cdecl;external;
     function pthread_setspecific(__key:pthread_key_t; __pointer:pointer):longint;cdecl;external;
     function pthread_getspecific(__key:pthread_key_t):pointer;cdecl;external;
-    function pthread_once(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;external;
+{    function pthread_once(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;external;}
     function pthread_setcancelstate(__state:longint; __oldstate:plongint):longint;cdecl;external;
     function pthread_setcanceltype(__type:longint; __oldtype:plongint):longint;cdecl;external;
     function pthread_cancel(__thread:pthread_t):longint;cdecl;external;
     procedure pthread_testcancel;cdecl;external;
-    procedure _pthread_cleanup_push(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;external;
-    procedure _pthread_cleanup_push_defer(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;external;
-    function pthread_sigmask(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;external;
+{    procedure _pthread_cleanup_push(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;external; }
+{    procedure _pthread_cleanup_push_defer(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;external;}
+{    function pthread_sigmask(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;external;}
     function pthread_kill(__thread:pthread_t; __signo:longint):longint;cdecl;external;
-    function sigwait(__set:psigset_t; __sig:plongint):longint;cdecl;external;
+{    function sigwait(__set:psigset_t; __sig:plongint):longint;cdecl;external;}
     function pthread_atfork(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;external;
     procedure pthread_kill_other_threads_np;cdecl;external;
+
+    function sem_init (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;external;
+    function sem_destroy  (__sem:Psem_t):longint;cdecl;external;
+    function sem_close (__sem:Psem_t):longint;cdecl;external;
+    function sem_unlink (__name:Pchar):longint;cdecl;external;
+    function sem_wait (__sem:Psem_t):longint;cdecl;external;
+    function sem_trywait  (__sem:Psem_t):longint;cdecl;external;
+    function sem_post     (__sem:Psem_t):longint;cdecl;external;
+    function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;
+
+    function pthread_mutexattr_settype (__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;external;
+
 {$else}
 Var
     pthread_create : Function(__thread:ppthread_t; __attr:ppthread_attr_t;__start_routine: __start_routine_t;__arg:pointer):longint;cdecl;
@@ -257,16 +220,16 @@ Var
     pthread_key_delete : Function(__key:pthread_key_t):longint;cdecl;
     pthread_setspecific : Function(__key:pthread_key_t; __pointer:pointer):longint;cdecl;
     pthread_getspecific : Function(__key:pthread_key_t):pointer;cdecl;
-    pthread_once : Function(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;
+{    pthread_once : Function(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;}
     pthread_setcancelstate : Function(__state:longint; __oldstate:plongint):longint;cdecl;
     pthread_setcanceltype : Function(__type:longint; __oldtype:plongint):longint;cdecl;
     pthread_cancel : Function(__thread:pthread_t):longint;cdecl;
     pthread_testcancel : Procedure ;cdecl;
-    _pthread_cleanup_push : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;
-    _pthread_cleanup_push_defer : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;
-    pthread_sigmask : Function(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;
+{    _pthread_cleanup_push : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;}
+{    _pthread_cleanup_push_defer : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;}
+{    pthread_sigmask : Function(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;}
     pthread_kill : Function(__thread:pthread_t; __signo:longint):longint;cdecl;
-    sigwait : Function(__set:psigset_t; __sig:plongint):longint;cdecl;
+{    sigwait : Function(__set:psigset_t; __sig:plongint):longint;cdecl;}
     pthread_atfork : Function(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;
     pthread_kill_other_threads_np : procedure;cdecl;
 
@@ -333,14 +296,14 @@ begin
   Pointer(pthread_key_delete) := dlsym(PthreadDLL,'pthread_key_delete');
   Pointer(pthread_setspecific) := dlsym(PthreadDLL,'pthread_setspecific');
   Pointer(pthread_getspecific) := dlsym(PthreadDLL,'pthread_getspecific');
-  Pointer(pthread_once) := dlsym(PthreadDLL,'pthread_once');
+{  Pointer(pthread_once) := dlsym(PthreadDLL,'pthread_once');}
   Pointer(pthread_setcancelstate) := dlsym(PthreadDLL,'pthread_setcancelstate');
   Pointer(pthread_setcanceltype) := dlsym(PthreadDLL,'pthread_setcanceltype');
   Pointer(pthread_cancel) := dlsym(PthreadDLL,'pthread_cancel');
   Pointer(pthread_testcancel) := dlsym(PthreadDLL,'pthread_testcancel');
-  Pointer(_pthread_cleanup_push) := dlsym(PthreadDLL,'_pthread_cleanup_push');
-  Pointer(_pthread_cleanup_push_defer) := dlsym(PthreadDLL,'_pthread_cleanup_push_defer');
-  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');
+{  Pointer(_pthread_cleanup_push) := dlsym(PthreadDLL,'_pthread_cleanup_push');}
+{  Pointer(_pthread_cleanup_push_defer) := dlsym(PthreadDLL,'_pthread_cleanup_push_defer');}
+{  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');}
   Pointer(pthread_kill)  := dlsym(PthreadDLL,'pthread_kill');
   Pointer(pthread_atfork):= dlsym(PthreadDLL,'pthread_atfork');
   Pointer(pthread_kill_other_threads_np) := dlsym(PthreadDLL,'pthread_kill_other_threads_np');
@@ -365,7 +328,20 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-05-23 18:49:18  marco
+  Revision 1.5  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.4  2004/05/23 18:49:18  marco
    * syncobj stuff
 
   Revision 1.3  2003/11/26 20:10:59  michael

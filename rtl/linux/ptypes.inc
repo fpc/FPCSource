@@ -30,6 +30,7 @@ introduction)
 }
 
 {$I ctypes.inc}
+{$packrecords c}
 
 Type
 
@@ -134,7 +135,89 @@ Type
   end;
   PStatFS=^TStatFS;
 
+  pthread_t = culong;
+
+  sched_param = record
+    __sched_priority: cint;
+  end;
+
+  pthread_attr_t = record
+    __detachstate: cint;
+    __schedpolicy: cint;
+    __schedparam: sched_param;
+    __inheritsched: cint;
+    __scope: cint;
+    __guardsize: size_t;
+    __stackaddr_set: cint;
+    __stackaddr: pointer;
+    __stacksize: size_t;
+  end;
+
+  _pthread_fastlock = record
+    __status: clong;
+    __spinlock: cint;
+  end;
+
+  pthread_mutex_t = record
+    __m_reserved: cint;
+    __m_count: cint;
+    __m_owner: pointer;
+    __m_kind:  cint;
+    __m_lock: _pthread_fastlock;
+  end;
+
+  pthread_mutexattr_t = record
+    __mutexkind: cint;
+  end;
+
+  pthread_cond_t = record
+    __c_lock: _pthread_fastlock;
+    __c_waiting: pointer;
+    __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
+    __align: clonglong;
+  end;
+    
+  pthread_condattr_t = record
+    __dummy: cint;
+  end;
+
+  pthread_key_t = cuint;
+
+  pthread_rwlock_t = record
+    __rw_readers: cint;
+    __rw_writer: pointer;
+    __rw_read_waiting: pointer;
+    __rw_write_waiting: pointer;
+    __rw_kind: cint;
+    __rw_pshared: cint;
+  end;
+
+  pthread_rwlockattr_t = record
+    __lockkind: cint;
+    __pshared: cint;
+  end;
+  
+  sem_t = record
+     __sem_lock: _pthread_fastlock;
+     __sem_value: cint;
+     __sem_waiting: pointer;
+  end;
+
+
+
 CONST
+    _PTHREAD_MUTEX_TIMED_NP      = 0;
+    _PTHREAD_MUTEX_RECURSIVE_NP  = 1;
+    _PTHREAD_MUTEX_ERRORCHECK_NP = 2;
+    _PTHREAD_MUTEX_ADAPTIVE_NP   = 3;
+  
+    _PTHREAD_MUTEX_NORMAL     = _PTHREAD_MUTEX_TIMED_NP;
+    _PTHREAD_MUTEX_RECURSIVE  = _PTHREAD_MUTEX_RECURSIVE_NP;
+    _PTHREAD_MUTEX_ERRORCHECK = _PTHREAD_MUTEX_ERRORCHECK_NP;
+    _PTHREAD_MUTEX_DEFAULT    = _PTHREAD_MUTEX_NORMAL;
+    _PTHREAD_MUTEX_FAST_NP    = _PTHREAD_MUTEX_ADAPTIVE_NP;
+
+
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
    { took idefix' values}
 
@@ -150,7 +233,20 @@ CONST
 
 {
    $Log$
-   Revision 1.10  2004-05-02 01:00:07  peter
+   Revision 1.11  2004-09-09 20:29:06  jonas
+     * fixed definition of pthread_mutex_t for non-linux targets (and for
+       linux as well, actually).
+     * base libpthread definitions are now in ptypes.inc, included in unixtype
+       They sometimes have an extra underscore in front of their name, in
+       case they were also exported by the packages/base/pthreads unit, so
+       they can keep their original name there
+     * cthreadds unit now imports systuils, because it uses exceptions (it
+       already did so before as well)
+     * fixed many linux definitions of libpthread functions in pthrlinux.inc
+       (integer -> cint etc)
+     + added culonglong type to ctype.inc
+
+   Revision 1.10  2004/05/02 01:00:07  peter
      * statfs fixed
 
    Revision 1.9  2004/04/26 16:53:19  peter

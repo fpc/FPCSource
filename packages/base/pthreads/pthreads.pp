@@ -30,6 +30,8 @@ Uses BaseUnix, unixtype;
 {$i pthrbsd.inc}
 
 {$else}
+uses unixtype;
+
 {$i pthrlinux.inc}
 {$endif}
                 

@@ -21,6 +21,7 @@
 {***********************************************************************}
 
 {$i ctypes.inc}
+{$packrecords c}
 
 type
     { the following type definitions are compiler dependant }
@@ -109,16 +110,21 @@ CONST
     MNAMELEN   = 90;
 
 
-  DWORDS_IN_PTHREAD_T = sizeof(pointer) div sizeof(dword);
-  DWORDS_IN_PTHREAD_ATTR_T = (36+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_MUTEXATTR_T = (8+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_MUTEX_T = (40+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_COND_ATTR_T = (4+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_COND_T = (24+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_ONCE_T = (4+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_RWLOCK_T = (124+sizeof(clong)) div sizeof(dword);
-  DWORDS_IN_PTHREAD_RWLOCK_ATTR_T = (12+sizeof(clong)) div sizeof(dword);
+type
+  pthread_mutextype = (
+    _PTHREAD_MUTEX_NORMAL    := 0,
+    _PTHREAD_MUTEX_ERRORCHECK := 1,
+    _PTHREAD_MUTEX_RECURSIVE := 2
+  );
 
+
+  const
+     _PTHREAD_MUTEX_DEFAULT 		= _PTHREAD_MUTEX_NORMAL;
+     _MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
+     _MUTEX_TYPE_COUNTING_FAST = _PTHREAD_MUTEX_RECURSIVE;
+
+     _PTHREAD_KEYS_MAX              = 128;
+     _PTHREAD_STACK_MIN             = 8192;
 
   type
      fsid_t = record
@@ -147,12 +153,34 @@ CONST
        end;
     pstatfs = ^tstatfs;
 
-   pthread_key_t = clong;
+   pthread_t            = pointer;
+   pthread_attr_t       = record sig: clong; opaque: array[0..36-1] of byte; end;
+   pthread_mutex_t      = record sig: clong; opaque: array[0..40-1] of byte; end;
+   pthread_mutexattr_t 	= record sig: clong; opaque: array[0..8-1] of byte; end;
+   pthread_cond_t       = record sig: clong; opaque: array[0..24-1] of byte; end;
+   pthread_condattr_t 	= record sig: clong; opaque: array[0..4-1] of byte; end;
+   pthread_key_t        = clong;
+   pthread_rwlock_t 		= record sig: clong; opaque: array[0..124-1] of byte; end;
+   pthread_rwlockattr_t = record sig: clong; opaque: array[0..12-1] of byte; end;
 
+   sem_t		= cint;
 
 {
   $Log$
-  Revision 1.7  2004-08-25 21:42:11  jonas
+  Revision 1.8  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.7  2004/08/25 21:42:11  jonas
     * fixed pthread type definitions for darwin and made them generic
 
   Revision 1.6  2004/03/04 22:28:08  marco

@@ -23,27 +23,20 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
-      PTHREAD_MUTEX_RECURSIVE      = 2;
 
  TYPE
-    pthread_t       = pointer;
-    ppthread_t      = ^pthread_t;
-    pthread_key_t   = cint;
-    ppthread_key_t  = ^pthread_key_t;
-    pthread_mutex_t = TRTLCriticalSection;
-    ppthread_mutex_t= PRTLCriticalSection;
-    pthread_attr_t  = pointer; // opague
-    ppthread_attr_t = ^pthread_attr_t; // opague
-    __destr_func_t  = procedure (p :pointer);cdecl;
-    __startroutine_t= function (p :pointer):pointer;cdecl;
-    pthread_mutex_attr_t  = pointer;
-    ppthread_mutex_attr_t = ^pthread_mutex_t;
-    ppthread_mutexattr_t  = ^pthread_mutex_t;
+    ppthread_t           = ^pthread_t;
+    ppthread_key_t       = ^pthread_key_t;
+    ppthread_mutex_t     = ^pthread_mutex_t;
+    ppthread_attr_t      = ^pthread_attr_t;
+    __destr_func_t       = procedure (p :pointer);cdecl;
+    __startroutine_t     = function (p :pointer):pointer;cdecl;
+    ppthread_mutexattr_t = ^pthread_mutexattr_t;
 
-    sem_t	    = cint;
+    sem_t       = cint;
     psem_t	    = ^sem_t;
-   TSemaphore         = sem_t;
-    PSemaphore         = ^TSemaphore;
+    TSemaphore  = sem_t;
+    PSemaphore  = ^TSemaphore;
 
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external 'c';
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external 'c';
@@ -55,10 +48,10 @@ function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;ex
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external 'c';
 procedure pthread_exit  ( p: pointer); cdecl;external 'c';
 function  pthread_self:cint; cdecl;external 'c';
-function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutex_attr_t):cint; cdecl;external 'c';
-function  pthread_mutex_destroy (p:ppthread_mutex_attr_t):cint; cdecl;external 'c';
-function  pthread_mutex_lock    (p:ppthread_mutex_attr_t):cint; cdecl;external 'c';
-function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external 'c';
+function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutexattr_t):cint; cdecl;external 'c';
+function  pthread_mutex_destroy (p:ppthread_mutexattr_t):cint; cdecl;external 'c';
+function  pthread_mutex_lock    (p:ppthread_mutexattr_t):cint; cdecl;external 'c';
+function  pthread_mutex_unlock  (p:ppthread_mutexattr_t):cint; cdecl;external 'c';
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c';
@@ -79,7 +72,20 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.4  2004-05-28 18:23:55  marco
+  Revision 1.5  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.4  2004/05/28 18:23:55  marco
    * fixes for darwin specific external name '' behaviour. Must still be
   tested
 

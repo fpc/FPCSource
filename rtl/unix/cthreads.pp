@@ -37,7 +37,9 @@ implementation
 Uses
   systhrds,
   BaseUnix,
-  unix
+  unix,
+  unixtype,
+  sysutils
 {$ifdef dynpthreads}
   ,dl
 {$endif}
@@ -160,7 +162,7 @@ Uses
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-	pthread_detach(pointer(pthread_self));
+        pthread_detach(pthread_t(pthread_self()));
       end;
 
 
@@ -216,16 +218,18 @@ Uses
     procedure CEndThread(ExitCode : DWord);
       begin
         DoneThread;
-        pthread_detach(pointer(pthread_self));
+        pthread_detach(pthread_t(pthread_self()));
         pthread_exit(pointer(ExitCode));
       end;
 
 
+{$warning threadhandle can be larger than a dword}
     function  CSuspendThread (threadHandle : dword) : dword;
     begin
       {$Warning SuspendThread needs to be implemented}
     end;
 
+{$warning threadhandle can be larger than a dword}
     function  CResumeThread  (threadHandle : dword) : dword;
     begin
       {$Warning ResumeThread needs to be implemented}
@@ -237,12 +241,14 @@ Uses
       {$Warning ThreadSwitch needs to be implemented}
     end;
 
+{$warning threadhandle can be larger than a dword}
     function  CKillThread (threadHandle : dword) : dword;
     begin
-      pthread_detach(pointer(threadHandle));
-      CKillThread := pthread_cancel(Pointer(threadHandle));
+      pthread_detach(pthread_t(threadHandle));
+      CKillThread := pthread_cancel(pthread_t(threadHandle));
     end;
 
+{$warning threadhandle can be larger than a dword}
     function  CWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
     var
       LResultP: Pointer;
@@ -250,24 +256,27 @@ Uses
     begin
       LResult := 0;
       LResultP := @LResult;
-      pthread_join(Pointer(threadHandle), @LResultP);
+      pthread_join(pthread_t(threadHandle), @LResultP);
       CWaitForThreadTerminate := LResult;
     end;
 
+{$warning threadhandle can be larger than a dword}
     function  CThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
     begin
       {$Warning ThreadSetPriority needs to be implemented}
     end;
 
 
+{$warning threadhandle can be larger than a dword}
     function  CThreadGetPriority (threadHandle : dword): Integer;
     begin
       {$Warning ThreadGetPriority needs to be implemented}
     end;
 
+{$warning threadhandle can be larger than a dword}
     function  CGetCurrentThreadId : dword;
     begin
-      CGetCurrentThreadId:=dword(pthread_self);
+      CGetCurrentThreadId:=dword(pthread_self());
     end;
 
 
@@ -277,36 +286,43 @@ Uses
 
     procedure CInitCriticalSection(var CS);
 
-    Var
-      P : PRTLCriticalSection;
-
-      begin
-         P:=PRTLCriticalSection(@CS);
-         With p^ do
-           begin
-           m_spinlock:=0;
-           m_count:=0;
-           m_owner:=nil;
-           m_kind:=1;
-           m_waiting.head:=nil;
-           m_waiting.tail:=nil;
-           end;
-         pthread_mutex_init(P,NIL);
-      end;
+    var
+      MAttr : pthread_mutexattr_t;
+      res: longint;
+    begin
+      res:=pthread_mutexattr_init(@MAttr);
+      if res=0 then
+        begin
+          res:=pthread_mutexattr_settype(@MAttr,longint(_PTHREAD_MUTEX_RECURSIVE));
+          if res=0 then
+            res := pthread_mutex_init(@CS,@MAttr)
+          else
+            { No recursive mutex support :/ }
+            res := pthread_mutex_init(@CS,NIL);
+        end
+      else 
+        res:= pthread_mutex_init(@CS,NIL);
+      pthread_mutexattr_destroy(@MAttr);
+      if res <> 0 then
+        runerror(6);
+    end;                           
 
     procedure CEnterCriticalSection(var CS);
       begin
-         pthread_mutex_lock(@CS);
+         if pthread_mutex_lock(@CS) <> 0 then
+           runerror(6);
       end;
 
     procedure CLeaveCriticalSection(var CS);
       begin
-         pthread_mutex_unlock(@CS);
+         if pthread_mutex_unlock(@CS) <> 0 then
+           runerror(6)
       end;
 
     procedure CDoneCriticalSection(var CS);
       begin
-         pthread_mutex_destroy(@CS);
+         if pthread_mutex_destroy(@CS) <> 0 then
+           runerror(6);
       end;
 
 
@@ -378,7 +394,7 @@ begin
 end;
 
 type
-     TPthreadMutex = ppthread_mutex_t;
+     TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
          FSem: Pointer;
          FManualReset: Boolean;
@@ -396,7 +412,7 @@ Const
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 
 var
-  MAttr : pthread_mutex_attr_t;
+  MAttr : pthread_mutexattr_t;
   res   : cint;
 
 
@@ -406,15 +422,21 @@ begin
   plocaleventstate(result)^.FSem:=New(PSemaphore);  //sem_t.
 //  plocaleventstate(result)^.feventsection:=nil;
   res:=pthread_mutexattr_init(@MAttr);
-  if Res=0 then
-    try
-      Res:=pthread_mutexattr_settype(@MAttr,longint(PTHREAD_MUTEX_RECURSIVE));
+  if res=0 then
+    begin
+      res:=pthread_mutexattr_settype(@MAttr,longint(_PTHREAD_MUTEX_RECURSIVE));
       if Res=0 then
-        Res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,@MAttr);
-    finally
-      pthread_mutexattr_destroy(@MAttr);
-    end;
-  sem_init(psem_t(plocaleventstate(result)^.FSem),ord(False),Ord(InitialState));
+        Res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,@MAttr)
+      else
+        res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,nil);
+    end
+  else
+    res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,nil);
+  pthread_mutexattr_destroy(@MAttr);
+  if res <> 0 then
+    runerror(6);
+  if sem_init(psem_t(plocaleventstate(result)^.FSem),ord(False),Ord(InitialState)) <> 0 then
+    runerror(6);
 end;
 
 procedure Intbasiceventdestroy(state:peventstate);
@@ -453,18 +475,18 @@ begin
     result:=wrError
   else
     begin
-    sem_wait(psem_t(plocaleventstate(state)^.FSem));
-    result:=wrSignaled;
-    if plocaleventstate(state)^.FManualReset then
-      begin
-        pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-        Try
-            intbasiceventresetevent(State);
-            sem_post(psem_t( plocaleventstate(state)^.FSem));
-          Finally
-        pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+      sem_wait(psem_t(plocaleventstate(state)^.FSem));
+      result:=wrSignaled;
+      if plocaleventstate(state)^.FManualReset then
+        begin
+          pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
+          Try
+              intbasiceventresetevent(State);
+              sem_post(psem_t( plocaleventstate(state)^.FSem));
+            Finally
+          pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+        end;
       end;
-    end;
     end;
 end;
 
@@ -513,7 +535,20 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-05-23 15:30:42  marco
+  Revision 1.12  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.11  2004/05/23 15:30:42  marco
    * basicevent, still untested.
 
   Revision 1.10  2004/03/03 22:00:28  peter

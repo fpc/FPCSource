@@ -29,7 +29,7 @@ Type
     cInt32 = longint;
     cUInt32= cardinal;
     cInt64 = int64;
-{$ifndef VER_1_0}
+{$ifndef VER1_0}
     cUInt64= qword;
 {$else}
     cUInt64= int64;
@@ -45,6 +45,12 @@ Type
     cLong  = longint;
     cuLong = Cardinal;
 {$endif}
+    clonglong = int64;
+{$ifndef VER1_0}
+    culonglong = qword;
+{$else VER1_0}
+    culonglong = int64;
+{$endif VER1_0}
     cshort = smallint;
     cushort= word;
 
@@ -57,7 +63,20 @@ Type
 
 {
    $Log$
-   Revision 1.4  2004-04-26 16:53:19  peter
+   Revision 1.5  2004-09-09 20:29:06  jonas
+     * fixed definition of pthread_mutex_t for non-linux targets (and for
+       linux as well, actually).
+     * base libpthread definitions are now in ptypes.inc, included in unixtype
+       They sometimes have an extra underscore in front of their name, in
+       case they were also exported by the packages/base/pthreads unit, so
+       they can keep their original name there
+     * cthreadds unit now imports systuils, because it uses exceptions (it
+       already did so before as well)
+     * fixed many linux definitions of libpthread functions in pthrlinux.inc
+       (integer -> cint etc)
+     + added culonglong type to ctype.inc
+
+   Revision 1.4  2004/04/26 16:53:19  peter
      * use cpu64
 
    Revision 1.3  2003/09/16 21:20:40  marco

@@ -21,19 +21,13 @@ unit systhrds;
 
 interface
 
+  uses
+    unixtype;
 { Posix compliant definition }
 
   type
      PRTLCriticalSection = ^TRTLCriticalSection;
-     TRTLCriticalSection = record
-          m_spinlock : longint;
-          m_count : longint;
-          m_owner : pointer {pthread_t};
-          m_kind : longint;
-          m_waiting : record
-            head,tail : pointer;
-          end; {_pthread_queue}
-       end;
+     TRTLCriticalSection = pthread_mutex_t;
 
 { Include generic thread interface }
 {$i threadh.inc}
@@ -63,7 +57,20 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2003-11-26 20:10:59  michael
+  Revision 1.22  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.21  2003/11/26 20:10:59  michael
   + New threadmanager implementation
 
   Revision 1.20  2003/11/19 10:54:32  marco

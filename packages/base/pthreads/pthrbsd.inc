@@ -67,7 +67,7 @@
     }
 
 
-CONST ULONG_MAX= high(cardinal);
+CONST ULONG_MAX= high(culong);
 
 type
 
@@ -80,9 +80,18 @@ type
      psigset_t = ^sigset; 
 
 const
+    PTHREAD_MUTEX_NORMAL     = _PTHREAD_MUTEX_NORMAL;
+    PTHREAD_MUTEX_ERRORCHECK = _PTHREAD_MUTEX_ERRORCHECK;
+    PTHREAD_MUTEX_RECURSIVE  = _PTHREAD_MUTEX_RECURSIVE;
+
+     PTHREAD_MUTEX_DEFAULT    = _PTHREAD_MUTEX_NORMAL;
+     MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
+     MUTEX_TYPE_COUNTING_FAST = _PTHREAD_MUTEX_RECURSIVE;
+
+
      PTHREAD_DESTRUCTOR_ITERATIONS = 4;
-     PTHREAD_KEYS_MAX 		   = 256;
-     PTHREAD_STACK_MIN 		   = 1024;
+     PTHREAD_KEYS_MAX 		   = _PTHREAD_KEYS_MAX;
+     PTHREAD_STACK_MIN 		   = _PTHREAD_STACK_MIN;
      PTHREAD_THREADS_MAX 	   = ULONG_MAX;
     {
      Flags for threads and thread attributes.
@@ -119,11 +128,9 @@ const
   type
 { from semaphore.h }
 
-     sem 		= record end;
-     sem_t		= ^sem;
-     psem_t		= ^sem_t;
+     psem_t = ^sem_t;
      TSemaphore 	= sem_t;
-     PSemaphore         = ^TSemaphore;
+     PSemaphore   = ^TSemaphore;
 
     {
      Primitive system data type definitions required by P1003.1c.
@@ -132,17 +139,6 @@ const
      or assignment operators for the types pthread_attr_t, pthread_cond_t,
      pthread_condattr_t, pthread_mutex_t, pthread_mutexattr_t.
     }
-
-     pthread_t 			= record a: array[0..DWORDS_IN_PTHREAD_T-1] of dword; end;
-     pthread_attr_t 		= record a: array[0..DWORDS_IN_PTHREAD_ATTR_T-1] of dword; end;
-     pthread_mutex_t 		= record a: array[0..DWORDS_IN_PTHREAD_MUTEX_T-1] of dword; end;
-     pthread_mutexattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_MUTEXATTR_T-1] of dword; end;
-     pthread_cond_t 		= record a: array[0..DWORDS_IN_PTHREAD_COND_T-1] of dword; end;
-     pthread_condattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_COND_ATTR_T-1] of dword; end;
-{    moved to ptypes.inc because not the same on all systems }
-{     pthread_key_t 		= cint; }
-     pthread_rwlock_t 		= record a: array[0..DWORDS_IN_PTHREAD_RWLOCK_T-1] of dword; end;
-     pthread_rwlockattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_RWLOCK_ATTR_T-1] of dword; end;
 
      TThreadID = pthread_t;
      PThreadID = ^TThreadID;
@@ -235,35 +231,6 @@ const
        PTHREAD_PRIO_INHERIT 		= 1;
        PTHREAD_PRIO_PROTECT 		= 2;
 
-    {
-       Mutex types (Single UNIX Specification, Version 2, 1997).
-      
-       Note that a mutex attribute with one of the following types:
-      
-      	PTHREAD_MUTEX_NORMAL
-      	PTHREAD_MUTEX_RECURSIVE
-            MUTEX_TYPE_FAST (deprecated)
-      	MUTEX_TYPE_COUNTING_FAST (deprecated)
-      
-       will deviate from POSIX specified semantics.
-      }
-    { Default POSIX mutex  }
-    { Recursive mutex  }
-    { No error checking  }
-
-    type
-       pthread_mutextype = (
-	PTHREAD_MUTEX_ERRORCHECK := 1,
-	 PTHREAD_MUTEX_RECURSIVE := 2,
-         PTHREAD_MUTEX_NORMAL    := 3,
-	MUTEX_TYPE_MAX
-         );
-
-
-    const
-       PTHREAD_MUTEX_DEFAULT 		= PTHREAD_MUTEX_ERRORCHECK;
-       MUTEX_TYPE_FAST 			= PTHREAD_MUTEX_NORMAL;
-       MUTEX_TYPE_COUNTING_FAST 	= PTHREAD_MUTEX_RECURSIVE;
     {
        Thread function prototype definitions:
       }
@@ -395,7 +362,20 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
 
 {  
    $Log$
-   Revision 1.5  2004-08-25 21:42:11  jonas
+   Revision 1.6  2004-09-09 20:29:06  jonas
+     * fixed definition of pthread_mutex_t for non-linux targets (and for
+       linux as well, actually).
+     * base libpthread definitions are now in ptypes.inc, included in unixtype
+       They sometimes have an extra underscore in front of their name, in
+       case they were also exported by the packages/base/pthreads unit, so
+       they can keep their original name there
+     * cthreadds unit now imports systuils, because it uses exceptions (it
+       already did so before as well)
+     * fixed many linux definitions of libpthread functions in pthrlinux.inc
+       (integer -> cint etc)
+     + added culonglong type to ctype.inc
+
+   Revision 1.5  2004/08/25 21:42:11  jonas
      * fixed pthread type definitions for darwin and made them generic
 
    Revision 1.4  2004/02/15 19:59:20  marco

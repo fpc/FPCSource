@@ -23,29 +23,18 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
-      PTHREAD_MUTEX_RECURSIVE 	   = 2;
 
  TYPE
-  pthread_mutex_attr = record
-       end;
-
-    pthread_t       = pointer;
     ppthread_t      = ^pthread_t;
-    pthread_key_t   = cint;
     ppthread_key_t  = ^pthread_key_t;
-    pthread_mutex_t = TRTLCriticalSection;
-    ppthread_mutex_t= PRTLCriticalSection;
-    pthread_attr_t  = pointer; // opague
-    ppthread_attr_t = ^pthread_attr_t; // opague
-    ppthread_mutexattr_t        = ^pthread_mutex_attr;
-//    ppthread_mutexattr_t = ^pthread_mutexattr_t;
+    ppthread_mutex_t= ^pthread_mutex_t;
+    ppthread_attr_t = ^pthread_attr_t;
     __destr_func_t  = procedure (p :pointer);cdecl;
     __startroutine_t= function (p :pointer):pointer;cdecl;
-    pthread_mutex_attr_t  = pointer;
-    ppthread_mutex_attr_t = ^pthread_mutex_t;
-    sem                = record end;
-    sem_t              = ^sem;
-    psem_t             = ^sem_t;
+    ppthread_mutexattr_t = ^pthread_mutexattr_t;
+
+    sem_t	    = cint;
+    psem_t	    = ^sem_t;
     TSemaphore         = sem_t;
     PSemaphore         = ^TSemaphore;
 
@@ -84,7 +73,20 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.3  2004-05-23 15:30:55  marco
+  Revision 1.4  2004-09-09 20:29:06  jonas
+    * fixed definition of pthread_mutex_t for non-linux targets (and for
+      linux as well, actually).
+    * base libpthread definitions are now in ptypes.inc, included in unixtype
+      They sometimes have an extra underscore in front of their name, in
+      case they were also exported by the packages/base/pthreads unit, so
+      they can keep their original name there
+    * cthreadds unit now imports systuils, because it uses exceptions (it
+      already did so before as well)
+    * fixed many linux definitions of libpthread functions in pthrlinux.inc
+      (integer -> cint etc)
+    + added culonglong type to ctype.inc
+
+  Revision 1.3  2004/05/23 15:30:55  marco
    * basicevent, still untested
 
   Revision 1.2  2003/11/27 20:24:10  michael
