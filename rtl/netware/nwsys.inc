@@ -83,7 +83,7 @@ PROCEDURE _exit (ExitCode : LONGINT); CDecl; EXTERNAL CLib;
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-// this gives internet compiler error 1234124 ??
+// this gives internal compiler error 1234124 ??
 //PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
 
 PROCEDURE _printf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
@@ -340,7 +340,10 @@ PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:20  peter
+  Revision 1.8  2003-02-16 17:46:11  armin
+  * typo fixed
+
+  Revision 1.7  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/04/01 15:20:08  armin
