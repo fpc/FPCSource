@@ -9,7 +9,7 @@ programs=$(subst $(PASEXT),,$(wildcard tut*$(PASEXT)))
 packages=gtk
 
 [dirs]
-fpcdir=../../..
+fpcdir=../../../..
 targetdir=.
 
 [libs]
