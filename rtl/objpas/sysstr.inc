@@ -608,9 +608,10 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     begin
       If Value<>-1 then exit; // Was already read.
       OldPos:=chPos;
-      While (Chpos<Len) and
+      While (Chpos<=Len) and
             (Pos(Fmt[chpos],'1234567890')<>0) do inc(chpos);
-      If Chpos=len then DoFormatError(feInvalidFormat);
+      If Chpos>len then
+        DoFormatError(feInvalidFormat);
       If Fmt[Chpos]='*' then
         begin
         If (Chpos>OldPos) or (ArgPos>High(Args))
@@ -741,14 +742,14 @@ Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
 
 begin
   Result:='';
-  Len:=Length(Fmt)+1;
+  Len:=Length(Fmt);
   Chpos:=1;
   OldPos:=1;
   ArgPos:=0;
-  While chpos<len do
+  While chpos<=len do
     begin
-    // uses shortcut evaluation !!
-    While (ChPos<=Len) and (Fmt[chpos]<>'%') do inc(chpos);
+    While (ChPos<=Len) and (Fmt[chpos]<>'%') do
+      inc(chpos);
     If ChPos>OldPos Then
       Result:=Result+Copy(Fmt,OldPos,Chpos-Oldpos);
     If ChPos<Len then
@@ -1137,7 +1138,10 @@ const
 
 {
   $Log$
-  Revision 1.29  1999-11-06 14:41:31  peter
+  Revision 1.30  2000-02-01 12:53:23  peter
+    * fixed rangecheck error in format()
+
+  Revision 1.29  1999/11/06 14:41:31  peter
     * truncated log
 
   Revision 1.28  1999/10/12 19:16:27  florian
