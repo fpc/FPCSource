@@ -268,7 +268,7 @@ function strlen(p:pchar):longint;
 
 { Shortstring functions }
 {$ifdef ver1_0}
-Procedure SetLength (Var S : ShortString; l : TStrLenInt);
+Procedure SetLength (Var S : ShortString; l : longint);
 {$endif ver1_0}
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
@@ -484,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2000-10-23 14:00:59  florian
+  Revision 1.8  2000-10-23 16:15:40  jonas
+    * renamed strlenint to longint since 1.0 doesn't know that type
+
+  Revision 1.7  2000/10/23 14:00:59  florian
     * setlength export declaration for 1.0.2 fixed
 
   Revision 1.6  2000/10/21 18:20:17  florian
