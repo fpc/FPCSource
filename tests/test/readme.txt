@@ -36,3 +36,6 @@ Inline ................ inline01.pp    tests recursive inlining, inlining
                                        a procedure multiple times and
                                        inlining procedures in other
                                        inline procedures.
+Finalize .............. testfi1.pp     tests the procedure system.finalize
+TypeInfo .............. testti1.pp     test the function system.typeinfo
+Resourcestrings ....... testrstr.pp    tests a simple resource string
