@@ -31,7 +31,7 @@ units_openbsd=process ssockets resolve fpasync
 units_linux=process resolve ssockets fpasync syncobjs
 units_win32=process fileinfo resolve ssockets syncobjs
 units_netware=resolve ssockets
-units_netwlibc=resolve ssockets
+units_netwlibc=resolve ssockets syncobjs
 rsts=$(CLASSES10) ssockets cachecls resolve custapp cgiapp eventlog registry
 exampledirs=tests
 

@@ -8189,6 +8189,7 @@ type
         mutex : pointer;
         reserved : array[0..52] of dword;
      end;
+   TpthreadMutex = pthread_mutex_t;
 
    Ppthread_rwlock_t = ^pthread_rwlock_t;
    pthread_rwlock_t = record
@@ -8228,6 +8229,7 @@ type
      end;
    Ppthread_mutex_attr_t = Ppthread_mutexattr_t;
    pthread_mutex_attr_t = pthread_mutexattr_t;
+   TMutexAttribute = pthread_mutex_attr_t;
 
    Ppthread_rwlockattr_t = ^pthread_rwlockattr_t;
    pthread_rwlockattr_t = record
@@ -9073,7 +9075,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-12-07 11:40:43  armin
+  Revision 1.6  2004-12-07 14:13:42  armin
+  * added syncobj for netwlibc
+
+  Revision 1.5  2004/12/07 11:40:43  armin
   * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
 
 }
