@@ -223,7 +223,7 @@ implementation
                             end;
                pointerdef : begin
                             { pchar can be assigned to short/ansistrings }
-                              if is_pchar(def_from) then
+                              if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
                                begin
                                  doconv:=tc_pchar_2_string;
                                  b:=true;
@@ -713,7 +713,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-11 00:03:18  peter
+  Revision 1.13  1998-12-15 17:11:37  peter
+    * string:=pchar not allowed in tp mode
+
+  Revision 1.12  1998/12/11 00:03:18  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.11  1998/12/10 09:47:21  florian
