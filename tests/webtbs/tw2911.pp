@@ -24,10 +24,10 @@ procedure RefCount(const s : string;expect:longint);
 type
         PLongint = ^Longint;
 var
-        P : PLongint;
+        P : psizeint;
         rc : longint;
 begin
-        P := PLongint(s);
+        P := psizeint(s);
         rc:=0;
         if (p = nil)
         then writeln('Nil string.')
@@ -36,10 +36,10 @@ begin
   {$if defined(ver1_0) or defined(ver1_9_4)}
          rc:=(p-1)^;
   {$else}
-         rc:=plongint(pchar(p)-8)^;
+         rc:=psizeint(pchar(p)-sizeof(sizeint)*2)^;
   {$endif}
 {$else}
-         rc:=plongint(pchar(p)-8)^;
+         rc:=psizeint(pchar(p)-sizeof(sizeint)*2)^;
 {$endif}
   writeln('Ref count is ',rc,' expected ',expect);
   if rc<>expect then
