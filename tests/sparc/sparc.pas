@@ -1,6 +1,6 @@
 PROGRAM SparcTest;
 VAR
-  x,y:0..2 SHL 32-1; 
+  x,y:Cardinal; 
   z:0..255;
 FUNCTION Add(a,b:Cardinal):Cardinal;
   BEGIN
