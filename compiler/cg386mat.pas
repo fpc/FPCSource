@@ -812,7 +812,7 @@ implementation
       const
          flagsinvers : array[F_E..F_BE] of tresflags =
             (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
-             F_A,F_AE,F_B,F_BE);
+             F_BE,F_B,F_AE,F_A);
       var
          hl : pasmlabel;
          opsize : topsize;
@@ -988,7 +988,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:49  peter
+  Revision 1.6  2000-09-18 10:15:48  jonas
+    * fixed bug in flagsinvers array for unsigned flags (fixed web bug
+      1139, not 1135 like I mentioned in the fixes branch) (merged from fixes)
+
+  Revision 1.5  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
