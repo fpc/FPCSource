@@ -100,7 +100,6 @@ all: rtls
 
 clean:
 	make -C template clean
-	make -C dos clean
 	make -C go32v1 clean
 	make -C go32v2 clean
 	make -C linux clean
@@ -257,7 +256,10 @@ diffclean:
 
 #
 # $Log$
-# Revision 1.4  1998-12-21 14:26:52  pierre
+# Revision 1.5  1999-02-24 15:59:04  michael
+# * fixed clean target
+#
+# Revision 1.4  1998/12/21 14:26:52  pierre
 #  * go32v? directory change reflected
 #
 # Revision 1.3  1998/10/22 16:45:23  pierre
