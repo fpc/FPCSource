@@ -877,7 +877,8 @@ implementation
                    else
                     begin
                       doconv:=tc_equal;
-                      if tobjectdef(tclassrefdef(def_from).pointertype.def).is_related(
+                      if explicit or
+                         tobjectdef(tclassrefdef(def_from).pointertype.def).is_related(
                            tobjectdef(tclassrefdef(def_to).pointertype.def)) then
                         eq:=te_convert_l1;
                     end;
@@ -1192,7 +1193,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-12-15 22:37:53  peter
+  Revision 1.9  2002-12-18 21:37:36  peter
+    * allow classref-classref always when explicit
+
+  Revision 1.8  2002/12/15 22:37:53  peter
     * give conversions from pointer to pwidechar a penalty (=prefer pchar)
 
   Revision 1.7  2002/12/11 22:40:12  peter
