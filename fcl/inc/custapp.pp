@@ -75,7 +75,7 @@ Type
     Property Location : String Read GetLocation;
     Property Params [Index : integer] : String Read GetParams;
     Property ParamCount : Integer Read GetParamCount;
-    Property EnvironmentVariable[Name : String] : String Read GetEnvironmentVar;
+    Property EnvironmentVariable[envName : String] : String Read GetEnvironmentVar;
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
@@ -482,3 +482,11 @@ end;
 
 end.
 
+{
+   $Log$
+   Revision 1.6  2003-06-01 14:40:05  marco
+    * Fix to get it to build "name" was considered dup ident. Changed to
+       envname and added logs
+
+
+}
