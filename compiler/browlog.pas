@@ -260,7 +260,8 @@ implementation
 
     procedure tbrowserlog.browse_symbol(const sr : string);
       var
-         sym,symb : tstoredsym;
+         sym  : tsym;
+         symb : tstoredsym;
          symt : tsymtable;
          hp : tmodule;
          s,ss : string;
@@ -431,7 +432,7 @@ implementation
 
     procedure writesymtable(p:tsymtable);
       var
-        hp : tstoredsym;
+        hp : tsym;
         prdef : pprocdeflist;
       begin
         if cs_browser in aktmoduleswitches then
@@ -515,7 +516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-09-07 15:25:00  peter
+  Revision 1.17  2004-02-11 22:00:10  peter
+    * fixed compile with -CR
+
+  Revision 1.16  2002/09/07 15:25:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.15  2002/08/20 10:31:26  daniel
