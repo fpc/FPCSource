@@ -501,15 +501,16 @@ interface
 
         { Floats should never be returned as LOC_CONSTANT, do the
           moving to memory before the new size is set.
-          Also when converting from a float to a non-float move
-          to memory first to prevent invalid LOC_FPUREGISTER locations }
+          Also when converting from a float to a non-float
+          or the other way round, move to memory first to prevent
+          invalid LOC_FPUREGISTER locations }
         if (
             (resulttype.def.deftype=floatdef) and
             (location.loc=LOC_CONSTANT)
            ) or
            (
-            (left.resulttype.def.deftype=floatdef) and
-            (resulttype.def.deftype<>floatdef)
+            (left.resulttype.def.deftype=floatdef) xor
+            (resulttype.def.deftype=floatdef)
            ) then
           location_force_mem(exprasmlist,location);
 
@@ -567,7 +568,10 @@ end.
 
 {
   $Log$
-  Revision 1.73  2005-02-14 17:13:06  peter
+  Revision 1.74  2005-03-05 20:08:27  jonas
+    * fixed web bug 3694
+
+  Revision 1.73  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.72  2005/01/09 15:05:29  peter
