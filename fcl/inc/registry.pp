@@ -31,7 +31,7 @@ type
     FileTime: TDateTime;
   end;
 
-  TRegDataType = (rdUnknown, rdString, rdExpandString, rdInteger, rdBinary);
+  TRegDataType = (rdUnknown, rdString, rdExpandString, rdBinary, rdInteger);
 
   TRegDataInfo = record
     RegData: TRegDataType;
