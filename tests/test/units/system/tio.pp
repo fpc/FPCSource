@@ -13,11 +13,35 @@
 { data back in,                                              }
 
 Program tio;
+{$I-}
+
+{$IFDEF TP}
+type
+  shortstring = string;
+{$ENDIF}
+
+
+var
+ F: File;
+
+
+procedure test(value, required: longint);
+begin
+  if value <> required then
+    begin
+      writeln('Got ',value,' instead of ',required);
+      halt(1);
+    end;
+end;
+
 
 const
   FILE_NAME = 'test.tmp';
   FILE_NAME2 = 'test1.tmp';
   DATA_SIZE = 17;
+  
+  MODE_RESET = 0;
+  MODE_REWRITE = 1;
 
   DATA: array[1..DATA_SIZE] of byte =
   ($01,$02,$03,$04,$05,$06,$07,$08,
@@ -26,84 +50,162 @@ const
   );
 
 
+procedure test_do_open(name : shortstring; mode: word);
+begin
+  Write('opening file...');
+  Assign(F,name);
+  test(IOResult, 0);
+  if mode = MODE_REWRITE then
+    Rewrite(F,1)
+  else
+    Reset(F,1);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;
 
-{$I+}
+procedure test_do_write(var buf; BytesToWrite : longint);
 var
- F: File;
- I: Integer;
- b: byte;
- readData : array[1..DATA_SIZE] of byte;
- BytesRead, BytesWritten : word;
-Begin
-  {------------------------ create and play with a new file --------------------------}
-  BytesWritten := 0;
-  FillChar(readData,DATA_SIZE,0);
-  WriteLn('opening file...');
-  Assign(F,FILE_NAME);
-  Rewrite(F,1);
-  WriteLn('writing to file...');
-  BlockWrite(F,DATA,DATA_SIZE,BytesWritten);
+  BytesWritten : word;
+begin
+  Write('writing to file...');
+  BlockWrite(F,buf,BytesToWrite,BytesWritten);
+  test(IOResult, 0);
   if BytesWritten<>DATA_SIZE then
     RunError(255);
-  WriteLn('getting filesize...');
-  if FileSize(F) <> DATA_SIZE then
-     RunError(255);
+  Writeln('Passed!');
+end;
+
+procedure test_do_filesize(size : longint);
+begin
+  Write('getting filesize...');
+  { verifying if correct filesize }
+  test(FileSize(F),size);
+  { verify if IOError }
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;
+
+procedure test_do_seek(_pos : longint);
+begin
   { Seek to beginning of file }
-  WriteLn('seek to beginning of file...');
-  Seek(F, 0);
-  WriteLn('reading from file...');
-  BlockRead(F,readData,DATA_SIZE,BytesRead);
+  Write('seek to beginning of file...');
+  Seek(F, _pos);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;  
+
+
+procedure test_do_read(var buf; BytesToRead : word);
+var
+ BytesRead : word;
+begin
+  Write('reading from file...');
+  BlockRead(F,buf,BytesToRead,BytesRead);
+  test(BytesToRead, BytesRead);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;  
+
+procedure test_filepos(_pos : longint);
+var
+ BytesRead : word;
+begin
+  write('verifying file position...');
+  test(FilePos(F),_pos);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;  
+
+procedure test_do_close;
+begin
+  Write('closing file...');
+  Close(F);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;  
+
+
+procedure test_rename(oldname, newname : shortstring);
+begin
+  Assign(F,oldname);
+  Write('renaming file...');
+  ReName(F,newname);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;
+
+procedure test_erase(name : shortstring);
+begin
+  Assign(F,name);
+  Write('erasing file...');
+  Erase(F);
+  test(IOResult, 0);
+  WriteLn('Passed!');
+end;
+
+var
+ I: Integer;
+ readData : array[1..DATA_SIZE] of byte;
+Begin
+  {------------------------ create and play with a new file --------------------------}
+  FillChar(readData,DATA_SIZE,0);
+  
+  test_do_open(FILE_NAME, MODE_REWRITE);
+  test_do_write(DATA, DATA_SIZE);
+  test_do_filesize(DATA_SIZE);
+  test_do_seek(0);
+  test_do_read(readData, DATA_SIZE);
+  
+  
   for i:=1 to DATA_SIZE do
    Begin
-     if readData[i] <> data[i] then
-       RunError(255);
+       test(readData[i], data[i]);
    end;
-  WriteLn('seeking in file...');
-  Seek(f,5);
-  WriteLn('getting file position...');
-  if filepos(f) <> 5 then
-    RunError(255);
+   
+  test_do_seek(5);
+  
+  test_filepos(5);
+(*  
+  test_do_truncate()
   WriteLn('truncating file...');
-{
   Truncate(F);
   WriteLn(FileSize(F));
   if FileSize(F) <> 5 then
-   RunError(255);   }
-  WriteLn('closing file...');
-  Close(F);
+   RunError(255);   
+*)
+  test_do_close;
   {------------------------ create and play with an old file --------------------------}
-  BytesWritten := 0;
   FillChar(readData,DATA_SIZE,0);
-  WriteLn('opening file...');
-  Assign(F,FILE_NAME2);
-  Rewrite(F,1);
-  WriteLn('writing to file...');
-  BlockWrite(F,DATA,DATA_SIZE,BytesWritten);
-  if BytesWritten<>DATA_SIZE then
-    RunError(255);
-  WriteLn('closing file...');
-  Close(F);
-  BytesWritten := 0;
+  test_do_open(FILE_NAME2, MODE_REWRITE);
+  test_do_write(DATA, DATA_SIZE);
+  test_do_close;
+
   FillChar(readData,DATA_SIZE,0);
-  WriteLn('opening already created file...');
-  Assign(F,FILE_NAME2);
-  Reset(F,1);
-  WriteLn('writing to file...');
-  BlockWrite(F,DATA,DATA_SIZE,BytesWritten);
-  if BytesWritten<>DATA_SIZE then
-    RunError(255);
-  WriteLn('closing file...');
-  Close(F);
-  Assign(F,FILE_NAME2);
-  WriteLn('renaming file...');
-  ReName(F,'test3.tmp');
-  WriteLn('erasing file....');
-  Erase(F);
+  test_do_open(FILE_NAME2, MODE_RESET);
+  test_do_write(DATA, DATA_SIZE);
+
+  test_do_filesize(DATA_SIZE);
+  test_do_seek(0);
+  test_do_read(readData, DATA_SIZE);
+  
+  
+  for i:=1 to DATA_SIZE do
+   Begin
+       test(readData[i], data[i]);
+   end;
+  
+  test_do_close;
+
+  test_rename(FILE_NAME2, 'test3.tmp');
+  test_erase(FILE_NAME);
 end.
 
 {
  $Log$
- Revision 1.3  2001-07-31 19:18:53  peter
+ Revision 1.4  2002-03-05 21:53:53  carl
+ + cleanup
+
+ Revision 1.3  2001/07/31 19:18:53  peter
    * small fixes to compile
 
  Revision 1.2  2001/07/30 22:09:34  peter
