@@ -677,8 +677,9 @@ begin
   count:=0;
   cmdline:=getcommandfile;
   Arglen:=0;
-  while (cmdline[Arglen]<>#0) do
-    Inc(ArgLen);
+  repeat
+    Inc(Arglen);
+  until (cmdline[Arglen]=#0);
   getmem(argsbuf[count],arglen);
   move(cmdline^,argsbuf[count]^,arglen);
   { Now skip the first one }
@@ -1009,7 +1010,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  1999-09-10 15:40:35  peter
+  Revision 1.45  1999-10-03 19:39:05  peter
+    * fixed argv[0] length
+
+  Revision 1.44  1999/09/10 15:40:35  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
   Revision 1.43  1999/07/07 10:04:43  michael
