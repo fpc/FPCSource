@@ -21,7 +21,7 @@
 
  ****************************************************************************
 }
-{# @abstract(Abstract code generator unit) 
+{# @abstract(Abstract code generator unit)
    Abstreact code generator unit. This contains the base class
    to implement for all new supported processors.
 }
@@ -39,15 +39,15 @@ unit cgobj;
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
-       
-        
-       {# @abstract(Abstract code generator) 
-          This class implements an abstract instruction generator. Some of 
+
+
+       {# @abstract(Abstract code generator)
+          This class implements an abstract instruction generator. Some of
           the methods of this class are generic, while others must
           be overriden for all new processors which will be supported
           by Free Pascal. For 32-bit processors, the base class
           sould be @link(tcg64f32) and not @var(tcg).
-       }   
+       }
        tcg = class
           scratch_register_array_pointer : aword;
           {# List of currently unused scratch registers }
@@ -66,16 +66,16 @@ unit cgobj;
           {# Deallocates register r by inserting a pa_regdealloc record}
           procedure a_reg_dealloc(list : taasmoutput;r : tregister);
 
-          {# @abstract(Returns a register for use as scratch register) 
+          {# @abstract(Returns a register for use as scratch register)
              This routine returns a register which can be used by
              the code generator as a scratch register. Since
              scratch_registers are scarce resources, the register
-             should be freed by calling @link(get_scratch_reg) as 
+             should be freed by calling @link(get_scratch_reg) as
              soon as it is no longer required.
           }
           function get_scratch_reg(list : taasmoutput) : tregister;
-          {# @abstract(Releases a scratch register) 
-          
+          {# @abstract(Releases a scratch register)
+
              Releases a scratch register.
              This routine is used to free a register which
              was previously allocated using @link(get_scratch_reg).
@@ -120,52 +120,52 @@ unit cgobj;
           { left to right), this allows to move the parameter to    }
           { register, if the cpu supports register calling          }
           { conventions                                             }
-          
+
           {# Pass a parameter, which is located in a register, to a routine.
-             
+
              This routine should push/send the parameter to the routine, as
              required by the specific processor ABI. This must be overriden for
              each CPU target.
-             
+
              @param(size size of the operand in the register)
              @param(r register source of the operand)
              @param(nr parameter number (starting from one) of routine (from left to right))
-          }   
+          }
           procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual; abstract;
           {# Pass a parameter, which is a constant, to a routine.
-             
+
              A generic version is provided.
-             
+
              @param(size size of the operand in constant)
              @param(a value of constant to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
-          }   
+          }
           procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
-             
+
              A generic version is provided.
-             
+
              @param(size size of the operand in constant)
              @param(r Memory reference of value to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
-          }   
+          }
           procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-          {# Pass the value of a parameter, which can be located either in a register or memory location, 
+          {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
-             
+
              A generic version is provided.
-             
+
              @param(l location of the operand to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
-          }   
+          }
           procedure a_param_loc(list : taasmoutput;const l : tlocation;nr : longint);
           {# Pass the address of a reference to a routine.
-             
+
              A generic version is provided.
-             
+
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
-          }   
+          }
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
 
           {**********************************}
@@ -277,51 +277,51 @@ unit cgobj;
           {********************************************************}
           { these methods can be overriden for extra functionality }
 
-          {# Emits instructions which should be emitted when entering 
+          {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
           }
           procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
-          
+
           {# Emits instructions which should be emitted when exiting
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
           }
           procedure g_interrupt_stackframe_exit(list : taasmoutput);virtual;
-    
+
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
              behavior does nothing, should be overriden as required.
           }
           procedure g_profilecode(list : taasmoutput);virtual;
-          
+
           {# Emits the call to the stack checking routine of
-             the runtime library. The default behavior 
+             the runtime library. The default behavior
              does not need to be modified, as it is generic
              for all platforms.
           }
           procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
 
           procedure g_maybe_loadself(list : taasmoutput);virtual; abstract;
-          {# This should emit the opcode to copy len bytes from the source 
-             to destination, if loadref is true, it assumes that it first must load 
-             the source address from the memory location where   
+          {# This should emit the opcode to copy len bytes from the source
+             to destination, if loadref is true, it assumes that it first must load
+             the source address from the memory location where
              source points to.
-             
+
              It must be overriden for each new target processor.
-             
+
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
              @param(delsource Indicates if the source reference's resources should be freed)
              @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
-             
+
           }
           procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);virtual; abstract;
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overriden,
              as it takes care of everything.
-             
+
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
@@ -416,7 +416,7 @@ unit cgobj;
 
       begin
 {$ifdef i386}
-         include(unusedscratchregisters,makereg32(r));
+         include(unusedscratchregisters,changeregsize(r,S_L));
 {$else i386}
          include(unusedscratchregisters,r);
 {$endif i386}
@@ -1258,21 +1258,21 @@ unit cgobj;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
 {$ifdef i386}
-              case loc.size of
-                OS_8,OS_S8:
-                  tmpreg := reg32toreg8(rg.getregisterint(exprasmlist));
-                OS_16,OS_S16:
-                  tmpreg := reg32toreg16(get_scratch_reg(list));
-                else
-                  tmpreg := get_scratch_reg(list);
-              end;
-{$else i386}
+              { the following is done with defines to avoid a speed penalty,  }
+              { since all this is only necessary for the 80x86 (because EDI   }
+              { doesn't have an 8bit component which is directly addressable) }
+              if loc.size in [OS_8,OS_S8] then
+                tmpreg := rg.getregisterint(exprasmlist)
+              else
+{$endif i386}
               tmpreg := get_scratch_reg(list);
+{$ifdef i386}
+              makeregsize(tmpreg,loc.size);
 {$endif i386}
               a_load_ref_reg(list,loc.size,loc.reference,tmpreg);
               a_load_reg_ref(list,loc.size,tmpreg,ref);
 {$ifdef i386}
-              if not (loc.size in [OS_32,OS_S32]) then
+              if loc.size in [OS_8,OS_S8] then
                 rg.ungetregister(exprasmlist,tmpreg)
               else
 {$endif i386}
@@ -1519,7 +1519,7 @@ unit cgobj;
               a_load_ref_reg(list,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
-              if makereg32(tmpreg) <> R_EDI then
+              if size in [OS_8,OS_S8] then
                 rg.ungetregister(exprasmlist,tmpreg)
               else
 {$endif i386}
@@ -1660,7 +1660,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2002-04-07 13:22:11  carl
+  Revision 1.14  2002-04-15 19:44:18  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.13  2002/04/07 13:22:11  carl
   + more documentation
 
   Revision 1.12  2002/04/07 09:12:46  carl

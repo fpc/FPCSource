@@ -63,7 +63,7 @@ implementation
       cginfo,cgbase,pass_2,
       cpubase,
       nmem,nld,ncnv,
-      tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu,cg64f32;
+      tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -90,7 +90,6 @@ implementation
          { temporary variables: }
          tempdeftype : tdeftype;
          href   : treference;
-         cgsize : tcgsize;
 
       begin
          { set default para_alignment to target_info.stackalignment }
@@ -151,16 +150,6 @@ implementation
                 end
               else
                 begin
-                   { get temp for constants }
-                   if left.location.loc=LOC_CONSTANT then
-                    begin
-                      cgsize:=def_cgsize(left.resulttype.def);
-                      tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
-                      cg.a_load_loc_ref(exprasmlist,left.location,href);
-                      location_reset(left.location,LOC_REFERENCE,cgsize);
-                      left.location.reference:=href;
-                    end;
-
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                      CGMessage(type_e_mismatch)
                    else
@@ -185,10 +174,9 @@ implementation
               { get temp for constants }
               if left.location.loc=LOC_CONSTANT then
                begin
-                 cgsize:=def_cgsize(left.resulttype.def);
                  tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
                  cg.a_load_loc_ref(exprasmlist,left.location,href);
-                 location_reset(left.location,LOC_REFERENCE,cgsize);
+                 location_reset(left.location,LOC_REFERENCE,def_cgsize(left.resulttype.def));
                  left.location.reference:=href;
                end;
 
@@ -321,6 +309,7 @@ implementation
          store_parast_fixup,
          para_alignment,
          para_offset : longint;
+         cgsize : tcgsize;
          { instruction for alignement correction }
 {        corr : paicpu;}
          { we must pop this size also after !! }
@@ -331,14 +320,12 @@ implementation
          push_size : longint;
 {$endif OPTALIGN}
          pop_allowed : boolean;
-         cgsize : tcgsize;
          constructorfailed : tasmlabel;
 
       label
          dont_call;
 
       begin
-         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
@@ -573,7 +560,7 @@ implementation
                 begin
                    { dirty trick to avoid the secondcall below }
                    methodpointer:=ccallparanode.create(nil,nil);
-                   methodpointer.location.loc:=LOC_REGISTER;
+                   location_reset(methodpointer.location,LOC_REGISTER,OS_ADDR);
                    rg.getexplicitregisterint(exprasmlist,R_ESI);
                    methodpointer.location.register:=R_ESI;
                    { ARGHHH this is wrong !!!
@@ -1149,136 +1136,95 @@ implementation
            end;
 
          { handle function results }
-         { structured results are easy to handle.... }
-         { needed also when result_no_used !! }
-         if (not is_void(resulttype.def)) and ret_in_param(resulttype.def) then
-           begin
-              location.loc:=LOC_CREFERENCE;
-              location.reference.symbol:=nil;
-              location.reference:=funcretref;
-           end;
-         { we have only to handle the result if it is used, but }
-         { ansi/widestrings must be registered, so we can dispose them }
-         if (not is_void(resulttype.def)) and ((nf_return_value_used in flags) or
-           is_ansistring(resulttype.def) or is_widestring(resulttype.def)) then
-           begin
-              { a contructor could be a function with boolean result }
-              if (inlined or
-                  (right=nil)) and
-                 (procdefinition.proctypeoption=potype_constructor) and
-                 { quick'n'dirty check if it is a class or an object }
-                 (resulttype.def.deftype=orddef) then
-                begin
-                   if extended_new then
-                     begin
-{$ifdef test_dest_loc}
-                        if dest_loc_known and (dest_loc_tree=p) then
-                          mov_reg_to_dest(p,S_L,R_EAX)
-                        else
-{$endif test_dest_loc}
-                          begin
-                             cg.a_reg_alloc(exprasmlist,R_EAX);
-                             hregister:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                             emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                             location_reset(location,LOC_REGISTER,OS_NO);
-                             location.register:=hregister;
-                          end;
-                     end
-                   else
-                     begin
-                       { this fails if popsize > 0 PM }
-                       location_reset(location,LOC_FLAGS,OS_NO);
-                       location.resflags:=F_NE;
-                     end;
-                end
-               { structed results are easy to handle.... }
-              else if ret_in_param(resulttype.def) then
-                begin
-                   {location.loc:=LOC_MEM;
-                   stringdispose(location.reference.symbol);
-                   location.reference:=funcretref;
-                   already done above (PM) }
-                end
-              else
-                begin
-                   if (resulttype.def.deftype in [orddef,enumdef]) then
-                     begin
-                        cg.a_reg_alloc(exprasmlist,R_EAX);
-                        cgsize:=def_cgsize(resulttype.def);
-                        location_reset(location,LOC_REGISTER,cgsize);
-                        if cgsize in [OS_64,OS_S64] then
-                         begin
-                           cg.a_reg_alloc(exprasmlist,R_EDX);
-                           if R_EDX in rg.unusedregsint then
-                             begin
-                                location.registerhigh:=rg.getexplicitregisterint(exprasmlist,R_EDX);
-                                location.registerlow:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                             end
-                           else
-                             begin
-                                location.registerhigh:=rg.getexplicitregisterint(exprasmlist,R_EDX);
-                                location.registerlow:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                             end;
-                           tcg64f32(cg).a_load64_reg_reg(exprasmlist,R_EAX,R_EDX,location.registerlow,location.registerhigh);
-                         end
-                        else
-                         begin
-                           location.register:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                           case cgsize of
-                             OS_8,OS_S8 :
-                               begin
-                                 hregister:=R_AL;
-                                 location.register:=makereg8(location.register);
-                               end;
-                             OS_16,OS_S16 :
-                               begin
-                                 hregister:=R_AX;
-                                 location.register:=makereg16(location.register);
-                               end;
-                             OS_32,OS_S32 :
-                               hregister:=R_EAX;
-                             else
-                               internalerror(200203281);
-                           end;
-{$ifdef test_dest_loc}
-{$error Don't know what to do here}
-                               if dest_loc_known and (dest_loc_tree=p) then
-                                 mov_reg_to_dest(p,S_L,R_EAX)
-{$endif test_dest_loc}
-                           cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
-                         end
-                     end
-              else if (resulttype.def.deftype=floatdef) then
-                begin
-                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                  location.register:=R_ST;
-                  inc(trgcpu(rg).fpuvaroffset);
-                end
-              else if is_ansistring(resulttype.def) or
-                      is_widestring(resulttype.def) then
-                begin
-                   location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                   location.reference:=refcountedtemp;
-                   cg.a_reg_alloc(exprasmlist,R_EAX);
-                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,R_EAX,location.reference);
-                   cg.a_reg_dealloc(exprasmlist,R_EAX);
-                end
-              else
-                begin
-                   location_reset(location,LOC_REGISTER,OS_INT);
-{$ifdef test_dest_loc}
-                   if dest_loc_known and (dest_loc_tree=p) then
-                     mov_reg_to_dest(p,S_L,R_EAX)
-                   else
-{$endif test_dest_loc}
+         if (not is_void(resulttype.def)) then
+          begin
+            { structured results are easy to handle.... }
+            { needed also when result_no_used !! }
+            if ret_in_param(resulttype.def) then
+             begin
+               location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+               location.reference.symbol:=nil;
+               location.reference:=funcretref;
+             end
+            else
+            { ansi/widestrings must be registered, so we can dispose them }
+             if is_ansistring(resulttype.def) or
+                is_widestring(resulttype.def) then
+              begin
+                location_reset(location,LOC_CREFERENCE,OS_ADDR);
+                location.reference:=refcountedtemp;
+                cg.a_reg_alloc(exprasmlist,accumulator);
+                cg.a_load_reg_ref(exprasmlist,OS_ADDR,accumulator,location.reference);
+                cg.a_reg_dealloc(exprasmlist,accumulator);
+              end
+            else
+            { we have only to handle the result if it is used }
+             if (nf_return_value_used in flags) then
+              begin
+                case resulttype.def.deftype of
+                  enumdef,
+                  orddef :
                     begin
-                       cg.a_reg_alloc(exprasmlist,R_EAX);
-                       location.register:=rg.getexplicitregisterint(exprasmlist,R_EAX);
-                       cg.a_load_reg_reg(exprasmlist,OS_INT,R_EAX,location.register);
+                      cgsize:=def_cgsize(resulttype.def);
+                      { an object constructor is a function with boolean result }
+                      if (inlined or (right=nil)) and
+                         (procdefinition.proctypeoption=potype_constructor) then
+                       begin
+                         if extended_new then
+                          cgsize:=OS_INT
+                         else
+                          begin
+                            cgsize:=OS_NO;
+                            { this fails if popsize > 0 PM }
+                            location_reset(location,LOC_FLAGS,OS_NO);
+                            location.resflags:=F_NE;
+                          end;
+                       end;
+
+                      if cgsize<>OS_NO then
+                       begin
+                         location_reset(location,LOC_REGISTER,cgsize);
+                         cg.a_reg_alloc(exprasmlist,accumulator);
+                         if cgsize in [OS_64,OS_S64] then
+                          begin
+                            cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                            if accumulatorhigh in rg.unusedregsint then
+                              begin
+                                 location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
+                                 location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                              end
+                            else
+                              begin
+                                 location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
+                                 location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                              end;
+                            tcg64f32(cg).a_load64_reg_reg(exprasmlist,accumulator,accumulatorhigh,
+                                location.registerlow,location.registerhigh);
+                          end
+                         else
+                          begin
+                            location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                            hregister:=changeregsize(accumulator,TCGSize2Opsize[cgsize]);
+                            location.register:=changeregsize(location.register,TCGSize2Opsize[cgsize]);
+                            cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
+                          end;
+                       end;
+                    end;
+                  floatdef :
+                    begin
+                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                      location.register:=R_ST;
+                      inc(trgcpu(rg).fpuvaroffset);
+                    end;
+                  else
+                    begin
+                      location_reset(location,LOC_REGISTER,OS_INT);
+                      location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                      cg.a_load_reg_reg(exprasmlist,OS_INT,accumulator,location.register);
                     end;
                 end;
              end;
-           end;
+          end;
 
          { perhaps i/o check ? }
          if iolabel<>nil then
@@ -1397,11 +1343,7 @@ implementation
                   for i := 1 to maxvarregs do
                     if assigned(regvars[i]) then
                       begin
-                        case regsize(regvars[i].reg) of
-                          S_B: tmpreg := reg8toreg32(regvars[i].reg);
-                          S_W: tmpreg := reg16toreg32(regvars[i].reg);
-                          S_L: tmpreg := regvars[i].reg;
-                        end;
+                        tmpreg:=changeregsize(regvars[i].reg,S_L);
                         rg.makeregvar(tmpreg);
                       end;
             end;
@@ -1535,7 +1477,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-04-04 19:06:10  peter
+  Revision 1.45  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.44  2002/04/04 19:06:10  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

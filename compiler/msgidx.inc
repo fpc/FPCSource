@@ -23,7 +23,6 @@ const
   scan_t_start_include_file=02004;
   scan_w_comment_level=02005;
   scan_n_far_directive_ignored=02006;
-  scan_n_stack_check_global_under_linux=02007;
   scan_n_ignored_switch=02008;
   scan_w_illegal_switch=02009;
   scan_w_switch_is_global=02010;
@@ -604,7 +603,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 33913;
+  MsgTxtSize = 33871;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,184,38,41,41,98,17,35,42,

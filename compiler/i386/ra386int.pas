@@ -1564,7 +1564,7 @@ Begin
             Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg_2_opsize[opr.reg];
+           size:=reg2opsize[opr.reg];
          end;
       end;
 
@@ -1959,7 +1959,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2002-04-15 19:12:09  carl
+  Revision 1.24  2002-04-15 19:44:22  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.23  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

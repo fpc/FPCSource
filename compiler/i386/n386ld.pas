@@ -152,13 +152,13 @@ implementation
                                    location.register:=tvarsym(symtableentry).reg;
                                 end
                               else
-                                if not(makereg32(tvarsym(symtableentry).reg) in [R_EAX..R_EBX]) or
-                                   rg.regvar_loaded[makereg32(tvarsym(symtableentry).reg)] then
+                                if not(changeregsize(tvarsym(symtableentry).reg,S_L) in [R_EAX..R_EBX]) or
+                                   rg.regvar_loaded[changeregsize(tvarsym(symtableentry).reg,S_L)] then
                                 begin
                                    location_reset(location,LOC_CREGISTER,
                                        cg.reg_cgsize(tvarsym(symtableentry).reg));
                                    location.register:=tvarsym(symtableentry).reg;
-                                   exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
+                                   exclude(rg.unusedregsint,changeregsize(tvarsym(symtableentry).reg,S_L));
                                 end
                               else
                                 begin
@@ -166,7 +166,7 @@ implementation
                                   location_reset(location,LOC_CREGISTER,
                                       cg.reg_cgsize(tvarsym(symtableentry).reg));
                                   location.register:=tvarsym(symtableentry).reg;
-                                  exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
+                                  exclude(rg.unusedregsint,changeregsize(tvarsym(symtableentry).reg,S_L));
                                 end
                            end
                          else
@@ -698,7 +698,7 @@ implementation
               LOC_FLAGS :
                 begin
                   if loc=LOC_CREGISTER then
-                    emit_flag2reg(right.location.resflags,left.location.register)
+                    cg.g_flags2reg(exprasmlist,right.location.resflags,left.location.register)
                   else
                     begin
                       if not(loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -989,7 +989,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-04-07 09:16:07  carl
+  Revision 1.35  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.34  2002/04/07 09:16:07  carl
   - remove unused variable
 
   Revision 1.33  2002/04/04 19:06:12  peter

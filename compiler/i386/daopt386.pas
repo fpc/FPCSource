@@ -226,7 +226,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tainst, rgobj;
+  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, rgobj;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -586,10 +586,10 @@ Begin
   If (Reg >= R_AX)
     Then
       If (Reg <= R_DI)
-        Then Reg32 := Reg16ToReg32(Reg)
+        Then Reg32 := ChangeRegsize(Reg,S_L)
         Else
           If (Reg <= R_BL)
-            Then Reg32 := Reg8toReg32(Reg);
+            Then Reg32 := ChangeRegsize(Reg,S_L);
 End;
 
 { inserts new_one between prev and foll }
@@ -641,37 +641,37 @@ Begin
       Case OldReg Of
         R_EAX..R_EDI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [Reg32toReg16(NewReg)];
-            OldRegsEncountered := OldRegsEncountered + [Reg32toReg16(OldReg)];
-            New2OldReg[Reg32toReg16(NewReg)] := Reg32toReg16(OldReg);
+            NewRegsEncountered := NewRegsEncountered + [ChangeRegsize(NewReg,S_W)];
+            OldRegsEncountered := OldRegsEncountered + [ChangeRegsize(OldReg,S_W)];
+            New2OldReg[Changeregsize(NewReg,S_W)] := Changeregsize(OldReg,S_W);
             If (NewReg in [R_EAX..R_EBX]) And
                (OldReg in [R_EAX..R_EBX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [Reg32toReg8(NewReg)];
-                OldRegsEncountered := OldRegsEncountered + [Reg32toReg8(OldReg)];
-                New2OldReg[Reg32toReg8(NewReg)] := Reg32toReg8(OldReg);
+                NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_B)];
+                OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_B)];
+                New2OldReg[Changeregsize(NewReg,S_B)] := Changeregsize(OldReg,S_B);
               End;
           End;
         R_AX..R_DI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [Reg16toReg32(NewReg)];
-            OldRegsEncountered := OldRegsEncountered + [Reg16toReg32(OldReg)];
-            New2OldReg[Reg16toReg32(NewReg)] := Reg16toReg32(OldReg);
+            NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_L)];
+            OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_L)];
+            New2OldReg[Changeregsize(NewReg,S_L)] := Changeregsize(OldReg,S_L);
             If (NewReg in [R_AX..R_BX]) And
                (OldReg in [R_AX..R_BX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [Reg16toReg8(NewReg)];
-                OldRegsEncountered := OldRegsEncountered + [Reg16toReg8(OldReg)];
-                New2OldReg[Reg16toReg8(NewReg)] := Reg16toReg8(OldReg);
+                NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_B)];
+                OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_B)];
+                New2OldReg[Changeregsize(NewReg,S_B)] := Changeregsize(OldReg,S_B);
               End;
           End;
         R_AL..R_BL:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [Reg8toReg32(NewReg)]
-                               + [Reg8toReg16(NewReg)];
-            OldRegsEncountered := OldRegsEncountered + [Reg8toReg32(OldReg)]
-                               + [Reg8toReg16(OldReg)];
-            New2OldReg[Reg8toReg32(NewReg)] := Reg8toReg32(OldReg);
+            NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_L)]
+                               + [Changeregsize(NewReg,S_W)];
+            OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_L)]
+                               + [Changeregsize(OldReg,S_B)];
+            New2OldReg[Changeregsize(NewReg,S_L)] := Changeregsize(OldReg,S_L);
           End;
       End;
     End;
@@ -2586,7 +2586,15 @@ End.
 
 {
   $Log$
-  Revision 1.30  2002-04-15 19:12:09  carl
+  Revision 1.31  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.30  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

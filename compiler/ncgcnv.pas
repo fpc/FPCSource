@@ -189,7 +189,6 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
-               secondpass(left);
                tg.gettempofsizereference(exprasmlist,256,location.reference);
                cg.a_load_loc_ref(exprasmlist,left.location,
                  location.reference);
@@ -253,89 +252,21 @@ interface
 
 
     procedure tcgtypeconvnode.second_bool_to_int;
-
       var
-         oldtruelabel,oldfalselabel,hlabel : tasmlabel;
-         newsize,
-         opsize : tcgsize;
-
+         oldtruelabel,oldfalselabel : tasmlabel;
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(left);
+         location_copy(location,left.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
-         if (nf_explizit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           begin
-              location_copy(location,left.location);
-              truelabel:=oldtruelabel;
-              falselabel:=oldfalselabel;
-              exit;
-           end;
-         { size of the boolean we're converting }
-         opsize := def_cgsize(left.resulttype.def);
-         { size of the destination }
-         newsize := def_cgsize(resulttype.def);
-         { reset location for destination }
-         location_reset(location,LOC_REGISTER,newsize);
-         location.register:=rg.getregisterint(exprasmlist);
-         { if the source size is bigger than the destination, we can }
-         { simply decrease the sources size (since wordbool(true) =   }
-         { boolean(true) etc... (JM)                                  }
-         case newsize of
-           OS_8,OS_S8:
-             begin
-               opsize := OS_8;
-{$ifdef i386}
-               location.register := makereg8(location.register);
-               if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                 makereg8(left.location.register);
-{$endif i386}
-             end;
-           OS_16,OS_S16:
-             begin
-{$ifdef i386}
-               location.register := makereg16(location.register);
-{$endif i386}
-               if opsize in [OS_32,OS_S32] then
-                 begin
-                   opsize := OS_16;
-{$ifdef i386}
-                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     makereg16(left.location.register);
-{$endif i386}
-                 end
-             end;
-         end;
-         case left.location.loc of
-            LOC_CREFERENCE,
-            LOC_REFERENCE :
-              cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,
-                location.register);
-            LOC_REGISTER,
-            LOC_CREGISTER :
-              if left.location.register<>location.register then
-                cg.a_load_reg_reg(exprasmlist,opsize,left.location.register,
-                  location.register);
-            LOC_FLAGS :
-              cg.g_flags2reg(exprasmlist,left.location.resflags,location.register);
-            LOC_JUMP :
-              begin
-                getlabel(hlabel);
-                cg.a_label(exprasmlist,truelabel);
-                cg.a_load_const_reg(exprasmlist,newsize,1,location.register);
-                cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
-                cg.a_label(exprasmlist,falselabel);
-                cg.a_load_const_reg(exprasmlist,newsize,0,location.register);
-                cg.a_label(exprasmlist,hlabel);
-              end;
-            else
-              internalerror(10061);
-         end;
+         if not((nf_explizit in flags) and
+                (left.resulttype.def.size=resulttype.def.size) and
+                (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])) then
+           location_force_reg(location,def_cgsize(resulttype.def),false);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
       end;
@@ -440,7 +371,15 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-04-06 18:10:42  jonas
+  Revision 1.9  2002-04-15 19:44:19  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.8  2002/04/06 18:10:42  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.7  2002/04/04 19:05:57  peter

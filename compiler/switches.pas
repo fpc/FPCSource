@@ -95,36 +95,18 @@ begin
                    if not localswitcheschanged then
                      nextaktlocalswitches:=aktlocalswitches;
                    if state='+' then
-                    nextaktlocalswitches:=nextaktlocalswitches+[tlocalswitch(setsw)]
+                    include(nextaktlocalswitches,tlocalswitch(setsw))
                    else
-                    nextaktlocalswitches:=nextaktlocalswitches-[tlocalswitch(setsw)];
+                    exclude(nextaktlocalswitches,tlocalswitch(setsw));
                    localswitcheschanged:=true;
-                 { Message for linux which has global checking only }
-                   if (switch='S') and (
-{$ifdef i386}
-                      (target_info.target = target_i386_linux)
-{$else}
-{$ifdef m68k}
-                      (target_info.target = target_m68k_linux)
-{$else}
-                       True
-{$endif m68k}
-{$endif i386}
-                       ) then
-                       Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
                    if current_module.in_global then
                     begin
                       if state='+' then
-                        aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
+                        include(aktmoduleswitches,tmoduleswitch(setsw))
                       else
-                        aktmoduleswitches:=aktmoduleswitches-[tmoduleswitch(setsw)];
-                      { can't have local browser when no global browser
-                        moved to end of global section
-                      if (cs_local_browser in aktmoduleswitches) and
-                         not(cs_browser in aktmoduleswitches) then
-                        aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];}
+                        exclude(aktmoduleswitches,tmoduleswitch(setsw));
                     end
                    else
                     Message(scan_w_switch_is_global);
@@ -133,9 +115,9 @@ begin
                    if current_module.in_global and (current_module=main_module) then
                     begin
                       if state='+' then
-                       aktglobalswitches:=aktglobalswitches+[tglobalswitch(setsw)]
+                       include(aktglobalswitches,tglobalswitch(setsw))
                       else
-                       aktglobalswitches:=aktglobalswitches-[tglobalswitch(setsw)];
+                       exclude(aktglobalswitches,tglobalswitch(setsw));
                     end
                    else
                     Message(scan_w_switch_is_global);
@@ -177,7 +159,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-10-20 20:30:21  peter
+  Revision 1.9  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.8  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.7  2001/05/18 22:56:05  peter

@@ -28,7 +28,7 @@ unit cga;
 interface
 
     uses
-       cpuinfo,cpubase,cpuasm,
+       cpuinfo,cpubase,cpuasm,cginfo,
        symconst,symtype,symdef,aasm;
 
 {$define TESTGETTEMP to store const that
@@ -37,18 +37,9 @@ interface
     function def_opsize(p1:tdef):topsize;
     function def2def_opsize(p1,p2:tdef):topsize;
     function def_getreg(p1:tdef):tregister;
-    function makereg8(r:tregister):tregister;
-    function makereg16(r:tregister):tregister;
-    function makereg32(r:tregister):tregister;
-
-
-    procedure locflags2reg(var l:tlocation;opsize:topsize);
-    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: tasmlabel);
-
 
     procedure emitlab(var l : tasmlabel);
     procedure emitjmp(c : tasmcond;var l : tasmlabel);
-    procedure emit_flag2reg(flag:tresflags;hregister:tregister);
 
     procedure emit_none(i : tasmop;s : topsize);
 
@@ -76,11 +67,7 @@ interface
     procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
     procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
-//    procedure emit_push_loc(const t:tlocation);
     procedure emit_push_mem_size(const t: treference; size: longint);
-
-    { pushes qword location to the stack }
-//    procedure emit_pushq_loc(const t : tlocation);
 
     { remove non regvar registers in loc from regs (in the format }
     { pushusedregisters uses)                                     }
@@ -89,8 +76,6 @@ interface
     procedure emit_pushw_loc(const t:tlocation);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
     procedure emit_to_mem(var t:tlocation;def:tdef);
-    procedure emit_to_reg16(var hr:tregister);
-    procedure emit_to_reg32(var hr:tregister);
 
     procedure copyshortstring(const dref,sref : treference;len : byte;
                         loadref, del_sref: boolean);
@@ -156,18 +141,18 @@ implementation
 {$endif}
        ;
 
-{$ifdef NOTARGETWIN32} 
+{$ifdef NOTARGETWIN32}
  {$define __NOWINPECOFF__}
 {$endif}
 
-{$ifdef NOTARGETWDOSX} 
+{$ifdef NOTARGETWDOSX}
  {$define __NOWINPECOFF__}
 {$endif}
 
 {$ifndef __NOWINPECOFF__}
   const
      winstackpagesize = 4096;
-{$endif} 
+{$endif}
 
 
 {*****************************************************************************
@@ -226,97 +211,7 @@ implementation
 
     function def_getreg(p1:tdef):tregister;
       begin
-        case p1.size of
-         1 : def_getreg:=reg32toreg8(rg.getregisterint(exprasmlist));
-         2 : def_getreg:=reg32toreg16(rg.getregisterint(exprasmlist));
-         4 : def_getreg:=rg.getregisterint(exprasmlist);
-        else
-         internalerror(130820003);
-        end;
-      end;
-
-
-    function makereg8(r:tregister):tregister;
-      begin
-        makereg8 := r;
-        case r of
-          R_EAX,R_EBX,R_ECX,R_EDX:
-            makereg8:=reg32toreg8(r);
-          R_AX,R_BX,R_CX,R_DX:
-            makereg8:=reg16toreg8(r);
-        end;
-      end;
-
-
-    function makereg16(r:tregister):tregister;
-      begin
-        makereg16 := r;
-        case r of
-          R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI,R_ESP,R_EBP :
-            makereg16:=reg32toreg16(r);
-          R_AL,R_BL,R_CL,R_DL :
-            makereg16:=reg8toreg16(r);
-        end;
-      end;
-
-
-    function makereg32(r:tregister):tregister;
-      begin
-        makereg32 := r;
-        case r of
-          R_AX,R_BX,R_CX,R_DX,R_DI,R_SI,R_SP,R_BP :
-            makereg32:=reg16toreg32(r);
-          R_AL,R_BL,R_CL,R_DL :
-            makereg32:=reg8toreg32(r);
-        end;
-      end;
-
-
-    procedure locflags2reg(var l:tlocation;opsize:topsize);
-      var
-        hregister : tregister;
-      begin
-        if (l.loc=LOC_FLAGS) then
-         begin
-           hregister:=rg.getregisterint(exprasmlist);
-           case opsize of
-            S_W : hregister:=reg32toreg16(hregister);
-            S_B : hregister:=reg32toreg8(hregister);
-           end;
-           emit_flag2reg(l.resflags,hregister);
-           l.loc:=LOC_REGISTER;
-           l.register:=hregister;
-         end
-        else internalerror(270720001);
-      end;
-
-
-    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: tasmlabel);
-      var
-        hregister : tregister;
-        hl : tasmlabel;
-      begin
-         if l.loc = LOC_JUMP then
-           begin
-             hregister:=rg.getregisterint(exprasmlist);
-             case opsize of
-               S_W : hregister:=reg32toreg16(hregister);
-               S_B : hregister:=reg32toreg8(hregister);
-             end;
-             l.loc:=LOC_REGISTER;
-             l.register:=hregister;
-             emitlab(truelabel);
-             truelabel:=otl;
-             emit_const_reg(A_MOV,opsize,1,hregister);
-             getlabel(hl);
-             emitjmp(C_None,hl);
-             emitlab(falselabel);
-             falselabel:=ofl;
-             emit_reg_reg(A_XOR,S_L,makereg32(hregister),
-             makereg32(hregister));
-             emitlab(hl);
-           end
-        else internalerror(270720002);
+        def_getreg:=changeregsize(rg.getregisterint(exprasmlist),def_opsize(p1));
       end;
 
 
@@ -345,25 +240,6 @@ implementation
           end;
         ai.is_jmp:=true;
         exprasmList.concat(ai);
-      end;
-
-
-    procedure emit_flag2reg(flag:tresflags;hregister:tregister);
-      var
-        ai : taicpu;
-        hreg : tregister;
-      begin
-         hreg:=makereg8(hregister);
-         ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
-         ai.SetCondition(flags_to_cond(flag));
-         exprasmList.concat(ai);
-         if hreg<>hregister then
-          begin
-            if hregister in regset16bit then
-             emit_to_reg16(hreg)
-            else
-             emit_to_reg32(hreg);
-          end;
       end;
 
 
@@ -499,9 +375,9 @@ implementation
           LOC_REGISTER,
          LOC_CREGISTER : begin
                            if aktalignment.paraalign=4 then
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)))
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,changeregsize(t.register,S_L)))
                            else
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,makereg16(t.register)));
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,changeregsize(t.register,S_W)));
                          end;
          LOC_CONSTANT : begin
                            if aktalignment.paraalign=4 then
@@ -623,50 +499,6 @@ implementation
         t.loc:=LOC_CREFERENCE;
       end;
 
-
-    procedure emit_to_reg16(var hr:tregister);
-      begin
-        { ranges are a little bit bug sensitive ! }
-        case hr of
-           R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI,R_ESP,R_EBP:
-             begin
-               hr:=reg32toreg16(hr);
-             end;
-           R_AL,R_BL,R_CL,R_DL:
-             begin
-               hr:=reg8toreg16(hr);
-               emit_const_reg(A_AND,S_W,$ff,hr);
-             end;
-           R_AH,R_BH,R_CH,R_DH:
-             begin
-               hr:=reg8toreg16(hr);
-               emit_const_reg(A_AND,S_W,$ff00,hr);
-             end;
-        end;
-      end;
-
-
-    procedure emit_to_reg32(var hr:tregister);
-      begin
-        { ranges are a little bit bug sensitive ! }
-        case hr of
-           R_AX,R_BX,R_CX,R_DX,R_DI,R_SI,R_SP,R_BP:
-             begin
-                hr:=reg16toreg32(hr);
-                emit_const_reg(A_AND,S_L,$ffff,hr);
-             end;
-           R_AL,R_BL,R_CL,R_DL:
-             begin
-                hr:=reg8toreg32(hr);
-                emit_const_reg(A_AND,S_L,$ff,hr);
-             end;
-           R_AH,R_BH,R_CH,R_DH:
-             begin
-                hr:=reg8toreg32(hr);
-                emit_const_reg(A_AND,S_L,$ff00,hr);
-             end;
-        end;
-      end;
 
     procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
 
@@ -924,10 +756,10 @@ implementation
                 begin
                    { and now look for an 8 bit register }
                    swap:=false;
-                   if R_EAX in rg.unusedregsint then reg8:=reg32toreg8(rg.getexplicitregisterint(exprasmlist,R_EAX))
-                   else if R_EDX in rg.unusedregsint then reg8:=reg32toreg8(rg.getexplicitregisterint(exprasmlist,R_EDX))
-                   else if R_EBX in rg.unusedregsint then reg8:=reg32toreg8(rg.getexplicitregisterint(exprasmlist,R_EBX))
-                   else if R_ECX in rg.unusedregsint then reg8:=reg32toreg8(rg.getexplicitregisterint(exprasmlist,R_ECX))
+                   if R_EAX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EAX),S_B)
+                   else if R_EDX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EDX),S_B)
+                   else if R_EBX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EBX),S_B)
+                   else if R_ECX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_ECX),S_B)
                    else
                       begin
                          swap:=true;
@@ -1446,9 +1278,9 @@ implementation
       r    : treference;
       power,len  : longint;
       opsize : topsize;
-{$ifndef __NOWINPECOFF__} 
+{$ifndef __NOWINPECOFF__}
       again,ok : tasmlabel;
-{$endif} 
+{$endif}
     begin
        if (tsym(p).typ=varsym) and
           (tvarsym(p).varspez=vs_value) and
@@ -2570,7 +2402,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-04-14 20:54:17  carl
+  Revision 1.23  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.22  2002/04/14 20:54:17  carl
   + stack checking enabled for all targets (it is simulated now)
 
   Revision 1.21  2002/04/04 19:06:08  peter

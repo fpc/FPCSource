@@ -41,7 +41,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  globtype, verbose, cgbase, globals, daopt386, rgobj, rropt386;
+  globtype, verbose, cgbase, globals, daopt386, cginfo, rgobj, rropt386;
 
 {
 Function TaiInSequence(P: Tai; Const Seq: TContent): Boolean;
@@ -821,11 +821,14 @@ begin
   changeReg := true;
   if reg = newReg then
     reg := orgReg
-  else if reg = regtoreg8(newReg) then
-         reg := regtoreg8(orgReg)
-  else if reg = regtoreg16(newReg) then
-         reg := regtoreg16(orgReg)
-  else changeReg := false;
+  else if (reg in regset8bit) and
+          (reg = Changeregsize(newReg,S_B)) then
+    reg := Changeregsize(orgReg,S_B)
+  else if (reg in regset16bit) and
+          (reg = Changeregsize(newReg,S_W)) then
+    reg := Changeregsize(orgReg,S_W)
+  else
+    changeReg := false;
 end;
 
 function changeOp(var o: toper; newReg, orgReg: tregister): boolean;
@@ -1382,9 +1385,9 @@ begin
             begin
               case t.opsize of
                 S_B,S_BW,S_BL:
-                  memtoreg := reg32toreg8(regcounter);
+                  memtoreg := Changeregsize(regcounter,S_B);
                 S_W,S_WL:
-                  memtoreg := reg32toreg16(regcounter);
+                  memtoreg := Changeregsize(regcounter,S_W);
                 S_L:
                   memtoreg := regcounter;
               end;
@@ -1812,9 +1815,8 @@ Begin
                                 begin
                                   hp1 := Tai_Marker.Create(NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
-                                  hp1 := taicpu.op_reg_ref(A_MOV,
-                                    regsize(regcounter),regcounter,
-                                    taicpu(p).oper[0].ref^);
+                                  hp1 := taicpu.op_reg_ref(A_MOV,reg2opsize[regcounter],
+                                     regcounter,taicpu(p).oper[0].ref^);
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
@@ -1865,9 +1867,8 @@ Begin
                                 begin
                                   hp1 := Tai_Marker.Create(NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
-                                  hp1 := taicpu.op_reg_ref(A_MOV,
-                                    regsize(regcounter),regcounter,
-                                    taicpu(p).oper[1].ref^);
+                                  hp1 := taicpu.op_reg_ref(A_MOV,reg2opsize[regcounter],
+                                    regcounter,taicpu(p).oper[1].ref^);
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
@@ -1983,7 +1984,15 @@ End.
 
 {
   $Log$
-  Revision 1.29  2002-04-15 19:12:09  carl
+  Revision 1.30  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.29  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

@@ -153,9 +153,6 @@ scan_w_comment_level=02005_W_Comment level $1 found
 scan_n_far_directive_ignored=02006_N_$F directive (FAR) ignored
 % The \var{FAR} directive is a 16-bit construction which is recorgnised
 % but ignored by the compiler, since it produces 32 bit code.
-scan_n_stack_check_global_under_linux=02007_N_Stack check is global under Linux
-% Stack checking with the \var{-Cs} switch is ignored under \linux, since
-% \linux does this for you. Only displayed when \var{-vn} is used.
 scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 % With \var{-vn} on, the compiler warns if it ignores a switch
 scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"

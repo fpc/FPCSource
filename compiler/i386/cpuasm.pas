@@ -636,7 +636,7 @@ begin
     begin
       case typ of
         top_reg :
-          ot:=reg_2_type[reg];
+          ot:=reg2type[reg];
         top_ref :
           begin
           { create ot field }
@@ -1680,7 +1680,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-04-15 19:12:09  carl
+  Revision 1.20  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.19  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

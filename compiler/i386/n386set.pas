@@ -50,7 +50,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,
-      cga,tgobj,n386util,regvars,rgobj;
+      cga,cgobj,tgobj,n386util,regvars,rgobj;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -66,7 +66,7 @@ implementation
        { load first value in 32bit register }
          secondpass(left);
          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-           emit_to_reg32(left.location.register);
+           location_force_reg(left.location,OS_32,false);
 
        { also a second value ? }
          if assigned(right) then
@@ -78,7 +78,7 @@ implementation
              if pushed then
                restore(left,false);
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              emit_to_reg32(right.location.register);
+              location_force_reg(right.location,OS_32,false);
            end;
 
          { we doesn't modify the left side, we check only the type }
@@ -216,12 +216,12 @@ implementation
             { If register is used, use only lower 8 bits }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin
-               pleftreg:=left.location.register;
                { for ranges we always need a 32bit register, because then we }
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg := makereg32(pleftreg);
+                   pleftreg:=changeregsize(left.location.register,S_L);
+                   cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
                    opsize := S_L;
@@ -230,7 +230,7 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg := makereg8(pleftreg);
+                   pleftreg:=changeregsize(left.location.register,S_B);
                    opsize := S_B;
                  end;
              end
@@ -382,8 +382,8 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=left.location.register;
-                          emit_to_reg32(hr);
+                          hr:=changeregsize(left.location.register,S_L);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
                        end;
                   else
                     begin
@@ -451,8 +451,8 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=left.location.register;
-                          emit_to_reg32(hr);
+                          hr:=changeregsize(left.location.register,S_L);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
                           emit_const_reg(A_CMP,S_L,31,hr);
                           emitjmp(C_NA,l);
                         { reset carry flag }
@@ -523,14 +523,16 @@ implementation
                     end
                   else
                     begin
-                      pleftreg := left.location.register;
+                      pleftreg := changeregsize(left.location.register,S_L);
                       opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
                       if opsize <> S_L then
+                       begin
                          { this will change left, even if it's a LOC_CREGISTER, but }
                          { that doesn't matter: if left is an 8 bit def, then the   }
                          { upper 24 bits are undefined, so we can zero them without }
                          { any problem (JM)                                         }
-                         emit_to_reg32(pleftreg)
+                         cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
+                       end;
                     end;
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
                   rg.ungetregister(exprasmlist,pleftreg);
@@ -815,21 +817,21 @@ implementation
              begin
                 if with_sign then
                   emit_reg_reg(A_MOVSX,S_WL,hregister,
-                    reg16toreg32(hregister))
+                    changeregsize(hregister,S_L))
                 else
                   emit_reg_reg(A_MOVZX,S_WL,hregister,
-                    reg16toreg32(hregister));
-                hregister:=reg16toreg32(hregister);
+                    changeregsize(hregister,S_L));
+                hregister:=changeregsize(hregister,S_L);
              end
            else if opsize=S_B then
              begin
                 if with_sign then
                   emit_reg_reg(A_MOVSX,S_BL,hregister,
-                    reg8toreg32(hregister))
+                    changeregsize(hregister,S_L))
                 else
                   emit_reg_reg(A_MOVZX,S_BL,hregister,
-                    reg8toreg32(hregister));
-                hregister:=reg8toreg32(hregister);
+                    changeregsize(hregister,S_L));
+                hregister:=changeregsize(hregister,S_L);
              end;
            reference_reset_symbol(href,table,0);
            href.offset:=(-longint(min_))*4;
@@ -855,13 +857,12 @@ implementation
          labels : longint;
          max_linear_list : longint;
          otl, ofl: tasmlabel;
+         isjump : boolean;
 {$ifdef Delphi}
          dist : cardinal;
 {$else Delphi}
          dist : dword;
 {$endif Delphi}
-         href : treference;
-
       begin
          getlabel(endlabel);
          getlabel(elselabel);
@@ -883,86 +884,28 @@ implementation
               jmp_lee:=C_BE;
            end;
          rg.cleartempgen;
-         { save current truelabel and falselabel (they are restored in }
-         { locjump2reg) (JM)                                           }
+         { save current truelabel and falselabel }
+         isjump:=false;
          if left.location.loc=LOC_JUMP then
-           begin
+          begin
             otl:=truelabel;
             getlabel(truelabel);
             ofl:=falselabel;
             getlabel(falselabel);
-           end;
+            isjump:=true;
+          end;
          secondpass(left);
          { determines the size of the operand }
          opsize:=bytes2Sxx[left.resulttype.def.size];
          { copy the case expression to a register }
-         case left.location.loc of
-            LOC_REGISTER:
-              begin
-                 if opsize=S_Q then
-                   begin
-                      hregister:=left.location.registerlow;
-                      hregister2:=left.location.registerhigh;
-                   end
-                 else
-                   hregister:=left.location.register;
-              end;
-            LOC_FLAGS :
-              begin
-                locflags2reg(left.location,opsize);
-                hregister := left.location.register;
-              end;
-            LOC_JUMP:
-              begin
-                locjump2reg(left.location,opsize,otl,ofl);
-                hregister := left.location.register;
-              end;
-            LOC_CREGISTER:
-              begin
-                 hregister:=rg.getregisterint(exprasmlist);
-                 case opsize of
-                    S_B:
-                      hregister:=reg32toreg8(hregister);
-                    S_W:
-                      hregister:=reg32toreg16(hregister);
-                    S_Q:
-                      hregister2:=R_EDI;
-                 end;
-                 if opsize=S_Q then
-                   begin
-                      emit_reg_reg(A_MOV,S_L,left.location.registerlow,hregister);
-                      href:=left.location.reference;
-                      inc(href.offset,4);
-                      emit_reg_reg(A_MOV,S_L,left.location.registerhigh,hregister2);
-                   end
-                 else
-                   emit_reg_reg(A_MOV,opsize,
-                     left.location.register,hregister);
-              end;
-            LOC_CREFERENCE,LOC_REFERENCE:
-              begin
-                 location_release(exprasmlist,left.location);
-                 hregister:=rg.getregisterint(exprasmlist);
-                 case opsize of
-                    S_B:
-                      hregister:=reg32toreg8(hregister);
-                    S_W:
-                      hregister:=reg32toreg16(hregister);
-                    S_Q:
-                      hregister2:=R_EDI;
-                 end;
-                 if opsize=S_Q then
-                   begin
-                      emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
-                      href:=left.location.reference;
-                      inc(href.offset,4);
-                      emit_ref_reg(A_MOV,S_L,href,hregister2);
-                   end
-                 else
-                   emit_ref_reg(A_MOV,opsize,left.location.reference,hregister);
-              end;
-            else internalerror(2002);
-         end;
+         location_force_reg(left.location,left.location.size,false);
+         hregister:=left.location.register;
+         if isjump then
+          begin
+            truelabel:=otl;
+            falselabel:=ofl;
+          end;
+
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
          min_label:=case_get_min(nodes);
@@ -1087,7 +1030,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-04-02 17:11:36  peter
+  Revision 1.22  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.21  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

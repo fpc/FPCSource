@@ -117,7 +117,7 @@ begin
         { free the registers of right }
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
-        hreg := reg32toreg8(rg.getregisterint(exprasmlist));
+        hreg := changeregsize(rg.getregisterint(exprasmlist),S_B);
         emit_ref_reg(A_MOV,S_B,right.location.reference,hreg);
        { I don't think a temp char exists, but it won't hurt (JM) }
        tg.ungetiftemp(exprasmlist,right.location.reference);
@@ -181,8 +181,8 @@ begin
   else
     emit_const_ref(A_MOV,S_B,tordconstnode(right).value,href2);
   { increase the string length }
-  emit_reg(A_INC,S_B,reg32toreg8(lengthreg));
-  emit_reg_ref(A_MOV,S_B,reg32toreg8(lengthreg),left.location.reference);
+  emit_reg(A_INC,S_B,changeregsize(lengthreg,S_B));
+  emit_reg_ref(A_MOV,S_B,changeregsize(lengthreg,S_B),left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     emitlab(l);
@@ -242,7 +242,15 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-04-04 19:06:12  peter
+  Revision 1.10  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.9  2002/04/04 19:06:12  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  tainst,cpubase,cpuasm,DAOpt386,rgobj;
+  tainst,cpubase,cpuasm,DAOpt386,cginfo,rgobj;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1213,7 +1213,7 @@ Begin
                       Case Taicpu(p).opsize of
                         S_BW:
                           Begin
-                            If (Taicpu(p).oper[0].reg = Reg16ToReg8(Taicpu(p).oper[1].reg)) And
+                            If (Taicpu(p).oper[0].reg = Changeregsize(Taicpu(p).oper[1].reg,S_B)) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                 {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
@@ -1235,13 +1235,13 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_W);
-                                      Taicpu(p).LoadReg(0,Reg8ToReg16(Taicpu(p).oper[0].reg));
+                                      Taicpu(p).LoadReg(0,Changeregsize(Taicpu(p).oper[0].reg,S_W));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ff);
                                     End;
                           End;
                         S_BL:
                           Begin
-                            If (Taicpu(p).oper[0].reg = Reg32ToReg8(Taicpu(p).oper[1].reg)) And
+                            If (Taicpu(p).oper[0].reg = Changeregsize(Taicpu(p).oper[1].reg,S_B)) And
                                Not(CS_LittleSize in aktglobalswitches)
                               Then
                                 {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
@@ -1263,13 +1263,13 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_L);
-                                      Taicpu(p).LoadReg(0,Reg8ToReg32(Taicpu(p).oper[0].reg));
+                                      Taicpu(p).LoadReg(0,Changeregsize(Taicpu(p).oper[0].reg,S_L));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ff);
                                     End
                           End;
                         S_WL:
                           Begin
-                            If (Taicpu(p).oper[0].reg = Reg32ToReg16(Taicpu(p).oper[1].reg)) And
+                            If (Taicpu(p).oper[0].reg = Changeregsize(Taicpu(p).oper[1].reg,S_W)) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
@@ -1291,7 +1291,7 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_L);
-                                      Taicpu(p).LoadReg(0,Reg16ToReg32(Taicpu(p).oper[0].reg));
+                                      Taicpu(p).LoadReg(0,Changeregsize(Taicpu(p).oper[0].reg,S_L));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ffff);
                                     End;
                           End;
@@ -1596,7 +1596,7 @@ Begin
                             Begin
                               Taicpu(hp1).changeopsize(S_L);
                               if Taicpu(hp1).oper[0].typ=top_reg then
-                                Taicpu(hp1).LoadReg(0,Reg16ToReg32(Taicpu(hp1).oper[0].reg));
+                                Taicpu(hp1).LoadReg(0,Changeregsize(Taicpu(hp1).oper[0].reg,S_L));
                               hp1 := Tai(p.next);
                               asml.Remove(p);
                               p.free;
@@ -1955,7 +1955,7 @@ Begin
                                     InsertLLItem(AsmL,p.previous, p, hp1);
                                     Taicpu(p).opcode := A_MOV;
                                     Taicpu(p).changeopsize(S_B);
-                                    Taicpu(p).LoadReg(1,Reg32ToReg8(Taicpu(p).oper[1].reg));
+                                    Taicpu(p).LoadReg(1,Changeregsize(Taicpu(p).oper[1].reg,S_B));
                                   End;
                             End;
                         End
@@ -1975,7 +1975,7 @@ Begin
                                          Taicpu(p).oper[1].reg);
                               Taicpu(p).opcode := A_MOV;
                               Taicpu(p).changeopsize(S_B);
-                              Taicpu(p).LoadReg(1,Reg32ToReg8(Taicpu(p).oper[1].reg));
+                              Taicpu(p).LoadReg(1,Changeregsize(Taicpu(p).oper[1].reg,S_B));
                               InsertLLItem(AsmL,p.previous, p, hp1);
                             End;
                  End;
@@ -2040,7 +2040,15 @@ End.
 
 {
   $Log$
-  Revision 1.20  2002-04-02 20:30:16  jonas
+  Revision 1.21  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.20  2002/04/02 20:30:16  jonas
     + support for folding inc/dec in shl/add/sub sequences toa single lea
       instruction
 

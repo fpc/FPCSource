@@ -1530,6 +1530,9 @@ implementation
       label
         errorexit;
       begin
+         { the default is nothing to return }
+         location.loc:=LOC_INVALID;
+
          result:=nil;
          inlined:=false;
          inlinecode := nil;
@@ -1560,8 +1563,6 @@ implementation
          else
          { not a procedure variable }
            begin
-              location.loc:=LOC_CREFERENCE;
-
               { calc the correture value for the register }
               { handle predefined procedures }
               if (procdefinition.proccalloption=pocall_inline) then
@@ -1601,50 +1602,47 @@ implementation
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
-              if (procdefinition.proctypeoption=potype_constructor) then
-                begin
-                   { extra handling of classes }
-                   { methodpointer should be assigned! }
-                   if assigned(methodpointer) and
-                      assigned(methodpointer.resulttype.def) and
-                      (methodpointer.resulttype.def.deftype=classrefdef) then
+             if ret_in_param(resulttype.def) then
+              begin
+                location.loc:=LOC_CREFERENCE;
+              end
+             else
+             { ansi/widestrings must be registered, so we can dispose them }
+              if is_ansistring(resulttype.def) or
+                 is_widestring(resulttype.def) then
+               begin
+                 location.loc:=LOC_CREFERENCE;
+                 registers32:=1;
+               end
+             else
+             { we have only to handle the result if it is used }
+              if (nf_return_value_used in flags) then
+               begin
+                 case resulttype.def.deftype of
+                   enumdef,
+                   orddef :
                      begin
-                        location.loc:=LOC_REGISTER;
-                        registers32:=1;
-                     end
-                  { a object constructor returns the result with the flags }
-                   else
-                     location.loc:=LOC_FLAGS;
-                end
-              else
-                begin
-{$ifdef SUPPORT_MMX}
-                   if (cs_mmx in aktlocalswitches) and
-                     is_mmx_able_array(resulttype.def) then
-                     begin
-                        location.loc:=LOC_MMXREGISTER;
-                        registersmmx:=1;
-                     end
-                   else
-{$endif SUPPORT_MMX}
-                   if ret_in_acc(resulttype.def) then
-                     begin
-                        location.loc:=LOC_REGISTER;
-                        if is_64bitint(resulttype.def) then
-                          registers32:=2
-                        else
-                          registers32:=1;
-
-                        { wide- and ansistrings are returned in EAX    }
-                        { but they are imm. moved to a memory location }
-                        if is_widestring(resulttype.def) or
-                           is_ansistring(resulttype.def) then
-                          begin
-                             location.loc:=LOC_CREFERENCE;
+                       if (procdefinition.proctypeoption=potype_constructor) then
+                        begin
+                          if assigned(methodpointer) and
+                             (methodpointer.resulttype.def.deftype=classrefdef) then
+                           begin
+                             location.loc:=LOC_REGISTER;
                              registers32:=1;
-                          end;
-                     end
-                   else if (resulttype.def.deftype=floatdef) then
+                           end
+                          else
+                           location.loc:=LOC_FLAGS;
+                        end
+                       else
+                        begin
+                          location.loc:=LOC_REGISTER;
+                          if is_64bitint(resulttype.def) then
+                            registers32:=2
+                          else
+                            registers32:=1;
+                        end;
+                     end;
+                   floatdef :
                      begin
                        location.loc:=LOC_FPUREGISTER;
 {$ifdef m68k}
@@ -1656,10 +1654,14 @@ implementation
 {$else not m68k}
                         registersfpu:=1;
 {$endif not m68k}
-                     end
+                     end;
                    else
-                     location.loc:=LOC_CREFERENCE;
-                end;
+                     begin
+                       location.loc:=LOC_REGISTER;
+                       registers32:=1;
+                     end;
+                 end;
+               end;
            end;
          { a fpu can be used in any procedure !! }
          registersfpu:=procdefinition.fpu_used;
@@ -1827,7 +1829,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2002-04-15 18:57:22  carl
+  Revision 1.69  2002-04-15 19:44:19  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.68  2002/04/15 18:57:22  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.67  2002/04/02 17:11:28  peter

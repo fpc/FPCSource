@@ -66,7 +66,7 @@ implementation
        ncon,nld,
        pass_1,pass_2,
        cgbase,tgobj,
-       cga,regvars,cgobj,cg64f32,rgobj,rgcpu;
+       cga,regvars,cgobj,cg64f32,rgobj,rgcpu,cgcpu;
 
 
     procedure location_force_reg(var l:tlocation;size:TCGSize;maybeconst:boolean);
@@ -88,7 +88,7 @@ implementation
             begin
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
-               hregister:=makereg32(l.registerlow)
+               hregister:=Changeregsize(l.registerlow,S_L)
               else
                hregister:=rg.getregisterint(exprasmlist);
               { load value in low register }
@@ -164,14 +164,7 @@ implementation
                  rg.ungetregisterint(exprasmlist,l.registerhigh);
                  l.registerhigh:=R_NO;
                end;
-              case size of
-                OS_8,OS_S8 :
-                  hregister:=makereg8(l.register);
-                OS_16,OS_S16 :
-                  hregister:=makereg16(l.register);
-                OS_32,OS_S32 :
-                  hregister:=makereg32(l.register);
-              end;
+              hregister:=l.register;
             end
            else
             begin
@@ -181,16 +174,11 @@ implementation
                  (TCGSize2Size[size]=TCGSize2Size[l.size]) then
                hregister:=l.register
               else
-               begin
-                 hregister:=rg.getregisterint(exprasmlist);
-                 case size of
-                   OS_8,OS_S8 :
-                     hregister:=makereg8(hregister);
-                   OS_16,OS_S16 :
-                     hregister:=makereg16(hregister);
-                 end;
-               end;
+               hregister:=rg.getregisterint(exprasmlist);
             end;
+{$ifdef i386}
+           hregister:=Changeregsize(hregister,TCGSize2Opsize[size]);
+{$endif i386}
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
@@ -209,22 +197,13 @@ implementation
                begin
                  { load_loc_reg can only handle size >= l.size, when the
                    new size is smaller then we need to adjust the size
-                   of the orignal and maybe recalculate l.register }
+                   of the orignal and maybe recalculate l.register for i386 }
                  if (TCGSize2Size[size]<TCGSize2Size[l.size]) then
                   begin
+{$ifdef i386}
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     begin
-                       case size of
-                         OS_8,OS_S8 :
-                           l.register:=makereg8(l.register);
-                         OS_16,OS_S16 :
-                           l.register:=makereg16(l.register);
-                         OS_32,OS_S32 :
-                           l.register:=makereg32(l.register);
-                         else
-                           internalerror(200203295);
-                       end;
-                     end;
+                     l.register:=Changeregsize(l.register,TCGSize2Opsize[size]);
+{$endif i386}
                     l.size:=size;
                   end;
                  cg.a_load_loc_reg(exprasmlist,l,hregister);
@@ -472,8 +451,6 @@ implementation
 
 
     procedure pushsetelement(p : tnode);
-      var
-         hr,hr16,hr32 : tregister;
       begin
       { copy the element on the stack, slightly complicated }
         if p.nodetype=ordconstn then
@@ -489,29 +466,11 @@ implementation
              LOC_REGISTER,
              LOC_CREGISTER :
                begin
-                 hr:=p.location.register;
-                 case hr of
-                   R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI,R_ESP :
-                     begin
-                       hr16:=reg32toreg16(hr);
-                       hr32:=hr;
-                     end;
-                   R_AX,R_BX,R_CX,R_DX,R_DI,R_SI,R_SP :
-                     begin
-                       hr16:=hr;
-                       hr32:=reg16toreg32(hr);
-                     end;
-                   R_AL,R_BL,R_CL,R_DL :
-                     begin
-                       hr16:=reg8toreg16(hr);
-                       hr32:=reg8toreg32(hr);
-                     end;
-                 end;
                  if aktalignment.paraalign=4 then
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,hr32))
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,changeregsize(p.location.register,S_W)))
                  else
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,hr16));
-                 rg.ungetregisterint(exprasmlist,hr32);
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,changeregsize(p.location.register,S_L)));
+                 rg.ungetregisterint(exprasmlist,p.location.register);
                end;
            else
              begin
@@ -561,25 +520,19 @@ implementation
                     OS_8,OS_S8 :
                       begin
                         if alignment=4 then
-                         begin
-                           p.location.register:=makereg32(p.location.register);
-                           cgsize:=OS_32;
-                         end
+                         cgsize:=OS_32
                         else
-                         begin
-                           p.location.register:=makereg16(p.location.register);
-                           cgsize:=OS_16;
-                         end;
+                         cgsize:=OS_16;
                       end;
                     OS_16,OS_S16 :
                       begin
                         if alignment=4 then
-                         begin
-                           p.location.register:=makereg32(p.location.register);
-                           cgsize:=OS_32;
-                         end;
+                         cgsize:=OS_32;
                       end;
                   end;
+{$ifdef i386}
+                  p.location.register:=changeregsize(p.location.register,TCGSize2Opsize[cgsize]);
+{$endif i386}
                   inc(pushedparasize,alignment);
                   if inlined then
                    begin
@@ -945,13 +898,6 @@ implementation
              end;
            LOC_FLAGS:
              begin
-                if not(R_EAX in rg.unusedregsint) then
-                  begin
-                    rg.getexplicitregisterint(exprasmlist,R_EDI);
-                    emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
-                  end;
-                emit_flag2reg(p.location.resflags,R_AL);
-                emit_reg_reg(A_MOVZX,S_BW,R_AL,R_AX);
                 if alignment=4 then
                  begin
                    opsize:=S_L;
@@ -964,6 +910,12 @@ implementation
                    hreg:=R_AX;
                    inc(pushedparasize,2);
                  end;
+                if not(R_EAX in rg.unusedregsint) then
+                  begin
+                    rg.getexplicitregisterint(exprasmlist,R_EDI);
+                    emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
+                  end;
+                cg.g_flags2reg(exprasmlist,p.location.resflags,hreg);
                 if inlined then
                   begin
                      reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
@@ -1132,7 +1084,7 @@ implementation
                            href := dest.location.reference;
                            emit_const_ref(A_MOV,S_B,1,href);
                            inc(href.offset,1);
-                           emit_reg_ref(A_MOV,S_B,makereg8(source.location.register),href);
+                           emit_reg_ref(A_MOV,S_B,changeregsize(source.location.register,S_B),href);
                         end
                       else
                       { not so elegant (goes better with extra register    }
@@ -1308,7 +1260,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-04-04 19:06:12  peter
+  Revision 1.31  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.30  2002/04/04 19:06:12  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -73,7 +73,7 @@ unit rgcpu;
     uses
        systems,
        globals,verbose,
-       tgobj,cga;
+       cginfo,tgobj,cga;
 
 
     function trgcpu.getregisterint(list: taasmoutput): tregister;
@@ -137,7 +137,9 @@ unit rgcpu;
 
     procedure trgcpu.ungetregisterint(list: taasmoutput; r : tregister);
       begin
-         r := makereg32(r);
+         if r=R_NO then
+          exit;
+         r := changeregsize(r,S_L);
          if (r = R_EDI) or
             ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
@@ -330,7 +332,15 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-04-04 19:06:13  peter
+  Revision 1.4  2002-04-15 19:44:22  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.3  2002/04/04 19:06:13  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

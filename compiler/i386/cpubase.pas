@@ -204,9 +204,6 @@ Const
   lastop  = high(tasmop);
 
 
-
-
-
 {*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
@@ -267,13 +264,25 @@ const
     C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
   );
 
+<<<<<<< cpubase.pas
+const
+  CondAsmOps=3;
+  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
+    A_CMOVcc, A_Jcc, A_SETcc
+  );
+  CondAsmOpStr:array[0..CondAsmOps-1] of string[4]=(
+    'CMOV','J','SET'
+  );
+=======
+>>>>>>> 1.14
+
 
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
 
 type
-  {# Enumeration for all possible registers for cpu. It 
+  {# Enumeration for all possible registers for cpu. It
     is to note that all registers of the same type
     (for example all FPU registers), should be grouped
     together.
@@ -311,7 +320,42 @@ const
   regset8bit  : tregisterset = [R_AL..R_DH];
   regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
   regset32bit : tregisterset = [R_EAX..R_EDI];
+<<<<<<< cpubase.pas
 
+  { Convert reg to opsize }
+  reg2opsize : array[firstreg..lastreg] of topsize = (S_NO,
+    S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
+    S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+    S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
+    S_W,S_W,S_W,S_W,S_W,S_W,
+    S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
+    S_L,S_L,S_L,S_L,S_L,S_L,
+    S_L,S_L,S_L,S_L,
+    S_L,S_L,S_L,S_L,S_L,
+    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
+    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
+  );
+=======
+>>>>>>> 1.14
+
+<<<<<<< cpubase.pas
+  { Convert reg to operand type }
+  reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
+    OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
+    OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
+    OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
+    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
+    OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
+    OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
+    OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
+    OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
+    OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
+    OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
+  );
+
+{$ifdef INTELOP}
+  int_reg2str : reg2strtable = ('',
+=======
   {# Standard opcode string table (for each tasmop enumeration). The
      opcode strings should conform to the names as defined by the
      processor manufacturer.
@@ -323,6 +367,7 @@ const
      by the processor manufacturer
   }
   std_reg2str : reg2strtable = ('',
+>>>>>>> 1.14
     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
     'ax','cx','dx','bx','sp','bp','si','di',
     'al','cl','dl','bl','ah','ch','bh','dh',
@@ -509,11 +554,49 @@ const
   pointer_size  = 4;
   extended_size = 10;
   mmreg_size = 8;
+<<<<<<< cpubase.pas
+  sizepostfix_pointer = S_L;
 
 
+{*****************************************************************************
+                              Instruction table
+*****************************************************************************}
+=======
+>>>>>>> 1.14
 
+<<<<<<< cpubase.pas
+{$ifndef NOAG386BIN}
+type
+  tinsentry=packed record
+    opcode  : tasmop;
+    ops     : byte;
+    optypes : array[0..2] of longint;
+    code    : array[0..maxinfolen] of char;
+    flags   : longint;
+  end;
+  pinsentry=^tinsentry;
+=======
+>>>>>>> 1.14
+
+<<<<<<< cpubase.pas
+  TInsTabCache=array[TasmOp] of longint;
+  PInsTabCache=^TInsTabCache;
+=======
+>>>>>>> 1.14
+
+<<<<<<< cpubase.pas
+const
+  InsTab:array[0..instabentries-1] of TInsEntry=
+{$i i386tab.inc}
+
+var
+  InsTabCache : PInsTabCache;
+{$endif NOAG386BIN}
+
+=======
   procedure InitCpu;
   procedure DoneCpu;
+>>>>>>> 1.14
 
 {*****************************************************************************
                    Opcode propeties (needed for optimizer)
@@ -572,6 +655,9 @@ const
        maxintregs = maxvarregs;
        maxfpuregs = maxfpuvarregs;
 
+<<<<<<< cpubase.pas
+    function imm_2_type(l:longint):longint;
+=======
     { the following functions allow to convert registers }
     { for example reg8toreg32(R_AL) returns R_EAX        }
     { for example reg16toreg32(R_AL) gives an undefined  }
@@ -589,12 +675,11 @@ const
     function regtoreg8(reg : tregister) : tregister;
     function regtoreg16(reg : tregister) : tregister;
     function regtoreg32(reg : tregister) : tregister;
+>>>>>>> 1.14
 
-    { can be ignored on 32 bit systems }
-    function regtoreg64(reg : tregister) : tregister;
+    function changeregsize(r:tregister;size:topsize):tregister;
 
-    { returns the operand prefix for a given register }
-    function regsize(reg : tregister) : topsize;
+    function reg2str(r : tregister) : string;
 
     function is_calljmp(o:tasmop):boolean;
 
@@ -609,6 +694,44 @@ implementation
       ppheap,
 {$endif heaptrc}
       verbose;
+
+  const
+    reg2reg32 : array[tregister] of tregister = (R_NO,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg16 : array[tregister] of tregister = (R_NO,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg8 : array[tregister] of tregister = (R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
 
 {*****************************************************************************
                                   Helpers
@@ -635,77 +758,23 @@ implementation
       end;
 
 
-    function reg8toreg16(reg : tregister) : tregister;
-
+    function changeregsize(r:tregister;size:topsize):tregister;
+      var
+        reg : tregister;
       begin
-         reg8toreg16:=reg32toreg16(reg8toreg32(reg));
-      end;
-
-    function reg16toreg8(reg : tregister) : tregister;
-
-      begin
-         reg16toreg8:=reg32toreg8(reg16toreg32(reg));
-      end;
-
-    function reg16toreg32(reg : tregister) : tregister;
-
-      begin
-         reg16toreg32:=tregister(byte(reg)-byte(R_EDI));
-      end;
-
-    function reg32toreg16(reg : tregister) : tregister;
-
-      begin
-         reg32toreg16:=tregister(byte(reg)+byte(R_EDI));
-      end;
-
-    function reg32toreg8(reg : tregister) : tregister;
-
-      begin
-         reg32toreg8:=tregister(byte(reg)+byte(R_DI));
-      end;
-
-    function reg8toreg32(reg : tregister) : tregister;
-
-      begin
-         reg8toreg32:=tregister(byte(reg)-byte(R_DI));
-      end;
-
-    function regtoreg8(reg : tregister) : tregister;
-
-     begin
-        regtoreg8:=reg32toreg8(reg);
-     end;
-
-    function regtoreg16(reg : tregister) : tregister;
-
-     begin
-        regtoreg16:=reg32toreg16(reg);
-     end;
-
-    function regtoreg32(reg : tregister) : tregister;
-
-     begin
-        regtoreg32:=reg;
-     end;
-
-    function regtoreg64(reg : tregister) : tregister;
-
-     begin
-        { to avoid warning }
-        regtoreg64:=R_NO;
-     end;
-
-    function regsize(reg : tregister) : topsize;
-      begin
-         if reg in regset8bit then
-           regsize:=S_B
-         else if reg in regset16bit then
-           regsize:=S_W
-         else if reg in regset32bit then
-           regsize:=S_L
-         else
-           internalerror(200203261);
+        case size of
+          S_B :
+            reg:=reg2reg8[r];
+          S_W :
+            reg:=reg2reg16[r];
+          S_L :
+            reg:=reg2reg32[r];
+          else
+            internalerror(200204101);
+        end;
+        if reg=R_NO then
+         internalerror(200204102);
+        changeregsize:=reg;
       end;
 
 
@@ -731,7 +800,7 @@ implementation
     procedure InitCpu;
      begin
      end;
-     
+
     procedure DoneCpu;
      begin
      end;
@@ -739,7 +808,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-04-15 19:12:09  carl
+  Revision 1.15  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.14  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

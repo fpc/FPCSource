@@ -469,21 +469,14 @@ implementation
                         { need a cmp and jmp, but this should be done by the         }
                         { type cast code which does range checking if necessary (FK) }
                         begin
-                          hregister := tcallparanode(tcallparanode(left).right).left.location.register;
-                          emit_to_reg32(hregister);
+                          hregister := changeregsize(tcallparanode(tcallparanode(left).right).left.location.register,S_L);
                         end
                       else
                         begin
-                           rg.getexplicitregisterint(exprasmlist,R_EDI);
-                           hregister:=R_EDI;
-                           opsize:=def2def_opsize(
-                             tcallparanode(tcallparanode(left).right).left.resulttype.def,u32bittype.def);
-                           if opsize = S_L then
-                            op:=A_MOV
-                           else
-                            op:=A_MOVZX;
-                           emit_ref_reg(op,opsize,tcallparanode(tcallparanode(left).right).left.location.reference,R_EDI);
+                          rg.getexplicitregisterint(exprasmlist,R_EDI);
+                          hregister:=R_EDI;
                         end;
+                      cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
                       if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                         emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
                       else
@@ -600,7 +593,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-04-04 19:06:11  peter
+  Revision 1.36  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.35  2002/04/04 19:06:11  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

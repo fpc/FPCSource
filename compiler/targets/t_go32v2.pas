@@ -415,8 +415,8 @@ end;
               );
             size_of_longint : 4;
             heapsize     : 2048*1024;
-            maxheapsize  : 32768*1024;
-            stacksize    : 16384;
+            maxheapsize  : 32*1024*1024;
+            stacksize    : 32*1024*1024;
             DllScanSupported : false;
             use_bound_instruction : false;
             use_function_relative_addresses : true
@@ -429,7 +429,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-04-15 19:16:57  carl
+  Revision 1.17  2002-04-15 19:44:23  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.16  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.15  2002/01/29 21:27:34  peter

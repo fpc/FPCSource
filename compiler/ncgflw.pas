@@ -476,7 +476,7 @@ implementation
                   begin
                     cg.a_reg_alloc(exprasmlist,accumulator);
 {$ifdef i386}
-                    hreg:=makereg8(accumulator);
+                    hreg:=Changeregsize(accumulator,S_B);
 {$else i386}
                     hreg:=accumulator;
 {$endif i386}
@@ -520,14 +520,7 @@ implementation
                       else
                         begin
 {$ifdef i386}
-                          case cgsize of
-                            OS_8,OS_S8 :
-                              hreg:=makereg8(accumulator);
-                            OS_16,OS_S16 :
-                              hreg:=makereg16(accumulator);
-                            else
-                              hreg:=accumulator;
-                          end;
+                          hreg:=Changeregsize(accumulator,TCGsize2Opsize[cgsize]);
 {$else}
                           hreg:=accumulator;
 {$endif}
@@ -625,7 +618,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-04-04 19:05:57  peter
+  Revision 1.12  2002-04-15 19:44:19  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.11  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

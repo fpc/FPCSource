@@ -72,47 +72,18 @@ implementation
 
     procedure ti386typeconvnode.second_int_to_int;
       var
-        newsize,
-        oldsize    : tcgsize;
+        newsize : tcgsize;
       begin
         newsize:=def_cgsize(resulttype.def);
-        oldsize:=def_cgsize(left.resulttype.def);
 
         { insert range check if not explicit conversion }
         if not(nf_explizit in flags) then
           cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
         { is the result size smaller ? }
-        if resulttype.def.size<left.resulttype.def.size then
+        if resulttype.def.size<>left.resulttype.def.size then
           begin
             { reuse the left location by default }
-            location_copy(location,left.location);
-            location.size:=newsize;
-
-            { update the register to use }
-            if (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-             begin
-               if oldsize in [OS_64,OS_S64] then
-                begin
-                  { we can release the upper register }
-                  rg.ungetregisterint(exprasmlist,location.registerhigh);
-                  location.registerhigh:=R_NO;
-                end;
-               case newsize of
-                 OS_8,OS_S8 :
-                   location.register:=makereg8(location.register);
-                 OS_16,OS_S16 :
-                   location.register:=makereg16(location.register);
-                 OS_32,OS_S32 :
-                   location.register:=makereg32(location.register);
-               end;
-             end;
-          end
-
-        { is the result size bigger ? }
-        else if resulttype.def.size>left.resulttype.def.size then
-          begin
-            { we need to load the value in a register }
             location_copy(location,left.location);
             location_force_reg(location,newsize,false);
           end
@@ -251,9 +222,8 @@ implementation
     procedure ti386typeconvnode.second_int_to_bool;
       var
         hregister : tregister;
-        leftopsize,
-        opsize    : topsize;
         pref      : treference;
+        resflags  : tresflags;
         hlabel,oldtruelabel,oldfalselabel : tasmlabel;
       begin
          oldtruelabel:=truelabel;
@@ -274,15 +244,15 @@ implementation
               falselabel:=oldfalselabel;
               exit;
            end;
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location_release(exprasmlist,left.location);
 
-         opsize:=def_opsize(resulttype.def);
-         leftopsize:=def_opsize(left.resulttype.def);
+         { Load left node into flag F_NE/F_E }
+         resflags:=F_NE;
+         location_release(exprasmlist,left.location);
          case left.location.loc of
-            LOC_CREFERENCE,LOC_REFERENCE :
+            LOC_CREFERENCE,
+            LOC_REFERENCE :
               begin
-                if is_64bitint(left.resulttype.def) then
+                if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=rg.getregisterint(exprasmlist);
                    emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
@@ -292,60 +262,37 @@ implementation
                  end
                 else
                  begin
-                   hregister:=def_getreg(left.resulttype.def);
-                   emit_ref_reg(A_MOV,leftopsize,left.location.reference,hregister);
-                 end;
-              end;
-            LOC_CONSTANT :
-              begin
-                if is_64bitint(left.resulttype.def) then
-                 begin
-                   hregister:=def_getreg(left.resulttype.def);
-                   emit_const_reg(A_MOV,S_L,left.location.valuelow,hregister);
-                   emit_const_reg(A_OR,S_L,left.location.valuehigh,hregister);
-                 end
-                else
-                 begin
-                   hregister:=def_getreg(left.resulttype.def);
-                   emit_const_reg(A_MOV,leftopsize,left.location.value,hregister);
+                   location_force_reg(left.location,left.location.size,true);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
             LOC_FLAGS :
               begin
-                hregister:=def_getreg(left.resulttype.def);
-                emit_flag2reg(left.location.resflags,hregister);
+                resflags:=left.location.resflags;
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-                hregister:=left.location.register;
+                cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
               begin
-                hregister:=def_getreg(left.resulttype.def);
+                hregister:=rg.getregisterint(exprasmlist);
                 getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
-                cg.a_load_const_reg(exprasmlist,def_cgsize(left.resulttype.def),1,hregister);
+                cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
                 cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
                 cg.a_label(exprasmlist,falselabel);
-                cg.a_load_const_reg(exprasmlist,def_cgsize(left.resulttype.def),0,hregister);
+                cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
+                cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
               end;
             else
               internalerror(10062);
          end;
-         emit_reg(A_NEG,leftopsize,hregister);
-         case opsize of
-           S_B :
-             location.register:=makereg8(hregister);
-           S_W :
-             location.register:=makereg16(hregister);
-           S_L :
-             location.register:=makereg32(hregister);
-           else
-            internalerror(10064);
-         end;
-         emit_reg_reg(A_SBB,opsize,location.register,location.register);
-         emit_reg(A_NEG,opsize,location.register);
+         { load flags to register }
+         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+         location.register:=def_getreg(resulttype.def);
+         cg.g_flags2reg(exprasmlist,resflags,location.register);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
        end;
@@ -468,7 +415,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-04-04 19:06:10  peter
+  Revision 1.34  2002-04-15 19:44:21  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.33  2002/04/04 19:06:10  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
@@ -549,11 +504,7 @@ end.
   Revision 1.21  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-<<<<<<< n386cnv.pas
-      compilerproc implementations (using "$ifdef hascompilerproc" is not
-=======
       compilerproc implementations (using $ifdef hascompilerproc is not
->>>>>>> 1.30
       necessary in the compiler)
 
   Revision 1.20  2001/08/26 13:36:57  florian

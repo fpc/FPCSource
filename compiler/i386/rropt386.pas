@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,cpuasm,daopt386,csopt386,rgobj;
+  verbose,globals,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
 
 function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -79,14 +79,20 @@ begin
     reg := reg2
   else if reg = reg2 then
     reg := reg1
-  else if reg = regtoreg8(reg1) then
-         reg := regtoreg8(reg2)
-  else if reg = regtoreg8(reg2) then
-         reg := regtoreg8(reg1)
-  else if reg = regtoreg16(reg1) then
-         reg := regtoreg16(reg2)
-  else if reg = regtoreg16(reg2) then
-         reg := regtoreg16(reg1)
+  else if (reg in regset8bit) then
+    begin
+      if (reg = Changeregsize(reg1,S_B)) then
+        reg := Changeregsize(reg2,S_B)
+      else if reg = Changeregsize(reg2,S_B) then
+        reg := Changeregsize(reg1,S_B);
+    end
+  else if (reg in regset16bit) then
+    begin
+      if reg = Changeregsize(reg1,S_W) then
+        reg := Changeregsize(reg2,S_W)
+      else if reg = Changeregsize(reg2,S_W) then
+        reg := Changeregsize(reg1,S_W);
+    end;
 end;
 
 
@@ -344,7 +350,15 @@ End.
 
 {
   $Log$
-  Revision 1.10  2002-04-02 17:11:39  peter
+  Revision 1.11  2002-04-15 19:44:22  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.10  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

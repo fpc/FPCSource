@@ -191,13 +191,13 @@ implementation
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=1) then
                         begin
-                          regvarinfo^.regvars[i].reg:=reg32toreg8(varregs[i]);
+                          regvarinfo^.regvars[i].reg:=changeregsize(varregs[i],S_B);
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=2) then
                          begin
-                           regvarinfo^.regvars[i].reg:=reg32toreg16(varregs[i]);
+                           regvarinfo^.regvars[i].reg:=changeregsize(varregs[i],S_W);
                          end
                       else
 {$endif i386}
@@ -275,9 +275,9 @@ implementation
         exit;
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (makereg32(regvarinfo^.regvars[i].reg) = reg) then
+           (changeregsize(regvarinfo^.regvars[i].reg,S_L) = reg) then
           begin
-            if rg.regvar_loaded[makereg32(reg)] then
+            if rg.regvar_loaded[changeregsize(reg,S_L)] then
               begin
                 vsym := tvarsym(regvarinfo^.regvars[i]);
                 { we only have to store the regvar back to memory if it's }
@@ -291,8 +291,8 @@ implementation
                     hr.base:=procinfo^.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
-                asml.concat(Tairegalloc.dealloc(makereg32(reg)));
-                rg.regvar_loaded[makereg32(reg)] := false;
+                asml.concat(Tairegalloc.dealloc(changeregsize(reg,S_L)));
+                rg.regvar_loaded[changeregsize(reg,S_L)] := false;
               end;
             break;
           end;
@@ -302,10 +302,12 @@ implementation
     var
       hr: treference;
       opsize: tcgsize;
+      reg32 : tregister;
     begin
-      if not rg.regvar_loaded[makereg32(vsym.reg)] then
+      reg32:=changeregsize(vsym.reg,S_L);
+      if not rg.regvar_loaded[reg32] then
         begin
-          asml.concat(Tairegalloc.alloc(makereg32(vsym.reg)));
+          asml.concat(Tairegalloc.alloc(reg32));
           reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr.offset:=-vsym.address+vsym.owner.address_fixup
@@ -317,8 +319,8 @@ implementation
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
-          cg.a_load_ref_reg(asml,opsize,hr,makereg32(vsym.reg));
-          rg.regvar_loaded[makereg32(vsym.reg)] := true;
+          cg.a_load_ref_reg(asml,opsize,hr,reg32);
+          rg.regvar_loaded[reg32] := true;
         end;
     end;
 
@@ -326,14 +328,15 @@ implementation
     var
       i: longint;
       regvarinfo: pregvarinfo;
+      reg32 : tregister;
     begin
       regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      reg := makereg32(reg);
+      reg32 := changeregsize(reg,S_L);
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (makereg32(regvarinfo^.regvars[i].reg) = reg) then
+           (changeregsize(regvarinfo^.regvars[i].reg,S_L) = reg32) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -434,6 +437,7 @@ implementation
     procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
+      reg32 : tregister;
     begin
       { can happen when inlining assembler procedures (JM) }
       if not assigned(aktprocdef.regvarinfo) then
@@ -449,9 +453,12 @@ implementation
                 asml.concat(Taicpu.op_reg(A_FSTP,S_NO,R_ST0));
 {$endif i386}
             for i := 1 to maxvarregs do
-              if assigned(regvars[i]) and
-                 (rg.regvar_loaded[makereg32(regvars[i].reg)]) then
-                asml.concat(Tairegalloc.dealloc(makereg32(regvars[i].reg)));
+             begin
+               reg32:=changeregsize(regvars[i].reg,S_L);
+               if assigned(regvars[i]) and
+                  (rg.regvar_loaded[reg32]) then
+                asml.concat(Tairegalloc.dealloc(reg32));
+             end;
           end;
     end;
 
@@ -459,7 +466,15 @@ end.
 
 {
   $Log$
-  Revision 1.26  2002-04-15 19:04:04  carl
+  Revision 1.27  2002-04-15 19:44:19  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.26  2002/04/15 19:04:04  carl
   + reg2str -> std_reg2str()
 
   Revision 1.25  2002/04/06 18:13:01  jonas

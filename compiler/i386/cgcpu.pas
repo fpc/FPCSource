@@ -114,7 +114,7 @@ unit cgcpu;
        private
 
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
-        procedure sizes2load(s1: tcgsize; s2: topsize; var op: tasmop; var s3: topsize);
+        procedure sizes2load(s1 : tcgsize;s2 : topsize; var op: tasmop; var s3: topsize);
 
         procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
@@ -136,6 +136,20 @@ unit cgcpu;
         (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+{
+      TReg2CGSize: Array[tregister] of tcgsize = (OS_NO,
+         S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
+         S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+         S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
+         S_W,S_W,S_W,S_W,S_W,S_W,
+         S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
+         S_L,S_L,S_L,S_L,S_L,S_L,
+         S_L,S_L,S_L,S_L,
+         S_L,S_L,S_L,S_L,S_L,
+         OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,
+         OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO
+      );
+ }
 
 
   implementation
@@ -150,19 +164,13 @@ unit cgcpu;
     procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);
       begin
         case size of
-          OS_8,OS_S8 :
-            begin
-              if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,makereg16(r)))
-              else
-                list.concat(taicpu.op_reg(A_PUSH,S_L,makereg32(r)));
-            end;
+          OS_8,OS_S8,
           OS_16,OS_S16:
             begin
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,r))
+                list.concat(taicpu.op_reg(A_PUSH,S_W,changeregsize(r,S_W)))
               else
-                list.concat(taicpu.op_reg(A_PUSH,S_L,makereg32(r)));
+                list.concat(taicpu.op_reg(A_PUSH,S_L,changeregsize(r,S_L)));
             end;
           OS_32,OS_S32:
             list.concat(taicpu.op_reg(A_PUSH,S_L,r));
@@ -198,12 +206,13 @@ unit cgcpu;
 
       begin
         case size of
-          OS_8,OS_S8,OS_16,OS_S16:
+          OS_8,OS_S8,
+          OS_16,OS_S16:
             begin
               tmpreg := get_scratch_reg(list);
               a_load_ref_reg(list,size,r,tmpreg);
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,makereg16(tmpreg)))
+                list.concat(taicpu.op_reg(A_PUSH,S_W,changeregsize(tmpreg,S_W)))
               else
                 list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
               free_scratch_reg(list,tmpreg);
@@ -241,8 +250,7 @@ unit cgcpu;
           end;
       end;
 
-    procedure tcg386.a_call_name(list : taasmoutput;const s : string;
-      offset : longint);
+    procedure tcg386.a_call_name(list : taasmoutput;const s : string; offset : longint);
 
       begin
         list.concat(taicpu.op_sym_ofs(A_CALL,S_NO,newasmsymbol(s),offset));
@@ -257,8 +265,7 @@ unit cgcpu;
       begin
         { the optimizer will change it to "xor reg,reg" when loading zero, }
         { no need to do it here too (JM)                                   }
-        list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[size],
-          a,reg))
+        list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[size],a,reg))
       end;
 
 
@@ -275,8 +282,7 @@ unit cgcpu;
           inherited a_load_const_ref(list,size,a,ref)
         else
 {$endif OPTLOAD0}
-          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],
-            a,ref));
+          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],a,ref));
       end;
 
 
@@ -295,7 +301,7 @@ unit cgcpu;
         s: topsize;
 
       begin
-        sizes2load(size,regsize(reg),op,s);
+        sizes2load(size,reg2opsize[reg],op,s);
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
 
@@ -307,8 +313,8 @@ unit cgcpu;
         s: topsize;
 
       begin
-        sizes2load(size,regsize(reg2),op,s);
-        if (makereg32(reg1) = makereg32(reg2)) then
+        sizes2load(size,reg2opsize[reg2],op,s);
+        if (changeregsize(reg1,S_L) = changeregsize(reg2,S_L)) then
          begin
            { "mov reg1, reg1" doesn't make sense }
            if op = A_MOV then
@@ -319,12 +325,12 @@ unit cgcpu;
               case size of
                 OS_8:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,regsize(reg2),255,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize[reg2],255,reg2));
                     exit;
                   end;
                 OS_16:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,regsize(reg2),65535,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize[reg2],65535,reg2));
                     exit;
                   end;
               end;
@@ -418,7 +424,7 @@ unit cgcpu;
                     OP_IDIV:
                       opcode := A_SAR;
                   end;
-                  list.concat(taicpu.op_const_reg(opcode,regsize(reg),power,
+                  list.concat(taicpu.op_const_reg(opcode,reg2opsize[reg],power,
                     reg));
                   exit;
                 end;
@@ -431,12 +437,12 @@ unit cgcpu;
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 begin
-                  list.concat(taicpu.op_const_reg(A_SHL,regsize(reg),power,
+                  list.concat(taicpu.op_const_reg(A_SHL,reg2opsize[reg],power,
                     reg));
                   exit;
                 end;
               if op = OP_IMUL then
-                list.concat(taicpu.op_const_reg(A_IMUL,regsize(reg),
+                list.concat(taicpu.op_const_reg(A_IMUL,reg2opsize[reg],
                   a,reg))
               else
                 { OP_MUL should be handled specifically in the code        }
@@ -448,14 +454,14 @@ unit cgcpu;
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,regsize(reg),reg))
+                list.concat(taicpu.op_reg(A_INC,reg2opsize[reg],reg))
               else
-                list.concat(taicpu.op_reg(A_DEC,regsize(reg),reg))
+                list.concat(taicpu.op_reg(A_DEC,reg2opsize[reg],reg))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                list.concat(taicpu.op_const_reg(A_MOV,regsize(reg),0,reg))
+                list.concat(taicpu.op_const_reg(A_MOV,reg2opsize[reg],0,reg))
             else if (a = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -463,19 +469,19 @@ unit cgcpu;
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,regsize(reg),high(aword),reg));
+                         list.concat(taicpu.op_const_reg(A_MOV,reg2opsize[reg],high(aword),reg));
                        OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,regsize(reg),reg));
+                         list.concat(taicpu.op_reg(A_NOT,reg2opsize[reg],reg));
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],regsize(reg),
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],reg2opsize[reg],
                 a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_const_reg(
-                  TOpCG2AsmOp[op],regsize(reg),a and 31,reg));
+                  TOpCG2AsmOp[op],reg2opsize[reg],a and 31,reg));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -596,7 +602,7 @@ unit cgcpu;
                 { is ecx, save it to a temp for now                         }
                 if dst in [R_ECX,R_CX,R_CL] then
                   begin
-                    case regsize(dst) of
+                    case reg2opsize[dst] of
                       S_B: regloadsize := OS_8;
                       S_W: regloadsize := OS_16;
                       else regloadsize := OS_32;
@@ -617,7 +623,7 @@ unit cgcpu;
                         list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
                         popecx := true;
                       end;
-                    a_load_reg_reg(list,OS_8,makereg8(src),R_CL);
+                    a_load_reg_reg(list,OS_8,changeregsize(src,S_B),R_CL);
                   end
                 else
                   src := R_CL;
@@ -640,7 +646,7 @@ unit cgcpu;
               end;
             else
               begin
-                if regsize(src) <> dstsize then
+                if reg2opsize[src] <> dstsize then
                   internalerror(200109226);
                 list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
                   src,dst));
@@ -711,7 +717,7 @@ unit cgcpu;
         power: longint;
         opsize: topsize;
       begin
-        opsize := regsize(src);
+        opsize := reg2opsize[src];
         if (opsize <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
@@ -754,9 +760,9 @@ unit cgcpu;
         tmpref: treference;
         opsize: topsize;
       begin
-        opsize := regsize(src1);
+        opsize := reg2opsize[src1];
         if (opsize <> S_L) or
-           (regsize(src2) <> S_L) or
+           (reg2opsize[src2] <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
@@ -789,9 +795,9 @@ unit cgcpu;
 
         begin
           if (a = 0) then
-            list.concat(taicpu.op_reg_reg(A_TEST,regsize(reg),reg,reg))
+            list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize[reg],reg,reg))
           else
-            list.concat(taicpu.op_const_reg(A_CMP,regsize(reg),a,reg));
+            list.concat(taicpu.op_const_reg(A_CMP,reg2opsize[reg],a,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -807,9 +813,9 @@ unit cgcpu;
         reg1,reg2 : tregister;l : tasmlabel);
 
         begin
-          if regsize(reg1) <> regsize(reg2) then
+          if reg2opsize[reg1] <> reg2opsize[reg2] then
             internalerror(200109226);
-          list.concat(taicpu.op_reg_reg(A_CMP,regsize(reg1),reg1,reg2));
+          list.concat(taicpu.op_reg_reg(A_CMP,reg2opsize[reg1],reg1,reg2));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -857,17 +863,12 @@ unit cgcpu;
          ai : taicpu;
          hreg : tregister;
        begin
-          hreg := makereg8(reg);
+          hreg := changeregsize(reg,S_B);
           ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
           if hreg<>reg then
-           begin
-             if reg in regset16bit then
-              emit_to_reg16(hreg)
-             else
-              emit_to_reg32(hreg);
-           end;
+           a_load_reg_reg(exprasmlist,OS_8,hreg,reg);
        end;
 
 
@@ -934,19 +935,16 @@ unit cgcpu;
             end;
           OS_8,OS_S8:
             begin
-              reg := makereg8(reg);
               result := S_B;
             end;
           OS_16,OS_S16:
             begin
-              if reg in [R_AL..R_BH] then
-                internalerror(2001092314);
-              reg := makereg16(reg);
               result := S_W;
             end;
           else
             internalerror(2001092312);
         end;
+        reg := changeregsize(reg,result);
       end;
 
 
@@ -1085,13 +1083,13 @@ unit cgcpu;
       const
         regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
       begin
-        result := regsize_2_cgsize[regsize(reg)];
+        result := regsize_2_cgsize[reg2opsize[reg]];
       end;
 
 
 {***************** This is private property, keep out! :) *****************}
 
-    procedure tcg386.sizes2load(s1: tcgsize; s2: topsize; var op: tasmop; var s3: topsize);
+    procedure tcg386.sizes2load(s1 : tcgsize;s2: topsize; var op: tasmop; var s3: topsize);
 
        begin
          case s2 of
@@ -1220,7 +1218,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-04-04 19:06:10  peter
+  Revision 1.12  2002-04-15 19:44:20  peter
+    * fixed stackcheck that would be called recursively when a stack
+      error was found
+    * generic changeregsize(reg,size) for i386 register resizing
+    * removed some more routines from cga unit
+    * fixed returnvalue handling
+    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.11  2002/04/04 19:06:10  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
