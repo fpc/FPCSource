@@ -44,6 +44,10 @@ uses
   {$define OS_DOS}
   , DOS
   {$endif OS_WIN32}
+  {$IFDEF OS_OS2}
+  {$DEFINE OS_DOS}
+  , DOS
+  {$ENDIF OS_OS2}
  {$endif PPC_FPC}
 {$ENDIF}
 
@@ -1060,7 +1064,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-23 10:17:48  sg
+  Revision 1.4  2000-12-14 19:26:34  hajny
+    * made compilable for OS/2 target
+
+  Revision 1.3  2000/11/23 10:17:48  sg
   * Linux.EpochToLocal has var arguments of type Word, not Integer - so
     some local variables had to be changed
 
