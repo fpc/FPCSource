@@ -263,7 +263,7 @@ End;
     Required procedures
   ---------------------------------------------------------------------}
 
-{$INCLUDE vgagraph16.inc}       // Include graphic functions for 16 colours modes
+{$INCLUDE graph16.inc}       // Include graphic functions for 16 colours modes
 
 var
   LastColor: Integer;   {Cache the last set color to improve speed}
@@ -598,7 +598,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2000-10-12 09:38:34  peter
+    * renamed to be 8.3
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.4  2000/08/25 12:31:05  jonas

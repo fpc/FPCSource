@@ -428,7 +428,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
+  Revision 1.1  2000-10-12 09:38:34  peter
+    * renamed to be 8.3
+
+  Revision 1.2  2000/09/18 13:14:51  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/07/13 11:33:49  michael
