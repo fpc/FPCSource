@@ -556,6 +556,7 @@ The integer types, and their ranges and sizes, that are predefined in
 Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -128 .. 127 & 1\\
+Smallint & -32768 .. 32767 & 2\\
 Integer & -32768 .. 32767 & 2\footnote{The integer type is redefined as
 longint if you are in Delphi or ObjFPC mode, and then has size 4} \\
 Word & 0 .. 65535 & 2 \\
@@ -1169,8 +1170,8 @@ For \var{Trec7}, \var{B} is aligned on a 4 byte boundary, since it's size --
 7 -- is larger than 4. However, in \var{Trec8}, it is aligned on a 8-byte
 boundary, since 8 is the first power of two that is greater than 7, thus
 making the total size of the record 16.
-As from version 0.9.3, \fpc supports also the 'packed record', this is a
-record where all the elements are byte-aligned.
+\fpc supports also the 'packed record', this is a record where all the
+elements are byte-aligned.
 Thus the two following declarations are equivalent:
 \begin{verbatim}
      {$PackRecords 1}
@@ -1219,10 +1220,9 @@ Delete element & \var{exclude} \\ \hline
 \end{FPCltable}
 You can compare two sets with the \var{<>} and \var{=} operators, but not
 (yet) with the \var{<} and \var{>} operators.
-As of compiler version 0.9.5, the compiler stores small sets (less than 32
-elements) in a Longint, if the type range allows it. This allows for faster
-processing and decreases program size. Otherwise, sets are stored in 32
-bytes.
+The compiler stores small sets (less than 32 elements) in a Longint, if the
+type range allows it. This allows for faster processing and decreases
+program size. Otherwise, sets are stored in 32 bytes.
 \subsection{File types}
 File types are types that store a sequence of some base type, which can be
 any type except another file type. It can contain (in principle) an infinite
@@ -1378,8 +1378,8 @@ Pascal it isn't necessary to use the address operator (\var{@})
 when assigning a procedural type variable, whereas in \fpc it is required
 (unless you use the \var{-So} switch, in which case you can drop the address
 operator.)
-\begin{remark} The modifiers concerning the calling conventions (\var{cdecl},
-\var{pascal}, \var{stdcall} and \var{popstack} stick to the declaration;
+\begin{remark} The modifiers concerning the calling conventions
+must be the same as the declaration;
 i.e. the following code would give an error:
 \begin{verbatim}
 Type TOneArgCcall = Procedure (Var X : integer);cdecl;
@@ -1933,7 +1933,7 @@ need. \var{DefaultHandler} is declared as follows:
 \end{verbatim}
 
 In addition to the message method with a \var{Integer} identifier,
-\fpc also supports a messae method with a string identifier:
+\fpc also supports a message method with a string identifier:
 \begin{verbatim}
  Procedure TMyObject.MyStrHandler(Var Msg); Message 'OnClick';
 \end{verbatim}
@@ -2475,7 +2475,7 @@ Operator & Operation \\ \hline
 \var{or}  & logical or \\
 \var{xor} & logical xor \\ \hline
 \end{FPCltable}
-\begin{remark} Boolean expressions are ALWAYS evaluated with short-circuit
+\begin{remark} Boolean expressions are always evaluated with short-circuit
 evaluation. This means that from the moment the result of the complete
 expression is known, evaluation is stopped and the result is returned.
 For instance, in the following expression:
@@ -2688,7 +2688,7 @@ end;
 \end{verbatim}
 The compiler will generate a \var{Duplicate case label} error when compiling
 this, because the 3 also appears (implicitly) in the range \var{1..5}. This
-is similar to Delhpi syntax.
+is similar to Delphi syntax.
 \end{remark}
 The following are valid case statements:
 \begin{verbatim}
@@ -2991,9 +2991,10 @@ This will tell the compiler that it should save and restore the contents of
 the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
 
 \fpc supports various styles of assembler syntax. By default, \var{AT\&T}
-syntax is assumed. You can change the default assembler style with the
-\var{\{\$asmmode xxx\}} switch in your code, or the \var{-R} command-line
-option. More about this can be found in the \progref.
+syntax is assumed for the 80386 and compatibles platform. You can change
+the default assembler style with the \var{\{\$asmmode xxx\}} switch in
+your code, or the \var{-R} command-line option. More about this can be
+found in the \progref.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3272,8 +3273,8 @@ The parameter lists must differ at least in one of it's elements type.
 When the compiler encounters a function call, it will look at the function
 parameters to decide which one of the defined functions it should call.
 This can be useful if you want to define the same function for different
-types. For example, in the RTL, the  \var{Dec} procedure is
-is defined as:
+types. For example, in the RTL, the  \var{Dec} procedure could be
+ defined as:
 \begin{verbatim}
 ...
 Dec(Var I : Longint;decrement : Longint);
@@ -3288,8 +3289,8 @@ function call, and looks if there is a function definition which matches the
 specified parameter list. If the compiler finds such a function, a call is
 inserted to that function. If no such function is found, a compiler error is
 generated.
-You cannot have overloaded functions that have a \var{cdecl} or \var{export}
-modifier (Technically, because these two modifiers prevent the mangling of
+You cannot have overloaded functions that have a \var{cdecl} modifier
+(Technically, because this modifier prevents the mangling of
 the function name by the compiler).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3443,13 +3444,13 @@ end.
 code, thus it is case sensitive.
 \end{remark}
 The \var{Alias} modifier, combined with the \var{Public} modifier, make a
-powerful tool for making externally accessible object files.
+powerful tool for making externally accessible symbols in pascal object files.
 
 \subsection{cdecl}
 \label{se:cdecl}
 The \var{cdecl} modifier can be used to declare a function that uses a C
 type calling convention. This must be used if you wish to access functions in
-an object file generated by the GCC compiler. It allows you to use the function in
+an object file generated by standard C compilers. It allows you to use the function in
 your code, and at linking time, you must link the object file containing the
 \var{C} implementation of the function or procedure.
 As an example:
@@ -3609,7 +3610,6 @@ listed in \seet{Modifs}.
 Modifier & Why not supported ? \\ \hline
 Near & \fpc is a 32-bit compiler.\\
 Far & \fpc is a 32-bit compiler. \\
-%External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4405,11 +4405,6 @@ The assembler instructions between the \var{Asm} and \var{end} keywords will
 be inserted in the assembler generated by the compiler.
 You can still use conditionals in your assembler, the compiler will
 recognise it, and treat it as any other conditionals.
-
-\begin{remark}
-Before version 0.99.1, \fpc did not support reference to variables by
-their names in the assembler parts of your code.
-\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assembler procedures and functions
@@ -5531,7 +5526,7 @@ Function Filesize (Var F : Any file type) : Longint;
 \Description
 \var{Filesize} returns the total number of records in file \var{F}.
 It cannot be invoked with a file of type \var{Text}. (under \linux and \unix, this
-also means that it cannot be invoked on pipes.)
+also means that it cannot be invoked on pipes).
 If \var{F} is empty, 0 is returned.
 \Errors
 None.
@@ -5643,7 +5638,7 @@ Procedure Freemem (Var P : pointer; Count : Longint);
 \Description
 \var{Freemem} releases the memory occupied by the pointer \var{P}, of size
 \var{Count} (in bytes), and returns it to the heap. \var{P} should point to the memory
-allocated to a dynamical variable.
+allocated to a dynamic variable.
 \Errors
 An error will occur when \var{P} doesn't point to the heap.
 \SeeAlso
@@ -5810,6 +5805,7 @@ The position is zero-based.
 \begin{function}{IndexChar}
 \Declaration
 function  IndexChar(var buf;len:longint;b:char):longint;
+\Declaration
 function  IndexChar0(var buf;len:longint;b:char):longint;
 \Description
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
@@ -5829,6 +5825,7 @@ a null character is found, and returns -1 in that case.
 \begin{function}{IndexDWord}
 \Declaration
 function  IndexDWord(var buf;len:longint;DW:DWord):longint;
+\Description
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
 positions for the DWord \var{DW} and returns it's position if it found one.
 If \var{DW} is not found then -1 is returned.
@@ -5845,6 +5842,7 @@ The position is zero-based.
 \begin{function}{IndexWord}
 \Declaration
 function  IndexWord(var buf;len:longint;W:word):longint;
+\Description
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
 positions for the Word \var{W} and returns it's position if it found one.
 If \var{W} is not found then -1 is returned.
@@ -6018,7 +6016,7 @@ Procedure LongJmp (Var env : Jmp\_Buf; Value : Longint);
 \Description
 
 \var{LongJmp} jumps to the adress in the \var{env} \var{jmp\_buf},
-and resores the registers that were stored in it at the corresponding
+and restores the registers that were stored in it at the corresponding
 \seef{SetJmp} call.
 In effect, program flow will continue at the \var{SetJmp} call, which will
 return \var{value} instead of 0. If you pas a \var{value} equal to zero, it will be
@@ -6193,7 +6191,7 @@ None.
 
 \begin{function}{Ofs}
 \Declaration
-Function Ofs Var X : Longint;
+Function Ofs (Var X) : Longint;
 
 \Description
 \var{Ofs} returns the offset of the address of a variable.
@@ -6334,10 +6332,7 @@ segment \var{Sel} and offset \var{Off}.
 \begin{enumerate}
 \item In the 32-bit flat-memory model supported by \fpc, this
 function is obsolete.
-\item The returned address is simply the offset. If you recompile
-the RTL with \var{-dDoMapping} defined, then the compiler returns the
-following : \var{ptr := pointer(\$e0000000+sel shl 4+off)} under \dos, or
-\var{ptr := pointer(sel shl 4+off)} on other OSes.
+\item The returned address is simply the offset.
 \end{enumerate}
 \end{remark}
 \Errors
@@ -6459,7 +6454,7 @@ Procedure Reset (Var F : Any File Type[; L : Longint]);
 If \var{F} is an untyped or typed file, then it is opened according to
 the mode specified in \var{filemode}.
 If \var{F} is an untyped file, the record size can be specified in
-the optional parameter \var{L}. Default a value of 128 is used.
+the optional parameter \var{L}. A default value of 128 is used.
 
 File sharing is not taken into account when calling \var{Reset}.
 \Errors
@@ -6605,7 +6600,7 @@ A run-time error is generated if the file \var{F} isn't opened.
 
 \begin{function}{Seg}
 \Declaration
-Function Seg Var X : Longint;
+Function Seg (Var X) : Longint;
 
 \Description
 \var{Seg} returns the segment of the address of a variable.
@@ -6681,7 +6676,7 @@ Procedure SetTextBuf (Var f : Text; Var Buf[; Size : Word]);
 \var{SetTextBuf} assigns an I/O buffer to a text file. The new buffer is
 located at \var{Buf} and is \var{Size} bytes long. If \var{Size} is omitted,
 then \var{SizeOf(Buf)} is assumed.
-The standard buffer of any text file is 128 bytes long. For heavy I/0
+The standard buffer of any text file is 128 bytes long. For heavy I/O
 operations this may prove too slow. The \var{SetTextBuf} procedure allows
 you to set a bigger buffer for your application, thus reducing the number of
 system calls, and thus reducing the load on the system resources.
