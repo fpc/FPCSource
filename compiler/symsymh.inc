@@ -275,7 +275,8 @@
        ttypedconstsym = object(tsym)
           prefix : pstring;
           definition : pdef;
-          constructor init(const n : string;p : pdef);
+          is_really_const : boolean;
+          constructor init(const n : string;p : pdef;really_const : boolean);
           constructor load;
           destructor done;virtual;
           function  mangledname : string;virtual;
@@ -345,7 +346,11 @@
 
 {
   $Log$
-  Revision 1.20  1999-04-21 09:43:56  peter
+  Revision 1.21  1999-04-25 22:38:40  pierre
+    + added is_really_const booleanfield for typedconstsym
+      for Delphi in $J- mode (not yet implemented !)
+
+  Revision 1.20  1999/04/21 09:43:56  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

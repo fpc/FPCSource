@@ -1347,12 +1347,13 @@
                              TTYPEDCONSTSYM
 *****************************************************************************}
 
-    constructor ttypedconstsym.init(const n : string;p : pdef);
+    constructor ttypedconstsym.init(const n : string;p : pdef;really_const : boolean);
 
       begin
          tsym.init(n);
          typ:=typedconstsym;
          definition:=p;
+         is_really_const:=really_const;
          prefix:=stringdup(procprefix);
       end;
 
@@ -1362,6 +1363,11 @@
          tsym.load;
          typ:=typedconstsym;
          definition:=readdefref;
+{$ifdef DELPHI_CONST_IN_RODATA}
+         is_really_const:=boolean(readbyte);
+{$else DELPHI_CONST_IN_RODATA}
+         is_really_const:=false;
+{$endif DELPHI_CONST_IN_RODATA}
          prefix:=stringdup(readstring);
       end;
 
@@ -1400,6 +1406,9 @@
          tsym.write;
          writedefref(definition);
          writestring(prefix^);
+{$ifdef DELPHI_CONST_IN_RODATA}
+         writebyte(byte(is_really_const));
+{$endif DELPHI_CONST_IN_RODATA}
          current_ppu^.writeentry(ibtypedconstsym);
       end;
 
@@ -1416,30 +1425,35 @@
         end;
 
       procedure ttypedconstsym.really_insert_in_data;
+        var curconstsegment : paasmoutput;
         begin
+           if is_really_const then
+             curconstsegment:=consts
+           else
+             curconstsegment:=datasegment;
            if owner^.symtabletype=globalsymtable then
              begin
                 if (cs_smartlink in aktmoduleswitches) then
-                  datasegment^.concat(new(pai_cut,init));
+                  curconstsegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
                 if cs_debuginfo in aktmoduleswitches then
-                  concatstabto(datasegment);
+                  concatstabto(curconstsegment);
 {$endif GDB}
-                datasegment^.concat(new(pai_symbol,init_global(mangledname)));
+                curconstsegment^.concat(new(pai_symbol,init_global(mangledname)));
              end
            else
              if owner^.symtabletype<>unitsymtable then
                begin
                  if (cs_smartlink in aktmoduleswitches) then
-                   datasegment^.concat(new(pai_cut,init));
+                   curconstsegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
                  if cs_debuginfo in aktmoduleswitches then
-                   concatstabto(datasegment);
+                   concatstabto(curconstsegment);
 {$endif GDB}
                  if (cs_smartlink in aktmoduleswitches) then
-                   datasegment^.concat(new(pai_symbol,init_global(mangledname)))
+                   curconstsegment^.concat(new(pai_symbol,init_global(mangledname)))
                  else
-                   datasegment^.concat(new(pai_symbol,init(mangledname)));
+                   curconstsegment^.concat(new(pai_symbol,init(mangledname)));
                end;
            end;
 
@@ -1943,7 +1957,11 @@
 
 {
   $Log$
-  Revision 1.80  1999-04-21 09:43:54  peter
+  Revision 1.81  1999-04-25 22:38:39  pierre
+    + added is_really_const booleanfield for typedconstsym
+      for Delphi in $J- mode (not yet implemented !)
+
+  Revision 1.80  1999/04/21 09:43:54  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)
