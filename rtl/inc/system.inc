@@ -84,6 +84,8 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$ifdef FPC_USE_LIBC}
 { prefer libc implementations over our own, as they're most likely faster }
 {$i cgeneric.inc}
+{ is now declared as external reference to another routine in the interface }
+{$define FPC_UNIT_HAS_STRLEN}
 {$i cgenstr.inc}
 {$endif FPC_USE_LIBC}
 
@@ -998,7 +1000,12 @@ end;
 
 {
   $Log$
-  Revision 1.68  2004-11-17 22:19:04  peter
+  Revision 1.69  2004-11-20 15:49:21  jonas
+    * some compilation fixes for powerpc after all the internconst and
+      internproc changes, still crashes with internalerror(88) for ppc1
+      on real2str.inc(193,39)
+
+  Revision 1.68  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.67  2004/10/30 20:49:10  marco

@@ -274,7 +274,7 @@ type
     End;
 
 
-  function trunc(d : real) : int64;[internconst:in_const_trunc];
+  function trunc(d : real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_trunc];{$endif}
     var
 {$ifdef cpuarm}
      l: longint;
@@ -318,7 +318,7 @@ type
 
     { straight Pascal translation of the code for __trunc() in }
     { the file sysdeps/libm-ieee754/s_trunc.c of glibc (JM)    }
-    function int(d: double): double;[internconst:in_const_int];
+    function int(d: double): double;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_int];{$endif}
       var
         i0, j0: longint;
         i1: cardinal;
@@ -373,7 +373,7 @@ type
 {$else SUPPORT_DOUBLE}
 
 
-    function int(d : real) : real;[internconst:in_const_int];
+    function int(d : real) : real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_int];{$endif}
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
@@ -527,14 +527,14 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SQR}
-    function sqr(d : Real) : Real;[internconst:in_const_sqr];
+    function sqr(d : Real) : Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
     begin
       sqr := d*d;
     end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_PI}
-    function pi : Real;[internconst:in_const_pi];
+    function pi : Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_pi];{$endif}
     begin
       pi := 3.1415926535897932385;
     end;
@@ -542,7 +542,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d:Real):Real;[internconst:in_const_sqrt]; [public, alias: 'FPC_SQRT_REAL'];
+    function sqrt(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqrt];{$endif} [public, alias: 'FPC_SQRT_REAL'];
     {*****************************************************************}
     { Square root                                                     }
     {*****************************************************************}
@@ -607,7 +607,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_EXP}
-    function Exp(d:Real):Real;[internconst:in_const_exp];
+    function Exp(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_exp];{$endif}
     {*****************************************************************}
     { Exponential Function                                            }
     {*****************************************************************}
@@ -683,11 +683,11 @@ type
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
 {$ifdef hascompilerproc}
-    function round(d : Real) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+    function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif} external name 'FPC_ROUND';
 
     function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 {$else}
-    function round(d : Real) : int64;[internconst:in_const_round];
+    function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
 {$endif hascompilerproc}
      var
       fr: Real;
@@ -764,7 +764,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
-    function Ln(d:Real):Real;[internconst:in_const_ln];
+    function Ln(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_ln];{$endif}
     {*****************************************************************}
     { Natural Logarithm                                               }
     {*****************************************************************}
@@ -888,7 +888,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SIN}
-    function Sin(d:Real):Real;[internconst:in_const_sin];
+    function Sin(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sin];{$endif}
     {*****************************************************************}
     { Circular Sine                                                   }
     {*****************************************************************}
@@ -974,7 +974,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_COS}
-    function Cos(d:Real):Real;[internconst:in_const_cos];
+    function Cos(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_cos];{$endif}
     {*****************************************************************}
     { Circular cosine                                                 }
     {*****************************************************************}
@@ -1057,7 +1057,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_ARCTAN}
-    function ArcTan(d:Real):Real;[internconst:in_const_arctan];
+    function ArcTan(d:Real):Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_arctan];{$endif}
     {*****************************************************************}
     { Inverse circular tangent (arctangent)                           }
     {*****************************************************************}
@@ -1132,7 +1132,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_FRAC}
-    function frac(d : Real) : Real;[internconst:in_const_frac];
+    function frac(d : Real) : Real;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_frac];{$endif}
     begin
        frac := d - Int(d);
     end;
@@ -1248,7 +1248,12 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.27  2004-10-09 21:00:46  jonas
+  Revision 1.28  2004-11-20 15:49:21  jonas
+    * some compilation fixes for powerpc after all the internconst and
+      internproc changes, still crashes with internalerror(88) for ppc1
+      on real2str.inc(193,39)
+
+  Revision 1.27  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is

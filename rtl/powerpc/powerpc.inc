@@ -1065,7 +1065,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;[internconst:in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function abs(l:longint):longint; assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         srawi   r0,r3,31
         add     r3,r0,r3
@@ -1078,14 +1078,14 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;[internconst:in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function odd(l:longint):boolean;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         rlwinm  r3,r3,0,31,31
 end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function sqr(l:longint):longint;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
         mullw   r3,r3,r3
 end;
@@ -1138,7 +1138,12 @@ end;
 
 {
   $Log$
-  Revision 1.72  2004-11-08 08:54:51  jonas
+  Revision 1.73  2004-11-20 15:49:21  jonas
+    * some compilation fixes for powerpc after all the internconst and
+      internproc changes, still crashes with internalerror(88) for ppc1
+      on real2str.inc(193,39)
+
+  Revision 1.72  2004/11/08 08:54:51  jonas
     * use "round to nearest" rounding mode again, just like C (affects
       results of divisions as well)
 

@@ -26,14 +26,16 @@ const
                        EXTENDED data type routines
  ****************************************************************************}
 
+{$ifndef INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_PI}
-    function pi : double;[internproc:in_pi];
+    function pi : double;[internproc:fpc_in_pi];
 
     {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    function abs(d : extended) : extended;[internproc:fpc_in_abs_extended];
 
     {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_extended];
+{$endif ndef INTERNCONSTINTF}
 
       const
         factor: double = double(int64(1) shl 32);
@@ -41,7 +43,7 @@ const
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
-    function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
+    function trunc(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_trunc];{$endif}
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -134,11 +136,11 @@ const
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
 {$ifdef hascompilerproc}
-    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+    function round(d : extended) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round, external name 'FPC_ROUND'];{$endif}
 
     function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 {$else}
-    function round(d : extended) : int64;assembler;[internconst:in_const_round];
+    function round(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
 {$endif hascompilerproc}
       { exactly the same as trunc, except that one fctiwz has become fctiw }
       { input: d in fr1      }
@@ -318,7 +320,12 @@ end;
 
 {
   $Log$
-  Revision 1.35  2004-11-07 19:09:02  jonas
+  Revision 1.36  2004-11-20 15:49:21  jonas
+    * some compilation fixes for powerpc after all the internconst and
+      internproc changes, still crashes with internalerror(88) for ppc1
+      on real2str.inc(193,39)
+
+  Revision 1.35  2004/11/07 19:09:02  jonas
     * use generic round, the ppc-specific one is buggy
 
   Revision 1.34  2004/10/09 21:00:46  jonas
