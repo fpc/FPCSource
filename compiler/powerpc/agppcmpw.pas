@@ -30,7 +30,7 @@ unit agppcmpw;
 interface
 
     uses
-       aasmbase,aasmtai,aasmcpu,assemble,
+       globals,aasmbase,aasmtai,aasmcpu,assemble,
        cpubase;
 
     const
@@ -52,7 +52,13 @@ interface
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
+{$ifdef GDB}
+        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure WriteFileEndInfo;
+{$endif}
         procedure WriteAsmFileHeader;
+        private
+        procedure GenProcedureHeader(var hp:tai);
       end;
 
 
@@ -62,14 +68,30 @@ interface
 {$ifdef delphi}
       sysutils,
 {$endif}
-      cutils,globtype,globals,systems,cclasses,
+      cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo
       ;
 
     const
       line_length = 70;
 
+      {Whether internal procedure references should be xxx[PR]: }
+      use_PR = false;
 
+      const_storage_class = '[RW]';
+
+
+
+{$ifdef GDB}
+var
+      n_line       : byte;     { different types of source lines }
+      linecount,
+      includecount : longint;
+      funcname     : pchar;
+      stabslastfileinfo : tfileposinfo;
+      isInFunction: Boolean;
+      firstLineInFunction: longint;
+{$endif}
 
     function ReplaceForbiddenChars(var s: string):Boolean;
          {Returns wheater a replacement has occured.}
@@ -141,32 +163,36 @@ interface
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
          'mtctr', 'mfctr');
 
-     symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
-    function getreferencestring(var ref : treference) : string;
+function getreferencestring(var ref : treference) : string;
     var
       s : string;
     begin
        with ref do
         begin
           inc(offset,offsetfixup);
-          if ((offset < -32768) or (offset > 32767)) and
-             (symaddr = refs_full) then
-            internalerror(19991);
-          if (symaddr = refs_full) then
-            s := ''
-          else if not assigned(symbol) then
-            s := '('
-          else
+
+          if (symaddr <> refs_full) then
+            InternalError(2002110301)
+          else if ((offset < -32768) or (offset > 32767)) then
+            InternalError(19991);
+
+
+          if assigned(symbol) then
             begin
-              {s:='('+symbol.name; CHANGED from this to: }
               s:= symbol.name;
               ReplaceForbiddenChars(s);
-              s:='('+s;
-            end;
+              {if symbol.typ = AT_FUNCTION then
+                  ;}
+
+              s:= s+'[TC]' {ref to TOC entry }
+            end
+          else
+            s:= '';
+
 
           if offset<0 then
-           s:=s+tostr(offset)
+            s:=s+tostr(offset)
           else
            if (offset>0) then
             begin
@@ -176,23 +202,16 @@ interface
                s:=s+tostr(offset);
             end;
 
-           if (symaddr <> refs_full) then
-             s := s+')'+symaddr2str[symaddr];
-
-           if (index=R_NO) and (base<>R_NO) then
-             begin
-                if offset=0 then
-                  begin
-                     if assigned(symbol) then
-                       s:=s+'+0'
-                     else
-                       s:=s+'0';
-                  end;
-                s:=s+'('+mpw_reg2str[base]+')'
-             end
-           else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
-             s:=s+mpw_reg2str[base]+','+mpw_reg2str[index]
-           else if ((index<>R_NO) or (base<>R_NO)) then
+          if (index.enum=R_NO) and (base.enum<>R_NO) then
+            begin
+              if offset=0 then
+                if not assigned(symbol) then
+                  s:=s+'0';
+              s:=s+'('+mpw_reg2str[base.enum]+')'
+            end
+          else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
+            s:=s+mpw_reg2str[base.enum]+','+mpw_reg2str[index.enum]
+          else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
             internalerror(19992);
         end;
       getreferencestring:=s;
@@ -204,7 +223,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=mpw_reg2str[o.reg];
+          getopstr_jmp:=mpw_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -239,7 +258,7 @@ interface
     begin
       case o.typ of
         top_reg:
-          getopstr:=mpw_reg2str[o.reg];
+          getopstr:=mpw_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -323,7 +342,7 @@ interface
       end;
     end;
 
-    Function GetInstruction(hp : tai):string; {CHANGED from methot to proc}
+    Function GetInstruction(hp : tai):string; {CHANGED from method to proc}
     var op: TAsmOp;
         s: string;
         i: byte;
@@ -334,34 +353,68 @@ interface
         begin
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
-             A_B,A_BA,A_BL,A_BLA:
-               s:=#9+op2str[op]+#9
+             A_B,A_BA,A_BLA:
+               s:=#9+op2str[op]+#9;
+             A_BCTR,A_BCTRL,A_BLR,A_BLRL:
+               s:=#9+op2str[op];
+             A_BL:
+               s:=#9+op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
-
-          s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if (taicpu(hp).oper[0].typ <> top_none) then
+            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if use_PR then
+            if op=A_BL then
+              s:=s+'[PR]';
         end
       else
         { process operands }
         begin
+          case op of
+             A_MFSPR:
+               case taicpu(hp).oper[1].reg.enum of
+                  R_CR:
+                    begin
+                       op:=A_MFCR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  R_LR:
+                    begin
+                       op:=A_MFLR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  else
+                    internalerror(2002100701);
+               end;
+             A_MTSPR:
+               case taicpu(hp).oper[1].reg.enum of
+                  R_CR:
+                    begin
+                       op:=A_MTCR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  R_LR:
+                    begin
+                       op:=A_MTLR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  else
+                    internalerror(2002100701);
+               end;
+          end;
           s:=#9+op2str[op];
           if taicpu(hp).ops<>0 then
             begin
-            {
-              if not is_calljmp(op) then
-                sep:=','
-              else
-            }
-                sep:=#9;
-              for i:=0 to taicpu(hp).ops-1 do
-                begin
+               sep:=#9;
+               for i:=0 to taicpu(hp).ops-1 do
+                 begin
                    s:=s+sep+getopstr(taicpu(hp).oper[i]);
                    sep:=',';
-                end;
+                 end;
             end;
         end;
-      GetInstruction:= s
+      GetInstruction:=s;
     end;
 
     {*** Until here is copyed from agppcgas.pp. ***}
@@ -422,6 +475,143 @@ interface
 {****************************************************************************
                                PowerPC MPW Assembler
  ****************************************************************************}
+    procedure TPPCMPWAssembler.GenProcedureHeader(var hp:tai);
+      {Returns the current hp where the caller should continue from}
+      {For multiple entry procedures, only the last is exported as xxx[PR]
+       (if use_PR is set) }
+
+      procedure WriteExportHeader(hp:tai);
+
+        var
+          s: string;
+          replaced: boolean;
+
+      begin
+        s:= tai_symbol(hp).sym.name;
+        replaced:= ReplaceForbiddenChars(s);
+
+        if replaced then
+          begin
+            if not use_PR then
+              AsmWriteLn(#9'export'#9'.'+s+' => ''.'+tai_symbol(hp).sym.name+'''');
+            AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+          end
+        else
+          begin
+            if not use_PR then
+              AsmWriteLn(#9'export'#9'.'+s);
+            AsmWriteLn(#9'export'#9+s+'[DS]');
+          end;
+        {Entry in transition vector: }
+        AsmWriteLn(#9'csect'#9+s+'[DS]');
+        AsmWriteLn(#9'dc.l'#9'.'+s);
+        AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+        {Entry in TOC: }
+        AsmWriteLn(#9'toc');
+        AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+      end;
+
+    function GetAdjacentTaiSymbol(var hp:tai):Boolean;
+
+    begin
+      GetAdjacentTaiSymbol:= false;
+      while assigned(hp.next) do
+        case tai(hp.next).typ of
+          ait_symbol:
+            begin
+              hp:=tai(hp.next);
+              GetAdjacentTaiSymbol:= true;
+              Break;
+            end;
+          ait_stab_function_name:
+            hp:=tai(hp.next);
+          else
+            begin
+              //AsmWriteln('  ;#*#*# ' + tostr(Ord(tai(hp.next).typ)));
+              Break;
+            end;
+        end;
+    end;
+
+    var
+      first,last: tai;
+      s: string;
+      replaced: boolean;
+
+
+    begin
+      s:= tai_symbol(hp).sym.name;
+      {Write all headers}
+      first:= hp;
+      repeat
+        WriteExportHeader(hp);
+        last:= hp;
+      until not GetAdjacentTaiSymbol(hp);
+
+      {Start the section of the body of the proc: }
+      s:= tai_symbol(last).sym.name;
+      replaced:= ReplaceForbiddenChars(s);
+
+      if use_PR then
+        if replaced then
+           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(last).sym.name+'[PR]''')
+        else
+           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+
+      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');    //starts the section
+      AsmWriteLn(#9'function'#9'.'+s+'[PR]'); //info for debugger
+      {$ifdef GDB}
+      if ((cs_debuginfo in aktmoduleswitches) or
+           (cs_gdb_lineinfo in aktglobalswitches)) then
+        begin
+          //info for debuggers:
+          firstLineInFunction:= stabslastfileinfo.line;
+          AsmWriteLn(#9'beginf ' + tostr(firstLineInFunction));
+          isInFunction:= true;
+        end;
+      {$endif}
+      {Write all labels: }
+      hp:= first;
+      repeat
+        s:= tai_symbol(hp).sym.name;
+        ReplaceForbiddenChars(s);
+        AsmWriteLn('.'+s+':');
+      until not GetAdjacentTaiSymbol(hp);
+    end;
+
+    (*
+    procedure TPPCMPWAssembler.GenProcedureHeader(hp:tai);
+
+    var
+      s: string;
+      replaced: boolean;
+
+    begin
+      s:= tai_symbol(hp).sym.name;
+      replaced:= ReplaceForbiddenChars(s);
+      if replaced then
+        begin
+           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
+           AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+        end
+      else
+        begin
+           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+           AsmWriteLn(#9'export'#9+s+'[DS]');
+        end;
+      {Entry in transition vector: }
+      AsmWriteLn(#9'csect'#9+s+'[DS]');
+      AsmWriteLn(#9'dc.l'#9'.'+s);
+      AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+      {Entry in TOC: }
+      AsmWriteLn(#9'toc');
+      AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+      {Start the section of the body of the proc: }
+      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
+
+      AsmWriteLn('.'+s+':');
+    end;
+    *)
 
     var
       LasTSec : TSection;
@@ -431,7 +621,7 @@ interface
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DC.L'#9,#9'DC.W'#9,#9'DC.B'#9);
+        (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -452,23 +642,92 @@ interface
        PadTabs:=s+#9;
     end;
 
+{$ifdef GDB}
+    procedure TPPCMPWAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
+        var
+          curr_n : byte;
+        begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+        { file changed ? (must be before line info) }
+          if (fileinfo.fileindex<>0) and
+             (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
+           begin
+             infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
+             if assigned(infile) then
+              begin
+              (*
+                if includecount=0 then
+                 curr_n:=n_sourcefile
+                else
+                 curr_n:=n_includefile;
+                if (infile.path^<>'') then
+                 begin
+                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+
+                     tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+                 end;
+
+                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile.name^))+'",'+
+                  tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+              *)
+              AsmWriteLn(#9'file '''+lower(FixFileName(infile.name^))+'''');
+
+              (*
+                AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
+              *)
+
+                inc(includecount);
+                { force new line info }
+                stabslastfileinfo.line:=-1;
+              end;
+           end;
+        { line changed ? }
+          if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
+           begin
+            (*
+             if (n_line=n_textline) and assigned(funcname) and
+                (target_info.use_function_relative_addresses) then
+              begin
+                AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
+                AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(fileinfo.line)+','+
+                           target_asm.labelprefix+'l'+tostr(linecount)+' - ');
+                AsmWritePChar(FuncName);
+                AsmLn;
+                inc(linecount);
+              end
+             else
+              AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(fileinfo.line));
+            *)
+            if isInFunction then
+              AsmWriteln(#9'line '+ tostr(fileinfo.line - firstLineInFunction - 1));
+          end;
+          stabslastfileinfo:=fileinfo;
+        end;
+
+      procedure TPPCMPWAssembler.WriteFileEndInfo;
+
+        begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+          AsmLn;
+          (*
+          AsmWriteLn(ait_section2str(sec_code));
+          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'etext');
+          AsmWriteLn(target_asm.labelprefix+'etext:');
+          *)
+        end;
+
+{$endif}
 
     procedure TPPCMPWAssembler.WriteTree(p:TAAsmoutput);
-    const
-      nolinetai =[ait_label,
-                  ait_regalloc,ait_tempalloc,
-{$ifdef GDB}
-                  ait_stabn,ait_stabs,ait_stab_function_name,
-{$endif GDB}
-                  ait_cut,ait_marker,ait_align,ait_section];
-
-        {TODO: Perhaps replace internalerror(10000) with something else}
-
     var
       s,
       prefix,
       suffix   : string;
       hp       : tai;
+      hp1      : tailineinfo;
       counter,
       lines,
       InlineLevel : longint;
@@ -483,22 +742,33 @@ interface
     begin
       if not assigned(p) then
        exit;
+      InlineLevel:=0;
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
                  and (p=codesegment);
-      InlineLevel:=0;
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         if do_line and not(hp.typ in nolinetai) and
+         if not(hp.typ in SkipLineInfo) and
             not DoNotSplitLine then
            begin
-           { load infile }
-             if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+             hp1 := hp as tailineinfo;
+
+{$ifdef GDB}
+             { write debug info }
+             if (cs_debuginfo in aktmoduleswitches) or
+                (cs_gdb_lineinfo in aktglobalswitches) then
+               WriteFileLineInfo(hp1.fileinfo);
+{$endif GDB}
+
+             if do_line then
               begin
-                infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+           { load infile }
+             if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
+              begin
+                infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                 if assigned(infile) then
                  begin
                    { open only if needed !! }
@@ -506,7 +776,7 @@ interface
                     infile.open;
                  end;
                 { avoid unnecessary reopens of the same file !! }
-                lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+                lastfileinfo.fileindex:=hp1.fileinfo.fileindex;
                 { be sure to change line !! }
                 lastfileinfo.line:=-1;
               end;
@@ -520,23 +790,26 @@ interface
                     if assigned(lastinfile) then
                       lastinfile.close;
                   end;
-                if (hp.fileinfo.line<>lastfileinfo.line) and
-                   ((hp.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
+                if (hp1.fileinfo.line<>lastfileinfo.line) and
+                   ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
                   begin
-                    if (hp.fileinfo.line<>0) and
-                       ((infile.linebuf^[hp.fileinfo.line]>=0) or (InlineLevel>0)) then
-                      AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
-                        fixline(infile.GetLineStr(hp.fileinfo.line)));
+                    if (hp1.fileinfo.line<>0) and
+                       ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
+                      AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
+                        fixline(infile.GetLineStr(hp1.fileinfo.line)));
                     { set it to a negative value !
                     to make that is has been read already !! PM }
-                    if (infile.linebuf^[hp.fileinfo.line]>=0) then
-                      infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+                    if (infile.linebuf^[hp1.fileinfo.line]>=0) then
+                      infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
                   end;
               end;
-             lastfileinfo:=hp.fileinfo;
+             lastfileinfo:=hp1.fileinfo;
              lastinfile:=infile;
            end;
+          end;
+
          DoNotSplitLine:=false;
+
          case hp.typ of
             ait_comment:
               begin
@@ -554,109 +827,129 @@ interface
                  if tai_section(hp).sec<>sec_none then
                   begin
                     AsmLn;
-                    AsmWriteLn(#9+target_asm.secnames[tai_section(hp).sec]){+#9#9+
-                               'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                               target_asm.secnames[tai_section(hp).sec]+'''');}
+                    AsmWriteLn(#9+target_asm.secnames[tai_section(hp).sec]);
+{$ifdef GDB}
+                  lastfileinfo.line:=-1;
+{$endif GDB}
                   end;
                  LasTSec:=tai_section(hp).sec;
                end;
-             ait_align:
-               begin
-                  case tai_align(hp).aligntype of
-                    1:AsmWriteLn(#9'ALIGN 0');
-                    2:AsmWriteLn(#9'ALIGN 1');
-                    4:AsmWriteLn(#9'ALIGN 2');
-                    otherwise internalerror(10000);
-                  end;
+            ait_align:
+              begin
+                 case tai_align(hp).aligntype of
+                   1:AsmWriteLn(#9'align 0');
+                   2:AsmWriteLn(#9'align 1');
+                   4:AsmWriteLn(#9'align 2');
+                   otherwise internalerror(2002110302);
+                 end;
+              end;
+            ait_datablock:
+              begin
+                 s:= tai_datablock(hp).sym.name;
+                 replaced:= ReplaceForbiddenChars(s);
+                 if tai_datablock(hp).is_global then
+                   if replaced then
+                     AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_datablock(hp).sym.name+'''')
+                   else
+                     AsmWriteLn(#9'export'#9+s+'[RW]');
+
+
+                 if not macos_direct_globals then
+                   begin
+                     AsmWriteLn(#9'toc');
+                     AsmWriteLn(#9'tc'#9+s+'[TC], '+s+'[RW]');
+                     AsmWriteLn(#9'csect'#9+s+'[RW]');
+                     AsmWriteLn(#9'ds.b '+tostr(tai_datablock(hp).size));
+                   end
+                 else
+                   begin
+                     AsmWriteLn(#9'csect'#9+s+'[TC]');
+                     AsmWriteLn(PadTabs(s+':',#0)+'ds.b '+tostr(tai_datablock(hp).size));
+                     {TODO: ? PadTabs(s,#0) }
+                   end;
+              end;
+            ait_const_32bit,
+            ait_const_8bit,
+            ait_const_16bit :
+              begin
+                 AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+                 consttyp:=hp.typ;
+                 l:=0;
+                 repeat
+                   found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
+                   if found then
+                    begin
+                      hp:=tai(hp.next);
+                      s:=','+tostr(tai_const(hp).value);
+                      AsmWrite(s);
+                      inc(l,length(s));
+                    end;
+                 until (not found) or (l>line_length);
+                 AsmLn;
                end;
-             ait_datablock:
-               begin
-                  s:= tai_datablock(hp).sym.name;
-                  replaced:= ReplaceForbiddenChars(s);
-                  if tai_datablock(hp).is_global then
-                    if replaced then
-                      AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
+            ait_const_symbol:
+              begin
+                (*
+                 AsmWriteLn(#9#9'dd'#9'offset '+tai_const_symbol(hp).sym.name);
+                 if tai_const_symbol(hp).offset>0 then
+                   AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
+                 else if tai_const_symbol(hp).offset<0 then
+                   AsmWrite(tostr(tai_const_symbol(hp).offset));
+                 AsmLn;
+                *)
+
+                s:= tai_const_symbol(hp).sym.name;
+                ReplaceForbiddenChars(s);
+
+
+                if tai_const_symbol(hp).sym.typ = AT_FUNCTION then
+                  begin
+                    if use_PR then
+                      AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
                     else
-                      AsmWriteLn(#9'EXPORT'#9+s);
-                  AsmWriteLn(PadTabs(s,#0)+'DS.B '+tostr(tai_datablock(hp).size));
-                  {TODO: ? PadTabs(s,#0) }
-               end;
-             ait_const_32bit,
-             ait_const_8bit,
-             ait_const_16bit :
-               begin
-                       AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
-                       consttyp:=hp.typ;
-                       l:=0;
-                       repeat
-                         found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
-                         if found then
-                          begin
-                            hp:=tai(hp.next);
-                            s:=','+tostr(tai_const(hp).value);
-                            AsmWrite(s);
-                            inc(l,length(s));
-                          end;
-                       until (not found) or (l>line_length);
-                       AsmLn;
-                     end;
-  ait_const_symbol : begin
-                       AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
-                       if tai_const_symbol(hp).offset>0 then
-                         AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-                       else if tai_const_symbol(hp).offset<0 then
-                         AsmWrite(tostr(tai_const_symbol(hp).offset));
-                       AsmLn;
-                     end;
-        ait_real_32bit : AsmWriteLn(#9'DC.L'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
-        ait_real_64bit : AsmWriteLn(#9'DC.D'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
-        ait_string : begin
-                       {NOTE When a single quote char is encountered, it is
-                       replaced with a numeric ascii value. It could also
-                       have been replaced with the escape seq of double quotes.}
-                       counter := 0;
-                       lines := tai_string(hp).len div line_length;
-                     { separate lines in different parts }
-                       if tai_string(hp).len > 0 then
-                        Begin
-                          for j := 0 to lines-1 do
-                           begin
-                             AsmWrite(#9'DC.B'#9);
-                             quoted:=false;
-                             for i:=counter to counter+line_length do
-                                begin
-                                  { it is an ascii character. }
-                                  if (ord(tai_string(hp).str[i])>31) and
-                                     (ord(tai_string(hp).str[i])<128) and
-                                     (tai_string(hp).str[i]<>'''') then
-                                      begin
-                                        if not(quoted) then
-                                            begin
-                                              if i>counter then
-                                                AsmWrite(',');
-                                              AsmWrite('''');
-                                            end;
-                                        AsmWrite(tai_string(hp).str[i]);
-                                        quoted:=true;
-                                      end { if > 31 and < 128 and ord('"') }
-                                  else
-                                      begin
-                                          if quoted then
-                                              AsmWrite('''');
-                                          if i>counter then
-                                              AsmWrite(',');
-                                          quoted:=false;
-                                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                                      end;
-                               end; { end for i:=0 to... }
-                             if quoted then AsmWrite('''');
-                               AsmWrite(target_info.newline);
-                             counter := counter+line_length;
-                          end; { end for j:=0 ... }
-                        { do last line of lines }
-                        AsmWrite(#9'DC.B'#9);
-                        quoted:=false;
-                        for i:=counter to tai_string(hp).len-1 do
+                      AsmWriteLn(#9'dc.l'#9 + s + '[DS]')
+                  end
+                else
+                  begin
+                    if macos_direct_globals then
+                      AsmWriteLn(#9'dc.l'#9+s)
+                    else
+                      AsmWriteLn(#9'dc.l'#9+s+const_storage_class);
+                  end;
+
+                (* TODO: the following might need to be included. Temporaily we
+                generate an error
+
+                if tai_const_symbol(hp).offset>0 then
+                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
+                else if tai_const_symbol(hp).offset<0 then
+                  AsmWrite(tostr(tai_const_symbol(hp).offset));
+                *)
+
+                if tai_const_symbol(hp).offset <> 0 then
+                  InternalError(2002110101);
+
+                AsmLn;
+              end;
+            ait_real_32bit:
+              AsmWriteLn(#9'dc.l'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
+            ait_real_64bit:
+              AsmWriteLn(#9'dc.d'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
+            ait_string:
+              begin
+                 {NOTE When a single quote char is encountered, it is
+                 replaced with a numeric ascii value. It could also
+                 have been replaced with the escape seq of double quotes.}
+                 counter := 0;
+                 lines := tai_string(hp).len div line_length;
+                 { separate lines in different parts }
+                 if tai_string(hp).len > 0 then
+                  Begin
+                    for j := 0 to lines-1 do
+                     begin
+                       AsmWrite(#9'dc.b'#9);
+                       quoted:=false;
+                       for i:=counter to counter+line_length do
                           begin
                             { it is an ascii character. }
                             if (ord(tai_string(hp).str[i])>31) and
@@ -671,69 +964,139 @@ interface
                                       end;
                                   AsmWrite(tai_string(hp).str[i]);
                                   quoted:=true;
-                                end { if > 31 and < 128 and " }
+                                end { if > 31 and < 128 and ord('"') }
                             else
                                 begin
-                                  if quoted then
-                                    AsmWrite('''');
-                                  if i>counter then
-                                      AsmWrite(',');
-                                  quoted:=false;
-                                  AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                                    if quoted then
+                                        AsmWrite('''');
+                                    if i>counter then
+                                        AsmWrite(',');
+                                    quoted:=false;
+                                    AsmWrite(tostr(ord(tai_string(hp).str[i])));
                                 end;
-                          end; { end for i:=0 to... }
-                        if quoted then
-                          AsmWrite('''');
-                        end;
-                       AsmLn;
-                     end;
-         ait_label : begin
-                       if tai_label(hp).l.is_used then
-                        begin
-                          s:= tai_label(hp).l.name;
-                          ReplaceForbiddenChars(s);
-                          AsmWrite(s);
-                          {if assigned(hp.next) and not(tai(hp.next).typ in
-                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                              ait_const_symbol,ait_const_rva,
-                              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                           AsmWriteLn(':')
-                          else
-                           DoNotSplitLine:=true;}
-                          AsmWriteLn(':');
-                        end;
-                     end;
-        ait_direct : begin
-                       AsmWritePChar(tai_direct(hp).str);
-                       AsmLn;
-                     end;
-        ait_symbol : begin
-                       s:= tai_label(hp).l.name;
+                         end; { end for i:=0 to... }
+                       if quoted then AsmWrite('''');
+                         AsmWrite(target_info.newline);
+                       counter := counter+line_length;
+                    end; { end for j:=0 ... }
+                  { do last line of lines }
+                  AsmWrite(#9'dc.b'#9);
+                  quoted:=false;
+                  for i:=counter to tai_string(hp).len-1 do
+                    begin
+                      { it is an ascii character. }
+                      if (ord(tai_string(hp).str[i])>31) and
+                         (ord(tai_string(hp).str[i])<128) and
+                         (tai_string(hp).str[i]<>'''') then
+                          begin
+                            if not(quoted) then
+                                begin
+                                  if i>counter then
+                                    AsmWrite(',');
+                                  AsmWrite('''');
+                                end;
+                            AsmWrite(tai_string(hp).str[i]);
+                            quoted:=true;
+                          end { if > 31 and < 128 and " }
+                      else
+                          begin
+                            if quoted then
+                              AsmWrite('''');
+                            if i>counter then
+                                AsmWrite(',');
+                            quoted:=false;
+                            AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                          end;
+                    end; { end for i:=0 to... }
+                  if quoted then
+                    AsmWrite('''');
+                  end;
+                 AsmLn;
+              end;
+            ait_label:
+              begin
+                 if tai_label(hp).l.is_used then
+                  begin
+                    s:= tai_label(hp).l.name;
+                    ReplaceForbiddenChars(s);
+                    if s[1] = '@' then
+                      AsmWriteLn(s+':')
+                    else
+                      begin
+                        if not macos_direct_globals then
+                          begin
+                            AsmWriteLn(#9'toc');
+                            AsmWriteLn(#9'tc'#9+s+'[TC], '+s+const_storage_class);
+                            AsmWriteLn(#9'csect'#9+s+const_storage_class);
+                          end
+                        else
+                          begin
+                            AsmWriteLn(#9'csect'#9+s+'[TC]');
+                            AsmWriteLn(PadTabs(s+':',#0));
+                          end;
+                      end;
+                  end;
+               end;
+             ait_direct:
+               begin
+                  AsmWritePChar(tai_direct(hp).str);
+                  AsmLn;
+               end;
+             ait_symbol:
+               begin
+                  if tai_symbol(hp).sym.typ=AT_FUNCTION then
+                    GenProcedureHeader(hp)
+                  else if tai_symbol(hp).sym.typ=AT_DATA then
+                    begin
+                       s:= tai_symbol(hp).sym.name;
                        replaced:= ReplaceForbiddenChars(s);
                        if tai_symbol(hp).is_global then
                          if replaced then
-                           AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
+                           AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_symbol(hp).sym.name+'''')
                          else
-                           AsmWriteLn(#9'EXPORT'#9+s);
-                       AsmWrite(s);
-                       {if assigned(hp.next) and not(tai(hp.next).typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_rva,
-                           ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then}
-                       AsmWriteLn(':')
-                     end;
-    ait_symbol_end : begin
-                     end;
-   ait_instruction : begin
-                        AsmWriteLn(GetInstruction(hp));
-                     end;
+                           AsmWriteLn(#9'export'#9+s+'[RW]');
+
+
+                       if not macos_direct_globals then
+                         begin
+                           AsmWriteLn(#9'toc');
+                           AsmWriteLn(#9'tc'#9+s+'[TC], '+s+ const_storage_class);
+                           AsmWriteLn(#9'csect'#9+s+ const_storage_class);
+                         end
+                       else
+                         begin
+                           AsmWriteLn(#9'csect'#9+s+'[TC]');
+                           AsmWriteLn(s+':');
+                         end;
+                    end
+                  else
+                    InternalError(2003071301);
+                end;
+              ait_symbol_end:
 {$ifdef GDB}
-             ait_stabn,
-             ait_stabs,
-        ait_force_line,
-ait_stab_function_name : ;
+                if isInFunction then
+                  if ((cs_debuginfo in aktmoduleswitches) or
+                       (cs_gdb_lineinfo in aktglobalswitches)) then
+                    begin
+                      //info for debuggers:
+                      AsmWriteLn(#9'endf ' + tostr(stabslastfileinfo.line));
+                      isInFunction:= false;
+                    end
 {$endif GDB}
-           ait_cut : begin
+                ;
+              ait_instruction:
+                AsmWriteLn(GetInstruction(hp));
+{$ifdef GDB}
+              ait_stabn: ;
+              ait_stabs: ;
+
+              ait_force_line :
+                 stabslastfileinfo.line:=0;
+
+              ait_stab_function_name: ;
+{$endif GDB}
+              ait_cut :
+                begin
                      { only reset buffer if nothing has changed }
                        if AsmSize=AsmStartSize then
                         AsmClear
@@ -741,10 +1104,10 @@ ait_stab_function_name : ;
                         begin
                           {
                           if LasTSec<>sec_none then
-                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
+                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ends');
                           AsmLn;
                           }
-                          AsmWriteLn(#9'END');
+                          AsmWriteLn(#9'end');
                           AsmClose;
                           DoAssemble;
                           AsmCreate(tai_cut(hp).place);
@@ -767,16 +1130,16 @@ ait_stab_function_name : ;
                                      target_asm.secnames[lasTSec]+'''');
                        }
                        AsmStartSize:=AsmSize;
-                     end;
-           ait_marker :
-             begin
-               if tai_marker(hp).kind=InlineStart then
-                 inc(InlineLevel)
-               else if tai_marker(hp).kind=InlineEnd then
-                 dec(InlineLevel);
-             end;
+                 end;
+               ait_marker :
+                 begin
+                   if tai_marker(hp).kind=InlineStart then
+                     inc(InlineLevel)
+                   else if tai_marker(hp).kind=InlineEnd then
+                     dec(InlineLevel);
+                 end;
          else
-          internalerror(10000);
+          internalerror(2002110303);
          end;
          hp:=tai(hp.next);
        end;
@@ -793,12 +1156,40 @@ ait_stab_function_name : ;
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            {currentasmlist.AsmWriteln(#9'IMPORT'#9+p.name);}
+            //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
             s:= p.name;
-            if ReplaceForbiddenChars(s) then
-              currentasmlist.AsmWriteLn(#9'IMPORT'#9+s+' <= '''+p.name+'''')
-            else
-              currentasmlist.AsmWriteLn(#9'IMPORT'#9+s);
+            case tasmsymbol(p).typ of
+              AT_FUNCTION:
+                begin
+                   if ReplaceForbiddenChars(s) then
+                     begin
+                        if not use_PR then
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+' <= ''.'+p.name+'''')
+                        else
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR] <= ''.'+p.name+'[PR]''');
+                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS] <= '''+p.name+'[DS]''');
+                     end
+                   else
+                     begin
+                        if not use_PR then
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s)
+                        else
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR]');
+                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS]');
+                     end;
+                   currentasmlist.AsmWriteLn(#9'toc');
+                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+                end
+              else
+                begin
+                   if ReplaceForbiddenChars(s) then
+                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW] <= '''+p.name+'''')
+                   else
+                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW]');
+                   currentasmlist.AsmWriteLn(#9'toc');
+                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[RW]');
+                end;
+            end;
           end;
       end;
 
@@ -847,17 +1238,42 @@ ait_stab_function_name : ;
       AsmLn;
       *)
 
-      AsmWriteLn(#9'STRING ASIS'); {Interpret strings just to be the content between the quotes.}
+      AsmWriteLn(#9'string asis'); {Interpret strings just to be the content between the quotes.}
       AsmLn;
     end;
 
     procedure TPPCMPWAssembler.WriteAsmList;
+
+
+{$ifdef GDB}
+    var
+      fileinfo : tfileposinfo;
+{$endif GDB}
+
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource^);
 {$endif}
       LasTSec:=sec_none;
+{$ifdef GDB}
+      FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
+{$endif GDB}
+{$ifdef GDB}
+      //n_line:=n_bssline;
+      funcname:=nil;
+      linecount:=1;
+      includecount:=0;
+      fileinfo.fileindex:=1;
+      fileinfo.line:=1;
+
+      isInFunction:= false;
+      firstLineInFunction:= 0;
+
+      { Write main file }
+      WriteFileLineInfo(fileinfo);
+
+{$endif GDB}
 
       WriteAsmFileHeader;
       WriteExternals;
@@ -871,8 +1287,11 @@ ait_stab_function_name : ;
       WriteTree(rttilist);
       WriteTree(resourcestringlist);
       WriteTree(bsssegment);
+      {$ifdef GDB}
+      WriteFileEndInfo;
+      {$ENDIF}
 
-      AsmWriteLn(#9'END');
+      AsmWriteLn(#9'end');
       AsmLn;
 
 {$ifdef EXTDEBUG}
@@ -897,10 +1316,10 @@ ait_stab_function_name : ;
             allowdirect : true;
             needar : true;
             labelprefix_only_inside_procedure : true;
-            labelprefix : '@@';
+            labelprefix : '@';
             comment : '; ';
             secnames : ('',
-              'CSECT','CSECT','CSECT',  {TODO: Perhaps use other section types.}
+              'csect','csect [TC]','csect [TC]',  {TODO: Perhaps use other section types.}
               '','','','','','',
               '','','')
           );
@@ -910,7 +1329,58 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-09-27 21:09:49  florian
+  Revision 1.20  2002-10-01 05:17:27  olle
+    * minor fix
+
+  Revision 1.19  2003/04/06 21:01:40  olle
+    + line numbers are now emitted in the assembler code
+    * bug in export and import directive fixed
+    * made code more in sync with aggas.pas
+
+  Revision 1.18  2003/01/13 17:17:50  olle
+    * changed global var access, TOC now contain pointers to globals
+    * fixed handling of function pointers
+
+  Revision 1.17  2003/01/08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.16  2002/11/28 10:56:07  olle
+    * changed proc ref from .xxx[PR] (refering to its section)
+      to .xxx (refering to its label) to allow for multiple ref to a proc.
+
+  Revision 1.15  2002/11/17 16:31:59  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.14  2002/11/07 15:50:23  jonas
+    * fixed bctr(l) problems
+
+  Revision 1.13  2002/11/04 18:24:53  olle
+    * globals are located in TOC and relative r2, instead of absolute
+    * symbols which only differs in case are treated as a single symbol
+    + tai_const_symbol supported
+    * only refs_full accepted
+
+  Revision 1.12  2002/10/23 15:31:01  olle
+    * branch b does not jump to dotted symbol now
+
+  Revision 1.11  2002/10/19 23:52:40  olle
+    * import directive changed
+
+  Revision 1.10  2002/10/10 19:39:37  florian
+    * changes from Olle to get simple programs compiled and assembled
+
+  Revision 1.9  2002/10/07 21:19:53  florian
+    * more mpw fixes
+
+  Revision 1.8  2002/10/06 22:46:20  florian
+    * fixed function exporting
+
+  Revision 1.7  2002/10/02 22:14:15  florian
+    * improve function imports
+
+  Revision 1.6  2002/09/27 21:09:49  florian
     + readed because previous version was broken
 
   Revision 1.2  2002/08/31 12:43:31  florian
@@ -920,4 +1390,3 @@ end.
     + target macos for ppc added
     + frame work for mpw assembler output
 }
-
