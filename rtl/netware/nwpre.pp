@@ -123,3 +123,10 @@ END;
 
 
 end.
+{
+  $Log$
+  Revision 1.2  2001-04-11 14:17:00  florian
+    * added logs, fixed email address of Armin, it is
+      diehl@nordrhein.de
+
+}

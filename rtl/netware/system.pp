@@ -548,8 +548,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2001-04-11 14:14:12  florian
-    * initial commit, thanks to Armin Diehl (diehl@nordrhein)
+  Revision 1.2  2001-04-11 14:17:00  florian
+    * added logs, fixed email address of Armin, it is
+      diehl@nordrhein.de
+
+  Revision 1.1  2001/04/11 14:14:12  florian
+    * initial commit, thanks to Armin Diehl (diehl@nordrhein.de)
 
   Revision 1.2  2000/07/13 11:33:56  michael
   + removed logs

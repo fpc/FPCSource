@@ -251,3 +251,11 @@ TYPE NWDirEnt =
                                  VAR availableDirSlots   : WORD;
                                  VAR volumeisRemovable   : WORD) : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetVolumeInfoWithNumber';
   FUNCTION _GetNumberOfVolumes : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetNumberOfVolumes';
+
+{
+  $Log$
+  Revision 1.2  2001-04-11 14:17:00  florian
+    * added logs, fixed email address of Armin, it is
+      diehl@nordrhein.de
+
+}
