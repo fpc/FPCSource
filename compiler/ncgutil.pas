@@ -984,23 +984,31 @@ implementation
       var
         href1,href2 : treference;
         list : taasmoutput;
+        loadref: boolean;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).adjusted_address);
+           loadref := tvarsym(p).reg.enum = R_NO;
+           if (loadref) then
+             reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).adjusted_address)
+           else
+             reference_reset_base(href1,tvarsym(p).reg,0);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
-             cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
+             if loadref then
+               cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
+             else
+               internalerror(2003053101)
            else
             begin
               reference_reset_base(href2,current_procinfo.framepointer,tvarsym(p).localvarsym.adjusted_address);
               if is_shortstring(tvarsym(p).vartype.def) then
-               cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true)
+               cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
               else
-               cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,true);
+               cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,loadref);
             end;
          end;
       end;
@@ -1921,7 +1929,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-05-31 15:05:28  peter
+  Revision 1.115  2003-05-31 20:28:17  jonas
+    * changed copyvalueparas so it also supports register parameters
+      (except for copy_value_openarray, but that one is seriously broken
+       anyway, since it expects that the high parameter will always be in
+       memory right after the pointer to the array, while it could just as
+       will be in a register)
+
+  Revision 1.114  2003/05/31 15:05:28  peter
     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
   Revision 1.113  2003/05/31 00:48:15  jonas
