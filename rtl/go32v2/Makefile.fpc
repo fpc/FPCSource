@@ -129,7 +129,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc system$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
 

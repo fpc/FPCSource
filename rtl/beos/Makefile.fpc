@@ -109,7 +109,7 @@ beos$(PPUEXT) : beos.pp system$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                beos$(PPUEXT) system$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp $(UNIXINC)/objinc.inc system$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 #
 # Delphi Compatible Units

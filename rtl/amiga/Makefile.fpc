@@ -126,7 +126,7 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
         $(COMPILER) printer $(REDIR)
 	
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc system$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
         $(COMPILER) $(INC)/objects.pp $(REDIR)
 
 #

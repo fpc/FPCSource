@@ -1792,8 +1792,6 @@ begin
 { Initialize ExitProc }
   ExitProc:=Nil;
   Startup;
-{ to test stack depth }
-  loweststack:=maxlongint;
 { Setup heap }
   InitHeap;
 { Setup stdin, stdout and stderr }
@@ -1828,7 +1826,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-10-13 09:25:14  florian
+  Revision 1.6  2002-10-20 12:00:52  carl
+    - remove objinc.inc (unused file)
+    * update makefiles accordingly
+
+  Revision 1.5  2002/10/13 09:25:14  florian
     + call to initvariantmanager inserted
 
   Revision 1.4  2002/09/07 16:01:16  peter
