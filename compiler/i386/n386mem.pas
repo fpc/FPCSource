@@ -136,16 +136,26 @@ implementation
       var
          regstopush: tregisterset;
          pushed : tpushedsaved;
+         lefttemp: treference;
          r : preference;
-         oldleft: tnode;
+         left_needs_initfinal: boolean;
+
+        procedure saveleft;
+          begin
+            tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,
+              lefttemp);
+            cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,lefttemp);
+            rg.del_location(exprasmlist,left.location);
+          end;
+
+
       begin
-         oldleft := nil;
-         if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
-           { we need to secondpass left twice in this case -> get a copy }
-           oldleft := left.getcopy;
          secondpass(left);
          if codegenerror then
            exit;
+
+         left_needs_initfinal :=
+           tpointerdef(left.resulttype.def).pointertype.def.needs_inittable;
 
          regstopush := all_registers;
          remove_non_regvars_from_loc(left.location,regstopush);
@@ -156,7 +166,7 @@ implementation
          case nodetype of
            simpledisposen:
              begin
-                if assigned(oldleft) then
+                if left_needs_initfinal then
                   begin
                      new(r);
                      reset_reference(r^);
@@ -165,14 +175,18 @@ implementation
                      dispose(r);
                      { push pointer adress }
                      emit_push_loc(left.location);
-                     rg.del_location(exprasmlist,left.location);
+                     { save left and free its registers }
+                     saveleft;
                      emitcall('FPC_FINALIZE');
-                     { reload registers for left!! }
-                     secondpass(oldleft);
-                     oldleft.free;
+                     { push left again as parameter for freemem }
+                     emit_push_mem(lefttemp);
+                     tg.ungetiftemp(exprasmlist,lefttemp);
+                  end
+                else
+                  begin
+                    emit_push_loc(left.location);
+                    rg.del_location(exprasmlist,left.location);
                   end;
-                emit_push_loc(left.location);
-                rg.del_location(exprasmlist,left.location);
                 emitcall('FPC_FREEMEM');
              end;
            simplenewn:
@@ -180,21 +194,19 @@ implementation
                 { determines the size of the mem block }
                 push_int(tpointerdef(left.resulttype.def).pointertype.def.size);
                 emit_push_lea_loc(left.location,true);
-                if not assigned(oldleft) then
-                  rg.del_location(exprasmlist,left.location);
+                { save left and free its registers }
+                if left_needs_initfinal then
+                  saveleft;
                 emitcall('FPC_GETMEM');
-                if assigned(oldleft) then
+                if left_needs_initfinal then
                   begin
-                     { reload registers for left!! }
-                     secondpass(oldleft);
-                     oldleft.free;
                      new(r);
                      reset_reference(r^);
                      r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
                      emitpushreferenceaddr(r^);
                      dispose(r);
-                     emit_push_loc(left.location);
-                     rg.del_location(exprasmlist,left.location);
+                     emit_push_mem(lefttemp);
+                     tg.ungetiftemp(exprasmlist,lefttemp);
                      emitcall('FPC_INITIALIZE');
                   end;
              end;
@@ -722,7 +734,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-03-31 20:26:39  jonas
+  Revision 1.22  2002-04-01 09:44:04  jonas
+    * better fix for new/dispose bug with init/final data
+
+  Revision 1.21  2002/03/31 20:26:39  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
