@@ -6,6 +6,7 @@
 
     FPCTris implements a simple Crt driven Tetrisish game to demonstrate the
     Crt unit. (KeyPressed, ReadKey, GotoXY, Delay,TextColor,TextBackground)
+    Quality games cost money, so that's why this one is free.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,6 +19,13 @@
 
 PROGRAM FPCTris;
 { Trying to make a tetris from zero as a demo for FPC.
+  Problems: - Colorsupport is a hack which handicaps creating a better
+               update mechanism.
+            - Graph version input command has no cursor.
+            - Graph or text is decided runtime.
+            - Linux status graph version unknown at this moment.
+            - CVS source gameunit was used. Dunno how big the changes to
+               gameunit to accomodate the new games.
 
   Coordinate system:
 
@@ -35,9 +43,13 @@ TheHeight-1
 
 }
 
-Uses Crt,Dos,GameUnit;
+Uses Crt,Dos,
+{$IFDEF UseGraphics}
+ Graph,
+{$ENDIF}
+ GameUnit;
 
-{$dEFINE DoubleCache} {Try to write as less characters to console as possible}
+{$DEFINE DoubleCache}
 
 CONST TheWidth  = 11; {Watch out, also correct RowMask!}
       TheHeight = 20;
@@ -47,13 +59,25 @@ CONST TheWidth  = 11; {Watch out, also correct RowMask!}
       NrLevels  = 12; {Number of levels currenty defined}
       FieldSpace= 177;
 
+      DisplGrX=110;
+      DisplGrY=90;
+      DisplGrScale=16;
+      HelpY=130;
+
+      {$IFDEF UseGraphics}
+       BaseX     =300;   {Coordinates of highscores}
+       BaseY     =HelpY+20+8*LineDistY;  {y coordinate relative to other options}
+      {$ELSE}
+       BaseX     =40;
+       BaseY     =9;
+      {$ENDIF}
 
 TYPE TetrisFieldType = ARRAY [0..25] OF LONGINT;
      LevelInfoType   = ARRAY [0..NrLevels-1] OF LONGINT;
-     FigureType      = LONGINT;    { actually array[0..3][0..3] of bit rounded up to a longint}
+     FigureType      = LONGINT;    { actually array[0..4][0..4] of bit rounded up to a longint}
      CHARSET         = SET OF CHAR;
 
-{The figures: }
+{The figures, are converted to binary bitmaps on startup.}
 
 CONST GraphFigures : ARRAY[0..4] OF String[80] =(
 '.*... .*... .*... ..*.. .*... .*... **... **... ..**. .**.. ..*.. *....',
@@ -356,121 +380,9 @@ BEGIN
     FOR J:=0 TO 4 DO
      BEGIN
       IF (K AND AndTable[J+5*I])<>0 THEN
-       ColorField[TopY+I,TopX-Tune+J]:=CurrentCol;
+       ColorField[TopY+I,TopX-Tune+J]:=CurrentCol
      END;
   END;
-END;
-
-PROCEDURE DisplMainFieldTextMono;
-{Displays the grid with a simple buffering algoritm, depending on
-conditional DoubleBuffer}
-
-VAR Row,Column,Difference,StartRow,EndRow : LONGINT;
-    S : String;
-
-BEGIN
- FOR Row:=0 TO TheHeight-1 DO
-  BEGIN
-   {$IFDEF DoubleCache}
-    IF BackField[Row]<>MainField[Row] THEN
-     BEGIN
-    {$ENDIF}
-   FillChar(S[1],2*TheWidth,#32);
-   StartRow:=0;
-   EndRow:=TheWidth-1;
-   {$IFDEF DoubleCache}
-    Difference:=MainField[Row] XOR BackField[Row];     {Calc differences in line}
-    {Search for first and last bit changed}
-    WHILE ((Difference AND AndTable[StartRow])=0) AND (StartRow<(TheWidth-1)) DO
-     INC(StartRow);
-    WHILE ((Difference AND AndTable[EndRow])=0) AND (EndRow>0) DO
-     DEC(EndRow);
-   {$ENDIF}
-   {Prepare a string}
-   GotoXY(PosXField+2*StartRow,PosYField+Row);
-   S[0]:=CHR(2*(EndRow-StartRow+1));
-   FOR Column:=0 TO EndRow-StartRow DO
-    BEGIN
-     IF (MainField[Row] AND AndTable[StartRow+Column])<>0 THEN
-      BEGIN
-       S[Column*2+1]:=Style[5];
-       S[Column*2+2]:=Style[5];
-      END;
-    END;
-   {Write the string}
-   Write(S);
-   {$IFDEF DoubleCache}
-    END;
-   {$ENDIF}
-  END;
- {$IFDEF DoubleCache}
-  BackField:=MainField;     {Keep a copy of the screen for faster updates
-                              of terminals, for next DisplMainFieldText.}
- {$ENDIF}
-END;
-
-PROCEDURE DisplMainFieldTextColor;
-{Same as above, but also use ColorField to output colors,
- the buffering is the same, but the colors make it less efficient.}
-
-VAR Row,Column,Difference,StartRow,EndRow,
-    L : LONGINT;
-    S   : String;
-    LastCol : LONGINT;
-
-BEGIN
- LastCol:=255;
- FOR Row:=0 TO TheHeight-1 DO
-  BEGIN
-   {$IFDEF DoubleCache}
-    IF BackField[Row]<>MainField[Row] THEN
-     BEGIN
-    {$ENDIF}
-   FillChar(S[1],2*TheWidth,#32);
-   StartRow:=0;
-   EndRow:=TheWidth-1;
-   {$IFDEF DoubleCache}
-    Difference:=MainField[Row] XOR BackField[Row];     {Calc differences in line}
-    WHILE ((Difference AND AndTable[StartRow])=0) AND (StartRow<(TheWidth-1)) DO
-     INC(StartRow);
-    WHILE ((Difference AND AndTable[EndRow])=0) AND (EndRow>0) DO
-     DEC(EndRow);
-   {$ENDIF}
-   GotoXY(PosXField+2*StartRow,PosYField+Row);
-   FOR Column:=0 TO EndRow-StartRow DO
-    BEGIN
-     IF (MainField[Row] AND AndTable[StartRow+Column])<>0 THEN
-      BEGIN
-       L:=ColorField[Row,StartRow+Column];
-       IF L=0 THEN
-        L:=CurrentCol;
-       IF L<>LastCol THEN
-        BEGIN
-         TextColor(L);
-         Write(Style[5],Style[5]);
-        END;
-      END
-     ELSE
-      Write('  ');
-    END;
-   {$IFDEF DoubleCache}
-    END;
-   {$ENDIF}
-  END;
- {$IFDEF DoubleCache}
-  BackField:=MainField;     {Keep a copy of the screen for faster updates
-                              of terminals, for next DisplMainFieldText.}
- {$ENDIF}
-END;
-
-PROCEDURE DisplMainFieldText;
-{Main redraw routine; Check in what mode we are and call appropriate routine}
-
-BEGIN
- IF UseColor THEN
-  DisplMainFieldTextColor
- ELSE
-  DisplMainFieldTextMono;
 END;
 
 PROCEDURE RedrawScreen;
@@ -500,54 +412,12 @@ Temp:=RANDOM(TotalChance);
  GetNextFigure:=TheFigure;
 END;
 
-PROCEDURE ShowNextFigure(ThisFig:LONGINT);
+{$IFDEF UseGraphics}
+ {$I ftrisgr.inc}
+{$ELSE}
+ {$I ftristxt.inc}
+{$ENDIF}
 
-VAR I,J,K  : LONGINT;
-    S      : String[8];
-
-BEGIN
- IF UseColor THEN
-  TextColor(White);
- IF NOT nonupdatemode THEN
-  BEGIN
-   FOR I:=0 TO 4 DO
-    BEGIN
-     FillChar(S,9,' ');
-     S[0]:=#8;
-     K:=Figures[ThisFig][FigureNr];
-     IF (I+TopY)<=TheHeight THEN
-      FOR J:=0 TO 4 DO
-       BEGIN
-        IF (K AND AndTable[J+5*I])<>0 THEN
-         BEGIN
-          S[J*2+1]:=Style[5];
-          S[J*2+2]:=Style[5];
-         END
-       END;
-     GotoXY(50,11+I); Write(S);
-    END;
-  END;
-END;
-
-PROCEDURE FixScores;
-
-BEGIN
-   IF UseColor THEN
-    SetDefaultColor;
-   GotoXY(40,18);
-   Write('Score :',Score);
-END;
-
-PROCEDURE ShowLines;
-
-BEGIN
- IF NOT nonupdatemode THEN
-  BEGIN
-   IF UseColor THEN
-    TextColor(Yellow);
-   GotoXY(40,16); Write('Lines: ',Lines:4,'    Level: ',Level);
-  END;
-END;
 
 FUNCTION InitAFigure(VAR TheFigure:LONGINT) : BOOLEAN;
 {A new figure appears in the top of the screen. If return value=FALSE then
@@ -571,97 +441,6 @@ BEGIN
  InitAFigure:=MatchPosition(Figures[TheFigure][0],TopX,TopY);
  ShowNextFigure(NextFigure);
  CurrentCol:=RANDOM(14)+1;
-END;
-{
-PROCEDURE ShowHighScore;
-
-VAR I : LONGINT;
-
-BEGIN
- GotoXY(50,9); Write('The Highscores');
- FOR I:=0 TO 9 DO
-  BEGIN
-   GotoXY(40,20-I);
-   Write(HighScore[I].Name,' ':(13-Length(HighScore[I].Name)),' ',HighScore[I].Score:5);
-  END;
-END;
-}
-PROCEDURE ShowGameMode;
-
-BEGIN
- IF NOT nonupdatemode THEN
-  BEGIN
-   GotoXY(61,13);
-   IF NrFigures<>7 THEN
-    write('Extended')
-   ELSE
-    write('Standard');
-  END;
-END;
-
-
-PROCEDURE CreateFrame;
-{Used once to print the "background" of the screen (not the background grid,
-but the text, and the cadre around the playfield}
-
-VAR I : LONGINT;
-
-BEGIN
- SetDefaultColor;
- GotoXY(40,4);
- Write('FPCTris v0.07, (C) by the FPC team.');
- GotoXY(40,6);
- Write('A demo of the FPC Crt unit, and');
- GotoXY(40,7);
- Write(' its portability');
- FOR I:=9 TO 24 DO
-  BEGIN
-   GotoXY(40,I);
-   Write(' ':38);
-  END;
- ShowGameMode;
- IF nonupdatemode THEN
-  BEGIN
-   IF HelpMode THEN
-    BEGIN
-   GotoXY(40,9);
-   Write('Arrow left/right to move, down to drop');
-   GotoXY(40,10);
-   Write('arrow-up to rotate the piece');
-   GotoXY(40,11);
-   Write('"P" to pause');
-   GotoXY(40,12);
-   Write('"E" Mode (standard or extended)');
-   GotoXY(40,13);
-   Write('"C" switches between color/mono mode');
-   GotoXY(40,14);
-   Write('Escape to quit');
-   GotoXY(40,15);
-   Write('"S" to show the highscores');
-   {$IFDEF Linux}
-   GotoXY(40,16);
-   Write('"i" try to switch to IBM character set');
-   {$ENDIF}
-   END
-   ELSE
-    ShowHighScore;
-  END
- ELSE
-  BEGIN
-   GotoXY(40,9);
-   Write('"h" to display the helpscreen');
-  END;
-
- FOR I :=0 TO TheHeight-1 DO
-  BEGIN
-   GotoXY(PosXField-1 ,PosYField+I); Write(Style[2]);
-   GotoXY(PosXField+2*TheWidth ,PosYField+I); Write(Style[2]);
-  END;
- GotoXY(PosXField-1,PosYField+TheHeight);
- Write(Style[3]);
- FOR I:=0 TO (2*TheWidth)-1 DO
-  Write(Style[1]);
- Write(Style[4]);
 END;
 
 PROCEDURE FixLevel(Lines:LONGINT);
@@ -699,12 +478,14 @@ BEGIN
   END;
 
  INC(Lines,LocalLines);
- INC(Score,ProgressiveFactor[LocalLines]*LocalLines);
 
  I:=Level;
  FixLevel(Lines);
  IF LocalLines<>0 THEN
-  ShowLines;
+  BEGIN
+   INC(Score,ProgressiveFactor[LocalLines]*LocalLines);
+   ShowLines;
+  END;
  {$IFDEF DoubleCache}
   IF UseColor THEN
    RedrawScreen;
@@ -737,6 +518,16 @@ VAR I,J : LONGINT;
     S   : String;
 
 BEGIN
+ {$IFDEF UseGraphics}
+  Str(Score:5,S);
+  SetFillStyle(SolidFill,0);            {Clear part of playfield}
+  Bar(DisplGrX+DisplGrScale,DisplGrY + ((TheHeight DIV 2)-2)*DisplGrScale,
+      DisplGrX+(TheWidth-1)*(DisplGrScale), DisplGrY + DisplGrScale*((TheHeight DIV 2)+5));
+  SetTextStyle(0,Horizdir,2);
+  OuttextXY(DisplGrX+DisplGrScale,DisplGrY+ DisplGrScale*((TheHeight DIV 2)-1),'GAME OVER');
+  SetTextStyle(0,Horizdir,1);
+  OutTextXY(DisplGrX+DisplGrScale,DisplGrY+ DisplGrScale*((TheHeight DIV 2)+3),'Score= '+S);
+ {$ELSE}
  FOR J:=9 TO 22 DO
     BEGIN
      GotoXY(40,J);
@@ -746,39 +537,45 @@ BEGIN
   TextColor(White);
  GotoXY(40,23);
  Writeln('Game Over, score = ',Score);
+ {$ENDIF}
  I:=SlipInScore(Score);
  IF I<>0 THEN
   BEGIN
    NonUpdateMode:=TRUE;
    HelpMode:=FALSE;
    ShowHighScore;
-   InputStr(S,40,21-I,10,FALSE,AlfaBeta);
+   {$IFDEF UseGraphics}
+    OutTextXY(450,HelpY+20+(17-I+1)*LineDistY,S);
+    GrInputStr(S,300,HelpY+20+(17-I+1)*LineDistY,16,12,10,FALSE,AlfaBeta);
+   {$ELSE}
+    InputStr(S,40,21-I,10,FALSE,AlfaBeta);
+   {$ENDIF}
    HighScore[I-1].Name:=S;
   END;
  ShowHighScore;
 END;
 
-{$IFNDEF FPC}
-PROCEDURE SetCursorSize(CurDat:WORD);ASSEMBLER;
-ASM
-  mov ah,1
-  mov cx,CurDat
-  int $10
-END;
-
-{The two procedures below are standard (and os-independant) in FPC's Crt}
-PROCEDURE CursorOn;
-BEGIN
-  SetCursorSize($090A);
-END;
-
-PROCEDURE CursorOff;
-BEGIN
-  SetCursorSize($FFFF);
-END;
-{$ENDIF}
+VAR gd,gm : INTEGER;
+    Error : LONGINT;
+    {$IFDEF UseGraphics}
+    Pal   : PaletteType;
+    {$ENDIF}
 
 BEGIN
+ {$IFDEF UseGraphics}
+  gm:=vgahi;
+  gd:=vga;
+  InitGraph(gd,gm,'');
+  if GraphResult <> grOk then
+    begin
+      Writeln('Graph driver ',gd,' graph mode ',gm,' not supported');
+      Halt(1);
+    end;
+  SetFillStyle(SolidFill,1);
+  GetDefaultPalette(Pal);
+  SetAllPalette(Pal);
+ {$ENDIF}
+
  {Here should be some terminal-detection for Linux}
  nonupdatemode:=FALSE;
  HelpMode :=TRUE;
@@ -790,8 +587,8 @@ BEGIN
  ClrScr;
  CursorOff;
  RANDOMIZE;
- HighX:=40;
- HighY:=9;
+ HighX:=BaseX;
+ HighY:=BaseY;
  CreateFiguresArray;                  { Load and precalculate a lot of stuff}
  IF UseColor THEN
   Style:= ColorString
@@ -811,10 +608,10 @@ BEGIN
                                         one}
  InitAFigure(TheFigure);              {The second figure is the figure to be
                                        displayed as NEXT. That's this char :-)}
- DisplMainFieldText;                  {Display/update the grid}
+ DisplMainField;                  {Display/update the grid}
  Counter:=0;                          {counts up to IterationPerDelay}
- DelayTime:=100;                      {Time of delay}
- IterationPerDelay:=5;                {= # Delays per shift down of figure}
+ DelayTime:=200;                      {Time of delay}
+ IterationPerDelay:=4;                {= # Delays per shift down of figure}
  Lines:=0;                            {Lines that have disappeared}
  Score:=0;
  ShowLines;
@@ -884,6 +681,7 @@ ORD('q'),
              EndGame:=TRUE;
             END;
 
+{$IFNDEF UseGraphics}
 ORD('C'),
  ORD('c') : BEGIN
              UseColor:=NOT UseColor;
@@ -896,15 +694,7 @@ ORD('C'),
               END;
              CreateFrame;
              RedrawScreen;
-             DisplMainFieldText;
-            END;
-
-ORD('H'),
- ORD('h') : BEGIN
-             nonupdatemode:=NOT nonupdatemode;
-             CreateFrame;
-             ShowLines;
-             ShowNextFigure(NextFigure);
+             DisplMainField;
             END;
  ORD('S'),
   ORD('s') : BEGIN
@@ -919,6 +709,14 @@ ORD('H'),
                ShowLines;
                ShowNextFigure(NextFigure);
               END;
+{$ENDIF}
+ORD('H'),
+ ORD('h') : BEGIN
+             nonupdatemode:=NOT nonupdatemode;
+             CreateFrame;
+             ShowLines;
+             ShowNextFigure(NextFigure);
+            END;
 ORD('E'),
  ORD('e'): BEGIN                            {Extra figures on/off}
             IF NrFigures<>NrFiguresLoaded THEN
@@ -936,8 +734,10 @@ ORD('p') : BEGIN                             {"p" : Pause}
             IF Key=0 THEN
              Key:=ORD(ReadKey);
            END;
+{$IFNDEF UseGraphics}
 {$IFDEF Linux}
  ORD('i')  : write(#27+'(K');
+{$ENDIF}
 {$ENDIF}
         END; {END OF Key CASE}
       END { OF If KeyPressed}
@@ -973,7 +773,7 @@ ORD('p') : BEGIN                             {"p" : Pause}
         BEGIN
          FixMainFieldLines;
          FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
-         DisplMainFieldText;
+         DisplMainField;
          Delay(DelayTime*IterationPerDelay);
         END
       ELSE
@@ -986,12 +786,15 @@ ORD('p') : BEGIN                             {"p" : Pause}
   ELSE
    IF FixHickup>1 THEN
     DEC(FixHickup);
- DisplMainFieldText;
+ DisplMainField;
  UNTIL EndGame;
  FixHighScores;
  CursorOn;
  SetDefaultColor;
  GotoXY(1,25);
+ {$IFDEF UseGraphics}
+  TextMode(CO80);
+ {$ENDIF}
 END;
 
 CONST FileName='fpctris.scr';
@@ -1008,7 +811,12 @@ END.
 
 {
   $Log$
-  Revision 1.2  1999-06-01 19:24:32  peter
+  Revision 1.3  1999-12-31 17:03:50  marco
+
+
+  Graphical version +2fixes
+
+  Revision 1.2  1999/06/01 19:24:32  peter
     * updates from marco
 
   Revision 1.1  1999/05/27 21:36:33  peter
