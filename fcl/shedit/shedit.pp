@@ -372,14 +372,20 @@ end;
 procedure TSHTextEdit.SetCursorX(NewCursorX: Integer);
 begin
   HideCursor;
-  FCursorX := NewCursorX;
+  if NewCursorX >= 0 then
+    FCursorX := NewCursorX
+  else
+    FCursorX := 0;
   ShowCursor;
 end;
 
 procedure TSHTextEdit.SetCursorY(NewCursorY: Integer);
 begin
   HideCursor;
-  FCursorY := NewCursorY;
+  if NewCursorY >= 0 then
+    FCursorY := NewCursorY
+  else
+    FCursorY := 0;
   ShowCursor;
 end;
 
@@ -401,7 +407,12 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-12-22 22:28:09  peter
+  Revision 1.7  1999-12-23 09:47:09  sg
+  * Calling SetCursorX or SetCursorY with negative values will result in
+    setting these coordinates to 0 instead (as negative cursor coordinates
+    are impossible)
+
+  Revision 1.6  1999/12/22 22:28:09  peter
     * updates for cursor setting
     * button press event works
 
