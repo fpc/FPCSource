@@ -138,13 +138,13 @@
 
      LPCSTR  = Pchar;
 {$ifdef UNICODE}
-     LPCTSTR = ^word;
+     LPCTSTR = Pwidechar;
 {$else}
      LPCTSTR = Pchar;
 {$endif}
 
-     LPCWCH  = ^word;
-     LPCWSTR = ^word;
+     LPCWCH  = Pwidechar;
+     LPCWSTR = Pwidechar;
 
      LPDWORD = ^DWORD;
 
@@ -155,8 +155,8 @@
 
      LPSTR = Pchar;
 {$ifdef UNICODE}
-     LPTCH  = ^word;
-     LPTSTR = ^word;
+     LPTCH  = Pwidechar;
+     LPTSTR = Pwidechar;
 {$else}
      LPTCH  = Pchar;
      LPTSTR = Pchar;
@@ -167,10 +167,10 @@
      LPVOID  = pointer;
      LPCVOID = pointer;
 
-     LPWCH  = ^word;
+     LPWCH  = Pwidechar;
      LPWORD = ^word;
-     LPWSTR = ^word;
-     NWPSTR = ^word;
+     LPWSTR = Pwidechar;
+     NWPSTR = Pwidechar;
 
      PWINBOOL = ^WINBOOL;
      PBOOLEAN = ^BYTE;
@@ -182,8 +182,8 @@
 
      PCSTR = Pchar;
 
-     PCWCH  = ^word;
-     PCWSTR = ^word;
+     PCWCH  = Pwidechar;
+     PCWSTR = Pwidechar;
 
      PDWORD = ^DWORD;
 
@@ -199,9 +199,9 @@
      PSZ = Pchar;
 {$ifdef UNICODE}
      PTBYTE = ^word;
-     PTCH = ^word;
-     PTCHAR = ^word;
-     PTSTR = ^word;
+     PTCH = Pwidechar;
+     PTCHAR = Pwidechar;
+     PTSTR = Pwidechar;
 {$else}
      PTBYTE = ^byte;
      PTCH   = Pchar;
@@ -210,8 +210,8 @@
 {$endif}
 
      PUCHAR = ^byte;
-     PWCH   = ^word;
-     PWCHAR = ^word;
+     PWCH   = Pwidechar;
+     PWCHAR = Pwidechar;
 
      PWORD   = ^word;
      PUINT   = ^cardinal;
@@ -239,7 +239,7 @@
 {$endif}
 
      UCHAR = byte;
-     WCHAR = System.wchar;      {Now in Systemh}
+     WCHAR = WideChar;
 
      UINT   = cardinal;
      ULONG  = cardinal;
@@ -940,7 +940,10 @@ type
 
 {
   $Log$
-  Revision 1.11  2002-09-15 17:53:45  peter
+  Revision 1.12  2002-10-06 20:00:22  peter
+    * Use Widechar in the Windows unit
+
+  Revision 1.11  2002/09/15 17:53:45  peter
     * Remove Float type, use Single instead
 
   Revision 1.10  2002/09/07 16:01:30  peter

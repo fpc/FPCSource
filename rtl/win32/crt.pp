@@ -524,15 +524,7 @@ var
   DestCoor: TCoord;
   CharInfo: TCharInfo;
 begin
-{$ifdef HASWIDECHAR}
-  {$ifdef VER1_0}
-    CharInfo.UnicodeChar := 32;
-  {$else}
-    CharInfo.UnicodeChar := #32;
-  {$endif}
-{$else}
-  CharInfo.UnicodeChar := 32;
-{$endif}
+  CharInfo.UnicodeChar := #32;
   CharInfo.Attributes := TextAttr;
 
   Y := (WindMinY - 1) + (Y - 1) + 1;
@@ -569,15 +561,7 @@ var
 begin
   GetScreenCursor(X, Y);
 
-{$ifdef HASWIDECHAR}
-  {$ifdef VER1_0}
-    CharInfo.UnicodeChar := 32;
-  {$else}
-    CharInfo.UnicodeChar := #32;
-  {$endif}
-{$else}
-  CharInfo.UnicodeChar := 32;
-{$endif}
+  CharInfo.UnicodeChar := #32;
   CharInfo.Attributes := TextAttr;
 
   SrcRect.Top := Y - 1;
@@ -851,7 +835,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.17  2002-09-07 16:01:28  peter
+  Revision 1.18  2002-10-06 20:00:22  peter
+    * Use Widechar in the Windows unit
+
+  Revision 1.17  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.16  2002/01/19 11:56:34  peter

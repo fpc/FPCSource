@@ -260,14 +260,10 @@ begin
                     if LineCounter>y2 then
                       y2:=LineCounter;
                  end;
-{$ifdef HASWIDECHAR}
-  {$ifdef VER1_0}
-               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One;
-  {$else}
-               LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
-  {$endif}
+{$ifdef VER1_0}
+               Word(LineBuf^[BufCounter].UniCodeChar) := WordRec(VideoBuf^[BufCounter]).One;
 {$else}
-               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One);
+               LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
 {$endif}
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
@@ -335,7 +331,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 16:01:29  peter
+  Revision 1.9  2002-10-06 20:00:22  peter
+    * Use Widechar in the Windows unit
+
+  Revision 1.8  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }

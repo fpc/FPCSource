@@ -5151,7 +5151,7 @@ const
     { was #define dname def_expr }
     function UNICODE_NULL : WCHAR;
       begin
-         UNICODE_NULL:=WCHAR(0);
+         UNICODE_NULL:=#0;
       end;
 
     { was #define dname def_expr }
@@ -5731,7 +5731,10 @@ const
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:30  peter
+  Revision 1.7  2002-10-06 20:00:22  peter
+    * Use Widechar in the Windows unit
+
+  Revision 1.6  2002/09/07 16:01:30  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/05/09 08:31:43  carl
