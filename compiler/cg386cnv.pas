@@ -1483,6 +1483,9 @@ implementation
 
          { this is necessary, because second_bool_2_int, have to change   }
          { true- and false label before calling secondpass               }
+         { the helper routines need access to the release list }
+         oldlrl:=ltemptoremove;
+         ltemptoremove:=oldrl;
          if p^.convtyp<>tc_bool_2_int then
            begin
               secondpass(p^.left);
@@ -1490,11 +1493,6 @@ implementation
               if codegenerror then
                exit;
            end;
-         { the helper routines need access to the release list }
-         { but do this AFTER secondpass(p^.left), else it is   }
-         { overwritten by recursive calls                      }
-         oldlrl:=ltemptoremove;
-         ltemptoremove:=oldrl;
          { the second argument only is for maybe_range_checking !}
          secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
 
@@ -1615,7 +1613,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-02-02 11:47:55  peter
+  Revision 1.54  1999-02-02 12:35:02  florian
+    * ltemptoremove handling corrected
+
+  Revision 1.53  1999/02/02 11:47:55  peter
     * fixed ansi2short
 
   Revision 1.52  1999/01/29 11:22:13  pierre
