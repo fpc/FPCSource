@@ -29,6 +29,11 @@ Unit SysLinux;
 
 Interface
 
+{$ifdef m68k}
+    { used for single computations }
+    const BIAS4 = $7f-1;
+{$endif}
+
 {$I systemh.inc}
 {$I heaph.inc}
 
@@ -684,7 +689,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  1998-08-12 14:01:37  michael
+  Revision 1.13  1998-08-14 11:59:41  carl
+    + m68k fixes
+
+  Revision 1.12  1998/08/12 14:01:37  michael
   + Small m68k fixes
 
   Revision 1.11  1998/08/11 08:30:37  michael
