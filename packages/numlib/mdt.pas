@@ -8,11 +8,9 @@
     FPC port Code          by Marco van de Voort (marco@freepascal.org)
              documentation by Michael van Canneyt (Michael@freepascal.org)
 
-    Unit with undocumented procedures. If you recognize the algoritms, please
-    contact one of the above people.
-
-    This is probably only one actual procedure/algoritm, but (faster)
-    variants exist for special matrices. (like band, tridiagonal etc)
+    Unit was originally undocumented, but is probably an variant of DET.
+    Det accepts vectors as arguments, while MDT calculates determinants for
+    matrices.
 
     Contrary to the other undocumented units, this unit is exported in the
     DLL.
@@ -617,7 +615,7 @@ End; {mdtgpd}
 Procedure mdtgba(n, lb, rb, rwa: ArbInt; Var a: ArbFloat; rwl: ArbInt;
                  Var l:ArbFloat; Var p: ArbInt; Var ca: ArbFloat; Var term:ArbInt);
 
-Var 
+Var
   sr, i, j, k, ipivot, m, lbj, lbi, ubi, ls,
              ii, jj, ll, s, js, jl, ubj       : ArbInt;
   ra, normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
@@ -632,8 +630,8 @@ Begin
     End; {term=3}
   sr := sizeof(ArbFloat);
   au := @a;
- pl := @l;
- pp := @p;
+  pl := @l;
+  pp := @p;
   ll := lb+rb+1;
   ls := ll*sr;
   getmem(sumrow, n*sr);
@@ -672,10 +670,10 @@ Begin
         term := 4
     End; {i}
   ubi := lb;
- jj := 1;
+  jj := 1;
   For k:=1 To n Do
     Begin
-      maxim := 0;
+     maxim := 0;
      ipivot := k;
      ii := jj;
       If ubi<n Then
@@ -718,14 +716,14 @@ Begin
               move(au^[jj], au^[ii], ls);
               move(row^, au^[jj], ls);
               h := t^[ipivot];
-             t^[ipivot] := t^[k];
-             t^[k] := h;
+              t^[ipivot] := t^[k];
+              t^[k] := h;
               pp^[k] := ipivot;
               sumrow^[ipivot] := sumrow^[k]
             End; {ipivot <> k}
           pivot := au^[jj];
-         jl := 0;
-         ii := jj;
+          jl := 0;
+          ii := jj;
           For i:=k+1 To ubi Do
             Begin
               jl := jl+1;
@@ -744,7 +742,7 @@ Begin
   If term=1 Then
     Begin
       normt := 0;
-     ubj := -lb-1;
+      ubj := -lb-1;
       jj := n*rwa+1;
       For i:=n Downto 1 Do
         Begin
@@ -954,9 +952,11 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-01-24 22:08:58  marco
+  Revision 1.2  2000-01-25 20:21:42  marco
+   * small updates, crlf fix, and RTE 207 problem
+
+  Revision 1.1  2000/01/24 22:08:58  marco
    * initial version
 
 
 }
-

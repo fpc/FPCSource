@@ -528,9 +528,11 @@ End; {dsldtr}
 End.
 {
   $Log$
-  Revision 1.1  2000-01-24 22:08:58  marco
+  Revision 1.2  2000-01-25 20:21:41  marco
+   * small updates, crlf fix, and RTE 207 problem
+
+  Revision 1.1  2000/01/24 22:08:58  marco
    * initial version
 
 
 }
-

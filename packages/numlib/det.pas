@@ -44,30 +44,14 @@ procedure detgpb(n, l: ArbInt; var a, f: ArbFloat; var k, term:ArbInt);
 {determinant of a tridiagonal matrix}
 procedure detgtr(n: ArbInt; var l, d, u, f: ArbFloat; var k, term:ArbInt);
 
-implementation
-
-uses mdt;
-
-const               {  og = 8^-maxexp, ogý>=midget,
-                       bg = 8^maxexp,  bgý<=giant
-
-                       midget and giant are defined in typ.pas}
-
-{$IFNDEF ArbExtended}
-     ogx: Float8Arb= (84, 254, 32, 128, 32, 0, 0, 32);
-     bgx: Float8Arb= (149, 255, 255, 255, 255, 255, 239, 95);
-  maxexpx : ArbInt = 170;
-{$ENDIF}
-
-{$IFDEF Arb}
-     ogx: Float10Arb = (51,158,223,249,51,243,4,181,224,31);
-     bgx: Float10Arb = (108,119,117,92,70,38,155,234,254,95);
-  maxexpx : ArbInt = 2740;
-{$ENDIF}
-
 var og          : ArbFloat absolute ogx;
     bg          : ArbFloat absolute bgx;
     MaxExp      : ArbInt   absolute maxexpx;
+
+
+implementation
+
+uses mdt;
 
 procedure detgen(n, rwidth: ArbInt; var a, f: ArbFloat; var k, term: ArbInt);
 
@@ -260,9 +244,9 @@ begin
     begin
       if i <= l+1 then
         begin
-          if i <= n-r then rwidth:=r+i else rwidth:=n
+          if i <= (n-r) then rwidth:=r+i else rwidth:=n
         end else
-          if i <= n-r then rwidth:=ll else rwidth:=n-i+l+1;
+          if i <= (n-r) then rwidth:=ll else rwidth:=n-i+l+1;
       if i > l then kk:=ii else kk:=ii+l-i+1;
       move(pa^[jj], acopy^[kk], rwidth*s);
       jj:=jj+rwidth; ii:=ii+ll;
@@ -418,9 +402,11 @@ end; {detgtr}
 end.
 {
   $Log$
-  Revision 1.1  2000-01-24 22:08:57  marco
+  Revision 1.2  2000-01-25 20:21:41  marco
+   * small updates, crlf fix, and RTE 207 problem
+
+  Revision 1.1  2000/01/24 22:08:57  marco
    * initial version
 
 
 }
-

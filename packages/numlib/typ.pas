@@ -41,7 +41,7 @@ unit typ;
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
                                   are imported into every unit of the library }
 
-{$unDEF ArbExtended}
+{$DEFINE ArbExtended}
 
 interface
 
@@ -106,14 +106,29 @@ var
     LnMidget : ArbFloat absolute TC6;  {ln of midget}
     NaN      : ArbFloat absolute TC7;  {Not A Number}
 
+{Copied from Det. Needs ArbExtended conditional}
+const               {  og = 8^-maxexp, ogý>=midget,
+                       bg = 8^maxexp,  bgý<=giant
+
+                       midget and giant are defined in typ.pas}
+
+{$IFDEF ArbExtended}
+     ogx: Float10Arb = (51,158,223,249,51,243,4,181,224,31);
+     bgx: Float10Arb = (108,119,117,92,70,38,155,234,254,95);
+  maxexpx : ArbInt = 2740;
+{$ELSE}
+     ogx: Float8Arb= (84, 254, 32, 128, 32, 0, 0, 32);
+     bgx: Float8Arb= (149, 255, 255, 255, 255, 255, 239, 95);
+  maxexpx : ArbInt = 170;
+{$ENDIF}
+
+
+
 {Like standard EXP(), but for very small values (near lowest possible
       ArbFloat this version returns 0}
-Function exp(x: ArbFloat): ArbFloat; 
+Function exp(x: ArbFloat): ArbFloat;
 
 type
-     transform = record
-                       offsetx, offsety, scalex, scaley: ArbFloat
-                 end;
 
 
      Complex  = object          {Crude complex record. For me an example of
@@ -128,8 +143,13 @@ type
                    Function  Norm  : ArbFloat;
                    Function  Size  : ArbFloat;
                    Function  Re    : ArbFloat;
+                   procedure Unary;
                    Function  Im    : ArbFloat;
                    Function  Arg   : ArbFloat;
+                   procedure MinC(c: complex);
+                   procedure MaxC(c: complex);
+                   Procedure TransF(var t: complex);
+
                end;
 
     vector =  object
@@ -152,6 +172,13 @@ type
                procedure Rotate(calfa, salfa: ArbFloat; axe: vector);
                procedure Show(p,q: ArbInt);
             end;
+
+     transformorg  = record offset: complex; ss, sc: real end;
+     transform = record
+                       offsetx, offsety, scalex, scaley: ArbFloat
+                 end;
+
+
 
      {Standard Functions used in NumLib}
      rfunc1r    = Function(x : ArbFloat): ArbFloat;
@@ -334,6 +361,15 @@ begin
      Inp := xreal*z.xreal + imag*z.imag
 end;
 
+procedure Complex.MinC(c: complex);
+begin if c.xreal<xreal then xreal := c.xreal;
+      if c.imag<imag then imag := c.imag
+end;
+
+procedure Complex.Maxc(c: complex);
+begin if c.xreal>xreal then xreal := c.xreal;
+      if c.imag>imag then imag := c.imag
+end;
 
 procedure Complex.Add(c: complex);
 begin
@@ -365,6 +401,26 @@ begin
     Im := imag
 end;
 
+Procedure Complex.TransF(var t: complex);
+var w: complex;
+    tt: transformorg absolute t;
+begin
+   w := Self; Conjugate;
+   with tt do
+    begin
+     w.scale(ss);
+     scale(sc);
+     Add(offset)
+    end;
+   Add(w)
+end;
+
+
+procedure Complex.Unary;
+begin
+ xreal := -xreal;
+ imag := -imag
+end;
 
 procedure Complex.Scale(s:ArbFloat);
 begin
@@ -504,9 +560,11 @@ END.
 
 {
   $Log$
-  Revision 1.1  2000-01-24 22:08:58  marco
+  Revision 1.2  2000-01-25 20:21:41  marco
+   * small updates, crlf fix, and RTE 207 problem
+
+  Revision 1.1  2000/01/24 22:08:58  marco
    * initial version
 
 
 }
-
