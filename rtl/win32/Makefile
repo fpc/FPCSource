@@ -67,7 +67,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
 	    windows ole2 opengl32 winsock \
-	    sockets \
+            sockets initc \
 	    dos crt objects \
 	    sysutils typinfo math \
 	    cpu mmx getopts heaptrc
@@ -216,6 +216,8 @@ winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU)
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMPPU) \
 		   $(INC)/sockets.inc $(INC)/socketsh.inc
 
+initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
+
 #
 # TP7 Compatible RTL Units
 #
@@ -260,7 +262,10 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.36  1999-09-16 13:38:07  peter
+# Revision 1.37  1999-09-28 22:53:27  pierre
+#  + InitC unit
+#
+# Revision 1.36  1999/09/16 13:38:07  peter
 #   * windows unit include moved to wininc/
 #
 #
