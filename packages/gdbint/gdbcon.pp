@@ -36,6 +36,8 @@ type
     procedure Run;virtual;
     procedure TraceStep;virtual;
     procedure TraceNext;virtual;
+    procedure TraceStepI;virtual;
+    procedure TraceNextI;virtual;
     procedure Continue;virtual;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
@@ -175,6 +177,18 @@ begin
 end;
 
 
+procedure TGDBController.TraceStepI;
+begin
+  Command('stepi');
+end;
+
+
+procedure TGDBController.TraceNextI;
+begin
+  Command('nexti');
+end;
+
+
 procedure TGDBController.Continue;
 begin
   Command('continue');
@@ -244,7 +258,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-12-18 11:41:55  pierre
+  Revision 1.1.2.2  2001-03-12 23:22:50  pierre
+   + some new stuff needed by IDE
+
+  Revision 1.1.2.1  2000/12/18 11:41:55  pierre
    * avoid calling file if no nmae given
 
   Revision 1.1  2000/07/13 06:33:58  michael

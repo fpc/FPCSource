@@ -19,7 +19,7 @@ interface
 
 { this is not needed (PM) $output_format as}
 
-{.$define Debug}
+{.$define Verbose}
 {.$define DebugCommand}
 {$define NotImplemented}
 
@@ -45,6 +45,7 @@ interface
       {$LINKLIB opcodes}
       {$LINKLIB history}
       {$LINKLIB iberty}
+      {$LINKLIB intl}
     {$endif GDB_V5}
   {$endif ndef USE_GDB_OBJS}
   {$LINKLIB dbg}
@@ -152,6 +153,7 @@ type
 
 
 type
+  CORE_ADDR = cardinal; { might be target dependent PM }
   streamtype = (afile,astring);
   C_FILE     = longint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
@@ -277,6 +279,7 @@ type
     file_end,
     line_start,
     line_end : longint;
+    current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
     last_breakpoint_address,
@@ -402,7 +405,6 @@ type
 {$endif win32}
 
   type
-     CORE_ADDR = longint;
      pCORE_ADDR = ^CORE_ADDR;
      pblock = ^block;
 
@@ -1153,7 +1155,7 @@ end;
 
 procedure annotate_signalled;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signalled|');
 {$endif}
 end;
@@ -1161,7 +1163,7 @@ end;
 
 procedure annotate_signal_name;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal_name|');
   with curr_gdb^ do
    signal_start:=gdboutputbuf.idx;
@@ -1171,7 +1173,7 @@ end;
 
 procedure annotate_signal_name_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal_name_end|');
 {$endif}
 end;
@@ -1179,7 +1181,7 @@ end;
 
 procedure annotate_signal_string;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal_string|');
 {$endif}
 end;
@@ -1187,7 +1189,7 @@ end;
 
 procedure annotate_signal_string_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal_string_end|');
 {$endif}
   with curr_gdb^ do
@@ -1210,7 +1212,7 @@ end;
 
 procedure annotate_signal;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal|');
 {$endif}
 end;
@@ -1218,7 +1220,7 @@ end;
 
 procedure annotate_exited(exitstatus:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|exited|');
 {$endif}
 {#ifdef __DJGPP__
@@ -1245,7 +1247,7 @@ end;
 
 procedure annotate_error;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|error|');
 {$endif}
 end;
@@ -1253,7 +1255,7 @@ end;
 
 procedure annotate_error_begin;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|error begin|');
 {$endif}
   with curr_gdb^ do
@@ -1261,7 +1263,7 @@ begin
      error_start:=gdboutputbuf.idx+strlen(gdboutputbuf.buf);
      got_error:=true;
    end;
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|end of error begin|');
 {$endif}
 end;
@@ -1269,7 +1271,7 @@ end;
 
 procedure annotate_starting;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|starting|');
 {$endif}
 {$ifdef go32v2}
@@ -1284,7 +1286,7 @@ var
   sym : symtab_and_line;
   fname : pchar;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|stopped|');
 {$endif}
   with curr_gdb^ do
@@ -1293,6 +1295,7 @@ begin
      reload_fs;
 {$endif go32v2}
      DebuggerScreen;
+     current_pc:=stop_pc;
      Debuggee_started:=inferior_pid<>0;
      if not Debuggee_started then exit;
      if reset_command then exit;
@@ -1313,7 +1316,7 @@ end;
 
 procedure breakpoints_changed;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|breakpoints_changed|');
 {$endif}
 end;
@@ -1321,7 +1324,7 @@ end;
 { only from version 5.0 }
 procedure annotate_ignore_count_change;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|annotate_ignore_count_change()|');
 {$endif}
 end;
@@ -1329,7 +1332,7 @@ end;
 
 procedure annotate_breakpoint(num:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|breakpoint(%d)|');
 {$endif}
   With Curr_gdb^ do
@@ -1339,7 +1342,7 @@ end;
 
 procedure annotate_watchpoint(num:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|watchpoint(%d)|');
 {$endif}
   With Curr_gdb^ do
@@ -1348,7 +1351,7 @@ end;
 
 procedure annotate_catchpoint(num:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|catchpoint(%d)|');
 {$endif}
   With Curr_gdb^ do
@@ -1358,7 +1361,7 @@ end;
 
 procedure annotate_breakpoints_headers;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|breakpoints_headers|');
 {$endif}
 end;
@@ -1366,7 +1369,7 @@ end;
 
 procedure annotate_breakpoints_table;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|breakpoints_table|');
 {$endif}
 end;
@@ -1374,7 +1377,7 @@ end;
 
 procedure annotate_record;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|record|');
 {$endif}
 end;
@@ -1382,7 +1385,7 @@ end;
 
 procedure annotate_breakpoints_table_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|breakpoints_table_end|');
 {$endif}
 end;
@@ -1390,7 +1393,7 @@ end;
 
 procedure annotate_frames_invalid;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frames_invalid|');
 {$endif}
 end;
@@ -1398,7 +1401,7 @@ end;
 
 procedure annotate_frame_begin(level:longint;pc:CORE_ADDR);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_begin(%d,%ld)|');
 {$endif}
   with curr_gdb^ do
@@ -1421,7 +1424,7 @@ end;
 
 procedure annotate_frame_address;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_address|');
 {$endif}
 end;
@@ -1429,14 +1432,14 @@ end;
 
 procedure annotate_frame_address_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_address_end|');
 {$endif}
 end;
 
 procedure annotate_frame_function_name;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_function_name|');
 {$endif}
   with curr_gdb^ do
@@ -1446,7 +1449,7 @@ end;
 
 procedure annotate_frame_args;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_args|');
 {$endif}
   with curr_gdb^ do
@@ -1458,7 +1461,7 @@ end;
 
 procedure annotate_frame_source_begin;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_source_begin|');
 {$endif}
   with curr_gdb^ do
@@ -1468,7 +1471,7 @@ end;
 
 procedure annotate_frame_source_file;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_source_file|');
 {$endif}
   with curr_gdb^ do
@@ -1477,7 +1480,7 @@ end;
 
 procedure annotate_frame_source_file_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_source_file_end|');
 {$endif}
   with curr_gdb^ do
@@ -1487,7 +1490,7 @@ end;
 
 procedure annotate_frame_source_line;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_source_line|');
 {$endif}
   with curr_gdb^ do
@@ -1497,7 +1500,7 @@ end;
 
 procedure annotate_frame_source_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_source_end|');
 {$endif}
   with curr_gdb^ do
@@ -1507,7 +1510,7 @@ end;
 
 procedure annotate_frame_where;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_where|');
 {$endif}
 end;
@@ -1519,7 +1522,7 @@ var
   c  : char;
   err : integer;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|frame_end|');
 {$endif}
   with curr_gdb^ do
@@ -1570,7 +1573,7 @@ end;
 
 procedure annotate_quit;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|quit|');
 {$endif}
 end;
@@ -1578,7 +1581,7 @@ end;
 
 procedure annotate_arg_begin;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|arg_begin|');
 {$endif}
 end;
@@ -1586,7 +1589,7 @@ end;
 
 procedure annotate_arg_name_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|arg_name_end|');
 {$endif}
 end;
@@ -1594,7 +1597,7 @@ end;
 
 procedure annotate_arg_value(typ:pointer);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|arg_value|');
 {$endif}
 end;
@@ -1602,14 +1605,14 @@ end;
 
 procedure annotate_arg_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|arg_end|');
 {$endif}
 end;
 
 procedure annotate_source(filename:pchar;line,character,mid:longint;pc:CORE_ADDR);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|source|');
 {$endif}
 end;
@@ -1617,7 +1620,7 @@ end;
 
 procedure annotate_function_call;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|function_call|');
 {$endif}
 end;
@@ -1625,7 +1628,7 @@ end;
 
 procedure annotate_signal_handler_caller;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|signal_handler_caller|');
 {$endif}
 end;
@@ -1633,7 +1636,7 @@ end;
 
 procedure annotate_array_section_begin(index:longint;elttype:pointer);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|array_section_begin()|');
 {$endif}
 end;
@@ -1641,14 +1644,14 @@ end;
 
 procedure annotate_elt_rep(repcount:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|elt_rep()|');
 {$endif}
 end;
 
 procedure annotate_elt_rep_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|elt_rep_end|');
 {$endif}
 end;
@@ -1656,7 +1659,7 @@ end;
 
 procedure annotate_elt;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|elt|');
 {$endif}
 end;
@@ -1664,14 +1667,14 @@ end;
 
 procedure annotate_array_section_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|array_section_end|');
 {$endif}
 end;
 
 procedure annotate_display_begin;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_begin|');
 {$endif}
 end;
@@ -1679,7 +1682,7 @@ end;
 
 procedure annotate_display_number_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_number_end|');
 {$endif}
 end;
@@ -1687,14 +1690,14 @@ end;
 
 procedure annotate_display_format;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_format|');
 {$endif}
 end;
 
 procedure annotate_display_expression;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_expression|');
 {$endif}
 end;
@@ -1702,7 +1705,7 @@ end;
 
 procedure annotate_display_expression_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_expression_end|');
 {$endif}
 end;
@@ -1710,7 +1713,7 @@ end;
 
 procedure annotate_display_value;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_value|');
 {$endif}
 end;
@@ -1718,7 +1721,7 @@ end;
 
 procedure annotate_display_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|display_end|');
 {$endif}
 end;
@@ -1726,7 +1729,7 @@ end;
 
 procedure annotate_field (num:longint);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_field(%d)');
 {$endif}
 end;
@@ -1734,7 +1737,7 @@ end;
 
 procedure annotate_field_begin(typ:pointer);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_field_begin\n');
 {$endif}
 end;
@@ -1742,7 +1745,7 @@ end;
 
 procedure annotate_field_name_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_field_name_end\n');
 {$endif}
 end;
@@ -1750,7 +1753,7 @@ end;
 
 procedure annotate_field_value;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_field_value\n');
 {$endif}
 end;
@@ -1758,7 +1761,7 @@ end;
 
 procedure annotate_field_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_field_end\n');
 {$endif}
 end;
@@ -1766,7 +1769,7 @@ end;
 
 procedure annotate_value_history_begin (histindex:longint;typ:pointer);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_value_history_begin(%d)\n');
 {$endif}
 end;
@@ -1774,7 +1777,7 @@ end;
 
 procedure annotate_value_begin (typ:pointer);cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_value_begin\n');
 {$endif}
 end;
@@ -1782,7 +1785,7 @@ end;
 
 procedure annotate_value_history_value;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_value_history_value\n');
 {$endif}
 end;
@@ -1790,7 +1793,7 @@ end;
 
 procedure annotate_value_history_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_value_history_end\n');
 {$endif}
 end;
@@ -1798,7 +1801,7 @@ end;
 
 procedure annotate_value_end;cdecl;public;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('a_value_end\n');
 {$endif}
 end;
@@ -2031,7 +2034,7 @@ begin
 {$endif go32v2}
    end
   else
-{$ifdef Debug}
+{$ifdef Verbose}
     Debug('error longjmp in handle_gdb_command ('+s+')');
 {$endif}
    ;
@@ -2176,7 +2179,7 @@ end;
 
 procedure tgdbinterface.DebuggerScreen;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|DebuggerScreen|');
 {$endif}
   if user_screen_shown then
@@ -2187,7 +2190,7 @@ end;
 
 procedure tgdbinterface.UserScreen;
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Debug('|UserScreen|');
 {$endif}
   if switch_to_user then
@@ -2205,12 +2208,12 @@ end;
 ---------------------------------------}
 
 procedure tgdbinterface.DoSelectSourceLine(const fn:string;line:longint);
-{$ifdef Debug}
+{$ifdef Verbose}
 var
   s : string;
 {$endif}
 begin
-{$ifdef Debug}
+{$ifdef Verbose}
   Str(line,S);
   Debug('|SelectSource '+fn+':'+s+'|');
 {$endif}
@@ -2374,7 +2377,7 @@ begin
     end
   else
     begin
-{$ifdef Debug}
+{$ifdef Verbose}
        Debug('|LongJump to Init|');
 {$endif}
 {$ifdef go32v2}
@@ -2390,7 +2393,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.4  2000-11-08 16:05:15  pierre
+  Revision 1.1.2.5  2001-03-12 23:22:50  pierre
+   + some new stuff needed by IDE
+
+  Revision 1.1.2.4  2000/11/08 16:05:15  pierre
    * change libs so that IDE compiles
 
   Revision 1.1.2.3  2000/10/01 22:24:44  pierre
