@@ -1264,7 +1264,7 @@ implementation
               not(assigned(procinfo^.parent^._class)))
             ) and
           { funcretsym is allowed !! }
-           (sym.typ <> funcretsym) then
+           (sym.typ<>funcretsym) then
            begin
               hsym:=search_class_member(procinfo^._class,sym.name);
               { private ids can be reused }
@@ -2065,7 +2065,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-07-15 19:44:53  florian
+  Revision 1.64  2002-07-16 15:34:21  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.63  2002/07/15 19:44:53  florian
     * fixed crash with default parameters and stdcall calling convention
 
   Revision 1.62  2002/07/01 18:46:28  peter

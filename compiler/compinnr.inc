@@ -57,6 +57,7 @@ const
    in_finalize_x        = 45;
    in_new_x             = 46;
    in_dispose_x         = 47;
+   in_exit              = 48;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -104,7 +105,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2002-05-18 13:34:06  peter
+  Revision 1.8  2002-07-16 15:34:20  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.7  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.6  2002/05/16 19:46:35  carl

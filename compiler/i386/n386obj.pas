@@ -185,7 +185,7 @@ begin
   { set param1 interface to self  }
   adjustselfvalue(ioffset);
 
-  { case 1  or 2 }
+  { case 1 or 2 }
   if (po_clearstack in procdef.procoptions) then
     begin
       if po_virtualmethod in procdef.procoptions then
@@ -237,7 +237,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2002-07-01 18:46:33  peter
+  Revision 1.12  2002-07-16 15:34:21  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.11  2002/07/01 18:46:33  peter
     * internal linker
     * reorganized aasm layer
 
@@ -294,5 +297,4 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
 }

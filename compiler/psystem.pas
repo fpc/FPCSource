@@ -65,6 +65,7 @@ begin
   p.insert(tsyssym.create('Exclude',in_exclude_x_y));
   p.insert(tsyssym.create('Include',in_include_x_y));
   p.insert(tsyssym.create('Break',in_break));
+  p.insert(tsyssym.create('Exit',in_exit));
   p.insert(tsyssym.create('Continue',in_continue));
   p.insert(tsyssym.create('Dec',in_dec_x));
   p.insert(tsyssym.create('Inc',in_inc_x));
@@ -289,7 +290,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2002-07-07 09:52:32  florian
+  Revision 1.31  2002-07-16 15:34:21  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.30  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

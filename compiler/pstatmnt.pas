@@ -719,30 +719,6 @@ implementation
       end;
 
 
-    function exit_statement : tnode;
-
-      var
-         p : tnode;
-
-      begin
-         consume(_EXIT);
-         if try_to_consume(_LKLAMMER) then
-           begin
-              p:=comp_expr(true);
-              consume(_RKLAMMER);
-              if (block_type=bt_except) then
-                Message(parser_e_exit_with_argument_not__possible);
-              if is_void(aktprocdef.rettype.def) then
-                Message(parser_e_void_function);
-           end
-         else
-           p:=nil;
-         p:=cexitnode.create(p);
-         do_resulttypepass(p);
-         exit_statement:=p;
-      end;
-
-
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
@@ -993,8 +969,6 @@ implementation
                 consume(_FAIL);
                 code:=cfailnode.create;
              end;
-           _EXIT :
-             code:=exit_statement;
            _ASM :
              code:=_asm_statement;
            _EOF :
@@ -1036,7 +1010,7 @@ implementation
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
              if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn]) then
+                                   continuen,labeln,blockn,exitn]) then
                Message(cg_e_illegal_expression);
 
              { specify that we don't use the value returned by the call }
@@ -1257,7 +1231,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-07-11 14:41:28  florian
+  Revision 1.62  2002-07-16 15:34:20  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.61  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.60  2002/07/04 20:43:01  florian

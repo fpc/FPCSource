@@ -341,7 +341,7 @@ const
       (str:'CASE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'CVAR'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ELSE'          ;special:false;keyword:m_all;op:NOTOKEN),
-      (str:'EXIT'          ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'EXIT'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FAIL'          ;special:false;keyword:m_none;op:NOTOKEN), { only set within constructors PM }
       (str:'FILE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'GOTO'          ;special:false;keyword:m_all;op:NOTOKEN),
@@ -497,7 +497,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-05-18 13:34:21  peter
+  Revision 1.19  2002-07-16 15:34:21  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.18  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.17  2002/05/16 19:46:46  carl

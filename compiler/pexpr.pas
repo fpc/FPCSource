@@ -257,6 +257,22 @@ implementation
               statement_syssym := p1;
             end;
 
+          in_exit :
+            begin
+               if try_to_consume(_LKLAMMER) then
+                 begin
+                    p1:=comp_expr(true);
+                    consume(_RKLAMMER);
+                    if (block_type=bt_except) then
+                      Message(parser_e_exit_with_argument_not__possible);
+                    if is_void(aktprocdef.rettype.def) then
+                      Message(parser_e_void_function);
+                 end
+               else
+                 p1:=nil;
+               statement_syssym:=cexitnode.create(p1);
+            end;
+
           in_break :
             begin
               statement_syssym:=cbreaknode.create;
@@ -2235,7 +2251,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-07-06 20:18:02  carl
+  Revision 1.71  2002-07-16 15:34:20  florian
+    * exit is now a syssym instead of a keyword
+
+  Revision 1.70  2002/07/06 20:18:02  carl
   * longstring declaration now gives parser error since its not supported!
 
   Revision 1.69  2002/06/12 15:46:14  jonas
