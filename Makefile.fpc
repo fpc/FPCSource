@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=1.9.2
+version=1.9.4
 
 [target]
 dirs=compiler rtl utils fcl fv packages ide installer
@@ -42,14 +42,10 @@ PPSUF=arm
 endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix.
-ifneq ($(OS_TARGET),$(OS_SOURCE))
-PPPRE=ppcross
-else
-ifneq ($(CPU_TARGET),$(CPU_SOURCE))
+ifdef CROSSCOMPILE
 PPPRE=ppcross
 else
 PPPRE=ppc
-endif
 endif
 
 PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
@@ -74,30 +70,11 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
-ifeq ($(OS_TARGET),win32)
-ALLTARGET=smart
-else
-ifeq ($(OS_TARGET),go32v2)
-ALLTARGET=smart
-else
-ifeq ($(OS_TARGET),linux)
-ALLTARGET=smart
-else
-ifeq ($(OS_TARGET),freebsd)
-ALLTARGET=smart
-else
-ifeq ($(OS_TARGET),netbsd)
-ALLTARGET=smart
-else
-ifeq ($(OS_TARGET),openbsd)
+SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd
+ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
 ALLTARGET=smart
 else
 ALLTARGET=all
-endif
-endif
-endif
-endif
-endif
 endif
 endif
 endif
@@ -110,23 +87,19 @@ NOSTOP=
 endif
 
 # Prefix for units
-ifeq ($(OS_TARGET),linux)
-PKGPRE=units
+PKGUNITSPRELONGTARGETS=linux freebsd netbsd openbsd
+ifneq ($(findstring $(OS_TARGET),$(PKGUNITSPRELONGTARGETS)),)
+PKGUNITSPRE=units
 else
-ifeq ($(OS_TARGET),freebsd)
-PKGPRE=units
-else
-ifeq ($(OS_TARGET),netbsd)
-PKGPRE=units
-else
-ifeq ($(OS_TARGET),openbsd)
-PKGPRE=units
-else
-PKGPRE=u
+PKGUNITSPRE=u
 endif
-endif
-endif
-endif
+
+# Cross compile needs a prefix to not conflict with original packages
+#ifdef CROSSCOMPILE
+#PKGPRE=$(FULL_TARGET)-
+#else
+PKGPRE=
+#endif
 
 # Always compile for release
 override RELEASE=1
@@ -156,26 +129,14 @@ BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
 # Compile also IDE (check for ide and fv dir)
+# Skipped by default for cross compiles, because it depends on libc
+ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
 ifneq ($(wildcard fv),)
-ifeq ($(OS_TARGET),go32v2)
+IDETARGETS=go32v2 win32 linux freebsd os2 emx
+ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
 IDE=1
 endif
-ifeq ($(OS_TARGET),win32)
-IDE=1
-endif
-ifeq ($(OS_TARGET),linux)
-IDE=1
-endif
-# is now doable too.
-ifeq ($(OS_TARGET),freebsd)
-IDE=1
-endif
-ifeq ($(OS_TARGET),os2)
-IDE=1
-endif
-ifeq ($(OS_TARGET),emx)
-IDE=1
 endif
 endif
 endif
@@ -356,12 +317,12 @@ ifdef IDE
 endif
 
 zipinstall: build-stamp.$(OS_TARGET)
-        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base$(ZIPSUFFIX) $(INSTALLOPTS)
-        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
-        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
-        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
+        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=$(PKGPRE)base$(ZIPSUFFIX) $(INSTALLOPTS)
+        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
+        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
+        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)util$(ZIPSUFFIX)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=ide$(ZIPSUFFIX)
+        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)ide$(ZIPSUFFIX)
 endif
 
 
@@ -437,7 +398,7 @@ sourcezip:
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
-        $(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGPRE)
+        $(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGUNITSPRE)
         $(MAKE) fcl_zipsourceinstall
         $(MAKE) utils_zipsourceinstall
         $(MAKE) ide_zipsourceinstall
@@ -448,70 +409,22 @@ sourcezip:
 # OS targets
 ##########################################################################
 
+BUILDTARGETS=go32v2 win32 linux freebsd netbsd openbsd os2 emx sunos qnx beos
+
 .PHONY: go32v2 win32 linux freebsd os2 emx netbsd openbsd go32v2zip win32zip linuxzip freebsdzip os2zip emxzip netbsdzip openbsdzip
 
-go32v2: checkfpcdir
-        $(MAKE) install OS_TARGET=go32v2
+$(BUILDTARGETS): checkfpcdir
+        $(MAKE) install OS_TARGET=$@
 
-win32: checkfpcdir
-        $(MAKE) install OS_TARGET=win32
-
-linux: checkfpcdir
-        $(MAKE) install OS_TARGET=linux
-
-freebsd: checkfpcdir
-        $(MAKE) install OS_TARGET=freebsd
-
-netbsd: checkfpcdir
-        $(MAKE) install OS_TARGET=netbsd
-
-openbsd: checkfpcdir
-        $(MAKE) install OS_TARGET=openbsd
-
-os2: checkfpcdir
-        $(MAKE) install OS_TARGET=os2
-
-emx: checkfpcdir
-        $(MAKE) install OS_TARGET=emx
-
-sunos: checkfpcdir
-        $(MAKE) install OS_TARGET=sunos
-
-go32v2zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=go32v2
-
-win32zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=win32
-
-linuxzip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=linux
-
-freebsdzip : checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=freebsd
-
-netbsdzip : checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=netbsd
-
-openbsdzip : checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=openbsd
+$(addsuffix zip,$(filter-out beos sunos,$(BUILDTARGETS))): checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=$(subst zip,,$@)
 
 beoszip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=beos USEZIP=1
 
-os2zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=os2
-
-emxzip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=emx
-
 sunoszip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
 
-qnxzip: checkfpcdir
-                $(MAKE) zipinstall OS_TARGET=qnx
-
-amigazip: checkfpcdir
-                $(MAKE) zipinstall OS_TARGET=amiga
 
 ##########################################################################
 # Dos, OS/2 Short 8.3 Names
