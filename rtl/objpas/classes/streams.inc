@@ -22,13 +22,13 @@
        Result:=Seek(0,soCurrent);
     end;
 
-  procedure TStream.SetPosition(Pos: Int64);
+  procedure TStream.SetPosition(const Pos: Int64);
 
     begin
        Seek(pos,soBeginning);
     end;
 
-  procedure TStream.SetSize64(NewSize: Int64);
+  procedure TStream.SetSize64(const NewSize: Int64);
 
     begin
       // Required because can't use overloaded functions in properties
@@ -53,7 +53,7 @@
     // As wel as possible read-ony streams !!
     end;
 
-  procedure TStream.SetSize(NewSize: Int64);
+  procedure TStream.SetSize(const NewSize: Int64);
 
     begin
       // Backwards compatibility that calls the longint SetSize
@@ -66,7 +66,7 @@
   function TStream.Seek(Offset: Longint; Origin: Word): Longint;
 
     type
-      TSeek64 = function(offset:Int64;Origin:TSeekorigin):Int64 of object;
+      TSeek64 = function(const offset:Int64;Origin:TSeekorigin):Int64 of object;
     var
       CurrSeek,
       TStreamSeek : TSeek64;
@@ -92,7 +92,7 @@
        raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
     end;
 
-  function TStream.Seek(Offset: Int64; Origin: TSeekorigin): Int64;
+  function TStream.Seek(const Offset: Int64; Origin: TSeekorigin): Int64;
 
     begin
       // Backwards compatibility that calls the longint Seek
@@ -431,14 +431,14 @@ begin
 end;
 
 
-Procedure THandleStream.SetSize(NewSize: Int64);
+Procedure THandleStream.SetSize(const NewSize: Int64);
 
 begin
   FileTruncate(FHandle,NewSize);
 end;
 
 
-function THandleStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
+function THandleStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
   Result:=FileSeek(FHandle,Offset,ord(Origin));
@@ -811,7 +811,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:31  peter
+  Revision 1.9  2005-03-25 20:07:43  peter
+    * add const to 64bit seeks
+
+  Revision 1.8  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.7  2005/01/20 16:37:57  peter
